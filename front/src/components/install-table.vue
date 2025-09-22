@@ -268,7 +268,8 @@
               <div
                 v-bk-tooltips="{
                   content: '密码有效，点击修改',
-                  disabled: !isReinstall || !row.prove || !row.login_credit_valid,
+                  disabled:
+                    !isReinstall || !row.prove || !row.login_credit_valid,
                 }"
               >
                 <Input
@@ -340,23 +341,23 @@
               @setting-change="settingChange"
             ></Settings>
           </Button>
-          <Button text v-if="isFullscreen" @click="switchFullScreen"
-            ><i class="nodeman-icon nc-icon-un-full-screen"></i
-          ></Button>
-          <Button text v-else @click="switchFullScreen"
-            ><i class="nodeman-icon nc-icon-full-screen"></i
-          ></Button>
+          <Button text v-if="isFullscreen" @click="switchFullScreen">
+            <i class="nodeman-icon nc-icon-un-full-screen"></i>
+          </Button>
+          <Button text v-else @click="switchFullScreen">
+            <i class="nodeman-icon nc-icon-full-screen"></i>
+          </Button>
         </template>
         <VxeColumn width="80" field="action" title="操作">
           <template #default="{ row, $rowIndex, $columnIndex }">
-            <Button text @click="handleAddRow($rowIndex)"
-              ><i class="nodeman-icon nc-plus"></i
-            ></Button>
+            <Button text @click="handleAddRow($rowIndex)">
+              <i class="nodeman-icon nc-plus"></i>
+            </Button>
             <Button
               text
               @click="handleDelRow($rowIndex, rowid, Object.keys(row))"
               style="margin-left: 8px"
-              ><i class="nodeman-icon nc-minus"></i
+            ><i class="nodeman-icon nc-minus"></i
             ></Button>
           </template>
         </VxeColumn>
@@ -369,23 +370,27 @@
 </template>
 
 <script lang="ts" setup>
-type VxeComponentSizeType = "small" | "medium" | "large";
+import { Button, Input, Message, Select, Switcher, Table } from 'bkui-vue';
+import { cloneDeep } from 'lodash';
+import { computed, onMounted, reactive, ref } from 'vue';
+
+import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
+
+import Validate from './validate.vue';
+
+import type { TopoHostDistinctRespData } from '@/@types/topo.d';
+import { TopoService } from '@/api/modules/topo';
+import { VALIDATE_REGEX } from '@/common/const';
+import useFullScreen from '@/composables/use-fullscreen';
+import { useMainStore } from '@/stores/main';
+type VxeComponentSizeType = 'small' | 'medium' | 'large';
 interface IValidate {
   validator: Function | RegExp | string;
   message: string;
 }
 type ValidationRules = Record<string, IValidate[]>;
-import { VxeTable, VxeColumn, VxeColgroup } from "@blueking/vxe-table";
-import { Input, Button, Message, Select, Switcher } from "bkui-vue";
-import { computed, ref, reactive, onMounted } from "vue";
-import { useMainStore } from "@/stores/main";
-import { VALIDATE_REGEX } from "@/common/const";
-import { cloneDeep } from "lodash";
-import Validate from "./validate.vue";
-import useFullScreen from "@/composables/use-fullscreen";
-import { TopoService } from "@/api/modules/topo";
-import type { TopoHostDistinctRespData } from "@/@types/topo.d";
 
+const tableData = defineModel<Array<ReturnType<typeof getInitData>>>('data');
 const props = defineProps({
   data: {
     type: Array,
@@ -393,7 +398,7 @@ const props = defineProps({
   },
   realeaseType: {
     type: String,
-    default: "agent",
+    default: 'agent',
   },
   isReinstall: {
     type: Boolean,
@@ -403,48 +408,48 @@ const props = defineProps({
     type: Object,
     default: {
       fields: [
-        { field: "bk_host_innerip", title: "内网 IPv4" },
-        { field: "bk_host_innerip_v6", title: "内网 IPv6" },
-        { field: "os_type", title: "操作系统" },
-        { field: "login_port", title: "登录端口" },
-        { field: "login_user", title: "登录账号" },
-        { field: "login_ip", title: "登录 IP" },
-        { field: "login_mode", title: "认证方式" },
-        { field: "prove", title: "密码 / 密钥" },
+        { field: 'bk_host_innerip', title: '内网 IPv4' },
+        { field: 'bk_host_innerip_v6', title: '内网 IPv6' },
+        { field: 'os_type', title: '操作系统' },
+        { field: 'login_port', title: '登录端口' },
+        { field: 'login_user', title: '登录账号' },
+        { field: 'login_ip', title: '登录 IP' },
+        { field: 'login_mode', title: '认证方式' },
+        { field: 'prove', title: '密码 / 密钥' },
       ],
       checked: [
-        "bk_host_innerip",
-        "bk_host_innerip_v6",
-        "os_type",
-        "login_port",
-        "login_ip",
-        "login_user",
-        "login_mode",
-        "prove",
+        'bk_host_innerip',
+        'bk_host_innerip_v6',
+        'os_type',
+        'login_port',
+        'login_ip',
+        'login_user',
+        'login_mode',
+        'prove',
       ],
-      disabled: ["os_type", "login_port", "login_user", "login_mode", "prove"],
-      size: "medium" as VxeComponentSizeType,
+      disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'prove'],
+      size: 'medium' as VxeComponentSizeType,
     },
   },
 });
 const initData = {
-  bk_host_innerip: "",
-  bk_host_innerip_v6: "",
-  os_type: "",
-  login_ip: "",
-  login_port: "",
-  login_user: "",
-  login_mode: "password",
-  login_password: "",
-  login_key_file: "",
-  bk_addressing: "static",
-  bk_networkunit_id: "",
-  bk_biz_id: "",
-  bk_host_id: "",
+  bk_host_innerip: '',
+  bk_host_innerip_v6: '',
+  os_type: '',
+  login_ip: '',
+  login_port: '',
+  login_user: '',
+  login_mode: 'password',
+  login_password: '',
+  login_key_file: '',
+  bk_addressing: 'static',
+  bk_networkunit_id: '',
+  bk_biz_id: '',
+  bk_host_id: '',
   re_register: false,
-  prove: "",
-  export_ip: "",
-  advertise_ip: "",
+  prove: '',
+  export_ip: '',
+  advertise_ip: '',
   dedicated_installer: true,
   cluster_tunnel: true,
   file_tunnel: true,
@@ -452,21 +457,21 @@ const initData = {
 };
 const rules: ValidationRules = {
   bk_host_innerip: [
-    { validator: VALIDATE_REGEX.IPV4, message: "请输入正确的内网 IPv4" },
+    { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的内网 IPv4' },
   ],
   bk_host_innerip_v6: [
-    { validator: VALIDATE_REGEX.IPV6, message: "请输入正确的内网 IPv6" },
+    { validator: VALIDATE_REGEX.IPV6, message: '请输入正确的内网 IPv6' },
   ],
-  os_type: [{ validator: (val: string) => val, message: "请输入操作系统" }],
+  os_type: [{ validator: (val: string) => val, message: '请输入操作系统' }],
   login_ip: [
-    { validator: VALIDATE_REGEX.IPV4, message: "请输入正确的登录 IP" },
+    { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的登录 IP' },
   ],
   login_port: [
-    { validator: VALIDATE_REGEX.PORT, message: "请输入正确的登录端口" },
+    { validator: VALIDATE_REGEX.PORT, message: '请输入正确的登录端口' },
   ],
-  login_user: [{ validator: (val: string) => val, message: "请输入登录账号" }],
-  login_mode: [{ validator: (val: string) => val, message: "请输入认证方式" }],
-  prove: [{ validator: (val: string) => val, message: "请输入密码 / 密钥" }],
+  login_user: [{ validator: (val: string) => val, message: '请输入登录账号' }],
+  login_mode: [{ validator: (val: string) => val, message: '请输入认证方式' }],
+  prove: [{ validator: (val: string) => val, message: '请输入密码 / 密钥' }],
 };
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
@@ -474,8 +479,6 @@ const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const mainStore = useMainStore();
 const businessList = computed(() => mainStore.businessList);
 const type = computed(() => mainStore.agentSetupType);
-const tableData = defineModel<Array<ReturnType<typeof getInitData>>>("data");
-
 function getInitData() {
   return cloneDeep(initData);
 }
@@ -495,20 +498,20 @@ const settingChange = (data: {
 const datasourceList = ref<{ id: string; name: string }[]>([]);
 const authenticationTypes = ref([
   {
-    id: "password",
-    name: "密码",
+    id: 'password',
+    name: '密码',
   },
   {
-    id: "key",
-    name: "密钥",
+    id: 'key',
+    name: '密钥',
   },
 ]);
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
-const curMode = ref("password");
+const curMode = ref('password');
 // 切换认证方式
 const handleChangeMode = (newValue: string, row: any) => {
   curMode.value = newValue;
-  row.prove = "";
+  row.prove = '';
 };
 // 登录ip默认回填内网ipv4的值
 const handleChangeIPv4 = (val: string, row: any) => {
@@ -518,19 +521,19 @@ const handleChangeIPv4 = (val: string, row: any) => {
 };
 // linux登录端口默认为36000
 const handleChangeOsType = (val: string, row: any) => {
-  if (val === "linux") {
-    row.login_port = "36000";
-    row.login_user = "root";
+  if (val === 'linux') {
+    row.login_port = '36000';
+    row.login_user = 'root';
   }
-  if (val === "windows") {
-    row.login_user = "administrator";
+  if (val === 'windows') {
+    row.login_user = 'administrator';
   }
 };
 const getHostDistinct = async () => {
   const res = await TopoService.HostDistinct({}).catch(() => null);
   if (res) {
     hostDistinct.value = res;
-    datasourceList.value = res.os_type.map((item) => ({
+    datasourceList.value = res.os_type.map(item => ({
       id: item,
       name: item,
     }));
@@ -540,8 +543,8 @@ const handleDelRow = (index: number, rowid: string, fields: string[]) => {
   if (!(tableData.value instanceof Array)) return;
   if (tableData.value.length === 1) {
     Message({
-      theme: "warning",
-      message: "至少保留一行",
+      theme: 'warning',
+      message: '至少保留一行',
     });
     return;
   }
@@ -556,7 +559,7 @@ const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
 const setInputRef = (
   rowid: string | number,
   filed: string,
-  el: InstanceType<typeof Validate> | null
+  el: InstanceType<typeof Validate> | null,
 ) => {
   if (el) {
     const key = `${rowid}-${filed}`;
@@ -568,10 +571,10 @@ const tableValidate = async () => {
   const refs = Array.from(inputRefs.value.values());
   const validate = [];
   for (const item of refs) {
-    validate.push(item.validate("blur"));
+    validate.push(item.validate('blur'));
   }
   const result = await Promise.all(validate);
-  return result.every((item) => item);
+  return result.every(item => item);
 };
 
 defineExpose({

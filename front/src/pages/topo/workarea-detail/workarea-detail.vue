@@ -12,7 +12,7 @@
           :label="item.bk_networkunit_name"
           :name="item.bk_networkunit_id"
           render-directive="if"
-        > 
+        >
           <template #label>
             <div class="w-full">
               <span>{{ item.bk_networkunit_name }}</span>
@@ -49,7 +49,12 @@
                     <Button theme="primary" class="mr-[8px]" @click="handleInstallProxy">
                       <span>{{ $t('topoManager.workAreaDetail.button.installProxy') }}</span>
                     </Button>
-                    <MoreAction :row="selectTableData" placement="bottom-start" :batch="true">
+                    <MoreAction
+                      :row="selectTableData"
+                      placement="bottom-start"
+                      :batch="true"
+                      @reinstall="handleReinstall(selectTableData)"
+                    >
                       <Button :disabled="!selectTableData.length" class="mr-[8px]">
                         <span>{{ $t('topoManager.workAreaDetail.button.batch') }}</span>
                         <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
@@ -69,7 +74,12 @@
                 </template>
               </FlexRow>
               <!-- table -->
-              <DetailTable :searchSelectValue="searchKey" :bkNetworkunitId="active" @selectChange="handleSelectChange"></DetailTable>
+              <DetailTable
+                :search-select-value="searchKey"
+                :bk-networkunit-id="active"
+                :is-batch-reinstall="batchReinstall"
+                @select-change="handleSelectChange">
+              </DetailTable>
             </template>
           </div>
         </Tab.TabPanel>
@@ -102,7 +112,8 @@
         @delete="handleAfterDelete"
       />
     </div>
-    <InstallProxy v-model:is-show="isShowInstallProxy" :bk_networkunit_id="active"/>
+    <InstallProxy v-model:is-show="isShowInstallProxy" :bk_networkunit_id="active" />
+    <ReinstallProxy v-model:is-show="isShowReinstallProxy" :data="reinstallData" :bk_networkunit_id="active" />
   </Loading>
 </template>
 
@@ -114,17 +125,18 @@ import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 import InstallProxy from '../install-proxy/install-proxy.vue';
+import ReinstallProxy from '../install-proxy/reinstall-proxy.vue';
 import UpsertWorkUnit from '../upsert-workunit/upsert-work-unit.vue';
 
 import AccessPoint from './components/access-point.vue';
 import DeleteWorkUnit from './components/delete-work-unit.vue';
 import DetailTable from './components/detail-table.vue';
+import MoreAction from './components/more-action.vue';
 import WorkUnitInfo from './components/work-unit-info.vue';
 
 import CopyIp from '@/components/copy-ip.vue';
 import { useRouteSubTitle } from '@/stores/route-sub-title';
 import { useWorkareaStore } from '@/stores/workarea';
-import MoreAction from './components/more-action.vue';
 
 const {
   handleFetchAllWorkarea,
@@ -164,10 +176,17 @@ const searchSelectData = ref<ISearchItem[]>([
 const handleCopyChange = () => {
 
 };
+const batchReinstall = ref(false);
+const isShowReinstallProxy = ref(false);
+const reinstallData = ref<Host[]>([]);
+const handleReinstall = (data: Host[]) => {
+  isShowReinstallProxy.value = true;
+  reinstallData.value = data;
+};
 const selectTableData = ref<Host[]>([]);
 const handleSelectChange = (tableList: Host[]) => {
   selectTableData.value = tableList;
-}
+};
 const isShowInstallProxy = ref(false);
 const handleInstallProxy = () => {
   isShowInstallProxy.value = true;

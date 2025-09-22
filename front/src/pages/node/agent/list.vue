@@ -13,7 +13,7 @@
             $t("platform.nodeMan.installAgent")
           }}</Button>
           <template #content>
-            <Dropdown.DropdownMenu extCls="dropDown-menu">
+            <Dropdown.DropdownMenu ext-cls="dropDown-menu">
               <Dropdown.DropdownItem
                 class="text-14px"
                 v-for="item in agentInstallType"
@@ -68,9 +68,9 @@
           ref="searchSelect"
           :data="searchSelectData"
           v-model="searchSelectValue"
-          :uniqueSelect="true"
+          :unique-select="true"
           :placeholder="$t('platform.nodeMan.agentSearchPlaceholder')"
-          @update:modelValue="handleSearchSelectChange"
+          @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>
       </div>
@@ -203,28 +203,30 @@
   </div>
 </template>
 <script setup lang="ts">
+import { Button, Cascader, Dropdown, InfoBox, SearchSelect } from 'bkui-vue';
+import { toLower } from 'lodash';
+import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import type { TopoHostDistinctRespData } from '@/@types/topo';
+import type {
+  TopoHostExactConditions,
+  TopoHostFuzzyConditions,
+} from '@/@types/topo.d';
+import { TopoService } from '@/api/modules/topo';
+import { WorkflowService } from '@/api/modules/workflow';
+import { capitalizeFirstLetter } from '@/common/util';
+import useTableSetting from '@/composables/use-table-setting';
+import { useMainStore } from '@/stores/main';
+import { useNodeManageStore } from '@/stores/node-manage';
 interface FilterOption {
   list: { text: string; value: string }[];
   checked: string[];
   filterScope: string;
 }
-import { ref, reactive, computed, onMounted, shallowRef, watch } from "vue";
-import { Table, TableColumn } from "@blueking/table";
-import { useI18n } from "vue-i18n";
-import { toLower } from "lodash";
-import { useRoute, useRouter } from "vue-router";
-import { InfoBox, Button, Dropdown, Cascader, SearchSelect } from "bkui-vue";
-import { useMainStore } from "@/stores/main";
-import { useNodeManageStore } from "@/stores/node-manage";
-import { WorkflowService } from "@/api/modules/workflow";
-import { TopoService } from "@/api/modules/topo";
-import useTableSetting from "@/composables/use-table-setting";
-import { TopoHostDistinctRespData } from "@/@types/topo";
-import type {
-  TopoHostExactConditions,
-  TopoHostFuzzyConditions,
-} from "@/@types/topo.d";
-import { capitalizeFirstLetter } from "@/common/util";
 
 const { t } = useI18n();
 const route = useRoute();
@@ -244,21 +246,15 @@ const topo = ref([]);
 const topoBizFilterList = computed(() => mainStore.businessList);
 const topoRemotehandler = () => {};
 // 搜索
-const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>(
-  []
-);
-const handleSearchSelectChange = async (
-  data: { id: string; name: string; values: { id: string; name: string }[] }[]
-) => {
+const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
   // 给筛选器添加选中值
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
   });
   data.forEach((item) => {
     if (filterOptionSource[item.id]) {
-      filterOptionSource[item.id].checked = item.values.map(
-        (item: any) => item.id
-      );
+      filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
     }
   });
 };
@@ -267,8 +263,8 @@ const hostDistinct = ref<TopoHostDistinctRespData | null>();
 const getHostDistinct = async () => {
   const params = {
     exact_include_conditions: {
-      node_role: ['agent', 'blank']
-    }
+      node_role: ['agent', 'blank'],
+    },
   };
   const res = await TopoService.HostDistinct(params).catch(() => null);
   if (res) {
@@ -277,10 +273,10 @@ const getHostDistinct = async () => {
       const curUniqueValues = res[key] || [];
       if (filterOptionSource[key]) {
         filterOptionSource[key].list = curUniqueValues
-          .filter((item: any) => item !== "")
+          .filter((item: any) => item !== '')
           .map((value: string) => ({
-            text: key === "os_type" && osMap[value] ? osMap[value] : value,
-            value: value,
+            text: key === 'os_type' && osMap[value] ? osMap[value] : value,
+            value,
           }));
       }
     });
@@ -293,18 +289,14 @@ const handleFilter = ({
   checked: string[];
   field: string;
 }) => {
-  if (field === "bk_networkarea_name") {
+  if (field === 'bk_networkarea_name') {
     if (checked.length) {
-      tableData.value = agentList.value.filter((item: any) =>
-        checked.includes(item[field])
-      );
+      tableData.value = agentList.value.filter((item: any) => checked.includes(item[field]));
     } else {
       tableData.value = agentList.value;
     }
   } else {
-    const index = searchSelectValue.value.findIndex(
-      (item: any) => item.id === field
-    );
+    const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
     index > -1 && searchSelectValue.value.splice(index, 1);
     if (checked.length) {
       searchSelectValue.value.push({
@@ -312,7 +304,7 @@ const handleFilter = ({
         name: t(field),
         values: checked.map((item: any) => ({
           id: item,
-          name: field === "os_type" && osMap[item] ? osMap[item] : item,
+          name: field === 'os_type' && osMap[item] ? osMap[item] : item,
         })),
       });
     }
@@ -331,32 +323,32 @@ const pageValueChange = async (current: number) => {
 // 批量操作
 const operate = [
   {
-    id: "upgrade",
-    name: t("升级"),
+    id: 'upgrade',
+    name: '升级',
     disabled: false,
     show: true,
   },
   {
-    id: "uninstall",
-    name: t("卸载"),
+    id: 'uninstall',
+    name: '卸载',
     disabled: false,
     show: true,
   },
   {
-    id: "reload",
-    name: t("重载配置"),
+    id: 'reload',
+    name: '重载配置',
     disabled: false,
     show: true,
   },
   {
-    id: "reboot",
-    name: t("重启"),
+    id: 'reboot',
+    name: '重启',
     disabled: false,
     show: true,
   },
   {
-    id: "log",
-    name: t("最新执行日志"),
+    id: 'log',
+    name: '最新执行日志',
     disabled: false,
     show: true,
     single: true,
@@ -365,29 +357,29 @@ const operate = [
 // 安装方式
 const agentInstallType = [
   {
-    id: "setup",
-    name: t("普通远程安装"),
+    id: 'setup',
+    name: '普通远程安装',
   },
   {
-    id: "import",
-    name: t("Excel 导入远程安装"),
+    id: 'import',
+    name: 'Excel 导入远程安装',
   },
   {
-    id: "manual",
-    name: t("手动安装"),
+    id: 'manual',
+    name: '手动安装',
   },
 ];
 const osMap = {
-  windows: "Windows",
-  unknown: "Unknown",
-  darwin: "Darwin",
-  linux: "Linux",
+  windows: 'Windows',
+  unknown: 'Unknown',
+  darwin: 'Darwin',
+  linux: 'Linux',
 };
 const dropdownShow = ref(false);
 const handleInstall = () => {
   if (selection.value.length) {
     dropdownShow.value = false;
-    triggerHandler("reinstall");
+    triggerHandler('reinstall');
   } else {
     dropdownShow.value = !dropdownShow.value;
   }
@@ -395,23 +387,19 @@ const handleInstall = () => {
 
 // 搜索
 const getUniqueChildren = (prop: string) => {
-  const uniqueValues = Array.from(
-    new Set(
-      agentList.value.map((item: any) => item[prop]).filter((item: any) => item)
-    )
-  );
-  return uniqueValues.map((value) => ({
+  const uniqueValues = Array.from(new Set(agentList.value.map((item: any) => item[prop]).filter((item: any) => item)));
+  return uniqueValues.map(value => ({
     id: value,
     name: String(value),
   }));
 };
 const getUniqueChildrenFrom = <K extends keyof TopoHostDistinctRespData>(
   prop: K,
-  keyMap?: Record<string, any>
+  keyMap?: Record<string, any>,
 ) => {
   const uniqueValues = hostDistinct.value?.[prop] || [];
   return uniqueValues
-    .filter((item: any) => item !== "")
+    .filter((item: any) => item !== '')
     .map((value: any) => ({
       id: value,
       name: keyMap && keyMap[value] ? keyMap[value] : String(value),
@@ -419,45 +407,45 @@ const getUniqueChildrenFrom = <K extends keyof TopoHostDistinctRespData>(
 };
 const searchSelectData = computed(() => [
   {
-    id: "bk_host_innerip",
-    name: t("platform.nodeMan.inner_ip"),
+    id: 'bk_host_innerip',
+    name: t('platform.nodeMan.inner_ip'),
     multiple: true,
   },
   {
-    id: "bk_host_innerip_v6",
-    name: t("platform.nodeMan.inner_ipv6"),
+    id: 'bk_host_innerip_v6',
+    name: t('platform.nodeMan.inner_ipv6'),
     multiple: true,
   },
   {
-    id: "bk_networkarea_id",
-    name: "管控区域ID:IP",
-    children: getUniqueChildrenFrom("bk_networkarea_id"),
+    id: 'bk_networkarea_id',
+    name: '管控区域ID:IP',
+    children: getUniqueChildrenFrom('bk_networkarea_id'),
     multiple: true,
   },
-  { id: "bk_agent_id", name: "Agent ID", multiple: true },
+  { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
   // {id: 'bk_networkarea_name', name: '管控区域', children: getUniqueChildren('bk_networkarea_name')},
   {
-    id: "bk_networkunit_id",
-    name: "管控单元",
-    children: getUniqueChildrenFrom("bk_networkunit_id"),
+    id: 'bk_networkunit_id',
+    name: '管控单元',
+    children: getUniqueChildrenFrom('bk_networkunit_id'),
     multiple: true,
   },
   {
-    id: "os_type",
-    name: "操作系统",
-    children: getUniqueChildrenFrom("os_type", osMap),
+    id: 'os_type',
+    name: '操作系统',
+    children: getUniqueChildrenFrom('os_type', osMap),
     multiple: true,
   },
   {
-    id: "node_version",
-    name: "Agent版本",
-    children: getUniqueChildrenFrom("node_version"),
+    id: 'node_version',
+    name: 'Agent版本',
+    children: getUniqueChildrenFrom('node_version'),
     multiple: true,
   },
   {
-    id: "node_status",
-    name: "Agent 状态",
-    children: getUniqueChildrenFrom("node_status"),
+    id: 'node_status',
+    name: 'Agent 状态',
+    children: getUniqueChildrenFrom('node_status'),
     multiple: true,
   },
 ]);
@@ -465,77 +453,71 @@ const searchSelectData = computed(() => [
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    "bk_host_innerip",
-    "bk_host_innerip_v6",
-    "bk_agent_id",
-    "bk_networkarea_name",
-    "bk_networkarea_id",
-    "bk_networkunit_id",
-    "os_type",
-    "node_version",
-    "node_status",
-    "action",
+    'bk_host_innerip',
+    'bk_host_innerip_v6',
+    'bk_agent_id',
+    'bk_networkarea_name',
+    'bk_networkarea_id',
+    'bk_networkunit_id',
+    'os_type',
+    'node_version',
+    'node_status',
+    'action',
   ],
-  disabled: ["action"],
+  disabled: ['action'],
 });
 
 const areaFilterOption = reactive({
-  list: computed(() =>
-    Array.from(
-      new Set(
-        agentList.value
-          .map((item: any) => item["bk_networkarea_name"])
-          .filter((item: any) => item !== "")
-      )
-    ).map((value) => ({
-      text: value,
-      value: value,
-    }))
-  ),
+  list: computed(() => Array.from(new Set(agentList.value
+    .map((item: any) => item['bk_networkarea_name'])
+    .filter((item: any) => item !== ''))).map(value => ({
+    text: value,
+    value,
+  }))),
   checked: [] as string[],
-  filterScope: "all",
+  filterScope: 'all',
 });
 const filterOptionSource: Record<string, FilterOption> = reactive({
   bk_networkarea_id: {
     list: [],
     checked: [],
-    filterScope: "all",
+    filterScope: 'all',
   },
   bk_networkunit_id: {
     list: [],
     checked: [],
-    filterScope: "all",
+    filterScope: 'all',
   },
   os_type: {
     list: [],
     checked: [],
-    filterScope: "all",
+    filterScope: 'all',
   },
   node_version: {
     list: [],
     checked: [],
-    filterScope: "all",
+    filterScope: 'all',
   },
   node_status: {
     list: [],
     checked: [],
-    filterScope: "all",
+    filterScope: 'all',
   },
 });
 
-const triggerHandler = (type: string, setupType: string = "setup") => {
+const triggerHandler = (type: string, setupType = 'setup') => {
   switch (type) {
     // 批量重启 批量重装 批量重载配置 批量卸载 批量升级
-    case "reboot":
-    case "reinstall":
-    case "reload":
-    case "uninstall":
-    case "upgrade":
-    case "remove":
+    case 'reboot':
+    case 'reinstall':
+    case 'reload':
+    case 'uninstall':
+    case 'upgrade':
+    case 'remove':
       handleOperate(type, selection.value, true);
       break;
-    case "setup":
-      router.push({ name: "agentSetup" });
+    case 'setup':
+      router.push({ name: 'agentSetup' });
       mainStore.updateAgentSetupType(setupType);
       break;
   }
@@ -544,7 +526,7 @@ const triggerHandler = (type: string, setupType: string = "setup") => {
  * 当前操作项是否显示
  */
 const getOperateShow = (row: Host, config: IOperateItem) => {
-  if (config.id === "log" && (!row.job_result || !row.job_result.job_id)) {
+  if (config.id === 'log' && (!row.job_result || !row.job_result.job_id)) {
     return false;
   }
   return config.show;
@@ -552,48 +534,48 @@ const getOperateShow = (row: Host, config: IOperateItem) => {
 // 操作
 const handleOperate = (type: string, data: Host[], batch = false) => {
   if (
-    !batch &&
-    ["terminated", "not_installed"].includes(data[0].state.node_version) &&
-    !["log", "reinstall", "remove"].includes(type)
+    !batch
+    && ['terminated', 'not_installed'].includes(data[0].state.node_version)
+    && !['log', 'reinstall', 'remove'].includes(type)
   ) {
     return;
   }
 
-  let jobType = "";
+  let jobType = '';
 
   switch (type) {
     // 重启
-    case "reboot":
-      handleOperatetHost(data, batch, "RESTART_AGENT");
+    case 'reboot':
+      handleOperatetHost(data, batch, 'RESTART_AGENT');
       break;
     // 移除
-    case "remove":
-      handleOperatetHost(data, batch, "REMOVE_AGENT");
+    case 'remove':
+      handleOperatetHost(data, batch, 'REMOVE_AGENT');
       break;
     // 重装
-    case "reinstall":
-      jobType = "REINSTALL_AGENT";
+    case 'reinstall':
+      jobType = 'REINSTALL_AGENT';
       break;
     // 重载 只取其中一部分数据
-    case "reload":
-      jobType = "RELOAD_AGENT";
+    case 'reload':
+      jobType = 'RELOAD_AGENT';
       break;
     // 卸载
-    case "uninstall":
-      jobType = "UNINSTALL_AGENT";
+    case 'uninstall':
+      jobType = 'UNINSTALL_AGENT';
       break;
     // 升级
-    case "upgrade":
-      handleOperatetHost(data, batch, "UPGRADE_AGENT");
+    case 'upgrade':
+      handleOperatetHost(data, batch, 'UPGRADE_AGENT');
       break;
     // 日志详情
-    case "log":
+    case 'log':
       // handleGotoLog(data[0]);
       break;
   }
   if (!jobType) return;
 
-  router.push({ name: "agentEdit" });
+  router.push({ name: 'agentEdit' });
   const params = {
     tableData: data.map((item: any) => ({
       ...item,
@@ -605,9 +587,7 @@ const handleOperate = (type: string, data: Host[], batch = false) => {
   nodeManageStore.updateAgentEditRowData(params);
 };
 // 表格勾选
-const selection = computed(() =>
-  tableData.value.filter((item: any) => item.checked)
-);
+const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const handleSelectChange = ({
   checked,
   row,
@@ -639,7 +619,7 @@ const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
 const handleOperatetHost = async (
   data: Host[],
   batch: boolean,
-  operateType: string
+  operateType: string,
 ) => {
   const titleObj = {
     firstIp: data[0].info.bk_host_innerip,
@@ -673,42 +653,42 @@ const handleOperatetHost = async (
     loading.value = false;
     if (result.workflow_id) {
       router.push({
-        name: "taskDetail",
-        params: { taskId: result.workflow_id, routerBackName: "taskList" },
+        name: 'taskDetail',
+        params: { taskId: result.workflow_id, routerBackName: 'taskList' },
       });
     }
     return;
   };
-  let type = "";
+  let type = '';
   switch (operateType) {
     // 重启
-    case "RESTART_AGENT":
-      type = t("重启");
+    case 'RESTART_AGENT':
+      type = '重启';
       break;
     // 升级
-    case "UPGRADE_AGENT":
-      type = t("升级");
+    case 'UPGRADE_AGENT':
+      type = '升级';
       break;
-    case "REMOVE_AGENT":
-      type = t("移除");
+    case 'REMOVE_AGENT':
+      type = '移除';
       break;
   }
 
   InfoBox({
     title: batch ? `请确认是否批量${type}` : `请确认是否${type}`,
     subTitle: batch
-      ? t("批量确认操作提示", {
-          ip: titleObj.firstIp,
-          num: titleObj.num,
-          type,
-          suffix: operateType === "UPGRADE_AGENT" ? t("到最新版本") : "",
-        })
+      ? t('批量确认操作提示', {
+        ip: titleObj.firstIp,
+        num: titleObj.num,
+        type,
+        suffix: operateType === 'UPGRADE_AGENT' ? t('到最新版本') : '',
+      })
       : `${type} ${titleObj.firstIp} 的Agent${
-          operateType === "UPGRADE_AGENT" ? t("到最新版本") : ""
-        }`,
-    extCls: "wrap-title",
+        operateType === 'UPGRADE_AGENT' ? t('到最新版本') : ''
+      }`,
+    extCls: 'wrap-title',
     onConfirm: () => {
-      if (operateType === "REMOVE_AGENT") {
+      if (operateType === 'REMOVE_AGENT') {
         // handleRemoveHost(data);
       } else {
         operateJob(data);
@@ -717,21 +697,21 @@ const handleOperatetHost = async (
   });
 };
 const fuzzyKeys = new Set([
-  "bk_host_innerip",
-  "bk_host_innerip_v6",
-  "bk_host_name",
-  "dept_name",
+  'bk_host_innerip',
+  'bk_host_innerip_v6',
+  'bk_host_name',
+  'dept_name',
 ]);
 const getParams = () => {
   const params = {
     page: {
       limit: pagination.limit,
-      offset: (pagination.current - 1)*pagination.limit,
+      offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {} as TopoHostExactConditions,
     fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
   };
-  params.exact_include_conditions.node_role = ["agent", "blank"];
+  params.exact_include_conditions.node_role = ['agent', 'blank'];
   searchSelectValue.value.forEach((item: any) => {
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
@@ -763,31 +743,31 @@ watch(
   async () => {
     await getAgentList();
   },
-  { deep: true }
+  { deep: true },
 );
 watch(route, async () => {
-  if (route.query.os_type){
+  if (route.query.os_type) {
     searchSelectValue.value.push(...[
       {
-        id: "os_type",
-        name: "操作系统",
+        id: 'os_type',
+        name: '操作系统',
         values: [{
           id: route.query.os_type,
-          name: capitalizeFirstLetter(route.query.os_type)
-        }]
+          name: capitalizeFirstLetter(route.query.os_type),
+        }],
       },
       {
-        id: "node_version",
-        name: "Agent版本",
+        id: 'node_version',
+        name: 'Agent版本',
         values: [{
           id: route.query.node_version,
-          name: route.query.node_version
-        }]
+          name: route.query.node_version,
+        }],
       },
-    ])
+    ]);
     await getAgentList();
   }
-}, {immediate: true, deep: true})
+}, { immediate: true, deep: true });
 onMounted(async () => {
   await getAgentList();
   await getHostDistinct();

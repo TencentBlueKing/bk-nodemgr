@@ -42,6 +42,7 @@
               confirmText="覆盖上传"
               cancelText="取消上传"
               @confirm="handleOverwrite"
+              @cancel="handleCancel"
             >
               <div class="w-full">
                 <i class="nodeman-icon nc-remind-fill text-[#F8B64F]"></i>
@@ -71,10 +72,10 @@
           <span
             class="text-[12px]"
             v-if="['success', 'existed'].includes(curFile.status)"
-            >{{ bytesToMegabytes(file.size) }}M</span
+          >{{ bytesToMegabytes(file.size) }}M</span
           >
           <template v-if="curFile.status === 'failed'">
-            <Button @click="handleUpload(true)" text>
+            <Button @click="handleOverwrite" text>
               <right-turn-line fill="#979BA5" />
             </Button>
             <Button @click="handleDelete" text>
@@ -87,68 +88,66 @@
   </Upload>
 </template>
 <script lang="ts" setup>
-import { computed, reactive, ref } from "vue";
-import { Button, Upload, Message, Progress, PopConfirm } from "bkui-vue";
-import { bytesToMegabytes } from "@/common/util";
-import { RightTurnLine } from "bkui-vue/lib/icon";
-import { useRoute } from "vue-router";
-import { capitalizeFirstLetter } from '@/common/util'
+import { Button, Message, PopConfirm, Progress, Upload } from 'bkui-vue';
+import { RightTurnLine } from 'bkui-vue/lib/icon';
+import { computed, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
+import { bytesToMegabytes, capitalizeFirstLetter } from '@/common/util';
+
+
+const emit = defineEmits(['upload', 'cancel']);
 const route = useRoute();
-const emit = defineEmits('upload');
 const uploader = ref(null);
 const currentType = computed(() => {
   const routeName = route.name?.toString() || '';
   const type = routeName.split('PackageMng')[0];
   return type;
 });
-const url = computed(
-  () => {
-    const type = currentType.value === 'proxy' ? 'server' : currentType.value;
-    return `${location.origin}/api/v3/package/upload/origin/${type}`
-  }
-);
+const url = computed(() => {
+  const type = currentType.value === 'proxy' ? 'server' : currentType.value;
+  return `${location.origin}/api/v3/package/upload/origin/${type}`;
+});
 const curFile = reactive({
   file: null as File | null,
   progress: 0,
-  status: "",
+  status: '',
   data: null,
-  message: "",
+  message: '',
 });
 
 const handleBeforeUpload = (file: File, fileList: File[]) => {
-  const whiteList = ["tgz", "tar", "gz"];
-  let AllFiles = fileList.filter((v) =>
-    whiteList.includes(v.name.substring(file.name.lastIndexOf(".") + 1))
-  );
+  const whiteList = ['tgz', 'tar', 'gz'];
+  const AllFiles = fileList.filter(v => whiteList.includes(v.name.substring(file.name.lastIndexOf('.') + 1)));
   if (AllFiles.length !== fileList.length) {
     fileList.pop();
     Message({
-      theme: "warning",
-      message: "只允许上传tgz、tar、gz的文件",
+      theme: 'warning',
+      message: '只允许上传tgz、tar、gz的文件',
     });
     return false;
   }
   curFile.file = file;
   return true;
 };
-const handleUpload = (overwrite?: boolean) => {
+const overwrite = ref(false);
+const handleUpload = () => {
   const formData = new FormData();
 
   // 添加元数据
   const metadata = JSON.stringify({ generation: 2, overwrite: true });
-  formData.append("metadata", metadata);
-  if (overwrite) {
-    curFile.status = "";
+  formData.append('metadata', metadata);
+  if (overwrite.value) {
+    curFile.status = '';
     curFile.progress = 0;
     curFile.data = null;
   }
-  formData.append("file", curFile.file as File);
-  formData.append("filename", curFile.file?.name as string);
+  formData.append('file', curFile.file as File);
+  formData.append('filename', curFile.file?.name as string);
 
   const xhr = new XMLHttpRequest();
-  xhr.open("POST", url.value, true);
-  xhr.setRequestHeader("X-Bk-Tenant-Id", "single");
+  xhr.open('POST', url.value, true);
+  xhr.setRequestHeader('X-Bk-Tenant-Id', 'single');
 
   // 上传进度事件监听器
   xhr.upload.onprogress = (event) => {
@@ -162,23 +161,22 @@ const handleUpload = (overwrite?: boolean) => {
     if (xhr.status >= 200 && xhr.status < 300) {
       const response = JSON.parse(xhr.responseText);
 
-      curFile.status =
-        response.code === 0
-          ? response.data.existed
-            ? "existed"
-            : "success"
-          : "failed";
+      curFile.status = response.code === 0
+        ? (response.data.existed && !overwrite.value)
+        ? 'existed'
+        : 'success'
+        : 'failed';
       curFile.data = response.data;
       Message({
-        theme: "success",
-        message: "文件上传成功",
+        theme: 'success',
+        message: '文件上传成功',
       });
       emit('upload', response.data);
     } else {
       curFile.message = xhr.statusText;
-      curFile.status = "failed";
+      curFile.status = 'failed';
       Message({
-        theme: "error",
+        theme: 'error',
         message: xhr.statusText,
       });
       emit('upload', null);
@@ -187,17 +185,21 @@ const handleUpload = (overwrite?: boolean) => {
 
   // 错误处理
   xhr.onerror = () => {
-    curFile.message = "上传失败";
+    curFile.message = '上传失败';
     Message({
-      theme: "error",
-      message: "上传失败",
+      theme: 'error',
+      message: '上传失败',
     });
   };
 
   xhr.send(formData);
 };
 const handleOverwrite = () => {
-  handleUpload(true);
+  overwrite.value = true;
+  handleUpload();
+};
+const handleCancel = () => {
+  emit('cancel');
 };
 const handleDelete = () => {
   uploader.value?.handleRemove(curFile);

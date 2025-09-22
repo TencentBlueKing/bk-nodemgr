@@ -2,7 +2,9 @@
   <div class="p-[24px]">
     <section class="flex justify-between mb-[15px]">
       <div class="flex gap-[12px]">
-        <Checkbox v-model="hideAutoTask">{{ t('platform.nodeMan.taskHistory.button.hideAutoTask') }}</Checkbox>
+        <Checkbox v-model="hideAutoTask">{{
+          t("platform.nodeMan.taskHistory.button.hideAutoTask")
+        }}</Checkbox>
         <DatePicker
           v-model="dateValue"
           :shortcut-selected-index="1"
@@ -10,16 +12,20 @@
           format="yyyy-MM-dd HH:mm:ss"
           type="datetimerange"
           use-shortcut-text
-          @change="pickSuccess" />
+          @change="pickSuccess"
+        />
       </div>
       <div class="flex-1 ml-[8px]">
         <SearchSelect
           ref="searchSelect"
           :data="searchSelectData"
           v-model="searchSelectValue"
-          :uniqueSelect="true"
-          :placeholder="t('platform.nodeMan.taskHistory.placeholder.listSearch')"
-          @update:modelValue="handleSearchSelectChange">
+          :unique-select="true"
+          :placeholder="
+            t('platform.nodeMan.taskHistory.placeholder.listSearch')
+          "
+          @update:model-value="handleSearchSelectChange"
+        >
         </SearchSelect>
       </div>
     </section>
@@ -36,34 +42,79 @@
         @setting-change="handleSettingChange"
         @column-filter="handleFilter"
       >
-        <TableColumn field="workflow_id" :title="t('platform.nodeMan.taskHistory.label.taskID')" min-width="100" fixed="left">
+        <TableColumn
+          field="workflow_id"
+          :title="t('platform.nodeMan.taskHistory.label.taskID')"
+          min-width="100"
+          fixed="left"
+        >
           <template #default="{ row }">
-            <Button text theme="primary" @click="detailHandle(row, row.status)">{{ '#' + row.workflow_id?.slice(-4) }}</Button>
+            <Button
+              text
+              theme="primary"
+              @click="detailHandle(row, row.status)"
+            >{{ "#" + row.workflow_id?.slice(-4) }}</Button
+            >
           </template>
         </TableColumn>
-        <TableColumn field="type" :title="t('platform.nodeMan.taskHistory.label.taskType')" :filter="filterOptionSource.type" min-width="150">
-          <template #default={row}>
+        <TableColumn
+          field="type"
+          :title="t('platform.nodeMan.taskHistory.label.taskType')"
+          :filter="filterOptionSource.type"
+          min-width="150"
+        >
+          <template #default="{ row }">
             <span>{{ typeMap[row.type as taskType]?.text }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="bk_biz_name" :title="t('platform.nodeMan.taskHistory.label.business')" min-width="150"></TableColumn>
-        <TableColumn field="operator" :title="t('platform.nodeMan.taskHistory.label.operator')" :filter="filterOptionSource.operator" min-width="150"></TableColumn>
-        <TableColumn field="operate_time" :title="t('platform.nodeMan.taskHistory.label.operateTime')" min-width="200" show-overflow-tooltip>
-          <template #default={row}>
+        <TableColumn
+          field="bk_biz_name"
+          :title="t('platform.nodeMan.taskHistory.label.business')"
+          min-width="150"
+        ></TableColumn>
+        <TableColumn
+          field="operator"
+          :title="t('platform.nodeMan.taskHistory.label.operator')"
+          :filter="filterOptionSource.operator"
+          min-width="150"
+        ></TableColumn>
+        <TableColumn
+          field="operate_time"
+          :title="t('platform.nodeMan.taskHistory.label.operateTime')"
+          min-width="200"
+          show-overflow-tooltip
+        >
+          <template #default="{ row }">
             <span>{{ timeFormatter(row.operate_time) }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="cost_time" :title="t('platform.nodeMan.taskHistory.label.costTime')" min-width="100">
-          <template #default={row}>
+        <TableColumn
+          field="cost_time"
+          :title="t('platform.nodeMan.taskHistory.label.costTime')"
+          min-width="100"
+        >
+          <template #default="{ row }">
             <span>{{ formatTimeToMS(row.cost_time) }}</span>
           </template>
         </TableColumn>
-        <TableColumn field="status" :title="t('platform.nodeMan.taskHistory.label.status')" min-width="150" :filter="filterOptionSource.status">
+        <TableColumn
+          field="status"
+          :title="t('platform.nodeMan.taskHistory.label.status')"
+          min-width="150"
+          :filter="filterOptionSource.status"
+        >
           <template #default="{ row }">
-            <div class="flex items-center" v-if="row.status && statusMap[row.status]">
-              <Spinner v-if="row.status === 'running'" class="mr-[8px]"/>
+            <div
+              class="flex items-center"
+              v-if="row.status && statusMap[row.status]"
+            >
+              <Spinner v-if="row.status === 'running'" class="mr-[8px]" />
               <template v-else>
-                <i :class="`nodeman-icon nc-${statusMap[row.status].icon} status-icon`"></i>
+                <i
+                  :class="`nodeman-icon nc-${
+                    statusMap[row.status].icon
+                  } status-icon`"
+                ></i>
               </template>
               <span>{{ statusMap[row.status].text }}</span>
             </div>
@@ -73,16 +124,30 @@
             </div>
           </template>
         </TableColumn>
-        <TableColumn field="count" :title="t('platform.nodeMan.taskHistory.label.count')" min-width="150">
+        <TableColumn
+          field="count"
+          :title="t('platform.nodeMan.taskHistory.label.count')"
+          min-width="150"
+        >
           <template #default="{ row }">
             <template v-if="row.statistics">
-              <span class="pr-[4px]">{{ row.statistics.total_count || 0 }}</span>/
-              <a class="text-[#2dcb56] pr-[4px]"
-                @click.stop="detailHandle(row, 'success')">{{ row.statistics.success_count || 0 }}</a>/
-              <a class="text-[#ea3636] pr-[4px]"
-                @click.stop="detailHandle(row, 'failed')">{{ row.statistics.failed_count || 0 }}</a>/
-              <a class="text-[#ff9c01] pr-[4px]"
-                @click.stop="detailHandle(row, 'ignored')">{{ row.statistics.ignored_count || 0 }}</a>
+              <span class="pr-[4px]">{{ row.statistics.total_count || 0 }}</span
+              >/
+              <a
+                class="text-[#2dcb56] pr-[4px]"
+                @click.stop="detailHandle(row, 'success')"
+              >{{ row.statistics.success_count || 0 }}</a
+              >/
+              <a
+                class="text-[#ea3636] pr-[4px]"
+                @click.stop="detailHandle(row, 'failed')"
+              >{{ row.statistics.failed_count || 0 }}</a
+              >/
+              <a
+                class="text-[#ff9c01] pr-[4px]"
+                @click.stop="detailHandle(row, 'ignored')"
+              >{{ row.statistics.ignored_count || 0 }}</a
+              >
             </template>
             <span v-else>--</span>
           </template>
@@ -92,28 +157,42 @@
   </div>
 </template>
 <script setup lang="ts">
+import {
+  Button,
+  Cascader,
+  Checkbox,
+  DatePicker,
+  Dropdown,
+  InfoBox,
+  SearchSelect,
+} from 'bkui-vue';
+import { Spinner } from 'bkui-vue/lib/icon';
+import dayjs from 'dayjs';
+import { toLower } from 'lodash';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import type { NodeWorkflowInfo } from '@/@types/node_workflow';
+import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import usePage from '@/composables/use-page';
+import useTableSetting from '@/composables/use-table-setting';
+import { useMainStore } from '@/stores/main';
+import { useNodeManageStore } from '@/stores/node-manage';
+
 interface FilterOption {
-  list: { text: string, value: string }[];
+  list: { text: string; value: string }[];
   checked: string[];
   filterScope: string;
 }
-type taskType = 'install_agent' | 'install_plugin' | 'upgrade_agent' | 'upgrade_plugin';
+type taskType =
+  | 'install_agent'
+  | 'install_plugin'
+  | 'upgrade_agent'
+  | 'upgrade_plugin';
 type filterProp = 'type' | 'operator' | 'status';
-
-import { ref, reactive, computed, onMounted, watch } from 'vue';
-import { Spinner } from 'bkui-vue/lib/icon';
-import { Table, TableColumn } from '@blueking/table';
-import { useI18n } from 'vue-i18n';
-import { toLower } from 'lodash';
-import { useRoute, useRouter } from 'vue-router';
-import { InfoBox, Button, Dropdown, Cascader, SearchSelect, DatePicker, Checkbox } from 'bkui-vue';
-import usePage from '@/composables/use-page';
-import { useMainStore } from '@/stores/main';
-import { useNodeManageStore } from '@/stores/node-manage';
-import { NodeWorkflowService } from '@/api/modules/node_workflow';
-import useTableSetting from '@/composables/use-table-setting';
-import dayjs from 'dayjs';
-import type { NodeWorkflowInfo } from '@/@types/node_workflow';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -122,14 +201,15 @@ const nodeManageStore = useNodeManageStore();
 const tableData = ref<NodeWorkflowInfo[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 // 分页
-const {
-  pagination
-} = usePage(tableData);
+const { pagination } = usePage(tableData);
 // 跨页全选
 const loading = ref(false);
 
 // 日期选择
-const dateValue = ref([new Date().setTime(new Date().getTime() - 3600 * 1000 * 24 * 7), new Date()]);
+const dateValue = ref([
+  new Date().setTime(new Date().getTime() - 3600 * 1000 * 24 * 7),
+  new Date(),
+]);
 const shortcutsRange = reactive([
   {
     text: '今天',
@@ -169,79 +249,77 @@ const shortcutsRange = reactive([
 ]);
 const statusMap = {
   running: {
-    text: t('platform.nodeMan.taskHistory.statusType.running')
+    text: t('platform.nodeMan.taskHistory.statusType.running'),
   },
   failed: {
     text: t('platform.nodeMan.taskHistory.statusType.failed'),
-    icon: 'terminated'
+    icon: 'terminated',
   },
   success: {
     text: t('platform.nodeMan.taskHistory.statusType.success'),
-    icon: 'running'
+    icon: 'running',
   },
   partial_failed: {
     text: t('platform.nodeMan.taskHistory.statusType.partial_failed'),
-    icon: 'warning'
+    icon: 'warning',
   },
-}
+};
 const typeMap = {
   install_agent: {
-    text: t('platform.nodeMan.taskHistory.taskType.install_agent')
+    text: t('platform.nodeMan.taskHistory.taskType.install_agent'),
   },
   upgrade_agent: {
-    text: t('platform.nodeMan.taskHistory.taskType.upgrade_agent')
+    text: t('platform.nodeMan.taskHistory.taskType.upgrade_agent'),
   },
   reconfig_agent: {
-    text: t('platform.nodeMan.taskHistory.taskType.reconfig_agent')
+    text: t('platform.nodeMan.taskHistory.taskType.reconfig_agent'),
   },
   restart_agent: {
-    text: t('platform.nodeMan.taskHistory.taskType.restart_agent')
+    text: t('platform.nodeMan.taskHistory.taskType.restart_agent'),
   },
   uninstall_agent: {
-    text: t('platform.nodeMan.taskHistory.taskType.uninstall_agent')
+    text: t('platform.nodeMan.taskHistory.taskType.uninstall_agent'),
   },
   install_proxy: {
-    text: t('platform.nodeMan.taskHistory.taskType.install_proxy')
+    text: t('platform.nodeMan.taskHistory.taskType.install_proxy'),
   },
   upgrade_proxy: {
-    text: t('platform.nodeMan.taskHistory.taskType.upgrade_proxy')
+    text: t('platform.nodeMan.taskHistory.taskType.upgrade_proxy'),
   },
   reconfig_proxy: {
-    text: t('platform.nodeMan.taskHistory.taskType.reconfig_proxy')
+    text: t('platform.nodeMan.taskHistory.taskType.reconfig_proxy'),
   },
   restart_proxy: {
-    text: t('platform.nodeMan.taskHistory.taskType.restart_proxy')
+    text: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
   },
   uninstall_proxy: {
-    text: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy')
+    text: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
   },
   install_plugin: {
-    text: t('platform.nodeMan.taskHistory.taskType.install_plugin')
+    text: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
   },
   upgrade_plugin: {
-    text: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin')
+    text: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
   },
-}
+};
 const bussinessMap = computed(() => mainStore.businessList.map(item => ({
   id: item.bk_biz_id,
-  name: item.bk_biz_name
+  name: item.bk_biz_name,
 })));
 const pickSuccess = async (val: string[]) => {
   await getTaskList();
-}
+};
 
 // 隐藏自动部署任务
 const hideAutoTask = ref(false);
 
-const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => {
-  return val ? dayjs(val).format(format) : '--';
-}
+const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => (val ? dayjs(val).format(format) : '--');
 
 const formatTimeToMS = (duration: number) => {
   const minutes = Math.floor(duration / 60000);
   const seconds = Math.floor((duration % 60000) / 1000);
   return `${minutes}m ${seconds}s`;
-}
+};
 
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
@@ -254,7 +332,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'operate_time',
     'cost_time',
     'status',
-    'count'
+    'count',
   ],
   disabled: [],
 });
@@ -262,105 +340,133 @@ const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
     id: value,
-    name: map && map[value as string] ? map[value as string].text : value
-  }))
-}
+    name: map && map[value as string] ? map[value as string].text : value,
+  }));
+};
 const searchSelectData = computed(() => [
-  {id: 'workflow_id', name: t('platform.nodeMan.taskHistory.label.taskID')},
-  {id: 'type', name: t('platform.nodeMan.taskHistory.label.taskType'), children: getUniqueChildren('type', typeMap)},
-  {id: 'bk_biz_id', name: t('platform.nodeMan.taskHistory.label.business'), children: bussinessMap.value, multiple: true},
-  {id: 'operator', name: t('platform.nodeMan.taskHistory.label.operator'), children: getUniqueChildren('operator')},
-  {id: 'status', name: t('platform.nodeMan.taskHistory.label.status'), children: getUniqueChildren('status', statusMap)},
+  { id: 'workflow_id', name: t('platform.nodeMan.taskHistory.label.taskID') },
+  {
+    id: 'type',
+    name: t('platform.nodeMan.taskHistory.label.taskType'),
+    children: getUniqueChildren('type', typeMap),
+  },
+  {
+    id: 'bk_biz_id',
+    name: t('platform.nodeMan.taskHistory.label.business'),
+    children: bussinessMap.value,
+    multiple: true,
+  },
+  {
+    id: 'operator',
+    name: t('platform.nodeMan.taskHistory.label.operator'),
+    children: getUniqueChildren('operator'),
+  },
+  {
+    id: 'status',
+    name: t('platform.nodeMan.taskHistory.label.status'),
+    children: getUniqueChildren('status', statusMap),
+  },
 ]);
 const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
-    text: valMap && valMap[value as string] ? valMap[value as string].text : value,
-    value: value
+    text:
+      valMap && valMap[value as string] ? valMap[value as string].text : value,
+    value,
   }));
-}
+};
 // 搜索
-const searchSelectValue = ref<{id: string, name: string, values: any}[]>([]);
-const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
-  Object.keys(filterOptionSource).forEach(key => {
+const searchSelectValue = ref<{ id: string; name: string; values: any }[]>([]);
+const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
   });
-  data.forEach(item => {
+  data.forEach((item) => {
     if (filterOptionSource[item.id as filterProp]) {
       filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
     }
   });
-}
+};
 // 筛选
-const handleFilter = ({checked, field}: {checked: string[], field: string}) => {
+const handleFilter = ({
+  checked,
+  field,
+}: {
+  checked: string[];
+  field: string;
+}) => {
   const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
   index > -1 && searchSelectValue.value.splice(index, 1);
-  if (checked.length){
-    searchSelectValue.value.push({ id: field, name: t(field), values: checked.map((item: any) => {
-      let name;
-      switch(field) {
-        case 'status':
-          name = statusMap[item].text;
-          break;
-        case 'type':
-          name = typeMap[item as taskType].text;
-          break;
-        default:
-          name = item;
-          break;
-      }
-      return {
-        id: item,
-        name
-      }
-    })});
+  if (checked.length) {
+    searchSelectValue.value.push({
+      id: field,
+      name: t(field),
+      values: checked.map((item: any) => {
+        let name;
+        switch (field) {
+          case 'status':
+            name = statusMap[item].text;
+            break;
+          case 'type':
+            name = typeMap[item as taskType].text;
+            break;
+          default:
+            name = item;
+            break;
+        }
+        return {
+          id: item,
+          name,
+        };
+      }),
+    });
   }
-}
+};
 const filterOptionSource = reactive<Record<string, FilterOption>>({
   type: {
     list: [],
     checked: [],
-    filterScope: 'all'
+    filterScope: 'all',
   },
   operator: {
     list: [],
     checked: [],
-    filterScope: 'all'
+    filterScope: 'all',
   },
   status: {
     list: [],
     checked: [],
-    filterScope: 'all'
-  }
+    filterScope: 'all',
+  },
 });
 const getSearchParams = (prop: string) => {
   const foundItem = searchSelectValue.value.find((item: any) => item.id === prop);
   return foundItem ? foundItem.values.map((item: any) => item.id) : [];
-}
+};
 const getTimestampInSeconds = (originalDate: string) => {
   const timestampInMilliseconds = new Date(originalDate).getTime();
   const timestampInSeconds = Math.floor(timestampInMilliseconds / 1000);
   return timestampInSeconds;
-}
+};
 const getParams = () => {
   const params = {
     page: {
       limit: 0,
-      offset: 0
+      offset: 0,
     },
     exact_include_conditions: {} as Record<string, string[]>,
     fuzzy_include_conditions: {} as Record<string, string[]>,
     operate_time_range: {
       start_timestamp_sec: getTimestampInSeconds(dateValue.value[0]),
-      end_timestamp_sec: getTimestampInSeconds(dateValue.value[1])
-    }
+      end_timestamp_sec: getTimestampInSeconds(dateValue.value[1]),
+    },
   };
   searchSelectValue.value.forEach((item: any) => {
     const target = params.exact_include_conditions;
     target[item.id] = item.values.map((value: any) => value.id);
   });
   return params;
-}
+};
 const getTaskList = async () => {
   loading.value = true;
   const res = await NodeWorkflowService.NodeWorkflowList(getParams()).catch((err) => {
@@ -368,27 +474,28 @@ const getTaskList = async () => {
     return {
       total: 0,
       items: [],
-    }
+    };
   });
   const statistics = await NodeWorkflowService.NodeWorkflowStatistics({
-    workflow_id: res.items.map(item => item.workflow_id)
+    workflow_id: res.items.map(item => item.workflow_id),
   }).catch((err) => {
     console.log(err);
     return {
       items: [],
-    }
+    };
   });
-  tableData.value = res.items.map(item => {
+  tableData.value = res.items.map((item) => {
     const statisticsItem = statistics.items.find(statistic => statistic.workflow_id === item.workflow_id);
     return {
       statistics: statisticsItem,
       ...item,
       bk_biz_name: item.bk_biz_name.filter(item => item),
-      cost_time: item.finish_time > 0 ? (item.finish_time - item.operate_time) : 0
-    }
+      cost_time:
+        item.finish_time > 0 ? item.finish_time - item.operate_time : 0,
+    };
   });
   loading.value = false;
-}
+};
 
 // 跳转详情
 const detailHandle = (row: NodeWorkflowInfo, status: string) => {
@@ -400,15 +507,23 @@ const detailHandle = (row: NodeWorkflowInfo, status: string) => {
       taskId: row.workflow_id,
     },
   });
-}
-watch(() => tableData, () => {
-  filterOptionSource.type.list = filterOptionConfig('type', typeMap); 
-  filterOptionSource.operator.list = filterOptionConfig('operator', typeMap); 
-  filterOptionSource.status.list = filterOptionConfig('status', statusMap);
-}, { deep: true, immediate: true });
-watch(() => searchSelectValue, async () => {
-  await getTaskList();
-}, { deep: true });
+};
+watch(
+  () => tableData,
+  () => {
+    filterOptionSource.type.list = filterOptionConfig('type', typeMap);
+    filterOptionSource.operator.list = filterOptionConfig('operator', typeMap);
+    filterOptionSource.status.list = filterOptionConfig('status', statusMap);
+  },
+  { deep: true, immediate: true },
+);
+watch(
+  () => searchSelectValue,
+  async () => {
+    await getTaskList();
+  },
+  { deep: true },
+);
 onMounted(async () => {
   await getTaskList();
 });
@@ -420,7 +535,7 @@ onMounted(async () => {
 }
 
 .status-icon::before {
-  content: '';
+  content: "";
   display: inline-block;
   margin-right: 8px;
   width: 8px;
@@ -431,20 +546,20 @@ onMounted(async () => {
 }
 .nc-running {
   &::before {
-    background: #CBF0DA;
-    border-color: #2CAF5E;
+    background: #cbf0da;
+    border-color: #2caf5e;
   }
 }
 .nc-terminated {
   &::before {
-    border-color: #EA3636;
-    background: #FFDDDD;
+    border-color: #ea3636;
+    background: #ffdddd;
   }
 }
 .nc-warning {
   &::before {
-    border-color: #F59500;
-    background: #FCE5C0;
+    border-color: #f59500;
+    background: #fce5c0;
   }
 }
 .nc-unknown {
@@ -453,5 +568,4 @@ onMounted(async () => {
     background: #f0f1f5;
   }
 }
-
 </style>

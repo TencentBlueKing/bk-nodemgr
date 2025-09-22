@@ -53,7 +53,7 @@
         </div>
       </div>
       <div class="bg-[#1A1A1A] flex-1 flex">
-        <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]" :class="{'w-[360px]': isFullscreen}">
+        <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]" :class="{ 'w-[360px]': isFullscreen }">
           <div
             v-for="(item, key, index) in logData.oper_inst_logs"
             :key="key"
@@ -82,13 +82,13 @@
               height="12.25px"
             />
             <span class="ml-[7px]">{{ index + 1 }}.</span>
-            <bk-overflow-title class="overflow-ellipsis w-[200px]" :class="{'w-[300px]': isFullscreen}">
+            <bk-overflow-title class="overflow-ellipsis w-[200px]" :class="{ 'w-[300px]': isFullscreen }">
               <span class="ml-[2px] mr-[4px]">{{ key }}</span>
               <span
                 v-if="item.life_cycle?.end_time >= 0 && item.life_cycle?.start_time >= 0"
-                >{{
-                  item.life_cycle?.end_time - item.life_cycle?.start_time
-                }}s</span
+              >{{
+                item.life_cycle?.end_time - item.life_cycle?.start_time
+              }}s</span
               >
             </bk-overflow-title>
           </div>
@@ -127,15 +127,16 @@
   </SlideDetail>
 </template>
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from "vue";
-import useFullScreen from "@/composables/use-fullscreen";
-import useInterval from "@/composables/use-interval";
-import { NodeWorkflowService } from "@/api/modules/node_workflow";
-import dayjs from "dayjs";
-import SlideDetail from "@/components/slide-detail.vue";
-import { useI18n } from "vue-i18n";
-import { RightTurnLine, Success, Close, AngleUpFill, Spinner } from 'bkui-vue/lib/icon';
 import { Button, Dropdown, overflowTitle } from 'bkui-vue';
+import { AngleUpFill, Close, RightTurnLine, Spinner, Success } from 'bkui-vue/lib/icon';
+import dayjs from 'dayjs';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import SlideDetail from '@/components/slide-detail.vue';
+import useFullScreen from '@/composables/use-fullscreen';
+import useInterval from '@/composables/use-interval';
 
 interface IProps {
   data: any;
@@ -146,15 +147,13 @@ const { t } = useI18n();
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const { start, stop } = useInterval(getLog, 5000); // 轮询
-const activeKey = ref("");
-const curOperInstId = ref("");
-const curOperInstVal = ref("LATEST");
-const curOperationId = ref("");
+const activeKey = ref('');
+const curOperInstId = ref('');
+const curOperInstVal = ref('LATEST');
+const curOperationId = ref('');
 const curSortNames = ref<string[]>([]);
 const logs = ref<{ text: string; level: string; time: string }[]>([]);
-const operInstList = ref<{ id: string; name: string; sort_names: string[] }[]>(
-  []
-);
+const operInstList = ref<{ id: string; name: string; sort_names: string[] }[]>([]);
 const slideDetailRef = ref<InstanceType<typeof SlideDetail>>();
 const logData = ref<{
   total: number;
@@ -165,13 +164,13 @@ const logData = ref<{
 });
 const timeFormatter = (
   val: number | string | undefined,
-  format = "YYYY-MM-DD HH:mm:ss"
+  format = 'YYYY-MM-DD HH:mm:ss',
 ) => {
-  if (typeof val === "number") {
+  if (typeof val === 'number') {
     // 使用 dayjs.unix() 直接解析秒级时间戳
     return dayjs.unix(val).format(format);
   }
-  return val ? dayjs(val).format(format) : "--";
+  return val ? dayjs(val).format(format) : '--';
 };
 const handleClick = async (item: {
   name: string;
@@ -195,14 +194,12 @@ const getInstance = async () => {
     oper_inst_data: [],
     total: 0,
   }));
-  curOperInstId.value =
-    res.total > 0 ? res.oper_inst_data[res.total - 1].oper_inst_id : "";
-  curSortNames.value =
-    res.total > 0 ? res.oper_inst_data[res.total - 1].action_names : [];
+  curOperInstId.value = res.total > 0 ? res.oper_inst_data[res.total - 1].oper_inst_id : '';
+  curSortNames.value = res.total > 0 ? res.oper_inst_data[res.total - 1].action_names : [];
   operInstList.value = [];
   for (let i = 1; i <= res.total; i++) {
     operInstList.value.push({
-      name: i < res.total ? `${i}nd` : "LATEST",
+      name: i < res.total ? `${i}nd` : 'LATEST',
       id: res.oper_inst_data[i - 1].oper_inst_id,
       sort_names: res.oper_inst_data[i - 1].action_names,
     });
@@ -225,19 +222,19 @@ async function getLog() {
 
   let currentKey;
   for (const [key, entry] of Object.entries(logData.value.oper_inst_logs)) {
-    if (["failed", "timeout"].includes(entry.life_cycle?.state)) {
+    if (['failed', 'timeout'].includes(entry.life_cycle?.state)) {
       currentKey = key;
       hasErrorOrTimeout.value = true;
       isInterval.value = false;
       break;
-    } else if (entry.life_cycle?.state === "running") {
+    } else if (entry.life_cycle?.state === 'running') {
       currentKey = key;
       isInterval.value = true;
       break;
     }
     currentKey = key;
   }
-  if(logData.value.oper_inst_logs[currentKey]?.life_cycle.state === 'success') {
+  if (logData.value.oper_inst_logs[currentKey]?.life_cycle.state === 'success') {
     isInterval.value = false;
   }
   if (currentKey) {
@@ -267,7 +264,7 @@ watch(() => isInterval.value, (val: boolean) => {
     stop();
     emit('stop');
   }
-})
+});
 onBeforeUnmount(() => {
   stop();
 });

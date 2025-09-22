@@ -10,17 +10,17 @@ import TaskHistory from '@/pages/node/history/history.vue';
 import TaskDetail from '@/pages/node/history/task-detail.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
-import OperationRecord from '@/pages/topo/record/record.vue';
-import Topography from '@/pages/topo/topography/topo.vue';
-import WorkArea from '@/pages/topo/workarea/workarea.vue';
-import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
 import AgentPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
 import CertBintoolMng from '@/pages/pkg/cert-bintool-manage/list.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
-import Rules from '@/pages/rules/index.vue';
-import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
 import CreateConfig from '@/pages/rules/agent-strategy/create-config.vue';
+import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
+import Rules from '@/pages/rules/index.vue';
+import OperationRecord from '@/pages/topo/record/record.vue';
+import Topography from '@/pages/topo/topography/topo.vue';
+import WorkArea from '@/pages/topo/workarea/workarea.vue';
+import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
 import type { UserModule } from '@/types';
 
 const routes = setupLayouts([
@@ -158,28 +158,28 @@ const routes = setupLayouts([
             meta: {
               title: 'Agent 策略',
               back: false,
-              mainMenu: 'ruleManager'
-            }
+              mainMenu: 'ruleManager',
+            },
           },
           {
             name: 'createConfig',
             path: 'createConfig/:node_role',
             component: CreateConfig,
             meta: {
-              title: '新建 Agent 配置',
-              back: true,
-              mainMenu: 'ruleManager'
-            }
+              // title: '新建 Agent 配置',
+              // back: true,
+              mainMenu: 'ruleManager',
+            },
           },
           {
             name: 'editConfig',
             path: 'editConfig/:node_role',
             component: CreateConfig,
             meta: {
-              title: '编辑 Agent 配置',
-              back: true,
-              mainMenu: 'ruleManager'
-            }
+              // title: '编辑 Agent 配置',
+              // back: true,
+              mainMenu: 'ruleManager',
+            },
           },
           {
             name: 'proxyStrategy',
@@ -188,8 +188,8 @@ const routes = setupLayouts([
             meta: {
               title: 'Proxy 策略',
               back: false,
-              mainMenu: 'ruleManager'
-            }
+              mainMenu: 'ruleManager',
+            },
           },
           {
             name: 'pluginStrategy',
@@ -198,8 +198,8 @@ const routes = setupLayouts([
             meta: {
               title: '插件策略',
               back: false,
-              mainMenu: 'ruleManager'
-            }
+              mainMenu: 'ruleManager',
+            },
           },
           {
             name: 'strategyTaskHistory',
@@ -208,8 +208,8 @@ const routes = setupLayouts([
             meta: {
               title: '任务历史',
               back: false,
-              mainMenu: 'ruleManager'
-            }
+              mainMenu: 'ruleManager',
+            },
           },
         ],
       },
@@ -226,8 +226,8 @@ const routes = setupLayouts([
             meta: {
               title: 'Agent 包管理',
               back: false,
-              mainMenu: 'pkgManager'
-            }
+              mainMenu: 'pkgManager',
+            },
           },
           {
             name: 'proxyPackageMng',
@@ -236,8 +236,8 @@ const routes = setupLayouts([
             meta: {
               title: 'Proxy 包管理',
               back: false,
-              mainMenu: 'pkgManager'
-            }
+              mainMenu: 'pkgManager',
+            },
           },
           {
             name: 'certPackageMng',
@@ -246,8 +246,8 @@ const routes = setupLayouts([
             meta: {
               title: '证书管理',
               back: false,
-              mainMenu: 'pkgManager'
-            }
+              mainMenu: 'pkgManager',
+            },
           },
           {
             name: 'bintoolPackageMng',
@@ -256,8 +256,8 @@ const routes = setupLayouts([
             meta: {
               title: '工具管理',
               back: false,
-              mainMenu: 'pkgManager'
-            }
+              mainMenu: 'pkgManager',
+            },
           },
           {
             name: 'plugin_bintoolPackageMng',
@@ -266,8 +266,8 @@ const routes = setupLayouts([
             meta: {
               title: '插件包工具管理',
               back: false,
-              mainMenu: 'pkgManager'
-            }
+              mainMenu: 'pkgManager',
+            },
           },
           {
             name: 'pluginPackageMng',
@@ -276,8 +276,8 @@ const routes = setupLayouts([
             meta: {
               title: '插件包管理',
               back: false,
-              mainMenu: 'pkgManager'
-            }
+              mainMenu: 'pkgManager',
+            },
           },
           {
             name: 'operationRecords',
@@ -286,8 +286,8 @@ const routes = setupLayouts([
             meta: {
               title: '操作记录',
               back: false,
-              mainMenu: 'pkgManager'
-            }
+              mainMenu: 'pkgManager',
+            },
           },
         ],
       },

@@ -55,10 +55,10 @@
             >
               <template #tip>
                 <div class="flex items-center gap-[3px]">
-                  <span>{{ $t("仅支持 .xlsx 类型文件，下载") }}</span>
+                  <span>{{ '仅支持 .xlsx 类型文件，下载'}}</span>
                   <a :href="url" download="bk_nodeman_info.xlsx">
                     <Button text theme="primary">
-                      {{ $t("模版文件") }}
+                      {{ '模版文件' }}
                     </Button>
                   </a>
                 </div>
@@ -169,7 +169,7 @@
             <Table :data="systemData" :border="true" width="568">
               <TableColumn
                 field="os"
-                :title="$t('platform.nodeMan.installAgentPage.os_type')"
+                :title="$t('platform.nodeMan.os_type')"
                 width="200"
               ></TableColumn>
               <TableColumn field="version" :title="$t('platform.nodeMan.installAgentPage.packageVersion')" width="368">
@@ -208,7 +208,7 @@
         class="w-[100px] mr-[8px]"
         theme="primary"
         @click="handlePreview"
-        >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
+      >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
       >
       <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
@@ -219,54 +219,55 @@
     <chooseVersionDialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
-      :releaseType="'agent'"
+      :release-type="'agent'"
       @confirm="handleComfirmVerion"
     ></chooseVersionDialog>
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, onMounted, onUnmounted, watch } from "vue";
-import { Button, Form, Select, Input, Upload, Message } from "bkui-vue";
-import { Table, TableColumn } from "@blueking/table";
-import { AngleDoubleDownLine } from "bkui-vue/lib/icon";
-import { debounce } from "lodash";
-import { useMainStore } from "@/stores/main";
-import { computed } from "vue";
-import { TopoService } from "@/api/modules/topo";
-import { useRoute, useRouter } from "vue-router";
-import Preview from "./preview.vue";
-import { cloneDeep } from "lodash";
-import chooseVersionDialog from "@/components/choose-version-dialog.vue";
-import Validate from "@/components/validate.vue";
+import { Button, Form, Input, Message, Select, Upload } from 'bkui-vue';
+import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
+import { cloneDeep, debounce  } from 'lodash';
+import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import Preview from './preview.vue';
+
+import { TopoService } from '@/api/modules/topo';
 import { capitalizeFirstLetter } from '@/common/util';
+import chooseVersionDialog from '@/components/choose-version-dialog.vue';
+import Validate from '@/components/validate.vue';
+import { useMainStore } from '@/stores/main';
 
 const router = useRouter();
 const initData = {
-  bk_addressing: "static",
-  bk_host_innerip: "",
-  bk_host_innerip_v6: "",
-  os_type: "",
-  login_ip: "",
-  login_port: "",
-  login_user: "",
-  login_mode: "password",
-  login_password: "",
-  login_key_file: "",
-  bk_networkunit_id: "",
-  bk_biz_id: "",
+  bk_addressing: 'static',
+  bk_host_innerip: '',
+  bk_host_innerip_v6: '',
+  os_type: '',
+  login_ip: '',
+  login_port: '',
+  login_user: '',
+  login_mode: 'password',
+  login_password: '',
+  login_key_file: '',
+  bk_networkunit_id: '',
+  bk_biz_id: '',
   re_register: false,
-  prove: "",
+  prove: '',
 };
 const mainStore = useMainStore();
 const showRightPanel = ref(false);
 const formData = reactive({
-  type: "",
-  bk_biz_id: "",
-  bk_networkarea_id: "",
-  bk_networkunit_id: "",
-  bk_networkarea_name: "",
-  bk_networkunit_name: "",
-  bk_host_name: "",
+  type: '',
+  bk_biz_id: '',
+  bk_networkarea_id: '',
+  bk_networkunit_id: '',
+  bk_networkarea_name: '',
+  bk_networkunit_name: '',
+  bk_host_name: '',
   info: [cloneDeep(initData)],
   target_version: [] as any[],
   disable_default_target_version: false,
@@ -277,20 +278,20 @@ const previewData = reactive({
 });
 const systemData = ref([
   {
-    os: "Linux_amd64",
-    version: "",
+    os: 'Linux_amd64',
+    version: '',
   },
   {
-    os: "Darwin_amd64",
-    version: "",
+    os: 'Darwin_amd64',
+    version: '',
   },
   {
-    os: "Linux_arm64",
-    version: "",
+    os: 'Linux_arm64',
+    version: '',
   },
   {
-    os: "Windows_amd64",
-    version: "",
+    os: 'Windows_amd64',
+    version: '',
   },
 ]);
 const rules = {};
@@ -299,14 +300,11 @@ const isShowDialog = ref(false);
 const businessList = computed(() => mainStore.businessList);
 const isAtBottom = ref(false);
 const handleSelect = (newValue: string, oldValue: string) => {
-  formData.bk_networkarea_name =
-    networkAreaList.value?.find(
-      (item) => String(item.bk_networkarea_id) === newValue
-    )?.bk_networkarea_name || "";
+  formData.bk_networkarea_name =    networkAreaList.value?.find(item => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
 };
 const dialogData = ref({
-  os: "",
-  version: "",
+  os: '',
+  version: '',
 });
 const handleChooseVersion = (row: { version: string; os: string }) => {
   isShowDialog.value = true;
@@ -358,7 +356,7 @@ const handleShowPanel = () => {
 const handleShowSetting = () => {};
 
 // Excel 导入
-let fileList = ref<File[]>([]);
+const fileList = ref<File[]>([]);
 const url = `${window.location.origin}${import.meta.env.BK_SITE_URL}${
   import.meta.env.BK_API_PREFIX
 }api/excel/download`;
@@ -367,10 +365,10 @@ const handleProgress = (event: Event, file: File, fileList: File[]) => {};
 const handleError = (
   file: File,
   fileList: File[],
-  error: { message: string }
+  error: { message: string },
 ) => {
   Message({
-    theme: "error",
+    theme: 'error',
     message: error.message,
   });
 };
@@ -384,15 +382,13 @@ const handleRes = (response: { id: number | string }) => {
   return false;
 };
 const handleBeforeUpload = (file: File, fileList: File[]) => {
-  const whiteList = ["xlsx"];
-  let AllFiles = fileList.filter((v) =>
-    whiteList.includes(v.name.substring(file.name.lastIndexOf(".") + 1))
-  );
+  const whiteList = ['xlsx'];
+  const AllFiles = fileList.filter(v => whiteList.includes(v.name.substring(file.name.lastIndexOf('.') + 1)));
   if (AllFiles.length !== fileList.length) {
     fileList.pop();
     Message({
-      theme: "warning",
-      message: "仅支持 .xlsx 类型文件",
+      theme: 'warning',
+      message: '仅支持 .xlsx 类型文件',
     });
     return false;
   }
@@ -412,22 +408,22 @@ const handlePreview = async () => {
     installTableRef.value?.tableValidate(),
     isShow.value
       ? Promise.all([
-          Linux_amd64_ref.value?.validate("blur").catch(() => false),
-          Darwin_amd64_ref.value?.validate("blur").catch(() => false),
-          Linux_arm64_ref.value?.validate("blur").catch(() => false),
-          Windows_amd64_ref.value?.validate("blur").catch(() => false),
-        ])
+        Linux_amd64_ref.value?.validate('blur').catch(() => false),
+        Darwin_amd64_ref.value?.validate('blur').catch(() => false),
+        Linux_arm64_ref.value?.validate('blur').catch(() => false),
+        Windows_amd64_ref.value?.validate('blur').catch(() => false),
+      ])
       : true,
   ]);
   // 合并多重Promise
   if (Array.isArray(result[2])) {
-    result[2] = result[2].every((item) => item);
+    result[2] = result[2].every(item => item);
   }
-  if (result.every((item) => item)) {
+  if (result.every(item => item)) {
     previewData.isShow = true;
     const modeMap = {
-      password: "login_password",
-      key: "login_key_file",
+      password: 'login_password',
+      key: 'login_key_file',
     };
     formData.info.forEach((item) => {
       item[modeMap[item.login_mode]] = item.prove;
@@ -435,7 +431,7 @@ const handlePreview = async () => {
     });
     if (isShow.value) {
       formData.target_version = systemData.value.map((item) => {
-        const [type, cpu_arch] = item.os.split("_");
+        const [type, cpu_arch] = item.os.split('_');
         const os_type = capitalizeFirstLetter(type);
         return {
           os_type,
@@ -451,7 +447,7 @@ const handlePreview = async () => {
 const footerRef = ref<Element | null>(null);
 const checkIfAtBottom = () => {
   if (footerRef.value) {
-    let bottom = footerRef.value.getBoundingClientRect().bottom;
+    let { bottom } = footerRef.value.getBoundingClientRect();
     if (isShow.value) {
       bottom += 224;
     } else {
@@ -462,37 +458,37 @@ const checkIfAtBottom = () => {
 };
 
 const handleCancel = () => {
-  router.push({ name: "agent" });
+  router.push({ name: 'agent' });
 };
 const debouncedCheck = debounce(checkIfAtBottom, 100);
 watch(
   () => formData.bk_networkarea_id,
   async () => {
     await getNetworkUnitList();
-  }
+  },
 );
 watch(
   () => isShow.value,
   (val: boolean) => {
     checkIfAtBottom();
-  }
+  },
 );
 watch(
   () => activeInstallType.value,
   (val: string) => {
     // installTableRef.value?.clearTableValidate();
-  }
+  },
 );
 onMounted(async () => {
   await getNetworkAreaList();
   if (footerRef.value) {
-    window.addEventListener("resize", debouncedCheck);
+    window.addEventListener('resize', debouncedCheck);
     checkIfAtBottom();
   }
 });
 onUnmounted(() => {
   if (footerRef.value) {
-    window.removeEventListener("resize", debouncedCheck);
+    window.removeEventListener('resize', debouncedCheck);
   }
 });
 </script>

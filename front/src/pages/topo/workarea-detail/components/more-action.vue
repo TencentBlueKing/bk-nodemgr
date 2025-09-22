@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Dropdown trigger="manual" :placement="placement" :is-show="isShowDropdown">
+    <Dropdown trigger="click" :placement="placement" :is-show="isShowDropdown">
       <Button
         text
         @click="isShowDropdown = true"
@@ -71,10 +71,12 @@
  */
 
 import { Button, Dialog, Dropdown, Message } from 'bkui-vue';
-import { computed, ref, PropType} from 'vue';
+import type { PropType } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { NodeProxyService } from '@/api/modules/node_proxy';
 import { useRouter } from 'vue-router';
+
+import { NodeProxyService } from '@/api/modules/node_proxy';
 
 interface DialogProps {
   title: string
@@ -88,28 +90,33 @@ interface DialogProps {
 const props = defineProps({
   placement: {
     type: String,
-    default: 'right-start'
+    default: 'right-start',
   },
   ipv4: {
     type: String,
-    default: ''
+    default: '',
   },
   row: {
     type: Array as PropType<Host[]>,
-    default: []
+    default: [],
   },
   batch: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
+const emit = defineEmits(['reinstall']);
 const { t } = useI18n();
-const router = useRouter(); 
+const router = useRouter();
 // dropMenuList
 const dropMenuList = ref<{
   label: string
   value: keyof typeof confirmConfigMap
 }[]>([
+  {
+    label: t('topoManager.workAreaDetail.table.Reassembly'),
+    value: 'reinstall',
+  },
   {
     label: t('topoManager.workAreaDetail.dropdown.upgrade'),
     value: 'upgrade',
@@ -129,6 +136,12 @@ const dropMenuList = ref<{
 ]);
 // action dialog map
 const confirmConfigMap = {
+  reinstall: {
+    title: t('topoManager.workAreaDetail.table.Reassembly'),
+    tips: t('topoManager.workAreaDetail.table.Reassembly'),
+    theme: 'primary',
+    contentPosition: 'center',
+  },
   upgrade: {
     title: t('topoManager.workAreaDetail.dialogTitle.upgrade'),
     tips: '',
@@ -172,9 +185,13 @@ const actionConfirmProps = computed((): DialogProps => ({
 
 // 选择dropMenuItem，打开对应的action dialog，关闭dropdown
 const handleClickDropMenu = (action: keyof typeof confirmConfigMap) => {
-  curAction.value = action;
-  // 打开dialog
-  isShow.value = true;
+  if (action === 'reinstall') {
+    emit('reinstall');
+  } else {
+    curAction.value = action;
+    // 打开dialog
+    isShow.value = true;
+  }
   // 隐藏dropdown
   isShowDropdown.value = false;
 };
@@ -185,29 +202,23 @@ const loading = ref(false);
 const curWidth = computed(() => (actionConfirmProps.value.theme === 'primary' ? 400 : 480));
 
 // 升级
-const upgradeVersion = async () => {
-  return await NodeProxyService.NodeProxyUpgrade({
-    host: [props.row],
-    target_version: []
-  }).catch(() => false);
-};
+const upgradeVersion = async () => await NodeProxyService.NodeProxyUpgrade({
+  host: [props.row],
+  target_version: [],
+}).catch(() => false);
 // 卸载
 const unloadProxy = async () => {
 };
 // 重载配置
-const overloadConfig = async () => {
-  return await NodeProxyService.NodeProxyReconfig({ host: [props.row] }).catch(() => false);
-};
+const overloadConfig = async () => await NodeProxyService.NodeProxyReconfig({ host: [props.row] }).catch(() => false);
 // 重启
-const restartProxy = async () => {
-  return await NodeProxyService.NodeProxyRestart({ host: [props.row] }).catch(() => false);
-};
+const restartProxy = async () => await NodeProxyService.NodeProxyRestart({ host: [props.row] }).catch(() => false);
 
 const handleConfirm = async () => {
   loading.value = true;
   let res: any;
   let message;
-  switch(curAction.value) {
+  switch (curAction.value) {
     case 'upgrade':
       res = await upgradeVersion();
       message = '升级成功！';
@@ -223,16 +234,16 @@ const handleConfirm = async () => {
     default:
       break;
   }
-  if(!res) return;
+  if (!res) return;
   Message({
     theme: 'success',
     message,
   });
   loading.value = false;
   isShow.value = false;
-  if(res.workflow_id) {
+  if (res.workflow_id) {
     router.push({
-      name: 'taskDetail', 
+      name: 'taskDetail',
       params: { taskId: res.workflow_id },
     });
   }

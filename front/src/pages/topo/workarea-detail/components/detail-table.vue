@@ -31,11 +31,38 @@
           :label="$t('topoManager.workAreaDetail.table.ipv6')"
           field="bk_host_innerip_v6"
           show-overflow="tooltip"
-          :min-width="150">
+          :min-width="100">
           <template #default="{ row }">
             <span class="!text-[12px]">
               {{ row.bk_host_innerip_v6 ? `#${row.bk_host_innerip_v6}` : '--' }}
             </span>
+          </template>
+        </TableColumn>
+        <TableColumn
+          label="出口IP"
+          field="export_ip"
+          show-overflow="tooltip"
+          :min-width="100">
+        </TableColumn>
+        <TableColumn
+          label="服务IP"
+          field="advertise_ip"
+          show-overflow="tooltip"
+          :min-width="100">
+        </TableColumn>
+        <TableColumn
+          label="登录IP"
+          field="login_ip"
+          show-overflow="tooltip"
+          :min-width="100">
+        </TableColumn>
+        <TableColumn
+          label="所属业务"
+          field="bk_biz_id"
+          show-overflow="tooltip"
+          :min-width="100">
+          <template #default="{ row }">
+            {{ businessList.find(item => item.bk_biz_id === row.bk_biz_id)?.bk_biz_name }}
           </template>
         </TableColumn>
         <TableColumn
@@ -71,6 +98,19 @@
           </template>
         </TableColumn>
         <TableColumn
+          label="proxy服务"
+          field="proxy_tags"
+          show-overflow="tooltip"
+          :min-width="230">
+          <template #default="{ row }">
+            <div class="flex items-center gap-[4px]">
+              <div v-for="tag in row.proxy_tags" :key="tag">
+                <Tag>{{ proxyTagMap[tag] }}</Tag>
+              </div>
+            </div>
+          </template>
+        </TableColumn>
+        <TableColumn
           :label="$t('topoManager.workAreaDetail.table.action')"
           field="action"
           fixed="right"
@@ -81,10 +121,10 @@
               <Button theme="primary" text class="mr-[12px]" @click="handleEdit(row)">
                 {{ $t('topoManager.workAreaDetail.table.edit') }}
               </Button>
-              <Button theme="primary" text class="mr-[12px]" @click="handleReinstall(row)">
-                {{ $t('topoManager.workAreaDetail.table.Reassembly') }}
-              </Button>
-              <MoreAction :ipv4="row.bk_host_innerip" :row="row">
+              <MoreAction
+                :ipv4="row.bk_host_innerip"
+                :row="[row]"
+                @reinstall="handleReinstall(row)">
                 <i class="nodeman-icon nc-more cursor"></i>
               </MoreAction>
             </div>
@@ -92,40 +132,42 @@
         </TableColumn>
       </Table>
     </bk-loading>
-    <edit-unit-sideslider v-model:is-show="sidesliderData.isShow" :data="sidesliderData.data" @update="handleUpdate"></edit-unit-sideslider>
-    <ReinstallProxy v-model:is-show="isShowInstallProxy" :data="reinstallData" :bk_networkunit_id="bkNetworkunitId"/>
+    <edit-unit-sideslider v-model:is-show="sidesliderData.isShow" :data="sidesliderData.data" @update="handleUpdate">
+    </edit-unit-sideslider>
+    <ReinstallProxy v-model:is-show="isShowInstallProxy" :data="reinstallData" :bk_networkunit_id="bkNetworkunitId" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Button } from 'bkui-vue';
-import { reactive, ref, onMounted, computed, watch } from 'vue';
+import { Button, Tag } from 'bkui-vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
-import MoreAction from './more-action.vue';
-
-import useDynamicsHeight from '@/composables/use-table-height';
-import useTableSetting from '@/composables/use-table-setting';
-import EditUnitSideslider from './edit-unit-sideslider.vue';
 import ReinstallProxy from '../../install-proxy/reinstall-proxy.vue';
+
+import EditUnitSideslider from './edit-unit-sideslider.vue';
+import MoreAction from './more-action.vue';
 
 import type {
   TopoHostExactConditions,
   TopoHostFuzzyConditions,
-} from "@/@types/topo.d";
-import { TopoService } from "@/api/modules/topo";
-import { useRoute } from 'vue-router';
+} from '@/@types/topo.d';
+import { TopoService } from '@/api/modules/topo';
+import useDynamicsHeight from '@/composables/use-table-height';
+import useTableSetting from '@/composables/use-table-setting';
+import { useMainStore } from '@/stores/main';
 
 const props = defineProps({
   searchSelectValue: {
     type: Array,
-    default: []
+    default: [],
   },
   bkNetworkunitId: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
 });
 const emit = defineEmits(['selectChange']);
 const route = useRoute();
@@ -133,28 +175,39 @@ const workAreaId = Number(route.params.workarea);
 const list = ref<Host[]>([]);
 const pagination = reactive({ count: 0, limit: 20, current: 1 });
 const sortConfig = ref({ multiple: true });
+const mainStore = useMainStore();
+const businessList = computed(() => mainStore.businessList);
 const sidesliderData = reactive<{
   isShow: boolean,
   data: Host | null
 }>({
   isShow: false,
-  data: null
+  data: null,
 });
+const proxyTagMap = {
+  dedicated_installer: '安装跳板',
+  cluster_tunnel: 'Agent控制',
+  file_tunnel: '文件传输',
+  data_tunnel: '数据上报',
+};
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'bk_host_innerip',
     'bk_host_innerip_v6',
+    'export_ip',
+    'advertise_ip',
+    'login_ip',
+    'bk_biz_id',
     'bk_agent_id',
     'node_version',
     'node_status',
+    'proxy_tags',
     'action',
   ],
   disabled: ['action'],
 });
 // 表格勾选
-const selection = computed(() =>
-  list.value.filter((item: any) => item.checked)
-);
+const selection = computed(() => list.value.filter((item: any) => item.checked));
 const handleSelectChange = ({
   checked,
   row,
@@ -201,21 +254,21 @@ const proxyStatusFilter = reactive({
 const handleEdit = (row: Host) => {
   sidesliderData.isShow = true;
   sidesliderData.data = row;
-}
+};
 const fuzzyKeys = new Set([
-  "bk_host_innerip",
-  "bk_host_innerip_v6",
+  'bk_host_innerip',
+  'bk_host_innerip_v6',
 ]);
 const getParams = () => {
   const params = {
     page: {
       limit: pagination.limit,
-      offset: (pagination.current - 1)*pagination.limit,
+      offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {} as TopoHostExactConditions,
     fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
   };
-  params.exact_include_conditions.node_role = ["proxy"];
+  params.exact_include_conditions.node_role = ['proxy'];
   params.exact_include_conditions.bk_networkunit_id = [props.bkNetworkunitId];
   searchSelectValue.value.forEach((item: any) => {
     const target = fuzzyKeys.has(item.id)
@@ -244,16 +297,16 @@ const getAgentList = async () => {
 };
 const handleUpdate = async () => {
   await getAgentList();
-}
+};
 const isShowInstallProxy = ref(false);
 const reinstallData = ref<Host[]>([]);
 const handleReinstall = (row: Host) => {
   isShowInstallProxy.value = true;
   reinstallData.value = [row];
 };
-watch(searchSelectValue,async () => {
+watch(searchSelectValue, async () => {
   await getAgentList();
-},{immediate: true, deep: true});
+}, { immediate: true, deep: true });
 </script>
 <style lang="postcss" scoped>
 .status-icon::before {

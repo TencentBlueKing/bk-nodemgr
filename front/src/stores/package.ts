@@ -1,21 +1,25 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
-import { PackageService } from "@/api/modules/pkg";
-import { useRoute } from "vue-router";
+import { PackageService } from '@/api/modules/pkg';
 
 export const usePackageStore = defineStore('package', () => {
   const route = useRoute();
   const tagList = ref<string[]>([]);
+  const currentType = computed(() => {
+    const routeName = route.name?.toString() || '';
+    const type = routeName.split('PackageMng')[0];
+    return type;
+  });
   const getPackages = async () => {
-    const currentType = route.name === "agentPackageMng" ? "agent" : "proxy";
     const res = await PackageService.ListRelease({
-      release_type: currentType,
-      generation: 2
+      release_type: currentType.value,
+      generation: 2,
     });
     const allLabels = res.items.flatMap(item => item.labels || []);
     tagList.value = Array.from(new Set(allLabels));
-  }
+  };
   return {
     tagList,
     getPackages,

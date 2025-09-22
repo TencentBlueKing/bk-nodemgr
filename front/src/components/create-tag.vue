@@ -1,15 +1,17 @@
 <template>
-  <div class="w-full h-full flex  items-center gap-[8px]" v-if="!isEditing" @click="handleEdit">
+  <div
+    class="w-full h-full min-w-[100px] min-h-[22px] flex  items-center gap-[8px]"
+    v-if="!isEditing" @click="handleEdit">
     <Tag
-      v-for="tag in data.labels?.slice(0, 2)"
+      v-for="tag in localTags?.slice(0, 2)"
       :key="tag"
-      >{{ tag }}
+    >{{ tag }}
     </Tag
     >
     <Tag
-      v-if="data.labels?.length > 2"
-      v-bk-tooltips="data.labels?.join(', ')"
-      >+{{ data.labels?.length - 2 }}
+      v-if="localTags?.length > 2"
+      v-bk-tooltips="localTags?.join(', ')"
+    >+{{ localTags?.length - 2 }}
     </Tag>
   </div>
   <div class="w-full edit-tag" v-else>
@@ -40,12 +42,12 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, ref, onMounted } from "vue";
-import { Tag, TagInput } from "bkui-vue";
-import { PackageService } from "@/api/modules/pkg";
-import { usePackageStore } from "@/stores/package";
+import { Tag, TagInput } from 'bkui-vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
-const packageStore = usePackageStore();
+import { PackageService } from '@/api/modules/pkg';
+import { usePackageStore } from '@/stores/package';
+
 const props = defineProps({
   data: {
     type: Object,
@@ -53,15 +55,15 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(['blur']);
-const tagList = computed(() =>
-  packageStore.tagList.map((tag: string) => ({
-    id: tag,
-    name: tag,
-  }))
-);
-const localTags = ref<string[]>([...props.data.labels])
+const packageStore = usePackageStore();
+const tagList = computed(() => packageStore.tagList.map((tag: string) => ({
+  id: tag,
+  name: tag,
+})));
+const localTags = ref<string[]>([]);
+
 const popShow = ref(false);
-const createTag = ref("");
+const createTag = ref('');
 const isEditing = ref(false);
 const handleEdit = () => {
   // 关闭其他弹框
@@ -80,7 +82,7 @@ const handleInputchange = (value: string) => {
     createTag.value = inputVal;
   } else {
     popShow.value = false;
-    createTag.value = "";
+    createTag.value = '';
   }
 };
 // 新建标签
@@ -95,14 +97,17 @@ const handleBlur = async () => {
     release_type: props.data.release_type,
     platform: {
       os_type: props.data.os_type,
-      cpu_arch: props.data.cpu_arch
+      cpu_arch: props.data.cpu_arch,
     },
     version: props.data.version,
     labels: [...localTags.value],
   });
   // 用于更新标签信息
   packageStore.getPackages();
-  emit('blur')
+  emit('blur');
   isEditing.value = false;
-}
+};
+watch(() => props.data, () => {
+  localTags.value = [...props.data.labels];
+}, { immediate: true, deep: true });
 </script>

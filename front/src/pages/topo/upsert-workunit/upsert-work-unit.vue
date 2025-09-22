@@ -122,14 +122,14 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Form, Input, Message, Sideslider, InfoBox, Radio } from 'bkui-vue';
+import { Button, Form, InfoBox, Input, Message, Radio, Sideslider } from 'bkui-vue';
 import { isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
-import CreateDirectAccessPoint from './components/create-direct-access-point.vue';
 import CreateAccessPointList from './components/create-access-point-list.vue';
+import CreateDirectAccessPoint from './components/create-direct-access-point.vue';
 import SelectGroup from './components/select-group.vue';
 
 import type { TopoNetworkUnitCreateReq, TopoNetworkUnitUpdateReq } from '@/@types/topo';
@@ -295,7 +295,7 @@ const handleConfirm = async () => {
       accesspoints: form.accesspoints,
       direct_endpoints: form.direct_endpoints,
       links,
-      is_direct: type.value === 'direct'
+      is_direct: type.value === 'direct',
     };
 
     if (!props.isCreate) (params as TopoNetworkUnitUpdateReq).bk_networkunit_id = props.workUnitId;
@@ -329,18 +329,17 @@ const handleConfirm = async () => {
 const handleClose = () => {
   isShow.value = false;
 };
-const handleBeforeClose = () =>
-  new Promise((resolve, reject) => {
-    InfoBox({
-      title: "确认关闭?",
-      infoType: "warning",
-      onConfirm: () => {
-        resolve(true);
-        isShow.value = false;
-      },
-      onCancel: () => reject(),
-    });
+const handleBeforeClose = () => new Promise((resolve, reject) => {
+  InfoBox({
+    title: '确认关闭?',
+    infoType: 'warning',
+    onConfirm: () => {
+      resolve(true);
+      isShow.value = false;
+    },
+    onCancel: () => reject(),
   });
+});
 const workAreaList = ref<{
   label: string
   value: number

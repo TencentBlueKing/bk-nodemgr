@@ -38,3 +38,38 @@ export interface NodeAgentInstallRespData {
   workflow_id: string;
 }
 
+// AgentInstallCheckInfo describes the node agent install check parameter.
+export interface AgentInstallCheckInfo {
+  bk_biz_id: number;
+  bk_host_innerip: string;
+  bk_networkunit_id: number;
+}
+
+// NodeAgentInstallCheckReq describes the node agent install check request.
+export interface NodeAgentInstallCheckReq {
+  host: AgentInstallCheckInfo[];
+}
+
+// NodeAgentInstallCheckResp describes the response for node agent installation
+// check.
+export interface NodeAgentInstallCheckResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeAgentInstallCheckRespData;
+}
+
+export interface NodeAgentInstallCheckRespData {
+  install_eligs: NodeAgentInstallElig[];
+  total_count: number;
+}
+
+// NodeAgentInstallElig describes the eligibility for node agent
+// installation.
+export interface NodeAgentInstallElig {
+  inner_ip: string;
+  elig_status: string;
+  duplicate_host_ids: number[];
+}
+

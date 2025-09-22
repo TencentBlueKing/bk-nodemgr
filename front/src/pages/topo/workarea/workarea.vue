@@ -31,18 +31,18 @@
     <UpsertWorkarea
       v-model:is-show="showUpsertWorkarea"
       :is-create="isCreate"
-      :curWorkareaData="curWorkareaData"
+      :cur-workarea-data="curWorkareaData"
       @install-proxy="handleInstallProxy"
       @update="handleUpdate"
     />
-    <InstallProxy v-bind:is-show="isInstallProxyShow"/>
+    <InstallProxy v-bind:is-show="isInstallProxyShow" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { Button, SearchSelect } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
-import { onMounted, ref, watch, computed } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import InstallProxy from '../install-proxy/install-proxy.vue';
@@ -98,13 +98,13 @@ const handleGetSelectData = async (type: string) => {
 
 // 表格数据
 const tableData = ref<INetWorkArea[]>([]);
-const sortTableData = computed(() => tableData.value.sort((a: INetWorkArea,b: INetWorkArea) => {
+const sortTableData = computed(() => tableData.value.sort((a: INetWorkArea, b: INetWorkArea) => {
   if (a.bk_networkarea_id === 0) {
     return -1;
-  } else if (b.bk_networkarea_id === 0) {
-    return 1; 
+  } if (b.bk_networkarea_id === 0) {
+    return 1;
   }
-  return b.bk_networkarea_id - a.bk_networkarea_id
+  return b.bk_networkarea_id - a.bk_networkarea_id;
 }));
 
 // 下拉搜索框value、list
@@ -167,7 +167,7 @@ const getTableData = async () => {
   ]);
   tableData.value = workareaStore.workareaList;
   initSearchData();
-}
+};
 onMounted(async () => {
   await getTableData();
 });

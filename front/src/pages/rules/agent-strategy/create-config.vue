@@ -1,4 +1,5 @@
 <template>
+  <page-header :title="title" :back="true"></page-header>
   <div ref="configRef" class="p-[24px] w-1/2 min-w-[750px]">
     <Form ref="formRef" :model="formData" :rules="rules">
       <Form.FormItem :label="'配置名称'" property="configpolicy_name" required>
@@ -67,17 +68,17 @@
               auto-focus
               filterable
             >
-            <Select.Option label="不限" value="-1"></Select.Option>
-            <Select.Group>
-              <Select.Option
-                v-for="option in filterNetworkUnitList(item.bk_networkarea_id)"
-                :key="option.bk_networkarea_id"
-                :id="String(option.bk_networkunit_id)"
-                :name="option.bk_networkunit_name"
-              >
-                {{ option.bk_networkunit_name }}
-              </Select.Option>
-            </Select.Group>
+              <Select.Option label="不限" value="-1"></Select.Option>
+              <Select.Group>
+                <Select.Option
+                  v-for="option in filterNetworkUnitList(item.bk_networkarea_id)"
+                  :key="option.bk_networkarea_id"
+                  :id="String(option.bk_networkunit_id)"
+                  :name="option.bk_networkunit_name"
+                >
+                  {{ option.bk_networkunit_name }}
+                </Select.Option>
+              </Select.Group>
             </Select>
             <Select
               v-model="item.os_type"
@@ -127,14 +128,14 @@
         <div class="flex items-center text-[#979BA5]">
           <i class="nodeman-icon nc-tips"></i>
           <span class="ml-[9px] text-[12px]"
-            >如需修改默认配置，需打开开关后修改</span
+          >如需修改默认配置，需打开开关后修改</span
           >
         </div>
         <config-template @update-config="updateConfig"></config-template>
         <div class="text-[#E71818] text-[12px] flex items-center" v-if="isEdit && mainStore.configEditData">
           <i class="nodeman-icon nc-remind-fill text-[14px]"></i>
           <span class="mr-[3px] ml-[9px]"
-            >编辑器内容有改动，保存该配置版本将会由</span
+          >编辑器内容有改动，保存该配置版本将会由</span
           >
           <Tag theme="warning">{{ `V${mainStore.configEditData.version}` }}</Tag>
           <span class="mx-[3px]">升级为</span>
@@ -153,14 +154,15 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, computed, onMounted, watch } from "vue";
-import { Form, Select, Input, Button, Switcher, Tag } from "bkui-vue";
-import type { ConfigPolicyCreateReq } from "@/@types/configpolicy";
-import { cloneDeep } from "lodash";
-import { useMainStore } from "@/stores/main";
-import { useRoute, useRouter } from "vue-router";
-import { TopoService } from "@/api/modules/topo";
-import { ConfigPolicyAPIService } from "@/api/modules/configpolicy";
+import { Button, Form, Input, Select, Switcher, Tag } from 'bkui-vue';
+import { cloneDeep } from 'lodash';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+import type { ConfigPolicyCreateReq } from '@/@types/configpolicy';
+import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
+import { TopoService } from '@/api/modules/topo';
+import { useMainStore } from '@/stores/main';
 import useUserStore from '@/stores/user';
 
 const route = useRoute();
@@ -168,7 +170,25 @@ const router = useRouter();
 const mainStore = useMainStore();
 const userStore = useUserStore();
 const nodeRole = computed(() => route.params.node_role);
-const isEdit = computed(() => route.name === "editConfig");
+const title = computed(() => {
+  // 定义操作类型映射
+  const actionMap = {
+    createConfig: '新建',
+    editConfig: '编辑',
+  };
+  // 定义角色类型映射
+  const roleMap = {
+    agent: 'Agent',
+    proxy: 'Proxy',
+  };
+  // 获取当前操作和角色
+  const action = actionMap[route.name as keyof typeof actionMap];
+  const role = roleMap[nodeRole.value as keyof typeof roleMap];
+
+  // 组合结果（如果有无效值则返回空字符串或默认标题）
+  return action && role ? `${action} ${role} 配置` : '';
+});
+const isEdit = computed(() => route.name === 'editConfig');
 const businessList = computed(() => mainStore.businessList);
 const initData = {
   configpolicy_name: '',
@@ -179,8 +199,8 @@ const initData = {
     {
       bk_networkarea_id: '-1',
       bk_networkunit_id: '-1',
-      os_type: "-1",
-      cpu_arch: "-1",
+      os_type: '-1',
+      cpu_arch: '-1',
     },
   ],
   configs: [] as ConfigPolicyConfigBlock[],
@@ -194,27 +214,25 @@ const handleAdd = () => {
   formData.scopes.push({
     bk_networkarea_id: '-1',
     bk_networkunit_id: '-1',
-    os_type: "-1",
-    cpu_arch: "-1",
+    os_type: '-1',
+    cpu_arch: '-1',
   });
 };
 const handleDelete = (index: number) => {
-  if(index === 0) return;
-  formData.scopes = formData.scopes.filter(
-    (_: any, ind: number) => ind !== index
-  );
+  if (index === 0) return;
+  formData.scopes = formData.scopes.filter((_: any, ind: number) => ind !== index);
 };
 const handleChangeBiz = (val: any) => {
   const filter = val.filter((item: any) => item !== '不限');
   if (filter.length > 0) {
     formData.biz_id = filter;
   } else {
-    formData.biz_id = ['不限']
+    formData.biz_id = ['不限'];
   }
-}
+};
 const updateConfig = (configs: ConfigPolicyConfigBlock[]) => {
-  formData.configs = configs
-}
+  formData.configs = configs;
+};
 const handleSubmit = async () => {
   let res;
   const scopes = formData.scopes.map((item: any) => ({
@@ -223,29 +241,29 @@ const handleSubmit = async () => {
     os_type: item.os_type === '-1' ? '' : item.os_type,
     cpu_arch: item.cpu_arch === '-1' ? '' : item.cpu_arch,
   }));
-  const biz_id = formData.biz_id.includes('不限') ? [] : formData.biz_id; 
-  if(isEdit.value) {
+  const biz_id = formData.biz_id.includes('不限') ? [] : formData.biz_id;
+  if (isEdit.value) {
     res = await ConfigPolicyAPIService.ConfigPolicyUpdate({
       configpolicy_id: configpolicyId.value,
       ...formData,
       scopes,
       operator: userStore.user?.username,
-      biz_id
+      biz_id,
     }).catch(() => false);
   } else {
     res = await ConfigPolicyAPIService.ConfigPolicyCreate({
       ...formData,
       scopes,
       operator: userStore.user?.username,
-      biz_id
+      biz_id,
     }).catch(() => false);
   }
   if (res && nodeRole.value) {
-    router.replace({name: `${nodeRole.value}Strategy`});
+    router.replace({ name: `${nodeRole.value}Strategy` });
   }
 };
 const handleCancel = () => {
-  router.replace({ name: "agentStrategy" });
+  router.replace({ name: 'agentStrategy' });
 };
 const networkAreaList = ref<NetworkArea[]>([]);
 // 管控区域
@@ -258,9 +276,7 @@ const getNetworkAreaList = async () => {
 };
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
-const filterNetworkUnitList = (id: number | string) => {
-  return networkUnitList.value.filter((item: NetworkUnit) => item.bk_networkarea_id === Number(id) || item.bk_networkunit_id === -1);
-}
+const filterNetworkUnitList = (id: number | string) => networkUnitList.value.filter((item: NetworkUnit) => item.bk_networkarea_id === Number(id) || item.bk_networkunit_id === -1);
 const getNetworkUnitList = async () => {
   const res = await TopoService.NetworkUnitList({}).catch(() => ({
     total: 0,
@@ -274,27 +290,27 @@ const cpuArchList = ref<{ value: string; label: string }[]>();
 const getPlatform = async () => {
   const res = await ConfigPolicyAPIService.ConfigPolicyListPlatform({
     node_role: nodeRole.value,
-    generation: 2
+    generation: 2,
   }).catch(() => ({
     os_type: [],
     cpu_arch: [],
   }));
-  osTypeList.value = res.os_type.map((item) => ({
+  osTypeList.value = res.os_type.map(item => ({
     value: item,
     label: item,
   }));
-  cpuArchList.value = res.cpu_arch.map((item) => ({
+  cpuArchList.value = res.cpu_arch.map(item => ({
     value: item,
     label: item,
   }));
 };
 const handleChangeArea = (item: any) => {
   item.bk_networkunit_id = '-1';
-}
+};
 watch(
   () => route.name,
   () => {
-    if (route.name === "editConfig" && mainStore.configEditData) {
+    if (route.name === 'editConfig' && mainStore.configEditData) {
       configpolicyId.value = mainStore.configEditData.configpolicy_id;
       Object.assign(formData, mainStore.configEditData);
       formData.biz_id = mainStore.configEditData.biz_id.length ? mainStore.configEditData.biz_id : ['不限'];
@@ -307,7 +323,7 @@ watch(
       }));
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 onMounted(async () => {
   await getNetworkAreaList();

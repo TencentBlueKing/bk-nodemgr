@@ -8,9 +8,9 @@
         ref="searchSelect"
         :data="searchSelectData"
         v-model="searchSelectValue"
-        :uniqueSelect="true"
-        :placeholder="t('版本号、操作系统/架构、标签、上传用户、状态')"
-        @update:modelValue="handleSearchSelectChange"
+        :unique-select="true"
+        :placeholder="'版本号、操作系统/架构、标签、上传用户、状态'"
+        @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
     </div>
@@ -18,15 +18,15 @@
       <div
         class="w-[240px] flex-shrink-0 bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full mr-[17px]"
       >
-        <div class="px-[16px] py-[10px] text-[12px]">{{ t("快捷筛选") }}</div>
+        <div class="px-[16px] py-[10px] text-[12px]">快捷筛选</div>
         <div v-for="option in dimensionList" :key="option.id">
           <div
             class="flex justify-between items-center bg-[#F0F1F5] h-[32px] px-[16px] cursor-pointer"
-            :class="{'bg-[#fff]': option.id === 'version' ? !state.versionExpand : !state.osExpand}"
+            :class="{ 'bg-[#fff]': option.id === 'version' ? !state.versionExpand : !state.osExpand }"
             @click="handleExpand(option.id)">
             <div class="text-[12px]">{{ option.name }}</div>
-            <angle-down v-show="option.id === 'version' ? state.versionExpand : state.osExpand"/>
-            <angle-right v-show="option.id === 'version' ? !state.versionExpand : !state.osExpand"/>
+            <angle-down v-show="option.id === 'version' ? state.versionExpand : state.osExpand" />
+            <angle-right v-show="option.id === 'version' ? !state.versionExpand : !state.osExpand" />
           </div>
           <template v-if="option.id === 'version' ? state.versionExpand : state.osExpand">
             <div
@@ -34,9 +34,9 @@
                 'h-[36px] mt-[8px] px-[16px] cursor-pointer',
                 {
                   'bg-[#E1ECFF] text-[#3A84FF]':
-                  option.id === 'version'
-                  ? state.versionDimensionOptional === 'all'
-                  : state.osDimensionOptional === 'all'
+                    option.id === 'version'
+                      ? state.versionDimensionOptional === 'all'
+                      : state.osDimensionOptional === 'all'
                 },
               ]"
               @click="selectDimensionOptional('all', option.id as PkgQuickType, 'click')"
@@ -52,11 +52,11 @@
                   :checked="option.id === 'version'
                     ? state.versionDimensionOptional === 'all'
                     : state.osDimensionOptional === 'all'"
-                  >{{ originPackageList.length }}</Tag
+                >{{ originPackageList.length }}</Tag
                 >
               </div>
             </div>
-            <div class="overflow-auto" :style="{ maxHeight: quickMaxHeight/2 + 'px' }">
+            <div class="overflow-auto" :style="{ maxHeight: quickMaxHeight / 2 + 'px' }">
               <div
                 v-for="item in option.children"
                 :key="item.id"
@@ -65,8 +65,8 @@
                   {
                     'bg-[#E1ECFF] text-[#3A84FF]':
                       option.id === 'version'
-                      ? state.versionDimensionOptional === item.id
-                      : state.osDimensionOptional === item.id,
+                        ? state.versionDimensionOptional === item.id
+                        : state.osDimensionOptional === item.id,
                   },
                 ]"
                 @click="selectDimensionOptional(item.id, option.id as PkgQuickType, 'click')"
@@ -177,8 +177,8 @@
             :filter="filterOptionSource.enabled"
           >
             <template #default="{ row }">
-              <Tag v-if="row.enabled" theme="success">{{ t("启用") }}</Tag>
-              <Tag v-else>{{ t("禁用") }}</Tag>
+              <Tag v-if="row.enabled" theme="success">启用</Tag>
+              <Tag v-else>禁用</Tag>
             </template>
           </TableColumn>
           <TableColumn
@@ -187,8 +187,8 @@
             :min-width="120"
           >
             <template #default="{ row }">
-              <Tag v-if="row.as_default" theme="success">{{ t("是") }}</Tag>
-              <Tag v-else>{{ t("否") }}</Tag>
+              <Tag v-if="row.as_default" theme="success">是</Tag>
+              <Tag v-else>否</Tag>
             </template>
           </TableColumn>
           <TableColumn
@@ -224,7 +224,9 @@
                   >停用</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[4px]">
-                      <div class="text-[16px] text-[#313238] mb-[6px]">确认停用该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？</div>
+                      <div class="text-[16px] text-[#313238] mb-[6px]">
+                        确认停用该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？
+                      </div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">停用目标：{{row.file_name}}</div>
                       <div class="text-[12px] text-[#262830] w-full">停用后，Agent 安装、重装、升级时，不可选择</div>
                       <div class="mt-[20px] flex gap-[8px] justify-end">
@@ -256,7 +258,9 @@
                   >删除</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[4px]">
-                      <div class="text-[16px] text-[#313238] mb-[6px]">确认删除该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？</div>
+                      <div class="text-[16px] text-[#313238] mb-[6px]">
+                        确认删除该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？
+                      </div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
                       <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
                       <div class="mt-[20px] flex gap-[8px] justify-end">
@@ -276,8 +280,26 @@
   <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
-type PkgQuickType = "os_cpu_arch" | "version";
-type PkgType = "gse_agent" | "gse_proxy";
+import { Button, Loading, Popover, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
+import { AngleDown, AngleRight, EditLine } from 'bkui-vue/lib/icon';
+import { isArray } from 'lodash';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
+import type { VxeTablePropTypes } from 'vxe-table';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import PkgUploadSideslider from './pkg-upload-sideslider.vue';
+
+import type { Release } from '@/@types/common.d';
+import { PackageService } from '@/api/modules/pkg';
+import { capitalizeFirstLetter, compareVersions, formatTimestamp } from '@/common/util';
+import usePage from '@/composables/use-page';
+import useTableSetting from '@/composables/use-table-setting';
+import { useMainStore } from '@/stores/main';
+type PkgQuickType = 'os_cpu_arch' | 'version';
+type PkgType = 'gse_agent' | 'gse_proxy';
 type filterProp = 'version' | 'labels' | 'operator' | 'enabled';
 interface ISearchSelect {
   id: string;
@@ -298,22 +320,7 @@ interface IFilterOption {
   match?: string,
 }
 // 排序类型
-type PkgOrderType = "version" | "-version";
-import { ref, reactive, computed, onMounted, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { Button, SearchSelect, Tag, Select, Loading, Popover, TagInput } from "bkui-vue";
-import useTableSetting from "@/composables/use-table-setting";
-import { PackageService } from "@/api/modules/pkg";
-import { Table, TableColumn } from "@blueking/table";
-import { formatTimestamp, capitalizeFirstLetter, compareVersions } from "@/common/util";
-import type { Release } from "@/@types/common.d";
-import { isArray } from "lodash";
-import { useRoute, useRouter } from "vue-router";
-import type { VxeTablePropTypes } from 'vxe-table';
-import usePage from '@/composables/use-page';
-import { EditLine, AngleDown, AngleRight } from "bkui-vue/lib/icon";
-import PkgUploadSideslider from "./pkg-upload-sideslider.vue";
-import { useMainStore } from "@/stores/main";
+type PkgOrderType = 'version' | '-version';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -321,7 +328,7 @@ const router = useRouter();
 const mainStore = useMainStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314);
-const currentType = computed(() => route.name === "agentPackageMng" ? "agent" : "proxy");
+const currentType = computed(() => (route.name === 'agentPackageMng' ? 'agent' : 'proxy'));
 const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
@@ -336,39 +343,38 @@ const state = reactive<{
   versionExpand: boolean;
   osExpand: boolean;
   uploadShow: boolean;
-  ordering: PkgOrderType | "";
+  ordering: PkgOrderType | '';
 }>({
   isLoading: true,
   panels: [
-    { name: "gse_agent", label: "Agent" },
-    { name: "gse_proxy", label: "Proxy" },
+    { name: 'gse_agent', label: 'Agent' },
+    { name: 'gse_proxy', label: 'Proxy' },
   ],
-  active: "gse_agent",
+  active: 'gse_agent',
   // 维度
-  dimension: "os_cpu_arch",
-  versionDimensionOptional: "all",
-  osDimensionOptional: "all",
+  dimension: 'os_cpu_arch',
+  versionDimensionOptional: 'all',
+  osDimensionOptional: 'all',
   versionExpand: true,
   osExpand: true,
   uploadShow: false,
-  ordering: "",
+  ordering: '',
 });
 // 分页
 const {
-  pagination
+  pagination,
 } = usePage(packageList);
 const sortConfig = ref<VxeTablePropTypes.SortConfig>({
-  sortMethod ({ data, sortList }) {
-    const sortItem = sortList[0]
+  sortMethod({ data, sortList }) {
+    const sortItem = sortList[0];
     // 取出第一个排序的列
-    const { field, order } = sortItem
+    const { field, order } = sortItem;
     // 通用排序函数
     function sortData(a: Release, b: Release, field: string) {
       if (field === 'version') {
         return compareVersions(a[field], b[field]);
-      } else {
-        return a[field] - b[field];
       }
+      return a[field] - b[field];
     }
 
     const sortedList = data.sort((a: Release, b: Release) => {
@@ -377,49 +383,45 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
     });
 
     return sortedList;
-  }
+  },
 });
-const dimensionList = computed(() =>
-  searchSelectData.value.filter((item: { id: string }) =>
-    ["version", "os_cpu_arch"].includes(item.id)
-  ).sort((a: { id: string }, b: { id: string }) => {
-    const orderMap: { [key: string]: number } = { os_cpu_arch: 0, version: 1 };
-    return orderMap[a.id] - orderMap[b.id];
-  })
-);
+const dimensionList = computed(() => searchSelectData.value.filter((item: { id: string }) => ['version', 'os_cpu_arch'].includes(item.id)).sort((a: { id: string }, b: { id: string }) => {
+  const orderMap: { [key: string]: number } = { os_cpu_arch: 0, version: 1 };
+  return orderMap[a.id] - orderMap[b.id];
+}));
 const handleExpand = (id: string) => {
   if (id === 'version') {
     state.versionExpand = !state.versionExpand;
   } else {
     state.osExpand = !state.osExpand;
   }
-}
+};
 const filterOptionSource = reactive<Record<string, IFilterOption>>({
   version: {
     list: [],
     checked: [],
     match: 'fuzzy',
-    filterScope: "all",
+    filterScope: 'all',
   },
   labels: {
     list: [],
     checked: [],
     match: 'fuzzy',
-    filterScope: "all",
+    filterScope: 'all',
   },
   operator: {
     list: [],
     checked: [],
     match: 'fuzzy',
-    filterScope: "all",
+    filterScope: 'all',
   },
   enabled: {
     list: [
-      { value: true, text: t("启用") },
-      { value: false, text: t("禁用") },
+      { value: true, text: '启用' },
+      { value: false, text: '禁用' },
     ],
     checked: [],
-    filterScope: "all",
+    filterScope: 'all',
   },
 });
 // 搜索
@@ -436,18 +438,14 @@ function countByProp(data: Release[], prop: string) {
   }, {});
 }
 function getUniqueChildren(prop: string) {
-  const res = Array.from(
-    new Set(
-      originPackageList.value
-        .map((item: any) => item[prop])
-        .filter((item: any) => String(item))
-    )
-  );
+  const res = Array.from(new Set(originPackageList.value
+    .map((item: any) => item[prop])
+    .filter((item: any) => String(item))));
   const uniqueValues = isArray(res[0]) ? [...res[0]] : res;
   return uniqueValues.map((value: any) => {
-    let name = String(value);
+    const name = String(value);
     let count;
-    if (["os_cpu_arch", "version"].includes(prop)) {
+    if (['os_cpu_arch', 'version'].includes(prop)) {
       count = countByProp(originPackageList.value, prop)[value as string];
     }
 
@@ -463,33 +461,33 @@ function getUniqueChildren(prop: string) {
 
 const searchSelectData = computed(() => [
   {
-    id: "version",
-    name: t("版本号"),
-    children: getUniqueChildren("version"),
+    id: 'version',
+    name: '版本号',
+    children: getUniqueChildren('version'),
   },
   {
-    id: "os_cpu_arch",
-    name: t("操作系统/架构"),
-    children: getUniqueChildren("os_cpu_arch"),
+    id: 'os_cpu_arch',
+    name: '操作系统/架构',
+    children: getUniqueChildren('os_cpu_arch'),
   },
   {
-    id: "labels",
-    name: t("标签"),
-    children: getUniqueChildren("labels"),
+    id: 'labels',
+    name: '标签',
+    children: getUniqueChildren('labels'),
     multiple: true,
   },
   {
-    id: "operator",
-    name: t("上传用户"),
-    children: getUniqueChildren("operator"),
+    id: 'operator',
+    name: '上传用户',
+    children: getUniqueChildren('operator'),
     multiple: true,
   },
   {
-    id: "enabled",
-    name: t("状态"),
+    id: 'enabled',
+    name: '状态',
     children: [
-      { id: true, name: t("启用") },
-      { id: false, name: t("禁用") },
+      { id: true, name: '启用' },
+      { id: false, name: '禁用' },
     ],
   },
 ]);
@@ -497,18 +495,18 @@ const searchSelectData = computed(() => [
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    "file_name",
-    "version",
-    "os_cpu_arch",
-    "labels",
-    "operator",
-    "updated_at",
-    "host",
-    "enabled",
-    "as_default",
-    "action",
+    'file_name',
+    'version',
+    'os_cpu_arch',
+    'labels',
+    'operator',
+    'updated_at',
+    'host',
+    'enabled',
+    'as_default',
+    'action',
   ],
-  disabled: ["action"],
+  disabled: ['action'],
 });
 // 筛选
 const handleFilter = ({
@@ -518,9 +516,7 @@ const handleFilter = ({
   checked: string[];
   field: string;
 }) => {
-  const index = searchSelectValue.value.findIndex(
-    (item: any) => item.id === field
-  );
+  const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (checked.length) {
     searchSelectValue.value.push({
@@ -530,7 +526,7 @@ const handleFilter = ({
         let name;
         switch (field) {
           case 'enabled':
-            name = item ? t("启用") : t("禁用");
+            name = item ? t('启用') : t('禁用');
             break;
           default:
             name = item;
@@ -545,67 +541,65 @@ const handleFilter = ({
   }
 };
 // 搜索
-const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
-  Object.keys(filterOptionSource).forEach(key => {
+const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
+  Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
   });
   selectDimensionOptional('all', 'os_cpu_arch');
   selectDimensionOptional('all', 'version');
-  data.forEach(item => {
+  data.forEach((item) => {
     if (filterOptionSource[item.id as filterProp]) {
       filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
     }
-    if (["version", "os_cpu_arch"].includes(item.id)) {
+    if (['version', 'os_cpu_arch'].includes(item.id)) {
       selectDimensionOptional(item.values[0].id, item.id as PkgQuickType);
     }
   });
-}
+};
 // 维度nav click
 const selectDimensionOptional = (id: string, dimension: PkgQuickType, type?: string) => {
-  if ([state.osDimensionOptional, state.versionDimensionOptional].includes(id) && id !== 'all') return;
-  if(dimension === 'version') {
-    state.versionDimensionOptional = id;
-  } else {
-    state.osDimensionOptional = id;
-  }
+  // 维度映射到状态属性
+  const stateProperty = dimension === 'version' ? 'versionDimensionOptional' : 'osDimensionOptional';
+
+  // 切换逻辑：如果选中当前非'all'的值，则设置为'all'，否则设置为当前值
+  state[stateProperty] = (id === state[stateProperty] && id !== 'all') ? 'all' : id;
+
   if (type === 'click') {
     updateQuickOptToSearch(id, dimension);
   }
 };
 const updateQuickOptToSearch = (id: string, dimension: PkgQuickType) => {
-  const index = searchSelectValue.value.findIndex(
-    (item: any) => item.id === dimension
-  );
+  const index = searchSelectValue.value.findIndex((item: any) => item.id === dimension);
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (id === 'all') return;
   const findData = searchSelectData.value.find((item: {id: string}) => item.id === dimension);
   findData && searchSelectValue.value.push({
     id: dimension,
     name: findData.name,
-    values: [findData.children.find((item: any) => item.id === id)]
+    values: [findData.children.find((item: any) => item.id === id)],
   });
 };
 const handleClickHost = (row: Release) => {
-  if(!row.host || row.release_type !== 'agent') return;
+  if (!row.host || row.release_type !== 'agent') return;
   router.push({
     name: 'agent',
     query: {
       os_type: row.os_type,
-      node_version: row.version
-    }
+      node_version: row.version,
+    },
   });
-}
+};
 const handleBlur = async () => {
   await getPackages();
-}
+};
 const handleUpload = () => {
   isShow.value = true;
-}
+};
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
     release_type: currentType.value,
-    generation: 2
+    generation: 2,
   });
   const hostList = await PackageService.DeployedHostCount({
     request_items: res.items.map(item => ({
@@ -614,36 +608,34 @@ const getPackages = async () => {
       version: item.version,
       platform: {
         os_type: item.os_type,
-        cpu_arch: item.cpu_arch
-      }
-    }))
+        cpu_arch: item.cpu_arch,
+      },
+    })),
   });
   const items = res.items.map((item, index) => ({
     ...item,
     labels: item.labels || [],
-    os_cpu_arch: item.os_type + "_" + item.cpu_arch,
+    os_cpu_arch: `${item.os_type}_${item.cpu_arch}`,
     host: hostList.items[index],
     isDisabledPopShow: false,
     isDeletePopShow: false,
     isShowTagInput: false,
-    createPopShow: false
+    createPopShow: false,
   }))
-  .sort((a, b) => compareVersions(a.version,b.version));
+    .sort((a, b) => compareVersions(a.version, b.version));
   originPackageList.value = items;
   packageList.value = items;
   loading.value = false;
 };
-const getParams = (row: Release) => {
-  return {
-    generation: row.generation,
-    release_type: row.release_type,
-    platform: {
-      os_type: row.os_type,
-      cpu_arch: row.cpu_arch,
-    },
-    version: row.version,
-  };
-};
+const getParams = (row: Release) => ({
+  generation: row.generation,
+  release_type: row.release_type,
+  platform: {
+    os_type: row.os_type,
+    cpu_arch: row.cpu_arch,
+  },
+  version: row.version,
+});
 const handleSetDefaultVersion = async (row: Release) => {
   await PackageService.SetAsDefaultRelease(getParams(row));
   await getPackages();
@@ -662,31 +654,29 @@ const handleDelete = async (row: Release) => {
 };
 const handleConfirm = async () => {
   await getPackages();
-}
+};
 watch(originPackageList, () => {
-  filterOptionSource.version.list = getUniqueChildren("version");
-  filterOptionSource.labels.list = getUniqueChildren("labels");
-  filterOptionSource.operator.list = getUniqueChildren("operator");
-},{ immediate: true, deep: true })
+  filterOptionSource.version.list = getUniqueChildren('version');
+  filterOptionSource.labels.list = getUniqueChildren('labels');
+  filterOptionSource.operator.list = getUniqueChildren('operator');
+}, { immediate: true, deep: true });
 // 前端过滤数据
 watch(
   [
     searchSelectValue,
-    originPackageList
+    originPackageList,
   ],
   () => {
-    packageList.value = originPackageList.value.filter((row: Release) => {
-      return searchSelectValue.value.every((searchItem: any) => {
-        const { id: searchField, values } = searchItem;
-        const searchIds = values?.map((value: {id: string}) => value.id);
-        if (isArray(row[searchField])) {
-          return !!row[searchField].find((el: string) => searchIds.includes(el));
-        }
-        return searchIds.includes(row[searchField]);
-      });
-    });
+    packageList.value = originPackageList.value.filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
+      const { id: searchField, values } = searchItem;
+      const searchIds = values?.map((value: {id: string}) => value.id);
+      if (isArray(row[searchField])) {
+        return !!row[searchField].find((el: string) => searchIds.includes(el));
+      }
+      return searchIds.includes(row[searchField]);
+    }));
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 watch(
   () => route.name,
@@ -698,7 +688,7 @@ watch(
     filterOptionSource.enabled.checked = [];
     await getPackages();
   },
-  { immediate: true }
+  { immediate: true },
 );
 onMounted(async () => {
 });
