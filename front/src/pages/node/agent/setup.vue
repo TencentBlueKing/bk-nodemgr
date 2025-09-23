@@ -1,31 +1,6 @@
 <template>
   <div class="setup pt-[24px] pb-[48px]">
-    <div
-      class="mx-[24px] flex min-h-[56px] bg-[#F0F8FF] border border-[#C5DAFF] rounded-[2px] py-[6px] px-[9px] gap-[9px]"
-    >
-      <i class="nodeman-icon nc-tips pt-[2px] text-[#3A84FF]"></i>
-      <div class="text-[#4d4f56] text-[12px] leading-[20px] text-left">
-        <i18n-t keypath="platform.nodeMan.installAgentPage.tip1" tag="p">
-          <span class="text-[#313238] font-bold">{{
-            $t("platform.nodeMan.installAgentPage.tip1FirstSlotText")
-          }}</span>
-          <span class="text-[#313238] font-bold">{{
-            $t("platform.nodeMan.installAgentPage.tip1SecondSlotText")
-          }}</span>
-        </i18n-t>
-        <i18n-t keypath="platform.nodeMan.installAgentPage.tip2" tag="p">
-          <span class="text-[#313238] font-bold">{{
-            $t("platform.nodeMan.installAgentPage.tip2FirstSlotText")
-          }}</span>
-          <Button text theme="primary" @click="handleShowPanel">{{
-            $t("platform.nodeMan.installAgentPage.tip2SecondSlotText")
-          }}</Button>
-          <Button text theme="primary" @click="handleShowSetting">{{
-            $t("platform.nodeMan.installAgentPage.tip2ThirdSlotText")
-          }}</Button>
-        </i18n-t>
-      </div>
-    </div>
+    <setup-tip></setup-tip>
     <div class="m-[24px]" v-if="activeInstallType === 'import'">
       <Form ref="formRef" :model="formData" :rules="rules">
         <Form.FormItem
@@ -182,7 +157,7 @@
                   <Validate
                     :value="row.version"
                     required
-                    :ref="`${row.os}_ref`"
+                    :ref="(el) => setInputRef(row.os, el)"
                   >
                     <Input
                       :model-value="row.version"
@@ -259,7 +234,6 @@ const initData = {
   prove: '',
 };
 const mainStore = useMainStore();
-const showRightPanel = ref(false);
 const formData = reactive({
   type: '',
   bk_biz_id: '',
@@ -348,12 +322,6 @@ const getNetworkUnitList = async () => {
   });
   networkUnitList.value = res.items;
 };
-// 显示侧边栏安装策略
-const handleShowPanel = () => {
-  showRightPanel.value = true;
-};
-// 显示表格设置
-const handleShowSetting = () => {};
 
 // Excel 导入
 const fileList = ref<File[]>([]);
@@ -398,22 +366,30 @@ const handleSelectChange = (event: Event) => {};
 
 const formRef = ref(null);
 const installTableRef = ref(null);
-const Linux_amd64_ref = ref();
-const Darwin_amd64_ref = ref();
-const Linux_arm64_ref = ref();
-const Windows_amd64_ref = ref();
+const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
+const setInputRef = (
+  os: string,
+  el: InstanceType<typeof Validate> | null,
+) => {
+  if (el) {
+    const key = os;
+    inputRefs.value.set(key, el);
+  }
+};
+const systemValidate = async () => {
+  const refs = Array.from(inputRefs.value.values());
+  const validate = [];
+  for (const item of refs) {
+    validate.push(item.validate('blur'));
+  }
+  const result = await Promise.all(validate);
+  return result.every(item => item);
+};
 const handlePreview = async () => {
   const result = await Promise.all([
     formRef.value?.validate().catch(() => false),
     installTableRef.value?.tableValidate(),
-    isShow.value
-      ? Promise.all([
-        Linux_amd64_ref.value?.validate('blur').catch(() => false),
-        Darwin_amd64_ref.value?.validate('blur').catch(() => false),
-        Linux_arm64_ref.value?.validate('blur').catch(() => false),
-        Windows_amd64_ref.value?.validate('blur').catch(() => false),
-      ])
-      : true,
+    isShow.value ? systemValidate() : true,
   ]);
   // 合并多重Promise
   if (Array.isArray(result[2])) {

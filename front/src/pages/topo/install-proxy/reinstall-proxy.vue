@@ -26,10 +26,10 @@
           <install-table
             ref="installTableRef"
             v-model:data="form.info"
-            realeaseType="proxy"
-            :isReinstall="true"
+            realease-type="proxy"
+            :is-reinstall="true"
             :method="form.method"
-            :currentSettings="settings"
+            :current-settings="settings"
           ></install-table>
         </Form.FormItem>
         <Form.FormItem
@@ -104,97 +104,98 @@
     <chooseVersionDialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
-      :releaseType="'proxy'"
+      :release-type="'proxy'"
       @confirm="handleComfirmVerion"
     ></chooseVersionDialog>
   </Sideslider>
 </template>
 
 <script lang="ts" setup>
-import { Button, Form, Message, InfoBox, Input, Radio, Select, Sideslider } from "bkui-vue";
-import { reactive, ref, computed, PropType, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import SelectItemGroup from "./components/select-item-group.vue";
-import { useMainStore } from "@/stores/main";
-import { NodeProxyService } from '@/api/modules/node_proxy';
+import { Button, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
+import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
+import { cloneDeep } from 'lodash';
+import type { PropType } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { AngleDoubleDownLine } from "bkui-vue/lib/icon";
-import { Table, TableColumn } from "@blueking/table";
-import { cloneDeep } from "lodash";
 
+import { Table, TableColumn } from '@blueking/table';
+
+import SelectItemGroup from './components/select-item-group.vue';
+
+import { NodeProxyService } from '@/api/modules/node_proxy';
+import { useMainStore } from '@/stores/main';
+
+const isShow = defineModel<boolean>('isShow', { default: false });
 const props = defineProps({
-  bk_networkunit_id: {
-    type: Number,
-    default: 0
-  },
   data: {
     type: Array as PropType<Host[]>,
-    default: []
-  }
+    default: [],
+  },
 });
 const router = useRouter();
-const isShow = defineModel<boolean>("isShow", { default: false });
 const { t } = useI18n();
 const mainStore = useMainStore();
 const settings = reactive({
   fields: [
-    { field: "bk_biz_id", title: "归属业务" },
-    { field: "bk_host_innerip", title: "内网 IPv4" },
-    { field: "bk_host_innerip_v6", title: "内网 IPv6" },
-    { field: "os_type", title: "操作系统" },
-    { field: "login_port", title: "登录端口" },
-    { field: "login_user", title: "登录账号" },
-    { field: "export_ip", title: "出口IP" },
-    { field: "advertise_ip", title: "服务IP" },
-    { field: "login_ip", title: "登录 IP" },
-    { field: "login_mode", title: "认证方式" },
-    { field: "prove", title: "密码 / 密钥" },
-    { field: "dedicated_installer", title: "安装跳板" },
-    { field: "cluster_tunnel", title: "Agent控制" },
-    { field: "file_tunnel", title: "文件传输" },
-    { field: "data_tunnel", title: "数据上报" },
+    { field: 'bk_biz_id', title: '归属业务' },
+    { field: 'bk_host_innerip', title: '内网 IPv4' },
+    { field: 'bk_host_innerip_v6', title: '内网 IPv6' },
+    { field: 'os_type', title: '操作系统' },
+    { field: 'login_port', title: '登录端口' },
+    { field: 'login_user', title: '登录账号' },
+    { field: 'export_ip', title: '出口IP' },
+    { field: 'advertise_ip', title: '服务IP' },
+    { field: 'login_ip', title: '登录 IP' },
+    { field: 'login_mode', title: '认证方式' },
+    { field: 'prove', title: '密码 / 密钥' },
+    { field: 'dedicated_installer', title: '安装跳板' },
+    { field: 'cluster_tunnel', title: 'Agent控制' },
+    { field: 'file_tunnel', title: '文件传输' },
+    { field: 'data_tunnel', title: '数据上报' },
   ],
   checked: [
-    "bk_biz_id",
-    "bk_host_innerip",
-    "bk_host_innerip_v6",
-    "os_type",
-    "login_port",
-    "login_ip",
-    "login_user",
-    "login_mode",
-    "prove",
+    'bk_biz_id',
+    'bk_host_innerip',
+    'bk_host_innerip_v6',
+    'os_type',
+    'login_port',
+    'login_ip',
+    'login_user',
+    'login_mode',
+    'prove',
   ],
-  disabled: ["os_type", "login_port", "login_user", "login_mode", "prove"],
-  size: "medium",
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'prove'],
+  size: 'medium',
 });
 const initData = {
   login_credit_valid: false,
-  prove: "",
-  bk_host_id: "",
-  bk_host_innerip: "",
-  bk_host_innerip_v6: "",
-  export_ip: "",
-  advertise_ip: "",
-  login_ip: "",
-  login_mode: "password",
-  login_password: "",
-  login_key_file: "",
-  bk_addressing: "static",
+  prove: '',
+  bk_host_id: '',
+  bk_host_innerip: '',
+  bk_host_innerip_v6: '',
+  bk_networkunit_id: '',
+  export_ip: '',
+  advertise_ip: '',
+  login_ip: '',
+  login_mode: 'password',
+  login_password: '',
+  login_key_file: '',
+  bk_addressing: 'static',
   bk_biz_id: '',
   os_type: '',
-  login_port: "36000",
-  login_user: "root",
+  login_port: '36000',
+  login_user: 'root',
   dedicated_installer: true,
   cluster_tunnel: true,
   file_tunnel: true,
   data_tunnel: true,
   proxy_tags: [] as string[],
-}
+};
 const form = reactive({
-  method: "0", // 安装方式
+  method: '0', // 安装方式
   info: [
-    cloneDeep(initData)
+    cloneDeep(initData),
   ],
   target_version: [] as TargetVersion[],
 });
@@ -202,38 +203,38 @@ const isTargetShow = ref(false);
 const systemData = ref([
   {
     displayName: 'linux/amd64',
-    os: "Linux_amd64",
+    os: 'Linux_amd64',
     cpu_arch: 'amd64',
     os_type: 'linux',
-    version: "默认",
+    version: '默认',
   },
   {
     displayName: 'linux/arm64',
-    os: "Linux_arm64",
+    os: 'Linux_arm64',
     cpu_arch: 'arm64',
     os_type: 'linux',
-    version: "默认",
+    version: '默认',
   },
 ]);
 // 安装方式列表
 const installMethodList = ref([
   {
-    icon: "nodeman-icon nc-remote-install",
-    title: t("topoManager.installProxy.installMethodList.remote.title"),
-    content: t("topoManager.installProxy.installMethodList.remote.content"),
+    icon: 'nodeman-icon nc-remote-install',
+    title: t('topoManager.installProxy.installMethodList.remote.title'),
+    content: t('topoManager.installProxy.installMethodList.remote.content'),
     value: 0,
   },
   {
-    icon: "nodeman-icon nc-custom-install",
-    title: t("topoManager.installProxy.installMethodList.manual.title"),
-    content: t("topoManager.installProxy.installMethodList.manual.content"),
+    icon: 'nodeman-icon nc-custom-install',
+    title: t('topoManager.installProxy.installMethodList.manual.title'),
+    content: t('topoManager.installProxy.installMethodList.manual.content'),
     value: 2,
   },
 ]);
 const isShowDialog = ref(false);
 const dialogData = ref({
-  os: "",
-  version: "",
+  os: '',
+  version: '',
 });
 
 const handleChooseVersion = (row: { version: string; os: string }) => {
@@ -247,18 +248,17 @@ const handleChange = (values: Array<string | number>) => {
   form.method = values[0] as string;
 };
 
-const handleBeforeClose = (): Promise<boolean> =>
-  new Promise((resolve, reject) => {
-    InfoBox({
-      title: "确认关闭?",
-      infoType: "warning",
-      onConfirm: () => {
-        resolve(true);
-        isShow.value = false;
-      },
-      onCancel: () => reject(),
-    });
+const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
+  InfoBox({
+    title: '确认关闭?',
+    infoType: 'warning',
+    onConfirm: () => {
+      resolve(true);
+      isShow.value = false;
+    },
+    onCancel: () => reject(),
   });
+});
 const formRef = ref(null);
 const installTableRef = ref(null);
 const Linux_amd64_ref = ref();
@@ -270,38 +270,36 @@ const handleConfirm = async () => {
     installTableRef.value?.tableValidate(),
     isTargetShow.value
       ? Promise.all([
-          Linux_amd64_ref.value?.validate("blur").catch(() => false),
-          Linux_arm64_ref.value?.validate("blur").catch(() => false),
-        ])
+        Linux_amd64_ref.value?.validate('blur').catch(() => false),
+        Linux_arm64_ref.value?.validate('blur').catch(() => false),
+      ])
       : true,
   ]);
   // 合并多重Promise
   if (Array.isArray(result[2])) {
-    result[2] = result[2].every((item) => item);
+    result[2] = result[2].every(item => item);
   }
-  if (result.every((item) => item)) {
+  if (result.every(item => item)) {
     const modeMap = {
-      password: "login_password",
-      key: "login_key_file",
+      password: 'login_password',
+      key: 'login_key_file',
     };
     form.info.forEach((item: any) => {
       item[modeMap[item.login_mode]] = item.prove === '******' ? '' : item.prove;
       Object.keys(item).forEach((key: string) => {
-        if(proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
+        if (proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
           item.proxy_tags.push(key);
         }
-      })
+      });
     });
     if (isTargetShow.value) {
       form.target_version = systemData.value
         .filter((item: any) => item.version !== '默认')
-        .map((item: any) => {
-        return {
+        .map((item: any) => ({
           os_type: item.os_type,
           cpu_arch: item.cpu_arch,
           version: item.version,
-        };
-      });
+        }));
     }
     const params = {
       host: form.info.map((item: any) => {
@@ -316,17 +314,14 @@ const handleConfirm = async () => {
         return {
           ...rest,
           os_type: 'linux',
-          bk_biz_id: rest.bk_biz_id,
-          login_user: rest.login_user,
           login_port: Number(rest.login_port),
-          bk_networkunit_id: props.bk_networkunit_id,
-          ...(bk_host_id != null && bk_host_id !== '' ? { bk_host_id } : {}),
-        }
+          ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
+        };
       }),
-      target_version: form.target_version
-    }
-    const res = await NodeProxyService.NodeProxyInstall(params).catch(err => {
-      console.log(err)
+      target_version: form.target_version,
+    };
+    const res = await NodeProxyService.NodeProxyInstall(params).catch((err) => {
+      console.log(err);
     });
     if (!res) return;
     Message({
@@ -336,7 +331,7 @@ const handleConfirm = async () => {
     isShow.value = false;
     if (res.workflow_id) {
       router.push({
-        name: 'taskDetail', 
+        name: 'taskDetail',
         params: { taskId: res.workflow_id },
       });
     }
@@ -350,7 +345,7 @@ const assign = (data1: any, data2: any, data3?: any) => {
 };
 
 watch(() => isShow.value, () => {
-  if(isShow.value && props.data.length) {
+  if (isShow.value && props.data.length) {
     form.info = props.data.map((item: Host) => {
       const data = cloneDeep(initData);
       assign(data, item, item.info);
@@ -358,5 +353,5 @@ watch(() => isShow.value, () => {
       return data;
     });
   }
-})
+});
 </script>

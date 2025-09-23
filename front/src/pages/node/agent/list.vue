@@ -51,7 +51,7 @@
         ></copy-ip-dropdown>
       </div>
       <div class="flex gap-[8px]">
-        <Cascader
+        <!-- <Cascader
           class="w-[250px]"
           is-remote
           clearable
@@ -62,7 +62,7 @@
           :remote-method="topoRemotehandler"
           ref="topoSelect"
           :placeholder="$t('platform.nodeMan.bussinessTopology')"
-        />
+        /> -->
         <SearchSelect
           class="w-[480px] z-99"
           ref="searchSelect"
@@ -457,8 +457,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'bk_host_innerip_v6',
     'bk_agent_id',
     'bk_networkarea_name',
-    'bk_networkarea_id',
-    'bk_networkunit_id',
+    'bk_networkunit_name',
     'os_type',
     'node_version',
     'node_status',

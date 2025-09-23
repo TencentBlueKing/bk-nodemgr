@@ -7,6 +7,8 @@ platform:
       title: Agent 状态
       button:
         reinstall: 重装
+    proxyStatus:
+      title: Proxy 状态
     installAgent: 安装 Agent
     installAgentPage:
       tip1: 对于外网 IP 等先前未在蓝鲸 CMDB 注册过的 {0}，执行 Agent 安装，将 {1} 主机记录到 CMDB 中；

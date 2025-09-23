@@ -22,6 +22,8 @@ export interface PackageUploadOriginAgentRespData {
   size: number;
   md5: string;
   version: string;
+  change_log_en: string;
+  change_log_zh: string;
   platforms: Platform[];
 }
 
@@ -49,6 +51,8 @@ export interface PackageUploadOriginServerRespData {
   md5: string;
   version: string;
   platforms: Platform[];
+  change_log_en: string;
+  change_log_zh: string;
 }
 
 // PackageUploadOriginCertResp is the response for upload origin cert pkg.

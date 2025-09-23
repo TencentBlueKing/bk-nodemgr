@@ -65,12 +65,12 @@
         </template>
       </TableColumn>
     </Table>
-    <template v-if="data?.changelog_zh">
+    <template v-if="data?.change_log_zh">
       <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px]">描述</div>
       <div
         class="w-full bg-[#FAFBFD] min-h-[60px] border
         border-[#DCDEE5] text-[#4D4F56] text-[12px] px-[10px] py-[6px] formatted-text">
-        {{ data.changelog_zh }}
+        {{ data.change_log_zh }}
       </div>
     </template>
   </div>

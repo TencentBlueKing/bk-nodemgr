@@ -123,7 +123,7 @@
               </Button>
               <MoreAction
                 :ipv4="row.bk_host_innerip"
-                :row="[row]"
+                :data="[row]"
                 @reinstall="handleReinstall(row)">
                 <i class="nodeman-icon nc-more cursor"></i>
               </MoreAction>
@@ -169,7 +169,7 @@ const props = defineProps({
     default: 0,
   },
 });
-const emit = defineEmits(['selectChange']);
+const emit = defineEmits(['selectChange', 'getData']);
 const route = useRoute();
 const workAreaId = Number(route.params.workarea);
 const list = ref<Host[]>([]);
@@ -269,7 +269,9 @@ const getParams = () => {
     fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
   };
   params.exact_include_conditions.node_role = ['proxy'];
-  params.exact_include_conditions.bk_networkunit_id = [props.bkNetworkunitId];
+  if (props.bkNetworkunitId) {
+    params.exact_include_conditions.bk_networkunit_id = [props.bkNetworkunitId];
+  }
   searchSelectValue.value.forEach((item: any) => {
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
@@ -293,6 +295,7 @@ const getAgentList = async () => {
     ...item.info,
     ...item,
   }));
+  emit('getData', list.value);
   loading.value = false;
 };
 const handleUpdate = async () => {

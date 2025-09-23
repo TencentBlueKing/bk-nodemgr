@@ -31,6 +31,11 @@ const navList = [
             icon: 'nodeman-icon nc-state',
             title: i18n.global.t('platform.nodeMan.agentStatus.title'),
           },
+          {
+            routeName: 'proxy',
+            icon: 'nodeman-icon nc-state',
+            title: i18n.global.t('platform.nodeMan.proxyStatus.title'),
+          },
           // {
           //   routeName: 'plugin',
           //   icon: 'nodeman-icon nc-plug-in',

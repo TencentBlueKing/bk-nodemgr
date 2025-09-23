@@ -7,7 +7,55 @@ platform:
       title: Agent status
       button:
         reinstall: reinstall
+    proxyState:
+      title: Proxy status
     installAgent: Install agent
+    installAgentPage:
+      tip1: For external IP addresses or other {0} that have not been previously registered in the BlueKing CMDB, installing the Agent will register the {1} host record in the CMDB;
+      tip1FirstSlotText: New host
+      tip1SecondSlotText: Auto import
+      tip2: Installing the Agent requires enabling certain {0}. After completing the Agent information, click {1} to view the corresponding installation guide; for more advanced configurations, click the {2} in the installation information.
+      tip2FirstSlotText: Network access policy
+      tip2SecondSlotText: Installation requirements
+      tip2ThirdSlotText: Table display settings
+      type: Installation method
+      business: Install to business
+      cloud: Install to management zone
+      cloud_unit: Install to management unit
+      info: Installation information
+      version: Agent version
+      packageVersion: Package version
+      AdvancedOptions: Advanced options
+      placeholder:
+        select: Please select
+        selectBiz: Select business
+      button:
+        install: Go to install
+
+    preview:
+      title: Installation preview
+      tipTitle: 'Some host IPs in the current business have already been registered in BlueKing. You need to manually confirm whether to perform a new installation or install based on the CMDB record:'
+      firstTip: 1. A new installation will treat this IP as a new host, execute the installation, and import the host into the CMDB;
+      secondTip: 2. If the host has already been registered in the CMDB, to ensure the correct matching between the node management installation record and the CMDB host record, you need to manually specify the correct CMDB host record that matches this IP.
+      placeholder: Enter keywords
+      label:
+        all: All
+        pendingConfirmation: Pending confirmation
+        error: Error
+        cleanInstallation: Clean installation and import to CMDB
+        normalInstallation: Normal installation
+      popConfirm:
+        title: A host with the same IP you wish to install may already exist under the current business
+        tip: 'Please select a handling method:'
+        prepend: New installation and import to CMDB
+        install: 'Install as:'
+      button:
+        batchInstall: 'One-click process as: New installation'
+        batchRemove: One-click remove erroneous items
+        deel: Go to handle
+        remove: Remove
+        performInstallation: Perform installation
+
     batchOperate: Batch
     copy: Copy
     uninstall: Uninstall

@@ -80,36 +80,38 @@
   </Dialog>
 </template>
 <script lang="ts" setup>
+import { Button, Dialog, Radio, Tag } from 'bkui-vue';
+import { RightShape } from 'bkui-vue/lib/icon';
+import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import type { VxeTablePropTypes } from 'vxe-table';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import { PackageService } from '@/api/modules/pkg';
+import { capitalizeFirstLetter, compareVersions } from '@/common/util';
+
 interface RowVO {
   name: string;
   role: string;
   num: number;
 }
 
-import { RightShape } from "bkui-vue/lib/icon";
-import { Button, Dialog, Tag, Radio } from "bkui-vue";
-import { PackageService } from "@/api/modules/pkg";
-import { ref, watch } from "vue";
-import { Table, TableColumn } from "@blueking/table";
-import { useI18n } from "vue-i18n";
-import type { VxeTablePropTypes } from "vxe-table";
-import { compareVersions, capitalizeFirstLetter } from "@/common/util";
-
+const isShow = defineModel('isShow', { type: Boolean, default: false });
 const props = defineProps({
   data: {
     type: Object,
     default: {
-      os: "",
-      version: "",
+      os: '',
+      version: '',
     },
   },
   releaseType: {
     type: String,
-    default: "agent",
+    default: 'agent',
   },
 });
-const isShow = defineModel("isShow", { type: Boolean, default: false });
-const emit = defineEmits(["confirm", "cancel"]);
+const emit = defineEmits(['confirm', 'cancel']);
 const { t } = useI18n();
 
 const osVersions = ref<{
@@ -126,23 +128,21 @@ const selectedVersion = ref<{
   disabled: boolean;
   label: Object;
 }>();
-const selectedRadio = ref("");
+const selectedRadio = ref('');
 
 function selectOs(os) {
   if (props.data?.os) return;
-  osVersions.value.forEach((o) => (o.selected = false));
+  osVersions.value.forEach(o => (o.selected = false));
   os.selected = true;
   selectedOs.value = os;
   selectedVersion.value = os.versions[0];
 }
 
 const handleChange = (val: string) => {
-  selectedVersion.value = selectedOs.value?.versions.find(
-    (item: any) => item.version === val
-  );
+  selectedVersion.value = selectedOs.value?.versions.find((item: any) => item.version === val);
 };
 function handleConfirm() {
-  emit("confirm", selectedRadio.value);
+  emit('confirm', selectedRadio.value);
   isShow.value = false;
 }
 
@@ -156,12 +156,10 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig<RowVO>>({
     // 取出第一个排序的列
     const { field, order } = sortItem;
     let list: [] = data;
-    if (field === "version") {
-      list = data.sort((a, b) => {
-        return order === "desc"
-          ? compareVersions(b.version, a.version)
-          : compareVersions(a.version, b.version);
-      });
+    if (field === 'version') {
+      list = data.sort((a, b) => (order === 'desc'
+        ? compareVersions(b.version, a.version)
+        : compareVersions(a.version, b.version)));
     }
     return list;
   },
@@ -181,7 +179,7 @@ const getVersions = async () => {
     if (!osMap[key]) {
       osMap[key] = {
         name: key,
-        version: item.as_default ? item.version : "",
+        version: item.as_default ? item.version : '',
         selected: false,
         versions: props.releaseType === 'proxy' ? [{
           version: '默认',
@@ -211,21 +209,19 @@ watch(
       await getVersions();
       if (props.data?.os) {
         const os = capitalizeFirstLetter(props.data.os);
-        selectedOs.value = osVersions.value.find((item) => item.name === os);
+        selectedOs.value = osVersions.value.find(item => item.name === os);
       } else {
         selectedOs.value = osVersions.value[0];
       }
       if (props.data?.version) {
-        selectedVersion.value = selectedOs.value?.versions.find(
-          (item) => item.version === props.data?.version
-        );
+        selectedVersion.value = selectedOs.value?.versions.find(item => item.version === props.data?.version);
       } else {
         selectedVersion.value = selectedOs.value?.versions[0];
       }
       selectedOs.value && (selectedOs.value.selected = true);
-      selectedRadio.value = selectedVersion.value?.version || "";
+      selectedRadio.value = selectedVersion.value?.version || '';
     }
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 </script>

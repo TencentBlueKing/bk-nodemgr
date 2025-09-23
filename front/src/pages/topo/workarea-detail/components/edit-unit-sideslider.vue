@@ -48,18 +48,22 @@
         <Form.FormItem :label="$t('topoManager.installProxy.form.account')" property="login_user">
           <Input v-model="formData.login_user" />
         </Form.FormItem>
-        <Form.FormItem :label="$t('topoManager.installProxy.table.dedicated_installer')">
-          <Switcher v-model="formData.dedicated_installer" theme="primary"></Switcher>
-        </Form.FormItem>
-        <Form.FormItem :label="$t('topoManager.installProxy.table.cluster_tunnel')">
-          <Switcher v-model="formData.cluster_tunnel" theme="primary"></Switcher>
-        </Form.FormItem>
-        <Form.FormItem :label="$t('topoManager.installProxy.table.file_tunnel')">
-          <Switcher v-model="formData.file_tunnel" theme="primary"></Switcher>
-        </Form.FormItem>
-        <Form.FormItem :label="$t('topoManager.installProxy.table.data_tunnel')">
-          <Switcher v-model="formData.data_tunnel" theme="primary"></Switcher>
-        </Form.FormItem>
+        <div class="flex items-center">
+          <Form.FormItem :label="$t('topoManager.installProxy.table.dedicated_installer')" class="w-1/2">
+            <Switcher v-model="formData.dedicated_installer" theme="primary"></Switcher>
+          </Form.FormItem>
+          <Form.FormItem :label="$t('topoManager.installProxy.table.cluster_tunnel')">
+            <Switcher v-model="formData.cluster_tunnel" theme="primary"></Switcher>
+          </Form.FormItem>
+        </div>
+        <div class="flex items-center">
+          <Form.FormItem :label="$t('topoManager.installProxy.table.file_tunnel')" class="w-1/2">
+            <Switcher v-model="formData.file_tunnel" theme="primary"></Switcher>
+          </Form.FormItem>
+          <Form.FormItem :label="$t('topoManager.installProxy.table.data_tunnel')">
+            <Switcher v-model="formData.data_tunnel" theme="primary"></Switcher>
+          </Form.FormItem>
+        </div>
       </Form>
     </template>
     <template #footer>

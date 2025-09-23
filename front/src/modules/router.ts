@@ -20,6 +20,7 @@ import Rules from '@/pages/rules/index.vue';
 import OperationRecord from '@/pages/topo/record/record.vue';
 import Topography from '@/pages/topo/topography/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
+import proxyStatus from '@/pages/topo/workarea-detail/components/proxy-info.vue';
 import WorkareaDetail from '@/pages/topo/workarea-detail/workarea-detail.vue';
 import type { UserModule } from '@/types';
 
@@ -41,6 +42,16 @@ const routes = setupLayouts([
             component: AgentManager,
             meta: {
               title: 'Agent状态',
+              back: false,
+              mainMenu: 'nodeManager',
+            },
+          },
+          {
+            name: 'proxy',
+            path: 'proxy',
+            component: proxyStatus,
+            meta: {
+              title: 'Proxy状态',
               back: false,
               mainMenu: 'nodeManager',
             },

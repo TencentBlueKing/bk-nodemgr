@@ -1,7 +1,7 @@
 <template>
   <Sideslider
     v-model:is-show="isShow"
-    :width="1600"
+    :width="1200"
     :title="$t('platform.nodeMan.preview.title')"
     render-directive="if"
     :before-close="handleBeforeClose"
@@ -113,12 +113,12 @@
                 <TableColumn
                   field="bk_host_name"
                   :title="t('platform.nodeMan.bk_host_name')"
-                  min-width="100"
+                  min-width="150"
                 ></TableColumn>
                 <TableColumn
                   field="bk_networkarea_name"
                   :title="t('platform.nodeMan.bk_cloud_name')"
-                  min-width="100"
+                  min-width="150"
                 ></TableColumn>
                 <TableColumn
                   field="elig_status"
@@ -208,7 +208,7 @@
                             <TableColumn
                               field="bk_host_name"
                               :title="t('主机名')"
-                              min-width="100"
+                              min-width="150"
                             ></TableColumn>
                             <TableColumn
                               field="bk_networkarea_name"
@@ -263,7 +263,8 @@ import {
   Radio,
   Sideslider,
   Tab,
-  Tag } from 'bkui-vue';
+  Tag
+} from 'bkui-vue';
 import { Close } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
 import { computed, ref, watch } from 'vue';

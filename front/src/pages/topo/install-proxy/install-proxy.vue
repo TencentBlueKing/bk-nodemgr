@@ -97,6 +97,54 @@
           </Select>
         </Form.FormItem>
         <Form.FormItem
+          v-if="bk_networkunit_id === null"
+          :label="$t('platform.nodeMan.bk_cloud_name')"
+          property="bk_networkarea_id"
+          label-width="90"
+          required
+        >
+          <Select
+            class="w-[488px]"
+            v-model="form.bk_networkarea_id"
+            auto-focus
+            filterable
+            @select="handleSelect"
+          >
+            <Select.Option
+              v-for="option in networkAreaList"
+              :key="option.bk_networkarea_id"
+              :id="String(option.bk_networkarea_id)"
+              :name="option.bk_networkarea_name"
+            >
+              {{ option.bk_networkarea_name }}
+            </Select.Option>
+          </Select>
+        </Form.FormItem>
+        <Form.FormItem
+          v-if="bk_networkunit_id === null"
+          :label="$t('platform.nodeMan.bk_cloud_unit')"
+          property="bk_networkunit_id"
+          label-width="90"
+          required
+        >
+          <Select
+            class="w-[488px]"
+            v-model="form.bk_networkunit_id"
+            auto-focus
+            filterable
+            :disabled="!form.bk_networkarea_id"
+          >
+            <Select.Option
+              v-for="option in networkUnitList"
+              :key="option.bk_networkarea_id"
+              :id="String(option.bk_networkunit_id)"
+              :name="option.bk_networkunit_name"
+            >
+              {{ option.bk_networkunit_name }}
+            </Select.Option>
+          </Select>
+        </Form.FormItem>
+        <Form.FormItem
           label-width="90">
           <Button
             text
@@ -176,7 +224,7 @@
 import { Button, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import type { PropType } from 'vue';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -185,13 +233,14 @@ import { Table, TableColumn } from '@blueking/table';
 import SelectItemGroup from './components/select-item-group.vue';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
+import { TopoService } from '@/api/modules/topo';
 import { useMainStore } from '@/stores/main';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
 const props = defineProps({
   bk_networkunit_id: {
     type: Number,
-    default: 0,
+    default: null,
   },
   data: {
     type: Array as PropType<Host[]>,
@@ -228,6 +277,9 @@ const form = reactive({
   login_port: '36000', // 登录端口
   login_user: 'root', // 登录账号
   bk_biz_id: '', // 归属业务
+  bk_networkarea_id: '', // 管控区域
+  bk_networkarea_name: '',
+  bk_networkunit_id: '', // 管控单元
   target_version: [] as TargetVersion[],
 });
 const settings = reactive({
@@ -293,6 +345,44 @@ const installMethodList = ref([
     value: 2,
   },
 ]);
+const networkAreaList = ref<NetworkArea[]>([]);
+// 管控区域下拉列表获取
+const getNetworkAreaList = async () => {
+  const res = await TopoService.NetworkAreaList({
+    page: {
+      limit: 0,
+    },
+  }).catch((err: any) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    };
+  });
+  networkAreaList.value = res.items;
+};
+
+// 管控单元下拉列表获取
+const networkUnitList = ref<NetworkUnit[]>([]);
+const getNetworkUnitList = async () => {
+  const res = await TopoService.NetworkUnitList({
+    exact_include_conditions: {
+      bk_networkarea_id: [Number(form.bk_networkarea_id)],
+    },
+  }).catch((err: any) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    };
+  });
+  networkUnitList.value = res.items;
+};
+// 选择管控区域
+const handleSelect = (newValue: string) => {
+  form.bk_networkarea_name = networkAreaList.value?.find((item: any) => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
+};
+
 const isShowDialog = ref(false);
 const dialogData = ref({
   os: '',
@@ -379,8 +469,8 @@ const handleConfirm = async () => {
           bk_biz_id: form.bk_biz_id,
           login_user: form.login_user,
           login_port: Number(form.login_port),
-          bk_networkunit_id: props.bk_networkunit_id,
-          ...(bk_host_id != null && bk_host_id !== '' ? { bk_host_id } : {}),
+          bk_networkunit_id: props.bk_networkunit_id || Number(form.bk_networkunit_id),
+          ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
       }),
       target_version: form.target_version,
@@ -403,8 +493,17 @@ const handleConfirm = async () => {
   }
 };
 watch(() => isShow.value, () => {
-  if (isShow.value && props.data.length) {
+  if (isShow.value) {
     Object.assign(form, props.data);
   }
+});
+watch(
+  () => form.bk_networkarea_id,
+  async () => {
+    await getNetworkUnitList();
+  },
+);
+onMounted(async () => {
+  await getNetworkAreaList();
 });
 </script>

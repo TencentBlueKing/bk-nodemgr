@@ -96,7 +96,7 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  row: {
+  data: {
     type: Array as PropType<Host[]>,
     default: [],
   },
@@ -180,7 +180,7 @@ const isShow = ref(false);
 const curAction = ref<keyof typeof confirmConfigMap>('upgrade');
 const actionConfirmProps = computed((): DialogProps => ({
   ...confirmConfigMap[curAction.value],
-  value: props.batch ? props.row.map((item: any) => item.bk_host_innerip).join(';') : props.ipv4,
+  value: props.batch ? props.data.map((item: any) => item.bk_host_innerip).join(';') : props.ipv4,
 }));
 
 // 选择dropMenuItem，打开对应的action dialog，关闭dropdown
@@ -203,16 +203,16 @@ const curWidth = computed(() => (actionConfirmProps.value.theme === 'primary' ? 
 
 // 升级
 const upgradeVersion = async () => await NodeProxyService.NodeProxyUpgrade({
-  host: [props.row],
+  host: [props.data],
   target_version: [],
 }).catch(() => false);
 // 卸载
 const unloadProxy = async () => {
 };
 // 重载配置
-const overloadConfig = async () => await NodeProxyService.NodeProxyReconfig({ host: [props.row] }).catch(() => false);
+const overloadConfig = async () => await NodeProxyService.NodeProxyReconfig({ host: [props.data] }).catch(() => false);
 // 重启
-const restartProxy = async () => await NodeProxyService.NodeProxyRestart({ host: [props.row] }).catch(() => false);
+const restartProxy = async () => await NodeProxyService.NodeProxyRestart({ host: [props.data] }).catch(() => false);
 
 const handleConfirm = async () => {
   loading.value = true;

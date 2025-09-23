@@ -1,31 +1,6 @@
 <template>
   <div class="setup pt-[24px] pb-[48px]">
-    <div
-      class="mx-[24px] flex min-h-[56px] bg-[#F0F8FF] border border-[#C5DAFF] rounded-[2px] py-[6px] px-[9px] gap-[9px]"
-    >
-      <i class="nodeman-icon nc-tips pt-[2px] text-[#3A84FF]"></i>
-      <div class="text-[#4d4f56] text-[12px] leading-[20px] text-left">
-        <i18n-t keypath="platform.nodeMan.installAgentPage.tip1" tag="p">
-          <span class="text-[#313238] font-bold">{{
-            $t("platform.nodeMan.installAgentPage.tip1FirstSlotText")
-          }}</span>
-          <span class="text-[#313238] font-bold">{{
-            $t("platform.nodeMan.installAgentPage.tip1SecondSlotText")
-          }}</span>
-        </i18n-t>
-        <i18n-t keypath="platform.nodeMan.installAgentPage.tip2" tag="p">
-          <span class="text-[#313238] font-bold">{{
-            $t("platform.nodeMan.installAgentPage.tip2FirstSlotText")
-          }}</span>
-          <Button text theme="primary" @click="handleShowPanel">{{
-            $t("platform.nodeMan.installAgentPage.tip2SecondSlotText")
-          }}</Button>
-          <Button text theme="primary" @click="handleShowSetting">{{
-            $t("platform.nodeMan.installAgentPage.tip2ThirdSlotText")
-          }}</Button>
-        </i18n-t>
-      </div>
-    </div>
+    <setup-tip></setup-tip>
     <div class="m-[24px]">
       <Form ref="formRef" :model="formData" :rules="rules">
         <Form.FormItem
@@ -59,9 +34,12 @@
         @click="handlePreview"
         >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
       >
-      <Button class="w-[88px]">{{ $t("action.cancel") }}</Button>
+      <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
-    <preview v-model:is-show="previewData.isShow"></preview>
+    <preview
+      v-model:is-show="previewData.isShow"
+      :data="previewData.data"
+    ></preview>
   </div>
 </template>
 <script lang="ts" setup>
@@ -73,13 +51,13 @@ import { debounce } from "lodash";
 import { useMainStore } from "@/stores/main";
 import { computed } from "vue";
 import { TopoService } from "@/api/modules/topo";
-import { useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import Preview from "./preview.vue";
 import { cloneDeep } from "lodash";
 import type { AgentInstallInfo } from "@/@types/node_agent.d";
 import { useNodeManageStore } from "@/stores/node-manage";
 
-const route = useRoute();
+const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const showRightPanel = ref(false);
@@ -110,6 +88,7 @@ const formData = reactive({
 });
 const previewData = reactive({
   isShow: false,
+  data: null,
 });
 const rules = {};
 const isShow = ref(false);
@@ -123,14 +102,31 @@ const handleShowPanel = () => {
 };
 // 显示表格设置
 const handleShowSetting = () => {};
-
+const handleCancel = () => {
+  router.push({ name: 'agent' });
+};
 const formRef = ref(null);
 const installTableRef = ref(null);
 const handlePreview = async () => {
-  const formValid = await formRef.value?.validate().catch(() => false);
-  const res = await installTableRef.value?.tableValidate().catch(() => false);
-  if (formValid && res) {
+  const result = await Promise.all([
+    formRef.value?.validate().catch(() => false),
+    installTableRef.value?.tableValidate(),
+    isShow.value ? systemValidate() : true,
+  ]);
+  // 合并多重Promise
+  if (Array.isArray(result[2])) {
+    result[2] = result[2].every(item => item);
+  }
+  if (result.every(item => item)) {
     previewData.isShow = true;
+    const modeMap = {
+      password: 'login_password',
+      key: 'login_key_file',
+    };
+    formData.info.forEach((item) => {
+      item[modeMap[item.login_mode]] = item.prove;
+    });
+    previewData.data = { ...formData };
   }
 };
 

@@ -16,7 +16,9 @@
           <template #label>
             <div class="w-full">
               <span>{{ item.bk_networkunit_name }}</span>
-              <span v-if="item.is_direct" class="text-[10px] ml-[5px]">{{ $t('topoManager.workAreaDetail.tab.direct') }}</span>
+              <span v-if="item.is_direct" class="text-[10px] ml-[5px]">
+                {{ $t('topoManager.workAreaDetail.tab.direct') }}
+              </span>
             </div>
           </template>
           <div>
@@ -42,44 +44,7 @@
             </FlexRow>
             <template v-if="!curWorkUnit.is_direct">
               <Divider type="solid"></Divider>
-              <FlexRow class="mt-[24px]">
-                <template #left>
-                  <div class="flex items-center">
-                    <!-- 新建 -->
-                    <Button theme="primary" class="mr-[8px]" @click="handleInstallProxy">
-                      <span>{{ $t('topoManager.workAreaDetail.button.installProxy') }}</span>
-                    </Button>
-                    <MoreAction
-                      :row="selectTableData"
-                      placement="bottom-start"
-                      :batch="true"
-                      @reinstall="handleReinstall(selectTableData)"
-                    >
-                      <Button :disabled="!selectTableData.length" class="mr-[8px]">
-                        <span>{{ $t('topoManager.workAreaDetail.button.batch') }}</span>
-                        <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
-                      </Button>
-                    </MoreAction>
-                    <!-- 复制 -->
-                    <CopyIp @change="handleCopyChange" :get-select-data="() => {}"></CopyIp>
-                  </div>
-                </template>
-                <template #right>
-                  <SearchSelect
-                    class="w-[480px]"
-                    :placeholder="$t('topoManager.workAreaDetail.searchSelect.placeholder')"
-                    v-model.trim="searchKey"
-                    :data="searchSelectData">
-                  </SearchSelect>
-                </template>
-              </FlexRow>
-              <!-- table -->
-              <DetailTable
-                :search-select-value="searchKey"
-                :bk-networkunit-id="active"
-                :is-batch-reinstall="batchReinstall"
-                @select-change="handleSelectChange">
-              </DetailTable>
+              <proxy-info :active="active"></proxy-info>
             </template>
           </div>
         </Tab.TabPanel>
@@ -112,8 +77,6 @@
         @delete="handleAfterDelete"
       />
     </div>
-    <InstallProxy v-model:is-show="isShowInstallProxy" :bk_networkunit_id="active" />
-    <ReinstallProxy v-model:is-show="isShowReinstallProxy" :data="reinstallData" :bk_networkunit_id="active" />
   </Loading>
 </template>
 
@@ -124,17 +87,13 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
-import InstallProxy from '../install-proxy/install-proxy.vue';
-import ReinstallProxy from '../install-proxy/reinstall-proxy.vue';
 import UpsertWorkUnit from '../upsert-workunit/upsert-work-unit.vue';
 
 import AccessPoint from './components/access-point.vue';
 import DeleteWorkUnit from './components/delete-work-unit.vue';
-import DetailTable from './components/detail-table.vue';
-import MoreAction from './components/more-action.vue';
+import proxyInfo from './components/proxy-info.vue';
 import WorkUnitInfo from './components/work-unit-info.vue';
 
-import CopyIp from '@/components/copy-ip.vue';
 import { useRouteSubTitle } from '@/stores/route-sub-title';
 import { useWorkareaStore } from '@/stores/workarea';
 
@@ -150,47 +109,10 @@ const { t } = useI18n();
 const route = useRoute();
 const workAreaId = Number(route.params.workarea);
 
-// 搜索
-const searchKey = ref<ISearchValue[]>([]);
-
 const isShow = ref(false);
 const isCreate = ref(false);
 const active  = ref();
 const contentLoading = ref(false);
-
-const searchSelectData = ref<ISearchItem[]>([
-  {
-    name: t('topoManager.workAreaDetail.table.ipv4'),
-    id: 'bk_host_innerip',
-  },
-  {
-    name: t('topoManager.workAreaDetail.table.ipv6'),
-    id: 'bk_host_innerip_v6',
-  },
-  {
-    name: 'AgentID',
-    id: 'bk_agent_id',
-  },
-]);
-
-const handleCopyChange = () => {
-
-};
-const batchReinstall = ref(false);
-const isShowReinstallProxy = ref(false);
-const reinstallData = ref<Host[]>([]);
-const handleReinstall = (data: Host[]) => {
-  isShowReinstallProxy.value = true;
-  reinstallData.value = data;
-};
-const selectTableData = ref<Host[]>([]);
-const handleSelectChange = (tableList: Host[]) => {
-  selectTableData.value = tableList;
-};
-const isShowInstallProxy = ref(false);
-const handleInstallProxy = () => {
-  isShowInstallProxy.value = true;
-};
 
 const handleCreateWorkUnit = () => {
   isShow.value = true;
