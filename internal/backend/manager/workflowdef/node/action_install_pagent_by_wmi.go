@@ -163,9 +163,8 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	// build install command.
 	installCmd := act.buildInstallCmd(std, installerPath, deployConstant)
 
-	// notify relay to install pagent by ssh.
-	targetWorkDir := winpath.Join(deployConstant.BaseWorkDir, system.GetEnv())
-	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, targetWorkDir, installCmd); err != nil {
+	// notify relay to install.
+	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd); err != nil {
 		return err
 	}
 
@@ -203,8 +202,9 @@ func (act *actionInstallPagentByWMI) setupInstallationTools(std *utils.NodeActio
 
 func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 	std *utils.NodeActionStandarder,
-	cMethod wmix.AuthMethod, cKey,
-	toolsName, targetWorkDir,
+	cMethod wmix.AuthMethod,
+	cKey string,
+	toolsName string,
 	installCmd string) error {
 
 	event := protoRelay.InstallPagentByWMIReq{
