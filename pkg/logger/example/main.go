@@ -35,7 +35,7 @@ func main() {
 	defer logger.G.Flush()
 
 	// generates a request context.
-	ctx := contextx.NewContext(context.Background(), map[string]any{"a": "ok", "b": 3, "c": false})
+	ctx := contextx.New(context.Background(), contextx.WithValues(map[string]any{"a": "ok", "b": 3, "c": false}))
 
 	// business logs.
 	logger.G.Biz().Ctx(ctx).Debug("debug message")
