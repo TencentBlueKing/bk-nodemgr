@@ -18,7 +18,6 @@ import (
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -44,13 +43,23 @@ func (h *handler) Plugin(ctx restserver.IContext) (*restserver.FileResponse, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("unsupport plugin type(%s)", pluginType))
 	}
 
+	os, err := platform.NormalizeOS(req.GetOsType())
+	if err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("normalize os failed: %w", err))
+	}
+
+	arch, err := platform.NormalizeArch(req.GetCpuArch())
+	if err != nil {
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("normalize arch failed: %w", err))
+	}
+
 	file, _, err := h.manager.EnsurePluginToLocal(ctx,
 		rt,
 		pluginName,
 		types.Generation2,
 		platform.Platform{
-			OS:   criteria.OSType(req.GetOsType()),
-			Arch: criteria.CPUArch(req.GetCpuArch()),
+			OS:   os,
+			Arch: arch,
 		}, req.GetVersion())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
