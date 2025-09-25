@@ -12,6 +12,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -140,6 +141,9 @@ type HostDynamic struct {
 	// RelayCallbackPort represents the port of relay callback server.
 	RelayDownloadPort int64
 	RelayCallbackPort int64
+
+	// PorxyInstallOrigin represents the install origin of this proxy.
+	ProxyInstallOrigin ProxyInstallOrigin
 }
 
 // ProxySupportInstaller returns whether this node support installer.
@@ -212,6 +216,8 @@ type HostDynamicFields struct {
 
 	RelayDownloadPort bool
 	RelayCallbackPort bool
+
+	PorxyInstallOrigin bool
 }
 
 // ProxyTag represents a proxy tag.
@@ -374,3 +380,27 @@ const (
 	// NodeRoleProxy means this node is a proxy.
 	NodeRoleProxy NodeRole = "proxy"
 )
+
+// ProxyInstallOrigin represents a proxy install origin.
+type ProxyInstallOrigin string
+
+const (
+	// ProxyInstallOriginServer means install from server.
+	ProxyInstallOriginServer ProxyInstallOrigin = "server"
+
+	// ProxyInstallOriginCurrentNetworkUint means install from current network unit proxy.
+	ProxyInstallOriginCurrentNetworkUint ProxyInstallOrigin = "current_networkunit_proxy"
+
+	// ProxyInstallOriginUpstreamNetworkUint means install from upstream uint proxy.
+	ProxyInstallOriginUpstreamNetworkUint ProxyInstallOrigin = "upstream_networkunit_proxy"
+)
+
+// Validate validates the proxy install origin.
+func (installOrigin ProxyInstallOrigin) Validate() error {
+	switch installOrigin {
+	case ProxyInstallOriginServer, ProxyInstallOriginCurrentNetworkUint, ProxyInstallOriginUpstreamNetworkUint:
+		return nil
+	default:
+		return fmt.Errorf("invalid proxy install origin. install-origin(%s)", installOrigin)
+	}
+}

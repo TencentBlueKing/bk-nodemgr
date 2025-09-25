@@ -40,28 +40,29 @@ func (x *NodeProxyInstallReq) AutoConvert() {
 	}
 }
 
-// ConvertHostParamFromTypes convert param from types.
+// ConvertParamFromTypes convert param from types.
 func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProxyInstallParam) {
 	hostsParam := make([]*NodeProxyInstallHost, len(installParam.Hosts))
 	for idx, host := range installParam.Hosts {
 		hostsParam[idx] = &NodeProxyInstallHost{
-			BkBizId:         host.BizID,
-			BkNetworkunitId: host.NetworkUnitID,
-			BkHostId:        &host.HostID,
-			BkAddressing:    string(host.Addressing),
-			BkHostInnerip:   host.InnerIP,
-			BkHostInneripV6: host.InnerIPV6,
-			OsType:          host.OSType,
-			LoginIp:         host.LoginIP,
-			LoginPort:       host.LoginPort,
-			LoginUser:       host.LoginUser,
-			LoginMode:       string(host.LoginMode),
-			LoginPassword:   host.LoginPassword,
-			LoginKeyFile:    host.LoginKeyFile,
-			ExportIp:        host.ExportIP,
-			AdvertiseIp:     host.AdvertiseIP,
-			ReRegister:      host.ReRegister,
-			ProxyTags:       types.ProxyTagListToStringList(host.ProxyTags),
+			BkBizId:            host.BizID,
+			BkNetworkunitId:    host.NetworkUnitID,
+			BkHostId:           &host.HostID,
+			BkAddressing:       string(host.Addressing),
+			BkHostInnerip:      host.InnerIP,
+			BkHostInneripV6:    host.InnerIPV6,
+			OsType:             host.OSType,
+			LoginIp:            host.LoginIP,
+			LoginPort:          host.LoginPort,
+			LoginUser:          host.LoginUser,
+			LoginMode:          string(host.LoginMode),
+			LoginPassword:      host.LoginPassword,
+			LoginKeyFile:       host.LoginKeyFile,
+			ExportIp:           host.ExportIP,
+			AdvertiseIp:        host.AdvertiseIP,
+			ReRegister:         host.ReRegister,
+			ProxyTags:          types.ProxyTagListToStringList(host.ProxyTags),
+			ProxyInstallOrigin: string(host.ProxyInstallOrigin),
 		}
 	}
 
@@ -117,6 +118,10 @@ func (x *NodeProxyInstallHost) Validate() error {
 		return err
 	}
 
+	if err := types.ProxyInstallOrigin(x.GetProxyInstallOrigin()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -158,7 +163,7 @@ func (x *NodeProxyUpgradeReq) Validate() error {
 	return nil
 }
 
-// convert host param from types.
+// ConvertParamFromTypes host param from types.
 func (x *NodeProxyUpgradeReq) ConvertParamFromTypes(upgradeParam *types.NodeProxyUpgradeParam) {
 	hostsParam := make([]*NodeProxyUpgradeReq_Host, len(upgradeParam.Hosts))
 	for idx, host := range upgradeParam.Hosts {
@@ -246,7 +251,7 @@ func (x *NodeProxyRestartReq) AutoConvert() {
 	}
 }
 
-// convert host param from types.
+// ConvertParamFromTypes host param from types.
 func (x *NodeProxyRestartReq) ConvertParamFromTypes(restartParam *types.NodeProxyRestartParam) {
 	hostsParam := make([]*NodeProxyRestartReq_Host, len(restartParam.Hosts))
 	for idx, host := range restartParam.Hosts {
@@ -316,7 +321,7 @@ func (x *NodeProxyReconfigReq) AutoConvert() {
 	}
 }
 
-// convert host param from types.
+// ConvertParamFromTypes host param from types.
 func (x *NodeProxyReconfigReq) ConvertParamFromTypes(reconfigParam *types.NodeProxyReconfigParam) {
 	hostsParam := make([]*NodeProxyReconfigReq_Host, len(reconfigParam.Hosts))
 	for idx, host := range reconfigParam.Hosts {
@@ -386,7 +391,7 @@ func (x *NodeProxyUpdateReq) AutoConvert() {
 	}
 }
 
-// convert host to types.
+// ConvertHostToTypes host to types.
 func (x *NodeProxyUpdateReq) ConvertHostToTypes() []*types.Host {
 	hosts := make([]*types.Host, 0, len(x.GetHost()))
 	for _, host := range x.GetHost() {
@@ -407,7 +412,7 @@ func (x *NodeProxyUpdateReq) ConvertHostToTypes() []*types.Host {
 	return hosts
 }
 
-// convert host param from types.
+// ConvertParamFromTypes host param from types.
 func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyUpdateParam) {
 	hostsParam := make([]*NodeProxyUpdateHost, len(updateParam.Hosts))
 	for idx, host := range updateParam.Hosts {
@@ -426,7 +431,7 @@ func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyU
 	x.Host = hostsParam
 }
 
-// convert host dynamic fields to types.
+// ConvertHostFieldsToTypes host dynamic fields to types.
 func (x *NodeProxyUpdateReq) ConvertHostFieldsToTypes() types.HostDynamicFields {
 	return types.HostDynamicFields{
 		LoginIP:     true,

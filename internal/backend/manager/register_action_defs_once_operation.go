@@ -69,7 +69,7 @@ func (mgr *Manager) registerActionDefNode() error {
 		node.NewActionVersionCompatCheck(mgr.conf.StorageNode),
 		node.NewActionReconfigNode(mgr.conf.StorageNode, mgr.conf.GSEHandler, mgr.conf.Provider),
 		node.NewActionRestartNode(mgr.conf.StorageNode, mgr.conf.GSEHandler),
-		node.NewActionSelectRelayHost(mgr.conf.StorageTopo, mgr.conf.StorageNode),
+		node.NewActionSelectRelayHost(mgr.conf.StorageTopo, mgr.conf.StorageTopo, mgr.conf.StorageNode),
 		node.NewActionEnsurePkgToRelay(mgr.conf.InstallerFileGroup, mgr.conf.StorageRelease, mgr.conf.StorageWorkflow, mgr.conf.StorageNode, mgr.conf.FileHandler, mgr.conf.ProxyMessager),
 		node.NewActionPagentDetectInfoBySSH(mgr.conf.StorageWorkflow, mgr.conf.StorageNode, mgr.conf.StorageRelease, mgr.conf.StorageHostCredit, mgr.conf.HostPasswordVault, mgr.conf.ProxyMessager),
 		node.NewActionInstallPagentBySSH(mgr.conf.ProxyMessager, mgr.conf.StorageNode, mgr.conf.StorageHostCredit, mgr.conf.StorageWorkflow, mgr.conf.HostPasswordVault),

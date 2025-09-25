@@ -306,6 +306,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "proxy_install_origin": {
+          "type": "string"
         }
       },
       "description": "NodeProxyInstallHost describes the node proxy install host."

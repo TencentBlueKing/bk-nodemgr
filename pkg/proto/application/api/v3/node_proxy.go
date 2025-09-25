@@ -81,6 +81,10 @@ func (x *NodeProxyInstallHost) Validate() error {
 		return err
 	}
 
+	if err := types.ProxyInstallOrigin(x.GetProxyInstallOrigin()).Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -103,23 +107,24 @@ func (x *NodeProxyInstallReq) ConvertAgentParamToTypes() *types.NodeProxyInstall
 
 	for idx, host := range hosts {
 		hostsParam[idx] = &types.NodeProxyInstallHost{
-			BizID:         host.GetBkBizId(),
-			NetworkUnitID: host.GetBkNetworkunitId(),
-			HostID:        host.GetBkHostId(),
-			Addressing:    types.Addressing(host.GetBkAddressing()),
-			InnerIP:       host.GetBkHostInnerip(),
-			InnerIPV6:     host.GetBkHostInneripV6(),
-			OSType:        host.GetOsType(),
-			LoginIP:       host.GetLoginIp(),
-			LoginPort:     int64(host.GetLoginPort()),
-			LoginUser:     host.GetLoginUser(),
-			LoginMode:     types.LoginMode(host.GetLoginMode()),
-			LoginPassword: host.GetLoginPassword(),
-			LoginKeyFile:  host.GetLoginKeyFile(),
-			ExportIP:      host.GetExportIp(),
-			AdvertiseIP:   host.GetAdvertiseIp(),
-			ReRegister:    host.GetReRegister(),
-			ProxyTags:     types.StringListToProxyTagList(host.GetProxyTags()),
+			BizID:              host.GetBkBizId(),
+			NetworkUnitID:      host.GetBkNetworkunitId(),
+			HostID:             host.GetBkHostId(),
+			Addressing:         types.Addressing(host.GetBkAddressing()),
+			InnerIP:            host.GetBkHostInnerip(),
+			InnerIPV6:          host.GetBkHostInneripV6(),
+			OSType:             host.GetOsType(),
+			LoginIP:            host.GetLoginIp(),
+			LoginPort:          int64(host.GetLoginPort()),
+			LoginUser:          host.GetLoginUser(),
+			LoginMode:          types.LoginMode(host.GetLoginMode()),
+			LoginPassword:      host.GetLoginPassword(),
+			LoginKeyFile:       host.GetLoginKeyFile(),
+			ExportIP:           host.GetExportIp(),
+			AdvertiseIP:        host.GetAdvertiseIp(),
+			ReRegister:         host.GetReRegister(),
+			ProxyTags:          types.StringListToProxyTagList(host.GetProxyTags()),
+			ProxyInstallOrigin: types.ProxyInstallOrigin(host.GetProxyInstallOrigin()),
 		}
 	}
 

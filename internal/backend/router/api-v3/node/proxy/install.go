@@ -95,7 +95,7 @@ func (h *handler) generateInstallNodeDeployments(
 	}
 
 	gp := gopool.NewPool()
-	nodeDeployments := make([]*types.NodeDeployment, len(req.Host))
+	nodeDeployments := make([]*types.NodeDeployment, len(req.GetHost()))
 	for i := range req.GetHost() {
 		idx := i
 		reqHost := req.GetHost()[idx]
@@ -125,18 +125,19 @@ func (h *handler) generateInstallNodeDeployments(
 							Addressing:    types.Addressing(reqHost.GetBkAddressing()),
 						},
 						Dynamic: &types.HostDynamic{
-							NodeRole:       types.NodeRoleProxy,
-							NodeStatus:     types.NodeStatusInit,
-							NodeGeneration: DefaultNodeGeneration,
-							NetworkUnitID:  networkUnit.ID,
-							ProxyTags:      types.StringListToProxyTagList(reqHost.GetProxyTags()),
-							LoginIP:        reqHost.GetLoginIp(),
-							LoginPort:      reqHost.GetLoginPort(),
-							LoginUser:      reqHost.GetLoginUser(),
-							LoginMode:      types.LoginMode(reqHost.GetLoginMode()),
-							LoginCreditID:  loginCreditID,
-							ExportIP:       reqHost.GetExportIp(),
-							AdvertiseIP:    reqHost.GetAdvertiseIp(),
+							NodeRole:           types.NodeRoleProxy,
+							NodeStatus:         types.NodeStatusInit,
+							NodeGeneration:     DefaultNodeGeneration,
+							NetworkUnitID:      networkUnit.ID,
+							ProxyTags:          types.StringListToProxyTagList(reqHost.GetProxyTags()),
+							ProxyInstallOrigin: types.ProxyInstallOrigin(reqHost.GetProxyInstallOrigin()),
+							LoginIP:            reqHost.GetLoginIp(),
+							LoginPort:          reqHost.GetLoginPort(),
+							LoginUser:          reqHost.GetLoginUser(),
+							LoginMode:          types.LoginMode(reqHost.GetLoginMode()),
+							LoginCreditID:      loginCreditID,
+							ExportIP:           reqHost.GetExportIp(),
+							AdvertiseIP:        reqHost.GetAdvertiseIp(),
 						},
 					},
 					CurrentVersionSupports: types.DeploymentVersionSupports{},

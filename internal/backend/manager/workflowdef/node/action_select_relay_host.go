@@ -32,11 +32,13 @@ const (
 // NewActionSelectRelayHost get a new action.
 func NewActionSelectRelayHost(
 	storageHost topo.IStorageHost,
+	storageNetworkUnit topo.IStorageNetworkUnit,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 ) action.Definition {
 
 	return &actionSelectRelayHost{
 		storageHost:           storageHost,
+		storageNetworkUnit:    storageNetworkUnit,
 		storageNodeDeployment: storageNodeDeployment,
 	}
 }
@@ -49,6 +51,7 @@ type ActParamSelectRelayHost struct {
 // actionSelectRelayHost ...
 type actionSelectRelayHost struct {
 	storageHost           topo.IStorageHost
+	storageNetworkUnit    topo.IStorageNetworkUnit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 
@@ -110,7 +113,7 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) (err error) {
 		}
 	}()
 
-	relayHost, err := act.selectDedicatedInstallerHost(std)
+	relayHost, err := act.selectRelayHost(std)
 	if err != nil {
 		return err
 	}
@@ -122,28 +125,65 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
-	std *utils.NodeActionStandarder) (types.RelayInfo, error) {
+func (act *actionSelectRelayHost) selectRelayHost(std *utils.NodeActionStandarder) (types.RelayInfo, error) {
+	switch std.DeployInfo().Host.Dynamic.NodeRole {
+	// pagent install we select relay host by the current unit id.
+	case types.NodeRoleAgent:
+		return act.selectRelayByUnitID(std, std.DeployInfo().Host.Dynamic.NetworkUnitID)
 
+	// proxy install we select relay host by the origin beetween upstream or current network unit.
+	case types.NodeRoleProxy:
+		return act.selectRelayByOrigin(std)
+
+	default:
+		return types.RelayInfo{}, fmt.Errorf("unsupported node-role. node-role(%s)", std.DeployInfo().Host.Dynamic.NodeRole)
+	}
+}
+
+func (act *actionSelectRelayHost) selectRelayByOrigin(std *utils.NodeActionStandarder) (types.RelayInfo, error) {
+	installOrigin := std.DeployInfo().Host.Dynamic.ProxyInstallOrigin
+	switch installOrigin {
+	// user choose install proxy by upstream relay.
+	case types.ProxyInstallOriginUpstreamNetworkUint:
+		networkUnit, err := act.storageNetworkUnit.GetNetworkUnit(
+			std.Context(),
+			std.DeployInfo().Host.Dynamic.NetworkUnitID)
+		if err != nil {
+			return types.RelayInfo{}, fmt.Errorf("failed to get network unit. network-unit-id(%d): %w", std.DeployInfo().Host.Dynamic.NetworkUnitID, err)
+		}
+
+		return act.selectRelayByUnitID(std, networkUnit.Links.Cluster.NetworkUnitID)
+
+	// user choose install proxy by current network unit.
+	case types.ProxyInstallOriginCurrentNetworkUint:
+		return act.selectRelayByUnitID(std, std.DeployInfo().Host.Dynamic.NetworkUnitID)
+
+	default:
+		return act.selectRelayByUnitID(std, std.DeployInfo().Host.Dynamic.NetworkUnitID)
+	}
+}
+
+func (act *actionSelectRelayHost) selectRelayByUnitID(std *utils.NodeActionStandarder, unitID int64) (types.RelayInfo, error) {
 	hosts, num, err := act.storageHost.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 		ExactInclude: &types.HostExactFields{
-			NetworkUnitID: []int64{std.DeployInfo().Host.Dynamic.NetworkUnitID},
+			NetworkUnitID: []int64{unitID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
 		},
 	})
 	if err != nil {
-		return types.RelayInfo{}, err
+		return types.RelayInfo{}, fmt.Errorf("failed to list hosts. network-unit-id(%d): %w", unitID, err)
 	}
 
 	if num == 0 {
-		std.InstanceData().LogE(fmt.Sprintf("no proxy host in network unit. network-unit-id(%d)",
-			std.DeployInfo().Host.Dynamic.NetworkUnitID))
-
-		return types.RelayInfo{}, errors.New("no proxy host in network unit")
+		return types.RelayInfo{}, fmt.Errorf("no proxy host in network unit. network-unit-id(%d)", unitID)
 	}
 
-	dedicatedHosts := make([]*types.Host, 0, num)
+	return randomSelectRelayHost(hosts)
+}
+
+func randomSelectRelayHost(hosts []*types.Host) (types.RelayInfo, error) {
+	dedicatedHosts := make([]*types.Host, 0, len(hosts))
 	for _, host := range hosts {
 		for _, tag := range host.Dynamic.ProxyTags {
 			if tag == types.ProxyTagDedicatedInstaller {
@@ -154,7 +194,6 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	}
 
 	if len(dedicatedHosts) == 0 {
-		std.InstanceData().LogE("no dedicated installer host")
 		return types.RelayInfo{}, errors.New("no dedicated installer host")
 	}
 

@@ -53,6 +53,7 @@ type Info struct {
 	ProxyClusterPort       int64           `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
 	ProxyDataPort          int64           `json:"proxy_data_port" bson:"proxy_data_port"`
 	ProxyFilePort          int64           `json:"proxy_file_port" bson:"proxy_file_port"`
+	ProxyInstallOrigin     string          `json:"proxy_install_origin" bson:"proxy_install_origin"`
 	LoginIP                string          `json:"login_ip" bson:"login_ip"`
 	LoginPort              int64           `json:"login_port" bson:"login_port"`
 	LoginUser              string          `json:"login_user" bson:"login_user"`

@@ -145,5 +145,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/agent", restserver.FileHandler(h.Agent))
-	h.rg.POST("/proxy", restserver.FileHandler(h.Agent))
+	h.rg.POST("/proxy", restserver.FileHandler(h.Proxy))
 }

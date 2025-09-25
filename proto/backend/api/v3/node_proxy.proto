@@ -26,6 +26,7 @@ message NodeProxyInstallHost {
   string advertise_ip = 15;
   bool re_register = 16;
   repeated string proxy_tags = 17;
+  string proxy_install_origin = 18;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.
