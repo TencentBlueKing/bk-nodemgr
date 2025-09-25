@@ -339,16 +339,17 @@ func convertReleaseToTypes(release *Release) *types.Release {
 
 func convertReleaseFromTypes(release *types.Release) *Release {
 	return &Release{
+		Name:         release.Name,
 		Generation:   int64(release.Generation),
 		Type:         string(release.Type),
 		Version:      release.Version,
 		CPUArch:      string(release.Platform.Arch),
 		OSType:       string(release.Platform.OS),
 		Labels:       release.Labels,
-		FileName:     release.FileName,
-		MD5:          release.MD5,
 		Enabled:      release.Enabled,
 		AsDefault:    release.AsDefault,
+		FileName:     release.FileName,
+		MD5:          release.MD5,
 		UpdatedAt:    release.UpdatedAt,
 		Operator:     release.Operator,
 		AdditionInfo: release.AdditionInfo,
