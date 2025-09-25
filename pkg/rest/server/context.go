@@ -31,7 +31,7 @@ const restRequestKey = "rest_request"
 
 // initRestRequest initializes a new rest request.
 // notice: please don't set Context's fields here, use Middleware to set fields.
-func initRestRequest(gCtx *gin.Context) *Request {
+func initRestRequest(gCtx *gin.Context) IRequest {
 	r := NewRequest(gCtx)
 	gCtx.Set(restRequestKey, r)
 
@@ -39,8 +39,8 @@ func initRestRequest(gCtx *gin.Context) *Request {
 }
 
 // loadRestRequest loads rest request from gin.Context.
-func loadRestRequest(gCtx *gin.Context) *Request {
-	r, ok := gCtx.Value(restRequestKey).(*Request)
+func loadRestRequest(gCtx *gin.Context) IRequest {
+	r, ok := gCtx.Value(restRequestKey).(IRequest)
 	if !ok {
 		return initRestRequest(gCtx)
 	}
@@ -55,19 +55,19 @@ func GenRestContext(c *gin.Context) (*Context, error) {
 		return nil, resterrf.CodeErrMap(resterrf.Unauthorized)
 	}
 
-	r, ok := rObj.(*Request)
+	r, ok := rObj.(IRequest)
 	if !ok {
 		return nil, resterrf.CodeErrMap(resterrf.Unauthorized)
 	}
 
 	return &Context{
 		Context: contextx.New(
-			r.gCtx,
+			r.GContext(),
 			contextx.WithTenantID(r.Data().GetTenantID()),
 			contextx.WithBKUsername(r.Data().GetBKUsername()),
 			contextx.WithMessageID(r.Data().GetRequestID()),
 		),
-		Request: r,
+		IRequest: r,
 	}, nil
 }
 
@@ -77,5 +77,5 @@ type Context struct {
 	*contextx.Context
 
 	// implements the rest IRequest.
-	*Request
+	IRequest
 }

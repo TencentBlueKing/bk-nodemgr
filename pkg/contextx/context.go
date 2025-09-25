@@ -67,8 +67,8 @@ func (c Context) TenantID() string {
 	return c.tenantID
 }
 
-// ValidateTenantID validate tenant-id.
-func (c Context) ValidateTenantID() error {
+// CheckTenantID check tenant-id.
+func (c Context) CheckTenantID() error {
 	if c.tenantID == "" {
 		return errors.New("tenant-id not found")
 	}
@@ -81,8 +81,8 @@ func (c Context) BKUsername() string {
 	return c.bkUsername
 }
 
-// ValidateBKUsername validate bk-username.
-func (c Context) ValidateBKUsername() error {
+// CheckBKUsername valcheckidate bk-username.
+func (c Context) CheckBKUsername() error {
 	if c.bkUsername == "" {
 		return errors.New("bk-username not found")
 	}
@@ -95,8 +95,8 @@ func (c Context) MessageID() string {
 	return c.messageID
 }
 
-// ValidateMessageID validate message-id.
-func (c Context) ValidateMessageID() error {
+// CheckMessageID check message-id.
+func (c Context) CheckMessageID() error {
 	if c.messageID == "" {
 		return errors.New("message-id not found")
 	}
@@ -106,11 +106,6 @@ func (c Context) ValidateMessageID() error {
 
 // New new a context.
 func New(ctx context.Context, opts ...Opts) *Context {
-	return NewWithValues(ctx, opts...)
-}
-
-// NewWithValues new a context with values.
-func NewWithValues(ctx context.Context, opts ...Opts) *Context {
 	r := &Context{
 		ctx:    ctx,
 		values: make(map[string]any),
@@ -125,7 +120,7 @@ func NewWithValues(ctx context.Context, opts ...Opts) *Context {
 
 // From with context.
 func From(ctx IContext, opts ...Opts) *Context {
-	return NewWithValues(ctx, append([]Opts{WithValues(ctx.Values())}, opts...)...)
+	return New(ctx, append([]Opts{WithValues(ctx.Values())}, opts...)...)
 }
 
 // WithCancel this is the same as context.WithCancel.
