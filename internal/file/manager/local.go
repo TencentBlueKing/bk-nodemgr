@@ -121,9 +121,12 @@ func (m *Manager) ensureReleaseToLocal(ctx contextx.IContext, release types.Rele
 	switch release.Type {
 	case types.ReleaseTypeAgent:
 		ufg = m.upstreamReleaseAgent
-
 	case types.ReleaseTypeProxy:
 		ufg = m.upstreamReleaseProxy
+	case types.ReleaseTypeOfficialPlugin:
+		ufg = m.upstreamReleaseOfficialPlugin
+	case types.ReleaseTypeExternalPlugin:
+		ufg = m.upstreamReleaseExternalPlugin
 
 	default:
 		return nil, "", fmt.Errorf("not support ensuring file to local with release type, type(%s)", release.Type)
