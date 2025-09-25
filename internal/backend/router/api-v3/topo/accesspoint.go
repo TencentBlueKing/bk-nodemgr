@@ -23,20 +23,20 @@ const (
 )
 
 // ListAccessPoint lists accesspoints with page and conditions.
-func (h *handler) ListAccessPoint(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoAccessPointListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list accesspoint, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list accesspoint, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.storage.CountAccessPoint(
-			ctx,
+			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list accesspoint. failed to count accesspoint. err: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to list accesspoint. failed to count accesspoint. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -47,11 +47,11 @@ func (h *handler) ListAccessPoint(ctx *restserver.Context) (interface{}, error) 
 	}
 
 	accesspoints, num, err := h.storage.ListAccessPoint(
-		ctx,
+		rCtx,
 		req.ConvertPageToTypes(maxAccessPointLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list accesspoint. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list accesspoint. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

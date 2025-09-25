@@ -18,20 +18,20 @@ import (
 )
 
 // AgentInstall install agent.
-func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) AgentInstall(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeAgentInstallReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to decode request body: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to install agent, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.InstallAgent(ctx, req.ConvertAgentParamToTypes())
+	workflowID, err := h.backendHandler.InstallAgent(rCtx, req.ConvertAgentParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install agent: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to install agent: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "launched install agent. workflow-id(%s)", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched install agent. workflow-id(%s)", workflowID)
 
 	resp := new(protoApplication.NodeAgentInstallResp)
 	resp.ConvertWorkflowID(workflowID)

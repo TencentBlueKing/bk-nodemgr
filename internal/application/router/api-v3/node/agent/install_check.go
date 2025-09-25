@@ -18,16 +18,16 @@ import (
 )
 
 // AgentInstallCheck install agent.
-func (h *handler) AgentInstallCheck(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeAgentInstallCheckReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to check agent install , failed to decode request body: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to check agent install , failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.CheckAgentInstall(ctx, req.ConvertAgentParamToTypes())
+	result, err := h.backendHandler.CheckAgentInstall(rCtx, req.ConvertAgentParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to check agent install: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to check agent install: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

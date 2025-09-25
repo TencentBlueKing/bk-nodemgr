@@ -23,29 +23,29 @@ import (
 // ISyncManager defines the SyncManager interface.
 type ISyncManager interface {
 	// LaunchSyncBizAndHost launch a task to sync biz and host. returns the trigger-id.
-	LaunchSyncBizAndHost(ctx contextx.ITenantUserContext) (string, error)
+	LaunchSyncBizAndHost(ctx contextx.IContext) (string, error)
 
 	// LaunchSyncHostByBizID launch a task to sync host by biz-id. returns the trigger-id.
-	LaunchSyncHostByBizID(ctx contextx.ITenantUserContext, bizID int64) (string, error)
+	LaunchSyncHostByBizID(ctx contextx.IContext, bizID int64) (string, error)
 
 	// LaunchSyncNetworkArea launch a task to sync networkarea. returns the trigger-id.
-	LaunchSyncNetworkArea(ctx contextx.ITenantUserContext) (string, error)
+	LaunchSyncNetworkArea(ctx contextx.IContext) (string, error)
 
 	// LaunchSyncAgentState launch a task to sync agent state from gse. returns the workflow-id.
-	LaunchSyncAgentState(ctx contextx.ITenantUserContext, hostIDs ...int64) (string, error)
+	LaunchSyncAgentState(ctx contextx.IContext, hostIDs ...int64) (string, error)
 
 	// LaunchSyncAllAgentState launch a task to sync all agent state from gse. returns the workflow-id.
-	LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (string, error)
+	LaunchSyncAllAgentState(ctx contextx.IContext) (string, error)
 
 	// LaunchSyncAgentInfo launch a task to sync agent info from gse. returns the workflow-id.
-	LaunchSyncAgentInfo(ctx contextx.ITenantUserContext, hostIDs ...int64) (string, error)
+	LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64) (string, error)
 
 	// LaunchSyncAliveHostAgentInfo launch a task to sync alive host agent info. returns the trigger-id.
-	LaunchSyncAliveHostAgentInfo(ctx contextx.ITenantUserContext) (string, error)
+	LaunchSyncAliveHostAgentInfo(ctx contextx.IContext) (string, error)
 }
 
 // LaunchSyncAllAgentState launch a task to sync all agent state.
-func (mgr *Manager) LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (string, error) {
+func (mgr *Manager) LaunchSyncAllAgentState(ctx contextx.IContext) (string, error) {
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
@@ -74,7 +74,7 @@ func (mgr *Manager) LaunchSyncAllAgentState(ctx contextx.ITenantUserContext) (st
 }
 
 // LaunchSyncAgentState launch a task to sync agent state.
-func (mgr *Manager) LaunchSyncAgentState(ctx contextx.ITenantUserContext, hostIDs ...int64) (string, error) {
+func (mgr *Manager) LaunchSyncAgentState(ctx contextx.IContext, hostIDs ...int64) (string, error) {
 	if len(hostIDs) == 0 {
 		return "", errors.New("hostIDs cannot be empty")
 	}
@@ -125,7 +125,7 @@ func (mgr *Manager) LaunchSyncAgentState(ctx contextx.ITenantUserContext, hostID
 }
 
 // LaunchSyncBizAndHost launch a task to sync biz and host.
-func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.ITenantUserContext) (string, error) {
+func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.IContext) (string, error) {
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
@@ -154,7 +154,7 @@ func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.ITenantUserContext) (strin
 }
 
 // LaunchSyncHostByBizID launch a task to sync host.
-func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.ITenantUserContext, bizID int64) (string, error) {
+func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.IContext, bizID int64) (string, error) {
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
@@ -184,7 +184,7 @@ func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.ITenantUserContext, bizID
 }
 
 // LaunchSyncNetworkArea launch a task to sync networkarea.
-func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.ITenantUserContext) (string, error) {
+func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.IContext) (string, error) {
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
@@ -213,7 +213,7 @@ func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.ITenantUserContext) (stri
 }
 
 // LaunchSyncAliveHostAgentInfo launch a task to sync all agent state.
-func (mgr *Manager) LaunchSyncAliveHostAgentInfo(ctx contextx.ITenantUserContext) (string, error) {
+func (mgr *Manager) LaunchSyncAliveHostAgentInfo(ctx contextx.IContext) (string, error) {
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
@@ -242,7 +242,7 @@ func (mgr *Manager) LaunchSyncAliveHostAgentInfo(ctx contextx.ITenantUserContext
 }
 
 // LaunchSyncAgentInfo launch a task to sync agent info.
-func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.ITenantUserContext, hostIDs ...int64) (string, error) {
+func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64) (string, error) {
 	if len(hostIDs) == 0 {
 		return "", errors.New("hostIDs cannot be empty")
 	}

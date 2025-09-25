@@ -32,7 +32,7 @@ type IAgent interface {
 	UploadOriginAgent(ctx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
 	// PublishReleaseAgent generates release agent by upload-id.
-	PublishReleaseAgent(ctx contextx.IUserContext, uploadID string) error
+	PublishReleaseAgent(ctx contextx.IContext, uploadID string) error
 }
 
 // UploadOriginAgent uploads the origin agent.
@@ -244,7 +244,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 // PublishReleaseAgent generates release agent packages by upload-id.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseAgent(ctx contextx.IUserContext, uploadID string) error {
+func (m *Manager) PublishReleaseAgent(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetAgentUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to get upload(%s). err: %v", uploadID, err)

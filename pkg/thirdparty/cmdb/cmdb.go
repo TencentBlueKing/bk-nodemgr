@@ -80,7 +80,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 
 // getHeader get cmdb common header.
 // nolint: unparam
-func (c *cli) getHeader(ctx contextx.ITenantUserContext) (http.Header, error) {
+func (c *cli) getHeader(ctx contextx.IContext) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, ctx.TenantID())
 	header.Set(HeaderKeyLanguage, HeaderValueLanguage)
@@ -97,7 +97,7 @@ func (c *cli) getHeader(ctx contextx.ITenantUserContext) (http.Header, error) {
 }
 
 // ListBizHosts ...
-func (c *cli) listBizHosts(ctx contextx.ITenantUserContext, req *ListBizHostsReq) (*ListBizHostsResp, error) {
+func (c *cli) listBizHosts(ctx contextx.IContext, req *ListBizHostsReq) (*ListBizHostsResp, error) {
 	resp := new(BaseBroker[*ListBizHostsResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -123,7 +123,7 @@ func (c *cli) listBizHosts(ctx contextx.ITenantUserContext, req *ListBizHostsReq
 }
 
 // searchBusiness search cmdb business.
-func (c *cli) searchBusiness(ctx contextx.ITenantUserContext, req *SearchBusinessReq) (*SearchBusinessResp, error) {
+func (c *cli) searchBusiness(ctx contextx.IContext, req *SearchBusinessReq) (*SearchBusinessResp, error) {
 	resp := new(BaseBroker[*SearchBusinessResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -149,7 +149,7 @@ func (c *cli) searchBusiness(ctx contextx.ITenantUserContext, req *SearchBusines
 }
 
 // searchCloudArea search cloud area.
-func (c *cli) searchCloudArea(ctx contextx.ITenantUserContext, req *SearchCloudAreaReq) (*SearchCloudAreaResp, error) {
+func (c *cli) searchCloudArea(ctx contextx.IContext, req *SearchCloudAreaReq) (*SearchCloudAreaResp, error) {
 	resp := new(BaseBroker[*SearchCloudAreaResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -175,7 +175,7 @@ func (c *cli) searchCloudArea(ctx contextx.ITenantUserContext, req *SearchCloudA
 }
 
 // createCloudArea create cloud area.
-func (c *cli) createCloudArea(ctx contextx.ITenantUserContext, req *CreateCloudAreaReq) (*CreateCloudAreaResp, error) {
+func (c *cli) createCloudArea(ctx contextx.IContext, req *CreateCloudAreaReq) (*CreateCloudAreaResp, error) {
 	resp := new(BaseBroker[*CreateCloudAreaResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -201,7 +201,7 @@ func (c *cli) createCloudArea(ctx contextx.ITenantUserContext, req *CreateCloudA
 }
 
 // updateCloudArea update cloud area.
-func (c *cli) updateCloudArea(ctx contextx.ITenantUserContext, req *UpdateCloudAreaReq) error {
+func (c *cli) updateCloudArea(ctx contextx.IContext, req *UpdateCloudAreaReq) error {
 	resp := new(BaseBroker[*UpdateCloudAreaResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -227,7 +227,7 @@ func (c *cli) updateCloudArea(ctx contextx.ITenantUserContext, req *UpdateCloudA
 }
 
 // deleteCloudArea delete cloud area.
-func (c *cli) deleteCloudArea(ctx contextx.ITenantUserContext, req *DeleteCloudAreaReq) error {
+func (c *cli) deleteCloudArea(ctx contextx.IContext, req *DeleteCloudAreaReq) error {
 	resp := new(BaseBroker[*UpdateCloudAreaResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -253,7 +253,7 @@ func (c *cli) deleteCloudArea(ctx contextx.ITenantUserContext, req *DeleteCloudA
 }
 
 // updateHostCloudAreaField update host cloud area field.
-func (c *cli) updateHostCloudAreaField(ctx contextx.ITenantUserContext, req *UpdateHostCloudAreaFieldReq) error {
+func (c *cli) updateHostCloudAreaField(ctx contextx.IContext, req *UpdateHostCloudAreaFieldReq) error {
 	resp := new(BaseBroker[*UpdateHostCloudAreaFieldResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -280,7 +280,7 @@ func (c *cli) updateHostCloudAreaField(ctx contextx.ITenantUserContext, req *Upd
 
 // searchBizInstTopo search biz inst topo.
 // nolint: unused
-func (c *cli) searchBizInstTopo(ctx contextx.ITenantUserContext, req *SearchBizInstTopoReq) (*SearchBizInstTopoResp, error) {
+func (c *cli) searchBizInstTopo(ctx contextx.IContext, req *SearchBizInstTopoReq) (*SearchBizInstTopoResp, error) {
 	resp := new(BaseBroker[*SearchBizInstTopoResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -307,7 +307,7 @@ func (c *cli) searchBizInstTopo(ctx contextx.ITenantUserContext, req *SearchBizI
 
 // getBizInternalModule get biz internal module.
 // nolint: unused
-func (c *cli) getBizInternalModule(ctx contextx.ITenantUserContext, req *GetBizInternalModuleReq) (
+func (c *cli) getBizInternalModule(ctx contextx.IContext, req *GetBizInternalModuleReq) (
 	*GetBizInternalModuleResp, error) {
 
 	resp := new(BaseBroker[*GetBizInternalModuleResp])
@@ -334,7 +334,7 @@ func (c *cli) getBizInternalModule(ctx contextx.ITenantUserContext, req *GetBizI
 
 // findTopoNodePaths find topo node paths.
 // nolint: unused
-func (c *cli) findTopoNodePaths(ctx contextx.ITenantUserContext, req *FindTopoNodePathsReq) (*FindTopoNodePathsResp, error) {
+func (c *cli) findTopoNodePaths(ctx contextx.IContext, req *FindTopoNodePathsReq) (*FindTopoNodePathsResp, error) {
 	resp := new(BaseBroker[*FindTopoNodePathsResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -361,7 +361,7 @@ func (c *cli) findTopoNodePaths(ctx contextx.ITenantUserContext, req *FindTopoNo
 
 // findModuleBatch find module batch.
 // nolint: unused
-func (c *cli) findModuleBatch(ctx contextx.ITenantUserContext, req *FindModuleBatchReq) (*FindModuleBatchResp, error) {
+func (c *cli) findModuleBatch(ctx contextx.IContext, req *FindModuleBatchReq) (*FindModuleBatchResp, error) {
 	resp := new(BaseBroker[*FindModuleBatchResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -387,7 +387,7 @@ func (c *cli) findModuleBatch(ctx contextx.ITenantUserContext, req *FindModuleBa
 }
 
 // searchObjectAttribute search object attribute.
-func (c *cli) searchObjectAttribute(ctx contextx.ITenantUserContext, req *SearchObjectAttributeReq) (
+func (c *cli) searchObjectAttribute(ctx contextx.IContext, req *SearchObjectAttributeReq) (
 	*SearchObjectAttributeResp, error) {
 
 	resp := new(BaseBroker[*SearchObjectAttributeResp])
@@ -415,7 +415,7 @@ func (c *cli) searchObjectAttribute(ctx contextx.ITenantUserContext, req *Search
 }
 
 // bindHostAgent bind host agent.
-func (c *cli) bindHostAgent(ctx contextx.ITenantUserContext, req *BindHostAgentReq) error {
+func (c *cli) bindHostAgent(ctx contextx.IContext, req *BindHostAgentReq) error {
 	resp := new(BaseBroker[*BindHostAgentResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -441,7 +441,7 @@ func (c *cli) bindHostAgent(ctx contextx.ITenantUserContext, req *BindHostAgentR
 }
 
 // unbindHostAgent bind host agent.
-func (c *cli) unbindHostAgent(ctx contextx.ITenantUserContext, req *UnbindHostAgentReq) error {
+func (c *cli) unbindHostAgent(ctx contextx.IContext, req *UnbindHostAgentReq) error {
 	resp := new(BaseBroker[*UnbindHostAgentResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -467,7 +467,7 @@ func (c *cli) unbindHostAgent(ctx contextx.ITenantUserContext, req *UnbindHostAg
 }
 
 // addHostToBusiessIdle add host to business idle.
-func (c *cli) addHostToBusinessIdle(ctx contextx.ITenantUserContext, req *AddHostToBusinessIdleReq) (*AddHostToBusinessIdleResp,
+func (c *cli) addHostToBusinessIdle(ctx contextx.IContext, req *AddHostToBusinessIdleReq) (*AddHostToBusinessIdleResp,
 	error) {
 
 	resp := new(BaseBroker[*AddHostToBusinessIdleResp])
@@ -495,7 +495,7 @@ func (c *cli) addHostToBusinessIdle(ctx contextx.ITenantUserContext, req *AddHos
 }
 
 // pushHostIdentifier push host identifier.
-func (c *cli) pushHostIdentifier(ctx contextx.ITenantUserContext, req *PushHostIdentifierReq) (*PushHostIdentifierResp, error) {
+func (c *cli) pushHostIdentifier(ctx contextx.IContext, req *PushHostIdentifierReq) (*PushHostIdentifierResp, error) {
 	resp := new(BaseBroker[*PushHostIdentifierResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -521,7 +521,7 @@ func (c *cli) pushHostIdentifier(ctx contextx.ITenantUserContext, req *PushHostI
 }
 
 // findHostIdentifierPushResult find host identifier push result.
-func (c *cli) findHostIdentifierPushResult(ctx contextx.ITenantUserContext, req *FindHostIdentifierPushResultReq) (
+func (c *cli) findHostIdentifierPushResult(ctx contextx.IContext, req *FindHostIdentifierPushResultReq) (
 	*FindHostIdentifierPushResultResp, error) {
 
 	resp := new(BaseBroker[*FindHostIdentifierPushResultResp])
@@ -549,7 +549,7 @@ func (c *cli) findHostIdentifierPushResult(ctx contextx.ITenantUserContext, req 
 }
 
 // addHostToResource add host to resource.
-func (c *cli) addHostToResource(ctx contextx.ITenantUserContext, req *AddHostToResourcePoolReq) (*AddHostToResourcePoolResp,
+func (c *cli) addHostToResource(ctx contextx.IContext, req *AddHostToResourcePoolReq) (*AddHostToResourcePoolResp,
 	error) {
 
 	resp := new(BaseBroker[*AddHostToResourcePoolResp])
@@ -576,7 +576,7 @@ func (c *cli) addHostToResource(ctx contextx.ITenantUserContext, req *AddHostToR
 	return resp.Data, nil
 }
 
-func (c *cli) listResourcePoolHosts(ctx contextx.ITenantUserContext, req *ListResourcePoolHostsReq) (*ListResourcePoolHostsResp,
+func (c *cli) listResourcePoolHosts(ctx contextx.IContext, req *ListResourcePoolHostsReq) (*ListResourcePoolHostsResp,
 	error) {
 
 	resp := new(BaseBroker[*ListResourcePoolHostsResp])
@@ -605,7 +605,7 @@ func (c *cli) listResourcePoolHosts(ctx contextx.ITenantUserContext, req *ListRe
 
 // createDynamicGroup create dynamic group.
 // nolint: unused
-func (c *cli) createDynamicGroup(ctx contextx.ITenantUserContext, req *CreateDynamicGroupReq) (*CreateDynamicGroupResp, error) {
+func (c *cli) createDynamicGroup(ctx contextx.IContext, req *CreateDynamicGroupReq) (*CreateDynamicGroupResp, error) {
 	resp := new(BaseBroker[*CreateDynamicGroupResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -631,7 +631,7 @@ func (c *cli) createDynamicGroup(ctx contextx.ITenantUserContext, req *CreateDyn
 }
 
 // executeDynamicGroup execute host dynamic group.
-func (c *cli) executeDynamicGroup(ctx contextx.ITenantUserContext, req *ExecuteDynamicGroupReq) (*ExecuteDynamicGroupResp, error) {
+func (c *cli) executeDynamicGroup(ctx contextx.IContext, req *ExecuteDynamicGroupReq) (*ExecuteDynamicGroupResp, error) {
 	resp := new(BaseBroker[*ExecuteDynamicGroupResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -657,7 +657,7 @@ func (c *cli) executeDynamicGroup(ctx contextx.ITenantUserContext, req *ExecuteD
 }
 
 // searchDynamicGroup search dynamic group.
-func (c *cli) searchDynamicGroup(ctx contextx.ITenantUserContext, req *SearchDynamicGroupReq) (*SearchDynamicGroupResp, error) {
+func (c *cli) searchDynamicGroup(ctx contextx.IContext, req *SearchDynamicGroupReq) (*SearchDynamicGroupResp, error) {
 	resp := new(BaseBroker[*SearchDynamicGroupResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -684,7 +684,7 @@ func (c *cli) searchDynamicGroup(ctx contextx.ITenantUserContext, req *SearchDyn
 
 // deleteDynamicGroup delete dynamic group.
 // nolint: unused
-func (c *cli) deleteDynamicGroup(ctx contextx.ITenantUserContext, req *DeleteDynamicGroupReq) error {
+func (c *cli) deleteDynamicGroup(ctx contextx.IContext, req *DeleteDynamicGroupReq) error {
 	resp := new(BaseBroker[*DeleteDynamicGroupResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -711,7 +711,7 @@ func (c *cli) deleteDynamicGroup(ctx contextx.ITenantUserContext, req *DeleteDyn
 
 // getDynamicGroup get dynamic group.
 // nolint: unused
-func (c *cli) getDynamicGroup(ctx contextx.ITenantUserContext, req *GetDynamicGroupReq) (*GetDynamicGroupResp, error) {
+func (c *cli) getDynamicGroup(ctx contextx.IContext, req *GetDynamicGroupReq) (*GetDynamicGroupResp, error) {
 	resp := new(BaseBroker[*GetDynamicGroupResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -736,7 +736,7 @@ func (c *cli) getDynamicGroup(ctx contextx.ITenantUserContext, req *GetDynamicGr
 
 // updateDynamicGroup update dynamic group.
 // nolint: unused
-func (c *cli) updateDynamicGroup(ctx contextx.ITenantUserContext, req *UpdateDynamicGroupReq) error {
+func (c *cli) updateDynamicGroup(ctx contextx.IContext, req *UpdateDynamicGroupReq) error {
 	resp := new(BaseBroker[*UpdateDynamicGroupResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -762,7 +762,7 @@ func (c *cli) updateDynamicGroup(ctx contextx.ITenantUserContext, req *UpdateDyn
 }
 
 // listHostsWithoutBusiness list hosts without business.
-func (c *cli) listHostsWithoutBusiness(ctx contextx.ITenantUserContext, req *ListHostsWithoutBusinessReq) (
+func (c *cli) listHostsWithoutBusiness(ctx contextx.IContext, req *ListHostsWithoutBusinessReq) (
 	*ListHostsWithoutBusinessResp, error) {
 
 	resp := new(BaseBroker[*ListHostsWithoutBusinessResp])
@@ -791,7 +791,7 @@ func (c *cli) listHostsWithoutBusiness(ctx contextx.ITenantUserContext, req *Lis
 
 // getMainlineObjectTopo get mainline object topo.
 // nolint: unused
-func (c *cli) getMainlineObjectTopo(ctx contextx.ITenantUserContext, req *GetMainlineObjectTopoReq) (
+func (c *cli) getMainlineObjectTopo(ctx contextx.IContext, req *GetMainlineObjectTopoReq) (
 	*GetMainlineObjectTopoResp, error) {
 
 	resp := new(BaseBroker[*GetMainlineObjectTopoResp])
@@ -819,7 +819,7 @@ func (c *cli) getMainlineObjectTopo(ctx contextx.ITenantUserContext, req *GetMai
 }
 
 // listServiceTemplate list service template.
-func (c *cli) listServiceTemplate(ctx contextx.ITenantUserContext, req *ListServiceTemplateReq) (
+func (c *cli) listServiceTemplate(ctx contextx.IContext, req *ListServiceTemplateReq) (
 	*ListServiceTemplateResp, error) {
 
 	resp := new(BaseBroker[*ListServiceTemplateResp])
@@ -848,7 +848,7 @@ func (c *cli) listServiceTemplate(ctx contextx.ITenantUserContext, req *ListServ
 
 // listServiceInstance list service instance.
 // nolint: unused
-func (c *cli) listServiceInstance(ctx contextx.ITenantUserContext, req *ListServiceInstanceReq) (
+func (c *cli) listServiceInstance(ctx contextx.IContext, req *ListServiceInstanceReq) (
 	*ListServiceInstanceResp, error) {
 
 	resp := new(BaseBroker[*ListServiceInstanceResp])
@@ -877,7 +877,7 @@ func (c *cli) listServiceInstance(ctx contextx.ITenantUserContext, req *ListServ
 
 // listProcessInstance list process instance.
 // nolint: unused
-func (c *cli) listProcessInstance(ctx contextx.ITenantUserContext, req *ListProcessInstanceReq) (
+func (c *cli) listProcessInstance(ctx contextx.IContext, req *ListProcessInstanceReq) (
 	*ListProcessInstanceResp, error) {
 
 	resp := new(BaseBroker[*ListProcessInstanceResp])
@@ -906,7 +906,7 @@ func (c *cli) listProcessInstance(ctx contextx.ITenantUserContext, req *ListProc
 
 // listProcTemplate list proc template.
 // nolint: unused
-func (c *cli) listProcTemplate(ctx contextx.ITenantUserContext, req *ListProcTemplateReq) (
+func (c *cli) listProcTemplate(ctx contextx.IContext, req *ListProcTemplateReq) (
 	*ListProcTemplateResp, error) {
 
 	resp := new(BaseBroker[*ListProcTemplateResp])
@@ -935,7 +935,7 @@ func (c *cli) listProcTemplate(ctx contextx.ITenantUserContext, req *ListProcTem
 
 // findSetBatch find set batch.
 // nolint: unused
-func (c *cli) findSetBatch(ctx contextx.ITenantUserContext, req *FindSetBatchReq) (*FindSetBatchResp, error) {
+func (c *cli) findSetBatch(ctx contextx.IContext, req *FindSetBatchReq) (*FindSetBatchResp, error) {
 	resp := new(BaseBroker[*FindSetBatchResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -962,7 +962,7 @@ func (c *cli) findSetBatch(ctx contextx.ITenantUserContext, req *FindSetBatchReq
 
 // searchSet search set.
 // nolint: unused
-func (c *cli) searchSet(ctx contextx.ITenantUserContext, req *SearchSetReq) (*SearchSetResp, error) {
+func (c *cli) searchSet(ctx contextx.IContext, req *SearchSetReq) (*SearchSetResp, error) {
 	resp := new(BaseBroker[*SearchSetResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -989,7 +989,7 @@ func (c *cli) searchSet(ctx contextx.ITenantUserContext, req *SearchSetReq) (*Se
 
 // searchModule search module.
 // nolint: unused
-func (c *cli) searchModule(ctx contextx.ITenantUserContext, req *SearchModuleReq) (*SearchModuleResp, error) {
+func (c *cli) searchModule(ctx contextx.IContext, req *SearchModuleReq) (*SearchModuleResp, error) {
 	resp := new(BaseBroker[*SearchModuleResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -1016,7 +1016,7 @@ func (c *cli) searchModule(ctx contextx.ITenantUserContext, req *SearchModuleReq
 
 // findHostTopoRelation find host topo relation.
 // nolint: unused
-func (c *cli) findHostTopoRelation(ctx contextx.ITenantUserContext, req *FindHostTopoRelationReq) (
+func (c *cli) findHostTopoRelation(ctx contextx.IContext, req *FindHostTopoRelationReq) (
 	*FindHostTopoRelationResp, error) {
 
 	resp := new(BaseBroker[*FindHostTopoRelationResp])
@@ -1045,7 +1045,7 @@ func (c *cli) findHostTopoRelation(ctx contextx.ITenantUserContext, req *FindHos
 
 // findHostBizRelations find host biz relations.
 // nolint: unused
-func (c *cli) findHostBizRelations(ctx contextx.ITenantUserContext, req *FindHostBizRelationsReq) (
+func (c *cli) findHostBizRelations(ctx contextx.IContext, req *FindHostBizRelationsReq) (
 	*FindHostBizRelationsResp, error) {
 
 	resp := new(BaseBroker[*FindHostBizRelationsResp])
@@ -1073,7 +1073,7 @@ func (c *cli) findHostBizRelations(ctx contextx.ITenantUserContext, req *FindHos
 }
 
 // findHostByServiceTemplate find host by service template.
-func (c *cli) findHostByServiceTemplate(ctx contextx.ITenantUserContext, req *FindHostByServiceTemplateReq) (
+func (c *cli) findHostByServiceTemplate(ctx contextx.IContext, req *FindHostByServiceTemplateReq) (
 	*FindHostByServiceTemplateResp, error) {
 
 	resp := new(BaseBroker[*FindHostByServiceTemplateResp])
@@ -1102,7 +1102,7 @@ func (c *cli) findHostByServiceTemplate(ctx contextx.ITenantUserContext, req *Fi
 
 // findHostBySetTemplate find host by set template.
 // nolint: unused
-func (c *cli) findHostBySetTemplate(ctx contextx.ITenantUserContext, req *FindHostBySetTemplateReq) (
+func (c *cli) findHostBySetTemplate(ctx contextx.IContext, req *FindHostBySetTemplateReq) (
 	*FindHostBySetTemplateResp, error) {
 
 	resp := new(BaseBroker[*FindHostBySetTemplateResp])
@@ -1131,7 +1131,7 @@ func (c *cli) findHostBySetTemplate(ctx contextx.ITenantUserContext, req *FindHo
 
 // findHostByTopo find host by topo.
 // nolint: unused
-func (c *cli) findHostByTopo(ctx contextx.ITenantUserContext, req *FindHostByTopoReq) (
+func (c *cli) findHostByTopo(ctx contextx.IContext, req *FindHostByTopoReq) (
 	*FindHostByTopoResp, error) {
 
 	resp := new(BaseBroker[*FindHostByTopoResp])
@@ -1160,7 +1160,7 @@ func (c *cli) findHostByTopo(ctx contextx.ITenantUserContext, req *FindHostByTop
 
 // findHostRelationsWithTopo find host relations with topo.
 // nolint: unused
-func (c *cli) findHostRelationsWithTopo(ctx contextx.ITenantUserContext, req *FindHostRelationsWithTopoReq) (
+func (c *cli) findHostRelationsWithTopo(ctx contextx.IContext, req *FindHostRelationsWithTopoReq) (
 	*FindHostRelationsWithTopoResp, error) {
 
 	resp := new(BaseBroker[*FindHostRelationsWithTopoResp])
@@ -1189,7 +1189,7 @@ func (c *cli) findHostRelationsWithTopo(ctx contextx.ITenantUserContext, req *Fi
 
 // listServiceInstanceDetail list service instance detail.
 // nolint: unused
-func (c *cli) listServiceInstanceDetail(ctx contextx.ITenantUserContext, req *ListServiceInstanceDetailReq) (
+func (c *cli) listServiceInstanceDetail(ctx contextx.IContext, req *ListServiceInstanceDetailReq) (
 	*ListServiceInstanceDetailResp, error) {
 
 	resp := new(BaseBroker[*ListServiceInstanceDetailResp])
@@ -1218,7 +1218,7 @@ func (c *cli) listServiceInstanceDetail(ctx contextx.ITenantUserContext, req *Li
 
 // listBizHostsTopo list biz hosts topo.
 // nolint: unused
-func (c *cli) listBizHostsTopo(ctx contextx.ITenantUserContext, req *ListBizHostsTopoReq) (
+func (c *cli) listBizHostsTopo(ctx contextx.IContext, req *ListBizHostsTopoReq) (
 	*ListBizHostsTopoResp, error) {
 
 	resp := new(BaseBroker[*ListBizHostsTopoResp])
@@ -1247,7 +1247,7 @@ func (c *cli) listBizHostsTopo(ctx contextx.ITenantUserContext, req *ListBizHost
 
 // listServiceInstanceByHost list service instance by host.
 // nolint: unused
-func (c *cli) listServiceInstanceByHost(ctx contextx.ITenantUserContext, req *ListServiceInstanceByHostReq) (
+func (c *cli) listServiceInstanceByHost(ctx contextx.IContext, req *ListServiceInstanceByHostReq) (
 	*ListServiceInstanceByHostResp, error) {
 
 	resp := new(BaseBroker[*ListServiceInstanceByHostResp])
@@ -1276,7 +1276,7 @@ func (c *cli) listServiceInstanceByHost(ctx contextx.ITenantUserContext, req *Li
 
 // listServiceInstanceBySetTemplate list service instance by host.
 // nolint: unused
-func (c *cli) listServiceInstanceBySetTemplate(ctx contextx.ITenantUserContext, req *ListServiceInstanceBySetTemplateReq) (
+func (c *cli) listServiceInstanceBySetTemplate(ctx contextx.IContext, req *ListServiceInstanceBySetTemplateReq) (
 	*ListServiceInstanceBySetTemplateResp, error) {
 
 	resp := new(BaseBroker[*ListServiceInstanceBySetTemplateResp])
@@ -1305,7 +1305,7 @@ func (c *cli) listServiceInstanceBySetTemplate(ctx contextx.ITenantUserContext, 
 
 // listSetTemplate list set template.
 // nolint: unused
-func (c *cli) listSetTemplate(ctx contextx.ITenantUserContext, req *ListSetTemplateReq) (
+func (c *cli) listSetTemplate(ctx contextx.IContext, req *ListSetTemplateReq) (
 	*ListSetTemplateResp, error) {
 
 	resp := new(BaseBroker[*ListSetTemplateResp])
@@ -1334,7 +1334,7 @@ func (c *cli) listSetTemplate(ctx contextx.ITenantUserContext, req *ListSetTempl
 
 // batchUpdateHost batch update host.
 // nolint: unused
-func (c *cli) batchUpdateHost(ctx contextx.ITenantUserContext, req *BatchUpdateHostReq) error {
+func (c *cli) batchUpdateHost(ctx contextx.IContext, req *BatchUpdateHostReq) error {
 	resp := new(BaseBroker[*BatchUpdateHostResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {
@@ -1361,7 +1361,7 @@ func (c *cli) batchUpdateHost(ctx contextx.ITenantUserContext, req *BatchUpdateH
 
 // findHostServiceTemplate find host service template.
 // nolint: unused
-func (c *cli) findHostServiceTemplate(ctx contextx.ITenantUserContext, req *FindHostServiceTemplateReq) (
+func (c *cli) findHostServiceTemplate(ctx contextx.IContext, req *FindHostServiceTemplateReq) (
 	*FindHostServiceTemplateResp, error) {
 
 	resp := new(BaseBroker[*FindHostServiceTemplateResp])
@@ -1391,7 +1391,7 @@ func (c *cli) findHostServiceTemplate(ctx contextx.ITenantUserContext, req *Find
 // resourceWatch resource watch.
 // cc resource_watch interface using a short-long chain design
 // if there are any event changes within 20 seconds, the events will be pushed back directly.
-func (c *cli) resourceWatch(ctx contextx.ITenantUserContext, req *ResourceWatchReq) (*ResourceWatchResp, error) {
+func (c *cli) resourceWatch(ctx contextx.IContext, req *ResourceWatchReq) (*ResourceWatchResp, error) {
 	resp := new(BaseBroker[*ResourceWatchResp])
 	header, err := c.getHeader(ctx)
 	if err != nil {

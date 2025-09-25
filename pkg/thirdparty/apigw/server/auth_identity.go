@@ -31,7 +31,7 @@ func NewBKGWJWTAuthIdentity(pem []byte) *BKGWJWTAuthIdentityAppState {
 }
 
 // Verify the jwt from apigateway.
-func (identity *BKGWJWTAuthIdentityAppState) Verify(rCtx *restserver.Context) error {
+func (identity *BKGWJWTAuthIdentityAppState) Verify(rCtx restserver.IRequest) error {
 	if rCtx == nil {
 		return errors.New("failed to verify user authentication, rest context is nil")
 	}
@@ -50,9 +50,9 @@ func (identity *BKGWJWTAuthIdentityAppState) Verify(rCtx *restserver.Context) er
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	rCtx.SetLoginName(claims.User.UserName)
+	rCtx.Data().SetLoginName(claims.User.UserName)
 	// TODO: 等待多租户版本上线后，需要修改 rCtx.BKUsername1 的赋值
-	rCtx.SetBKUsername(claims.User.UserName)
+	rCtx.Data().SetBKUsername(claims.User.UserName)
 
 	return nil
 }
@@ -89,9 +89,9 @@ func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx *restserver.Context) e
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	rCtx.SetLoginName(claims.User.UserName)
+	rCtx.Data().SetLoginName(claims.User.UserName)
 	// TODO: 等待多租户版本上线后，需要修改 rCtx.BKUsername1 的赋值
-	rCtx.SetBKUsername(claims.User.UserName)
+	rCtx.Data().SetBKUsername(claims.User.UserName)
 
 	return nil
 }

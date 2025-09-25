@@ -97,8 +97,8 @@ func (act *actionSyncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error 
 
 	executor := pageexecutor.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.NetworkArea, error) {
-		tenantUserCtx := contextx.NewTenantUserContext(ctx, param.TenantID, param.Operator)
-		networkareas, err := act.cmdbHandler.SearchNetworkArea(tenantUserCtx, p)
+		newCtx := contextx.New(ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+		networkareas, err := act.cmdbHandler.SearchNetworkArea(newCtx, p)
 		if err != nil {
 			return nil, err
 		}

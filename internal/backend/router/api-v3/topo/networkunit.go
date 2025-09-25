@@ -27,18 +27,18 @@ const (
 )
 
 // CreateNetworkUnit creates a new network-unit.
-func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoNetworkUnitCreateReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to create networkunit, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to create networkunit, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// check if networkarea exists.
 	networkAreaID := req.GetBkNetworkareaId()
-	networkArea, err := h.storage.GetNetworkArea(ctx, networkAreaID)
+	networkArea, err := h.storage.GetNetworkArea(rCtx, networkAreaID)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to create networkunit, failed to get networkarea. networkarea-id(%d): %v",
+		h.logger.ErrorCtxf(rCtx, "failed to create networkunit, failed to get networkarea. networkarea-id(%d): %v",
 			networkAreaID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -46,7 +46,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 
 	// creates networkunit.
 	networkUnit := &types.NetworkUnit{
-		TenantID:        ctx.TenantID(),
+		TenantID:        rCtx.TenantID(),
 		NetworkAreaID:   networkAreaID,
 		Name:            req.GetBkNetworkunitName(),
 		IsDirect:        req.GetIsDirect(),
@@ -56,11 +56,11 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 		networkUnit.Links = req.ConvertLinksToTypes()
 	}
 	networkUnitID, accessPointResult, err := h.storage.CreateNetworkUnit(
-		ctx,
+		rCtx,
 		networkUnit,
-		req.ConvertAccssPointsToTypes(ctx.TenantID(), networkAreaID)...)
+		req.ConvertAccssPointsToTypes(rCtx.TenantID(), networkAreaID)...)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to create networkunit. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to create networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -68,7 +68,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	events := make([]*types.TopoEvent, len(accessPointResult.Created))
 	for idx, accessPoint := range accessPointResult.Created {
 		events[idx] = &types.TopoEvent{
-			TenantID:        ctx.TenantID(),
+			TenantID:        rCtx.TenantID(),
 			Type:            types.TopoEventAccessPointCreate,
 			NetworkAreaID:   networkAreaID,
 			NetworkAreaName: networkArea.Name,
@@ -77,7 +77,7 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 			AccessPointID:   accessPoint.ID,
 			AccessPointName: accessPoint.Name,
 			OperateTime:     time.Now(),
-			Operator:        ctx.BKUsername(),
+			Operator:        rCtx.BKUsername(),
 		}
 	}
 
@@ -85,20 +85,20 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	go func() {
 		if err := h.storage.CreateManyTopoEvent(context.Background(),
 			append(events, &types.TopoEvent{
-				TenantID:        ctx.TenantID(),
+				TenantID:        rCtx.TenantID(),
 				Type:            types.TopoEventNetworkUnitCreate,
 				NetworkAreaID:   networkArea.ID,
 				NetworkAreaName: networkArea.Name,
 				NetworkUnitID:   networkUnitID,
 				NetworkUnitName: req.GetBkNetworkunitName(),
 				OperateTime:     time.Now(),
-				Operator:        ctx.BKUsername(),
+				Operator:        rCtx.BKUsername(),
 			})...); err != nil {
 			h.logger.Warnf("failed to record topo event in networkunit create. networkunit-id(%d): %v", networkUnitID, err)
 		}
 	}()
 
-	h.logger.InfoCtxf(ctx, "created networkunit. networkunit-id(%d), created-accesspoints(%d)",
+	h.logger.InfoCtxf(rCtx, "created networkunit. networkunit-id(%d), created-accesspoints(%d)",
 		networkUnitID, len(accessPointResult.Created))
 
 	resp := new(protoBackend.TopoNetworkUnitCreateResp)
@@ -110,18 +110,18 @@ func (h *handler) CreateNetworkUnit(ctx *restserver.Context) (interface{}, error
 // UpdateNetworkUnit updates networkunit.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoNetworkUnitUpdateReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to update networkunit, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to update networkunit, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// check if networkarea exists.
 	networkAreaID := req.GetBkNetworkareaId()
-	networkArea, err := h.storage.GetNetworkArea(ctx, networkAreaID)
+	networkArea, err := h.storage.GetNetworkArea(rCtx, networkAreaID)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to update networkunit, failed to get networkarea. networkarea-id(%d): %v",
+		h.logger.ErrorCtxf(rCtx, "failed to update networkunit, failed to get networkarea. networkarea-id(%d): %v",
 			networkAreaID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -132,7 +132,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 
 	// updates networkunit.
 	networkUnit := &types.NetworkUnit{
-		TenantID:        ctx.TenantID(),
+		TenantID:        rCtx.TenantID(),
 		NetworkAreaID:   networkAreaID,
 		ID:              networkUnitID,
 		Name:            req.GetBkNetworkunitName(),
@@ -143,11 +143,11 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 		networkUnit.Links = req.ConvertLinksToTypes()
 	}
 	accessPointResult, err := h.storage.UpdateNetworkUnit(
-		ctx,
+		rCtx,
 		networkUnit,
-		req.ConvertAccssPointsToTypes(ctx.TenantID(), networkAreaID)...)
+		req.ConvertAccssPointsToTypes(rCtx.TenantID(), networkAreaID)...)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to update networkunit. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to update networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -155,7 +155,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	cEvents := make([]*types.TopoEvent, len(accessPointResult.Created))
 	for idx, accessPoint := range accessPointResult.Created {
 		cEvents[idx] = &types.TopoEvent{
-			TenantID:        ctx.TenantID(),
+			TenantID:        rCtx.TenantID(),
 			Type:            types.TopoEventAccessPointCreate,
 			NetworkAreaID:   networkAreaID,
 			NetworkAreaName: networkArea.Name,
@@ -164,13 +164,13 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 			AccessPointID:   accessPoint.ID,
 			AccessPointName: accessPoint.Name,
 			OperateTime:     time.Now(),
-			Operator:        ctx.BKUsername(),
+			Operator:        rCtx.BKUsername(),
 		}
 	}
 	uEvents := make([]*types.TopoEvent, len(accessPointResult.Updated))
 	for idx, accessPoint := range accessPointResult.Updated {
 		uEvents[idx] = &types.TopoEvent{
-			TenantID:        ctx.TenantID(),
+			TenantID:        rCtx.TenantID(),
 			Type:            types.TopoEventAccessPointUpdate,
 			NetworkAreaID:   networkAreaID,
 			NetworkAreaName: networkArea.Name,
@@ -179,7 +179,7 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 			AccessPointID:   accessPoint.ID,
 			AccessPointName: accessPoint.Name,
 			OperateTime:     time.Now(),
-			Operator:        ctx.BKUsername(),
+			Operator:        rCtx.BKUsername(),
 		}
 	}
 	events := append(cEvents, uEvents...) // nolint:gocritic
@@ -188,21 +188,21 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 	go func() {
 		if err := h.storage.CreateManyTopoEvent(context.Background(),
 			append(events, &types.TopoEvent{
-				TenantID:        ctx.TenantID(),
+				TenantID:        rCtx.TenantID(),
 				Type:            types.TopoEventNetworkUnitUpdate,
 				NetworkAreaID:   networkArea.ID,
 				NetworkAreaName: networkArea.Name,
 				NetworkUnitID:   networkUnitID,
 				NetworkUnitName: networkUnitName,
 				OperateTime:     time.Now(),
-				Operator:        ctx.BKUsername(),
+				Operator:        rCtx.BKUsername(),
 			})...); err != nil {
 			h.logger.Warnf("failed to record topo event in networkunit update. networkunit-id(%d): %v",
 				networkUnitID, err)
 		}
 	}()
 
-	h.logger.InfoCtxf(ctx,
+	h.logger.InfoCtxf(rCtx,
 		"updated networkunit. networkunit-id(%d), created-accesspoints(%d), updated-accesspoints(%d)",
 		networkUnitID, len(accessPointResult.Created), len(accessPointResult.Updated))
 
@@ -213,17 +213,17 @@ func (h *handler) UpdateNetworkUnit(ctx *restserver.Context) (interface{}, error
 }
 
 // GetNetworkUnit gets an existing networkunit.
-func (h *handler) GetNetworkUnit(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) GetNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoNetworkUnitGetReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get networkunit, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to get networkunit, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// get networkunit.
-	networkUnit, err := h.storage.GetNetworkUnit(ctx, req.GetBkNetworkunitId())
+	networkUnit, err := h.storage.GetNetworkUnit(rCtx, req.GetBkNetworkunitId())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get networkunit. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to get networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -231,7 +231,7 @@ func (h *handler) GetNetworkUnit(ctx *restserver.Context) (interface{}, error) {
 	accessPoints := make([]*types.AccessPoint, 0)
 	if len(networkUnit.AccessPoints) > 0 {
 		accessPoints, _, err = h.storage.ListAccessPoint(
-			ctx,
+			rCtx,
 			types.Page{Offset: 0, Limit: len(networkUnit.AccessPoints)},
 			&types.AccessPointCondition{
 				ExactInclude: &types.AccessPointExactFields{
@@ -240,7 +240,7 @@ func (h *handler) GetNetworkUnit(ctx *restserver.Context) (interface{}, error) {
 				},
 			})
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to get networkunit. failed to list accesspoints. err: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to get networkunit. failed to list accesspoints. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
 	}
@@ -252,19 +252,19 @@ func (h *handler) GetNetworkUnit(ctx *restserver.Context) (interface{}, error) {
 }
 
 // ListNetworkUnit lists network units.
-func (h *handler) ListNetworkUnit(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoNetworkUnitListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list networkunit, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list networkunit, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	networkUnits, num, err := h.storage.ListNetworkUnit(
-		ctx,
+		rCtx,
 		req.ConvertPageToTypes(maxNetworkUnitLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list networkunit. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -275,23 +275,23 @@ func (h *handler) ListNetworkUnit(ctx *restserver.Context) (interface{}, error) 
 }
 
 // DeleteNetworkUnit deletes an existing network-unit.
-func (h *handler) DeleteNetworkUnit(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoNetworkUnitDeleteReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to delete networkunit, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to delete networkunit, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	networkUnitID := req.GetBkNetworkunitId()
 
-	networkUnit, err := h.storage.GetNetworkUnit(ctx, networkUnitID)
+	networkUnit, err := h.storage.GetNetworkUnit(rCtx, networkUnitID)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to delete networkunit, failed to get networkunit. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to delete networkunit, failed to get networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	if err := h.storage.DeleteManyNetworkUnit(ctx, networkUnitID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to delete networkunit. err: %v", err)
+	if err := h.storage.DeleteManyNetworkUnit(rCtx, networkUnitID); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to delete networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -306,21 +306,21 @@ func (h *handler) DeleteNetworkUnit(ctx *restserver.Context) (interface{}, error
 
 		if err := h.storage.CreateManyTopoEvent(context.Background(),
 			&types.TopoEvent{
-				TenantID:        ctx.TenantID(),
+				TenantID:        rCtx.TenantID(),
 				Type:            types.TopoEventNetworkUnitDelete,
 				NetworkAreaID:   networkUnit.NetworkAreaID,
 				NetworkAreaName: networkAreaName,
 				NetworkUnitID:   networkUnitID,
 				NetworkUnitName: networkUnit.Name,
 				OperateTime:     time.Now(),
-				Operator:        ctx.BKUsername(),
+				Operator:        rCtx.BKUsername(),
 			}); err != nil {
 			h.logger.Warnf("failed to record topo event in networkunit delete. networkunit-id(%d): %v",
 				req.GetBkNetworkunitId(), err)
 		}
 	}()
 
-	h.logger.InfoCtxf(ctx, "deleted networkunit. networkunit-id(%d)", networkUnitID)
+	h.logger.InfoCtxf(rCtx, "deleted networkunit. networkunit-id(%d)", networkUnitID)
 
 	resp := new(protoBackend.TopoNetworkUnitDeleteResp)
 	resp.ConvertNetworkUnitFromTypes(req.GetBkNetworkunitId())

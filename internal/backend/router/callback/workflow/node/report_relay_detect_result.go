@@ -51,8 +51,8 @@ func (h *handler) RelayReportDetectResult(gCtx *gin.Context) {
 		relayconstant.DetectResultKey: detectInfo,
 	}
 
-	ctx := contextx.NewContext(gCtx, map[string]any{})
-	if err := h.UpsertActionInstancePrivateData(ctx,
+	nCtx := contextx.New(gCtx)
+	if err := h.UpsertActionInstancePrivateData(nCtx,
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
 		h.logger.Errorf("update action private failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

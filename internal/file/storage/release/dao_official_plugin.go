@@ -49,7 +49,7 @@ func (s *Storage) existReleaseOfficialPlugin(
 }
 
 // upsertManyReleaseOfficialPlugin upsert many release.
-func (s *Storage) upsertManyReleaseOfficialPlugin(ctx contextx.IUserContext, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
+func (s *Storage) upsertManyReleaseOfficialPlugin(ctx contextx.IContext, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
 	var err error
 
 	releases := make([]*types.Release, 0, len(releaseOfficialPlugins))

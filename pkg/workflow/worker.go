@@ -69,10 +69,7 @@ func (mgr *manager) launchWorker() error {
 // notice: this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
 	var nCtx contextx.IContext
-	nCtx = contextx.NewContext(ctx, map[string]any{
-		"action_name":           actionName,
-		"operation_instance_id": operationInstanceID,
-	})
+	nCtx = contextx.New(ctx, contextx.WithMessageID(actionMessageID(operationInstanceID, actionName)))
 
 	actionDef, ok := mgr.registeredActionDefs[actionName]
 	if !ok {
@@ -270,7 +267,7 @@ func (mgr *manager) executeAndWatchAction(ctx contextx.IContext,
 	operInstBriefData *operation.InstanceBriefData,
 	actionInstData *action.InstanceData) error {
 
-	actionTimeoutCtx, actionTimeoutCancel := contextx.WithTimeout(ctx, actionDef.Timeout())
+	actionTimeoutCtx, actionTimeoutCancel := contextx.WithTimeout(contextx.From(ctx), actionDef.Timeout())
 	defer actionTimeoutCancel()
 
 	operationTimeoutCtx, operationTimeoutCancel := context.WithDeadline(
@@ -348,7 +345,7 @@ func (mgr *manager) executeAction(
 		doResult <- err
 	}()
 
-	ctx, cancel := contextx.WithCancel(actionInstCtx.Ctx)
+	ctx, cancel := contextx.WithCancel(contextx.From(actionInstCtx.Ctx))
 	defer cancel()
 
 	go mgr.autoRefreshActionDataMsg(ctx, actionInstCtx.Data)
@@ -471,4 +468,8 @@ func (mgr *manager) doOperExtraExecution(ctx contextx.IContext, oper *operation.
 	}
 
 	return err
+}
+
+func actionMessageID(operInstID, actionName string) string {
+	return fmt.Sprintf("%s|%s", operInstID, actionName)
 }

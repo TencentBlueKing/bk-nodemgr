@@ -106,22 +106,22 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, info.Host.TenantID, param.Operator)
+	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(info.Host.TenantID), contextx.WithBKUsername(param.Operator))
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
 		Logger:   act.logger,
 	})
 
-	taskID, err := act.cmdbClient.PushHostIdentifier(tenantUserCtx, info.Host.HostID)
+	taskID, err := act.cmdbClient.PushHostIdentifier(newCtx, info.Host.HostID)
 	if err != nil {
 		return err
 	}
 	ctx.Data.LogI(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
 
 	var success bool
-	err = polling.Do(tenantUserCtx, func(_ int) error {
-		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(tenantUserCtx, taskID)
+	err = polling.Do(newCtx, func(_ int) error {
+		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(newCtx, taskID)
 		if err != nil {
 			act.logger.Errorf("failed to find host identifier push result: %s", err.Error())
 

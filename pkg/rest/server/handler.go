@@ -21,17 +21,18 @@ import (
 )
 
 // HandlerFunc defines the router handler.
-type HandlerFunc func(*Context) (interface{}, error)
+type HandlerFunc func(IContext) (interface{}, error)
 
 // Handler rest handler.
 func Handler(handler HandlerFunc) gin.HandlerFunc { // nolint
 	return func(gCtx *gin.Context) {
-		rCtx, err := GetRestContext(gCtx)
+		rCtx, err := GenRestContext(gCtx)
 		if err != nil {
-			loadRestContext(gCtx).AbortWithJSONError(resterrf.Unauthorized, nil)
+			loadRestRequest(gCtx).AbortWithJSONError(resterrf.Unauthorized, nil)
 
 			return
 		}
+
 		result, err := handler(rCtx)
 
 		code, unwrapErrs := resterrf.ErrUnwrap(err)
@@ -52,9 +53,9 @@ type StreamHandlerFunc func(*Context)
 // StreamHandler stream handler.
 func StreamHandler(handler StreamHandlerFunc) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
-		rCtx, err := GetRestContext(gCtx)
+		rCtx, err := GenRestContext(gCtx)
 		if err != nil {
-			loadRestContext(gCtx).AbortWithJSONError(resterrf.Unauthorized, nil)
+			loadRestRequest(gCtx).AbortWithJSONError(resterrf.Unauthorized, nil)
 
 			return
 		}
@@ -63,14 +64,14 @@ func StreamHandler(handler StreamHandlerFunc) gin.HandlerFunc {
 }
 
 // FileHandlerFunc define file handler.
-type FileHandlerFunc func(*Context) (*FileResponse, error)
+type FileHandlerFunc func(IContext) (*FileResponse, error)
 
 // FileHandler file handler.
 func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
-		rCtx, err := GetRestContext(gCtx)
+		rCtx, err := GenRestContext(gCtx)
 		if err != nil {
-			loadRestContext(gCtx).AbortWithJSONError(resterrf.Unauthorized, nil)
+			loadRestRequest(gCtx).AbortWithJSONError(resterrf.Unauthorized, nil)
 
 			return
 		}

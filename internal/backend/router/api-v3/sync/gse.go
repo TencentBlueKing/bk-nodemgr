@@ -18,16 +18,16 @@ import (
 )
 
 // SyncAgentState start an operation to sync agent state from gse.
-func (h *handler) SyncAgentState(ctx *restserver.Context) (any, error) {
+func (h *handler) SyncAgentState(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAgentStateReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "sync agent state decode request body failed: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "sync agent state decode request body failed: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncAgentState(ctx, req.GetHostIds()...)
+	triggerID, err := h.manager.LaunchSyncAgentState(rCtx, req.GetHostIds()...)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "start sync cmdb host operation with trigger-id(%s) failed: %v", triggerID, err)
+		h.logger.ErrorCtxf(rCtx, "start sync cmdb host operation with trigger-id(%s) failed: %v", triggerID, err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -39,16 +39,16 @@ func (h *handler) SyncAgentState(ctx *restserver.Context) (any, error) {
 }
 
 // SyncAllAgentState start an operation to sync all agent state from gse.
-func (h *handler) SyncAllAgentState(ctx *restserver.Context) (any, error) {
+func (h *handler) SyncAllAgentState(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAllAgentStateReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "sync all agent state decode request body failed: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "sync all agent state decode request body failed: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncAllAgentState(ctx)
+	triggerID, err := h.manager.LaunchSyncAllAgentState(rCtx)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "start sync all agent state operation with trigger-id(%s) failed: %v", triggerID, err)
+		h.logger.ErrorCtxf(rCtx, "start sync all agent state operation with trigger-id(%s) failed: %v", triggerID, err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -60,16 +60,16 @@ func (h *handler) SyncAllAgentState(ctx *restserver.Context) (any, error) {
 }
 
 // SyncAgentInfo start an operation to sync agent info from gse.
-func (h *handler) SyncAgentInfo(ctx *restserver.Context) (any, error) {
+func (h *handler) SyncAgentInfo(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAgentInfoReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "sync agent info decode request body failed: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "sync agent info decode request body failed: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncAgentInfo(ctx, req.GetHostIds()...)
+	triggerID, err := h.manager.LaunchSyncAgentInfo(rCtx, req.GetHostIds()...)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "start sync cmdb host operation with trigger-id(%s) failed: %v", triggerID, err)
+		h.logger.ErrorCtxf(rCtx, "start sync cmdb host operation with trigger-id(%s) failed: %v", triggerID, err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -81,16 +81,16 @@ func (h *handler) SyncAgentInfo(ctx *restserver.Context) (any, error) {
 }
 
 // SyncAliveHostAgentInfo start an operation to sync alive host agent info from gse.
-func (h *handler) SyncAliveHostAgentInfo(ctx *restserver.Context) (any, error) {
+func (h *handler) SyncAliveHostAgentInfo(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAliveHostAgentInfoReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "sync alive host agent info decode request body failed: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "sync alive host agent info decode request body failed: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncAliveHostAgentInfo(ctx)
+	triggerID, err := h.manager.LaunchSyncAliveHostAgentInfo(rCtx)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "start sync alive host agent info operation with trigger-id(%s) failed: %v", triggerID, err)
+		h.logger.ErrorCtxf(rCtx, "start sync alive host agent info operation with trigger-id(%s) failed: %v", triggerID, err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 

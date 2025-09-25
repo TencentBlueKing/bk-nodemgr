@@ -108,14 +108,14 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, param.TenantID, param.Operator)
+	newCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 
 	agentIDs := make([]string, 0, len(param.Hosts))
 	for _, host := range param.Hosts {
 		agentIDs = append(agentIDs, host.AgentID)
 	}
 
-	result, err := act.gseHandler.ListAgentState(tenantUserCtx, agentIDs...)
+	result, err := act.gseHandler.ListAgentState(newCtx, agentIDs...)
 	if err != nil {
 		act.logger.Errorf("list agent state by agent-id-list(%v) failed: %v", agentIDs, err)
 		return err

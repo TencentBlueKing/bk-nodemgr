@@ -23,20 +23,20 @@ const (
 )
 
 // ListHost lists hosts with page and conditions.
-func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoHostListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list host, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list host, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.storage.CountHost(
-			ctx,
+			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list host. failed to count host. err: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to list host. failed to count host. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -47,11 +47,11 @@ func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 	}
 
 	hosts, num, err := h.storage.ListHostOrderByUpdateTime(
-		ctx,
+		rCtx,
 		req.ConvertPageToTypes(maxHostLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list host. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list host. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -62,9 +62,9 @@ func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 			creditIDMap[host.Dynamic.LoginCreditID] = struct{}{}
 		}
 	}
-	hostCredits, err := h.storageHostCredit.CheckHostCreditValid(ctx, conv.MapKeyToSlice(creditIDMap)...)
+	hostCredits, err := h.storageHostCredit.CheckHostCreditValid(rCtx, conv.MapKeyToSlice(creditIDMap)...)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list host. failed to get host credit status. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list host. failed to get host credit status. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -75,19 +75,19 @@ func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 }
 
 // DistinctHost get distinct host fields.
-func (h *handler) DistinctHost(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoHostDistinctReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct host, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to distinct host, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	result, err := h.storage.DistinctHost(
-		ctx,
+		rCtx,
 		types.NewHostDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

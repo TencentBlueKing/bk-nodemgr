@@ -39,11 +39,11 @@ type IDaoPluginDeployment interface {
 // IDaoPluginWorkflow defines the dao interface.
 type IDaoPluginWorkflow interface {
 	// GetPluginWorkflow gets a plugin workflow by workflow-id.
-	GetPluginWorkflow(ctx contextx.ITenantContext, workflowID string) (*types.PluginWorkflow, error)
+	GetPluginWorkflow(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error)
 
 	// CreatePluginWorkflow creates a new plugin workflow.
-	CreatePluginWorkflow(ctx contextx.ITenantContext, workflow *types.PluginWorkflow) error
+	CreatePluginWorkflow(ctx contextx.IContext, workflow *types.PluginWorkflow) error
 
 	// UpdatePluginWorkflowStatus updates the status of a plugin workflow.
-	UpdatePluginWorkflowStatus(ctx contextx.ITenantContext, workflowID string, status types.PluginWorkflowStatus) error
+	UpdatePluginWorkflowStatus(ctx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error
 }

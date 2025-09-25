@@ -17,19 +17,19 @@ import (
 )
 
 // Upgrade proxy.
-func (h *handler) Upgrade(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyUpgradeReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to upgrade proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.UpgradeProxy(ctx, req.ConvertParamToTypes())
+	workflowID, err := h.backendHandler.UpgradeProxy(rCtx, req.ConvertParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade proxy: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to upgrade proxy: %v", err)
 		return nil, err
 	}
-	h.logger.InfoCtxf(ctx, "launched proxy upgrade. workflow-id(%s)", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched proxy upgrade. workflow-id(%s)", workflowID)
 
 	resp := new(protoApplication.NodeProxyUpgradeResp)
 	resp.ConvertWorkflowID(workflowID)

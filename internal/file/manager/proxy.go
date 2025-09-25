@@ -28,13 +28,13 @@ import (
 // IProxy defines the interface for proxy.
 type IProxy interface {
 	// PublishReleaseProxy generates release proxy by upload-id.
-	PublishReleaseProxy(ctx contextx.IUserContext, uploadID string) error
+	PublishReleaseProxy(ctx contextx.IContext, uploadID string) error
 }
 
 // PublishReleaseProxy generates release proxy packages by upload-id.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseProxy(ctx contextx.IUserContext, uploadID string) error {
+func (m *Manager) PublishReleaseProxy(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetServerUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get upload(%s). err: %v", uploadID, err)

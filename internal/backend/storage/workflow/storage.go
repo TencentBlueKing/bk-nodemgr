@@ -136,7 +136,7 @@ func (s *Storage) registerScheduler() error {
 		s.stopOperInsts[stopInstID] = struct{}{}
 
 		go func() {
-			err := s.checkNotifyStopping(contextx.NewContext(s.Ctx, map[string]any{}))
+			err := s.checkNotifyStopping(contextx.New(s.Ctx))
 			if err != nil {
 				s.Logger.Warnf("failed to notify stopping operation inst: %v", err)
 			}

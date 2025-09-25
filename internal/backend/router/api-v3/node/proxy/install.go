@@ -29,41 +29,41 @@ import (
 const DefaultNodeGeneration = 2
 
 // Install install proxy.
-func (h *handler) Install(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeProxyInstallReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to install proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	nodeDeployments, bizIDs, err := h.generateInstallNodeDeployments(ctx, req)
+	nodeDeployments, bizIDs, err := h.generateInstallNodeDeployments(rCtx, req)
 	if err != nil {
 		h.logger.Errorf("failed to install proxy, failed to generate node deployments. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
+	workflowID, err := h.manager.LaunchInstallNode(rCtx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallProxy,
 		BizIDs:          bizIDs,
-		Operator:        ctx.BKUsername(),
+		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install proxy: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to install proxy: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeProxyInstallResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(ctx, "launched install proxy workflow: %s", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched install proxy workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }
 
 // nolint: funlen
 func (h *handler) generateInstallNodeDeployments(
-	ctx contextx.ITenantContext, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
+	nCtx contextx.IContext, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
@@ -82,13 +82,13 @@ func (h *handler) generateInstallNodeDeployments(
 	bizIDs := conv.MapKeyToSlice(bizIDMap)
 
 	// fetch networkunit.
-	networkUnitMap, err := h.fetchNetworkunits(ctx, req.GetHost())
+	networkUnitMap, err := h.fetchNetworkunits(nCtx, req.GetHost())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch networkunits: %w", err)
 	}
 
 	// fetch host.
-	existedHostMap, err := h.fetchExistedHosts(ctx, req.GetHost())
+	existedHostMap, err := h.fetchExistedHosts(nCtx, req.GetHost())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
 	}
@@ -114,7 +114,7 @@ func (h *handler) generateInstallNodeDeployments(
 				&types.DeploymentInfo{
 					Host: types.Host{
 						HostID:   reqHost.GetBkHostId(),
-						TenantID: ctx.TenantID(),
+						TenantID: nCtx.TenantID(),
 						Static: &types.HostStatic{
 							BizID:         reqHost.GetBkBizId(),
 							NetworkAreaID: networkUnit.NetworkAreaID,
@@ -148,7 +148,7 @@ func (h *handler) generateInstallNodeDeployments(
 					TargetVersion:   targetVersions,
 				})
 
-			if err = h.processHostCredit(ctx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile()); err != nil {
+			if err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile()); err != nil {
 				return fmt.Errorf("failed to process host credit: %w", err)
 			}
 
@@ -187,7 +187,7 @@ func (h *handler) fetchNetworkunits(ctx contextx.IContext, hosts []*protoBackend
 	return networkUnitMap, nil
 }
 
-func (h *handler) fetchExistedHosts(ctx contextx.ITenantContext, hosts []*protoBackend.NodeProxyInstallHost) (map[int64]*types.Host, error) {
+func (h *handler) fetchExistedHosts(ctx contextx.IContext, hosts []*protoBackend.NodeProxyInstallHost) (map[int64]*types.Host, error) {
 	hostIDMap := make(map[int64]struct{})
 	for _, host := range hosts {
 		if hostID := host.GetBkHostId(); hostID >= 0 {
@@ -211,7 +211,7 @@ func (h *handler) fetchExistedHosts(ctx contextx.ITenantContext, hosts []*protoB
 	return existedHostMap, nil
 }
 
-func (h *handler) processHostCredit(ctx contextx.ITenantContext, host *types.Host, password, keyfile string) error {
+func (h *handler) processHostCredit(ctx contextx.IContext, host *types.Host, password, keyfile string) error {
 	var err error
 	switch host.Dynamic.LoginMode {
 	case types.LoginModeKeyFile:

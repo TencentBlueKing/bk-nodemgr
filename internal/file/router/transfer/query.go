@@ -17,16 +17,16 @@ import (
 )
 
 // TransferQuery query transfer package.
-func (h *handler) TransferQuery(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) TransferQuery(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.TransferQueryReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to query transfer, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to query transfer, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	upload, download, err := h.manager.QueryTransfer(ctx, req.GetTaskId())
+	upload, download, err := h.manager.QueryTransfer(rCtx, req.GetTaskId())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to query transfer. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to query transfer. err: %v", err)
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}

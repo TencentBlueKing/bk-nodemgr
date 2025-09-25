@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -26,22 +27,22 @@ import (
 )
 
 // AgentUpgrade upgrade agent.
-func (h *handler) AgentUpgrade(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) AgentUpgrade(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeAgentUpgradeReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to decode request body: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to upgrade agent, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, err := h.getUpgradeNodeHosts(ctx, req.GetHost())
+	hosts, err := h.getUpgradeNodeHosts(rCtx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to get host list: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to upgrade agent, failed to get host list: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	unitsMap, err := h.generatesUnitDirectLink(ctx, hosts)
+	unitsMap, err := h.generatesUnitDirectLink(rCtx, hosts)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to get network unit info: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to upgrade agent, failed to get network unit info: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -50,9 +51,9 @@ func (h *handler) AgentUpgrade(ctx *restserver.Context) (interface{}, error) {
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesUpgradeDeploys(ctx.TenantID(), reqHost, hosts, unitsMap)
+		nodeDeploy, err := h.generatesUpgradeDeploys(rCtx.TenantID(), reqHost, hosts, unitsMap)
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to upgrade agent, failed to generate node deployment: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to upgrade agent, failed to generate node deployment: %v", err)
 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
@@ -60,26 +61,26 @@ func (h *handler) AgentUpgrade(ctx *restserver.Context) (interface{}, error) {
 		nodeDeploys[idx] = nodeDeploy
 	}
 
-	workflowID, err := h.manager.LaunchUpgradeNode(ctx, manager.UpgradeNodeParam{
+	workflowID, err := h.manager.LaunchUpgradeNode(rCtx, manager.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
 		BizIDs:          h.getUpgradeNodeBizIDs(hosts),
-		Operator:        ctx.BKUsername(),
+		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade agent: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to upgrade agent: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentUpgradeResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(ctx, "launched upgrade agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched upgrade agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }
 
-func (h *handler) generatesUnitDirectLink(ctx *restserver.Context, hostMap map[int64]*types.Host) (map[int64]bool, error) {
+func (h *handler) generatesUnitDirectLink(nCtx contextx.IContext, hostMap map[int64]*types.Host) (map[int64]bool, error) {
 	unitInfoMap := make(map[int64]bool)
 
 	unitIDs := make([]int64, 0, len(hostMap))
@@ -87,7 +88,7 @@ func (h *handler) generatesUnitDirectLink(ctx *restserver.Context, hostMap map[i
 		unitIDs = append(unitIDs, host.Dynamic.NetworkUnitID)
 	}
 
-	units, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx,
+	units, _, err := h.storageNetworkUnit.ListNetworkUnit(nCtx,
 		types.UnlimitedPage(),
 		&types.NetworkUnitCondition{
 			ExactInclude: &types.NetworkUnitExactFields{

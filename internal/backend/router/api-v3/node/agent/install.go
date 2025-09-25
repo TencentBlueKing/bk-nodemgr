@@ -30,41 +30,41 @@ import (
 const DefaultNodeGeneration = 2
 
 // AgentInstall install agent.
-func (h *handler) AgentInstall(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) AgentInstall(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeAgentInstallReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install agent, failed to decode request body: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to install agent, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	nodeDeployments, bizIDs, err := h.generateInstallNodeDeployments(ctx, req)
+	nodeDeployments, bizIDs, err := h.generateInstallNodeDeployments(rCtx, req)
 	if err != nil {
 		h.logger.Errorf("failed to install agent, failed to generate node deployments. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.manager.LaunchInstallNode(ctx, manager.InstallNodeParam{
+	workflowID, err := h.manager.LaunchInstallNode(rCtx, manager.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          bizIDs,
-		Operator:        ctx.BKUsername(),
+		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install agent: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to install agent: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentInstallResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(ctx, "launched install agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched install agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }
 
 // nolint: funlen
 func (h *handler) generateInstallNodeDeployments(
-	ctx contextx.ITenantContext, req *protoBackend.NodeAgentInstallReq) ([]*types.NodeDeployment, []int64, error) {
+	nCtx contextx.IContext, req *protoBackend.NodeAgentInstallReq) ([]*types.NodeDeployment, []int64, error) {
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
@@ -83,13 +83,13 @@ func (h *handler) generateInstallNodeDeployments(
 	bizIDs := conv.MapKeyToSlice(bizIDMap)
 
 	// fetch networkunit.
-	networkUnitMap, err := h.fetchNetworkunits(ctx, req.GetHost())
+	networkUnitMap, err := h.fetchNetworkunits(nCtx, req.GetHost())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch networkunits: %w", err)
 	}
 
 	// fetch host.
-	existedHostMap, err := h.fetchExistedHosts(ctx, req.GetHost())
+	existedHostMap, err := h.fetchExistedHosts(nCtx, req.GetHost())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
 	}
@@ -115,7 +115,7 @@ func (h *handler) generateInstallNodeDeployments(
 				&types.DeploymentInfo{
 					Host: types.Host{
 						HostID:   reqHost.GetBkHostId(),
-						TenantID: ctx.TenantID(),
+						TenantID: nCtx.TenantID(),
 						Static: &types.HostStatic{
 							BizID:         reqHost.GetBkBizId(),
 							NetworkAreaID: networkUnit.NetworkAreaID,
@@ -147,7 +147,7 @@ func (h *handler) generateInstallNodeDeployments(
 					TargetVersion:   targetVersions,
 				})
 
-			if err = h.processHostCredit(ctx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile()); err != nil {
+			if err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile()); err != nil {
 				return fmt.Errorf("failed to process host credit: %w", err)
 			}
 
@@ -163,13 +163,13 @@ func (h *handler) generateInstallNodeDeployments(
 	return nodeDeployments, bizIDs, nil
 }
 
-func (h *handler) fetchNetworkunits(ctx contextx.IContext, hosts []*protoBackend.NodeAgentInstallReq_Host) (map[int64]*types.NetworkUnit, error) {
+func (h *handler) fetchNetworkunits(nCtx contextx.IContext, hosts []*protoBackend.NodeAgentInstallReq_Host) (map[int64]*types.NetworkUnit, error) {
 	networkUnitIDMap := make(map[int64]struct{})
 	for _, host := range hosts {
 		networkUnitIDMap[host.GetBkNetworkunitId()] = struct{}{}
 	}
 
-	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(ctx, types.UnlimitedPage(), &types.NetworkUnitCondition{
+	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
 		ExactInclude: &types.NetworkUnitExactFields{
 			NetworkUnitID: conv.MapKeyToSlice(networkUnitIDMap),
 		},
@@ -186,7 +186,7 @@ func (h *handler) fetchNetworkunits(ctx contextx.IContext, hosts []*protoBackend
 	return networkUnitMap, nil
 }
 
-func (h *handler) fetchExistedHosts(ctx contextx.ITenantContext, hosts []*protoBackend.NodeAgentInstallReq_Host) (map[int64]*types.Host, error) {
+func (h *handler) fetchExistedHosts(nCtx contextx.IContext, hosts []*protoBackend.NodeAgentInstallReq_Host) (map[int64]*types.Host, error) {
 	hostIDMap := make(map[int64]struct{})
 	for _, host := range hosts {
 		if hostID := host.GetBkHostId(); hostID >= 0 {
@@ -194,7 +194,7 @@ func (h *handler) fetchExistedHosts(ctx contextx.ITenantContext, hosts []*protoB
 		}
 	}
 
-	existedHostList, _, err := h.storageHost.ListHost(ctx, types.UnlimitedPage(), &types.HostCondition{
+	existedHostList, _, err := h.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
 		ExactInclude: &types.HostExactFields{
 			HostID: conv.MapKeyToSlice(hostIDMap),
 		},
@@ -210,14 +210,14 @@ func (h *handler) fetchExistedHosts(ctx contextx.ITenantContext, hosts []*protoB
 	return existedHostMap, nil
 }
 
-func (h *handler) processHostCredit(ctx contextx.ITenantContext, host *types.Host, password, keyfile string) error {
+func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, password, keyfile string) error {
 	var err error
 	switch host.Dynamic.LoginMode {
 	case types.LoginModeKeyFile:
 		if keyfile == "" {
 			if host.Dynamic.LoginCreditID == "" {
 				err := fmt.Errorf("keyfile is empty and there is not login credit to use. host-id(%d), inner-ip(%s)", host.HostID, host.Static.InnerIP)
-				h.logger.ErrorCtxf(ctx, "failed to process host credit: %v", err)
+				h.logger.ErrorCtxf(nCtx, "failed to process host credit: %v", err)
 
 				return err
 			}
@@ -234,7 +234,7 @@ func (h *handler) processHostCredit(ctx contextx.ITenantContext, host *types.Hos
 		}
 
 		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
-			ctx,
+			nCtx,
 			loginKeyFile,
 		)
 		if err != nil {
@@ -246,7 +246,7 @@ func (h *handler) processHostCredit(ctx contextx.ITenantContext, host *types.Hos
 		if password == "" {
 			if host.Dynamic.LoginCreditID == "" {
 				err := fmt.Errorf("password is empty and there is not login credit to use. host-id(%d), inner-ip(%s)", host.HostID, host.Static.InnerIP)
-				h.logger.ErrorCtxf(ctx, "failed to process host credit: %v", err)
+				h.logger.ErrorCtxf(nCtx, "failed to process host credit: %v", err)
 
 				return err
 			}
@@ -256,7 +256,7 @@ func (h *handler) processHostCredit(ctx contextx.ITenantContext, host *types.Hos
 		}
 
 		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
-			ctx,
+			nCtx,
 			[]byte(password),
 		)
 		if err != nil {

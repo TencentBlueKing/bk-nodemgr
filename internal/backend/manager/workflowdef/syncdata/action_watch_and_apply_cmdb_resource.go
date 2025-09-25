@@ -21,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -114,24 +113,19 @@ func (act *actionWatchCMDBResource) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
-	if err != nil {
-		return err
-	}
+	newCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 
-	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, param.TenantID, param.Operator)
-
-	err = act.watchHostResource(tenantUserCtx)
+	err = act.watchHostResource(newCtx)
 	if err != nil {
 		return fmt.Errorf("watch host resource failed: %w", err)
 	}
 
-	err = act.watchHostRelationResource(tenantUserCtx)
+	err = act.watchHostRelationResource(newCtx)
 	if err != nil {
 		return fmt.Errorf("watch host relation resource failed: %w", err)
 	}
 
-	err = act.applyHostEvent(tenantCtx)
+	err = act.applyHostEvent(newCtx)
 	if err != nil {
 		return fmt.Errorf("apply host event failed: %w", err)
 	}
@@ -140,7 +134,7 @@ func (act *actionWatchCMDBResource) Do(ctx *action.InstanceContext) error {
 }
 
 // watchHostResource watches the host resource events.
-func (act *actionWatchCMDBResource) watchHostResource(ctx contextx.ITenantUserContext) error {
+func (act *actionWatchCMDBResource) watchHostResource(ctx contextx.IContext) error {
 	cursor, err := act.getCursor(ctx, types.HostEventCursor)
 	if err != nil {
 		return fmt.Errorf("get host event cursor failed: %w", err)
@@ -165,7 +159,7 @@ func (act *actionWatchCMDBResource) watchHostResource(ctx contextx.ITenantUserCo
 }
 
 // watchHostRelationResource watches the host relation resource events.
-func (act *actionWatchCMDBResource) watchHostRelationResource(ctx contextx.ITenantUserContext) error {
+func (act *actionWatchCMDBResource) watchHostRelationResource(ctx contextx.IContext) error {
 	cursor, err := act.getCursor(ctx, types.HostRelationEventCursor)
 	if err != nil {
 		return fmt.Errorf("get host event cursor failed: %w", err)

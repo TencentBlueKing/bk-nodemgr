@@ -17,19 +17,19 @@ import (
 )
 
 // Install proxy.
-func (h *handler) Install(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyInstallReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to install proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.InstallProxy(ctx, req.ConvertAgentParamToTypes())
+	workflowID, err := h.backendHandler.InstallProxy(rCtx, req.ConvertAgentParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to install proxy: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to install proxy: %v", err)
 		return nil, err
 	}
-	h.logger.InfoCtxf(ctx, "launched proxy install. workflow-id(%s)", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched proxy install. workflow-id(%s)", workflowID)
 
 	resp := new(protoApplication.NodeProxyInstallResp)
 	resp.ConvertWorkflowID(workflowID)

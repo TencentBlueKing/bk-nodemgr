@@ -23,15 +23,15 @@ import (
 )
 
 // Proxy download proxy package.
-func (h *handler) Proxy(ctx *restserver.Context) (*restserver.FileResponse, error) {
+func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadProxyReq)
-	if err := ctx.BindJSON(req); err != nil {
+	if err := rCtx.BindJSON(req); err != nil {
 		h.logger.Error("bind json failed", err)
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, _, err := h.manager.EnsureNodeToLocal(ctx,
+	file, _, err := h.manager.EnsureNodeToLocal(rCtx,
 		types.ReleaseTypeProxy,
 		types.Generation(req.GetGeneration()),
 		platform.Platform{
@@ -42,7 +42,7 @@ func (h *handler) Proxy(ctx *restserver.Context) (*restserver.FileResponse, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}
 
-	reader, err := file.Content(ctx)
+	reader, err := file.Content(rCtx)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
 	}

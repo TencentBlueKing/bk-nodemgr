@@ -18,17 +18,17 @@ import (
 )
 
 // SyncCmdbHost start an operation to sync business and host from cmdb.
-func (h *handler) SyncCmdbHost(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) SyncCmdbHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.SyncCmdbHostReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to sync cmdb host, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to sync cmdb host, failed to decode request body. err: %v", err)
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncBizAndHost(ctx)
+	triggerID, err := h.manager.LaunchSyncBizAndHost(rCtx)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to start sync cmdb host operation. trigger-id(%s): %v",
+		h.logger.ErrorCtxf(rCtx, "failed to start sync cmdb host operation. trigger-id(%s): %v",
 			triggerID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -42,13 +42,13 @@ func (h *handler) SyncCmdbHost(ctx *restserver.Context) (interface{}, error) {
 }
 
 // SyncCmdbNetworkArea start an operation to sync networkarea from cmdb.
-func (h *handler) SyncCmdbNetworkArea(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) SyncCmdbNetworkArea(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.SyncCmdbNetworkAreaReq)
-	if err := ctx.BindJSON(req); err != nil {
+	if err := rCtx.BindJSON(req); err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	triggerID, err := h.manager.LaunchSyncNetworkArea(ctx)
+	triggerID, err := h.manager.LaunchSyncNetworkArea(rCtx)
 	if err != nil {
 		h.logger.Errorf("failed to start sync cmdb networkarea operation. trigger-id(%s): %v", triggerID, err)
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)

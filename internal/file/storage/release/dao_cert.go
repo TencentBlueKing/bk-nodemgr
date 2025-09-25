@@ -57,7 +57,7 @@ func (s *Storage) existReleaseCert(ctx contextx.IContext) (bool, error) {
 }
 
 // upsertReleaseCert upserts release cert.
-func (s *Storage) upsertReleaseCert(ctx contextx.IUserContext, cert types.ReleaseCert) error {
+func (s *Storage) upsertReleaseCert(ctx contextx.IContext, cert types.ReleaseCert) error {
 	rls := &cert.Release
 	rls.Operator = ctx.BKUsername()
 	rls.Name = releaseNameCert

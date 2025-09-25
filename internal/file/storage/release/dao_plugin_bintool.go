@@ -23,7 +23,7 @@ import (
 )
 
 // upsertReleasePluginBinTool upserts release plugin bintool.
-func (s *Storage) upsertReleasePluginBinTool(ctx contextx.IUserContext, pluginBinTool types.ReleasePluginBinTool) error {
+func (s *Storage) upsertReleasePluginBinTool(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error {
 	rls := &pluginBinTool.Release
 	rls.Operator = ctx.BKUsername()
 	rls.Name = releaseNamePluginBinTool

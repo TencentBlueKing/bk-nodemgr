@@ -223,7 +223,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 	std *utils.NodeActionStandarder) error {
 
-	timeoutCtx, cancel := contextx.WithTimeout(std.Context(), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)

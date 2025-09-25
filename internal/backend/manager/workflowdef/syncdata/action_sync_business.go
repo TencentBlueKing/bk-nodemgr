@@ -105,8 +105,8 @@ func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 
 	executor := pageexecutor.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
 	fn := func(ctx context.Context, p types.Page) ([]*types.Business, error) {
-		tenantUserCtx := contextx.NewTenantUserContext(ctx, param.TenantID, access.GetVirtualUser())
-		bizs, err := act.cmdbHandler.SearchBusiness(tenantUserCtx, p)
+		newCtx := contextx.New(ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(access.GetVirtualUser()))
+		bizs, err := act.cmdbHandler.SearchBusiness(newCtx, p)
 		if err != nil {
 			return nil, err
 		}

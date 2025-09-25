@@ -347,7 +347,7 @@ func (s *Storage) checkNotifyStopping(ctx contextx.IContext) error {
 
 // processStoppingEvents ...
 func (s *Storage) processStoppingEvents(ctx contextx.IContext) error {
-	ctx, cancel := contextx.WithTimeout(ctx, 5*time.Second) // nolint: mnd
+	ctx, cancel := contextx.WithTimeout(contextx.From(ctx), 5*time.Second) // nolint: mnd
 	defer cancel()
 
 	notifications := s.getNotifications()

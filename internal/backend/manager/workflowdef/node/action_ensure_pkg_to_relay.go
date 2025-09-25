@@ -279,7 +279,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 	fileStorageDir := ""
 	completedCount := 0
 
-	timeoutCtx, cancel := contextx.WithTimeout(std.Context(), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)
@@ -561,7 +561,7 @@ func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
 func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 	std *utils.NodeActionStandarder) error {
 
-	timeoutCtx, cancel := contextx.WithTimeout(std.Context(), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)

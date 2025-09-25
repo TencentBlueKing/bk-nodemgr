@@ -23,7 +23,7 @@ import (
 )
 
 // upsertReleaseBinTool upserts release bintool.
-func (s *Storage) upsertReleaseBinTool(ctx contextx.IUserContext, bintool types.ReleaseBinTool) error {
+func (s *Storage) upsertReleaseBinTool(ctx contextx.IContext, bintool types.ReleaseBinTool) error {
 	rls := &bintool.Release
 	rls.Operator = ctx.BKUsername()
 	rls.Name = releaseNameBinTool

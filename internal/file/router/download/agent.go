@@ -24,15 +24,15 @@ import (
 )
 
 // Agent download agent package.
-func (h *handler) Agent(ctx *restserver.Context) (*restserver.FileResponse, error) {
+func (h *handler) Agent(rCtx restserver.IContext) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadAgentReq)
-	if err := ctx.BindJSON(req); err != nil {
+	if err := rCtx.BindJSON(req); err != nil {
 		h.logger.Error("bind json failed", err)
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	file, _, err := h.manager.EnsureNodeToLocal(ctx,
+	file, _, err := h.manager.EnsureNodeToLocal(rCtx,
 		types.ReleaseTypeAgent,
 		types.Generation(req.GetGeneration()),
 		platform.Platform{
@@ -43,7 +43,7 @@ func (h *handler) Agent(ctx *restserver.Context) (*restserver.FileResponse, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}
 
-	reader, err := file.Content(ctx)
+	reader, err := file.Content(rCtx)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
 	}

@@ -17,7 +17,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -28,7 +27,7 @@ const (
 )
 
 // OnceTriggerFunc defines the function type for generating a schedule once trigger.
-type OnceTriggerFunc func(ctx contextx.ITenantUserContext) (string, error)
+type OnceTriggerFunc func(ctx contextx.IContext) (string, error)
 
 // NewActionGenScheduleOnceTrigger creates a new action to generate a schedule once trigger.
 func NewActionGenScheduleOnceTrigger(
@@ -100,13 +99,8 @@ func (act *actionGenScheduleOnceTrigger) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
-	if err != nil {
-		return err
-	}
-
-	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, param.TenantID, param.Operator)
-	triggerID, err := act.operFunc(tenantUserCtx)
+	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	triggerID, err := act.operFunc(newCtx)
 	if err != nil {
 		return fmt.Errorf("generate schedule once trigger action-name(%s) by tenant-id(%s) failed: %w",
 			act.Name(), param.TenantID, err)

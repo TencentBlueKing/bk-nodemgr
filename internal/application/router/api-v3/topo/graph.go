@@ -23,16 +23,16 @@ import (
 )
 
 // GetGraph gets a graph descriptions.
-func (h *handler) GetGraph(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) GetGraph(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoGraphGetReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get graph, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to get graph, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// list networkunits.
 	networkUnits, _, err := h.backendHandler.ListNetworkUnit(
-		ctx,
+		rCtx,
 		types.Page{Limit: maxNetworkUnitLimit},
 		&types.NetworkUnitCondition{
 			ExactInclude: &types.NetworkUnitExactFields{
@@ -40,7 +40,7 @@ func (h *handler) GetGraph(ctx *restserver.Context) (interface{}, error) {
 			},
 		})
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get graph, failed to list networkunit. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to get graph, failed to list networkunit. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -53,18 +53,18 @@ func (h *handler) GetGraph(ctx *restserver.Context) (interface{}, error) {
 
 // CountGraphNode counts graph nodes.
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (h *handler) CountGraphNode(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) CountGraphNode(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoGraphNodeCountReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to count graph node, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to count graph node, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	networkUnitIDs := req.GetBkNetworkunitId()
 	if len(networkUnitIDs) == 0 {
-		networkUnits, _, err := h.backendHandler.ListNetworkUnit(ctx, types.Page{}, nil)
+		networkUnits, _, err := h.backendHandler.ListNetworkUnit(rCtx, types.Page{}, nil)
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to count graph node, failed to list networkunit. err: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to count graph node, failed to list networkunit. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
@@ -86,7 +86,7 @@ func (h *handler) CountGraphNode(ctx *restserver.Context) (interface{}, error) {
 
 		// count agent.
 		gp.Go(func() error {
-			num, err := h.backendHandler.CountHost(ctx, &types.HostCondition{
+			num, err := h.backendHandler.CountHost(rCtx, &types.HostCondition{
 				ExactInclude: &types.HostExactFields{
 					NetworkUnitID: []int64{id},
 					NodeRole:      []types.NodeRole{types.NodeRoleAgent},
@@ -103,7 +103,7 @@ func (h *handler) CountGraphNode(ctx *restserver.Context) (interface{}, error) {
 
 		// count proxy.
 		gp.Go(func() error {
-			num, err := h.backendHandler.CountHost(ctx, &types.HostCondition{
+			num, err := h.backendHandler.CountHost(rCtx, &types.HostCondition{
 				ExactInclude: &types.HostExactFields{
 					NetworkUnitID: []int64{id},
 					NodeRole:      []types.NodeRole{types.NodeRoleProxy},
@@ -121,7 +121,7 @@ func (h *handler) CountGraphNode(ctx *restserver.Context) (interface{}, error) {
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to count graph node, failed to count host: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to count graph node, failed to count host: %v", err)
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}

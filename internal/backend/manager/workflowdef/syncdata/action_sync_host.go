@@ -94,12 +94,12 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, param.TenantID, param.Operator)
+	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 
 	var cmdbData, dbData []*types.Host
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		cmdbData, err = act.cmdbHandler.ListBizHosts(tenantUserCtx, param.BizID, types.UnlimitedPage())
+		cmdbData, err = act.cmdbHandler.ListBizHosts(newCtx, param.BizID, types.UnlimitedPage())
 		if err != nil {
 			return fmt.Errorf("list host from cmdb failed: %w", err)
 		}

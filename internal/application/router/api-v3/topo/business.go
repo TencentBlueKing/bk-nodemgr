@@ -23,19 +23,19 @@ const (
 )
 
 // ListBusiness list business with specified conditions.
-func (h *handler) ListBusiness(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) ListBusiness(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoBusinessListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list business, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list business, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	bizs, num, err := h.backendHandler.ListBusiness(
-		ctx,
+		rCtx,
 		req.ConvertPageToTypes(maxBusinessLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list business: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list business: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

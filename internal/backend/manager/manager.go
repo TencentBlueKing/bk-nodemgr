@@ -35,7 +35,7 @@ type IManager interface {
 	GracefulShutdown() error
 
 	// LaunchWatchAndApplyCMDBResource launch a task to watch and apply cmdb resource.
-	LaunchWatchAndApplyCMDBResource(ctx contextx.ITenantUserContext) (string, error)
+	LaunchWatchAndApplyCMDBResource(ctx contextx.IContext) (string, error)
 
 	ISyncManager
 	INodeManager
@@ -167,7 +167,7 @@ func (mgr *Manager) startWorkflowManager(ctx contextx.IContext) error {
 }
 
 // LaunchWatchAndApplyCMDBResource launch a task to watch and apply cmdb resource.
-func (mgr *Manager) LaunchWatchAndApplyCMDBResource(ctx contextx.ITenantUserContext) (string, error) {
+func (mgr *Manager) LaunchWatchAndApplyCMDBResource(ctx contextx.IContext) (string, error) {
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 

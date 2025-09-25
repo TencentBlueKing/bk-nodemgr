@@ -22,10 +22,10 @@ const (
 )
 
 // ListRelease lists releases with page and conditions.
-func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list release, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list release, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -39,9 +39,9 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountRelease(ctx, releaseType, cond)
+		num, err := h.storage.CountRelease(rCtx, releaseType, cond)
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list release. failed to count host. err: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to list release. failed to count host. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -52,9 +52,9 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 	}
 
 	page := req.ConvertPageToTypes(maxReleaseLimit)
-	hosts, num, err := h.storage.ListRelease(ctx, releaseType, page, cond)
+	hosts, num, err := h.storage.ListRelease(rCtx, releaseType, page, cond)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list release. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list release. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -65,10 +65,10 @@ func (h *handler) ListRelease(ctx *restserver.Context) (interface{}, error) {
 }
 
 // DistinctRelease distinct releases.
-func (h *handler) DistinctRelease(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) DistinctRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseDistinctReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct release, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to distinct release, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -85,9 +85,9 @@ func (h *handler) DistinctRelease(ctx *restserver.Context) (interface{}, error) 
 		CPUArch: req.GetDistinctField().GetCpuArch(),
 	}
 
-	result, err := h.storage.DistinctRelease(ctx, releaseType, distinctField, cond)
+	result, err := h.storage.DistinctRelease(rCtx, releaseType, distinctField, cond)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -98,23 +98,23 @@ func (h *handler) DistinctRelease(ctx *restserver.Context) (interface{}, error) 
 }
 
 // SetReleaseLabels set release labels.
-func (h *handler) SetReleaseLabels(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) SetReleaseLabels(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseSetLabelsReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to set release labels, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to set release labels, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.SetReleaseLabels(ctx, gen, rt, plat, version, req.GetLabels()); err != nil {
-		h.logger.ErrorCtxf(ctx,
+	if err := h.storage.SetReleaseLabels(rCtx, gen, rt, plat, version, req.GetLabels()); err != nil {
+		h.logger.ErrorCtxf(rCtx,
 			"failed to set release labels. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "set release labels. gen(%d), release-type(%s), platform(%s), version(%s), labels(%v)",
+	h.logger.InfoCtxf(rCtx, "set release labels. gen(%d), release-type(%s), platform(%s), version(%s), labels(%v)",
 		gen, rt, plat, version, req.GetLabels())
 
 	resp := new(protoBackend.PackageReleaseSetLabelsResp)
@@ -123,22 +123,22 @@ func (h *handler) SetReleaseLabels(ctx *restserver.Context) (interface{}, error)
 }
 
 // EnableRelease enable release.
-func (h *handler) EnableRelease(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) EnableRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseEnableReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to enable release, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to enable release, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.EnableRelease(ctx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to enable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
+	if err := h.storage.EnableRelease(rCtx, gen, rt, plat, version); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to enable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "enabled release. gen(%d), release-type(%s), platform(%s), version(%s)",
+	h.logger.InfoCtxf(rCtx, "enabled release. gen(%d), release-type(%s), platform(%s), version(%s)",
 		gen, rt, plat, version)
 
 	resp := new(protoBackend.PackageReleaseEnableResp)
@@ -147,22 +147,22 @@ func (h *handler) EnableRelease(ctx *restserver.Context) (interface{}, error) {
 }
 
 // DisableRelease disable release.
-func (h *handler) DisableRelease(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) DisableRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseDisableReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to disable release, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to disable release, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.DisableRelease(ctx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to disable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
+	if err := h.storage.DisableRelease(rCtx, gen, rt, plat, version); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to disable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "disabled release. gen(%d), release-type(%s), platform(%s), version(%s)",
+	h.logger.InfoCtxf(rCtx, "disabled release. gen(%d), release-type(%s), platform(%s), version(%s)",
 		gen, rt, plat, version)
 
 	resp := new(protoBackend.PackageReleaseDisableResp)
@@ -171,23 +171,23 @@ func (h *handler) DisableRelease(ctx *restserver.Context) (interface{}, error) {
 }
 
 // SetAsDefaultRelease set default release.
-func (h *handler) SetAsDefaultRelease(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) SetAsDefaultRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseSetAsDefaultReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to set default release, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to set default release, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.SetAsDefaultRelease(ctx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(ctx,
+	if err := h.storage.SetAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
+		h.logger.ErrorCtxf(rCtx,
 			"failed to set default release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "set as default release. gen(%d), release-type(%s), platform(%s), version(%s)",
+	h.logger.InfoCtxf(rCtx, "set as default release. gen(%d), release-type(%s), platform(%s), version(%s)",
 		gen, rt, plat, version)
 
 	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
@@ -196,23 +196,23 @@ func (h *handler) SetAsDefaultRelease(ctx *restserver.Context) (interface{}, err
 }
 
 // CancelAsDefaultRelease cancel default release.
-func (h *handler) CancelAsDefaultRelease(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) CancelAsDefaultRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseCancelAsDefaultReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to cancel default release, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to cancel default release, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.CancelAsDefaultRelease(ctx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(ctx,
+	if err := h.storage.CancelAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
+		h.logger.ErrorCtxf(rCtx,
 			"failed to cancel default release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "cancel as default release. gen(%d), release-type(%s), platform(%s), version(%s)",
+	h.logger.InfoCtxf(rCtx, "cancel as default release. gen(%d), release-type(%s), platform(%s), version(%s)",
 		gen, rt, plat, version)
 
 	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
@@ -220,23 +220,23 @@ func (h *handler) CancelAsDefaultRelease(ctx *restserver.Context) (interface{}, 
 	return resp.GetData(), nil
 }
 
-func (h *handler) DeleteRelease(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseDeleteReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to delete release, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to delete release, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.DeleteRelease(ctx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(ctx,
+	if err := h.storage.DeleteRelease(rCtx, gen, rt, plat, version); err != nil {
+		h.logger.ErrorCtxf(rCtx,
 			"failed to delete release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "deleted release. gen(%d), release-type(%s), platform(%s), version(%s)",
+	h.logger.InfoCtxf(rCtx, "deleted release. gen(%d), release-type(%s), platform(%s), version(%s)",
 		gen, rt, plat, version)
 
 	resp := new(protoBackend.PackageReleaseDeleteResp)

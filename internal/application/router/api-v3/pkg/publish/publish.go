@@ -50,21 +50,21 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 }
 
 // PublishReleaseAgent publish release agent.
-func (h *handler) PublishReleaseAgent(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) PublishReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackagePublishReleaseAgentReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release agent, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to publish release agent, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseAgent(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release agent. upload-id(%s): %v", uploadID, err)
+	if err := h.fileHandler.PublishReleaseAgent(rCtx, uploadID); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to publish release agent. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "uploaded and generated release agent. upload-id(%s)", uploadID)
+	h.logger.InfoCtxf(rCtx, "uploaded and generated release agent. upload-id(%s)", uploadID)
 
 	resp := new(protoApplication.PackagePublishReleaseAgentResp)
 
@@ -72,21 +72,21 @@ func (h *handler) PublishReleaseAgent(ctx *restserver.Context) (interface{}, err
 }
 
 // PublishReleaseProxy publish release agent.
-func (h *handler) PublishReleaseProxy(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackagePublishReleaseProxyReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to publish release proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseProxy(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release proxy. upload-id(%s): %v", uploadID, err)
+	if err := h.fileHandler.PublishReleaseProxy(rCtx, uploadID); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to publish release proxy. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "uploaded and generated release proxy. upload-id(%s)", uploadID)
+	h.logger.InfoCtxf(rCtx, "uploaded and generated release proxy. upload-id(%s)", uploadID)
 
 	resp := new(protoApplication.PackagePublishReleaseProxyResp)
 
@@ -94,21 +94,21 @@ func (h *handler) PublishReleaseProxy(ctx *restserver.Context) (interface{}, err
 }
 
 // PublishReleaseCert publish release cert.
-func (h *handler) PublishReleaseCert(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) PublishReleaseCert(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackagePublishReleaseCertReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to publish release cert, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseCert(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release cert. upload-id(%s): %v", uploadID, err)
+	if err := h.fileHandler.PublishReleaseCert(rCtx, uploadID); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to publish release cert. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "uploaded and generated release cert. upload-id(%s)", uploadID)
+	h.logger.InfoCtxf(rCtx, "uploaded and generated release cert. upload-id(%s)", uploadID)
 
 	resp := new(protoApplication.PackagePublishReleaseCertResp)
 
@@ -116,21 +116,21 @@ func (h *handler) PublishReleaseCert(ctx *restserver.Context) (interface{}, erro
 }
 
 // PublishReleaseBinTool publish release bintool.
-func (h *handler) PublishReleaseBinTool(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackagePublishReleaseBinToolReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to publish release bintool, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseBinTool(ctx, uploadID); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to publish release bintool. upload-id(%s): %v", uploadID, err)
+	if err := h.fileHandler.PublishReleaseBinTool(rCtx, uploadID); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to publish release bintool. upload-id(%s): %v", uploadID, err)
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(ctx, "uploaded and generated release bintool. upload-id(%s)", uploadID)
+	h.logger.InfoCtxf(rCtx, "uploaded and generated release bintool. upload-id(%s)", uploadID)
 
 	resp := new(protoApplication.PackagePublishReleaseBinToolResp)
 

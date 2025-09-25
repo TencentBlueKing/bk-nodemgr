@@ -79,7 +79,7 @@ func (s *Storage) metric() *storage.MetricData {
 }
 
 // UpsertManyReleaseAgent upsert many release.
-func (s *Storage) UpsertManyReleaseAgent(ctx contextx.IUserContext, releaseAgents []*types.ReleaseAgent) error {
+func (s *Storage) UpsertManyReleaseAgent(ctx contextx.IContext, releaseAgents []*types.ReleaseAgent) error {
 	var (
 		err error
 	)
@@ -126,7 +126,7 @@ func (s *Storage) GetReleaseAgent(ctx contextx.IContext, gen types.Generation, p
 }
 
 // UpsertReleaseBinTool upserts release bintool.
-func (s *Storage) UpsertReleaseBinTool(ctx contextx.IUserContext, bintool types.ReleaseBinTool) error {
+func (s *Storage) UpsertReleaseBinTool(ctx contextx.IContext, bintool types.ReleaseBinTool) error {
 	var (
 		err error
 	)
@@ -220,7 +220,7 @@ func (s *Storage) ExistReleaseCert(ctx contextx.IContext) (bool, error) {
 }
 
 // UpsertReleaseCert upserts release cert.
-func (s *Storage) UpsertReleaseCert(ctx contextx.IUserContext, cert types.ReleaseCert) error {
+func (s *Storage) UpsertReleaseCert(ctx contextx.IContext, cert types.ReleaseCert) error {
 	var (
 		err error
 	)
@@ -266,7 +266,7 @@ func (s *Storage) GetReleaseProxy(ctx contextx.IContext, gen types.Generation, p
 }
 
 // UpsertManyReleaseProxy upsert many release.
-func (s *Storage) UpsertManyReleaseProxy(ctx contextx.IUserContext, releaseProxys []*types.ReleaseProxy) error {
+func (s *Storage) UpsertManyReleaseProxy(ctx contextx.IContext, releaseProxys []*types.ReleaseProxy) error {
 	var (
 		err error
 	)
@@ -281,7 +281,7 @@ func (s *Storage) UpsertManyReleaseProxy(ctx contextx.IUserContext, releaseProxy
 }
 
 // UpsertReleasePluginBinTool upserts release plugin bintool.
-func (s *Storage) UpsertReleasePluginBinTool(ctx contextx.IUserContext, pluginBinTool types.ReleasePluginBinTool) error {
+func (s *Storage) UpsertReleasePluginBinTool(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error {
 	var (
 		err error
 	)
@@ -359,7 +359,7 @@ func (s *Storage) ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName s
 }
 
 // UpsertManyReleaseExternalPlugin upsert many release.
-func (s *Storage) UpsertManyReleaseExternalPlugin(ctx contextx.IUserContext, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
+func (s *Storage) UpsertManyReleaseExternalPlugin(ctx contextx.IContext, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
 	var (
 		err error
 	)
@@ -392,7 +392,7 @@ func (s *Storage) ExistReleaseOfficialPlugin(
 }
 
 // UpsertManyReleaseOfficialPlugin upsert many release.
-func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx contextx.IUserContext, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
+func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx contextx.IContext, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
 	var err error
 
 	// record metric.

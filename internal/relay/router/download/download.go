@@ -34,9 +34,9 @@ type handler struct {
 }
 
 // Agent download agent package.
-func (h *handler) Agent(ctx *restserver.Context) (*restserver.FileResponse, error) {
+func (h *handler) Agent(rCtx restserver.IContext) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadAgentReq)
-	if err := ctx.BindJSON(req); err != nil {
+	if err := rCtx.BindJSON(req); err != nil {
 		h.logger.Error("bind json failed", err)
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -59,14 +59,14 @@ func (h *handler) Agent(ctx *restserver.Context) (*restserver.FileResponse, erro
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	h.logger.InfoCtxf(ctx, "get agent package name(%s)", pkgName)
+	h.logger.InfoCtxf(rCtx, "get agent package name(%s)", pkgName)
 
-	file, err := h.fileManager.GetFile(ctx, pkgName)
+	file, err := h.fileManager.GetFile(rCtx, pkgName)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}
 
-	reader, err := file.Content(ctx)
+	reader, err := file.Content(rCtx)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
 	}
@@ -84,9 +84,9 @@ func (h *handler) Agent(ctx *restserver.Context) (*restserver.FileResponse, erro
 }
 
 // Proxy download proxy package.
-func (h *handler) Proxy(ctx *restserver.Context) (*restserver.FileResponse, error) {
+func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadProxyReq)
-	if err := ctx.BindJSON(req); err != nil {
+	if err := rCtx.BindJSON(req); err != nil {
 		h.logger.Error("bind json failed", err)
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -109,14 +109,14 @@ func (h *handler) Proxy(ctx *restserver.Context) (*restserver.FileResponse, erro
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	h.logger.InfoCtxf(ctx, "get agent package name(%s)", pkgName)
+	h.logger.InfoCtxf(rCtx, "get agent package name(%s)", pkgName)
 
-	file, err := h.fileManager.GetFile(ctx, pkgName)
+	file, err := h.fileManager.GetFile(rCtx, pkgName)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}
 
-	reader, err := file.Content(ctx)
+	reader, err := file.Content(rCtx)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
 	}

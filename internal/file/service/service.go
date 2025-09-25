@@ -95,7 +95,7 @@ func NewService(conf *config.FileService) (*Service, error) {
 		instance: discover.NewInstance(string(discover.ServiceNameFile), nil),
 	}
 
-	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(context.Background()))
 
 	if err := svc.initialStaticsConfigs(); err != nil {
 		return nil, fmt.Errorf("failed to initialize static configs: %w", err)

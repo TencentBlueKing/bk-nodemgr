@@ -30,19 +30,19 @@ import (
 type INodeManager interface {
 
 	// LaunchInstallNode launch a task to install node. returns the workflow-id.
-	LaunchInstallNode(ctx contextx.ITenantUserContext, param InstallNodeParam) (string, error)
+	LaunchInstallNode(ctx contextx.IContext, param InstallNodeParam) (string, error)
 
 	// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
-	LaunchUpgradeNode(ctx contextx.ITenantUserContext, param UpgradeNodeParam) (string, error)
+	LaunchUpgradeNode(ctx contextx.IContext, param UpgradeNodeParam) (string, error)
 
 	// LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
-	LaunchReconfigNode(ctx contextx.ITenantUserContext, param ReconfigNodeParam) (string, error)
+	LaunchReconfigNode(ctx contextx.IContext, param ReconfigNodeParam) (string, error)
 
 	// LaunchRestartNode launch a task to restart node. returns the workflow-id.
-	LaunchRestartNode(ctx contextx.ITenantUserContext, param RestartNodeParam) (string, error)
+	LaunchRestartNode(ctx contextx.IContext, param RestartNodeParam) (string, error)
 
 	// RetryOperationNode launch a task to retry operation instance
-	RetryOperationNode(ctx contextx.ITenantUserContext, param RetryOperationNodeParam) ([]string, error)
+	RetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) ([]string, error)
 }
 
 // InstallNodeParam install node param.
@@ -86,7 +86,7 @@ type RetryOperationNodeParam struct {
 }
 
 // LaunchInstallNode launch a task to install node.
-func (mgr *Manager) LaunchInstallNode(ctx contextx.ITenantUserContext, param InstallNodeParam) (string, error) {
+func (mgr *Manager) LaunchInstallNode(ctx contextx.IContext, param InstallNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
 		return "", err
@@ -126,7 +126,7 @@ func (mgr *Manager) LaunchInstallNode(ctx contextx.ITenantUserContext, param Ins
 }
 
 // RetryOperationNode launch a task to retry operation instance.
-func (mgr *Manager) RetryOperationNode(ctx contextx.ITenantUserContext, param RetryOperationNodeParam) ([]string, error) {
+func (mgr *Manager) RetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) ([]string, error) {
 	instanceIDs := make([]string, 0)
 
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(ctx, param.WorkflowID)
@@ -259,7 +259,7 @@ func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, ope
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
-func (mgr *Manager) LaunchUpgradeNode(ctx contextx.ITenantUserContext, param UpgradeNodeParam) (string, error) {
+func (mgr *Manager) LaunchUpgradeNode(ctx contextx.IContext, param UpgradeNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -377,7 +377,7 @@ func enablePagentInstaller(deploy *types.NodeDeployment) {
 }
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
-func (mgr *Manager) LaunchReconfigNode(ctx contextx.ITenantUserContext, param ReconfigNodeParam) (string, error) {
+func (mgr *Manager) LaunchReconfigNode(ctx contextx.IContext, param ReconfigNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err
@@ -458,7 +458,7 @@ func (mgr *Manager) LaunchReconfigNode(ctx contextx.ITenantUserContext, param Re
 }
 
 // LaunchRestartNode launch a task to restart node. returns the workflow-id.
-func (mgr *Manager) LaunchRestartNode(ctx contextx.ITenantUserContext, param RestartNodeParam) (string, error) {
+func (mgr *Manager) LaunchRestartNode(ctx contextx.IContext, param RestartNodeParam) (string, error) {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
 		return "", err

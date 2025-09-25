@@ -11,7 +11,6 @@
 package proxy
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -27,40 +26,40 @@ import (
 )
 
 // Upgrade upgrade proxy.
-func (h *handler) Upgrade(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeProxyUpgradeReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to upgrade proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	nodeDeployments, bizIDs, err := h.generatesUpgradeNodeDeployments(ctx, req)
+	nodeDeployments, bizIDs, err := h.generatesUpgradeNodeDeployments(rCtx, req)
 	if err != nil {
 		h.logger.Errorf("failed to upgrade proxy, failed to generate node deployments. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.manager.LaunchUpgradeNode(ctx, manager.UpgradeNodeParam{
+	workflowID, err := h.manager.LaunchUpgradeNode(rCtx, manager.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeProxy,
 		BizIDs:          bizIDs,
-		Operator:        ctx.BKUsername(),
+		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to upgrade proxy: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to upgrade proxy: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeProxyUpgradeResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(ctx, "launched upgrade proxy workflow: %s", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched upgrade proxy workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }
 
 func (h *handler) getUpgradeNodeHosts(
-	ctx context.Context, reqHosts []*protoBackend.NodeProxyUpgradeReq_Host) (map[int64]*types.Host, error) {
+	nCtx contextx.IContext, reqHosts []*protoBackend.NodeProxyUpgradeReq_Host) (map[int64]*types.Host, error) {
 
 	if len(reqHosts) == 0 {
 		return nil, errors.New("empty host list")
@@ -71,7 +70,7 @@ func (h *handler) getUpgradeNodeHosts(
 		hostIDs[host.GetBkHostId()] = struct{}{}
 	}
 
-	hosts, _, err := h.storageHost.ListHost(ctx,
+	hosts, _, err := h.storageHost.ListHost(nCtx,
 		types.UnlimitedPage(),
 		&types.HostCondition{ExactInclude: &types.HostExactFields{
 			HostID: conv.MapKeyToSlice(hostIDs),
@@ -91,7 +90,7 @@ func (h *handler) getUpgradeNodeHosts(
 
 // generatesUpgradeNodeDeployments generates upgrade node deployments and get biz id list.
 func (h *handler) generatesUpgradeNodeDeployments(
-	ctx contextx.ITenantContext, req *protoBackend.NodeProxyUpgradeReq) ([]*types.NodeDeployment, []int64, error) {
+	nCtx contextx.IContext, req *protoBackend.NodeProxyUpgradeReq) ([]*types.NodeDeployment, []int64, error) {
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
@@ -102,7 +101,7 @@ func (h *handler) generatesUpgradeNodeDeployments(
 		}
 	}
 
-	typeHosts, err := h.getUpgradeNodeHosts(ctx, req.GetHost())
+	typeHosts, err := h.getUpgradeNodeHosts(nCtx, req.GetHost())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -123,7 +122,7 @@ func (h *handler) generatesUpgradeNodeDeployments(
 
 		nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 			Host: types.Host{
-				TenantID: ctx.TenantID(),
+				TenantID: nCtx.TenantID(),
 				HostID:   host.HostID,
 				Static:   host.Static,
 				Dynamic:  host.Dynamic,

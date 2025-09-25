@@ -17,7 +17,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -98,19 +97,14 @@ func (act *SyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
-	if err != nil {
-		return err
-	}
-
-	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, param.TenantID, param.Operator)
+	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 
 	agentIDs := make([]string, 0, len(param.Hosts))
 	for _, host := range param.Hosts {
 		agentIDs = append(agentIDs, host.AgentID)
 	}
 
-	result, err := act.gseHandler.ListAgentInfo(tenantUserCtx, agentIDs...)
+	result, err := act.gseHandler.ListAgentInfo(newCtx, agentIDs...)
 	if err != nil {
 		act.logger.Errorf("list agent state by agent-id-list(%v) failed: %v", agentIDs, err)
 		return err
@@ -145,7 +139,7 @@ func (act *SyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	err = act.topoStg.UpdateHostDynamicFields(tenantCtx, types.HostDynamicFields{
+	err = act.topoStg.UpdateHostDynamicFields(newCtx, types.HostDynamicFields{
 		NodeRole:    true,
 		NodeVersion: true,
 		NodeCPUArch: true,

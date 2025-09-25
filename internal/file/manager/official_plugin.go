@@ -34,7 +34,7 @@ type IOfficialPlugin interface {
 		*types.OriginOfficialPluginPkgDetail, error)
 
 	// PublishReleaseOfficialPlugin generates release official plugin by upload-id.
-	PublishReleaseOfficialPlugin(ctx contextx.IUserContext, uploadID string) error
+	PublishReleaseOfficialPlugin(ctx contextx.IContext, uploadID string) error
 }
 
 // UploadOriginOfficialPlugin uploads origin official plugin.
@@ -249,7 +249,7 @@ func convPropertyToTypes(property *Property) *types.PluginPkgConfigTemplatePrope
 
 // PublishReleaseOfficialPlugin generates release official plugin by upload-id.
 // nolint: funlen,gocognit
-func (m *Manager) PublishReleaseOfficialPlugin(ctx contextx.IUserContext, uploadID string) error {
+func (m *Manager) PublishReleaseOfficialPlugin(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetOfficialPluginUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release official plugin, failed to get upload(%s). err: %v", uploadID, err)

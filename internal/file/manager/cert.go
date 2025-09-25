@@ -33,7 +33,7 @@ type ICert interface {
 	UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
 
 	// PublishReleaseCert generates release cert by upload-id.
-	PublishReleaseCert(ctx contextx.IUserContext, uploadID string) error
+	PublishReleaseCert(ctx contextx.IContext, uploadID string) error
 }
 
 // UploadOriginCert uploads origin cert.
@@ -219,7 +219,7 @@ const (
 )
 
 // PublishReleaseCert generates release cert by upload-id.
-func (m *Manager) PublishReleaseCert(ctx contextx.IUserContext, uploadID string) error {
+func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetCertUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get upload(%s). err: %v", uploadID, err)

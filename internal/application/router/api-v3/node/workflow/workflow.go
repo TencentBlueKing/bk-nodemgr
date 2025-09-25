@@ -60,10 +60,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 }
 
 // List workflows.
-func (h *handler) List(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list workflow, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list workflow, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -71,10 +71,10 @@ func (h *handler) List(ctx *restserver.Context) (interface{}, error) {
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountNodeWorkflow(
-			ctx,
+			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list workflow, failed to count workflow. err: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to list workflow, failed to count workflow. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 		resp.ConvertNodeWorkflowsFromTypes(num, nil, nil)
@@ -82,17 +82,17 @@ func (h *handler) List(ctx *restserver.Context) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	workflows, num, err := h.backendHandler.ListNodeWorkflow(ctx,
+	workflows, num, err := h.backendHandler.ListNodeWorkflow(rCtx,
 		req.ConvertPageToTypes(maxWorkflowLimit), req.ConvertConditionsToTypes())
 
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list workflow: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list workflow: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	businessMap, err := h.listAllBusiness(ctx)
+	businessMap, err := h.listAllBusiness(rCtx)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list business: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list business: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -103,26 +103,26 @@ func (h *handler) List(ctx *restserver.Context) (interface{}, error) {
 
 // TODO：如果数据量过大可能要分页或者拆协程查询
 // Statistics workflow statistics.
-func (h *handler) Statistics(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowStatisticsReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to statistics workflow, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to statistics workflow, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	workflows, _, err := h.backendHandler.ListNodeWorkflow(
-		ctx, types.UnlimitedPage(), req.ConvertConditionsToWorkflowConditionTypes())
+		rCtx, types.UnlimitedPage(), req.ConvertConditionsToWorkflowConditionTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to statistics workflow, failed to list workflow. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to statistics workflow, failed to list workflow. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	var instanceStatus []*operation.InstanceStatus
 	if len(workflows) > 0 {
 		instanceStatus, err = h.backendHandler.ListNodeWorkflowOperationInstanceStatus(
-			ctx, convertWorkflowToTriggerID(workflows))
+			rCtx, convertWorkflowToTriggerID(workflows))
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list workflow instance status: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to list workflow instance status: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 	}
@@ -155,20 +155,20 @@ func (h *handler) Statistics(ctx *restserver.Context) (interface{}, error) {
 }
 
 // Distinct workflow distinct.
-func (h *handler) Distinct(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowDistinctReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct workflow, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to distinct workflow, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	result, err := h.backendHandler.DistinctNodeWorkflow(
-		ctx,
+		rCtx,
 		types.NewNodeWorkflowDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
 	resp := new(protoApplication.NodeWorkflowDistinctResp)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct workflow: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to distinct workflow: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -178,15 +178,15 @@ func (h *handler) Distinct(ctx *restserver.Context) (interface{}, error) {
 }
 
 // ListOperation list workflow operation.
-func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation, failed to decode request body: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list operation, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation, failed to validate request body: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list operation, failed to validate request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
 	}
 
@@ -196,9 +196,9 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 	}
 
 	result, total, err := h.backendHandler.ListNodeWorkflowOperation(
-		ctx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes())
+		rCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list operation: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -220,9 +220,9 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 
 	// get all operation instances.
 	// need to grouby operation id. than use last instance status and calculate total time.
-	allInstances, _, err := h.backendHandler.ListNodeWorkflowOperationInstance(ctx, operationIDs...)
+	allInstances, _, err := h.backendHandler.ListNodeWorkflowOperationInstance(rCtx, operationIDs...)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation instance: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -232,7 +232,7 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 	// calculate each operation total time and last state.
 	summaries, err := calculateOperationSummaries(operationIDs, instancesByOpID)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to calculate operation summary: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to calculate operation summary: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -254,15 +254,15 @@ func (h *handler) ListOperation(ctx *restserver.Context) (interface{}, error) {
 }
 
 // ListOperationInstance list workflow operation instance.
-func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationInstanceListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to decode request body: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list operation instance, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to validate request body: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list operation instance, failed to validate request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
 	}
 
@@ -270,9 +270,9 @@ func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, e
 
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountNodeWorkflowOperationInstance(
-			ctx, req.ConvertConditionsToComm())
+			rCtx, req.ConvertConditionsToComm())
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list operation instance, failed to count operation instance: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to list operation instance, failed to count operation instance: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 		resp.ConvertResultFromTypes(num, nil)
@@ -281,9 +281,9 @@ func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, e
 	}
 
 	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
-		ctx, req.ConvertConditionsToComm())
+		rCtx, req.ConvertConditionsToComm())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list operation instance: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -293,18 +293,18 @@ func (h *handler) ListOperationInstance(ctx *restserver.Context) (interface{}, e
 }
 
 // GetOperationInstanceLog get operation instance log.
-func (h *handler) GetOperationInstanceLog(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationInstanceLogGetReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get operation instance log, failed to decode request body: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to get operation instance log, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	logs, err := h.backendHandler.GetNodeWorkflowOperationInstanceLog(
-		ctx,
+		rCtx,
 		req.GetOperInstId())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get operation instance log: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to get operation instance log: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -315,21 +315,21 @@ func (h *handler) GetOperationInstanceLog(ctx *restserver.Context) (interface{},
 	return resp.GetData(), nil
 }
 
-func (h *handler) OperationRetry(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) OperationRetry(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationRetryReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to retry operation, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to retry operation, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to retry operation, failed to validate request body. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to retry operation, failed to validate request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	InstanceIDs, err := h.backendHandler.OperationRetry(ctx, req.ConvertRetryParamToTypes())
+	InstanceIDs, err := h.backendHandler.OperationRetry(rCtx, req.ConvertRetryParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to retry operation: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to retry operation: %v", err)
 		return nil, err
 	}
 	resp := new(protoApplication.NodeWorkflowOperationRetryResp)
@@ -398,10 +398,10 @@ func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[st
 	return result
 }
 
-func (h *handler) listAllBusiness(ctx *restserver.Context) (map[int64]string, error) {
-	businesses, num, err := h.backendHandler.ListBusiness(ctx, types.UnlimitedPage(), nil)
+func (h *handler) listAllBusiness(rCtx restserver.IContext) (map[int64]string, error) {
+	businesses, num, err := h.backendHandler.ListBusiness(rCtx, types.UnlimitedPage(), nil)
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list business: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list business: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

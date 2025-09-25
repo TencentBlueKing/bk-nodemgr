@@ -119,7 +119,7 @@ func WithLogger(logger logger.ILogger) OptionFn {
 
 // NewScheduler ...
 func NewScheduler(opts ...OptionFn) Scheduler {
-	ctx, cancel := contextx.WithCancel(contextx.NewContext(context.Background(), map[string]any{}))
+	ctx, cancel := contextx.WithCancel(contextx.New(context.Background()))
 
 	s := &scheduler{
 		tasks:  make(map[string]*scheduledTask),
@@ -178,7 +178,7 @@ func (s *scheduler) Start() {
 
 // executeTask ...
 func (s *scheduler) executeTask(task *scheduledTask) {
-	ctx, cancel := contextx.WithTimeout(contextx.NewContext(s.ctx, map[string]any{}), task.Timeout)
+	ctx, cancel := contextx.WithTimeout(contextx.New(context.Background()), task.Timeout)
 	defer cancel()
 
 	defer func() {

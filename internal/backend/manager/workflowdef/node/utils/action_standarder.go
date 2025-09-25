@@ -33,7 +33,7 @@ type NodeActionStandarder struct {
 	instanceContext *action.InstanceContext
 	param           NodeActionStandardParam
 
-	ctx  contextx.ITenantUserContext
+	ctx  contextx.IContext
 	info *types.DeploymentInfo
 }
 
@@ -48,7 +48,7 @@ func (std *NodeActionStandarder) Initialize(instanceContext *action.InstanceCont
 		return fmt.Errorf("failed to get node deployment info: %w", err)
 	}
 
-	std.ctx = contextx.NewTenantUserContext(std.instanceContext.Ctx, std.info.Host.TenantID, std.param.Operator)
+	std.ctx = contextx.From(std.instanceContext.Ctx, contextx.WithTenantID(std.info.Host.TenantID), contextx.WithBKUsername(std.param.Operator))
 
 	return nil
 }
@@ -68,7 +68,7 @@ func (std *NodeActionStandarder) DeployInfo() *types.DeploymentInfo {
 }
 
 // Context returns the tenant user context.
-func (std *NodeActionStandarder) Context() contextx.ITenantUserContext {
+func (std *NodeActionStandarder) Context() contextx.IContext {
 	return std.ctx
 }
 

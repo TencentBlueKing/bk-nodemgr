@@ -24,13 +24,13 @@ import (
 // IHandler credit Handler interface.
 type IHandler interface {
 	// CheckValid check creditIDs is valid or not.
-	CheckValid(ctx contextx.ITenantContext, creditIDs ...string) (map[string]bool, error)
+	CheckValid(ctx contextx.IContext, creditIDs ...string) (map[string]bool, error)
 
 	// Get get credit by creditID.
-	Get(ctx contextx.ITenantContext, creditID string) ([]byte, error)
+	Get(ctx contextx.IContext, creditID string) ([]byte, error)
 
 	// Upsert a credit.
-	Upsert(ctx contextx.ITenantContext, creditID string, creditData []byte, expireAt time.Time) error
+	Upsert(ctx contextx.IContext, creditID string, creditData []byte, expireAt time.Time) error
 }
 
 // Handler credit Handler.
@@ -70,7 +70,7 @@ func New(client *mongo.Database, logger logger.ILogger) IHandler {
 }
 
 // CheckValid check creditIDs is valid or not.
-func (h *Handler) CheckValid(ctx contextx.ITenantContext, creditIDs ...string) (map[string]bool, error) {
+func (h *Handler) CheckValid(ctx contextx.IContext, creditIDs ...string) (map[string]bool, error) {
 	filter := base.AliveFilter()
 	filter = WithCreditID(creditIDs...)(filter)
 
@@ -91,7 +91,7 @@ func (h *Handler) CheckValid(ctx contextx.ITenantContext, creditIDs ...string) (
 }
 
 // Get get credit by creditID.
-func (h *Handler) Get(ctx contextx.ITenantContext, creditID string) ([]byte, error) {
+func (h *Handler) Get(ctx contextx.IContext, creditID string) ([]byte, error) {
 	filter := base.AliveFilter()
 	filter = WithCreditID(creditID)(filter)
 
@@ -104,7 +104,7 @@ func (h *Handler) Get(ctx contextx.ITenantContext, creditID string) ([]byte, err
 }
 
 // Upsert a credit.
-func (h *Handler) Upsert(ctx contextx.ITenantContext, creditID string, creditData []byte, expireAt time.Time) error {
+func (h *Handler) Upsert(ctx contextx.IContext, creditID string, creditData []byte, expireAt time.Time) error {
 	if creditID == "" {
 		return ErrInvalidCreditID()
 	}

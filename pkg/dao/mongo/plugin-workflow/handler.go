@@ -26,22 +26,22 @@ import (
 // IHandler plugin workflow Handler interface.
 type IHandler interface {
 	// Get gets plugin workflow by id.
-	Get(ctx contextx.ITenantContext, workflowID string) (*types.PluginWorkflow, error)
+	Get(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error)
 
 	// Count counts plugin workflow by opts.
-	Count(ctx contextx.ITenantContext, opts ...OptFn) (int64, error)
+	Count(ctx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// List lists plugin workflow by page and opts.
-	List(ctx contextx.ITenantContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, int64, error)
+	List(ctx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, int64, error)
 
 	// Create creates a new plugin workflow.
-	Create(ctx contextx.ITenantContext, workflow *types.PluginWorkflow) error
+	Create(ctx contextx.IContext, workflow *types.PluginWorkflow) error
 
 	// UpdateStatus updates the status of a plugin workflow.
-	UpdateStatus(ctx contextx.ITenantContext, workflowID string, status types.PluginWorkflowStatus) error
+	UpdateStatus(ctx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error
 
 	// UpdateFinishTime updates the finish time of a plugin workflow.
-	UpdateFinishTime(ctx contextx.ITenantContext, workflowID string, finishTime time.Time) error
+	UpdateFinishTime(ctx contextx.IContext, workflowID string, finishTime time.Time) error
 
 	IDistinctor
 }
@@ -49,16 +49,16 @@ type IHandler interface {
 // IDistinctor plugin workflow distinctor interface.
 type IDistinctor interface {
 	// DistinctPluginWorkflowType distincts with field type.
-	DistinctPluginWorkflowType(ctx contextx.ITenantContext, opts ...OptFn) ([]types.PluginWorkflowType, error)
+	DistinctPluginWorkflowType(ctx contextx.IContext, opts ...OptFn) ([]types.PluginWorkflowType, error)
 
 	// DistinctPluginWorkflowBkHostID distincts with field bk-host-id.
-	DistinctPluginWorkflowBkHostID(ctx contextx.ITenantContext, opts ...OptFn) ([]int64, error)
+	DistinctPluginWorkflowBkHostID(ctx contextx.IContext, opts ...OptFn) ([]int64, error)
 
 	// DistinctPluginWorkflowOperator distincts with field operator.
-	DistinctPluginWorkflowOperator(ctx contextx.ITenantContext, opts ...OptFn) ([]string, error)
+	DistinctPluginWorkflowOperator(ctx contextx.IContext, opts ...OptFn) ([]string, error)
 
 	// DistinctPluginWorkflowStatus distincts with field status.
-	DistinctPluginWorkflowStatus(ctx contextx.ITenantContext, opts ...OptFn) ([]types.PluginWorkflowStatus, error)
+	DistinctPluginWorkflowStatus(ctx contextx.IContext, opts ...OptFn) ([]types.PluginWorkflowStatus, error)
 }
 
 // Handler this is a Handler to operate plugin workflow table.
@@ -98,7 +98,7 @@ func New(client *mongo.Database, logger logger.ILogger) *Handler {
 }
 
 // Count counts plugin workflow by opts.
-func (h *Handler) Count(ctx contextx.ITenantContext, opts ...OptFn) (int64, error) {
+func (h *Handler) Count(ctx contextx.IContext, opts ...OptFn) (int64, error) {
 	if ctx == nil {
 		return 0, base.ErrInvalidContext()
 	}
@@ -114,7 +114,7 @@ func (h *Handler) Count(ctx contextx.ITenantContext, opts ...OptFn) (int64, erro
 }
 
 // List lists plugin workflow by page and opts.
-func (h *Handler) List(ctx contextx.ITenantContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, int64, error) {
+func (h *Handler) List(ctx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, int64, error) {
 	if ctx == nil {
 		return nil, 0, base.ErrInvalidContext()
 	}
@@ -147,7 +147,7 @@ func (h *Handler) List(ctx contextx.ITenantContext, page types.Page, opts ...Opt
 }
 
 // Create creates a new plugin workflow.
-func (h *Handler) Create(ctx contextx.ITenantContext, workflow *types.PluginWorkflow) error {
+func (h *Handler) Create(ctx contextx.IContext, workflow *types.PluginWorkflow) error {
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -174,7 +174,7 @@ func (h *Handler) Create(ctx contextx.ITenantContext, workflow *types.PluginWork
 }
 
 // Get gets plugin workflow by id.
-func (h *Handler) Get(ctx contextx.ITenantContext, workflowID string) (*types.PluginWorkflow, error) {
+func (h *Handler) Get(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
 	if ctx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -196,7 +196,7 @@ func (h *Handler) Get(ctx contextx.ITenantContext, workflowID string) (*types.Pl
 }
 
 // UpdateStatus updates the status of a plugin workflow.
-func (h *Handler) UpdateStatus(ctx contextx.ITenantContext, workflowID string, status types.PluginWorkflowStatus) error {
+func (h *Handler) UpdateStatus(ctx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -221,7 +221,7 @@ func (h *Handler) UpdateStatus(ctx contextx.ITenantContext, workflowID string, s
 }
 
 // UpdateFinishTime updates the finish time of a plugin workflow.
-func (h *Handler) UpdateFinishTime(ctx contextx.ITenantContext, workflowID string, finishTime time.Time) error {
+func (h *Handler) UpdateFinishTime(ctx contextx.IContext, workflowID string, finishTime time.Time) error {
 	if ctx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -246,7 +246,7 @@ func (h *Handler) UpdateFinishTime(ctx contextx.ITenantContext, workflowID strin
 }
 
 // DistinctPluginWorkflowType distincts with field type.
-func (h *Handler) DistinctPluginWorkflowType(ctx contextx.ITenantContext, opts ...OptFn) ([]types.PluginWorkflowType, error) {
+func (h *Handler) DistinctPluginWorkflowType(ctx contextx.IContext, opts ...OptFn) ([]types.PluginWorkflowType, error) {
 	result, err := h.distinctString(ctx, FieldKeyType, opts...)
 	if err != nil {
 		return nil, err
@@ -261,17 +261,17 @@ func (h *Handler) DistinctPluginWorkflowType(ctx contextx.ITenantContext, opts .
 }
 
 // DistinctPluginWorkflowBkHostID distincts with field bk-biz-id.
-func (h *Handler) DistinctPluginWorkflowBkHostID(ctx contextx.ITenantContext, opts ...OptFn) ([]int64, error) {
+func (h *Handler) DistinctPluginWorkflowBkHostID(ctx contextx.IContext, opts ...OptFn) ([]int64, error) {
 	return h.distinctInt64(ctx, FieldKeyHostIDs, opts...)
 }
 
 // DistinctPluginWorkflowOperator distincts with field operator.
-func (h *Handler) DistinctPluginWorkflowOperator(ctx contextx.ITenantContext, opts ...OptFn) ([]string, error) {
+func (h *Handler) DistinctPluginWorkflowOperator(ctx contextx.IContext, opts ...OptFn) ([]string, error) {
 	return h.distinctString(ctx, FieldKeyOperator, opts...)
 }
 
 // DistinctPluginWorkflowStatus distincts with field plugin-version.
-func (h *Handler) DistinctPluginWorkflowStatus(ctx contextx.ITenantContext, opts ...OptFn) ([]types.PluginWorkflowStatus, error) {
+func (h *Handler) DistinctPluginWorkflowStatus(ctx contextx.IContext, opts ...OptFn) ([]types.PluginWorkflowStatus, error) {
 	result, err := h.distinctString(ctx, FieldKeyStatus, opts...)
 	if err != nil {
 		return nil, err
@@ -286,7 +286,7 @@ func (h *Handler) DistinctPluginWorkflowStatus(ctx contextx.ITenantContext, opts
 }
 
 // distinctInt64 returns distinct values of specified field.
-func (h *Handler) distinctInt64(ctx contextx.ITenantContext, key string, opts ...OptFn) ([]int64, error) {
+func (h *Handler) distinctInt64(ctx contextx.IContext, key string, opts ...OptFn) ([]int64, error) {
 	if ctx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -302,7 +302,7 @@ func (h *Handler) distinctInt64(ctx contextx.ITenantContext, key string, opts ..
 }
 
 // distinctString returns distinct values of specified field.
-func (h *Handler) distinctString(ctx contextx.ITenantContext, key string, opts ...OptFn) ([]string, error) {
+func (h *Handler) distinctString(ctx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
 	if ctx == nil {
 		return nil, base.ErrInvalidContext()
 	}

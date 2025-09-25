@@ -35,7 +35,7 @@ type IExternalPlugin interface {
 	UploadOriginExternalPlugin(ctx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginExternalPluginPkgDetail, error)
 
 	// PublishReleaseExternalPlugin generates release external plugin by upload-id.
-	PublishReleaseExternalPlugin(ctx contextx.IUserContext, uploadID string) error
+	PublishReleaseExternalPlugin(ctx contextx.IContext, uploadID string) error
 }
 
 // UploadOriginExternalPlugin uploads origin external plugin.
@@ -236,7 +236,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 
 // PublishReleaseExternalPlugin generates release external plugin by upload-id.
 // nolint: funlen,gocognit
-func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IUserContext, uploadID string) error {
+func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetExternalPluginUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to get upload(%s). err: %v", uploadID, err)

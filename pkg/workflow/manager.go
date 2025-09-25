@@ -204,12 +204,12 @@ type manager struct {
 }
 
 // Start starts the manager.
-func (mgr *manager) Start(ctx contextx.IContext) error {
+func (mgr *manager) Start(nCtx contextx.IContext) error {
 	if mgr.isRunning {
 		return errors.New("manager already started")
 	}
 
-	mgr.ctx, mgr.cancel = contextx.WithCancel(ctx)
+	mgr.ctx, mgr.cancel = contextx.WithCancel(contextx.From(nCtx))
 
 	if err := mgr.initialize(); err != nil {
 		return err

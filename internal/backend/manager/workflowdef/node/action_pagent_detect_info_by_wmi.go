@@ -268,7 +268,7 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayTodetect(
 func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
 	std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, error) {
 
-	timeoutCtx, cancel := contextx.WithTimeout(std.Context(), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)

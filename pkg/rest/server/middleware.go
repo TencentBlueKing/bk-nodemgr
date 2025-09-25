@@ -27,7 +27,7 @@ import (
 // MiddlewareContext verify auth info.
 func MiddlewareContext() gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
-		_ = initRestContext(gCtx)
+		_ = initRestRequest(gCtx)
 
 		gCtx.Next()
 	}
@@ -35,16 +35,16 @@ func MiddlewareContext() gin.HandlerFunc {
 
 // IAuthIdentity verify auth info.
 type IAuthIdentity interface {
-	Verify(rCtx *Context) error
+	Verify(r IRequest) error
 }
 
 // MiddlewareAuth verify auth info.
 func MiddlewareAuth(identity IAuthIdentity) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
-		rCtx := loadRestContext(gCtx)
+		r := loadRestRequest(gCtx)
 
-		if err := identity.Verify(rCtx); err != nil {
-			rCtx.AbortWithJSONError(resterrf.Unauthorized, []error{err})
+		if err := identity.Verify(r); err != nil {
+			r.AbortWithJSONError(resterrf.Unauthorized, []error{err})
 
 			return
 		}
@@ -60,16 +60,16 @@ type RestServerAuthIdentity struct {
 }
 
 // Verify verify auth info.
-func (identity *RestServerAuthIdentity) Verify(rCtx *Context) error {
-	nodeMgrAuthorization := restheader.BKNodeMgrAuthorizationGetter(rCtx.Request())
+func (identity *RestServerAuthIdentity) Verify(r IRequest) error {
+	nodeMgrAuthorization := restheader.BKNodeMgrAuthorizationGetter(r.GetRequest())
 
 	authInfo := make(map[string]string, 0)
 	if err := json.Unmarshal([]byte(nodeMgrAuthorization), &authInfo); err != nil {
 		return fmt.Errorf("failed to verify rest auth indentity, auth info(%s): %w", nodeMgrAuthorization, err)
 	}
 
-	rCtx.SetLoginName(authInfo["login_name"])
-	rCtx.SetBKUsername(authInfo["bk_username"])
+	r.Data().SetLoginName(authInfo["login_name"])
+	r.Data().SetBKUsername(authInfo["bk_username"])
 
 	return nil
 }
@@ -86,9 +86,9 @@ type NodeAuthIdentity struct {
 }
 
 // Verify verify auth info.
-func (identity *NodeAuthIdentity) Verify(rCtx *Context) error {
-	rCtx.SetLoginName("unknown")
-	rCtx.SetBKUsername("unknown")
+func (identity *NodeAuthIdentity) Verify(r IRequest) error {
+	r.Data().SetLoginName("unknown")
+	r.Data().SetBKUsername("unknown")
 
 	return nil
 }
@@ -100,28 +100,28 @@ func NewNodeAuthIdentity() *NodeAuthIdentity {
 
 // IRequestIDSetter set request id.
 type IRequestIDSetter interface {
-	SetRequestID(ctx *Context) error
+	SetRequestID(r IRequest) error
 }
 
 // MiddlewareSetRequestID ...
 func MiddlewareSetRequestID(requestIDSetter IRequestIDSetter) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
-		rCtx := loadRestContext(gCtx)
+		r := loadRestRequest(gCtx)
 
 		if requestIDSetter == nil {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("this server doesn't load request id setter")})
+			r.AbortWithJSONError(resterrf.Aborted, []error{errors.New("this server doesn't load request id setter")})
 
 			return
 		}
 
-		if err := requestIDSetter.SetRequestID(rCtx); err != nil {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{err})
+		if err := requestIDSetter.SetRequestID(r); err != nil {
+			r.AbortWithJSONError(resterrf.Aborted, []error{err})
 
 			return
 		}
 
-		if rCtx.RequestID() == "" {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set request id")})
+		if r.Data().GetRequestID() == "" {
+			r.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set request id")})
 		}
 
 		gCtx.Next()
@@ -133,12 +133,12 @@ type RequestIDSetter struct {
 }
 
 // SetRequestID ...
-func (setter *RequestIDSetter) SetRequestID(rCtx *Context) error {
+func (setter *RequestIDSetter) SetRequestID(r IRequest) error {
 	// note: for thread safety you need to reset it here.
-	rCtx.SetRequestID(restheader.BKNodemgrRequestIDGetter(rCtx.Request()))
+	r.Data().SetRequestID(restheader.BKNodemgrRequestIDGetter(r.GetRequest()))
 
-	if rCtx.RequestID() == "" {
-		rCtx.SetRequestID(identifier.GenRequestID())
+	if r.Data().GetRequestID() == "" {
+		r.Data().SetRequestID(identifier.GenRequestID())
 	}
 
 	return nil
@@ -151,28 +151,28 @@ func NewRequestIDSetter() *RequestIDSetter {
 
 // ITenantIDSetter set request id.
 type ITenantIDSetter interface {
-	SetTenantID(ctx *Context) error
+	SetTenantID(r IRequest) error
 }
 
 // MiddlewareSetTenantID ...
 func MiddlewareSetTenantID(tenantIDSetter ITenantIDSetter) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
-		rCtx := loadRestContext(gCtx)
+		r := loadRestRequest(gCtx)
 
 		if tenantIDSetter == nil {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("this server doesn't load tenant id setter")})
+			r.AbortWithJSONError(resterrf.Aborted, []error{errors.New("this server doesn't load tenant id setter")})
 
 			return
 		}
 
-		if err := tenantIDSetter.SetTenantID(rCtx); err != nil {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{err})
+		if err := tenantIDSetter.SetTenantID(r); err != nil {
+			r.AbortWithJSONError(resterrf.Aborted, []error{err})
 
 			return
 		}
 
-		if rCtx.TenantID() == "" {
-			rCtx.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set tenant id")})
+		if r.data.GetTenantID() == "" {
+			r.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set tenant id")})
 		}
 
 		gCtx.Next()
@@ -189,21 +189,21 @@ type TenantIDSetter struct {
 const TenantIDRegexp = `^[a-z][a-z0-9-]{1,30}[a-z0-9]$`
 
 // SetTenantID ...
-func (setter *TenantIDSetter) SetTenantID(rCtx *Context) error {
+func (setter *TenantIDSetter) SetTenantID(r IRequest) error {
 	// note: for thread safety you need to reset it here.
-	rCtx.SetTenantID(restheader.BKTenantIDGetter(rCtx.Request()))
+	r.Data().SetTenantID(restheader.BKTenantIDGetter(r.GetRequest()))
 
-	if rCtx.TenantID() == "" {
-		tenantID, err := tenant.GetID(rCtx)
+	if r.Data().GetTenantID() == "" {
+		tenantID, err := tenant.GetID(r.GContext())
 		if err != nil {
 			return fmt.Errorf("failed to set tenant id: %w", err)
 		}
 
-		rCtx.SetTenantID(tenantID)
+		r.Data().SetTenantID(tenantID)
 	}
 
 	mustCompile := regexp.MustCompile(TenantIDRegexp)
-	if !mustCompile.MatchString(rCtx.TenantID()) {
+	if !mustCompile.MatchString(r.Data().GetTenantID()) {
 		return errors.New("failed to set tenant id: invalid tenant id")
 	}
 

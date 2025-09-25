@@ -23,16 +23,16 @@ import (
 )
 
 // AgentInstallCheck checks if an agent can be installed on hosts.
-func (h *handler) AgentInstallCheck(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeAgentInstallCheckReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to check install agent, failed to decode request body: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to check install agent, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	results, err := h.checkInstall(ctx, req.GetHost())
+	results, err := h.checkInstall(rCtx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to check install agent: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to check install agent: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -42,10 +42,10 @@ func (h *handler) AgentInstallCheck(ctx *restserver.Context) (interface{}, error
 	return resp.GetData(), nil
 }
 
-func (h *handler) checkInstall(ctx contextx.ITenantContext,
+func (h *handler) checkInstall(nCtx contextx.IContext,
 	hosts []*protoBackend.NodeAgentInstallCheckReq_Host) ([]*types.NodeAgentInstallCheckResult, error) {
 
-	unitIDToAreaMap, err := h.getNetworkAreaByNetworkUnit(ctx, hosts)
+	unitIDToAreaMap, err := h.getNetworkAreaByNetworkUnit(nCtx, hosts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get network area by network unit: %w", err)
 	}
@@ -61,9 +61,9 @@ func (h *handler) checkInstall(ctx contextx.ITenantContext,
 			networkunitID := hosts[idx].GetBkNetworkunitId()
 			networkareaID := unitIDToAreaMap[networkunitID]
 
-			result, err := h.checkInstallEligibility(ctx, innerIP, networkareaID, bizID)
+			result, err := h.checkInstallEligibility(nCtx, innerIP, networkareaID, bizID)
 			if err != nil {
-				h.logger.ErrorCtxf(ctx, "failed to check install eligibility. inner-ip(%s), network-unit-id(%d), biz-id(%d): %v",
+				h.logger.ErrorCtxf(nCtx, "failed to check install eligibility. inner-ip(%s), network-unit-id(%d), biz-id(%d): %v",
 					innerIP, networkunitID, bizID, err)
 
 				return fmt.Errorf("failed to check install eligibility. inner-ip(%s), network-unit-id(%d), biz-id(%d): %w",
@@ -83,7 +83,7 @@ func (h *handler) checkInstall(ctx contextx.ITenantContext,
 }
 
 // getNetworkAreaByNetworkUnit get network area id by network unit id.
-func (h *handler) getNetworkAreaByNetworkUnit(ctx contextx.ITenantContext, hosts []*protoBackend.NodeAgentInstallCheckReq_Host) (
+func (h *handler) getNetworkAreaByNetworkUnit(nCtx contextx.IContext, hosts []*protoBackend.NodeAgentInstallCheckReq_Host) (
 	map[int64]int64, error) {
 
 	unitIDs := make([]int64, 0, len(hosts))
@@ -91,7 +91,7 @@ func (h *handler) getNetworkAreaByNetworkUnit(ctx contextx.ITenantContext, hosts
 		unitIDs = append(unitIDs, host.GetBkNetworkunitId())
 	}
 
-	networkUnits, err := h.domainNodeInstall.GetNetworkUnitByAreaIDs(ctx, unitIDs)
+	networkUnits, err := h.domainNodeInstall.GetNetworkUnitByAreaIDs(nCtx, unitIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -104,10 +104,10 @@ func (h *handler) getNetworkAreaByNetworkUnit(ctx contextx.ITenantContext, hosts
 	return unitIDToAreaMap, nil
 }
 
-func (h *handler) checkInstallEligibility(ctx contextx.ITenantContext, innerIP string,
+func (h *handler) checkInstallEligibility(nCtx contextx.IContext, innerIP string,
 	networkAreaID, bizID int64) (*types.NodeAgentInstallCheckResult, error) {
 
-	hosts, err := h.domainNodeInstall.GetHostsByAreaAndInnerIP(ctx, networkAreaID, innerIP)
+	hosts, err := h.domainNodeInstall.GetHostsByAreaAndInnerIP(nCtx, networkAreaID, innerIP)
 	if err != nil {
 		return nil, err
 	}

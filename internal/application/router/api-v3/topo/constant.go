@@ -17,16 +17,16 @@ import (
 )
 
 // GetConstant get constant values.
-func (h *handler) GetConstant(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) GetConstant(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoConstantGetReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get constant, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to get constant, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.GetConstant(ctx, req.ConvertFieldsToTypes())
+	result, err := h.backendHandler.GetConstant(rCtx, req.ConvertFieldsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to get constant, failed to get constant values. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to get constant, failed to get constant values. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

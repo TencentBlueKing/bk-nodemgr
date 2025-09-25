@@ -23,7 +23,7 @@ import (
 type iEnumResourceKeeper interface {
 	getValue(key string) string
 	getKey(value string) string
-	update(ctx contextx.ITenantUserContext) error
+	update(ctx contextx.IContext) error
 	values() []string
 }
 
@@ -83,7 +83,7 @@ func (keeper *enumCPUArchKeeper) getKey(value string) string {
 	return keeper.enumBasicKeeper.getKey(cpuArchName)
 }
 
-func (keeper *enumCPUArchKeeper) update(ctx contextx.ITenantUserContext) error {
+func (keeper *enumCPUArchKeeper) update(ctx contextx.IContext) error {
 	if err := keeper.enumBasicKeeper.update(ctx); err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func (keeper *enumOSTypeKeeper) getKey(value string) string {
 	return keeper.enumBasicKeeper.getKey(osTypeName)
 }
 
-func (keeper *enumOSTypeKeeper) update(ctx contextx.ITenantUserContext) error {
+func (keeper *enumOSTypeKeeper) update(ctx contextx.IContext) error {
 	if err := keeper.enumBasicKeeper.update(ctx); err != nil {
 		return err
 	}
@@ -208,7 +208,7 @@ func (keeper *enumBasicKeeper) getKey(value string) string {
 	return keeper.unknownKey
 }
 
-func (keeper *enumBasicKeeper) update(ctx contextx.ITenantUserContext) error {
+func (keeper *enumBasicKeeper) update(ctx contextx.IContext) error {
 	result, err := keeper.searchObjectAttributeEnumOption(
 		ctx, keeper.objectID, CCNoBusinessID, keeper.attributeID)
 	if err != nil {
@@ -235,7 +235,7 @@ func (keeper *enumBasicKeeper) values() []string {
 
 // searchObjectAttributeEnumOption search cmdb object attribute's option, like bk_cloud_vendor and bk_os_type.
 func (keeper *enumBasicKeeper) searchObjectAttributeEnumOption(
-	ctx contextx.ITenantUserContext, objID string, bizID int64, objAttrID string) ([]*EnumOption, error) {
+	ctx contextx.IContext, objID string, bizID int64, objAttrID string) ([]*EnumOption, error) {
 
 	req := &SearchObjectAttributeReq{
 		BKObjID: objID,

@@ -17,19 +17,19 @@ import (
 )
 
 // Restart proxy.
-func (h *handler) Restart(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Restart(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyRestartReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to restart proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to restart proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.RestartProxy(ctx, req.ConvertParamToTypes())
+	workflowID, err := h.backendHandler.RestartProxy(rCtx, req.ConvertParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to restart proxy: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to restart proxy: %v", err)
 		return nil, err
 	}
-	h.logger.InfoCtxf(ctx, "launched proxy restart. workflow-id(%s)", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched proxy restart. workflow-id(%s)", workflowID)
 
 	resp := new(protoApplication.NodeProxyRestartResp)
 	resp.ConvertWorkflowID(workflowID)

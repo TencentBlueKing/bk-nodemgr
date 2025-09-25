@@ -17,15 +17,15 @@ import (
 )
 
 // Update updates proxy.
-func (h *handler) Update(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Update(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyUpdateReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to update proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to update proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := h.backendHandler.UpdateProxy(ctx, req.ConvertParamToTypes()); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to update proxy, failed to update host. err: %v", err)
+	if err := h.backendHandler.UpdateProxy(rCtx, req.ConvertParamToTypes()); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to update proxy, failed to update host. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

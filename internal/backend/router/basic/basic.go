@@ -42,7 +42,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 }
 
 // Info ...
-func (h *handler) Info(_ *restserver.Context) (interface{}, error) {
+func (h *handler) Info(_ restserver.IContext) (interface{}, error) {
 	resp := version.Version()
 
 	return resp, nil

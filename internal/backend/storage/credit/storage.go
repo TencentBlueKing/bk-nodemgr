@@ -28,19 +28,19 @@ type IStorageHostCredit interface {
 
 	// CreateHostCredit create host credit data.
 	CreateHostCredit(
-		ctx contextx.ITenantContext,
+		ctx contextx.IContext,
 		creditData []byte,
 	) (string, error)
 
 	// LoadHostCredit load host credit data.
 	LoadHostCredit(
-		ctx contextx.ITenantContext,
+		ctx contextx.IContext,
 		creditID string,
 	) ([]byte, error)
 
 	// CheckHostCreditValid check host credit valid.
 	CheckHostCreditValid(
-		ctx contextx.ITenantContext,
+		ctx contextx.IContext,
 		creditIDList ...string,
 	) (map[string]bool, error)
 }

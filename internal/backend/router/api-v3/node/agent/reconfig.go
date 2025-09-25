@@ -12,12 +12,12 @@
 package agent
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -26,16 +26,16 @@ import (
 )
 
 // AgentReconfig reconfig agent.
-func (h *handler) AgentReconfig(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) AgentReconfig(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeAgentReconfigReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to reconfig agent, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to reconfig agent, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	hosts, err := h.getReconfigNodeHosts(ctx, req.GetHost())
+	hosts, err := h.getReconfigNodeHosts(rCtx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to reconfig agent, failed to get host list. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to reconfig agent, failed to get host list. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -44,9 +44,9 @@ func (h *handler) AgentReconfig(ctx *restserver.Context) (interface{}, error) {
 	for idx := range reqHosts {
 		reqHost := reqHosts[idx]
 
-		nodeDeploy, err := h.generatesReconfigDeploys(ctx.TenantID(), reqHost, hosts)
+		nodeDeploy, err := h.generatesReconfigDeploys(rCtx.TenantID(), reqHost, hosts)
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to reconfig agent, failed to generate node deployment. err: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to reconfig agent, failed to generate node deployment. err: %v", err)
 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
@@ -54,27 +54,27 @@ func (h *handler) AgentReconfig(ctx *restserver.Context) (interface{}, error) {
 		nodeDeploys[idx] = nodeDeploy
 	}
 
-	workflowID, err := h.manager.LaunchReconfigNode(ctx, manager.ReconfigNodeParam{
+	workflowID, err := h.manager.LaunchReconfigNode(rCtx, manager.ReconfigNodeParam{
 		Type:            types.NodeWorkflowTypeReconfigAgent,
 		BizIDs:          h.getReconfigNodeBizIDs(hosts),
-		Operator:        ctx.BKUsername(),
+		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to reconfig agent: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to reconfig agent: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentReconfigResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(ctx, "launched reconfig agent workflow: %s", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched reconfig agent workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }
 
 func (h *handler) getReconfigNodeHosts(
-	ctx context.Context, reqHosts []*protoBackend.NodeAgentReconfigReq_Host) (map[int64]*types.Host, error) {
+	nCtx contextx.IContext, reqHosts []*protoBackend.NodeAgentReconfigReq_Host) (map[int64]*types.Host, error) {
 
 	if len(reqHosts) == 0 {
 		return nil, errors.New("empty host list")
@@ -85,7 +85,7 @@ func (h *handler) getReconfigNodeHosts(
 		hostIDs[host.GetBkHostId()] = struct{}{}
 	}
 
-	hosts, _, err := h.storageHost.ListHost(ctx,
+	hosts, _, err := h.storageHost.ListHost(nCtx,
 		types.UnlimitedPage(),
 		&types.HostCondition{ExactInclude: &types.HostExactFields{
 			HostID: conv.MapKeyToSlice(hostIDs),

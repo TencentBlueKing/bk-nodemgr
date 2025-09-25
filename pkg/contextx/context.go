@@ -13,25 +13,25 @@ package contextx
 
 import (
 	"context"
+	"errors"
 	"time"
 )
-
-// IContext this is the context of the nodemgr.
-type IContext interface {
-	context.Context
-	Values() map[string]any
-}
 
 var _ IContext = &Context{}
 
 // Context defines the context of the nodemgr.
 type Context struct {
-	ctx    context.Context
+	ctx context.Context
+
 	values map[string]any
+
+	tenantID   string
+	bkUsername string
+	messageID  string
 }
 
 // Deadline implement IContext.
-func (c Context) Deadline() (deadline time.Time, ok bool) {
+func (c Context) Deadline() (time.Time, bool) {
 	return c.ctx.Deadline()
 }
 
@@ -62,33 +62,115 @@ func (c Context) Values() map[string]any {
 	return c.values
 }
 
-// NewContext new a context.
-func NewContext(ctx context.Context, values map[string]any) *Context {
-	return &Context{
-		ctx:    ctx,
-		values: values,
-	}
+// TenantID get tenant-id from values.
+func (c Context) TenantID() string {
+	return c.tenantID
 }
 
-// WithValue this is the same as context.WithValue.
-func WithValue(ctx IContext, key string, val any) IContext {
-	ctxWithV := context.WithValue(ctx, key, val)
-	newCtx := NewContext(ctxWithV, ctx.Values())
-	newCtx.values[key] = val
+// ValidateTenantID validate tenant-id.
+func (c Context) ValidateTenantID() error {
+	if c.tenantID == "" {
+		return errors.New("tenant-id not found")
+	}
 
-	return newCtx
+	return nil
+}
+
+// BKUsername get bk-username from values.
+func (c Context) BKUsername() string {
+	return c.bkUsername
+}
+
+// ValidateBKUsername validate bk-username.
+func (c Context) ValidateBKUsername() error {
+	if c.bkUsername == "" {
+		return errors.New("bk-username not found")
+	}
+
+	return nil
+}
+
+// MessageID get message-id from values.
+func (c Context) MessageID() string {
+	return c.messageID
+}
+
+// ValidateMessageID validate message-id.
+func (c Context) ValidateMessageID() error {
+	if c.messageID == "" {
+		return errors.New("message-id not found")
+	}
+
+	return nil
+}
+
+// New new a context.
+func New(ctx context.Context, opts ...Opts) *Context {
+	return NewWithValues(ctx, opts...)
+}
+
+// NewWithValues new a context with values.
+func NewWithValues(ctx context.Context, opts ...Opts) *Context {
+	r := &Context{
+		ctx:    ctx,
+		values: make(map[string]any),
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
+}
+
+// From with context.
+func From(ctx IContext, opts ...Opts) *Context {
+	return NewWithValues(ctx, append([]Opts{WithValues(ctx.Values())}, opts...)...)
 }
 
 // WithCancel this is the same as context.WithCancel.
-func WithCancel(ctx IContext) (IContext, context.CancelFunc) {
-	ctxWithC, cancel := context.WithCancel(ctx)
+func WithCancel(nCtx IContext) (IContext, context.CancelFunc) {
+	ctxWithC, cancel := context.WithCancel(nCtx)
 
-	return NewContext(ctxWithC, ctx.Values()), cancel
+	return New(ctxWithC, WithValues(nCtx.Values())), cancel
 }
 
 // WithTimeout this is the same as context.WithTimeout.
-func WithTimeout(ctx IContext, timeout time.Duration) (IContext, context.CancelFunc) {
-	ctxWithC, cancel := context.WithTimeout(ctx, timeout)
+func WithTimeout(nCtx IContext, timeout time.Duration) (IContext, context.CancelFunc) {
+	ctxWithC, cancel := context.WithTimeout(nCtx, timeout)
 
-	return NewContext(ctxWithC, ctx.Values()), cancel
+	return New(ctxWithC, WithValues(nCtx.Values())), cancel
+}
+
+// Opts describes the context assignment options.
+type Opts func(*Context)
+
+// WithTenantID assign tenant-id.
+func WithTenantID(tenantID string) Opts {
+	return func(c *Context) {
+		c.tenantID = tenantID
+	}
+}
+
+// WithBKUsername assign bk-username.
+func WithBKUsername(bkUsername string) Opts {
+	return func(c *Context) {
+		c.bkUsername = bkUsername
+	}
+}
+
+// WithMessageID assign message-id.
+func WithMessageID(messageID string) Opts {
+	return func(c *Context) {
+		c.messageID = messageID
+	}
+}
+
+// WithValues assign values.
+func WithValues(values map[string]any) Opts {
+	return func(c *Context) {
+		for k, v := range values {
+			c.values[k] = v
+		}
+	}
 }

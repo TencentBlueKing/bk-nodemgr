@@ -200,7 +200,7 @@ func customLogRecvFormatter(gCtx *gin.Context) string {
 	}
 
 	return fmt.Sprintf("%s[request recv] %s | %s",
-		logWithCtxKeys(gCtx.Keys), urlPath, gCtx.ClientIP())
+		logWithReqKeys(gCtx.Keys), urlPath, gCtx.ClientIP())
 }
 
 // customLogDoneFormatter is a custom log done formatter.
@@ -210,16 +210,16 @@ func customLogDoneFormatter(param gin.LogFormatterParams) string {
 	}
 
 	return fmt.Sprintf("%s[request done] %s | %s | code(%3d) cost(%dms) %s",
-		logWithCtxKeys(param.Keys), param.Path, param.ClientIP,
+		logWithReqKeys(param.Keys), param.Path, param.ClientIP,
 		param.StatusCode, param.Latency.Milliseconds(), param.ErrorMessage,
 	)
 }
 
-func logWithCtxKeys(keys map[string]any) string {
-	if v, ok := keys[restContextKey]; ok {
-		if ctx, ok := v.(*Context); ok {
+func logWithReqKeys(keys map[string]any) string {
+	if v, ok := keys[restRequestKey]; ok {
+		if r, ok := v.(*Request); ok {
 			return fmt.Sprintf("[request_id:%s][tenant_id:%s][bk_username:%s][login_name:%s]",
-				ctx.RequestID(), ctx.TenantID(), ctx.BKUsername(), ctx.LoginName())
+				r.data.requestID, r.data.tenantID, r.data.bkUsername, r.data.loginName)
 		}
 	}
 

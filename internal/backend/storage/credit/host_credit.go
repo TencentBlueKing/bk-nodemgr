@@ -30,7 +30,7 @@ func generateHostCreditID() string {
 }
 
 // CreateHostCredit create host credit.
-func (s *Storage) CreateHostCredit(ctx contextx.ITenantContext, creditData []byte) (string, error) {
+func (s *Storage) CreateHostCredit(ctx contextx.IContext, creditData []byte) (string, error) {
 	var encryptedCreditData []byte
 	var err error
 
@@ -51,7 +51,7 @@ func (s *Storage) CreateHostCredit(ctx contextx.ITenantContext, creditData []byt
 }
 
 // LoadHostCredit load host credit.
-func (s *Storage) LoadHostCredit(ctx contextx.ITenantContext, creditID string) ([]byte, error) {
+func (s *Storage) LoadHostCredit(ctx contextx.IContext, creditID string) ([]byte, error) {
 	var encryptedCreditData, creditData []byte
 	var err error
 
@@ -71,7 +71,7 @@ func (s *Storage) LoadHostCredit(ctx contextx.ITenantContext, creditID string) (
 }
 
 // CheckHostCreditValid check host credit valid.
-func (s *Storage) CheckHostCreditValid(ctx contextx.ITenantContext, creditIDList ...string) (map[string]bool, error) {
+func (s *Storage) CheckHostCreditValid(ctx contextx.IContext, creditIDList ...string) (map[string]bool, error) {
 	var result map[string]bool
 	var err error
 

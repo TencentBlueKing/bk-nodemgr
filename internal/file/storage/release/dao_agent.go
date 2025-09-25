@@ -24,7 +24,7 @@ import (
 )
 
 // upsertManyReleaseAgent upsert many release.
-func (s *Storage) upsertManyReleaseAgent(ctx contextx.IUserContext, releaseAgents []*types.ReleaseAgent) error {
+func (s *Storage) upsertManyReleaseAgent(ctx contextx.IContext, releaseAgents []*types.ReleaseAgent) error {
 	var err error
 
 	releases := make([]*types.Release, 0, len(releaseAgents))

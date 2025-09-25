@@ -51,7 +51,7 @@ func (s *Storage) existReleaseExternalPlugin(ctx contextx.IContext, pluginName s
 }
 
 // upsertManyReleaseExternalPlugin upsert many release.
-func (s *Storage) upsertManyReleaseExternalPlugin(ctx contextx.IUserContext, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
+func (s *Storage) upsertManyReleaseExternalPlugin(ctx contextx.IContext, releaseExternalPlugins []*types.ReleaseExternalPlugin) error {
 	var err error
 
 	releases := make([]*types.Release, 0, len(releaseExternalPlugins))

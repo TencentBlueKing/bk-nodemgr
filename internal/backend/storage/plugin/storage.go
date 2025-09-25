@@ -132,7 +132,7 @@ func (s *Storage) UpdatePluginDeploymentInfo(ctx contextx.IContext, token string
 }
 
 // GetPluginWorkflow get plugin workflow.
-func (s *Storage) GetPluginWorkflow(ctx contextx.ITenantContext, workflowID string) (*types.PluginWorkflow, error) {
+func (s *Storage) GetPluginWorkflow(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
 	var (
 		pluginWorkflow *types.PluginWorkflow
 		err            error
@@ -148,7 +148,7 @@ func (s *Storage) GetPluginWorkflow(ctx contextx.ITenantContext, workflowID stri
 }
 
 // CreatePluginWorkflow create plugin workflow.
-func (s *Storage) CreatePluginWorkflow(ctx contextx.ITenantContext, workflow *types.PluginWorkflow) error {
+func (s *Storage) CreatePluginWorkflow(ctx contextx.IContext, workflow *types.PluginWorkflow) error {
 	var (
 		err error
 	)
@@ -163,7 +163,7 @@ func (s *Storage) CreatePluginWorkflow(ctx contextx.ITenantContext, workflow *ty
 }
 
 // UpdatePluginWorkflowStatus update plugin workflow status.
-func (s *Storage) UpdatePluginWorkflowStatus(ctx contextx.ITenantContext, workflowID string, status types.PluginWorkflowStatus) error {
+func (s *Storage) UpdatePluginWorkflowStatus(ctx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
 	var (
 		err error
 	)

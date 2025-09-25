@@ -274,7 +274,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
 func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 	std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
 
-	timeoutCtx, cancel := contextx.WithTimeout(std.Context(), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
 
 	ticker := time.NewTicker(waitForRelayReportInterval)

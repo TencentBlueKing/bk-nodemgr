@@ -122,8 +122,8 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		tenantUserCtx := contextx.NewTenantUserContext(ctx.Ctx, info.Host.TenantID, param.Operator)
-		if err := act.BindHostAgent(tenantUserCtx, &info.Host); err != nil {
+		newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(info.Host.TenantID), contextx.WithBKUsername(param.Operator))
+		if err := act.BindHostAgent(newCtx, &info.Host); err != nil {
 			return err
 		}
 

@@ -65,7 +65,7 @@ func newClient(c *restclient.Capability, conf Config) (*cli, error) {
 
 // getHeader get backend common header.
 // nolint: unparam
-func (c *cli) getHeader(ctx contextx.ITenantUserContext) http.Header {
+func (c *cli) getHeader(ctx contextx.IContext) http.Header {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, ctx.TenantID())
 	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
@@ -80,7 +80,7 @@ func (c *cli) getHeader(ctx contextx.ITenantUserContext) http.Header {
 	return header
 }
 
-func (c *cli) listBusiness(ctx contextx.ITenantUserContext, req *protoBackend.TopoBusinessListReq,
+func (c *cli) listBusiness(ctx contextx.IContext, req *protoBackend.TopoBusinessListReq,
 ) (*protoBackend.TopoBusinessListResp_Data, error) {
 
 	resp := new(protoBackend.TopoBusinessListResp)
@@ -111,7 +111,7 @@ func (c *cli) listBusiness(ctx contextx.ITenantUserContext, req *protoBackend.To
 	return data, nil
 }
 
-func (c *cli) listHost(ctx contextx.ITenantUserContext, req *protoBackend.TopoHostListReq,
+func (c *cli) listHost(ctx contextx.IContext, req *protoBackend.TopoHostListReq,
 ) (*protoBackend.TopoHostListResp, error) {
 
 	resp := new(protoBackend.TopoHostListResp)
@@ -141,7 +141,7 @@ func (c *cli) listHost(ctx contextx.ITenantUserContext, req *protoBackend.TopoHo
 	return resp, nil
 }
 
-func (c *cli) distinctHost(ctx contextx.ITenantUserContext, req *protoBackend.TopoHostDistinctReq,
+func (c *cli) distinctHost(ctx contextx.IContext, req *protoBackend.TopoHostDistinctReq,
 ) (*protoBackend.TopoHostDistinctResp, error) {
 
 	resp := new(protoBackend.TopoHostDistinctResp)
@@ -171,7 +171,7 @@ func (c *cli) distinctHost(ctx contextx.ITenantUserContext, req *protoBackend.To
 	return resp, nil
 }
 
-func (c *cli) createNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaCreateReq,
+func (c *cli) createNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetworkAreaCreateReq,
 ) (*protoBackend.TopoNetworkAreaCreateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaCreateResp)
@@ -201,7 +201,7 @@ func (c *cli) createNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) updateNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaUpdateReq,
+func (c *cli) updateNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetworkAreaUpdateReq,
 ) (*protoBackend.TopoNetworkAreaUpdateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaUpdateResp)
@@ -231,7 +231,7 @@ func (c *cli) updateNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) listNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaListReq,
+func (c *cli) listNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetworkAreaListReq,
 ) (*protoBackend.TopoNetworkAreaListResp_Data, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaListResp)
@@ -262,7 +262,7 @@ func (c *cli) listNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend
 	return data, nil
 }
 
-func (c *cli) getNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaGetReq,
+func (c *cli) getNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetworkAreaGetReq,
 ) (*protoBackend.TopoNetworkAreaGetResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaGetResp)
@@ -292,7 +292,7 @@ func (c *cli) getNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.
 	return resp, nil
 }
 
-func (c *cli) deleteNetworkArea(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkAreaDeleteReq,
+func (c *cli) deleteNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetworkAreaDeleteReq,
 ) (*protoBackend.TopoNetworkAreaDeleteResp, error) {
 
 	resp := new(protoBackend.TopoNetworkAreaDeleteResp)
@@ -322,7 +322,7 @@ func (c *cli) deleteNetworkArea(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) createNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitCreateReq,
+func (c *cli) createNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetworkUnitCreateReq,
 ) (*protoBackend.TopoNetworkUnitCreateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitCreateResp)
@@ -352,7 +352,7 @@ func (c *cli) createNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) updateNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitUpdateReq,
+func (c *cli) updateNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetworkUnitUpdateReq,
 ) (*protoBackend.TopoNetworkUnitUpdateResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitUpdateResp)
@@ -382,7 +382,7 @@ func (c *cli) updateNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) getNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitGetReq,
+func (c *cli) getNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetworkUnitGetReq,
 ) (*protoBackend.TopoNetworkUnitGetResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitGetResp)
@@ -412,7 +412,7 @@ func (c *cli) getNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.
 	return resp, nil
 }
 
-func (c *cli) listNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitListReq,
+func (c *cli) listNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetworkUnitListReq,
 ) (*protoBackend.TopoNetworkUnitListResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitListResp)
@@ -442,7 +442,7 @@ func (c *cli) listNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend
 	return resp, nil
 }
 
-func (c *cli) deleteNetworkUnit(ctx contextx.ITenantUserContext, req *protoBackend.TopoNetworkUnitDeleteReq,
+func (c *cli) deleteNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetworkUnitDeleteReq,
 ) (*protoBackend.TopoNetworkUnitDeleteResp, error) {
 
 	resp := new(protoBackend.TopoNetworkUnitDeleteResp)
@@ -472,7 +472,7 @@ func (c *cli) deleteNetworkUnit(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) listTopoEvent(ctx contextx.ITenantUserContext, req *protoBackend.TopoEventListReq,
+func (c *cli) listTopoEvent(ctx contextx.IContext, req *protoBackend.TopoEventListReq,
 ) (*protoBackend.TopoEventListResp, error) {
 
 	resp := new(protoBackend.TopoEventListResp)
@@ -502,7 +502,7 @@ func (c *cli) listTopoEvent(ctx contextx.ITenantUserContext, req *protoBackend.T
 	return resp, nil
 }
 
-func (c *cli) distinctTopoEvent(ctx contextx.ITenantUserContext, req *protoBackend.TopoEventDistinctReq,
+func (c *cli) distinctTopoEvent(ctx contextx.IContext, req *protoBackend.TopoEventDistinctReq,
 ) (*protoBackend.TopoEventDistinctResp, error) {
 
 	resp := new(protoBackend.TopoEventDistinctResp)
@@ -532,7 +532,7 @@ func (c *cli) distinctTopoEvent(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) listAccessPoint(ctx contextx.ITenantUserContext, req *protoBackend.TopoAccessPointListReq,
+func (c *cli) listAccessPoint(ctx contextx.IContext, req *protoBackend.TopoAccessPointListReq,
 ) (*protoBackend.TopoAccessPointListResp, error) {
 
 	resp := new(protoBackend.TopoAccessPointListResp)
@@ -562,7 +562,7 @@ func (c *cli) listAccessPoint(ctx contextx.ITenantUserContext, req *protoBackend
 	return resp, nil
 }
 
-func (c *cli) getConstant(ctx contextx.ITenantUserContext, req *protoBackend.TopoConstantGetReq,
+func (c *cli) getConstant(ctx contextx.IContext, req *protoBackend.TopoConstantGetReq,
 ) (*protoBackend.TopoConstantGetResp, error) {
 
 	resp := new(protoBackend.TopoConstantGetResp)
@@ -592,7 +592,7 @@ func (c *cli) getConstant(ctx contextx.ITenantUserContext, req *protoBackend.Top
 	return resp, nil
 }
 
-func (c *cli) listNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowListReq,
+func (c *cli) listNodeWorkflow(ctx contextx.IContext, req *protoBackend.NodeWorkflowListReq,
 ) (*protoBackend.NodeWorkflowListResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowListResp)
@@ -622,7 +622,7 @@ func (c *cli) listNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBacken
 	return resp, nil
 }
 
-func (c *cli) distinctNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowDistinctReq,
+func (c *cli) distinctNodeWorkflow(ctx contextx.IContext, req *protoBackend.NodeWorkflowDistinctReq,
 ) (*protoBackend.NodeWorkflowDistinctResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowDistinctResp)
@@ -652,7 +652,7 @@ func (c *cli) distinctNodeWorkflow(ctx contextx.ITenantUserContext, req *protoBa
 	return resp, nil
 }
 
-func (c *cli) listNodeWorkflowOperation(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowOperationListReq,
+func (c *cli) listNodeWorkflowOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationListReq,
 ) (*protoBackend.NodeWorkflowOperationListResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationListResp)
@@ -683,7 +683,7 @@ func (c *cli) listNodeWorkflowOperation(ctx contextx.ITenantUserContext, req *pr
 }
 
 func (c *cli) listNodeWorkflowOperationInstance(
-	ctx contextx.ITenantUserContext,
+	ctx contextx.IContext,
 	req *protoBackend.NodeWorkflowOperationInstanceListReq,
 ) (*protoBackend.NodeWorkflowOperationInstanceListResp, error) {
 
@@ -716,7 +716,7 @@ func (c *cli) listNodeWorkflowOperationInstance(
 }
 
 func (c *cli) getOperationInstanceLog(
-	ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowOperationInstanceLogGetReq,
+	ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationInstanceLogGetReq,
 ) (*protoBackend.NodeWorkflowOperationInstanceLogGetResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceLogGetResp)
@@ -748,7 +748,7 @@ func (c *cli) getOperationInstanceLog(
 }
 
 func (c *cli) listNodeWorkflowOpInstanceStatus(
-	ctx contextx.ITenantUserContext,
+	ctx contextx.IContext,
 	req *protoBackend.NodeWorkflowOperationInstanceListStatusReq,
 ) (*protoBackend.NodeWorkflowOperationInstanceListStatusResp, error) {
 
@@ -780,7 +780,7 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(
 	return resp, nil
 }
 
-func (c *cli) installNodeAgent(ctx contextx.ITenantUserContext, req *protoBackend.NodeAgentInstallReq,
+func (c *cli) installNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgentInstallReq,
 ) (*protoBackend.NodeAgentInstallResp, error) {
 
 	resp := new(protoBackend.NodeAgentInstallResp)
@@ -811,7 +811,7 @@ func (c *cli) installNodeAgent(ctx contextx.ITenantUserContext, req *protoBacken
 	return resp, nil
 }
 
-func (c *cli) checkAgentInstall(ctx contextx.ITenantUserContext, req *protoBackend.NodeAgentInstallCheckReq,
+func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAgentInstallCheckReq,
 ) (*protoBackend.NodeAgentInstallCheckResp, error) {
 
 	resp := new(protoBackend.NodeAgentInstallCheckResp)
@@ -842,7 +842,7 @@ func (c *cli) checkAgentInstall(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.NodeWorkflowOperationRetryReq,
+func (c *cli) retryOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationRetryReq,
 ) (*protoBackend.NodeWorkflowOperationRetryResp, error) {
 
 	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
@@ -873,7 +873,7 @@ func (c *cli) retryOperation(ctx contextx.ITenantUserContext, req *protoBackend.
 	return resp, nil
 }
 
-func (c *cli) installNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyInstallReq) (
+func (c *cli) installNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyInstallReq) (
 	*protoBackend.NodeProxyInstallResp, error) {
 
 	resp := new(protoBackend.NodeProxyInstallResp)
@@ -904,7 +904,7 @@ func (c *cli) installNodeProxy(ctx contextx.ITenantUserContext, req *protoBacken
 	return resp, nil
 }
 
-func (c *cli) upgradeNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyUpgradeReq) (
+func (c *cli) upgradeNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyUpgradeReq) (
 	*protoBackend.NodeProxyUpgradeResp, error) {
 
 	resp := new(protoBackend.NodeProxyUpgradeResp)
@@ -935,7 +935,7 @@ func (c *cli) upgradeNodeProxy(ctx contextx.ITenantUserContext, req *protoBacken
 	return resp, nil
 }
 
-func (c *cli) restartNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyRestartReq) (
+func (c *cli) restartNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyRestartReq) (
 	*protoBackend.NodeProxyRestartResp, error) {
 
 	resp := new(protoBackend.NodeProxyRestartResp)
@@ -966,7 +966,7 @@ func (c *cli) restartNodeProxy(ctx contextx.ITenantUserContext, req *protoBacken
 	return resp, nil
 }
 
-func (c *cli) reconfigNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyReconfigReq) (
+func (c *cli) reconfigNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyReconfigReq) (
 	*protoBackend.NodeProxyReconfigResp, error) {
 
 	resp := new(protoBackend.NodeProxyReconfigResp)
@@ -997,7 +997,7 @@ func (c *cli) reconfigNodeProxy(ctx contextx.ITenantUserContext, req *protoBacke
 	return resp, nil
 }
 
-func (c *cli) updateNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend.NodeProxyUpdateReq) (
+func (c *cli) updateNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyUpdateReq) (
 	*protoBackend.NodeProxyUpdateResp, error) {
 
 	resp := new(protoBackend.NodeProxyUpdateResp)
@@ -1022,7 +1022,7 @@ func (c *cli) updateNodeProxy(ctx contextx.ITenantUserContext, req *protoBackend
 	return resp, nil
 }
 
-func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseListReq,
+func (c *cli) listRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseListReq,
 ) (*protoBackend.PackageReleaseListResp, error) {
 
 	resp := new(protoBackend.PackageReleaseListResp)
@@ -1053,7 +1053,7 @@ func (c *cli) listRelease(ctx contextx.ITenantUserContext, req *protoBackend.Pac
 	return resp, nil
 }
 
-func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDistinctReq) (
+func (c *cli) distinctRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDistinctReq) (
 	*protoBackend.PackageReleaseDistinctResp, error) {
 
 	resp := new(protoBackend.PackageReleaseDistinctResp)
@@ -1084,7 +1084,7 @@ func (c *cli) distinctRelease(ctx contextx.ITenantUserContext, req *protoBackend
 	return resp, nil
 }
 
-func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseSetLabelsReq) error {
+func (c *cli) setReleaseLabels(ctx contextx.IContext, req *protoBackend.PackageReleaseSetLabelsReq) error {
 	resp := new(protoBackend.PackageReleaseSetLabelsResp)
 
 	header := c.getHeader(ctx)
@@ -1108,7 +1108,7 @@ func (c *cli) setReleaseLabels(ctx contextx.ITenantUserContext, req *protoBacken
 	return nil
 }
 
-func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseEnableReq) error {
+func (c *cli) enableRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseEnableReq) error {
 	resp := new(protoBackend.PackageReleaseEnableResp)
 	header := c.getHeader(ctx)
 	err := c.client.Post().
@@ -1131,7 +1131,7 @@ func (c *cli) enableRelease(ctx contextx.ITenantUserContext, req *protoBackend.P
 	return nil
 }
 
-func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDisableReq) error {
+func (c *cli) disableRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDisableReq) error {
 	resp := new(protoBackend.PackageReleaseDisableResp)
 	header := c.getHeader(ctx)
 	err := c.client.Post().
@@ -1154,7 +1154,7 @@ func (c *cli) disableRelease(ctx contextx.ITenantUserContext, req *protoBackend.
 	return nil
 }
 
-func (c *cli) setAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
+func (c *cli) setAsDefaultRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
 	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
 	header := c.getHeader(ctx)
 	err := c.client.Post().
@@ -1177,7 +1177,7 @@ func (c *cli) setAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBac
 	return nil
 }
 
-func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseCancelAsDefaultReq,
+func (c *cli) cancelAsDefaultRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseCancelAsDefaultReq,
 ) error {
 
 	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
@@ -1202,7 +1202,7 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.ITenantUserContext, req *proto
 	return nil
 }
 
-func (c *cli) deleteRelease(ctx contextx.ITenantUserContext, req *protoBackend.PackageReleaseDeleteReq) error {
+func (c *cli) deleteRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDeleteReq) error {
 	resp := new(protoBackend.PackageReleaseDeleteResp)
 	header := c.getHeader(ctx)
 	err := c.client.Post().
@@ -1225,7 +1225,7 @@ func (c *cli) deleteRelease(ctx contextx.ITenantUserContext, req *protoBackend.P
 	return nil
 }
 
-func (c *cli) listConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyListReq) (
+func (c *cli) listConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyListReq) (
 	*protoBackend.ConfigPolicyListResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyListResp)
@@ -1250,7 +1250,7 @@ func (c *cli) listConfigPolicy(ctx contextx.ITenantUserContext, req *protoBacken
 	return resp, nil
 }
 
-func (c *cli) getConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyGetReq) (
+func (c *cli) getConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyGetReq) (
 	*protoBackend.ConfigPolicyGetResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyGetResp)
@@ -1275,7 +1275,7 @@ func (c *cli) getConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend
 	return resp, nil
 }
 
-func (c *cli) createConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyCreateReq) (
+func (c *cli) createConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyCreateReq) (
 	*protoBackend.ConfigPolicyCreateResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
@@ -1300,7 +1300,7 @@ func (c *cli) createConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	return resp, nil
 }
 
-func (c *cli) updateConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyUpdateReq) (
+func (c *cli) updateConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyUpdateReq) (
 	*protoBackend.ConfigPolicyUpdateResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
@@ -1325,7 +1325,7 @@ func (c *cli) updateConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	return resp, nil
 }
 
-func (c *cli) enableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyEnableReq) (
+func (c *cli) enableConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyEnableReq) (
 	*protoBackend.ConfigPolicyEnableResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
@@ -1350,7 +1350,7 @@ func (c *cli) enableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBack
 	return resp, nil
 }
 
-func (c *cli) disableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyDisableReq) (
+func (c *cli) disableConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyDisableReq) (
 	*protoBackend.ConfigPolicyDisableResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
@@ -1375,7 +1375,7 @@ func (c *cli) disableConfigPolicy(ctx contextx.ITenantUserContext, req *protoBac
 	return resp, nil
 }
 
-func (c *cli) deleteConfigPolicy(ctx contextx.ITenantUserContext, req *protoBackend.ConfigPolicyDeleteReq) (
+func (c *cli) deleteConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyDeleteReq) (
 	*protoBackend.ConfigPolicyDeleteResp, error) {
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)

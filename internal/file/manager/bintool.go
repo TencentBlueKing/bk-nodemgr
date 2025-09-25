@@ -30,7 +30,7 @@ type IBinTool interface {
 		*types.OriginBinToolPkgDetail, error)
 
 	// PublishReleaseBinTool generate release bintool package.
-	PublishReleaseBinTool(ctx contextx.IUserContext, uploadID string) error
+	PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error
 }
 
 const (
@@ -161,7 +161,7 @@ func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, e
 }
 
 // PublishReleaseBinTool generates release bintool by upload-id.
-func (m *Manager) PublishReleaseBinTool(ctx contextx.IUserContext, uploadID string) error {
+func (m *Manager) PublishReleaseBinTool(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetBinToolUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release bintool, failed to get upload(%s). err: %v", uploadID, err)

@@ -23,20 +23,20 @@ const (
 )
 
 // ListHost lists hosts with page and conditions.
-func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoHostListReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list host, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to list host, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountHost(
-			ctx,
+			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(ctx, "failed to list host, failed to count host. err: %v", err)
+			h.logger.ErrorCtxf(rCtx, "failed to list host, failed to count host. err: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
@@ -47,22 +47,22 @@ func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 	}
 
 	hosts, num, err := h.backendHandler.ListHost(
-		ctx,
+		rCtx,
 		req.ConvertPageToTypes(maxHostLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to list host. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to list host. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	var mapping types.TopoNameMapping
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		_ = h.completeNetworkAreaName(ctx, hosts, &mapping)
+		_ = h.completeNetworkAreaName(rCtx, hosts, &mapping)
 		return nil
 	})
 	gp.Go(func() error {
-		_ = h.completeNetworkUnitName(ctx, hosts, &mapping)
+		_ = h.completeNetworkUnitName(rCtx, hosts, &mapping)
 		return nil
 	})
 	_ = gp.Wait()
@@ -74,7 +74,7 @@ func (h *handler) ListHost(ctx *restserver.Context) (interface{}, error) {
 }
 
 func (h *handler) completeNetworkAreaName(
-	ctx *restserver.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+	rCtx restserver.IContext, hosts []*types.Host, mapping *types.TopoNameMapping) error {
 
 	idMap := make(map[int64]bool)
 	for _, host := range hosts {
@@ -89,7 +89,7 @@ func (h *handler) completeNetworkAreaName(
 	}
 
 	items, _, err := h.backendHandler.ListNetworkArea(
-		ctx,
+		rCtx,
 		types.Page{Limit: len(ids)},
 		&types.NetworkAreaCondition{
 			ExactInclude: &types.NetworkAreaExactFields{
@@ -99,11 +99,11 @@ func (h *handler) completeNetworkAreaName(
 	)
 
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to complete networkarea name. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to complete networkarea name. err: %v", err)
 		return err
 	}
 
-	h.logger.InfoCtxf(ctx, "completed networkarea name: %d", len(items))
+	h.logger.InfoCtxf(rCtx, "completed networkarea name: %d", len(items))
 	mapping.NetworkArea = make(map[int64]string)
 	for _, item := range items {
 		mapping.NetworkArea[item.ID] = item.Name
@@ -113,7 +113,7 @@ func (h *handler) completeNetworkAreaName(
 }
 
 func (h *handler) completeNetworkUnitName(
-	ctx *restserver.Context, hosts []*types.Host, mapping *types.TopoNameMapping) error {
+	rCtx restserver.IContext, hosts []*types.Host, mapping *types.TopoNameMapping) error {
 
 	idMap := make(map[int64]bool)
 	for _, host := range hosts {
@@ -128,7 +128,7 @@ func (h *handler) completeNetworkUnitName(
 	}
 
 	items, _, err := h.backendHandler.ListNetworkUnit(
-		ctx,
+		rCtx,
 		types.Page{Limit: len(ids)},
 		&types.NetworkUnitCondition{
 			ExactInclude: &types.NetworkUnitExactFields{
@@ -138,11 +138,11 @@ func (h *handler) completeNetworkUnitName(
 	)
 
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to complete networkunit name. err: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to complete networkunit name. err: %v", err)
 		return err
 	}
 
-	h.logger.InfoCtxf(ctx, "completed networkunit name: %d", len(items))
+	h.logger.InfoCtxf(rCtx, "completed networkunit name: %d", len(items))
 	mapping.NetworkUnit = make(map[int64]string)
 	for _, item := range items {
 		mapping.NetworkUnit[item.ID] = item.Name
@@ -152,18 +152,18 @@ func (h *handler) completeNetworkUnitName(
 }
 
 // DistinctHost get distinct host fields.
-func (h *handler) DistinctHost(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoHostDistinctReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct host, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to distinct host, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	result, err := h.backendHandler.DistinctHost(
-		ctx,
+		rCtx,
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to distinct host. failed to distinct host fields: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

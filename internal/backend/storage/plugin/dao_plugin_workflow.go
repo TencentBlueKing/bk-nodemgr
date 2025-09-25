@@ -20,7 +20,7 @@ import (
 )
 
 // createPluginWorkflow create plugin workflow.
-func (s *Storage) createPluginWorkflow(ctx contextx.ITenantContext, workflow *types.PluginWorkflow) error {
+func (s *Storage) createPluginWorkflow(ctx contextx.IContext, workflow *types.PluginWorkflow) error {
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -37,7 +37,7 @@ func (s *Storage) createPluginWorkflow(ctx contextx.ITenantContext, workflow *ty
 }
 
 // getPluginWorkflow get plugin workflow.
-func (s *Storage) getPluginWorkflow(ctx contextx.ITenantContext, workflowID string) (*types.PluginWorkflow, error) {
+func (s *Storage) getPluginWorkflow(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -55,7 +55,7 @@ func (s *Storage) getPluginWorkflow(ctx contextx.ITenantContext, workflowID stri
 }
 
 // updatePluginWorkflowStatus update plugin workflow status.
-func (s *Storage) updatePluginWorkflowStatus(ctx contextx.ITenantContext, workflowID string, status types.PluginWorkflowStatus) error {
+func (s *Storage) updatePluginWorkflowStatus(ctx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}

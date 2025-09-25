@@ -17,19 +17,19 @@ import (
 )
 
 // Reconfig proxy.
-func (h *handler) Reconfig(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Reconfig(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyReconfigReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to reconfig proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to reconfig proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.ReconfigProxy(ctx, req.ConvertParamToTypes())
+	workflowID, err := h.backendHandler.ReconfigProxy(rCtx, req.ConvertParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to reconfig proxy: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to reconfig proxy: %v", err)
 		return nil, err
 	}
-	h.logger.InfoCtxf(ctx, "launched proxy reconfig. workflow-id(%s)", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched proxy reconfig. workflow-id(%s)", workflowID)
 
 	resp := new(protoApplication.NodeProxyReconfigResp)
 	resp.ConvertWorkflowID(workflowID)

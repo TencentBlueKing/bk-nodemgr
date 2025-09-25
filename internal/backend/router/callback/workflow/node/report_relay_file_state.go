@@ -48,8 +48,8 @@ func (h *handler) RelayReportFileState(gCtx *gin.Context) {
 	dataMap := make(map[string]any)
 	dataMap[relayconstant.FileStateKey] = fileStateMap
 
-	ctx := contextx.NewContext(gCtx, map[string]any{})
-	if err := h.UpsertActionInstancePrivateData(ctx,
+	nCtx := contextx.New(gCtx)
+	if err := h.UpsertActionInstancePrivateData(nCtx,
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
 		h.logger.Errorf("update action private failed: %s", err)
 		gCtx.JSON(http.StatusInternalServerError, err)

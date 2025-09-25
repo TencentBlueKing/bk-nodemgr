@@ -30,7 +30,7 @@ type IPluginBinTool interface {
 		*types.OriginPluginBinToolPkgDetail, error)
 
 	// PublishReleasePluginBinTool generate release plugin bintool package.
-	PublishReleasePluginBinTool(ctx contextx.IUserContext, uploadID string) error
+	PublishReleasePluginBinTool(ctx contextx.IContext, uploadID string) error
 }
 
 const (
@@ -164,7 +164,7 @@ func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinTool
 }
 
 // PublishReleasePluginBinTool generates release plugin bintool by upload-id.
-func (m *Manager) PublishReleasePluginBinTool(ctx contextx.IUserContext, uploadID string) error {
+func (m *Manager) PublishReleasePluginBinTool(ctx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetPluginBinToolUpload(ctx, uploadID)
 	if err != nil {
 		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to get upload(%s). err: %v", uploadID, err)

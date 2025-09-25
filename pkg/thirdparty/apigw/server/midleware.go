@@ -23,12 +23,12 @@ type BKAPIRequestIDSetter struct {
 }
 
 // SetRequestID ...
-func (setter *BKAPIRequestIDSetter) SetRequestID(rCtx *restserver.Context) error {
+func (setter *BKAPIRequestIDSetter) SetRequestID(r restserver.IRequest) error {
 	// note: for thread safety you need to reset it here.
-	rCtx.SetRequestID(apigwheader.BKRIDGetter(rCtx.Request()))
+	r.Data().SetRequestID(apigwheader.BKRIDGetter(r.GetRequest()))
 
-	if rCtx.RequestID() == "" {
-		rCtx.SetRequestID(identifier.GenRequestID())
+	if r.Data().GetRequestID() == "" {
+		r.Data().SetRequestID(identifier.GenRequestID())
 	}
 
 	return nil

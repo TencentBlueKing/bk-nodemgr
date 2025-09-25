@@ -49,7 +49,7 @@ func (s *Storage) getReleaseProxy(
 }
 
 // upsertManyReleaseProxy upsert many release.
-func (s *Storage) upsertManyReleaseProxy(ctx contextx.IUserContext, releaseProxys []*types.ReleaseProxy) (err error) {
+func (s *Storage) upsertManyReleaseProxy(ctx contextx.IContext, releaseProxys []*types.ReleaseProxy) (err error) {
 	releases := make([]*types.Release, 0, len(releaseProxys))
 	for _, rls := range releaseProxys {
 		if rls == nil {

@@ -23,12 +23,12 @@ type RequestIDSetter struct {
 }
 
 // SetRequestID ...
-func (setter *RequestIDSetter) SetRequestID(rCtx *restserver.Context) error {
+func (setter *RequestIDSetter) SetRequestID(r restserver.IRequest) error {
 	// note: for thread safety you need to reset it here.
-	rCtx.SetRequestID(BKRIDGetter(rCtx.Request()))
+	r.Data().SetRequestID(BKRIDGetter(r.GetRequest()))
 
-	if rCtx.RequestID() == "" {
-		rCtx.SetRequestID(identifier.GenRequestID())
+	if r.Data().GetRequestID() == "" {
+		r.Data().SetRequestID(identifier.GenRequestID())
 	}
 
 	return nil

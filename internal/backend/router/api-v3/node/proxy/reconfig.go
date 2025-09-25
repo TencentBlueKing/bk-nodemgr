@@ -25,40 +25,40 @@ import (
 )
 
 // Reconfig reconfig proxy.
-func (h *handler) Reconfig(ctx *restserver.Context) (interface{}, error) {
+func (h *handler) Reconfig(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeProxyReconfigReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to reconfig proxy, failed to decode request body. err: %v", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		h.logger.ErrorCtxf(rCtx, "failed to reconfig proxy, failed to decode request body. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	nodeDeployments, bizIDs, err := h.generatesReconfigNodeDeployments(ctx, req)
+	nodeDeployments, bizIDs, err := h.generatesReconfigNodeDeployments(rCtx, req)
 	if err != nil {
 		h.logger.Errorf("failed to reconfig proxy, failed to generate node deployments. err: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.manager.LaunchReconfigNode(ctx, manager.ReconfigNodeParam{
+	workflowID, err := h.manager.LaunchReconfigNode(rCtx, manager.ReconfigNodeParam{
 		Type:            types.NodeWorkflowTypeReconfigProxy,
 		BizIDs:          bizIDs,
-		Operator:        ctx.BKUsername(),
+		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(ctx, "failed to reconfig proxy: %v", err)
+		h.logger.ErrorCtxf(rCtx, "failed to reconfig proxy: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeProxyReconfigResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(ctx, "launched reconfig proxy workflow: %s", workflowID)
+	h.logger.InfoCtxf(rCtx, "launched reconfig proxy workflow: %s", workflowID)
 
 	return resp.GetData(), nil
 }
 
 func (h *handler) getReconfigNodeHosts(
-	ctx contextx.ITenantContext, reqHosts []*protoBackend.NodeProxyReconfigReq_Host) (map[int64]*types.Host, error) {
+	nCtx contextx.IContext, reqHosts []*protoBackend.NodeProxyReconfigReq_Host) (map[int64]*types.Host, error) {
 
 	if len(reqHosts) == 0 {
 		return nil, errors.New("empty host list")
@@ -69,7 +69,7 @@ func (h *handler) getReconfigNodeHosts(
 		hostIDs[host.GetBkHostId()] = struct{}{}
 	}
 
-	hosts, _, err := h.storageHost.ListHost(ctx,
+	hosts, _, err := h.storageHost.ListHost(nCtx,
 		types.UnlimitedPage(),
 		&types.HostCondition{ExactInclude: &types.HostExactFields{
 			HostID: conv.MapKeyToSlice(hostIDs),
@@ -87,10 +87,10 @@ func (h *handler) getReconfigNodeHosts(
 	return result, err
 }
 
-func (h *handler) generatesReconfigNodeDeployments(ctx contextx.ITenantContext, req *protoBackend.NodeProxyReconfigReq) (
+func (h *handler) generatesReconfigNodeDeployments(nCtx contextx.IContext, req *protoBackend.NodeProxyReconfigReq) (
 	[]*types.NodeDeployment, []int64, error) {
 
-	typeHosts, err := h.getReconfigNodeHosts(ctx, req.GetHost())
+	typeHosts, err := h.getReconfigNodeHosts(nCtx, req.GetHost())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -111,7 +111,7 @@ func (h *handler) generatesReconfigNodeDeployments(ctx contextx.ITenantContext, 
 
 		nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 			Host: types.Host{
-				TenantID: ctx.TenantID(),
+				TenantID: nCtx.TenantID(),
 				HostID:   host.HostID,
 				Static:   host.Static,
 				Dynamic:  host.Dynamic,

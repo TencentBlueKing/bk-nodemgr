@@ -113,9 +113,8 @@ func (act *actionSyncAliveHostAgentInfo) Do(ctx *action.InstanceContext) error {
 			return nil, err
 		}
 
-		tenantUserCtx := contextx.NewTenantUserContext(fnCtx, param.TenantID, param.Operator)
-
-		if err = act.executeOper(tenantUserCtx, ctx.Data, hosts...); err != nil {
+		newCtx := contextx.New(fnCtx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+		if err = act.executeOper(newCtx, ctx.Data, hosts...); err != nil {
 			return nil, err
 		}
 
@@ -139,7 +138,7 @@ func (act *actionSyncAliveHostAgentInfo) Do(ctx *action.InstanceContext) error {
 
 // executeOper create an operation to sync agent info for the given hosts and then execute it.
 func (act *actionSyncAliveHostAgentInfo) executeOper(
-	ctx contextx.ITenantUserContext, actionInstData *action.InstanceData, hosts ...*types.Host) error {
+	ctx contextx.IContext, actionInstData *action.InstanceData, hosts ...*types.Host) error {
 
 	trigCtl, err := act.workflowCtl.GetTrigger(ctx, actionInstData.TriggerID)
 	if err != nil {

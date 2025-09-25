@@ -34,283 +34,283 @@ type IHandler interface {
 	IHandlerConfigPolicy
 
 	// ListBusiness list business within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param condition the filter conditions.
 	// @return business list with page and the total count with filter.
-	ListBusiness(ctx contextx.ITenantUserContext, page types.Page, condition *types.BusinessCondition) (
+	ListBusiness(ctx contextx.IContext, page types.Page, condition *types.BusinessCondition) (
 		[]*types.Business, int64, error)
 
 	// ListTopoEvent list topo events by page and conditions.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param condition the filter conditions.
 	// @return the topo-event list with page and the total count with filter.
-	ListTopoEvent(ctx contextx.ITenantUserContext, page types.Page, condition *types.TopoEventCondition) (
+	ListTopoEvent(ctx contextx.IContext, page types.Page, condition *types.TopoEventCondition) (
 		[]*types.TopoEvent, int64, error)
 
 	// CountTopoEvent count topo events by condition.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param condition the filter conditions.
 	// @return the topo-event count with filter.
-	CountTopoEvent(ctx contextx.ITenantUserContext, condition *types.TopoEventCondition) (int64, error)
+	CountTopoEvent(ctx contextx.IContext, condition *types.TopoEventCondition) (int64, error)
 
 	// DistinctTopoEvent distinct topo-event by condition.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param condition the filter conditions.
 	// @return the topo-event distinct result.
 	DistinctTopoEvent(
-		ctx contextx.ITenantUserContext, condition *types.TopoEventCondition) (
+		ctx contextx.IContext, condition *types.TopoEventCondition) (
 		*types.TopoEventDistinctResult, error)
 
 	// ListAccessPoint list access points by page and conditions.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param condition the filter conditions.
 	// @return the access-point list with page and the total count with filter.
-	ListAccessPoint(ctx contextx.ITenantUserContext, page types.Page, condition *types.AccessPointCondition) (
+	ListAccessPoint(ctx contextx.IContext, page types.Page, condition *types.AccessPointCondition) (
 		[]*types.AccessPoint, int64, error)
 
 	// GetConstant get constant by fields.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param fields describes the fields to get.
 	// @return the constant result.
-	GetConstant(ctx contextx.ITenantUserContext, fields types.TopoConstantFields) (*types.TopoConstant, error)
+	GetConstant(ctx contextx.IContext, fields types.TopoConstantFields) (*types.TopoConstant, error)
 }
 
 // IHandlerHost defines the host Handler.
 type IHandlerHost interface {
 	// ListHost list host within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param condition the filter conditions.
 	// @return host list with page and the total count with filter.
-	ListHost(ctx contextx.ITenantUserContext, page types.Page, condition *types.HostCondition) ([]*types.Host, int64, error)
+	ListHost(ctx contextx.IContext, page types.Page, condition *types.HostCondition) ([]*types.Host, int64, error)
 
 	// DistinctHost distinct host by condition.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param condition the filter conditions.
 	// @return the host distinct result.
 	DistinctHost(
-		ctx contextx.ITenantUserContext, condition *types.HostCondition) (
+		ctx contextx.IContext, condition *types.HostCondition) (
 		*types.HostDistinctResult, error)
 
 	// CountHost count host within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param condition the filter conditions.
 	// @return the host count with filter.
-	CountHost(ctx contextx.ITenantUserContext, condition *types.HostCondition) (int64, error)
+	CountHost(ctx contextx.IContext, condition *types.HostCondition) (int64, error)
 }
 
 // IHandlerNetworkArea defines the network area Handler.
 type IHandlerNetworkArea interface {
 	// CreateNetworkArea create network area within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param networkArea the network area to create.
 	// @return the network-area id.
-	CreateNetworkArea(ctx contextx.ITenantUserContext, networkArea *types.NetworkArea) (int64, error)
+	CreateNetworkArea(ctx contextx.IContext, networkArea *types.NetworkArea) (int64, error)
 
 	// UpdateNetworkArea update network area within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param networkArea the network area to update.
 	// @return the error.
-	UpdateNetworkArea(ctx contextx.ITenantUserContext, networkArea *types.NetworkArea) error
+	UpdateNetworkArea(ctx contextx.IContext, networkArea *types.NetworkArea) error
 
 	// ListNetworkArea list network area within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param condition the filter conditions.
 	// @return the network-area list with page and the total count with filter.
-	ListNetworkArea(ctx contextx.ITenantUserContext, page types.Page, condition *types.NetworkAreaCondition) (
+	ListNetworkArea(ctx contextx.IContext, page types.Page, condition *types.NetworkAreaCondition) (
 		[]*types.NetworkArea, int64, error)
 
 	// DeleteNetworkArea delete network area within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param networkAreaID the network area id.
 	// @return the error.
-	DeleteNetworkArea(ctx contextx.ITenantUserContext, networkAreaID int64) error
+	DeleteNetworkArea(ctx contextx.IContext, networkAreaID int64) error
 
 	// GetNetworkArea get specific network area.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param networkAreaID the network area id.
 	// @return the network-area.
-	GetNetworkArea(ctx contextx.ITenantUserContext, networkAreaID int64) (*types.NetworkArea, error)
+	GetNetworkArea(ctx contextx.IContext, networkAreaID int64) (*types.NetworkArea, error)
 }
 
 // IHandlerNetworkUnit defines the network unit Handler.
 type IHandlerNetworkUnit interface {
 	// CreateNetworkUnit create network unit within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param networkUnit the network unit to create.
 	// @param accessPoints the access points of the network unit.
 	// @return the network-unit id.
-	CreateNetworkUnit(ctx contextx.ITenantUserContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+	CreateNetworkUnit(ctx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
 		int64, error)
 
 	// UpdateNetworkUnit update network unit within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param networkUnit the network unit to update.
 	// @param accessPoints the access points of the network unit.
 	// @return the network-unit id.
-	UpdateNetworkUnit(ctx contextx.ITenantUserContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error
+	UpdateNetworkUnit(ctx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error
 
 	// ListNetworkUnit list network unit within specified tenant in contextx.
 	// @param ctx content, contains tenant-id.
 	// @param page describes the page info when listing.
 	// @param condition the filter conditions.
 	// @return the network-unit list with page and the total count with filter.
-	ListNetworkUnit(ctx contextx.ITenantUserContext, page types.Page, condition *types.NetworkUnitCondition) (
+	ListNetworkUnit(ctx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) (
 		[]*types.NetworkUnit, int64, error)
 
 	// GetNetworkUnit get specific network unit.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param networkUnitID the network unit id.
 	// @return the network-unit and its accesspoints.
-	GetNetworkUnit(ctx contextx.ITenantUserContext, networkUnitID int64) (*types.NetworkUnit, map[int64]*types.AccessPoint, error)
+	GetNetworkUnit(ctx contextx.IContext, networkUnitID int64) (*types.NetworkUnit, map[int64]*types.AccessPoint, error)
 
 	// DeleteNetworkUnit delete network unit within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param networkUnitID the network unit id.
 	// @return the network-unit id.
-	DeleteNetworkUnit(ctx contextx.ITenantUserContext, networkUnitID int64) error
+	DeleteNetworkUnit(ctx contextx.IContext, networkUnitID int64) error
 }
 
 // IHandlerNodeAgent defines the node agent Handler.
 type IHandlerNodeAgent interface {
 	// InstallAgent node agent.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param installParam the install param.
 	// @return the installing workflow-ids and error.
-	InstallAgent(ctx contextx.ITenantUserContext, installParam *types.NodeAgentInstallParam) (string, error)
+	InstallAgent(ctx contextx.IContext, installParam *types.NodeAgentInstallParam) (string, error)
 
 	// CheckAgentInstall node agent.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param checkParam the check param.
 	// @return the check result and error.
-	CheckAgentInstall(ctx contextx.ITenantUserContext, checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error)
+	CheckAgentInstall(ctx contextx.IContext, checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error)
 
 	// UpgradeAgent node agent.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param retryParam the retry param.
 	// @return the retry operation-ids and error.
-	OperationRetry(ctx contextx.ITenantUserContext, retryParam *types.NodeOperationRetryParam) ([]string, error)
+	OperationRetry(ctx contextx.IContext, retryParam *types.NodeOperationRetryParam) ([]string, error)
 }
 
 // IHandlerNodeProxy defines the node proxy Handler.
 type IHandlerNodeProxy interface {
 	// InstallProxy node proxy.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param installParam the install param.
 	// @return the installing workflow-ids and error.
-	InstallProxy(ctx contextx.ITenantUserContext, installParam *types.NodeProxyInstallParam) (string, error)
+	InstallProxy(ctx contextx.IContext, installParam *types.NodeProxyInstallParam) (string, error)
 
 	// UpgradeProxy node proxy.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param upgradeParam the upgrade param.
 	// @return the upgrading workflow-ids and error.
-	UpgradeProxy(ctx contextx.ITenantUserContext, upgradeParam *types.NodeProxyUpgradeParam) (string, error)
+	UpgradeProxy(ctx contextx.IContext, upgradeParam *types.NodeProxyUpgradeParam) (string, error)
 
 	// RestartProxy node proxy.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param restartParam the restart param.
 	// @return the restarting workflow-ids and error.
-	RestartProxy(ctx contextx.ITenantUserContext, restartParam *types.NodeProxyRestartParam) (string, error)
+	RestartProxy(ctx contextx.IContext, restartParam *types.NodeProxyRestartParam) (string, error)
 
 	// ReconfigProxy node proxy.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param reconfigParam the reconfig param.
 	// @return the reconfig workflow-ids and error.
-	ReconfigProxy(ctx contextx.ITenantUserContext, reconfigParam *types.NodeProxyReconfigParam) (string, error)
+	ReconfigProxy(ctx contextx.IContext, reconfigParam *types.NodeProxyReconfigParam) (string, error)
 
 	// UpdateProxy update node proxy.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param updateParam the update param.
 	// @return the error.
-	UpdateProxy(ctx contextx.ITenantUserContext, updateParam *types.NodeProxyUpdateParam) error
+	UpdateProxy(ctx contextx.IContext, updateParam *types.NodeProxyUpdateParam) error
 }
 
 // IHandlerNodeWorkflow defines the node workflow Handler.
 type IHandlerNodeWorkflow interface {
 	// ListNodeWorkflow list node workflow within specified tenant in contextx.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param condition the filter conditions.
 	// @return the node-workflow list with page and the total count with filter.
-	ListNodeWorkflow(ctx contextx.ITenantUserContext, page types.Page, condition *types.NodeWorkflowCondition) (
+	ListNodeWorkflow(ctx contextx.IContext, page types.Page, condition *types.NodeWorkflowCondition) (
 		[]*types.NodeWorkflow, int64, error)
 
 	// CountNodeWorkflow count node workflow by conditions.
 	//	@param ctx contextx, contains tenant-id.
 	//	@param condition the filter conditions.
 	//	@return the node-workflow count with filter.
-	CountNodeWorkflow(ctx contextx.ITenantUserContext, condition *types.NodeWorkflowCondition) (int64, error)
+	CountNodeWorkflow(ctx contextx.IContext, condition *types.NodeWorkflowCondition) (int64, error)
 
 	// DistinctNodeWorkflow distinct node workflow by conditions.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param request the node workflow distinct request.
 	// @param conditions the filter conditions.
 	// @return the node-workflow distinct result.
-	DistinctNodeWorkflow(ctx contextx.ITenantUserContext, request types.NodeWorkflowDistinctRequest,
+	DistinctNodeWorkflow(ctx contextx.IContext, request types.NodeWorkflowDistinctRequest,
 		condition *types.NodeWorkflowCondition) (*types.NodeWorkflowDistinctResult, error)
 
 	// ListNodeWorkflowOperation list network area operation.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param workflowID the workflow id.
 	// @return the operation list with page and the total count with filter.
-	ListNodeWorkflowOperation(ctx contextx.ITenantUserContext, page types.Page, condition *types.NodeWorkflowOperationCondition) (
+	ListNodeWorkflowOperation(ctx contextx.IContext, page types.Page, condition *types.NodeWorkflowOperationCondition) (
 		[]*operation.Operation, int64, error)
 
 	// CountNodeWorkflowOperation count network area operation.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param workflowID the workflow id.
 	// @return the operation count with filter.
-	CountNodeWorkflowOperation(ctx contextx.ITenantUserContext, condition *types.NodeWorkflowOperationCondition) (int64, error)
+	CountNodeWorkflowOperation(ctx contextx.IContext, condition *types.NodeWorkflowOperationCondition) (int64, error)
 
 	// ListNodeWorkflowOperationInstance list network area operation instance.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param operationID the operation id.
 	// @return the operation instance list with page and the total count with filter.
-	ListNodeWorkflowOperationInstance(ctx contextx.ITenantUserContext, operationID ...string) (
+	ListNodeWorkflowOperationInstance(ctx contextx.IContext, operationID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
 
 	// CountNodeWorkflowOperationInstance count network area operation instance.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param operationID the operation id.
 	// @return the operation instance count with filter.
-	CountNodeWorkflowOperationInstance(ctx contextx.ITenantUserContext, operationID ...string) (int64, error)
+	CountNodeWorkflowOperationInstance(ctx contextx.IContext, operationID ...string) (int64, error)
 
 	// GetNodeWorkflowOperationInstanceLog distinct node workflow by conditions.
-	// @param ctx contextx.ITenantUserContext, contains tenant-id and username.
+	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param request the node workflow distinct request.
 	// @param condition the filter conditions.
 	// @return the node-workflow distinct result.
-	GetNodeWorkflowOperationInstanceLog(ctx contextx.ITenantUserContext, instanceID string) (*operation.InstanceData, error)
+	GetNodeWorkflowOperationInstanceLog(ctx contextx.IContext, instanceID string) (*operation.InstanceData, error)
 
 	// ListNodeWorkflowOperationInstanceStatus list network area operation instance status.
 	// @param ctx contextx, contains tenant-id.
 	// @param triggerID the trigger id.
 	// @return the operation instance status list.
-	ListNodeWorkflowOperationInstanceStatus(ctx contextx.ITenantUserContext,
+	ListNodeWorkflowOperationInstanceStatus(ctx contextx.IContext,
 		condition *types.NodeWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error)
 }
 
 // IHandlerRelease defines the backend Handler for release.
 type IHandlerRelease interface {
 	// ListRelease lists release by page and conditions.
-	ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, page types.Page,
+	ListRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, page types.Page,
 		condition *types.ReleaseCondition) ([]*types.Release, int64, error)
 
 	// CountRelease counts release by conditions.
-	CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation,
+	CountRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation,
 		condition *types.ReleaseCondition) (int64, error)
 
 	// DistinctRelease distincts release by conditions.
-	DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, distinctField types.ReleaseDistinctField,
+	DistinctRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, distinctField types.ReleaseDistinctField,
 		condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
 
 	// SetReleaseLabels sets release labels.
-	SetReleaseLabels(ctx contextx.ITenantUserContext,
+	SetReleaseLabels(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
@@ -318,35 +318,35 @@ type IHandlerRelease interface {
 		labels []string) error
 
 	// EnableRelease enables release active by generation, release type, platform and version.
-	EnableRelease(ctx contextx.ITenantUserContext,
+	EnableRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
 
 	// DisableRelease disables release disactive by generation, release type, platform and version.
-	DisableRelease(ctx contextx.ITenantUserContext,
+	DisableRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
 
 	// SetAsDefaultRelease sets the release as default.
-	SetAsDefaultRelease(ctx contextx.ITenantUserContext,
+	SetAsDefaultRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
 
 	// CancelAsDefaultRelease cancels the release as default.
-	CancelAsDefaultRelease(ctx contextx.ITenantUserContext,
+	CancelAsDefaultRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
 
 	// 	DeleteRelease deletes release by generation, release type, platform and version.
-	DeleteRelease(ctx contextx.ITenantUserContext,
+	DeleteRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
@@ -356,29 +356,29 @@ type IHandlerRelease interface {
 // IHandlerConfigPolicy defines the backend Handler for config policy.
 type IHandlerConfigPolicy interface {
 	// ListConfigPolicy lists config policy by page and conditions.
-	ListConfigPolicy(ctx contextx.ITenantUserContext, page types.Page, condition *types.ConfigPolicyCondition) (
+	ListConfigPolicy(ctx contextx.IContext, page types.Page, condition *types.ConfigPolicyCondition) (
 		[]*types.ConfigPolicy, int64, error)
 
 	// GetConfigPolicy gets config policy by config policy id.
-	GetConfigPolicy(ctx contextx.ITenantUserContext, configPolicyID int64) (*types.ConfigPolicy, error)
+	GetConfigPolicy(ctx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error)
 
 	// CountConfigPolicy counts config policy by conditions.
-	CountConfigPolicy(ctx contextx.ITenantUserContext, condition *types.ConfigPolicyCondition) (int64, error)
+	CountConfigPolicy(ctx contextx.IContext, condition *types.ConfigPolicyCondition) (int64, error)
 
 	// CreateConfigPolicy creates config policy.
-	CreateConfigPolicy(ctx contextx.ITenantUserContext, configPolicy *types.ConfigPolicy) (int64, error)
+	CreateConfigPolicy(ctx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error)
 
 	// UpdateConfigPolicy updates config policy.
-	UpdateConfigPolicy(ctx contextx.ITenantUserContext, configPolicy *types.ConfigPolicy) (int64, error)
+	UpdateConfigPolicy(ctx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error)
 
 	// EnableConfigPolicy enables config policy by config policy ids.
-	EnableConfigPolicy(ctx contextx.ITenantUserContext, configPolicyIDs ...int64) error
+	EnableConfigPolicy(ctx contextx.IContext, configPolicyIDs ...int64) error
 
 	// DisableConfigPolicy disables config policy by config policy ids.
-	DisableConfigPolicy(ctx contextx.ITenantUserContext, configPolicyIDs ...int64) error
+	DisableConfigPolicy(ctx contextx.IContext, configPolicyIDs ...int64) error
 
 	// DeleteConfigPolicy deletes config policy by config policy ids.
-	DeleteConfigPolicy(ctx contextx.ITenantUserContext, configPolicyIDs ...int64) error
+	DeleteConfigPolicy(ctx contextx.IContext, configPolicyIDs ...int64) error
 }
 
 var _ IHandler = &Handler{}
@@ -399,7 +399,7 @@ func New(c *restclient.Capability, conf Config) (*Handler, error) {
 }
 
 // ListBusiness list business within specified tenant in contextx.
-func (h *Handler) ListBusiness(ctx contextx.ITenantUserContext, page types.Page, condition *types.BusinessCondition) (
+func (h *Handler) ListBusiness(ctx contextx.IContext, page types.Page, condition *types.BusinessCondition) (
 	[]*types.Business, int64, error) {
 
 	req := &protoBackend.TopoBusinessListReq{
@@ -429,7 +429,7 @@ func (h *Handler) ListBusiness(ctx contextx.ITenantUserContext, page types.Page,
 
 // ListHost list host within specified tenant in contextx.
 // nolint: funlen
-func (h *Handler) ListHost(ctx contextx.ITenantUserContext, page types.Page, condition *types.HostCondition) (
+func (h *Handler) ListHost(ctx contextx.IContext, page types.Page, condition *types.HostCondition) (
 	[]*types.Host, int64, error) {
 
 	req := &protoBackend.TopoHostListReq{
@@ -451,7 +451,7 @@ func (h *Handler) ListHost(ctx contextx.ITenantUserContext, page types.Page, con
 
 // DistinctHost distinct host within specified tenant in contextx.
 func (h *Handler) DistinctHost(
-	ctx contextx.ITenantUserContext, condition *types.HostCondition) (
+	ctx contextx.IContext, condition *types.HostCondition) (
 	*types.HostDistinctResult, error) {
 
 	req := &protoBackend.TopoHostDistinctReq{}
@@ -468,7 +468,7 @@ func (h *Handler) DistinctHost(
 }
 
 // CountHost count host within specified tenant in contextx.
-func (h *Handler) CountHost(ctx contextx.ITenantUserContext, condition *types.HostCondition) (int64, error) {
+func (h *Handler) CountHost(ctx contextx.IContext, condition *types.HostCondition) (int64, error) {
 	req := &protoBackend.TopoHostListReq{
 		OnlyCount: true,
 	}
@@ -485,7 +485,7 @@ func (h *Handler) CountHost(ctx contextx.ITenantUserContext, condition *types.Ho
 }
 
 // CreateNetworkArea creates a new networkarea.
-func (h *Handler) CreateNetworkArea(ctx contextx.ITenantUserContext, networkArea *types.NetworkArea) (int64, error) {
+func (h *Handler) CreateNetworkArea(ctx contextx.IContext, networkArea *types.NetworkArea) (int64, error) {
 	req := &protoBackend.TopoNetworkAreaCreateReq{
 		BkNetworkareaName: networkArea.Name,
 		CloudVendor:       networkArea.CloudVendor,
@@ -500,7 +500,7 @@ func (h *Handler) CreateNetworkArea(ctx contextx.ITenantUserContext, networkArea
 }
 
 // UpdateNetworkArea updates an existing networkarea.
-func (h *Handler) UpdateNetworkArea(ctx contextx.ITenantUserContext, networkArea *types.NetworkArea) error {
+func (h *Handler) UpdateNetworkArea(ctx contextx.IContext, networkArea *types.NetworkArea) error {
 	req := &protoBackend.TopoNetworkAreaUpdateReq{
 		BkNetworkareaId:   networkArea.ID,
 		BkNetworkareaName: networkArea.Name,
@@ -516,7 +516,7 @@ func (h *Handler) UpdateNetworkArea(ctx contextx.ITenantUserContext, networkArea
 }
 
 // ListNetworkArea list network area within specified tenant in contextx.
-func (h *Handler) ListNetworkArea(ctx contextx.ITenantUserContext, page types.Page, condition *types.NetworkAreaCondition) (
+func (h *Handler) ListNetworkArea(ctx contextx.IContext, page types.Page, condition *types.NetworkAreaCondition) (
 	[]*types.NetworkArea, int64, error) {
 
 	req := &protoBackend.TopoNetworkAreaListReq{
@@ -546,7 +546,7 @@ func (h *Handler) ListNetworkArea(ctx contextx.ITenantUserContext, page types.Pa
 }
 
 // GetNetworkArea gets an existing networkarea.
-func (h *Handler) GetNetworkArea(ctx contextx.ITenantUserContext, networkAreaID int64) (*types.NetworkArea, error) {
+func (h *Handler) GetNetworkArea(ctx contextx.IContext, networkAreaID int64) (*types.NetworkArea, error) {
 	req := &protoBackend.TopoNetworkAreaGetReq{
 		BkNetworkareaId: networkAreaID,
 	}
@@ -565,7 +565,7 @@ func (h *Handler) GetNetworkArea(ctx contextx.ITenantUserContext, networkAreaID 
 }
 
 // DeleteNetworkArea deletes an existing networkarea.
-func (h *Handler) DeleteNetworkArea(ctx contextx.ITenantUserContext, networkAreaID int64) error {
+func (h *Handler) DeleteNetworkArea(ctx contextx.IContext, networkAreaID int64) error {
 	req := &protoBackend.TopoNetworkAreaDeleteReq{
 		BkNetworkareaId: networkAreaID,
 	}
@@ -580,7 +580,7 @@ func (h *Handler) DeleteNetworkArea(ctx contextx.ITenantUserContext, networkArea
 
 // CreateNetworkUnit creates a new networkunit.
 func (h *Handler) CreateNetworkUnit(
-	ctx contextx.ITenantUserContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (int64, error) {
+	ctx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (int64, error) {
 
 	req := new(protoBackend.TopoNetworkUnitCreateReq)
 	req.ConvertNetworkUnitFromTypes(networkUnit, accessPoints...)
@@ -595,7 +595,7 @@ func (h *Handler) CreateNetworkUnit(
 
 // UpdateNetworkUnit updates an existing networkunit.
 func (h *Handler) UpdateNetworkUnit(
-	ctx contextx.ITenantUserContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error {
+	ctx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) error {
 
 	req := new(protoBackend.TopoNetworkUnitUpdateReq)
 	req.ConvertNetworkUnitFromTypes(networkUnit, accessPoints...)
@@ -609,7 +609,7 @@ func (h *Handler) UpdateNetworkUnit(
 }
 
 // GetNetworkUnit gets an existing networkunit.
-func (h *Handler) GetNetworkUnit(ctx contextx.ITenantUserContext, networkUnitID int64) (
+func (h *Handler) GetNetworkUnit(ctx contextx.IContext, networkUnitID int64) (
 	*types.NetworkUnit, map[int64]*types.AccessPoint, error) {
 
 	req := &protoBackend.TopoNetworkUnitGetReq{
@@ -627,7 +627,7 @@ func (h *Handler) GetNetworkUnit(ctx contextx.ITenantUserContext, networkUnitID 
 }
 
 // ListNetworkUnit list network unit within specified tenant in contextx.
-func (h *Handler) ListNetworkUnit(ctx contextx.ITenantUserContext, page types.Page, condition *types.NetworkUnitCondition) (
+func (h *Handler) ListNetworkUnit(ctx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) (
 	[]*types.NetworkUnit, int64, error) {
 
 	req := &protoBackend.TopoNetworkUnitListReq{
@@ -648,7 +648,7 @@ func (h *Handler) ListNetworkUnit(ctx contextx.ITenantUserContext, page types.Pa
 }
 
 // DeleteNetworkUnit deletes network unit within specified tenant in contextx.
-func (h *Handler) DeleteNetworkUnit(ctx contextx.ITenantUserContext, networkUnitID int64) error {
+func (h *Handler) DeleteNetworkUnit(ctx contextx.IContext, networkUnitID int64) error {
 	req := &protoBackend.TopoNetworkUnitDeleteReq{
 		BkNetworkunitId: networkUnitID,
 	}
@@ -662,7 +662,7 @@ func (h *Handler) DeleteNetworkUnit(ctx contextx.ITenantUserContext, networkUnit
 }
 
 // ListTopoEvent list topo event within specified tenant in contextx.
-func (h *Handler) ListTopoEvent(ctx contextx.ITenantUserContext, page types.Page, condition *types.TopoEventCondition) (
+func (h *Handler) ListTopoEvent(ctx contextx.IContext, page types.Page, condition *types.TopoEventCondition) (
 	[]*types.TopoEvent, int64, error) {
 
 	req := &protoBackend.TopoEventListReq{
@@ -683,7 +683,7 @@ func (h *Handler) ListTopoEvent(ctx contextx.ITenantUserContext, page types.Page
 }
 
 // CountTopoEvent count the number of topo events by conditions.
-func (h *Handler) CountTopoEvent(ctx contextx.ITenantUserContext, condition *types.TopoEventCondition) (int64, error) {
+func (h *Handler) CountTopoEvent(ctx contextx.IContext, condition *types.TopoEventCondition) (int64, error) {
 	req := &protoBackend.TopoEventListReq{
 		OnlyCount: true,
 	}
@@ -701,7 +701,7 @@ func (h *Handler) CountTopoEvent(ctx contextx.ITenantUserContext, condition *typ
 
 // DistinctTopoEvent distinct the number of topo events by conditions.
 func (h *Handler) DistinctTopoEvent(
-	ctx contextx.ITenantUserContext, condition *types.TopoEventCondition) (
+	ctx contextx.IContext, condition *types.TopoEventCondition) (
 	*types.TopoEventDistinctResult, error) {
 
 	req := &protoBackend.TopoEventDistinctReq{}
@@ -718,7 +718,7 @@ func (h *Handler) DistinctTopoEvent(
 }
 
 // ListAccessPoint list access point within specified tenant in contextx.
-func (h *Handler) ListAccessPoint(ctx contextx.ITenantUserContext, page types.Page, condition *types.AccessPointCondition) (
+func (h *Handler) ListAccessPoint(ctx contextx.IContext, page types.Page, condition *types.AccessPointCondition) (
 	[]*types.AccessPoint, int64, error) {
 
 	req := &protoBackend.TopoAccessPointListReq{
@@ -739,7 +739,7 @@ func (h *Handler) ListAccessPoint(ctx contextx.ITenantUserContext, page types.Pa
 }
 
 // GetConstant get constant by fields.
-func (h *Handler) GetConstant(ctx contextx.ITenantUserContext, fields types.TopoConstantFields) (*types.TopoConstant, error) {
+func (h *Handler) GetConstant(ctx contextx.IContext, fields types.TopoConstantFields) (*types.TopoConstant, error) {
 	req := &protoBackend.TopoConstantGetReq{}
 	if err := req.ConvertFieldsFromTypes(fields); err != nil {
 		return nil, err
@@ -754,7 +754,7 @@ func (h *Handler) GetConstant(ctx contextx.ITenantUserContext, fields types.Topo
 }
 
 // ListNodeWorkflow list node workflow within specified tenant in contextx.
-func (h *Handler) ListNodeWorkflow(ctx contextx.ITenantUserContext, page types.Page, condition *types.NodeWorkflowCondition) (
+func (h *Handler) ListNodeWorkflow(ctx contextx.IContext, page types.Page, condition *types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
 	req := &protoBackend.NodeWorkflowListReq{
@@ -775,7 +775,7 @@ func (h *Handler) ListNodeWorkflow(ctx contextx.ITenantUserContext, page types.P
 }
 
 // CountNodeWorkflow count host within specified tenant in contextx.
-func (h *Handler) CountNodeWorkflow(ctx contextx.ITenantUserContext, condition *types.NodeWorkflowCondition) (int64, error) {
+func (h *Handler) CountNodeWorkflow(ctx contextx.IContext, condition *types.NodeWorkflowCondition) (int64, error) {
 	req := &protoBackend.NodeWorkflowListReq{
 		OnlyCount: true,
 	}
@@ -792,7 +792,7 @@ func (h *Handler) CountNodeWorkflow(ctx contextx.ITenantUserContext, condition *
 }
 
 // DistinctNodeWorkflow distinct node workflow by conditions.
-func (h *Handler) DistinctNodeWorkflow(ctx contextx.ITenantUserContext, _ types.NodeWorkflowDistinctRequest,
+func (h *Handler) DistinctNodeWorkflow(ctx contextx.IContext, _ types.NodeWorkflowDistinctRequest,
 	conditions *types.NodeWorkflowCondition) (*types.NodeWorkflowDistinctResult, error) {
 
 	req := &protoBackend.NodeWorkflowDistinctReq{}
@@ -809,7 +809,7 @@ func (h *Handler) DistinctNodeWorkflow(ctx contextx.ITenantUserContext, _ types.
 }
 
 // ListNodeWorkflowOperation list workflow  operation.
-func (h *Handler) ListNodeWorkflowOperation(ctx contextx.ITenantUserContext,
+func (h *Handler) ListNodeWorkflowOperation(ctx contextx.IContext,
 	page types.Page, condition *types.NodeWorkflowOperationCondition) (
 	[]*operation.Operation, int64, error) {
 
@@ -832,7 +832,7 @@ func (h *Handler) ListNodeWorkflowOperation(ctx contextx.ITenantUserContext,
 }
 
 // CountNodeWorkflowOperation count workflow  operation.
-func (h *Handler) CountNodeWorkflowOperation(ctx contextx.ITenantUserContext,
+func (h *Handler) CountNodeWorkflowOperation(ctx contextx.IContext,
 	condition *types.NodeWorkflowOperationCondition) (int64, error) {
 
 	req := &protoBackend.NodeWorkflowOperationListReq{
@@ -851,7 +851,7 @@ func (h *Handler) CountNodeWorkflowOperation(ctx contextx.ITenantUserContext,
 
 // ListNodeWorkflowOperationInstance list workflow operation instance.
 func (h *Handler) ListNodeWorkflowOperationInstance(
-	ctx contextx.ITenantUserContext, operationID ...string) ([]*operation.InstanceBriefData, int64, error) {
+	ctx contextx.IContext, operationID ...string) ([]*operation.InstanceBriefData, int64, error) {
 
 	req := &protoBackend.NodeWorkflowOperationInstanceListReq{
 		OnlyCount:   false,
@@ -869,7 +869,7 @@ func (h *Handler) ListNodeWorkflowOperationInstance(
 }
 
 // CountNodeWorkflowOperationInstance count workflow operation instance.
-func (h *Handler) CountNodeWorkflowOperationInstance(ctx contextx.ITenantUserContext, operationID ...string) (int64, error) {
+func (h *Handler) CountNodeWorkflowOperationInstance(ctx contextx.IContext, operationID ...string) (int64, error) {
 	req := &protoBackend.NodeWorkflowOperationInstanceListReq{
 		OnlyCount:   true,
 		OperationId: []string(operationID),
@@ -884,7 +884,7 @@ func (h *Handler) CountNodeWorkflowOperationInstance(ctx contextx.ITenantUserCon
 }
 
 // GetNodeWorkflowOperationInstanceLog get workflow operation instance log.
-func (h *Handler) GetNodeWorkflowOperationInstanceLog(ctx contextx.ITenantUserContext, instanceID string) (
+func (h *Handler) GetNodeWorkflowOperationInstanceLog(ctx contextx.IContext, instanceID string) (
 	*operation.InstanceData, error) {
 
 	req := &protoBackend.NodeWorkflowOperationInstanceLogGetReq{
@@ -902,7 +902,7 @@ func (h *Handler) GetNodeWorkflowOperationInstanceLog(ctx contextx.ITenantUserCo
 }
 
 // ListNodeWorkflowOperationInstanceStatus list workflow operation instance status.
-func (h *Handler) ListNodeWorkflowOperationInstanceStatus(ctx contextx.ITenantUserContext,
+func (h *Handler) ListNodeWorkflowOperationInstanceStatus(ctx contextx.IContext,
 	conditions *types.NodeWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error) {
 
 	req := &protoBackend.NodeWorkflowOperationInstanceListStatusReq{
@@ -924,7 +924,7 @@ func (h *Handler) ListNodeWorkflowOperationInstanceStatus(ctx contextx.ITenantUs
 }
 
 // OperationRetry operation retry.
-func (h *Handler) OperationRetry(ctx contextx.ITenantUserContext, retryParam *types.NodeOperationRetryParam) ([]string, error) {
+func (h *Handler) OperationRetry(ctx contextx.IContext, retryParam *types.NodeOperationRetryParam) ([]string, error) {
 	req := &protoBackend.NodeWorkflowOperationRetryReq{}
 
 	req.ConvertOperationRetryParamFromTypes(*retryParam)
@@ -940,7 +940,7 @@ func (h *Handler) OperationRetry(ctx contextx.ITenantUserContext, retryParam *ty
 }
 
 // ListRelease lists release by page and conditions.
-func (h *Handler) ListRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation, page types.Page,
+func (h *Handler) ListRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, page types.Page,
 	condition *types.ReleaseCondition) ([]*types.Release, int64, error) {
 
 	req := &protoBackend.PackageReleaseListReq{
@@ -963,7 +963,7 @@ func (h *Handler) ListRelease(ctx contextx.ITenantUserContext, releaseType types
 }
 
 // CountRelease counts release by conditions.
-func (h *Handler) CountRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation,
+func (h *Handler) CountRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation,
 	condition *types.ReleaseCondition) (int64, error) {
 
 	req := &protoBackend.PackageReleaseListReq{
@@ -984,7 +984,7 @@ func (h *Handler) CountRelease(ctx contextx.ITenantUserContext, releaseType type
 }
 
 // DistinctRelease distincts release by conditions.
-func (h *Handler) DistinctRelease(ctx contextx.ITenantUserContext, releaseType types.ReleaseType, gen types.Generation,
+func (h *Handler) DistinctRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation,
 	distinctField types.ReleaseDistinctField, condition *types.ReleaseCondition) (*types.ReleaseDistinctResult, error) {
 
 	req := &protoBackend.PackageReleaseDistinctReq{
@@ -1023,7 +1023,7 @@ func (h *Handler) DistinctRelease(ctx contextx.ITenantUserContext, releaseType t
 }
 
 // SetReleaseLabels sets release labels.
-func (h *Handler) SetReleaseLabels(ctx contextx.ITenantUserContext,
+func (h *Handler) SetReleaseLabels(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
 	plat platform.Platform,
@@ -1037,7 +1037,7 @@ func (h *Handler) SetReleaseLabels(ctx contextx.ITenantUserContext,
 }
 
 // EnableRelease enables release active by generation, release type, platform and version.
-func (h *Handler) EnableRelease(ctx contextx.ITenantUserContext,
+func (h *Handler) EnableRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
 	plat platform.Platform,
@@ -1050,7 +1050,7 @@ func (h *Handler) EnableRelease(ctx contextx.ITenantUserContext,
 }
 
 // DisableRelease disables release disactive by generation, release type, platform and version.
-func (h *Handler) DisableRelease(ctx contextx.ITenantUserContext,
+func (h *Handler) DisableRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
 	plat platform.Platform,
@@ -1063,7 +1063,7 @@ func (h *Handler) DisableRelease(ctx contextx.ITenantUserContext,
 }
 
 // SetAsDefaultRelease sets the release as default.
-func (h *Handler) SetAsDefaultRelease(ctx contextx.ITenantUserContext,
+func (h *Handler) SetAsDefaultRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
 	plat platform.Platform,
@@ -1076,7 +1076,7 @@ func (h *Handler) SetAsDefaultRelease(ctx contextx.ITenantUserContext,
 }
 
 // CancelAsDefaultRelease cancels the release as default.
-func (h *Handler) CancelAsDefaultRelease(ctx contextx.ITenantUserContext,
+func (h *Handler) CancelAsDefaultRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
 	plat platform.Platform,
@@ -1089,7 +1089,7 @@ func (h *Handler) CancelAsDefaultRelease(ctx contextx.ITenantUserContext,
 }
 
 // DeleteRelease deletes release by generation, release type, platform and version.
-func (h *Handler) DeleteRelease(ctx contextx.ITenantUserContext,
+func (h *Handler) DeleteRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
 	plat platform.Platform,
@@ -1102,7 +1102,7 @@ func (h *Handler) DeleteRelease(ctx contextx.ITenantUserContext,
 }
 
 // ListConfigPolicy lists config policy.
-func (h *Handler) ListConfigPolicy(ctx contextx.ITenantUserContext,
+func (h *Handler) ListConfigPolicy(ctx contextx.IContext,
 	page types.Page,
 	condition *types.ConfigPolicyCondition) ([]*types.ConfigPolicy, int64, error) {
 
@@ -1124,7 +1124,7 @@ func (h *Handler) ListConfigPolicy(ctx contextx.ITenantUserContext,
 }
 
 // GetConfigPolicy gets config policy by config policy id.
-func (h *Handler) GetConfigPolicy(ctx contextx.ITenantUserContext, configPolicyID int64) (*types.ConfigPolicy, error) {
+func (h *Handler) GetConfigPolicy(ctx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error) {
 	req := &protoBackend.ConfigPolicyGetReq{
 		ConfigpolicyId: configPolicyID,
 	}
@@ -1138,7 +1138,7 @@ func (h *Handler) GetConfigPolicy(ctx contextx.ITenantUserContext, configPolicyI
 }
 
 // CountConfigPolicy counts config policy.
-func (h *Handler) CountConfigPolicy(ctx contextx.ITenantUserContext,
+func (h *Handler) CountConfigPolicy(ctx contextx.IContext,
 	condition *types.ConfigPolicyCondition) (int64, error) {
 
 	req := &protoBackend.ConfigPolicyListReq{
@@ -1157,7 +1157,7 @@ func (h *Handler) CountConfigPolicy(ctx contextx.ITenantUserContext,
 }
 
 // CreateConfigPolicy creates config policy.
-func (h *Handler) CreateConfigPolicy(ctx contextx.ITenantUserContext, configPolicy *types.ConfigPolicy) (int64, error) {
+func (h *Handler) CreateConfigPolicy(ctx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
 	req := new(protoBackend.ConfigPolicyCreateReq)
 	req.ConvertConfigPolicyFromTypes(configPolicy)
 
@@ -1170,7 +1170,7 @@ func (h *Handler) CreateConfigPolicy(ctx contextx.ITenantUserContext, configPoli
 }
 
 // UpdateConfigPolicy updates config policy.
-func (h *Handler) UpdateConfigPolicy(ctx contextx.ITenantUserContext, configPolicy *types.ConfigPolicy) (int64, error) {
+func (h *Handler) UpdateConfigPolicy(ctx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
 	req := new(protoBackend.ConfigPolicyUpdateReq)
 	req.ConvertConfigPolicyFromTypes(configPolicy)
 
@@ -1183,7 +1183,7 @@ func (h *Handler) UpdateConfigPolicy(ctx contextx.ITenantUserContext, configPoli
 }
 
 // EnableConfigPolicy enables config policy.
-func (h *Handler) EnableConfigPolicy(ctx contextx.ITenantUserContext, configPolicyIDs ...int64) error {
+func (h *Handler) EnableConfigPolicy(ctx contextx.IContext, configPolicyIDs ...int64) error {
 	req := &protoBackend.ConfigPolicyEnableReq{ConfigpolicyId: configPolicyIDs}
 
 	_, err := h.cli.enableConfigPolicy(ctx, req)
@@ -1195,7 +1195,7 @@ func (h *Handler) EnableConfigPolicy(ctx contextx.ITenantUserContext, configPoli
 }
 
 // DisableConfigPolicy disables config policy.
-func (h *Handler) DisableConfigPolicy(ctx contextx.ITenantUserContext, configPolicyIDs ...int64) error {
+func (h *Handler) DisableConfigPolicy(ctx contextx.IContext, configPolicyIDs ...int64) error {
 	req := &protoBackend.ConfigPolicyDisableReq{ConfigpolicyId: configPolicyIDs}
 
 	_, err := h.cli.disableConfigPolicy(ctx, req)
@@ -1207,7 +1207,7 @@ func (h *Handler) DisableConfigPolicy(ctx contextx.ITenantUserContext, configPol
 }
 
 // DeleteConfigPolicy deletes config policy.
-func (h *Handler) DeleteConfigPolicy(ctx contextx.ITenantUserContext, configPolicyIDs ...int64) error {
+func (h *Handler) DeleteConfigPolicy(ctx contextx.IContext, configPolicyIDs ...int64) error {
 	req := &protoBackend.ConfigPolicyDeleteReq{ConfigpolicyId: configPolicyIDs}
 
 	_, err := h.cli.deleteConfigPolicy(ctx, req)
@@ -1219,7 +1219,7 @@ func (h *Handler) DeleteConfigPolicy(ctx contextx.ITenantUserContext, configPoli
 }
 
 // InstallAgent node agent.
-func (h *Handler) InstallAgent(ctx contextx.ITenantUserContext, installParam *types.NodeAgentInstallParam) (string, error) {
+func (h *Handler) InstallAgent(ctx contextx.IContext, installParam *types.NodeAgentInstallParam) (string, error) {
 	req := &protoBackend.NodeAgentInstallReq{}
 
 	req.ConvertHostParamFromTypes(installParam)
@@ -1235,7 +1235,7 @@ func (h *Handler) InstallAgent(ctx contextx.ITenantUserContext, installParam *ty
 }
 
 // CheckAgentInstall check agent install.
-func (h *Handler) CheckAgentInstall(ctx contextx.ITenantUserContext,
+func (h *Handler) CheckAgentInstall(ctx contextx.IContext,
 	checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error) {
 
 	req := &protoBackend.NodeAgentInstallCheckReq{}
@@ -1253,26 +1253,26 @@ func (h *Handler) CheckAgentInstall(ctx contextx.ITenantUserContext,
 }
 
 // UninstallAgent node agent.
-func (h *Handler) UninstallAgent(_ contextx.ITenantUserContext) (string, error) {
+func (h *Handler) UninstallAgent(_ contextx.IContext) (string, error) {
 	return "", nil
 }
 
 // UpgradeAgent node agent.
-func (h *Handler) UpgradeAgent(_ contextx.ITenantUserContext) (string, error) {
+func (h *Handler) UpgradeAgent(_ contextx.IContext) (string, error) {
 	return "", nil
 }
 
 // RestartAgent node agent.
-func (h *Handler) RestartAgent(_ contextx.ITenantUserContext) (string, error) {
+func (h *Handler) RestartAgent(_ contextx.IContext) (string, error) {
 	return "", nil
 }
 
 // ReconfigAgent node agent.
-func (h *Handler) ReconfigAgent(_ contextx.ITenantUserContext) (string, error) {
+func (h *Handler) ReconfigAgent(_ contextx.IContext) (string, error) {
 	return "", nil
 }
 
 // ReloadAgent node agent.
-func (h *Handler) ReloadAgent(_ contextx.ITenantUserContext) (string, error) {
+func (h *Handler) ReloadAgent(_ contextx.IContext) (string, error) {
 	return "", nil
 }

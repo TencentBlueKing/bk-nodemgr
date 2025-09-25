@@ -21,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -110,13 +109,8 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
-	if err != nil {
-		return err
-	}
-
-	tenantUserCtx := contextx.NewTenantUserContext(tenantCtx, info.Host.TenantID, param.Operator)
-	if err := act.checkHost(tenantUserCtx, info); err != nil {
+	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(info.Host.TenantID), contextx.WithBKUsername(param.Operator))
+	if err := act.checkHost(newCtx, info); err != nil {
 		return err
 	}
 
@@ -136,7 +130,7 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.ITenantUserContext, info *types.DeploymentInfo) error {
+func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.IContext, info *types.DeploymentInfo) error {
 	// nolint: nestif
 	// host-id not specified.
 	if info.Host.HostID < 0 {
@@ -197,7 +191,7 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.ITenantUserContext, in
 	return nil
 }
 
-func (act *actionUpsertHostToCMDB) insertHost(ctx contextx.ITenantUserContext, info *types.DeploymentInfo) (int64, error) {
+func (act *actionUpsertHostToCMDB) insertHost(ctx contextx.IContext, info *types.DeploymentInfo) (int64, error) {
 	host := &info.Host
 
 	// inorder to check the interface of cc, and set the default architecture at the beginning

@@ -13,6 +13,7 @@ package bklogin
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
@@ -32,20 +33,20 @@ type AuthIdentity struct {
 }
 
 // Verify the ticket.
-func (identity *AuthIdentity) Verify(rCtx *restserver.Context) error {
-	token, err := rCtx.GetCookie(identity.handler.conf.AuthType)
+func (identity *AuthIdentity) Verify(r restserver.IRequest) error {
+	token, err := r.GetCookie(identity.handler.conf.AuthType)
 	if err != nil {
 		return fmt.Errorf("failed to verify authentication by get cookie: %w", err)
 	}
 
-	loginUsername, err := identity.handler.Verify(rCtx, token)
+	loginUsername, err := identity.handler.Verify(contextx.New(r.GContext()), token)
 	if err != nil {
 		return fmt.Errorf("failed to verify authentication: %w", err)
 	}
 
 	// TODO: 等到多租户版本上线，LoginName 需要绑定新的 headerKey
-	rCtx.SetBKUsername(loginUsername)
-	rCtx.SetLoginName(loginUsername)
+	r.Data().SetBKUsername(loginUsername)
+	r.Data().SetLoginName(loginUsername)
 
 	return nil
 }
