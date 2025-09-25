@@ -210,7 +210,7 @@ func (lk *logKeeper) remove(category, tag string) (ok bool) {
 		fmt.Printf("remove file failed, block-name(%s): %v\n", block.name, err)
 	}
 	lk.head[key] = block.next
-	block = nil // nolint: wastedassign, for GC
+	block = nil // nolint: wastedassign
 	lk.total[key]--
 
 	return ok
