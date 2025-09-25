@@ -171,7 +171,7 @@ func MiddlewareSetTenantID(tenantIDSetter ITenantIDSetter) gin.HandlerFunc {
 			return
 		}
 
-		if r.data.GetTenantID() == "" {
+		if r.Data().GetTenantID() == "" {
 			r.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set tenant id")})
 		}
 

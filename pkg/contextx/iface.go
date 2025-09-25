@@ -25,16 +25,16 @@ type IContextValues interface {
 
 	// TenantID get tenant-id from values.
 	TenantID() string
-	// ValidateTenantID validate tenant-id.
-	ValidateTenantID() error
+	// CheckTenantID validate tenant-id.
+	CheckTenantID() error
 
 	// BKUsername get bk-username from values.
 	BKUsername() string
-	// ValidateBKUsername validate bk-username.
-	ValidateBKUsername() error
+	// CheckBKUsername validate bk-username.
+	CheckBKUsername() error
 
 	// MessageID get message-id from values.
 	MessageID() string
-	// ValidateMessageID validate message-id.
-	ValidateMessageID() error
+	// CheckMessageID validate message-id.
+	CheckMessageID() error
 }
