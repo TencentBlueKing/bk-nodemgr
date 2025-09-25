@@ -16,6 +16,7 @@ import (
 	"io"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -498,55 +499,30 @@ func (m *Manager) generateExternalPluginPkg(ctx contextx.IContext,
 }
 
 const (
-	originalExternalPluginPlatLinuxAmd64   = "external_plugins_linux_x86_64"
-	originalExternalPluginPlatLinuxArm64   = "external_plugins_linux_aarch64"
-	originalExternalPluginPlatWindowsAmd64 = "external_plugins_windows_x86_64"
-	originalExternalPluginPlatDarwinAmd64  = "external_plugins_darwin_x86_64"
+	originalExternalPluginDirNamePlatPrefix     = "external_plugins_"
+	originalExternalPluginDirNamePlatSplitTimes = 4
 
 	externalPluginPkgDirNameBin = "bin"
 )
 
 func convPlatToExternalPluginDirName(plat platform.Platform) string {
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-		return originalExternalPluginPlatLinuxAmd64
-	}
-
-	if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-		return originalExternalPluginPlatLinuxArm64
-	}
-
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
-		return originalExternalPluginPlatDarwinAmd64
-	}
-
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
-		return originalExternalPluginPlatWindowsAmd64
-	}
-
-	return ""
+	return fmt.Sprintf("%s%s_%s", originalExternalPluginDirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
 }
 
 func convExternalPluginDirNameToPlat(dirName string) platform.Platform {
-	switch dirName {
-	case originalExternalPluginPlatLinuxAmd64:
-		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
-		}
-	case originalExternalPluginPlatLinuxArm64:
-		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
-		}
-	case originalExternalPluginPlatWindowsAmd64:
-		{
-			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
-		}
-	case originalExternalPluginPlatDarwinAmd64:
-		{
-			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
-		}
-	default:
-		{
-			return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
-		}
+	if !strings.HasPrefix(dirName, originalExternalPluginDirNamePlatPrefix) {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
+
+	dirSplit := strings.SplitN(dirName, "_", originalExternalPluginDirNamePlatSplitTimes)
+	if len(dirSplit) != originalExternalPluginDirNamePlatSplitTimes {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+	}
+
+	plat, err := platform.Normalize(dirSplit[2], dirSplit[3])
+	if err != nil {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+	}
+
+	return plat
 }

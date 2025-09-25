@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -515,59 +516,34 @@ func (m *Manager) generateOfficialPluginPkg(ctx contextx.IContext,
 }
 
 const (
-	originalOfficialPluginFileNameProject         = "project.yaml"
-	originalOfficialPluginDirNameBin              = "bin"
-	originalOfficialPluginDirNameEtc              = "etc"
-	originalOfficialPluginDirNamePlatLinuxAmd64   = "plugins_linux_x86_64"
-	originalOfficialPluginDirNamePlatLinuxArm64   = "plugins_linux_aarch64"
-	originalOfficialPluginDirNamePlatDarwinAmd64  = "plugins_darwin_x86_64"
-	originalOfficialPluginDirNamePlatWindowsAmd64 = "plugins_windows_x86_64"
+	originalOfficialPluginFileNameProject       = "project.yaml"
+	originalOfficialPluginDirNameBin            = "bin"
+	originalOfficialPluginDirNameEtc            = "etc"
+	originalOfficialPluginDirNamePlatPrefix     = "plugins_"
+	originalOfficialPluginDirNamePlatSplitTimes = 3
 
 	officialPluginPkgDirNameBin = "bin"
 	officialPluginPkgDirNameEtc = "etc"
 )
 
 func convPlatToOfficialPluginDirName(plat platform.Platform) string {
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
-		return originalOfficialPluginDirNamePlatLinuxAmd64
-	}
-
-	if plat.Arch == criteria.CPUArchArm64 && plat.OS == criteria.OSLinux {
-		return originalOfficialPluginDirNamePlatLinuxArm64
-	}
-
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSDarwin {
-		return originalOfficialPluginDirNamePlatDarwinAmd64
-	}
-
-	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSWindows {
-		return originalOfficialPluginDirNamePlatWindowsAmd64
-	}
-
-	return ""
+	return fmt.Sprintf("%s%s_%s", originalOfficialPluginDirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
 }
 
 func convOfficialPluginDirNameToPlat(dirName string) platform.Platform {
-	switch dirName {
-	case originalOfficialPluginDirNamePlatLinuxAmd64:
-		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
-		}
-	case originalOfficialPluginDirNamePlatLinuxArm64:
-		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
-		}
-	case originalOfficialPluginDirNamePlatWindowsAmd64:
-		{
-			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
-		}
-	case originalOfficialPluginDirNamePlatDarwinAmd64:
-		{
-			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
-		}
-	default:
-		{
-			return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
-		}
+	if !strings.HasPrefix(dirName, originalOfficialPluginDirNamePlatPrefix) {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
+
+	dirSplit := strings.SplitN(dirName, "_", originalOfficialPluginDirNamePlatSplitTimes)
+	if len(dirSplit) != originalOfficialPluginDirNamePlatSplitTimes {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+	}
+
+	plat, err := platform.Normalize(dirSplit[1], dirSplit[2])
+	if err != nil {
+		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+	}
+
+	return plat
 }
