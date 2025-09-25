@@ -19,7 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// createPluginWorkflow create plugin workflow.
+// createPluginWorkflow createPluginDeployment plugin workflow.
 func (s *Storage) createPluginWorkflow(ctx contextx.IContext, workflow *types.PluginWorkflow) error {
 	if ctx == nil {
 		return basestorage.ErrNilContent()
@@ -30,7 +30,7 @@ func (s *Storage) createPluginWorkflow(ctx contextx.IContext, workflow *types.Pl
 	}
 
 	if err := s.daoPluginWorkflow.Create(ctx, workflow); err != nil {
-		return fmt.Errorf("failed to create plugin workflow: %v", err)
+		return fmt.Errorf("failed to createPluginDeployment plugin workflow: %v", err)
 	}
 
 	return nil

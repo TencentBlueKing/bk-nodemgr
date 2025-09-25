@@ -19,8 +19,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// create plugin deployment.
-func (s *Storage) create(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
+// createPluginDeployment plugin deployment.
+func (s *Storage) createPluginDeployment(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -36,8 +36,8 @@ func (s *Storage) create(ctx contextx.IContext, pluginDeployment *types.PluginDe
 	return nil
 }
 
-// getInfo get plugin deployment info.
-func (s *Storage) getInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
+// getPluginDeploymentInfo get plugin deployment info.
+func (s *Storage) getPluginDeploymentInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
 	if ctx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
@@ -54,8 +54,8 @@ func (s *Storage) getInfo(ctx contextx.IContext, token string) (*types.PluginDep
 	return info, nil
 }
 
-// updateInfo update a node deployment info.
-func (s *Storage) updateInfo(ctx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error {
+// updatePluginDeploymentInfo update a node deployment info.
+func (s *Storage) updatePluginDeploymentInfo(ctx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error {
 	if ctx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -73,4 +73,22 @@ func (s *Storage) updateInfo(ctx contextx.IContext, token string, pluginDeployme
 	}
 
 	return nil
+}
+
+// getPluginDeploymentMainConfig get plugin deployment main config.
+func (s *Storage) getPluginDeploymentMainConfig(ctx contextx.IContext, token string) ([]byte, error) {
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if token == "" {
+		return nil, basestorage.ErrEmptyUniqueKey()
+	}
+
+	mainConfig, err := s.daoPluginDeployment.GetMainConfig(ctx, token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get plugin deployment main config: %v", err)
+	}
+
+	return mainConfig, nil
 }

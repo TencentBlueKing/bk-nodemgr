@@ -11,6 +11,7 @@
 package server
 
 import (
+	"fmt"
 	"io"
 
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -75,8 +76,52 @@ type FileResponse struct {
 	FileName string
 
 	// ContentType defines content type.
-	ContentType string
+	ContentType MIMEType
 
 	// Headers defines custom headers.
 	Headers map[string]string
 }
+
+// MIMEType defines mime type..
+type MIMEType string
+
+// String converts the MIMEType to string.
+func (m MIMEType) String() string {
+	return string(m)
+}
+
+// Validate validates the MIMEType.
+func (m MIMEType) Validate() error {
+	switch m {
+	case MIMETypeBin, MIMETypeText, MIMETypePdf, MIMETypeDoc, MIMETypeXls, MIMETypeZip, MIMETypePng, MIMETypeJpg:
+		return nil
+	default:
+		return fmt.Errorf("invalid mime type: %s", m)
+	}
+}
+
+const (
+	// MIMETypeBin defines the mime type of binary data.
+	MIMETypeBin MIMEType = "application/octet-stream"
+
+	// MIMETypeText defines the mime type of text data.
+	MIMETypeText MIMEType = "text/plain"
+
+	// MIMETypePdf defines the mime type of pdf data.
+	MIMETypePdf MIMEType = "application/pdf"
+
+	// MIMETypeDoc defines the mime type of doc data.
+	MIMETypeDoc MIMEType = "application/msword"
+
+	// MIMETypeXls defines the mime type of xls data.
+	MIMETypeXls MIMEType = "application/vnd.ms-excel"
+
+	// MIMETypeZip defines the mime type of zip data.
+	MIMETypeZip MIMEType = "application/zip"
+
+	// MIMETypePng defines the mime type of png data.
+	MIMETypePng MIMEType = "image/png"
+
+	// MIMETypeJpg defines the mime type of jpg data.
+	MIMETypeJpg MIMEType = "image/jpeg"
+)

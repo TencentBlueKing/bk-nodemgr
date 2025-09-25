@@ -32,6 +32,9 @@ type IHandler interface {
 
 	// UpdateInfo update plugin deployment info.
 	UpdateInfo(ctx context.Context, token string, info *types.PluginDeploymentInfo) error
+
+	// GetMainConfig get main config.
+	GetMainConfig(ctx context.Context, token string) ([]byte, error)
 }
 
 // Handler this is a Handler to operate node deployment table.
@@ -75,6 +78,26 @@ func (h *Handler) GetInfo(ctx context.Context, token string) (*types.PluginDeplo
 	return convertPluginDeploymentInfoToTypes(data.Info)
 }
 
+// GetMainConfig get main config.
+func (h *Handler) GetMainConfig(ctx context.Context, token string) ([]byte, error) {
+	if ctx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return nil, ErrInvalidToken()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+	data, err := h.dao.Get(ctx, filter, FieldKeyMainConfig)
+	if err != nil {
+		return nil, base.ErrRecordNoFound()
+	}
+
+	return data.MainConfig, nil
+}
+
 // nolint: funlen
 func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo, error) {
 	if info == nil {
@@ -84,6 +107,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 	typesInfo := &types.PluginDeploymentInfo{
 		BlockingActionName: info.ActionName,
 		Plugin: types.Plugin{
+			Name:       info.Plugin.Name,
 			HostID:     info.Plugin.HostID,
 			Type:       types.PluginType(info.Plugin.Type),
 			Generation: types.Generation(info.Plugin.Generation),
@@ -188,6 +212,7 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 		ActionName:       info.BlockingActionName,
 		InstallerWorkDir: info.InstallerWorkDir,
 		Plugin: Plugin{
+			Name:       info.Plugin.Name,
 			HostID:     info.Plugin.HostID,
 			Type:       string(info.Plugin.Type),
 			Generation: int64(info.Plugin.Generation),

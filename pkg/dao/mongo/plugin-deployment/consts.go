@@ -17,6 +17,9 @@ const (
 	// FieldKeyInfo the info field key.
 	FieldKeyInfo = "data.info"
 
+	// FieldKeyMainConfig the info field key.
+	FieldKeyMainConfig = "data.main_config"
+
 	// FieldKeyExpireAt the expire_at field key.
 	FieldKeyExpireAt = "data.expire_at"
 )

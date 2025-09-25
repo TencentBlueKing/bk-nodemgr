@@ -1,0 +1,15 @@
+syntax = "proto3";
+package callback;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/callback";
+
+import "google/api/annotations.proto";
+
+message Error {
+  string system = 1;
+  string message = 2;
+  message Details {
+    string code = 1;
+    string message = 2;
+  }
+  repeated Details details = 3;
+}

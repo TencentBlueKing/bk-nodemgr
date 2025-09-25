@@ -8,28 +8,32 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+// Package plugin support plugin callback api.
+package plugin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/plugin"
+	storagePlugin "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg     *gin.RouterGroup
-	logger logger.ILogger
+	rg                  *gin.RouterGroup
+	logger              logger.ILogger
+	daoPluginDeployment storagePlugin.IDaoPluginDeployment
+
+	stgWorkflow workflow.IStorage
 }
 
 // newHandler ...
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/workflow"),
+		rg:     rg.Group("/plugin"),
 		logger: capability.Logger,
 	}
 }
@@ -38,6 +42,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	node.Load(h.rg, capability)
-	plugin.Load(h.rg, capability)
+	h.rg.POST("/report_log", restserver.Handler(h.ReportLog))
+	h.rg.POST("/report_status", restserver.Handler(h.ReportStatus))
+	h.rg.POST("/get_main_config", restserver.FileHandler(h.GetMainConfig))
 }

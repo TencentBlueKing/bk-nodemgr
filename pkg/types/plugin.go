@@ -52,7 +52,9 @@ func ConvPluginTypeToReleaseType(pluginType PluginType) (ReleaseType, error) {
 
 // Plugin define the all info of plugin.
 type Plugin struct {
-	HostID     int64
+	HostID int64
+	// TODO: 补充对 Name 值的设置
+	Name       string
 	Type       PluginType
 	Generation Generation
 	Platform   platform.Platform

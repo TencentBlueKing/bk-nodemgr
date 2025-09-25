@@ -2,6 +2,8 @@ syntax = "proto3";
 package callback;
 option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/callback";
 
+import "common.proto";
+
 import "google/api/annotations.proto";
 
 // GetAgentConfReq describes the HTTP request body when get agent conf.
@@ -104,3 +106,50 @@ message ReportInstallResultReq {
   string err_msg = 3;
   string out_str = 4;
 }
+
+// PluginReportLogReq describes the HTTP request body when report log.
+message PluginReportLogReq {
+  string token = 1;
+  repeated PluginReportLog logs = 2;
+  string oper_inst_id = 3;
+}
+
+// PluginReportLog
+message PluginReportLog {
+  int64 timestamp = 1;
+  string level = 2;
+  string step = 3;
+  string log = 4;
+  string status = 5;
+}
+// PluginReportLogResp describes the HTTP request body when report log.
+message PluginReportLogResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PluginReportStatusReq describes the HTTP request body when report status.
+message PluginReportStatusReq {
+  string token = 1;
+  string status = 2;
+  string oper_inst_id = 3;
+}
+
+// PluginReportStatusResp describes the HTTP request body when report status.
+message PluginReportStatusResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PluginGetMainConfigReq describes the HTTP request body when get agent conf.
+message PluginGetMainConfigReq { string token = 1; }

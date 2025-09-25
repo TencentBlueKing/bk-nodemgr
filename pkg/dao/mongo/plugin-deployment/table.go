@@ -22,8 +22,9 @@ var _ base.IData = &Data{}
 // Data represents the table of plugin deployment.
 // Token should be the unique key.
 type Data struct {
-	Token string `json:"token" bson:"token"`
-	Info  *Info  `json:"info" bson:"info"`
+	Token      string `json:"token" bson:"token"`
+	Info       *Info  `json:"info" bson:"info"`
+	MainConfig []byte `json:"main_config" bson:"main_config"`
 }
 
 // Info this is the info of this plugin deployment.
@@ -38,6 +39,7 @@ type Info struct {
 // Plugin defines the plugin.
 type Plugin struct {
 	HostID     int64    `json:"host_id" bson:"host_id"`
+	Name       string   `json:"name" bson:"name"`
 	Type       string   `json:"type" bson:"type"`
 	Generation int64    `json:"generation" bson:"generation"`
 	Platform   Platform `json:"platform" bson:"platform"`

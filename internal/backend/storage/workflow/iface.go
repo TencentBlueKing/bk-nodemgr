@@ -28,6 +28,7 @@ type IStorage interface {
 	workflow.IStorageSchedule
 
 	IDomainNodeInstall
+	IDomainPlugin
 }
 
 // IDomainNodeInstall defines the interface for domain node installation related operations.
@@ -36,4 +37,8 @@ type IDomainNodeInstall interface {
 	ListOperationByNodeWorkflowOperationCondition(
 		ctx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
 		[]*workoper.Operation, int64, error)
+}
+
+// IDomainPlugin defines the interface for domain plugin related operations.
+type IDomainPlugin interface {
 }

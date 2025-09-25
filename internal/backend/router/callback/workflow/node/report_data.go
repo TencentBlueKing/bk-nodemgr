@@ -14,7 +14,6 @@ import (
 	"net/http"
 
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
-
 	"github.com/gin-gonic/gin"
 )
 

@@ -9,6 +9,7 @@
  */
 
 // Package plugin provide plugin storage.
+// nolint: nonamedreturns
 package plugin
 
 import (
@@ -85,8 +86,8 @@ func (s *Storage) metric() *storage.MetricData {
 	return storage.Metric(StorageName)
 }
 
-// GetInfo get plugin deployment info.
-func (s *Storage) GetInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
+// GetPluginDeploymentInfo get plugin deployment info.
+func (s *Storage) GetPluginDeploymentInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
 	var (
 		info *types.PluginDeploymentInfo
 		err  error
@@ -96,22 +97,22 @@ func (s *Storage) GetInfo(ctx contextx.IContext, token string) (*types.PluginDep
 	metric := s.metric().Start("get_info")
 	defer metric.End(err)
 
-	info, err = s.getInfo(ctx, token)
+	info, err = s.getPluginDeploymentInfo(ctx, token)
 
 	return info, err
 }
 
-// Create plugin deployment.
-func (s *Storage) Create(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
+// CreatePluginDeployment plugin deployment.
+func (s *Storage) CreatePluginDeployment(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
 	var (
 		err error
 	)
 
 	// record metric.
-	metric := s.metric().Start("create")
+	metric := s.metric().Start("createPluginDeployment")
 	defer metric.End(err)
 
-	err = s.create(ctx, pluginDeployment)
+	err = s.createPluginDeployment(ctx, pluginDeployment)
 
 	return err
 }
@@ -126,10 +127,12 @@ func (s *Storage) UpdatePluginDeploymentInfo(ctx contextx.IContext, token string
 	metric := s.metric().Start("update_info")
 	defer metric.End(err)
 
-	err = s.updateInfo(ctx, token, pluginDeploymentInfo)
+	err = s.updatePluginDeploymentInfo(ctx, token, pluginDeploymentInfo)
 
 	return err
 }
+
+// GetPluginDeploymentMainConfig
 
 // GetPluginWorkflow get plugin workflow.
 func (s *Storage) GetPluginWorkflow(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
@@ -147,7 +150,7 @@ func (s *Storage) GetPluginWorkflow(ctx contextx.IContext, workflowID string) (*
 	return pluginWorkflow, err
 }
 
-// CreatePluginWorkflow create plugin workflow.
+// CreatePluginWorkflow createPluginDeployment plugin workflow.
 func (s *Storage) CreatePluginWorkflow(ctx contextx.IContext, workflow *types.PluginWorkflow) error {
 	var (
 		err error
@@ -175,4 +178,15 @@ func (s *Storage) UpdatePluginWorkflowStatus(ctx contextx.IContext, workflowID s
 	err = s.updatePluginWorkflowStatus(ctx, workflowID, status)
 
 	return err
+}
+
+// GetPluginDeploymentMainConfig get plugin deployment main config.
+func (s *Storage) GetPluginDeploymentMainConfig(ctx contextx.IContext, token string) (mainConfig []byte, err error) {
+	// record metric.
+	metric := s.metric().Start("get_plugin_deployment_main_config")
+	defer metric.End(err)
+
+	mainConfig, err = s.getPluginDeploymentMainConfig(ctx, token)
+
+	return mainConfig, err
 }

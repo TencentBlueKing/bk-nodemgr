@@ -26,14 +26,17 @@ type IStorage interface {
 
 // IDaoPluginDeployment defines the plugin deployment dao interface.
 type IDaoPluginDeployment interface {
-	// Create create plugin deployment.
-	Create(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error
+	// CreatePluginDeployment createPluginDeployment plugin deployment.
+	CreatePluginDeployment(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error
 
 	// UpdatePluginDeploymentInfo update plugin deployment info.
 	UpdatePluginDeploymentInfo(ctx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error
 
-	// GetInfo get plugin deployment info.
-	GetInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
+	// GetPluginDeploymentInfo get plugin deployment info.
+	GetPluginDeploymentInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
+
+	// GetPluginDeploymentMainConfig get plugin deployment main config.
+	GetPluginDeploymentMainConfig(ctx contextx.IContext, token string) ([]byte, error)
 }
 
 // IDaoPluginWorkflow defines the dao interface.

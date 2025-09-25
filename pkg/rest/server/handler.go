@@ -47,6 +47,33 @@ func Handler(handler HandlerFunc) gin.HandlerFunc { // nolint
 	}
 }
 
+// StdHandlerFunc defines the std handler.
+type StdHandlerFunc func(IContext) (interface{}, error)
+
+// StdHandler std handler.
+func StdHandler(handler HandlerFunc) gin.HandlerFunc { // nolint
+	return func(gCtx *gin.Context) {
+		rCtx, err := GenRestContext(gCtx)
+		if err != nil {
+			loadRestRequest(gCtx).AbortWithJSONError(resterrf.Unauthorized, nil)
+
+			return
+		}
+
+		result, err := handler(rCtx)
+
+		code, unwrapErrs := resterrf.ErrUnwrap(err)
+		switch code {
+		case resterrf.OK:
+			rCtx.APIResponse(result)
+		case resterrf.PermissionDenied:
+			rCtx.AbortWithJSONPermDenied(code, unwrapErrs)
+		default:
+			rCtx.AbortWithJSONError(code, unwrapErrs)
+		}
+	}
+}
+
 // StreamHandlerFunc defines the stream handler.
 type StreamHandlerFunc func(*Context)
 
@@ -100,7 +127,7 @@ func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
 				_ = Data.Close()
 			}(fileResp.Data)
 
-			gCtx.DataFromReader(http.StatusOK, fileResp.Size, fileResp.ContentType, fileResp.Data, fileResp.Headers)
+			gCtx.DataFromReader(http.StatusOK, fileResp.Size, fileResp.ContentType.String(), fileResp.Data, fileResp.Headers)
 		case resterrf.PermissionDenied:
 			rCtx.AbortWithJSONPermDenied(code, unwrapErrs)
 		default:
@@ -114,29 +141,29 @@ func setFileHeaders(gCtx *gin.Context, resp *FileResponse) {
 	gCtx.Header("Content-Description", "File Transfer")
 	gCtx.Header("Content-Transfer-Encoding", "binary")
 	gCtx.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", resp.FileName))
-	gCtx.Header("Content-Type", resp.ContentType)
+	gCtx.Header("Content-Type", resp.ContentType.String())
 
 	for key, value := range resp.Headers {
 		gCtx.Header(key, value)
 	}
 }
 
-func getDefaultContentType(filePath string) string {
+func getDefaultContentType(filePath string) MIMEType {
 	ext := filepath.Ext(filePath)
 	switch ext {
 	case ".pdf":
-		return "application/pdf"
+		return MIMETypePdf
 	case ".doc", ".docx":
-		return "application/msword"
+		return MIMETypeDoc
 	case ".xls", ".xlsx":
-		return "application/vnd.ms-excel"
+		return MIMETypeXls
 	case ".zip":
-		return "application/zip"
+		return MIMETypeZip
 	case ".png":
-		return "image/png"
+		return MIMETypePng
 	case ".jpg", ".jpeg":
-		return "image/jpeg"
+		return MIMETypeJpg
 	default:
-		return "application/octet-stream"
+		return MIMETypeBin
 	}
 }
