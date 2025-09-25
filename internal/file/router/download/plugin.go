@@ -23,7 +23,7 @@ import (
 )
 
 // Plugin download plugin package.
-func (h *handler) Plugin(ctx *restserver.Context) (*restserver.FileResponse, error) {
+func (h *handler) Plugin(ctx restserver.IContext) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadPluginReq)
 	if err := ctx.BindJSON(req); err != nil {
 		h.logger.Error("bind json failed", err)

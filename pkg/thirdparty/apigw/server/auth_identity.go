@@ -70,7 +70,7 @@ func NewBKGWJWTAuthIdentityUserState(pem []byte) *BKGWJWTAuthIdentityUserState {
 }
 
 // Verify the jwt from apigateway.
-func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx *restserver.Context) error {
+func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx restserver.IContext) error {
 	if rCtx == nil {
 		return errors.New("failed to verify user authentication, rest context is nil")
 	}
