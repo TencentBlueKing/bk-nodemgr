@@ -25,36 +25,18 @@ import (
 type NodeDeployConf struct {
 	DeployConf
 
-	// base.
-	BaseWorkDir string
-
 	// custom.
 	LogDir             string
 	HostIDPath         string
 	AgentDataIPCPath   string
 	AgentPluginIPCPath string
 	EnvironDir         string
-
-	// generates by base and custom.
-	WorkDir string
 }
 
 // Validate checks if the deployment configuration is valid.
 func (conf NodeDeployConf) Validate() error {
-	if err := conf.Generation.Validate(); err != nil {
-		return fmt.Errorf("invalid generation: %w", err)
-	}
-
-	if err := conf.OsType.Validate(); err != nil {
-		return err
-	}
-
-	if conf.BaseWorkDir == "" {
-		return errors.New("baseWorkDir is empty")
-	}
-
-	if conf.BaseDeployDir == "" {
-		return errors.New("baseDeployDir is empty")
+	if err := conf.DeployConf.Validate(); err != nil {
+		return fmt.Errorf("invalid deploy conf: %w", err)
 	}
 
 	if conf.LogDir == "" {
@@ -87,12 +69,12 @@ var nodeDeployConfMap = make(map[types.Generation]map[criteria.OSType]NodeDeploy
 func GetNodeDeployConf(generation types.Generation, osType criteria.OSType) (NodeDeployConf, error) {
 	confMap, ok := nodeDeployConfMap[generation]
 	if !ok {
-		return NodeDeployConf{}, fmt.Errorf("deploy conf not found for generation: %d", generation)
+		return NodeDeployConf{}, fmt.Errorf("deploy conf not found for generation, generation(%d)", generation)
 	}
 
 	conf, ok := confMap[osType]
 	if !ok {
-		return NodeDeployConf{}, fmt.Errorf("deploy conf not found for os type: %s", osType)
+		return NodeDeployConf{}, fmt.Errorf("deploy conf not found for os type, os-type(%s)", osType)
 	}
 
 	return conf, nil

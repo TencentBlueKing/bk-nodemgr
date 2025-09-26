@@ -148,15 +148,14 @@ func (svc *Service) initialStaticsConfigs() error {
 			Generation:    types.Generation(svc.conf.GSEDeployConfs[idx].Generation),
 			OsType:        criteria.OSType(svc.conf.GSEDeployConfs[idx].OsType),
 			BaseDeployDir: svc.conf.GSEDeployConfs[idx].BaseDeployDir,
+			BaseWorkDir:   svc.conf.GSEDeployConfs[idx].BaseWorkDir,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
 			return fmt.Errorf("failed to set deploy conf: %w", err)
 		}
 
 		nodeDeployConf := deployconstant.NodeDeployConf{
-			DeployConf:  deployConf,
-			BaseWorkDir: svc.conf.GSEDeployConfs[idx].BaseWorkDir,
-
+			DeployConf:         deployConf,
 			LogDir:             svc.conf.GSEDeployConfs[idx].Custom.LogDir,
 			HostIDPath:         svc.conf.GSEDeployConfs[idx].Custom.HostIDPath,
 			AgentDataIPCPath:   svc.conf.GSEDeployConfs[idx].Custom.AgentDataIPCPath,

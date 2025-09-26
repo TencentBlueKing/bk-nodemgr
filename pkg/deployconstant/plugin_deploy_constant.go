@@ -12,7 +12,6 @@
 package deployconstant
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -29,16 +28,8 @@ type PluginDeployConf struct {
 
 // Validate checks if the deployment configuration is valid.
 func (conf PluginDeployConf) Validate() error {
-	if err := conf.Generation.Validate(); err != nil {
-		return fmt.Errorf("invalid generation: %w", err)
-	}
-
-	if err := conf.OsType.Validate(); err != nil {
-		return err
-	}
-
-	if conf.BaseDeployDir == "" {
-		return errors.New("baseDeployDir is empty")
+	if err := conf.DeployConf.Validate(); err != nil {
+		return fmt.Errorf("invalid deploy conf: %w", err)
 	}
 
 	return nil

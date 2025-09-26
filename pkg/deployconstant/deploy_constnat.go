@@ -27,8 +27,10 @@ type DeployConf struct {
 	Generation    types.Generation
 	OsType        criteria.OSType
 	BaseDeployDir string
+	BaseWorkDir   string
 
 	DeployDir string
+	WorkDir   string
 }
 
 // Validate checks if the deployment configuration is valid.
@@ -39,6 +41,10 @@ func (conf DeployConf) Validate() error {
 
 	if err := conf.OsType.Validate(); err != nil {
 		return err
+	}
+
+	if conf.BaseWorkDir == "" {
+		return errors.New("baseWorkDir is empty")
 	}
 
 	if conf.BaseDeployDir == "" {
@@ -101,10 +107,12 @@ func populateDefaultValuesUnix(conf *DeployConf) {
 	env := system.GetEnv()
 
 	conf.DeployDir = filepath.Join(conf.BaseDeployDir, env)
+	conf.WorkDir = filepath.Join(conf.BaseWorkDir, env)
 }
 
 func populateDefaultValuesWindows(conf *DeployConf) {
 	env := system.GetEnv()
 
 	conf.DeployDir = winpath.Join(conf.BaseDeployDir, env)
+	conf.WorkDir = winpath.Join(conf.BaseWorkDir, env)
 }
