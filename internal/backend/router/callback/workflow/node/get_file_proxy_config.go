@@ -15,14 +15,14 @@ import (
 	"fmt"
 	"net/http"
 
-	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
 // GetFileProxyConfig get file proxy config.
 func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
-	req := new(protoBackend.GetFileProxyConfReq)
+	req := new(protoCallback.GetFileProxyConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("get gse file proxy config failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed: %w", err))

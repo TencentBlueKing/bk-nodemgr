@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"net/http"
 
-	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -24,7 +24,7 @@ import (
 
 // GetCheckList get gse node check list.
 func (h *handler) GetCheckList(gCtx *gin.Context) {
-	req := new(protoBackend.GetCheckListReq)
+	req := new(protoCallback.GetCheckListReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("get gse node check list failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)

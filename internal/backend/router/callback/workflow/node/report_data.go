@@ -13,13 +13,14 @@ package node
 import (
 	"net/http"
 
-	proto "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+
 	"github.com/gin-gonic/gin"
 )
 
 // ReportData ...
 func (h *handler) ReportData(gCtx *gin.Context) {
-	req := new(proto.ReportDataReq)
+	req := new(protoCallback.ReportDataReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("report data failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)

@@ -14,14 +14,14 @@ package node
 import (
 	"net/http"
 
-	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
 // GetDataProxyConfig get gse data proxy config.
 func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
-	req := new(protoBackend.GetDataProxyConfReq)
+	req := new(protoCallback.GetDataProxyConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
 		h.logger.Errorf("get gse data proxy config failed: %s", err)
 		gCtx.JSON(http.StatusBadRequest, err)
