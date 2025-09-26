@@ -12,21 +12,20 @@
 package host
 
 import (
-	"context"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
 	tableName := TableName(tenantID)
 	d := &dao{
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
 	}
 
@@ -38,18 +37,12 @@ func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
 	base.IOrm[*Host, Host]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -65,60 +58,60 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 // upsertMany upsert many hosts.
-func (d *dao) upsertMany(ctx context.Context, hosts []*Host) error {
+func (d *dao) upsertMany(nCtx contextx.IContext, hosts []*Host) error {
 	models := buildUpsertManyParams(hosts)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("inserted hosts, inserted-count(%v)", result.UpsertedCount)
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted hosts")
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("updated hosts, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted hosts")
 	}
 
 	return nil
 }
 
 // upsertStaticMany upsert many host statics.
-func (d *dao) upsertStaticMany(ctx context.Context, hosts []*Host) error {
+func (d *dao) upsertStaticMany(nCtx contextx.IContext, hosts []*Host) error {
 	models := buildUpsertStaticManyParams(hosts)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("inserted host statics, inserted-count(%v)", result.UpsertedCount)
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted host statics")
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("updated host statics, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted host statics")
 	}
 
 	return nil
 }
 
 // updateDynamicMany update many host dynamic.
-func (d *dao) updateDynamicMany(ctx context.Context, hosts []*Host) error {
+func (d *dao) updateDynamicMany(nCtx contextx.IContext, hosts []*Host) error {
 	models := buildUpdateDynamicManyParams(hosts)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("inserted host statics, inserted-count(%v)", result.UpsertedCount)
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted host dynamics")
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("updated host statics, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted host dynamics")
 	}
 
 	return nil
@@ -126,16 +119,16 @@ func (d *dao) updateDynamicMany(ctx context.Context, hosts []*Host) error {
 
 // distinctString distinct string field.
 func (d *dao) distinctString(
-	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]string, error) {
+	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]string, error) {
 
-	return d.DistinctString(ctx, key, filter, distinctOpt)
+	return d.DistinctString(nCtx, key, filter, distinctOpt)
 }
 
 // distinctInt64 distinct int64 field.
 func (d *dao) distinctInt64(
-	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]int64, error) {
+	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]int64, error) {
 
-	return d.DistinctInt64(ctx, key, filter, distinctOpt)
+	return d.DistinctInt64(nCtx, key, filter, distinctOpt)
 }
 
 // buildUpsertManyParams build upsert many params.

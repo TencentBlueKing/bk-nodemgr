@@ -17,8 +17,6 @@ import (
 	"math"
 	"math/rand"
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // ExpoBackoffOpts the options for retrying.
@@ -34,9 +32,6 @@ type ExpoBackoffOpts struct {
 
 	// random jitter added to the retry delay.
 	JitterPercent float64
-
-	// Logger ...
-	Logger logger.ILogger
 }
 
 // ExpoBackoffOptsDefault default retry options.
@@ -46,7 +41,6 @@ func ExpoBackoffOptsDefault() ExpoBackoffOpts {
 		BaseDelay:     time.Second,
 		MaxDelay:      5 * time.Second,
 		JitterPercent: 0.2,
-		Logger:        logger.LoggerDefault{},
 	}
 }
 
@@ -102,8 +96,6 @@ func (e *ExpoBackoff) Do(ctx context.Context, fn func(attempt int) error) error 
 		}
 
 		delay := e.calculateDelay(attempt)
-		e.opts.Logger.Warnf("fn failed, attempt(%d/%d), retry-after(%vs): %v.",
-			attempt+1, e.opts.MaxRetries, delay.Seconds(), err)
 
 		select {
 		case <-ctx.Done():

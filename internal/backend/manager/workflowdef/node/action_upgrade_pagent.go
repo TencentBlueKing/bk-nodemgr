@@ -28,7 +28,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -45,13 +44,11 @@ const (
 func NewActionUpgradePagent(
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	gseHandler gse.IHandler,
-	logger logger.ILogger,
 	provider discover.Provider) action.Definition {
 
 	return &actionUpgradePagent{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,
-		logger:                logger,
 		provider:              provider,
 	}
 }
@@ -64,7 +61,6 @@ type ActionParamUpgradePagent struct {
 type actionUpgradePagent struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	gseHandler            gse.IHandler
-	logger                logger.ILogger
 	provider              discover.Provider
 }
 

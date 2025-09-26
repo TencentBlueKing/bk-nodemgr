@@ -119,8 +119,14 @@ func New(ctx context.Context, opts ...Opts) *Context {
 }
 
 // From with context.
-func From(ctx IContext, opts ...Opts) *Context {
-	return New(ctx, append([]Opts{WithValues(ctx.Values())}, opts...)...)
+func From(nCtx IContext, opts ...Opts) *Context {
+	c := New(nCtx, append([]Opts{WithValues(nCtx.Values())}, opts...)...)
+
+	c.tenantID = nCtx.TenantID()
+	c.bkUsername = nCtx.BKUsername()
+	c.messageID = nCtx.MessageID()
+
+	return c
 }
 
 // WithCancel this is the same as context.WithCancel.

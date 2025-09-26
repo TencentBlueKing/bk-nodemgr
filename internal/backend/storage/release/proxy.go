@@ -23,12 +23,12 @@ import (
 // IProxy define the proxy interface.
 type IProxy interface {
 	// GetReleaseProxy gets release by generation, release type, platform and version.
-	GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
+	GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
 }
 
 // GetReleaseProxy gets release by generation, release type, platform and version.
-func (s *Storage) GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
-	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeProxy,
+func (s *Storage) GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
+	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeProxy,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),

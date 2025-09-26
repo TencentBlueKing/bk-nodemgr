@@ -23,7 +23,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -40,7 +40,6 @@ const (
 // ProviderEtcd implements discover.Provider.
 type ProviderEtcd struct {
 	config *config.Etcd
-	logger logger.ILogger
 
 	etcdClient     *clientv3.Client
 	discoverPrefix string
@@ -63,7 +62,6 @@ type ProviderEtcd struct {
 func NewProviderEtcd(config *config.Etcd, opts ...OptionFn) *ProviderEtcd {
 	provider := &ProviderEtcd{
 		config:           config,
-		logger:           logger.LoggerDefault{},
 		discoverPrefix:   defaultEtcdPrefix,
 		serviceWatchList: make([]discover.ServiceName, 0),
 		localInstances:   make(map[discover.ServiceName]*instanceHolder),
@@ -84,13 +82,6 @@ type OptionFn func(provider *ProviderEtcd)
 func WithWatch(services ...discover.ServiceName) OptionFn {
 	return func(provider *ProviderEtcd) {
 		provider.serviceWatchList = append(provider.serviceWatchList, services...)
-	}
-}
-
-// WithLogger sets the logger.
-func WithLogger(logger logger.ILogger) OptionFn {
-	return func(provider *ProviderEtcd) {
-		provider.logger = logger
 	}
 }
 
@@ -127,7 +118,7 @@ func (provider *ProviderEtcd) Start(ctx context.Context) error {
 	// keep listing.
 	go provider.keepListing()
 
-	provider.logger.Infof("started etcd discover provider")
+	logger.G.Sys().Info("started etcd discover provider")
 
 	return nil
 }
@@ -138,7 +129,7 @@ func (provider *ProviderEtcd) Stop() error {
 		provider.cancel()
 	}
 
-	provider.logger.Infof("stopped etcd discover provider")
+	logger.G.Sys().Info("stopped etcd discover provider")
 
 	return nil
 }
@@ -169,7 +160,7 @@ func (provider *ProviderEtcd) GetEndpoint(
 
 // Register registers a service instance.
 func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instance discover.Instance) error {
-	provider.logger.Infof("registering serivce(%s), id(%s)", string(serviceName), instance.ID)
+	logger.G.Sys().With("service", serviceName, "id", instance.ID).Info("registering service")
 
 	resp, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
 	if err != nil {
@@ -200,14 +191,13 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 
 	go func() {
 		for resp := range ch {
-			provider.logger.Debugf("recved grant keepalive response, lease-id(%d)", resp.ID)
+			logger.G.Sys().With("lease-id", resp.ID).Debug("recved grant keepalive response")
 		}
-		provider.logger.Infof("grant keepalive channel closed, goroutine exit, lease-id(%d)", leaseID)
+		logger.G.Sys().With("lease-id", leaseID).Info("grant keepalive channel closed, goroutine exit")
 	}()
 
 	provider.getLocalInstanceHolder(serviceName).upsert(instance)
-	provider.logger.Infof("registered serivce(%s), id(%s), data(%s)",
-		string(serviceName), instance.ID, string(content))
+	logger.G.Sys().With("service", serviceName, "id", instance.ID, "data", string(content)).Info("registered service")
 
 	// register keeper.
 	go func() {
@@ -218,14 +208,13 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 			default:
 				cachedInstance, err := provider.getLocalInstanceHolder(serviceName).get(instance.ID)
 				if err != nil {
-					provider.logger.Warnf("local instance not found, quit the register keeper. service(%s), id(%s): %v",
-						string(serviceName), instance.ID, err)
+					logger.G.Sys().WithErr(err).With("service", serviceName, "id", instance.ID).Warn("local instance not found, quit the register keeper")
 
 					return
 				}
 
 				if err = provider.putService(serviceName, cachedInstance); err != nil {
-					provider.logger.Warnf("failed to put service in register keeper: %v", err)
+					logger.G.Sys().WithErr(err).Warn("failed to put service in register keeper")
 				}
 			}
 
@@ -239,13 +228,12 @@ func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instanc
 // Update updates a service instance.
 func (provider *ProviderEtcd) Update(serviceName discover.ServiceName, instance discover.Instance) error {
 	if err := provider.putService(serviceName, instance); err != nil {
-		provider.logger.Errorf("failed to update instance. service(%s), id(%s): %v", string(serviceName), instance.ID, err)
+		logger.G.Sys().WithErr(err).With("service", serviceName, "id", instance.ID).Error("failed to update instance")
 
 		return err
 	}
 
-	provider.logger.Infof("successfully updated. serivce(%s), id(%s), data(%+v)",
-		string(serviceName), instance.ID, instance)
+	logger.G.Sys().With("service", serviceName, "id", instance.ID, "data", instance).Info("successfully updated")
 
 	return nil
 }
@@ -282,7 +270,7 @@ func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, insta
 
 	key := filepath.Join(provider.discoverPrefix, string(serviceName), instance.ID)
 	if _, err = provider.etcdClient.Put(provider.ctx, key, string(content), clientv3.WithLease(clientv3.LeaseID(leaseID))); err != nil {
-		provider.logger.Warnf("failed to put service to etcd, need to grant new lease. key(%s): %+v", key, err)
+		logger.G.Sys().WithErr(err).With("key", key).Warn("failed to put service to etcd, need to grant new lease")
 
 		resp, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
 		if err != nil {
@@ -303,12 +291,12 @@ func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, insta
 
 		go func() {
 			for resp := range ch {
-				provider.logger.Debugf("recved grant keepalive response, lease-id(%d)", resp.ID)
+				logger.G.Sys().With("lease-id", resp.ID).Debug("recved grant keepalive response")
 			}
-			provider.logger.Infof("grant keepalive channel closed, goroutine exit, lease-id(%d)", leaseID)
+			logger.G.Sys().With("lease-id", leaseID).Info("grant keepalive channel closed, goroutine exit")
 		}()
 
-		provider.logger.Infof("successfully grant new lease and update resource(%s)", key)
+		logger.G.Sys().With("key", key).Info("successfully grant new lease and update resource")
 	}
 
 	holder.upsert(instance)
@@ -347,8 +335,7 @@ func (provider *ProviderEtcd) Deregister(serviceName discover.ServiceName, insta
 	}
 
 	holder.delete(instanceID)
-	provider.logger.Infof("successfully deregistered. serivce(%s), id(%s)",
-		string(serviceName), instanceID)
+	logger.G.Sys().With("service", serviceName, "id", instance.ID).Info("successfully deregistered")
 
 	return nil
 }
@@ -380,7 +367,7 @@ func (provider *ProviderEtcd) startWatching() {
 }
 
 func (provider *ProviderEtcd) watch(serviceName discover.ServiceName) {
-	provider.logger.Infof("started watch for service(%s)", serviceName)
+	logger.G.Sys().With("service", serviceName).Info("started watch for service")
 
 	instanceHolder := provider.getCacheInstanceHolder(serviceName)
 
@@ -397,38 +384,42 @@ func (provider *ProviderEtcd) watch(serviceName discover.ServiceName) {
 			case clientv3.EventTypePut:
 				var instance discover.Instance
 				if err := json.Unmarshal(ev.Kv.Value, &instance); err != nil {
-					provider.logger.Errorf("observed instance put, failed to unmarshal. service(%s), id(%s), data(%s): %s",
-						serviceName, id, string(ev.Kv.Value), err)
+					logger.G.Sys().
+						WithErr(err).
+						With("service", serviceName, "id", instance.ID, "data", string(ev.Kv.Value)).
+						Error("observed instance put, failed to unmarshal")
 
 					continue
 				}
 
 				if id != instance.ID {
-					provider.logger.Errorf("observed instance put, id mismatch. service(%s), id(%s), data(%s)",
-						serviceName, id, string(ev.Kv.Value))
+					logger.G.Sys().
+						With("service", serviceName, "id", instance.ID, "data", string(ev.Kv.Value)).
+						Error("observed instance put, id mismatch")
 
 					continue
 				}
 
 				instanceHolder.upsert(instance)
 
-				provider.logger.Debugf("observed instance put. service(%s), id(%s), data(%s)",
-					serviceName, id, string(ev.Kv.Value))
+				logger.G.Sys().
+					With("service", serviceName, "id", instance.ID, "data", string(ev.Kv.Value)).
+					Debug("observed instance put")
 
 			case clientv3.EventTypeDelete:
 				instanceHolder := provider.getCacheInstanceHolder(serviceName)
 				instanceHolder.delete(id)
 
-				provider.logger.Infof("observed instance delete. service(%s), id(%s)", serviceName, id)
+				logger.G.Sys().With("service", serviceName, "id", id).Info("observed instance delete")
 			}
 		}
 	}
 
-	provider.logger.Infof("stopped watch for service(%s)", serviceName)
+	logger.G.Sys().With("service", serviceName).Info("stopped watch for service")
 }
 
 func (provider *ProviderEtcd) keepListing() {
-	provider.logger.Infof("started keep listing")
+	logger.G.Sys().Info("started keep listing")
 
 	// list first time.
 	for _, serviceName := range provider.serviceWatchList {
@@ -439,7 +430,7 @@ func (provider *ProviderEtcd) keepListing() {
 	for {
 		select {
 		case <-provider.ctx.Done():
-			provider.logger.Infof("stopped keep listing")
+			logger.G.Sys().Info("stopped keep listing")
 			return
 
 		case <-ticker.C:
@@ -457,7 +448,7 @@ func (provider *ProviderEtcd) list(serviceName discover.ServiceName) {
 		clientv3.WithPrefix(),
 	)
 	if err != nil {
-		provider.logger.Errorf("failed to list instances. service(%s): %s", serviceName, err)
+		logger.G.Sys().WithErr(err).With("service", serviceName).Error("failed to list instances")
 
 		return
 	}
@@ -470,14 +461,16 @@ func (provider *ProviderEtcd) list(serviceName discover.ServiceName) {
 
 		var instance discover.Instance
 		if err := json.Unmarshal(kv.Value, &instance); err != nil {
-			provider.logger.Errorf("failed to unmarshal instance. service(%s), id(%s), data(%s): %s",
-				serviceName, id, string(kv.Value), err)
+			logger.G.Sys().
+				WithErr(err).
+				With("service", serviceName, "id", instance.ID, "data", string(kv.Value)).
+				Error("failed to unmarshal instance")
 
 			continue
 		}
 
 		if id != instance.ID {
-			provider.logger.Errorf("list instance but id mismatch. service(%s), id(%s), data(%s)",
+			logger.G.Sys().WithErr(err).Error("list instance but id mismatch. service(%s), id(%s), data(%s)",
 				serviceName, id, string(kv.Value))
 
 			continue

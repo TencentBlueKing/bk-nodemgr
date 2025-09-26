@@ -17,8 +17,8 @@ import (
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -33,13 +33,11 @@ const (
 func NewActionPushHostIdentifier(
 	cmdbClient cmdb.IHandler,
 	storage nodeStg.IStorage,
-	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionPushHostIdentifier{
 		cmdbClient: cmdbClient,
 		storage:    storage,
-		logger:     logger,
 	}
 }
 
@@ -53,7 +51,6 @@ type ActParamPushHostIdentifier struct {
 type actionPushHostIdentifier struct {
 	cmdbClient cmdb.IHandler
 	storage    nodeStg.IStorage
-	logger     logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -110,7 +107,6 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
-		Logger:   act.logger,
 	})
 
 	taskID, err := act.cmdbClient.PushHostIdentifier(newCtx, info.Host.HostID)
@@ -123,7 +119,7 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 	err = polling.Do(newCtx, func(_ int) error {
 		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(newCtx, taskID)
 		if err != nil {
-			act.logger.Errorf("failed to find host identifier push result: %s", err.Error())
+			logger.G.Sys().WithErr(err).Error("failed to find host identifier push result")
 
 			return err
 		}

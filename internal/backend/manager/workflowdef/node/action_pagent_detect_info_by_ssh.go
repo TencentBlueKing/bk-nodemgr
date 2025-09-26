@@ -29,7 +29,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -46,8 +45,6 @@ const (
 
 // NewActionPagentDetectInfoBySSH get a new action.
 func NewActionPagentDetectInfoBySSH(
-	logger logger.ILogger,
-
 	storageActionInstance workflow.IStorageActionInstance,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	storageRelease release.IStorage,
@@ -58,8 +55,6 @@ func NewActionPagentDetectInfoBySSH(
 ) action.Definition {
 
 	return &actionPagentDetectInfoBySSH{
-		logger: logger,
-
 		storageHostCredit:     storageHostCredit,
 		storageActionInstance: storageActionInstance,
 		storageNodeDeployment: storageNodeDeployment,
@@ -77,8 +72,6 @@ type ActParamPagentDetectInfoBySSH struct {
 }
 
 type actionPagentDetectInfoBySSH struct {
-	logger logger.ILogger
-
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageActionInstance workflow.IStorageActionInstance
 	storageRelease        release.IStorage

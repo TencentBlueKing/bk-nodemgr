@@ -11,6 +11,7 @@
 package proxy
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -20,16 +21,17 @@ import (
 func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyInstallReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to install proxy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	workflowID, err := h.backendHandler.InstallProxy(rCtx, req.ConvertAgentParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to install proxy: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install proxy")
 		return nil, err
 	}
-	h.logger.InfoCtxf(rCtx, "launched proxy install. workflow-id(%s)", workflowID)
+
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched proxy install")
 
 	resp := new(protoApplication.NodeProxyInstallResp)
 	resp.ConvertWorkflowID(workflowID)

@@ -11,6 +11,7 @@
 package proxy
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -20,16 +21,17 @@ import (
 func (h *handler) Reconfig(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyReconfigReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to reconfig proxy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	workflowID, err := h.backendHandler.ReconfigProxy(rCtx, req.ConvertParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to reconfig proxy: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig proxy")
 		return nil, err
 	}
-	h.logger.InfoCtxf(rCtx, "launched proxy reconfig. workflow-id(%s)", workflowID)
+
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched proxy reconfig")
 
 	resp := new(protoApplication.NodeProxyReconfigResp)
 	resp.ConvertWorkflowID(workflowID)

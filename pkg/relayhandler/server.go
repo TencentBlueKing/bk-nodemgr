@@ -14,6 +14,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -22,10 +23,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/messagetracker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/redis/go-redis/v9"
 )
@@ -52,9 +53,6 @@ type ServerMessagerConfig struct {
 
 	// RedisClient is the redis client for storing pending messages.
 	RedisClient *redis.Client
-
-	// Logger is the logger.
-	Logger logger.ILogger
 }
 
 const (
@@ -71,6 +69,11 @@ func NewServerMessager(conf ServerMessagerConfig) IServerMessager {
 
 var _ IServerMessager = &serverMessager{}
 
+var (
+	// nolint: revive
+	errDispatchPartialFailed = errors.New("dispatch message partial failed")
+)
+
 // serverMessager provides the managements for receiving and sending messages via gse cluster.
 type serverMessager struct {
 	config ServerMessagerConfig
@@ -83,8 +86,8 @@ type serverMessager struct {
 }
 
 // Start starts the messager.
-func (m *serverMessager) Start(_ context.Context) error {
-	m.config.Logger.Infof("try to start messager: %+v", m.config)
+func (m *serverMessager) Start(_ contextx.IContext) error {
+	logger.G.Sys().With("config", m.config).Info("try to start messager")
 
 	// initialize http client.
 	httpClient := &http.Client{Transport: &http.Transport{
@@ -96,7 +99,7 @@ func (m *serverMessager) Start(_ context.Context) error {
 		serverapi.WithClient(httpClient),
 		serverapi.WithClusterAuth(m.config.SlotID, m.config.Token),
 		serverapi.WithAPIGwAuth(m.config.AppCode, m.config.AppSecret),
-		serverapi.WithLogger(&loggerAdaptor{Logger: m.config.Logger}))
+		serverapi.WithLogger(logger.G.Sys()))
 	if err != nil {
 		return err
 	}
@@ -107,14 +110,16 @@ func (m *serverMessager) Start(_ context.Context) error {
 		rediscache.NewRedisCache(m.config.RedisClient, rediscache.DefaultTimeout))
 	m.retrier = retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 
-	m.config.Logger.Infof("started messager")
+	logger.G.Sys().Info("started messager")
 
 	return nil
 }
 
 // Stop stops the messager.
-func (m *serverMessager) Stop(_ context.Context) error {
-	m.config.Logger.Infof("try to stop messager: %+v", m.config)
+func (m *serverMessager) Stop(_ contextx.IContext) error {
+	logger.G.Sys().With("config", m.config).Info("try to stop messager")
+
+	logger.G.Sys().Info("stopped messager")
 
 	return nil
 }
@@ -172,7 +177,7 @@ func (m *serverMessager) DecodeClientPushRequest(data *ServerReceivedData) (
 }
 
 // RespondCallback sends the callback resp.
-func (m *serverMessager) RespondCallback(ctx contextx.IContext,
+func (m *serverMessager) RespondCallback(nCtx contextx.IContext,
 	messageID string, httpCode int, content []byte, agentIDs ...string) error {
 
 	resp := &protoRelay.CallbackResp{
@@ -188,15 +193,18 @@ func (m *serverMessager) RespondCallback(ctx contextx.IContext,
 		return fmt.Errorf("marshal callback resp failed: %w", err)
 	}
 
-	result, err := m.client.Cluster().PluginDispatchMessage(ctx, messageID, respData, agentIDs...)
+	result, err := m.client.Cluster().PluginDispatchMessage(nCtx, messageID, respData, agentIDs...)
 	if err != nil {
 		return err
 	}
 
 	if result.Code != 0 || len(result.AgentResults) > 0 {
-		err = fmt.Errorf("failed to send callback resp to agents. code(%d), agent-results(%v)",
-			result.Code, conv.MapKeyToSlice(result.AgentResults))
-		m.config.Logger.WarnCtxf(ctx, "%v", err)
+		err = errDispatchPartialFailed
+
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("code", result.Code, "failed-agent-results", conv.MapKeyToSlice(result.AgentResults)).
+			Warn("failed to send callback resp to agents")
 
 		return err
 	}
@@ -206,7 +214,7 @@ func (m *serverMessager) RespondCallback(ctx contextx.IContext,
 
 // PushToClient sends the server push to client asynchronously and returns a channel for results.
 func (m *serverMessager) PushToClient(
-	ctx contextx.IContext, eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error {
+	nCtx contextx.IContext, eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error {
 
 	resultChan := make(chan error, 1)
 
@@ -228,23 +236,26 @@ func (m *serverMessager) PushToClient(
 	go func() {
 		defer close(resultChan)
 
-		retryErr := m.retrier.Do(ctx, func(attempt int) error {
-			if ctx.Err() != nil {
+		retryErr := m.retrier.Do(nCtx, func(attempt int) error {
+			if nCtx.Err() != nil {
 				return nil
 			}
 
-			m.config.Logger.Infof("sending message to client. attempt(%d), message-id(%s)", attempt, messageID)
+			logger.G.Biz(nCtx).With("attempt", attempt, "message-id", messageID).Info("sending message to client")
 
 			result, err := m.client.Cluster().PluginDispatchMessage(
-				ctx, messageID, reqData, agentIDs...)
+				nCtx, messageID, reqData, agentIDs...)
 			if err != nil {
 				return fmt.Errorf("sending message to client failed: %w", err)
 			}
 
 			if result.Code != 0 || len(result.AgentResults) > 0 {
-				err := fmt.Errorf("failed to dispatch message to agents. code(%d), agent-results(%v)",
-					result.Code, conv.MapKeyToSlice(result.AgentResults))
-				m.config.Logger.WarnCtxf(ctx, "sending message to client failed, %v", err)
+				err = errDispatchPartialFailed
+
+				logger.G.Biz(nCtx).
+					WithErr(err).
+					With("code", result.Code, "failed-agent-results", conv.MapKeyToSlice(result.AgentResults)).
+					Warn("failed to send message to client")
 
 				return err
 			}
@@ -253,15 +264,15 @@ func (m *serverMessager) PushToClient(
 			defer checkAckTicker.Stop()
 
 			select {
-			case <-ctx.Done():
+			case <-nCtx.Done():
 				return nil
 
 			case <-time.After(serverCheckAckTimeout):
 				return fmt.Errorf("wait message to client ack timeout. message-id(%s)", messageID)
 
 			case <-checkAckTicker.C:
-				if acked, _ := m.isMessageAcked(ctx, messageID); acked {
-					m.config.Logger.Infof("message to client acked successfully. message-id(%s)", messageID)
+				if acked, _ := m.isMessageAcked(nCtx, messageID); acked {
+					logger.G.Biz(nCtx).With("message-id", messageID).Info("message to client acked successfully")
 
 					return nil
 				}
@@ -270,7 +281,7 @@ func (m *serverMessager) PushToClient(
 			return nil
 		})
 
-		if ctxErr := ctx.Err(); ctxErr != nil {
+		if ctxErr := nCtx.Err(); ctxErr != nil {
 			resultChan <- ctxErr
 			return
 		}
@@ -282,7 +293,7 @@ func (m *serverMessager) PushToClient(
 }
 
 // SendAck sends the ack to client.
-func (m *serverMessager) SendAck(ctx contextx.IContext, originalMessageID string, agentIDs ...string) {
+func (m *serverMessager) SendAck(nCtx contextx.IContext, originalMessageID string, agentIDs ...string) {
 	messageID := identifier.GenMessageID()
 	resp := &protoRelay.AckReq{
 		Base: protoRelay.Base{
@@ -293,24 +304,28 @@ func (m *serverMessager) SendAck(ctx contextx.IContext, originalMessageID string
 	}
 	respData, err := json.Marshal(resp)
 	if err != nil {
-		m.config.Logger.Errorf("failed to marshal ack request: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to marshal ack request")
 	}
 
-	result, err := m.client.Cluster().PluginDispatchMessage(ctx, messageID, respData, agentIDs...)
+	result, err := m.client.Cluster().PluginDispatchMessage(nCtx, messageID, respData, agentIDs...)
 	if err != nil {
-		m.config.Logger.Errorf("failed to send ack: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to send ack")
+
 		return
 	}
 
 	if result.Code != 0 || len(result.AgentResults) > 0 {
-		err = fmt.Errorf("failed to send ack to agents. code(%d), agent-results(%v)",
-			result.Code, conv.MapKeyToSlice(result.AgentResults))
-		m.config.Logger.WarnCtxf(ctx, "%v", err)
+		err = errDispatchPartialFailed
+
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("code", result.Code, "failed-agent-results", conv.MapKeyToSlice(result.AgentResults)).
+			Warn("failed to send ack to agents")
 
 		return
 	}
 
-	m.config.Logger.Infof("ack sent for message. original-message-id(%s)", originalMessageID)
+	logger.G.Biz(nCtx).With("original-message-id", originalMessageID).Info("ack sent to client")
 }
 
 func (m *serverMessager) isMessageAcked(ctx context.Context, mid string) (bool, error) {
@@ -323,10 +338,11 @@ func (m *serverMessager) isMessageAcked(ctx context.Context, mid string) (bool, 
 }
 
 // MarkProcessed marks a message ID as processed if it has been processed, return false.
-func (m *serverMessager) TryMarkProcessed(ctx contextx.IContext, mid string) (bool, error) {
-	marked, err := m.redisMsgTracker.TryMarkProcessed(ctx, mid)
+func (m *serverMessager) TryMarkProcessed(nCtx contextx.IContext, mid string) (bool, error) {
+	marked, err := m.redisMsgTracker.TryMarkProcessed(nCtx, mid)
 	if err != nil {
-		m.config.Logger.Errorf("mark processed failed: %v", mid, err)
+		logger.G.Biz(nCtx).WithErr(err).With("message-id", mid).Error("failed to mark processed")
+
 		return false, fmt.Errorf("failed to mark processed: %w", err)
 	}
 
@@ -334,13 +350,14 @@ func (m *serverMessager) TryMarkProcessed(ctx contextx.IContext, mid string) (bo
 }
 
 // MarkAcked marks a message ID as acked.
-func (m *serverMessager) MarkAcked(ctx contextx.IContext, mid string) error {
-	if err := m.redisMsgTracker.MarkAcked(ctx, mid); err != nil {
-		m.config.Logger.Errorf("mark ack failed. mid(%s): %v", mid, err)
+func (m *serverMessager) MarkAcked(nCtx contextx.IContext, mid string) error {
+	if err := m.redisMsgTracker.MarkAcked(nCtx, mid); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("message-id", mid).Error("failed to mark ack")
+
 		return fmt.Errorf("failed to mark acked: %w", err)
 	}
 
-	m.config.Logger.Infof("ACK received. message-id(%s)", mid)
+	logger.G.Biz(nCtx).With("message-id", mid).Info("ack received")
 
 	return nil
 }

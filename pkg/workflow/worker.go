@@ -20,6 +20,7 @@ import (
 
 	"github.com/RichardKnop/machinery/v2/tasks"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
@@ -49,7 +50,7 @@ func (mgr *manager) launchWorker() error {
 	mgr.worker = mgr.server.NewWorker(consumerTag, mgr.WorkerNum)
 
 	mgr.worker.SetErrorHandler(func(err error) {
-		mgr.logger.Errorf("worker error: %v", err)
+		logger.G.Sys().WithErr(err).Error("worker error")
 	})
 	mgr.worker.SetPreTaskHandler(func(_ *tasks.Signature) {})
 	mgr.worker.SetPostTaskHandler(func(_ *tasks.Signature) {})
@@ -183,8 +184,9 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 				err, executeErr)
 		}
 
-		mgr.logger.InfoCtxf(nCtx, "updated operation instance lifecycle with terminated state. oper-inst-id(%s), lifecycle(%+v)",
-			operationInstanceID, operInstBriefData.Lifecycle)
+		logger.G.Sys().
+			With("oper-inst-id", operationInstanceID, "lifecycle", operInstBriefData.Lifecycle).
+			Info("updated operation instance lifecycle with terminated state")
 
 		if err = mgr.doOperExtraExecution(nCtx, operInstBriefData); err != nil {
 			return fmt.Errorf("do oper-inst-id(%s) ending extra execution failed: %w", operationInstanceID, err)
@@ -246,8 +248,9 @@ func (mgr *manager) updateOperationInstancePrivateData(
 
 	if len(privateData) == 0 {
 		// no private data to update, skip.
-		mgr.logger.DebugCtxf(ctx, "no private data to update, oper-inst-id(%s), action-name(%s), private-data(%v)",
-			operationInstanceID, actionName, privateData)
+		logger.G.Sys().
+			With("oper-inst-id", operationInstanceID, "action-name", actionName, "private-data", privateData).
+			Debug("no private data to update")
 
 		return nil
 	}
@@ -336,10 +339,11 @@ func (mgr *manager) executeAction(
 
 	defer func() {
 		if r := recover(); r != nil {
-			mgr.logger.ErrorCtxf(actionInstCtx.Ctx, "action panic, info(%v), revoer(%v), stack(%s)",
-				actionInstCtx.Data.Info(), r, debug.Stack())
-			err = fmt.Errorf("action panic, info(%v), revoer(%v), stack(%s)",
-				actionInstCtx.Data.Info(), r, debug.Stack())
+			err = errors.New("action panic")
+			logger.G.Sys().
+				WithErr(err).
+				With("info", actionInstCtx.Data.Info(), "recover", r, "stack", debug.Stack()).
+				Debug("failed to execute action, recover from panic")
 		}
 
 		doResult <- err
@@ -373,8 +377,7 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx contextx.IContext, data *action
 				data.Name,
 				msgs...)
 			if err != nil {
-				mgr.logger.ErrorCtxf(ctx, "failed to refresh action inst data messages, action-name(%s): %v",
-					data.Name, err)
+				logger.G.Sys().WithErr(err).With("action", data.Name).Error("failed to refresh action inst data messages")
 			}
 
 			return
@@ -391,8 +394,7 @@ func (mgr *manager) autoRefreshActionDataMsg(ctx contextx.IContext, data *action
 				data.Name,
 				msgs...)
 			if err != nil {
-				mgr.logger.ErrorCtxf(ctx, "failed to refresh action inst data messages, action-name(%s): %v",
-					data.Name, err)
+				logger.G.Sys().WithErr(err).With("action", data.Name).Error("failed to refresh action inst data messages")
 			}
 
 			continue
@@ -405,16 +407,23 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 	var doErr error
 
 	for retryNum := uint(0); retryNum <= actionDef.MaxRetryCount() && retryNum < engineMaxRetryLimit; retryNum++ {
-		mgr.logger.InfoCtxf(actionInstCtx.Ctx, "started action, action-name(%s), oper-def-name(%s), retry-num(%d)",
-			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum)
+		logger.G.Sys().
+			With("operation", actionInstCtx.Data.OperationDefName).
+			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
+			Info("started action")
+
 		actionInstCtx.Data.LogI(fmt.Sprintf("started action, action-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, retryNum))
 
 		doErr = actionDef.Do(actionInstCtx)
 
 		if doErr != nil {
-			mgr.logger.ErrorCtxf(actionInstCtx.Ctx, "failed to do action, operinst-id(%s), action-name(%s), retry-num(%d): %v",
-				actionInstCtx.Data.OperationInstanceID, actionInstCtx.Data.Name, retryNum, doErr)
+			logger.G.Sys().
+				WithErr(doErr).
+				With("operation", actionInstCtx.Data.OperationDefName).
+				With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
+				Error("failed to do action")
+
 			actionInstCtx.Data.LogW(fmt.Sprintf("failed to do action, action-name(%s), retry-num(%d): %v",
 				actionInstCtx.Data.Name, retryNum, doErr))
 
@@ -423,8 +432,11 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 			continue
 		}
 
-		mgr.logger.InfoCtxf(actionInstCtx.Ctx, "done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
-			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum)
+		logger.G.Sys().
+			With("operation", actionInstCtx.Data.OperationDefName).
+			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name, "retry", retryNum).
+			Info("done action")
+
 		actionInstCtx.Data.LogI(fmt.Sprintf("done action, action-name(%s), oper-def-name(%s), retry-num(%d)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, retryNum))
 
@@ -432,8 +444,12 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 	}
 
 	if doErr != nil {
-		mgr.logger.ErrorCtxf(actionInstCtx.Ctx, "action failed, action-name(%s), oper-def-name(%s), err(%v)",
-			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, doErr)
+		logger.G.Sys().
+			WithErr(doErr).
+			With("operation", actionInstCtx.Data.OperationDefName).
+			With("oper-inst-id", actionInstCtx.Data.OperationInstanceID, "action", actionInstCtx.Data.Name).
+			Error("failed to do action with all attempts")
+
 		actionInstCtx.Data.LogE(fmt.Sprintf("action failed, action-name(%s), oper-def-name(%s), err(%v)",
 			actionInstCtx.Data.Name, actionInstCtx.Data.OperationDefName, doErr))
 	}
@@ -463,8 +479,10 @@ func (mgr *manager) doOperExtraExecution(ctx contextx.IContext, oper *operation.
 		oper.Metadata.OperationInstanceID,
 		oper.Metadata.ExtraExecutionMessages[msgIdx:]...)
 	if updateErr != nil {
-		mgr.logger.Errorf("refresh operation-extra-execution(%s) message failed: %v",
-			oper.Metadata.ExtraExecutionName, err)
+		logger.G.Sys().
+			WithErr(updateErr).
+			With("operation-extra-execution", oper.Metadata.ExtraExecutionName).
+			Error("failed to refresh operation extra execution message")
 	}
 
 	return err

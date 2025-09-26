@@ -12,13 +12,13 @@
 package agent
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -30,19 +30,19 @@ import (
 func (h *handler) AgentUpgrade(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeAgentUpgradeReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to upgrade agent, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	hosts, err := h.getUpgradeNodeHosts(rCtx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to upgrade agent, failed to get host list: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent, failed to get host list")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	unitsMap, err := h.generatesUnitDirectLink(rCtx, hosts)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to upgrade agent, failed to get network unit info: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent, failed to get network unit info")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -53,7 +53,7 @@ func (h *handler) AgentUpgrade(rCtx restserver.IContext) (interface{}, error) {
 
 		nodeDeploy, err := h.generatesUpgradeDeploys(rCtx.TenantID(), reqHost, hosts, unitsMap)
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to upgrade agent, failed to generate node deployment: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent, failed to generate node deployment")
 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
@@ -68,14 +68,14 @@ func (h *handler) AgentUpgrade(rCtx restserver.IContext) (interface{}, error) {
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to upgrade agent: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentUpgradeResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(rCtx, "launched upgrade agent workflow: %s", workflowID)
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched upgrade agent workflow")
 
 	return resp.GetData(), nil
 }
@@ -107,7 +107,7 @@ func (h *handler) generatesUnitDirectLink(nCtx contextx.IContext, hostMap map[in
 }
 
 func (h *handler) getUpgradeNodeHosts(
-	ctx context.Context, reqHosts []*protoBackend.NodeAgentUpgradeReq_Host) (map[int64]*types.Host, error) {
+	nCtx contextx.IContext, reqHosts []*protoBackend.NodeAgentUpgradeReq_Host) (map[int64]*types.Host, error) {
 
 	if len(reqHosts) == 0 {
 		return nil, errors.New("empty host list")
@@ -118,7 +118,7 @@ func (h *handler) getUpgradeNodeHosts(
 		hostIDs[host.GetBkHostId()] = struct{}{}
 	}
 
-	hosts, _, err := h.storageHost.ListHost(ctx,
+	hosts, _, err := h.storageHost.ListHost(nCtx,
 		types.UnlimitedPage(),
 		&types.HostCondition{ExactInclude: &types.HostExactFields{
 			HostID: conv.MapKeyToSlice(hostIDs),

@@ -15,8 +15,6 @@ import (
 	"context"
 	"errors"
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // PollingOpts the options for retrying.
@@ -26,9 +24,6 @@ type PollingOpts struct {
 
 	// Interval is the interval between retries.
 	Interval time.Duration
-
-	// Logger ...
-	Logger logger.ILogger
 }
 
 // Polling the polling retryer.
@@ -42,7 +37,6 @@ func PollingOptsDefault() PollingOpts {
 	return PollingOpts{
 		Timeout:  30 * time.Second,
 		Interval: 1 * time.Second,
-		Logger:   logger.LoggerDefault{},
 	}
 }
 
@@ -70,7 +64,6 @@ func (p *Polling) Do(ctx context.Context, fn func(attempt int) error) error {
 	if err == nil {
 		return nil
 	}
-	p.opts.Logger.Warnf("retrying %d: %s", attempt, err.Error())
 
 	for {
 		select {
@@ -84,9 +77,6 @@ func (p *Polling) Do(ctx context.Context, fn func(attempt int) error) error {
 			if err == nil {
 				return nil
 			}
-
-			p.opts.Logger.Warnf("fn failed, attempt(%d), retry-after(%vs): %v.",
-				attempt, p.opts.Interval.Seconds(), err)
 		}
 	}
 }

@@ -19,7 +19,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -34,9 +34,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -53,19 +53,19 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 var once = sync.Once{}
 
 // prepareData for all tests.
-func prepareData(t *testing.T, ctx context.Context) {
+func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(ctx)
+		tenantID, _ := tenant.GetID(nCtx)
 
 		// pre insert.
 		h := testClient(t)
-		err := h.UpsertMany(ctx,
+		err := h.UpsertMany(nCtx,
 			&types.Host{
 				TenantID: tenantID,
 				HostID:   90001,
@@ -137,7 +137,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 
 // Test_handler_ListAll ...
 func Test_handler_ListAll(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	tests := []struct {
 		name    string
@@ -152,7 +152,7 @@ func Test_handler_ListAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.ListAll(ctx)
+			got, err := h.ListAll(nCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListAll() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -167,10 +167,10 @@ func Test_handler_ListAll(t *testing.T) {
 
 // UpsertMany upsert many hosts.
 func Test_handler_UpsertMany(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		hosts []*types.Host
 	}
 
@@ -180,9 +180,9 @@ func Test_handler_UpsertMany(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:   nil,
+				nCtx:  nil,
 				hosts: nil,
 			},
 			wantErr: true,
@@ -190,7 +190,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "nil hosts",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				hosts: nil,
 			},
 			wantErr: true,
@@ -198,7 +198,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "empty hosts",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				hosts: []*types.Host{},
 			},
 			wantErr: true,
@@ -206,7 +206,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				hosts: []*types.Host{
 					{
 						HostID:   1,
@@ -263,7 +263,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "tenantID not match",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				hosts: []*types.Host{
 					{
 						HostID:   1,
@@ -290,7 +290,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.UpsertMany(tt.args.ctx, tt.args.hosts...)
+			err := h.UpsertMany(tt.args.nCtx, tt.args.hosts...)
 			if err != nil {
 				t.Logf("UpsertMany() error = %v", err)
 			}
@@ -303,10 +303,10 @@ func Test_handler_UpsertMany(t *testing.T) {
 
 // Test_handler_UpsertStaticMany tests upsert host statics.
 func Test_handler_UpsertStaticMany(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		hosts []*types.Host
 	}
 
@@ -316,9 +316,9 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:   nil,
+				nCtx:  nil,
 				hosts: nil,
 			},
 			wantErr: true,
@@ -326,7 +326,7 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 		{
 			name: "nil hosts",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				hosts: nil,
 			},
 			wantErr: true,
@@ -334,7 +334,7 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 		{
 			name: "empty hosts",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				hosts: []*types.Host{},
 			},
 			wantErr: true,
@@ -342,7 +342,7 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 		{
 			name: "nil dynamic",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				hosts: []*types.Host{
 					{
 						HostID:   1,
@@ -363,7 +363,7 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				hosts: []*types.Host{
 					{
 						HostID:   2,
@@ -390,7 +390,7 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.UpsertStaticMany(tt.args.ctx, tt.args.hosts...)
+			err := h.UpsertStaticMany(tt.args.nCtx, tt.args.hosts...)
 			if err != nil {
 				t.Logf("UpsertStaticMany() %s error = %v", tt.name, err)
 			}
@@ -403,10 +403,10 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 
 // Test_handler_UpdateDynamicMany tests update host dynamics.
 func Test_handler_UpdateDynamicMany(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		hosts []*types.Host
 	}
 
@@ -416,9 +416,9 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:   nil,
+				nCtx:  nil,
 				hosts: nil,
 			},
 			wantErr: true,
@@ -426,7 +426,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 		{
 			name: "nil hosts",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				hosts: nil,
 			},
 			wantErr: true,
@@ -434,7 +434,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 		{
 			name: "empty hosts",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				hosts: []*types.Host{},
 			},
 			wantErr: true,
@@ -442,7 +442,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 		{
 			name: "nil static",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				hosts: []*types.Host{
 					{
 						HostID:   1,
@@ -461,7 +461,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				hosts: []*types.Host{
 					{
 						HostID:   2,
@@ -489,7 +489,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.UpdateDynamicMany(tt.args.ctx, tt.args.hosts...)
+			err := h.UpdateDynamicMany(tt.args.nCtx, tt.args.hosts...)
 			if err != nil {
 				t.Logf("UpdateDynamicMany() %s error = %v", tt.name, err)
 			}
@@ -502,9 +502,9 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 
 // Test_handler_Count covers count method.
 func Test_handler_Count(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -535,7 +535,7 @@ func Test_handler_Count(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Count(ctx, tt.optFn...)
+			got, err := h.Count(nCtx, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -552,9 +552,9 @@ func Test_handler_Count(t *testing.T) {
 
 // Test_handler_List covers list method.
 func Test_handler_List(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -634,7 +634,7 @@ func Test_handler_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, total, err := h.List(ctx, tt.page, tt.optFn...)
+			got, total, err := h.List(nCtx, tt.page, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -661,9 +661,9 @@ func Test_handler_List(t *testing.T) {
 
 // Test_handler_DistinctNodeVersion distinct node role fields.
 func Test_handler_DistinctNodeVersion(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
 		optFn []OptFn
@@ -687,7 +687,7 @@ func Test_handler_DistinctNodeVersion(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			gotResult, err := h.DistinctNodeVersion(ctx, tt.args.optFn...)
+			gotResult, err := h.DistinctNodeVersion(nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctNodeVersion() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -705,9 +705,9 @@ func Test_handler_DistinctNodeVersion(t *testing.T) {
 
 // Test_handler_DistinctNodeStatus distinct node status fields.
 func Test_handler_DistinctNodeStatus(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
 		optFn []OptFn
@@ -731,7 +731,7 @@ func Test_handler_DistinctNodeStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			gotResult, err := h.DistinctNodeStatus(ctx, tt.args.optFn...)
+			gotResult, err := h.DistinctNodeStatus(nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctNodeStatus() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -749,9 +749,9 @@ func Test_handler_DistinctNodeStatus(t *testing.T) {
 
 // Test_handler_DistinctNetworkAreaID distinct networkarea fields.
 func Test_handler_DistinctNetworkAreaID(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
 		optFn []OptFn
@@ -775,7 +775,7 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			gotResult, err := h.DistinctNetworkAreaID(ctx, tt.args.optFn...)
+			gotResult, err := h.DistinctNetworkAreaID(nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctNetworkAreaID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -793,12 +793,12 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 
 // Test_handler_DeleteMany delete many hosts.
 func Test_handler_DeleteMany(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx     context.Context
+		nCtx    context.Context
 		hostIDs []int64
 	}
 	tests := []struct {
@@ -809,7 +809,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:     ctx,
+				nCtx:    nCtx,
 				hostIDs: []int64{90001, 90002, 90003, 90004},
 			},
 			wantErr: false,
@@ -818,7 +818,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			if err := h.DeleteMany(tt.args.ctx, tt.args.hostIDs...); (err != nil) != tt.wantErr {
+			if err := h.DeleteMany(tt.args.nCtx, tt.args.hostIDs...); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteMany() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

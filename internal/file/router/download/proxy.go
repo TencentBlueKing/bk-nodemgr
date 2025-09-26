@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -25,7 +26,7 @@ import (
 func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadProxyReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.Error("bind json failed", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("bind json failed", err)
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}

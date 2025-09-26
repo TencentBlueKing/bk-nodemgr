@@ -23,12 +23,12 @@ import (
 // IAgent define the agent interface.
 type IAgent interface {
 	// GetReleaseAgent gets release by generation, release type, platform and version.
-	GetReleaseAgent(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
+	GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
 }
 
 // GetReleaseAgent gets release by generation, release type, platform and version.
-func (s *Storage) GetReleaseAgent(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
-	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeAgent,
+func (s *Storage) GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
+	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeAgent,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),

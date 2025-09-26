@@ -11,6 +11,7 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -26,7 +27,7 @@ const (
 func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoHostListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list host, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -36,7 +37,7 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to list host. failed to count host. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list host. failed to count host")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -51,7 +52,7 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 		req.ConvertPageToTypes(maxHostLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list host. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -64,7 +65,7 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 	}
 	hostCredits, err := h.storageHostCredit.CheckHostCreditValid(rCtx, conv.MapKeyToSlice(creditIDMap)...)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list host. failed to get host credit status. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host. failed to get host credit status")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -78,7 +79,7 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoHostDistinctReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to distinct host, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -87,7 +88,7 @@ func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 		types.NewHostDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to distinct host. failed to distinct host fields: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

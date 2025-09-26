@@ -15,7 +15,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -25,7 +24,6 @@ func generateSSHClient(
 	ip string, port int, user string,
 	password string,
 	loginMode types.LoginMode,
-	logger logger.ILogger,
 ) (*sshx.Client, error) {
 
 	sshConf := &sshx.Config{
@@ -33,7 +31,6 @@ func generateSSHClient(
 		IP:      ip,
 		Port:    port,
 		User:    user,
-		Logger:  logger,
 	}
 
 	switch loginMode {

@@ -17,7 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/upload"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -38,7 +38,7 @@ type IStorage interface {
 const StorageName = "upload"
 
 // NewStorage creates a new upload storage.
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -47,14 +47,14 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 	}
 	err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -71,7 +71,7 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoUpload = upload.New(s.Database, s.Logger)
+	s.daoUpload = upload.New(s.Database)
 
 	return nil
 }

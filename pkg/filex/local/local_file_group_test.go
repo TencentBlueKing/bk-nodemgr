@@ -15,7 +15,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -32,7 +31,6 @@ func testDirPath(t *testing.T) string {
 func TestNewLocalDir(t *testing.T) {
 	type args struct {
 		fullPath string
-		logger   logger.ILogger
 	}
 	tests := []struct {
 		name    string
@@ -43,14 +41,13 @@ func TestNewLocalDir(t *testing.T) {
 			name: "normal",
 			args: args{
 				fullPath: testDirPath(t),
-				logger:   logger.LoggerDefault{},
 			},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewLocalDir(tt.args.fullPath, tt.args.logger)
+			got, err := NewLocalDir(tt.args.fullPath)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewLocalDir() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -24,7 +25,7 @@ import (
 func (h *handler) GetMainConfig(rCtx restserver.IContext) (*restserver.FileResponse, error) {
 	req := new(protoCallback.PluginGetMainConfigReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to get main config, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get main config, failed to decode request body")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
@@ -33,14 +34,14 @@ func (h *handler) GetMainConfig(rCtx restserver.IContext) (*restserver.FileRespo
 
 	info, err := h.daoPluginDeployment.GetPluginDeploymentInfo(rCtx, token)
 	if err != nil {
-		h.logger.Errorf("failed to get main config, failed to get plugin deployment info: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get main config, failed to get plugin deployment info")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	mainConfigBytes, err := h.daoPluginDeployment.GetPluginDeploymentMainConfig(rCtx, token)
 	if err != nil {
-		h.logger.Errorf("failed to get main config, failed to get plugin deployment main config: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get main config, failed to get plugin deployment main config")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}

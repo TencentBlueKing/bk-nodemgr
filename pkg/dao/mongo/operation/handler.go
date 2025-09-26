@@ -12,11 +12,9 @@
 package operation
 
 import (
-	"context"
-	"errors"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
@@ -26,40 +24,37 @@ import (
 // IHandler operation handler interface.
 type IHandler interface {
 	// Upsert insert or update an operation.
-	Upsert(ctx context.Context, operation *operation.Operation) error
+	Upsert(nCtx contextx.IContext, operation *operation.Operation) error
 
 	// List list operation by page and opts.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
 
 	// Delete deletes operations.
-	Delete(ctx context.Context, operationID ...string) error
+	Delete(nCtx contextx.IContext, operationID ...string) error
 
 	// PullOperInstIDs pull operation instance ids by operation id.
-	PullOperInstIDs(ctx context.Context, operationID string, operInstIDs ...string) error
+	PullOperInstIDs(nCtx contextx.IContext, operationID string, operInstIDs ...string) error
 }
 
 type handler struct {
-	logger logger.ILogger
-	dao    *dao
+	dao *dao
 }
 
 // New new a handler.
-func New(client *mongo.Database, logger logger.ILogger) IHandler {
+func New(client *mongo.Database) IHandler {
 	h := &handler{
-		dao:    newDao(client, logger),
-		logger: logger,
+		dao: newDao(client),
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure operation indexes: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).Warn("failed to ensure operation indexes")
 	}
 
 	return h
 }
 
 // List lists operation by page and opts.
-func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error) {
+func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error) {
 	if err := page.Validate(); err != nil {
 		return nil, 0, err
 	}
@@ -69,14 +64,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.dao.Count(ctx, filter)
+	num, err := h.dao.Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	datas, err := h.dao.List(ctx, filter, findOpt)
+	datas, err := h.dao.List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -90,14 +85,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 }
 
 // Upsert insert or update an operation.
-func (h *handler) Upsert(ctx context.Context, operation *operation.Operation) error {
+func (h *handler) Upsert(nCtx contextx.IContext, operation *operation.Operation) error {
 	if operation == nil {
 		return base.ErrEmptyParamData()
 	}
 
 	data := convertOperationToDB(operation)
 
-	if err := h.dao.upsert(ctx, data); err != nil {
+	if err := h.dao.upsert(nCtx, data); err != nil {
 		return err
 	}
 
@@ -105,21 +100,21 @@ func (h *handler) Upsert(ctx context.Context, operation *operation.Operation) er
 }
 
 // Delete deletes operations.
-func (h *handler) Delete(ctx context.Context, operationID ...string) error {
+func (h *handler) Delete(nCtx contextx.IContext, operationID ...string) error {
 	if len(operationID) == 0 {
 		return base.ErrEmptyParamData()
 	}
 
-	return h.dao.delete(ctx, operationID...)
+	return h.dao.delete(nCtx, operationID...)
 }
 
 // PullOperInstIDs pull operation instance ids by operation id.
-func (h *handler) PullOperInstIDs(ctx context.Context, operationID string, operInstIDs ...string) error {
+func (h *handler) PullOperInstIDs(nCtx contextx.IContext, operationID string, operInstIDs ...string) error {
 	if operationID == "" || len(operInstIDs) == 0 {
 		return base.ErrEmptyParamData()
 	}
 
-	return h.dao.pullField(ctx, operationID, "oper_inst_ids", operInstIDs)
+	return h.dao.pullField(nCtx, operationID, "oper_inst_ids", operInstIDs)
 }
 
 func convertOperationFromDB(dbOp *Operation) *operation.Operation {

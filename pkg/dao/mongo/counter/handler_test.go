@@ -15,7 +15,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,9 +27,9 @@ func testClient(t *testing.T) Handler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -47,12 +46,12 @@ func testClient(t *testing.T) Handler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 // Test_handler_Generate generate sequence.
 func Test_handler_Generate(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	tests := []struct {
 		name    string
@@ -94,7 +93,7 @@ func Test_handler_Generate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Generate(ctx, tt.key)
+			got, err := h.Generate(nCtx, tt.key)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
 				return

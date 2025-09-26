@@ -16,8 +16,11 @@ package logger
 
 import (
 	"fmt"
+	"io"
+	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
@@ -118,8 +121,9 @@ func (l Logger) Sys() ILoggerOption {
 }
 
 // Biz creates biz logger.
-func (l Logger) Biz() ILoggerOption {
+func (l Logger) Biz(ctx contextx.IContext) ILoggerOption {
 	return &Option{
+		ctx:      ctx,
 		category: CategoryBusiness,
 		kvs:      make([]interface{}, 0),
 		depth:    l.Depth,
@@ -137,8 +141,10 @@ type Option struct {
 	ctx      contextx.IContext
 	kvs      []interface{}
 	err      error
+	duration *time.Duration
 	level    Level
 	depth    int
+	assignFn func(format string, args ...interface{})
 }
 
 // Ctx sets context.
@@ -158,6 +164,24 @@ func (o *Option) With(kvs ...interface{}) ILoggerOption {
 // WithErr add error into logger.
 func (o *Option) WithErr(err error) ILoggerOption {
 	o.err = err
+
+	return o
+}
+
+// WithCost add cost into logger.
+func (o *Option) WithDuration(duration time.Duration) ILoggerOption {
+	o.duration = &duration
+
+	return o
+}
+
+// AssignWhenLogging assigns the logger message to str when logging.
+func (o *Option) AssignWhenLogging(str *string) ILoggerOption {
+	if str != nil {
+		o.assignFn = func(format string, args ...interface{}) {
+			*str = fmt.Sprintf(format+o.additionMessage(), args...)
+		}
+	}
 
 	return o
 }
@@ -186,11 +210,43 @@ func (o *Option) Error(format string, args ...interface{}) {
 	o.log(format, args...)
 }
 
+// DebugWriter returns the writer for debug message.
+func (o *Option) DebugWriter() io.Writer {
+	o.level = LevelDebug
+
+	return Writer{o: o}
+}
+
+// InfoWriter returns the writer for info message.
+func (o *Option) InfoWriter() io.Writer {
+	o.level = LevelInfo
+
+	return Writer{o: o}
+}
+
+// WarnWriter returns the writer for warn message.
+func (o *Option) WarnWriter() io.Writer {
+	o.level = LevelWarn
+
+	return Writer{o: o}
+}
+
+// ErrorWriter returns the writer for error message.
+func (o *Option) ErrorWriter() io.Writer {
+	o.level = LevelError
+
+	return Writer{o: o}
+}
+
 // Log messages.
 func (o *Option) log(format string, args ...interface{}) {
 	o.parseArgs()
 
 	printer.Log(o.category, o.level, o.depth, format+o.additionMessage(), args...)
+
+	if o.assignFn != nil {
+		o.assignFn(format, args...)
+	}
 }
 
 func (o *Option) additionMessage() string {
@@ -221,6 +277,10 @@ func (o *Option) additionMessage() string {
 }
 
 func (o *Option) parseArgs() {
+	if o.duration != nil {
+		o.kvs = append(o.kvs, "cost", strconv.FormatInt(o.duration.Milliseconds(), 10)+"ms")
+	}
+
 	if o.ctx != nil {
 		values := o.ctx.Values()
 		data := make([]interface{}, 0, len(values)*2) // nolint: mnd
@@ -234,4 +294,16 @@ func (o *Option) parseArgs() {
 	if o.err != nil {
 		o.kvs = append(o.kvs, "err", o.err)
 	}
+}
+
+// Writer provides a writer for logger.
+type Writer struct {
+	o *Option
+}
+
+// Write implements io.Writer.
+func (w Writer) Write(p []byte) (n int, err error) {
+	w.o.log(string(p))
+
+	return len(p), nil
 }

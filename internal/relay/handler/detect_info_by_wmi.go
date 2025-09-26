@@ -12,20 +12,21 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 )
 
-func (h *handler) DetectInfoByWMI(ctx context.Context, payload []byte) {
-	h.logger.Infof("handler detect info by wmi event.")
+func (h *handler) DetectInfoByWMI(nCtx contextx.IContext, payload []byte) {
+	logger.G.Biz(nCtx).Info("handler detect info by wmi event")
 
 	var (
 		event   protoRelay.DetectInfoByWMIReq
@@ -35,49 +36,51 @@ func (h *handler) DetectInfoByWMI(ctx context.Context, payload []byte) {
 	)
 
 	defer func() {
-		if err := h.reportHostInfo(ctx, event.ActionName, event.OperInstID, osType, cpuArch, "", errMsg); err != nil {
-			h.logger.Errorf("failed to report host info: %v", err)
+		if err := h.reportHostInfo(nCtx, event.ActionName, event.OperInstID, osType, cpuArch, "", errMsg); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).Error("failed to report host info")
+
 			return
 		}
-		h.logger.Infof("report host info success. action-name(%s), instance-id(%s),os-type(%s), cpu-arch(%s)",
-			event.ActionName, event.OperInstID, osType, cpuArch)
+
+		logger.G.Biz(nCtx).
+			With("action", event.ActionName, "oper-inst-id", event.OperInstID).
+			With("os-type", osType, "cpu-arch", cpuArch).
+			Info("done report host info")
 	}()
 
 	if err := json.Unmarshal(payload, &event); err != nil {
-		errMsg = fmt.Sprintf("failed to unmarshal detect info by wmi event: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to unmarshal detect info by wmi event")
 
 		return
 	}
 
-	client, err := generateWMIClient(ctx, event.IP, int(event.Port), event.User, event.Password, types.LoginMode(event.LoginMode), h.logger)
+	client, err := generateWMIClient(nCtx, event.IP, int(event.Port), event.User, event.Password, types.LoginMode(event.LoginMode))
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to generate wmi client: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to generate wmi client")
 
 		return
 	}
+	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("try to connect to host")
 
-	h.logger.Infof("start to detect info. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
-
-	osType, cpuArch, err = detectInfoByWMI(ctx, client)
+	osType, cpuArch, err = detectInfoByWMI(nCtx, client)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to detect info: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to detect info")
 
 		return
 	}
-	h.logger.Infof("detect info success. os-type(%s), cpu-arch(%s)", osType, cpuArch)
 
-	h.logger.Infof("detect info by wmi success. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
+	logger.G.Biz(nCtx).
+		With("ip", event.IP, "port", event.Port, "user", event.User).
+		With("os-type", osType, "cpu-arch", cpuArch).
+		Info("detect info by wmi successfully")
 }
 
 // nolint: nonamedreturns,perfsprint
-func detectInfoByWMI(ctx context.Context, client *wmix.Client) (
+func detectInfoByWMI(nCtx contextx.IContext, client *wmix.Client) (
 	osType criteria.OSType, cpuArch criteria.CPUArch, err error) {
 
 	// 1. detect target system
-	osTypeStr, _, err := client.RunCommand(ctx, "ver")
+	osTypeStr, _, err := client.RunCommand(nCtx, "ver")
 	if err != nil {
 		return "", "", fmt.Errorf("failed to run ver: %w", err)
 	}
@@ -96,7 +99,7 @@ func detectInfoByWMI(ctx context.Context, client *wmix.Client) (
 	}
 
 	// 2. detect target cpu arch
-	cpuArchStr, _, err := client.RunCommand(ctx, "echo %PROCESSOR_ARCHITECTURE%")
+	cpuArchStr, _, err := client.RunCommand(nCtx, "echo %PROCESSOR_ARCHITECTURE%")
 	if err != nil {
 		return "", "", fmt.Errorf("failed to run uname -m: %w", err)
 	}

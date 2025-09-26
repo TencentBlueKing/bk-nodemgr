@@ -15,6 +15,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -26,13 +27,13 @@ import (
 func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeAgentInstallCheckReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to check install agent, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to check install agent, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	results, err := h.checkInstall(rCtx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to check install agent: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to check install agent")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
@@ -63,8 +64,10 @@ func (h *handler) checkInstall(nCtx contextx.IContext,
 
 			result, err := h.checkInstallEligibility(nCtx, innerIP, networkareaID, bizID)
 			if err != nil {
-				h.logger.ErrorCtxf(nCtx, "failed to check install eligibility. inner-ip(%s), network-unit-id(%d), biz-id(%d): %v",
-					innerIP, networkunitID, bizID, err)
+				logger.G.Biz(nCtx).
+					WithErr(err).
+					With("inner-ip", innerIP, "networkunit-id", networkunitID, "biz-id", bizID).
+					Error("failed to check install eligibility")
 
 				return fmt.Errorf("failed to check install eligibility. inner-ip(%s), network-unit-id(%d), biz-id(%d): %w",
 					innerIP, networkunitID, bizID, err)

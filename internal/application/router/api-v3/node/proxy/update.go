@@ -11,6 +11,7 @@
 package proxy
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -20,15 +21,18 @@ import (
 func (h *handler) Update(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeProxyUpdateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to update proxy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.backendHandler.UpdateProxy(rCtx, req.ConvertParamToTypes()); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to update proxy, failed to update host. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update proxy, failed to update host")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
+	logger.G.Biz(rCtx).With("count", len(req.GetHost())).Info("updated proxy")
+
 	resp := new(protoApplication.NodeProxyUpdateResp)
+
 	return resp.GetData(), nil
 }

@@ -18,7 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -94,12 +93,12 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	nCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 
 	var cmdbData, dbData []*types.Host
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		cmdbData, err = act.cmdbHandler.ListBizHosts(newCtx, param.BizID, types.UnlimitedPage())
+		cmdbData, err = act.cmdbHandler.ListBizHosts(nCtx, param.BizID, types.UnlimitedPage())
 		if err != nil {
 			return fmt.Errorf("list host from cmdb failed: %w", err)
 		}
@@ -107,13 +106,8 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
-	if err != nil {
-		return err
-	}
-
 	gp.Go(func() error {
-		dbData, _, err = act.storageHost.ListHost(tenantCtx, types.UnlimitedPage(), &types.HostCondition{
+		dbData, _, err = act.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
 				BizID: []int64{param.BizID},
 			},
@@ -139,15 +133,15 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		fmt.Sprintf("comapred hosts, %d hosts need to update, %d hosts need to insert, %d hosts need to delete",
 			len(updateHosts), len(insertHosts), len(deleteHostIDs)))
 
-	if err = act.storageHost.UpsertManyHostStatic(tenantCtx, updateHosts...); err != nil {
+	if err = act.storageHost.UpsertManyHostStatic(nCtx, updateHosts...); err != nil {
 		return err
 	}
 
-	if err = act.storageHost.UpsertManyHost(tenantCtx, insertHosts...); err != nil {
+	if err = act.storageHost.UpsertManyHost(nCtx, insertHosts...); err != nil {
 		return err
 	}
 
-	if err = act.storageHost.DeleteManyHost(tenantCtx, deleteHostIDs...); err != nil {
+	if err = act.storageHost.DeleteManyHost(nCtx, deleteHostIDs...); err != nil {
 		return err
 	}
 

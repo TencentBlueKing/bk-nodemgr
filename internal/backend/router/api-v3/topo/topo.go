@@ -17,7 +17,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +27,6 @@ type handler struct {
 	storage           topoStg.IStorage
 	storageHostCredit credit.IStorageHostCredit
 	cmdbHandler       cmdb.IHandler
-	logger            logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -39,7 +37,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storage:           capability.StorageTopo,
 		storageHostCredit: capability.StorageCredit,
 		cmdbHandler:       capability.CmdbHandler,
-		logger:            capability.Logger,
 	}
 }
 

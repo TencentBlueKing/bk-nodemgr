@@ -13,15 +13,14 @@
 package topo
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // CountTopoEvent counts topo events.
-func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...*types.TopoEventCondition) (num int64, err error) {
+func (s *Storage) CountTopoEvent(nCtx contextx.IContext, conditions ...*types.TopoEventCondition) (num int64, err error) {
 	// record metric.
 	metric := s.metric().Start("count_topo_event")
 	defer metric.End(err)
@@ -31,7 +30,7 @@ func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...*types.TopoE
 		return 0, err
 	}
 
-	if num, err = s.daoTopoEvent.Count(ctx, opts...); err != nil {
+	if num, err = s.daoTopoEvent.Count(nCtx, opts...); err != nil {
 		return 0, err
 	}
 
@@ -39,7 +38,7 @@ func (s *Storage) CountTopoEvent(ctx context.Context, conditions ...*types.TopoE
 }
 
 // ListTopoEvent lists topo events.
-func (s *Storage) ListTopoEvent(ctx context.Context, page types.Page, conditions ...*types.TopoEventCondition) (
+func (s *Storage) ListTopoEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.TopoEventCondition) (
 	results []*types.TopoEvent, num int64, err error) {
 
 	// record metric.
@@ -51,7 +50,7 @@ func (s *Storage) ListTopoEvent(ctx context.Context, page types.Page, conditions
 		return nil, 0, err
 	}
 
-	if results, num, err = s.daoTopoEvent.List(ctx, page, opts...); err != nil {
+	if results, num, err = s.daoTopoEvent.List(nCtx, page, opts...); err != nil {
 		return nil, 0, err
 	}
 
@@ -59,12 +58,12 @@ func (s *Storage) ListTopoEvent(ctx context.Context, page types.Page, conditions
 }
 
 // CreateManyTopoEvent creates topo events.
-func (s *Storage) CreateManyTopoEvent(ctx context.Context, events ...*types.TopoEvent) (err error) {
+func (s *Storage) CreateManyTopoEvent(nCtx contextx.IContext, events ...*types.TopoEvent) (err error) {
 	// record metric.
 	metric := s.metric().Start("create_many_topo_event")
 	defer metric.End(err)
 
-	if err = s.daoTopoEvent.CreateMany(ctx, events...); err != nil {
+	if err = s.daoTopoEvent.CreateMany(nCtx, events...); err != nil {
 		return err
 	}
 
@@ -73,7 +72,7 @@ func (s *Storage) CreateManyTopoEvent(ctx context.Context, events ...*types.Topo
 
 // DistinctTopoEvent distincts topo events.
 func (s *Storage) DistinctTopoEvent(
-	ctx context.Context, request types.TopoEventDistinctRequest, conditions ...*types.TopoEventCondition) (
+	nCtx contextx.IContext, request types.TopoEventDistinctRequest, conditions ...*types.TopoEventCondition) (
 	data *types.TopoEventDistinctResult, err error) {
 
 	// record metric.
@@ -91,7 +90,7 @@ func (s *Storage) DistinctTopoEvent(
 	if request.Type {
 		gp.Go(func() error {
 			var err error
-			data.Type, err = s.daoTopoEvent.DistinctType(ctx, opts...)
+			data.Type, err = s.daoTopoEvent.DistinctType(nCtx, opts...)
 
 			return err
 		})
@@ -99,7 +98,7 @@ func (s *Storage) DistinctTopoEvent(
 	if request.NetworkAreaID {
 		gp.Go(func() error {
 			var err error
-			data.NetworkAreaID, err = s.daoTopoEvent.DistinctNetworkAreaID(ctx, opts...)
+			data.NetworkAreaID, err = s.daoTopoEvent.DistinctNetworkAreaID(nCtx, opts...)
 
 			return err
 		})
@@ -107,7 +106,7 @@ func (s *Storage) DistinctTopoEvent(
 	if request.NetworkUnitID {
 		gp.Go(func() error {
 			var err error
-			data.NetworkUnitID, err = s.daoTopoEvent.DistinctNetworkUnitID(ctx, opts...)
+			data.NetworkUnitID, err = s.daoTopoEvent.DistinctNetworkUnitID(nCtx, opts...)
 
 			return err
 		})
@@ -115,7 +114,7 @@ func (s *Storage) DistinctTopoEvent(
 	if request.AccessPointID {
 		gp.Go(func() error {
 			var err error
-			data.AccessPointID, err = s.daoTopoEvent.DistinctAccessPointID(ctx, opts...)
+			data.AccessPointID, err = s.daoTopoEvent.DistinctAccessPointID(nCtx, opts...)
 
 			return err
 		})
@@ -123,7 +122,7 @@ func (s *Storage) DistinctTopoEvent(
 	if request.Operator {
 		gp.Go(func() error {
 			var err error
-			data.Operator, err = s.daoTopoEvent.DistinctOperator(ctx, opts...)
+			data.Operator, err = s.daoTopoEvent.DistinctOperator(nCtx, opts...)
 
 			return err
 		})

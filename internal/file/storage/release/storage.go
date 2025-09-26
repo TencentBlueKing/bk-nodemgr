@@ -19,7 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -28,7 +28,7 @@ import (
 const StorageName = "release"
 
 // NewStorage creates a new release storage.
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -37,14 +37,14 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 	}
 	err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -61,7 +61,7 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoRelease = release.New(s.Database, s.Logger)
+	s.daoRelease = release.New(s.Database)
 
 	return nil
 }

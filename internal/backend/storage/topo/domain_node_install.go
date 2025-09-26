@@ -11,9 +11,9 @@
 package topo
 
 import (
-	"context"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -21,14 +21,14 @@ import (
 
 // GetNetworkUnitByAreaIDs list network unit by area id.
 // nolint: nonamedreturns
-func (s *Storage) GetNetworkUnitByAreaIDs(ctx context.Context, networkAreaIDs []int64) (
+func (s *Storage) GetNetworkUnitByAreaIDs(nCtx contextx.IContext, networkAreaIDs []int64) (
 	results []*types.NetworkUnit, err error) {
 
 	opts := make([]networkunit.OptFn, 0)
 
 	opts = append(opts, networkunit.WithNetworkAreaID(networkAreaIDs...))
 
-	if results, _, err = s.daoNetworkUnit.List(ctx, types.UnlimitedPage(), opts...); err != nil {
+	if results, _, err = s.daoNetworkUnit.List(nCtx, types.UnlimitedPage(), opts...); err != nil {
 		return nil, fmt.Errorf("list network unit by area ids failed. ids(%v): %w", networkAreaIDs, err)
 	}
 
@@ -37,7 +37,7 @@ func (s *Storage) GetNetworkUnitByAreaIDs(ctx context.Context, networkAreaIDs []
 
 // GetHostsByAreaAndInnerIP get hosts by area and inner ip.
 // nolint: nonamedreturns
-func (s *Storage) GetHostsByAreaAndInnerIP(ctx context.Context,
+func (s *Storage) GetHostsByAreaAndInnerIP(nCtx contextx.IContext,
 	networkAreaID int64, innerip string) (results []*types.Host, err error) {
 
 	opts := make([]host.OptFn, 0)
@@ -45,7 +45,7 @@ func (s *Storage) GetHostsByAreaAndInnerIP(ctx context.Context,
 	opts = append(opts, host.WithNetworkAreaID(networkAreaID))
 	opts = append(opts, host.WithStaticInnerIP(innerip))
 
-	if results, _, err = s.daoHost.List(ctx, types.UnlimitedPage(), opts...); err != nil {
+	if results, _, err = s.daoHost.List(nCtx, types.UnlimitedPage(), opts...); err != nil {
 		return nil, fmt.Errorf("get hosts by area and inner-ip failed. area-id(%d) inner-ip(%s): %w", networkAreaID, innerip, err)
 	}
 

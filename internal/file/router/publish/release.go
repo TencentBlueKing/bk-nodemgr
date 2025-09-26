@@ -11,6 +11,7 @@
 package publish
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -20,18 +21,18 @@ import (
 func (h *handler) PublishReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.PublishReleaseAgentReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release agent, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release agent, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseAgent(rCtx, uploadID); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release agent. upload-id(%s): %v", uploadID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release agent")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "uploaded and generated release agent. upload-id(%s)", uploadID)
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release agent")
 
 	resp := new(protoFile.PublishReleaseAgentResp)
 
@@ -42,18 +43,18 @@ func (h *handler) PublishReleaseAgent(rCtx restserver.IContext) (interface{}, er
 func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.PublishReleaseProxyReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release proxy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseProxy(rCtx, uploadID); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release proxy. upload-id(%s): %v", uploadID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "uploaded and generated release proxy. upload-id(%s)", uploadID)
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release proxy")
 
 	resp := new(protoFile.PublishReleaseProxyResp)
 
@@ -64,18 +65,18 @@ func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, er
 func (h *handler) PublishReleaseCert(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.PublishReleaseCertReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release cert, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release cert, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseCert(rCtx, uploadID); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release cert. upload-id(%s): %v", uploadID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release cert")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "uploaded and generated release cert. upload-id(%s)", uploadID)
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release cert")
 
 	resp := new(protoFile.PublishReleaseCertResp)
 
@@ -86,18 +87,18 @@ func (h *handler) PublishReleaseCert(rCtx restserver.IContext) (interface{}, err
 func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.PublishReleaseBinToolReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release bintool, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release bintool, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseBinTool(rCtx, uploadID); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release bintool. upload-id(%s): %v", uploadID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release bintool")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "uploaded and generated release bintool. upload-id(%s)", uploadID)
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release bintool")
 
 	resp := new(protoFile.PublishReleaseBinToolResp)
 
@@ -108,18 +109,18 @@ func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, 
 func (h *handler) PublishReleasePluginBinTool(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.PublishReleasePluginBinToolReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release plugin bintool, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleasePluginBinTool(rCtx, uploadID); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release plugin bintool. upload-id(%s): %v", uploadID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "uploaded and generated release plugin bintool. upload-id(%s)", uploadID)
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release plugin bintool")
 
 	resp := new(protoFile.PublishReleasePluginBinToolResp)
 
@@ -130,18 +131,18 @@ func (h *handler) PublishReleasePluginBinTool(rCtx restserver.IContext) (interfa
 func (h *handler) PublishReleaseOfficialPlugin(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.PublishReleaseOfficialPluginReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release official plugin, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release official plugin, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseOfficialPlugin(rCtx, uploadID); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release official plugin. upload-id(%s): %v", uploadID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release official plugin")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "uploaded and generated release official plugin. upload-id(%s)", uploadID)
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release official plugin")
 
 	resp := new(protoFile.PublishReleaseOfficialPluginResp)
 
@@ -152,18 +153,18 @@ func (h *handler) PublishReleaseOfficialPlugin(rCtx restserver.IContext) (interf
 func (h *handler) PublishReleaseExternalPlugin(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.PublishReleaseExternalPluginReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release external plugin, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release external plugin, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
 	if err := h.manager.PublishReleaseExternalPlugin(rCtx, uploadID); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to publish release external plugin. upload-id(%s): %v", uploadID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release external plugin")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "uploaded and generated release external plugin. upload-id(%s)", uploadID)
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release external plugin")
 
 	resp := new(protoFile.PublishReleaseExternalPluginResp)
 

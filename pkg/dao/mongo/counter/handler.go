@@ -11,50 +11,48 @@
 package counter
 
 import (
-	"context"
-	"errors"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Handler counter handler interface.
 type Handler interface {
 	// Generate generate a global new sequence in namespace key.
-	Generate(ctx context.Context, key string) (int64, error)
+	Generate(nCtx contextx.IContext, key string) (int64, error)
 }
 
 type handler struct {
 	client *mongo.Database
-	logger logger.ILogger
-	dao    *dao
-	once   sync.Once
+
+	dao  *dao
+	once sync.Once
 }
 
 // New create a new counter handler.
-func New(client *mongo.Database, logger logger.ILogger) Handler {
+func New(client *mongo.Database) Handler {
 	return &handler{
 		client: client,
-		logger: logger,
-		dao:    newDao(client, logger),
+		dao:    newDao(client),
 	}
 }
 
 // Generate generate a global new sequence in namespace key.
-func (h *handler) Generate(ctx context.Context, key string) (int64, error) {
+func (h *handler) Generate(nCtx contextx.IContext, key string) (int64, error) {
 	if key == "" {
 		return -1, base.ErrEmptyParamData()
 	}
 
-	return h.getDao().generate(ctx, key)
+	return h.getDao().generate(nCtx, key)
 }
 
 func (h *handler) getDao() *dao {
 	h.once.Do(func() {
 		if err := h.dao.ensureIndexes(); err != nil {
-			h.logger.Warnf("failed to ensure counter indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+			logger.G.Sys().WithErr(err).Warn("failed to ensure counter indexes")
 		}
 	})
 

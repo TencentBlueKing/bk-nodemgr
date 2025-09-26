@@ -12,12 +12,12 @@
 package scheduleworkflow
 
 import (
-	"context"
 	"errors"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
@@ -27,16 +27,16 @@ import (
 // IHandler schedule workflow handler interface.
 type IHandler interface {
 	// Get gets schedule workflow by id.
-	Get(ctx context.Context, workflowID string) (*schedule.Schedule, error)
+	Get(nCtx contextx.IContext, workflowID string) (*schedule.Schedule, error)
 
 	// Count counts schedule workflow by opts.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// List lists schedule workflow by page and opts.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*schedule.Schedule, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*schedule.Schedule, int64, error)
 
 	// Create creates a new schedule workflow.
-	Create(ctx context.Context, workflow *schedule.Schedule) error
+	Create(nCtx contextx.IContext, workflow *schedule.Schedule) error
 
 	// IDistinctor distincts schedule workflow fields.
 	IDistinctor
@@ -45,16 +45,15 @@ type IHandler interface {
 // IDistinctor schedule workflow distinctor interface.
 type IDistinctor interface {
 	// DistinctScheduleWorkflowName distincts with field type.
-	DistinctScheduleWorkflowName(ctx context.Context, opts ...OptFn) ([]string, error)
+	DistinctScheduleWorkflowName(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 
 	// DistinctScheduleWorkflowOperator distincts with field operator.
-	DistinctScheduleWorkflowOperator(ctx context.Context, opts ...OptFn) ([]string, error)
+	DistinctScheduleWorkflowOperator(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 }
 
 // Handler this is a Handler to operate schedule workflow table.
 type Handler struct {
 	client *mongo.Database
-	logger logger.ILogger
 
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
@@ -66,10 +65,9 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 		return d.(*dao) // nolint: forcetypeassert
 	}
 
-	newDaoClient := newDao(h.client, h.logger)
+	newDaoClient := newDao(h.client)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure schedule workflow indexes: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure schedule workflow indexes")
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
@@ -80,17 +78,16 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new schedule workflow handler.
-func New(client *mongo.Database, logger logger.ILogger) *Handler {
+func New(client *mongo.Database) *Handler {
 	return &Handler{
 		client: client,
-		logger: logger,
 		daoMap: sync.Map{},
 	}
 }
 
 // Count counts schedule workflow by opts.
-func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -100,12 +97,12 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).Count(ctx, filter)
+	return h.tenantDao(tenantID).Count(nCtx, filter)
 }
 
 // List lists schedule workflow by page and opts.
-func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*schedule.Schedule, int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*schedule.Schedule, int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -115,14 +112,14 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	datas, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -136,8 +133,8 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 }
 
 // Create creates a new schedule workflow.
-func (h *Handler) Create(ctx context.Context, workflow *schedule.Schedule) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Create(nCtx contextx.IContext, workflow *schedule.Schedule) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -150,7 +147,7 @@ func (h *Handler) Create(ctx context.Context, workflow *schedule.Schedule) error
 		return errors.New("trigger id should not be empty")
 	}
 
-	if err := h.tenantDao(tenantID).Create(ctx, convertScheduleWorkflowFromTypes(workflow)); err != nil {
+	if err := h.tenantDao(tenantID).Create(nCtx, convertScheduleWorkflowFromTypes(workflow)); err != nil {
 		return err
 	}
 
@@ -158,8 +155,8 @@ func (h *Handler) Create(ctx context.Context, workflow *schedule.Schedule) error
 }
 
 // Get gets schedule workflow by id.
-func (h *Handler) Get(ctx context.Context, workflowID string) (*schedule.Schedule, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*schedule.Schedule, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +167,7 @@ func (h *Handler) Get(ctx context.Context, workflowID string) (*schedule.Schedul
 
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
-	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -179,10 +176,10 @@ func (h *Handler) Get(ctx context.Context, workflowID string) (*schedule.Schedul
 }
 
 // DistinctScheduleWorkflowName distincts with field type.
-func (h *Handler) DistinctScheduleWorkflowName(ctx context.Context, opts ...OptFn) (
+func (h *Handler) DistinctScheduleWorkflowName(nCtx contextx.IContext, opts ...OptFn) (
 	[]string, error) {
 
-	result, err := h.distinctString(ctx, FieldKeyWorkflowName, opts...)
+	result, err := h.distinctString(nCtx, FieldKeyWorkflowName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -191,13 +188,13 @@ func (h *Handler) DistinctScheduleWorkflowName(ctx context.Context, opts ...OptF
 }
 
 // DistinctScheduleWorkflowOperator distincts with field operator.
-func (h *Handler) DistinctScheduleWorkflowOperator(ctx context.Context, opts ...OptFn) ([]string, error) {
-	return h.distinctString(ctx, FieldKeyOperator, opts...)
+func (h *Handler) DistinctScheduleWorkflowOperator(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	return h.distinctString(nCtx, FieldKeyOperator, opts...)
 }
 
 // distinctString returns distinct values of specified field.
-func (h *Handler) distinctString(ctx context.Context, key string, opts ...OptFn) ([]string, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +204,7 @@ func (h *Handler) distinctString(ctx context.Context, key string, opts ...OptFn)
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).distinctString(ctx, key, filter, nil)
+	return h.tenantDao(tenantID).distinctString(nCtx, key, filter, nil)
 }
 
 // convertScheduleWorkflowToTypes convert schedule workflow to types.

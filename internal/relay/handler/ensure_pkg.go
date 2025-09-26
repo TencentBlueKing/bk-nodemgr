@@ -12,7 +12,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -20,6 +19,8 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 )
 
@@ -30,12 +31,13 @@ const (
 )
 
 // CheckPkgStats is a handler for the CheckPkgStats event.
-func (h *handler) CheckPkgStats(ctx context.Context, payload []byte) {
-	h.logger.Infof("handler check pkg stat event.")
+func (h *handler) CheckPkgStats(nCtx contextx.IContext, payload []byte) {
+	logger.G.Biz(nCtx).Info("handler check pkg state event")
 
 	var event protoRelay.CheckPkgStateReq
 	if err := json.Unmarshal(payload, &event); err != nil {
-		h.logger.Errorf("failed to unmarshal check pkg stat event: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to unmarshal check pkg stat event")
+
 		return
 	}
 
@@ -43,12 +45,11 @@ func (h *handler) CheckPkgStats(ctx context.Context, payload []byte) {
 
 	for _, fileInfo := range event.FileList {
 		statePkg := relayconstant.RelayReportPkgInComplete
-		if exists := h.fileManager.FileExists(ctx, fileInfo.FileName, fileInfo.FileMD5); exists {
+		if exists := h.fileManager.FileExists(nCtx, fileInfo.FileName, fileInfo.FileMD5); exists {
 			statePkg = relayconstant.RelayReportPkgComplete
 		}
 
-		h.logger.Infof("check package status. file-name(%s), md5(%s), exists(%v)",
-			fileInfo.FileName, fileInfo.FileMD5, statePkg)
+		logger.G.Biz(nCtx).With("filename", fileInfo.FileName, "md5", fileInfo.FileMD5, "exists", statePkg).Info("check package status")
 
 		fileStates = append(fileStates, fileState{
 			FileName:   fileInfo.FileName,
@@ -63,37 +64,39 @@ func (h *handler) CheckPkgStats(ctx context.Context, payload []byte) {
 		FileState:     fileStates,
 	}
 
-	if err := h.reportRelayFileState(ctx, h.client, req); err != nil {
-		h.logger.Errorf("failed to report relay file state: %v", err)
+	if err := h.reportRelayFileState(nCtx, h.client, req); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report relay file state")
 	}
 
-	h.logger.Infof("check package status success")
+	logger.G.Biz(nCtx).Info("check package status successfully")
 }
 
 // StoragePkg is a handler for the StoragePkg event.
-func (h *handler) StoragePkg(ctx context.Context, payload []byte) {
-	h.logger.Infof("handler storage pkg event.")
+func (h *handler) StoragePkg(nCtx contextx.IContext, payload []byte) {
+	logger.G.Biz(nCtx).Info("handler storage pkg event")
 
 	var event protoRelay.NotifyReceiveReq
 
 	if err := json.Unmarshal(payload, &event); err != nil {
-		h.logger.Errorf("failed to unmarshal storage pkg event: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to unmarshal storage pkg event")
+
 		return
 	}
 
 	var errMsg string
 	for _, pkgName := range event.PkgName {
-		fileInfo, err := h.fileManager.StoreFile(ctx, h.storageTmpDir, pkgName)
+		fileInfo, err := h.fileManager.StoreFile(nCtx, h.storageTmpDir, pkgName)
 		if err != nil {
-			h.logger.Errorf("failed to store file. dest-dir(%s), pkg-name(%s): %v",
-				h.storageTmpDir, pkgName, err)
-			errMsg = err.Error()
+			logger.G.Biz(nCtx).
+				AssignWhenLogging(&errMsg).
+				WithErr(err).
+				With("dest-dir", h.storageTmpDir, "pkgname", pkgName).
+				Error("failed to store file")
 
 			break
 		}
 
-		h.logger.Infof("storage package success. file-name(%s), size(%d), md5(%s)",
-			fileInfo.Name, fileInfo.Size, fileInfo.MD5)
+		logger.G.Biz(nCtx).With("filename", fileInfo.Name, "md5", fileInfo.MD5, "size", fileInfo.Size).Info("storage package successfully")
 	}
 
 	req := reportRelayStorageResult{
@@ -101,18 +104,17 @@ func (h *handler) StoragePkg(ctx context.Context, payload []byte) {
 		OperInstID: event.OperInstID,
 		ErrMsg:     errMsg,
 	}
-	if err := h.reportStorageResult(ctx, h.client, req); err != nil {
-		h.logger.Errorf("failed to report relay file state: %v", err)
+	if err := h.reportStorageResult(nCtx, h.client, req); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report relay storage result")
 	}
 
 	for _, pkgName := range event.PkgName {
 		if err := h.safeRemove(h.storageTmpDir, pkgName); err != nil {
-			h.logger.Errorf("failed to remove file. dest-dir(%s), pkg-name(%s): %v",
-				h.storageTmpDir, pkgName, err)
+			logger.G.Biz(nCtx).WithErr(err).With("dest-dir", h.storageTmpDir, "pkgname", pkgName).Error("failed to remove file")
 		}
 	}
 
-	h.logger.Infof("storage package event success")
+	logger.G.Biz(nCtx).Info("storage package event successfully")
 }
 
 func (h *handler) safeRemove(baseDir string, filename string) error {

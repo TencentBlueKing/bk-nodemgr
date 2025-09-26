@@ -30,7 +30,7 @@ func generateHostCreditID() string {
 }
 
 // CreateHostCredit create host credit.
-func (s *Storage) CreateHostCredit(ctx contextx.IContext, creditData []byte) (string, error) {
+func (s *Storage) CreateHostCredit(nCtx contextx.IContext, creditData []byte) (string, error) {
 	var encryptedCreditData []byte
 	var err error
 
@@ -43,7 +43,7 @@ func (s *Storage) CreateHostCredit(ctx contextx.IContext, creditData []byte) (st
 	}
 
 	creditID := generateHostCreditID()
-	if err = s.daoCredit.Upsert(ctx, creditID, encryptedCreditData, generateHostCreditExpiredAt()); err != nil {
+	if err = s.daoCredit.Upsert(nCtx, creditID, encryptedCreditData, generateHostCreditExpiredAt()); err != nil {
 		return "", err
 	}
 
@@ -51,7 +51,7 @@ func (s *Storage) CreateHostCredit(ctx contextx.IContext, creditData []byte) (st
 }
 
 // LoadHostCredit load host credit.
-func (s *Storage) LoadHostCredit(ctx contextx.IContext, creditID string) ([]byte, error) {
+func (s *Storage) LoadHostCredit(nCtx contextx.IContext, creditID string) ([]byte, error) {
 	var encryptedCreditData, creditData []byte
 	var err error
 
@@ -59,7 +59,7 @@ func (s *Storage) LoadHostCredit(ctx contextx.IContext, creditID string) ([]byte
 	metric := s.metric().Start("host_load")
 	defer metric.End(err)
 
-	if encryptedCreditData, err = s.daoCredit.Get(ctx, creditID); err != nil {
+	if encryptedCreditData, err = s.daoCredit.Get(nCtx, creditID); err != nil {
 		return nil, err
 	}
 
@@ -71,7 +71,7 @@ func (s *Storage) LoadHostCredit(ctx contextx.IContext, creditID string) ([]byte
 }
 
 // CheckHostCreditValid check host credit valid.
-func (s *Storage) CheckHostCreditValid(ctx contextx.IContext, creditIDList ...string) (map[string]bool, error) {
+func (s *Storage) CheckHostCreditValid(nCtx contextx.IContext, creditIDList ...string) (map[string]bool, error) {
 	var result map[string]bool
 	var err error
 
@@ -79,7 +79,7 @@ func (s *Storage) CheckHostCreditValid(ctx contextx.IContext, creditIDList ...st
 	metric := s.metric().Start("host_check_valid")
 	defer metric.End(err)
 
-	if result, err = s.daoCredit.CheckValid(ctx, creditIDList...); err != nil {
+	if result, err = s.daoCredit.CheckValid(nCtx, creditIDList...); err != nil {
 		return nil, err
 	}
 

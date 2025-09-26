@@ -11,13 +11,13 @@
 package nodeworkflow
 
 import (
-	"context"
 	"errors"
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
@@ -27,22 +27,22 @@ import (
 // IHandler node workflow handler interface.
 type IHandler interface {
 	// Get gets node workflow by id.
-	Get(ctx context.Context, workflowID string) (*types.NodeWorkflow, error)
+	Get(nCtx contextx.IContext, workflowID string) (*types.NodeWorkflow, error)
 
 	// Count counts node workflow by opts.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// List lists node workflow by page and opts.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, int64, error)
 
 	// Create creates a new node workflow.
-	Create(ctx context.Context, workflow *types.NodeWorkflow) error
+	Create(nCtx contextx.IContext, workflow *types.NodeWorkflow) error
 
 	// UpdateStatus updates the status of a node workflow.
-	UpdateStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error
+	UpdateStatus(nCtx contextx.IContext, workflowID string, status types.NodeWorkflowStatus) error
 
 	// UpdateFinishTime updates the finish time of a node workflow.
-	UpdateFinishTime(ctx context.Context, workflowID string, finishTime time.Time) error
+	UpdateFinishTime(nCtx contextx.IContext, workflowID string, finishTime time.Time) error
 
 	// Distinct distincts node workflow fields.
 	IDistinctor
@@ -51,22 +51,21 @@ type IHandler interface {
 // IDistinctor node workflow distinctor interface.
 type IDistinctor interface {
 	// DistinctType distincts with field type.
-	DistinctNodeWorkflowType(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowType, error)
+	DistinctNodeWorkflowType(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeWorkflowType, error)
 
 	// DistinctBkBizID distincts with field bk-biz-id.
-	DistinctNodeWorkflowBkBizID(ctx context.Context, opts ...OptFn) ([]int64, error)
+	DistinctNodeWorkflowBkBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error)
 
 	// DistinctOperator distincts with field operator.
-	DistinctNodeWorkflowOperator(ctx context.Context, opts ...OptFn) ([]string, error)
+	DistinctNodeWorkflowOperator(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 
 	// DistinctNodeVersion distincts with field node-version.
-	DistinctNodeWorkflowStatus(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowStatus, error)
+	DistinctNodeWorkflowStatus(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeWorkflowStatus, error)
 }
 
 // handler this is a handler to operate node workflow table.
 type handler struct {
 	client *mongo.Database
-	logger logger.ILogger
 
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
@@ -78,9 +77,9 @@ func (h *handler) tenantDao(tenantID string) *dao {
 		return d.(*dao)
 	}
 
-	newDaoClient := newDao(h.client, h.logger)
+	newDaoClient := newDao(h.client)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure node workflow indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure node workflow indexes")
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
@@ -91,17 +90,16 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New new a handler.
-func New(client *mongo.Database, logger logger.ILogger) *handler {
+func New(client *mongo.Database) *handler {
 	return &handler{
 		client: client,
-		logger: logger,
 		daoMap: sync.Map{},
 	}
 }
 
 // Count counts node workflow by opts.
-func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -111,12 +109,12 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).Count(ctx, filter)
+	return h.tenantDao(tenantID).Count(nCtx, filter)
 }
 
 // List lists node workflow by page and opts.
-func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NodeWorkflow, int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -126,14 +124,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	datas, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -147,8 +145,8 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 }
 
 // Create creates a new node workflow.
-func (h *handler) Create(ctx context.Context, workflow *types.NodeWorkflow) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Create(nCtx contextx.IContext, workflow *types.NodeWorkflow) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -165,7 +163,7 @@ func (h *handler) Create(ctx context.Context, workflow *types.NodeWorkflow) erro
 		return errors.New("status should be running")
 	}
 
-	if err := h.tenantDao(tenantID).Create(ctx, convertNodeWorkflowFromTypes(workflow)); err != nil {
+	if err := h.tenantDao(tenantID).Create(nCtx, convertNodeWorkflowFromTypes(workflow)); err != nil {
 		return err
 	}
 
@@ -173,8 +171,8 @@ func (h *handler) Create(ctx context.Context, workflow *types.NodeWorkflow) erro
 }
 
 // Get gets node workflow by id.
-func (h *handler) Get(ctx context.Context, workflowID string) (*types.NodeWorkflow, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Get(nCtx contextx.IContext, workflowID string) (*types.NodeWorkflow, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +183,7 @@ func (h *handler) Get(ctx context.Context, workflowID string) (*types.NodeWorkfl
 
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
-	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -193,8 +191,8 @@ func (h *handler) Get(ctx context.Context, workflowID string) (*types.NodeWorkfl
 }
 
 // UpdateStatus updates the status of a node workflow.
-func (h *handler) UpdateStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpdateStatus(nCtx contextx.IContext, workflowID string, status types.NodeWorkflowStatus) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -209,7 +207,7 @@ func (h *handler) UpdateStatus(ctx context.Context, workflowID string, status ty
 
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
-	if err := h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyStatus, string(status)); err != nil {
+	if err := h.tenantDao(tenantID).UpdateField(nCtx, filter, FieldKeyStatus, string(status)); err != nil {
 		return err
 	}
 
@@ -217,8 +215,8 @@ func (h *handler) UpdateStatus(ctx context.Context, workflowID string, status ty
 }
 
 // UpdateFinishTime updates the finish time of a node workflow.
-func (h *handler) UpdateFinishTime(ctx context.Context, workflowID string, finishTime time.Time) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpdateFinishTime(nCtx contextx.IContext, workflowID string, finishTime time.Time) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -233,7 +231,7 @@ func (h *handler) UpdateFinishTime(ctx context.Context, workflowID string, finis
 
 	filter := base.AliveFilter()
 	filter = WithWorkflowID(workflowID)(filter)
-	if err := h.tenantDao(tenantID).UpdateField(ctx, filter, FieldKeyFinishTime, finishTime); err != nil {
+	if err := h.tenantDao(tenantID).UpdateField(nCtx, filter, FieldKeyFinishTime, finishTime); err != nil {
 		return err
 	}
 
@@ -241,8 +239,8 @@ func (h *handler) UpdateFinishTime(ctx context.Context, workflowID string, finis
 }
 
 // DistinctNodeWorkflowType distincts with field type.
-func (h *handler) DistinctNodeWorkflowType(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowType, error) {
-	result, err := h.distinctString(ctx, FieldKeyType, opts...)
+func (h *handler) DistinctNodeWorkflowType(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeWorkflowType, error) {
+	result, err := h.distinctString(nCtx, FieldKeyType, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -250,18 +248,18 @@ func (h *handler) DistinctNodeWorkflowType(ctx context.Context, opts ...OptFn) (
 }
 
 // DistinctNodeWorkflowBkBizID distincts with field bk-biz-id.
-func (h *handler) DistinctNodeWorkflowBkBizID(ctx context.Context, opts ...OptFn) ([]int64, error) {
-	return h.distinctInt64(ctx, FieldKeyBizID, opts...)
+func (h *handler) DistinctNodeWorkflowBkBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(nCtx, FieldKeyBizID, opts...)
 }
 
 // DistinctNodeWorkflowOperator distincts with field operator.
-func (h *handler) DistinctNodeWorkflowOperator(ctx context.Context, opts ...OptFn) ([]string, error) {
-	return h.distinctString(ctx, FieldKeyOperator, opts...)
+func (h *handler) DistinctNodeWorkflowOperator(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	return h.distinctString(nCtx, FieldKeyOperator, opts...)
 }
 
 // DistinctNodeWorkflowStatus distincts with field node-version.
-func (h *handler) DistinctNodeWorkflowStatus(ctx context.Context, opts ...OptFn) ([]types.NodeWorkflowStatus, error) {
-	result, err := h.distinctString(ctx, FieldKeyStatus, opts...)
+func (h *handler) DistinctNodeWorkflowStatus(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeWorkflowStatus, error) {
+	result, err := h.distinctString(nCtx, FieldKeyStatus, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -269,8 +267,8 @@ func (h *handler) DistinctNodeWorkflowStatus(ctx context.Context, opts ...OptFn)
 }
 
 // distinctInt64 returns distinct values of specified field.
-func (h *handler) distinctInt64(ctx context.Context, key string, opts ...OptFn) ([]int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) distinctInt64(nCtx contextx.IContext, key string, opts ...OptFn) ([]int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -280,12 +278,12 @@ func (h *handler) distinctInt64(ctx context.Context, key string, opts ...OptFn) 
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).distinctInt64(ctx, key, filter, nil)
+	return h.tenantDao(tenantID).distinctInt64(nCtx, key, filter, nil)
 }
 
 // distinctString returns distinct values of specified field.
-func (h *handler) distinctString(ctx context.Context, key string, opts ...OptFn) ([]string, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) distinctString(nCtx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -295,7 +293,7 @@ func (h *handler) distinctString(ctx context.Context, key string, opts ...OptFn)
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).distinctString(ctx, key, filter, nil)
+	return h.tenantDao(tenantID).distinctString(nCtx, key, filter, nil)
 }
 
 // convertNodeWorkflowToTypes convert node workflow to types.

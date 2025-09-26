@@ -13,10 +13,10 @@
 package gse
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 )
@@ -68,7 +68,7 @@ func (c *cli) getCommonHeader() (http.Header, error) {
 }
 
 // listAgentInfo list agent info.
-func (c *cli) listAgentInfo(ctx context.Context, req *ListAgentInfoReq) (ListAgentInfoResp, error) {
+func (c *cli) listAgentInfo(nCtx contextx.IContext, req *ListAgentInfoReq) (ListAgentInfoResp, error) {
 	resp := new(BaseBroker[ListAgentInfoResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
@@ -77,7 +77,7 @@ func (c *cli) listAgentInfo(ctx context.Context, req *ListAgentInfoReq) (ListAge
 
 	err = c.client.Post().
 		SubResourcef("/cluster/list_agent_info").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
@@ -93,7 +93,7 @@ func (c *cli) listAgentInfo(ctx context.Context, req *ListAgentInfoReq) (ListAge
 }
 
 // listAgentState list agent state.
-func (c *cli) listAgentState(ctx context.Context, req *ListAgentStateReq) (ListAgentStateResp, error) {
+func (c *cli) listAgentState(nCtx contextx.IContext, req *ListAgentStateReq) (ListAgentStateResp, error) {
 	resp := new(BaseBroker[ListAgentStateResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
@@ -102,7 +102,7 @@ func (c *cli) listAgentState(ctx context.Context, req *ListAgentStateReq) (ListA
 
 	err = c.client.Post().
 		SubResourcef("/cluster/list_agent_state").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
@@ -118,7 +118,7 @@ func (c *cli) listAgentState(ctx context.Context, req *ListAgentStateReq) (ListA
 }
 
 // asyncExecuteScript async execute script.
-func (c *cli) asyncExecuteScript(ctx context.Context, req *AsyncExecuteScriptReq) (*AsyncExecuteScriptResp, error) {
+func (c *cli) asyncExecuteScript(nCtx contextx.IContext, req *AsyncExecuteScriptReq) (*AsyncExecuteScriptResp, error) {
 	resp := new(BaseBroker[*AsyncExecuteScriptResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
@@ -127,7 +127,7 @@ func (c *cli) asyncExecuteScript(ctx context.Context, req *AsyncExecuteScriptReq
 
 	err = c.client.Post().
 		SubResourcef("/task/extensions/async_execute_script").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
@@ -143,7 +143,7 @@ func (c *cli) asyncExecuteScript(ctx context.Context, req *AsyncExecuteScriptReq
 }
 
 // getExecuteScriptResult get execute script result.
-func (c *cli) getExecuteScriptResult(ctx context.Context, req *GetExecuteScriptResultReq) (
+func (c *cli) getExecuteScriptResult(nCtx contextx.IContext, req *GetExecuteScriptResultReq) (
 	*GetExecuteScriptResultResp, error) {
 
 	resp := new(BaseBroker[*GetExecuteScriptResultResp])
@@ -154,7 +154,7 @@ func (c *cli) getExecuteScriptResult(ctx context.Context, req *GetExecuteScriptR
 
 	err = c.client.Post().
 		SubResourcef("/task/extensions/get_execute_script_result").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
@@ -170,7 +170,7 @@ func (c *cli) getExecuteScriptResult(ctx context.Context, req *GetExecuteScriptR
 }
 
 // asyncTerminateExecuteScript async terminate execute script.
-func (c *cli) asyncTerminateExecuteScript(ctx context.Context, req *AsyncTerminateExecuteScriptReq) (
+func (c *cli) asyncTerminateExecuteScript(nCtx contextx.IContext, req *AsyncTerminateExecuteScriptReq) (
 	*AsyncTerminateExecuteScriptResp, error) {
 
 	resp := new(BaseBroker[*AsyncTerminateExecuteScriptResp])
@@ -181,7 +181,7 @@ func (c *cli) asyncTerminateExecuteScript(ctx context.Context, req *AsyncTermina
 
 	err = c.client.Post().
 		SubResourcef("/task/extensions/async_terminate_execute_script").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
@@ -197,7 +197,7 @@ func (c *cli) asyncTerminateExecuteScript(ctx context.Context, req *AsyncTermina
 }
 
 // asyncTransferFile async transfer file.
-func (c *cli) asyncTransferFile(ctx context.Context, req *AsyncTransferFileReq) (*AsyncTransferFileResp, error) {
+func (c *cli) asyncTransferFile(nCtx contextx.IContext, req *AsyncTransferFileReq) (*AsyncTransferFileResp, error) {
 	resp := new(BaseBroker[*AsyncTransferFileResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
@@ -206,7 +206,7 @@ func (c *cli) asyncTransferFile(ctx context.Context, req *AsyncTransferFileReq) 
 
 	err = c.client.Post().
 		SubResourcef("/task/extensions/async_transfer_file").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
@@ -222,7 +222,7 @@ func (c *cli) asyncTransferFile(ctx context.Context, req *AsyncTransferFileReq) 
 }
 
 // getTransferFileResult get transfer file result.
-func (c *cli) getTransferFileResult(ctx context.Context, req *GetTransferFileResultReq) (
+func (c *cli) getTransferFileResult(nCtx contextx.IContext, req *GetTransferFileResultReq) (
 	*GetTransferFileResultResp, error) {
 
 	resp := new(BaseBroker[*GetTransferFileResultResp])
@@ -233,7 +233,7 @@ func (c *cli) getTransferFileResult(ctx context.Context, req *GetTransferFileRes
 
 	err = c.client.Post().
 		SubResourcef("/task/extensions/get_transfer_file_result").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
@@ -249,7 +249,7 @@ func (c *cli) getTransferFileResult(ctx context.Context, req *GetTransferFileRes
 }
 
 // asyncTerminateTransferFile async terminate transfer file.
-func (c *cli) asyncTerminateTransferFile(ctx context.Context, req *AsyncTerminateTransferFileReq) (
+func (c *cli) asyncTerminateTransferFile(nCtx contextx.IContext, req *AsyncTerminateTransferFileReq) (
 	*AsyncTerminateTransferFileResp, error) {
 
 	resp := new(BaseBroker[*AsyncTerminateTransferFileResp])
@@ -260,7 +260,7 @@ func (c *cli) asyncTerminateTransferFile(ctx context.Context, req *AsyncTerminat
 
 	err = c.client.Post().
 		SubResourcef("/task/extensions/async_terminate_transfer_file").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)
@@ -275,7 +275,7 @@ func (c *cli) asyncTerminateTransferFile(ctx context.Context, req *AsyncTerminat
 	return resp.Data, nil
 }
 
-func (c *cli) operateAgent(ctx context.Context, req *OperateAgentReq) (*OperateAgentResp, error) {
+func (c *cli) operateAgent(nCtx contextx.IContext, req *OperateAgentReq) (*OperateAgentResp, error) {
 	resp := new(BaseBroker[*OperateAgentResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
@@ -284,7 +284,7 @@ func (c *cli) operateAgent(ctx context.Context, req *OperateAgentReq) (*OperateA
 
 	err = c.client.Post().
 		SubResourcef("/cluster/operate_agent").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)

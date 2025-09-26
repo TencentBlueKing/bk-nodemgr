@@ -14,7 +14,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"io"
 	"path/filepath"
 	"runtime"
 
@@ -24,9 +23,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/download"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/healthz"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -74,9 +73,7 @@ type Service struct {
 func NewService(conf *config.RelayService) (*Service, error) {
 	svc := &Service{
 		conf: conf,
-		Cap: &options.Capability{
-			Logger: blog.GlobalLogger{},
-		},
+		Cap:  &options.Capability{},
 	}
 
 	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(context.Background()))
@@ -103,7 +100,6 @@ func (svc *Service) initialCapability() error {
 		PluginVersion:          version.Version().Version,
 		DomainSocketPath:       svc.conf.Plugin.MessageDomainSocketPath,
 		LocalSocketPort:        svc.conf.Plugin.MessageLocalSocketPort,
-		Logger:                 svc.Cap.Logger,
 		MessageTrackerFullPath: filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, messagetrackerDirName),
 		PluginName:             string(svc.conf.PluginName),
 	})
@@ -114,8 +110,7 @@ func (svc *Service) initialCapability() error {
 	// initial file manager
 	svc.Cap.FileManager, err = file.NewFileManager(
 		svc.ctx,
-		filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, fileManagerStorageDirName),
-		svc.Cap.Logger)
+		filepath.Join(svc.conf.RelayWorkspaceFileGroup.FullPath, fileManagerStorageDirName))
 	if err != nil {
 		return fmt.Errorf("failed to create file manager: %w", err)
 	}
@@ -123,8 +118,7 @@ func (svc *Service) initialCapability() error {
 	// initial client handler
 	clientHandler := handler.NewClientHandler(svc.Cap.FileManager,
 		svc.Cap.Messager,
-		svc.conf,
-		svc.Cap.Logger)
+		svc.conf)
 
 	// register server push event handlers
 	dispatcher := svc.Cap.Messager.EventDispatcher()
@@ -178,7 +172,6 @@ func (svc *Service) registerInfoServer() error {
 			Name:            string(relayInfoSvcName),
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: requestIDSetter,
 			TenantIDSetter:  tenantIDSetter,
 		},
@@ -209,7 +202,6 @@ func (svc *Service) registerAdminServer() error {
 			Name:            string(relayAdminSvcName),
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: requestIDSetter,
 			TenantIDSetter:  tenantIDSetter,
 		},
@@ -238,7 +230,6 @@ func (svc *Service) registerCallbackServer() error {
 			Name:            string(relayCallbackSvcName),
 			IP:              svc.conf.CallbackServer.BindIP,
 			Port:            svc.conf.CallbackServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: requestIDSetter,
 			TenantIDSetter:  tenantIDSetter,
 		},
@@ -268,7 +259,6 @@ func (svc *Service) registerDownloadServer() error {
 			Name:            string(relayDownloadSvcName),
 			IP:              svc.conf.DownloadServer.BindIP,
 			Port:            svc.conf.DownloadServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: requestIDSetter,
 			TenantIDSetter:  tenantIDSetter,
 		},
@@ -308,17 +298,6 @@ func withDownload(capability *options.Capability) restserver.OptionFunc {
 	}
 }
 
-// loggerWriterAdaptor implements rest.LoggerWriter.
-type loggerWriterAdaptor struct{}
-
-func (l loggerWriterAdaptor) InfoWriter() io.Writer {
-	return blog.WriterInfo{}
-}
-
-func (l loggerWriterAdaptor) ErrorWriter() io.Writer {
-	return blog.WriterError{}
-}
-
 // Start starts the relay service.
 func (svc *Service) Start() error {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -334,7 +313,7 @@ func (svc *Service) Start() error {
 
 		// server start will block until server stop, so we need to run it in a goroutine.
 		fn := func() error {
-			blog.Infof("started server. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
+			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started server")
 
 			if err := server.Start(); err != nil {
 				return err
@@ -347,7 +326,8 @@ func (svc *Service) Start() error {
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to start servers")
+
 		return err
 	}
 

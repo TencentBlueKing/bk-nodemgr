@@ -12,13 +12,12 @@
 package host
 
 import (
-	"context"
-	"errors"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -28,31 +27,31 @@ import (
 // IHandler host handler interface.
 type IHandler interface {
 	// ListAll lists all hosts.
-	ListAll(ctx context.Context) ([]*types.Host, error)
+	ListAll(nCtx contextx.IContext) ([]*types.Host, error)
 
 	// Count count hosts by conditions.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// List lists hosts by page and conditions.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Host, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, int64, error)
 
 	// DeleteMany deletes hosts by hostIDs.
-	DeleteMany(ctx context.Context, hostIDs ...int64) error
+	DeleteMany(nCtx contextx.IContext, hostIDs ...int64) error
 
 	// UpsertMany updates or inserts hosts.
-	UpsertMany(ctx context.Context, hosts ...*types.Host) error
+	UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error
 
 	// UpsertStaticMany updates or inserts host statics.
-	UpsertStaticMany(ctx context.Context, hosts ...*types.Host) error
+	UpsertStaticMany(nCtx contextx.IContext, hosts ...*types.Host) error
 
 	// UpdateDynamicMany updates host dynamics. will not insert.
-	UpdateDynamicMany(ctx context.Context, hosts ...*types.Host) error
+	UpdateDynamicMany(nCtx contextx.IContext, hosts ...*types.Host) error
 
 	// FindWithDynamic finds hosts with dynamic fields.
-	FindWithDynamic(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Host, error)
+	FindWithDynamic(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, error)
 
 	// UpdateDynamicFields updates host dynamic fields.
-	UpdateDynamicFields(ctx context.Context, fields types.HostDynamicFields, hosts ...*types.Host) error
+	UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error
 
 	IDistinctor
 }
@@ -60,39 +59,38 @@ type IHandler interface {
 // IDistinctor host distinct handler interface.
 type IDistinctor interface {
 	// DistinctBizID distincts with field biz-id.
-	DistinctBizID(ctx context.Context, opts ...OptFn) ([]int64, error)
+	DistinctBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error)
 
 	// DistinctNodeRole distincts with field node-role.
-	DistinctNodeRole(ctx context.Context, opts ...OptFn) ([]types.NodeRole, error)
+	DistinctNodeRole(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeRole, error)
 
 	// DistinctNodeStatus distincts with field node-status.
-	DistinctNodeStatus(ctx context.Context, opts ...OptFn) ([]types.NodeStatus, error)
+	DistinctNodeStatus(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeStatus, error)
 
 	// DistinctNodeVersion distincts with field node-version.
-	DistinctNodeVersion(ctx context.Context, opts ...OptFn) ([]string, error)
+	DistinctNodeVersion(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 
 	// DistinctDeptName distincts with field dept-name.
-	DistinctDeptName(ctx context.Context, opts ...OptFn) ([]string, error)
+	DistinctDeptName(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 
 	// DistinctOSType distincts with field os-type.
-	DistinctOSType(ctx context.Context, opts ...OptFn) ([]string, error)
+	DistinctOSType(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 
 	// DistinctArch distincts with field arch.
-	DistinctArch(ctx context.Context, opts ...OptFn) ([]string, error)
+	DistinctArch(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 
 	// DistinctAddressing distincts with field addressing.
-	DistinctAddressing(ctx context.Context, opts ...OptFn) ([]string, error)
+	DistinctAddressing(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 
 	// DistinctNetworkAreaID distincts with field networkarea-id.
-	DistinctNetworkAreaID(ctx context.Context, opts ...OptFn) ([]int64, error)
+	DistinctNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error)
 
 	// DistinctNetworkUnitID distincts with field networkunit-id.
-	DistinctNetworkUnitID(ctx context.Context, opts ...OptFn) ([]int64, error)
+	DistinctNetworkUnitID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error)
 }
 
 type handler struct {
 	client *mongo.Database
-	logger logger.ILogger
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
 	daoMap sync.Map
@@ -103,9 +101,9 @@ func (h *handler) tenantDao(tenantID string) *dao {
 		return d.(*dao) // nolint: forcetypeassert
 	}
 
-	newDaoClient := newDao(tenantID, h.client, h.logger)
+	newDaoClient := newDao(tenantID, h.client)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure host indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure host indexes")
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
@@ -116,22 +114,21 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new host handler.
-func New(client *mongo.Database, logger logger.ILogger) IHandler {
+func New(client *mongo.Database) IHandler {
 	return &handler{
 		client: client,
-		logger: logger,
 		daoMap: sync.Map{},
 	}
 }
 
 // ListAll list all host.
-func (h *handler) ListAll(ctx context.Context) ([]*types.Host, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) ListAll(nCtx contextx.IContext) ([]*types.Host, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	hosts, err := h.tenantDao(tenantID).List(ctx, base.AliveFilter(), nil)
+	hosts, err := h.tenantDao(tenantID).List(nCtx, base.AliveFilter(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +142,8 @@ func (h *handler) ListAll(ctx context.Context) ([]*types.Host, error) {
 }
 
 // Count count host by conditions.
-func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -156,14 +153,14 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).Count(ctx, filter)
+	return h.tenantDao(tenantID).Count(nCtx, filter)
 }
 
 // List list host by page and conditions.
-func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*types.Host, int64, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -173,14 +170,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	hosts, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	hosts, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -194,8 +191,8 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 }
 
 // DistinctBizID distincts with field biz-id.
-func (h *handler) DistinctBizID(ctx context.Context, opts ...OptFn) ([]int64, error) {
-	result, err := h.distinctInt64(ctx, FieldKeyStaticBizID, opts...)
+func (h *handler) DistinctBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
+	result, err := h.distinctInt64(nCtx, FieldKeyStaticBizID, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -204,8 +201,8 @@ func (h *handler) DistinctBizID(ctx context.Context, opts ...OptFn) ([]int64, er
 }
 
 // DistinctNodeRole distincts with field node-role.
-func (h *handler) DistinctNodeRole(ctx context.Context, opts ...OptFn) ([]types.NodeRole, error) {
-	result, err := h.distinctString(ctx, FieldKeyDynamicNodeRole, opts...)
+func (h *handler) DistinctNodeRole(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeRole, error) {
+	result, err := h.distinctString(nCtx, FieldKeyDynamicNodeRole, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -214,8 +211,8 @@ func (h *handler) DistinctNodeRole(ctx context.Context, opts ...OptFn) ([]types.
 }
 
 // DistinctNodeStatus distincts with field node-status.
-func (h *handler) DistinctNodeStatus(ctx context.Context, opts ...OptFn) ([]types.NodeStatus, error) {
-	result, err := h.distinctString(ctx, FieldKeyDynamicNodeStatus, opts...)
+func (h *handler) DistinctNodeStatus(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeStatus, error) {
+	result, err := h.distinctString(nCtx, FieldKeyDynamicNodeStatus, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -224,43 +221,43 @@ func (h *handler) DistinctNodeStatus(ctx context.Context, opts ...OptFn) ([]type
 }
 
 // DistinctNodeVersion distincts with field node-version.
-func (h *handler) DistinctNodeVersion(ctx context.Context, opts ...OptFn) ([]string, error) {
-	return h.distinctString(ctx, FieldKeyDynamicNodeVersion, opts...)
+func (h *handler) DistinctNodeVersion(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	return h.distinctString(nCtx, FieldKeyDynamicNodeVersion, opts...)
 }
 
 // DistinctDeptName distincts with field dept-name.
-func (h *handler) DistinctDeptName(ctx context.Context, opts ...OptFn) ([]string, error) {
-	return h.distinctString(ctx, FieldKeyStaticDeptName, opts...)
+func (h *handler) DistinctDeptName(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	return h.distinctString(nCtx, FieldKeyStaticDeptName, opts...)
 }
 
 // DistinctOSType distincts with field os-type.
-func (h *handler) DistinctOSType(ctx context.Context, opts ...OptFn) ([]string, error) {
-	return h.distinctString(ctx, FieldKeyStaticOSType, opts...)
+func (h *handler) DistinctOSType(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	return h.distinctString(nCtx, FieldKeyStaticOSType, opts...)
 }
 
 // DistinctArch distincts with field arch.
-func (h *handler) DistinctArch(ctx context.Context, opts ...OptFn) ([]string, error) {
-	return h.distinctString(ctx, FieldKeyStaticArch, opts...)
+func (h *handler) DistinctArch(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	return h.distinctString(nCtx, FieldKeyStaticArch, opts...)
 }
 
 // DistinctAddressing distincts with field addressing.
-func (h *handler) DistinctAddressing(ctx context.Context, opts ...OptFn) ([]string, error) {
-	return h.distinctString(ctx, FieldKeyStaticAddressing, opts...)
+func (h *handler) DistinctAddressing(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	return h.distinctString(nCtx, FieldKeyStaticAddressing, opts...)
 }
 
 // DistinctNetworkAreaID distincts with field networkarea-id.
-func (h *handler) DistinctNetworkAreaID(ctx context.Context, opts ...OptFn) ([]int64, error) {
-	return h.distinctInt64(ctx, FieldKeyStaticNetworkAreaID, opts...)
+func (h *handler) DistinctNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(nCtx, FieldKeyStaticNetworkAreaID, opts...)
 }
 
 // DistinctNetworkUnitID distincts with field networkunit-id.
-func (h *handler) DistinctNetworkUnitID(ctx context.Context, opts ...OptFn) ([]int64, error) {
-	return h.distinctInt64(ctx, FieldKeyDynamicNetworkUnitID, opts...)
+func (h *handler) DistinctNetworkUnitID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
+	return h.distinctInt64(nCtx, FieldKeyDynamicNetworkUnitID, opts...)
 }
 
 // distinctInt64 returns distinct values of specified field.
-func (h *handler) distinctInt64(ctx context.Context, key string, opts ...OptFn) ([]int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) distinctInt64(nCtx contextx.IContext, key string, opts ...OptFn) ([]int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -270,12 +267,12 @@ func (h *handler) distinctInt64(ctx context.Context, key string, opts ...OptFn) 
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).distinctInt64(ctx, key, filter, nil)
+	return h.tenantDao(tenantID).distinctInt64(nCtx, key, filter, nil)
 }
 
 // distinctString returns distinct values of specified field.
-func (h *handler) distinctString(ctx context.Context, key string, opts ...OptFn) ([]string, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) distinctString(nCtx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -285,12 +282,12 @@ func (h *handler) distinctString(ctx context.Context, key string, opts ...OptFn)
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).distinctString(ctx, key, filter, nil)
+	return h.tenantDao(tenantID).distinctString(nCtx, key, filter, nil)
 }
 
 // UpsertMany updates or inserts hosts.
-func (h *handler) UpsertMany(ctx context.Context, hosts ...*types.Host) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -312,7 +309,7 @@ func (h *handler) UpsertMany(ctx context.Context, hosts ...*types.Host) error {
 		}
 	}
 
-	if err := h.tenantDao(tenantID).upsertMany(ctx, data); err != nil {
+	if err := h.tenantDao(tenantID).upsertMany(nCtx, data); err != nil {
 		return err
 	}
 
@@ -320,8 +317,8 @@ func (h *handler) UpsertMany(ctx context.Context, hosts ...*types.Host) error {
 }
 
 // UpsertStaticMany updates or inserts host statics.
-func (h *handler) UpsertStaticMany(ctx context.Context, hosts ...*types.Host) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpsertStaticMany(nCtx contextx.IContext, hosts ...*types.Host) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -343,7 +340,7 @@ func (h *handler) UpsertStaticMany(ctx context.Context, hosts ...*types.Host) er
 		}
 	}
 
-	if err := h.tenantDao(tenantID).upsertStaticMany(ctx, data); err != nil {
+	if err := h.tenantDao(tenantID).upsertStaticMany(nCtx, data); err != nil {
 		return err
 	}
 
@@ -351,8 +348,8 @@ func (h *handler) UpsertStaticMany(ctx context.Context, hosts ...*types.Host) er
 }
 
 // UpdateDynamicMany updates host dynamics. will not insert.
-func (h *handler) UpdateDynamicMany(ctx context.Context, hosts ...*types.Host) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpdateDynamicMany(nCtx contextx.IContext, hosts ...*types.Host) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -370,7 +367,7 @@ func (h *handler) UpdateDynamicMany(ctx context.Context, hosts ...*types.Host) e
 		}
 	}
 
-	if err := h.tenantDao(tenantID).updateDynamicMany(ctx, data); err != nil {
+	if err := h.tenantDao(tenantID).updateDynamicMany(nCtx, data); err != nil {
 		return err
 	}
 
@@ -510,8 +507,8 @@ func convertHostToTypes(host *Host) *types.Host {
 }
 
 // DeleteMany delete many hosts.
-func (h *handler) DeleteMany(ctx context.Context, hostIDs ...int64) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) DeleteMany(nCtx contextx.IContext, hostIDs ...int64) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -522,7 +519,7 @@ func (h *handler) DeleteMany(ctx context.Context, hostIDs ...int64) error {
 
 	filter := base.AliveFilter()
 	filter = WithHostID(hostIDs...)(filter)
-	if err := h.tenantDao(tenantID).DeleteMany(ctx, filter); err != nil {
+	if err := h.tenantDao(tenantID).DeleteMany(nCtx, filter); err != nil {
 		return err
 	}
 
@@ -530,8 +527,8 @@ func (h *handler) DeleteMany(ctx context.Context, hostIDs ...int64) error {
 }
 
 // FindWithDynamic finds hosts with dynamic fields.
-func (h *handler) FindWithDynamic(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Host, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) FindWithDynamic(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -544,7 +541,7 @@ func (h *handler) FindWithDynamic(ctx context.Context, page types.Page, opts ...
 	findOpt := base.ParsePage(page)
 	findOpt.SetProjection(bson.D{{Key: FieldKeyHostID, Value: 1}, {Key: FieldKeyDynamic, Value: 1}})
 
-	hosts, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	hosts, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, err
 	}
@@ -558,8 +555,8 @@ func (h *handler) FindWithDynamic(ctx context.Context, page types.Page, opts ...
 }
 
 // UpdateDynamicFields updates host dynamic fields.
-func (h *handler) UpdateDynamicFields(ctx context.Context, fields types.HostDynamicFields, hosts ...*types.Host) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -576,8 +573,9 @@ func (h *handler) UpdateDynamicFields(ctx context.Context, fields types.HostDyna
 		})
 	}
 
-	if err := h.tenantDao(tenantID).UpdateFieldsBulk(ctx, docs); err != nil {
-		h.logger.Errorf("failed to update host dynamic version and status: %v", err)
+	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to update host dynamic version and status")
+
 		return err
 	}
 

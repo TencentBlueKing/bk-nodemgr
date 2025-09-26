@@ -13,8 +13,7 @@
 package upload
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -22,32 +21,32 @@ import (
 // ICert defines the interface of upload storage.
 type ICert interface {
 	// GetCertUpload gets a upload by upload-id.
-	GetCertUpload(ctx context.Context, uploadID string) (*types.Upload, error)
+	GetCertUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
 	// CreateCertUpload creates a upload.
-	CreateCertUpload(ctx context.Context, up *types.Upload) (string, error)
+	CreateCertUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
 	// DeleteCertUpload deletes a upload by upload-id.
-	DeleteCertUpload(ctx context.Context, uploadID string) error
+	DeleteCertUpload(nCtx contextx.IContext, uploadID string) error
 }
 
 // GetCertUpload gets a upload by upload-id.
-func (s *Storage) GetCertUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+func (s *Storage) GetCertUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
 	// record metric.
 	metric := s.metric().Start("get_cert")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(ctx, types.UploadCategoryOriginCert, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginCert, uploadID)
 }
 
 // CreateCertUpload creates a upload.
-func (s *Storage) CreateCertUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+func (s *Storage) CreateCertUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
 	metric := s.metric().Start("create_cert")
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginCert, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginCert, up); err != nil {
 		return "", err
 	}
 
@@ -55,10 +54,10 @@ func (s *Storage) CreateCertUpload(ctx context.Context, up *types.Upload) (uploa
 }
 
 // DeleteCertUpload deletes a upload by upload-id.
-func (s *Storage) DeleteCertUpload(ctx context.Context, uploadID string) (err error) {
+func (s *Storage) DeleteCertUpload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_cert")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginCert, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginCert, uploadID)
 }

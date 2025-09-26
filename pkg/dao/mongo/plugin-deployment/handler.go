@@ -11,13 +11,13 @@
 package plugindeployment
 
 import (
-	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -25,42 +25,39 @@ import (
 // IHandler node deployment Handler interface.
 type IHandler interface {
 	// Create create a node deployment.
-	Create(ctx context.Context, pluginDeployment *types.PluginDeployment) error
+	Create(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error
 
 	// GetInfo get a node deployment info.
-	GetInfo(ctx context.Context, token string) (*types.PluginDeploymentInfo, error)
+	GetInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
 
 	// UpdateInfo update plugin deployment info.
-	UpdateInfo(ctx context.Context, token string, info *types.PluginDeploymentInfo) error
+	UpdateInfo(nCtx contextx.IContext, token string, info *types.PluginDeploymentInfo) error
 
 	// GetMainConfig get main config.
-	GetMainConfig(ctx context.Context, token string) ([]byte, error)
+	GetMainConfig(nCtx contextx.IContext, token string) ([]byte, error)
 }
 
 // Handler this is a Handler to operate node deployment table.
 type Handler struct {
-	dao    *dao
-	logger logger.ILogger
+	dao *dao
 }
 
 // New new a Handler.
-func New(client *mongo.Database, logger logger.ILogger) *Handler {
+func New(client *mongo.Database) *Handler {
 	h := &Handler{
-		dao:    newDao(client, logger),
-		logger: logger,
+		dao: newDao(client),
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure nodedeloyment indexes: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).Warn("failed to ensure plugin deployment indexes")
 	}
 
 	return h
 }
 
 // GetInfo get a node deployment info.
-func (h *Handler) GetInfo(ctx context.Context, token string) (*types.PluginDeploymentInfo, error) {
-	if ctx == nil {
+func (h *Handler) GetInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
+	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
@@ -70,7 +67,7 @@ func (h *Handler) GetInfo(ctx context.Context, token string) (*types.PluginDeplo
 
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
-	data, err := h.dao.Get(ctx, filter, FieldKeyInfo)
+	data, err := h.dao.Get(nCtx, filter, FieldKeyInfo)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
@@ -79,8 +76,8 @@ func (h *Handler) GetInfo(ctx context.Context, token string) (*types.PluginDeplo
 }
 
 // GetMainConfig get main config.
-func (h *Handler) GetMainConfig(ctx context.Context, token string) ([]byte, error) {
-	if ctx == nil {
+func (h *Handler) GetMainConfig(nCtx contextx.IContext, token string) ([]byte, error) {
+	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
@@ -90,7 +87,7 @@ func (h *Handler) GetMainConfig(ctx context.Context, token string) ([]byte, erro
 
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
-	data, err := h.dao.Get(ctx, filter, FieldKeyMainConfig)
+	data, err := h.dao.Get(nCtx, filter, FieldKeyMainConfig)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
@@ -143,8 +140,8 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 }
 
 // Create create a new node deployment.
-func (h *Handler) Create(ctx context.Context, pluginDeployment *types.PluginDeployment) error {
-	if ctx == nil {
+func (h *Handler) Create(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
+	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
@@ -157,7 +154,7 @@ func (h *Handler) Create(ctx context.Context, pluginDeployment *types.PluginDepl
 		return err
 	}
 
-	return h.dao.Create(ctx, data)
+	return h.dao.Create(nCtx, data)
 }
 
 func convertPluginDeploymentFromTypes(data *types.PluginDeployment) (*Data, error) {
@@ -177,8 +174,8 @@ func convertPluginDeploymentFromTypes(data *types.PluginDeployment) (*Data, erro
 }
 
 // UpdateInfo update a node deployment info.
-func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.PluginDeploymentInfo) error {
-	if ctx == nil {
+func (h *Handler) UpdateInfo(nCtx contextx.IContext, token string, info *types.PluginDeploymentInfo) error {
+	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
@@ -196,7 +193,7 @@ func (h *Handler) UpdateInfo(ctx context.Context, token string, info *types.Plug
 	if err != nil {
 		return err
 	}
-	if err := h.dao.UpdateField(ctx, filter, FieldKeyInfo, data); err != nil {
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyInfo, data); err != nil {
 		return err
 	}
 

@@ -25,7 +25,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -38,7 +37,6 @@ const (
 
 // NewActionDetectInfoBySSH get a new action.
 func NewActionDetectInfoBySSH(
-	logger logger.ILogger,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	storageRelease release.IStorage,
 	storageHostCredit credit.IStorageHostCredit,
@@ -46,7 +44,6 @@ func NewActionDetectInfoBySSH(
 ) action.Definition {
 
 	return &actionDetectInfoBySSH{
-		logger:                logger,
 		storageHostCredit:     storageHostCredit,
 		storageNodeDeployment: storageNodeDeployment,
 		storageRelease:        storageRelease,
@@ -60,7 +57,6 @@ type ActParamDetectInfoBySSH struct {
 }
 
 type actionDetectInfoBySSH struct {
-	logger                logger.ILogger
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageRelease        release.IStorage
@@ -142,7 +138,6 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
 		Port:       int(std.DeployInfo().Host.Dynamic.LoginPort),
 		User:       std.DeployInfo().Host.Dynamic.LoginUser,
-		Logger:     act.logger,
 		AuthMethod: cMethod,
 		Password: func() string {
 			if cMethod == sshx.AuthMethodPassword {

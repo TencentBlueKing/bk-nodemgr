@@ -17,14 +17,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Interface define the Storage basic interface.
 type Interface interface {
-	Start(ctx context.Context) error
+	Start(nCtx contextx.IContext) error
 	CheckHealthz() error
 	Terminate() error
 }
@@ -43,7 +44,6 @@ type Storage struct {
 
 	Database  *mongo.Database
 	Scheduler scheduler.Scheduler
-	Logger    logger.ILogger
 
 	startFunc     func() error
 	checkFunc     func() error
@@ -84,9 +84,6 @@ func InitStorage(s *Storage, opts ...OptionFunc) error {
 	}
 
 	s.IsRunning = false
-	if s.Logger == nil {
-		s.Logger = logger.LoggerDefault{}
-	}
 
 	s.startFunc = func() error {
 		return nil
@@ -110,8 +107,8 @@ func InitStorage(s *Storage, opts ...OptionFunc) error {
 }
 
 // Start ...
-func (s *Storage) Start(ctx context.Context) (err error) {
-	s.Logger.Infof("starting storage, name(%s)", s.Name)
+func (s *Storage) Start(nCtx contextx.IContext) error {
+	logger.G.Sys().With("name", s.Name).Info("start storage")
 
 	if s.IsRunning {
 		return errors.New("storage already started")
@@ -133,7 +130,8 @@ func (s *Storage) Start(ctx context.Context) (err error) {
 		return errors.New("terminate func is nil, need to init base storage")
 	}
 
-	s.Ctx, s.Cancel = context.WithCancel(ctx)
+	var err error
+	s.Ctx, s.Cancel = context.WithCancel(nCtx)
 	defer func() {
 		if err != nil {
 			s.Cancel()
@@ -146,20 +144,20 @@ func (s *Storage) Start(ctx context.Context) (err error) {
 		s.Scheduler.Start()
 	}
 
-	if err := s.Database.Client().Ping(s.Ctx, nil); err != nil {
-		s.Logger.Errorf("failed to ping mongo client: %v", err)
+	if err := s.Database.Client().Ping(nCtx, nil); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to ping mongo client")
 
 		return err
 	}
 
 	if err := s.startFunc(); err != nil {
-		s.Logger.Errorf("failed to start storage: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to start storage")
 
 		return err
 	}
 
 	if err := s.checkFunc(); err != nil {
-		s.Logger.Errorf("failed to check storage health: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to check storage health")
 
 		return err
 	}
@@ -176,12 +174,12 @@ func (s *Storage) Start(ctx context.Context) (err error) {
 
 				s.IsRunning = false
 
-				s.Logger.Infof("terminated storage, name(%s)", s.Name)
+				logger.G.Sys().With("name", s.Name).Info("terminated storage")
 			}
 		}
 	}()
 
-	s.Logger.Infof("started storage, name(%s)", s.Name)
+	logger.G.Sys().With("name", s.Name).Info("started storage")
 
 	return nil
 }
@@ -207,7 +205,7 @@ func (s *Storage) CheckHealthz() error {
 		return err
 	}
 
-	s.Logger.Debugf("successfully checked healthz of storage, name(%s)", s.Name)
+	logger.G.Sys().With("name", s.Name).Debug("successfully checked healthz of storage")
 
 	return nil
 }

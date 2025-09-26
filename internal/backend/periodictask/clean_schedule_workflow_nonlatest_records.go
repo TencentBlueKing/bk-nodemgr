@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,22 +29,25 @@ const (
 )
 
 // DeleteNonLatestWorkflowScheduleOperInstRecords delete non-latest workflow schedule operation instance records.
-func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(ctx contextx.IContext) error {
-	scheduleWorkflows, cnt, err := pt.conf.StgWorkflow.ListScheduleWorkflow(ctx, types.UnlimitedPage(), nil)
+func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(nCtx contextx.IContext) error {
+	scheduleWorkflows, cnt, err := pt.conf.StgWorkflow.ListScheduleWorkflow(nCtx, types.UnlimitedPage(), nil)
 	if err != nil {
-		pt.conf.Logger.Errorf("list schedule workflow failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to list schedule workflow")
+
 		return fmt.Errorf("list schedule workflow failed: %w", err)
 	}
 
 	if cnt == 0 || len(scheduleWorkflows) == 0 {
-		pt.conf.Logger.Info("no schedule workflow found, skip delete non-latest workflow schedule oper-inst records")
+		logger.G.Sys().Info("no schedule workflow found, skip delete non-latest workflow schedule oper-inst records")
+
 		return nil
 	}
 
 	for _, sw := range scheduleWorkflows {
-		opers, _, err := pt.conf.StgWorkflow.ListOperationByTriggerID(ctx, types.UnlimitedPage(), sw.TriggerID)
+		opers, _, err := pt.conf.StgWorkflow.ListOperationByTriggerID(nCtx, types.UnlimitedPage(), sw.TriggerID)
 		if err != nil {
-			pt.conf.Logger.Errorf("list operation by trigger-id(%s) failed: %v", sw.TriggerID, err)
+			logger.G.Sys().WithErr(err).With("trigger-id", sw.TriggerID).Error("failed to list operation by trigger-id")
+
 			return fmt.Errorf("list operation by trigger-id(%s) failed: %w", sw.TriggerID, err)
 		}
 
@@ -52,38 +56,38 @@ func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(ctx conte
 		}
 
 		nonLatestOperInstIDs := opers[0].GetNonLastInstanceIDs()
-		triggerIDs, err := pt.getOperationInstanceRelatedTriggerID(ctx, sw.WorkflowName, nonLatestOperInstIDs...)
+		triggerIDs, err := pt.getOperationInstanceRelatedTriggerID(nCtx, sw.WorkflowName, nonLatestOperInstIDs...)
 		if err != nil {
-			pt.conf.Logger.Errorf("get operation-id(%s) related trigger id failed: %v", opers[0].OperationID, err)
+			logger.G.Sys().WithErr(err).With("operation-id", opers[0].OperationID).Error("failed to get operation-id related trigger id")
+
 			return fmt.Errorf("get operation-id(%s) related trigger id failed: %w", opers[0].OperationID, err)
 		}
 
 		for _, triggerID := range triggerIDs {
-			if err := pt.deleteOnceTriggerAndRelationd(ctx, triggerID); err != nil {
-				pt.conf.Logger.Errorf("delete operation-id(%s) once trigger-id(%s) and related failed: %v",
-					opers[0].OperationID, triggerID, err)
+			if err := pt.deleteOnceTriggerAndRelationd(nCtx, triggerID); err != nil {
+				logger.G.Sys().WithErr(err).With("trigger-id", triggerID, "operation-id", opers[0].OperationID).Error("failed to delete once trigger and related")
 
 				return fmt.Errorf("delete operation-id(%s) once trigger-id(%s) and related failed: %w",
 					opers[0].OperationID, triggerID, err)
 			}
 		}
 
-		if err := pt.conf.StgWorkflow.DeleteOperationInstances(ctx, nonLatestOperInstIDs...); err != nil {
-			pt.conf.Logger.Errorf("delete oper-inst-ids(%v) failed: %v", nonLatestOperInstIDs, err)
+		if err := pt.conf.StgWorkflow.DeleteOperationInstances(nCtx, nonLatestOperInstIDs...); err != nil {
+			logger.G.Sys().WithErr(err).With("oper-inst-ids", nonLatestOperInstIDs).Error("failed to delete operation instances")
+
 			return fmt.Errorf("delete oper-inst-ids(%v) failed: %w", nonLatestOperInstIDs, err)
 		}
 
 		if err := pt.conf.StgWorkflow.PullOperationInstanceIDsFromOperation(
-			ctx, opers[0].OperationID, nonLatestOperInstIDs...); err != nil {
-			pt.conf.Logger.Errorf("delete operation-id(%s) related oper-inst-ids(%v) failed: %v",
-				opers[0].OperationID, nonLatestOperInstIDs, err)
+			nCtx, opers[0].OperationID, nonLatestOperInstIDs...); err != nil {
+			logger.G.Sys().WithErr(err).With("operation-id", opers[0].OperationID, "oper-inst-ids", nonLatestOperInstIDs).Error("failed to pull operation instance ids from operation")
 
 			return fmt.Errorf("delete operation-id(%s) related oper-inst-ids(%v) failed: %w",
 				opers[0].OperationID, nonLatestOperInstIDs, err)
 		}
 	}
 
-	pt.conf.Logger.Info("delete non-latest workflow schedule oper-inst records success")
+	logger.G.Sys().Info("delete non-latest workflow schedule oper-inst records success")
 
 	return nil
 }
@@ -91,15 +95,16 @@ func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(ctx conte
 // getOperationInstanceRelatedTriggerID get operation instance related trigger ids.
 // schedule workflow action name is `gen_once_trigger_` + workflow name.
 func (pt *PeriodicTask) getOperationInstanceRelatedTriggerID(
-	ctx contextx.IContext, scheduleWorkflowName string, operInstIDs ...string) ([]string, error) {
+	nCtx contextx.IContext, scheduleWorkflowName string, operInstIDs ...string) ([]string, error) {
 
 	actionName := fmt.Sprintf(schedule.ActionNameGenScheduleOnceTrigger, scheduleWorkflowName)
 	triggerIDs := make([]string, 0)
 	for _, operInstID := range operInstIDs {
-		privateData, err := pt.conf.StgWorkflow.GetActionInstancePrivateData(ctx, operInstID, actionName)
+		privateData, err := pt.conf.StgWorkflow.GetActionInstancePrivateData(nCtx, operInstID, actionName)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				pt.conf.Logger.Warnf("oper-inst-id(%s) already delete, skip it", operInstID)
+				logger.G.Sys().With("oper-inst-id", operInstID).Warn("operation instance already deleted, skip it")
+
 				continue
 			}
 
@@ -124,11 +129,12 @@ func (pt *PeriodicTask) getOperationInstanceRelatedTriggerID(
 }
 
 // deleteOnceTriggerAndRelationd delete once trigger and its related operations and operation instances.
-func (pt *PeriodicTask) deleteOnceTriggerAndRelationd(ctx contextx.IContext, triggerID string) error {
-	trig, err := pt.conf.StgWorkflow.GetTrigger(ctx, triggerID)
+func (pt *PeriodicTask) deleteOnceTriggerAndRelationd(nCtx contextx.IContext, triggerID string) error {
+	trig, err := pt.conf.StgWorkflow.GetTrigger(nCtx, triggerID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			pt.conf.Logger.Warnf("trigger-id(%s) already delete, skip it", triggerID)
+			logger.G.Sys().With("trigger-id", triggerID).Warn("trigger already deleted, skip it")
+
 			return nil
 		}
 
@@ -139,7 +145,7 @@ func (pt *PeriodicTask) deleteOnceTriggerAndRelationd(ctx contextx.IContext, tri
 		return fmt.Errorf("trigger-id(%s) is not an once trigger", triggerID)
 	}
 
-	opers, _, err := pt.conf.StgWorkflow.ListOperationByTriggerID(ctx, types.UnlimitedPage(), triggerID)
+	opers, _, err := pt.conf.StgWorkflow.ListOperationByTriggerID(nCtx, types.UnlimitedPage(), triggerID)
 	if err != nil {
 		return err
 	}
@@ -151,17 +157,17 @@ func (pt *PeriodicTask) deleteOnceTriggerAndRelationd(ctx contextx.IContext, tri
 		needDeleteOperInstIDs = append(needDeleteOperInstIDs, oper.InstanceIDs...)
 	}
 
-	err = pt.conf.StgWorkflow.DeleteOperationInstances(ctx, needDeleteOperInstIDs...)
+	err = pt.conf.StgWorkflow.DeleteOperationInstances(nCtx, needDeleteOperInstIDs...)
 	if err != nil {
 		return err
 	}
 
-	err = pt.conf.StgWorkflow.DeleteOperations(ctx, needDeleteOperIDs...)
+	err = pt.conf.StgWorkflow.DeleteOperations(nCtx, needDeleteOperIDs...)
 	if err != nil {
 		return err
 	}
 
-	err = pt.conf.StgWorkflow.DeleteTriggers(ctx, triggerID)
+	err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, triggerID)
 	if err != nil {
 		return err
 	}

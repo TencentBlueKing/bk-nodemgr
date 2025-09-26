@@ -11,7 +11,6 @@
 package node
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
@@ -35,7 +35,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -55,8 +54,7 @@ func NewActionEnsurePkgToRelay(
 	storageActionInstance workflow.IStorageActionInstance,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	fileHandler file.IHandler,
-	proxyMessager relayhandler.IServerMessager,
-	logger logger.ILogger) action.Definition {
+	proxyMessager relayhandler.IServerMessager) action.Definition {
 
 	return &actionEnsurePkgToRelay{
 		installerFileGroup: installerFileGroup,
@@ -67,8 +65,6 @@ func NewActionEnsurePkgToRelay(
 
 		fileHandler:   fileHandler,
 		proxyMessager: proxyMessager,
-
-		logger: logger,
 	}
 }
 
@@ -86,8 +82,6 @@ type actionEnsurePkgToRelay struct {
 	storageRelease        release.IStorage
 	storageActionInstance workflow.IStorageActionInstance
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
-
-	logger logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -339,7 +333,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 }
 
 func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
-	ctx context.Context, std *utils.NodeActionStandarder) (*types.Release, error) {
+	nCtx contextx.IContext, std *utils.NodeActionStandarder) (*types.Release, error) {
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
@@ -364,7 +358,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 			Generation: []types.Generation{gen},
 		},
 	}
-	releases, _, err := act.storageRelease.ListRelease(ctx, releaseType, types.UnlimitedPage(), cond)
+	releases, _, err := act.storageRelease.ListRelease(nCtx, releaseType, types.UnlimitedPage(), cond)
 	if err != nil {
 		return nil, err
 	}
@@ -383,14 +377,14 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 }
 
 func (act *actionEnsurePkgToRelay) getInstallerFile(
-	ctx context.Context, std *utils.NodeActionStandarder) (fileiface.File, error) {
+	nCtx contextx.IContext, std *utils.NodeActionStandarder) (fileiface.File, error) {
 
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		return nil, fmt.Errorf("failed to format tools name: %w", err)
 	}
 
-	installPkgInfo, err := act.installerFileGroup.GetFile(ctx, toolName)
+	installPkgInfo, err := act.installerFileGroup.GetFile(nCtx, toolName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get file. installer-name(%s): %w", toolName, err)
 	}
@@ -577,8 +571,10 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
-				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					std.InstanceData().OperationInstanceID, std.InstanceData().Name, err)
+				logger.G.Sys().
+					WithErr(err).
+					With("oper-inst-id", std.InstanceData().OperationInstanceID, "action-name", std.InstanceData().Name).
+					Error("failed to get private data")
 
 				continue
 			}

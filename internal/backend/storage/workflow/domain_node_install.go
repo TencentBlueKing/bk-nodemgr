@@ -19,7 +19,7 @@ import (
 
 // listOperationByNodeWorkflowOperationCondition lists operation by node workflow condition.
 func (s *Storage) listOperationByNodeWorkflowOperationCondition(
-	ctx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowOperationCondition) (
+	nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowOperationCondition) (
 	[]*workoper.Operation, int64, error) {
 
 	opts := make([]operation.OptFn, 0)
@@ -39,5 +39,5 @@ func (s *Storage) listOperationByNodeWorkflowOperationCondition(
 		}
 	}
 
-	return s.daoOperation.List(ctx, page, opts...)
+	return s.daoOperation.List(nCtx, page, opts...)
 }

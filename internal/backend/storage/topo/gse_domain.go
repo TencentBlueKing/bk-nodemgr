@@ -13,12 +13,12 @@
 package topo
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -26,14 +26,14 @@ import (
 )
 
 // GetV4AgentAccessEndpoints get v4 agent access endpoints by networkunit id.
-func (s *Storage) GetV4AgentAccessEndpoints(ctx context.Context, networkUnitID int64) (
+func (s *Storage) GetV4AgentAccessEndpoints(nCtx contextx.IContext, networkUnitID int64) (
 	cluster []string, file []string, data []string, err error) {
 
 	// record metric.
 	metric := s.metric().Start("get_v4_agent_access_endpoints")
 	defer metric.End(err)
 
-	if cluster, file, data, err = s.getAgentAccessEndpoints(ctx, networkUnitID, func(static *types.HostStatic) string {
+	if cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID, func(static *types.HostStatic) string {
 		return static.InnerIP
 	}); err != nil {
 		return nil, nil, nil, err
@@ -43,14 +43,14 @@ func (s *Storage) GetV4AgentAccessEndpoints(ctx context.Context, networkUnitID i
 }
 
 // GetV6AgentAccessEndpoints get v6 agent access endpoints by networkunit id.
-func (s *Storage) GetV6AgentAccessEndpoints(ctx context.Context, networkUnitID int64) (
+func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitID int64) (
 	cluster []string, file []string, data []string, err error) {
 
 	// record metric.
 	metric := s.metric().Start("get_v6_agent_access_endpoints")
 	defer metric.End(err)
 
-	if cluster, file, data, err = s.getAgentAccessEndpoints(ctx, networkUnitID, func(static *types.HostStatic) string {
+	if cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID, func(static *types.HostStatic) string {
 		return static.InnerIPV6
 	}); err != nil {
 		return nil, nil, nil, err
@@ -61,10 +61,10 @@ func (s *Storage) GetV6AgentAccessEndpoints(ctx context.Context, networkUnitID i
 
 // nolint: nonamedreturns
 func (s *Storage) getAgentAccessEndpoints(
-	ctx context.Context, networkUnitID int64, ipSelector func(static *types.HostStatic) string) (
+	nCtx contextx.IContext, networkUnitID int64, ipSelector func(static *types.HostStatic) string) (
 	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return nil, nil, nil, basestorage.ErrNilContent()
 	}
 
@@ -72,7 +72,7 @@ func (s *Storage) getAgentAccessEndpoints(
 		return nil, nil, nil, errors.New("unit id should be equal or greater than 0")
 	}
 
-	networkUnit, err := s.daoNetworkUnit.Get(ctx, networkUnitID)
+	networkUnit, err := s.daoNetworkUnit.Get(nCtx, networkUnitID)
 	if err != nil {
 		return nil, nil, nil,
 			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
@@ -88,7 +88,7 @@ func (s *Storage) getAgentAccessEndpoints(
 		return networkUnit.DirectEndpoints.Cluster, networkUnit.DirectEndpoints.File, networkUnit.DirectEndpoints.Data, nil
 	}
 
-	hosts, count, err := s.daoHost.List(ctx, types.UnlimitedPage(),
+	hosts, count, err := s.daoHost.List(nCtx, types.UnlimitedPage(),
 		host.WithNetworkUnitID(networkUnitID),
 		host.WithNodeRole(types.NodeRoleProxy),
 		host.WithNodeStatus(types.NodeStatusRunning),
@@ -128,14 +128,14 @@ func (s *Storage) getAgentAccessEndpoints(
 
 // GetProxyUpstreamAccessEndpoints gets proxy upstream accesspoint.
 // nolint: nonamedreturns
-func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUnitID int64) (
+func (s *Storage) GetProxyUpstreamAccessEndpoints(nCtx contextx.IContext, networkUnitID int64) (
 	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
 
 	// record metric.
 	metric := s.metric().Start("get_proxy_upstream_accesspoints")
 	defer metric.End(err)
 
-	if ctx == nil {
+	if nCtx == nil {
 		return nil, nil, nil, basestorage.ErrNilContent()
 	}
 
@@ -144,7 +144,7 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 	}
 
 	var networkUnit *types.NetworkUnit
-	if networkUnit, err = s.daoNetworkUnit.Get(ctx, networkUnitID); err != nil {
+	if networkUnit, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
 		return nil, nil, nil,
 			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
 	}
@@ -161,7 +161,7 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 	}
 
 	var accesspoints []*types.AccessPoint
-	if accesspoints, _, err = s.daoAccessPoint.List(ctx, types.UnlimitedPage(), accesspoint.WithAccessPointID(
+	if accesspoints, _, err = s.daoAccessPoint.List(nCtx, types.UnlimitedPage(), accesspoint.WithAccessPointID(
 		networkUnit.Links.Cluster.AccessPointID,
 		networkUnit.Links.File.AccessPointID,
 		networkUnit.Links.Data.AccessPointID,
@@ -194,12 +194,12 @@ func (s *Storage) GetProxyUpstreamAccessEndpoints(ctx context.Context, networkUn
 }
 
 // NeedStaticAccess check host is need static access or not.
-func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (result bool, err error) {
+func (s *Storage) NeedStaticAccess(nCtx contextx.IContext, networkUnitID int64) (result bool, err error) {
 	// record metric.
 	metric := s.metric().Start("need_static_access")
 	defer metric.End(err)
 
-	if ctx == nil {
+	if nCtx == nil {
 		return false, basestorage.ErrNilContent()
 	}
 
@@ -208,7 +208,7 @@ func (s *Storage) NeedStaticAccess(ctx context.Context, networkUnitID int64) (re
 	}
 
 	var networkUnit *types.NetworkUnit
-	if networkUnit, err = s.daoNetworkUnit.Get(ctx, networkUnitID); err != nil {
+	if networkUnit, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
 		return false,
 			fmt.Errorf("failed to get networkunit by id, networkunit-id(%d): %w", networkUnitID, err)
 	}

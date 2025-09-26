@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -39,7 +38,6 @@ func testClient(t *testing.T) IServerMessager {
 			Password: "",
 			DB:       0,
 		}), // Use a mock or real redis client in actual tests.
-		Logger: logger.LoggerDefault{},
 	})
 
 	if err := proxyMessanger.Start(ctx); err != nil {

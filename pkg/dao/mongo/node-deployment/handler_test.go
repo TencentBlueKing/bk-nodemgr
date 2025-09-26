@@ -14,7 +14,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/test/mongodaotest"
 	"github.com/stretchr/testify/suite"
@@ -34,9 +33,9 @@ func TestAll(t *testing.T) {
 	}
 
 	testSuit := new(TestSuite)
-	testSuit.TestSuite = mongodaotest.NewMongoDaoTestSuite[*Data, Data](logger.LoggerDefault{}, func(client *mongo.Database, logger logger.ILogger) {
-		testSuit.Dao = newDao(client, logger)
-		testSuit.Handler = New(client, logger)
+	testSuit.TestSuite = mongodaotest.NewMongoDaoTestSuite[*Data, Data](func(client *mongo.Database) {
+		testSuit.Dao = newDao(client)
+		testSuit.Handler = New(client)
 		testSuit.TestDatas = prepareTestData()
 	})
 
@@ -48,7 +47,6 @@ func prepareTestData() []*Data {
 		{
 			Token: "token123456",
 			Info: &Info{
-				OperInstID:       "inst-001",
 				ActionName:       "wait_agent_install",
 				HostID:           52296,
 				OSType:           "linux",
@@ -84,7 +82,6 @@ func prepareTestData() []*Data {
 		{
 			Token: "token789012",
 			Info: &Info{
-				OperInstID:     "inst-002",
 				ActionName:     "update",
 				HostID:         67890,
 				OSType:         "windows",
@@ -116,7 +113,6 @@ func prepareTestData() []*Data {
 		{
 			Token: "token345678",
 			Info: &Info{
-				OperInstID:     "inst-003",
 				ActionName:     "restart",
 				HostID:         24680,
 				OSType:         "macos",
@@ -153,7 +149,7 @@ func prepareTestData() []*Data {
 // TestCreate tests the Create method of the handler.
 func (testSuit *TestSuite) TestCreate() {
 	type args struct {
-		ctx            context.Context
+		nCtx           context.Context
 		nodeDeployment *types.NodeDeployment
 	}
 	tests := []struct {
@@ -164,7 +160,7 @@ func (testSuit *TestSuite) TestCreate() {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				nodeDeployment: &types.NodeDeployment{
 					Token: "666",
 					Info: &types.DeploymentInfo{
@@ -210,7 +206,7 @@ func (testSuit *TestSuite) TestCreate() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.CreateNodeDeployment(tt.args.ctx, tt.args.nodeDeployment)
+			err := testSuit.Handler.CreateNodeDeployment(tt.args.nCtx, tt.args.nodeDeployment)
 			if !tt.wantErr {
 				testSuit.NoErrorf(err, "Create() error = %v", err)
 			}
@@ -223,7 +219,7 @@ func (testSuit *TestSuite) TestCreate() {
 // TestHandler_GetInfo ...
 func (testSuit *TestSuite) TestHandler_GetInfo() {
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		Token string
 	}
 	tests := []struct {
@@ -235,7 +231,7 @@ func (testSuit *TestSuite) TestHandler_GetInfo() {
 		{
 			name: "normal",
 			args: args{
-				ctx:   context.Background(),
+				nCtx:  context.Background(),
 				Token: "token123456",
 			},
 			want: &types.DeploymentInfo{
@@ -259,7 +255,7 @@ func (testSuit *TestSuite) TestHandler_GetInfo() {
 		}}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			got, err := testSuit.Handler.GetNodeDeploymentInfo(tt.args.ctx, tt.args.Token)
+			got, err := testSuit.Handler.GetNodeDeploymentInfo(tt.args.nCtx, tt.args.Token)
 			if !tt.wantErr {
 				testSuit.Require().NoError(err, "GetNodeDeploymentInfo() error = %v", err)
 			} else {
@@ -275,7 +271,7 @@ func (testSuit *TestSuite) TestHandler_GetInfo() {
 // TestHandler_GetNodeConf ...
 func (testSuit *TestSuite) TestHandler_GetNodeConf() {
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		Token string
 	}
 	tests := []struct {
@@ -287,7 +283,7 @@ func (testSuit *TestSuite) TestHandler_GetNodeConf() {
 		{
 			name: "normal",
 			args: args{
-				ctx:   context.Background(),
+				nCtx:  context.Background(),
 				Token: "token123456",
 			},
 			want: &types.NodeConf{
@@ -308,7 +304,7 @@ func (testSuit *TestSuite) TestHandler_GetNodeConf() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			got, err := testSuit.Handler.GetNodeDeploymentNodeConf(tt.args.ctx, tt.args.Token)
+			got, err := testSuit.Handler.GetNodeDeploymentNodeConf(tt.args.nCtx, tt.args.Token)
 			if tt.wantErr {
 				testSuit.Require().Error(err, "GetNodeDeploymentNodeConf() error = %v", err)
 			} else {
@@ -324,7 +320,7 @@ func (testSuit *TestSuite) TestHandler_GetNodeConf() {
 // TestHandler_SetNodeConf ...
 func (testSuit *TestSuite) TestHandler_SetNodeConf() {
 	type args struct {
-		ctx      context.Context
+		nCtx     context.Context
 		Token    string
 		nodeConf *types.NodeConf
 	}
@@ -336,7 +332,7 @@ func (testSuit *TestSuite) TestHandler_SetNodeConf() {
 		{
 			name: "normal",
 			args: args{
-				ctx:   context.Background(),
+				nCtx:  context.Background(),
 				Token: "token345678",
 				nodeConf: &types.NodeConf{
 					PreSetting: map[string]any{
@@ -352,7 +348,7 @@ func (testSuit *TestSuite) TestHandler_SetNodeConf() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.SetNodeDeploymentNodeConf(tt.args.ctx, tt.args.Token, tt.args.nodeConf)
+			err := testSuit.Handler.SetNodeDeploymentNodeConf(tt.args.nCtx, tt.args.Token, tt.args.nodeConf)
 			if !tt.wantErr {
 				testSuit.NoError(err, "SetNodeDeploymentNodeConf() error = %v", err)
 			} else {
@@ -361,7 +357,7 @@ func (testSuit *TestSuite) TestHandler_SetNodeConf() {
 			testSuit.T().Logf("err: %v", err)
 
 			// Verify that the nodeConf was updated correctly
-			got, err := testSuit.Handler.GetNodeDeploymentNodeConf(tt.args.ctx, tt.args.Token)
+			got, err := testSuit.Handler.GetNodeDeploymentNodeConf(tt.args.nCtx, tt.args.Token)
 			testSuit.NoError(err, "GetNodeDeploymentNodeConf() error = %v", err)
 			testSuit.Assert().Equal(got, tt.args.nodeConf, "GetNodeDeploymentNodeConf() got = %v, want %v", got, tt.args.nodeConf)
 
@@ -373,7 +369,7 @@ func (testSuit *TestSuite) TestHandler_SetNodeConf() {
 // TestHandler_UpdateInfo ...
 func (testSuit *TestSuite) TestHandler_UpdateInfo() {
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		token string
 		info  *types.DeploymentInfo
 	}
@@ -385,7 +381,7 @@ func (testSuit *TestSuite) TestHandler_UpdateInfo() {
 		{
 			name: "normal",
 			args: args{
-				ctx:   context.Background(),
+				nCtx:  context.Background(),
 				token: "token345678",
 				info: &types.DeploymentInfo{
 					OperInstID:         "inst-003",
@@ -410,7 +406,7 @@ func (testSuit *TestSuite) TestHandler_UpdateInfo() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.UpdateNodeDeploymentInfo(tt.args.ctx, tt.args.token, tt.args.info)
+			err := testSuit.Handler.UpdateNodeDeploymentInfo(tt.args.nCtx, tt.args.token, tt.args.info)
 			if !tt.wantErr {
 				testSuit.NoError(err, "UpdateNodeDeploymentInfo() error = %v", err)
 			} else {
@@ -420,7 +416,7 @@ func (testSuit *TestSuite) TestHandler_UpdateInfo() {
 			testSuit.T().Logf("err: %v", err)
 
 			// Verify that the info was updated correctly
-			got, err := testSuit.Handler.GetNodeDeploymentInfo(tt.args.ctx, tt.args.token)
+			got, err := testSuit.Handler.GetNodeDeploymentInfo(tt.args.nCtx, tt.args.token)
 			testSuit.NoError(err, "GetNodeDeploymentInfo() error = %v", err)
 			testSuit.Assert().Equal(got, tt.args.info, "GetNodeDeploymentInfo() got = %v, want %v", got, tt.args.info)
 			testSuit.T().Logf("got: %+v", got)

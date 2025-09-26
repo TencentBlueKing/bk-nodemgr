@@ -29,7 +29,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
@@ -46,7 +45,6 @@ const (
 // NewActionInstallNodeByWMI get a new action.
 func NewActionInstallNodeByWMI(
 	installerFileGroup fileiface.FileGroup,
-	logger logger.ILogger,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	provider discover.Provider,
 	storageHostCredit credit.IStorageHostCredit,
@@ -56,7 +54,6 @@ func NewActionInstallNodeByWMI(
 	return &actionInstallNodeByWMI{
 		installerGroup:        installerFileGroup,
 		storageHostCredit:     storageHostCredit,
-		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
 		provider:              provider,
 		passwordVault:         passwordVault,
@@ -85,7 +82,6 @@ type InstallParamsWin struct {
 
 type actionInstallNodeByWMI struct {
 	installerGroup        fileiface.FileGroup
-	logger                logger.ILogger
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	provider              discover.Provider
@@ -169,7 +165,6 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	client, err := wmix.NewClient(&wmix.Config{
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
 		User:       std.DeployInfo().Host.Dynamic.LoginUser,
-		Logger:     act.logger,
 		AuthMethod: cMethod,
 		Password: func() string {
 			if cMethod == wmix.AuthMethodPassword {

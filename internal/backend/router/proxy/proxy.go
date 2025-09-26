@@ -22,9 +22,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -38,7 +38,6 @@ type handler struct {
 	rg             *gin.RouterGroup
 	provider       discover.Provider
 	proxyMessanger relayhandler.IServerMessager
-	logger         logger.ILogger
 }
 
 // newHandler ...
@@ -48,7 +47,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:             rg.Group("/proxy"),
 		provider:       capability.DiscoverProvider,
 		proxyMessanger: capability.ProxyMessager,
-		logger:         capability.Logger,
 	}
 }
 
@@ -66,15 +64,17 @@ func (h *handler) generalHandler(gCtx *gin.Context) {
 
 	body, err := io.ReadAll(gCtx.Request.Body)
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to read request body: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to read request body")
+
 		return
 	}
 
-	h.logger.InfoCtxf(nCtx, "received proxy request: %s", string(body))
+	logger.G.Biz(nCtx).Info("received proxy request: %s", string(body))
 
 	data, err := h.proxyMessanger.DecodeBaseRequest(body)
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to decode plugin respond message: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to decode plugin respond message")
+
 		return
 	}
 
@@ -92,36 +92,35 @@ func (h *handler) generalHandler(gCtx *gin.Context) {
 
 		return
 	default:
-		h.logger.ErrorCtxf(nCtx, "unknown message type: %s", data.MessageType)
+		logger.G.Biz(nCtx).With("type", data.MessageType).Error("unknown message type")
+
 		return
 	}
 }
 
 func (h *handler) handleAck(nCtx contextx.IContext, data *relayhandler.ServerReceivedData) {
-	h.logger.InfoCtxf(nCtx, "received ack request. agent-id(%s)", data.AgentID)
+	logger.G.Biz(nCtx).With("agent-id", data.AgentID).Info("received ack request")
+
 	msg, err := h.proxyMessanger.DecodeAckRequest(data)
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to decode plugin respond message. agent-id(%s): %v",
-			data.AgentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", data.AgentID).Error("failed to decode ack request message")
 
 		return
 	}
 
 	if err := h.proxyMessanger.MarkAcked(nCtx, msg.OriginalMessageID); err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to handle ack. agent-id(%s): %v",
-			data.AgentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", data.AgentID).Error("failed to handle ack")
 
 		return
 	}
-	h.logger.InfoCtxf(nCtx, "ack handled successfully. agent-id(%s), original-message-id(%s)",
-		data.AgentID, msg.OriginalMessageID)
+
+	logger.G.Biz(nCtx).With("agent-id", data.AgentID, "original-message-id", msg.OriginalMessageID).Info("ack handled successfully")
 }
 
 func (h *handler) handleCallback(nCtx contextx.IContext, data *relayhandler.ServerReceivedData) {
 	msg, err := h.proxyMessanger.DecodeCallbackRequest(data)
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to decode plugin respond message. agent-id(%s): %v",
-			data.AgentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", data.AgentID).Error("failed to decode callback request message")
 
 		return
 	}
@@ -131,30 +130,26 @@ func (h *handler) handleCallback(nCtx contextx.IContext, data *relayhandler.Serv
 		discover.EndpointNameBackendCallback,
 		discover.NewRandomSelector())
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to get callback endpoint. agent-id(%s): %v",
-			data.AgentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", data.AgentID).Error("failed to get callback endpoint")
 
 		return
 	}
 
 	url := fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), strings.TrimLeft(msg.URL, "/"))
-	h.logger.InfoCtxf(nCtx, "try to redirect request to callback(%s), agent-id(%s)",
-		url, data.AgentID)
+	logger.G.Biz(nCtx).With("agent-id", data.AgentID, "callback-url", url).Info("try to redirect request to callback")
 	resp, err := http.Post(
 		url,
 		"application/json",
 		bytes.NewReader(msg.Body))
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to send request to callback. agent-id(%s): %v",
-			data.AgentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", data.AgentID, "callback-url", url).Error("failed to send request to callback")
 
 		return
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to read response body. agent-id(%s): %v",
-			data.AgentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", data.AgentID, "callback-url", url).Error("failed to read response body")
 
 		return
 	}
@@ -166,13 +161,12 @@ func (h *handler) handleCallback(nCtx contextx.IContext, data *relayhandler.Serv
 		body,
 		data.AgentID,
 	); err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to respond proxy callback. agent-id(%s): %v",
-			data.AgentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", data.AgentID, "callback-url", url).Error("failed to respond proxy callback")
 
 		return
 	}
 
-	h.logger.InfoCtxf(nCtx, "responded proxy callback. agent-id(%s)", data.AgentID)
+	logger.G.Biz(nCtx).With("agent-id", data.AgentID, "callback-url", url).Info("responded proxy callback")
 }
 
 func (h *handler) handleClientPush(nCtx contextx.IContext, data *relayhandler.ServerReceivedData) {
@@ -180,19 +174,20 @@ func (h *handler) handleClientPush(nCtx contextx.IContext, data *relayhandler.Se
 
 	marked, err := h.proxyMessanger.TryMarkProcessed(nCtx, data.MessageID)
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to mark message process. message-id(%s): %v", data.MessageID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("message-id", data.MessageID, "agent-id", data.AgentID).Error("failed to mark message process")
+
 		return
 	}
 
 	if !marked {
-		h.logger.InfoCtxf(nCtx, "message already processed. message-id(%s)", data.MessageID)
+		logger.G.Biz(nCtx).With("message-id", data.MessageID, "agent-id", data.AgentID).Info("message already processed")
+
 		return
 	}
 
 	msg, err := h.proxyMessanger.DecodeClientPushRequest(data)
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to decode plugin respond message. agent-id(%s): %v",
-			data.AgentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("message-id", data.MessageID, "agent-id", data.AgentID).Error("failed to decode client push request message")
 
 		return
 	}
@@ -206,38 +201,35 @@ func (h *handler) callbackBackend(nCtx contextx.IContext, msg *protoRelay.Client
 		discover.EndpointNameBackendCallback,
 		discover.NewRandomSelector())
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to get callback endpoint. agent-id(%s): %v",
-			agentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", agentID).Error("failed to get callback endpoint")
 
 		return
 	}
-
-	h.logger.InfoCtxf(nCtx, "try to redirect request to callback endpoint(%s), agent-id(%s)",
-		callbackEndpoint.GetIPV4Address(), agentID)
 
 	url, err := url.JoinPath(backendCallbackURLPrefix, msg.URL)
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to format callback endpoint url. agent-id(%s),prefix-url(%s),msg-url(%s): %v",
-			agentID, backendCallbackURLPrefix, msg.URL, err)
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("agent-id", agentID, "prefix-url", backendCallbackURLPrefix, "msg-url", msg.URL).
+			Error("failed to format callback endpoint url")
 
 		return
 	}
 
+	logger.G.Biz(nCtx).With("agent-id", agentID, "callback-url", url).Info("try to redirect request to callback")
 	resp, err := http.Post(
 		fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), url),
 		"application/json",
 		bytes.NewReader(msg.Body))
 
 	if err != nil {
-		h.logger.ErrorCtxf(nCtx, "failed to send request to callback. agent-id(%s): %v",
-			agentID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", agentID).Error("failed to send request to callback")
 
 		return
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		h.logger.ErrorCtxf(nCtx, "failed to send request to callback. agent-id(%s), status-code(%d)",
-			agentID, resp.StatusCode)
+		logger.G.Biz(nCtx).WithErr(err).With("agent-id", agentID, "status-code", resp.StatusCode).Error("failed to send request to callback")
 
 		return
 	}

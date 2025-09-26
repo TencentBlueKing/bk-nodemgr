@@ -11,19 +11,18 @@
 package iegtjj
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // IHandler define the interface of handler.
 type IHandler interface {
 	// LoadPassword load password by username and ip.
 	// notice: this username is the user of the wework's rtx not the device.
-	LoadPassword(ctx context.Context, rtx string, networkAreaID int64, ip string, loginUser string) (string, error)
+	LoadPassword(nCtx contextx.IContext, rtx string, networkAreaID int64, ip string, loginUser string) (string, error)
 }
 
 // Config the config of iegtjj.
@@ -47,21 +46,14 @@ func (conf Config) Validate() error {
 
 // Handler get vault and cli.
 type Handler struct {
-	cli       *cli
-	logger    logger.ILogger
+	cli *cli
+
 	conf      *Config
 	decryptor *DevicePasswdDecryptor
 }
 
 // OptionFn ...
 type OptionFn func(*Handler)
-
-// WithLogger this func will set the logger of the Handler.
-func WithLogger(logger logger.ILogger) OptionFn {
-	return func(s *Handler) {
-		s.logger = logger
-	}
-}
 
 // New initialize a new iegtjj Handler.
 func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (*Handler, error) {
@@ -74,7 +66,6 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (*Handler, er
 		cli:       cli,
 		conf:      conf,
 		decryptor: NewDecryptor(conf.SecretKey),
-		logger:    logger.LoggerDefault{},
 	}
 
 	for _, opt := range opts {
@@ -86,7 +77,7 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (*Handler, er
 
 // LoadPassword load password.
 func (h *Handler) LoadPassword(
-	ctx context.Context,
+	nCtx contextx.IContext,
 	rtx string,
 	networkAreaID int64,
 	ip string,
@@ -109,7 +100,7 @@ func (h *Handler) LoadPassword(
 		IPList:   []string{ip},
 	}
 
-	resp, err := h.cli.getDevicePassword(ctx, req)
+	resp, err := h.cli.getDevicePassword(nCtx, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to get device password: %w", err)
 	}

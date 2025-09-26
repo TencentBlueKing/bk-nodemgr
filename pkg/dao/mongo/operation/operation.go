@@ -12,20 +12,18 @@
 package operation
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // TableName the operation table name.
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(client *mongo.Database) *dao {
 	d := &dao{
 		client:    client.Collection(TableName),
-		logger:    logger,
 		tableName: TableName,
 	}
 
@@ -37,18 +35,13 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
+
 	base.IOrm[*Operation, Operation]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -64,27 +57,22 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 // upsert updates or inserts an operation.
-func (d *dao) upsert(ctx context.Context, operation *Operation) error {
+func (d *dao) upsert(nCtx contextx.IContext, operation *Operation) error {
 	filter, upsert, opts := buildUpsertParams(operation)
-	result, err := d.client.UpdateOne(ctx, filter, upsert, opts)
+	result, err := d.client.UpdateOne(nCtx, filter, upsert, opts)
 	if err != nil {
 		return err
 	}
 
 	switch {
 	case result.UpsertedCount > 0:
-		{
-			d.logger.Infof("upserted operation, unique-key(%s), table(%s)",
-				operation.UniqueKey(), d.tableName)
-		}
+		logger.G.Sys().With("unique-key", operation.UniqueKey(), "table", d.tableName).Info("upserted operation")
+
 	case result.MatchedCount > 0:
-		{
-			d.logger.Infof("updated operation, unique-key(%s), table(%s)",
-				operation.UniqueKey(), d.tableName)
-		}
+		logger.G.Sys().With("unique-key", operation.UniqueKey(), "table", d.tableName).Info("updated operation")
+
 	default:
-		d.logger.Warnf("try to upsert operation but no changes made. unique-key(%s), table(%s)",
-			operation.UniqueKey(), d.tableName)
+		logger.G.Sys().With("unique-key", operation.UniqueKey(), "table", d.tableName).Warn("try to upsert operation but no changes made")
 	}
 
 	return nil
@@ -105,33 +93,32 @@ func buildUpsertParams(operation *Operation) (bson.D, bson.D, *mongoOptions.Upda
 }
 
 // delete deletes operations.
-func (d *dao) delete(ctx context.Context, operIDs ...string) error {
+func (d *dao) delete(nCtx contextx.IContext, operIDs ...string) error {
 	filter := base.AliveFilter()
 	filter = WithOperationID(operIDs...)(filter)
 
-	result, err := d.client.DeleteMany(ctx, filter)
+	result, err := d.client.DeleteMany(nCtx, filter)
 	if err != nil {
 		return err
 	}
 
-	d.logger.Infof("deleted %d triggers, trigger-ids: %v", result.DeletedCount, operIDs)
+	logger.G.Sys().With("trigger-ids", operIDs, "deleted-count", result.DeletedCount).Info("deleted triggers")
 
 	return nil
 }
 
 // pullField pull value from array field.
-func (d *dao) pullField(ctx context.Context, operID, field string, value any) error {
+func (d *dao) pullField(nCtx contextx.IContext, operID, field string, value any) error {
 	filter := base.AliveFilter()
 	filter = WithOperationID(operID)(filter)
 
 	update := base.BuildPullField(field, value)
-	result, err := d.client.UpdateOne(ctx, filter, update)
+	result, err := d.client.UpdateOne(nCtx, filter, update)
 	if err != nil {
 		return err
 	}
 
-	d.logger.Debugf("pull operation field(%v), table(%s), value(%v), updated-count(%d)",
-		field, d.tableName, value, result.MatchedCount)
+	logger.G.Sys().With("field", field, "table", d.tableName, "value", value, "matched-count", result.MatchedCount).Debug("pulled operation field")
 
 	return nil
 }

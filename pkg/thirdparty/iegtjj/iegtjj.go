@@ -12,9 +12,9 @@
 package iegtjj
 
 import (
-	"context"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 )
 
@@ -42,7 +42,7 @@ func (c *cli) getCommonHeader() (http.Header, error) {
 	return header, nil
 }
 
-func (c *cli) getDevicePassword(ctx context.Context, req *GetDevicePasswordReq) (*GetDevicePasswordResp, error) {
+func (c *cli) getDevicePassword(nCtx contextx.IContext, req *GetDevicePasswordReq) (*GetDevicePasswordResp, error) {
 	resp := new(BaseBroker[*GetDevicePasswordResp])
 	header, err := c.getCommonHeader()
 	if err != nil {
@@ -51,7 +51,7 @@ func (c *cli) getDevicePassword(ctx context.Context, req *GetDevicePasswordReq) 
 
 	err = c.client.Post().
 		SubResourcef("/pwd/getDevicePassword").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		Do().Into(resp)

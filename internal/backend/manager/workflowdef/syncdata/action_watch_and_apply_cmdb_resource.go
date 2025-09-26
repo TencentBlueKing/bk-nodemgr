@@ -113,19 +113,19 @@ func (act *actionWatchCMDBResource) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	newCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 
-	err = act.watchHostResource(newCtx)
+	err = act.watchHostResource(nCtx)
 	if err != nil {
 		return fmt.Errorf("watch host resource failed: %w", err)
 	}
 
-	err = act.watchHostRelationResource(newCtx)
+	err = act.watchHostRelationResource(nCtx)
 	if err != nil {
 		return fmt.Errorf("watch host relation resource failed: %w", err)
 	}
 
-	err = act.applyHostEvent(newCtx)
+	err = act.applyHostEvent(nCtx)
 	if err != nil {
 		return fmt.Errorf("apply host event failed: %w", err)
 	}
@@ -206,15 +206,15 @@ func (act *actionWatchCMDBResource) watchHostRelationResource(ctx contextx.ICont
 }
 
 // applyHostEvent applies the host event to the watcher.
-func (act *actionWatchCMDBResource) applyHostEvent(ctx context.Context) error {
+func (act *actionWatchCMDBResource) applyHostEvent(nCtx contextx.IContext) error {
 	for _, event := range act.pendingProcessEvents {
 		switch event.Resource {
 		case types.ResourceTypeHost:
-			if err := act.handleHostResource(ctx, event); err != nil {
+			if err := act.handleHostResource(nCtx, event); err != nil {
 				return err
 			}
 		case types.ResourceTypeHostRelation:
-			if err := act.handleHostRelationResource(ctx, event); err != nil {
+			if err := act.handleHostRelationResource(nCtx, event); err != nil {
 				return err
 			}
 		default:
@@ -226,7 +226,7 @@ func (act *actionWatchCMDBResource) applyHostEvent(ctx context.Context) error {
 }
 
 // handleHostResource this func defines how to handle the host resource event.
-func (act *actionWatchCMDBResource) handleHostResource(ctx context.Context, event *types.HostEvent) error {
+func (act *actionWatchCMDBResource) handleHostResource(nCtx contextx.IContext, event *types.HostEvent) error {
 	switch event.EventType {
 	case types.EventTypeCreate:
 		host, ok := act.waitingCompleteDataHostMap[event.Detail.HostID]
@@ -241,7 +241,7 @@ func (act *actionWatchCMDBResource) handleHostResource(ctx context.Context, even
 		}
 
 		event.Detail.Static.BizID = host.Static.BizID
-		err := act.storageTopo.UpsertManyHost(ctx, event.Detail)
+		err := act.storageTopo.UpsertManyHost(nCtx, event.Detail)
 		if err != nil {
 			return fmt.Errorf("UpsertManyHost failed: %w", err)
 		}
@@ -252,20 +252,20 @@ func (act *actionWatchCMDBResource) handleHostResource(ctx context.Context, even
 
 		return nil
 	case types.EventTypeUpdate:
-		dbHost, err := act.storageTopo.GetHostByID(ctx, event.Detail.HostID)
+		dbHost, err := act.storageTopo.GetHostByID(nCtx, event.Detail.HostID)
 		if err != nil {
 			return fmt.Errorf("GetHostByID failed: %w", err)
 		}
 
 		event.Detail.Static.BizID = dbHost.Static.BizID
-		err = act.storageTopo.UpsertManyHostStatic(ctx, event.Detail)
+		err = act.storageTopo.UpsertManyHostStatic(nCtx, event.Detail)
 		if err != nil {
 			return fmt.Errorf("UpsertManyHostStatic failed: %w", err)
 		}
 
 		return nil
 	case types.EventTypeDelete:
-		err := act.storageTopo.DeleteManyHost(ctx, event.Detail.HostID)
+		err := act.storageTopo.DeleteManyHost(nCtx, event.Detail.HostID)
 		if err != nil {
 			return fmt.Errorf("DeleteManyHost failed: %w", err)
 		}
@@ -279,7 +279,7 @@ func (act *actionWatchCMDBResource) handleHostResource(ctx context.Context, even
 }
 
 // handleHostRelationResource this func defines how to handle the host relation resource event.
-func (act *actionWatchCMDBResource) handleHostRelationResource(ctx context.Context, event *types.HostEvent) error {
+func (act *actionWatchCMDBResource) handleHostRelationResource(nCtx contextx.IContext, event *types.HostEvent) error {
 	switch event.EventType {
 	case types.EventTypeCreate:
 		host, ok := act.waitingCompleteDataHostMap[event.Detail.HostID]
@@ -292,7 +292,7 @@ func (act *actionWatchCMDBResource) handleHostRelationResource(ctx context.Conte
 		}
 
 		host.Static.BizID = event.Detail.Static.BizID
-		err := act.storageTopo.UpsertManyHost(ctx, host)
+		err := act.storageTopo.UpsertManyHost(nCtx, host)
 		if err != nil {
 			return fmt.Errorf("UpsertManyHost failed: %w", err)
 		}
@@ -303,20 +303,20 @@ func (act *actionWatchCMDBResource) handleHostRelationResource(ctx context.Conte
 
 		return nil
 	case types.EventTypeUpdate:
-		dbHost, err := act.storageTopo.GetHostByID(ctx, event.Detail.HostID)
+		dbHost, err := act.storageTopo.GetHostByID(nCtx, event.Detail.HostID)
 		if err != nil {
 			return fmt.Errorf("GetHostByID failed: %w", err)
 		}
 
 		dbHost.Static.BizID = event.Detail.Static.BizID
-		err = act.storageTopo.UpsertManyHostStatic(ctx, dbHost)
+		err = act.storageTopo.UpsertManyHostStatic(nCtx, dbHost)
 		if err != nil {
 			return fmt.Errorf("UpsertManyHostStatic failed: %w", err)
 		}
 
 		return nil
 	case types.EventTypeDelete:
-		err := act.storageTopo.DeleteManyHost(ctx, event.Detail.HostID)
+		err := act.storageTopo.DeleteManyHost(nCtx, event.Detail.HostID)
 		if err != nil {
 			return fmt.Errorf("DeleteManyHost failed: %w", err)
 		}

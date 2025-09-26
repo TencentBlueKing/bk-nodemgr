@@ -12,11 +12,11 @@
 package trigger
 
 import (
-	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -25,48 +25,45 @@ import (
 // IHandler trigger handler interface.
 type IHandler interface {
 	// Get get a specified trigger.
-	Get(ctx context.Context, triggerID string) (*trigger.Trigger, error)
+	Get(nCtx contextx.IContext, triggerID string) (*trigger.Trigger, error)
 
 	// List list triggers with options.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error)
 
 	// Create creates a trigger.
-	Create(ctx context.Context, trig *trigger.Trigger) error
+	Create(nCtx contextx.IContext, trig *trigger.Trigger) error
 
 	// Update updates trigger.
-	Update(ctx context.Context, trig *trigger.Trigger) error
+	Update(nCtx contextx.IContext, trig *trigger.Trigger) error
 
 	// UpdateState updates trigger state.
-	UpdateState(ctx context.Context, triggerID string, state trigger.State) error
+	UpdateState(nCtx contextx.IContext, triggerID string, state trigger.State) error
 
 	// Delete deletes triggers.
-	Delete(ctx context.Context, triggerIDs ...string) error
+	Delete(nCtx contextx.IContext, triggerIDs ...string) error
 }
 
 type handler struct {
-	logger logger.ILogger
-	dao    *dao
+	dao *dao
 }
 
 // New create a new trigger handler.
-func New(client *mongo.Database, logger logger.ILogger) IHandler {
+func New(client *mongo.Database) IHandler {
 	h := &handler{
-		logger: logger,
-		dao:    newDao(client, logger),
+		dao: newDao(client),
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure trigger indexes: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).Warn("failed to ensure trigger indexes")
 	}
 
 	return h
 }
 
 // Get get a specified trigger.
-func (h *handler) Get(ctx context.Context, triggerID string) (*trigger.Trigger, error) {
-	if ctx == nil {
-		return nil, errors.New("ctx is nil")
+func (h *handler) Get(nCtx contextx.IContext, triggerID string) (*trigger.Trigger, error) {
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
 	}
 
 	if triggerID == "" {
@@ -77,7 +74,7 @@ func (h *handler) Get(ctx context.Context, triggerID string) (*trigger.Trigger, 
 	opt := base.WithStringValues(FieldKeyTriggerID, triggerID)
 	filter = opt(filter)
 
-	data, err := h.dao.Get(ctx, filter)
+	data, err := h.dao.Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -86,9 +83,9 @@ func (h *handler) Get(ctx context.Context, triggerID string) (*trigger.Trigger, 
 }
 
 // List list triggers with options.
-func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error) {
-	if ctx == nil {
-		return nil, 0, errors.New("ctx is nil")
+func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error) {
+	if nCtx == nil {
+		return nil, 0, errors.New("nCtx is nil")
 	}
 
 	filter := base.AliveFilter()
@@ -96,14 +93,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.dao.Count(ctx, filter)
+	num, err := h.dao.Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	trigs, err := h.dao.List(ctx, filter, findOpt)
+	trigs, err := h.dao.List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -117,9 +114,9 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 }
 
 // Create creates a trigger.
-func (h *handler) Create(ctx context.Context, trig *trigger.Trigger) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *handler) Create(nCtx contextx.IContext, trig *trigger.Trigger) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if trig == nil {
@@ -130,13 +127,13 @@ func (h *handler) Create(ctx context.Context, trig *trigger.Trigger) error {
 		return err
 	}
 
-	return h.dao.Create(ctx, convertTriggerFromTypes(trig))
+	return h.dao.Create(nCtx, convertTriggerFromTypes(trig))
 }
 
 // Update updates a trigger.
-func (h *handler) Update(ctx context.Context, trig *trigger.Trigger) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *handler) Update(nCtx contextx.IContext, trig *trigger.Trigger) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if trig == nil {
@@ -147,13 +144,13 @@ func (h *handler) Update(ctx context.Context, trig *trigger.Trigger) error {
 		return err
 	}
 
-	return h.dao.update(ctx, convertTriggerFromTypes(trig))
+	return h.dao.update(nCtx, convertTriggerFromTypes(trig))
 }
 
 // UpdateState updates a trigger's state.
-func (h *handler) UpdateState(ctx context.Context, triggerID string, state trigger.State) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *handler) UpdateState(nCtx contextx.IContext, triggerID string, state trigger.State) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if triggerID == "" {
@@ -163,20 +160,20 @@ func (h *handler) UpdateState(ctx context.Context, triggerID string, state trigg
 	filter := base.AliveFilter()
 	filter = WithTriggerID(triggerID)(filter)
 
-	return h.dao.UpdateField(ctx, filter, FieldKeyState, string(state))
+	return h.dao.UpdateField(nCtx, filter, FieldKeyState, string(state))
 }
 
 // Delete deletes triggers.
-func (h *handler) Delete(ctx context.Context, triggerIDs ...string) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *handler) Delete(nCtx contextx.IContext, triggerIDs ...string) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if len(triggerIDs) == 0 {
 		return errors.New("trigger-ids is empty")
 	}
 
-	return h.dao.delete(ctx, triggerIDs...)
+	return h.dao.delete(nCtx, triggerIDs...)
 }
 
 func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {

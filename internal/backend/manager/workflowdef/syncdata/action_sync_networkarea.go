@@ -18,7 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -95,10 +94,10 @@ func (act *actionSyncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error 
 		return err
 	}
 
+	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 	executor := pageexecutor.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour) // nolint: mnd
-	fn := func(ctx context.Context, p types.Page) ([]*types.NetworkArea, error) {
-		newCtx := contextx.New(ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
-		networkareas, err := act.cmdbHandler.SearchNetworkArea(newCtx, p)
+	fn := func(_ context.Context, p types.Page) ([]*types.NetworkArea, error) {
+		networkareas, err := act.cmdbHandler.SearchNetworkArea(nCtx, p)
 		if err != nil {
 			return nil, err
 		}
@@ -106,17 +105,12 @@ func (act *actionSyncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error 
 		return networkareas, nil
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
+	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
 	if err != nil {
 		return err
 	}
 
-	result, err := executor.Execute(tenantCtx, types.UnlimitedPage(), fn)
-	if err != nil {
-		return err
-	}
-
-	if err = act.storageNetworkArea.UpsertManyNetworkArea(tenantCtx, result.Items...); err != nil {
+	if err = act.storageNetworkArea.UpsertManyNetworkArea(nCtx, result.Items...); err != nil {
 		return err
 	}
 

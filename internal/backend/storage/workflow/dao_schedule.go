@@ -23,23 +23,23 @@ import (
 
 // listScheduleWorkflow lists schedule workflow by page and conditions.
 func (s *Storage) listScheduleWorkflow(
-	ctx contextx.IContext, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (
 	[]*schedule.Schedule, int64, error) {
 
-	return s.daoScheduleWorkflow.List(ctx, page, convertScheduleWorkflowConditionsToOptions(conditions...)...)
+	return s.daoScheduleWorkflow.List(nCtx, page, convertScheduleWorkflowConditionsToOptions(conditions...)...)
 }
 
 // countScheduleWorkflow counts schedule workflow by conditions.
 func (s *Storage) countScheduleWorkflow(
-	ctx contextx.IContext, conditions ...*types.ScheduleWorkflowCondition) (
+	nCtx contextx.IContext, conditions ...*types.ScheduleWorkflowCondition) (
 	int64, error) {
 
-	return s.daoScheduleWorkflow.Count(ctx, convertScheduleWorkflowConditionsToOptions(conditions...)...)
+	return s.daoScheduleWorkflow.Count(nCtx, convertScheduleWorkflowConditionsToOptions(conditions...)...)
 }
 
 // getScheduleWorkflow gets a schedule workflow by workflow id.
-func (s *Storage) getScheduleWorkflow(ctx contextx.IContext, workflowID string) (*schedule.Schedule, error) {
-	if ctx == nil {
+func (s *Storage) getScheduleWorkflow(nCtx contextx.IContext, workflowID string) (*schedule.Schedule, error) {
+	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
@@ -47,12 +47,12 @@ func (s *Storage) getScheduleWorkflow(ctx contextx.IContext, workflowID string) 
 		return nil, errors.New("workflow id cannot be empty")
 	}
 
-	return s.daoScheduleWorkflow.Get(ctx, workflowID)
+	return s.daoScheduleWorkflow.Get(nCtx, workflowID)
 }
 
 // createScheduleWorkflow creates a new schedule workflow.
-func (s *Storage) createScheduleWorkflow(ctx contextx.IContext, workflow *schedule.Schedule) error {
-	if ctx == nil {
+func (s *Storage) createScheduleWorkflow(nCtx contextx.IContext, workflow *schedule.Schedule) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -64,7 +64,7 @@ func (s *Storage) createScheduleWorkflow(ctx contextx.IContext, workflow *schedu
 		return errors.New("schedule workflow id cannot be empty")
 	}
 
-	return s.daoScheduleWorkflow.Create(ctx, workflow)
+	return s.daoScheduleWorkflow.Create(nCtx, workflow)
 }
 
 // convertScheduleWorkflowConditionsToOptions converts schedule workflow conditions to options.

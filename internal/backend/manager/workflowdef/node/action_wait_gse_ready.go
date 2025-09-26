@@ -15,7 +15,7 @@ import (
 	"time"
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -33,13 +33,11 @@ const (
 func NewActionWaitGseReady(
 	gseClient gse.IHandler,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionWaitGseReady{
 		gseClient:             gseClient,
 		storageNodeDeployment: storageNodeDeployment,
-		logger:                logger,
 	}
 }
 
@@ -51,7 +49,6 @@ type ActParamWaitGseReady struct {
 type actionWaitGseReady struct {
 	gseClient             gse.IHandler
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
-	logger                logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -90,7 +87,7 @@ func (act *actionWaitGseReady) MaxRetryCount() uint {
 // DelayFn this func define when this action fails, how long to wait before retrying.
 func (act *actionWaitGseReady) DelayFn() func() {
 	return func() {
-		act.logger.Errorf("this action should not auto retry, action-name(%s)", act.Name())
+		logger.G.Sys().With("action", act.Name()).Error("this action should not auto retry")
 	}
 }
 
@@ -110,7 +107,6 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
-		Logger:   act.logger,
 	})
 	err = polling.Do(ctx.Ctx, func(_ int) error {
 		states, err := act.gseClient.ListAgentState(ctx.Ctx, info.Host.Dynamic.AgentID)

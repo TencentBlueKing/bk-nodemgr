@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -62,7 +61,7 @@ func testClient(t *testing.T) IHandler {
 		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger.LoggerDefault{},
+		Logger:               ,
 	}
 
 	apigwClientConfig, err := LoadAuthHeader()
@@ -73,7 +72,7 @@ func testClient(t *testing.T) IHandler {
 	h, err := New(clientCap, &Config{
 		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
 		APIGWAppConfig:  apigwClientConfig,
-	}, WithLogger(logger.LoggerDefault{}))
+	}, WithLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

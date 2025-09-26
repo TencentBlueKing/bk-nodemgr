@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"github.com/joho/godotenv"
@@ -33,9 +32,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -52,7 +51,7 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 var globalTrigger *trigger.Trigger
@@ -60,7 +59,7 @@ var globalTrigger *trigger.Trigger
 // Test_handler_Create tests handler Create.
 func Test_handler_Create(t *testing.T) {
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		trig *trigger.Trigger
 	}
 
@@ -79,17 +78,17 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				trig: globalTrigger,
 			},
 			wantErr: false,
 		},
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx: nil,
+				nCtx: nil,
 				trig: &trigger.Trigger{
-					TriggerID: "trigger-nil-ctx",
+					TriggerID: "trigger-nil-nCtx",
 					Category:  trigger.CategoryOnce,
 					Metadata:  &trigger.MetadataOnce{},
 					State:     trigger.StateInit,
@@ -100,7 +99,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "nil trigger",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				trig: nil,
 			},
 			wantErr: true,
@@ -108,7 +107,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "invalid category",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				trig: &trigger.Trigger{
 					TriggerID: "trigger-invalid-category",
 					Category:  "test",
@@ -121,7 +120,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "mismatch metadata",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				trig: &trigger.Trigger{
 					TriggerID: "trigger-invalid-state",
 					Category:  trigger.CategoryOnce,
@@ -134,7 +133,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "invalid state",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				trig: &trigger.Trigger{
 					TriggerID: "trigger-invalid-state",
 					Category:  trigger.CategoryOnce,
@@ -149,7 +148,7 @@ func Test_handler_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			if err := h.Create(tt.args.ctx, tt.args.trig); (err != nil) != tt.wantErr {
+			if err := h.Create(tt.args.nCtx, tt.args.trig); (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -159,7 +158,7 @@ func Test_handler_Create(t *testing.T) {
 // Test_handler_Get tests handler Get.
 func Test_handler_Get(t *testing.T) {
 	type args struct {
-		ctx         context.Context
+		nCtx        context.Context
 		wantTrigger *trigger.Trigger
 	}
 
@@ -171,7 +170,7 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				ctx:         context.Background(),
+				nCtx:        context.Background(),
 				wantTrigger: globalTrigger,
 			},
 			wantErr: false,
@@ -179,15 +178,15 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "not found",
 			args: args{
-				ctx:         context.Background(),
+				nCtx:        context.Background(),
 				wantTrigger: &trigger.Trigger{TriggerID: "not-found"},
 			},
 			wantErr: true,
 		},
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:         nil,
+				nCtx:        nil,
 				wantTrigger: globalTrigger,
 			},
 			wantErr: true,
@@ -197,7 +196,7 @@ func Test_handler_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			trig, err := h.Get(tt.args.ctx, tt.args.wantTrigger.TriggerID)
+			trig, err := h.Get(tt.args.nCtx, tt.args.wantTrigger.TriggerID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -216,7 +215,7 @@ func Test_handler_Get(t *testing.T) {
 // Test_handler_Update tests handler Update.
 func Test_handler_Update(t *testing.T) {
 	type args struct {
-		ctx     context.Context
+		nCtx    context.Context
 		trigger *trigger.Trigger
 	}
 
@@ -228,7 +227,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOrdered,
@@ -241,9 +240,9 @@ func Test_handler_Update(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:     nil,
+				nCtx:    nil,
 				trigger: globalTrigger,
 			},
 			wantErr: true,
@@ -251,7 +250,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "not exist trigger",
 			args: args{
-				ctx:     context.Background(),
+				nCtx:    context.Background(),
 				trigger: &trigger.Trigger{TriggerID: "not-exist"},
 			},
 			wantErr: true,
@@ -259,7 +258,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "nil trigger",
 			args: args{
-				ctx:     context.Background(),
+				nCtx:    context.Background(),
 				trigger: nil,
 			},
 			wantErr: true,
@@ -267,7 +266,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "invalid category",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  "test",
@@ -280,7 +279,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "mismatch metadata",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOnce,
@@ -293,7 +292,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "invalid state",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOnce,
@@ -308,14 +307,14 @@ func Test_handler_Update(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.Update(tt.args.ctx, tt.args.trigger)
+			err := h.Update(tt.args.nCtx, tt.args.trigger)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if err == nil {
-				got, err := h.Get(tt.args.ctx, tt.args.trigger.TriggerID)
+				got, err := h.Get(tt.args.nCtx, tt.args.trigger.TriggerID)
 				if err != nil {
 					t.Errorf("Update() error, got %v, want %v", got, tt.args.trigger)
 					return
@@ -333,7 +332,7 @@ func Test_handler_Update(t *testing.T) {
 // Test_handler_List tests handler List.
 func Test_handler_List(t *testing.T) {
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		page  types.Page
 		optFn []OptFn
 	}
@@ -346,9 +345,9 @@ func Test_handler_List(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:   nil,
+				nCtx:  nil,
 				page:  types.Page{Limit: 10},
 				optFn: nil,
 			},
@@ -359,7 +358,7 @@ func Test_handler_List(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				ctx:   context.Background(),
+				nCtx:  context.Background(),
 				page:  types.Page{Limit: 1},
 				optFn: []OptFn{WithCategory(trigger.CategoryOrdered), WithState(trigger.StateRunning)},
 			},
@@ -372,7 +371,7 @@ func Test_handler_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, total, err := h.List(tt.args.ctx, tt.args.page, tt.args.optFn...)
+			got, total, err := h.List(tt.args.nCtx, tt.args.page, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return

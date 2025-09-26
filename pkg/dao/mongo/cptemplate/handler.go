@@ -12,12 +12,12 @@
 package cptemplate
 
 import (
-	"context"
 	"errors"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,18 +26,17 @@ import (
 // IHandler config policy template handler interface.
 type IHandler interface {
 	// Get get config policy template by config policy id
-	Get(ctx context.Context, configPolicyID int64) (*types.ConfigPolicyTemplate, error)
+	Get(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicyTemplate, error)
 
 	// UpsertMany upsert many config policy template.
-	UpsertMany(ctx context.Context, configPolicyTemplates ...*types.ConfigPolicyTemplate) error
+	UpsertMany(nCtx contextx.IContext, configPolicyTemplates ...*types.ConfigPolicyTemplate) error
 
 	// DeleteMany delete many config policy template by config policy ids.
-	DeleteMany(ctx context.Context, configPolicyIDs ...int64) error
+	DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
 }
 
 type handler struct {
 	client *mongo.Database
-	logger logger.ILogger
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
 	daoMap sync.Map
@@ -48,10 +47,9 @@ func (h *handler) tenantDao(tenantID string) *dao {
 		return d.(*dao) // nolint: forcetypeassert
 	}
 
-	newDaoClient := newDao(tenantID, h.client, h.logger)
+	newDaoClient := newDao(tenantID, h.client)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure config policy indexes. tenant-id(%s): %v",
-			tenantID, errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure config policy indexes")
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
@@ -62,17 +60,16 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new accesspoint handler.
-func New(client *mongo.Database, logger logger.ILogger) IHandler {
+func New(client *mongo.Database) IHandler {
 	return &handler{
 		client: client,
-		logger: logger,
 		daoMap: sync.Map{},
 	}
 }
 
 // Get gets config policy template.
-func (h *handler) Get(ctx context.Context, configPolicyID int64) (*types.ConfigPolicyTemplate, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Get(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicyTemplate, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +77,7 @@ func (h *handler) Get(ctx context.Context, configPolicyID int64) (*types.ConfigP
 	filter := base.AliveFilter()
 	filter = WithConfigPolicyID(configPolicyID)(filter)
 
-	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +86,8 @@ func (h *handler) Get(ctx context.Context, configPolicyID int64) (*types.ConfigP
 }
 
 // UpsertMany upsert many config policy template.
-func (h *handler) UpsertMany(ctx context.Context, configPolicyTemplates ...*types.ConfigPolicyTemplate) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpsertMany(nCtx contextx.IContext, configPolicyTemplates ...*types.ConfigPolicyTemplate) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -104,12 +101,12 @@ func (h *handler) UpsertMany(ctx context.Context, configPolicyTemplates ...*type
 		data[idx] = convertConfigPolicyTemplateFromTypes(configPolicyTemplate)
 	}
 
-	return h.tenantDao(tenantID).upsertMany(ctx, data)
+	return h.tenantDao(tenantID).upsertMany(nCtx, data)
 }
 
 // DeleteMany delete many config policy template.
-func (h *handler) DeleteMany(ctx context.Context, configPolicyIDs ...int64) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -120,7 +117,7 @@ func (h *handler) DeleteMany(ctx context.Context, configPolicyIDs ...int64) erro
 
 	filter := base.AliveFilter()
 	filter = WithConfigPolicyID(configPolicyIDs...)(filter)
-	if err := h.tenantDao(tenantID).DeleteMany(ctx, filter); err != nil {
+	if err := h.tenantDao(tenantID).DeleteMany(nCtx, filter); err != nil {
 		return err
 	}
 

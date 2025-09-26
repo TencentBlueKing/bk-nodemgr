@@ -17,19 +17,20 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -46,7 +47,7 @@ func NewActionRenderNodeDeployment(
 	storageDomainGse topo.IStorageDomainGse,
 	storageRelease release.IStorage,
 	storageConfigPolicy configpolicy.IStorage,
-	logger logger.ILogger) action.Definition {
+) action.Definition {
 
 	return &actionRenderNodeDeployment{
 		storageNodeDeployment: storageNodeDeployment,
@@ -54,13 +55,12 @@ func NewActionRenderNodeDeployment(
 		storageDomainGse:      storageDomainGse,
 		storageRelease:        storageRelease,
 		storageConfigPolicy:   storageConfigPolicy,
-		logger:                logger,
 	}
 }
 
 // ActParamRenderNodeDeployment this is the param for render deployment.
 type ActParamRenderNodeDeployment struct {
-	Token string `json:"token"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionRenderNodeDeployment struct {
@@ -69,8 +69,6 @@ type actionRenderNodeDeployment struct {
 	storageDomainGse      topo.IStorageDomainGse
 	storageRelease        release.IStorage
 	storageConfigPolicy   configpolicy.IStorage
-
-	logger logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -118,28 +116,24 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
-	if err != nil {
-		return err
-	}
-
-	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), param.Token, std.DeployInfo()); err != nil {
 		return fmt.Errorf("set node conf failed: %w", err)
 	}
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
-	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(tenantCtx, param.Token)
+	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(std.Context(), param.Token)
 	if err != nil {
 		return fmt.Errorf("get node conf failed: %w", err)
 	}
 
 	// get release of this node.
-	releaseType, err := types.ConvertNodeRoleToReleaseType(info.Host.Dynamic.NodeRole)
+	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
 		return fmt.Errorf("convert node role to release type failed: %w", err)
 	}
@@ -147,12 +141,12 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	switch releaseType {
 	case types.ReleaseTypeAgent:
 		rlsAgent, err := act.storageRelease.GetReleaseAgent(ctx.Ctx,
-			info.Host.Dynamic.NodeGeneration,
+			std.DeployInfo().Host.Dynamic.NodeGeneration,
 			platform.Platform{
-				OS:   info.Host.Dynamic.NodeOsType,
-				Arch: info.Host.Dynamic.NodeCPUArch,
+				OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
+				Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			},
-			info.Host.Dynamic.NodeVersion,
+			std.DeployInfo().Host.Dynamic.NodeVersion,
 		)
 		if err != nil {
 			return fmt.Errorf("get release failed: %w", err)
@@ -162,12 +156,12 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		nodeConf.ConfigTemplate = rlsAgent.ReleaseAdditionInfoAgent.ConfigTemplate
 	case types.ReleaseTypeProxy:
 		rlsProxy, err := act.storageRelease.GetReleaseProxy(ctx.Ctx,
-			info.Host.Dynamic.NodeGeneration,
+			std.DeployInfo().Host.Dynamic.NodeGeneration,
 			platform.Platform{
-				OS:   info.Host.Dynamic.NodeOsType,
-				Arch: info.Host.Dynamic.NodeCPUArch,
+				OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
+				Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			},
-			info.Host.Dynamic.NodeVersion,
+			std.DeployInfo().Host.Dynamic.NodeVersion,
 		)
 		if err != nil {
 			return fmt.Errorf("get release failed: %w", err)
@@ -181,21 +175,21 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := act.renderLogicSetting(ctx, nodeConf, &info.Host); err != nil {
+		if err := act.renderLogicSetting(ctx, nodeConf, &std.DeployInfo().Host); err != nil {
 			return fmt.Errorf("render logic setting failed: %w", err)
 		}
 
-		act.logger.Infof("rendered logic setting, token: %s", param.Token)
+		logger.G.Sys().With("token", param.Token).Info("rendered logic setting")
 
 		return nil
 	})
 
 	gp.Go(func() error {
-		if err := act.renderCustomSetting(ctx, nodeConf, info); err != nil {
+		if err := act.renderCustomSetting(ctx, nodeConf, std.DeployInfo()); err != nil {
 			return fmt.Errorf("render custom setting failed: %w", err)
 		}
 
-		act.logger.Infof("rendered custom setting, token: %s", param.Token)
+		logger.G.Sys().With("token", param.Token).Info("rendered custom setting")
 
 		return nil
 	})
@@ -204,13 +198,13 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to render node install config: %w", err)
 	}
 
-	if err := act.storageNodeDeployment.SetNodeDeploymentNodeConf(tenantCtx, param.Token, nodeConf); err != nil {
+	if err := act.storageNodeDeployment.SetNodeDeploymentNodeConf(std.Context(), param.Token, nodeConf); err != nil {
 		return fmt.Errorf("set node conf failed: %w", err)
 	}
 
-	act.renderNodeDeploymentInfo(tenantCtx, info, nodeConf)
+	act.renderNodeDeploymentInfo(std.Context(), std.DeployInfo(), nodeConf)
 
-	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(tenantCtx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), param.Token, std.DeployInfo()); err != nil {
 		return fmt.Errorf("set node deployment info failed: %w", err)
 	}
 
@@ -579,8 +573,8 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(
 		matched))
 
 	if matched && configPolicy != nil {
-		act.logger.InfoCtxf(ctx.Ctx, "match config policy. configpolicy-id(%d), configpolicy-name(%s)",
-			configPolicy.ID, configPolicy.Name)
+		logger.G.Sys().With("configpolicy-id", configPolicy.ID, "configpolicy-name", configPolicy.Name).Info("match config policy")
+
 		ctx.Data.LogI(fmt.Sprintf("match config policy. configpolicy-id(%d), configpolicy-name(%s)",
 			configPolicy.ID, configPolicy.Name))
 
@@ -598,8 +592,8 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(
 	return nil
 }
 
-func (act *actionRenderNodeDeployment) checkHostExist(ctx context.Context, hostID int64) error {
-	host, err := act.storageHost.GetHostByID(ctx, hostID)
+func (act *actionRenderNodeDeployment) checkHostExist(nCtx contextx.IContext, hostID int64) error {
+	host, err := act.storageHost.GetHostByID(nCtx, hostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed: %w", err)
 	}

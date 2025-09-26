@@ -17,6 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -29,13 +30,13 @@ import (
 func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeProxyUpgradeReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to upgrade proxy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	nodeDeployments, bizIDs, err := h.generatesUpgradeNodeDeployments(rCtx, req)
 	if err != nil {
-		h.logger.Errorf("failed to upgrade proxy, failed to generate node deployments. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy, failed to generate node deployments")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -46,14 +47,14 @@ func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to upgrade proxy: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade proxy: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeProxyUpgradeResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(rCtx, "launched upgrade proxy workflow: %s", workflowID)
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched upgrade proxy workflow")
 
 	return resp.GetData(), nil
 }

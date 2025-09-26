@@ -13,16 +13,16 @@
 package release
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -33,25 +33,25 @@ type IStorage interface {
 	basestorage.Interface
 
 	// GetRelease gets release by generation, release type, platform and version.
-	GetRelease(ctx context.Context,
+	GetRelease(nCtx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) (*types.Release, error)
 
 	// ListRelease lists release by page and conditions.
-	ListRelease(ctx context.Context, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) (
+	ListRelease(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) (
 		[]*types.Release, int64, error)
 
 	// DistinctRelease distincts release by conditions.
-	DistinctRelease(ctx context.Context, releaseType types.ReleaseType, distinctField types.ReleaseDistinctField,
+	DistinctRelease(nCtx contextx.IContext, releaseType types.ReleaseType, distinctField types.ReleaseDistinctField,
 		conditions ...*types.ReleaseCondition) (*types.ReleaseDistinctResult, error)
 
 	// CountRelease counts release by conditions.
-	CountRelease(ctx context.Context, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition) (int64, error)
+	CountRelease(nCtx contextx.IContext, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition) (int64, error)
 
 	// SetReleaseLabels sets release labels.
-	SetReleaseLabels(ctx context.Context,
+	SetReleaseLabels(nCtx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
@@ -59,35 +59,35 @@ type IStorage interface {
 		labels []string) error
 
 	// EnableRelease enables release active by generation, release type, platform and version.
-	EnableRelease(ctx context.Context,
+	EnableRelease(nCtx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
 
 	// DisableRelease disables release disactive by generation, release type, platform and version.
-	DisableRelease(ctx context.Context,
+	DisableRelease(nCtx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
 
 	// SetAsDefaultRelease sets the release as default.
-	SetAsDefaultRelease(ctx context.Context,
+	SetAsDefaultRelease(nCtx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
 
 	// CancelAsDefaultRelease cancels the release as default.
-	CancelAsDefaultRelease(ctx context.Context,
+	CancelAsDefaultRelease(nCtx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
 		version string) error
 
 	// 	DeleteRelease deletes release by generation, release type, platform and version.
-	DeleteRelease(ctx context.Context,
+	DeleteRelease(nCtx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
 		plat platform.Platform,
@@ -101,7 +101,7 @@ type IStorage interface {
 const StorageName = "release"
 
 // NewStorage creates a new release storage.
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -110,14 +110,14 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 	}
 	err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -134,7 +134,7 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoRelease = release.New(s.Database, s.Logger)
+	s.daoRelease = release.New(s.Database)
 
 	return nil
 }
@@ -148,7 +148,7 @@ func (s *Storage) check() error {
 }
 
 // GetRelease gets release by generation, release type, platform and version.
-func (s *Storage) GetRelease(ctx context.Context,
+func (s *Storage) GetRelease(nCtx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
 	plat platform.Platform,
@@ -158,7 +158,7 @@ func (s *Storage) GetRelease(ctx context.Context,
 	metric := s.metric().Start("get")
 	defer metric.End(err)
 
-	data, err = s.daoRelease.Get(ctx, releaseType,
+	data, err = s.daoRelease.Get(nCtx, releaseType,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
@@ -171,7 +171,7 @@ func (s *Storage) GetRelease(ctx context.Context,
 }
 
 // ListRelease lists release by page and conditions.
-func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) (
+func (s *Storage) ListRelease(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page, conditions ...*types.ReleaseCondition) (
 	results []*types.Release, num int64, err error) {
 
 	// record metric.
@@ -183,7 +183,7 @@ func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType
 		return nil, 0, err
 	}
 
-	if results, num, err = s.daoRelease.List(ctx, releaseType, page, opts...); err != nil {
+	if results, num, err = s.daoRelease.List(nCtx, releaseType, page, opts...); err != nil {
 		return nil, 0, err
 	}
 
@@ -191,7 +191,7 @@ func (s *Storage) ListRelease(ctx context.Context, releaseType types.ReleaseType
 }
 
 // DistinctRelease distincts release by conditions.
-func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.ReleaseType, distinctField types.ReleaseDistinctField,
+func (s *Storage) DistinctRelease(nCtx contextx.IContext, releaseType types.ReleaseType, distinctField types.ReleaseDistinctField,
 	conditions ...*types.ReleaseCondition) (data *types.ReleaseDistinctResult, err error) {
 
 	// record metric.
@@ -209,7 +209,7 @@ func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.Release
 	if distinctField.OSType {
 		gp.Go(func() error {
 			var err error
-			data.OSType, err = s.daoRelease.DistinctOsType(ctx, releaseType, opts...)
+			data.OSType, err = s.daoRelease.DistinctOsType(nCtx, releaseType, opts...)
 
 			return err
 		})
@@ -217,7 +217,7 @@ func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.Release
 	if distinctField.CPUArch {
 		gp.Go(func() error {
 			var err error
-			data.CPUArch, err = s.daoRelease.DistinctCPUArch(ctx, releaseType, opts...)
+			data.CPUArch, err = s.daoRelease.DistinctCPUArch(nCtx, releaseType, opts...)
 
 			return err
 		})
@@ -230,7 +230,7 @@ func (s *Storage) DistinctRelease(ctx context.Context, releaseType types.Release
 }
 
 // CountRelease counts release by conditions.
-func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition) (num int64, err error) {
+func (s *Storage) CountRelease(nCtx contextx.IContext, releaseType types.ReleaseType, conditions ...*types.ReleaseCondition) (num int64, err error) {
 	// record metric.
 	metric := s.metric().Start("count")
 	defer metric.End(err)
@@ -240,7 +240,7 @@ func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseTyp
 		return 0, err
 	}
 
-	if num, err = s.daoRelease.Count(ctx, releaseType, opts...); err != nil {
+	if num, err = s.daoRelease.Count(nCtx, releaseType, opts...); err != nil {
 		return 0, err
 	}
 
@@ -249,14 +249,14 @@ func (s *Storage) CountRelease(ctx context.Context, releaseType types.ReleaseTyp
 
 // SetReleaseLabels sets release labels.
 func (s *Storage) SetReleaseLabels(
-	ctx context.Context, gen types.Generation, releaseType types.ReleaseType,
+	nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
 	plat platform.Platform, version string, labels []string) (err error) {
 
 	// record metric.
 	metric := s.metric().Start("set_labels")
 	defer metric.End(err)
 
-	if err = s.daoRelease.SetLabels(ctx, releaseType, gen, plat, version, labels...); err != nil {
+	if err = s.daoRelease.SetLabels(nCtx, releaseType, gen, plat, version, labels...); err != nil {
 		return err
 	}
 
@@ -265,14 +265,14 @@ func (s *Storage) SetReleaseLabels(
 
 // EnableRelease enables release active by generation, release type, platform and version.
 func (s *Storage) EnableRelease(
-	ctx context.Context, gen types.Generation, releaseType types.ReleaseType,
+	nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
 	plat platform.Platform, version string) (err error) {
 
 	// record metric.
 	metric := s.metric().Start("enable")
 	defer metric.End(err)
 
-	err = s.daoRelease.SetEnabled(ctx, releaseType, true,
+	err = s.daoRelease.SetEnabled(nCtx, releaseType, true,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
@@ -286,7 +286,7 @@ func (s *Storage) EnableRelease(
 
 // DisableRelease disables release active by generation, release type, platform and version.
 func (s *Storage) DisableRelease(
-	ctx context.Context, gen types.Generation, releaseType types.ReleaseType,
+	nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
 	plat platform.Platform, version string) (err error) {
 
 	// record metric.
@@ -294,7 +294,7 @@ func (s *Storage) DisableRelease(
 	defer metric.End(err)
 
 	// cancel this release as default.
-	err = s.daoRelease.SetAsDefault(ctx, releaseType, false,
+	err = s.daoRelease.SetAsDefault(nCtx, releaseType, false,
 		release.WithVersion(version),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
@@ -305,7 +305,7 @@ func (s *Storage) DisableRelease(
 			plat.String(), version)
 	}
 
-	err = s.daoRelease.SetEnabled(ctx, releaseType, false,
+	err = s.daoRelease.SetEnabled(nCtx, releaseType, false,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
@@ -319,7 +319,7 @@ func (s *Storage) DisableRelease(
 
 // SetAsDefaultRelease sets the release as default.
 func (s *Storage) SetAsDefaultRelease(
-	ctx context.Context, gen types.Generation, releaseType types.ReleaseType,
+	nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
 	plat platform.Platform, version string) (err error) {
 
 	// record metric.
@@ -327,7 +327,7 @@ func (s *Storage) SetAsDefaultRelease(
 	defer metric.End(err)
 
 	// cancel all version as-default in this platform.
-	err = s.daoRelease.CancelPlatformDefault(ctx, releaseType,
+	err = s.daoRelease.CancelPlatformDefault(nCtx, releaseType,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 	)
@@ -335,7 +335,7 @@ func (s *Storage) SetAsDefaultRelease(
 		return fmt.Errorf("failed to cancel all version in this platform as default. platform(%s)", plat.String())
 	}
 
-	err = s.daoRelease.SetAsDefault(ctx, releaseType, true,
+	err = s.daoRelease.SetAsDefault(nCtx, releaseType, true,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
@@ -349,14 +349,14 @@ func (s *Storage) SetAsDefaultRelease(
 
 // CancelAsDefaultRelease cancels the release as default.
 func (s *Storage) CancelAsDefaultRelease(
-	ctx context.Context, gen types.Generation, releaseType types.ReleaseType,
+	nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
 	plat platform.Platform, version string) (err error) {
 
 	// record metric.
 	metric := s.metric().Start("cancel_as_default")
 	defer metric.End(err)
 
-	err = s.daoRelease.SetAsDefault(ctx, releaseType, false,
+	err = s.daoRelease.SetAsDefault(nCtx, releaseType, false,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
@@ -369,7 +369,7 @@ func (s *Storage) CancelAsDefaultRelease(
 }
 
 // DeleteRelease deletes the release.
-func (s *Storage) DeleteRelease(ctx context.Context, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform, version string,
+func (s *Storage) DeleteRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform, version string,
 ) error {
 
 	var err error
@@ -377,7 +377,7 @@ func (s *Storage) DeleteRelease(ctx context.Context, gen types.Generation, relea
 	// record metric.
 	metric := s.metric().Start("delete")
 	defer metric.End(err)
-	err = s.daoRelease.Delete(ctx, releaseType,
+	err = s.daoRelease.Delete(nCtx, releaseType,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),

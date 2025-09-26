@@ -12,10 +12,10 @@
 package bklogin
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
@@ -49,7 +49,7 @@ func (c *cli) getCommonHeader() (http.Header, error) {
 
 // getUserInfoByBKTicket get user info by bk_ticket.
 func (c *cli) getUserInfoByBKTicket(
-	ctx context.Context, req *GetUserInfoByBKTicketReq) (*GetUserInfoByBKTicketResp, error) {
+	nCtx contextx.IContext, req *GetUserInfoByBKTicketReq) (*GetUserInfoByBKTicketResp, error) {
 
 	resp := new(BaseBroker[*GetUserInfoByBKTicketResp])
 	header, err := c.getCommonHeader()
@@ -60,7 +60,7 @@ func (c *cli) getUserInfoByBKTicket(
 	err = c.client.Get().
 		// add '/' after subpath to prevent redirection during requests.
 		SubResourcef("/user/get_info/").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		WithParam(CookieKeyBKTicket, req.BKTicket).
 		Body(req).
@@ -78,7 +78,7 @@ func (c *cli) getUserInfoByBKTicket(
 
 // getUserInfoByBKToken get user info by bk_token.
 func (c *cli) getUserInfoByBKToken(
-	ctx context.Context, req *GetUserInfoByBKTokenReq) (*GetUserInfoByBKTokenResp, error) {
+	nCtx contextx.IContext, req *GetUserInfoByBKTokenReq) (*GetUserInfoByBKTokenResp, error) {
 
 	resp := new(BaseBroker[*GetUserInfoByBKTokenResp])
 	header, err := c.getCommonHeader()
@@ -89,7 +89,7 @@ func (c *cli) getUserInfoByBKToken(
 	err = c.client.Get().
 		// add '/' after subpath to prevent redirection during requests.
 		SubResourcef("/accounts/get_user/").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		WithParam(CookieKeyBKToken, req.BKToken).
 		Body(req).

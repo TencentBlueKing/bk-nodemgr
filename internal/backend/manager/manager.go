@@ -17,7 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
@@ -42,13 +42,12 @@ type IManager interface {
 }
 
 // NewManager creates a new Manager.
-func NewManager(conf Config, logger logger.ILogger) (*Manager, error) {
+func NewManager(conf Config) (*Manager, error) {
 	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
 
 	mgr := &Manager{
-		logger:    logger,
 		isRunning: false,
 		conf:      conf,
 	}
@@ -64,7 +63,7 @@ func NewManager(conf Config, logger logger.ILogger) (*Manager, error) {
 			mgr.conf.WorkflowConfig.Redis.Addr,
 			mgr.conf.WorkflowConfig.Redis.Password,
 			mgr.conf.WorkflowConfig.Redis.DB),
-		workflow.WithLogger(mgr.logger))
+	)
 
 	return mgr, nil
 }
@@ -73,8 +72,6 @@ var _ IManager = &Manager{}
 
 // Manager provides to operate nodeman tasks.
 type Manager struct {
-	logger logger.ILogger
-
 	// state
 	isRunning bool
 
@@ -86,7 +83,7 @@ type Manager struct {
 
 // Start starts the manager.
 func (mgr *Manager) Start(ctx contextx.IContext) error {
-	mgr.logger.Info("starting manager")
+	logger.G.Sys().Info("starting manager")
 
 	if mgr.isRunning {
 		return errors.New("manager already started")
@@ -110,7 +107,7 @@ func (mgr *Manager) Start(ctx contextx.IContext) error {
 
 	mgr.isRunning = true
 
-	mgr.logger.Info("started manager")
+	logger.G.Sys().Info("started manager")
 
 	return nil
 }
@@ -189,8 +186,9 @@ func (mgr *Manager) LaunchWatchAndApplyCMDBResource(ctx contextx.IContext) (stri
 		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "launched watch and apply cmdb resource. tenant-id(%s), trigger-id(%s), operation-id(%s)",
-		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched watch and apply cmdb resource")
 
 	return triggerCtl.GetTriggerID(), nil
 }

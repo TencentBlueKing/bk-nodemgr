@@ -11,6 +11,7 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -26,7 +27,7 @@ const (
 func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoAccessPointListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list accesspoint, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -36,7 +37,7 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to list accesspoint. failed to count accesspoint. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint. failed to count accesspoint")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -51,7 +52,7 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 		req.ConvertPageToTypes(maxAccessPointLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list accesspoint. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

@@ -17,7 +17,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // IHandler defines the handler interface.
@@ -26,7 +25,7 @@ type IHandler interface {
 	GetLoginURL() string
 
 	// Verify verify the bk_ticket or bk_token.
-	Verify(ctx contextx.IContext, token string) (string, error)
+	Verify(nCtx contextx.IContext, token string) (string, error)
 
 	// GetAuthIdentity get the auth identity.
 	GetAuthIdentity() *AuthIdentity
@@ -34,9 +33,9 @@ type IHandler interface {
 
 // Handler the Handler of cmdb.
 type Handler struct {
-	cli    *cli
-	logger logger.ILogger
-	conf   *Config
+	cli *cli
+
+	conf *Config
 }
 
 // Config the config of bkoa.
@@ -64,13 +63,6 @@ func (conf *Config) Validate() error {
 // OptionFn ...
 type OptionFn func(*Handler)
 
-// WithLogger this func will set the logger of the Handler.
-func WithLogger(logger logger.ILogger) OptionFn {
-	return func(s *Handler) {
-		s.logger = logger
-	}
-}
-
 // New initialize a new cmdb Handler.
 func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, error) {
 	cli, err := newClient(c)
@@ -84,9 +76,8 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 	}
 
 	handler := &Handler{
-		cli:    cli,
-		logger: logger.LoggerDefault{},
-		conf:   conf,
+		cli:  cli,
+		conf: conf,
 	}
 
 	for _, opt := range opts {

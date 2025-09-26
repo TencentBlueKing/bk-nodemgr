@@ -17,7 +17,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
@@ -32,9 +32,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -51,13 +51,13 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 var once = sync.Once{}
 
 // prepareData for all tests.
-func prepareData(t *testing.T, ctx context.Context) {
+func prepareData(t *testing.T, nCtx contextx.IContext) {
 	testDatas := []*schedule.Schedule{
 		{
 			WorkflowID:   "1",
@@ -74,7 +74,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 	once.Do(func() {
 		h := testClient(t)
 		for _, data := range testDatas {
-			err := h.Create(ctx, data)
+			err := h.Create(nCtx, data)
 			if err != nil {
 				t.Errorf("prepareData() error = %v", err)
 			}
@@ -84,12 +84,12 @@ func prepareData(t *testing.T, ctx context.Context) {
 
 // Test_handler_Create tests the Create method of the handler.
 func Test_handler_Create(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx              context.Context
+		nCtx             context.Context
 		scheduleWorkflow *schedule.Schedule
 	}
 	tests := []struct {
@@ -100,7 +100,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				scheduleWorkflow: &schedule.Schedule{
 					WorkflowID:   "3",
 					WorkflowName: "schedule_sync_networkarea",
@@ -113,7 +113,7 @@ func Test_handler_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.Create(tt.args.ctx, tt.args.scheduleWorkflow)
+			err := h.Create(tt.args.nCtx, tt.args.scheduleWorkflow)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr: %v", err, tt.wantErr)
 				return
@@ -124,12 +124,12 @@ func Test_handler_Create(t *testing.T) {
 
 // Test_handler_Get tests the Create method of the handler.
 func Test_handler_Get(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		workflowID string
 	}
 	tests := []struct {
@@ -141,7 +141,7 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				workflowID: "1",
 			},
 			wantErr: false,
@@ -155,7 +155,7 @@ func Test_handler_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Get(tt.args.ctx, tt.args.workflowID)
+			got, err := h.Get(tt.args.nCtx, tt.args.workflowID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr: %v", err, tt.wantErr)
 				return
@@ -172,10 +172,10 @@ func Test_handler_Get(t *testing.T) {
 
 // Test_handler_List tests the List method of the handler.
 func Test_handler_List(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		page types.Page
 		opts []OptFn
 	}
@@ -189,7 +189,7 @@ func Test_handler_List(t *testing.T) {
 		{
 			name: "filter by workflow id",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				page: types.Page{
 					Offset: 0,
 					Limit:  1,
@@ -212,7 +212,7 @@ func Test_handler_List(t *testing.T) {
 		{
 			name: "filter by oper type",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				page: types.Page{
 					Offset: 0,
 					Limit:  1,
@@ -237,7 +237,7 @@ func Test_handler_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, gotNum, err := h.List(tt.args.ctx, tt.args.page, tt.args.opts...)
+			got, gotNum, err := h.List(tt.args.nCtx, tt.args.page, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -257,10 +257,10 @@ func Test_handler_List(t *testing.T) {
 
 // Test_handler_Count tests the Count method of the handler.
 func Test_handler_Count(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		opts []OptFn
 	}
 	tests := []struct {
@@ -272,7 +272,7 @@ func Test_handler_Count(t *testing.T) {
 		{
 			name: "filter by workflow id",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				opts: []OptFn{
 					WithWorkflowID("1"),
 				},
@@ -285,7 +285,7 @@ func Test_handler_Count(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Count(tt.args.ctx, tt.args.opts...)
+			got, err := h.Count(tt.args.nCtx, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -15,7 +15,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"path/filepath"
 	"runtime"
 
@@ -29,18 +28,17 @@ import (
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
@@ -64,7 +62,7 @@ type Service struct {
 	conf *config.FileService
 
 	// ctx is used to control the service lifecycle (cancellation and timeouts).
-	ctx context.Context
+	ctx contextx.IContext
 
 	// cancelFunc is used to cancel the service and all associated operations.
 	cancelFunc context.CancelFunc
@@ -88,10 +86,8 @@ type Service struct {
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func NewService(conf *config.FileService) (*Service, error) {
 	svc := &Service{
-		conf: conf,
-		Cap: &options.Capability{
-			Logger: blog.GlobalLogger{},
-		},
+		conf:     conf,
+		Cap:      &options.Capability{},
 		instance: discover.NewInstance(string(discover.ServiceNameFile), nil),
 	}
 
@@ -127,9 +123,7 @@ func (svc *Service) initialCapability() error {
 	var err error
 
 	// discover provider.
-	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
-		etcddiscover.WithLogger(svc.Cap.Logger),
-	)
+	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd)
 
 	// initial gse handler.
 	svc.Cap.GSEHandler, err = svc.newGSEHandler()
@@ -195,7 +189,6 @@ func (svc *Service) newBKRepoHandler() (bkrepo.IHandler, error) {
 		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{svc.conf.Repo.Endpoint}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger.LoggerDefault{},
 	}
 
 	return bkrepo.New(clientCap, &bkrepo.Config{
@@ -232,23 +225,21 @@ func (svc *Service) initialStorages() error {
 
 	svc.Cap.StorageUpload, err = storageUpload.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create upload storage: %w", err)
 	}
 
 	svc.Cap.StorageRelease, err = storageRelease.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database, svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create release storage: %w", err)
 	}
 
 	svc.Cap.StorageTopo, err = storageTopo.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create topo storage: %w", err)
 	}
@@ -259,81 +250,80 @@ func (svc *Service) initialStorages() error {
 // nolint: funlen
 func (svc *Service) initialManager() error {
 	// init upstream origin file groups from bkrepo.
-	upstreamOriginAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/agent")
+	upstreamOriginAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/agent")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin agent file group: %w", err)
 	}
-	upstreamOriginServerFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/server")
+	upstreamOriginServerFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/server")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin server file group: %w", err)
 	}
-	upstreamOriginCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/cert")
+	upstreamOriginCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/cert")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin cert file group: %w", err)
 	}
-	upstreamOriginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/bintool")
+	upstreamOriginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
 	}
-	upstreamOriginOfficialPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/official_plugin")
+	upstreamOriginOfficialPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/official_plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin official plugin file group: %w", err)
 	}
-	upstreamOriginExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/external_plugin")
+	upstreamOriginExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/external_plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin external plugin file group: %w", err)
 	}
 
 	// init upstream release file groups from bkrepo.
-	upstreamReleaseAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/agent")
+	upstreamReleaseAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/agent")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release agent file group: %w", err)
 	}
-	upstreamReleaseProxyFg, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/proxy")
+	upstreamReleaseProxyFg, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/proxy")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release proxy file group: %w", err)
 	}
-	upstreamRealseCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/cert")
+	upstreamRealseCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/cert")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release cert file group: %w", err)
 	}
-	upstreamReleaseBintoolFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/bintool")
+	upstreamReleaseBintoolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
-	upstreamOriginPluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "origin/plugin_bintool")
+	upstreamOriginPluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/plugin_bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin plugin bin tool file group: %w", err)
 	}
-	upstreamReleasePluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/plugin_bintool")
+	upstreamReleasePluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/plugin_bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
-	upstreamReleaseOfficialPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/official_plugin")
+	upstreamReleaseOfficialPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/official_plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release official plugin file group: %w", err)
 	}
-	upstreamReleaseExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(context.Background(), "release/external_plugin")
+	upstreamReleaseExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/external_plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release external plugin file group: %w", err)
 	}
 
 	// init local temp file group.
-	tempFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "temp"), svc.Cap.Logger)
+	tempFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "temp"))
 	if err != nil {
 		return fmt.Errorf("failed to init temp file group: %w", err)
 	}
-	installerFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "installer"), svc.Cap.Logger)
+	installerFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "installer"))
 	if err != nil {
 		return fmt.Errorf("failed to init installer file group: %w", err)
 	}
-	cacheFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "cache"), svc.Cap.Logger)
+	cacheFG, err := local.NewLocalDir(filepath.Join(svc.conf.WorkspaceFileGroup.FullPath, "cache"))
 	if err != nil {
 		return fmt.Errorf("failed to init cache file group: %w", err)
 	}
 
 	svc.Cap.Manager = manager.New(
-		manager.WithLogger(svc.Cap.Logger),
 		manager.WithUpstreamOriginAgentFileGroup(upstreamOriginAgentFG),
 		manager.WithUpstreamOriginServerFileGroup(upstreamOriginServerFG),
 		manager.WithUpstreamOriginCertFileGroup(upstreamOriginCertFG),
@@ -391,7 +381,6 @@ func (svc *Service) registerInfoServer() error {
 			Name:            string(discover.EndpointNameFileInfo),
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -423,7 +412,6 @@ func (svc *Service) registerAdminServer() error {
 			Name:            string(discover.EndpointNameFileAdmin),
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -453,7 +441,6 @@ func (svc *Service) registerBasicServer() error {
 			Name:            string(discover.EndpointNameFileBasic),
 			IP:              svc.conf.BasicServer.BindIP,
 			Port:            svc.conf.BasicServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -486,7 +473,6 @@ func (svc *Service) registerDownloadServer() error {
 			Name:            string(discover.EndpointNameFileDownload),
 			IP:              svc.conf.DownloadServer.BindIP,
 			Port:            svc.conf.DownloadServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -522,7 +508,6 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               blog.GlobalLogger{},
 	}
 
 	return clientCap, nil
@@ -536,17 +521,6 @@ func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
 		BKUsername:  conf.User,
 		AccessToken: conf.AccessToken,
 	}
-}
-
-// loggerWriterAdaptor implements rest.LoggerWriter.
-type loggerWriterAdaptor struct{}
-
-func (l loggerWriterAdaptor) InfoWriter() io.Writer {
-	return blog.WriterInfo{}
-}
-
-func (l loggerWriterAdaptor) ErrorWriter() io.Writer {
-	return blog.WriterError{}
 }
 
 // withHealthz load healthz.
@@ -606,7 +580,7 @@ func (svc *Service) Start() error {
 
 		// server start will block until server stop, so we need to run it in a goroutine.
 		fn := func() error {
-			blog.Infof("started server. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
+			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started server")
 
 			if err := server.Start(); err != nil {
 				return err
@@ -619,13 +593,15 @@ func (svc *Service) Start() error {
 
 	// after all servers brings up, register the instance into discover provider.
 	if err := svc.Cap.DiscoverProvider.Register(discover.ServiceNameFile, svc.instance); err != nil {
-		blog.Errorf("failed to register instance: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to register instance")
+
 		return err
 	}
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to start servers")
+
 		return err
 	}
 
@@ -639,8 +615,6 @@ func (svc *Service) GracefulShutdown() error {
 	}
 
 	defer svc.cancelFunc()
-
-	blog.CloseLogs()
 
 	return nil
 }

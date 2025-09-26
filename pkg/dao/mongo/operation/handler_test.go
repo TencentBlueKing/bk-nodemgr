@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
@@ -33,9 +32,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -52,7 +51,7 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 // Test_handler_List tests the List method of the handler
@@ -101,7 +100,7 @@ func Test_handler_List(t *testing.T) {
 		t.Fatalf("prepare data failed: %v", err)
 	}
 	tests := []struct {
-		ctx       context.Context
+		nCtx      context.Context
 		name      string
 		page      types.Page
 		opts      []OptFn
@@ -114,7 +113,7 @@ func Test_handler_List(t *testing.T) {
 			opts:      nil,
 			wantCount: 2,
 			wantErr:   false,
-			ctx:       context.Background(),
+			nCtx:      context.Background(),
 		},
 		{
 			name:      "filter by non-existent trigger",
@@ -122,27 +121,27 @@ func Test_handler_List(t *testing.T) {
 			opts:      []OptFn{WithTriggerID("invalid_trigger")},
 			wantCount: 0,
 			wantErr:   false,
-			ctx:       context.Background(),
+			nCtx:      context.Background(),
 		},
 		{
 			name:      "invalid page params",
 			page:      types.Page{Offset: -1, Limit: 0},
 			wantCount: 0,
 			wantErr:   true,
-			ctx:       context.Background(),
+			nCtx:      context.Background(),
 		},
 		{
-			name:      "nil ctx",
+			name:      "nil nCtx",
 			page:      types.Page{Offset: -1, Limit: 0},
 			wantCount: 0,
 			wantErr:   true,
-			ctx:       nil,
+			nCtx:      nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ops, total, err := h.List(tt.ctx, tt.page, tt.opts...)
+			ops, total, err := h.List(tt.nCtx, tt.page, tt.opts...)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)

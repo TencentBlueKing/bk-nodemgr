@@ -29,7 +29,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -43,8 +42,6 @@ const (
 
 // NewActionPagentDetectInfoByWMI get a new action.
 func NewActionPagentDetectInfoByWMI(
-	logger logger.ILogger,
-
 	storageActionInstance workflow.IStorageActionInstance,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	storageRelease release.IStorage,
@@ -55,8 +52,6 @@ func NewActionPagentDetectInfoByWMI(
 ) action.Definition {
 
 	return &actionPagentDetectInfoByWMI{
-		logger: logger,
-
 		storageHostCredit:     storageHostCredit,
 		storageActionInstance: storageActionInstance,
 		storageNodeDeployment: storageNodeDeployment,
@@ -74,8 +69,6 @@ type ActParamPagentDetectInfoByWMI struct {
 }
 
 type actionPagentDetectInfoByWMI struct {
-	logger logger.ILogger
-
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageActionInstance workflow.IStorageActionInstance
 	storageRelease        release.IStorage

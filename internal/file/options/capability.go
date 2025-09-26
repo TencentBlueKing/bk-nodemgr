@@ -12,14 +12,12 @@
 package options
 
 import (
-	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -27,9 +25,6 @@ import (
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
-	// Logger logger
-	Logger logger.ILogger
-
 	// MongoClient mongo client.
 	MongoClient *mongo.Client
 
@@ -56,24 +51,24 @@ type Capability struct {
 }
 
 // Start start the capability.
-func (c *Capability) Start(ctx context.Context) error {
-	if err := c.DiscoverProvider.Start(ctx); err != nil {
+func (c *Capability) Start(nCtx contextx.IContext) error {
+	if err := c.DiscoverProvider.Start(nCtx); err != nil {
 		return err
 	}
 
-	if err := c.StorageUpload.Start(ctx); err != nil {
+	if err := c.StorageUpload.Start(nCtx); err != nil {
 		return err
 	}
 
-	if err := c.StorageRelease.Start(ctx); err != nil {
+	if err := c.StorageRelease.Start(nCtx); err != nil {
 		return err
 	}
 
-	if err := c.StorageTopo.Start(ctx); err != nil {
+	if err := c.StorageTopo.Start(nCtx); err != nil {
 		return err
 	}
 
-	if err := c.Manager.Start(ctx); err != nil {
+	if err := c.Manager.Start(nCtx); err != nil {
 		return err
 	}
 

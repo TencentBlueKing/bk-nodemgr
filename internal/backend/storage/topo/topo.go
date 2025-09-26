@@ -13,19 +13,19 @@
 package topo
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -34,7 +34,7 @@ import (
 const StorageName = "topo"
 
 // NewStorage ...
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -43,14 +43,14 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 	}
 	err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -75,12 +75,12 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoBusiness = business.New(s.Database, s.Logger)
-	s.daoHost = host.New(s.Database, s.Logger)
-	s.daoNetworkArea = networkarea.New(s.Database, s.Logger)
-	s.daoNetworkUnit = networkunit.New(s.Database, s.Logger)
-	s.daoAccessPoint = accesspoint.New(s.Database, s.Logger)
-	s.daoTopoEvent = topoevent.New(s.Database, s.Logger)
+	s.daoBusiness = business.New(s.Database)
+	s.daoHost = host.New(s.Database)
+	s.daoNetworkArea = networkarea.New(s.Database)
+	s.daoNetworkUnit = networkunit.New(s.Database)
+	s.daoAccessPoint = accesspoint.New(s.Database)
+	s.daoTopoEvent = topoevent.New(s.Database)
 
 	return nil
 }
@@ -110,12 +110,12 @@ func (s *Storage) check() error {
 }
 
 // UpsertManyBusiness updates or inserts many business.
-func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business) (err error) {
+func (s *Storage) UpsertManyBusiness(nCtx contextx.IContext, biz ...*types.Business) (err error) {
 	// record metric.
 	metric := s.metric().Start("upsert_many_business")
 	defer metric.End(err)
 
-	if ctx == nil {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -123,7 +123,7 @@ func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business
 		return basestorage.ErrUpsertNilData()
 	}
 
-	if err = s.daoBusiness.UpsertMany(ctx, biz...); err != nil {
+	if err = s.daoBusiness.UpsertMany(nCtx, biz...); err != nil {
 		return fmt.Errorf("failed to upsert business: %v", err)
 	}
 
@@ -131,7 +131,7 @@ func (s *Storage) UpsertManyBusiness(ctx context.Context, biz ...*types.Business
 }
 
 // ListBusinesses lists businesses by page and conditions.
-func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, conditions ...*types.BusinessCondition) (
+func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, conditions ...*types.BusinessCondition) (
 	results []*types.Business, num int64, err error) {
 
 	// record metric.
@@ -169,7 +169,7 @@ func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, condition
 		}
 	}
 
-	if results, num, err = s.daoBusiness.List(ctx, page, opts...); err != nil {
+	if results, num, err = s.daoBusiness.List(nCtx, page, opts...); err != nil {
 		return nil, 0, err
 	}
 
@@ -178,7 +178,7 @@ func (s *Storage) ListBusinesses(ctx context.Context, page types.Page, condition
 
 // ListNetworkArea lists networkarea by page and conditions.
 // nolint: cyclop
-func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditions ...*types.NetworkAreaCondition) (
+func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkAreaCondition) (
 	results []*types.NetworkArea, num int64, err error) {
 
 	// record metric.
@@ -216,7 +216,7 @@ func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditio
 		}
 	}
 
-	if results, num, err = s.daoNetworkArea.List(ctx, page, opts...); err != nil {
+	if results, num, err = s.daoNetworkArea.List(nCtx, page, opts...); err != nil {
 		return nil, 0, err
 	}
 
@@ -224,12 +224,12 @@ func (s *Storage) ListNetworkArea(ctx context.Context, page types.Page, conditio
 }
 
 // GetNetworkArea gets networkarea by id.
-func (s *Storage) GetNetworkArea(ctx context.Context, networkAreaID int64) (data *types.NetworkArea, err error) {
+func (s *Storage) GetNetworkArea(nCtx contextx.IContext, networkAreaID int64) (data *types.NetworkArea, err error) {
 	// record metric.
 	metric := s.metric().Start("get_networkarea")
 	defer metric.End(err)
 
-	if data, err = s.daoNetworkArea.Get(ctx, networkAreaID); err != nil {
+	if data, err = s.daoNetworkArea.Get(nCtx, networkAreaID); err != nil {
 		return nil, err
 	}
 
@@ -237,12 +237,12 @@ func (s *Storage) GetNetworkArea(ctx context.Context, networkAreaID int64) (data
 }
 
 // UpsertManyNetworkArea updates or inserts networkarea.
-func (s *Storage) UpsertManyNetworkArea(ctx context.Context, networkAreas ...*types.NetworkArea) (err error) {
+func (s *Storage) UpsertManyNetworkArea(nCtx contextx.IContext, networkAreas ...*types.NetworkArea) (err error) {
 	// record metric.
 	metric := s.metric().Start("upsert_many_networkarea")
 	defer metric.End(err)
 
-	if err = s.daoNetworkArea.UpsertMany(ctx, networkAreas...); err != nil {
+	if err = s.daoNetworkArea.UpsertMany(nCtx, networkAreas...); err != nil {
 		return err
 	}
 
@@ -250,12 +250,12 @@ func (s *Storage) UpsertManyNetworkArea(ctx context.Context, networkAreas ...*ty
 }
 
 // UpdateManyNetworkArea updates networkarea.
-func (s *Storage) UpdateManyNetworkArea(ctx context.Context, networkArea ...*types.NetworkArea) (err error) {
+func (s *Storage) UpdateManyNetworkArea(nCtx contextx.IContext, networkArea ...*types.NetworkArea) (err error) {
 	// record metric.
 	metric := s.metric().Start("update_many_networkarea")
 	defer metric.End(err)
 
-	if err = s.daoNetworkArea.UpdateMany(ctx, networkArea...); err != nil {
+	if err = s.daoNetworkArea.UpdateMany(nCtx, networkArea...); err != nil {
 		return err
 	}
 
@@ -263,12 +263,12 @@ func (s *Storage) UpdateManyNetworkArea(ctx context.Context, networkArea ...*typ
 }
 
 // DeleteManyNetworkArea deletes networkarea.
-func (s *Storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...int64) (err error) {
+func (s *Storage) DeleteManyNetworkArea(nCtx contextx.IContext, networkAreaIDs ...int64) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_many_networkarea")
 	defer metric.End(err)
 
-	if err = s.daoNetworkArea.DeleteMany(ctx, networkAreaIDs...); err != nil {
+	if err = s.daoNetworkArea.DeleteMany(nCtx, networkAreaIDs...); err != nil {
 		return err
 	}
 
@@ -276,7 +276,7 @@ func (s *Storage) DeleteManyNetworkArea(ctx context.Context, networkAreaIDs ...i
 }
 
 // ListNetworkUnit lists networkunit.
-func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditions ...*types.NetworkUnitCondition) (
+func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkUnitCondition) (
 	results []*types.NetworkUnit, num int64, err error) {
 
 	// record metric.
@@ -304,7 +304,7 @@ func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditio
 		}
 	}
 
-	if results, num, err = s.daoNetworkUnit.List(ctx, page, opts...); err != nil {
+	if results, num, err = s.daoNetworkUnit.List(nCtx, page, opts...); err != nil {
 		return nil, 0, err
 	}
 
@@ -312,19 +312,19 @@ func (s *Storage) ListNetworkUnit(ctx context.Context, page types.Page, conditio
 }
 
 // GetNetworkUnit gets networkunit by id.
-func (s *Storage) GetNetworkUnit(ctx context.Context, networkUnitID int64) (data *types.NetworkUnit, err error) {
+func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (data *types.NetworkUnit, err error) {
 	// record metric.
 	metric := s.metric().Start("get_networkunit")
 	defer metric.End(err)
 
-	if data, err = s.daoNetworkUnit.Get(ctx, networkUnitID); err != nil {
+	if data, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
 		return nil, err
 	}
 
 	return data, nil
 }
 
-func (s *Storage) checkNetworkUnitLinks(ctx context.Context, networkUnit *types.NetworkUnit) error {
+func (s *Storage) checkNetworkUnitLinks(nCtx contextx.IContext, networkUnit *types.NetworkUnit) error {
 	upstreamNetworkUnitIDs := make([]int64, 0)
 	if networkUnit.Links.Cluster != nil {
 		upstreamNetworkUnitIDs = append(upstreamNetworkUnitIDs, networkUnit.Links.Cluster.NetworkUnitID)
@@ -337,11 +337,12 @@ func (s *Storage) checkNetworkUnitLinks(ctx context.Context, networkUnit *types.
 	}
 
 	upstreamNetworkUnits, _, err := s.daoNetworkUnit.List(
-		ctx,
+		nCtx,
 		types.UnlimitedPage(),
 		networkunit.WithNetworkUnitID(upstreamNetworkUnitIDs...))
 	if err != nil {
-		s.Logger.Errorf("failed to check networkunit links, failed to list upstream networkunit: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to check networkunit links, failed to list upstream networkunit")
+
 		return err
 	}
 
@@ -392,7 +393,7 @@ func findUpstreamNetworkUnitWithLink(upstreamNetworkUnits []*types.NetworkUnit, 
 }
 
 // CreateNetworkUnit creates networkunit.
-func (s *Storage) CreateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+func (s *Storage) CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
 	networkUnitID int64, data *AccessPointResult, err error) {
 
 	// record metric.
@@ -400,7 +401,7 @@ func (s *Storage) CreateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 	defer metric.End(err)
 
 	if !networkUnit.IsDirect {
-		if err = s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
+		if err = s.checkNetworkUnitLinks(nCtx, networkUnit); err != nil {
 			return -1, nil, err
 		}
 	}
@@ -408,7 +409,7 @@ func (s *Storage) CreateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 	if len(accessPoints) == 0 {
 		networkUnit.AccessPoints = nil
 
-		networkUnitID, err = s.daoNetworkUnit.Create(ctx, networkUnit)
+		networkUnitID, err = s.daoNetworkUnit.Create(nCtx, networkUnit)
 		if err != nil {
 			return -1, nil, err
 		}
@@ -418,9 +419,9 @@ func (s *Storage) CreateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 
 	// create accesspoints first.
 	var accessPointIDs []int64
-	accessPointIDs, err = s.daoAccessPoint.CreateMany(ctx, accessPoints...)
+	accessPointIDs, err = s.daoAccessPoint.CreateMany(nCtx, accessPoints...)
 	if err != nil {
-		s.Logger.Errorf("failed to create networkunit, failed to create accesspoint: %v", err.Error())
+		logger.G.Sys().WithErr(err).Error("failed to create networkunit, failed to create accesspoint")
 
 		return -1, nil, err
 	}
@@ -435,7 +436,7 @@ func (s *Storage) CreateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 	}
 
 	// create networkunit.
-	if networkUnitID, err = s.daoNetworkUnit.Create(ctx, networkUnit); err != nil {
+	if networkUnitID, err = s.daoNetworkUnit.Create(nCtx, networkUnit); err != nil {
 		return -1, nil, err
 	}
 
@@ -445,7 +446,7 @@ func (s *Storage) CreateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 }
 
 // UpdateNetworkUnit updates networkunit.
-func (s *Storage) UpdateNetworkUnit(ctx context.Context, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
+func (s *Storage) UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
 	data *AccessPointResult, err error) {
 
 	// record metric.
@@ -453,7 +454,7 @@ func (s *Storage) UpdateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 	defer metric.End(err)
 
 	if !networkUnit.IsDirect {
-		if err := s.checkNetworkUnitLinks(ctx, networkUnit); err != nil {
+		if err := s.checkNetworkUnitLinks(nCtx, networkUnit); err != nil {
 			return nil, err
 		}
 	}
@@ -461,7 +462,7 @@ func (s *Storage) UpdateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 	if len(accessPoints) == 0 {
 		networkUnit.AccessPoints = nil
 
-		if err = s.daoNetworkUnit.UpdateMany(ctx, networkUnit); err != nil {
+		if err = s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
 			return nil, err
 		}
 
@@ -484,16 +485,16 @@ func (s *Storage) UpdateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 	}
 
 	if len(oldAccessPoints) > 0 {
-		if err = s.daoAccessPoint.UpdateMany(ctx, oldAccessPoints...); err != nil {
-			s.Logger.Errorf("failed to create networkunit, failed to update accesspoint: %v", err.Error())
+		if err = s.daoAccessPoint.UpdateMany(nCtx, oldAccessPoints...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to update accesspoint")
 
 			return nil, err
 		}
 	}
 	if len(newAccessPoints) > 0 {
-		createdAccessPointIDs, err := s.daoAccessPoint.CreateMany(ctx, newAccessPoints...)
+		createdAccessPointIDs, err := s.daoAccessPoint.CreateMany(nCtx, newAccessPoints...)
 		if err != nil {
-			s.Logger.Errorf("failed to create networkunit, failed to create accesspoint: %v", err.Error())
+			logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to create accesspoint")
 
 			return nil, err
 		}
@@ -505,7 +506,7 @@ func (s *Storage) UpdateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 	}
 	networkUnit.AccessPoints = accessPointIDs
 
-	if err = s.daoNetworkUnit.UpdateMany(ctx, networkUnit); err != nil {
+	if err = s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
 		return nil, err
 	}
 
@@ -517,12 +518,12 @@ func (s *Storage) UpdateNetworkUnit(ctx context.Context, networkUnit *types.Netw
 }
 
 // DeleteManyNetworkUnit deletes networkunit.
-func (s *Storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...int64) (err error) {
+func (s *Storage) DeleteManyNetworkUnit(nCtx contextx.IContext, networkUnitIDs ...int64) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_networkunit")
 	defer metric.End(err)
 
-	if err = s.daoNetworkUnit.DeleteMany(ctx, networkUnitIDs...); err != nil {
+	if err = s.daoNetworkUnit.DeleteMany(nCtx, networkUnitIDs...); err != nil {
 		return err
 	}
 
@@ -530,7 +531,7 @@ func (s *Storage) DeleteManyNetworkUnit(ctx context.Context, networkUnitIDs ...i
 }
 
 // CountAccessPoint counts accesspoint.
-func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...*types.AccessPointCondition) (num int64, err error) {
+func (s *Storage) CountAccessPoint(nCtx contextx.IContext, conditions ...*types.AccessPointCondition) (num int64, err error) {
 	// record metric.
 	metric := s.metric().Start("count_accesspoint")
 	defer metric.End(err)
@@ -556,7 +557,7 @@ func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...*types.Acc
 		}
 	}
 
-	if num, err = s.daoAccessPoint.Count(ctx, opts...); err != nil {
+	if num, err = s.daoAccessPoint.Count(nCtx, opts...); err != nil {
 		return 0, err
 	}
 
@@ -564,7 +565,7 @@ func (s *Storage) CountAccessPoint(ctx context.Context, conditions ...*types.Acc
 }
 
 // ListAccessPoint lists accesspoint.
-func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditions ...*types.AccessPointCondition) (
+func (s *Storage) ListAccessPoint(nCtx contextx.IContext, page types.Page, conditions ...*types.AccessPointCondition) (
 	results []*types.AccessPoint, num int64, err error) {
 
 	// record metric.
@@ -592,7 +593,7 @@ func (s *Storage) ListAccessPoint(ctx context.Context, page types.Page, conditio
 		}
 	}
 
-	if results, num, err = s.daoAccessPoint.List(ctx, page, opts...); err != nil {
+	if results, num, err = s.daoAccessPoint.List(nCtx, page, opts...); err != nil {
 		return nil, 0, err
 	}
 

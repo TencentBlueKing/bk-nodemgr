@@ -13,7 +13,6 @@
 package file
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,6 +20,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
@@ -67,7 +67,7 @@ func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
 }
 
 func (c *cli) uploadOriginAgent(
-	ctx context.Context, tenantID string, req *protoFile.UploadOriginAgentReq, fileName string, file io.Reader) (
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginAgentReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginAgentResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginAgentResp)
@@ -86,7 +86,7 @@ func (c *cli) uploadOriginAgent(
 
 	err = c.client.Post().
 		SubResourcef("/upload/origin/agent").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
 		Do().Into(resp)
@@ -109,7 +109,7 @@ func (c *cli) uploadOriginAgent(
 }
 
 func (c *cli) uploadOriginServer(
-	ctx context.Context, tenantID string, req *protoFile.UploadOriginServerReq, fileName string, file io.Reader) (
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginServerReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginServerResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginServerResp)
@@ -128,7 +128,7 @@ func (c *cli) uploadOriginServer(
 
 	err = c.client.Post().
 		SubResourcef("/upload/origin/server").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
 		Do().Into(resp)
@@ -151,7 +151,7 @@ func (c *cli) uploadOriginServer(
 }
 
 func (c *cli) uploadOriginCert(
-	ctx context.Context, tenantID string, req *protoFile.UploadOriginCertReq, fileName string, file io.Reader) (
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginCertReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginCertResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginCertResp)
@@ -170,7 +170,7 @@ func (c *cli) uploadOriginCert(
 
 	err = c.client.Post().
 		SubResourcef("/upload/origin/cert").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
 		Do().Into(resp)
@@ -193,7 +193,7 @@ func (c *cli) uploadOriginCert(
 }
 
 func (c *cli) uploadOriginBinTool(
-	ctx context.Context, tenantID string, req *protoFile.UploadOriginBinToolReq, fileName string, file io.Reader) (
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginBinToolReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginBinToolResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginBinToolResp)
@@ -212,7 +212,7 @@ func (c *cli) uploadOriginBinTool(
 
 	err = c.client.Post().
 		SubResourcef("/upload/origin/bintool").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(body).
 		Do().Into(resp)
@@ -270,7 +270,7 @@ func (c *cli) generateUploadFileBody(
 	return pr, nil
 }
 
-func (c *cli) publishReleaseAgent(ctx context.Context, tenantID string, req *protoFile.PublishReleaseAgentReq) (
+func (c *cli) publishReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleaseAgentReq) (
 	*protoFile.PublishReleaseAgentResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseAgentResp)
@@ -281,7 +281,7 @@ func (c *cli) publishReleaseAgent(ctx context.Context, tenantID string, req *pro
 
 	err = c.client.Post().
 		SubResourcef("/publish/release/agent").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
@@ -298,7 +298,7 @@ func (c *cli) publishReleaseAgent(ctx context.Context, tenantID string, req *pro
 	return resp.GetData(), nil
 }
 
-func (c *cli) publishReleaseProxy(ctx context.Context, tenantID string, req *protoFile.PublishReleaseProxyReq) (
+func (c *cli) publishReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleaseProxyReq) (
 	*protoFile.PublishReleaseProxyResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseProxyResp)
@@ -309,7 +309,7 @@ func (c *cli) publishReleaseProxy(ctx context.Context, tenantID string, req *pro
 
 	err = c.client.Post().
 		SubResourcef("/publish/release/proxy").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
@@ -326,7 +326,7 @@ func (c *cli) publishReleaseProxy(ctx context.Context, tenantID string, req *pro
 	return resp.GetData(), nil
 }
 
-func (c *cli) publishReleaseCert(ctx context.Context, tenantID string, req *protoFile.PublishReleaseCertReq) (
+func (c *cli) publishReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleaseCertReq) (
 	*protoFile.PublishReleaseCertResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseCertResp)
@@ -337,7 +337,7 @@ func (c *cli) publishReleaseCert(ctx context.Context, tenantID string, req *prot
 
 	err = c.client.Post().
 		SubResourcef("/publish/release/cert").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
@@ -354,7 +354,7 @@ func (c *cli) publishReleaseCert(ctx context.Context, tenantID string, req *prot
 	return resp.GetData(), nil
 }
 
-func (c *cli) publishReleaseBinTool(ctx context.Context, tenantID string, req *protoFile.PublishReleaseBinToolReq) (
+func (c *cli) publishReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleaseBinToolReq) (
 	*protoFile.PublishReleaseBinToolResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseBinToolResp)
@@ -365,7 +365,7 @@ func (c *cli) publishReleaseBinTool(ctx context.Context, tenantID string, req *p
 
 	err = c.client.Post().
 		SubResourcef("/publish/release/bintool").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
@@ -382,7 +382,7 @@ func (c *cli) publishReleaseBinTool(ctx context.Context, tenantID string, req *p
 	return resp.GetData(), nil
 }
 
-func (c *cli) launchTransferNode(ctx context.Context, tenantID string, req *protoFile.TransferLaunchNodeReq) (
+func (c *cli) launchTransferNode(nCtx contextx.IContext, tenantID string, req *protoFile.TransferLaunchNodeReq) (
 	*protoFile.TransferLaunchNodeResp, error) {
 
 	resp := new(protoFile.TransferLaunchNodeResp)
@@ -393,7 +393,7 @@ func (c *cli) launchTransferNode(ctx context.Context, tenantID string, req *prot
 
 	err = c.client.Post().
 		SubResourcef("/transfer/launch/node").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
@@ -414,7 +414,7 @@ func (c *cli) launchTransferNode(ctx context.Context, tenantID string, req *prot
 	return resp, nil
 }
 
-func (c *cli) launchTransferPlugin(ctx context.Context, tenantID string, req *protoFile.TransferLaunchPluginReq) (
+func (c *cli) launchTransferPlugin(nCtx contextx.IContext, tenantID string, req *protoFile.TransferLaunchPluginReq) (
 	*protoFile.TransferLaunchPluginResp, error) {
 
 	resp := new(protoFile.TransferLaunchPluginResp)
@@ -425,7 +425,7 @@ func (c *cli) launchTransferPlugin(ctx context.Context, tenantID string, req *pr
 
 	err = c.client.Post().
 		SubResourcef("/transfer/launch/plugin").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
@@ -446,7 +446,7 @@ func (c *cli) launchTransferPlugin(ctx context.Context, tenantID string, req *pr
 	return resp, nil
 }
 
-func (c *cli) launchTransferInstaller(ctx context.Context, tenantID string, req *protoFile.TransferLaunchInstallerReq) (
+func (c *cli) launchTransferInstaller(nCtx contextx.IContext, tenantID string, req *protoFile.TransferLaunchInstallerReq) (
 	*protoFile.TransferLaunchInstallerResp, error) {
 
 	resp := new(protoFile.TransferLaunchInstallerResp)
@@ -457,7 +457,7 @@ func (c *cli) launchTransferInstaller(ctx context.Context, tenantID string, req 
 
 	err = c.client.Post().
 		SubResourcef("/transfer/launch/installer").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
@@ -478,7 +478,7 @@ func (c *cli) launchTransferInstaller(ctx context.Context, tenantID string, req 
 	return resp, nil
 }
 
-func (c *cli) queryTransfer(ctx context.Context, tenantID string, req *protoFile.TransferQueryReq) (
+func (c *cli) queryTransfer(nCtx contextx.IContext, tenantID string, req *protoFile.TransferQueryReq) (
 	*protoFile.TransferQueryResp, error) {
 
 	resp := new(protoFile.TransferQueryResp)
@@ -489,7 +489,7 @@ func (c *cli) queryTransfer(ctx context.Context, tenantID string, req *protoFile
 
 	err = c.client.Post().
 		SubResourcef("/transfer/query").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().

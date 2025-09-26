@@ -16,7 +16,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
@@ -36,7 +35,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -44,6 +42,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover/etcddiscover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rediscache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/redsync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
@@ -54,7 +53,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
@@ -108,10 +106,8 @@ type Service struct {
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func NewService(conf *config.BackendService) (*Service, error) {
 	svc := &Service{
-		conf: conf,
-		Cap: &options.Capability{
-			Logger: blog.GlobalLogger{},
-		},
+		conf:     conf,
+		Cap:      &options.Capability{},
 		instance: discover.NewInstance(string(discover.ServiceNameBackend), nil),
 	}
 
@@ -194,12 +190,11 @@ func (svc *Service) initialCapability() error {
 
 	// discover provider watch backend and file service.
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
-		etcddiscover.WithLogger(svc.Cap.Logger),
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
 
 	// initial local installer file group.
-	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(svc.conf.InstallerFileGroup.FullPath, svc.Cap.Logger)
+	svc.Cap.InstallerFileGroup, err = local.NewLocalDir(svc.conf.InstallerFileGroup.FullPath)
 	if err != nil {
 		return fmt.Errorf("failed to create installer file group: %w", err)
 	}
@@ -262,7 +257,6 @@ func (svc *Service) initialCapability() error {
 	// initial period task.
 	svc.Cap.PeriodicTask = periodictask.NewPeriodicTask(periodictask.Config{
 		Locker:           svc.Cap.LockerFactory,
-		Logger:           svc.Cap.Logger,
 		StgGlobalSetting: svc.Cap.StorageGlobalSettings,
 		StgWorkflow:      svc.Cap.StorageWorkflow,
 	})
@@ -284,7 +278,6 @@ func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
 			SupplierAccount: svc.conf.CMDB.SupplierAccount,
 			APIGWAppConfig:  apiGWAPPConfig,
 		},
-		cmdb.WithLogger(svc.Cap.Logger),
 	)
 	if err != nil {
 		return nil, err
@@ -330,7 +323,6 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 		),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger.LoggerDefault{},
 	}
 
 	return file.New(clientCap, &file.Config{})
@@ -343,7 +335,7 @@ func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {
 
 	switch svc.conf.CreditVault.HostCreditVault.Type {
 	case "iegtjj":
-		iegtjjHandler, err := newIEGTJJHandler(svc.conf.CreditVault.HostCreditVault.IEGTJJ, svc.Cap.Logger)
+		iegtjjHandler, err := newIEGTJJHandler(svc.conf.CreditVault.HostCreditVault.IEGTJJ)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create IEG TJJ vault: %w", err)
 		}
@@ -396,40 +388,35 @@ func (svc *Service) initialStorages() error {
 
 	svc.Cap.StorageTopo, err = topo.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create topo storage: %w", err)
 	}
 
 	svc.Cap.StorageNode, err = nodeStg.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create node storage: %w", err)
 	}
 
 	svc.Cap.StoragePlugin, err = plugin.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create plugin storage: %w", err)
 	}
 
 	svc.Cap.StorageWorkflow, err = workflow.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create workflow storage: %w", err)
 	}
 
 	svc.Cap.StorageRelease, err = release.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create release storage: %w", err)
 	}
@@ -437,7 +424,6 @@ func (svc *Service) initialStorages() error {
 	svc.Cap.StorageCredit, err = credit.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database,
-		svc.Cap.Logger,
 		svc.Cap.Crypter)
 	if err != nil {
 		return fmt.Errorf("failed to create credit storage: %w", err)
@@ -445,17 +431,14 @@ func (svc *Service) initialStorages() error {
 
 	svc.Cap.StorageConfigPolicy, err = configpolicy.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create config policy storage: %w", err)
 	}
 
 	svc.Cap.StorageGlobalSettings, err = globalsettingsStorage.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger,
-	)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create global settings storage: %w", err)
 	}
@@ -472,7 +455,6 @@ func (svc *Service) initialManager() error {
 		GSEBaseURL:    svc.conf.GSE.Endpoints[0],
 		SkipTLSVerify: svc.conf.GSE.TLS.InsecureSkipVerify,
 		RedisClient:   svc.Cap.RedisClient,
-		Logger:        svc.Cap.Logger,
 	})
 
 	var err error
@@ -500,7 +482,7 @@ func (svc *Service) initialManager() error {
 				DB:       svc.conf.Redis.DB,
 			},
 		},
-	}, blog.GlobalLogger{})
+	})
 	if err != nil {
 		return fmt.Errorf("failed to create manager: %w", err)
 	}
@@ -540,7 +522,6 @@ func (svc *Service) registerInfoServer() error {
 			Name:            string(discover.EndpointNameBackendInfo),
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -572,7 +553,6 @@ func (svc *Service) registerAdminServer() error {
 			Name:            string(discover.EndpointNameBackendAdmin),
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -603,7 +583,6 @@ func (svc *Service) registerBasicServer() error {
 			Name:            string(discover.EndpointNameBackendBasic),
 			IP:              svc.conf.BasicServer.BindIP,
 			Port:            svc.conf.BasicServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: apigwserver.NewBKAPIRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -629,7 +608,6 @@ func (svc *Service) registerCallbackServer() error {
 			Name:            string(discover.EndpointNameBackendCallback),
 			IP:              svc.conf.CallbackServer.BindIP,
 			Port:            svc.conf.CallbackServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -655,7 +633,6 @@ func (svc *Service) registerProxyServer() error {
 			Name:            string(discover.EndpointNameBackendPorxy),
 			IP:              svc.conf.ProxyServer.BindIP,
 			Port:            svc.conf.ProxyServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -671,17 +648,6 @@ func (svc *Service) registerProxyServer() error {
 	})
 
 	return nil
-}
-
-// loggerWriterAdaptor implements rest.LoggerWriter.
-type loggerWriterAdaptor struct{}
-
-func (l loggerWriterAdaptor) InfoWriter() io.Writer {
-	return blog.WriterInfo{}
-}
-
-func (l loggerWriterAdaptor) ErrorWriter() io.Writer {
-	return blog.WriterError{}
 }
 
 // withHealthz load healthz.
@@ -726,7 +692,7 @@ func withProxy(capability *options.Capability) restserver.OptionFunc {
 	}
 }
 
-func newIEGTJJHandler(conf config.IEGTJJ, logger logger.ILogger) (iegtjj.IHandler, error) {
+func newIEGTJJHandler(conf config.IEGTJJ) (iegtjj.IHandler, error) {
 	// apiGwClientConfig := newAPIGwClientConfig(&conf.APIGatewayClient)
 	// TODO: 等待 iegtjj 迁移到 apigw, 将此处替换为 apigwclient.UserConfig
 	apiGwClientCapability, err := newAPIGwClientCapability(&conf.APIGatewayClient)
@@ -738,7 +704,7 @@ func newIEGTJJHandler(conf config.IEGTJJ, logger logger.ILogger) (iegtjj.IHandle
 	iegtjjHandler, err := iegtjj.New(apiGwClientCapability, &iegtjj.Config{
 		Key:       conf.Key,
 		SecretKey: conf.SecretKey,
-	}, iegtjj.WithLogger(logger))
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to new iegtjj handler: %w", err)
 	}
@@ -764,7 +730,6 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               blog.GlobalLogger{},
 	}
 
 	return clientCap, nil
@@ -787,8 +752,9 @@ func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
 
 // Start starts the backend service.
 func (svc *Service) Start() error {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	logger.G.Sys().Info("try to start backend service")
 
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	if err := svc.Cap.Start(svc.ctx); err != nil {
 		return err
 	}
@@ -798,13 +764,13 @@ func (svc *Service) Start() error {
 	for idx := range svc.servers {
 		server := svc.servers[idx]
 
-		// apigwserver start will block until apigwserver stop, so we need to run it in a goroutine.
+		// http server start will block until http server stop, so we need to run it in a goroutine.
 		fn := func() error {
-			blog.Infof("started apigwserver. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
-
 			if err := server.Start(); err != nil {
 				return err
 			}
+
+			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started HTTP Server")
 
 			return nil
 		}
@@ -813,21 +779,25 @@ func (svc *Service) Start() error {
 
 	// after all servers brings up, register the instance into discover provider.
 	if err := svc.Cap.DiscoverProvider.Register(discover.ServiceNameBackend, svc.instance); err != nil {
-		blog.Errorf("failed to register instance: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to register backend server")
 		return err
 	}
 
-	// wait until all servers stopped or application error.
+	// wait until all servers stopped or backend error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to start servers")
 		return err
 	}
+
+	logger.G.Sys().Info("backend service started")
 
 	return nil
 }
 
-// GracefulShutdown ...
+// GracefulShutdown gracefully shuts down the backend service.
 func (svc *Service) GracefulShutdown() error {
+	logger.G.Sys().Info("try to gracefully shutdown backend service")
+
 	if svc.ctx == nil || svc.cancelFunc == nil {
 		return errors.New("service is not running")
 	}
@@ -836,11 +806,12 @@ func (svc *Service) GracefulShutdown() error {
 
 	err := svc.Cap.GracefulShutdown()
 	if err != nil {
-		blog.Errorf("failed to shutdown capability: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to gracefully shutdown capability")
+
 		return err
 	}
 
-	blog.CloseLogs()
+	logger.G.Sys().Info("backend service gracefully shutdown")
 
 	return nil
 }

@@ -16,12 +16,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 )
 
 // LoggerAdapter adapts a logger.ILogger to the cron.Logger interface.
 type LoggerAdapter struct {
-	Logger logger.ILogger
 }
 
 // Info logs an informational message with additional context.
@@ -31,9 +30,10 @@ func (la LoggerAdapter) Info(msg string, keysAndValues ...interface{}) {
 		formatMsg = fmt.Sprintf(formatString(len(keysAndValues)),
 			append([]interface{}{msg}, formatTimes(keysAndValues)...)...)
 	} else {
-		la.Logger.Debug(msg)
+		formatMsg = msg
 	}
-	la.Logger.Debugf("scheduler task running %s", formatMsg)
+
+	logger.G.Sys().Debug("scheduler task running: %s", formatMsg)
 }
 
 // Error logs an error message with additional context.
@@ -45,7 +45,8 @@ func (la LoggerAdapter) Error(err error, msg string, keysAndValues ...interface{
 	} else {
 		formatMsg = fmt.Sprintf("%s, err(%v)", msg, err)
 	}
-	la.Logger.Errorf("scheduler task run error in cron, %s", formatMsg)
+
+	logger.G.Sys().Error("scheduler task run error in cron: %s", formatMsg)
 }
 
 // formatString returns a logfmt-like format string for the number of

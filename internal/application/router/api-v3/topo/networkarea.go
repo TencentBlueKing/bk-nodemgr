@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -31,13 +32,13 @@ const (
 func (h *handler) CreateNetworkArea(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkAreaCreateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to create networkarea, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to create networkarea, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	networkAreaID, err := h.backendHandler.CreateNetworkArea(rCtx, req.ConvertNetworkAreaToTypes(rCtx.TenantID(), -1))
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to create networkarea, failed to create networkarea via cmdb. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to create networkarea, failed to create networkarea via cmdb")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -51,12 +52,12 @@ func (h *handler) CreateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 func (h *handler) UpdateNetworkArea(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkAreaUpdateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to update networkarea, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update networkarea, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.backendHandler.UpdateNetworkArea(rCtx, req.ConvertNetworkAreaToTypes(rCtx.TenantID())); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to update networkarea, failed to upsert networkarea. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update networkarea, failed to upsert networkarea")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -70,13 +71,13 @@ func (h *handler) UpdateNetworkArea(rCtx restserver.IContext) (interface{}, erro
 func (h *handler) GetNetworkArea(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkAreaGetReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get networkarea, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get networkarea, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	networkArea, err := h.backendHandler.GetNetworkArea(rCtx, req.GetBkNetworkareaId())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get networkarea. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get networkarea")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -90,7 +91,7 @@ func (h *handler) GetNetworkArea(rCtx restserver.IContext) (interface{}, error) 
 func (h *handler) ListNetworkArea(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkAreaListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list networkarea, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkarea, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -99,7 +100,7 @@ func (h *handler) ListNetworkArea(rCtx restserver.IContext) (interface{}, error)
 		req.ConvertPageToTypes(maxNetworkAreaLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list networkarea. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkarea")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -115,7 +116,7 @@ func (h *handler) ListNetworkArea(rCtx restserver.IContext) (interface{}, error)
 func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkAreaStatisticsReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to statistics networkarea, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics networkarea, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -125,7 +126,7 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 		req.ConvertNetworkUnitConditionToTypes(),
 	)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to statistics networkarea, failed to list networkunit. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics networkarea, failed to list networkunit")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -208,7 +209,7 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to statistics networkarea, failed to count host: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics networkarea, failed to count host: %v", err)
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
@@ -223,12 +224,12 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 func (h *handler) DeleteNetworkArea(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkAreaDeleteReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to delete networkarea, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete networkarea, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.backendHandler.DeleteNetworkArea(rCtx, req.GetBkNetworkareaId()); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to delete networkarea. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete networkarea")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

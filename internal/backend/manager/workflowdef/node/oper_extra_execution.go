@@ -16,6 +16,7 @@ import (
 	"time"
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -55,14 +56,14 @@ func (exec *extraExecution) Name() string {
 }
 
 // Do this func define what the action will do.
-func (exec *extraExecution) Do(ctx context.Context, instance *operation.InstanceBriefData) error {
+func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.InstanceBriefData) error {
 	param := new(ExtraExecutionParam)
 	err := conv.MapToStruct(instance.Metadata.InitContent, param)
 	if err != nil {
 		return err
 	}
 
-	info, err := exec.storageNodeDeployment.GetNodeDeploymentInfo(ctx, param.Token)
+	info, err := exec.storageNodeDeployment.GetNodeDeploymentInfo(nCtx, param.Token)
 	if err != nil {
 		instance.LogE(fmt.Sprintf("get deployment info by token(%s) failed: %v", param.Token, err))
 		return fmt.Errorf("get node deployment info by token(%s) failed: %w", param.Token, err)
@@ -74,7 +75,7 @@ func (exec *extraExecution) Do(ctx context.Context, instance *operation.Instance
 
 	switch instance.Lifecycle.State {
 	case operation.StateLaunched:
-		err := exec.Lock(ctx, lockerName, instance.Metadata.OperationInstanceID, instance.Metadata.Timeout)
+		err := exec.Lock(nCtx, lockerName, instance.Metadata.OperationInstanceID, instance.Metadata.Timeout)
 		if err != nil {
 			instance.LogE(err.Error())
 			instance.Lifecycle.End(action.StateFailed)
@@ -87,7 +88,7 @@ func (exec *extraExecution) Do(ctx context.Context, instance *operation.Instance
 		return nil
 
 	case operation.StateSuccess, operation.StateFailed, operation.StateTimeout, operation.StateTerminated:
-		err := exec.Unlock(ctx, lockerName, instance.Metadata.OperationInstanceID)
+		err := exec.Unlock(nCtx, lockerName, instance.Metadata.OperationInstanceID)
 		if err != nil {
 			instance.LogE(err.Error())
 			instance.Lifecycle.End(action.StateFailed)

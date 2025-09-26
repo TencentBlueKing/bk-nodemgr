@@ -29,7 +29,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -80,9 +79,6 @@ type Capability struct {
 
 	// FileHandler file handler.
 	FileHandler file.IHandler
-
-	// Logger logger
-	Logger logger.ILogger
 
 	// LockerFactory locker factory
 	LockerFactory locker.MutexFactory

@@ -19,10 +19,10 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -155,8 +155,7 @@ type IWatch interface {
 
 // Handler the Handler of cmdb.
 type Handler struct {
-	cli    *cli
-	logger logger.ILogger
+	cli *cli
 
 	scheduler scheduler.Scheduler
 
@@ -173,13 +172,6 @@ const (
 // OptionFn ...
 type OptionFn func(*Handler)
 
-// WithLogger this func will set the logger of the Handler.
-func WithLogger(logger logger.ILogger) OptionFn {
-	return func(s *Handler) {
-		s.logger = logger
-	}
-}
-
 // New initialize a new cmdb Handler.
 func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, error) {
 	cli, err := newClient(c, conf)
@@ -188,8 +180,7 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 	}
 
 	h := &Handler{
-		cli:    cli,
-		logger: logger.LoggerDefault{},
+		cli: cli,
 
 		cloudVendorKeeper: newCloudVendorKeeper(cli),
 		osTypeKeeper:      newOSTypeKeeper(cli),
@@ -202,7 +193,8 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 
 	err = h.initEnumKeepers()
 	if err != nil {
-		h.logger.Errorf("failed to init enum keepers: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to init enum keepers")
+
 		return nil, err
 	}
 
@@ -211,12 +203,12 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 
 // nolint: gocognit, funlen
 func (h *Handler) initEnumKeepers() error {
-	h.logger.Infof("initializing enum keepers from cmdb")
+	logger.G.Sys().Info("initializing enum keepers from cmdb")
 
 	if h.scheduler != nil {
 		h.scheduler.Terminate()
 	}
-	h.scheduler = scheduler.NewScheduler(scheduler.WithLogger(h.logger))
+	h.scheduler = scheduler.NewScheduler()
 	syncTasks := []*scheduler.Task{
 		scheduler.NewTask(
 			"sync_cloud_vendor",
@@ -271,7 +263,8 @@ func (h *Handler) initEnumKeepers() error {
 	for _, task := range syncTasks {
 		err := h.scheduler.RegisterTask(task)
 		if err != nil {
-			h.logger.Errorf("failed to register sync task, task-id(%s): %v", task.ID, err)
+			logger.G.Sys().WithErr(err).With("task-id", task.ID).Error("failed to register sync task")
+
 			return err
 		}
 	}
@@ -283,18 +276,18 @@ func (h *Handler) initEnumKeepers() error {
 	for _, tenantID := range tenantIDs {
 		newCtx := contextx.New(ctx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(access.GetVirtualUser()))
 		if err := h.cloudVendorKeeper.update(newCtx); err != nil {
-			h.logger.Warnf("failed to sync cloud vendor: %v", err)
+			logger.G.Sys().WithErr(err).Warn("failed to sync cloud vendor")
 		}
 		if err := h.osTypeKeeper.update(newCtx); err != nil {
-			h.logger.Warnf("failed to sync os type: %v", err)
+			logger.G.Sys().WithErr(err).Warn("failed to sync os type")
 		}
 		if err := h.cpuArchKeeper.update(newCtx); err != nil {
-			h.logger.Warnf("failed to sync cpu arch: %v", err)
+			logger.G.Sys().WithErr(err).Warn("failed to sync cpu arch")
 		}
 	}
 
 	h.scheduler.Start()
-	h.logger.Infof("start schedule enum resource sync tasks")
+	logger.G.Sys().Info("started schedule enum resource sync tasks")
 
 	return nil
 }
@@ -483,8 +476,9 @@ func (h *Handler) BindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Host)
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(nCtx, "use virtual user to bind host agent, virtual-user(%s), req(%v)", virtualUser, req)
-	newCtx := contextx.From(nCtx, contextx.WithTenantID(nCtx.TenantID()), contextx.WithBKUsername(virtualUser))
+	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
+
+	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to bind host agent")
 
 	for _, host := range hostInfo {
 		req.List = append(req.List, &HostAgentIDInfo{
@@ -511,8 +505,9 @@ func (h *Handler) UnbindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Hos
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(nCtx, "use virtual user to un bind host agent, virtual-user(%s), req(%v)", virtualUser, req)
-	newCtx := contextx.From(nCtx, contextx.WithTenantID(nCtx.TenantID()), contextx.WithBKUsername(virtualUser))
+	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
+
+	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to unbind host agent")
 
 	for _, host := range hostInfo {
 		req.List = append(req.List, &HostAgentIDInfo{
@@ -542,8 +537,9 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(nCtx, "use virtual user to add host to business idle, virtual-user(%s), req(%v)", virtualUser, req)
-	newCtx := contextx.From(nCtx, contextx.WithTenantID(nCtx.TenantID()), contextx.WithBKUsername(virtualUser))
+	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
+
+	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to add host to business idle")
 
 	resp, err := h.cli.addHostToBusinessIdle(newCtx, req)
 	if err != nil {
@@ -561,8 +557,9 @@ func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(nCtx, "use virtual user to push host identifier, virtual-user(%s), req(%v)", virtualUser, req)
-	newCtx := contextx.From(nCtx, contextx.WithTenantID(nCtx.TenantID()), contextx.WithBKUsername(virtualUser))
+	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
+
+	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to push host identifier")
 
 	resp, err := h.cli.pushHostIdentifier(newCtx, req)
 	if err != nil {
@@ -574,7 +571,7 @@ func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (
 
 // FindHostIdentifierPushResult find host identifier push result.
 // nolint: nonamedreturns
-func (h *Handler) FindHostIdentifierPushResult(ctx contextx.IContext, taskID string) (successList []int64,
+func (h *Handler) FindHostIdentifierPushResult(nCtx contextx.IContext, taskID string) (successList []int64,
 	failedList []int64, pendingList []int64, err error) {
 
 	req := &FindHostIdentifierPushResultReq{
@@ -582,8 +579,9 @@ func (h *Handler) FindHostIdentifierPushResult(ctx contextx.IContext, taskID str
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(ctx, "use virtual user to find host identifier push result, virtual-user(%s), req(%v)", virtualUser, req)
-	newCtx := contextx.From(ctx, contextx.WithTenantID(ctx.TenantID()), contextx.WithBKUsername(virtualUser))
+	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
+
+	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to find host identifier push result")
 
 	resp, err := h.cli.findHostIdentifierPushResult(newCtx, req)
 	if err != nil {
@@ -643,7 +641,7 @@ func (h *Handler) ListHostsWithoutBusiness(ctx contextx.IContext, page types.Pag
 
 // AddHostToResourcePool add host to resource pool.
 // nolint: nonamedreturns
-func (h *Handler) AddHostToResourcePool(ctx contextx.IContext, hosts ...*types.Host) (successHost []*types.Host,
+func (h *Handler) AddHostToResourcePool(nCtx contextx.IContext, hosts ...*types.Host) (successHost []*types.Host,
 	failedIndexMsg []string, err error) {
 
 	req := &AddHostToResourcePoolReq{
@@ -651,8 +649,9 @@ func (h *Handler) AddHostToResourcePool(ctx contextx.IContext, hosts ...*types.H
 	}
 
 	virtualUser := access.GetVirtualUser()
-	h.logger.InfoCtxf(ctx, "use virtual user to add host to resource pool, virtual-user(%s), req(%v)", virtualUser, req)
-	newCtx := contextx.From(ctx, contextx.WithTenantID(ctx.TenantID()), contextx.WithBKUsername(virtualUser))
+	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
+
+	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to add host to resource pool")
 
 	for _, host := range hosts {
 		req.HostInfo = append(req.HostInfo, h.convCreateHostInfoFromTypes(host))

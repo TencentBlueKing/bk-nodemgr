@@ -11,17 +11,17 @@
 package node
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // getNodeDeploymentNodeConf get gse node conf.
-func (s *Storage) getNodeDeploymentNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
-	if ctx == nil {
+func (s *Storage) getNodeDeploymentNodeConf(nCtx contextx.IContext, token string) (*types.NodeConf, error) {
+	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
@@ -29,7 +29,7 @@ func (s *Storage) getNodeDeploymentNodeConf(ctx context.Context, token string) (
 		return nil, basestorage.ErrEmptyUniqueKey()
 	}
 
-	nodeConf, err := s.daoNodeDeployment.GetNodeDeploymentNodeConf(ctx, token)
+	nodeConf, err := s.daoNodeDeployment.GetNodeDeploymentNodeConf(nCtx, token)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node conf: %v", err)
 	}
@@ -38,8 +38,8 @@ func (s *Storage) getNodeDeploymentNodeConf(ctx context.Context, token string) (
 }
 
 // getNodeDeploymentInfo get node deployment info.
-func (s *Storage) getNodeDeploymentInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
-	if ctx == nil {
+func (s *Storage) getNodeDeploymentInfo(nCtx contextx.IContext, token string) (*types.DeploymentInfo, error) {
+	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
@@ -47,7 +47,7 @@ func (s *Storage) getNodeDeploymentInfo(ctx context.Context, token string) (*typ
 		return nil, basestorage.ErrEmptyUniqueKey()
 	}
 
-	deployInfo, err := s.daoNodeDeployment.GetNodeDeploymentInfo(ctx, token)
+	deployInfo, err := s.daoNodeDeployment.GetNodeDeploymentInfo(nCtx, token)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +56,8 @@ func (s *Storage) getNodeDeploymentInfo(ctx context.Context, token string) (*typ
 }
 
 // seNodeDeploymenttNodeConf set gse node conf.
-func (s *Storage) seNodeDeploymenttNodeConf(ctx context.Context, token string, conf *types.NodeConf) error {
-	if ctx == nil {
+func (s *Storage) seNodeDeploymenttNodeConf(nCtx contextx.IContext, token string, conf *types.NodeConf) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -69,7 +69,7 @@ func (s *Storage) seNodeDeploymenttNodeConf(ctx context.Context, token string, c
 		return errors.New("node conf is nil")
 	}
 
-	if err := s.daoNodeDeployment.SetNodeDeploymentNodeConf(ctx, token, conf); err != nil {
+	if err := s.daoNodeDeployment.SetNodeDeploymentNodeConf(nCtx, token, conf); err != nil {
 		return err
 	}
 
@@ -77,8 +77,8 @@ func (s *Storage) seNodeDeploymenttNodeConf(ctx context.Context, token string, c
 }
 
 // updateNodeDeploymentInfo update node deployment info.
-func (s *Storage) updateNodeDeploymentInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
-	if ctx == nil {
+func (s *Storage) updateNodeDeploymentInfo(nCtx contextx.IContext, token string, info *types.DeploymentInfo) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -90,7 +90,7 @@ func (s *Storage) updateNodeDeploymentInfo(ctx context.Context, token string, in
 		return errors.New("node deployment info is nil")
 	}
 
-	if err := s.daoNodeDeployment.UpdateNodeDeploymentInfo(ctx, token, info); err != nil {
+	if err := s.daoNodeDeployment.UpdateNodeDeploymentInfo(nCtx, token, info); err != nil {
 		return err
 	}
 
@@ -98,8 +98,8 @@ func (s *Storage) updateNodeDeploymentInfo(ctx context.Context, token string, in
 }
 
 // createNodeDeployment create a node deployment.
-func (s *Storage) createNodeDeployment(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
-	if ctx == nil {
+func (s *Storage) createNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -107,7 +107,7 @@ func (s *Storage) createNodeDeployment(ctx context.Context, nodeDeployment *type
 		return errors.New("node deployment is nil")
 	}
 
-	if err := s.daoNodeDeployment.CreateNodeDeployment(ctx, nodeDeployment); err != nil {
+	if err := s.daoNodeDeployment.CreateNodeDeployment(nCtx, nodeDeployment); err != nil {
 		return fmt.Errorf("failed to createNodeDeployment node deployment: %v", err)
 	}
 

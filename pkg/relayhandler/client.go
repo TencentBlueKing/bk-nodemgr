@@ -20,9 +20,10 @@ import (
 	"time"
 
 	agentmessage "github.com/TencentBlueKing/bk-gse-sdk/go/service/agent-message"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
@@ -45,9 +46,6 @@ type ClientMessagerConfig struct {
 
 	// LocalSocketPort is the local socket port when in windows node.
 	LocalSocketPort int `json:"local_socket_port"`
-
-	// Logger is the logger.
-	Logger logger.ILogger
 }
 
 const (
@@ -86,37 +84,39 @@ type clientMessager struct {
 }
 
 // Start starts the messager.
-func (m *clientMessager) Start(ctx context.Context) error {
-	m.config.Logger.Infof("try to start messager: %+v", m.config)
+func (m *clientMessager) Start(nCtx contextx.IContext) error {
+	logger.G.Sys().With("config", m.config).Info("try to start messager")
 
 	client, err := agentmessage.New(
 		agentmessage.WithPluginName(m.config.PluginName),
 		agentmessage.WithPluginVersion(m.config.PluginVersion),
 		agentmessage.WithDomainSocketPath(m.config.DomainSocketPath),
 		agentmessage.WithRecvCallback(m.messageCallback),
-		agentmessage.WithLogger(&loggerAdaptor{Logger: m.config.Logger}))
+		agentmessage.WithLogger(logger.G.Sys()))
 	if err != nil {
 		return err
 	}
 
 	// hang until connected.
-	if err = client.Launch(ctx); err != nil {
+	if err = client.Launch(nCtx); err != nil {
 		return err
 	}
 
 	m.retrier = retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
-
 	m.client = client
-	m.config.Logger.Infof("started messager")
+
+	logger.G.Sys().Info("started messager")
 
 	return nil
 }
 
 // Stop stops the messager.
-func (m *clientMessager) Stop(ctx context.Context) error {
-	m.config.Logger.Infof("try to stop messager: %+v", m.config)
+func (m *clientMessager) Stop(nCtx contextx.IContext) error {
+	logger.G.Sys().With("config", m.config).Info("try to stop messager")
+	defer logger.G.Sys().Info("stopped messager")
+
 	if m.client != nil {
-		return m.client.Terminate(ctx)
+		return m.client.Terminate(nCtx)
 	}
 
 	return nil
@@ -129,54 +129,60 @@ func (m *clientMessager) EventDispatcher() manager.EventDispatcher {
 
 // messageCallback receives messages from agent.
 func (m *clientMessager) messageCallback(messageID string, content []byte) {
-	m.config.Logger.Infof("receive message. message-id(%s)", messageID)
+	logger.G.Sys().With("message-id", messageID).Info("receive message")
 
 	var base protoRelay.Base
 	if err := json.Unmarshal(content, &base); err != nil {
-		m.config.Logger.Errorf("failed to unmarshal base message. content(%s): %v", content, err)
+		logger.G.Sys().WithErr(err).With("message-id", messageID, "content", string(content)).Info("failed to unmarshal base message")
+
 		return
 	}
 
-	m.config.Logger.Infof("begin to handle message. message-id(%s), type(%s)", messageID, base.MessageType)
+	logger.G.Sys().With("message-id", messageID, "type", base.MessageType).Info("begin to handle message")
 	switch base.MessageType {
 	case protoRelay.MessageTypeCallbackResp:
 		go m.setSynchronousData(messageID, content)
 
 		return
 	case protoRelay.MessageTypeAckReq:
-		go m.handleAck(context.Background(), content)
+		go m.handleAck(contextx.New(context.Background()), content)
 
 		return
 	case protoRelay.MessageTypeServerPushReq:
-		go m.handleServerPush(context.Background(), messageID, content)
+		go m.handleServerPush(contextx.New(context.Background()), messageID, content)
 
 		return
 	default:
-		m.config.Logger.Errorf("unknown message type. type(%s)", base.MessageType)
+		logger.G.Sys().With("message-id", messageID, "type", base.MessageType).Error("unknown message type")
+
 		return
 	}
 }
 
-func (m *clientMessager) handleAck(ctx context.Context, content []byte) {
+func (m *clientMessager) handleAck(nCtx contextx.IContext, content []byte) {
 	var msg protoRelay.AckReq
 	if err := json.Unmarshal(content, &msg); err != nil {
-		m.config.Logger.Errorf("invalid push format: %v", err)
+		logger.G.Sys().WithErr(err).With("content", string(content)).Error("failed to unmarshal ack message")
+
 		return
 	}
 
-	if err := m.fileMsgTracker.MarkAcked(ctx, msg.OriginalMessageID); err != nil {
-		m.config.Logger.Errorf("failed to mark acked. original-message-id(%s): %v", msg.OriginalMessageID, err)
+	if err := m.fileMsgTracker.MarkAcked(nCtx, msg.OriginalMessageID); err != nil {
+		logger.G.Sys().WithErr(err).With("original-message-id", msg.OriginalMessageID).Error("failed to mark acked")
+
+		return
 	}
 
-	m.config.Logger.Infof("ack received for message. original-message-id(%s)", msg.OriginalMessageID)
+	logger.G.Sys().With("original-message-id", msg.OriginalMessageID).Info("marked messsage acked")
 }
 
-func (m *clientMessager) handleServerPush(ctx context.Context, messageID string, content []byte) {
-	go m.sendAck(ctx, messageID)
+func (m *clientMessager) handleServerPush(nCtx contextx.IContext, messageID string, content []byte) {
+	go m.sendAck(nCtx, messageID)
 
-	exists, err := m.fileMsgTracker.TryMarkProcessed(ctx, messageID)
+	exists, err := m.fileMsgTracker.TryMarkProcessed(nCtx, messageID)
 	if err != nil {
-		m.config.Logger.Errorf("failed to mark message process. message-id(%s): %v", messageID, err)
+		logger.G.Sys().WithErr(err).With("message-id", messageID).Error("failed to mark message process")
+
 		return
 	}
 
@@ -185,28 +191,29 @@ func (m *clientMessager) handleServerPush(ctx context.Context, messageID string,
 		return
 	}
 
-	m.dispatcherServerPushEvent(ctx, content)
+	m.dispatcherServerPushEvent(nCtx, content)
 }
 
-func (m *clientMessager) dispatcherServerPushEvent(ctx context.Context, content []byte) {
+func (m *clientMessager) dispatcherServerPushEvent(nCtx contextx.IContext, content []byte) {
 	var push protoRelay.ServerPushReq
 	if err := json.Unmarshal(content, &push); err != nil {
-		m.config.Logger.Errorf("invalid push format: %v", err)
+		logger.G.Sys().WithErr(err).With("content", string(content)).Error("failed to unmarshal server push")
+
 		return
 	}
 
-	m.config.Logger.Infof("begin dispatching event.message-id(%s).event-type(%s)", push.Base.MessageID, push.EventType)
-
+	logger.G.Sys().With("message-id", push.Base.MessageID, "event-type", push.EventType).Info("begin to dispatch event")
 	if m.eventDispatcher == nil {
-		m.config.Logger.Errorf("no event dispatcher registered for event. event-type(%s)", push.EventType)
+		logger.G.Sys().With("message-id", push.Base.MessageID, "event-type", push.EventType).Error("no event dispatcher registered for event")
+
 		return
 	}
 
-	m.eventDispatcher.Dispatch(ctx, push.EventType, push.Payload)
+	m.eventDispatcher.Dispatch(nCtx, push.EventType, push.Payload)
 }
 
 // RequestCallback sends request to url. only transfer the response body to callback.
-func (m *clientMessager) RequestCallback(ctx context.Context, url string, content []byte) ([]byte, int, error) {
+func (m *clientMessager) RequestCallback(nCtx contextx.IContext, url string, content []byte) ([]byte, int, error) {
 	if url == "" {
 		return nil, http.StatusInternalServerError, errors.New("invalid url")
 	}
@@ -226,15 +233,15 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 		return nil, http.StatusInternalServerError, fmt.Errorf("marshal request failed: %w", err)
 	}
 
-	m.config.Logger.Infof("sending request to callback. message-id(%s)", messageID)
-	if err = m.client.SendMessage(ctx, messageID, reqData); err != nil {
+	logger.G.Sys().With("message-id", messageID).Info("sending request to callback")
+	if err = m.client.SendMessage(nCtx, messageID, reqData); err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
 
 	for {
 		select {
-		case <-ctx.Done():
-			return nil, http.StatusInternalServerError, ctx.Err()
+		case <-nCtx.Done():
+			return nil, http.StatusInternalServerError, nCtx.Err()
 		case respData := <-ch:
 			var resp protoRelay.CallbackResp
 			if err := json.Unmarshal(respData, &resp); err != nil {
@@ -248,7 +255,7 @@ func (m *clientMessager) RequestCallback(ctx context.Context, url string, conten
 }
 
 // sendAck sends an ACK to the server for a processed message.
-func (m *clientMessager) sendAck(ctx context.Context, originalMessageID string) {
+func (m *clientMessager) sendAck(nCtx contextx.IContext, originalMessageID string) {
 	ackReq := &protoRelay.AckReq{
 		Base: protoRelay.Base{
 			MessageID:   identifier.GenMessageID(),
@@ -259,18 +266,22 @@ func (m *clientMessager) sendAck(ctx context.Context, originalMessageID string) 
 
 	ackData, err := json.Marshal(ackReq)
 	if err != nil {
-		m.config.Logger.Errorf("failed to marshal ack request: %v", err)
+		logger.G.Sys().WithErr(err).With("original-message-id", originalMessageID).Error("failed to marshal ack request")
+
+		return
 	}
 
-	if err := m.client.SendMessage(ctx, ackReq.MessageID, ackData); err != nil {
-		m.config.Logger.Errorf("failed to send ack request: %v", err)
+	if err := m.client.SendMessage(nCtx, ackReq.MessageID, ackData); err != nil {
+		logger.G.Sys().WithErr(err).With("original-message-id", originalMessageID).Error("failed to send ack request")
+
+		return
 	}
 
-	m.config.Logger.Infof("ack sent for message. message-id(%s)", originalMessageID)
+	logger.G.Sys().With("original-message-id", originalMessageID).Info("ack sent for message")
 }
 
 // ClientPushReq sends a client push request asynchronously and returns a channel for results.
-func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, body []byte) <-chan error {
+func (m *clientMessager) ClientPushReq(nCtx contextx.IContext, callbackURL string, body []byte) <-chan error {
 	resultChan := make(chan error, 1)
 
 	if callbackURL == "" {
@@ -296,15 +307,13 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 	go func() {
 		defer close(resultChan)
 
-		retryErr := m.retrier.Do(ctx, func(attempt int) error {
-			if ctx.Err() != nil {
+		retryErr := m.retrier.Do(nCtx, func(attempt int) error {
+			if nCtx.Err() != nil {
 				return nil
 			}
 
-			m.config.Logger.Infof("sending client push request. callback-url(%s), attempt(%d), message-id(%s)",
-				callbackURL, attempt, messageID)
-
-			if err := m.client.SendMessage(ctx, messageID, reqData); err != nil {
+			logger.G.Sys().With("attempt", attempt, "message-id", messageID, "callback-url", callbackURL).Info("sending client push request")
+			if err := m.client.SendMessage(nCtx, messageID, reqData); err != nil {
 				return fmt.Errorf("sending client push request failed: %w", err)
 			}
 
@@ -312,15 +321,15 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 			defer checkAckTicker.Stop()
 
 			select {
-			case <-ctx.Done():
+			case <-nCtx.Done():
 				return nil
 
 			case <-time.After(clientCheckAckTimeout):
 				return fmt.Errorf("wait client push request ack timeout. message-id(%s)", messageID)
 
 			case <-checkAckTicker.C:
-				if acked, _ := m.fileMsgTracker.IsAcked(ctx, messageID); acked {
-					m.config.Logger.Infof("client push request acked successfully. message-id(%s)", messageID)
+				if acked, _ := m.fileMsgTracker.IsAcked(nCtx, messageID); acked {
+					logger.G.Sys().With("message-id", messageID, "callback-url", callbackURL).Info("client push request acked successfully")
 
 					return nil
 				}
@@ -329,7 +338,7 @@ func (m *clientMessager) ClientPushReq(ctx context.Context, callbackURL string, 
 			return nil
 		})
 
-		if ctxErr := ctx.Err(); ctxErr != nil {
+		if ctxErr := nCtx.Err(); ctxErr != nil {
 			resultChan <- ctxErr
 			return
 		}

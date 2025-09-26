@@ -13,14 +13,13 @@ package plugindeployment
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
-	d := &dao{client: client.Collection(TableName), logger: logger}
+func newDao(client *mongo.Database) *dao {
+	d := &dao{client: client.Collection(TableName)}
 	d.IOrm = base.NewOrm[*Data, Data](d)
 
 	return d
@@ -28,18 +27,13 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 
 type dao struct {
 	client *mongo.Collection
-	logger logger.ILogger
+
 	base.IOrm[*Data, Data]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.

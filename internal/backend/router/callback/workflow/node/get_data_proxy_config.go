@@ -14,6 +14,8 @@ package node
 import (
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
@@ -21,24 +23,26 @@ import (
 
 // GetDataProxyConfig get gse data proxy config.
 func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
+	nCtx := contextx.New(gCtx)
+
 	req := new(protoCallback.GetDataProxyConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse data proxy config failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse data proxy config, failed to decode request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse data proxy config failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse data proxy config, failed to validate request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
+	nodeConf, err := h.GetNodeDeploymentNodeConf(nCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("get gse data proxy setting failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse data proxy config, failed to get node deployment conf")
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
@@ -49,7 +53,7 @@ func (h *handler) GetDataProxyConfig(gCtx *gin.Context) {
 		Content:   nodeConf.ConfigTemplate[types.ConfigKeyData],
 	}, nodeConf)
 	if err != nil {
-		h.logger.Errorf("render gse data proxy config failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse data proxy config, failed to render config")
 		gCtx.JSON(http.StatusInternalServerError, err.Error())
 
 		return

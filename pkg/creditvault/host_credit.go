@@ -11,14 +11,15 @@
 package creditvault
 
 import (
-	"context"
 	"errors"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
 // IHostPasswordVault defines the password vault interface.
 type IHostPasswordVault interface {
 	// LoadPassword load password.
-	LoadPassword(ctx context.Context, rtx string, networkAreaID int64, ip string, loginUser string) (string, error)
+	LoadPassword(nCtx contextx.IContext, rtx string, networkAreaID int64, ip string, loginUser string) (string, error)
 }
 
 // WithHostPasswordVault set host password vault.
@@ -36,7 +37,7 @@ type DisabledHostPasswordVault struct {
 
 // LoadPassword load password.
 func (v *DisabledHostPasswordVault) LoadPassword(
-	_ context.Context,
+	_ contextx.IContext,
 	_ string,
 	_ int64,
 	_ string,

@@ -11,7 +11,6 @@
 package manager
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -24,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -60,15 +60,15 @@ func (t *Transfer) GetFileInfo() fileiface.FileInfo {
 }
 
 // WaitUntilDone wait until done.
-func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.SimpleTransferResult, error) {
+func (t *Transfer) WaitUntilDone(nCtx contextx.IContext) (*types.SimpleTransferResult, error) {
 	ticker := time.NewTicker(transferQueryTickTime)
 	failedCnt := 0
 	for {
 		select {
-		case <-ctx.Done():
+		case <-nCtx.Done():
 			return nil, errors.New("context done")
 		case <-ticker.C:
-			src, dst, err := t.query(ctx)
+			src, dst, err := t.query(nCtx)
 			if err != nil {
 				failedCnt++
 				if failedCnt > transferQueryContinuesFailedTimes {
@@ -98,10 +98,10 @@ func (t *Transfer) WaitUntilDone(ctx context.Context) (*types.SimpleTransferResu
 
 // query get upload and download result.
 // nolint: nonamedreturns
-func (t *Transfer) query(ctx context.Context) (src *types.TransferResult, dst *types.TransferResult, err error) {
+func (t *Transfer) query(nCtx contextx.IContext) (src *types.TransferResult, dst *types.TransferResult, err error) {
 	var results []*types.TransferResult
 	if results, err = t.gseHandler.QueryFileTransmissionResult(
-		ctx, t.taskID, t.sourceEndpoint, t.targetEndpoint); err != nil {
+		nCtx, t.taskID, t.sourceEndpoint, t.targetEndpoint); err != nil {
 		return nil, nil,
 			fmt.Errorf("failed to query file transfer result. source(%s), target(%s): %w",
 				t.sourceEndpoint.AgentID, t.targetEndpoint.AgentID, err)
@@ -128,9 +128,9 @@ func (t *Transfer) query(ctx context.Context) (src *types.TransferResult, dst *t
 
 // QueryTransfer query transfer.
 func (m *Manager) QueryTransfer(
-	ctx contextx.IContext, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
+	nCtx contextx.IContext, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
 
-	results, err := m.gseHandler.QueryFileTransmissionResult(ctx, taskID)
+	results, err := m.gseHandler.QueryFileTransmissionResult(nCtx, taskID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to query file transfer result. task-id(%s): %w", taskID, err)
 	}
@@ -154,7 +154,7 @@ func (m *Manager) QueryTransfer(
 }
 
 // LaunchTransferNode launch transfer node pkg.
-func (m *Manager) LaunchTransferNode(ctx contextx.IContext,
+func (m *Manager) LaunchTransferNode(nCtx contextx.IContext,
 	gen types.Generation,
 	rt types.ReleaseType,
 	plat platform.Platform,
@@ -162,7 +162,7 @@ func (m *Manager) LaunchTransferNode(ctx contextx.IContext,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	file, dir, err := m.EnsureNodeToLocal(ctx, rt, gen, plat, version)
+	file, dir, err := m.EnsureNodeToLocal(nCtx, rt, gen, plat, version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release file: %w", err)
 	}
@@ -170,7 +170,7 @@ func (m *Manager) LaunchTransferNode(ctx contextx.IContext,
 	info := file.Info()
 	fp := filepath.Join(dir, info.Name)
 
-	tf, err := m.transferPkg(ctx, fp, dstDir, dstHost)
+	tf, err := m.transferPkg(nCtx, fp, dstDir, dstHost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transfer package: %w", err)
 	}
@@ -181,7 +181,7 @@ func (m *Manager) LaunchTransferNode(ctx contextx.IContext,
 }
 
 // LaunchTransferPlugin launch transfer node pkg.
-func (m *Manager) LaunchTransferPlugin(ctx contextx.IContext,
+func (m *Manager) LaunchTransferPlugin(nCtx contextx.IContext,
 	name string,
 	gen types.Generation,
 	rt types.ReleaseType,
@@ -190,7 +190,7 @@ func (m *Manager) LaunchTransferPlugin(ctx contextx.IContext,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	file, dir, err := m.EnsurePluginToLocal(ctx, rt, name, gen, plat, version)
+	file, dir, err := m.EnsurePluginToLocal(nCtx, rt, name, gen, plat, version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release file: %w", err)
 	}
@@ -198,7 +198,7 @@ func (m *Manager) LaunchTransferPlugin(ctx contextx.IContext,
 	info := file.Info()
 	fp := filepath.Join(dir, info.Name)
 
-	tf, err := m.transferPkg(ctx, fp, dstDir, dstHost)
+	tf, err := m.transferPkg(nCtx, fp, dstDir, dstHost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transfer package: %w", err)
 	}
@@ -209,7 +209,7 @@ func (m *Manager) LaunchTransferPlugin(ctx contextx.IContext,
 }
 
 // LaunchTransferInstaller launch transfer installer.
-func (m *Manager) LaunchTransferInstaller(ctx contextx.IContext,
+func (m *Manager) LaunchTransferInstaller(nCtx contextx.IContext,
 	plat platform.Platform,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
@@ -219,13 +219,13 @@ func (m *Manager) LaunchTransferInstaller(ctx contextx.IContext,
 		return nil, fmt.Errorf("failed to format installer name: %w", err)
 	}
 
-	toolFile, err := m.installerFileGroup.GetFile(ctx, toolName)
+	toolFile, err := m.installerFileGroup.GetFile(nCtx, toolName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get file: %w", err)
 	}
 
 	fp := local.GetLocalFileAbsFilePath(toolFile)
-	tf, err := m.transferPkg(ctx, fp, dstDir, dstHost)
+	tf, err := m.transferPkg(nCtx, fp, dstDir, dstHost)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transfer package: %w", err)
 	}
@@ -236,15 +236,14 @@ func (m *Manager) LaunchTransferInstaller(ctx contextx.IContext,
 }
 
 // TransferPkg transfer package.
-func (m *Manager) transferPkg(ctx contextx.IContext, srcFilePath, dstDir string, dstHost *types.Host) (*Transfer, error) {
+func (m *Manager) transferPkg(nCtx contextx.IContext, srcFilePath, dstDir string, dstHost *types.Host) (*Transfer, error) {
 	if dstHost == nil {
 		return nil, errors.New("destination host is nil")
 	}
 
-	m.logger.InfoCtxf(ctx, "try to transfer package. src(%s), dst(%s), dst-host(%s)",
-		srcFilePath, dstDir, dstHost.Static.InnerIP)
+	logger.G.Biz(nCtx).With("src-file", srcFilePath, "dest-dir", dstDir, "dest-host", dstHost.Static.InnerIP).Info("try to transfer package")
 
-	sourceAgentID, err := m.getCurrentGSEEndpoint(ctx)
+	sourceAgentID, err := m.getCurrentGSEEndpoint(nCtx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get current endpoint: %w", err)
 	}
@@ -267,7 +266,7 @@ func (m *Manager) transferPkg(ctx contextx.IContext, srcFilePath, dstDir string,
 		dstUser = "system"
 	}
 
-	taskID, err := m.gseHandler.TransferFile(ctx,
+	taskID, err := m.gseHandler.TransferFile(nCtx,
 		&types.TransferOptions{
 			Timeout:   transferPackageTimeout,
 			AutoMkdir: true,
@@ -301,8 +300,8 @@ func (m *Manager) transferPkg(ctx contextx.IContext, srcFilePath, dstDir string,
 	}, nil
 }
 
-func (m *Manager) getCurrentGSEEndpoint(ctx contextx.IContext) (string, error) {
-	host, err := m.storageTopo.GetDirectNetworkAreaHostByAnyInnerIP(ctx, m.hostAdvertiseIPV4, m.hostAdvertiseIPV6)
+func (m *Manager) getCurrentGSEEndpoint(nCtx contextx.IContext) (string, error) {
+	host, err := m.storageTopo.GetDirectNetworkAreaHostByAnyInnerIP(nCtx, m.hostAdvertiseIPV4, m.hostAdvertiseIPV6)
 	if err != nil {
 		return "", fmt.Errorf("failed to get host from storage: %w", err)
 	}
@@ -316,8 +315,7 @@ func (m *Manager) getCurrentGSEEndpoint(ctx contextx.IContext) (string, error) {
 		return "", errors.New("agent-id is empty")
 	}
 
-	m.logger.InfoCtxf(ctx, "got current service agent-id. ipv4(%s), ipv6(%s): %+v",
-		m.hostAdvertiseIPV4, m.hostAdvertiseIPV6, agentID)
+	logger.G.Biz(nCtx).With("ipv4", m.hostAdvertiseIPV4, "ipv6", m.hostAdvertiseIPV6, "agent-id", agentID).Info("got current service agent-id")
 
 	return agentID, nil
 }

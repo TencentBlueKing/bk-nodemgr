@@ -29,10 +29,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
@@ -51,7 +51,6 @@ func NewActionInstallPagentBySSH(
 	storageHostCredit credit.IStorageHostCredit,
 	storageActionInstance workflow.IStorageActionInstance,
 	passwordVault creditvault.IHostPasswordVault,
-	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionInstallPagentBySSH{
@@ -62,8 +61,6 @@ func NewActionInstallPagentBySSH(
 		passwordVault: passwordVault,
 
 		proxyMessager: proxyMessager,
-
-		logger: logger,
 	}
 }
 
@@ -73,8 +70,6 @@ type ActParamInstallPagentBySSH struct {
 }
 
 type actionInstallPagentBySSH struct {
-	logger logger.ILogger
-
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageActionInstance workflow.IStorageActionInstance
@@ -239,8 +234,9 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
-				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					std.InstanceData().OperationInstanceID, std.InstanceData().Name, err)
+				logger.G.Sys().
+					With("oper-inst-id", std.InstanceData().OperationInstanceID, "action_name", std.InstanceData().Name).
+					Error("failed to get private data")
 
 				continue
 			}

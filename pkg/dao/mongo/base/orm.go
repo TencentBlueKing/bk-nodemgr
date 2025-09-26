@@ -18,8 +18,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daomongo "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
@@ -29,9 +30,6 @@ import (
 type IDao interface {
 	// GetClient get the mongo client.
 	GetClient() *mongo.Collection
-
-	// GetLogger get the logger.
-	GetLogger() logger.ILogger
 
 	// GetTableName get the table name.
 	GetTableName() string
@@ -54,39 +52,39 @@ type IOrm[P DataPoint[T], T any] interface {
 	EnsureIndexes() error
 
 	// Get single data by given filter.
-	Get(ctx context.Context, filter bson.D, fields ...string) (P, error)
+	Get(nCtx contextx.IContext, filter bson.D, fields ...string) (P, error)
 
 	// Exist check if the data by given filter exist.
-	Exist(ctx context.Context, filter bson.D) (bool, error)
+	Exist(nCtx contextx.IContext, filter bson.D) (bool, error)
 
 	// Create single data.
-	Create(ctx context.Context, data P) error
+	Create(nCtx contextx.IContext, data P) error
 
 	// CreateMany create multiple data.
-	CreateMany(ctx context.Context, datas []P) error
+	CreateMany(nCtx contextx.IContext, datas []P) error
 
 	// UpdateField update single field of given data.
-	UpdateField(ctx context.Context, filter bson.D, field string, value any) error
+	UpdateField(nCtx contextx.IContext, filter bson.D, field string, value any) error
 
 	// Count count the number of given data.
-	Count(ctx context.Context, filter bson.D) (int64, error)
+	Count(nCtx contextx.IContext, filter bson.D) (int64, error)
 
 	// List list the data by given filter.
-	List(ctx context.Context, filter bson.D, findOpt *mongoOptions.FindOptions) ([]P, error)
+	List(nCtx contextx.IContext, filter bson.D, findOpt *mongoOptions.FindOptions) ([]P, error)
 
 	// DistinctString distinct the string value of given key.
 	DistinctString(
-		ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error)
+		nCtx contextx.IContext, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error)
 
 	// DistinctInt64 distinct the int64 value of given key.
 	DistinctInt64(
-		ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]int64, error)
+		nCtx contextx.IContext, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]int64, error)
 
 	// DeleteMany delete multiple data.
-	DeleteMany(ctx context.Context, filter bson.D) error
+	DeleteMany(nCtx contextx.IContext, filter bson.D) error
 
 	// UpdateFieldsBulk updates multiple documents in bulk based on the provided updates.
-	UpdateFieldsBulk(ctx context.Context, updates []*DocumentFieldUpdate) error
+	UpdateFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) error
 }
 
 // Orm this is a common orm to operate mongo db.
@@ -101,7 +99,7 @@ type DataPoint[T any] interface {
 }
 
 // Get this is a common operation for mongo db.
-func (orm *Orm[P, T]) Get(ctx context.Context, filter bson.D, fields ...string) (dataPoint P, err error) {
+func (orm *Orm[P, T]) Get(nCtx contextx.IContext, filter bson.D, fields ...string) (dataPoint P, err error) {
 	// record metric.
 	metric := orm.metric().start(daomongo.MetricOperationFindOne, len(filter))
 	defer func() {
@@ -123,8 +121,9 @@ func (orm *Orm[P, T]) Get(ctx context.Context, filter bson.D, fields ...string) 
 
 	// find one as get.
 	table := &TableBroker[P]{}
-	if err = orm.dao.GetClient().FindOne(ctx, filter, findOptions).Decode(table); err != nil {
-		orm.dao.GetLogger().Warnf("failed to decode %s, err %v", orm.dao.GetTableName(), err)
+	if err = orm.dao.GetClient().FindOne(nCtx, filter, findOptions).Decode(table); err != nil {
+		logger.G.Sys().WithErr(err).With("table", orm.dao.GetTableName()).Warn("failed to find one, failed to decode")
+
 		return nil, err
 	}
 
@@ -137,7 +136,7 @@ func (orm *Orm[P, T]) Get(ctx context.Context, filter bson.D, fields ...string) 
 }
 
 // Exist check if the data by given filter exist.
-func (orm *Orm[P, T]) Exist(ctx context.Context, filter bson.D) (result bool, err error) {
+func (orm *Orm[P, T]) Exist(nCtx contextx.IContext, filter bson.D) (result bool, err error) {
 	// record metric.
 	metric := orm.metric().start(daomongo.MetricOperationCountDucuments, len(filter))
 	defer func() {
@@ -151,7 +150,7 @@ func (orm *Orm[P, T]) Exist(ctx context.Context, filter bson.D) (result bool, er
 	}()
 
 	// count as exist check.
-	count, err := orm.dao.GetClient().CountDocuments(ctx, filter)
+	count, err := orm.dao.GetClient().CountDocuments(nCtx, filter)
 	if err != nil {
 		return false, err
 	}
@@ -160,7 +159,7 @@ func (orm *Orm[P, T]) Exist(ctx context.Context, filter bson.D) (result bool, er
 }
 
 // CreateMany this is a common operation for mongo db.
-func (orm *Orm[P, T]) CreateMany(ctx context.Context, datas []P) (err error) {
+func (orm *Orm[P, T]) CreateMany(nCtx contextx.IContext, datas []P) (err error) {
 	if len(datas) == 0 {
 		return nil
 	}
@@ -193,18 +192,17 @@ func (orm *Orm[P, T]) CreateMany(ctx context.Context, datas []P) (err error) {
 	}
 
 	// insert many as create many.
-	if result, err = orm.dao.GetClient().InsertMany(ctx, documents, nil); err != nil {
+	if result, err = orm.dao.GetClient().InsertMany(nCtx, documents, nil); err != nil {
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("created multi documents. table(%s), count(%d)",
-		orm.dao.GetTableName(), len(result.InsertedIDs))
+	logger.G.Sys().With("table", orm.dao.GetTableName(), "count", len(result.InsertedIDs)).Info("created multi documents")
 
 	return nil
 }
 
 // Create this is a common operation for mongo db.
-func (orm *Orm[P, T]) Create(ctx context.Context, data P) (err error) {
+func (orm *Orm[P, T]) Create(nCtx contextx.IContext, data P) (err error) {
 	// record metric.
 	metric := orm.metric().start(daomongo.MetricOperationInsertOne, 1)
 	defer func() {
@@ -227,11 +225,11 @@ func (orm *Orm[P, T]) Create(ctx context.Context, data P) (err error) {
 	}
 
 	// insert one as create.
-	if _, err = orm.dao.GetClient().InsertOne(ctx, document); err != nil {
+	if _, err = orm.dao.GetClient().InsertOne(nCtx, document); err != nil {
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("created document. table(%s), unique-key(%s)", orm.dao.GetTableName(), data.UniqueKey())
+	logger.G.Sys().With("table", orm.dao.GetTableName(), "unique-key", data.UniqueKey()).Info("created document")
 
 	return nil
 }
@@ -268,14 +266,13 @@ func (orm *Orm[P, T]) EnsureIndexes() (err error) {
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("created required indexes, table(%s), indexes(%v)",
-		orm.dao.GetTableName(), indexes)
+	logger.G.Sys().With("table", orm.dao.GetTableName(), "indexes", result).Info("created indexes")
 
 	return nil
 }
 
 // UpdateField this is a common operation for mongo db.
-func (orm *Orm[P, T]) UpdateField(ctx context.Context, filter bson.D, field string, value any) (err error) {
+func (orm *Orm[P, T]) UpdateField(nCtx contextx.IContext, filter bson.D, field string, value any) (err error) {
 	var result *mongo.UpdateResult
 
 	// record metric.
@@ -291,18 +288,17 @@ func (orm *Orm[P, T]) UpdateField(ctx context.Context, filter bson.D, field stri
 	}()
 
 	// update field.
-	if result, err = orm.dao.GetClient().UpdateMany(ctx, filter, buildUpdateField(field, value)); err != nil {
+	if result, err = orm.dao.GetClient().UpdateMany(nCtx, filter, buildUpdateField(field, value)); err != nil {
 		return err
 	}
 
-	orm.dao.GetLogger().Debugf("updated field(%v), table(%s), updated-count(%d)",
-		field, orm.dao.GetTableName(), result.MatchedCount)
+	logger.G.Sys().With("table", orm.dao.GetTableName(), "field", field, "updated-count", result.MatchedCount).Info("updated field")
 
 	return nil
 }
 
 // Count this is a common operation for mongo db.
-func (orm *Orm[P, T]) Count(ctx context.Context, filter bson.D) (num int64, err error) {
+func (orm *Orm[P, T]) Count(nCtx contextx.IContext, filter bson.D) (num int64, err error) {
 	// record metric.
 	metric := orm.metric().start(daomongo.MetricOperationCountDucuments, len(filter))
 	defer func() {
@@ -315,7 +311,7 @@ func (orm *Orm[P, T]) Count(ctx context.Context, filter bson.D) (num int64, err 
 		}())
 	}()
 
-	if num, err = orm.dao.GetClient().CountDocuments(ctx, filter); err != nil {
+	if num, err = orm.dao.GetClient().CountDocuments(nCtx, filter); err != nil {
 		return 0, err
 	}
 
@@ -327,7 +323,7 @@ func (orm *Orm[P, T]) Count(ctx context.Context, filter bson.D) (num int64, err 
 }
 
 // List this is a common operation for mongo db.
-func (orm *Orm[P, T]) List(ctx context.Context, filter bson.D, findOpt *mongoOptions.FindOptions) (dataPoints []P, err error) {
+func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongoOptions.FindOptions) (dataPoints []P, err error) {
 	// record metric.
 	metric := orm.metric().start(daomongo.MetricOperationFind, len(filter))
 	defer func() {
@@ -335,15 +331,15 @@ func (orm *Orm[P, T]) List(ctx context.Context, filter bson.D, findOpt *mongoOpt
 	}()
 
 	var cursor *mongo.Cursor
-	if cursor, err = orm.dao.GetClient().Find(ctx, filter, findOpt); err != nil {
+	if cursor, err = orm.dao.GetClient().Find(nCtx, filter, findOpt); err != nil {
 		return nil, err
 	}
 
 	dataPoints = make([]P, 0)
-	for cursor.Next(ctx) {
+	for cursor.Next(nCtx) {
 		document := &TableBroker[P]{}
 		if err := cursor.Decode(document); err != nil {
-			orm.dao.GetLogger().Warnf("failed to decode document. table(%s): %v", orm.dao.GetTableName(), err)
+			logger.G.Sys().WithErr(err).With("table", orm.dao.GetTableName()).Info("failed to list, failed to decode document")
 
 			continue
 		}
@@ -355,7 +351,7 @@ func (orm *Orm[P, T]) List(ctx context.Context, filter bson.D, findOpt *mongoOpt
 
 // DistinctString this is a common operation for mongo db.
 func (orm *Orm[P, T]) DistinctString(
-	ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) (result []string, err error) {
+	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) (result []string, err error) {
 
 	var values []interface{}
 
@@ -365,7 +361,7 @@ func (orm *Orm[P, T]) DistinctString(
 		metric.end(err, len(values))
 	}()
 
-	if values, err = orm.dao.GetClient().Distinct(ctx, key, filter, distinctOpt); err != nil {
+	if values, err = orm.dao.GetClient().Distinct(nCtx, key, filter, distinctOpt); err != nil {
 		return nil, err
 	}
 
@@ -381,7 +377,7 @@ func (orm *Orm[P, T]) DistinctString(
 
 // DistinctInt64 this is a common operation for mongo db.
 func (orm *Orm[P, T]) DistinctInt64(
-	ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) (result []int64, err error) {
+	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) (result []int64, err error) {
 
 	var values []interface{}
 
@@ -391,7 +387,7 @@ func (orm *Orm[P, T]) DistinctInt64(
 		metric.end(err, len(values))
 	}()
 
-	if values, err = orm.dao.GetClient().Distinct(ctx, key, filter, distinctOpt); err != nil {
+	if values, err = orm.dao.GetClient().Distinct(nCtx, key, filter, distinctOpt); err != nil {
 		return nil, err
 	}
 
@@ -407,7 +403,7 @@ func (orm *Orm[P, T]) DistinctInt64(
 
 // DeleteMany this is a common operation for mongo db.
 // NOTE: this is a soft delete, not real delete.
-func (orm *Orm[P, T]) DeleteMany(ctx context.Context, filter bson.D) (err error) {
+func (orm *Orm[P, T]) DeleteMany(nCtx contextx.IContext, filter bson.D) (err error) {
 	models := []mongo.WriteModel{mongo.NewUpdateManyModel().SetFilter(filter).SetUpdate(BuildDeleteParam()).SetUpsert(false)}
 	var result *mongo.BulkWriteResult
 
@@ -423,12 +419,12 @@ func (orm *Orm[P, T]) DeleteMany(ctx context.Context, filter bson.D) (err error)
 		}())
 	}()
 
-	if result, err = orm.dao.GetClient().BulkWrite(ctx, models); err != nil {
+	if result, err = orm.dao.GetClient().BulkWrite(nCtx, models); err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		orm.dao.GetLogger().Infof("deleted networkunits, deleted-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("table", orm.dao.GetTableName(), "deleted-count", result.MatchedCount).Info("deleted many")
 	}
 
 	return nil
@@ -441,7 +437,7 @@ type DocumentFieldUpdate struct {
 }
 
 // UpdateFieldsBulk updates multiple documents in bulk based on the provided updates.
-func (orm *Orm[P, T]) UpdateFieldsBulk(ctx context.Context, updates []*DocumentFieldUpdate) (err error) {
+func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) (err error) {
 	if len(updates) == 0 {
 		return nil
 	}
@@ -479,12 +475,13 @@ func (orm *Orm[P, T]) UpdateFieldsBulk(ctx context.Context, updates []*DocumentF
 		return nil
 	}
 
-	if result, err = orm.dao.GetClient().BulkWrite(ctx, models); err != nil {
+	if result, err = orm.dao.GetClient().BulkWrite(nCtx, models); err != nil {
 		return err
 	}
 
-	orm.dao.GetLogger().Infof("bulk updated fields, table(%s), matched-count(%d), modified-count(%d)",
-		orm.dao.GetTableName(), result.MatchedCount, result.ModifiedCount)
+	logger.G.Sys().
+		With("table", orm.dao.GetTableName(), "updated-count", result.MatchedCount, "modified-count", result.ModifiedCount).
+		Info("bulk updated fields")
 
 	return nil
 }

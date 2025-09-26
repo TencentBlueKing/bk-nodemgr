@@ -27,7 +27,7 @@ func testActionInstData(t *testing.T) IActionInstData {
 // Test_handler_UpdateActionInstData ...
 func Test_handler_UpdateActionInstData(t *testing.T) {
 	tests := []struct {
-		ctx     context.Context
+		nCtx    context.Context
 		name    string
 		wantErr bool
 		data    *action.InstanceData
@@ -91,7 +91,7 @@ func Test_handler_UpdateActionInstData(t *testing.T) {
 // Test_handler_AddActInstPrivateData ...
 func Test_handler_UpdateActionInstContent(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		operInstID string
 		actionName string
 		content    map[string]any
@@ -104,7 +104,7 @@ func Test_handler_UpdateActionInstContent(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-1",
 				content: map[string]any{
@@ -118,7 +118,7 @@ func Test_handler_UpdateActionInstContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			if err := h.UpdateActionInstContent(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.content); (err != nil) != tt.wantErr {
+			if err := h.UpdateActionInstContent(tt.args.nCtx, tt.args.operInstID, tt.args.actionName, tt.args.content); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateActionInstContent() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -128,7 +128,7 @@ func Test_handler_UpdateActionInstContent(t *testing.T) {
 // Test_handler_GetActionInstData ...
 func Test_handler_GetActionInstData(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		operInstID string
 		actionName string
 	}
@@ -141,7 +141,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-1",
 			},
@@ -150,7 +150,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "op-instance-002",
 				actionName: "check-stock",
 			},
@@ -159,7 +159,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "nil context",
 			args: args{
-				ctx:        nil,
+				nCtx:       nil,
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "sync_biz_from_cmdb",
 			},
@@ -168,7 +168,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "empty operInstID",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "",
 				actionName: "sync_biz_from_cmdb",
 			},
@@ -177,7 +177,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 		{
 			name: "empty actionName",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "oper-inst-4b92daa2-6294-430f-a3ff-aa20a7c664ba",
 				actionName: "",
 			},
@@ -188,7 +188,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			got, err := h.GetActionInstData(tt.args.ctx, tt.args.operInstID, tt.args.actionName)
+			got, err := h.GetActionInstData(tt.args.nCtx, tt.args.operInstID, tt.args.actionName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetActionInstData() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -202,7 +202,7 @@ func Test_handler_GetActionInstData(t *testing.T) {
 // Test_handler_UpdateActionInstStatus ...
 func Test_handler_UpdateActionInstStatus(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		operInstID string
 		actionName string
 		status     action.State
@@ -215,7 +215,7 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-1",
 				status:     "success",
@@ -225,7 +225,7 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "action-3",
 				status:     "success",
@@ -236,7 +236,7 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			if err := h.UpdateActionInstStatus(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.status); (err != nil) != tt.wantErr {
+			if err := h.UpdateActionInstStatus(tt.args.nCtx, tt.args.operInstID, tt.args.actionName, tt.args.status); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateActionInstStatus() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -246,7 +246,7 @@ func Test_handler_UpdateActionInstStatus(t *testing.T) {
 // Test_handler_GetActInstLifecycle ...
 func Test_handler_GetActInstLifecycle(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		operInstID string
 		actionName string
 	}
@@ -259,7 +259,7 @@ func Test_handler_GetActInstLifecycle(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "op-instance-001",
 				actionName: "validate-order",
 			},
@@ -270,7 +270,7 @@ func Test_handler_GetActInstLifecycle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			got, err := h.GetActInstLifecycle(tt.args.ctx, tt.args.operInstID, tt.args.actionName)
+			got, err := h.GetActInstLifecycle(tt.args.nCtx, tt.args.operInstID, tt.args.actionName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetActInstLifecycle() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -288,7 +288,7 @@ func Test_handler_GetActInstLifecycle(t *testing.T) {
 // Test_handler_AddActInstPrivateData ...
 func Test_handler_AddActInstPrivateData(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		operInstID string
 		actionName string
 		data       map[string]any
@@ -301,7 +301,7 @@ func Test_handler_AddActInstPrivateData(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "op-instance-001",
 				actionName: "validate-order",
 				data:       map[string]any{"test": "test1"},
@@ -312,7 +312,7 @@ func Test_handler_AddActInstPrivateData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			err := h.PushActInstPrivateData(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.data)
+			err := h.PushActInstPrivateData(tt.args.nCtx, tt.args.operInstID, tt.args.actionName, tt.args.data)
 			if err != nil {
 				t.Logf("AddActInstPrivateData() error = %v", err)
 			}
@@ -327,7 +327,7 @@ func Test_handler_AddActInstPrivateData(t *testing.T) {
 // Test_handler_PushActInstMsgs ...
 func Test_handler_PushActInstMsgs(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		operInstID string
 		actionName string
 		msgs       []common.Message
@@ -340,7 +340,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				actionName: "sync_action_from_cmdb",
 				msgs: []common.Message{
@@ -357,7 +357,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			if err := h.PushActionInstanceMessage(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.msgs...); (err != nil) != tt.wantErr {
+			if err := h.PushActionInstanceMessage(tt.args.nCtx, tt.args.operInstID, tt.args.actionName, tt.args.msgs...); (err != nil) != tt.wantErr {
 				t.Errorf("PushActInstMsgs() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -367,7 +367,7 @@ func Test_handler_PushActInstMsgs(t *testing.T) {
 // Test_handler_UpdateActInstLifecycle ...
 func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		operInstID string
 		actionName string
 		lifecycle  *action.Lifecycle
@@ -380,7 +380,7 @@ func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "op-instance-001",
 				actionName: "validate-order",
 				lifecycle: &action.Lifecycle{
@@ -396,7 +396,7 @@ func Test_handler_UpdateActInstLifecycle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testActionInstData(t)
-			err := h.UpdateActInstLifecycle(tt.args.ctx, tt.args.operInstID, tt.args.actionName, tt.args.lifecycle)
+			err := h.UpdateActInstLifecycle(tt.args.nCtx, tt.args.operInstID, tt.args.actionName, tt.args.lifecycle)
 			if err != nil {
 				t.Logf("UpdateActInstLifecycle() error = %v", err)
 			}

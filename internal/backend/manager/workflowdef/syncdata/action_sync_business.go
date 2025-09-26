@@ -20,8 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -33,13 +31,11 @@ const (
 )
 
 // NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
-func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, storageBusiness topo.IStorageBusiness,
-	logger logger.ILogger) action.Definition {
+func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, storageBusiness topo.IStorageBusiness) action.Definition {
 
 	return &actionSyncBusinessFromCMDB{
 		cmdbHandler:     cmdbHandler,
 		storageBusiness: storageBusiness,
-		logger:          logger,
 	}
 }
 
@@ -52,7 +48,6 @@ type SyncBizFromCMDBParam struct {
 type actionSyncBusinessFromCMDB struct {
 	cmdbHandler     cmdb.IHandler
 	storageBusiness topo.IStorageBusiness
-	logger          logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -103,10 +98,10 @@ func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 	gp := gopool.NewPool()
 	gp.SetLimit(10) // nolint: mnd
 
+	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(access.GetVirtualUser()))
 	executor := pageexecutor.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
-	fn := func(ctx context.Context, p types.Page) ([]*types.Business, error) {
-		newCtx := contextx.New(ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(access.GetVirtualUser()))
-		bizs, err := act.cmdbHandler.SearchBusiness(newCtx, p)
+	fn := func(_ context.Context, p types.Page) ([]*types.Business, error) {
+		bizs, err := act.cmdbHandler.SearchBusiness(nCtx, p)
 		if err != nil {
 			return nil, err
 		}
@@ -114,13 +109,12 @@ func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 		return bizs, nil
 	}
 
-	tenantCtx, _ := tenant.SetID(ctx.Ctx, param.TenantID)
-	result, err := executor.Execute(tenantCtx, types.UnlimitedPage(), fn)
+	result, err := executor.Execute(ctx.Ctx, types.UnlimitedPage(), fn)
 	if err != nil {
 		return err
 	}
 
-	if err = act.storageBusiness.UpsertManyBusiness(tenantCtx, result.Items...); err != nil {
+	if err = act.storageBusiness.UpsertManyBusiness(nCtx, result.Items...); err != nil {
 		return err
 	}
 

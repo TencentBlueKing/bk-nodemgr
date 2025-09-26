@@ -12,18 +12,16 @@
 package release
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(tableName string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(tableName string, client *mongo.Database) *dao {
 	d := &dao{
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
 	}
 
@@ -35,7 +33,6 @@ func newDao(tableName string, client *mongo.Database, logger logger.ILogger) *da
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
 
 	base.IOrm[*Release, Release]
 }
@@ -43,11 +40,6 @@ type dao struct {
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -62,20 +54,20 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) upsertMany(ctx context.Context, releases []*Release) error {
+func (d *dao) upsertMany(nCtx contextx.IContext, releases []*Release) error {
 	models := buildUpsertManyParams(releases)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("inserted releases, inserted-count(%v)", result.UpsertedCount)
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted releases")
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("updated releases, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted releases")
 	}
 
 	return nil

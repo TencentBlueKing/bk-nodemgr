@@ -11,7 +11,6 @@
 package manager
 
 import (
-	"context"
 	"errors"
 	"io"
 	"time"
@@ -19,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -30,48 +30,48 @@ const (
 // ICert defines the interface for cert.
 type ICert interface {
 	// UploadOriginCert uploads the origin cert.
-	UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
+	UploadOriginCert(nCtx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error)
 
 	// PublishReleaseCert generates release cert by upload-id.
-	PublishReleaseCert(ctx contextx.IContext, uploadID string) error
+	PublishReleaseCert(nCtx contextx.IContext, uploadID string) error
 }
 
 // UploadOriginCert uploads origin cert.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error) {
+func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadCloser) (*types.OriginCertPkgDetail, error) {
 	if certFile == nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, file is nil")
+		logger.G.Biz(nCtx).Error("failed to upload origin cert package, file is nil")
 
 		return nil, errors.New("file is nil")
 	}
 
 	// store file to temp.
-	tempFileName, err := m.saveTempFile(ctx, certFile)
+	tempFileName, err := m.saveTempFile(nCtx, certFile)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to save temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin cert package. failed to save temp file")
 
 		return nil, err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, tempFileName)
+	checkingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to get temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin cert package. failed to get temp file")
 
 		return nil, err
 	}
 
 	detail, err := checkOriginCertPkg(checkingFile)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx,
-			"failed to upload origin cert package. failed to check origin cert package. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error(
+			"failed to upload origin cert package. failed to check origin cert package")
 
 		return nil, err
 	}
 
-	uploadingFile, err := m.getTempFile(ctx, tempFileName)
+	uploadingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to get temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin cert package. failed to get temp file")
 
 		return nil, err
 	}
@@ -79,16 +79,16 @@ func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser
 	pkgName := m.wrapOriginPackageName(originalCertFileName)
 
 	// upload to upstream.
-	if err := m.upstreamOriginCert.Store(ctx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, failed to store to upstream: %v", err)
+	if err := m.upstreamOriginCert.Store(nCtx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin cert package, failed to store to upstream")
 
 		return nil, err
 	}
 
 	// get file.
-	file, err := m.upstreamOriginCert.GetFile(ctx, pkgName)
+	file, err := m.upstreamOriginCert.GetFile(nCtx, pkgName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to get file from upstream. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin cert package. failed to get file from upstream")
 
 		return nil, err
 	}
@@ -97,27 +97,27 @@ func (m *Manager) UploadOriginCert(ctx contextx.IContext, certFile io.ReadCloser
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existed, err := m.storageRelease.ExistReleaseCert(ctx)
+	existed, err := m.storageRelease.ExistReleaseCert(nCtx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package. failed to check if release existed. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin cert package. failed to check if release existed")
 
 		return nil, err
 	}
 	detail.Existed = existed
 
 	// create the upload record.
-	uploadID, err := m.storageUpload.CreateCertUpload(ctx, &types.Upload{
+	uploadID, err := m.storageUpload.CreateCertUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginCert,
 		SavedName: pkgName,
 	})
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin cert package, failed to create upload: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin cert package, failed to create upload")
 
 		return nil, err
 	}
 	detail.UploadID = uploadID
 
-	m.logger.InfoCtxf(ctx, "uploaded origin cert package to upstream. file-name(%s)", pkgName)
+	logger.G.Biz(nCtx).With("filename", pkgName).Info("uploaded origin cert package to upstream")
 
 	return detail, nil
 }
@@ -219,41 +219,40 @@ const (
 )
 
 // PublishReleaseCert generates release cert by upload-id.
-func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetCertUpload(ctx, uploadID)
+func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) error {
+	up, err := m.storageUpload.GetCertUpload(nCtx, uploadID)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get upload(%s). err: %v", uploadID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release cert, failed to get upload")
 
 		return err
 	}
 
 	if up.Category != types.UploadCategoryOriginCert {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, invalid category. err: %s", up.Category)
+		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release cert, invalid category")
 
 		return errors.New("invalid category")
 	}
 
 	// get origin file.
-	file, err := m.upstreamOriginCert.GetFile(ctx, up.SavedName)
+	file, err := m.upstreamOriginCert.GetFile(nCtx, up.SavedName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get file(%s). err: %v", up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release cert, failed to get file")
 
 		return err
 	}
 
 	// get origin content.
-	content, err := file.Content(ctx)
+	content, err := file.Content(nCtx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get content. file(%s). err: %v",
-			up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release cert, failed to get content")
 
 		return err
 	}
 
 	// generate release file.
-	generatedFile, err := m.generateCertPkg(ctx, content)
+	generatedFile, err := m.generateCertPkg(nCtx, content)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to generate cert pkg. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert, failed to generate cert pkg")
 
 		return err
 	}
@@ -263,16 +262,16 @@ func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) err
 
 	// upload to upstream.
 	if err = m.upstreamReleaseCert.Store(
-		ctx, fileiface.FileInfo{Name: releaseCertFileName}, generatedFile, true); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to upload to upstream. err: %v", err)
+		nCtx, fileiface.FileInfo{Name: releaseCertFileName}, generatedFile, true); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert, failed to upload to upstream")
 
 		return err
 	}
 
 	// get release file.
-	releaseFile, err := m.upstreamReleaseCert.GetFile(ctx, releaseCertFileName)
+	releaseFile, err := m.upstreamReleaseCert.GetFile(nCtx, releaseCertFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to get release file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert, failed to get release file")
 
 		return err
 	}
@@ -281,7 +280,7 @@ func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) err
 	releaseInfo := releaseFile.Info()
 
 	// upsert release cert.
-	if err = m.storageRelease.UpsertReleaseCert(ctx, types.ReleaseCert{
+	if err = m.storageRelease.UpsertReleaseCert(nCtx, types.ReleaseCert{
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypeCert,
@@ -292,27 +291,27 @@ func (m *Manager) PublishReleaseCert(ctx contextx.IContext, uploadID string) err
 			Enabled:      true,
 			AsDefault:    true,
 			UpdatedAt:    time.Time{},
-			Operator:     ctx.BKUsername(),
+			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,
 		},
 	}); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release cert, failed to upsert release cert: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert, failed to upsert release cert")
 
 		return err
 	}
 
-	m.logger.InfoCtxf(ctx, "generated and published release cert. file(%s), md5(%s)", releaseInfo.Name, releaseInfo.MD5)
+	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release cert")
 
 	return nil
 }
 
-func (m *Manager) generateCertPkg(ctx context.Context, sourceFile io.ReadCloser) (io.ReadCloser, error) {
-	tempFileName, err := m.createTempFile(ctx)
+func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
+	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	targetFile, err := m.openTempFile(ctx, tempFileName)
+	targetFile, err := m.openTempFile(nCtx, tempFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -370,10 +369,10 @@ func (m *Manager) generateCertPkg(ctx context.Context, sourceFile io.ReadCloser)
 		return nil, err
 	}
 
-	file, err := m.tempFileGroup.GetFile(ctx, tempFileName)
+	file, err := m.tempFileGroup.GetFile(nCtx, tempFileName)
 	if err != nil {
 		return nil, err
 	}
 
-	return file.Content(ctx)
+	return file.Content(nCtx)
 }

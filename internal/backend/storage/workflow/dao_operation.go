@@ -21,12 +21,12 @@ import (
 )
 
 // getOperation gets operation by operationID.
-func (s *Storage) getOperation(ctx contextx.IContext, operationID string) (*workoper.Operation, error) {
-	if ctx == nil {
+func (s *Storage) getOperation(nCtx contextx.IContext, operationID string) (*workoper.Operation, error) {
+	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
-	opers, _, err := s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID))
+	opers, _, err := s.daoOperation.List(nCtx, types.UnlimitedPage(), operation.WithOperationID(operationID))
 	if err != nil {
 		return nil, err
 	}
@@ -40,8 +40,8 @@ func (s *Storage) getOperation(ctx contextx.IContext, operationID string) (*work
 }
 
 // upsertOperation upsert operation.
-func (s *Storage) upsertOperation(ctx contextx.IContext, operation *workoper.Operation) error {
-	if ctx == nil {
+func (s *Storage) upsertOperation(nCtx contextx.IContext, operation *workoper.Operation) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -49,23 +49,23 @@ func (s *Storage) upsertOperation(ctx contextx.IContext, operation *workoper.Ope
 		return basestorage.ErrUpsertNilData()
 	}
 
-	return s.daoOperation.Upsert(ctx, operation)
+	return s.daoOperation.Upsert(nCtx, operation)
 }
 
 // listOperationByTriggerID lists operation by triggerID.
 func (s *Storage) listOperationByTriggerID(
-	ctx contextx.IContext, page types.Page, triggerID ...string) (
+	nCtx contextx.IContext, page types.Page, triggerID ...string) (
 	[]*workoper.Operation, int64, error) {
 
-	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID...))
+	return s.daoOperation.List(nCtx, page, operation.WithTriggerID(triggerID...))
 }
 
 // listOperation lists operation.
 func (s *Storage) listOperationByOperationID(
-	ctx contextx.IContext, operationID ...string) (
+	nCtx contextx.IContext, operationID ...string) (
 	[]*workoper.Operation, int64, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return nil, 0, basestorage.ErrNilContent()
 	}
 
@@ -73,12 +73,12 @@ func (s *Storage) listOperationByOperationID(
 		return nil, 0, basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.List(ctx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
+	return s.daoOperation.List(nCtx, types.UnlimitedPage(), operation.WithOperationID(operationID...))
 }
 
 // deleteOperations deletes operations by operation ids.
-func (s *Storage) deleteOperations(ctx contextx.IContext, operationID ...string) error {
-	if ctx == nil {
+func (s *Storage) deleteOperations(nCtx contextx.IContext, operationID ...string) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -86,12 +86,12 @@ func (s *Storage) deleteOperations(ctx contextx.IContext, operationID ...string)
 		return basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.Delete(ctx, operationID...)
+	return s.daoOperation.Delete(nCtx, operationID...)
 }
 
 // pullOperationInstanceIDs pulls operation instance IDs from operation.
-func (s *Storage) pullOperationInstanceIDs(ctx contextx.IContext, operationID string, operInstIDs ...string) error {
-	if ctx == nil {
+func (s *Storage) pullOperationInstanceIDs(nCtx contextx.IContext, operationID string, operInstIDs ...string) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -99,14 +99,14 @@ func (s *Storage) pullOperationInstanceIDs(ctx contextx.IContext, operationID st
 		return basestorage.ErrEmptyOperationID()
 	}
 
-	return s.daoOperation.PullOperInstIDs(ctx, operationID, operInstIDs...)
+	return s.daoOperation.PullOperInstIDs(nCtx, operationID, operInstIDs...)
 }
 
 // listEmptyOperationByTriggerID lists empty operation by triggerID.
-func (s *Storage) listEmptyOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID string) (
+func (s *Storage) listEmptyOperationByTriggerID(nCtx contextx.IContext, page types.Page, triggerID string) (
 	[]*workoper.Operation, int64, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return nil, 0, basestorage.ErrNilContent()
 	}
 
@@ -118,5 +118,5 @@ func (s *Storage) listEmptyOperationByTriggerID(ctx contextx.IContext, page type
 		return nil, 0, basestorage.ErrEmptyTriggerID()
 	}
 
-	return s.daoOperation.List(ctx, page, operation.WithTriggerID(triggerID), operation.WithEmptyOperation(true))
+	return s.daoOperation.List(nCtx, page, operation.WithTriggerID(triggerID), operation.WithEmptyOperation(true))
 }

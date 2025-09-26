@@ -16,20 +16,20 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
-	return &dao{client: client.Collection(TableName()), logger: logger}
+func newDao(client *mongo.Database) *dao {
+	return &dao{client: client.Collection(TableName())}
 }
 
 type dao struct {
 	client *mongo.Collection
-	logger logger.ILogger
 }
 
 // nolint:contextcheck
@@ -46,29 +46,29 @@ func (d *dao) ensureIndexes() error {
 		return err
 	}
 
-	d.logger.Infof("created required indexes, table(%s), indexes(%v)", TableName(), indexes)
+	logger.G.Sys().With("table", TableName(), "indexes", indexes).Info("created required indexes")
 
 	return nil
 }
 
-func (d *dao) generate(ctx context.Context, key string) (int64, error) {
+func (d *dao) generate(nCtx contextx.IContext, key string) (int64, error) {
 	filter := append(base.AliveFilter(), bson.E{Key: "data.key", Value: key})
 	opts := new(options.FindOneAndUpdateOptions)
 	opts.SetUpsert(true)
 
-	result := d.client.FindOneAndUpdate(ctx, filter, buildGenerateParam(), opts)
+	result := d.client.FindOneAndUpdate(nCtx, filter, buildGenerateParam(), opts)
 	if errors.Is(result.Err(), mongo.ErrNoDocuments) {
 		return 0, nil
 	}
 	if err := result.Err(); err != nil {
-		d.logger.Errorf("failed to generate counter. key(%s): %v", key, err)
+		logger.G.Sys().WithErr(err).With("key", key).Info("failed to generate counter")
 
 		return -1, err
 	}
 
 	data := &TableCounter{}
 	if err := result.Decode(data); err != nil {
-		d.logger.Errorf("failed to decode counter. key(%s): %v", key, err)
+		logger.G.Sys().WithErr(err).With("key", key).Info("failed to decode counter")
 
 		return -1, err
 	}

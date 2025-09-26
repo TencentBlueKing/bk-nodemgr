@@ -12,13 +12,13 @@
 package configpolicy
 
 import (
-	"context"
 	"errors"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -27,33 +27,32 @@ import (
 // IHandler config policy handler interface.
 type IHandler interface {
 	// Count count config policy by conditions.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// List lists config policy by page and conditions.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.ConfigPolicy, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicy, int64, error)
 
 	// Get gets config policy.
-	Get(ctx context.Context, configPolicyID int64) (*types.ConfigPolicy, error)
+	Get(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error)
 
 	// Create creates config policy.
-	Create(ctx context.Context, configPolicy *types.ConfigPolicy) (int64, error)
+	Create(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error)
 
 	// UpdateMany updates config policies.
-	UpdateMany(ctx context.Context, configPolicies ...*types.ConfigPolicy) error
+	UpdateMany(nCtx contextx.IContext, configPolicies ...*types.ConfigPolicy) error
 
 	// DeleteMany deletes config policies by ids.
-	DeleteMany(ctx context.Context, configPolicyIDs ...int64) error
+	DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
 
 	// EnableMany enables config policies by ids.
-	EnableMany(ctx context.Context, configPolicyIDs ...int64) error
+	EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
 
 	// DisableMany disables config policies by ids.
-	DisableMany(ctx context.Context, configPolicyIDs ...int64) error
+	DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error
 }
 
 type handler struct {
 	client *mongo.Database
-	logger logger.ILogger
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
 	daoMap sync.Map
@@ -64,10 +63,9 @@ func (h *handler) tenantDao(tenantID string) *dao {
 		return d.(*dao) // nolint: forcetypeassert
 	}
 
-	newDaoClient := newDao(tenantID, h.client, h.logger)
+	newDaoClient := newDao(tenantID, h.client)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure config policy indexes. tenant-id(%s): %v",
-			tenantID, errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure config policy indexes")
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
@@ -78,17 +76,16 @@ func (h *handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new accesspoint handler.
-func New(client *mongo.Database, logger logger.ILogger) IHandler {
+func New(client *mongo.Database) IHandler {
 	return &handler{
 		client: client,
-		logger: logger,
 		daoMap: sync.Map{},
 	}
 }
 
 // Count count config policy by conditions.
-func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -98,12 +95,12 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).Count(ctx, filter)
+	return h.tenantDao(tenantID).Count(nCtx, filter)
 }
 
 // List lists config policy by page and conditions.
-func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.ConfigPolicy, int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicy, int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -113,14 +110,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	configPolicies, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	configPolicies, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -134,8 +131,8 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 }
 
 // Get gets config policy.
-func (h *handler) Get(ctx context.Context, configPolicyID int64) (*types.ConfigPolicy, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Get(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +140,7 @@ func (h *handler) Get(ctx context.Context, configPolicyID int64) (*types.ConfigP
 	filter := base.AliveFilter()
 	filter = WithConfigPolicyID(configPolicyID)(filter)
 
-	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +149,8 @@ func (h *handler) Get(ctx context.Context, configPolicyID int64) (*types.ConfigP
 }
 
 // Create creates config policy.
-func (h *handler) Create(ctx context.Context, configPolicy *types.ConfigPolicy) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Create(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return -1, err
 	}
@@ -173,12 +170,12 @@ func (h *handler) Create(ctx context.Context, configPolicy *types.ConfigPolicy) 
 	data := convertConfigPolicyFromTypes(configPolicy)
 	data.Version = 1
 
-	return h.tenantDao(tenantID).create(ctx, data)
+	return h.tenantDao(tenantID).create(nCtx, data)
 }
 
 // UpdateMany updates config policies.
-func (h *handler) UpdateMany(ctx context.Context, configPolicies ...*types.ConfigPolicy) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpdateMany(nCtx contextx.IContext, configPolicies ...*types.ConfigPolicy) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -204,12 +201,12 @@ func (h *handler) UpdateMany(ctx context.Context, configPolicies ...*types.Confi
 		}
 	}
 
-	return h.tenantDao(tenantID).updateMany(ctx, tenantID, data)
+	return h.tenantDao(tenantID).updateMany(nCtx, tenantID, data)
 }
 
 // DeleteMany deletes config policies by ids.
-func (h *handler) DeleteMany(ctx context.Context, configPolicyIDs ...int64) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -218,12 +215,12 @@ func (h *handler) DeleteMany(ctx context.Context, configPolicyIDs ...int64) erro
 		return base.ErrEmptyParamData()
 	}
 
-	return h.tenantDao(tenantID).deleteMany(ctx, tenantID, configPolicyIDs...)
+	return h.tenantDao(tenantID).deleteMany(nCtx, tenantID, configPolicyIDs...)
 }
 
 // EnableMany enables config policies by ids.
-func (h *handler) EnableMany(ctx context.Context, configPolicyIDs ...int64) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -232,12 +229,12 @@ func (h *handler) EnableMany(ctx context.Context, configPolicyIDs ...int64) erro
 		return base.ErrEmptyParamData()
 	}
 
-	return h.tenantDao(tenantID).setEnabledMany(ctx, tenantID, true, configPolicyIDs...)
+	return h.tenantDao(tenantID).setEnabledMany(nCtx, tenantID, true, configPolicyIDs...)
 }
 
 // DisableMany disables config policies by ids.
-func (h *handler) DisableMany(ctx context.Context, configPolicyIDs ...int64) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -246,7 +243,7 @@ func (h *handler) DisableMany(ctx context.Context, configPolicyIDs ...int64) err
 		return base.ErrEmptyParamData()
 	}
 
-	return h.tenantDao(tenantID).setEnabledMany(ctx, tenantID, false, configPolicyIDs...)
+	return h.tenantDao(tenantID).setEnabledMany(nCtx, tenantID, false, configPolicyIDs...)
 }
 
 func convertConfigPolicyToTypes(cp *ConfigPolicy) *types.ConfigPolicy {

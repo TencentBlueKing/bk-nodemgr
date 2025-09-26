@@ -29,7 +29,6 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -97,7 +96,6 @@ func New(opts ...OptionFn) *Manager {
 		localFilePool: &localFilePool{
 			files: map[string]*localFile{},
 		},
-		logger: logger.LoggerDefault{},
 	}
 
 	for _, opt := range opts {
@@ -109,13 +107,6 @@ func New(opts ...OptionFn) *Manager {
 
 // OptionFn is an option function for ProviderEtcd.
 type OptionFn func(manager *Manager)
-
-// WithLogger sets the logger.
-func WithLogger(logger logger.ILogger) OptionFn {
-	return func(manager *Manager) {
-		manager.logger = logger
-	}
-}
 
 // WithUpstreamOriginServerFileGroup sets the upstream file group.
 func WithUpstreamOriginServerFileGroup(fileGroup fileiface.FileGroup) OptionFn {
@@ -335,7 +326,7 @@ type Manager struct {
 	storageTopo    topo.IStorage
 
 	// logger.
-	logger logger.ILogger
+
 }
 
 // Start starts the manager.
@@ -384,15 +375,13 @@ func (m *Manager) Start(_ context.Context) error {
 		return errors.New("invalid storage topo")
 	}
 
-	m.logger.Infof("started manager")
-
 	return nil
 }
 
-func (m *Manager) saveTempFile(ctx context.Context, file io.ReadCloser) (string, error) {
+func (m *Manager) saveTempFile(nCtx contextx.IContext, file io.ReadCloser) (string, error) {
 	tempFileName := uuid.NewString() + ".tgz"
 
-	err := m.tempFileGroup.Store(ctx, fileiface.FileInfo{Name: tempFileName}, file, true)
+	err := m.tempFileGroup.Store(nCtx, fileiface.FileInfo{Name: tempFileName}, file, true)
 	if err != nil {
 		return "", err
 	}
@@ -400,20 +389,20 @@ func (m *Manager) saveTempFile(ctx context.Context, file io.ReadCloser) (string,
 	return tempFileName, nil
 }
 
-func (m *Manager) getTempFile(ctx context.Context, tempFileName string) (io.ReadCloser, error) {
-	fileToCheck, err := m.tempFileGroup.GetFile(ctx, tempFileName)
+func (m *Manager) getTempFile(nCtx contextx.IContext, tempFileName string) (io.ReadCloser, error) {
+	fileToCheck, err := m.tempFileGroup.GetFile(nCtx, tempFileName)
 	if err != nil {
 		return nil, err
 	}
 
-	return fileToCheck.Content(ctx)
+	return fileToCheck.Content(nCtx)
 }
 
-func (m *Manager) createTempFile(ctx context.Context) (string, error) {
-	return m.saveTempFile(ctx, io.NopCloser(strings.NewReader("")))
+func (m *Manager) createTempFile(nCtx contextx.IContext) (string, error) {
+	return m.saveTempFile(nCtx, io.NopCloser(strings.NewReader("")))
 }
 
-func (m *Manager) openTempFile(_ context.Context, tempFileName string) (io.ReadWriteCloser, error) {
+func (m *Manager) openTempFile(_ contextx.IContext, tempFileName string) (io.ReadWriteCloser, error) {
 	// nolint: gosec, mnd
 	return os.OpenFile(
 		local.GetLocalFileGroupAbsFilePath(m.tempFileGroup, tempFileName),

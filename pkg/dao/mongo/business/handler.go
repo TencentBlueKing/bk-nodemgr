@@ -12,12 +12,11 @@
 package business
 
 import (
-	"context"
-	"errors"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,19 +25,18 @@ import (
 // IHandler business Handler interface.
 type IHandler interface {
 	// Count counts business by opts.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// List lists business by page and opts.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.Business, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Business, int64, error)
 
 	// UpsertMany updates or inserts business.
-	UpsertMany(ctx context.Context, bizs ...*types.Business) error
+	UpsertMany(nCtx contextx.IContext, bizs ...*types.Business) error
 }
 
 // Handler business Handler.
 type Handler struct {
 	client *mongo.Database
-	logger logger.ILogger
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
 	daoMap sync.Map
@@ -49,9 +47,9 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 		return d.(*dao)
 	}
 
-	newDaoClient := newDao(tenantID, h.client, h.logger)
+	newDaoClient := newDao(tenantID, h.client)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure business indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure business indexes")
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
@@ -62,17 +60,16 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new business Handler.
-func New(client *mongo.Database, logger logger.ILogger) *Handler {
+func New(client *mongo.Database) *Handler {
 	return &Handler{
 		client: client,
-		logger: logger,
 		daoMap: sync.Map{},
 	}
 }
 
 // Count counts business by opts.
-func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -82,14 +79,14 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.tenantDao(tenantID).Count(ctx, filter)
+	return h.tenantDao(tenantID).Count(nCtx, filter)
 }
 
 // List list business by page and conditions.
-func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*types.Business, int64, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -99,14 +96,14 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	bizs, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	bizs, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -124,8 +121,8 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 }
 
 // UpsertMany updates or inserts business.
-func (h *Handler) UpsertMany(ctx context.Context, bizs ...*types.Business) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) UpsertMany(nCtx contextx.IContext, bizs ...*types.Business) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -151,7 +148,7 @@ func (h *Handler) UpsertMany(ctx context.Context, bizs ...*types.Business) error
 		}
 	}
 
-	if err := h.tenantDao(tenantID).upsertMany(ctx, data); err != nil {
+	if err := h.tenantDao(tenantID).upsertMany(nCtx, data); err != nil {
 		return err
 	}
 

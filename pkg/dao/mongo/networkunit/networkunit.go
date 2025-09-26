@@ -12,23 +12,22 @@
 package networkunit
 
 import (
-	"context"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(client *mongo.Database) *dao {
 	tableName := TableName()
 	d := &dao{
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
-		counter:   counter.New(client, logger),
+		counter:   counter.New(client),
 	}
 
 	d.IOrm = base.NewOrm[*NetworkUnit, NetworkUnit](d)
@@ -39,7 +38,6 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
 	counter   counter.Handler
 
 	base.IOrm[*NetworkUnit, NetworkUnit]
@@ -48,11 +46,6 @@ type dao struct {
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -67,8 +60,8 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) create(ctx context.Context, networkUnit *NetworkUnit) (int64, error) {
-	newSequence, err := d.counter.Generate(ctx, TableName())
+func (d *dao) create(nCtx contextx.IContext, networkUnit *NetworkUnit) (int64, error) {
+	newSequence, err := d.counter.Generate(nCtx, TableName())
 	if err != nil {
 		return 0, err
 	}
@@ -82,38 +75,38 @@ func (d *dao) create(ctx context.Context, networkUnit *NetworkUnit) (int64, erro
 		Data: networkUnit,
 	}
 
-	if _, err = d.client.InsertOne(ctx, table); err != nil {
+	if _, err = d.client.InsertOne(nCtx, table); err != nil {
 		return 0, err
 	}
 
 	return newSequence, nil
 }
 
-func (d *dao) updateMany(ctx context.Context, tenantID string, networkunits []*NetworkUnit) error {
+func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, networkunits []*NetworkUnit) error {
 	models := buildUpdateManyParams(tenantID, networkunits)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated networkunits, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("updated networkunits")
 	}
 
 	return nil
 }
 
-func (d *dao) deleteMany(ctx context.Context, tenantID string, networkUnitIDs ...int64) error {
+func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, networkUnitIDs ...int64) error {
 	models := buildDeleteManyParams(tenantID, networkUnitIDs...)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully deleted networkunits, deleted-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("deleted-count", result.MatchedCount).Info("deleted networkunits")
 	}
 
 	return nil

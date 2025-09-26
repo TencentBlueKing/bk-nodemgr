@@ -15,8 +15,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	storagePlugin "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,8 +33,7 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/plugin"),
-		logger: capability.Logger,
+		rg: rg.Group("/plugin"),
 	}
 }
 

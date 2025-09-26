@@ -17,7 +17,6 @@ import (
 
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/joho/godotenv"
 )
@@ -54,7 +53,6 @@ func testClient(t *testing.T) IHandler {
 		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger.LoggerDefault{},
 	}
 
 	h, err := New(clientCap, &Config{})

@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
@@ -85,7 +86,7 @@ func (handler *triggerHandler) Start() {
 		handler.scheduler.Terminate()
 	}
 
-	handler.scheduler = scheduler.NewScheduler(scheduler.WithLogger(handler.mgr.logger))
+	handler.scheduler = scheduler.NewScheduler()
 	handler.initSchedulerTasks()
 	handler.scheduler.Start()
 }
@@ -168,7 +169,8 @@ func (handler *triggerHandler) initSchedulerTasks() {
 	for _, task := range scheduleTasks {
 		err := handler.scheduler.RegisterTask(task)
 		if err != nil {
-			handler.mgr.logger.Errorf("failed to register task, task-id(%s): %v", task.ID, err)
+			logger.G.Sys().WithErr(err).With("task-id", task.ID).Error("failed to register task")
+
 			continue
 		}
 	}
@@ -184,7 +186,7 @@ func (handler *triggerHandler) syncOnceTrigger(ctx contextx.IContext) error {
 		return err
 	}
 
-	handler.mgr.logger.Debugf("synced once triggers. count: %d", len(list))
+	logger.G.Sys().With("count", len(list)).Debug("synced once triggers")
 
 	handler.onceTriggers.set(list)
 
@@ -201,7 +203,7 @@ func (handler *triggerHandler) syncOrderedTrigger(ctx contextx.IContext) error {
 		return err
 	}
 
-	handler.mgr.logger.Debugf("synced ordered triggers. count: %d", len(list))
+	logger.G.Sys().With("count", len(list)).Debug("synced ordered triggers")
 
 	handler.orderedTriggers.set(list)
 
@@ -218,7 +220,7 @@ func (handler *triggerHandler) syncPeriodicTrigger(ctx contextx.IContext) error 
 		return err
 	}
 
-	handler.mgr.logger.Debugf("synced periodic triggers. count: %d", len(list))
+	logger.G.Sys().With("count", len(list)).Debug("synced periodic triggers")
 
 	handler.periodicTriggers.set(list)
 
@@ -230,7 +232,7 @@ const defaultCheckConcurrency = 100
 
 // checkTriggerList checks trigger list and executes triggers.
 func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*trigger.Trigger) error {
-	handler.mgr.logger.DebugCtxf(ctx, "check trigger list. count: %d", len(list))
+	logger.G.Sys().With("count", len(list)).Debug("check trigger list")
 
 	gp := gopool.NewPool()
 	gp.SetLimit(defaultCheckConcurrency)
@@ -238,8 +240,6 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 	for idx := range list {
 		trig := list[idx]
 		fn := func() error {
-			handler.mgr.logger.DebugCtxf(ctx, "try lock trigger. trigger-id:(%s)", trig.TriggerID)
-
 			mutex := handler.tryLockTrigger(ctx, trig)
 			if mutex == nil {
 				return nil
@@ -248,19 +248,17 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 				_ = mutex.Unlock()
 			}()
 
-			handler.mgr.logger.DebugCtxf(ctx, "check trigger. trigger-id:(%s)", trig.TriggerID)
-
 			// get trigger from storage after get lock.
 			// make sure the trigger data is fresh.
 			trigCtl, err := handler.mgr.GetTrigger(ctx, trig.TriggerID)
 			if err != nil {
-				handler.mgr.logger.ErrorCtxf(ctx, "failed to get trigger. trigger-id:(%s): %v", trig.TriggerID, err)
+				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to get trigger")
 
 				return nil
 			}
 
 			if err := handler.doTrigger(ctx, trigCtl); err != nil {
-				handler.mgr.logger.ErrorCtxf(ctx, "failed to do trigger. trigger-id:(%s): %v", trig.TriggerID, err)
+				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to do trigger")
 
 				return nil
 			}
@@ -272,7 +270,8 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 	}
 
 	if err := gp.Wait(); err != nil {
-		handler.mgr.logger.Errorf("check periodic trigger failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to check trigger list")
+
 		return err
 	}
 
@@ -280,22 +279,19 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 }
 
 func (handler *triggerHandler) tryLockTrigger(ctx contextx.IContext, trig *trigger.Trigger) locker.Mutex {
+	logger.G.Sys().With("trigger-id", trig.TriggerID).Debug("try to lock trigger")
+
 	mutex := handler.globalLocker.NewMutex(trig.TriggerID)
-
-	handler.mgr.logger.DebugCtxf(ctx, "try lock trigger. trigger-id:(%s)", trig.TriggerID)
-
 	err := mutex.TryLock()
 	if err != nil {
-		handler.mgr.logger.ErrorCtxf(ctx, "failed to lock trigger. trigger-id:(%s): %v", trig.TriggerID, err)
+		logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to to lock trigger")
 
 		return nil
 	}
 
 	if handler.checkFeasibility(ctx, trig) != nil {
 		_ = mutex.Unlock()
-
-		handler.mgr.logger.DebugCtxf(ctx, "trigger is not feasible. trigger-id:(%s), state(%s)",
-			trig.TriggerID, trig.State)
+		logger.G.Sys().With("trigger-id", trig.TriggerID, "state", trig.State).Debug("trigger is not feasible")
 
 		return nil
 	}
@@ -370,14 +366,17 @@ func (handler *triggerHandler) doTrigger(ctx contextx.IContext, trigCtl ITrigger
 		ctl := instanceCtl
 		gp.Go(func() error {
 			if err := ctl.LaunchOperationInstance(ctx); err != nil {
-				handler.mgr.logger.ErrorCtxf(ctx, "failed to launch operation instance. trigger-id(%s), oper-inst-id(%s), err(%s)",
-					trigCtl.GetTriggerID(), ctl.GetOperationInstanceID(), err.Error())
+				logger.G.Sys().
+					WithErr(err).
+					With("trigger-id", trigCtl.GetTriggerID(), "oper-inst-id", ctl.GetOperationInstanceID()).
+					Error("failed to launch operation instance")
 
 				return err
 			}
 
-			handler.mgr.logger.InfoCtxf(ctx, "launched operation instance. trigger-id(%s), oper-inst-id(%s)",
-				trigCtl.GetTriggerID(), ctl.GetOperationInstanceID())
+			logger.G.Sys().
+				With("trigger-id", trigCtl.GetTriggerID(), "oper-inst-id", ctl.GetOperationInstanceID()).
+				Info("launched operation instance")
 
 			return nil
 		})
@@ -386,8 +385,7 @@ func (handler *triggerHandler) doTrigger(ctx contextx.IContext, trigCtl ITrigger
 	// update triggered time if there is any instance launched.
 	if len(instanceCtls) > 0 {
 		if err = trigCtl.UpdateLastTriggeredTime(ctx); err != nil {
-			handler.mgr.logger.WarnCtxf(ctx, "failed to update last triggered time. trigger-id:(%s): %v",
-				trigCtl.GetTriggerID(), err)
+			logger.G.Sys().WithErr(err).With("trigger-id", trigCtl.GetTriggerID()).Error("failed to update last triggered time")
 		}
 	}
 
@@ -400,17 +398,17 @@ func (handler *triggerHandler) initEmptyOperation(ctx contextx.IContext, trigCtl
 		return err
 	}
 
-	handler.mgr.logger.DebugCtxf(ctx,
-		"init empty operation, list empty operation(%d). trigger-id(%s), operation-count(%d)",
-		len(operList), trigCtl.GetTriggerID(), len(operList))
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "operation-count", len(operList)).Debug("init empty operation")
 
 	gp := gopool.NewPool()
 	for _, operCtl := range operList {
 		ctl := operCtl
 		gp.Go(func() error {
 			if _, err := ctl.CreateOperationInstance(ctx); err != nil {
-				handler.mgr.logger.ErrorCtxf(ctx, "failed to create operation instance. trigger-id(%s), operation-id(%s), err(%v)",
-					trigCtl.GetTriggerID(), ctl.GetOperationID(), err)
+				logger.G.Sys().
+					WithErr(err).
+					With("trigger-id", trigCtl.GetTriggerID(), "operation-id", ctl.GetOperationID()).
+					Error("failed to create operation instance")
 
 				return err
 			}
@@ -426,8 +424,10 @@ func (handler *triggerHandler) doOnceTrigger(
 	ctx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
 
 	if err := handler.initEmptyOperation(ctx, trigCtl, maxOnceTriggerProcessLimit); err != nil {
-		handler.mgr.logger.WarnCtxf(ctx, "failed to init empty operation. trigger-id(%s), err(%v)",
-			trigCtl.GetTriggerID(), err)
+		logger.G.Sys().
+			WithErr(err).
+			With("trigger-id", trigCtl.GetTriggerID()).
+			Warn("failed to init once empty operation")
 	}
 
 	instanceList, err := trigCtl.ListOperationInstances(
@@ -467,8 +467,10 @@ func (handler *triggerHandler) doOrderedTrigger(
 	}
 
 	if err := handler.initEmptyOperation(ctx, trigCtl, idleNum); err != nil {
-		handler.mgr.logger.WarnCtxf(ctx, "failed to init empty operation. trigger-id(%s), err(%v)",
-			trigCtl.GetTriggerID(), err)
+		logger.G.Sys().
+			WithErr(err).
+			With("trigger-id", trigCtl.GetTriggerID()).
+			Warn("failed to init ordered empty operation")
 	}
 
 	instanceList, err := trigCtl.ListOperationInstances(ctx, types.Page{Limit: idleNum}, operation.StateInit)

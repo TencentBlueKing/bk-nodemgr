@@ -23,7 +23,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -38,13 +37,11 @@ const (
 
 // NewActionRestartNode get a new action.
 func NewActionRestartNode(storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	gseHandler gse.IHandler,
-	logger logger.ILogger) action.Definition {
+	gseHandler gse.IHandler) action.Definition {
 
 	return &actionRestartNode{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,
-		logger:                logger,
 	}
 }
 
@@ -68,7 +65,6 @@ type RestartParams struct {
 type actionRestartNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	gseHandler            gse.IHandler
-	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

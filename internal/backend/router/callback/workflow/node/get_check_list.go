@@ -15,6 +15,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -24,24 +26,27 @@ import (
 
 // GetCheckList get gse node check list.
 func (h *handler) GetCheckList(gCtx *gin.Context) {
+
+	nCtx := contextx.New(gCtx)
+
 	req := new(protoCallback.GetCheckListReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse node check list failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to decode request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse node check list failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to validate request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
+	nodeConf, err := h.GetNodeDeploymentNodeConf(nCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("get gse node check list failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to get node deployment conf")
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
@@ -50,7 +55,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 	conf := new(CheckList)
 	conf.DiskRequires, err = h.calCheckListDiskRequires(nodeConf)
 	if err != nil {
-		h.logger.Errorf("get gse node check list failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to calculate disk requires")
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
@@ -58,7 +63,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 
 	conf.PortPolicies, err = h.calCheckListPortPolicies(nodeConf)
 	if err != nil {
-		h.logger.Errorf("get gse node check list failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to calculate port policies")
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
@@ -66,7 +71,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 
 	conf.NetworkPolicies, err = h.calCheckListNetworkPolicies(nodeConf)
 	if err != nil {
-		h.logger.Errorf("get gse node check list failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to calculate network policies")
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return

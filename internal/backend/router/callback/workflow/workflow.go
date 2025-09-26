@@ -15,22 +15,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg     *gin.RouterGroup
-	logger logger.ILogger
+	rg *gin.RouterGroup
 }
 
 // newHandler ...
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/workflow"),
-		logger: capability.Logger,
+		rg: rg.Group("/workflow"),
 	}
 }
 

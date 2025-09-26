@@ -23,6 +23,7 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/epluginpkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -33,77 +34,77 @@ import (
 // IExternalPlugin defines the interface for external plugin.
 type IExternalPlugin interface {
 	// UploadOriginExternalPlugin uploads the origin external plugin.
-	UploadOriginExternalPlugin(ctx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginExternalPluginPkgDetail, error)
+	UploadOriginExternalPlugin(nCtx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginExternalPluginPkgDetail, error)
 
 	// PublishReleaseExternalPlugin generates release external plugin by upload-id.
-	PublishReleaseExternalPlugin(ctx contextx.IContext, uploadID string) error
+	PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string) error
 }
 
 // UploadOriginExternalPlugin uploads origin external plugin.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginExternalPlugin(ctx contextx.IContext, externalPluginFile io.ReadCloser) (
+func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPluginFile io.ReadCloser) (
 	*types.OriginExternalPluginPkgDetail, error) {
 
 	if externalPluginFile == nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package, file is nil")
+		logger.G.Biz(nCtx).Error("failed to upload origin external plugin package, file is nil")
 
 		return nil, errors.New("file is nil")
 	}
 
 	// store file to temp.
-	tempFileName, err := m.saveTempFile(ctx, externalPluginFile)
+	tempFileName, err := m.saveTempFile(nCtx, externalPluginFile)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package. failed to save temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to save temp file")
 
 		return nil, err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, tempFileName)
+	checkingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package. failed to get temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to get temp file")
 
 		return nil, err
 	}
 
 	detail, err := checkOriginExternalPluginPkg(checkingFile)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx,
-			"failed to upload origin external plugin package. failed to check origin external plugin package. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to check origin external plugin package")
 
 		return nil, err
 	}
 
-	uploadingFile, err := m.getTempFile(ctx, tempFileName)
+	uploadingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package. failed to get temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to get temp file")
 
 		return nil, err
 	}
 
 	gen := types.Generation2
-	originalPkgName, err := epluginpkg.FormatPkgName(detail.Name, types.ReleaseTypeOriginExternalPlugin, gen, platform.EmptyPlatform(), detail.Version)
+	originalPkgName, err := epluginpkg.FormatPkgName(
+		detail.Name, types.ReleaseTypeOriginExternalPlugin, gen, platform.EmptyPlatform(), detail.Version)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package, failed to format package. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to format package")
 
 		return nil, fmt.Errorf("failed to upload origin external plugin package: %w", err)
 	}
 
-	m.logger.InfoCtxf(ctx, "formatting origin external plugin package: %s", originalPkgName)
+	logger.G.Biz(nCtx).With("filename", originalPkgName).Info("formatting origin external plugin package")
 
 	originalPkgName = m.wrapOriginPackageName(originalPkgName)
 
 	// upload to upstream.
-	if err := m.upstreamOriginExternalPlugin.Store(ctx, fileiface.FileInfo{Name: originalPkgName}, uploadingFile, true); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package, failed to store to upstream: %v", err)
+	if err := m.upstreamOriginExternalPlugin.Store(nCtx, fileiface.FileInfo{Name: originalPkgName}, uploadingFile, true); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to store to upstream")
 
 		return nil, err
 	}
 
 	// get file.
-	file, err := m.upstreamOriginExternalPlugin.GetFile(ctx, originalPkgName)
+	file, err := m.upstreamOriginExternalPlugin.GetFile(nCtx, originalPkgName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package. failed to get file from upstream. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to get file from upstream")
 
 		return nil, err
 	}
@@ -112,27 +113,27 @@ func (m *Manager) UploadOriginExternalPlugin(ctx contextx.IContext, externalPlug
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existed, err := m.storageRelease.ExistReleaseExternalPlugin(ctx, detail.Name, detail.Version, detail.Platforms...)
+	existed, err := m.storageRelease.ExistReleaseExternalPlugin(nCtx, detail.Name, detail.Version, detail.Platforms...)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package. failed to check if release existed. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to check if release existed")
 
 		return nil, err
 	}
 	detail.Existed = existed
 
 	// create the upload record.
-	uploadID, err := m.storageUpload.CreateExternalPluginUpload(ctx, &types.Upload{
+	uploadID, err := m.storageUpload.CreateExternalPluginUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginExternalPlugin,
 		SavedName: originalPkgName,
 	})
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin external plugin package, failed to create upload: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to create upload")
 
 		return nil, err
 	}
 	detail.UploadID = uploadID
 
-	m.logger.InfoCtxf(ctx, "uploaded origin external plugin package to upstream. file-name(%s)", originalPkgName)
+	logger.G.Biz(nCtx).With("filename", originalPkgName).Info("uploaded origin external plugin package to upstream")
 
 	return detail, nil
 }
@@ -180,7 +181,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 
 				pluginProject := new(ExternalPluginProject)
 				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
-					return fmt.Errorf("failed to decode project.yaml: %v", err)
+					return fmt.Errorf("failed to decode project.yaml")
 				}
 
 				detail.Name = pluginProject.Name
@@ -237,62 +238,61 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 
 // PublishReleaseExternalPlugin generates release external plugin by upload-id.
 // nolint: funlen,gocognit
-func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetExternalPluginUpload(ctx, uploadID)
+func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string) error {
+	up, err := m.storageUpload.GetExternalPluginUpload(nCtx, uploadID)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to get upload(%s). err: %v", uploadID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release external plugin, failed to get upload")
 
 		return err
 	}
 
 	if up.Category != types.UploadCategoryOriginExternalPlugin {
-		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, invalid category, category(%s)", up.Category)
+		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release external plugin, invalid category")
 		return fmt.Errorf("failed to publish release external plugin, invalid category, category(%s)", up.Category)
 	}
 
 	// get origin file.
-	originFile, err := m.upstreamOriginExternalPlugin.GetFile(ctx, up.SavedName)
+	originFile, err := m.upstreamOriginExternalPlugin.GetFile(nCtx, up.SavedName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to get file(%s). err: %v", up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release external plugin, failed to get file")
 
 		return err
 	}
 
 	// get origin content.
-	originContent, err := originFile.Content(ctx)
+	originContent, err := originFile.Content(nCtx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to get content. file(%s). err: %v",
-			up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release external plugin, failed to get content")
 
 		return err
 	}
 
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(ctx, originContent)
+	originTempFileName, err := m.saveTempFile(nCtx, originContent)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload release external plugin package. failed to save temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release external plugin package. failed to save temp file")
 
 		return err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, originTempFileName)
+	checkingFile, err := m.getTempFile(nCtx, originTempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload release external plugin package. failed to get temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release external plugin package. failed to get temp file")
 
 		return err
 	}
 
 	detail, err := checkOriginExternalPluginPkg(checkingFile)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload release external plugin package. failed to check origin external plugin package. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release external plugin package. failed to check origin external plugin package")
 
 		return err
 	}
 
 	// generate release packages.
-	releasePkgs, err := m.generateExternalPluginPkg(ctx, detail, originTempFileName)
+	releasePkgs, err := m.generateExternalPluginPkg(nCtx, detail, originTempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to generate external plugin pkg. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to generate external plugin pkg")
 
 		return err
 	}
@@ -307,27 +307,27 @@ func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IContext, uploadID s
 			// generate package name.
 			pkgName, err := epluginpkg.FormatPkgName(detail.Name, types.ReleaseTypeExternalPlugin, gen, pkg.platform, detail.Version)
 			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to upload release external plugin package, failed to format package. err: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release external plugin package, failed to format package")
 
 				return err
 			}
 
-			generatedFile, err := m.getTempFile(ctx, pkg.tempFileName)
+			generatedFile, err := m.getTempFile(nCtx, pkg.tempFileName)
 			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to get temp file. err: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to get temp file")
 
 				return err
 			}
 
-			if err = m.upstreamReleaseExternalPlugin.Store(ctx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to upload to upstream. err: %v", err)
+			if err = m.upstreamReleaseExternalPlugin.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to upload to upstream")
 
 				return err
 			}
 
-			file, err := m.upstreamReleaseExternalPlugin.GetFile(ctx, pkgName)
+			file, err := m.upstreamReleaseExternalPlugin.GetFile(nCtx, pkgName)
 			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to get temp file. err: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to get temp file")
 
 				return err
 			}
@@ -345,7 +345,7 @@ func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IContext, uploadID s
 					Enabled:      true,
 					AsDefault:    false,
 					UpdatedAt:    time.Now(),
-					Operator:     ctx.BKUsername(),
+					Operator:     nCtx.BKUsername(),
 					AdditionInfo: nil,
 				},
 				ReleaseAdditionInfoExternalPlugin: types.ReleaseAdditionInfoExternalPlugin{
@@ -357,19 +357,19 @@ func (m *Manager) PublishReleaseExternalPlugin(ctx contextx.IContext, uploadID s
 		})
 	}
 	if err = gp.Wait(); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to upload to upstream. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to upload to upstream")
 
 		return err
 	}
 
 	// upsert release external plugin.
-	if err = m.storageRelease.UpsertManyReleaseExternalPlugin(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release external plugin, failed to upsert release external plugin: %v", err)
+	if err = m.storageRelease.UpsertManyReleaseExternalPlugin(nCtx, conv.MapValueToSlice(releasesMap)); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to upsert release external plugin")
 
 		return err
 	}
 
-	m.logger.InfoCtxf(ctx, "generated and published release external plugins. platforms(%v)", detail.Platforms)
+	logger.G.Biz(nCtx).With("platforms", detail.Platforms).Info("generated and published release external plugins")
 
 	return nil
 }
@@ -382,18 +382,18 @@ type releaseExternalPluginPkg struct {
 // generateExternalPluginPkg generates external plugin package.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) generateExternalPluginPkg(ctx contextx.IContext,
+func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 	originDetail *types.OriginExternalPluginPkgDetail,
 	originLocalFileName string) ([]*releaseExternalPluginPkg, error) {
 
 	// local origin external plugin.
-	localOrigin, err := m.tempFileGroup.GetFile(ctx, originLocalFileName)
+	localOrigin, err := m.tempFileGroup.GetFile(nCtx, originLocalFileName)
 	if err != nil {
 		return nil, err
 	}
 
 	// local plugin bintool.
-	localPluginBinTool, err := m.fetchReleasePluginBinToolToLocal(ctx)
+	localPluginBinTool, err := m.fetchReleasePluginBinToolToLocal(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -408,22 +408,22 @@ func (m *Manager) generateExternalPluginPkg(ctx contextx.IContext,
 
 		gp.Go(func() error {
 			// create target file.
-			tempFileName, err := m.createTempFile(ctx)
+			tempFileName, err := m.createTempFile(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to create external plugin pkg temp file. platform(%s): %w", plat.String(), err)
 			}
-			targetFile, err := m.openTempFile(ctx, tempFileName)
+			targetFile, err := m.openTempFile(nCtx, tempFileName)
 			if err != nil {
 				return fmt.Errorf("failed to open pkg file: %w", err)
 			}
 
 			// open all source files.
-			origiExternalPluginFile, err := localOrigin.Content(ctx)
+			origiExternalPluginFile, err := localOrigin.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin external plugin file: %w", err)
 			}
 
-			originPluginBinToolFile, err := localPluginBinTool.Content(ctx)
+			originPluginBinToolFile, err := localPluginBinTool.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin plugin bintool file: %w", err)
 			}

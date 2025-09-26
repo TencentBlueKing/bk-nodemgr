@@ -16,14 +16,15 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -39,24 +40,22 @@ const (
 func NewActionTransferPkgToNode(
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	fileHandler file.IHandler,
-	logger logger.ILogger) action.Definition {
+) action.Definition {
 
 	return &actionTransferPkgToNode{
 		storageNodeDeployment: storageNodeDeployment,
 		fileHandler:           fileHandler,
-		logger:                logger,
 	}
 }
 
 // ActionParamTransferPkgToNode defines the action param.
 type ActionParamTransferPkgToNode struct {
-	Token string `json:"token"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionTransferPkgToNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	fileHandler           file.IHandler
-	logger                logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -108,44 +107,45 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default.
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = deployConstant.WorkDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
 	}
 
 	gp := gopool.NewPool()
-	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableReleasePackage {
+	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		gp.Go(func() error {
-			return act.transferRelease(ctx.Ctx, info)
+			return act.transferRelease(ctx.Ctx, std.DeployInfo())
 		})
 	}
-	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableInstaller {
+	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
 		gp.Go(func() error {
-			return act.transferInstaller(ctx.Ctx, info)
+			return act.transferInstaller(ctx.Ctx, std.DeployInfo())
 		})
 	}
 	if err := gp.Wait(); err != nil {
-		act.logger.ErrorCtxf(ctx.Ctx, "failed to transfer pkg to node. host-id(%d): %s", info.Host.HostID, err.Error())
+		logger.G.Sys().WithErr(err).With("host-id", std.DeployInfo().Host.HostID).Error("failed to transfer pkg to node")
+
 		return err
 	}
 
-	act.logger.InfoCtxf(ctx.Ctx, "transfer pkg to node all done. host-id(%d)", info.Host.HostID)
+	logger.G.Sys().With("host-id", std.DeployInfo().Host.HostID).Info("transfer pkg to node all done")
 	ctx.Data.LogI("transfer pkg to node all done")
 
 	return nil
@@ -185,8 +185,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 		return fmt.Errorf("failed to launch transfer release. host-id(%d): %w", info.Host.HostID, err)
 	}
 
-	act.logger.InfoCtxf(ctx, "launched transfer release. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), info.Host.HostID)
+	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer release")
 
 	result, err := transferHandler.WaitUntilDone(ctx)
 	if err != nil {
@@ -204,8 +203,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 			transferHandler.GetTaskID(), info.Host.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	act.logger.InfoCtxf(ctx, "transfer release done. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), info.Host.HostID)
+	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("transfer release done")
 
 	return nil
 }
@@ -223,8 +221,7 @@ func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, inf
 		return fmt.Errorf("failed to launch transfer installer. host-id(%d): %w", info.Host.HostID, err)
 	}
 
-	act.logger.InfoCtxf(ctx, "launched transfer installer. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), info.Host.HostID)
+	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer installer")
 
 	result, err := transferHandler.WaitUntilDone(ctx)
 	if err != nil {
@@ -242,8 +239,7 @@ func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, inf
 			transferHandler.GetTaskID(), info.Host.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	act.logger.InfoCtxf(ctx, "transfer installer done. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), info.Host.HostID)
+	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("transfer installer done")
 
 	return nil
 }

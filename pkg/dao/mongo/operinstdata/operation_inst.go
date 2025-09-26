@@ -11,11 +11,11 @@
 package operinstdata
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -26,40 +26,40 @@ import (
 // IOperationInstData this define the crud interface.
 type IOperationInstData interface {
 	// Upsert updates or inserts an OperInstData.
-	Upsert(ctx context.Context, data *operation.InstanceData) error
+	Upsert(nCtx contextx.IContext, data *operation.InstanceData) error
 
 	// FindOne find one OperInstData.
-	FindOne(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error)
+	FindOne(nCtx contextx.IContext, opts ...OptFn) (*operation.InstanceData, error)
 
 	// Count count OperationDatas by conditions.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// ListFullData find all full OperInstData.
-	ListFullData(ctx context.Context, page types.Page, opts ...OptFn) ([]*operation.InstanceData, int64, error)
+	ListFullData(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.InstanceData, int64, error)
 
 	// ListWithoutActInst find all OperInstData whithout actions.
-	ListWithoutActInst(ctx context.Context, page types.Page, opts ...OptFn) ([]*operation.InstanceBriefData, int64, error)
+	ListWithoutActInst(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.InstanceBriefData, int64, error)
 
 	// FindOneWithoutActionData find one OperInstData without action data.
-	FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error)
+	FindOneWithoutActionData(nCtx contextx.IContext, opts ...OptFn) (*operation.InstanceData, error)
 
 	// UpdateLifeCycle updates or inserts an InstanceData's LifeCycle.
-	UpdateLifeCycle(ctx context.Context, operInstID string, lifeCycle *operation.Lifecycle) error
+	UpdateLifeCycle(nCtx contextx.IContext, operInstID string, lifeCycle *operation.Lifecycle) error
 
 	// UpdateExtraExecutionMessages updates operation instance extra execution messages.
-	UpdateExtraExecutionMessages(ctx context.Context, operInstID string, messages ...common.Message) error
+	UpdateExtraExecutionMessages(nCtx contextx.IContext, operInstID string, messages ...common.Message) error
 
 	// ListAllLastOperInst find all last OperInstData in their operation.
-	ListAllLastOperInst(ctx context.Context, opts ...OptFn) ([]*operation.InstanceBriefData, error)
+	ListAllLastOperInst(nCtx contextx.IContext, opts ...OptFn) ([]*operation.InstanceBriefData, error)
 
 	// Delete deletes operation instance data by given operation instance IDs.
-	Delete(ctx context.Context, operInstIDs ...string) error
+	Delete(nCtx contextx.IContext, operInstIDs ...string) error
 }
 
 // Upsert updates or inserts an OperInstData.
-func (h *Handler) Upsert(ctx context.Context, data *operation.InstanceData) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *Handler) Upsert(nCtx contextx.IContext, data *operation.InstanceData) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if data == nil {
@@ -71,7 +71,7 @@ func (h *Handler) Upsert(ctx context.Context, data *operation.InstanceData) erro
 		return fmt.Errorf("convert oper inst data to db data error: %v", err)
 	}
 
-	err = h.dao.upsert(ctx, operInstData)
+	err = h.dao.upsert(nCtx, operInstData)
 	if err != nil {
 		return err
 	}
@@ -80,9 +80,9 @@ func (h *Handler) Upsert(ctx context.Context, data *operation.InstanceData) erro
 }
 
 // FindOne find one OperInstData.
-func (h *Handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error) {
-	if ctx == nil {
-		return nil, errors.New("ctx is nil")
+func (h *Handler) FindOne(nCtx contextx.IContext, opts ...OptFn) (*operation.InstanceData, error) {
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
 	}
 
 	filter := base.AliveFilter()
@@ -90,7 +90,7 @@ func (h *Handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Instan
 		filter = opt(filter)
 	}
 
-	operInstDatas, err := h.dao.find(ctx, filter)
+	operInstDatas, err := h.dao.find(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -143,11 +143,11 @@ func (h *Handler) FindOne(ctx context.Context, opts ...OptFn) (*operation.Instan
 }
 
 // ListFullData find all OperInstData.
-func (h *Handler) ListFullData(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *Handler) ListFullData(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*operation.InstanceData, int64, error) {
 
-	if ctx == nil {
-		return nil, 0, errors.New("ctx is nil")
+	if nCtx == nil {
+		return nil, 0, errors.New("nCtx is nil")
 	}
 
 	filter := base.AliveFilter()
@@ -155,14 +155,14 @@ func (h *Handler) ListFullData(ctx context.Context, page types.Page, opts ...Opt
 		filter = opt(filter)
 	}
 
-	num, err := h.dao.Count(ctx, filter)
+	num, err := h.dao.Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	operaInstDatas, err := h.dao.List(ctx, filter, findOpt)
+	operaInstDatas, err := h.dao.List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -211,9 +211,9 @@ func (h *Handler) ListFullData(ctx context.Context, page types.Page, opts ...Opt
 }
 
 // FindOneWithoutActionData find InstanceData without action data.
-func (h *Handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (*operation.InstanceData, error) {
-	if ctx == nil {
-		return nil, errors.New("ctx is nil")
+func (h *Handler) FindOneWithoutActionData(nCtx contextx.IContext, opts ...OptFn) (*operation.InstanceData, error) {
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
 	}
 
 	filter := base.AliveFilter()
@@ -222,7 +222,7 @@ func (h *Handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (
 	}
 
 	field := FieldOfActionData
-	InstanceDatas, err := h.dao.findWithoutFields(ctx, filter, types.SingleItemPage(), field)
+	InstanceDatas, err := h.dao.findWithoutFields(nCtx, filter, types.SingleItemPage(), field)
 	if err != nil {
 		return nil, err
 	}
@@ -235,11 +235,11 @@ func (h *Handler) FindOneWithoutActionData(ctx context.Context, opts ...OptFn) (
 }
 
 // ListWithoutActInst List InstanceDatas without action data.
-func (h *Handler) ListWithoutActInst(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *Handler) ListWithoutActInst(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*operation.InstanceBriefData, int64, error) {
 
-	if ctx == nil {
-		return nil, 0, errors.New("ctx is nil")
+	if nCtx == nil {
+		return nil, 0, errors.New("nCtx is nil")
 	}
 
 	filter := base.AliveFilter()
@@ -247,7 +247,7 @@ func (h *Handler) ListWithoutActInst(ctx context.Context, page types.Page, opts 
 		filter = opt(filter)
 	}
 
-	num, err := h.dao.Count(ctx, filter)
+	num, err := h.dao.Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -257,7 +257,7 @@ func (h *Handler) ListWithoutActInst(ctx context.Context, page types.Page, opts 
 	}
 
 	field := FieldOfActionData
-	operaInstDatas, err := h.dao.findWithoutFields(ctx, filter, page, field)
+	operaInstDatas, err := h.dao.findWithoutFields(nCtx, filter, page, field)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -278,9 +278,9 @@ func (h *Handler) ListWithoutActInst(ctx context.Context, page types.Page, opts 
 }
 
 // Count count OperationDatas by conditions.
-func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	if ctx == nil {
-		return 0, errors.New("ctx is nil")
+func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	if nCtx == nil {
+		return 0, errors.New("nCtx is nil")
 	}
 
 	filter := base.AliveFilter()
@@ -288,13 +288,13 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	return h.dao.Count(ctx, filter)
+	return h.dao.Count(nCtx, filter)
 }
 
 // UpdateLifeCycle update operation instance's LifeCycle.
-func (h *Handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCycle *operation.Lifecycle) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *Handler) UpdateLifeCycle(nCtx contextx.IContext, operInstID string, lifeCycle *operation.Lifecycle) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -313,7 +313,7 @@ func (h *Handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCy
 		filter = opt(filter)
 	}
 
-	err := h.dao.updateField(ctx, filter, FieldKeyLifeCycle, ConvOperaLifeCycleToDB(lifeCycle))
+	err := h.dao.updateField(nCtx, filter, FieldKeyLifeCycle, ConvOperaLifeCycleToDB(lifeCycle))
 	if err != nil {
 		return err
 	}
@@ -323,10 +323,10 @@ func (h *Handler) UpdateLifeCycle(ctx context.Context, operInstID string, lifeCy
 
 // UpdateExtraExecutionMessages updates operation instance extra execution messages.
 func (h *Handler) UpdateExtraExecutionMessages(
-	ctx context.Context, operInstID string, messages ...common.Message) error {
+	nCtx contextx.IContext, operInstID string, messages ...common.Message) error {
 
-	if ctx == nil {
-		return errors.New("ctx is nil")
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -346,7 +346,7 @@ func (h *Handler) UpdateExtraExecutionMessages(
 	}
 
 	for _, msg := range convMessageToDB(messages) {
-		err := h.dao.pushField(ctx, filter, "extra_execution_messages", msg)
+		err := h.dao.pushField(nCtx, filter, "extra_execution_messages", msg)
 		if err != nil {
 			return err
 		}
@@ -356,11 +356,11 @@ func (h *Handler) UpdateExtraExecutionMessages(
 }
 
 // ListAllLastOperInst find all last OperInstData in their operation.
-func (h *Handler) ListAllLastOperInst(ctx context.Context, opts ...OptFn) (
+func (h *Handler) ListAllLastOperInst(nCtx contextx.IContext, opts ...OptFn) (
 	[]*operation.InstanceBriefData, error) {
 
-	if ctx == nil {
-		return nil, errors.New("ctx is nil")
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
 	}
 
 	filter := base.AliveFilter()
@@ -368,7 +368,7 @@ func (h *Handler) ListAllLastOperInst(ctx context.Context, opts ...OptFn) (
 		filter = opt(filter)
 	}
 
-	operaInstDatas, err := h.dao.listALLLastOperInst(ctx, filter)
+	operaInstDatas, err := h.dao.listALLLastOperInst(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -384,14 +384,14 @@ func (h *Handler) ListAllLastOperInst(ctx context.Context, opts ...OptFn) (
 }
 
 // Delete deletes operation instance data by given operation instance IDs.
-func (h *Handler) Delete(ctx context.Context, operInstIDs ...string) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *Handler) Delete(nCtx contextx.IContext, operInstIDs ...string) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if len(operInstIDs) == 0 {
 		return errors.New("operation instance ids is empty")
 	}
 
-	return h.dao.delete(ctx, operInstIDs...)
+	return h.dao.delete(nCtx, operInstIDs...)
 }

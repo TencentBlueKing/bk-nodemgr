@@ -7,12 +7,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/joho/godotenv"
 )
 
@@ -42,7 +41,6 @@ func testClient(t *testing.T) IHandler {
 		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{os.Getenv("BK_REPO_ENDPOINT")}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger.LoggerDefault{},
 	}
 
 	h, err := New(clientCap, &Config{
@@ -50,7 +48,7 @@ func testClient(t *testing.T) IHandler {
 		ProjectID: os.Getenv("BK_REPO_PROJECTID"),
 		Username:  os.Getenv("BK_REPO_USERNAME"),
 		Password:  os.Getenv("BK_REPO_PASSWORD"),
-	}, WithLogger(logger.LoggerDefault{}))
+	}, WithLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,10 +58,10 @@ func testClient(t *testing.T) IHandler {
 
 // Test_EnsureFileGroup tests EnsureFileGroup.
 func Test_EnsureFileGroup(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 	client := testClient(t)
 
-	_, err := client.EnsureFileGroup(ctx, "/unittest")
+	_, err := client.EnsureFileGroup(nCtx, "/unittest")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,11 +69,11 @@ func Test_EnsureFileGroup(t *testing.T) {
 
 // Test_Store tests Store.
 func Test_Store(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 	client := testClient(t)
 
 	type args struct {
-		ctx           context.Context
+		nCtx          contextx.IContext
 		fileGroupName string
 		fileName      string
 		fileContent   string
@@ -88,7 +86,7 @@ func Test_Store(t *testing.T) {
 		{
 			name: "test-0",
 			args: args{
-				ctx:           nil,
+				nCtx:          nil,
 				fileGroupName: "/unittest",
 				fileName:      "test.txt",
 				fileContent:   "test",
@@ -98,7 +96,7 @@ func Test_Store(t *testing.T) {
 		{
 			name: "test-1",
 			args: args{
-				ctx:           ctx,
+				nCtx:          nCtx,
 				fileGroupName: "/unittest",
 				fileName:      "test-1.txt",
 				fileContent:   "test",
@@ -108,7 +106,7 @@ func Test_Store(t *testing.T) {
 		{
 			name: "test-2",
 			args: args{
-				ctx:           ctx,
+				nCtx:          nCtx,
 				fileGroupName: "/unittest",
 				fileName:      "test-2.txt",
 				fileContent:   "test",
@@ -118,7 +116,7 @@ func Test_Store(t *testing.T) {
 		{
 			name: "test-3",
 			args: args{
-				ctx:           ctx,
+				nCtx:          nCtx,
 				fileGroupName: "/unittest",
 				fileName:      "test-3.txt",
 				fileContent:   "test",
@@ -129,7 +127,7 @@ func Test_Store(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			group, err := client.EnsureFileGroup(tt.args.ctx, tt.args.fileGroupName)
+			group, err := client.EnsureFileGroup(tt.args.nCtx, tt.args.fileGroupName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("EnsureFileGroup() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -139,7 +137,7 @@ func Test_Store(t *testing.T) {
 				return
 			}
 
-			err = group.Store(tt.args.ctx, fileiface.FileInfo{
+			err = group.Store(tt.args.nCtx, fileiface.FileInfo{
 				Name: tt.args.fileName,
 			}, io.NopCloser(bytes.NewReader([]byte(tt.args.fileContent))), true)
 			if err != nil {
@@ -151,11 +149,11 @@ func Test_Store(t *testing.T) {
 
 // Test_List tests List.
 func Test_List(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 	client := testClient(t)
 
 	type args struct {
-		ctx           context.Context
+		nCtx          contextx.IContext
 		fileGroupName string
 	}
 	tests := []struct {
@@ -165,7 +163,7 @@ func Test_List(t *testing.T) {
 		{
 			name: "test",
 			args: args{
-				ctx:           ctx,
+				nCtx:          nCtx,
 				fileGroupName: "/unittest",
 			},
 		},
@@ -173,12 +171,12 @@ func Test_List(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			group, err := client.GetFileGroup(tt.args.ctx, tt.args.fileGroupName)
+			group, err := client.GetFileGroup(tt.args.nCtx, tt.args.fileGroupName)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			files, err := group.AllFiles(tt.args.ctx)
+			files, err := group.AllFiles(tt.args.nCtx)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -191,11 +189,11 @@ func Test_List(t *testing.T) {
 }
 
 func Test_Get(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 	client := testClient(t)
 
 	type args struct {
-		ctx           context.Context
+		nCtx          contextx.IContext
 		fileGroupName string
 		fileName      string
 		fileContent   string
@@ -207,7 +205,7 @@ func Test_Get(t *testing.T) {
 		{
 			name: "test",
 			args: args{
-				ctx:           ctx,
+				nCtx:          nCtx,
 				fileGroupName: "/unittest",
 				fileName:      "test-1.txt",
 				fileContent:   "test",
@@ -217,17 +215,17 @@ func Test_Get(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			group, err := client.GetFileGroup(tt.args.ctx, tt.args.fileGroupName)
+			group, err := client.GetFileGroup(tt.args.nCtx, tt.args.fileGroupName)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			file, err := group.GetFile(tt.args.ctx, tt.args.fileName)
+			file, err := group.GetFile(tt.args.nCtx, tt.args.fileName)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			reader, err := file.Content(tt.args.ctx)
+			reader, err := file.Content(tt.args.nCtx)
 			if err != nil {
 				t.Fatal(err)
 			}

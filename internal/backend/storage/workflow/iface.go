@@ -35,7 +35,7 @@ type IStorage interface {
 type IDomainNodeInstall interface {
 	// ListOperationByNodeWorkflowOperationCondition lists operations by condition with pagination support.
 	ListOperationByNodeWorkflowOperationCondition(
-		ctx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
+		nCtx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
 		[]*workoper.Operation, int64, error)
 }
 

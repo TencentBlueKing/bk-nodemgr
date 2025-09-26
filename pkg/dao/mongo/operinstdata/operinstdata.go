@@ -12,11 +12,11 @@
 package operinstdata
 
 import (
-	"context"
 	"log"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,10 +24,9 @@ import (
 )
 
 // TableName the operinstdata table name.
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(client *mongo.Database) *dao {
 	d := &dao{
 		client:    client.Collection(TableName),
-		logger:    logger,
 		tableName: TableName,
 	}
 	d.IOrm = base.NewOrm[*OperInstData, OperInstData](d)
@@ -37,7 +36,6 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 
 type dao struct {
 	client    *mongo.Collection
-	logger    logger.ILogger
 	tableName string
 	base.IOrm[*OperInstData, OperInstData]
 }
@@ -45,11 +43,6 @@ type dao struct {
 // GetClient get client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get table name.
@@ -65,25 +58,22 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 // upsert updates or inserts a operation_inst_data.
-func (d *dao) upsert(ctx context.Context, data *OperInstData) error {
+func (d *dao) upsert(nCtx contextx.IContext, data *OperInstData) error {
 	filter, upsert, opts := buildUpsertParams(data)
-	result, err := d.client.UpdateOne(ctx, filter, upsert, opts)
+	result, err := d.client.UpdateOne(nCtx, filter, upsert, opts)
 	if err != nil {
 		return err
 	}
 
 	switch {
 	case result.UpsertedCount > 0:
-		{
-			d.logger.Infof("inserted data, unique-key(%s), table(%s)", data.UniqueKey(), TableName)
-		}
+		logger.G.Sys().With("unique-key", data.UniqueKey(), "table", d.tableName).Info("inserted operation instance data")
+
 	case result.MatchedCount > 0:
-		{
-			d.logger.Infof("updated data, unique-key(%s), table(%s)", data.UniqueKey(), TableName)
-		}
+		logger.G.Sys().With("unique-key", data.UniqueKey(), "table", d.tableName).Info("updated operation instance data")
+
 	default:
-		d.logger.Warnf("try to upsert data but no changes made. unique-key(%s), table(%s)",
-			data.UniqueKey(), TableName)
+		logger.G.Sys().With("unique-key", data.UniqueKey(), "table", d.tableName).Info("try to upsert data but no changes made")
 	}
 
 	return nil
@@ -104,22 +94,22 @@ func buildUpsertParams(data *OperInstData) (bson.D, bson.D, *mongoOptions.Update
 }
 
 // find all operinstdata.
-func (d *dao) find(ctx context.Context, filter bson.D, fields ...string) ([]*OperInstData, error) {
+func (d *dao) find(nCtx contextx.IContext, filter bson.D, fields ...string) ([]*OperInstData, error) {
 	projection := bson.D{}
 	for _, field := range fields {
 		projection = append(projection, bson.E{Key: field, Value: 1})
 	}
 	findOptions := mongoOptions.Find().SetProjection(projection)
-	result, err := d.client.Find(ctx, filter, findOptions)
+	result, err := d.client.Find(nCtx, filter, findOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	datas := make([]*OperInstData, 0)
-	for result.Next(ctx) {
+	for result.Next(nCtx) {
 		table := &TableOperInstData{}
 		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode operinstdata, err %v", err)
+			logger.G.Sys().WithErr(err).Warn("failed to decode operation instance data")
 
 			continue
 		}
@@ -131,7 +121,7 @@ func (d *dao) find(ctx context.Context, filter bson.D, fields ...string) ([]*Ope
 }
 
 // findWithoutFields find without fields.
-func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, page types.Page, fields ...string) (
+func (d *dao) findWithoutFields(nCtx contextx.IContext, filter bson.D, page types.Page, fields ...string) (
 	[]*OperInstData, error) {
 
 	projection := bson.D{}
@@ -141,16 +131,16 @@ func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, page types.P
 	findOptions := base.ParsePage(page)
 	findOptions = findOptions.SetProjection(projection)
 
-	result, err := d.client.Find(ctx, filter, findOptions)
+	result, err := d.client.Find(nCtx, filter, findOptions)
 	if err != nil {
 		return nil, err
 	}
 
 	datas := make([]*OperInstData, 0)
-	for result.Next(ctx) {
+	for result.Next(nCtx) {
 		table := &TableOperInstData{}
 		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode operinstdata, err %v", err)
+			logger.G.Sys().WithErr(err).Warn("failed to decode operation instance data")
 
 			continue
 		}
@@ -161,30 +151,29 @@ func (d *dao) findWithoutFields(ctx context.Context, filter bson.D, page types.P
 }
 
 // updateField update field.
-func (d *dao) updateField(ctx context.Context, filter bson.D, field string, value any) error {
-	return d.UpdateField(ctx, filter, field, value)
+func (d *dao) updateField(nCtx contextx.IContext, filter bson.D, field string, value any) error {
+	return d.UpdateField(nCtx, filter, field, value)
 }
 
 // pushField push field.
-func (d *dao) pushField(ctx context.Context, filter bson.D, field string, value any) error {
+func (d *dao) pushField(nCtx contextx.IContext, filter bson.D, field string, value any) error {
 	update := base.BuildPushField(field, value)
-	result, err := d.client.UpdateOne(ctx, filter, update)
+	result, err := d.client.UpdateOne(nCtx, filter, update)
 	if err != nil {
 		return err
 	}
 
-	d.logger.Debugf("pushed oper-inst-data field(%v), table(%s), value(%v), updated-count(%d)",
-		field, d.tableName, value, result.MatchedCount)
+	logger.G.Sys().With("field", field, "table", d.tableName, "value", value, "matched-count", result.MatchedCount).Debug("pushed operation instance data field")
 
 	return nil
 }
 
-func (d *dao) get(ctx context.Context, filter bson.D, fields ...string) (*OperInstData, error) {
-	return d.Get(ctx, filter, fields...)
+func (d *dao) get(nCtx contextx.IContext, filter bson.D, fields ...string) (*OperInstData, error) {
+	return d.Get(nCtx, filter, fields...)
 }
 
 // listALLLastOperInst lists all last operation instances base on operation id.
-func (d *dao) listALLLastOperInst(ctx context.Context, filter bson.D) ([]*OperInstData, error) {
+func (d *dao) listALLLastOperInst(nCtx contextx.IContext, filter bson.D) ([]*OperInstData, error) {
 	pipeline := mongo.Pipeline{
 		{{"$match", filter}},
 		{{"$sort", bson.D{{base.FieldKeyCreatedAt, -1}}}},
@@ -196,22 +185,23 @@ func (d *dao) listALLLastOperInst(ctx context.Context, filter bson.D) ([]*OperIn
 	}
 
 	opts := mongoOptions.Aggregate().SetAllowDiskUse(true)
-	cursor, err := d.client.Aggregate(ctx, pipeline, opts)
+	cursor, err := d.client.Aggregate(nCtx, pipeline, opts)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func(cursor *mongo.Cursor, ctx context.Context) {
-		err := cursor.Close(ctx)
+	defer func(cursor *mongo.Cursor, nCtx contextx.IContext) {
+		err := cursor.Close(nCtx)
 		if err != nil {
-			d.logger.Errorf("failed to close cursor, err %v", err)
+			logger.G.Sys().WithErr(err).Error("failed to close cursor")
 		}
-	}(cursor, ctx)
+	}(cursor, nCtx)
 
 	datas := make([]*OperInstData, 0)
-	for cursor.Next(ctx) {
+	for cursor.Next(nCtx) {
 		table := &TableOperInstData{}
 		if err := cursor.Decode(table); err != nil {
-			d.logger.Errorf("failed to decode table, err %v", err)
+			logger.G.Sys().WithErr(err).Error("failed to decode table")
+
 			continue
 		}
 		datas = append(datas, table.Data)
@@ -221,17 +211,16 @@ func (d *dao) listALLLastOperInst(ctx context.Context, filter bson.D) ([]*OperIn
 }
 
 // delete deletes operinstdata by given operInstIDs.
-func (d *dao) delete(ctx context.Context, operInstIDs ...string) error {
+func (d *dao) delete(nCtx contextx.IContext, operInstIDs ...string) error {
 	filter := base.AliveFilter()
 	filter = WithOperInstID(operInstIDs...)(filter)
 
-	result, err := d.client.DeleteMany(ctx, filter)
+	result, err := d.client.DeleteMany(nCtx, filter)
 	if err != nil {
 		return err
 	}
 
-	d.logger.Infof("deleted oper-inst-data, table(%s), oper-inst-ids(%v), deleted-count(%d)",
-		d.tableName, operInstIDs, result.DeletedCount)
+	logger.G.Sys().With("table", d.tableName, "oper-inst-ids", operInstIDs, "deleted-count", result.DeletedCount).Info("deleted operation instance data")
 
 	return nil
 }

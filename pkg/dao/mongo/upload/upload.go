@@ -12,20 +12,17 @@
 package upload
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // TableName the operation table name.
-func newDao(category string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(category string, client *mongo.Database) *dao {
 	tableName := TableName(category)
 	d := &dao{
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
 	}
 
@@ -37,18 +34,12 @@ func newDao(category string, client *mongo.Database, logger logger.ILogger) *dao
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
 	base.IOrm[*Upload, Upload]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -63,6 +54,6 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) deleteMany(ctx context.Context, uploadIDs ...string) error {
-	return d.DeleteMany(ctx, bson.D{{Key: FieldKeyUploadID, Value: bson.D{{Key: "$in", Value: uploadIDs}}}})
+func (d *dao) deleteMany(nCtx contextx.IContext, uploadIDs ...string) error {
+	return d.DeleteMany(nCtx, bson.D{{Key: FieldKeyUploadID, Value: bson.D{{Key: "$in", Value: uploadIDs}}}})
 }

@@ -18,6 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -29,13 +30,13 @@ import (
 func (h *handler) AgentReconfig(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeAgentReconfigReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to reconfig agent, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig agent, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	hosts, err := h.getReconfigNodeHosts(rCtx, req.GetHost())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to reconfig agent, failed to get host list. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig agent, failed to get host list")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -46,7 +47,7 @@ func (h *handler) AgentReconfig(rCtx restserver.IContext) (interface{}, error) {
 
 		nodeDeploy, err := h.generatesReconfigDeploys(rCtx.TenantID(), reqHost, hosts)
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to reconfig agent, failed to generate node deployment. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig agent, failed to generate node deployment")
 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
@@ -61,14 +62,14 @@ func (h *handler) AgentReconfig(rCtx restserver.IContext) (interface{}, error) {
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to reconfig agent: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to reconfig agent")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeAgentReconfigResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(rCtx, "launched reconfig agent workflow: %s", workflowID)
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched reconfig agent workflow")
 
 	return resp.GetData(), nil
 }

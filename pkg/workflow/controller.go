@@ -19,6 +19,7 @@ import (
 	"github.com/RichardKnop/machinery/v2/tasks"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
@@ -185,8 +186,7 @@ func (ctl *controller) TerminateTrigger(ctx contextx.IContext) error {
 func (ctl *controller) CreateOperation(
 	ctx contextx.IContext, operationDef operation.Definition, param operation.Param) (IOperationCtl, error) {
 
-	ctl.mgr.logger.InfoCtxf(ctx, "try to create operation. trigger-id(%s), operation-name(%s), param(%v)",
-		ctl.trig.TriggerID, operationDef.Name(), param)
+	logger.G.Sys().With("trigger-id", ctl.trig.TriggerID, "operation", operationDef.Name(), "param", param).Info("try to create operation")
 
 	oper := &operation.Operation{
 		OperationID: identifier.GenOperationID(),
@@ -196,9 +196,10 @@ func (ctl *controller) CreateOperation(
 	}
 
 	if err := ctl.mgr.stgOperation.UpsertOperation(ctx, oper); err != nil {
-		ctl.mgr.logger.ErrorCtxf(ctx,
-			"failed to create operation, failed to upsert. trigger-id(%s), operation-name(%s), param(%v), err(%v)",
-			ctl.trig.TriggerID, operationDef.Name(), param, err)
+		logger.G.Sys().
+			WithErr(err).
+			With("trigger-id", ctl.trig.TriggerID, "operation", operationDef.Name(), "param", param).
+			Error("failed to create operation")
 
 		return nil, err
 	}
@@ -256,9 +257,7 @@ func (ctl *controller) ListOperation(ctx contextx.IContext, operationID ...strin
 func (ctl *controller) UpdateLastTriggeredTime(ctx contextx.IContext) error {
 	ctl.trig.LastTriggeredAt = time.Now()
 	if err := ctl.mgr.stgTrigger.UpdateTrigger(ctx, ctl.trig); err != nil {
-		ctl.mgr.logger.ErrorCtxf(ctx,
-			"failed to update last triggered time, failed to update. trigger-id(%s), err(%v)",
-			ctl.trig.TriggerID, err)
+		logger.G.Sys().WithErr(err).With("trigger-id", ctl.trig.TriggerID).Error("failed to update last triggered time")
 
 		return err
 	}
@@ -363,8 +362,7 @@ func (ctl *controller) LaunchOperationInstance(ctx contextx.IContext) (err error
 	m := metric.NewOperationInstanceLaunch(ctl.operInstanceBriefData).Start()
 	defer m.End(err)
 
-	ctl.mgr.logger.InfoCtxf(ctx, "try to launch operation instance. oper-inst-id(%s)",
-		ctl.operInstanceBriefData.Metadata.OperationInstanceID)
+	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).Info("try to launch operation instance")
 
 	if ctl.operInstanceBriefData.Lifecycle.State != operation.StateInit {
 		return errors.Join(common.ErrInvalidState(),
@@ -385,8 +383,10 @@ func (ctl *controller) LaunchOperationInstance(ctx contextx.IContext) (err error
 	ctl.operInstanceBriefData.Lifecycle.State = operation.StateLaunched
 	if err := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
 		ctx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
-		ctl.mgr.logger.ErrorCtxf(ctx, "failed to update operation instance lifecycle. oper-inst-id(%s), err(%v)",
-			ctl.operInstanceBriefData.Metadata.OperationInstanceID, err)
+		logger.G.Sys().
+			WithErr(err).
+			With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
+			Error("failed to update operation instance lifecycle")
 
 		return err
 	}
@@ -423,8 +423,8 @@ func (ctl *controller) LaunchOperationInstance(ctx contextx.IContext) (err error
 		return err
 	}
 
-	ctl.mgr.logger.InfoCtxf(ctx, "send chain to machinery. oper-inst-id(%s)",
-		ctl.operInstanceBriefData.Metadata.OperationInstanceID)
+	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).Info("send chain to machinery")
+
 	_, err = ctl.mgr.server.SendChainWithContext(ctx, chain)
 	if err != nil {
 		return fmt.Errorf("send chain to machinery failed: %v", err)
@@ -485,8 +485,7 @@ func (ctl *controller) handlePartialRetry(ctx contextx.IContext, prevInstance *o
 		return nil, err
 	}
 
-	ctl.mgr.logger.InfoCtxf(ctx, "retry start action (%s), first failed action (%s)",
-		retryStartAction, failedAction)
+	logger.G.Sys().With("retry-action", retryStartAction, "failed-action", failedAction).Info("retry action")
 
 	return ctl.createPartialRetryInstance(ctx, prevInstance, actionNames, actionIndexMap, startIndex)
 }

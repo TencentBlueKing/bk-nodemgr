@@ -18,7 +18,6 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,8 +29,6 @@ type handler struct {
 	storageNodeDeploymentDomainInit nodeStg.IDaoNodeDeployment
 	storageHostCredit               credit.IStorageHostCredit
 	storageHost                     topo.IStorageHost
-
-	logger logger.ILogger
 }
 
 // newHandler ...
@@ -42,7 +39,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		manager:                         capability.Manager,
 		storageNetworkUnit:              capability.StorageTopo,
 		storageNodeDeploymentDomainInit: capability.StorageNode,
-		logger:                          capability.Logger,
 		storageHostCredit:               capability.StorageCredit,
 		storageHost:                     capability.StorageTopo,
 	}

@@ -16,8 +16,6 @@ import (
 	"errors"
 	"testing"
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // PollingOptsDefault default retry options.
@@ -41,7 +39,6 @@ func TestPolling_Do(t *testing.T) {
 				opts: PollingOpts{
 					Timeout:  35 * time.Second,
 					Interval: time.Second,
-					Logger:   logger.LoggerDefault{},
 				},
 			},
 			args: args{

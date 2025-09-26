@@ -15,41 +15,45 @@ import (
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) ReportStatus(gCtx *gin.Context) {
+	nCtx := contextx.New(gCtx)
+
 	req := new(protoCallback.ReportStatusReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report status failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report status, failed to decode request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report status failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report status, failed to validate request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	info, err := h.GetNodeDeploymentInfo(gCtx, req.GetToken())
+	info, err := h.GetNodeDeploymentInfo(nCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("token is invalid: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report status, failed to get node deployment conf")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
-	h.logger.Infof("operation instance:%s, action:%s ,report status: %s",
-		req.GetOperInstId(), info.BlockingActionName, req.GetStatus())
 
-	nCtx := contextx.New(gCtx)
+	logger.G.Biz(nCtx).
+		With("oper-inst-id", req.GetOperInstId(), "action", info.BlockingActionName, "status", req.GetStatus()).
+		Info("report status")
+
 	if err = h.UpdateOperInstActionStatus(nCtx, req.GetOperInstId(), info.BlockingActionName,
 		action.State(req.GetStatus())); err != nil {
-		h.logger.Errorf("update action status failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report status, failed to update action status")
 		gCtx.JSON(http.StatusInternalServerError, err)
 	}
 

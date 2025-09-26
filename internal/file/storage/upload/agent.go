@@ -13,8 +13,7 @@
 package upload
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -22,32 +21,32 @@ import (
 // IAgent defines the interface of upload storage.
 type IAgent interface {
 	// GetAgentUpload gets a upload by upload-id.
-	GetAgentUpload(ctx context.Context, uploadID string) (*types.Upload, error)
+	GetAgentUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
 	// CreateAgentUpload creates a upload.
-	CreateAgentUpload(ctx context.Context, up *types.Upload) (string, error)
+	CreateAgentUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
 	// DeleteAgentUpload deletes a upload by upload-id.
-	DeleteAgentUpload(ctx context.Context, uploadID string) error
+	DeleteAgentUpload(nCtx contextx.IContext, uploadID string) error
 }
 
 // GetAgentUpload gets a upload by upload-id.
-func (s *Storage) GetAgentUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+func (s *Storage) GetAgentUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
 	// record metric.
 	metric := s.metric().Start("get_agent")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(ctx, types.UploadCategoryOriginAgent, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginAgent, uploadID)
 }
 
 // CreateAgentUpload creates a upload.
-func (s *Storage) CreateAgentUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+func (s *Storage) CreateAgentUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
 	metric := s.metric().Start("create_agent")
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginAgent, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginAgent, up); err != nil {
 		return "", err
 	}
 
@@ -55,10 +54,10 @@ func (s *Storage) CreateAgentUpload(ctx context.Context, up *types.Upload) (uplo
 }
 
 // DeleteAgentUpload deletes a upload by upload-id.
-func (s *Storage) DeleteAgentUpload(ctx context.Context, uploadID string) (err error) {
+func (s *Storage) DeleteAgentUpload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_agent")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginAgent, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginAgent, uploadID)
 }

@@ -16,7 +16,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -24,31 +24,29 @@ import (
 // Handler provide stopping operation instance handler.
 type Handler interface {
 	// Upsert updates or inserts a stopping operation instance.
-	Upsert(ctx context.Context, operInstID string) error
+	Upsert(nCtx contextx.IContext, operInstID string) error
 
 	// FindAll find all stopping operation instances.
-	FindAll(ctx context.Context) ([]string, error)
+	FindAll(nCtx contextx.IContext) ([]string, error)
 
 	// WatchInsert watch upsert event
 	WatchInsert(fn func(string))
 }
 
 type handler struct {
-	dao    *dao
-	logger logger.ILogger
+	dao *dao
 }
 
 // New create a new host handler.
-func New(client *mongo.Database, logger logger.ILogger) Handler {
+func New(client *mongo.Database) Handler {
 	return &handler{
-		dao:    newDao(client, logger),
-		logger: logger,
+		dao: newDao(client),
 	}
 }
 
 // Upsert ...
-func (h *handler) Upsert(ctx context.Context, operInstID string) error {
-	if ctx == nil {
+func (h *handler) Upsert(nCtx contextx.IContext, operInstID string) error {
+	if nCtx == nil {
 		return errors.New("empty context")
 	}
 
@@ -60,7 +58,7 @@ func (h *handler) Upsert(ctx context.Context, operInstID string) error {
 		OperInstID: operInstID,
 		ExpireAt:   time.Now().Add(time.Second * 5),
 	}
-	if err := h.dao.upsert(ctx, data); err != nil {
+	if err := h.dao.upsert(nCtx, data); err != nil {
 		return err
 	}
 
@@ -68,8 +66,8 @@ func (h *handler) Upsert(ctx context.Context, operInstID string) error {
 }
 
 // FindAll ...
-func (h *handler) FindAll(ctx context.Context) ([]string, error) {
-	stopOperInsts, err := h.dao.find(ctx, bson.D{{Key: "basic.is_deleted", Value: false}})
+func (h *handler) FindAll(nCtx contextx.IContext) ([]string, error) {
+	stopOperInsts, err := h.dao.find(nCtx, bson.D{{Key: "basic.is_deleted", Value: false}})
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +82,7 @@ func (h *handler) FindAll(ctx context.Context) ([]string, error) {
 
 // WatchInsert ...
 func (h *handler) WatchInsert(fn func(string)) {
-	h.dao.watchWithRetry(context.Background(),
+	h.dao.watchWithRetry(contextx.New(context.Background()),
 		bson.D{{Key: "operationType", Value: "insert"}},
 		func(inst *StopOperInst) { fn(inst.OperInstID) })
 }

@@ -13,15 +13,15 @@
 package topo
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -31,10 +31,10 @@ type IStorage interface {
 	basestorage.Interface
 
 	// GetDirectNetworkAreaHostByAnyInnerIP get host by any inner ip, v4 or v6 in direct networkarea.
-	GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4, ipv6 string) (*types.Host, error)
+	GetDirectNetworkAreaHostByAnyInnerIP(nCtx contextx.IContext, ipv4, ipv6 string) (*types.Host, error)
 
 	// GetHostByID get host by host-id.
-	GetHostByID(ctx context.Context, hostID int64) (*types.Host, error)
+	GetHostByID(nCtx contextx.IContext, hostID int64) (*types.Host, error)
 }
 
 const (
@@ -46,7 +46,7 @@ const (
 )
 
 // NewStorage creates a new release storage.
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -55,14 +55,14 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 	}
 	err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -77,7 +77,7 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoHost = host.New(s.Database, s.Logger)
+	s.daoHost = host.New(s.Database)
 
 	return nil
 }
@@ -91,13 +91,13 @@ func (s *Storage) check() error {
 }
 
 // GetDirectNetworkAreaHostByAnyInnerIP get host by any inner ip, v4 or v6 in direct networkarea.
-func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4, ipv6 string) (data *types.Host, err error) {
+func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(nCtx contextx.IContext, ipv4, ipv6 string) (data *types.Host, err error) {
 	// record metric.
 	metric := s.metric().Start("get_direct_networkarea_host_by_any_inner_ip")
 	defer metric.End(err)
 
 	if ipv4 != "" {
-		hosts, _, err := s.daoHost.List(ctx,
+		hosts, _, err := s.daoHost.List(nCtx,
 			types.UnlimitedPage(),
 			host.WithNetworkAreaID(globalNetworkAreaID),
 			host.WithStaticInnerIP(ipv4))
@@ -118,7 +118,7 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4
 	}
 
 	if ipv6 != "" {
-		hosts, _, err := s.daoHost.List(ctx,
+		hosts, _, err := s.daoHost.List(nCtx,
 			types.UnlimitedPage(),
 			host.WithNetworkAreaID(globalNetworkAreaID),
 			host.WithStaticInnerIPV6(ipv6))
@@ -142,12 +142,12 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(ctx context.Context, ipv4
 }
 
 // GetHostByID get host by host-id.
-func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (data *types.Host, err error) {
+func (s *Storage) GetHostByID(nCtx contextx.IContext, hostID int64) (data *types.Host, err error) {
 	// record metric.
 	metric := s.metric().Start("get_host_by_id")
 	defer metric.End(err)
 
-	if ctx == nil {
+	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
@@ -155,7 +155,7 @@ func (s *Storage) GetHostByID(ctx context.Context, hostID int64) (data *types.Ho
 		return nil, errors.New("host id should be equal or greater than 0")
 	}
 
-	hosts, count, err := s.daoHost.List(ctx, types.Page{Limit: 1}, host.WithHostID(hostID))
+	hosts, count, err := s.daoHost.List(nCtx, types.Page{Limit: 1}, host.WithHostID(hostID))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get host by id, host-id(%d): %w", hostID, err)
 	}

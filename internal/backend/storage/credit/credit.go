@@ -16,8 +16,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/credit"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -30,7 +30,6 @@ const (
 func NewStorage(
 	client *mongo.Client,
 	database string,
-	logger logger.ILogger,
 	crypter crypter.Crypter,
 ) (*Storage, error) {
 
@@ -42,7 +41,6 @@ func NewStorage(
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 		crypter: crypter,
 	}
@@ -51,7 +49,8 @@ func NewStorage(
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -68,7 +67,7 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoCredit = credit.New(s.Database, s.Logger)
+	s.daoCredit = credit.New(s.Database)
 
 	return nil
 }

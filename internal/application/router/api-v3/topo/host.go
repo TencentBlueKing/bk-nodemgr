@@ -11,6 +11,7 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -26,7 +27,7 @@ const (
 func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoHostListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list host, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -36,7 +37,7 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to list host, failed to count host. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list host, failed to count host")
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
@@ -51,7 +52,7 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 		req.ConvertPageToTypes(maxHostLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list host. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -99,11 +100,11 @@ func (h *handler) completeNetworkAreaName(
 	)
 
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to complete networkarea name. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to complete networkarea name")
 		return err
 	}
 
-	h.logger.InfoCtxf(rCtx, "completed networkarea name: %d", len(items))
+	logger.G.Biz(rCtx).With("items", len(items)).Info("completed networkarea name")
 	mapping.NetworkArea = make(map[int64]string)
 	for _, item := range items {
 		mapping.NetworkArea[item.ID] = item.Name
@@ -138,11 +139,11 @@ func (h *handler) completeNetworkUnitName(
 	)
 
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to complete networkunit name. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to complete networkunit name")
 		return err
 	}
 
-	h.logger.InfoCtxf(rCtx, "completed networkunit name: %d", len(items))
+	logger.G.Biz(rCtx).With("items", len(items)).Info("completed networkunit name")
 	mapping.NetworkUnit = make(map[int64]string)
 	for _, item := range items {
 		mapping.NetworkUnit[item.ID] = item.Name
@@ -155,7 +156,7 @@ func (h *handler) completeNetworkUnitName(
 func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoHostDistinctReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to distinct host, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -163,7 +164,7 @@ func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 		rCtx,
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to distinct host. failed to distinct host fields: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

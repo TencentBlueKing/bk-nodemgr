@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/robfig/cron/v3"
 )
 
@@ -97,7 +97,6 @@ type scheduler struct {
 	ctx    contextx.IContext
 	cancel context.CancelFunc
 	cron   *cron.Cron
-	logger logger.ILogger
 }
 
 // scheduledTask ...
@@ -110,13 +109,6 @@ type scheduledTask struct {
 // OptionFn ...
 type OptionFn func(*scheduler)
 
-// WithLogger this func will set the logger of the scheduler.
-func WithLogger(logger logger.ILogger) OptionFn {
-	return func(s *scheduler) {
-		s.logger = logger
-	}
-}
-
 // NewScheduler ...
 func NewScheduler(opts ...OptionFn) Scheduler {
 	ctx, cancel := contextx.WithCancel(contextx.New(context.Background()))
@@ -125,7 +117,6 @@ func NewScheduler(opts ...OptionFn) Scheduler {
 		tasks:  make(map[string]*scheduledTask),
 		ctx:    ctx,
 		cancel: cancel,
-		logger: logger.LoggerDefault{},
 	}
 
 	for _, opt := range opts {
@@ -136,8 +127,8 @@ func NewScheduler(opts ...OptionFn) Scheduler {
 		cron.WithSeconds(),
 		// skips the task if it is still running when the next scheduled time arrives.
 		cron.WithChain(
-			cron.SkipIfStillRunning(LoggerAdapter{s.logger}),
-			cron.Recover(LoggerAdapter{s.logger}),
+			cron.SkipIfStillRunning(LoggerAdapter{}),
+			cron.Recover(LoggerAdapter{}),
 		),
 	)
 
@@ -161,12 +152,13 @@ func (s *scheduler) RegisterTask(task *Task) error {
 		s.executeTask(s.tasks[task.ID])
 	})
 	if err != nil {
-		s.logger.Errorf("failed to add cron task, task-id(%s): %v", task.ID, err)
+		logger.G.Sys().WithErr(err).With("task-id", task.ID).Error("failed to add cron task")
+
 		return err
 	}
 
 	s.tasks[task.ID].entryID = entryID
-	s.logger.Infof("add task into cron list succeed, task-id(%s), entry-id(%v)", task.ID, entryID)
+	logger.G.Sys().With("task-id", task.ID, "entry-id", entryID).Info("success to add task into cron list")
 
 	return nil
 }
@@ -192,18 +184,19 @@ func (s *scheduler) executeTask(task *scheduledTask) {
 				stack = stack[line+1:]
 			}
 
-			s.logger.Errorf("task execution panic, scheduler-task-id(%s): %v, stack: \n%s", task.ID, r, stack)
+			logger.G.Sys().With("task-id", task.ID, "recover", r, "stack", stack).Error("scheduler task execution panic")
 		}
 
 		task.lastExecuted = time.Now()
 	}()
 
 	if err := task.Fn(ctx); err != nil {
-		s.logger.Errorf("task execution failed, scheduler-task-id(%s): %v", task.ID, err)
+		logger.G.Sys().WithErr(err).With("task-id", task.ID).Error("failed to do scheduler task execution")
+
 		return
 	}
 
-	s.logger.Debugf("task execution completed, scheduler-task-id(%s)", task.ID)
+	logger.G.Sys().With("task-id", task.ID).Debug("scheduler task execution completed")
 }
 
 // Terminate ...

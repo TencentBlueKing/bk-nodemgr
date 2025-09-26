@@ -15,7 +15,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -23,9 +22,9 @@ import (
 
 // testClient ...
 func testClient(t *testing.T) Handler {
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				"mongo.dev.com:27017",
@@ -42,7 +41,7 @@ func testClient(t *testing.T) Handler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database("test"), logger.LoggerDefault{})
+	return New(mongoClient.Database("test"))
 }
 
 // Test_handler_ListAll ...

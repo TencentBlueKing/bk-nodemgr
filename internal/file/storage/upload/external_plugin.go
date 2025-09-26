@@ -13,8 +13,7 @@
 package upload
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -22,32 +21,32 @@ import (
 // IExternalPlugin defines the interface of upload storage.
 type IExternalPlugin interface {
 	// GetExternalPluginUpload gets a upload by upload-id.
-	GetExternalPluginUpload(ctx context.Context, uploadID string) (*types.Upload, error)
+	GetExternalPluginUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
 	// CreateExternalPluginUpload creates a upload.
-	CreateExternalPluginUpload(ctx context.Context, up *types.Upload) (string, error)
+	CreateExternalPluginUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
 	// DeleteExternalPluginUpload deletes a upload by upload-id.
-	DeleteExternalPluginUpload(ctx context.Context, uploadID string) error
+	DeleteExternalPluginUpload(nCtx contextx.IContext, uploadID string) error
 }
 
 // GetExternalPluginUpload gets a upload by upload-id.
-func (s *Storage) GetExternalPluginUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+func (s *Storage) GetExternalPluginUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
 	// record metric.
 	metric := s.metric().Start("get_external_plugin")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(ctx, types.UploadCategoryOriginExternalPlugin, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginExternalPlugin, uploadID)
 }
 
 // CreateExternalPluginUpload creates a upload.
-func (s *Storage) CreateExternalPluginUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+func (s *Storage) CreateExternalPluginUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
 	metric := s.metric().Start("create_external_plugin")
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginExternalPlugin, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginExternalPlugin, up); err != nil {
 		return "", err
 	}
 
@@ -55,10 +54,10 @@ func (s *Storage) CreateExternalPluginUpload(ctx context.Context, up *types.Uplo
 }
 
 // DeleteExternalPluginUpload deletes a upload by upload-id.
-func (s *Storage) DeleteExternalPluginUpload(ctx context.Context, uploadID string) (err error) {
+func (s *Storage) DeleteExternalPluginUpload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_external_plugin")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginExternalPlugin, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginExternalPlugin, uploadID)
 }

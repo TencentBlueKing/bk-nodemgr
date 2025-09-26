@@ -11,12 +11,12 @@
 package bkrepo
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
@@ -71,7 +71,7 @@ func (c *cli) getCommonHeader() http.Header {
 }
 
 // DownloadFile download file from bkrepo.
-func (c *cli) DownloadFile(ctx context.Context, req *DownloadFileReq) (*DownloadFileResp, error) {
+func (c *cli) DownloadFile(nCtx contextx.IContext, req *DownloadFileReq) (*DownloadFileResp, error) {
 	resp := new(DownloadFileResp)
 	header := c.getCommonHeader()
 
@@ -79,7 +79,7 @@ func (c *cli) DownloadFile(ctx context.Context, req *DownloadFileReq) (*Download
 	resp.Data, err = c.client.Get().
 		SubResourcef("generic/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
 		WithParam("download", "true").
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Do().RawData()
 	if err != nil {
@@ -90,14 +90,14 @@ func (c *cli) DownloadFile(ctx context.Context, req *DownloadFileReq) (*Download
 }
 
 // UploadFile upload file to bkrepo.
-func (c *cli) UploadFile(ctx context.Context, req *UploadFileReq) (*UploadFileResp, error) {
+func (c *cli) UploadFile(nCtx contextx.IContext, req *UploadFileReq) (*UploadFileResp, error) {
 	resp := new(BaseBroker[*UploadFileResp])
 	header := c.getCommonHeader()
 	header = req.Info.BindHeader(header)
 
 	err := c.client.Put().
 		SubResourcef("generic/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		BodyReader(req.Reader).
 		Do().Into(resp)
@@ -109,13 +109,13 @@ func (c *cli) UploadFile(ctx context.Context, req *UploadFileReq) (*UploadFileRe
 }
 
 // QueryNodeInfo query node info.
-func (c *cli) QueryNodeInfo(ctx context.Context, req *QueryNodeInfoReq) (*QueryNodeInfoResp, error) {
+func (c *cli) QueryNodeInfo(nCtx contextx.IContext, req *QueryNodeInfoReq) (*QueryNodeInfoResp, error) {
 	resp := new(BaseBroker[*QueryNodeInfoResp])
 	header := c.getCommonHeader()
 
 	err := c.client.Get().
 		SubResourcef("/repository/api/node/detail/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		EnableLogBody().
 		Do().Into(resp)
@@ -131,13 +131,13 @@ func (c *cli) QueryNodeInfo(ctx context.Context, req *QueryNodeInfoReq) (*QueryN
 }
 
 // ListNode list nodes request.
-func (c *cli) ListNode(ctx context.Context, req *ListNodeReq) (*ListNodeResp, error) {
+func (c *cli) ListNode(nCtx contextx.IContext, req *ListNodeReq) (*ListNodeResp, error) {
 	resp := new(BaseBroker[*ListNodeResp])
 	header := c.getCommonHeader()
 
 	err := c.client.Get().
 		SubResourcef("/repository/api/node/page/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		WithParams(map[string]string{
 			"pageSize":        strconv.Itoa(req.PageSize),
@@ -160,13 +160,13 @@ func (c *cli) ListNode(ctx context.Context, req *ListNodeReq) (*ListNodeResp, er
 }
 
 // MkDir create directory request.
-func (c *cli) MkDir(ctx context.Context, req *MkdirReq) error {
+func (c *cli) MkDir(nCtx contextx.IContext, req *MkdirReq) error {
 	resp := new(BaseBroker[*MkdirResp])
 	header := c.getCommonHeader()
 
 	err := c.client.Post().
 		SubResourcef("/repository/api/node/mkdir/%s/%s/%s", c.config.ProjectID, c.config.RepoName, req.Path).
-		WithContext(ctx).
+		WithContext(nCtx).
 		WithHeaders(header).
 		Do().Into(resp)
 	if err != nil {

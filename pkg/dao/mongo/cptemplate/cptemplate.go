@@ -11,21 +11,19 @@
 package cptemplate
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
 	tableName := TableName(tenantID)
 	d := &dao{
 		tenantID:  tenantID,
 		tableName: tableName,
 		client:    client.Collection(tableName),
-		logger:    logger,
 	}
 
 	d.IOrm = base.NewOrm[*ConfigPolicyTemplate, ConfigPolicyTemplate](d)
@@ -37,7 +35,6 @@ type dao struct {
 	tenantID  string
 	tableName string
 	client    *mongo.Collection
-	logger    logger.ILogger
 
 	base.IOrm[*ConfigPolicyTemplate, ConfigPolicyTemplate]
 }
@@ -45,11 +42,6 @@ type dao struct {
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -64,20 +56,20 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) upsertMany(ctx context.Context, templates []*ConfigPolicyTemplate) error {
+func (d *dao) upsertMany(nCtx contextx.IContext, templates []*ConfigPolicyTemplate) error {
 	models := buildUpsertManyParams(templates)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("inserted config policy template, inserted-count(%v)", result.UpsertedCount)
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted config policy template")
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("updated config policy template, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted config policy template")
 	}
 
 	return nil

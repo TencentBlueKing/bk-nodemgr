@@ -16,7 +16,6 @@ import (
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -32,13 +31,11 @@ const (
 func NewActionSyncNodeInfo(
 	gseClient gse.IHandler,
 	storage nodeStg.IStorage,
-	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionSyncNodeInfo{
 		gseClient: gseClient,
 		storage:   storage,
-		logger:    logger,
 	}
 }
 
@@ -50,7 +47,6 @@ type ActParamSyncNodeInfo struct {
 type actionSyncNodeInfo struct {
 	gseClient gse.IHandler
 	storage   nodeStg.IStorage
-	logger    logger.ILogger
 }
 
 // Name returns the name of the action.

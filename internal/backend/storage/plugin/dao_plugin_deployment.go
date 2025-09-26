@@ -20,8 +20,8 @@ import (
 )
 
 // createPluginDeployment plugin deployment.
-func (s *Storage) createPluginDeployment(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
-	if ctx == nil {
+func (s *Storage) createPluginDeployment(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -29,7 +29,7 @@ func (s *Storage) createPluginDeployment(ctx contextx.IContext, pluginDeployment
 		return errors.New("plugin deployment is nil")
 	}
 
-	if err := s.daoPluginDeployment.Create(ctx, pluginDeployment); err != nil {
+	if err := s.daoPluginDeployment.Create(nCtx, pluginDeployment); err != nil {
 		return err
 	}
 
@@ -37,8 +37,8 @@ func (s *Storage) createPluginDeployment(ctx contextx.IContext, pluginDeployment
 }
 
 // getPluginDeploymentInfo get plugin deployment info.
-func (s *Storage) getPluginDeploymentInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
-	if ctx == nil {
+func (s *Storage) getPluginDeploymentInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
+	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
@@ -46,7 +46,7 @@ func (s *Storage) getPluginDeploymentInfo(ctx contextx.IContext, token string) (
 		return nil, basestorage.ErrEmptyUniqueKey()
 	}
 
-	info, err := s.daoPluginDeployment.GetInfo(ctx, token)
+	info, err := s.daoPluginDeployment.GetInfo(nCtx, token)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +55,8 @@ func (s *Storage) getPluginDeploymentInfo(ctx contextx.IContext, token string) (
 }
 
 // updatePluginDeploymentInfo update a node deployment info.
-func (s *Storage) updatePluginDeploymentInfo(ctx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error {
-	if ctx == nil {
+func (s *Storage) updatePluginDeploymentInfo(nCtx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -68,7 +68,7 @@ func (s *Storage) updatePluginDeploymentInfo(ctx contextx.IContext, token string
 		return errors.New("plugin deployment info is nil")
 	}
 
-	if err := s.daoPluginDeployment.UpdateInfo(ctx, token, pluginDeploymentInfo); err != nil {
+	if err := s.daoPluginDeployment.UpdateInfo(nCtx, token, pluginDeploymentInfo); err != nil {
 		return fmt.Errorf("update plugin deployment info failed: %v", err)
 	}
 

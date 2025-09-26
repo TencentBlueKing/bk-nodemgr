@@ -11,6 +11,7 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -24,7 +25,7 @@ const (
 func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoEventListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list event, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -34,7 +35,7 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to list event. failed to count event. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list event. failed to count event")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -49,7 +50,7 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 		req.ConvertPageToTypes(maxEventLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list event. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -64,7 +65,7 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) DistinctEvent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoEventDistinctReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to distinct topoevent, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct topoevent, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -72,7 +73,7 @@ func (h *handler) DistinctEvent(rCtx restserver.IContext) (interface{}, error) {
 		rCtx,
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to distinct topoevent. failed to distinct host fields: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct topoevent. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

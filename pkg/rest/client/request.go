@@ -12,7 +12,6 @@ package client
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,6 +24,9 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 )
 
 // VerbType http request verb type.
@@ -59,7 +61,7 @@ type Request struct {
 	headers    http.Header
 	body       []byte
 	bodyReader io.Reader
-	ctx        context.Context
+	nCtx       contextx.IContext
 
 	// enableLogBody was used to record some important info for debug.
 	enableLogBody bool
@@ -139,8 +141,8 @@ func (r *Request) WithHeaders(header http.Header) *Request {
 }
 
 // WithContext add context to request.
-func (r *Request) WithContext(ctx context.Context) *Request {
-	r.ctx = ctx
+func (r *Request) WithContext(nCtx contextx.IContext) *Request {
+	r.nCtx = nCtx
 
 	return r
 }
@@ -284,9 +286,10 @@ func (r *Request) checkToleranceLatency(start *time.Time, url string) {
 	}
 
 	// request time larger than the maxToleranceLatencyTime time, then log the request
-	r.capability.Logger.Infof("http request exceeded max latency time. "+
-		"cost(%d ms), method(%s), url(%s), header(%s), body(%s)",
-		time.Since(*start)/time.Millisecond, r.verb, url, r.maskHeader(r.headers), r.maskRequestBody())
+	logger.G.Biz(r.nCtx).
+		WithDuration(time.Since(*start)).
+		With("method", r.verb, "url", url, "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
+		Info("http request exceeded max latency time")
 }
 
 // isToleranceLatencyExclusionURL judge url if need to checkToleranceLatency.
@@ -355,7 +358,10 @@ func (r *Request) tryThrottle(url string) {
 	now := time.Now()
 
 	if latency := time.Since(now); latency > maxLatency {
-		r.capability.Logger.Infof("Throttling request took %d ms, verb: %s, request: %s", latency, r.verb, url)
+		logger.G.Biz(r.nCtx).
+			WithDuration(latency).
+			With("method", r.verb, "url", url).
+			Warn("throttling request")
 	}
 }
 
@@ -408,8 +414,9 @@ func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int
 		r.tryThrottle(fullURL)
 	}
 
-	r.client.capability.Logger.Infof("request, method(%s), url(%s), header(%s), body(%s)",
-		r.verb, fullURL, r.maskHeader(r.headers), r.maskRequestBody())
+	logger.G.Biz(r.nCtx).
+		With("method", r.verb, "url", fullURL, "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
+		Info("do request")
 
 	start := time.Now()
 	resp, err := client.Do(req)
@@ -443,8 +450,11 @@ func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int
 				time.Sleep(retryDelay)
 				return nil, false
 			}
-			r.capability.Logger.Errorf("failed to request, method(%s), url(%s), header(%s), body(%s): %v",
-				r.verb, fullURL, r.maskHeader(r.headers), r.maskRequestBody(), err)
+
+			logger.G.Biz(r.nCtx).
+				WithErr(err).
+				With("method", r.verb, "url", fullURL, "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
+				Error("failed to do request")
 
 			return &Result{Err: err}, true
 		}
@@ -459,9 +469,9 @@ func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int
 		enableLogResponse: r.enableLogResponse,
 	}
 
-	r.client.capability.Logger.Infof(
-		"response, method(%s), url(%s), header(%s), http-code(%d), body(%s)",
-		r.verb, fullURL, r.maskHeader(r.headers), result.StatusCode, result.maskResponseBody())
+	logger.G.Biz(r.nCtx).
+		With("code", result.StatusCode, "method", r.verb, "url", fullURL, "header", r.maskHeader(r.headers), "body", result.maskResponseBody()).
+		Info("receive response")
 
 	return result, true
 }
@@ -476,8 +486,8 @@ func (r *Request) getRequest(url string) (*http.Request, error) {
 		return nil, err
 	}
 
-	if r.ctx != nil {
-		req = req.WithContext(r.ctx)
+	if r.nCtx != nil {
+		req = req.WithContext(r.nCtx)
 	}
 
 	req.Header = cloneHeader(r.headers)

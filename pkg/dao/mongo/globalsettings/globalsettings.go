@@ -12,20 +12,18 @@
 package globalsettings
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
 	tableName := TableName()
 	d := &dao{
 		tenantID:  tenantID,
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
 	}
 
@@ -38,18 +36,13 @@ type dao struct {
 	tenantID  string
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
+
 	base.IOrm[*GlobalSettings, GlobalSettings]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -65,20 +58,20 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 // UpsertMany upserts global settings.
-func (d *dao) upsertMany(ctx context.Context, settings []*GlobalSettings) error {
+func (d *dao) upsertMany(nCtx contextx.IContext, settings []*GlobalSettings) error {
 	models := buildUpsertManyParams(settings)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Debugf("inserted globalsettings, inserted-count(%v)", result.UpsertedCount)
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted globalsettings")
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Debugf("updated globalsettings, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted globalsettings")
 	}
 
 	return nil

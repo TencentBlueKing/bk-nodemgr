@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,8 +36,8 @@ func setupTestFileManager(t *testing.T) (IFileManager, string, func()) {
 	testFilePath := filepath.Join(filedir, testFileName)
 
 	// Create a file manager
-	ctx, cancel := context.WithCancel(context.Background())
-	fm, err := NewFileManager(ctx, baseDir, logger.LoggerDefault{})
+	nCtx, cancel := contextx.WithCancel(contextx.New(context.Background()))
+	fm, err := NewFileManager(nCtx, baseDir)
 	if err != nil {
 		t.Fatalf("failed to create file manager: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestFileStorageLifecycle(t *testing.T) {
 	defer cleanup()
 
 	t.Run("StoreFile", func(t *testing.T) {
-		info, err := fm.StoreFile(context.Background(), srcPath, testFilename)
+		info, err := fm.StoreFile(contextx.New(context.Background()), srcPath, testFilename)
 		assert.NoError(t, err, "file store failed")
 		assert.Equal(t, testFilename, info.Name, "file name not match")
 		assert.Greater(t, info.Size, int64(0), "file size is zero")
@@ -76,7 +76,7 @@ func TestFileStorageLifecycle(t *testing.T) {
 	time.Sleep(5 * time.Second)
 
 	t.Run("StoreFile", func(t *testing.T) {
-		info, err := fm.StoreFile(context.Background(), srcPath, testFilename)
+		info, err := fm.StoreFile(contextx.New(context.Background()), srcPath, testFilename)
 		assert.NoError(t, err, "file store failed")
 		assert.Equal(t, testFilename, info.Name, "file name not match")
 		assert.Equal(t, info.MD5, calculateFileMD5(srcPath), "file md5 not match")
@@ -85,15 +85,15 @@ func TestFileStorageLifecycle(t *testing.T) {
 
 	t.Run("FileExists", func(t *testing.T) {
 		time.Sleep(3 * time.Second)
-		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
+		exists := fm.FileExists(contextx.New(context.Background()), testFilename, calculateFileMD5(srcPath))
 		assert.True(t, exists, "file not exists")
 	})
 
 	t.Run("DownloadFile", func(t *testing.T) {
 		time.Sleep(2 * time.Second)
-		file, err := fm.GetFile(context.Background(), testFilename)
+		file, err := fm.GetFile(contextx.New(context.Background()), testFilename)
 		assert.NoError(t, err, "failed to download file")
-		reader, err := file.Content(context.Background())
+		reader, err := file.Content(contextx.New(context.Background()))
 		assert.NoError(t, err, "failed to get file content")
 		defer reader.Close()
 
@@ -105,7 +105,7 @@ func TestFileStorageLifecycle(t *testing.T) {
 	t.Log("wait GC...")
 	time.Sleep(10 * time.Second)
 	t.Run("FileNotExists", func(t *testing.T) {
-		exists := fm.FileExists(context.Background(), testFilename, calculateFileMD5(srcPath))
+		exists := fm.FileExists(contextx.New(context.Background()), testFilename, calculateFileMD5(srcPath))
 		assert.False(t, exists, "file should not exists")
 	})
 }

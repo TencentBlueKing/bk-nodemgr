@@ -11,20 +11,18 @@
 package credit
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
 	tableName := TableName(tenantID)
 	d := &dao{
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
 	}
 
@@ -36,18 +34,12 @@ func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
 	base.IOrm[*Credit, Credit]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -69,27 +61,22 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 // upsert updates or inserts a credit.
-func (d *dao) upsert(ctx context.Context, credit *Credit) error {
+func (d *dao) upsert(nCtx contextx.IContext, credit *Credit) error {
 	filter, upsert, opts := buildUpsertParams(credit)
-	result, err := d.client.UpdateOne(ctx, filter, upsert, opts)
+	result, err := d.client.UpdateOne(nCtx, filter, upsert, opts)
 	if err != nil {
 		return err
 	}
 
 	switch {
 	case result.UpsertedCount > 0:
-		{
-			d.logger.Infof("upserted credit, unique-key(%s), table(%s)",
-				credit.UniqueKey(), d.tableName)
-		}
+		logger.G.Biz(nCtx).With("unique-key", credit.UniqueKey(), "table", d.tableName).Info("upserted credit")
+
 	case result.MatchedCount > 0:
-		{
-			d.logger.Infof("updated credit, unique-key(%s), table(%s)",
-				credit.UniqueKey(), d.tableName)
-		}
+		logger.G.Biz(nCtx).With("unique-key", credit.UniqueKey(), "table", d.tableName).Info("updated credit")
+
 	default:
-		d.logger.Warnf("try to upsert credit but no changes made. unique-key(%s), table(%s)",
-			credit.UniqueKey(), d.tableName)
+		logger.G.Biz(nCtx).With("unique-key", credit.UniqueKey(), "table", d.tableName).Warn("try to upsert credit but no changes made")
 	}
 
 	return nil

@@ -16,28 +16,30 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) RelayReportStorageResult(gCtx *gin.Context) {
+	nCtx := contextx.New(gCtx)
+
 	req := new(protoCallback.ReportStorageResultReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report stroage file result failed: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report storage result, failed to decode request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report stroage file result failed: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report storage result, failed to validate request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	h.logger.Infof("report relay stroage file result. instance(%s), action(%s) ",
-		req.GetOperInstId(), req.GetActionName())
+	logger.G.Biz(nCtx).With("oper-inst-id", req.GetOperInstId(), "action", req.GetActionName()).Info("report storage result info")
 
 	dataMap := map[string]any{
 		relayconstant.StorageResultKey: map[string]string{
@@ -45,10 +47,9 @@ func (h *handler) RelayReportStorageResult(gCtx *gin.Context) {
 		},
 	}
 
-	nCtx := contextx.New(gCtx)
 	if err := h.UpsertActionInstancePrivateData(nCtx,
 		req.GetOperInstId(), req.GetActionName(), dataMap); err != nil {
-		h.logger.Errorf("update action private failed: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report storage result, failed to update action private data")
 		gCtx.JSON(http.StatusInternalServerError, err)
 	}
 

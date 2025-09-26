@@ -13,10 +13,10 @@ package release
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -27,7 +27,6 @@ type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
 	fileHandler    file.IHandler
-	logger         logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -36,7 +35,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:             rg.Group("/release"),
 		backendHandler: capability.BackendHandler,
 		fileHandler:    capability.FileHandler,
-		logger:         capability.Logger,
 	}
 }
 
@@ -62,7 +60,7 @@ const (
 func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list release, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -73,7 +71,7 @@ func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountRelease(rCtx, releaseType, gen, req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to list release. failed to count host. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release. failed to count host")
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
@@ -85,7 +83,7 @@ func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 
 	hosts, num, err := h.backendHandler.ListRelease(rCtx, releaseType, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list release. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -99,21 +97,21 @@ func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) SetReleaseLabels(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseSetLabelsReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to set release labels, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set release labels, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.backendHandler.SetReleaseLabels(rCtx, gen, rt, plat, version, req.GetLabels()); err != nil {
-		h.logger.ErrorCtxf(rCtx,
-			"failed to set release labels. gen(%d), release-type(%s), platform(%s), version(%s): %v",
-			gen, rt, plat, version, err)
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
+			Error("failed to set release labels")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "set release labels. gen(%d), release-type(%s), platform(%s), version(%s), labels(%v)",
-		gen, rt, plat, version, req.GetLabels())
+	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version, "labels", req.GetLabels()).Info("set release labels")
 
 	resp := new(protoApplication.PackageReleaseSetLabelsResp)
 
@@ -124,20 +122,19 @@ func (h *handler) SetReleaseLabels(rCtx restserver.IContext) (interface{}, error
 func (h *handler) EnableRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseEnableReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to enable release, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.backendHandler.EnableRelease(rCtx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to enable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "enabled release. gen(%d), release-type(%s), platform(%s), version(%s)",
-		gen, rt, plat, version)
+	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("enabled release")
 
 	resp := new(protoApplication.PackageReleaseEnableResp)
 
@@ -148,20 +145,19 @@ func (h *handler) EnableRelease(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) DisableRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseDisableReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to disable release, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.backendHandler.DisableRelease(rCtx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to disable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
 			gen, rt, plat, version, err)
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "disabled release. gen(%d), release-type(%s), platform(%s), version(%s)",
-		gen, rt, plat, version)
+	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("disabled release")
 
 	resp := new(protoApplication.PackageReleaseDisableResp)
 
@@ -172,21 +168,21 @@ func (h *handler) DisableRelease(rCtx restserver.IContext) (interface{}, error) 
 func (h *handler) SetAsDefaultRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseSetAsDefaultReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to set default release, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.backendHandler.SetAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(rCtx,
-			"failed to set default release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
-			gen, rt, plat, version, err)
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
+			Error("failed to set default release")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "set default release. gen(%d), release-type(%s), platform(%s), version(%s)",
-		gen, rt, plat, version)
+	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("set default release")
 
 	resp := new(protoApplication.PackageReleaseSetAsDefaultResp)
 
@@ -197,21 +193,21 @@ func (h *handler) SetAsDefaultRelease(rCtx restserver.IContext) (interface{}, er
 func (h *handler) CancelAsDefaultRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseCancelAsDefaultReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to cancel default release, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.backendHandler.CancelAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(rCtx,
-			"failed to cancel default release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
-			gen, rt, plat, version, err)
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
+			Error("failed to cancel default release")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "canceled default release. gen(%d), release-type(%s), platform(%s), version(%s)",
-		gen, rt, plat, version)
+	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("canceled default release")
 
 	resp := new(protoApplication.PackageReleaseCancelAsDefaultResp)
 
@@ -221,21 +217,21 @@ func (h *handler) CancelAsDefaultRelease(rCtx restserver.IContext) (interface{},
 func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseDeleteReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to delete release, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete release, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
 	if err := h.backendHandler.DeleteRelease(rCtx, gen, rt, plat, version); err != nil {
-		h.logger.ErrorCtxf(rCtx,
-			"failed to delete release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
-			gen, rt, plat, version, err)
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
+			Error("failed to delete default release")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "deleted release. gen(%d), release-type(%s), platform(%s), version(%s)",
-		gen, rt, plat, version)
+	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("deleted default release")
 
 	resp := new(protoApplication.PackageReleaseDeleteResp)
 
@@ -246,29 +242,29 @@ func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) CountDeployedHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseDeployedHostCountReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to count deployed host, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed host, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	condition, err := req.ConvertConditionsToHostTypes()
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to count deployed host, failed to convert conditions to host types. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed host, failed to convert conditions to host types")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	hosts, _, err := h.backendHandler.ListHost(rCtx, types.UnlimitedPage(), condition)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to count deployed host, failed to list host. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed host, failed to list host")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	result, pair, err := req.CountHostsByOsTypeAndArch(hosts)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to count hosts. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count hosts")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "count deployed hosts for release. pair(%d)", pair)
+	logger.G.Biz(rCtx).With("pair", pair).Info("count deployed hosts for release")
 
 	resp := new(protoApplication.PackageReleaseDeployedHostCountResp)
 	resp.ConvertResultFromTypes(result, pair)

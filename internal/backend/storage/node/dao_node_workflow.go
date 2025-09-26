@@ -11,11 +11,11 @@
 package node
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -23,7 +23,7 @@ import (
 )
 
 // listNodeWorkflow lists node workflow by page and conditions.
-func (s *Storage) listNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+func (s *Storage) listNodeWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
 	var results []*types.NodeWorkflow
@@ -33,7 +33,7 @@ func (s *Storage) listNodeWorkflow(ctx context.Context, page types.Page, conditi
 	page.Sort = types.WithSortFields(page.Sort,
 		types.WithFieldDesc(nodeworkflow.FieldKeyOperateTime))
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
-	if results, num, err = s.daoNodeWorkflow.List(ctx, page, opts...); err != nil {
+	if results, num, err = s.daoNodeWorkflow.List(nCtx, page, opts...); err != nil {
 		return nil, 0, err
 	}
 
@@ -41,12 +41,12 @@ func (s *Storage) listNodeWorkflow(ctx context.Context, page types.Page, conditi
 }
 
 // countNodeWorkflow counts node workflow by conditions.
-func (s *Storage) countNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
+func (s *Storage) countNodeWorkflow(nCtx contextx.IContext, conditions ...*types.NodeWorkflowCondition) (int64, error) {
 	var num int64
 	var err error
 
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
-	if num, err = s.daoNodeWorkflow.Count(ctx, opts...); err != nil {
+	if num, err = s.daoNodeWorkflow.Count(nCtx, opts...); err != nil {
 		return 0, err
 	}
 
@@ -55,7 +55,7 @@ func (s *Storage) countNodeWorkflow(ctx context.Context, conditions ...*types.No
 
 // distinctNodeWorkflow distincts node workflow fields.
 func (s *Storage) distinctNodeWorkflow(
-	ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
+	nCtx contextx.IContext, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 	*types.NodeWorkflowDistinctResult, error) {
 
 	var err error
@@ -67,7 +67,7 @@ func (s *Storage) distinctNodeWorkflow(
 	if request.BizID {
 		gp.Go(func() error {
 			var err error
-			result.BizID, err = s.daoNodeWorkflow.DistinctNodeWorkflowBkBizID(ctx, opts...)
+			result.BizID, err = s.daoNodeWorkflow.DistinctNodeWorkflowBkBizID(nCtx, opts...)
 
 			return err
 		})
@@ -75,7 +75,7 @@ func (s *Storage) distinctNodeWorkflow(
 	if request.Operator {
 		gp.Go(func() error {
 			var err error
-			result.Operator, err = s.daoNodeWorkflow.DistinctNodeWorkflowOperator(ctx, opts...)
+			result.Operator, err = s.daoNodeWorkflow.DistinctNodeWorkflowOperator(nCtx, opts...)
 
 			return err
 		})
@@ -83,7 +83,7 @@ func (s *Storage) distinctNodeWorkflow(
 	if request.Status {
 		gp.Go(func() error {
 			var err error
-			result.Status, err = s.daoNodeWorkflow.DistinctNodeWorkflowStatus(ctx, opts...)
+			result.Status, err = s.daoNodeWorkflow.DistinctNodeWorkflowStatus(nCtx, opts...)
 
 			return err
 		})
@@ -91,7 +91,7 @@ func (s *Storage) distinctNodeWorkflow(
 	if request.Type {
 		gp.Go(func() error {
 			var err error
-			result.Type, err = s.daoNodeWorkflow.DistinctNodeWorkflowType(ctx, opts...)
+			result.Type, err = s.daoNodeWorkflow.DistinctNodeWorkflowType(nCtx, opts...)
 
 			return err
 		})
@@ -105,8 +105,8 @@ func (s *Storage) distinctNodeWorkflow(
 }
 
 // getNodeWorkflow gets a node workflow by workflow-id.
-func (s *Storage) getNodeWorkflow(ctx context.Context, workflowID string) (*types.NodeWorkflow, error) {
-	if ctx == nil {
+func (s *Storage) getNodeWorkflow(nCtx contextx.IContext, workflowID string) (*types.NodeWorkflow, error) {
+	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
@@ -114,7 +114,7 @@ func (s *Storage) getNodeWorkflow(ctx context.Context, workflowID string) (*type
 		return nil, errors.New("workflowID cannot be empty")
 	}
 
-	workflow, err := s.daoNodeWorkflow.Get(ctx, workflowID)
+	workflow, err := s.daoNodeWorkflow.Get(nCtx, workflowID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get workflow by id: %w", err)
 	}
@@ -127,8 +127,8 @@ func (s *Storage) getNodeWorkflow(ctx context.Context, workflowID string) (*type
 }
 
 // createNodeWorkflow creates a new node workflow.
-func (s *Storage) createNodeWorkflow(ctx context.Context, workflow *types.NodeWorkflow) error {
-	if ctx == nil {
+func (s *Storage) createNodeWorkflow(nCtx contextx.IContext, workflow *types.NodeWorkflow) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -144,7 +144,7 @@ func (s *Storage) createNodeWorkflow(ctx context.Context, workflow *types.NodeWo
 		return fmt.Errorf("invalid workflow data.status: %w", err)
 	}
 
-	if err := s.daoNodeWorkflow.Create(ctx, workflow); err != nil {
+	if err := s.daoNodeWorkflow.Create(nCtx, workflow); err != nil {
 		return fmt.Errorf("failed to createNodeDeployment workflow: %w", err)
 	}
 
@@ -152,8 +152,8 @@ func (s *Storage) createNodeWorkflow(ctx context.Context, workflow *types.NodeWo
 }
 
 // updateNodeWorkflowStatus updates the status of a node workflow.
-func (s *Storage) updateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
-	if ctx == nil {
+func (s *Storage) updateNodeWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.NodeWorkflowStatus) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -165,7 +165,7 @@ func (s *Storage) updateNodeWorkflowStatus(ctx context.Context, workflowID strin
 		return fmt.Errorf("invalid workflow status: %s", status)
 	}
 
-	if err := s.daoNodeWorkflow.UpdateStatus(ctx, workflowID, status); err != nil {
+	if err := s.daoNodeWorkflow.UpdateStatus(nCtx, workflowID, status); err != nil {
 		return err
 	}
 

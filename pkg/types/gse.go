@@ -11,11 +11,11 @@
 package types
 
 import (
-	"context"
 	"regexp"
 	"strconv"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
@@ -307,7 +307,7 @@ type ISimpleTransferHandler interface {
 	GetFileInfo() fileiface.FileInfo
 
 	// WaitUntilDone wait until done.
-	WaitUntilDone(ctx context.Context) (*SimpleTransferResult, error)
+	WaitUntilDone(nCtx contextx.IContext) (*SimpleTransferResult, error)
 }
 
 // SimpleTransferResult represents the simple transfer result.

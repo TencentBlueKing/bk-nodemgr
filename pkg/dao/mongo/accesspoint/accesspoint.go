@@ -12,21 +12,20 @@
 package accesspoint
 
 import (
-	"context"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(client *mongo.Database) *dao {
 	d := &dao{
 		client:  client.Collection(TableName()),
-		logger:  logger,
-		counter: counter.New(client, logger)}
+		counter: counter.New(client)}
 
 	d.IOrm = base.NewOrm[*AccessPoint, AccessPoint](d)
 
@@ -34,8 +33,8 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 }
 
 type dao struct {
-	client  *mongo.Collection
-	logger  logger.ILogger
+	client *mongo.Collection
+
 	counter counter.Handler
 	base.IOrm[*AccessPoint, AccessPoint]
 }
@@ -43,11 +42,6 @@ type dao struct {
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -63,8 +57,8 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) create(ctx context.Context, accessPoint *AccessPoint) (int64, error) {
-	newSequence, err := d.counter.Generate(ctx, TableName())
+func (d *dao) create(nCtx contextx.IContext, accessPoint *AccessPoint) (int64, error) {
+	newSequence, err := d.counter.Generate(nCtx, TableName())
 	if err != nil {
 		return 0, err
 	}
@@ -74,17 +68,17 @@ func (d *dao) create(ctx context.Context, accessPoint *AccessPoint) (int64, erro
 		Data: accessPoint,
 	}
 
-	if _, err = d.client.InsertOne(ctx, table); err != nil {
+	if _, err = d.client.InsertOne(nCtx, table); err != nil {
 		return 0, err
 	}
 
 	return newSequence, nil
 }
 
-func (d *dao) createMany(ctx context.Context, accessPoints []*AccessPoint) ([]int64, error) {
+func (d *dao) createMany(nCtx contextx.IContext, accessPoints []*AccessPoint) ([]int64, error) {
 	sequences := make([]int64, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
-		newSequences, err := d.counter.Generate(ctx, TableName())
+		newSequences, err := d.counter.Generate(nCtx, TableName())
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +98,7 @@ func (d *dao) createMany(ctx context.Context, accessPoints []*AccessPoint) ([]in
 		tables = append(tables, table)
 	}
 
-	_, err := d.client.InsertMany(ctx, tables)
+	_, err := d.client.InsertMany(nCtx, tables)
 	if err != nil {
 		return nil, err
 	}
@@ -112,31 +106,31 @@ func (d *dao) createMany(ctx context.Context, accessPoints []*AccessPoint) ([]in
 	return sequences, nil
 }
 
-func (d *dao) updateMany(ctx context.Context, tenantID string, accessPoints []*AccessPoint) error {
+func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, accessPoints []*AccessPoint) error {
 	models := buildUpdateManyParams(tenantID, accessPoints)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated accesspoints, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted accesspoints")
 	}
 
 	return nil
 }
 
-func (d *dao) deleteMany(ctx context.Context, tenantID string, accessPointIDs ...int64) error {
+func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, accessPointIDs ...int64) error {
 	models := buildDeleteManyParams(tenantID, accessPointIDs...)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully deleted accesspoints, deleted-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("deleted-count", result.MatchedCount).Info("deleted accesspoints")
 	}
 
 	return nil

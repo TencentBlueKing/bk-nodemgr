@@ -12,18 +12,13 @@
 package options
 
 import (
-	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
-	// Logger logger.
-	Logger logger.ILogger
-
 	// Messager messager.
 	Messager relayhandler.IClientMessager
 
@@ -32,8 +27,8 @@ type Capability struct {
 }
 
 // Start start the capability.
-func (c *Capability) Start(ctx context.Context) error {
-	if err := c.Messager.Start(ctx); err != nil {
+func (c *Capability) Start(nCtx contextx.IContext) error {
+	if err := c.Messager.Start(nCtx); err != nil {
 		return err
 	}
 

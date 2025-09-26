@@ -12,7 +12,6 @@ package local
 
 import (
 	"bufio"
-	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -20,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/spf13/afero"
 )
@@ -74,14 +74,14 @@ func NewLocalFile(fullPath string) (*LocalFile, error) {
 
 // MD5SumWithBuffer returns the MD5 sum of a file.
 func MD5SumWithBuffer(filePath string) (string, error) {
-	file, err := os.Open(filePath)
+	file, err := os.Open(filePath) // nolint:gosec
 	if err != nil {
 		return "", fmt.Errorf("open file failed: %w", err)
 	}
-	defer file.Close()
+	defer file.Close() // nolint:errcheck
 
-	buffer := make([]byte, 32*1024)
-	hash := md5.New()
+	buffer := make([]byte, 32*1024) // nolint:mnd
+	hash := md5.New()               // nolint:gosec
 	reader := bufio.NewReader(file)
 
 	for {
@@ -103,6 +103,7 @@ func MD5SumWithBuffer(filePath string) (string, error) {
 }
 
 // LocalFile represents a local file.
+// nolint: revive
 type LocalFile struct {
 	info     fileiface.FileInfo
 	fullPath string
@@ -110,14 +111,14 @@ type LocalFile struct {
 }
 
 // Content returns LocalFile content.
-func (f *LocalFile) Content(_ context.Context) (io.ReadCloser, error) {
+func (f *LocalFile) Content(_ contextx.IContext) (io.ReadCloser, error) {
 	absPath, err := filepath.Abs(f.fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("unable to resolve absolute path: %w", err)
 	}
 
 	// 打开文件
-	file, err := os.Open(absPath)
+	file, err := os.Open(absPath) // nolint:gosec
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, fmt.Errorf("local file not found: %w", err)

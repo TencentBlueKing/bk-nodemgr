@@ -11,49 +11,46 @@
 package nodedeployment
 
 import (
-	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // IHandler node deployment Handler interface.
 type IHandler interface {
-	CreateNodeDeployment(ctx context.Context, nodeDeployment *types.NodeDeployment) error
-	GetNodeDeploymentInfo(ctx context.Context, token string) (*types.DeploymentInfo, error)
-	GetNodeDeploymentNodeConf(ctx context.Context, token string) (*types.NodeConf, error)
-	SetNodeDeploymentNodeConf(ctx context.Context, token string, nodeConf *types.NodeConf) error
-	UpdateNodeDeploymentInfo(ctx context.Context, token string, info *types.DeploymentInfo) error
+	CreateNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error
+	GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*types.DeploymentInfo, error)
+	GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string) (*types.NodeConf, error)
+	SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, nodeConf *types.NodeConf) error
+	UpdateNodeDeploymentInfo(nCtx contextx.IContext, token string, info *types.DeploymentInfo) error
 }
 
 // Handler this is a Handler to operate node deployment table.
 type Handler struct {
-	dao    *dao
-	logger logger.ILogger
+	dao *dao
 }
 
 // New new a Handler.
-func New(client *mongo.Database, logger logger.ILogger) *Handler {
+func New(client *mongo.Database) *Handler {
 	h := &Handler{
-		dao:    newDao(client, logger),
-		logger: logger,
+		dao: newDao(client),
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure nodedeloyment indexes: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).Warn("failed to ensure nodedeployment indexes")
 	}
 
 	return h
 }
 
 // GetNodeDeploymentInfo get a node deployment info.
-func (h *Handler) GetNodeDeploymentInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
-	if ctx == nil {
+func (h *Handler) GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*types.DeploymentInfo, error) {
+	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
@@ -63,7 +60,7 @@ func (h *Handler) GetNodeDeploymentInfo(ctx context.Context, token string) (*typ
 
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
-	data, err := h.dao.Get(ctx, filter, FieldKeyInfo)
+	data, err := h.dao.Get(nCtx, filter, FieldKeyInfo)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
@@ -159,8 +156,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 }
 
 // CreateNodeDeployment create a new node deployment.
-func (h *Handler) CreateNodeDeployment(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
-	if ctx == nil {
+func (h *Handler) CreateNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error {
+	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
@@ -173,7 +170,7 @@ func (h *Handler) CreateNodeDeployment(ctx context.Context, nodeDeployment *type
 		return err
 	}
 
-	return h.dao.Create(ctx, data)
+	return h.dao.Create(nCtx, data)
 }
 
 func convertNodeDeploymentFromTypes(data *types.NodeDeployment) (*Data, error) {
@@ -211,8 +208,8 @@ func convertNodeConfFromTypes(nodeConf *types.NodeConf) (*NodeConf, error) {
 }
 
 // GetNodeDeploymentNodeConf get a node deployment node conf.
-func (h *Handler) GetNodeDeploymentNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
-	if ctx == nil {
+func (h *Handler) GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string) (*types.NodeConf, error) {
+	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
@@ -222,7 +219,7 @@ func (h *Handler) GetNodeDeploymentNodeConf(ctx context.Context, token string) (
 
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
-	data, err := h.dao.Get(ctx, filter, FieldKeyNodeConf)
+	data, err := h.dao.Get(nCtx, filter, FieldKeyNodeConf)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
@@ -243,8 +240,8 @@ func convertNodeConfToTypes(nodeConf *NodeConf) (*types.NodeConf, error) {
 }
 
 // SetNodeDeploymentNodeConf set a node deployment node conf.
-func (h *Handler) SetNodeDeploymentNodeConf(ctx context.Context, token string, nodeConf *types.NodeConf) error {
-	if ctx == nil {
+func (h *Handler) SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, nodeConf *types.NodeConf) error {
+	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
@@ -263,7 +260,7 @@ func (h *Handler) SetNodeDeploymentNodeConf(ctx context.Context, token string, n
 
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
-	if err := h.dao.UpdateField(ctx, filter, FieldKeyNodeConf, data); err != nil {
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyNodeConf, data); err != nil {
 		return err
 	}
 
@@ -271,8 +268,8 @@ func (h *Handler) SetNodeDeploymentNodeConf(ctx context.Context, token string, n
 }
 
 // UpdateNodeDeploymentInfo update a node deployment info.
-func (h *Handler) UpdateNodeDeploymentInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
-	if ctx == nil {
+func (h *Handler) UpdateNodeDeploymentInfo(nCtx contextx.IContext, token string, info *types.DeploymentInfo) error {
+	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
@@ -290,7 +287,7 @@ func (h *Handler) UpdateNodeDeploymentInfo(ctx context.Context, token string, in
 	if err != nil {
 		return err
 	}
-	if err := h.dao.UpdateField(ctx, filter, FieldKeyInfo, data); err != nil {
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyInfo, data); err != nil {
 		return err
 	}
 

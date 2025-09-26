@@ -16,8 +16,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -32,9 +32,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -51,19 +51,19 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 var once = sync.Once{}
 
 // prepareData for all tests.
-func prepareData(t *testing.T, ctx context.Context) {
+func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(ctx)
+		tenantID, _ := tenant.GetID(nCtx)
 
 		// pre insert.
 		h := testClient(t)
-		err := h.UpsertMany(ctx,
+		err := h.UpsertMany(nCtx,
 			&types.NetworkArea{
 				TenantID: tenantID,
 				ID:       90001,
@@ -100,9 +100,9 @@ func prepareData(t *testing.T, ctx context.Context) {
 // Test_handler_Get get network area.
 func Test_handler_Get(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name    string
@@ -134,7 +134,7 @@ func Test_handler_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Get(ctx, tt.id)
+			got, err := h.Get(nCtx, tt.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -148,9 +148,9 @@ func Test_handler_Get(t *testing.T) {
 // Test_handler_Count count network area.
 func Test_handler_Count(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -181,7 +181,7 @@ func Test_handler_Count(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Count(ctx, tt.optFn...)
+			got, err := h.Count(nCtx, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -199,9 +199,9 @@ func Test_handler_Count(t *testing.T) {
 // Test_handler_List list network area.
 func Test_handler_List(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -249,7 +249,7 @@ func Test_handler_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, total, err := h.List(ctx, tt.page, tt.optFn...)
+			got, total, err := h.List(nCtx, tt.page, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -277,10 +277,10 @@ func Test_handler_List(t *testing.T) {
 // Test_handler_UpsertMany upserts many networkareas.
 func Test_handler_UpsertMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx          context.Context
+		nCtx         context.Context
 		networkAreas []*types.NetworkArea
 	}
 
@@ -290,9 +290,9 @@ func Test_handler_UpsertMany(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:          nil,
+				nCtx:         nil,
 				networkAreas: nil,
 			},
 			wantErr: true,
@@ -300,7 +300,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "nil networkareas",
 			args: args{
-				ctx:          ctx,
+				nCtx:         nCtx,
 				networkAreas: nil,
 			},
 			wantErr: true,
@@ -308,7 +308,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "empty networkareas",
 			args: args{
-				ctx:          ctx,
+				nCtx:         nCtx,
 				networkAreas: []*types.NetworkArea{},
 			},
 			wantErr: true,
@@ -316,7 +316,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "forbid cross tenant",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				networkAreas: []*types.NetworkArea{
 					{
 						TenantID: "test",
@@ -329,7 +329,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				networkAreas: []*types.NetworkArea{
 					{
 						TenantID: "test",
@@ -355,7 +355,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.UpsertMany(tt.args.ctx, tt.args.networkAreas...)
+			err := h.UpsertMany(tt.args.nCtx, tt.args.networkAreas...)
 			if err != nil {
 				t.Logf("UpsertMany() error = %v", err)
 			}
@@ -369,12 +369,12 @@ func Test_handler_UpsertMany(t *testing.T) {
 // Test_handler_DeleteMany deletes many networkareas.
 func Test_handler_DeleteMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx            context.Context
+		nCtx           context.Context
 		networkAreaIDs []int64
 	}
 
@@ -386,9 +386,9 @@ func Test_handler_DeleteMany(t *testing.T) {
 		ensureNotExists []int64
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:            nil,
+				nCtx:           nil,
 				networkAreaIDs: nil,
 			},
 			wantErr:         true,
@@ -398,7 +398,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		{
 			name: "empty ids",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				networkAreaIDs: []int64{},
 			},
 			wantErr:         true,
@@ -408,7 +408,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		{
 			name: "forbid cross tenant",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				networkAreaIDs: []int64{0},
 			},
 			wantErr:         false,
@@ -418,7 +418,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				networkAreaIDs: []int64{90001, 90002, 90003},
 			},
 			wantErr:         false,
@@ -430,7 +430,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.DeleteMany(tt.args.ctx, tt.args.networkAreaIDs...)
+			err := h.DeleteMany(tt.args.nCtx, tt.args.networkAreaIDs...)
 			if err != nil {
 				t.Logf("DeleteMany() error = %v", err)
 			}
@@ -439,13 +439,13 @@ func Test_handler_DeleteMany(t *testing.T) {
 			}
 
 			for _, networkAreaID := range tt.ensureExists {
-				if _, err := h.Get(tt.args.ctx, networkAreaID); err != nil {
+				if _, err := h.Get(tt.args.nCtx, networkAreaID); err != nil {
 					t.Errorf("DeleteMany() ensureExists %d, error = %v", networkAreaID, err)
 				}
 			}
 
 			for _, networkAreaID := range tt.ensureNotExists {
-				if _, err := h.Get(tt.args.ctx, networkAreaID); err == nil {
+				if _, err := h.Get(tt.args.nCtx, networkAreaID); err == nil {
 					t.Errorf("DeleteMany() ensureNotExists %d, error = %v", networkAreaID, err)
 				}
 			}

@@ -12,21 +12,18 @@
 package relayhandler
 
 import (
-	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // IClientMessager provides the managements for receiving and sending messages via client side gse agent.
 type IClientMessager interface {
 	// Start starts the messager.
-	Start(ctx context.Context) error
+	Start(nCtx contextx.IContext) error
 
 	// Stop stops the messager.
-	Stop(ctx context.Context) error
+	Stop(nCtx contextx.IContext) error
 
 	ICallbackClient
 
@@ -39,22 +36,22 @@ type IClientMessager interface {
 // ICallbackClient defines the callback client.
 type ICallbackClient interface {
 	// RequestCallback sends request to url. returns the response body and http code.
-	RequestCallback(ctx context.Context, url string, content []byte) ([]byte, int, error)
+	RequestCallback(nCtx contextx.IContext, url string, content []byte) ([]byte, int, error)
 }
 
 // IClientPush defines the client handler.
 type IClientPush interface {
 	// ClientPushReq sends a client push request asynchronously and returns a channel for results.
-	ClientPushReq(ctx context.Context, callbackURL string, body []byte) <-chan error
+	ClientPushReq(nCtx contextx.IContext, callbackURL string, body []byte) <-chan error
 }
 
 // IServerMessager provides the managements for receiving and sending messages via server side gse api.
 type IServerMessager interface {
 	// Start starts the messager.
-	Start(ctx context.Context) error
+	Start(nCtx contextx.IContext) error
 
 	// Stop stops the messager.
-	Stop(ctx context.Context) error
+	Stop(nCtx contextx.IContext) error
 
 	// DecodeBaseRequest decodes the base request.
 	DecodeBaseRequest(req []byte) (*ServerReceivedData, error)
@@ -102,19 +99,3 @@ type ICallbackServer interface {
 	// RespondCallback sends the callback response.
 	RespondCallback(ctx contextx.IContext, messageID string, httpCode int, content []byte, agentIDs ...string) error
 }
-
-type loggerAdaptor struct {
-	Logger logger.ILogger
-}
-
-// Debug logs to DEBUG log.
-func (l *loggerAdaptor) Debug(format string, args ...interface{}) { l.Logger.Debugf(format, args...) }
-
-// Info logs to INFO log.
-func (l *loggerAdaptor) Info(format string, args ...interface{}) { l.Logger.Infof(format, args...) }
-
-// Warn logs to WARNING log.
-func (l *loggerAdaptor) Warn(format string, args ...interface{}) { l.Logger.Warnf(format, args...) }
-
-// Error logs to ERROR log.
-func (l *loggerAdaptor) Error(format string, args ...interface{}) { l.Logger.Errorf(format, args...) }

@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -32,13 +33,13 @@ const DefaultNodeGeneration = 2
 func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeProxyInstallReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to install proxy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	nodeDeployments, bizIDs, err := h.generateInstallNodeDeployments(rCtx, req)
 	if err != nil {
-		h.logger.Errorf("failed to install proxy, failed to generate node deployments. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install proxy, failed to generate node deployments")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -49,14 +50,14 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		NodeDeployments: nodeDeployments,
 	})
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to install proxy: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install proxy")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
 	resp := new(protoBackend.NodeProxyInstallResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	h.logger.InfoCtxf(rCtx, "launched install proxy workflow: %s", workflowID)
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install proxy workflow")
 
 	return resp.GetData(), nil
 }
@@ -211,14 +212,14 @@ func (h *handler) fetchExistedHosts(ctx contextx.IContext, hosts []*protoBackend
 	return existedHostMap, nil
 }
 
-func (h *handler) processHostCredit(ctx contextx.IContext, host *types.Host, password, keyfile string) error {
+func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, password, keyfile string) error {
 	var err error
 	switch host.Dynamic.LoginMode {
 	case types.LoginModeKeyFile:
 		if keyfile == "" {
 			if host.Dynamic.LoginCreditID == "" {
 				err := fmt.Errorf("keyfile is empty and there is not login credit to use. host-id(%d), inner-ip(%s)", host.HostID, host.Static.InnerIP)
-				h.logger.ErrorCtxf(ctx, "failed to process host credit: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).With("host-id", host.HostID, "inner-ip", host.Static.InnerIP).Error("failed to process host credit")
 
 				return err
 			}
@@ -229,13 +230,13 @@ func (h *handler) processHostCredit(ctx contextx.IContext, host *types.Host, pas
 
 		loginKeyFile, err := base64.StdEncoding.DecodeString(keyfile)
 		if err != nil {
-			h.logger.Errorf("use base64 decode key file failed: %v", err)
+			logger.G.Biz(nCtx).WithErr(err).Error("use base64 decode key file failed")
 
 			return fmt.Errorf("failed to decode key file: %w", err)
 		}
 
 		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
-			ctx,
+			nCtx,
 			loginKeyFile,
 		)
 		if err != nil {
@@ -247,7 +248,7 @@ func (h *handler) processHostCredit(ctx contextx.IContext, host *types.Host, pas
 		if password == "" {
 			if host.Dynamic.LoginCreditID == "" {
 				err := fmt.Errorf("password is empty and there is not login credit to use. host-id(%d), inner-ip(%s)", host.HostID, host.Static.InnerIP)
-				h.logger.ErrorCtxf(ctx, "failed to process host credit: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).With("host-id", host.HostID, "inner-ip", host.Static.InnerIP).Error("failed to process host credit")
 
 				return err
 			}
@@ -257,7 +258,7 @@ func (h *handler) processHostCredit(ctx contextx.IContext, host *types.Host, pas
 		}
 
 		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
-			ctx,
+			nCtx,
 			[]byte(password),
 		)
 		if err != nil {
@@ -271,7 +272,7 @@ func (h *handler) processHostCredit(ctx contextx.IContext, host *types.Host, pas
 
 	default:
 		err = fmt.Errorf("unsupported this login mode. login-mode(%s)", host.Dynamic.LoginMode)
-		h.logger.Error(err)
+		logger.G.Biz(nCtx).WithErr(err).With("login-mode", host.Dynamic.LoginMode).Error("unsupported login mode")
 
 		return err
 	}

@@ -12,12 +12,13 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
@@ -28,8 +29,8 @@ const (
 	reportRelayDetectResultURL = "/relay/report_detect_result"
 )
 
-func (h *handler) DetectInfoBySSH(ctx context.Context, payload []byte) {
-	h.logger.Infof("handler detect info by ssh event.")
+func (h *handler) DetectInfoBySSH(nCtx contextx.IContext, payload []byte) {
+	logger.G.Biz(nCtx).Info("handler detect info by ssh event")
 
 	var (
 		event        protoRelay.DetectInfoBySSHReq
@@ -40,41 +41,43 @@ func (h *handler) DetectInfoBySSH(ctx context.Context, payload []byte) {
 	)
 
 	defer func() {
-		if err := h.reportHostInfo(ctx, event.ActionName, event.OperInstID, osType, cpuArch, connectedDir, errMsg); err != nil {
-			h.logger.Errorf("failed to report host info: %v", err)
+		if err := h.reportHostInfo(nCtx, event.ActionName, event.OperInstID, osType, cpuArch, connectedDir, errMsg); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).Error("failed to report host info")
+
 			return
 		}
-		h.logger.Infof("report host info success. action-name(%s), instance-id(%s),os-type(%s), cpu-arch(%s), connected-dir(%s), err-msg(%s)",
-			event.ActionName, event.OperInstID, osType, cpuArch, connectedDir, errMsg)
+
+		logger.G.Biz(nCtx).
+			With("action", event.ActionName, "oper-inst-id", event.OperInstID).
+			With("os-type", osType, "cpu-arch", cpuArch, "connected-dir", connectedDir).
+			Info("done report host info")
 	}()
 
 	if err := json.Unmarshal(payload, &event); err != nil {
-		errMsg = fmt.Sprintf("failed to unmarshal detect info by ssh event: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to unmarshal detect info by ssh event")
 
 		return
 	}
 
-	client, err := generateSSHClient(ctx, event.IP, int(event.Port), event.User, event.Password, types.LoginMode(event.LoginMode), h.logger)
+	client, err := generateSSHClient(nCtx, event.IP, int(event.Port), event.User, event.Password, types.LoginMode(event.LoginMode))
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to generate SSH client: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to generate ssh client")
 
 		return
 	}
-
-	h.logger.Infof("start to detect info. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
+	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("try to connect to host")
 
 	osType, cpuArch, connectedDir, err = detectInfoBySSH(client)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to detect info: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to detect info")
 
 		return
 	}
-	h.logger.Infof("detect info success. os-type(%s), cpu-arch(%s), connected-dir(%s)", osType, cpuArch, connectedDir)
 
-	h.logger.Infof("detect info by ssh success. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
+	logger.G.Biz(nCtx).
+		With("ip", event.IP, "port", event.Port, "user", event.User).
+		With("os-type", osType, "cpu-arch", cpuArch, "connected-dir", connectedDir).
+		Info("detect info by ssh successfully")
 }
 
 // nolint: nonamedreturns,perfsprint

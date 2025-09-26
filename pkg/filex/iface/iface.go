@@ -12,10 +12,11 @@
 package iface
 
 import (
-	"context"
 	"io"
 	"strings"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
 
 // FileGroup directory interface.
@@ -33,21 +34,21 @@ type FileGroup interface {
 
 	// SubGroups the sub groups of file group.
 	// It should lists all sub groups with actual action.
-	SubGroups(ctx context.Context) ([]FileGroup, error)
+	SubGroups(nCtx contextx.IContext) ([]FileGroup, error)
 
 	// AllFiles the all files of file group.
 	// It should lists all files with actual action.
-	AllFiles(ctx context.Context) ([]File, error)
+	AllFiles(nCtx contextx.IContext) ([]File, error)
 
 	// GetFile get a file by name.
 	// It should get file with actual action.
-	GetFile(ctx context.Context, name string) (File, error)
+	GetFile(nCtx contextx.IContext, name string) (File, error)
 
 	// Store the func will store a file into the file group.
-	Store(ctx context.Context, info FileInfo, file io.ReadCloser, overwrite bool) error
+	Store(nCtx contextx.IContext, info FileInfo, file io.ReadCloser, overwrite bool) error
 
 	// Remove the func will delete a file from the file group.
-	// Remove(ctx context.Context, name string) error
+	// Remove(nCtx contextx.IContext, name string) error
 }
 
 // File file interface.
@@ -89,7 +90,7 @@ type FileInfo struct {
 
 // FileContent the content of file.
 type FileContent interface {
-	Content(ctx context.Context) (io.ReadCloser, error)
+	Content(nCtx contextx.IContext) (io.ReadCloser, error)
 }
 
 // FileObject define this file is local file or remote file.

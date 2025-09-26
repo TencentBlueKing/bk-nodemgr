@@ -12,23 +12,23 @@ package local
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/filelock"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/spf13/afero"
 )
 
 const defaultBufferSize = 32 * 1024 // 32KB usually has better performance.
 
 // NewLocalDir creates a new LocalDir.
-func NewLocalDir(fullPath string, logger logger.ILogger) (*LocalDir, error) {
+func NewLocalDir(fullPath string) (*LocalDir, error) {
 	exists, err := afero.Exists(rFs(), fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if file exists: %w", err)
@@ -52,7 +52,6 @@ func NewLocalDir(fullPath string, logger logger.ILogger) (*LocalDir, error) {
 		name:     filepath.Base(fullPath),
 		fullPath: fullPath,
 		absDirs:  fileiface.ConvertAbsPathToAbsDirs(fullPath),
-		logger:   logger,
 	}
 
 	return group, nil
@@ -64,7 +63,6 @@ type LocalDir struct {
 	name     string
 	fullPath string
 	absDirs  []string
-	logger   logger.ILogger
 }
 
 // Name the name of file group.
@@ -73,7 +71,7 @@ func (group *LocalDir) Name() string {
 }
 
 // SubGroups the sub groups of file group.
-func (group *LocalDir) SubGroups(_ context.Context) ([]fileiface.FileGroup, error) {
+func (group *LocalDir) SubGroups(_ contextx.IContext) ([]fileiface.FileGroup, error) {
 	entries, err := afero.ReadDir(rFs(), group.fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("read dir failed: %w", err)
@@ -84,7 +82,7 @@ func (group *LocalDir) SubGroups(_ context.Context) ([]fileiface.FileGroup, erro
 		fullPath := filepath.Join(group.fullPath, entry.Name())
 
 		if entry.IsDir() {
-			subDir, err := NewLocalDir(fullPath, group.logger)
+			subDir, err := NewLocalDir(fullPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create local file group, subgroup(%s): %w", fullPath, err)
 			}
@@ -97,7 +95,7 @@ func (group *LocalDir) SubGroups(_ context.Context) ([]fileiface.FileGroup, erro
 }
 
 // AllFiles the files of file group.
-func (group *LocalDir) AllFiles(_ context.Context) ([]fileiface.File, error) {
+func (group *LocalDir) AllFiles(_ contextx.IContext) ([]fileiface.File, error) {
 	entries, err := afero.ReadDir(rFs(), group.fullPath)
 	if err != nil {
 		return nil, fmt.Errorf("read dir failed: %w", err)
@@ -121,7 +119,7 @@ func (group *LocalDir) AllFiles(_ context.Context) ([]fileiface.File, error) {
 }
 
 // GetFile the func will get a file from the file group.
-func (group *LocalDir) GetFile(_ context.Context, name string) (fileiface.File, error) {
+func (group *LocalDir) GetFile(_ contextx.IContext, name string) (fileiface.File, error) {
 	fullPath := filepath.Join(group.fullPath, name)
 	file, err := NewLocalFile(fullPath)
 	if err != nil {
@@ -132,8 +130,8 @@ func (group *LocalDir) GetFile(_ context.Context, name string) (fileiface.File, 
 }
 
 // Store the func will store a file into the file group.
-func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reader io.ReadCloser, overwrite bool) error {
-	if ctx == nil {
+func (group *LocalDir) Store(nCtx contextx.IContext, info fileiface.FileInfo, reader io.ReadCloser, overwrite bool) error {
+	if nCtx == nil {
 		return errors.New("context cannot be nil")
 	}
 
@@ -153,7 +151,7 @@ func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reade
 			return fmt.Errorf("create dir failed: %w", err)
 		}
 
-		group.logger.Infof("successfully create dir, path(%s)", group.fullPath)
+		logger.G.Biz(nCtx).With("path", group.fullPath).Info("successfully create dir")
 	}
 
 	if err != nil {
@@ -197,7 +195,7 @@ func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reade
 		_ = lfile.Close()
 	}()
 
-	if err := group.writeDataToFile(ctx, lfile, reader); err != nil {
+	if err := group.writeDataToFile(nCtx, lfile, reader); err != nil {
 		return fmt.Errorf("write file content failed: %w", err)
 	}
 
@@ -205,7 +203,7 @@ func (group *LocalDir) Store(ctx context.Context, info fileiface.FileInfo, reade
 }
 
 // writeDataToFile write data to local file.
-func (group *LocalDir) writeDataToFile(ctx context.Context, lfile afero.File, reader io.ReadCloser) error {
+func (group *LocalDir) writeDataToFile(nCtx contextx.IContext, lfile afero.File, reader io.ReadCloser) error {
 	// use bufio.NewWriter to improve performance.
 	writer := bufio.NewWriter(lfile)
 	defer func() {
@@ -217,8 +215,8 @@ func (group *LocalDir) writeDataToFile(ctx context.Context, lfile afero.File, re
 
 	for {
 		select {
-		case <-ctx.Done():
-			return ctx.Err()
+		case <-nCtx.Done():
+			return nCtx.Err()
 		default:
 			n, err := reader.Read(buf)
 			if err != nil {
@@ -249,7 +247,7 @@ func (group *LocalDir) AbsDirs() []string {
 }
 
 // Remove the func will delete a file from the file group.
-func (group *LocalDir) Remove(_ context.Context, name string) error {
+func (group *LocalDir) Remove(_ contextx.IContext, name string) error {
 	fullPath := filepath.Join(group.fullPath, name)
 	if fullPath == "" {
 		return fmt.Errorf("file full path is empty, name(%s)", name)

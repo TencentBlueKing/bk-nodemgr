@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
@@ -45,11 +46,11 @@ type ISyncManager interface {
 }
 
 // LaunchSyncAllAgentState launch a task to sync all agent state.
-func (mgr *Manager) LaunchSyncAllAgentState(ctx contextx.IContext) (string, error) {
-	tenantID := ctx.TenantID()
-	operator := ctx.BKUsername()
+func (mgr *Manager) LaunchSyncAllAgentState(nCtx contextx.IContext) (string, error) {
+	tenantID := nCtx.TenantID()
+	operator := nCtx.BKUsername()
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, &trigger.MetadataOnce{})
 	if err != nil {
 		return "", err
 	}
@@ -58,17 +59,18 @@ func (mgr *Manager) LaunchSyncAllAgentState(ctx contextx.IContext) (string, erro
 		TenantID: tenantID,
 		Operator: operator,
 	})
-	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.RunTrigger(nCtx); err != nil {
 		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "launched sync all agent state task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
-		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync all agent state task")
 
 	return triggerCtl.GetTriggerID(), nil
 }
@@ -118,8 +120,9 @@ func (mgr *Manager) LaunchSyncAgentState(ctx contextx.IContext, hostIDs ...int64
 		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "launched sync agent state task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
-		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync agent state task")
 
 	return triggerCtl.GetTriggerID(), nil
 }
@@ -147,8 +150,9 @@ func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.IContext) (string, error) 
 		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "launched sync biz and host task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
-		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync biz and host task")
 
 	return triggerCtl.GetTriggerID(), nil
 }
@@ -177,8 +181,9 @@ func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.IContext, bizID int64) (s
 		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "launched sync host task. tenant-id(%s), biz-id(%d), trigger-id(%s), operation-id(%s)",
-		tenantID, bizID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync host task")
 
 	return triggerCtl.GetTriggerID(), nil
 }
@@ -206,8 +211,9 @@ func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.IContext) (string, error)
 		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "launched sync networkarea task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
-		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync networkarea task")
 
 	return triggerCtl.GetTriggerID(), nil
 }
@@ -235,8 +241,9 @@ func (mgr *Manager) LaunchSyncAliveHostAgentInfo(ctx contextx.IContext) (string,
 		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "launched sync alive host agent info task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
-		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync alive host agent info task")
 
 	return triggerCtl.GetTriggerID(), nil
 }
@@ -286,8 +293,9 @@ func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64)
 		return "", err
 	}
 
-	mgr.logger.InfoCtxf(ctx, "launched sync agent info task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
-		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync agent info task")
 
 	return triggerCtl.GetTriggerID(), nil
 }

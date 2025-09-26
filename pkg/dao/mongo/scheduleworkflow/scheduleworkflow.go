@@ -12,20 +12,17 @@
 package scheduleworkflow
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(client *mongo.Database) *dao {
 	tableName := TableName()
 	d := &dao{
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
 	}
 
@@ -37,18 +34,12 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
 	base.IOrm[*ScheduleWorkflow, ScheduleWorkflow]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -65,7 +56,7 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 
 // distinctString distinct string field.
 func (d *dao) distinctString(
-	ctx context.Context, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error) {
+	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *mongoOptions.DistinctOptions) ([]string, error) {
 
-	return d.DistinctString(ctx, key, filter, distinctOpt)
+	return d.DistinctString(nCtx, key, filter, distinctOpt)
 }

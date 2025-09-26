@@ -20,6 +20,7 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 )
@@ -44,7 +45,7 @@ func (lfp *localFilePool) get(filename string) (*localFile, bool) {
 }
 
 // EnsureNodeToLocal ensure the node to local.
-func (m *Manager) EnsureNodeToLocal(ctx contextx.IContext, rt types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (
+func (m *Manager) EnsureNodeToLocal(nCtx contextx.IContext, rt types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (
 	fileiface.File, string, error) {
 
 	if gen != types.Generation2 {
@@ -54,14 +55,14 @@ func (m *Manager) EnsureNodeToLocal(ctx contextx.IContext, rt types.ReleaseType,
 	var release types.Release
 	switch rt {
 	case types.ReleaseTypeAgent:
-		releaseAgent, err := m.storageRelease.GetReleaseAgent(ctx, gen, plat, version)
+		releaseAgent, err := m.storageRelease.GetReleaseAgent(nCtx, gen, plat, version)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to get release: %w", err)
 		}
 
 		release = releaseAgent.Release
 	case types.ReleaseTypeProxy:
-		releaseProxy, err := m.storageRelease.GetReleaseProxy(ctx, gen, plat, version)
+		releaseProxy, err := m.storageRelease.GetReleaseProxy(nCtx, gen, plat, version)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to get release: %w", err)
 		}
@@ -71,11 +72,11 @@ func (m *Manager) EnsureNodeToLocal(ctx contextx.IContext, rt types.ReleaseType,
 		return nil, "", fmt.Errorf("not support release type: %s", rt)
 	}
 
-	return m.ensureReleaseToLocal(ctx, release)
+	return m.ensureReleaseToLocal(nCtx, release)
 }
 
 // EnsurePluginToLocal ensure the plugin to local.
-func (m *Manager) EnsurePluginToLocal(ctx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platform.Platform,
+func (m *Manager) EnsurePluginToLocal(nCtx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platform.Platform,
 	version string) (fileiface.File, string, error) {
 
 	if gen != types.Generation2 {
@@ -85,14 +86,14 @@ func (m *Manager) EnsurePluginToLocal(ctx contextx.IContext, rt types.ReleaseTyp
 	var release types.Release
 	switch rt {
 	case types.ReleaseTypeOfficialPlugin:
-		releaseOfficialPlugin, err := m.storageRelease.GetReleaseOfficialPlugin(ctx, name, gen, plat, version)
+		releaseOfficialPlugin, err := m.storageRelease.GetReleaseOfficialPlugin(nCtx, name, gen, plat, version)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to get release: %w", err)
 		}
 
 		release = releaseOfficialPlugin.Release
 	case types.ReleaseTypeExternalPlugin:
-		releaseExternalPlugin, err := m.storageRelease.GetReleaseExternalPlugin(ctx, name, gen, plat, version)
+		releaseExternalPlugin, err := m.storageRelease.GetReleaseExternalPlugin(nCtx, name, gen, plat, version)
 		if err != nil {
 			return nil, "", fmt.Errorf("failed to get release: %w", err)
 		}
@@ -102,11 +103,11 @@ func (m *Manager) EnsurePluginToLocal(ctx contextx.IContext, rt types.ReleaseTyp
 		return nil, "", fmt.Errorf("not support release type: %s", rt)
 	}
 
-	return m.ensureReleaseToLocal(ctx, release)
+	return m.ensureReleaseToLocal(nCtx, release)
 }
 
 // ensureReleaseToLocal ensure the release to local.
-func (m *Manager) ensureReleaseToLocal(ctx contextx.IContext, release types.Release) (fileiface.File, string, error) {
+func (m *Manager) ensureReleaseToLocal(nCtx contextx.IContext, release types.Release) (fileiface.File, string, error) {
 	cache, ok := m.localFilePool.get(release.FileName)
 	if ok {
 		info := cache.file.Info()
@@ -137,13 +138,13 @@ func (m *Manager) ensureReleaseToLocal(ctx contextx.IContext, release types.Rele
 	}
 
 	// get upstream file.
-	upstreamFile, err := ufg.GetFile(ctx, release.FileName)
+	upstreamFile, err := ufg.GetFile(nCtx, release.FileName)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to get upstream file, filename(%s): %w", release.FileName, err)
 	}
 
 	// get upstream content.
-	content, err := upstreamFile.Content(ctx)
+	content, err := upstreamFile.Content(nCtx)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to get upstream file content, filename(%s): %w", release.FileName, err)
 	}
@@ -154,17 +155,17 @@ func (m *Manager) ensureReleaseToLocal(ctx contextx.IContext, release types.Rele
 		return nil, "", fmt.Errorf("failed to create temp cache dir, dirpath(%s): %w", cacheDir, err)
 	}
 
-	lfg, err := local.NewLocalDir(cacheDir, m.logger)
+	lfg, err := local.NewLocalDir(cacheDir)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create local file group, dirpath(%s): %w", cacheDir, err)
 	}
 
 	// save file to loca.
-	if err = lfg.Store(ctx, fileiface.FileInfo{Name: release.FileName}, content, true); err != nil {
+	if err = lfg.Store(nCtx, fileiface.FileInfo{Name: release.FileName}, content, true); err != nil {
 		return nil, "", fmt.Errorf("failed to store file, filename(%s): %w", release.FileName, err)
 	}
 
-	file, err := lfg.GetFile(ctx, release.FileName)
+	file, err := lfg.GetFile(nCtx, release.FileName)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to get local file, filename(%s): %w", release.FileName, err)
 	}
@@ -176,7 +177,7 @@ func (m *Manager) ensureReleaseToLocal(ctx contextx.IContext, release types.Rele
 	}
 	m.localFilePool.filesMutex.Unlock()
 
-	m.logger.InfoCtxf(ctx, "ensured release to local cache. file(%s), cache-dir(%s)", file.Info().Name, cacheDir)
+	logger.G.Biz(nCtx).With("filename", file.Info().Name, "cache-dir", cacheDir).Info("ensured release to local cache")
 
 	return file, cacheDir, nil
 }

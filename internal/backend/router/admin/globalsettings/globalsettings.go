@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +25,6 @@ type handler struct {
 	manager     manager.IManager
 	storage     globalsettings.IStorage
 	cmdbHandler cmdb.IHandler
-	logger      logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -36,7 +34,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		manager:     capability.Manager,
 		storage:     capability.StorageGlobalSettings,
 		cmdbHandler: capability.CmdbHandler,
-		logger:      capability.Logger,
 	}
 }
 

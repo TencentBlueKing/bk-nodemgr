@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // TestScheduler tests the scheduler.
 func TestScheduler(t *testing.T) {
-	s := NewScheduler(WithLogger(logger.LoggerDefault{}))
+	s := NewScheduler(WithLogger())
 
 	cnt := 0
 	s.RegisterTask(NewTask(

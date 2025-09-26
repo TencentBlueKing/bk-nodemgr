@@ -28,7 +28,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -43,7 +42,6 @@ const (
 // NewActionInstallNodeBySSH get a new action.
 func NewActionInstallNodeBySSH(
 	installerFileGroup fileiface.FileGroup,
-	logger logger.ILogger,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	provider discover.Provider,
 	storageHostCredit credit.IStorageHostCredit,
@@ -53,7 +51,6 @@ func NewActionInstallNodeBySSH(
 	return &actionInstallNodeBySSH{
 		installerGroup:        installerFileGroup,
 		storageHostCredit:     storageHostCredit,
-		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
 		provider:              provider,
 		passwordVault:         passwordVault,
@@ -81,8 +78,6 @@ type InstallParams struct {
 }
 
 type actionInstallNodeBySSH struct {
-	logger logger.ILogger
-
 	installerGroup fileiface.FileGroup
 
 	storageHostCredit     credit.IStorageHostCredit
@@ -168,7 +163,6 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
 		Port:       int(std.DeployInfo().Host.Dynamic.LoginPort),
 		User:       std.DeployInfo().Host.Dynamic.LoginUser,
-		Logger:     act.logger,
 		AuthMethod: cMethod,
 		Password: func() string {
 			if cMethod == sshx.AuthMethodPassword {

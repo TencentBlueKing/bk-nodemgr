@@ -11,7 +11,7 @@
 // Package operation describes the operation of workflow.
 package operation
 
-import "context"
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
 // Definition represents an operation.
 type Definition interface {
@@ -62,5 +62,5 @@ type ExtraExecution interface {
 	// Name returns the name of the extra execution.
 	Name() string
 
-	Do(ctx context.Context, instance *InstanceBriefData) error
+	Do(nCtx contextx.IContext, instance *InstanceBriefData) error
 }

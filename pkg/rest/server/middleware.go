@@ -14,10 +14,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"regexp"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
@@ -215,30 +216,60 @@ func NewTenantIDSetter() *TenantIDSetter {
 	return &TenantIDSetter{}
 }
 
-type recvLoggerConfig struct {
-	Output    io.Writer
-	Formatter func(*gin.Context) string
-	SkipPaths []string
-}
-
 // MiddlewareReceivedLog print log when received request.
-func MiddlewareReceivedLog(conf recvLoggerConfig) gin.HandlerFunc {
-	if conf.Output == nil || conf.Formatter == nil {
-		return func(gCtx *gin.Context) {
-			gCtx.Next()
-		}
-	}
-
+// nolint: contextcheck
+func MiddlewareReceivedLog(skipPaths ...string) gin.HandlerFunc {
 	skip := make(map[string]struct{})
-	for _, skipPath := range conf.SkipPaths {
+	for _, skipPath := range skipPaths {
 		skip[skipPath] = struct{}{}
 	}
 
 	return func(gCtx *gin.Context) {
 		if _, ok := skip[gCtx.Request.URL.Path]; !ok {
-			_, _ = fmt.Fprint(conf.Output, conf.Formatter(gCtx))
+			rCtx, _ := GenRestContext(gCtx)
+
+			path := gCtx.Request.URL.Path
+			raw := gCtx.Request.URL.RawQuery
+
+			if raw != "" {
+				path = path + "?" + raw
+			}
+
+			logger.G.Biz(rCtx).With("client-ip", gCtx.ClientIP()).Info("[request recv] %s", path)
 		}
 
 		gCtx.Next()
+	}
+}
+
+// MiddlewareReturnedLog print log when returned response.
+// nolint: contextcheck
+func MiddlewareReturnedLog(skipPaths ...string) gin.HandlerFunc {
+	skip := make(map[string]struct{})
+	for _, skipPath := range skipPaths {
+		skip[skipPath] = struct{}{}
+	}
+
+	return func(gCtx *gin.Context) {
+		start := time.Now()
+
+		gCtx.Next()
+
+		if _, ok := skip[gCtx.Request.URL.Path]; !ok {
+			rCtx, _ := GenRestContext(gCtx)
+
+			path := gCtx.Request.URL.Path
+			raw := gCtx.Request.URL.RawQuery
+
+			if raw != "" {
+				path = path + "?" + raw
+			}
+
+			logger.G.Biz(rCtx).
+				WithDuration(time.Since(start)).
+				With("client-ip", gCtx.ClientIP()).
+				With("code", gCtx.Writer.Status()).
+				Info("[request done] %s", path)
+		}
 	}
 }

@@ -11,9 +11,9 @@
 package bkrepo
 
 import (
-	"context"
 	"io"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 )
 
@@ -31,8 +31,8 @@ func (f File) FileObject() fileiface.FileObject {
 }
 
 // Content return the content of the file.
-func (f File) Content(ctx context.Context) (io.ReadCloser, error) {
-	return f.handler.getFileContent(ctx, f.info.FullPath)
+func (f File) Content(nCtx contextx.IContext) (io.ReadCloser, error) {
+	return f.handler.getFileContent(nCtx, f.info.FullPath)
 }
 
 // Info return the info of the file.

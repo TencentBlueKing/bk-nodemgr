@@ -12,14 +12,14 @@
 package callback
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,7 +30,6 @@ const (
 type handler struct {
 	rg     *gin.RouterGroup
 	client relayhandler.ICallbackClient
-	logger logger.ILogger
 }
 
 func (h *handler) request(gCtx *gin.Context) {
@@ -42,19 +41,19 @@ func (h *handler) request(gCtx *gin.Context) {
 	}
 
 	// create a new context with timeout
-	rctx, rcancel := context.WithTimeout(gCtx.Request.Context(), defaultRequestTimeout)
-	defer rcancel()
+	nCtx, cancel := contextx.WithTimeout(contextx.New(gCtx), defaultRequestTimeout)
+	defer cancel()
 
-	h.logger.Infof("request to callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(content))
-	resp, statusCode, err := h.client.RequestCallback(rctx, gCtx.Request.URL.Path, content)
+	logger.G.Biz(nCtx).With("url", gCtx.Request.URL.Path, "content", string(content)).Info("request to callback")
+	resp, statusCode, err := h.client.RequestCallback(nCtx, gCtx.Request.URL.Path, content)
 	if err != nil {
-		h.logger.Errorf("failed to request to callback: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).With("url", gCtx.Request.URL.Path).Error("failed to request to callback")
 		gCtx.JSON(statusCode, err)
 
 		return
 	}
 
-	h.logger.Infof("response from callback with url(%s), content(%s)", gCtx.Request.URL.Path, string(resp))
+	logger.G.Biz(nCtx).With("url", gCtx.Request.URL.Path, "content", string(resp)).Info("response from callback")
 	gCtx.Data(statusCode, "application/json; charset=utf-8", resp)
 }
 
@@ -63,7 +62,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:     rg.Group("/callback"),
 		client: capability.Messager,
-		logger: capability.Logger,
 	}
 }
 

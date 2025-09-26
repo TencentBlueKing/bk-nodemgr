@@ -12,13 +12,14 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
@@ -27,8 +28,8 @@ import (
 
 // InstallPagentBywmi installs pagent by wmi.
 // nolint:funlen, errcheck
-func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
-	h.logger.Infof("handler install pagent by wmi event.")
+func (h *handler) InstallPagentByWMI(nCtx contextx.IContext, payload []byte) {
+	logger.G.Biz(nCtx).Info("handler install pagent by wmi event")
 
 	var (
 		event  protoRelay.InstallPagentByWMIReq
@@ -37,59 +38,64 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 	)
 
 	defer func() {
-		if err := h.reportInstallResult(ctx, event.ActionName, event.OperInstID, outStr, errMsg); err != nil {
-			h.logger.Errorf("failed to report install result: %v", err)
+		if err := h.reportInstallResult(nCtx, event.ActionName, event.OperInstID, outStr, errMsg); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).Error("failed to report install result")
+
+			return
 		}
-		h.logger.Infof("done report install result by wmi. stdout(%s). ip(%s), port(%d), user(%s),",
-			outStr, event.IP, event.Port, event.User)
+
+		logger.G.Biz(nCtx).With("stdout", outStr, "ip", event.IP, "port", event.Port, "user", event.User).Info("done report install result by wmi")
 	}()
 
 	if err := json.Unmarshal(payload, &event); err != nil {
-		errMsg = fmt.Sprintf("failed to unmarshal install pagent by wmi event: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to unmarshal install pagent by wmi event")
 
 		return
 	}
 
 	// connect to host.
-	client, err := generateWMIClient(ctx, event.IP, int(event.Port), event.User, event.Password,
-		types.LoginMode(event.LoginMode), h.logger)
+	client, err := generateWMIClient(nCtx, event.IP, int(event.Port), event.User, event.Password,
+		types.LoginMode(event.LoginMode))
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to generate wmi client: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to generate wmi client")
 
 		return
 	}
-	h.logger.Infof("connect to host success. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
+	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("connect to host successfully")
 
 	// make sure the installer workspace exists
-	stdOut, stdErr, err := client.RunCommand(ctx, "mkdir "+event.InstallerWorkDir)
+	stdOut, stdErr, err := client.RunCommand(nCtx, "mkdir "+event.InstallerWorkDir)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to run mkdir %s : %v", event.InstallerWorkDir, err)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("dir", event.InstallerWorkDir).Error("failed to make dir")
 
 		return
 	}
 	outStr += buildLogOutput("mkdir", event.InstallerWorkDir, stdOut, stdErr)
-	h.logger.Infof("make sure the installer workspace exists, stdout: %s, stderr: %s", stdOut, stdErr)
+	logger.G.Biz(nCtx).With("dir", event.InstallerWorkDir, "stdout", stdOut, "stderr", stdErr).Info("mkdir successfully")
 
 	// transfer tools
-	toolFile, err := h.fileManager.GetFile(ctx, event.ToolsName)
+	toolFile, err := h.fileManager.GetFile(nCtx, event.ToolsName)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to get file: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("filename", event.ToolsName).Error("failed to get file")
 
 		return
 	}
 
-	InstallFilePath := local.GetLocalFileAbsFilePath(toolFile)
-	stdOut, stdErr, err = client.UploadFile(ctx, InstallFilePath, event.InstallerWorkDir)
+	installerPath := local.GetLocalFileAbsFilePath(toolFile)
+	stdOut, stdErr, err = client.UploadFile(nCtx, installerPath, event.InstallerWorkDir)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to transfer file: %v", err)
+		logger.G.Biz(nCtx).
+			AssignWhenLogging(&errMsg).
+			WithErr(err).
+			With("filename", event.ToolsName, "dest-dir", installerPath).
+			Error("failed to tranfser file")
 
 		return
 	}
 	outStr += buildLogOutput("upload", event.ToolsName, stdOut, stdErr)
-	h.logger.Infof("transfer file success, stdout: %s, stderr: %s", stdOut, stdErr)
+	logger.G.Biz(nCtx).
+		With("filename", event.ToolsName, "dest-dir", installerPath, "stdout", stdOut, "stderr", stdErr).
+		Info("transfer file successfully")
 
 	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(event.InstallerCmd)), event.InstallerBatName)
 	if err != nil {
@@ -98,31 +104,32 @@ func (h *handler) InstallPagentByWMI(ctx context.Context, payload []byte) {
 	}
 	defer func() {
 		if err := tmp.Clean(); err != nil {
-			h.logger.Errorf(fmt.Sprintf("failed to clean temp file: %v", err))
+			logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to clean temp file")
 		}
 	}()
-	h.logger.Infof("install node cmd: %s", event.InstallerCmd)
+
+	logger.G.Biz(nCtx).With("cmd", event.InstallerCmd).Info("try to run install command")
 
 	// transfer install bat file
-	stdOut, stdErr, err = client.UploadFile(ctx, tmpInstallBat.Path(), event.InstallerWorkDir)
+	stdOut, stdErr, err = client.UploadFile(nCtx, tmpInstallBat.Path(), event.InstallerWorkDir)
 	if err != nil {
 		errMsg = fmt.Sprintf("failed to transfer file: %v", err)
 		return
 	}
 	outStr += buildLogOutput("upload", event.InstallerBatName, stdOut, stdErr)
-	h.logger.Infof("transfer install bat file success,stdout: %s, stderr: %s", stdOut, stdErr)
+	logger.G.Biz(nCtx).
+		With("filename", event.InstallerBatName, "dest-dir", installerPath, "stdout", stdOut, "stderr", stdErr).
+		Info("transfer file successfully")
 
 	// execute install bat
 	installCMD := winpath.Clean(winpath.Join(event.InstallerWorkDir, event.InstallerBatName))
-	stdOut, stdErr, err = client.RunSilentCommand(ctx, installCMD)
+	stdOut, stdErr, err = client.RunSilentCommand(nCtx, installCMD)
 	if err != nil {
 		errMsg = fmt.Sprintf("failed to run install node: %v", err)
 
 		return
 	}
-	stdOut += buildLogOutput("install", installCMD, stdOut, stdErr)
-	h.logger.Infof("run install command success, stdout: %s, stderr: %s", stdOut, stdErr)
+	outStr += buildLogOutput("install", installCMD, stdOut, stdErr)
 
-	h.logger.Infof("install pagent by wmi success. stdout(%s). ip(%s), port(%d), user(%s),",
-		stdOut, event.IP, event.Port, event.User)
+	logger.G.Biz(nCtx).With("stdout", stdOut, "ip", event.IP, "port", event.Port, "user", event.User).Info("install pagent by wmi successfully")
 }

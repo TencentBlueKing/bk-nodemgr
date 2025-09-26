@@ -15,7 +15,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"runtime"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
@@ -24,16 +23,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover/etcddiscover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
@@ -59,7 +58,7 @@ type Service struct {
 	conf *config.ApplicationService
 
 	// ctx is used to control the service lifecycle (cancellation and timeouts).
-	ctx context.Context
+	ctx contextx.IContext
 
 	// cancelFunc is used to cancel the service and all associated operations.
 	cancelFunc context.CancelFunc
@@ -84,14 +83,12 @@ type Service struct {
 // NewService creates a new application service.
 func NewService(conf *config.ApplicationService) (*Service, error) {
 	svc := &Service{
-		conf: conf,
-		Cap: &options.Capability{
-			Logger: blog.GlobalLogger{},
-		},
+		conf:     conf,
+		Cap:      &options.Capability{},
 		instance: discover.NewInstance(string(discover.ServiceNameApplication), nil),
 	}
 
-	svc.ctx, svc.cancelFunc = context.WithCancel(context.Background())
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(context.Background()))
 
 	if err := svc.initialStaticsConfigs(); err != nil {
 		return nil, fmt.Errorf("failed to initialize static configs: %w", err)
@@ -112,7 +109,7 @@ func (svc *Service) initialStaticsConfigs() error {
 	var err error
 
 	// initial bklogin handler.
-	svc.bkloginHandler, err = newBKLoginHandler(svc.conf.BKSaas.BKLogin, svc.Cap.Logger)
+	svc.bkloginHandler, err = newBKLoginHandler(svc.conf.BKSaas.BKLogin)
 	if err != nil {
 		return fmt.Errorf("failed to create bklogin handler: %w", err)
 	}
@@ -133,7 +130,6 @@ func (svc *Service) initialCapability() error {
 
 	// discover provider watch backend and file service.
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
-		etcddiscover.WithLogger(svc.Cap.Logger),
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
 
@@ -210,7 +206,6 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 		),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger.LoggerDefault{},
 	}
 
 	return file.New(clientCap, &file.Config{})
@@ -242,8 +237,7 @@ func (svc *Service) initialStorages() error {
 
 	svc.Cap.StorageConfigPolicyTemplate, err = cptemplate.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database,
-		svc.Cap.Logger)
+		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create config policy template storage: %w", err)
 	}
@@ -275,7 +269,6 @@ func (svc *Service) registerInfoServer() error {
 			Name:            string(discover.EndpointNameApplicationInfo),
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -307,7 +300,6 @@ func (svc *Service) registerAdminServer() error {
 			Name:            string(discover.EndpointNameApplicationAdmin),
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
@@ -337,7 +329,6 @@ func (svc *Service) registerBasicServer() error {
 			Name:            string(discover.EndpointNameApplicationBasic),
 			IP:              svc.conf.BasicServer.BindIP,
 			Port:            svc.conf.BasicServer.Port,
-			LogWriter:       loggerWriterAdaptor{},
 			RequestIDSetter: apigwserver.NewBKAPIRequestIDSetter(),
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 			StaticOptions: restserver.NewStaticOptions(svc.conf.BasicServer.StaticDir).
@@ -360,17 +351,6 @@ func (svc *Service) registerBasicServer() error {
 	})
 
 	return nil
-}
-
-// loggerWriterAdaptor implements rest.LoggerWriter.
-type loggerWriterAdaptor struct{}
-
-func (l loggerWriterAdaptor) InfoWriter() io.Writer {
-	return blog.WriterInfo{}
-}
-
-func (l loggerWriterAdaptor) ErrorWriter() io.Writer {
-	return blog.WriterError{}
 }
 
 // withHealthz load healthz.
@@ -419,7 +399,6 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               blog.GlobalLogger{},
 	}
 
 	return clientCap, nil
@@ -433,7 +412,7 @@ func newAPIGWAppConfig(conf *config.APIGatewayClient) apigwclient.AppConfig {
 }
 
 // newBKLoginHandler creates a new bklogin handler.
-func newBKLoginHandler(conf config.BKLogin, logger logger.ILogger) (bksaasbklogin.IHandler, error) {
+func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
@@ -451,13 +430,11 @@ func newBKLoginHandler(conf config.BKLogin, logger logger.ILogger) (bksaasbklogi
 		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, []string{conf.LoginURL}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               logger,
 	}
 
 	bkloginHandler, err := bksaasbklogin.New(
 		clientCap,
 		&bksaasbklogin.Config{LoginURL: conf.LoginURL, AuthType: conf.AuthType.String()},
-		bksaasbklogin.WithLogger(logger),
 	)
 	if err != nil {
 		return nil, err
@@ -468,8 +445,9 @@ func newBKLoginHandler(conf config.BKLogin, logger logger.ILogger) (bksaasbklogi
 
 // Start starts the application service.
 func (svc *Service) Start() error {
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	logger.G.Sys().Info("try to start application service")
 
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	if err := svc.Cap.Start(svc.ctx); err != nil {
 		return err
 	}
@@ -481,11 +459,11 @@ func (svc *Service) Start() error {
 
 		// http server start will block until http server stop, so we need to run it in a goroutine.
 		fn := func() error {
-			blog.Infof("started http server. name(%s), ip(%s), port(%d)", server.Name(), server.IP(), server.Port())
-
 			if err := server.Start(); err != nil {
 				return err
 			}
+
+			logger.G.Sys().With("name", server.Name(), "ip", server.IP(), "port", server.Port()).Info("started HTTP Server")
 
 			return nil
 		}
@@ -494,15 +472,20 @@ func (svc *Service) Start() error {
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		blog.Errorf("failed to start servers: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to start servers")
+
 		return err
 	}
+
+	logger.G.Sys().Info("application service started")
 
 	return nil
 }
 
 // GracefulShutdown gracefully shuts down the application service.
 func (svc *Service) GracefulShutdown() error {
+	logger.G.Sys().Info("try to gracefully shutdown application service")
+
 	if svc.ctx == nil || svc.cancelFunc == nil {
 		return errors.New("service is not running")
 	}
@@ -511,11 +494,12 @@ func (svc *Service) GracefulShutdown() error {
 
 	err := svc.Cap.GracefulShutdown()
 	if err != nil {
-		blog.Errorf("failed to shutdown capability: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to gracefully shutdown capability")
+
 		return err
 	}
 
-	blog.CloseLogs()
+	logger.G.Sys().Info("application service gracefully shutdown")
 
 	return nil
 }

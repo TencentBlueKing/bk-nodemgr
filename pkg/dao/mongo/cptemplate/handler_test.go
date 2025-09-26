@@ -15,7 +15,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -29,9 +28,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -48,16 +47,16 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 // Test_UpsertMany tests UpsertMany.
 func Test_UpsertMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx                  context.Context
+		nCtx                 context.Context
 		configPolicyTemplate []*types.ConfigPolicyTemplate
 	}
 	tests := []struct {
@@ -66,16 +65,16 @@ func Test_UpsertMany(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "invalid ctx",
+			name: "invalid nCtx",
 			args: args{
-				ctx: nil,
+				nCtx: nil,
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid template",
 			args: args{
-				ctx:                  ctx,
+				nCtx:                 nCtx,
 				configPolicyTemplate: nil,
 			},
 			wantErr: true,
@@ -83,7 +82,7 @@ func Test_UpsertMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				configPolicyTemplate: []*types.ConfigPolicyTemplate{
 					&types.ConfigPolicyTemplate{
 						TenantID: "test",
@@ -109,7 +108,7 @@ func Test_UpsertMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.UpsertMany(tt.args.ctx, tt.args.configPolicyTemplate...)
+			err := h.UpsertMany(tt.args.nCtx, tt.args.configPolicyTemplate...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpsertMany() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -121,10 +120,10 @@ func Test_UpsertMany(t *testing.T) {
 // Test_Get tests Get.
 func Test_Get(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx            context.Context
+		nCtx           context.Context
 		configPolicyID int64
 	}
 	tests := []struct {
@@ -133,16 +132,16 @@ func Test_Get(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "invalid ctx",
+			name: "invalid nCtx",
 			args: args{
-				ctx: nil,
+				nCtx: nil,
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid id",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				configPolicyID: -1,
 			},
 			wantErr: true,
@@ -150,7 +149,7 @@ func Test_Get(t *testing.T) {
 		{
 			name: "normal-1",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				configPolicyID: 1,
 			},
 			wantErr: false,
@@ -159,7 +158,7 @@ func Test_Get(t *testing.T) {
 		{
 			name: "normal-2",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				configPolicyID: 2,
 			},
 			wantErr: false,
@@ -169,7 +168,7 @@ func Test_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			_, err := h.Get(tt.args.ctx, tt.args.configPolicyID)
+			_, err := h.Get(tt.args.nCtx, tt.args.configPolicyID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -181,10 +180,10 @@ func Test_Get(t *testing.T) {
 // Test_DeleteMany tests DeleteMany.
 func Test_DeleteMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx            context.Context
+		nCtx           context.Context
 		configPolicyID []int64
 	}
 	tests := []struct {
@@ -193,16 +192,16 @@ func Test_DeleteMany(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "invalid ctx",
+			name: "invalid nCtx",
 			args: args{
-				ctx: nil,
+				nCtx: nil,
 			},
 			wantErr: true,
 		},
 		{
 			name: "invalid ids",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				configPolicyID: nil,
 			},
 			wantErr: true,
@@ -210,7 +209,7 @@ func Test_DeleteMany(t *testing.T) {
 		{
 			name: "normal-1",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				configPolicyID: []int64{1, 2, 3},
 			},
 			wantErr: false,
@@ -220,7 +219,7 @@ func Test_DeleteMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			if err := h.DeleteMany(tt.args.ctx, tt.args.configPolicyID...); (err != nil) != tt.wantErr {
+			if err := h.DeleteMany(tt.args.nCtx, tt.args.configPolicyID...); (err != nil) != tt.wantErr {
 				t.Errorf("DeleteMany() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

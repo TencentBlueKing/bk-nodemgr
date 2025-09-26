@@ -13,7 +13,12 @@
 // Package logger provides the logger interface.
 package logger
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+import (
+	"io"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+)
 
 // ILogger is the logger interface.
 type ILogger interface {
@@ -21,7 +26,7 @@ type ILogger interface {
 	Sys() ILoggerOption
 
 	// Biz returns the business logger.
-	Biz() ILoggerOption
+	Biz(ctx contextx.IContext) ILoggerOption
 
 	// Flush flushes all logs into files.
 	Flush()
@@ -38,6 +43,12 @@ type ILoggerOption interface {
 	// WithErr add error into logger.
 	WithErr(err error) ILoggerOption
 
+	// WithCost add cost into logger.
+	WithDuration(duration time.Duration) ILoggerOption
+
+	// AssignWhenLogging assigns the logger message to str when logging.
+	AssignWhenLogging(str *string) ILoggerOption
+
 	// Debug logs debug message.
 	Debug(format string, args ...interface{})
 
@@ -49,6 +60,18 @@ type ILoggerOption interface {
 
 	// Error logs error message.
 	Error(format string, args ...interface{})
+
+	// DebugWriter returns the writer for debug message.
+	DebugWriter() io.Writer
+
+	// InfoWriter returns the writer for info message.
+	InfoWriter() io.Writer
+
+	// WarnWriter returns the writer for warn message.
+	WarnWriter() io.Writer
+
+	// ErrorWriter returns the writer for error message.
+	ErrorWriter() io.Writer
 }
 
 // ILoggerPrinter is the logger printer interface.

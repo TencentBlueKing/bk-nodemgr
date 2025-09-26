@@ -12,12 +12,13 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"path"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -26,8 +27,8 @@ const reportRelayInstallResultURL = "/relay/report_install_result"
 
 // InstallPagentBySSH installs pagent by SSH.
 // nolint:funlen
-func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
-	h.logger.Infof("handler install pagent by ssh event.")
+func (h *handler) InstallPagentBySSH(nCtx contextx.IContext, payload []byte) {
+	logger.G.Biz(nCtx).Info("handler install pagent by ssh event")
 
 	var (
 		event  protoRelay.InstallPagentBySSHReq
@@ -36,55 +37,52 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 	)
 
 	defer func() {
-		if err := h.reportInstallResult(ctx, event.ActionName, event.OperInstID, outStr, errMsg); err != nil {
-			h.logger.Errorf("failed to report install result: %v", err)
+		if err := h.reportInstallResult(nCtx, event.ActionName, event.OperInstID, outStr, errMsg); err != nil {
+			logger.G.Biz(nCtx).WithErr(err).Error("failed to report install result")
+
+			return
 		}
-		h.logger.Infof("done report install result by ssh. stdout(%s). ip(%s), port(%d), user(%s),",
-			outStr, event.IP, event.Port, event.User)
+
+		logger.G.Biz(nCtx).With("stdout", outStr, "ip", event.IP, "port", event.Port, "user", event.User).Info("done report install result by ssh")
 	}()
 
 	if err := json.Unmarshal(payload, &event); err != nil {
-		errMsg = fmt.Sprintf("failed to unmarshal install pagent by ssh event: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to unmarshal install pagent by ssh event")
 
 		return
 	}
 
 	// connect to host.
-	client, err := generateSSHClient(ctx, event.IP, int(event.Port), event.User, event.Password,
-		types.LoginMode(event.LoginMode), h.logger)
+	client, err := generateSSHClient(nCtx, event.IP, int(event.Port), event.User, event.Password,
+		types.LoginMode(event.LoginMode))
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to generate ssh client: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).Error("failed to generate ssh client")
 
 		return
 	}
-	h.logger.Infof("connect to host success. ip(%s), port(%d), user(%s)", event.IP, event.Port, event.User)
+	logger.G.Biz(nCtx).With("ip", event.IP, "port", event.Port, "user", event.User).Info("connect to host successfully")
 
 	// ensure the workspace dir
 	result, err := client.RunCommand("mkdir -p " + event.InstallerWorkDir)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to mkdir -p %s: %v", event.InstallerWorkDir, err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("dir", event.InstallerWorkDir).Error("failed to make dir")
 
 		return
 	}
 	outStr += buildLogOutput("mkdir", event.InstallerWorkDir, result, "")
-	h.logger.Infof("run command mkdir success. mkdir -p %s", event.InstallerWorkDir)
+	logger.G.Biz(nCtx).With("dir", event.InstallerWorkDir).Info("mkdir successfully")
 
 	// get the tool file
-	toolFile, err := h.fileManager.GetFile(ctx, event.ToolsName)
+	toolFile, err := h.fileManager.GetFile(nCtx, event.ToolsName)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to get file: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("filename", event.ToolsName).Error("failed to get file")
 
 		return
 	}
 
-	reader, err := toolFile.Content(ctx)
+	reader, err := toolFile.Content(nCtx)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to get file content: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("filename", event.ToolsName).Error("failed to get file content")
 
 		return
 	}
@@ -93,38 +91,38 @@ func (h *handler) InstallPagentBySSH(ctx context.Context, payload []byte) {
 	installerPath := path.Clean(path.Join(event.InstallerWorkDir, event.ToolsName))
 	err = client.TransferFile(reader, installerPath)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to transfer file: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).
+			AssignWhenLogging(&errMsg).
+			WithErr(err).
+			With("filename", event.ToolsName, "dest-dir", installerPath).
+			Error("failed to tranfser file")
 
 		return
 	}
-	h.logger.Infof("transfer file success. tools-name(%s).  dest-dir(%s)", event.ToolsName, installerPath)
+	logger.G.Biz(nCtx).With("filename", event.ToolsName, "dest-dir", installerPath).Info("transfer file successfully")
 
 	// ensure tool is executable
 	result, err = client.RunCommand("chmod +x " + installerPath)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to chmod +x %s: %v", installerPath, err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("filename", installerPath).Error("failed to chmod file")
 
 		return
 	}
 	outStr += buildLogOutput("chmod", installerPath, result, "")
-	h.logger.Infof("run command chmod success. chmod +x %s", installerPath)
+	logger.G.Biz(nCtx).With("filename", installerPath).Info("run command chmod successfully")
 
 	// execute install command
-	h.logger.Infof("install node cmd: %s", event.InstallerCmd)
+	logger.G.Biz(nCtx).With("cmd", event.InstallerCmd).Info("try to run install command")
 
 	result, err = client.RunCommand(event.InstallerCmd)
 	if err != nil {
-		errMsg = fmt.Sprintf("failed to exec cmd: %v", err)
-		h.logger.Errorf(errMsg)
+		logger.G.Biz(nCtx).AssignWhenLogging(&errMsg).WithErr(err).With("cmd", event.InstallerCmd).Error("failed to run install cmd")
 
 		return
 	}
 	outStr += buildLogOutput("install", "install.sh", result, "")
 
-	h.logger.Infof("install pagent by ssh success. stdout(%s). ip(%s), port(%d), user(%s),",
-		outStr, event.IP, event.Port, event.User)
+	logger.G.Biz(nCtx).With("stdout", outStr, "ip", event.IP, "port", event.Port, "user", event.User).Info("install pagent by ssh successfully")
 }
 
 func buildLogOutput(action, target, stdout, stderr string) string {

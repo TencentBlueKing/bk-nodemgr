@@ -18,7 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -29,12 +28,10 @@ const (
 
 // NewActionEnableReleaseTransfer get a new action.
 func NewActionEnableReleaseTransfer(
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	logger logger.ILogger) action.Definition {
+	storageNodeDeployment nodeStg.IDaoNodeDeployment) action.Definition {
 
 	return &actionEnableReleaseTransfer{
 		storageNodeDeployment: storageNodeDeployment,
-		logger:                logger,
 	}
 }
 
@@ -45,7 +42,6 @@ type ActionParamEnableReleaseTransfer struct {
 
 type actionEnableReleaseTransfer struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
-	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

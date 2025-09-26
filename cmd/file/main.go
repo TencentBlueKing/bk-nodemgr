@@ -17,74 +17,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	machineryLog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/service"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
-
-func init() {
-	gin.DebugPrintFunc = func(format string, args ...interface{}) {
-		_, err := fmt.Fprintf(blog.WriterDebug{}, format, args...)
-		if err != nil {
-			fmt.Printf("failed to write gin debug log: %v", err)
-			os.Exit(1)
-		}
-	}
-
-	machineryLog.Set(logger{})
-}
-
-type logger struct{}
-
-// Print ...
-func (l logger) Print(args ...interface{}) {
-	blog.Debug(args...)
-}
-
-// Printf ...
-func (l logger) Printf(s string, args ...interface{}) {
-	blog.Debugf(s, args...)
-}
-
-// Println ...
-func (l logger) Println(args ...interface{}) {
-	blog.Debug(args...)
-}
-
-// Fatal ...
-func (l logger) Fatal(args ...interface{}) {
-	blog.Error(args...)
-}
-
-// Fatalf ...
-func (l logger) Fatalf(s string, args ...interface{}) {
-	blog.Errorf(s, args...)
-}
-
-// Fatalln ...
-func (l logger) Fatalln(args ...interface{}) {
-	blog.Error(args...)
-}
-
-// Panic ...
-func (l logger) Panic(args ...interface{}) {
-	blog.Error(args...)
-}
-
-// Panicf ...
-func (l logger) Panicf(s string, args ...interface{}) {
-	blog.Errorf(s, args...)
-}
-
-// Panicln ...
-func (l logger) Panicln(args ...interface{}) {
-	blog.Error(args...)
-}
 
 // file service entrypoint.
 // nolint: funlen
@@ -138,14 +78,27 @@ func main() {
 			fmt.Printf("tenant mode: %s\n", conf.TenantMode)
 
 			// init log.
-			logConfig := blog.NewLogConfig()
-			logConfig.LogDir = conf.Log.Dir
-			logConfig.LogMaxSizeMB = conf.Log.MaxSizeMB
-			logConfig.LogMaxNum = conf.Log.MaxNum
-			logConfig.Level = string(conf.Log.Level)
-			logConfig.ToStdErr = conf.Log.ToStdErr
-			logConfig.AlsoToStdErr = conf.Log.AlsoToStdErr
-			blog.InitLogs(logConfig)
+			logger.Init(logger.Config{
+				LogDir:       conf.Log.Dir,
+				LogMaxSizeMB: conf.Log.MaxSizeMB,
+				LogMaxNum:    conf.Log.MaxNum,
+				Level: func(level config.LogLevel) logger.Level {
+					switch level {
+					case config.LogLevelDebug:
+						return logger.LevelDebug
+					case config.LogLevelInfo:
+						return logger.LevelInfo
+					case config.LogLevelWarn:
+						return logger.LevelWarn
+					case config.LogLevelError:
+						return logger.LevelError
+					default:
+						return logger.LevelInfo
+					}
+				}(conf.Log.Level),
+				ToStdErr:     conf.Log.ToStdErr,
+				AlsoToStdErr: conf.Log.AlsoToStdErr,
+			})
 
 			svc, err := service.NewService(conf)
 			if err != nil {
@@ -185,6 +138,9 @@ func watchShutdown(svc *service.Service) {
 	signalC := make(chan os.Signal, 1)
 	signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
 	receivedSignal := <-signalC
+
+	// flush logs before shutdown.
+	logger.G.Flush()
 
 	if err := svc.GracefulShutdown(); err != nil {
 		fmt.Printf("failed to graceful shutdown service: %v\n", err)

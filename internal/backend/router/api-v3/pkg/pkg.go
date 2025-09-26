@@ -15,14 +15,12 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
 	rg      *gin.RouterGroup
 	storage release.IStorage
-	logger  logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -30,7 +28,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:      rg.Group("/package"),
 		storage: capability.StorageRelease,
-		logger:  capability.Logger,
 	}
 }
 

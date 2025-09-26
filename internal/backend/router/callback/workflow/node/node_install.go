@@ -16,14 +16,13 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg      *gin.RouterGroup
-	logger  logger.ILogger
+	rg *gin.RouterGroup
+
 	crypter crypter.Crypter
 	nodeStg.IDaoNodeDeployment
 	workflow.IStorage
@@ -34,10 +33,9 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                 rg.Group("/node_install"),
-		logger:             capability.Logger,
 		crypter:            capability.Crypter,
 		IDaoNodeDeployment: capability.StorageNode,
-		IStorage: capability.StorageWorkflow,
+		IStorage:           capability.StorageWorkflow,
 	}
 }
 

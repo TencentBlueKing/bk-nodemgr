@@ -12,17 +12,15 @@
 package tenant
 
 import (
-	"context"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Handler tenant handler interface.
 type Handler interface {
-	Upsert(ctx context.Context, tenant *types.Tenant) error
-	ListAll(ctx context.Context) ([]*types.Tenant, error)
+	Upsert(nCtx contextx.IContext, tenant *types.Tenant) error
+	ListAll(nCtx contextx.IContext) ([]*types.Tenant, error)
 }
 
 type handler struct {
@@ -30,20 +28,20 @@ type handler struct {
 }
 
 // New create a new host handler.
-func New(client *mongo.Database, logger logger.ILogger) Handler {
+func New(client *mongo.Database) Handler {
 	return &handler{
-		dao: newDao(client, logger),
+		dao: newDao(client),
 	}
 }
 
 // Upsert updates or inserts a host.
-func (h *handler) Upsert(ctx context.Context, tenant *types.Tenant) error {
+func (h *handler) Upsert(nCtx contextx.IContext, tenant *types.Tenant) error {
 	data := &Tenant{
 		ID:     tenant.ID,
 		Name:   tenant.Name,
 		Status: tenant.Status,
 	}
-	if err := h.dao.upsert(ctx, data); err != nil {
+	if err := h.dao.upsert(nCtx, data); err != nil {
 		return err
 	}
 
@@ -51,8 +49,8 @@ func (h *handler) Upsert(ctx context.Context, tenant *types.Tenant) error {
 }
 
 // ListAll list all host.
-func (h *handler) ListAll(ctx context.Context) ([]*types.Tenant, error) {
-	tenants, err := h.dao.listAll(ctx)
+func (h *handler) ListAll(nCtx contextx.IContext) ([]*types.Tenant, error) {
+	tenants, err := h.dao.listAll(nCtx)
 	if err != nil {
 		return nil, err
 	}

@@ -12,20 +12,18 @@
 package business
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
 	tableName := TableName(tenantID)
 	d := &dao{
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
 	}
 
@@ -37,18 +35,13 @@ func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
+
 	base.IOrm[*Business, Business]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -64,24 +57,22 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 // upsert updates or inserts a business.
-func (d *dao) upsert(ctx context.Context, biz *Business) error {
+func (d *dao) upsert(nCtx contextx.IContext, biz *Business) error {
 	filter, upsert, opts := buildUpsertParams(biz)
-	result, err := d.client.UpdateOne(ctx, filter, upsert, opts)
+	result, err := d.client.UpdateOne(nCtx, filter, upsert, opts)
 	if err != nil {
 		return err
 	}
 
 	switch {
 	case result.UpsertedCount > 0:
-		{
-			d.logger.Infof("successfully upserted business, unique-key(%s)", biz.UniqueKey())
-		}
+		logger.G.Sys().With("unique-key", biz.UniqueKey()).Info("upserted business")
+
 	case result.MatchedCount > 0:
-		{
-			d.logger.Infof("successfully updated business, unique-key(%s)", biz.UniqueKey())
-		}
+		logger.G.Sys().With("unique-key", biz.UniqueKey()).Info("updated business")
+
 	default:
-		d.logger.Warnf("try to upsert business but no changes made, unique-key(%s", biz.UniqueKey())
+		logger.G.Sys().With("unique-key", biz.UniqueKey()).Warn("try to upsert business but no changes made")
 	}
 
 	return nil
@@ -102,20 +93,20 @@ func buildUpsertParams(biz *Business) (bson.D, bson.D, *mongoOptions.UpdateOptio
 }
 
 // upsertMany upsert many business.
-func (d *dao) upsertMany(ctx context.Context, bizs []*Business) error {
+func (d *dao) upsertMany(nCtx contextx.IContext, bizs []*Business) error {
 	models := buildUpsertManyParams(bizs)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("successfully inserted bizs, inserted-count(%v)", result.UpsertedCount)
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted business")
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated bizs, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted business")
 	}
 
 	return nil

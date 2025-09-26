@@ -11,11 +11,11 @@
 package networkunit
 
 import (
-	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,47 +24,44 @@ import (
 // IHandler networkunit handler interface.
 type IHandler interface {
 	// Count counts networkunit by conditions.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// List lists networkunit by page and conditions.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.NetworkUnit, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NetworkUnit, int64, error)
 
 	// Get gets networkunit by id.
-	Get(ctx context.Context, networkUnitID int64) (*types.NetworkUnit, error)
+	Get(nCtx contextx.IContext, networkUnitID int64) (*types.NetworkUnit, error)
 
 	// Create creates a networkunit.
-	Create(ctx context.Context, networkUnit *types.NetworkUnit) (int64, error)
+	Create(nCtx contextx.IContext, networkUnit *types.NetworkUnit) (int64, error)
 
 	// UpdateMany updates networkunit.
-	UpdateMany(ctx context.Context, networkUnits ...*types.NetworkUnit) error
+	UpdateMany(nCtx contextx.IContext, networkUnits ...*types.NetworkUnit) error
 
 	// DeleteMany deletes networkunit.
-	DeleteMany(ctx context.Context, networkUnitIDs ...int64) error
+	DeleteMany(nCtx contextx.IContext, networkUnitIDs ...int64) error
 }
 
 type handler struct {
-	dao    *dao
-	logger logger.ILogger
+	dao *dao
 }
 
 // New create a new networkarea handler.
-func New(client *mongo.Database, logger logger.ILogger) IHandler {
+func New(client *mongo.Database) IHandler {
 	h := &handler{
-		dao:    newDao(client, logger),
-		logger: logger,
+		dao: newDao(client),
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure networkunit indexes: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).Warn("failed to ensure networkunit indexes")
 	}
 
 	return h
 }
 
 // Count counts networkunit by conditions.
-func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -75,14 +72,14 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	}
 	filter = append(filter, tenantFilter(tenantID))
 
-	return h.dao.Count(ctx, filter)
+	return h.dao.Count(nCtx, filter)
 }
 
 // List lists networkunit by page and conditions.
-func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*types.NetworkUnit, int64, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -93,14 +90,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 	}
 	filter = append(filter, tenantFilter(tenantID))
 
-	num, err := h.dao.Count(ctx, filter)
+	num, err := h.dao.Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	networkUnits, err := h.dao.List(ctx, filter, findOpt)
+	networkUnits, err := h.dao.List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -114,8 +111,8 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 }
 
 // Get gets networkunit by id.
-func (h *handler) Get(ctx context.Context, networkUnitID int64) (*types.NetworkUnit, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Get(nCtx contextx.IContext, networkUnitID int64) (*types.NetworkUnit, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +126,7 @@ func (h *handler) Get(ctx context.Context, networkUnitID int64) (*types.NetworkU
 	filter = opt(filter)
 	filter = append(filter, tenantFilter(tenantID))
 
-	data, err := h.dao.Get(ctx, filter)
+	data, err := h.dao.Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -138,8 +135,8 @@ func (h *handler) Get(ctx context.Context, networkUnitID int64) (*types.NetworkU
 }
 
 // Create creates a new networkunit and return the generated id.
-func (h *handler) Create(ctx context.Context, networkUnit *types.NetworkUnit) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Create(nCtx contextx.IContext, networkUnit *types.NetworkUnit) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return -1, err
 	}
@@ -160,12 +157,12 @@ func (h *handler) Create(ctx context.Context, networkUnit *types.NetworkUnit) (i
 		return -1, errors.New("accesspoint networkarea-id is invalid")
 	}
 
-	return h.dao.create(ctx, convertNetworkUnitFromTypes(networkUnit))
+	return h.dao.create(nCtx, convertNetworkUnitFromTypes(networkUnit))
 }
 
 // UpdateMany updates networkunit.
-func (h *handler) UpdateMany(ctx context.Context, networkUnits ...*types.NetworkUnit) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpdateMany(nCtx contextx.IContext, networkUnits ...*types.NetworkUnit) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -187,7 +184,7 @@ func (h *handler) UpdateMany(ctx context.Context, networkUnits ...*types.Network
 		}
 	}
 
-	if err := h.dao.updateMany(ctx, tenantID, data); err != nil {
+	if err := h.dao.updateMany(nCtx, tenantID, data); err != nil {
 		return err
 	}
 
@@ -195,8 +192,8 @@ func (h *handler) UpdateMany(ctx context.Context, networkUnits ...*types.Network
 }
 
 // DeleteMany deletes networkunit by ids.
-func (h *handler) DeleteMany(ctx context.Context, networkUnitIDs ...int64) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) DeleteMany(nCtx contextx.IContext, networkUnitIDs ...int64) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -205,7 +202,7 @@ func (h *handler) DeleteMany(ctx context.Context, networkUnitIDs ...int64) error
 		return base.ErrEmptyParamData()
 	}
 
-	if err := h.dao.deleteMany(ctx, tenantID, networkUnitIDs...); err != nil {
+	if err := h.dao.deleteMany(nCtx, tenantID, networkUnitIDs...); err != nil {
 		return err
 	}
 

@@ -40,9 +40,9 @@ storage 层用于提供针对场景的数据能力：
 
 ```go
 // UpsertHosts ...
-func (s *storage) UpsertHosts(ctx context.Context, hosts ...*types.Host) error {
-if ctx == nil {
-return errors.New("ctx is nil")
+func (s *storage) UpsertHosts(nCtx contextx.IContext, hosts ...*types.Host) error {
+if nCtx == nil {
+return errors.New("nCtx is nil")
 }
 
 // 我们在此处拦截了空数组，因为这是业务不应该关心的错误
@@ -50,7 +50,7 @@ if len(hosts) == 0 {
 return nil
 }
 
-if err := s.daoHost.UpsertMany(ctx, hosts); err != nil {
+if err := s.daoHost.UpsertMany(nCtx, hosts); err != nil {
 return fmt.Errorf("failed to upsert hosts: %v", err)
 }
 

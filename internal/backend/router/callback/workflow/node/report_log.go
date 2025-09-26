@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/gin-gonic/gin"
@@ -24,24 +25,26 @@ import (
 
 // ReportLog report agent install shell script log.
 func (h *handler) ReportLog(gCtx *gin.Context) {
+	nCtx := contextx.New(gCtx)
+
 	req := new(protoCallback.ReportLogReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("report log failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report log, failed to decode request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("report log failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report log, failed to validate request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	info, err := h.GetNodeDeploymentInfo(gCtx, req.GetToken())
+	info, err := h.GetNodeDeploymentInfo(nCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("token is invalid: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report log, failed to get node deployment conf")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
@@ -59,9 +62,8 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 		}
 	}
 
-	nCtx := contextx.New(gCtx)
 	if err = h.PushActionInstanceMessage(nCtx, req.GetOperInstId(), info.BlockingActionName, logs...); err != nil {
-		h.logger.Errorf("report log failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report log, failed to push action instance message")
 		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return

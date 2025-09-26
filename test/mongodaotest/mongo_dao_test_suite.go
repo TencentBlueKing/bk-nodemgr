@@ -15,7 +15,6 @@ import (
 	"context"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/test/mongotest"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -27,8 +26,8 @@ type TestSuite[P base.DataPoint[T], T any] struct {
 	baseOrm   base.IOrm[P, T]
 	TestDatas []P
 	Dao       base.IDao
-	logger    logger.ILogger
-	initFn    func(client *mongo.Database, logger logger.ILogger)
+
+	initFn func(client *mongo.Database)
 }
 
 // SetupSuite Initialize resources before all tests begin.
@@ -44,7 +43,7 @@ func (suit *TestSuite[P, T]) SetupSuite() {
 		ContainerName: "mongo_test_bknodemgr",
 	})
 
-	suit.initFn(suit.GetDatabase(), suit.logger)
+	suit.initFn(suit.GetDatabase())
 	suit.baseOrm = base.NewOrm[P, T](suit.Dao)
 }
 
@@ -64,13 +63,11 @@ func (suit *TestSuite[P, T]) SetupTest() {
 
 // NewMongoDaoTestSuite creates a new MongoDaoTestSuite instance.
 func NewMongoDaoTestSuite[P base.DataPoint[T], T any](
-	logger logger.ILogger,
-	initFn func(client *mongo.Database, logger logger.ILogger),
+	initFn func(client *mongo.Database),
 ) TestSuite[P, T] {
 
 	return TestSuite[P, T]{
 		TestSuite: mongotest.TestSuite{},
-		logger:    logger,
 		initFn:    initFn,
 	}
 }

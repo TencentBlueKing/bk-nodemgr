@@ -12,7 +12,6 @@
 package node
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"sync"
@@ -25,8 +24,8 @@ import (
 	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -41,7 +40,7 @@ const (
 )
 
 // NewStorage creates a new node workflow storage handler.
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -50,7 +49,6 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 		monitoredWorkflows:      make(map[string]*types.NodeWorkflow),
 		monitoredWorkflowsMutex: sync.RWMutex{},
@@ -60,13 +58,15 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
 	err = s.registerScheduler()
 	if err != nil {
-		s.Logger.Errorf("register scheduler failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to register scheduler")
+
 		return nil, fmt.Errorf("register scheduler failed: %w", err)
 	}
 
@@ -87,15 +87,15 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoNodeWorkflow = nodeworkflow.New(s.Database, s.Logger)
-	s.daoOperInstData = operinstdata.New(s.Database, s.Logger)
-	s.daoNodeDeployment = nodedeployment.New(s.Database, s.Logger)
+	s.daoNodeWorkflow = nodeworkflow.New(s.Database)
+	s.daoOperInstData = operinstdata.New(s.Database)
+	s.daoNodeDeployment = nodedeployment.New(s.Database)
 
 	return nil
 }
 
 func (s *Storage) registerScheduler() error {
-	s.Scheduler = scheduler.NewScheduler(scheduler.WithLogger(s.Logger))
+	s.Scheduler = scheduler.NewScheduler()
 	err := s.Scheduler.RegisterTask(scheduler.NewTask(
 		"obtain monitored workflows",
 		5*time.Second,  // nolint: mnd
@@ -103,7 +103,8 @@ func (s *Storage) registerScheduler() error {
 		s.obtainMonitoredWorkflows,
 	))
 	if err != nil {
-		s.Logger.Errorf("register obtain monitored workflows task failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to register obtain monitored workflows task")
+
 		return fmt.Errorf("register obtain monitored workflows task failed: %w", err)
 	}
 
@@ -114,7 +115,8 @@ func (s *Storage) registerScheduler() error {
 		s.monitorWorkflowStatus,
 	))
 	if err != nil {
-		s.Logger.Errorf("register monitor workflow status task failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to register monitor workflow status task")
+
 		return fmt.Errorf("register monitor workflow status task failed: %w", err)
 	}
 
@@ -122,9 +124,9 @@ func (s *Storage) registerScheduler() error {
 }
 
 // obtainMonitoredWorkflows Obtain a list of workflows that need to be listened to.
-func (s *Storage) obtainMonitoredWorkflows(ctx contextx.IContext) error {
+func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 	runningWorkflows, _, err := s.daoNodeWorkflow.List(
-		ctx,
+		nCtx,
 		types.UnlimitedPage(),
 		nodeworkflow.WithStatus(types.NodeWorkflowStatusRunning))
 	if err != nil {
@@ -132,7 +134,7 @@ func (s *Storage) obtainMonitoredWorkflows(ctx contextx.IContext) error {
 	}
 
 	recentFinishedWorkflows, _, err := s.daoNodeWorkflow.List(
-		ctx,
+		nCtx,
 		types.UnlimitedPage(),
 		nodeworkflow.WithStatus(types.GetFinishedNodeWorkflowStatus()...),
 		daoBase.WithUpdateAtTimeRange(types.RecentTimeRange(recentMonitoredTime)),
@@ -175,7 +177,7 @@ func (s *Storage) obtainMonitoredWorkflows(ctx contextx.IContext) error {
 	return nil
 }
 
-func (s *Storage) monitorWorkflowStatus(ctx contextx.IContext) error {
+func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 	s.monitoredWorkflowsMutex.RLock()
 	defer s.monitoredWorkflowsMutex.RUnlock()
 
@@ -183,7 +185,7 @@ func (s *Storage) monitorWorkflowStatus(ctx contextx.IContext) error {
 		return nil
 	}
 
-	operInst, err := s.daoOperInstData.ListAllLastOperInst(ctx,
+	operInst, err := s.daoOperInstData.ListAllLastOperInst(nCtx,
 		operinstdata.WithTriggerID(conv.MapKeyToSlice(s.monitoredWorkflows)...))
 	if err != nil {
 		return fmt.Errorf("query last operation instance failed: %w", err)
@@ -207,13 +209,13 @@ func (s *Storage) monitorWorkflowStatus(ctx contextx.IContext) error {
 	for triggerID, operInsts := range finishedTriggerOperInstsMap {
 		status, finishTime := calWorkflowStatusAndTime(operInsts)
 
-		err = s.daoNodeWorkflow.UpdateStatus(ctx, s.monitoredWorkflows[triggerID].WorkflowID, status)
+		err = s.daoNodeWorkflow.UpdateStatus(nCtx, s.monitoredWorkflows[triggerID].WorkflowID, status)
 		if err != nil {
 			return fmt.Errorf("update node workflow status failed: %w", err)
 		}
 
 		err = s.daoNodeWorkflow.UpdateFinishTime(
-			ctx, s.monitoredWorkflows[triggerID].WorkflowID, finishTime)
+			nCtx, s.monitoredWorkflows[triggerID].WorkflowID, finishTime)
 		if err != nil {
 			return fmt.Errorf("update node workflow finish time failed: %w", err)
 		}
@@ -275,7 +277,7 @@ func (s *Storage) metric() *storage.MetricData {
 }
 
 // GetNodeDeploymentNodeConf get gse node conf.
-func (s *Storage) GetNodeDeploymentNodeConf(ctx context.Context, token string) (*types.NodeConf, error) {
+func (s *Storage) GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string) (*types.NodeConf, error) {
 	var (
 		nodeConf *types.NodeConf
 		err      error
@@ -285,13 +287,13 @@ func (s *Storage) GetNodeDeploymentNodeConf(ctx context.Context, token string) (
 	metric := s.metric().Start("get_node_deployment_node_conf")
 	defer metric.End(err)
 
-	nodeConf, err = s.getNodeDeploymentNodeConf(ctx, token)
+	nodeConf, err = s.getNodeDeploymentNodeConf(nCtx, token)
 
 	return nodeConf, err
 }
 
 // GetNodeDeploymentInfo get node deployment info.
-func (s *Storage) GetNodeDeploymentInfo(ctx context.Context, token string) (*types.DeploymentInfo, error) {
+func (s *Storage) GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*types.DeploymentInfo, error) {
 	var (
 		deployInfo *types.DeploymentInfo
 		err        error
@@ -301,13 +303,13 @@ func (s *Storage) GetNodeDeploymentInfo(ctx context.Context, token string) (*typ
 	metric := s.metric().Start("get_node_deployment_info")
 	defer metric.End(err)
 
-	deployInfo, err = s.getNodeDeploymentInfo(ctx, token)
+	deployInfo, err = s.getNodeDeploymentInfo(nCtx, token)
 
 	return deployInfo, err
 }
 
 // SetNodeDeploymentNodeConf set gse node conf.
-func (s *Storage) SetNodeDeploymentNodeConf(ctx context.Context, token string, conf *types.NodeConf) error {
+func (s *Storage) SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, conf *types.NodeConf) error {
 	var (
 		err error
 	)
@@ -316,13 +318,13 @@ func (s *Storage) SetNodeDeploymentNodeConf(ctx context.Context, token string, c
 	metric := s.metric().Start("set_node_deployment_node_conf")
 	defer metric.End(err)
 
-	err = s.seNodeDeploymenttNodeConf(ctx, token, conf)
+	err = s.seNodeDeploymenttNodeConf(nCtx, token, conf)
 
 	return err
 }
 
 // UpdateNodeDeploymentInfo update node deployment info.
-func (s *Storage) UpdateNodeDeploymentInfo(ctx context.Context, token string, info *types.DeploymentInfo) error {
+func (s *Storage) UpdateNodeDeploymentInfo(nCtx contextx.IContext, token string, info *types.DeploymentInfo) error {
 	var (
 		err error
 	)
@@ -331,13 +333,13 @@ func (s *Storage) UpdateNodeDeploymentInfo(ctx context.Context, token string, in
 	metric := s.metric().Start("update_node_deployment_info")
 	defer metric.End(err)
 
-	err = s.updateNodeDeploymentInfo(ctx, token, info)
+	err = s.updateNodeDeploymentInfo(nCtx, token, info)
 
 	return err
 }
 
 // CreateNodeDeployment createNodeDeployment a node deployment.
-func (s *Storage) CreateNodeDeployment(ctx context.Context, nodeDeployment *types.NodeDeployment) error {
+func (s *Storage) CreateNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error {
 	var (
 		err error
 	)
@@ -346,13 +348,13 @@ func (s *Storage) CreateNodeDeployment(ctx context.Context, nodeDeployment *type
 	metric := s.metric().Start("create_node_deployment")
 	defer metric.End(err)
 
-	err = s.createNodeDeployment(ctx, nodeDeployment)
+	err = s.createNodeDeployment(nCtx, nodeDeployment)
 
 	return err
 }
 
 // ListNodeWorkflow lists node workflow by page and conditions.
-func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+func (s *Storage) ListNodeWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
 	var (
@@ -365,13 +367,13 @@ func (s *Storage) ListNodeWorkflow(ctx context.Context, page types.Page, conditi
 	metric := s.metric().Start("list_node_workflow")
 	defer metric.End(err)
 
-	results, num, err = s.listNodeWorkflow(ctx, page, conditions...)
+	results, num, err = s.listNodeWorkflow(nCtx, page, conditions...)
 
 	return results, num, err
 }
 
 // CountNodeWorkflow counts node workflow by conditions.
-func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error) {
+func (s *Storage) CountNodeWorkflow(nCtx contextx.IContext, conditions ...*types.NodeWorkflowCondition) (int64, error) {
 	var num int64
 	var err error
 
@@ -379,14 +381,14 @@ func (s *Storage) CountNodeWorkflow(ctx context.Context, conditions ...*types.No
 	metric := s.metric().Start("count_node_workflow")
 	defer metric.End(err)
 
-	num, err = s.countNodeWorkflow(ctx, conditions...)
+	num, err = s.countNodeWorkflow(nCtx, conditions...)
 
 	return num, err
 }
 
 // DistinctNodeWorkflow distincts node workflow fields.
 func (s *Storage) DistinctNodeWorkflow(
-	ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
+	nCtx contextx.IContext, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 	*types.NodeWorkflowDistinctResult, error) {
 
 	var (
@@ -398,13 +400,13 @@ func (s *Storage) DistinctNodeWorkflow(
 	metric := s.metric().Start("distinct_node_workflow")
 	defer metric.End(err)
 
-	result, err = s.distinctNodeWorkflow(ctx, request, conditions...)
+	result, err = s.distinctNodeWorkflow(nCtx, request, conditions...)
 
 	return result, err
 }
 
 // GetNodeWorkflow gets a node workflow by workflow-id.
-func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (*types.NodeWorkflow, error) {
+func (s *Storage) GetNodeWorkflow(nCtx contextx.IContext, workflowID string) (*types.NodeWorkflow, error) {
 	var (
 		nodeWorkflow *types.NodeWorkflow
 		err          error
@@ -414,13 +416,13 @@ func (s *Storage) GetNodeWorkflow(ctx context.Context, workflowID string) (*type
 	metric := s.metric().Start("get_node_workflow")
 	defer metric.End(err)
 
-	nodeWorkflow, err = s.getNodeWorkflow(ctx, workflowID)
+	nodeWorkflow, err = s.getNodeWorkflow(nCtx, workflowID)
 
 	return nodeWorkflow, err
 }
 
 // CreateNodeWorkflow creates a new node workflow.
-func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWorkflow) error {
+func (s *Storage) CreateNodeWorkflow(nCtx contextx.IContext, workflow *types.NodeWorkflow) error {
 	var (
 		err error
 	)
@@ -429,13 +431,13 @@ func (s *Storage) CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWo
 	metric := s.metric().Start("create_node_workflow")
 	defer metric.End(err)
 
-	err = s.createNodeWorkflow(ctx, workflow)
+	err = s.createNodeWorkflow(nCtx, workflow)
 
 	return err
 }
 
 // UpdateNodeWorkflowStatus updates the status of a node workflow.
-func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error {
+func (s *Storage) UpdateNodeWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.NodeWorkflowStatus) error {
 	var (
 		err error
 	)
@@ -444,7 +446,7 @@ func (s *Storage) UpdateNodeWorkflowStatus(ctx context.Context, workflowID strin
 	metric := s.metric().Start("update_node_workflow_status")
 	defer metric.End(err)
 
-	err = s.updateNodeWorkflowStatus(ctx, workflowID, status)
+	err = s.updateNodeWorkflowStatus(nCtx, workflowID, status)
 
 	return err
 }

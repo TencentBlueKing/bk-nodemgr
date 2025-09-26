@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node/agent"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
 )
@@ -24,7 +23,6 @@ import (
 type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
-	logger         logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -32,7 +30,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:             rg.Group("/node"),
 		backendHandler: capability.BackendHandler,
-		logger:         capability.Logger,
 	}
 }
 

@@ -17,8 +17,8 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -33,9 +33,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -52,7 +52,7 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 var once = sync.Once{}
@@ -60,21 +60,21 @@ var preparedAccessPointIDs []int64
 var preparedGlobalAccessPointID int64
 
 // prepareData for all tests.
-func prepareData(t *testing.T, ctx context.Context) {
+func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(ctx)
+		tenantID, _ := tenant.GetID(nCtx)
 
 		// pre insert.
 		h := testClient(t)
 
 		systemCtx, _ := tenant.SetID(context.Background(), "system_tenant")
 		tests := []struct {
-			ctx         context.Context
+			nCtx        context.Context
 			accessPoint *types.AccessPoint
 			isGlobal    bool
 		}{
 			{
-				ctx: ctx,
+				nCtx: nCtx,
 				accessPoint: &types.AccessPoint{
 					TenantID:      tenantID,
 					NetworkAreaID: base.GlobalNetworkAreaID,
@@ -88,7 +88,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 				isGlobal: false,
 			},
 			{
-				ctx: ctx,
+				nCtx: nCtx,
 				accessPoint: &types.AccessPoint{
 					TenantID:      tenantID,
 					NetworkAreaID: 1,
@@ -102,7 +102,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 				isGlobal: false,
 			},
 			{
-				ctx: systemCtx,
+				nCtx: systemCtx,
 				accessPoint: &types.AccessPoint{
 					TenantID:      "system_tenant",
 					NetworkAreaID: base.GlobalNetworkAreaID,
@@ -119,7 +119,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 
 		preparedAccessPointIDs = make([]int64, 0)
 		for _, tt := range tests {
-			accesspointID, err := h.Create(tt.ctx, tt.accessPoint)
+			accesspointID, err := h.Create(tt.nCtx, tt.accessPoint)
 			if err != nil {
 				t.Errorf("prepareData() error = %v", err)
 			}
@@ -136,9 +136,9 @@ func prepareData(t *testing.T, ctx context.Context) {
 // Test_handler_Get get access point.
 func Test_handler_Get(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name    string
@@ -171,7 +171,7 @@ func Test_handler_Get(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Get(ctx, tt.id)
+			got, err := h.Get(nCtx, tt.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -185,9 +185,9 @@ func Test_handler_Get(t *testing.T) {
 // Test_handler_Count count access point.
 func Test_handler_Count(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -218,7 +218,7 @@ func Test_handler_Count(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Count(ctx, tt.optFn...)
+			got, err := h.Count(nCtx, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -236,9 +236,9 @@ func Test_handler_Count(t *testing.T) {
 // Test_handler_List list access point.
 func Test_handler_List(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -286,7 +286,7 @@ func Test_handler_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, total, err := h.List(ctx, tt.page, tt.optFn...)
+			got, total, err := h.List(nCtx, tt.page, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -314,10 +314,10 @@ func Test_handler_List(t *testing.T) {
 // Test_handler_Create creates accesspoint.
 func Test_handler_Create(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx         context.Context
+		nCtx        context.Context
 		accessPoint *types.AccessPoint
 	}
 	tests := []struct {
@@ -326,9 +326,9 @@ func Test_handler_Create(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:         nil,
+				nCtx:        nil,
 				accessPoint: nil,
 			},
 			wantErr: true,
@@ -336,7 +336,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "nil accesspoint",
 			args: args{
-				ctx:         ctx,
+				nCtx:        nCtx,
 				accessPoint: nil,
 			},
 			wantErr: true,
@@ -344,7 +344,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "forbid cross tenant",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				accessPoint: &types.AccessPoint{
 					TenantID: "test-other",
 					Name:     "new-name-90001",
@@ -355,7 +355,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				accessPoint: &types.AccessPoint{
 					TenantID: "test",
 					Name:     "new-name-90002",
@@ -368,7 +368,7 @@ func Test_handler_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			id, err := h.Create(tt.args.ctx, tt.args.accessPoint)
+			id, err := h.Create(tt.args.nCtx, tt.args.accessPoint)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -382,10 +382,10 @@ func Test_handler_Create(t *testing.T) {
 // Test_handler_CreateMany creates many accesspoint.
 func Test_handler_CreateMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx          context.Context
+		nCtx         context.Context
 		accessPoints []*types.AccessPoint
 	}
 	tests := []struct {
@@ -394,9 +394,9 @@ func Test_handler_CreateMany(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:          nil,
+				nCtx:         nil,
 				accessPoints: nil,
 			},
 			wantErr: true,
@@ -404,7 +404,7 @@ func Test_handler_CreateMany(t *testing.T) {
 		{
 			name: "nil accesspoint",
 			args: args{
-				ctx:          ctx,
+				nCtx:         nCtx,
 				accessPoints: nil,
 			},
 			wantErr: true,
@@ -412,7 +412,7 @@ func Test_handler_CreateMany(t *testing.T) {
 		{
 			name: "forbid cross tenant",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				accessPoints: []*types.AccessPoint{
 					{
 						TenantID: "test-other",
@@ -425,7 +425,7 @@ func Test_handler_CreateMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				accessPoints: []*types.AccessPoint{
 					{
 						TenantID: "test",
@@ -444,7 +444,7 @@ func Test_handler_CreateMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			ids, err := h.CreateMany(tt.args.ctx, tt.args.accessPoints...)
+			ids, err := h.CreateMany(tt.args.nCtx, tt.args.accessPoints...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateMany() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -459,10 +459,10 @@ func Test_handler_CreateMany(t *testing.T) {
 // Test_handler_UpdateMany updates many accesspoints.
 func Test_handler_UpdateMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx          context.Context
+		nCtx         context.Context
 		accessPoints []*types.AccessPoint
 	}
 
@@ -472,9 +472,9 @@ func Test_handler_UpdateMany(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:          nil,
+				nCtx:         nil,
 				accessPoints: nil,
 			},
 			wantErr: true,
@@ -482,7 +482,7 @@ func Test_handler_UpdateMany(t *testing.T) {
 		{
 			name: "nil accesspoint",
 			args: args{
-				ctx:          ctx,
+				nCtx:         nCtx,
 				accessPoints: nil,
 			},
 			wantErr: true,
@@ -490,7 +490,7 @@ func Test_handler_UpdateMany(t *testing.T) {
 		{
 			name: "empty accesspoints",
 			args: args{
-				ctx:          ctx,
+				nCtx:         nCtx,
 				accessPoints: []*types.AccessPoint{},
 			},
 			wantErr: true,
@@ -498,7 +498,7 @@ func Test_handler_UpdateMany(t *testing.T) {
 		{
 			name: "forbid cross tenant",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				accessPoints: []*types.AccessPoint{
 					{
 						TenantID:      "system_tenant",
@@ -512,7 +512,7 @@ func Test_handler_UpdateMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				accessPoints: []*types.AccessPoint{
 					{
 						TenantID:      "test",
@@ -529,7 +529,7 @@ func Test_handler_UpdateMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.UpdateMany(tt.args.ctx, tt.args.accessPoints...)
+			err := h.UpdateMany(tt.args.nCtx, tt.args.accessPoints...)
 			if err != nil {
 				t.Logf("UpdateMany() error = %v", err)
 			}
@@ -543,12 +543,12 @@ func Test_handler_UpdateMany(t *testing.T) {
 // Test_handler_DeleteMany deletes many accesspoints.
 func Test_handler_DeleteMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx            context.Context
+		nCtx           context.Context
 		accessPointIDs []int64
 	}
 
@@ -560,9 +560,9 @@ func Test_handler_DeleteMany(t *testing.T) {
 		ensureNotExists []int64
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:            nil,
+				nCtx:           nil,
 				accessPointIDs: nil,
 			},
 			wantErr:         true,
@@ -572,7 +572,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		{
 			name: "empty ids",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				accessPointIDs: []int64{},
 			},
 			wantErr:         true,
@@ -582,7 +582,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		{
 			name: "forbid cross tenant",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				accessPointIDs: []int64{preparedGlobalAccessPointID},
 			},
 			wantErr:         false,
@@ -592,7 +592,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:            ctx,
+				nCtx:           nCtx,
 				accessPointIDs: []int64{preparedAccessPointIDs[0]},
 			},
 			wantErr:         false,
@@ -604,7 +604,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.DeleteMany(tt.args.ctx, tt.args.accessPointIDs...)
+			err := h.DeleteMany(tt.args.nCtx, tt.args.accessPointIDs...)
 			if err != nil {
 				t.Logf("DeleteMany() error = %v", err)
 			}
@@ -613,13 +613,13 @@ func Test_handler_DeleteMany(t *testing.T) {
 			}
 
 			for _, accessPointID := range tt.ensureExists {
-				if _, err := h.Get(tt.args.ctx, accessPointID); err != nil {
+				if _, err := h.Get(tt.args.nCtx, accessPointID); err != nil {
 					t.Errorf("DeleteMany() ensureExists %d, error = %v", accessPointID, err)
 				}
 			}
 
 			for _, accessPointID := range tt.ensureNotExists {
-				if _, err := h.Get(tt.args.ctx, accessPointID); err == nil {
+				if _, err := h.Get(tt.args.nCtx, accessPointID); err == nil {
 					t.Errorf("DeleteMany() ensureNotExists %d, error = %v", accessPointID, err)
 				}
 			}

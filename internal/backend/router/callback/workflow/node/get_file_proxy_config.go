@@ -15,6 +15,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
@@ -22,24 +24,27 @@ import (
 
 // GetFileProxyConfig get file proxy config.
 func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
+
+	nCtx := contextx.New(gCtx)
+
 	req := new(protoCallback.GetFileProxyConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse file proxy config failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse file proxy config, failed to decode request")
 		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed: %w", err))
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse file proxy config failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse file proxy config, failed to validate request")
 		gCtx.JSON(http.StatusBadRequest, fmt.Errorf("get gse file proxy config failed: %w", err))
 
 		return
 	}
 
-	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
+	nodeConf, err := h.GetNodeDeploymentNodeConf(contextx.New(gCtx), req.GetToken())
 	if err != nil {
-		h.logger.Errorf("get gse file proxy setting failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse file proxy config, failed to get node deployment conf")
 		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("get gse file proxy setting failed: %w", err))
 
 		return
@@ -50,7 +55,7 @@ func (h *handler) GetFileProxyConfig(gCtx *gin.Context) {
 		Content:   nodeConf.ConfigTemplate[types.ConfigKeyFile],
 	}, nodeConf)
 	if err != nil {
-		h.logger.Errorf("render gse file proxy config failed: %s", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse file proxy config, failed to render config")
 		gCtx.JSON(http.StatusInternalServerError, fmt.Errorf("render gse file proxy config failed: %w", err))
 
 		return

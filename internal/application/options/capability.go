@@ -12,12 +12,10 @@
 package options
 
 import (
-	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/storage/cptemplate"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,20 +38,17 @@ type Capability struct {
 	// Discover provides discover handler.
 	DiscoverProvider discover.Provider
 
-	// Logger logger
-	Logger logger.ILogger
-
 	// FrontSetting front setting
 	FrontSetting frontsetting.IFrontSetting
 }
 
 // Start starts all services in capability.
-func (c *Capability) Start(ctx context.Context) error {
-	if err := c.DiscoverProvider.Start(ctx); err != nil {
+func (c *Capability) Start(nCtx contextx.IContext) error {
+	if err := c.DiscoverProvider.Start(nCtx); err != nil {
 		return err
 	}
 
-	if err := c.StorageConfigPolicyTemplate.Start(ctx); err != nil {
+	if err := c.StorageConfigPolicyTemplate.Start(nCtx); err != nil {
 		return err
 	}
 

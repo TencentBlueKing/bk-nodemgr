@@ -11,10 +11,10 @@
 package bkrepo
 
 import (
-	"context"
 	"io"
 	"path"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 )
 
@@ -32,29 +32,29 @@ func (group *FileGroup) Name() string {
 }
 
 // SubGroups return the sub groups of the file group.
-func (group *FileGroup) SubGroups(ctx context.Context) ([]fileiface.FileGroup, error) {
-	return group.handler.listGroups(ctx, group.info.FullPath)
+func (group *FileGroup) SubGroups(nCtx contextx.IContext) ([]fileiface.FileGroup, error) {
+	return group.handler.listGroups(nCtx, group.info.FullPath)
 }
 
 // GetFile return the file of the file group.
-func (group *FileGroup) GetFile(ctx context.Context, name string) (fileiface.File, error) {
-	return group.handler.GetFile(ctx, path.Join(group.info.FullPath, name))
+func (group *FileGroup) GetFile(nCtx contextx.IContext, name string) (fileiface.File, error) {
+	return group.handler.GetFile(nCtx, path.Join(group.info.FullPath, name))
 }
 
 // AllFiles return all files of the file group.
-func (group *FileGroup) AllFiles(ctx context.Context) ([]fileiface.File, error) {
-	return group.handler.listFiles(ctx, group.info.FullPath)
+func (group *FileGroup) AllFiles(nCtx contextx.IContext) ([]fileiface.File, error) {
+	return group.handler.listFiles(nCtx, group.info.FullPath)
 }
 
 // Store store a file to the file group.
 func (group *FileGroup) Store(
-	ctx context.Context,
+	nCtx contextx.IContext,
 	info fileiface.FileInfo,
 	reader io.ReadCloser,
 	overwrite bool,
 ) error {
 
-	return group.handler.storeFile(ctx, group.info.FullPath, info, reader, overwrite)
+	return group.handler.storeFile(nCtx, group.info.FullPath, info, reader, overwrite)
 }
 
 // AbsDirs the func will return the abs dirs of file group.

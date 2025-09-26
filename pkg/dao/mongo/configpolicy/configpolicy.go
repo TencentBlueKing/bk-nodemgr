@@ -11,24 +11,23 @@
 package configpolicy
 
 import (
-	"context"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
 	tableName := TableName(tenantID)
 	d := &dao{
 		tenantID:  tenantID,
 		tableName: tableName,
 		client:    client.Collection(tableName),
-		logger:    logger,
-		counter:   counter.New(client, logger),
+		counter:   counter.New(client),
 	}
 
 	d.IOrm = base.NewOrm[*ConfigPolicy, ConfigPolicy](d)
@@ -40,8 +39,8 @@ type dao struct {
 	tenantID  string
 	tableName string
 	client    *mongo.Collection
-	logger    logger.ILogger
-	counter   counter.Handler
+
+	counter counter.Handler
 
 	base.IOrm[*ConfigPolicy, ConfigPolicy]
 }
@@ -49,11 +48,6 @@ type dao struct {
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -68,56 +62,56 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) create(ctx context.Context, configPolicy *ConfigPolicy) (int64, error) {
-	newSequence, err := d.counter.Generate(ctx, "configpolicy")
+func (d *dao) create(nCtx contextx.IContext, configPolicy *ConfigPolicy) (int64, error) {
+	newSequence, err := d.counter.Generate(nCtx, "configpolicy")
 	if err != nil {
 		return 0, err
 	}
 
 	configPolicy.Raw.ConfigPolicyID = newSequence
-	if err := d.Create(ctx, configPolicy); err != nil {
+	if err := d.Create(nCtx, configPolicy); err != nil {
 		return -1, err
 	}
 
 	return newSequence, nil
 }
 
-func (d *dao) updateMany(ctx context.Context, tenantID string, configPolicies []*ConfigPolicy) error {
+func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, configPolicies []*ConfigPolicy) error {
 	models := buildUpdateManyParams(tenantID, configPolicies)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully updated config policies, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted config policies")
 	}
 
 	return nil
 }
 
-func (d *dao) deleteMany(ctx context.Context, tenantID string, configPolicyIDs ...int64) error {
+func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, configPolicyIDs ...int64) error {
 	models := buildDeleteManyParams(tenantID, configPolicyIDs...)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("successfully deleted config policies, deleted-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("deleted-count", result.MatchedCount).Info("deleted config policies")
 	}
 
 	return nil
 }
 
-func (d *dao) setEnabledMany(ctx context.Context, tenantID string, enabled bool, configPolicyIDs ...int64) error {
+func (d *dao) setEnabledMany(nCtx contextx.IContext, tenantID string, enabled bool, configPolicyIDs ...int64) error {
 	filter := bson.D{
 		bson.E{Key: FieldKeyConfigPolicyID, Value: bson.D{bson.E{Key: "$in", Value: configPolicyIDs}}},
 		bson.E{Key: FieldKeyTenantID, Value: tenantID}}
 
-	return d.UpdateField(ctx, filter, FieldKeyEnabled, enabled)
+	return d.UpdateField(nCtx, filter, FieldKeyEnabled, enabled)
 }
 
 // buildUpdateManyParams build update many params.

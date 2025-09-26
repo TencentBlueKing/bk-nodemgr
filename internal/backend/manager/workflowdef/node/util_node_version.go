@@ -11,10 +11,10 @@
 package node
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -30,7 +30,7 @@ type CheckAndSelectVersionParam struct {
 	Version     string
 }
 
-func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionParam) (string, error) {
+func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersionParam) (string, error) {
 	plat := platform.NewPlatform(versionParam.OSType, versionParam.CPUArch)
 
 	releaseType := versionParam.ReleaseType
@@ -45,7 +45,7 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 		},
 	}
 
-	releases, num, err := versionParam.daoRelease.ListRelease(ctx, releaseType, types.UnlimitedPage(), cond)
+	releases, num, err := versionParam.daoRelease.ListRelease(nCtx, releaseType, types.UnlimitedPage(), cond)
 	if err != nil {
 		return "", fmt.Errorf("failed to list default releases: %w", err)
 	}
@@ -61,7 +61,7 @@ func autoSelectVersion(ctx context.Context, versionParam CheckAndSelectVersionPa
 	return releases[0].Version, nil
 }
 
-func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVersionParam) error {
+func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelectVersionParam) error {
 	plat, err := platform.Normalize(string(versionParam.OSType), string(versionParam.CPUArch))
 	if err != nil {
 		return fmt.Errorf("invalid platform: %w", err)
@@ -75,7 +75,7 @@ func checkVersionAvailability(ctx context.Context, versionParam CheckAndSelectVe
 			Enabled:    []bool{true},
 		},
 	}
-	num, err := versionParam.daoRelease.CountRelease(ctx, versionParam.ReleaseType, cond)
+	num, err := versionParam.daoRelease.CountRelease(nCtx, versionParam.ReleaseType, cond)
 	if err != nil {
 		return fmt.Errorf("failed to check release version,err: %w", err)
 	}

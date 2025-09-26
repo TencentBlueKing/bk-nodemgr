@@ -38,9 +38,6 @@ type Capability struct {
 
 	// MetricOpts metric option.
 	MetricOpts MetricOption
-
-	// Logger logger
-	Logger Logger
 }
 
 // MetricOption metrics options.

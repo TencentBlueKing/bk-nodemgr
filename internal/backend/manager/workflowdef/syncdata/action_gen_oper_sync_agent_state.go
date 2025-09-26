@@ -19,7 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -97,33 +96,28 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	nCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 	executor := pageexecutor.NewPageExecutor[*types.Host](MaxPageSize, 1*time.Hour)
-	fn := func(fnCtx context.Context, p types.Page) ([]*types.Host, error) {
+	fn := func(_ context.Context, p types.Page) ([]*types.Host, error) {
 		cond := &types.HostCondition{
 			ExactExclude: &types.HostExactFields{
 				AgentID: []string{""},
 			},
 		}
 
-		hosts, err := act.topoStg.FindHostWithDynamic(fnCtx, p, cond)
+		hosts, err := act.topoStg.FindHostWithDynamic(nCtx, p, cond)
 		if err != nil {
 			return nil, err
 		}
 
-		newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
-		if err = act.executeOper(newCtx, ctx.Data, hosts...); err != nil {
+		if err = act.executeOper(nCtx, ctx.Data, hosts...); err != nil {
 			return nil, err
 		}
 
 		return hosts, nil
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
-	if err != nil {
-		return err
-	}
-
-	result, err := executor.Execute(tenantCtx, types.UnlimitedPage(), fn)
+	result, err := executor.Execute(ctx.Ctx, types.UnlimitedPage(), fn)
 	if err != nil {
 		return err
 	}

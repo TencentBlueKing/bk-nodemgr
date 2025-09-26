@@ -12,18 +12,16 @@
 package networkarea
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(client *mongo.Database) *dao {
 	d := &dao{
 		client: client.Collection(TableName()),
-		logger: logger,
 	}
 
 	d.IOrm = base.NewOrm[*NetworkArea, NetworkArea](d)
@@ -33,18 +31,12 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 
 type dao struct {
 	client *mongo.Collection
-	logger logger.ILogger
 	base.IOrm[*NetworkArea, NetworkArea]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -59,50 +51,50 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) upsertMany(ctx context.Context, tenantID string, networkAreas []*NetworkArea) error {
+func (d *dao) upsertMany(nCtx contextx.IContext, tenantID string, networkAreas []*NetworkArea) error {
 	models := buildUpsertManyParams(tenantID, networkAreas)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.UpsertedCount > 0 {
-		d.logger.Infof("inserted networkareas, inserted-count(%v)", result.UpsertedCount)
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted networkareas")
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("updated networkareas, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted networkareas")
 	}
 
 	return nil
 }
 
-func (d *dao) updateMany(ctx context.Context, tenantID string, networkAreas []*NetworkArea) error {
+func (d *dao) updateMany(nCtx contextx.IContext, tenantID string, networkAreas []*NetworkArea) error {
 	models := buildUpdateManyParams(tenantID, networkAreas)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("updated networkareas, update-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("updated networkareas")
 	}
 
 	return nil
 }
 
-func (d *dao) deleteMany(ctx context.Context, tenantID string, networkAreaIDs ...int64) error {
+func (d *dao) deleteMany(nCtx contextx.IContext, tenantID string, networkAreaIDs ...int64) error {
 	models := buildDeleteManyParams(tenantID, networkAreaIDs...)
 
-	result, err := d.client.BulkWrite(ctx, models)
+	result, err := d.client.BulkWrite(nCtx, models)
 	if err != nil {
 		return err
 	}
 
 	if result.MatchedCount > 0 {
-		d.logger.Infof("deleted networkareas, deleted-count(%v)", result.MatchedCount)
+		logger.G.Sys().With("deleted-count", result.MatchedCount).Info("deleted networkareas")
 	}
 
 	return nil

@@ -12,10 +12,7 @@
 package operinstdata
 
 import (
-	"errors"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -27,20 +24,17 @@ type IHandler interface {
 
 // Handler implements the IHandler interface.
 type Handler struct {
-	logger logger.ILogger
-	dao    *dao
+	dao *dao
 }
 
 // New create a new Handler.
-func New(client *mongo.Database, logger logger.ILogger) *Handler {
+func New(client *mongo.Database) *Handler {
 	h := &Handler{
-		dao:    newDao(client, logger),
-		logger: logger,
+		dao: newDao(client),
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure accesspoint indexes: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).Warn("failed to ensure accesspoint indexes")
 	}
 
 	return h

@@ -12,12 +12,12 @@
 package mongotest
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/docker/go-connections/nat"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/suite"
@@ -33,7 +33,7 @@ type TestSuite struct {
 	mongoContainer tc.Container
 	client         *mongo.Client
 	db             *mongo.Database
-	ctx            context.Context
+	ctx            contextx.IContext
 	dbName         string
 	mongoURI       string
 }
@@ -44,8 +44,8 @@ func (suit *TestSuite) LoadEnv() error {
 }
 
 // InitMongo initializes the MongoDB test suite.
-func (suit *TestSuite) InitMongo(ctx context.Context, testConfig *Config) {
-	suit.ctx = ctx
+func (suit *TestSuite) InitMongo(nCtx contextx.IContext, testConfig *Config) {
+	suit.ctx = nCtx
 	if testConfig == nil {
 		testConfig = DefaultConfig()
 	}
@@ -81,12 +81,11 @@ func DefaultConfig() *Config {
 }
 
 type loggerAdapter struct {
-	logger logger.ILogger
 }
 
 // Printf implements the Logging interface.
 func (l *loggerAdapter) Printf(format string, v ...interface{}) {
-	l.logger.Infof(format, v...)
+	logger.G.Sys().Info(format, v...)
 }
 
 // MongoPort is the default port for MongoDB.
@@ -105,7 +104,7 @@ func (suit *TestSuite) setupMongoContainer(config *Config) {
 	mongoC, err := tc.GenericContainer(suit.ctx, tc.GenericContainerRequest{
 		ContainerRequest: req,
 		Started:          true,
-		Logger:           &loggerAdapter{logger.LoggerDefault{}},
+		Logger:           &loggerAdapter{},
 		Reuse:            true,
 	})
 	suit.Require().NoError(err)
@@ -161,7 +160,7 @@ func (suit *TestSuite) GetDatabaseName() string { return suit.dbName }
 func (suit *TestSuite) GetMongoURI() string { return suit.mongoURI }
 
 // GetContext returns the context for the test suite.
-func (suit *TestSuite) GetContext() context.Context { return suit.ctx }
+func (suit *TestSuite) GetContext() contextx.IContext { return suit.ctx }
 
 // CreateCollection creates a new collection in the MongoDB database.
 func (suit *TestSuite) CreateCollection(collectionName string) error {

@@ -17,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -30,7 +30,7 @@ func testClient(t *testing.T) *Storage {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	ctx := contextx.New(context.Background())
 	mongoClient, err := mongo.Connect(
 		ctx,
 		&options.ClientOptions{
@@ -52,7 +52,6 @@ func testClient(t *testing.T) *Storage {
 	s := &Storage{
 		Name:     "test",
 		Database: mongoClient.Database(os.Getenv("MONGO_DATABASE")),
-		Logger:   logger.LoggerDefault{},
 	}
 
 	return s
@@ -84,7 +83,7 @@ func TestStorage_Start(t *testing.T) {
 				InitStorage(s)
 			}
 
-			if err := s.Start(context.Background()); (err != nil) != tt.wantErr {
+			if err := s.Start(contextx.New(context.Background())); (err != nil) != tt.wantErr {
 				t.Errorf("Start() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -128,7 +127,7 @@ func TestStorage_CheckHealthz(t *testing.T) {
 			InitStorage(s, WithCheckFunc(tt.healthz))
 
 			if tt.isStarted {
-				s.Start(context.Background())
+				s.Start(contextx.New(context.Background()))
 			}
 
 			if tt.isTerminated {
@@ -175,7 +174,7 @@ func TestStorage_Terminate(t *testing.T) {
 			InitStorage(s)
 
 			if tt.isStarted {
-				if err := s.Start(context.Background()); err != nil {
+				if err := s.Start(contextx.New(context.Background())); err != nil {
 					t.Errorf("Start() error = %v", err)
 				}
 			}

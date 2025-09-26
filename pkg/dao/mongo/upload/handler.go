@@ -11,13 +11,12 @@
 package upload
 
 import (
-	"context"
-	"errors"
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -25,19 +24,18 @@ import (
 // IHandler upload Handler interface.
 type IHandler interface {
 	// Create creates upload.
-	Create(ctx context.Context, category types.UploadCategory, upload *types.Upload) error
+	Create(nCtx contextx.IContext, category types.UploadCategory, upload *types.Upload) error
 
 	// Get gets upload by upload id.
-	Get(ctx context.Context, category types.UploadCategory, uploadID string) (*types.Upload, error)
+	Get(nCtx contextx.IContext, category types.UploadCategory, uploadID string) (*types.Upload, error)
 
 	// DeleteMany deletes upload by upload-ids.
-	DeleteMany(ctx context.Context, category types.UploadCategory, uploadIDs ...string) error
+	DeleteMany(nCtx contextx.IContext, category types.UploadCategory, uploadIDs ...string) error
 }
 
 // Handler implements IHandler.
 type Handler struct {
 	client *mongo.Database
-	logger logger.ILogger
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
 	daoMap sync.Map
@@ -48,9 +46,9 @@ func (h *Handler) categoryDao(category types.UploadCategory) *dao {
 		return d.(*dao) // nolint: forcetypeassert
 	}
 
-	newDaoClient := newDao(string(category), h.client, h.logger)
+	newDaoClient := newDao(string(category), h.client)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure upload indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).Warn("failed to ensure upload indexes")
 	}
 
 	d, _ := h.daoMap.LoadOrStore(category, newDaoClient)
@@ -61,17 +59,16 @@ func (h *Handler) categoryDao(category types.UploadCategory) *dao {
 }
 
 // New new a Handler.
-func New(client *mongo.Database, logger logger.ILogger) *Handler {
+func New(client *mongo.Database) *Handler {
 	return &Handler{
 		client: client,
-		logger: logger,
 		daoMap: sync.Map{},
 	}
 }
 
 // Create creates upload.
-func (h *Handler) Create(ctx context.Context, category types.UploadCategory, upload *types.Upload) error {
-	return h.categoryDao(category).Create(ctx, &Upload{
+func (h *Handler) Create(nCtx contextx.IContext, category types.UploadCategory, upload *types.Upload) error {
+	return h.categoryDao(category).Create(nCtx, &Upload{
 		UploadID:  upload.UploadID,
 		Category:  string(upload.Category),
 		SavedName: upload.SavedName,
@@ -81,11 +78,11 @@ func (h *Handler) Create(ctx context.Context, category types.UploadCategory, upl
 }
 
 // Get gets upload by upload id.
-func (h *Handler) Get(ctx context.Context, category types.UploadCategory, uploadID string) (*types.Upload, error) {
+func (h *Handler) Get(nCtx contextx.IContext, category types.UploadCategory, uploadID string) (*types.Upload, error) {
 	filter := base.AliveFilter()
 	filter = base.WithValues(FieldKeyUploadID, uploadID)(filter)
 
-	upload, err := h.categoryDao(category).Get(ctx, filter)
+	upload, err := h.categoryDao(category).Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +97,6 @@ func (h *Handler) Get(ctx context.Context, category types.UploadCategory, upload
 }
 
 // DeleteMany deletes upload by upload id.
-func (h *Handler) DeleteMany(ctx context.Context, category types.UploadCategory, uploadIDs ...string) error {
-	return h.categoryDao(category).deleteMany(ctx, uploadIDs...)
+func (h *Handler) DeleteMany(nCtx contextx.IContext, category types.UploadCategory, uploadIDs ...string) error {
+	return h.categoryDao(category).deleteMany(nCtx, uploadIDs...)
 }

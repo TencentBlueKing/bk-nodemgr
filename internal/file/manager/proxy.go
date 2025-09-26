@@ -19,6 +19,7 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -28,69 +29,68 @@ import (
 // IProxy defines the interface for proxy.
 type IProxy interface {
 	// PublishReleaseProxy generates release proxy by upload-id.
-	PublishReleaseProxy(ctx contextx.IContext, uploadID string) error
+	PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error
 }
 
 // PublishReleaseProxy generates release proxy packages by upload-id.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseProxy(ctx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetServerUpload(ctx, uploadID)
+func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error {
+	up, err := m.storageUpload.GetServerUpload(nCtx, uploadID)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get upload(%s). err: %v", uploadID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy, failed to get upload")
 
 		return err
 	}
 
 	if up.Category != types.UploadCategoryOriginServer {
-		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, invalid category. err: %s", up.Category)
+		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release proxy, invalid category")
 
 		return errors.New("invalid category")
 	}
 
 	// get origin file.
-	originFile, err := m.upstreamOriginServer.GetFile(ctx, up.SavedName)
+	originFile, err := m.upstreamOriginServer.GetFile(nCtx, up.SavedName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get file(%s). err: %v", up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release proxy, failed to get file")
 
 		return err
 	}
 
 	// get origin content.
-	originContent, err := originFile.Content(ctx)
+	originContent, err := originFile.Content(nCtx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get content. file(%s). err: %v",
-			up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release proxy, failed to get content. file")
 
 		return err
 	}
 
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(ctx, originContent)
+	originTempFileName, err := m.saveTempFile(nCtx, originContent)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload release proxy package. failed to save temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release proxy package. failed to save temp file")
 
 		return err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, originTempFileName)
+	checkingFile, err := m.getTempFile(nCtx, originTempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload release proxy package. failed to get temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release proxy package. failed to get temp file")
 
 		return err
 	}
 
 	detail, err := checkGSE2OriginServerPkg(checkingFile)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload release proxy package. failed to check origin proxy package. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release proxy package. failed to check origin proxy package")
 
 		return err
 	}
 
 	// generate release packages.
-	releasePkgs, err := m.generateProxyPkg(ctx, detail, originTempFileName)
+	releasePkgs, err := m.generateProxyPkg(nCtx, detail, originTempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to generate proxy pkg. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to generate proxy pkg")
 
 		return err
 	}
@@ -109,34 +109,34 @@ func (m *Manager) PublishReleaseProxy(ctx contextx.IContext, uploadID string) er
 				detail.Version,
 			)
 			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to upload release proxy package, failed to format package. err: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release proxy package, failed to format package")
 
 				return err
 			}
 
-			generatedFile, err := m.getTempFile(ctx, pkg.tempFileName)
+			generatedFile, err := m.getTempFile(nCtx, pkg.tempFileName)
 			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get temp file. err: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to get temp file")
 
 				return err
 			}
 
-			if err = m.upstreamReleaseProxy.Store(ctx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to upload to upstream. err: %v", err)
+			if err = m.upstreamReleaseProxy.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to upload to upstream")
 
 				return err
 			}
 
-			file, err := m.upstreamReleaseProxy.GetFile(ctx, pkgName)
+			file, err := m.upstreamReleaseProxy.GetFile(nCtx, pkgName)
 			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get temp file. err: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to get temp file")
 
 				return err
 			}
 
-			agentRelease, err := m.storageRelease.GetReleaseAgent(ctx, types.Generation2, pkg.platform, detail.Version)
+			agentRelease, err := m.storageRelease.GetReleaseAgent(nCtx, types.Generation2, pkg.platform, detail.Version)
 			if err != nil {
-				m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to get agent release. err: %v", err)
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to get agent release")
 
 				return err
 			}
@@ -153,7 +153,7 @@ func (m *Manager) PublishReleaseProxy(ctx contextx.IContext, uploadID string) er
 					Enabled:      true,
 					AsDefault:    true,
 					UpdatedAt:    time.Now(),
-					Operator:     ctx.BKUsername(),
+					Operator:     nCtx.BKUsername(),
 					AdditionInfo: nil,
 				},
 				ReleaseAdditionInfoProxy: types.ReleaseAdditionInfoProxy{
@@ -176,19 +176,19 @@ func (m *Manager) PublishReleaseProxy(ctx contextx.IContext, uploadID string) er
 		})
 	}
 	if err = gp.Wait(); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to upload to upstream. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to upload to upstream")
 
 		return err
 	}
 
 	// upsert release bintool.
-	if err = m.storageRelease.UpsertManyReleaseProxy(ctx, conv.MapValueToSlice(releasesMap)); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release proxy, failed to upsert release proxy: %v", err)
+	if err = m.storageRelease.UpsertManyReleaseProxy(nCtx, conv.MapValueToSlice(releasesMap)); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to upsert release proxy")
 
 		return err
 	}
 
-	m.logger.InfoCtxf(ctx, "generated and published release proxys. platforms(%v)", detail.Platforms)
+	logger.G.Biz(nCtx).With("platforms", detail.Platforms).Info("generated and published release proxys")
 
 	return nil
 }
@@ -224,23 +224,23 @@ func proxyPkgFileNameAgent(plat platform.Platform) string {
 // generateProxyPkg generates proxy package.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) generateProxyPkg(ctx contextx.IContext, originDetail *types.OriginPkgDetail, originLocalFileName string) (
+func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.OriginPkgDetail, originLocalFileName string) (
 	[]*releaseProxyPkg, error) {
 
 	// local origin server.
-	localOrigin, err := m.tempFileGroup.GetFile(ctx, originLocalFileName)
+	localOrigin, err := m.tempFileGroup.GetFile(nCtx, originLocalFileName)
 	if err != nil {
 		return nil, err
 	}
 
 	// local cert.
-	localCert, err := m.fetchReleaseCertToLocal(ctx)
+	localCert, err := m.fetchReleaseCertToLocal(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
 	// local bintool.
-	localBinTool, err := m.fetchReleaseBinToolToLocal(ctx)
+	localBinTool, err := m.fetchReleaseBinToolToLocal(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -252,36 +252,36 @@ func (m *Manager) generateProxyPkg(ctx contextx.IContext, originDetail *types.Or
 		plat := originDetail.Platforms[idx]
 
 		// local release agent.
-		localAgent, err := m.fetchReleaseAgentLocal(ctx, plat, originDetail.Version)
+		localAgent, err := m.fetchReleaseAgentLocal(nCtx, plat, originDetail.Version)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate release proxy, failed to fetch release agent: %w", err)
 		}
 
 		gp.Go(func() error {
 			// create target file.
-			tempFileName, err := m.createTempFile(ctx)
+			tempFileName, err := m.createTempFile(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to create proxy pkg temp file. platform(%s): %w", plat.String(), err)
 			}
-			targetFile, err := m.openTempFile(ctx, tempFileName)
+			targetFile, err := m.openTempFile(nCtx, tempFileName)
 			if err != nil {
 				return fmt.Errorf("failed to open pkg file: %w", err)
 			}
 
 			// open all source files.
-			originServerFile, err := localOrigin.Content(ctx)
+			originServerFile, err := localOrigin.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin proxy file: %w", err)
 			}
-			originCertFile, err := localCert.Content(ctx)
+			originCertFile, err := localCert.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin cert file: %w", err)
 			}
-			originBinToolFile, err := localBinTool.Content(ctx)
+			originBinToolFile, err := localBinTool.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin bintool file: %w", err)
 			}
-			releaseAgentFile, err := localAgent.Content(ctx)
+			releaseAgentFile, err := localAgent.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open release agent file: %w", err)
 			}

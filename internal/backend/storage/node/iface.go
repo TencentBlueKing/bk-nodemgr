@@ -11,9 +11,8 @@
 package node
 
 import (
-	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -28,41 +27,41 @@ type IStorage interface {
 // IDaoNodeDeployment defines the node deployment dao interface.
 type IDaoNodeDeployment interface {
 	// CreateNodeDeployment createNodeDeployment a node deployment.
-	CreateNodeDeployment(ctx context.Context, nodeDeployment *types.NodeDeployment) error
+	CreateNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error
 
 	// GetNodeDeploymentNodeConf get gse agent setting.
-	GetNodeDeploymentNodeConf(ctx context.Context, token string) (*types.NodeConf, error)
+	GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string) (*types.NodeConf, error)
 
 	// SetNodeDeploymentNodeConf set gse agent setting.
-	SetNodeDeploymentNodeConf(ctx context.Context, token string, conf *types.NodeConf) error
+	SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, conf *types.NodeConf) error
 
 	// GetNodeDeploymentInfo get node deployment info.
-	GetNodeDeploymentInfo(ctx context.Context, token string) (*types.DeploymentInfo, error)
+	GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*types.DeploymentInfo, error)
 
 	// UpdateNodeDeploymentInfo update node deployment info.
-	UpdateNodeDeploymentInfo(ctx context.Context, token string, info *types.DeploymentInfo) error
+	UpdateNodeDeploymentInfo(nCtx contextx.IContext, token string, info *types.DeploymentInfo) error
 }
 
 // IDaoNodeWorkflow define the node workflow dao interface.
 type IDaoNodeWorkflow interface {
 	// ListNodeWorkflow lists node workflow by page and conditions.
-	ListNodeWorkflow(ctx context.Context, page types.Page, conditions ...*types.NodeWorkflowCondition) (
+	ListNodeWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowCondition) (
 		[]*types.NodeWorkflow, int64, error)
 
 	// CountNodeWorkflow counts node workflow by conditions.
-	CountNodeWorkflow(ctx context.Context, conditions ...*types.NodeWorkflowCondition) (int64, error)
+	CountNodeWorkflow(nCtx contextx.IContext, conditions ...*types.NodeWorkflowCondition) (int64, error)
 
 	// DistinctNodeWorkflow distincts node workflow fields.
 	DistinctNodeWorkflow(
-		ctx context.Context, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
+		nCtx contextx.IContext, request types.NodeWorkflowDistinctRequest, conditions ...*types.NodeWorkflowCondition) (
 		*types.NodeWorkflowDistinctResult, error)
 
 	// GetNodeWorkflow gets a node workflow by workflow-id.
-	GetNodeWorkflow(ctx context.Context, workflowID string) (*types.NodeWorkflow, error)
+	GetNodeWorkflow(nCtx contextx.IContext, workflowID string) (*types.NodeWorkflow, error)
 
 	// CreateNodeWorkflow creates a new node workflow.
-	CreateNodeWorkflow(ctx context.Context, workflow *types.NodeWorkflow) error
+	CreateNodeWorkflow(nCtx contextx.IContext, workflow *types.NodeWorkflow) error
 
 	// UpdateNodeWorkflowStatus updates the status of a node workflow.
-	UpdateNodeWorkflowStatus(ctx context.Context, workflowID string, status types.NodeWorkflowStatus) error
+	UpdateNodeWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.NodeWorkflowStatus) error
 }

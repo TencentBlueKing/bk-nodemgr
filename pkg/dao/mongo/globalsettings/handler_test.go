@@ -17,7 +17,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -31,9 +31,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -50,13 +50,13 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 var once = sync.Once{}
 
 // prepareData for all tests.
-func prepareData(t *testing.T, ctx context.Context) {
+func prepareData(t *testing.T, nCtx contextx.IContext) {
 	testDatas := []*types.GlobalSettings{
 		{
 			SettingName: "test1",
@@ -70,7 +70,7 @@ func prepareData(t *testing.T, ctx context.Context) {
 
 	once.Do(func() {
 		h := testClient(t)
-		err := h.Upsert(ctx, testDatas...)
+		err := h.Upsert(nCtx, testDatas...)
 		if err != nil {
 			t.Errorf("prepareData() error = %v", err)
 		}
@@ -79,12 +79,12 @@ func prepareData(t *testing.T, ctx context.Context) {
 
 // Test_handler_UpsertMany tests the UpsertMany method of the handler.
 func Test_handler_UpsertMany(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-	prepareData(t, ctx)
+	nCtx, _ := tenant.SetID(context.Background(), "test")
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx context.Context
-		gs  []*types.GlobalSettings
+		nCtx contextx.IContext
+		gs   []*types.GlobalSettings
 	}
 	tests := []struct {
 		name    string
@@ -94,7 +94,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				gs: []*types.GlobalSettings{
 					{
 						SettingName: "test3",
@@ -113,7 +113,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			err := h.Upsert(tt.args.ctx, tt.args.gs...)
+			err := h.Upsert(tt.args.nCtx, tt.args.gs...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpsertMany() error = %v, wantErr: %v", err, tt.wantErr)
 				return
@@ -124,11 +124,11 @@ func Test_handler_UpsertMany(t *testing.T) {
 
 // Test_handler_Get tests the Create method of the handler.
 func Test_handler_Get(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-	prepareData(t, ctx)
+	nCtx, _ := tenant.SetID(context.Background(), "test")
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		name string
 	}
 	tests := []struct {
@@ -140,7 +140,7 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:  ctx,
+				nCtx: nCtx,
 				name: "test1",
 			},
 			wantErr: false,
@@ -152,7 +152,7 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "not found",
 			args: args{
-				ctx:  ctx,
+				nCtx: nCtx,
 				name: "test11",
 			},
 			wantErr: false,
@@ -163,7 +163,7 @@ func Test_handler_Get(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			got, err := h.Get(tt.args.ctx, tt.args.name)
+			got, err := h.Get(tt.args.nCtx, tt.args.name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr: %v", err, tt.wantErr)
 				return
@@ -180,11 +180,11 @@ func Test_handler_Get(t *testing.T) {
 
 // Test_handler_List tests the List method of the handler.
 func Test_handler_List(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-	prepareData(t, ctx)
+	nCtx, _ := tenant.SetID(context.Background(), "test")
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		page types.Page
 		opts []OptFn
 	}
@@ -198,7 +198,7 @@ func Test_handler_List(t *testing.T) {
 		{
 			name: "filter by setting name",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				page: types.Page{
 					Offset: 0,
 					Limit:  2,
@@ -220,7 +220,7 @@ func Test_handler_List(t *testing.T) {
 		{
 			name: "all settings",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				page: types.Page{
 					Offset: 0,
 					Limit:  10,
@@ -236,7 +236,7 @@ func Test_handler_List(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			got, gotNum, err := h.List(tt.args.ctx, tt.args.page, tt.args.opts...)
+			got, gotNum, err := h.List(tt.args.nCtx, tt.args.page, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -256,11 +256,11 @@ func Test_handler_List(t *testing.T) {
 
 // Test_handler_Count tests the Count method of the handler.
 func Test_handler_Count(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-	prepareData(t, ctx)
+	nCtx, _ := tenant.SetID(context.Background(), "test")
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		opts []OptFn
 	}
 	tests := []struct {
@@ -272,7 +272,7 @@ func Test_handler_Count(t *testing.T) {
 		{
 			name: "filter by setting name",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				opts: []OptFn{
 					WithSettingName("test1"),
 				},
@@ -286,7 +286,7 @@ func Test_handler_Count(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			got, err := h.Count(tt.args.ctx, tt.args.opts...)
+			got, err := h.Count(tt.args.nCtx, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -303,11 +303,11 @@ func Test_handler_Count(t *testing.T) {
 
 // Test_handler_Exist tests the Exist method of the handler.
 func Test_handler_Exist(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-	prepareData(t, ctx)
+	nCtx, _ := tenant.SetID(context.Background(), "test")
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		name string
 	}
 	tests := []struct {
@@ -318,7 +318,7 @@ func Test_handler_Exist(t *testing.T) {
 		{
 			name: "exist",
 			args: args{
-				ctx:  ctx,
+				nCtx: nCtx,
 				name: "test1",
 			},
 			want: true,
@@ -326,7 +326,7 @@ func Test_handler_Exist(t *testing.T) {
 		{
 			name: "nonexist",
 			args: args{
-				ctx:  ctx,
+				nCtx: nCtx,
 				name: "test9",
 			},
 			want: false,
@@ -337,7 +337,7 @@ func Test_handler_Exist(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			got, err := h.Exist(tt.args.ctx, tt.args.name)
+			got, err := h.Exist(tt.args.nCtx, tt.args.name)
 			if err != nil {
 				t.Errorf("Exist() error = %v", err)
 				return
@@ -353,11 +353,11 @@ func Test_handler_Exist(t *testing.T) {
 }
 
 func Test_handler_DeleteMany(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
-	prepareData(t, ctx)
+	nCtx, _ := tenant.SetID(context.Background(), "test")
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		names []string
 	}
 	tests := []struct {
@@ -368,7 +368,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				names: []string{
 					"test1",
 					"test2",
@@ -381,7 +381,7 @@ func Test_handler_DeleteMany(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 
-			err := h.Delete(tt.args.ctx, tt.args.names...)
+			err := h.Delete(tt.args.nCtx, tt.args.names...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DeleteMany() error = %v, wantErr %v", err, tt.wantErr)
 				return

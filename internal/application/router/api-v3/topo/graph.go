@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -26,7 +27,7 @@ import (
 func (h *handler) GetGraph(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoGraphGetReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get graph, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get graph, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -40,7 +41,7 @@ func (h *handler) GetGraph(rCtx restserver.IContext) (interface{}, error) {
 			},
 		})
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get graph, failed to list networkunit. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get graph, failed to list networkunit")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -56,7 +57,7 @@ func (h *handler) GetGraph(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) CountGraphNode(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoGraphNodeCountReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to count graph node, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count graph node, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -64,7 +65,7 @@ func (h *handler) CountGraphNode(rCtx restserver.IContext) (interface{}, error) 
 	if len(networkUnitIDs) == 0 {
 		networkUnits, _, err := h.backendHandler.ListNetworkUnit(rCtx, types.Page{}, nil)
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to count graph node, failed to list networkunit. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to count graph node, failed to list networkunit")
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
@@ -121,7 +122,7 @@ func (h *handler) CountGraphNode(rCtx restserver.IContext) (interface{}, error) 
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to count graph node, failed to count host: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count graph node, failed to count host: %v", err)
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}

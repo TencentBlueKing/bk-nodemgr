@@ -11,7 +11,6 @@
 package manager
 
 import (
-	"context"
 	"errors"
 	"io"
 	"time"
@@ -19,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -26,11 +26,11 @@ import (
 // IPluginBinTool defines the interface for bin tool.
 type IPluginBinTool interface {
 	// UploadOriginPluginBinTool upload origin plugin bintool package.
-	UploadOriginPluginBinTool(ctx contextx.IContext, binToolFile io.ReadCloser) (
+	UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (
 		*types.OriginPluginBinToolPkgDetail, error)
 
 	// PublishReleasePluginBinTool generate release plugin bintool package.
-	PublishReleasePluginBinTool(ctx contextx.IContext, uploadID string) error
+	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error
 }
 
 const (
@@ -42,42 +42,42 @@ const (
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginPluginBinTool(
-	ctx contextx.IContext,
+	nCtx contextx.IContext,
 	binToolFile io.ReadCloser) (*types.OriginPluginBinToolPkgDetail, error) {
 
 	// validation.
 	if binToolFile == nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool package. bin tool file is nil")
+		logger.G.Biz(nCtx).Error("failed to upload origin plugin bintool package. bin tool file is nil")
 
 		return nil, errors.New("bin tool file is nil")
 	}
 
 	// store file to temp.
-	tempFileName, err := m.saveTempFile(ctx, binToolFile)
+	tempFileName, err := m.saveTempFile(nCtx, binToolFile)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool package. failed to save temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to save temp file")
 
 		return nil, err
 	}
 
-	checkingFile, err := m.getTempFile(ctx, tempFileName)
+	checkingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool package. failed to get temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to get temp file")
 
 		return nil, err
 	}
 
 	detail, err := checkOriginPluginBinToolPkg(checkingFile)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx,
-			"failed to upload origin plugin bintool package. failed to check origin plugin bintool package. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error(
+			"failed to upload origin plugin bintool package. failed to check origin plugin bintool package")
 
 		return nil, err
 	}
 
-	uploadingFile, err := m.getTempFile(ctx, tempFileName)
+	uploadingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool package. failed to get temp file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to get temp file")
 
 		return nil, err
 	}
@@ -85,16 +85,16 @@ func (m *Manager) UploadOriginPluginBinTool(
 	pkgName := m.wrapOriginPackageName(originPluginBinToolFileName)
 
 	// upload to upstream.
-	if err := m.upstreamOriginPluginBinTool.Store(ctx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool package, failed to upload to upstream. err: %v", err)
+	if err := m.upstreamOriginPluginBinTool.Store(nCtx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package, failed to upload to upstream")
 
 		return nil, err
 	}
 
 	// get file.
-	file, err := m.upstreamOriginPluginBinTool.GetFile(ctx, pkgName)
+	file, err := m.upstreamOriginPluginBinTool.GetFile(nCtx, pkgName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool package. failed to get file from upstream. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to get file from upstream")
 
 		return nil, err
 	}
@@ -103,28 +103,27 @@ func (m *Manager) UploadOriginPluginBinTool(
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existed, err := m.storageRelease.ExistReleasePluginBinTool(ctx, types.Generation2)
+	existed, err := m.storageRelease.ExistReleasePluginBinTool(nCtx, types.Generation2)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool package. failed to check if release existed. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to check if release existed")
 
 		return nil, err
 	}
 	detail.Existed = existed
 
 	// create the upload record.
-	uploadID, err := m.storageUpload.CreatePluginBinToolUpload(ctx, &types.Upload{
+	uploadID, err := m.storageUpload.CreatePluginBinToolUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginPluginBinTool,
 		SavedName: pkgName,
 	})
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to upload origin plugin bintool package, failed to create upload: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package, failed to create upload")
 
 		return nil, err
 	}
 	detail.UploadID = uploadID
 
-	m.logger.InfoCtxf(ctx,
-		"uploaded origin plugin bintool package to upstream. file-name(%s)", pkgName)
+	logger.G.Biz(nCtx).With("filename", pkgName).Info("uploaded origin plugin bintool package to upstream")
 
 	return detail, nil
 }
@@ -164,41 +163,40 @@ func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinTool
 }
 
 // PublishReleasePluginBinTool generates release plugin bintool by upload-id.
-func (m *Manager) PublishReleasePluginBinTool(ctx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetPluginBinToolUpload(ctx, uploadID)
+func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error {
+	up, err := m.storageUpload.GetPluginBinToolUpload(nCtx, uploadID)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to get upload(%s). err: %v", uploadID, err)
+		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool, failed to get upload")
 
 		return err
 	}
 
 	if up.Category != types.UploadCategoryOriginPluginBinTool {
-		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, invalid category. err: %s", up.Category)
+		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release plugin bintool, invalid category")
 
 		return errors.New("invalid category")
 	}
 
 	// get origin file.
-	file, err := m.upstreamOriginPluginBinTool.GetFile(ctx, up.SavedName)
+	file, err := m.upstreamOriginPluginBinTool.GetFile(nCtx, up.SavedName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to get file(%s). err: %v", up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin bintool, failed to get file")
 
 		return err
 	}
 
 	// get origin content.
-	content, err := file.Content(ctx)
+	content, err := file.Content(nCtx)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to get content. file(%s). err: %v",
-			up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin bintool, failed to get content")
 
 		return err
 	}
 
 	// generate release file.
-	generatedFile, err := m.generatePluginBinToolPkg(ctx, content)
+	generatedFile, err := m.generatePluginBinToolPkg(nCtx, content)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to generate plugin bintool pkg. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to generate plugin bintool pkg")
 
 		return err
 	}
@@ -208,16 +206,16 @@ func (m *Manager) PublishReleasePluginBinTool(ctx contextx.IContext, uploadID st
 
 	// upload to upstream.
 	if err = m.upstreamReleasePluginBinTool.Store(
-		ctx, fileiface.FileInfo{Name: releasePluginBinToolFileName}, generatedFile, true); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to upload to upstream. err: %v", err)
+		nCtx, fileiface.FileInfo{Name: releasePluginBinToolFileName}, generatedFile, true); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to upload to upstream")
 
 		return err
 	}
 
 	// get release file.
-	releaseFile, err := m.upstreamReleasePluginBinTool.GetFile(ctx, releasePluginBinToolFileName)
+	releaseFile, err := m.upstreamReleasePluginBinTool.GetFile(nCtx, releasePluginBinToolFileName)
 	if err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to get release file. err: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to get release file")
 
 		return err
 	}
@@ -226,7 +224,7 @@ func (m *Manager) PublishReleasePluginBinTool(ctx contextx.IContext, uploadID st
 	releaseInfo := releaseFile.Info()
 
 	// upsert release plugin bintool.
-	if err = m.storageRelease.UpsertReleasePluginBinTool(ctx, types.ReleasePluginBinTool{
+	if err = m.storageRelease.UpsertReleasePluginBinTool(nCtx, types.ReleasePluginBinTool{
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypePluginBinTool,
@@ -237,27 +235,27 @@ func (m *Manager) PublishReleasePluginBinTool(ctx contextx.IContext, uploadID st
 			Enabled:      true,
 			AsDefault:    true,
 			UpdatedAt:    time.Now(),
-			Operator:     ctx.BKUsername(),
+			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,
 		},
 	}); err != nil {
-		m.logger.ErrorCtxf(ctx, "failed to publish release plugin bintool, failed to upsert release plugin bintool: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to upsert release plugin bintool")
 
 		return err
 	}
 
-	m.logger.InfoCtxf(ctx, "generated and published release plugin bintool. file(%s), md5(%s)", releaseInfo.Name, releaseInfo.MD5)
+	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release plugin bintool")
 
 	return nil
 }
 
-func (m *Manager) generatePluginBinToolPkg(ctx context.Context, sourceFile io.ReadCloser) (io.ReadCloser, error) {
-	tempFileName, err := m.createTempFile(ctx)
+func (m *Manager) generatePluginBinToolPkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
+	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	targetFile, err := m.openTempFile(ctx, tempFileName)
+	targetFile, err := m.openTempFile(nCtx, tempFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -299,12 +297,12 @@ func (m *Manager) generatePluginBinToolPkg(ctx context.Context, sourceFile io.Re
 		return nil, err
 	}
 
-	file, err := m.tempFileGroup.GetFile(ctx, tempFileName)
+	file, err := m.tempFileGroup.GetFile(nCtx, tempFileName)
 	if err != nil {
 		return nil, err
 	}
 
-	return file.Content(ctx)
+	return file.Content(nCtx)
 }
 
 func convPlatToPluginBinToolDirName(plat platform.Platform) string {

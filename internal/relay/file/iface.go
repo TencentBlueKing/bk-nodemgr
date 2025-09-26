@@ -12,19 +12,18 @@
 package file
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 )
 
 // IFileManager defines the file manager interface.
 type IFileManager interface {
 	// GetFile get file info.
-	GetFile(ctx context.Context, filename string) (iface.File, error)
+	GetFile(nCtx contextx.IContext, filename string) (iface.File, error)
 
 	// StoreFile store file form srcPath.
-	StoreFile(ctx context.Context, srcPath, filename string) (*iface.FileInfo, error)
+	StoreFile(nCtx contextx.IContext, srcPath, filename string) (*iface.FileInfo, error)
 
 	// FileExists check file exists.
-	FileExists(ctx context.Context, filename, MD5 string) bool
+	FileExists(nCtx contextx.IContext, filename, MD5 string) bool
 }

@@ -11,11 +11,11 @@
 package operinstdata
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
@@ -24,40 +24,40 @@ import (
 // IActionInstData defines the interface for action instance data operations.
 type IActionInstData interface {
 	// GetActionInstData find one ActionInstData.
-	GetActionInstData(ctx context.Context, operInstID string, actionName string) (*action.InstanceData, error)
+	GetActionInstData(nCtx contextx.IContext, operInstID string, actionName string) (*action.InstanceData, error)
 
 	// UpdateActionInstData updates or inserts an ActionInstData.
-	UpdateActionInstData(ctx context.Context, data *action.InstanceData) error
+	UpdateActionInstData(nCtx contextx.IContext, data *action.InstanceData) error
 
 	// UpdateActInstMsg updates action inst data messages.
-	UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []common.Message) error
+	UpdateActInstMsg(nCtx contextx.IContext, operInstID, actionName string, msgs []common.Message) error
 
 	// GetActInstLifecycle get action inst data lifecycle.
-	GetActInstLifecycle(ctx context.Context, operInstID string, actionName string) (*action.Lifecycle, error)
+	GetActInstLifecycle(nCtx contextx.IContext, operInstID string, actionName string) (*action.Lifecycle, error)
 
 	// UpdateActInstLifecycle updates action inst data lifecycle.
-	UpdateActInstLifecycle(ctx context.Context, operInstID, actionName string, lifecycle *action.Lifecycle) error
+	UpdateActInstLifecycle(nCtx contextx.IContext, operInstID, actionName string, lifecycle *action.Lifecycle) error
 
 	// PushActionInstanceMessage push a message to the action_inst_data's msg queue.
-	PushActionInstanceMessage(ctx context.Context, operInstID string, actionName string, msgs ...common.Message) error
+	PushActionInstanceMessage(nCtx contextx.IContext, operInstID string, actionName string, msgs ...common.Message) error
 
 	// GetActInstPrivateData get action inst data private data.
-	GetActInstPrivateData(ctx context.Context, operInstID string, actionName string) (map[string]any, error)
+	GetActInstPrivateData(nCtx contextx.IContext, operInstID string, actionName string) (map[string]any, error)
 
 	// PushActInstPrivateData add action inst data private data.
-	PushActInstPrivateData(ctx context.Context, operInstID string, actionName string, data map[string]any) error
+	PushActInstPrivateData(nCtx contextx.IContext, operInstID string, actionName string, data map[string]any) error
 
 	// UpdateActionInstContent update the action_inst_data's content.
-	UpdateActionInstContent(ctx context.Context, operInstID string, actionName string, content map[string]any) error
+	UpdateActionInstContent(nCtx contextx.IContext, operInstID string, actionName string, content map[string]any) error
 
 	// UpdateActionInstStatus updates the action_inst_data's status.
-	UpdateActionInstStatus(ctx context.Context, operInstID string, actionName string, status action.State) error
+	UpdateActionInstStatus(nCtx contextx.IContext, operInstID string, actionName string, status action.State) error
 }
 
 // UpdateActInstMsg update action inst msg.
-func (h *Handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName string, msgs []common.Message) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *Handler) UpdateActInstMsg(nCtx contextx.IContext, operInstID, actionName string, msgs []common.Message) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -77,7 +77,7 @@ func (h *Handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 	}
 
 	filed := FieldKeyActionInstMessages(actionName)
-	err := h.dao.updateField(ctx, filter, filed, convMessageToDB(msgs))
+	err := h.dao.updateField(nCtx, filter, filed, convMessageToDB(msgs))
 	if err != nil {
 		return err
 	}
@@ -87,10 +87,10 @@ func (h *Handler) UpdateActInstMsg(ctx context.Context, operInstID, actionName s
 
 // UpdateActionInstContent update action instance content.
 func (h *Handler) UpdateActionInstContent(
-	ctx context.Context, operInstID string, actionName string, content map[string]any) error {
+	nCtx contextx.IContext, operInstID string, actionName string, content map[string]any) error {
 
-	if ctx == nil {
-		return errors.New("ctx is nil")
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -115,7 +115,7 @@ func (h *Handler) UpdateActionInstContent(
 	}
 
 	filed := FieldKeyActionInstContent(actionName)
-	err = h.dao.updateField(ctx, filter, filed, string(bytes))
+	err = h.dao.updateField(nCtx, filter, filed, string(bytes))
 	if err != nil {
 		return err
 	}
@@ -125,10 +125,10 @@ func (h *Handler) UpdateActionInstContent(
 
 // PushActInstPrivateData push act inst private data.
 func (h *Handler) PushActInstPrivateData(
-	ctx context.Context, operInstID string, actionName string, data map[string]any) error {
+	nCtx contextx.IContext, operInstID string, actionName string, data map[string]any) error {
 
-	if ctx == nil {
-		return errors.New("ctx is nil")
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -151,7 +151,7 @@ func (h *Handler) PushActInstPrivateData(
 		filter = opt(filter)
 	}
 
-	operInstData, err := h.dao.get(ctx, filter)
+	operInstData, err := h.dao.get(nCtx, filter)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (h *Handler) PushActInstPrivateData(
 		operInstData.ActionInstDataMap[actionName].PrivateData[k] = v
 	}
 
-	err = h.dao.updateField(ctx, filter,
+	err = h.dao.updateField(nCtx, filter,
 		FieldKeyActionInstData(actionName), operInstData.ActionInstDataMap[actionName])
 
 	if err != nil {
@@ -172,10 +172,10 @@ func (h *Handler) PushActInstPrivateData(
 
 // PushActionInstanceMessage push act inst msg.
 func (h *Handler) PushActionInstanceMessage(
-	ctx context.Context, operationInstanceID, actionName string, messages ...common.Message) error {
+	nCtx contextx.IContext, operationInstanceID, actionName string, messages ...common.Message) error {
 
-	if ctx == nil {
-		return errors.New("ctx is nil")
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if operationInstanceID == "" {
@@ -196,7 +196,7 @@ func (h *Handler) PushActionInstanceMessage(
 
 	field := fmt.Sprintf("action_data.%s.messages", actionName)
 	for _, msg := range convMessageToDB(messages) {
-		err := h.dao.pushField(ctx, filter, field, msg)
+		err := h.dao.pushField(nCtx, filter, field, msg)
 		if err != nil {
 			return err
 		}
@@ -207,10 +207,10 @@ func (h *Handler) PushActionInstanceMessage(
 
 // GetActInstPrivateData get action inst data private data.
 func (h *Handler) GetActInstPrivateData(
-	ctx context.Context, operInstID string, actionName string) (map[string]any, error) {
+	nCtx contextx.IContext, operInstID string, actionName string) (map[string]any, error) {
 
-	if ctx == nil {
-		return nil, errors.New("ctx is nil")
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -230,7 +230,7 @@ func (h *Handler) GetActInstPrivateData(
 	}
 
 	field := FieldKeyActInstPrivateData(actionName)
-	operInstData, err := h.dao.get(ctx, filter, field)
+	operInstData, err := h.dao.get(nCtx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -244,9 +244,9 @@ func (h *Handler) GetActInstPrivateData(
 }
 
 // UpdateActionInstData upsert action inst data.
-func (h *Handler) UpdateActionInstData(ctx context.Context, actionInstData *action.InstanceData) error {
-	if ctx == nil {
-		return errors.New("ctx is nil")
+func (h *Handler) UpdateActionInstData(nCtx contextx.IContext, actionInstData *action.InstanceData) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if actionInstData == nil {
@@ -271,15 +271,15 @@ func (h *Handler) UpdateActionInstData(ctx context.Context, actionInstData *acti
 	}
 	filed := FieldKeyActionInstData(actionInstData.Name)
 
-	return h.dao.updateField(ctx, filter, filed, data)
+	return h.dao.updateField(nCtx, filter, filed, data)
 }
 
 // UpdateActInstLifecycle update action inst lifecycle.
 func (h *Handler) UpdateActInstLifecycle(
-	ctx context.Context, operInstID, actionName string, lifecycle *action.Lifecycle) error {
+	nCtx contextx.IContext, operInstID, actionName string, lifecycle *action.Lifecycle) error {
 
-	if ctx == nil {
-		return errors.New("ctx is nil")
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -299,7 +299,7 @@ func (h *Handler) UpdateActInstLifecycle(
 	}
 
 	filed := FieldKeyActionInstLifeCycle(actionName)
-	err := h.dao.updateField(ctx, filter, filed, ConvActInstLifeCycleToDB(lifecycle))
+	err := h.dao.updateField(nCtx, filter, filed, ConvActInstLifeCycleToDB(lifecycle))
 	if err != nil {
 		return err
 	}
@@ -309,10 +309,10 @@ func (h *Handler) UpdateActInstLifecycle(
 
 // GetActionInstData find one action inst data.
 func (h *Handler) GetActionInstData(
-	ctx context.Context, operInstID string, actionName string) (*action.InstanceData, error) {
+	nCtx contextx.IContext, operInstID string, actionName string) (*action.InstanceData, error) {
 
-	if ctx == nil {
-		return nil, errors.New("ctx is nil")
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -332,7 +332,7 @@ func (h *Handler) GetActionInstData(
 	}
 
 	field := FieldKeyActionInstData(actionName)
-	operInstData, err := h.dao.get(ctx, filter, field)
+	operInstData, err := h.dao.get(nCtx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -376,10 +376,10 @@ func (h *Handler) GetActionInstData(
 
 // GetActInstLifecycle find one action inst data.
 func (h *Handler) GetActInstLifecycle(
-	ctx context.Context, operInstID string, actionName string) (*action.Lifecycle, error) {
+	nCtx contextx.IContext, operInstID string, actionName string) (*action.Lifecycle, error) {
 
-	if ctx == nil {
-		return nil, errors.New("ctx is nil")
+	if nCtx == nil {
+		return nil, errors.New("nCtx is nil")
 	}
 
 	if operInstID == "" {
@@ -399,7 +399,7 @@ func (h *Handler) GetActInstLifecycle(
 	}
 
 	field := FieldKeyActionInstLifeCycle(actionName)
-	operInstData, err := h.dao.get(ctx, filter, field)
+	operInstData, err := h.dao.get(nCtx, filter, field)
 	if err != nil {
 		return nil, err
 	}
@@ -416,9 +416,9 @@ func (h *Handler) GetActInstLifecycle(
 
 // UpdateActionInstStatus update action inst status.
 func (h *Handler) UpdateActionInstStatus(
-	ctx context.Context, operInstID string, actionName string, status action.State) error {
+	nCtx contextx.IContext, operInstID string, actionName string, status action.State) error {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
@@ -437,7 +437,7 @@ func (h *Handler) UpdateActionInstStatus(
 	filter := base.AliveFilter()
 	filter = WithOperInstID(operInstID)(filter)
 	field := FieldKeyActionInstState(actionName)
-	err := h.dao.updateField(ctx, filter, field, status)
+	err := h.dao.updateField(nCtx, filter, field, status)
 	if err != nil {
 		return err
 	}

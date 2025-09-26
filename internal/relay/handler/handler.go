@@ -12,14 +12,13 @@
 package handler
 
 import (
-	"context"
 	"path/filepath"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 const (
@@ -30,17 +29,17 @@ const (
 // IHandler defines a relay client handler.
 type IHandler interface {
 	// ReportPrivateData reports the private data.
-	CheckPkgStats(ctx context.Context, payload []byte)
+	CheckPkgStats(nCtx contextx.IContext, payload []byte)
 	// StorePkg stores the package.
-	StoragePkg(ctx context.Context, payload []byte)
+	StoragePkg(nCtx contextx.IContext, payload []byte)
 	// DetectInfoBySSH detects the node info by ssh.
-	DetectInfoBySSH(ctx context.Context, payload []byte)
+	DetectInfoBySSH(nCtx contextx.IContext, payload []byte)
 	// InstallPagentBySSH installs the pagent by ssh.
-	InstallPagentBySSH(ctx context.Context, payload []byte)
+	InstallPagentBySSH(nCtx contextx.IContext, payload []byte)
 	// DetectInfoByWMI detects the node info by wmi.
-	DetectInfoByWMI(ctx context.Context, payload []byte)
+	DetectInfoByWMI(nCtx contextx.IContext, payload []byte)
 	// InstallPagentByWMI installs the pagent by wmi.
-	InstallPagentByWMI(ctx context.Context, payload []byte)
+	InstallPagentByWMI(nCtx contextx.IContext, payload []byte)
 }
 
 // handler is a relay client handler.
@@ -55,8 +54,6 @@ type handler struct {
 
 	downloadSvcIP   string
 	downloadSvcPort int
-
-	logger logger.ILogger
 }
 
 // NewClientHandler creates a new file handler.
@@ -64,7 +61,7 @@ func NewClientHandler(
 	fm file.IFileManager,
 	client relayhandler.IClientMessager,
 	conf *config.RelayService,
-	logger logger.ILogger) IHandler {
+) IHandler {
 
 	return &handler{
 		fileManager:     fm,
@@ -74,6 +71,5 @@ func NewClientHandler(
 		callbackSvcPort: conf.CallbackServer.Port,
 		downloadSvcIP:   conf.DownloadServer.AdvertiseIPV4,
 		downloadSvcPort: conf.DownloadServer.Port,
-		logger:          logger,
 	}
 }

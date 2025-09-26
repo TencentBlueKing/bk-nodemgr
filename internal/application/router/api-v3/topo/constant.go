@@ -11,6 +11,7 @@
 package topo
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -20,13 +21,13 @@ import (
 func (h *handler) GetConstant(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoConstantGetReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get constant, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get constant, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	result, err := h.backendHandler.GetConstant(rCtx, req.ConvertFieldsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get constant, failed to get constant values. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get constant, failed to get constant values")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

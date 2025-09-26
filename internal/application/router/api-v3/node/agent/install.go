@@ -12,6 +12,7 @@
 package agent
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -21,17 +22,17 @@ import (
 func (h *handler) AgentInstall(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeAgentInstallReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to install agent, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install agent, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	workflowID, err := h.backendHandler.InstallAgent(rCtx, req.ConvertAgentParamToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to install agent: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install agent")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	h.logger.InfoCtxf(rCtx, "launched install agent. workflow-id(%s)", workflowID)
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install agent")
 
 	resp := new(protoApplication.NodeAgentInstallResp)
 	resp.ConvertWorkflowID(workflowID)

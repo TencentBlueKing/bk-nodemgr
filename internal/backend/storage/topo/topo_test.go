@@ -16,8 +16,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -31,9 +30,9 @@ func testClient(t *testing.T) IStorage {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := contextx.New(context.Background())
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -50,12 +49,12 @@ func testClient(t *testing.T) IStorage {
 		t.Fatal(err)
 	}
 
-	s, err := NewStorage(mongoClient, "test", logger.LoggerDefault{})
+	s, err := NewStorage(mongoClient, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err = s.Start(ctx); err != nil {
+	if err = s.Start(nCtx); err != nil {
 		t.Fatal(err)
 	}
 
@@ -64,10 +63,10 @@ func testClient(t *testing.T) IStorage {
 
 // Test_storage_UpsertManyHost ...
 func Test_storage_UpsertManyHost(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "single")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	type args struct {
-		ctx   context.Context
+		nCtx  contextx.IContext
 		hosts []*types.Host
 	}
 	tests := []struct {
@@ -76,9 +75,9 @@ func Test_storage_UpsertManyHost(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:   nil,
+				nCtx:  nil,
 				hosts: nil,
 			},
 			wantErr: true,
@@ -86,7 +85,7 @@ func Test_storage_UpsertManyHost(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				hosts: []*types.Host{
 					{
 						TenantID: "single",
@@ -99,7 +98,7 @@ func Test_storage_UpsertManyHost(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ds := testClient(t)
-			if err := ds.UpsertManyHost(tt.args.ctx, tt.args.hosts...); (err != nil) != tt.wantErr {
+			if err := ds.UpsertManyHost(tt.args.nCtx, tt.args.hosts...); (err != nil) != tt.wantErr {
 				t.Errorf("UpsertManyHost() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

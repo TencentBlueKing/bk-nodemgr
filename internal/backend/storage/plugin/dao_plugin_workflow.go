@@ -19,9 +19,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// createPluginWorkflow createPluginDeployment plugin workflow.
-func (s *Storage) createPluginWorkflow(ctx contextx.IContext, workflow *types.PluginWorkflow) error {
-	if ctx == nil {
+// createPluginWorkflow create create plugin workflow.
+func (s *Storage) createPluginWorkflow(nCtx contextx.IContext, workflow *types.PluginWorkflow) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -29,16 +29,16 @@ func (s *Storage) createPluginWorkflow(ctx contextx.IContext, workflow *types.Pl
 		return errors.New("workflow is nil")
 	}
 
-	if err := s.daoPluginWorkflow.Create(ctx, workflow); err != nil {
-		return fmt.Errorf("failed to createPluginDeployment plugin workflow: %v", err)
+	if err := s.daoPluginWorkflow.Create(nCtx, workflow); err != nil {
+		return fmt.Errorf("failed to create plugin workflow: %v", err)
 	}
 
 	return nil
 }
 
 // getPluginWorkflow get plugin workflow.
-func (s *Storage) getPluginWorkflow(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
-	if ctx == nil {
+func (s *Storage) getPluginWorkflow(nCtx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
+	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
 	}
 
@@ -46,7 +46,7 @@ func (s *Storage) getPluginWorkflow(ctx contextx.IContext, workflowID string) (*
 		return nil, errors.New("workflowID is empty")
 	}
 
-	pluginWorkflow, err := s.daoPluginWorkflow.Get(ctx, workflowID)
+	pluginWorkflow, err := s.daoPluginWorkflow.Get(nCtx, workflowID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugin workflow: %v", err)
 	}
@@ -55,8 +55,8 @@ func (s *Storage) getPluginWorkflow(ctx contextx.IContext, workflowID string) (*
 }
 
 // updatePluginWorkflowStatus update plugin workflow status.
-func (s *Storage) updatePluginWorkflowStatus(ctx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
-	if ctx == nil {
+func (s *Storage) updatePluginWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
+	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
 
@@ -68,7 +68,7 @@ func (s *Storage) updatePluginWorkflowStatus(ctx contextx.IContext, workflowID s
 		return fmt.Errorf("status is invalid: %v", err)
 	}
 
-	err := s.daoPluginWorkflow.UpdateStatus(ctx, workflowID, status)
+	err := s.daoPluginWorkflow.UpdateStatus(nCtx, workflowID, status)
 	if err != nil {
 		return fmt.Errorf("failed to update plugin workflow status: %v", err)
 	}

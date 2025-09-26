@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -22,10 +23,10 @@ import (
 )
 
 // Plugin download plugin package.
-func (h *handler) Plugin(ctx restserver.IContext) (*restserver.FileResponse, error) {
+func (h *handler) Plugin(rCtx restserver.IContext) (*restserver.FileResponse, error) {
 	req := new(protoFile.DownloadPluginReq)
-	if err := ctx.BindJSON(req); err != nil {
-		h.logger.Error("bind json failed", err)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("bind json failed")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
@@ -53,7 +54,7 @@ func (h *handler) Plugin(ctx restserver.IContext) (*restserver.FileResponse, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("normalize arch failed: %w", err))
 	}
 
-	file, _, err := h.manager.EnsurePluginToLocal(ctx,
+	file, _, err := h.manager.EnsurePluginToLocal(rCtx,
 		rt,
 		pluginName,
 		types.Generation2,
@@ -65,7 +66,7 @@ func (h *handler) Plugin(ctx restserver.IContext) (*restserver.FileResponse, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}
 
-	reader, err := file.Content(ctx)
+	reader, err := file.Content(rCtx)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
 	}

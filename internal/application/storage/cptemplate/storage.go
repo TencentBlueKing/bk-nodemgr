@@ -13,13 +13,13 @@
 package cptemplate
 
 import (
-	"context"
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/cptemplate"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -29,20 +29,20 @@ type IStorage interface {
 	basestorage.Interface
 
 	// GetConfigPolicyTemplate gets the config policy template.
-	GetConfigPolicyTemplate(ctx context.Context, configPolicyID int64) (*types.ConfigPolicyTemplate, error)
+	GetConfigPolicyTemplate(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicyTemplate, error)
 
 	// UpsertManyConfigPolicyTemplate upserts the config policy template.
-	UpsertManyConfigPolicyTemplate(ctx context.Context, configPolicyTemplates ...*types.ConfigPolicyTemplate) error
+	UpsertManyConfigPolicyTemplate(nCtx contextx.IContext, configPolicyTemplates ...*types.ConfigPolicyTemplate) error
 
 	// DeleteManyConfigPolicyTemplate deletes the config policy template.
-	DeleteManyConfigPolicyTemplate(ctx context.Context, configPolicyID ...int64) error
+	DeleteManyConfigPolicyTemplate(nCtx contextx.IContext, configPolicyID ...int64) error
 }
 
 // StorageName defines the storage name.
 const StorageName = "cptemplate"
 
 // NewStorage creates a new release storage.
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -51,14 +51,14 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 	}
 	err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -73,7 +73,7 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoConfigPolicyTemplate = cptemplate.New(s.Database, s.Logger)
+	s.daoConfigPolicyTemplate = cptemplate.New(s.Database)
 
 	return nil
 }
@@ -87,30 +87,30 @@ func (s *Storage) check() error {
 }
 
 // GetConfigPolicyTemplate gets the config policy template.
-func (s *Storage) GetConfigPolicyTemplate(ctx context.Context, configPolicyID int64) (data *types.ConfigPolicyTemplate, err error) {
+func (s *Storage) GetConfigPolicyTemplate(nCtx contextx.IContext, configPolicyID int64) (data *types.ConfigPolicyTemplate, err error) {
 	// record metric.
 	metric := s.metric().Start("get")
 	defer metric.End(err)
 
-	return s.daoConfigPolicyTemplate.Get(ctx, configPolicyID)
+	return s.daoConfigPolicyTemplate.Get(nCtx, configPolicyID)
 }
 
 // UpsertManyConfigPolicyTemplate upserts the config policy template.
-func (s *Storage) UpsertManyConfigPolicyTemplate(ctx context.Context, configPolicyTemplates ...*types.ConfigPolicyTemplate) (err error) {
+func (s *Storage) UpsertManyConfigPolicyTemplate(nCtx contextx.IContext, configPolicyTemplates ...*types.ConfigPolicyTemplate) (err error) {
 	// record metric.
 	metric := s.metric().Start("upsert_many")
 	defer metric.End(err)
 
-	return s.daoConfigPolicyTemplate.UpsertMany(ctx, configPolicyTemplates...)
+	return s.daoConfigPolicyTemplate.UpsertMany(nCtx, configPolicyTemplates...)
 }
 
 // DeleteManyConfigPolicyTemplate deletes the config policy template.
-func (s *Storage) DeleteManyConfigPolicyTemplate(ctx context.Context, configPolicyID ...int64) (err error) {
+func (s *Storage) DeleteManyConfigPolicyTemplate(nCtx contextx.IContext, configPolicyID ...int64) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_many")
 	defer metric.End(err)
 
-	return s.daoConfigPolicyTemplate.DeleteMany(ctx, configPolicyID...)
+	return s.daoConfigPolicyTemplate.DeleteMany(nCtx, configPolicyID...)
 }
 
 func (s *Storage) metric() *storage.MetricData {

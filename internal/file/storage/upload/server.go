@@ -13,8 +13,7 @@
 package upload
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -22,32 +21,32 @@ import (
 // IServer defines the interface of upload storage.
 type IServer interface {
 	// GetServerUpload gets a upload by upload-id.
-	GetServerUpload(ctx context.Context, uploadID string) (*types.Upload, error)
+	GetServerUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
 	// CreateServerUpload creates a upload.
-	CreateServerUpload(ctx context.Context, up *types.Upload) (string, error)
+	CreateServerUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
 	// DeleteServerUpload deletes a upload by upload-id.
-	DeleteServerUpload(ctx context.Context, uploadID string) error
+	DeleteServerUpload(nCtx contextx.IContext, uploadID string) error
 }
 
 // GetServerUpload gets a upload by upload-id.
-func (s *Storage) GetServerUpload(ctx context.Context, uploadID string) (data *types.Upload, err error) {
+func (s *Storage) GetServerUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
 	// record metric.
 	metric := s.metric().Start("get_server")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(ctx, types.UploadCategoryOriginServer, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginServer, uploadID)
 }
 
 // CreateServerUpload creates a upload.
-func (s *Storage) CreateServerUpload(ctx context.Context, up *types.Upload) (uploadID string, err error) {
+func (s *Storage) CreateServerUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
 	metric := s.metric().Start("create_server")
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(ctx, types.UploadCategoryOriginServer, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginServer, up); err != nil {
 		return "", err
 	}
 
@@ -55,10 +54,10 @@ func (s *Storage) CreateServerUpload(ctx context.Context, up *types.Upload) (upl
 }
 
 // DeleteServerUpload deletes a upload by upload-id.
-func (s *Storage) DeleteServerUpload(ctx context.Context, uploadID string) (err error) {
+func (s *Storage) DeleteServerUpload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_server")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(ctx, types.UploadCategoryOriginServer, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginServer, uploadID)
 }

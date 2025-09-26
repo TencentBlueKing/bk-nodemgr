@@ -12,29 +12,28 @@
 package globalsettings
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IStorage defines the interface for global settings storage.
 type IStorage interface {
 	// ListGlobalSettings lists global settings by page and condition.
-	ListGlobalSettings(ctx context.Context, page types.Page, condition *types.GlobalSettingsCondition) (
+	ListGlobalSettings(nCtx contextx.IContext, page types.Page, condition *types.GlobalSettingsCondition) (
 		[]*types.GlobalSettings, int64, error)
 
 	// CountGlobalSettings counts global settings by condition.
-	CountGlobalSettings(ctx context.Context, condition *types.GlobalSettingsCondition) (int64, error)
+	CountGlobalSettings(nCtx contextx.IContext, condition *types.GlobalSettingsCondition) (int64, error)
 
 	// ExistGlobalSettings checks if global settings exist by condition.
-	ExistGlobalSettings(ctx context.Context, key string) (bool, error)
+	ExistGlobalSettings(nCtx contextx.IContext, key string) (bool, error)
 
 	// GetGlobalSetting gets a global settings by setting name.
-	GetGlobalSetting(ctx context.Context, name string) (string, error)
+	GetGlobalSetting(nCtx contextx.IContext, name string) (string, error)
 
 	// UpsertGlobalSettings upserts global settings.
-	UpsertGlobalSettings(ctx context.Context, settings ...*types.GlobalSettings) error
+	UpsertGlobalSettings(nCtx contextx.IContext, settings ...*types.GlobalSettings) error
 
 	// DeleteGlobalSettings delete a new global settings.
-	DeleteGlobalSettings(ctx context.Context, name ...string) error
+	DeleteGlobalSettings(nCtx contextx.IContext, name ...string) error
 }

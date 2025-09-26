@@ -15,8 +15,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -28,13 +28,11 @@ const (
 )
 
 // NewActionSyncAgentInfo ...
-func NewActionSyncAgentInfo(gseHandler gse.IHandler, topoStg topo.IStorageHost,
-	logger logger.ILogger) action.Definition {
+func NewActionSyncAgentInfo(gseHandler gse.IHandler, topoStg topo.IStorageHost) action.Definition {
 
 	return &SyncAgentInfo{
 		gseHandler: gseHandler,
 		topoStg:    topoStg,
-		logger:     logger,
 	}
 }
 
@@ -49,7 +47,6 @@ type ActParamSyncAgentInfo struct {
 type SyncAgentInfo struct {
 	gseHandler gse.IHandler
 	topoStg    topo.IStorageHost
-	logger     logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -106,7 +103,8 @@ func (act *SyncAgentInfo) Do(ctx *action.InstanceContext) error {
 
 	result, err := act.gseHandler.ListAgentInfo(newCtx, agentIDs...)
 	if err != nil {
-		act.logger.Errorf("list agent state by agent-id-list(%v) failed: %v", agentIDs, err)
+		logger.G.Sys().WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent state")
+
 		return err
 	}
 
@@ -135,7 +133,8 @@ func (act *SyncAgentInfo) Do(ctx *action.InstanceContext) error {
 	}
 
 	if len(upsertHosts) == 0 {
-		act.logger.Info("no hosts to upsert")
+		logger.G.Sys().Info("no hosts to upsert")
+
 		return nil
 	}
 
@@ -146,7 +145,8 @@ func (act *SyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		NodeOsType:  true,
 	}, upsertHosts...)
 	if err != nil {
-		act.logger.Errorf("failed to update host dynamic: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to update host dynamic")
+
 		return err
 	}
 

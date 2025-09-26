@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -26,17 +26,15 @@ const (
 
 // NewActionWaitInstallerComplete get a new action.
 func NewActionWaitInstallerComplete(
-	storageActionInstance workflow.IStorageActionInstance, logger logger.ILogger) action.Definition {
+	storageActionInstance workflow.IStorageActionInstance) action.Definition {
 
 	return &actionWaitInstallerComplete{
 		storageActionInstance: storageActionInstance,
-		logger:                logger,
 	}
 }
 
 type actionWaitInstallerComplete struct {
 	storageActionInstance workflow.IStorageActionInstance
-	logger                logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -88,7 +86,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 			ctx.Data.OperationInstanceID,
 			ctx.Data.Name)
 		if err != nil {
-			act.logger.Errorf("get action_inst_data lifecycle failed: %v", err)
+			logger.G.Sys().WithErr(err).Error("failed to get action_inst_data lifecycle")
 
 			return err
 		}
@@ -96,13 +94,12 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 		// check action state is running or not
 		switch lifecycle.State {
 		case action.StateRunning:
-			act.logger.Debugf("action is running, sleep 1 second, oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+			logger.G.Sys().With("oper-inst-id", ctx.Data.OperationInstanceID, "action", ctx.Data.Name).Debug("action is running, sleep 1 second")
+
 			time.Sleep(1 * time.Second)
 
 		case action.StateFailed:
-			act.logger.Errorf("wait install complete failed. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+			logger.G.Sys().With("oper-inst-id", ctx.Data.OperationInstanceID, "action", ctx.Data.Name).Error("failed to wait install complete")
 
 			return fmt.Errorf("wait install complete failed. oper_inst_id(%s), action_name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)

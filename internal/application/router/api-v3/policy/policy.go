@@ -14,20 +14,17 @@ package policy
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/policy/config"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg     *gin.RouterGroup
-	logger logger.ILogger
+	rg *gin.RouterGroup
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:     rg.Group("/policy"),
-		logger: capability.Logger,
+		rg: rg.Group("/policy"),
 	}
 }
 

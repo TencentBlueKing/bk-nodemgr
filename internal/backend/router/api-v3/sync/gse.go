@@ -12,6 +12,7 @@
 package sync
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -21,13 +22,13 @@ import (
 func (h *handler) SyncAgentState(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAgentStateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "sync agent state decode request body failed: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("sync agent state decode request body failed")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	triggerID, err := h.manager.LaunchSyncAgentState(rCtx, req.GetHostIds()...)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "start sync cmdb host operation with trigger-id(%s) failed: %v", triggerID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync cmdb host operation")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -42,13 +43,13 @@ func (h *handler) SyncAgentState(rCtx restserver.IContext) (any, error) {
 func (h *handler) SyncAllAgentState(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAllAgentStateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "sync all agent state decode request body failed: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("sync all agent state decode request body failed")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	triggerID, err := h.manager.LaunchSyncAllAgentState(rCtx)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "start sync all agent state operation with trigger-id(%s) failed: %v", triggerID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync all agent state operation")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -63,13 +64,13 @@ func (h *handler) SyncAllAgentState(rCtx restserver.IContext) (any, error) {
 func (h *handler) SyncAgentInfo(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAgentInfoReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "sync agent info decode request body failed: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("sync agent info decode request body failed")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	triggerID, err := h.manager.LaunchSyncAgentInfo(rCtx, req.GetHostIds()...)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "start sync cmdb host operation with trigger-id(%s) failed: %v", triggerID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync cmdb host operation")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -84,13 +85,13 @@ func (h *handler) SyncAgentInfo(rCtx restserver.IContext) (any, error) {
 func (h *handler) SyncAliveHostAgentInfo(rCtx restserver.IContext) (any, error) {
 	req := new(protoBackend.SyncAliveHostAgentInfoReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "sync alive host agent info decode request body failed: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("sync alive host agent info decode request body failed")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	triggerID, err := h.manager.LaunchSyncAliveHostAgentInfo(rCtx)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "start sync alive host agent info operation with trigger-id(%s) failed: %v", triggerID, err)
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync alive host agent info operation")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 

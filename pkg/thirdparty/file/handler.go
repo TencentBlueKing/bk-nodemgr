@@ -11,12 +11,12 @@
 package file
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
@@ -35,7 +35,7 @@ type IHandler interface {
 // ITransfer is interface for file transfer handler.
 type ITransfer interface {
 	// LaunchTransferNode launch transfer release.
-	LaunchTransferNode(ctx context.Context,
+	LaunchTransferNode(nCtx contextx.IContext,
 		gen types.Generation,
 		rt types.ReleaseType,
 		plat platform.Platform,
@@ -44,7 +44,7 @@ type ITransfer interface {
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// LaunchTransferPlugin launch transfer release.
-	LaunchTransferPlugin(ctx context.Context,
+	LaunchTransferPlugin(nCtx contextx.IContext,
 		name string,
 		gen types.Generation,
 		rt types.ReleaseType,
@@ -54,7 +54,7 @@ type ITransfer interface {
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// LaunchTransferInstaller launch transfer installer.
-	LaunchTransferInstaller(ctx context.Context,
+	LaunchTransferInstaller(nCtx contextx.IContext,
 		gen types.Generation,
 		plat platform.Platform,
 		dstDir string,
@@ -63,38 +63,38 @@ type ITransfer interface {
 	// QueryTransfer query transfer package.
 	// return upload result, download result and error.
 	QueryTransfer(
-		ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error)
+		nCtx contextx.IContext, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error)
 }
 
 // IPkgManager is interface for file pkg manager.
 type IPkgManager interface {
 	// UploadOriginAgent upload origin agent.
-	UploadOriginAgent(ctx context.Context, fileName string, file io.Reader) (
+	UploadOriginAgent(nCtx contextx.IContext, fileName string, file io.Reader) (
 		*types.OriginPkgDetail, error)
 
 	// UploadOriginServer upload origin server.
-	UploadOriginServer(ctx context.Context, fileName string, file io.Reader) (
+	UploadOriginServer(nCtx contextx.IContext, fileName string, file io.Reader) (
 		*types.OriginPkgDetail, error)
 
 	// UploadOriginCert upload origin cert.
-	UploadOriginCert(ctx context.Context, fileName string, file io.Reader) (
+	UploadOriginCert(nCtx contextx.IContext, fileName string, file io.Reader) (
 		*types.OriginCertPkgDetail, error)
 
 	// UploadOriginBinTool upload origin bintool.
-	UploadOriginBinTool(ctx context.Context, fileName string, file io.Reader) (
+	UploadOriginBinTool(nCtx contextx.IContext, fileName string, file io.Reader) (
 		*types.OriginBinToolPkgDetail, error)
 
 	// PublishReleaseAgent publish release agent.
-	PublishReleaseAgent(ctx context.Context, uploadID string) error
+	PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error
 
 	// PublishReleaseProxy publish release server.
-	PublishReleaseProxy(ctx context.Context, uploadID string) error
+	PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error
 
 	// PublishReleaseCert publish release cert.
-	PublishReleaseCert(ctx context.Context, uploadID string) error
+	PublishReleaseCert(nCtx contextx.IContext, uploadID string) error
 
 	// PublishReleaseBinTool publish release bintool.
-	PublishReleaseBinTool(ctx context.Context, uploadID string) error
+	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error
 }
 
 const (
@@ -117,16 +117,16 @@ func New(c *restclient.Capability, conf *Config) (IHandler, error) {
 }
 
 // UploadOriginAgent upload origin agent.
-func (h *handler) UploadOriginAgent(ctx context.Context, fileName string, file io.Reader) (
+func (h *handler) UploadOriginAgent(nCtx contextx.IContext, fileName string, file io.Reader) (
 	*types.OriginPkgDetail, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := h.cli.uploadOriginAgent(
-		ctx, tenantID, &protoFile.UploadOriginAgentReq{Generation: int64(types.Generation2)}, fileName, file)
+		nCtx, tenantID, &protoFile.UploadOriginAgentReq{Generation: int64(types.Generation2)}, fileName, file)
 	if err != nil {
 		return nil, err
 	}
@@ -155,16 +155,16 @@ func (h *handler) UploadOriginAgent(ctx context.Context, fileName string, file i
 }
 
 // UploadOriginServer upload origin server.
-func (h *handler) UploadOriginServer(ctx context.Context, fileName string, file io.Reader) (
+func (h *handler) UploadOriginServer(nCtx contextx.IContext, fileName string, file io.Reader) (
 	*types.OriginPkgDetail, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := h.cli.uploadOriginServer(
-		ctx, tenantID, &protoFile.UploadOriginServerReq{Generation: int64(types.Generation2)}, fileName, file)
+		nCtx, tenantID, &protoFile.UploadOriginServerReq{Generation: int64(types.Generation2)}, fileName, file)
 	if err != nil {
 		return nil, err
 	}
@@ -191,15 +191,15 @@ func (h *handler) UploadOriginServer(ctx context.Context, fileName string, file 
 }
 
 // UploadOriginCert upload origin cert.
-func (h *handler) UploadOriginCert(ctx context.Context, fileName string, file io.Reader) (
+func (h *handler) UploadOriginCert(nCtx contextx.IContext, fileName string, file io.Reader) (
 	*types.OriginCertPkgDetail, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.uploadOriginCert(ctx, tenantID, &protoFile.UploadOriginCertReq{}, fileName, file)
+	resp, err := h.cli.uploadOriginCert(nCtx, tenantID, &protoFile.UploadOriginCertReq{}, fileName, file)
 	if err != nil {
 		return nil, err
 	}
@@ -217,15 +217,15 @@ func (h *handler) UploadOriginCert(ctx context.Context, fileName string, file io
 }
 
 // UploadOriginBinTool upload origin bintool.
-func (h *handler) UploadOriginBinTool(ctx context.Context, fileName string, file io.Reader) (
+func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, file io.Reader) (
 	*types.OriginBinToolPkgDetail, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.uploadOriginBinTool(ctx, tenantID, &protoFile.UploadOriginBinToolReq{}, fileName, file)
+	resp, err := h.cli.uploadOriginBinTool(nCtx, tenantID, &protoFile.UploadOriginBinToolReq{}, fileName, file)
 	if err != nil {
 		return nil, err
 	}
@@ -259,13 +259,13 @@ func (h *handler) UploadOriginBinTool(ctx context.Context, fileName string, file
 }
 
 // PublishReleaseAgent publish release agent.
-func (h *handler) PublishReleaseAgent(ctx context.Context, uploadID string) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
 
-	_, err = h.cli.publishReleaseAgent(ctx, tenantID, &protoFile.PublishReleaseAgentReq{
+	_, err = h.cli.publishReleaseAgent(nCtx, tenantID, &protoFile.PublishReleaseAgentReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -276,13 +276,13 @@ func (h *handler) PublishReleaseAgent(ctx context.Context, uploadID string) erro
 }
 
 // PublishReleaseProxy publish release proxy.
-func (h *handler) PublishReleaseProxy(ctx context.Context, uploadID string) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
 
-	_, err = h.cli.publishReleaseProxy(ctx, tenantID, &protoFile.PublishReleaseProxyReq{
+	_, err = h.cli.publishReleaseProxy(nCtx, tenantID, &protoFile.PublishReleaseProxyReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -293,13 +293,13 @@ func (h *handler) PublishReleaseProxy(ctx context.Context, uploadID string) erro
 }
 
 // PublishReleaseCert publish release cert.
-func (h *handler) PublishReleaseCert(ctx context.Context, uploadID string) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) PublishReleaseCert(nCtx contextx.IContext, uploadID string) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
 
-	_, err = h.cli.publishReleaseCert(ctx, tenantID, &protoFile.PublishReleaseCertReq{
+	_, err = h.cli.publishReleaseCert(nCtx, tenantID, &protoFile.PublishReleaseCertReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -310,13 +310,13 @@ func (h *handler) PublishReleaseCert(ctx context.Context, uploadID string) error
 }
 
 // PublishReleaseBinTool publish release bintool.
-func (h *handler) PublishReleaseBinTool(ctx context.Context, uploadID string) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
 
-	_, err = h.cli.publishReleaseBinTool(ctx, tenantID, &protoFile.PublishReleaseBinToolReq{
+	_, err = h.cli.publishReleaseBinTool(nCtx, tenantID, &protoFile.PublishReleaseBinToolReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -327,7 +327,7 @@ func (h *handler) PublishReleaseBinTool(ctx context.Context, uploadID string) er
 }
 
 // LaunchTransferNode launch transfer release.
-func (h *handler) LaunchTransferNode(ctx context.Context,
+func (h *handler) LaunchTransferNode(nCtx contextx.IContext,
 	gen types.Generation,
 	rt types.ReleaseType,
 	plat platform.Platform,
@@ -335,12 +335,12 @@ func (h *handler) LaunchTransferNode(ctx context.Context,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.launchTransferNode(ctx, tenantID, &protoFile.TransferLaunchNodeReq{
+	resp, err := h.cli.launchTransferNode(nCtx, tenantID, &protoFile.TransferLaunchNodeReq{
 		Generation:   int64(gen),
 		ReleaseType:  string(rt),
 		Platform:     protoFile.ConvertPlatformFromTypes(plat),
@@ -366,7 +366,7 @@ func (h *handler) LaunchTransferNode(ctx context.Context,
 }
 
 // LaunchTransferPlugin launch transfer release.
-func (h *handler) LaunchTransferPlugin(ctx context.Context,
+func (h *handler) LaunchTransferPlugin(nCtx contextx.IContext,
 	name string,
 	gen types.Generation,
 	rt types.ReleaseType,
@@ -375,12 +375,12 @@ func (h *handler) LaunchTransferPlugin(ctx context.Context,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.launchTransferPlugin(ctx, tenantID, &protoFile.TransferLaunchPluginReq{
+	resp, err := h.cli.launchTransferPlugin(nCtx, tenantID, &protoFile.TransferLaunchPluginReq{
 		Name:         name,
 		Generation:   int64(gen),
 		ReleaseType:  string(rt),
@@ -407,18 +407,18 @@ func (h *handler) LaunchTransferPlugin(ctx context.Context,
 }
 
 // LaunchTransferInstaller launch transfer installer.
-func (h *handler) LaunchTransferInstaller(ctx context.Context,
+func (h *handler) LaunchTransferInstaller(nCtx contextx.IContext,
 	gen types.Generation,
 	plat platform.Platform,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.launchTransferInstaller(ctx, tenantID, &protoFile.TransferLaunchInstallerReq{
+	resp, err := h.cli.launchTransferInstaller(nCtx, tenantID, &protoFile.TransferLaunchInstallerReq{
 		Generation:   int64(gen),
 		Platform:     protoFile.ConvertPlatformFromTypes(plat),
 		TargetDir:    dstDir,
@@ -444,14 +444,14 @@ func (h *handler) LaunchTransferInstaller(ctx context.Context,
 // QueryTransfer query transfer package.
 // return upload result, download result and error.
 func (h *handler) QueryTransfer(
-	ctx context.Context, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
+	nCtx contextx.IContext, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	resp, err := h.cli.queryTransfer(ctx, tenantID, &protoFile.TransferQueryReq{
+	resp, err := h.cli.queryTransfer(nCtx, tenantID, &protoFile.TransferQueryReq{
 		TaskId: taskID,
 	})
 	if err != nil {
@@ -482,15 +482,15 @@ func (handler *simpleTransferHandler) GetFileInfo() fileiface.FileInfo {
 }
 
 // WaitUntilDone wait until done.
-func (handler *simpleTransferHandler) WaitUntilDone(ctx context.Context) (*types.SimpleTransferResult, error) {
+func (handler *simpleTransferHandler) WaitUntilDone(nCtx contextx.IContext) (*types.SimpleTransferResult, error) {
 	ticker := time.NewTicker(transferQueryTickTime)
 	failedCnt := 0
 	for {
 		select {
-		case <-ctx.Done():
+		case <-nCtx.Done():
 			return nil, errors.New("context done")
 		case <-ticker.C:
-			src, dst, err := handler.handler.QueryTransfer(ctx, handler.taskID)
+			src, dst, err := handler.handler.QueryTransfer(nCtx, handler.taskID)
 			if err != nil {
 				failedCnt++
 				if failedCnt > transferQueryContinuesFailedTimes {

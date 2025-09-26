@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -34,9 +34,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -53,19 +53,19 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 var once = sync.Once{}
 
 // prepareData for all tests.
-func prepareData(t *testing.T, ctx context.Context) {
+func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(ctx)
+		tenantID, _ := tenant.GetID(nCtx)
 
 		// pre insert.
 		h := testClient(t)
-		err := h.CreateMany(ctx,
+		err := h.CreateMany(nCtx,
 			&types.TopoEvent{
 				TenantID:        tenantID,
 				Type:            types.TopoEventNetworkAreaCreate,
@@ -118,13 +118,13 @@ func prepareData(t *testing.T, ctx context.Context) {
 // Test_handler_List list event by page and conditions.
 func Test_handler_List(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
-		ctx       context.Context
+		nCtx      context.Context
 		page      types.Page
 		optFn     []OptFn
 		wantTotal int64
@@ -132,8 +132,8 @@ func Test_handler_List(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "nil ctx",
-			ctx:  nil,
+			name: "nil nCtx",
+			nCtx: nil,
 			page: types.Page{
 				Offset: 0,
 				Limit:  0,
@@ -145,7 +145,7 @@ func Test_handler_List(t *testing.T) {
 		},
 		{
 			name: "normal",
-			ctx:  ctx,
+			nCtx: nCtx,
 			page: types.Page{
 				Offset: 0,
 				Limit:  0,
@@ -157,7 +157,7 @@ func Test_handler_List(t *testing.T) {
 		},
 		{
 			name: "filter by networkarea id",
-			ctx:  ctx,
+			nCtx: nCtx,
 			page: types.Page{
 				Offset: 0,
 				Limit:  1,
@@ -169,7 +169,7 @@ func Test_handler_List(t *testing.T) {
 		},
 		{
 			name: "filter by networkunit id",
-			ctx:  ctx,
+			nCtx: nCtx,
 			page: types.Page{
 				Offset: 0,
 				Limit:  1,
@@ -181,7 +181,7 @@ func Test_handler_List(t *testing.T) {
 		},
 		{
 			name: "filter by accesspoint id",
-			ctx:  ctx,
+			nCtx: nCtx,
 			page: types.Page{
 				Offset: 0,
 				Limit:  1,
@@ -193,7 +193,7 @@ func Test_handler_List(t *testing.T) {
 		},
 		{
 			name: "filter with time range",
-			ctx:  ctx,
+			nCtx: nCtx,
 			page: types.Page{
 				Offset: 0,
 				Limit:  1,
@@ -211,7 +211,7 @@ func Test_handler_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, total, err := h.List(tt.ctx, tt.page, tt.optFn...)
+			got, total, err := h.List(tt.nCtx, tt.page, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -239,43 +239,43 @@ func Test_handler_List(t *testing.T) {
 // Test_handler_Count tests the count with filter.
 func Test_handler_Count(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name    string
-		ctx     context.Context
+		nCtx    context.Context
 		optFn   []OptFn
 		wantErr bool
 	}{
 		{
-			name:    "nil ctx",
-			ctx:     nil,
+			name:    "nil nCtx",
+			nCtx:    nil,
 			optFn:   nil,
 			wantErr: true,
 		},
 		{
 			name:    "normal",
-			ctx:     ctx,
+			nCtx:    nCtx,
 			optFn:   nil,
 			wantErr: false,
 		},
 		{
 			name:    "filter by networkarea id",
-			ctx:     ctx,
+			nCtx:    nCtx,
 			optFn:   []OptFn{WithNetworkAreaID(10001)},
 			wantErr: false,
 		},
 		{
 			name:    "filter by networkunit id",
-			ctx:     ctx,
+			nCtx:    nCtx,
 			optFn:   []OptFn{WithNetworkUnitID(10001)},
 			wantErr: false,
 		},
 		{
 			name:    "filter by accesspoint id",
-			ctx:     ctx,
+			nCtx:    nCtx,
 			optFn:   []OptFn{WithAccessPointID(10001)},
 			wantErr: false,
 		},
@@ -284,7 +284,7 @@ func Test_handler_Count(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Count(tt.ctx, tt.optFn...)
+			got, err := h.Count(tt.nCtx, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -298,12 +298,12 @@ func Test_handler_Count(t *testing.T) {
 // Test_handler_DistinctType tests the distinct with type field.
 func Test_handler_DistinctType(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		optFn []OptFn
 	}
 	tests := []struct {
@@ -313,9 +313,9 @@ func Test_handler_DistinctType(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "invalid ctx",
+			name: "invalid nCtx",
 			args: args{
-				ctx:   nil,
+				nCtx:  nil,
 				optFn: []OptFn{},
 			},
 			wantResult: nil,
@@ -324,7 +324,7 @@ func Test_handler_DistinctType(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				optFn: []OptFn{},
 			},
 			wantResult: []types.TopoEventType{types.TopoEventNetworkAreaCreate, types.TopoEventNetworkUnitUpdate, types.TopoEventAccessPointDelete},
@@ -335,7 +335,7 @@ func Test_handler_DistinctType(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			gotResult, err := h.DistinctType(tt.args.ctx, tt.args.optFn...)
+			gotResult, err := h.DistinctType(tt.args.nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctType() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -354,12 +354,12 @@ func Test_handler_DistinctType(t *testing.T) {
 // Test_handler_DistinctAccessPoint tests the distinct with accesspoint-id field.
 func Test_handler_DistinctAccessPointID(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		optFn []OptFn
 	}
 	tests := []struct {
@@ -369,9 +369,9 @@ func Test_handler_DistinctAccessPointID(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "invalid ctx",
+			name: "invalid nCtx",
 			args: args{
-				ctx:   nil,
+				nCtx:  nil,
 				optFn: []OptFn{},
 			},
 			wantResult: nil,
@@ -380,7 +380,7 @@ func Test_handler_DistinctAccessPointID(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				optFn: []OptFn{WithType(types.TopoEventAccessPointDelete)},
 			},
 			wantResult: []int64{10001, 10002},
@@ -391,7 +391,7 @@ func Test_handler_DistinctAccessPointID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			gotResult, err := h.DistinctAccessPointID(tt.args.ctx, tt.args.optFn...)
+			gotResult, err := h.DistinctAccessPointID(tt.args.nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctAccessPointID() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -410,12 +410,12 @@ func Test_handler_DistinctAccessPointID(t *testing.T) {
 // Test_handler_DistinctOperator tests the distinct with operator field.
 func Test_handler_DistinctOperator(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		optFn []OptFn
 	}
 	tests := []struct {
@@ -425,9 +425,9 @@ func Test_handler_DistinctOperator(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "invalid ctx",
+			name: "invalid nCtx",
 			args: args{
-				ctx:   nil,
+				nCtx:  nil,
 				optFn: []OptFn{},
 			},
 			wantResult: nil,
@@ -436,7 +436,7 @@ func Test_handler_DistinctOperator(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:   ctx,
+				nCtx:  nCtx,
 				optFn: []OptFn{},
 			},
 			wantResult: []string{"admin", "user"},
@@ -447,7 +447,7 @@ func Test_handler_DistinctOperator(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			gotResult, err := h.DistinctOperator(tt.args.ctx, tt.args.optFn...)
+			gotResult, err := h.DistinctOperator(tt.args.nCtx, tt.args.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("DistinctOperator() error = %v, wantErr %v", err, tt.wantErr)
 				return

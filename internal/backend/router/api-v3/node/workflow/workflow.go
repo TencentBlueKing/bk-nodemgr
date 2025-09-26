@@ -16,10 +16,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
@@ -34,7 +34,6 @@ type handler struct {
 	manager         manager.IManager
 	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
 	storageWorkflow workflow.IStorage
-	logger          logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -44,7 +43,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		manager:         capability.Manager,
 		daoNodeWorkflow: capability.StorageNode,
 		storageWorkflow: capability.StorageWorkflow,
-		logger:          capability.Logger,
 	}
 }
 
@@ -65,7 +63,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list node workflow, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -73,7 +71,7 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 	if req.GetOnlyCount() {
 		num, err := h.daoNodeWorkflow.CountNodeWorkflow(rCtx, req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to list node workflow, failed to count workflow. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to count workflow")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -87,7 +85,7 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 		req.ConvertPageToTypes(maxNodeWorkflowLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list node workflow. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -102,7 +100,7 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 func (h *handler) DistinctNodeWorkflow(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowDistinctReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to distinct node workflow, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct node workflow, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -111,7 +109,7 @@ func (h *handler) DistinctNodeWorkflow(rCtx restserver.IContext) (interface{}, e
 		types.NewNodeWorkflowDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to distinct host. failed to distinct host fields: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -125,12 +123,12 @@ func (h *handler) DistinctNodeWorkflow(rCtx restserver.IContext) (interface{}, e
 func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowOperationListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list operation, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list operation, failed to validate request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to validate request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
 	}
 
@@ -163,12 +161,12 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowOperationInstanceListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list operation instance, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list operation instance, operation ID is required")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, operation ID is required")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -196,7 +194,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowOperationInstanceLogGetReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get operation instance log, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -216,7 +214,7 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 func (h *handler) ListOperationInstanceStatus(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowOperationInstanceListStatusReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list operation instance status, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance status, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 

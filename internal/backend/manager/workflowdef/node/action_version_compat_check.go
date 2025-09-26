@@ -17,7 +17,6 @@ import (
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -31,12 +30,10 @@ const (
 )
 
 // NewActionVersionCompatCheck get a new action.
-func NewActionVersionCompatCheck(storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	logger logger.ILogger) action.Definition {
+func NewActionVersionCompatCheck(storageNodeDeployment nodeStg.IDaoNodeDeployment) action.Definition {
 
 	return &actionVersionCompatCheck{
 		storageNodeDeployment: storageNodeDeployment,
-		logger:                logger,
 
 		operateAgentSupportedLowestVersionFmt: types.NewGSEVersionFormatter(agentOperateRestartLowestVersion),
 	}
@@ -49,7 +46,6 @@ type ActionParamVersionCompatCheck struct {
 
 type actionVersionCompatCheck struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
-	logger                logger.ILogger
 
 	operateAgentSupportedLowestVersionFmt types.GSEVersionFormatter
 }

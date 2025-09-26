@@ -12,22 +12,21 @@
 package topoevent
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(tenantID string, client *mongo.Database) *dao {
 	tableName := TableName(tenantID)
 	d := &dao{
 		client:    client.Collection(tableName),
-		logger:    logger,
 		tableName: tableName,
 	}
 
@@ -39,18 +38,12 @@ func newDao(tenantID string, client *mongo.Database, logger logger.ILogger) *dao
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
 	base.IOrm[*TopoEvent, TopoEvent]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -71,8 +64,8 @@ func (d *dao) ensureIndexes() error {
 	return nil
 }
 
-func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
-	num, err := d.client.CountDocuments(ctx, filter)
+func (d *dao) count(nCtx contextx.IContext, filter bson.D) (int64, error) {
+	num, err := d.client.CountDocuments(nCtx, filter)
 	if err != nil {
 		return 0, err
 	}
@@ -84,17 +77,17 @@ func (d *dao) count(ctx context.Context, filter bson.D) (int64, error) {
 	return num, nil
 }
 
-func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOptions) ([]*TopoEvent, error) {
-	result, err := d.client.Find(ctx, filter, findOpt)
+func (d *dao) list(nCtx contextx.IContext, filter bson.D, findOpt *options.FindOptions) ([]*TopoEvent, error) {
+	result, err := d.client.Find(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, err
 	}
 
 	events := make([]*TopoEvent, 0)
-	for result.Next(ctx) {
+	for result.Next(nCtx) {
 		table := &TableTopoEvent{}
 		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode topoevent, err %v", err)
+			logger.G.Sys().WithErr(err).Warn("failed to decode topoevent")
 
 			continue
 		}
@@ -104,7 +97,7 @@ func (d *dao) list(ctx context.Context, filter bson.D, findOpt *options.FindOpti
 	return events, nil
 }
 
-func (d *dao) createMany(ctx context.Context, events []*TopoEvent) error {
+func (d *dao) createMany(nCtx contextx.IContext, events []*TopoEvent) error {
 	now := time.Now()
 
 	tables := make([]interface{}, 0)
@@ -118,7 +111,7 @@ func (d *dao) createMany(ctx context.Context, events []*TopoEvent) error {
 		})
 	}
 
-	_, err := d.client.InsertMany(ctx, tables)
+	_, err := d.client.InsertMany(nCtx, tables)
 	if err != nil {
 		return err
 	}
@@ -128,14 +121,14 @@ func (d *dao) createMany(ctx context.Context, events []*TopoEvent) error {
 
 // distinctString distinct string field.
 func (d *dao) distinctString(
-	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]string, error) {
+	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]string, error) {
 
-	return d.DistinctString(ctx, key, filter, distinctOpt)
+	return d.DistinctString(nCtx, key, filter, distinctOpt)
 }
 
 // distinctInt64 distinct int64 field.
 func (d *dao) distinctInt64(
-	ctx context.Context, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]int64, error) {
+	nCtx contextx.IContext, key string, filter bson.D, distinctOpt *options.DistinctOptions) ([]int64, error) {
 
-	return d.DistinctInt64(ctx, key, filter, distinctOpt)
+	return d.DistinctInt64(nCtx, key, filter, distinctOpt)
 }

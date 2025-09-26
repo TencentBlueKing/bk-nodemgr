@@ -12,6 +12,7 @@
 package globalsettings
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -25,7 +26,7 @@ const (
 func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ListGlobalSettingsReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list global settings, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list global settings, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -34,7 +35,7 @@ func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, err
 	if req.GetOnlyCount() {
 		count, err := h.storage.CountGlobalSettings(rCtx, req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to count global settings: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to count global settings")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
@@ -50,7 +51,7 @@ func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, err
 		req.ConvertPageToTypes(maxGlobalSettingsLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list global settings: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list global settings")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -63,13 +64,13 @@ func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, err
 func (h *handler) GetGlobalSetting(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.GetGlobalSettingReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get global setting, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get global setting, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	value, err := h.storage.GetGlobalSetting(rCtx, req.GetSettingName())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get global setting: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get global setting")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -83,12 +84,12 @@ func (h *handler) GetGlobalSetting(rCtx restserver.IContext) (interface{}, error
 func (h *handler) UpsertManyGlobalSettings(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.UpsertGlobalSettingsReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to upsert global settings, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upsert global settings, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.storage.UpsertGlobalSettings(rCtx, req.ConvertGlobalSettingsToTypes()...); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to upsert global settings: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upsert global settings")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
@@ -101,12 +102,12 @@ func (h *handler) UpsertManyGlobalSettings(rCtx restserver.IContext) (interface{
 func (h *handler) DeleteManyGlobalSettings(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.DeleteGlobalSettingsReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to delete global settings, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete global settings, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	if err := h.storage.DeleteGlobalSettings(rCtx, req.GetSettingName()...); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to delete global settings: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete global settings")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 

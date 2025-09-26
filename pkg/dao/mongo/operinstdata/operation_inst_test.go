@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
@@ -34,9 +33,9 @@ func testHandler(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -53,14 +52,14 @@ func testHandler(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 // Test_handler_Upsert ...
 func Test_handler_Upsert(t *testing.T) {
 	now := time.Now()
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		data *operation.InstanceData
 	}
 
@@ -72,7 +71,7 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				data: &operation.InstanceData{
 					InstanceBriefData: operation.InstanceBriefData{
 						Metadata: &operation.InstanceMetadata{
@@ -121,7 +120,7 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				data: &operation.InstanceData{
 					InstanceBriefData: operation.InstanceBriefData{
 						Metadata: &operation.InstanceMetadata{
@@ -166,7 +165,7 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "multiple_actions_mixed_status",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				data: &operation.InstanceData{
 					InstanceBriefData: operation.InstanceBriefData{
 						Metadata: &operation.InstanceMetadata{
@@ -220,7 +219,7 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "empty_action_data",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				data: &operation.InstanceData{
 					InstanceBriefData: operation.InstanceBriefData{
 						Metadata: &operation.InstanceMetadata{
@@ -253,7 +252,7 @@ func Test_handler_Upsert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			if err := h.Upsert(tt.args.ctx, tt.args.data); (err != nil) != tt.wantErr {
+			if err := h.Upsert(tt.args.nCtx, tt.args.data); (err != nil) != tt.wantErr {
 				t.Errorf("Upsert() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -263,7 +262,7 @@ func Test_handler_Upsert(t *testing.T) {
 // Test_handler_FindOne ...
 func Test_handler_FindOne(t *testing.T) {
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		opts []OptFn
 	}
 
@@ -275,7 +274,7 @@ func Test_handler_FindOne(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{
 					WithOperInstID("op-instance-002"),
 				},
@@ -287,7 +286,7 @@ func Test_handler_FindOne(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			got, err := h.FindOne(tt.args.ctx, tt.args.opts...)
+			got, err := h.FindOne(tt.args.nCtx, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindOne() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -304,7 +303,7 @@ func Test_handler_FindOne(t *testing.T) {
 // Test_handler_FindOneOperInstDataWithoutActionData ...
 func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		opts []OptFn
 	}
 
@@ -316,7 +315,7 @@ func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 		{
 			name: "normal_1",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{WithOperInstID("operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f")},
 			},
 			wantErr: false,
@@ -324,7 +323,7 @@ func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 		{
 			name: "normal_2",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{WithOperInstID("op-instance-001")},
 			},
 			wantErr: false,
@@ -332,7 +331,7 @@ func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 		{
 			name: "normal_3",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{WithOperInstID("op-instance-002")},
 			},
 			wantErr: false,
@@ -342,7 +341,7 @@ func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			got, err := h.FindOneWithoutActionData(tt.args.ctx, tt.args.opts...)
+			got, err := h.FindOneWithoutActionData(tt.args.nCtx, tt.args.opts...)
 			if err != nil {
 				t.Logf("FindOneWithoutActionData() error = %v", err)
 			}
@@ -361,7 +360,7 @@ func Test_handler_FindOneOperInstDataWithoutActionData(t *testing.T) {
 // Test_handler_Count ...
 func Test_handler_Count(t *testing.T) {
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		opts []OptFn
 	}
 
@@ -374,7 +373,7 @@ func Test_handler_Count(t *testing.T) {
 		{
 			name: "normal_1",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{WithOperInstID("operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f")},
 			},
 			wantErr:   false,
@@ -383,7 +382,7 @@ func Test_handler_Count(t *testing.T) {
 		{
 			name: "normal_2",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{},
 			},
 			wantErr:   false,
@@ -394,7 +393,7 @@ func Test_handler_Count(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			num, err := h.Count(tt.args.ctx, tt.args.opts...)
+			num, err := h.Count(tt.args.nCtx, tt.args.opts...)
 			if err != nil {
 				t.Logf("Test_handler_Count() error = %v", err)
 			}
@@ -415,7 +414,7 @@ func Test_handler_Count(t *testing.T) {
 // Test_ListWithoutActInst ...
 func Test_ListWithoutActInst(t *testing.T) {
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		opts []OptFn
 	}
 
@@ -428,7 +427,7 @@ func Test_ListWithoutActInst(t *testing.T) {
 		{
 			name: "normal_1",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{WithOperInstID("operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f")},
 			},
 			wantErr:   false,
@@ -437,7 +436,7 @@ func Test_ListWithoutActInst(t *testing.T) {
 		{
 			name: "normal_2",
 			args: args{
-				ctx:  context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{},
 			},
 			wantErr:   false,
@@ -448,7 +447,7 @@ func Test_ListWithoutActInst(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			_, num, err := h.ListWithoutActInst(tt.args.ctx, types.Page{}, tt.args.opts...)
+			_, num, err := h.ListWithoutActInst(tt.args.nCtx, types.Page{}, tt.args.opts...)
 			if err != nil {
 				t.Logf("Test_ListFullData() error = %v", err)
 			}
@@ -468,7 +467,7 @@ func Test_ListWithoutActInst(t *testing.T) {
 // FindOneWithoutActionData ...
 func Test_handler_FindOneWithoutActionData(t *testing.T) {
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		opts []OptFn
 	}
 
@@ -480,7 +479,7 @@ func Test_handler_FindOneWithoutActionData(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{
 					WithOperInstID("op-instance-002"),
 				},
@@ -492,7 +491,7 @@ func Test_handler_FindOneWithoutActionData(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			got, err := h.FindOneWithoutActionData(tt.args.ctx, tt.args.opts...)
+			got, err := h.FindOneWithoutActionData(tt.args.nCtx, tt.args.opts...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindOne() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -507,7 +506,7 @@ func Test_handler_FindOneWithoutActionData(t *testing.T) {
 
 func Test_UpdateLifeCycle(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		OperInstID string
 		LifeCycle  *operation.Lifecycle
 	}
@@ -520,7 +519,7 @@ func Test_UpdateLifeCycle(t *testing.T) {
 		{
 			name: "normal_1",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				OperInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				LifeCycle: &operation.Lifecycle{
 					State:     operation.StateTerminated,
@@ -533,7 +532,7 @@ func Test_UpdateLifeCycle(t *testing.T) {
 		{
 			name: "normal_2",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				OperInstID: "op-instance-002",
 				LifeCycle: &operation.Lifecycle{
 					State:     operation.StateFailed,
@@ -547,7 +546,7 @@ func Test_UpdateLifeCycle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			err := h.UpdateLifeCycle(tt.args.ctx, tt.args.OperInstID, tt.args.LifeCycle)
+			err := h.UpdateLifeCycle(tt.args.nCtx, tt.args.OperInstID, tt.args.LifeCycle)
 			if err != nil {
 				t.Logf("Test_ListFullData() error = %v", err)
 			}
@@ -564,7 +563,7 @@ func Test_UpdateLifeCycle(t *testing.T) {
 // Test_UpdateExecMessages tests the UpdateExecMessages method.
 func Test_UpdateExecMessages(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		OperInstID string
 		ExecName   string
 		Messages   []common.Message
@@ -578,7 +577,7 @@ func Test_UpdateExecMessages(t *testing.T) {
 		{
 			name: "normal_1",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				OperInstID: "operation-inst-7bd49883-bcc9-4776-80ff-d3d37ca4143f",
 				Messages: []common.Message{
 					{
@@ -593,7 +592,7 @@ func Test_UpdateExecMessages(t *testing.T) {
 		{
 			name: "normal_2",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				OperInstID: "op-instance-002",
 				Messages: []common.Message{
 					{
@@ -609,7 +608,7 @@ func Test_UpdateExecMessages(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testHandler(t)
-			err := h.UpdateExtraExecutionMessages(tt.args.ctx, tt.args.OperInstID, tt.args.Messages...)
+			err := h.UpdateExtraExecutionMessages(tt.args.nCtx, tt.args.OperInstID, tt.args.Messages...)
 			if err != nil {
 				t.Logf("Test_UpdateExecMessages() error = %v", err)
 			}

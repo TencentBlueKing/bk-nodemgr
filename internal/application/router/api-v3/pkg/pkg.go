@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/publish"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/upload"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/gin-gonic/gin"
@@ -26,7 +25,6 @@ type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
 	fileHandler    file.IHandler
-	logger         logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -35,7 +33,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:             rg.Group("/package"),
 		backendHandler: capability.BackendHandler,
 		fileHandler:    capability.FileHandler,
-		logger:         capability.Logger,
 	}
 }
 

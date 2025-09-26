@@ -12,18 +12,16 @@
 package trigger
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
+func newDao(client *mongo.Database) *dao {
 	d := &dao{
 		client:    client.Collection(TableName),
-		logger:    logger,
 		tableName: TableName,
 	}
 
@@ -35,18 +33,12 @@ func newDao(client *mongo.Database, logger logger.ILogger) *dao {
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	logger    logger.ILogger
 	base.IOrm[*Trigger, Trigger]
 }
 
 // GetClient get the dao's client.
 func (d *dao) GetClient() *mongo.Collection {
 	return d.client
-}
-
-// GetLogger get the dao's logger.
-func (d *dao) GetLogger() logger.ILogger {
-	return d.logger
 }
 
 // GetTableName get the dao's table name.
@@ -61,37 +53,36 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	return indexes
 }
 
-func (d *dao) update(ctx context.Context, trig *Trigger) error {
+func (d *dao) update(nCtx contextx.IContext, trig *Trigger) error {
 	filter := WithTriggerID(trig.TriggerID)(base.AliveFilter())
 
-	result, err := d.client.UpdateOne(ctx, filter, base.BuildUpsertParam(trig), mongoOptions.Update())
+	result, err := d.client.UpdateOne(nCtx, filter, base.BuildUpsertParam(trig), mongoOptions.Update())
 	if err != nil {
 		return err
 	}
 
 	switch {
 	case result.MatchedCount > 0:
-		{
-			d.logger.Infof("successfully updated trigger, unique-key(%s)", trig.UniqueKey())
-		}
+		logger.G.Sys().With("unique-key", trig.UniqueKey()).Info("updated trigger")
+
 	default:
-		d.logger.Warnf("try to update trigger but no changes made, unique-key(%s", trig.UniqueKey())
+		logger.G.Sys().With("unique-key", trig.UniqueKey()).Warn("try to update trigger but no changes made")
 	}
 
 	return nil
 }
 
 // delete deletes triggers.
-func (d *dao) delete(ctx context.Context, triggerIDs ...string) error {
+func (d *dao) delete(nCtx contextx.IContext, triggerIDs ...string) error {
 	filter := base.AliveFilter()
 	filter = WithTriggerID(triggerIDs...)(filter)
 
-	result, err := d.client.DeleteMany(ctx, filter)
+	result, err := d.client.DeleteMany(nCtx, filter)
 	if err != nil {
 		return err
 	}
 
-	d.logger.Infof("deleted %d triggers, trigger-ids: %v", result.DeletedCount, triggerIDs)
+	logger.G.Sys().With("deleted-count", result.DeletedCount, "trigger-ids", triggerIDs).Info("deleted triggers")
 
 	return nil
 }

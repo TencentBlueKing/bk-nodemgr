@@ -17,8 +17,6 @@ import (
 	"fmt"
 	"os"
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // DefaultTimeout defines the default timeout for WMI operations.
@@ -41,7 +39,6 @@ type Config struct {
 	Password   string
 	AuthMethod AuthMethod
 	Timeout    time.Duration
-	Logger     logger.ILogger
 }
 
 const (
@@ -113,10 +110,6 @@ func (conf *Config) Validate() error {
 		return errors.New("user is empty")
 	}
 
-	if conf.Logger == nil {
-		return errors.New("logger is empty")
-	}
-
 	if err := conf.AuthMethod.Validate(); err != nil {
 		return err
 	}
@@ -140,7 +133,6 @@ type Client struct {
 	target  string
 	envs    []string
 	timeout time.Duration
-	logger  logger.ILogger
 }
 
 // NewClient creates a Client instance.
@@ -153,7 +145,6 @@ func NewClient(config *Config) (*Client, error) {
 		target:  config.getTarget(),
 		envs:    config.getEnvs(),
 		timeout: 1 * time.Second,
-		logger:  config.Logger,
 	}
 
 	if config.Timeout > 0 {

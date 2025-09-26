@@ -18,8 +18,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/globalsettings"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 )
 
@@ -32,7 +32,6 @@ type IPeriodicTask interface {
 // Config defines the configuration of watcher.
 type Config struct {
 	Locker locker.MutexFactory
-	Logger logger.ILogger
 
 	StgGlobalSetting globalsettings.IStorage
 	StgWorkflow      workflow.IStorage
@@ -53,21 +52,21 @@ func NewPeriodicTask(conf Config) *PeriodicTask {
 		id:        identifier.GenServiceID(),
 		mu:        sync.Mutex{},
 		conf:      conf,
-		scheduler: scheduler.NewScheduler(scheduler.WithLogger(conf.Logger)),
+		scheduler: scheduler.NewScheduler(),
 	}
 }
 
 // Start starts the watcher manager.
-func (pt *PeriodicTask) Start(ctx contextx.IContext) error {
-	pt.conf.Logger.Info("started backend periodic task manager")
+func (pt *PeriodicTask) Start(nCtx contextx.IContext) error {
+	logger.G.Sys().Info("started backend periodic task manager")
 
 	var err error
-	pt.gs, err = globalsettings.NewGlobalSettings(ctx, pt.conf.StgGlobalSetting)
+	pt.gs, err = globalsettings.NewGlobalSettings(nCtx, pt.conf.StgGlobalSetting)
 	if err != nil {
 		return err
 	}
 
-	if err := pt.registerTasks(ctx); err != nil {
+	if err := pt.registerTasks(nCtx); err != nil {
 		return err
 	}
 
@@ -78,7 +77,7 @@ func (pt *PeriodicTask) Start(ctx contextx.IContext) error {
 
 // Terminate terminates the watcher manager.
 func (pt *PeriodicTask) Terminate() {
-	pt.conf.Logger.Info("terminating backend periodic task manager")
+	logger.G.Sys().Info("terminating backend periodic task manager")
 
 	pt.scheduler.Terminate()
 }
@@ -96,7 +95,8 @@ func (pt *PeriodicTask) registerTasks(ctx contextx.IContext) error {
 
 	for _, task := range periodicTasks {
 		if err := pt.scheduler.RegisterTask(task); err != nil {
-			pt.conf.Logger.Errorf("register periodic-task(%s) failed: %v", task.ID, err)
+			logger.G.Sys().WithErr(err).With("task-id", task.ID).Error("failed to register periodic task")
+
 			return err
 		}
 	}

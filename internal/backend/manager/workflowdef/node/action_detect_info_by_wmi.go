@@ -28,7 +28,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -39,7 +38,6 @@ const (
 
 // NewActionDetectInfoByWMI get a new action.
 func NewActionDetectInfoByWMI(
-	logger logger.ILogger,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	storageRelease release.IStorage,
 	storageHostCredit credit.IStorageHostCredit,
@@ -48,7 +46,6 @@ func NewActionDetectInfoByWMI(
 
 	return &actionDetectInfoByWMI{
 		storageHostCredit:     storageHostCredit,
-		logger:                logger,
 		storageNodeDeployment: storageNodeDeployment,
 		storageRelease:        storageRelease,
 		passwordVault:         passwordVault,
@@ -61,7 +58,6 @@ type ActParamDetectInfoByWMI struct {
 }
 
 type actionDetectInfoByWMI struct {
-	logger                logger.ILogger
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageRelease        release.IStorage
@@ -142,7 +138,6 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	client, err := wmix.NewClient(&wmix.Config{
 		IP:         std.DeployInfo().Host.Dynamic.LoginIP,
 		User:       std.DeployInfo().Host.Dynamic.LoginUser,
-		Logger:     act.logger,
 		AuthMethod: cMethod,
 		Password: func() string {
 			if cMethod == wmix.AuthMethodPassword {

@@ -15,7 +15,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
 )
@@ -25,14 +24,12 @@ func generateWMIClient(
 	ip string, port int, user string,
 	password string,
 	loginMode types.LoginMode,
-	logger logger.ILogger,
 ) (*wmix.Client, error) {
 
 	wmiConf := &wmix.Config{
 		IP:      ip,
 		User:    user,
 		Timeout: wmix.DefaultTimeout,
-		Logger:  logger,
 	}
 
 	switch loginMode {

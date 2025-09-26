@@ -14,10 +14,10 @@ package config
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +28,6 @@ const (
 type handler struct {
 	rg      *gin.RouterGroup
 	storage configpolicy.IStorage
-	logger  logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -36,7 +35,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:      rg.Group("/config"),
 		storage: capability.StorageConfigPolicy,
-		logger:  capability.Logger,
 	}
 }
 
@@ -57,7 +55,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ConfigPolicyListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list config policy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy, failed to decode request body")
+
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -67,7 +66,8 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			h.logger.ErrorCtxf(rCtx, "failed to list config policy. failed to count host. err: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy. failed to count host")
+
 			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 		}
 
@@ -82,7 +82,8 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 		req.ConvertPageToTypes(maxConfigPolicyLimit),
 		req.ConvertConditionsToTypes())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to list config policy. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy")
+
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
@@ -96,14 +97,16 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 func (h *handler) GetConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ConfigPolicyGetReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get config policy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get config policy, failed to decode request body")
+
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	// get config policy.
 	configPolicy, err := h.storage.GetConfigPolicy(rCtx, req.GetConfigpolicyId())
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to get config policy. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get config policy")
+
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
@@ -117,7 +120,8 @@ func (h *handler) GetConfigPolicy(rCtx restserver.IContext) (interface{}, error)
 func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ConfigPolicyCreateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to create config policy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to create config policy, failed to decode request body")
+
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
@@ -125,7 +129,8 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	configPolicy.TenantID = rCtx.TenantID()
 	configPolicyID, err := h.storage.CreateConfigPolicy(rCtx, configPolicy)
 	if err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to create config policy. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to create config policy")
+
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
@@ -139,14 +144,16 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ConfigPolicyUpdateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to update config policy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update config policy, failed to decode request body")
+
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	configPolicy := req.ConvertConfigPolicyToTypes()
 	configPolicy.TenantID = rCtx.TenantID()
 	if err := h.storage.UpdateConfigPolicy(rCtx, configPolicy); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to update config policy. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to update config policy")
+
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
@@ -160,12 +167,14 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ConfigPolicyEnableReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to enable config policy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable config policy, failed to decode request body")
+
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	if err := h.storage.EnableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to enable config policy. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable config policy")
+
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
@@ -178,12 +187,14 @@ func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, err
 func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ConfigPolicyDisableReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to disable config policy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable config policy, failed to decode request body")
+
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	if err := h.storage.DisableManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to disable config policy. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable config policy")
+
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
@@ -196,12 +207,14 @@ func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, er
 func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ConfigPolicyDeleteReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to delete config policy, failed to decode request body. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete config policy, failed to decode request body")
+
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	if err := h.storage.DeleteManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
-		h.logger.ErrorCtxf(rCtx, "failed to delete config policy. err: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete config policy")
+
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 

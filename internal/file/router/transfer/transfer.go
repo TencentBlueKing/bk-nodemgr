@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +23,6 @@ type handler struct {
 	rg          *gin.RouterGroup
 	manager     manager.IManager
 	storageTopo topo.IStorage
-	logger      logger.ILogger
 }
 
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
@@ -33,7 +31,6 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 		rg:          rg.Group("/transfer"),
 		manager:     opt.Manager,
 		storageTopo: opt.StorageTopo,
-		logger:      opt.Logger,
 	}
 }
 

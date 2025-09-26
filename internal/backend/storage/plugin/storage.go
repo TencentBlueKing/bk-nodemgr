@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	plugindeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment"
 	pluginworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -29,7 +29,7 @@ import (
 const StorageName = "plugin"
 
 // NewStorage ...
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*Storage, error) {
+func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -38,14 +38,14 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (*
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 	}
 	err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check))
 	if err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -64,8 +64,8 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoPluginDeployment = plugindeployment.New(s.Database, s.Logger)
-	s.daoPluginWorkflow = pluginworkflow.New(s.Database, s.Logger)
+	s.daoPluginDeployment = plugindeployment.New(s.Database)
+	s.daoPluginWorkflow = pluginworkflow.New(s.Database)
 
 	return nil
 }
@@ -87,7 +87,7 @@ func (s *Storage) metric() *storage.MetricData {
 }
 
 // GetPluginDeploymentInfo get plugin deployment info.
-func (s *Storage) GetPluginDeploymentInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
+func (s *Storage) GetPluginDeploymentInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
 	var (
 		info *types.PluginDeploymentInfo
 		err  error
@@ -97,13 +97,13 @@ func (s *Storage) GetPluginDeploymentInfo(ctx contextx.IContext, token string) (
 	metric := s.metric().Start("get_info")
 	defer metric.End(err)
 
-	info, err = s.getPluginDeploymentInfo(ctx, token)
+	info, err = s.getPluginDeploymentInfo(nCtx, token)
 
 	return info, err
 }
 
 // CreatePluginDeployment plugin deployment.
-func (s *Storage) CreatePluginDeployment(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
+func (s *Storage) CreatePluginDeployment(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
 	var (
 		err error
 	)
@@ -112,13 +112,13 @@ func (s *Storage) CreatePluginDeployment(ctx contextx.IContext, pluginDeployment
 	metric := s.metric().Start("createPluginDeployment")
 	defer metric.End(err)
 
-	err = s.createPluginDeployment(ctx, pluginDeployment)
+	err = s.createPluginDeployment(nCtx, pluginDeployment)
 
 	return err
 }
 
 // UpdatePluginDeploymentInfo update a node deployment info.
-func (s *Storage) UpdatePluginDeploymentInfo(ctx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error {
+func (s *Storage) UpdatePluginDeploymentInfo(nCtx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error {
 	var (
 		err error
 	)
@@ -127,7 +127,7 @@ func (s *Storage) UpdatePluginDeploymentInfo(ctx contextx.IContext, token string
 	metric := s.metric().Start("update_info")
 	defer metric.End(err)
 
-	err = s.updatePluginDeploymentInfo(ctx, token, pluginDeploymentInfo)
+	err = s.updatePluginDeploymentInfo(nCtx, token, pluginDeploymentInfo)
 
 	return err
 }
@@ -135,7 +135,7 @@ func (s *Storage) UpdatePluginDeploymentInfo(ctx contextx.IContext, token string
 // GetPluginDeploymentMainConfig
 
 // GetPluginWorkflow get plugin workflow.
-func (s *Storage) GetPluginWorkflow(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
+func (s *Storage) GetPluginWorkflow(nCtx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
 	var (
 		pluginWorkflow *types.PluginWorkflow
 		err            error
@@ -145,13 +145,13 @@ func (s *Storage) GetPluginWorkflow(ctx contextx.IContext, workflowID string) (*
 	metric := s.metric().Start("create_plugin_workflow")
 	defer metric.End(err)
 
-	pluginWorkflow, err = s.getPluginWorkflow(ctx, workflowID)
+	pluginWorkflow, err = s.getPluginWorkflow(nCtx, workflowID)
 
 	return pluginWorkflow, err
 }
 
 // CreatePluginWorkflow createPluginDeployment plugin workflow.
-func (s *Storage) CreatePluginWorkflow(ctx contextx.IContext, workflow *types.PluginWorkflow) error {
+func (s *Storage) CreatePluginWorkflow(nCtx contextx.IContext, workflow *types.PluginWorkflow) error {
 	var (
 		err error
 	)
@@ -160,13 +160,13 @@ func (s *Storage) CreatePluginWorkflow(ctx contextx.IContext, workflow *types.Pl
 	metric := s.metric().Start("create_plugin_workflow")
 	defer metric.End(err)
 
-	err = s.createPluginWorkflow(ctx, workflow)
+	err = s.createPluginWorkflow(nCtx, workflow)
 
 	return err
 }
 
 // UpdatePluginWorkflowStatus update plugin workflow status.
-func (s *Storage) UpdatePluginWorkflowStatus(ctx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
+func (s *Storage) UpdatePluginWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
 	var (
 		err error
 	)
@@ -175,7 +175,7 @@ func (s *Storage) UpdatePluginWorkflowStatus(ctx contextx.IContext, workflowID s
 	metric := s.metric().Start("update_plugin_workflow_status")
 	defer metric.End(err)
 
-	err = s.updatePluginWorkflowStatus(ctx, workflowID, status)
+	err = s.updatePluginWorkflowStatus(nCtx, workflowID, status)
 
 	return err
 }

@@ -11,17 +11,16 @@
 package node
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -36,28 +35,24 @@ const (
 func NewActionBindAgentHostRel(
 	bindHostAgent cmdb.IBindHostAgent,
 	storageHost topo.IStorageHost,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	logger logger.ILogger) action.Definition {
+	storageNodeDeployment nodeStg.IDaoNodeDeployment) action.Definition {
 
 	return &actionBindAgentHostRel{
 		IBindHostAgent:        bindHostAgent,
 		storageHost:           storageHost,
 		storageNodeDeployment: storageNodeDeployment,
-		logger:                logger,
 	}
 }
 
 // ActParamBindAgentHostRel ...
 type ActParamBindAgentHostRel struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionBindAgentHostRel struct {
 	cmdb.IBindHostAgent
 	storageHost           topo.IStorageHost
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
-	logger                logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -105,41 +100,34 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
-		return fmt.Errorf("get node deployment info failed: %w", err)
-	}
-
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
 
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
-	if err := act.checkHostExist(tenantCtx, info); err != nil {
+	if err := act.checkHostExist(std.Context(), std.DeployInfo()); err != nil {
 		return err
 	}
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(info.Host.TenantID), contextx.WithBKUsername(param.Operator))
-		if err := act.BindHostAgent(newCtx, &info.Host); err != nil {
+		if err := act.BindHostAgent(std.Context(), &std.DeployInfo().Host); err != nil {
 			return err
 		}
 
-		act.logger.Infof("successfully bind host agent relation to cmdb, host-id(%d), agent-id(%s)",
-			info.Host.HostID, info.Host.Dynamic.AgentID)
+		logger.G.Sys().With("host-id", std.DeployInfo().Host.HostID, "agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("successfully bind host agent relation to cmdb")
 
 		return nil
 	})
 
 	gp.Go(func() error {
-		if err := act.storageHost.UpdateManyHostDynamic(tenantCtx, &info.Host); err != nil {
+		if err := act.storageHost.UpdateManyHostDynamic(std.Context(), &std.DeployInfo().Host); err != nil {
 			return err
 		}
 
-		act.logger.Infof("successfully bind host agent relation to db, host-id(%d), agent-id(%s)",
-			info.Host.HostID, info.Host.Dynamic.AgentID)
+		logger.G.Sys().With("host-id", std.DeployInfo().Host.HostID, "agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("successfully bind host agent relation to db")
 
 		return nil
 	})
@@ -148,14 +136,13 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("bind host agent relation failed: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("successfully bind agent host rel, host-id(%d), agent-id(%s)", info.Host.HostID,
-		info.Host.Dynamic.AgentID))
+	logger.G.Sys().With("host-id", std.DeployInfo().Host.HostID, "agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("successfully bind host agent relation")
 
 	return nil
 }
 
-func (act *actionBindAgentHostRel) checkHostExist(ctx context.Context, info *types.DeploymentInfo) error {
-	daoHost, err := act.storageHost.GetHostByID(ctx, info.Host.HostID)
+func (act *actionBindAgentHostRel) checkHostExist(nCtx contextx.IContext, info *types.DeploymentInfo) error {
+	daoHost, err := act.storageHost.GetHostByID(nCtx, info.Host.HostID)
 	if err != nil {
 		return fmt.Errorf("get host info failed: %w", err)
 	}

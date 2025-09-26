@@ -24,7 +24,6 @@ import (
 	machineryLog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -66,7 +65,6 @@ func NewManager(workerNum int, opts ...OptionsFunc) IManager {
 		isRunning:                        false,
 		registeredActionDefs:             make(map[string]action.Definition),
 		registeredOperExtraExecutionDefs: make(map[string]operation.ExtraExecution),
-		logger:                           logger.LoggerDefault{},
 		WorkerNum:                        workerNum,
 		launchWorkerErr:                  make(chan error, 1),
 	}
@@ -76,7 +74,7 @@ func NewManager(workerNum int, opts ...OptionsFunc) IManager {
 	}
 
 	mgr.triggerHandler = newTriggerHandler(mgr, mgr.globalLocker)
-	machineryLog.Set(newLoggerAdaptor(mgr.logger))
+	machineryLog.Set(newLoggerAdaptor())
 
 	return mgr
 }
@@ -154,13 +152,6 @@ func WithLocker(lock locker.MutexFactory) OptionsFunc {
 	}
 }
 
-// WithLogger sets the logger for the manager.
-func WithLogger(logger logger.ILogger) OptionsFunc {
-	return func(mgr *manager) {
-		mgr.logger = logger
-	}
-}
-
 type manager struct {
 	mConfig *machineryConfig.Config
 
@@ -189,8 +180,6 @@ type manager struct {
 	stgOperationInstance IStorageOperationInstance
 	stgActionInstance    IStorageActionInstance
 	stgSchedule          IStorageSchedule
-
-	logger logger.ILogger
 
 	globalLocker locker.MutexFactory
 

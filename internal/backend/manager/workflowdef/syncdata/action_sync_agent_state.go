@@ -15,9 +15,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -29,13 +28,11 @@ const (
 )
 
 // NewActionSyncAgentState creates a new syncAgentState.
-func NewActionSyncAgentState(gseHandler gse.IHandler, topoStg topo.IStorageHost,
-	logger logger.ILogger) action.Definition {
+func NewActionSyncAgentState(gseHandler gse.IHandler, topoStg topo.IStorageHost) action.Definition {
 
 	return &actionSyncAgentState{
 		gseHandler: gseHandler,
 		topoStg:    topoStg,
-		logger:     logger,
 	}
 }
 
@@ -55,7 +52,6 @@ type HostIDAgentID struct {
 type actionSyncAgentState struct {
 	gseHandler gse.IHandler
 	topoStg    topo.IStorageHost
-	logger     logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -103,21 +99,17 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	tenantCtx, err := tenant.SetID(ctx.Ctx, param.TenantID)
-	if err != nil {
-		return err
-	}
-
-	newCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
 
 	agentIDs := make([]string, 0, len(param.Hosts))
 	for _, host := range param.Hosts {
 		agentIDs = append(agentIDs, host.AgentID)
 	}
 
-	result, err := act.gseHandler.ListAgentState(newCtx, agentIDs...)
+	result, err := act.gseHandler.ListAgentState(nCtx, agentIDs...)
 	if err != nil {
-		act.logger.Errorf("list agent state by agent-id-list(%v) failed: %v", agentIDs, err)
+		logger.G.Sys().WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent state")
+
 		return err
 	}
 
@@ -143,13 +135,15 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 	}
 
 	if len(upsertHosts) == 0 {
-		act.logger.Info("no hosts to upsert")
+		logger.G.Sys().Info("no hosts to upsert")
+
 		return nil
 	}
 
-	err = act.topoStg.UpdateHostDynamicFields(tenantCtx, types.HostDynamicFields{NodeVersion: true, NodeStatus: true}, upsertHosts...)
+	err = act.topoStg.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{NodeVersion: true, NodeStatus: true}, upsertHosts...)
 	if err != nil {
-		act.logger.Errorf("failed to update host dynamic: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to update host dynamic")
+
 		return err
 	}
 

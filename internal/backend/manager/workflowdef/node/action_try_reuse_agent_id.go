@@ -14,10 +14,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -33,24 +33,21 @@ const (
 func NewActionTryReuseAgentID(
 	storageHost topo.IStorageHost,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	logger logger.ILogger,
 ) action.Definition {
 
 	return &TryReuseAgentID{
 		storageHost:           storageHost,
 		storageNodeDeployment: storageNodeDeployment,
-		logger:                logger,
 	}
 }
 
 // ActParamTryReuseAgentID ...
 type ActParamTryReuseAgentID struct {
-	Token string `json:"token"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 // TryReuseAgentID ...
 type TryReuseAgentID struct {
-	logger                logger.ILogger
 	storageHost           topo.IStorageHost
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
@@ -100,13 +97,9 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
-		return err
-	}
-
-	tenantCtx, err := tenant.SetID(ctx.Ctx, info.Host.TenantID)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
 
@@ -116,22 +109,22 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// if the current judgment is not satisfied, just go back.
 
 	// force re-register the agentID.
-	if info.InstallOptions.ReRegister {
+	if std.DeployInfo().InstallOptions.ReRegister {
 		ctx.Data.LogI("force re-register, will not reuse agent id")
-		act.logger.Info("force re-register, will not reuse agent id")
+		logger.G.Sys().Info("force re-register, will not reuse agent id")
 
 		return nil
 	}
 
 	// try to reuse the agentID.
-	hosts, count, err := act.storageHost.ListHost(tenantCtx, types.Page{
+	hosts, count, err := act.storageHost.ListHost(std.Context(), types.Page{
 		Offset: 0,
 		Limit:  1,
 	}, &types.HostCondition{
 		ExactInclude: &types.HostExactFields{
-			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
-			Addressing:    []types.Addressing{info.Host.Static.Addressing},
-			InnerIP:       []string{info.Host.Static.InnerIP},
+			NetworkAreaID: []int64{std.DeployInfo().Host.Static.NetworkAreaID},
+			Addressing:    []types.Addressing{std.DeployInfo().Host.Static.Addressing},
+			InnerIP:       []string{std.DeployInfo().Host.Static.InnerIP},
 		},
 	})
 	if err != nil {
@@ -142,19 +135,19 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// maybe: host don't exist, or host 's network area changed.
 	if count == 0 {
 		ctx.Data.LogE("not match host, can't reuse agent id")
-		act.logger.Info("not match host, can't reuse agent id")
+		logger.G.Sys().Info("not match host, can't reuse agent id")
 
 		return nil
 	}
 
-	info.Host.Dynamic.AgentID = hosts[0].Dynamic.AgentID
+	std.DeployInfo().Host.Dynamic.AgentID = hosts[0].Dynamic.AgentID
 
-	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, std.DeployInfo()); err != nil {
 		return fmt.Errorf("update node deployment info failed: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", info.Host.Dynamic.AgentID))
-	act.logger.Info(fmt.Sprintf("find agent id, try reuse it, agent-id:(%s)", info.Host.Dynamic.AgentID))
+	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", std.DeployInfo().Host.Dynamic.AgentID))
+	logger.G.Sys().With("agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("find agent id, try reuse it")
 
 	return nil
 }

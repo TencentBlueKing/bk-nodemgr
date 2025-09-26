@@ -18,9 +18,10 @@ import (
 	"io"
 	"net"
 	"path"
+	"runtime/debug"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -87,7 +88,6 @@ type Config struct {
 	Password   string
 	AuthMethod AuthMethod
 	PrivateKey []byte
-	Logger     logger.ILogger
 }
 
 // Validate validate the config.
@@ -106,10 +106,6 @@ func (conf *Config) Validate() error {
 
 	if conf.User == "" {
 		return fmt.Errorf("user is empty")
-	}
-
-	if conf.Logger == nil {
-		return fmt.Errorf("logger is empty")
 	}
 
 	if err := conf.AuthMethod.Validate(); err != nil {
@@ -159,7 +155,7 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 			return nil
 		},
 		BannerCallback: func(message string) error {
-			config.Logger.Warnf("ssh banner: %s", message)
+			logger.G.Sys().Warn("ssh banner: %s", message)
 
 			return nil
 		},
@@ -188,9 +184,7 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 		sshConf.Auth = []ssh.AuthMethod{}
 	}
 
-	client := &Client{
-		logger: config.Logger,
-	}
+	client := &Client{}
 
 	// because of the network may be unstable, so we need to retry.
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOpts{
@@ -198,13 +192,13 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 		BaseDelay:     1 * time.Second,
 		MaxDelay:      3 * time.Second,
 		JitterPercent: 0.2,
-		Logger:        config.Logger,
 	})
 	err := backoff.Do(ctx, func(attempt int) error {
 		var dialErr error
 		client.sshClient, dialErr = ssh.Dial(string(config.Network), config.getAddr(), sshConf)
 		if dialErr != nil {
-			client.logger.Errorf("failed to connect to host, host(%s): %v", config.getAddr(), dialErr)
+			logger.G.Sys().WithErr(dialErr).With("host", config.getAddr()).Error("failed to connect to host")
+
 			return dialErr
 		}
 
@@ -220,7 +214,6 @@ func NewClient(ctx context.Context, config *Config, timeout time.Duration) (*Cli
 // Client this is a ssh client.
 type Client struct {
 	sshClient *ssh.Client
-	logger    logger.ILogger
 }
 
 // RunCommand run command.
@@ -228,7 +221,8 @@ func (cli *Client) RunCommand(cmd string) (outStr string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("failed to run command, cmd(%s): %v", cmd, r)
-			cli.logger.Errorf("failed to run command, cmd(%s): %v", cmd, r)
+
+			logger.G.Sys().With("command", cmd, "recover", r, "stack", debug.Stack()).Error("failed to run command, got panic")
 		}
 	}()
 

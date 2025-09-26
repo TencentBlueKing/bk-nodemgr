@@ -20,36 +20,36 @@ import (
 )
 
 // createTrigger creates a new trigger.
-func (s *Storage) createTrigger(ctx contextx.IContext, trig *trigger.Trigger) error {
+func (s *Storage) createTrigger(nCtx contextx.IContext, trig *trigger.Trigger) error {
 	if trig == nil {
 		return errors.New("trigger is nil")
 	}
 
-	return s.daoTrigger.Create(ctx, trig)
+	return s.daoTrigger.Create(nCtx, trig)
 }
 
 // updateTrigger updates a trigger.
-func (s *Storage) updateTrigger(ctx contextx.IContext, trig *trigger.Trigger) error {
+func (s *Storage) updateTrigger(nCtx contextx.IContext, trig *trigger.Trigger) error {
 	if trig == nil {
 		return errors.New("trigger is nil")
 	}
 
-	return s.daoTrigger.Update(ctx, trig)
+	return s.daoTrigger.Update(nCtx, trig)
 }
 
 // updateTriggerState updates a trigger's state.
-func (s *Storage) updateTriggerState(ctx contextx.IContext, triggerID string, state trigger.State) error {
-	return s.daoTrigger.UpdateState(ctx, triggerID, state)
+func (s *Storage) updateTriggerState(nCtx contextx.IContext, triggerID string, state trigger.State) error {
+	return s.daoTrigger.UpdateState(nCtx, triggerID, state)
 }
 
 // getTrigger gets a trigger by triggerID.
-func (s *Storage) getTrigger(ctx contextx.IContext, triggerID string) (*trigger.Trigger, error) {
-	return s.daoTrigger.Get(ctx, triggerID)
+func (s *Storage) getTrigger(nCtx contextx.IContext, triggerID string) (*trigger.Trigger, error) {
+	return s.daoTrigger.Get(nCtx, triggerID)
 }
 
 // listAliveTrigger lists alive triggers by category.
-func (s *Storage) listAliveTrigger(ctx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
-	results, _, err := s.daoTrigger.List(ctx, types.UnlimitedPage(),
+func (s *Storage) listAliveTrigger(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
+	results, _, err := s.daoTrigger.List(nCtx, types.UnlimitedPage(),
 		daoTrigger.WithState(trigger.StateInit, trigger.StateRunning),
 		daoTrigger.WithCategory(category))
 	if err != nil {
@@ -60,10 +60,10 @@ func (s *Storage) listAliveTrigger(ctx contextx.IContext, category trigger.Categ
 }
 
 // deleteTriggers deletes triggers by given trigger IDs.
-func (s *Storage) deleteTriggers(ctx contextx.IContext, triggerIDs ...string) error {
+func (s *Storage) deleteTriggers(nCtx contextx.IContext, triggerIDs ...string) error {
 	if len(triggerIDs) == 0 {
 		return errors.New("triggerIDs is empty")
 	}
 
-	return s.daoTrigger.Delete(ctx, triggerIDs...)
+	return s.daoTrigger.Delete(nCtx, triggerIDs...)
 }

@@ -11,12 +11,12 @@
 package gse
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -28,13 +28,13 @@ type IHandler interface {
 	// ListAgentInfo list agent detail information.
 	// @param agentIDList given agent id list.
 	// @return agentInfoList agent detail information list.
-	ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*types.AgentInfo, error)
+	ListAgentInfo(nCtx contextx.IContext, agentIDList ...string) ([]*types.AgentInfo, error)
 
 	// ListAgentState list agent state information. AgentState is a subset of AgentInfo.
 	// This method is more efficient than ListAgentInfo.
 	// @param agentIDList given agent id list.
 	// @return agentStateList agent state information list.
-	ListAgentState(ctx context.Context, agentIDList ...string) ([]*types.AgentState, error)
+	ListAgentState(nCtx contextx.IContext, agentIDList ...string) ([]*types.AgentState, error)
 
 	// ExecuteScript execute script on host.
 	// @param scriptType given script type.
@@ -42,46 +42,46 @@ type IHandler interface {
 	// @param timeout given timeout.
 	// @param endpoints given endpoint list with auth.
 	// @return gse-task-id for this execution for further querying.
-	ExecuteScript(ctx context.Context, scriptType types.ScriptType, scriptContent string, timeout time.Duration,
+	ExecuteScript(nCtx contextx.IContext, scriptType types.ScriptType, scriptContent string, timeout time.Duration,
 		endpoints ...*types.EndpointWithAuth) (string, error)
 
 	// QueryScriptExecutionResult query script execution result.
 	// @param taskID given task id.
 	// @param endpoints given endpoint list.
 	// @return script result list.
-	QueryScriptExecutionResult(ctx context.Context, taskID string, endpoints ...*types.EndpointWithRestrict) (
+	QueryScriptExecutionResult(nCtx contextx.IContext, taskID string, endpoints ...*types.EndpointWithRestrict) (
 		[]*types.ScriptResult, error)
 
 	// TerminateScriptExecution terminate script execution.
 	// @param taskID given task id
 	// @param endpoints given endpoint list.
 	// @return gse-task-id for this operation.
-	TerminateScriptExecution(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (string, error)
+	TerminateScriptExecution(nCtx contextx.IContext, taskID string, endpoints ...*types.Endpoint) (string, error)
 
 	// TransferFile transfer files from source to targets.
 	// @param opts given options.
 	// @param transfers given transfer details.
 	// @return gse-task-id for this transferring.
-	TransferFile(ctx context.Context, opts *types.TransferOptions, transfers ...*types.TransferDetail) (string, error)
+	TransferFile(nCtx contextx.IContext, opts *types.TransferOptions, transfers ...*types.TransferDetail) (string, error)
 
 	// QueryFileTransmissionResult query file transmission result.
 	// @param taskID given task id.
 	// @param endpoints given endpoint list.
 	// @return file transmission result list.
-	QueryFileTransmissionResult(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (
+	QueryFileTransmissionResult(nCtx contextx.IContext, taskID string, endpoints ...*types.Endpoint) (
 		[]*types.TransferResult, error)
 
 	// TerminateFileTransmission terminate file transmission.
 	// @param taskID given task id.
 	// @param endpoints given endpoint list.
 	// @return gse-task-id for this operation.
-	TerminateFileTransmission(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (string, error)
+	TerminateFileTransmission(nCtx contextx.IContext, taskID string, endpoints ...*types.Endpoint) (string, error)
 
 	// OperateAgent operate agent.
 	// @param operate given operate.
 	// @param agentIDList given agent id list.
 	// @return agent operate result.
-	OperateAgent(ctx context.Context, operate types.OperateAgent, agentIDList ...string) (
+	OperateAgent(nCtx contextx.IContext, operate types.OperateAgent, agentIDList ...string) (
 		*types.OperateAgentResult, error)
 }
 
@@ -101,12 +101,12 @@ func New(c *restclient.Capability, conf *Config) (*Handler, error) {
 }
 
 // ListAgentInfo list agent detail information.
-func (h *Handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*types.AgentInfo, error) {
+func (h *Handler) ListAgentInfo(nCtx contextx.IContext, agentIDList ...string) ([]*types.AgentInfo, error) {
 	req := ListAgentInfoReq{
 		AgentIDList: agentIDList,
 	}
 
-	resp, err := h.cli.listAgentInfo(ctx, &req)
+	resp, err := h.cli.listAgentInfo(nCtx, &req)
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +147,8 @@ func (h *Handler) ListAgentInfo(ctx context.Context, agentIDList ...string) ([]*
 }
 
 // ListAgentState list agent state.
-func (h *Handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]*types.AgentState, error) {
-	if ctx == nil {
+func (h *Handler) ListAgentState(nCtx contextx.IContext, agentIDList ...string) ([]*types.AgentState, error) {
+	if nCtx == nil {
 		return nil, errors.New("context is nil")
 	}
 
@@ -159,7 +159,7 @@ func (h *Handler) ListAgentState(ctx context.Context, agentIDList ...string) ([]
 	req := &ListAgentStateReq{
 		AgentIDList: agentIDList,
 	}
-	resp, err := h.cli.listAgentState(ctx, req)
+	resp, err := h.cli.listAgentState(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -191,13 +191,13 @@ func convRunModeToNodeRole(runMode RunMode) types.NodeRole {
 }
 
 // ExecuteScript execute script.
-func (h *Handler) ExecuteScript(ctx context.Context,
+func (h *Handler) ExecuteScript(nCtx contextx.IContext,
 	scriptType types.ScriptType,
 	scriptContent string,
 	timeout time.Duration,
 	endpoints ...*types.EndpointWithAuth) (string, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return "", errors.New("context is nil")
 	}
 
@@ -242,7 +242,7 @@ func (h *Handler) ExecuteScript(ctx context.Context,
 		},
 		Relations: make([]*ScriptAtomicRelation, 0),
 	}
-	resp, err := h.cli.asyncExecuteScript(ctx, req)
+	resp, err := h.cli.asyncExecuteScript(nCtx, req)
 	if err != nil {
 		return "", err
 	}
@@ -251,10 +251,10 @@ func (h *Handler) ExecuteScript(ctx context.Context,
 }
 
 // QueryScriptExecutionResult query script execution result.
-func (h *Handler) QueryScriptExecutionResult(ctx context.Context, taskID string,
+func (h *Handler) QueryScriptExecutionResult(nCtx contextx.IContext, taskID string,
 	endpoints ...*types.EndpointWithRestrict) ([]*types.ScriptResult, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return nil, errors.New("context is nil")
 	}
 
@@ -283,7 +283,7 @@ func (h *Handler) QueryScriptExecutionResult(ctx context.Context, taskID string,
 		TaskID:     taskID,
 		AgentTasks: conditions,
 	}
-	resp, err := h.cli.getExecuteScriptResult(ctx, req)
+	resp, err := h.cli.getExecuteScriptResult(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -309,10 +309,10 @@ func (h *Handler) QueryScriptExecutionResult(ctx context.Context, taskID string,
 }
 
 // TerminateScriptExecution terminate script execution.
-func (h *Handler) TerminateScriptExecution(ctx context.Context, taskID string,
+func (h *Handler) TerminateScriptExecution(nCtx contextx.IContext, taskID string,
 	endpoints ...*types.Endpoint) (string, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return "", errors.New("context is nil")
 	}
 
@@ -332,7 +332,7 @@ func (h *Handler) TerminateScriptExecution(ctx context.Context, taskID string,
 		TaskID:    taskID,
 		Endpoints: eps,
 	}
-	resp, err := h.cli.asyncTerminateExecuteScript(ctx, req)
+	resp, err := h.cli.asyncTerminateExecuteScript(nCtx, req)
 	if err != nil {
 		return "", err
 	}
@@ -341,10 +341,10 @@ func (h *Handler) TerminateScriptExecution(ctx context.Context, taskID string,
 }
 
 // TransferFile transfer file.
-func (h *Handler) TransferFile(ctx context.Context, opts *types.TransferOptions,
+func (h *Handler) TransferFile(nCtx contextx.IContext, opts *types.TransferOptions,
 	transfers ...*types.TransferDetail) (string, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return "", errors.New("context is nil")
 	}
 
@@ -391,7 +391,7 @@ func (h *Handler) TransferFile(ctx context.Context, opts *types.TransferOptions,
 		DownloadSpeed: opts.DownloadSpeedMBPerSec,
 		Tasks:         tasks,
 	}
-	resp, err := h.cli.asyncTransferFile(ctx, req)
+	resp, err := h.cli.asyncTransferFile(nCtx, req)
 	if err != nil {
 		return "", err
 	}
@@ -400,10 +400,10 @@ func (h *Handler) TransferFile(ctx context.Context, opts *types.TransferOptions,
 }
 
 // QueryFileTransmissionResult query file transmission result.
-func (h *Handler) QueryFileTransmissionResult(ctx context.Context, taskID string,
+func (h *Handler) QueryFileTransmissionResult(nCtx contextx.IContext, taskID string,
 	endpoints ...*types.Endpoint) ([]*types.TransferResult, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return nil, errors.New("context is nil")
 	}
 
@@ -419,7 +419,7 @@ func (h *Handler) QueryFileTransmissionResult(ctx context.Context, taskID string
 		TaskID:    taskID,
 		Endpoints: eps,
 	}
-	resp, err := h.cli.getTransferFileResult(ctx, req)
+	resp, err := h.cli.getTransferFileResult(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -456,10 +456,10 @@ func (h *Handler) QueryFileTransmissionResult(ctx context.Context, taskID string
 }
 
 // TerminateFileTransmission terminate file transmission.
-func (h *Handler) TerminateFileTransmission(ctx context.Context, taskID string, endpoints ...*types.Endpoint) (
+func (h *Handler) TerminateFileTransmission(nCtx contextx.IContext, taskID string, endpoints ...*types.Endpoint) (
 	string, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return "", errors.New("context is nil")
 	}
 
@@ -479,7 +479,7 @@ func (h *Handler) TerminateFileTransmission(ctx context.Context, taskID string, 
 		TaskID:    taskID,
 		Endpoints: eps,
 	}
-	resp, err := h.cli.asyncTerminateTransferFile(ctx, req)
+	resp, err := h.cli.asyncTerminateTransferFile(nCtx, req)
 	if err != nil {
 		return "", err
 	}
@@ -488,10 +488,10 @@ func (h *Handler) TerminateFileTransmission(ctx context.Context, taskID string, 
 }
 
 // OperateAgent operate agent.
-func (h *Handler) OperateAgent(ctx context.Context, operate types.OperateAgent, agentIDList ...string) (
+func (h *Handler) OperateAgent(nCtx contextx.IContext, operate types.OperateAgent, agentIDList ...string) (
 	*types.OperateAgentResult, error) {
 
-	if ctx == nil {
+	if nCtx == nil {
 		return nil, errors.New("context is nil")
 	}
 
@@ -515,7 +515,7 @@ func (h *Handler) OperateAgent(ctx context.Context, operate types.OperateAgent, 
 		req.Type = operateAgentTypeUnknown
 	}
 
-	resp, err := h.cli.operateAgent(ctx, req)
+	resp, err := h.cli.operateAgent(nCtx, req)
 	if err != nil {
 		return nil, err
 	}

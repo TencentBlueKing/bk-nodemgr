@@ -25,7 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduleworkflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/stopoperinst"
 	daoTrigger "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -48,7 +48,7 @@ const (
 )
 
 // NewStorage creates a new workflow storage.
-func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (IStorage, error) {
+func NewStorage(client *mongo.Client, database string) (IStorage, error) {
 	if client == nil {
 		return nil, errors.New("mongo client is nil")
 	}
@@ -57,13 +57,13 @@ func NewStorage(client *mongo.Client, database string, logger logger.ILogger) (I
 		Storage: basestorage.Storage{
 			Name:     StorageName,
 			Database: client.Database(database),
-			Logger:   logger,
 		},
 	}
 	if err := basestorage.InitStorage(&s.Storage,
 		basestorage.WithStartFunc(s.initDao),
 		basestorage.WithCheckFunc(s.check)); err != nil {
-		s.Logger.Errorf("new storage failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to new storage")
+
 		return nil, err
 	}
 
@@ -91,18 +91,19 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoTrigger = daoTrigger.New(s.Database, s.Logger)
-	s.daoOperation = operation.New(s.Database, s.Logger)
-	s.daoScheduleWorkflow = scheduleworkflow.New(s.Database, s.Logger)
-	s.daoOperInstData = operinstdata.New(s.Database, s.Logger)
-	s.daoStopOperInst = stopoperinst.New(s.Database, s.Logger)
+	s.daoTrigger = daoTrigger.New(s.Database)
+	s.daoOperation = operation.New(s.Database)
+	s.daoScheduleWorkflow = scheduleworkflow.New(s.Database)
+	s.daoOperInstData = operinstdata.New(s.Database)
+	s.daoStopOperInst = stopoperinst.New(s.Database)
 
 	s.stopEventSubsMap = make(map[string]*StopEventSubscription)
 	s.stopOperInsts = make(map[string]struct{})
 
 	err := s.registerScheduler()
 	if err != nil {
-		s.Logger.Errorf("failed to register scheduler: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to register scheduler")
+
 		return fmt.Errorf("failed to register scheduler: %w", err)
 	}
 
@@ -118,7 +119,7 @@ func (s *Storage) check() error {
 }
 
 func (s *Storage) registerScheduler() error {
-	s.Scheduler = scheduler.NewScheduler(scheduler.WithLogger(s.Logger))
+	s.Scheduler = scheduler.NewScheduler()
 	err := s.Scheduler.RegisterTask(scheduler.NewTask(
 		syncOperationTask,
 		taskInterval,
@@ -126,8 +127,9 @@ func (s *Storage) registerScheduler() error {
 		s.syncStopOperInsts,
 	))
 	if err != nil {
-		s.Logger.Errorf("failed to register sync stopping operation inst task: %v", err)
-		return fmt.Errorf("failed to register sync stopping operation inst task: %w", err)
+		logger.G.Sys().WithErr(err).Error("failed to register sync stopping operation instance task")
+
+		return fmt.Errorf("failed to register sync stopping operation instance task: %w", err)
 	}
 
 	go s.daoStopOperInst.WatchInsert(func(stopInstID string) {
@@ -138,7 +140,7 @@ func (s *Storage) registerScheduler() error {
 		go func() {
 			err := s.checkNotifyStopping(contextx.New(s.Ctx))
 			if err != nil {
-				s.Logger.Warnf("failed to notify stopping operation inst: %v", err)
+				logger.G.Sys().WithErr(err).Warn("failed to check notify stopping")
 			}
 		}()
 	})
@@ -151,15 +153,16 @@ func (s *Storage) metric() *storage.MetricData {
 }
 
 // CreateTrigger creates a new trigger.
-func (s *Storage) CreateTrigger(ctx contextx.IContext, trig *trigger.Trigger) error {
+func (s *Storage) CreateTrigger(nCtx contextx.IContext, trig *trigger.Trigger) error {
 	var err error
 
 	// record metric.
 	metric := s.metric().Start("create_trigger")
 	defer metric.End(err)
 
-	if err = s.createTrigger(ctx, trig); err != nil {
-		s.Logger.Errorf("failed to create trigger, trigger-id(%s): %v", trig.TriggerID, err)
+	if err = s.createTrigger(nCtx, trig); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to create trigger")
+
 		return fmt.Errorf("failed to create trigger, trigger-id(%s): %w", trig.TriggerID, err)
 	}
 
@@ -167,15 +170,16 @@ func (s *Storage) CreateTrigger(ctx contextx.IContext, trig *trigger.Trigger) er
 }
 
 // UpdateTrigger updates a trigger.
-func (s *Storage) UpdateTrigger(ctx contextx.IContext, trig *trigger.Trigger) error {
+func (s *Storage) UpdateTrigger(nCtx contextx.IContext, trig *trigger.Trigger) error {
 	var err error
 
 	// record metric.
 	metric := s.metric().Start("update_trigger")
 	defer metric.End(err)
 
-	if err = s.updateTrigger(ctx, trig); err != nil {
-		s.Logger.Errorf("failed to update trigger, trigger-id(%s): %v", trig.TriggerID, err)
+	if err = s.updateTrigger(nCtx, trig); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to update trigger")
+
 		return fmt.Errorf("failed to update trigger, trigger-id(%s): %w", trig.TriggerID, err)
 	}
 
@@ -183,15 +187,16 @@ func (s *Storage) UpdateTrigger(ctx contextx.IContext, trig *trigger.Trigger) er
 }
 
 // UpdateTriggerState updates a trigger's state.
-func (s *Storage) UpdateTriggerState(ctx contextx.IContext, triggerID string, state trigger.State) error {
+func (s *Storage) UpdateTriggerState(nCtx contextx.IContext, triggerID string, state trigger.State) error {
 	var err error
 
 	// record metric.
 	metric := s.metric().Start("update_trigger_state")
 	defer metric.End(err)
 
-	if err = s.updateTriggerState(ctx, triggerID, state); err != nil {
-		s.Logger.Errorf("failed to update trigger state, trigger-id(%s): %v", triggerID, err)
+	if err = s.updateTriggerState(nCtx, triggerID, state); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to update trigger state")
+
 		return fmt.Errorf("failed to update trigger state, trigger-id(%s): %w", triggerID, err)
 	}
 
@@ -199,7 +204,7 @@ func (s *Storage) UpdateTriggerState(ctx contextx.IContext, triggerID string, st
 }
 
 // GetTrigger gets a trigger by triggerID.
-func (s *Storage) GetTrigger(ctx contextx.IContext, triggerID string) (*trigger.Trigger, error) {
+func (s *Storage) GetTrigger(nCtx contextx.IContext, triggerID string) (*trigger.Trigger, error) {
 	var (
 		err  error
 		data *trigger.Trigger
@@ -209,8 +214,9 @@ func (s *Storage) GetTrigger(ctx contextx.IContext, triggerID string) (*trigger.
 	metric := s.metric().Start("get_trigger")
 	defer metric.End(err)
 
-	if data, err = s.getTrigger(ctx, triggerID); err != nil {
-		s.Logger.Errorf("failed to get trigger, trigger-id(%s): %v", triggerID, err)
+	if data, err = s.getTrigger(nCtx, triggerID); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to get trigger")
+
 		return nil, fmt.Errorf("failed to get trigger, trigger-id(%s): %w", triggerID, err)
 	}
 
@@ -218,7 +224,7 @@ func (s *Storage) GetTrigger(ctx contextx.IContext, triggerID string) (*trigger.
 }
 
 // ListAliveTrigger lists alive triggers by category.
-func (s *Storage) ListAliveTrigger(ctx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
+func (s *Storage) ListAliveTrigger(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
 	var (
 		err     error
 		results []*trigger.Trigger
@@ -228,8 +234,9 @@ func (s *Storage) ListAliveTrigger(ctx contextx.IContext, category trigger.Categ
 	metric := s.metric().Start("list_alive_trigger")
 	defer metric.End(err)
 
-	if results, err = s.listAliveTrigger(ctx, category); err != nil {
-		s.Logger.Errorf("failed to list alive triggers, category(%s): %v", category, err)
+	if results, err = s.listAliveTrigger(nCtx, category); err != nil {
+		logger.G.Sys().WithErr(err).With("category", category).Error("failed to list alive triggers")
+
 		return nil, fmt.Errorf("failed to list alive triggers, category(%s): %w", category, err)
 	}
 
@@ -237,15 +244,16 @@ func (s *Storage) ListAliveTrigger(ctx contextx.IContext, category trigger.Categ
 }
 
 // DeleteTriggers deletes triggers by given trigger IDs.
-func (s *Storage) DeleteTriggers(ctx contextx.IContext, triggerIDs ...string) error {
+func (s *Storage) DeleteTriggers(nCtx contextx.IContext, triggerIDs ...string) error {
 	var err error
 
 	// record metric.
 	metric := s.metric().Start("delete_triggers")
 	defer metric.End(err)
 
-	if err = s.deleteTriggers(ctx, triggerIDs...); err != nil {
-		s.Logger.Errorf("failed to delete triggers, trigger-ids(%v): %v", triggerIDs, err)
+	if err = s.deleteTriggers(nCtx, triggerIDs...); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-ids", triggerIDs).Error("failed to delete triggers")
+
 		return fmt.Errorf("failed to delete triggers, trigger-ids(%v): %w", triggerIDs, err)
 	}
 
@@ -254,7 +262,7 @@ func (s *Storage) DeleteTriggers(ctx contextx.IContext, triggerIDs ...string) er
 
 // ListScheduleWorkflow lists schedule workflow by page and conditions.
 func (s *Storage) ListScheduleWorkflow(
-	ctx contextx.IContext, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (
 	[]*schedule.Schedule, int64, error) {
 
 	var (
@@ -267,8 +275,9 @@ func (s *Storage) ListScheduleWorkflow(
 	metric := s.metric().Start("list_schedule_workflow")
 	defer metric.End(err)
 
-	if results, num, err = s.listScheduleWorkflow(ctx, page, conditions...); err != nil {
-		s.Logger.Errorf("failed to list schedule workflows: %v", err)
+	if results, num, err = s.listScheduleWorkflow(nCtx, page, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list schedule workflows")
+
 		return nil, 0, fmt.Errorf("failed to list schedule workflows: %w", err)
 	}
 
@@ -277,7 +286,7 @@ func (s *Storage) ListScheduleWorkflow(
 
 // CountScheduleWorkflow counts schedule workflow by conditions.
 func (s *Storage) CountScheduleWorkflow(
-	ctx contextx.IContext, conditions ...*types.ScheduleWorkflowCondition) (
+	nCtx contextx.IContext, conditions ...*types.ScheduleWorkflowCondition) (
 	int64, error) {
 
 	var (
@@ -289,8 +298,9 @@ func (s *Storage) CountScheduleWorkflow(
 	metric := s.metric().Start("count_schedule_workflow")
 	defer metric.End(err)
 
-	if num, err = s.countScheduleWorkflow(ctx, conditions...); err != nil {
-		s.Logger.Errorf("failed to count schedule workflows: %v", err)
+	if num, err = s.countScheduleWorkflow(nCtx, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to count schedule workflows")
+
 		return 0, fmt.Errorf("failed to count schedule workflows: %w", err)
 	}
 
@@ -298,7 +308,7 @@ func (s *Storage) CountScheduleWorkflow(
 }
 
 // GetScheduleWorkflow gets a schedule workflow by workflow-id.
-func (s *Storage) GetScheduleWorkflow(ctx contextx.IContext, workflowID string) (*schedule.Schedule, error) {
+func (s *Storage) GetScheduleWorkflow(nCtx contextx.IContext, workflowID string) (*schedule.Schedule, error) {
 	var (
 		workflow *schedule.Schedule
 		err      error
@@ -308,8 +318,9 @@ func (s *Storage) GetScheduleWorkflow(ctx contextx.IContext, workflowID string) 
 	metric := s.metric().Start("get_schedule_workflow")
 	defer metric.End(err)
 
-	if workflow, err = s.getScheduleWorkflow(ctx, workflowID); err != nil {
-		s.Logger.Errorf("failed to get schedule workflow, workflow-id(%s): %v", workflowID, err)
+	if workflow, err = s.getScheduleWorkflow(nCtx, workflowID); err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to get schedule workflow")
+
 		return nil, fmt.Errorf("failed to get workflow, workflow-id(%s): %w", workflowID, err)
 	}
 
@@ -317,15 +328,16 @@ func (s *Storage) GetScheduleWorkflow(ctx contextx.IContext, workflowID string) 
 }
 
 // CreateScheduleWorkflow creates a new schedule workflow.
-func (s *Storage) CreateScheduleWorkflow(ctx contextx.IContext, workflow *schedule.Schedule) error {
+func (s *Storage) CreateScheduleWorkflow(nCtx contextx.IContext, workflow *schedule.Schedule) error {
 	var err error
 
 	// record metric.
 	metric := s.metric().Start("create_schedule_workflow")
 	defer metric.End(err)
 
-	if err = s.createScheduleWorkflow(ctx, workflow); err != nil {
-		s.Logger.Errorf("failed to create schedule workflow, workflow-id(%s): %v", workflow.WorkflowID, err)
+	if err = s.createScheduleWorkflow(nCtx, workflow); err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-id", workflow.WorkflowID).Error("failed to create schedule workflow")
+
 		return fmt.Errorf("failed to create schedule workflow, workflow-id(%s): %w", workflow.WorkflowID, err)
 	}
 
@@ -333,7 +345,7 @@ func (s *Storage) CreateScheduleWorkflow(ctx contextx.IContext, workflow *schedu
 }
 
 // GetOperation get operation by operationID.
-func (s *Storage) GetOperation(ctx contextx.IContext, operationID string) (*workoper.Operation, error) {
+func (s *Storage) GetOperation(nCtx contextx.IContext, operationID string) (*workoper.Operation, error) {
 	var (
 		oper *workoper.Operation
 		err  error
@@ -342,8 +354,9 @@ func (s *Storage) GetOperation(ctx contextx.IContext, operationID string) (*work
 	metric := s.metric().Start("get_operation")
 	defer metric.End(err)
 
-	if oper, err = s.getOperation(ctx, operationID); err != nil {
-		s.Logger.Errorf("failed to get operations, operationID(%s): %v", operationID, err)
+	if oper, err = s.getOperation(nCtx, operationID); err != nil {
+		logger.G.Sys().WithErr(err).With("operation-id", operationID).Error("failed to get operations")
+
 		return nil, fmt.Errorf("failed to get operations, operationID(%s): %w", operationID, err)
 	}
 
@@ -351,15 +364,16 @@ func (s *Storage) GetOperation(ctx contextx.IContext, operationID string) (*work
 }
 
 // UpsertOperation upsert operation.
-func (s *Storage) UpsertOperation(ctx contextx.IContext, operation *workoper.Operation) error {
+func (s *Storage) UpsertOperation(nCtx contextx.IContext, operation *workoper.Operation) error {
 	var err error
 
 	// record metric.
 	metric := s.metric().Start("upsert_operation")
 	defer metric.End(err)
 
-	if err = s.upsertOperation(ctx, operation); err != nil {
-		s.Logger.Errorf("failed to upsert operation, operation-id(%s): %v", operation.OperationID, err)
+	if err = s.upsertOperation(nCtx, operation); err != nil {
+		logger.G.Sys().WithErr(err).With("operation-id", operation.OperationID).Error("failed to upsert operation")
+
 		return fmt.Errorf("failed to upsert operation, operation-id(%s): %w", operation.OperationID, err)
 	}
 
@@ -368,7 +382,7 @@ func (s *Storage) UpsertOperation(ctx contextx.IContext, operation *workoper.Ope
 
 // ListOperationByTriggerID lists operation by trigger id.
 func (s *Storage) ListOperationByTriggerID(
-	ctx contextx.IContext, page types.Page, triggerID ...string) (
+	nCtx contextx.IContext, page types.Page, triggerID ...string) (
 	[]*workoper.Operation, int64, error) {
 
 	var (
@@ -381,8 +395,9 @@ func (s *Storage) ListOperationByTriggerID(
 	metric := s.metric().Start("list_operation_by_trigger_id")
 	defer metric.End(err)
 
-	if opers, num, err = s.listOperationByTriggerID(ctx, page, triggerID...); err != nil {
-		s.Logger.Errorf("failed to list operations by trigger id, trigger-ids(%v): %v", triggerID, err)
+	if opers, num, err = s.listOperationByTriggerID(nCtx, page, triggerID...); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-ids", triggerID).Error("failed to list operations by trigger id")
+
 		return nil, 0, fmt.Errorf("failed to list operations by trigger id, trigger-ids(%v): %w", triggerID, err)
 	}
 
@@ -391,7 +406,7 @@ func (s *Storage) ListOperationByTriggerID(
 
 // ListOperationByOperationID lists operation by operation id.
 func (s *Storage) ListOperationByOperationID(
-	ctx contextx.IContext, operationID ...string) (
+	nCtx contextx.IContext, operationID ...string) (
 	[]*workoper.Operation, int64, error) {
 
 	var (
@@ -404,8 +419,9 @@ func (s *Storage) ListOperationByOperationID(
 	metric := s.metric().Start("list_operation_by_operation_id")
 	defer metric.End(err)
 
-	if opers, num, err = s.listOperationByOperationID(ctx, operationID...); err != nil {
-		s.Logger.Errorf("failed to list operations by operation id, operation-ids(%v): %v", operationID, err)
+	if opers, num, err = s.listOperationByOperationID(nCtx, operationID...); err != nil {
+		logger.G.Sys().WithErr(err).With("operation-ids", operationID).Error("failed to list operations by operation id")
+
 		return nil, 0, fmt.Errorf("failed to list operations by operation id, operation-ids(%v): %w", operationID, err)
 	}
 
@@ -414,7 +430,7 @@ func (s *Storage) ListOperationByOperationID(
 
 // ListOperationByNodeWorkflowOperationCondition lists operation by node workflow operation condition.
 func (s *Storage) ListOperationByNodeWorkflowOperationCondition(
-	ctx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
+	nCtx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
 	[]*workoper.Operation, int64, error) {
 
 	var (
@@ -427,8 +443,9 @@ func (s *Storage) ListOperationByNodeWorkflowOperationCondition(
 	metric := s.metric().Start("list_operation_by_node_workflow_operation_condition")
 	defer metric.End(err)
 
-	if opers, num, err = s.listOperationByNodeWorkflowOperationCondition(ctx, page, condition...); err != nil {
-		s.Logger.Errorf("failed to list operations by node workflow operation condition: %v", err)
+	if opers, num, err = s.listOperationByNodeWorkflowOperationCondition(nCtx, page, condition...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list operations by node workflow operation condition")
+
 		return nil, 0, fmt.Errorf("failed to list operations by node workflow operation condition: %w", err)
 	}
 
@@ -437,7 +454,7 @@ func (s *Storage) ListOperationByNodeWorkflowOperationCondition(
 
 // ListEmptyOperationByTriggerID lists empty operation by trigger id.
 func (s *Storage) ListEmptyOperationByTriggerID(
-	ctx contextx.IContext, page types.Page, triggerID string) (
+	nCtx contextx.IContext, page types.Page, triggerID string) (
 	[]*workoper.Operation, int64, error) {
 
 	var (
@@ -450,8 +467,9 @@ func (s *Storage) ListEmptyOperationByTriggerID(
 	metric := s.metric().Start("list_empty_operation_by_trigger_id")
 	defer metric.End(err)
 
-	if opers, num, err = s.listEmptyOperationByTriggerID(ctx, page, triggerID); err != nil {
-		s.Logger.Errorf("failed to list empty operations, trigger-id(%s): %v", triggerID, err)
+	if opers, num, err = s.listEmptyOperationByTriggerID(nCtx, page, triggerID); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to list empty operations")
+
 		return nil, 0, fmt.Errorf("failed to list empty operations, trigger-id(%s): %w", triggerID, err)
 	}
 
@@ -459,15 +477,16 @@ func (s *Storage) ListEmptyOperationByTriggerID(
 }
 
 // DeleteOperations deletes operations by operation ids.
-func (s *Storage) DeleteOperations(ctx contextx.IContext, operationID ...string) error {
+func (s *Storage) DeleteOperations(nCtx contextx.IContext, operationID ...string) error {
 	var err error
 
 	// record metric.
 	metric := s.metric().Start("delete_operations")
 	defer metric.End(err)
 
-	if err = s.deleteOperations(ctx, operationID...); err != nil {
-		s.Logger.Errorf("failed to delete operations, operation-ids(%v): %v", operationID, err)
+	if err = s.deleteOperations(nCtx, operationID...); err != nil {
+		logger.G.Sys().WithErr(err).With("operation-ids", operationID).Error("failed to delete operations")
+
 		return fmt.Errorf("failed to delete operations, operation-ids(%v): %w", operationID, err)
 	}
 
@@ -476,7 +495,7 @@ func (s *Storage) DeleteOperations(ctx contextx.IContext, operationID ...string)
 
 // PullOperationInstanceIDsFromOperation pulls operation instance IDs from operation.
 func (s *Storage) PullOperationInstanceIDsFromOperation(
-	ctx contextx.IContext, operationID string, operInstIDs ...string) error {
+	nCtx contextx.IContext, operationID string, operInstIDs ...string) error {
 
 	var err error
 
@@ -484,9 +503,8 @@ func (s *Storage) PullOperationInstanceIDsFromOperation(
 	metric := s.metric().Start("pull_operation_instance_ids_from_operation")
 	defer metric.End(err)
 
-	if err = s.pullOperationInstanceIDs(ctx, operationID, operInstIDs...); err != nil {
-		s.Logger.Errorf("failed to pull operation instance ids, operation-id(%s), oper-inst-ids(%v): %v",
-			operationID, operInstIDs, err)
+	if err = s.pullOperationInstanceIDs(nCtx, operationID, operInstIDs...); err != nil {
+		logger.G.Sys().WithErr(err).With("operation-id", operationID, "oper-inst-ids", operInstIDs).Error("failed to pull operation instance ids")
 
 		return fmt.Errorf("failed to pull operation instance ids, operation-id(%s), oper-inst-ids(%v): %w",
 			operationID, operInstIDs, err)
@@ -497,7 +515,7 @@ func (s *Storage) PullOperationInstanceIDsFromOperation(
 
 // UpdateOperInstActionStatus update the oper inst action status.
 func (s *Storage) UpdateOperInstActionStatus(
-	ctx contextx.IContext, operInstID string, actionName string, status action.State) error {
+	nCtx contextx.IContext, operInstID string, actionName string, status action.State) error {
 
 	var err error
 
@@ -505,9 +523,8 @@ func (s *Storage) UpdateOperInstActionStatus(
 	metric := s.metric().Start("update_oper_inst_action_status")
 	defer metric.End(err)
 
-	if err = s.updateOperInstActionStatus(ctx, operInstID, actionName, status); err != nil {
-		s.Logger.Errorf("failed to update oper inst action status, oper-inst-id(%s), action-name(%s): %v",
-			operInstID, actionName, err)
+	if err = s.updateOperInstActionStatus(nCtx, operInstID, actionName, status); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to update oper inst action status")
 
 		return fmt.Errorf("failed to update oper inst action status, oper-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
@@ -518,7 +535,7 @@ func (s *Storage) UpdateOperInstActionStatus(
 
 // GetActionInstanceData gets full action instance data.
 func (s *Storage) GetActionInstanceData(
-	ctx contextx.IContext, operInstID, actionName string) (*action.InstanceData, error) {
+	nCtx contextx.IContext, operInstID, actionName string) (*action.InstanceData, error) {
 
 	var (
 		data *action.InstanceData
@@ -529,9 +546,8 @@ func (s *Storage) GetActionInstanceData(
 	metric := s.metric().Start("get_action_instance_data")
 	defer metric.End(err)
 
-	if data, err = s.getActionInstanceData(ctx, operInstID, actionName); err != nil {
-		s.Logger.Errorf("failed to get action instance data, oper-inst-id(%s), action-name(%s): %v",
-			operInstID, actionName, err)
+	if data, err = s.getActionInstanceData(nCtx, operInstID, actionName); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to get action instance data")
 
 		return nil, fmt.Errorf("failed to get action instance data, oper-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
@@ -542,7 +558,7 @@ func (s *Storage) GetActionInstanceData(
 
 // GetActionInstanceLifecycle gets action instance lifecycle.
 func (s *Storage) GetActionInstanceLifecycle(
-	ctx contextx.IContext, operInstID, actionName string) (*action.Lifecycle, error) {
+	nCtx contextx.IContext, operInstID, actionName string) (*action.Lifecycle, error) {
 
 	var (
 		lifecycle *action.Lifecycle
@@ -553,9 +569,8 @@ func (s *Storage) GetActionInstanceLifecycle(
 	metric := s.metric().Start("get_action_instance_lifecycle")
 	defer metric.End(err)
 
-	if lifecycle, err = s.getActionInstanceLifecycle(ctx, operInstID, actionName); err != nil {
-		s.Logger.Errorf("failed to get action instance lifecycle, oper-inst-id(%s), action-name(%s): %v",
-			operInstID, actionName, err)
+	if lifecycle, err = s.getActionInstanceLifecycle(nCtx, operInstID, actionName); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to get action instance lifecycle")
 
 		return nil, fmt.Errorf("failed to get action instance lifecycle, oper-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
@@ -566,7 +581,7 @@ func (s *Storage) GetActionInstanceLifecycle(
 
 // GetActionInstancePrivateData gets action instance private data.
 func (s *Storage) GetActionInstancePrivateData(
-	ctx contextx.IContext, operInstID, actionName string) (map[string]any, error) {
+	nCtx contextx.IContext, operInstID, actionName string) (map[string]any, error) {
 
 	var (
 		data map[string]any
@@ -577,9 +592,8 @@ func (s *Storage) GetActionInstancePrivateData(
 	metric := s.metric().Start("get_action_instance_private_data")
 	defer metric.End(err)
 
-	if data, err = s.getActionInstancePrivateData(ctx, operInstID, actionName); err != nil {
-		s.Logger.Errorf("failed to get action instance private data, oper-inst-id(%s), action-name(%s): %v",
-			operInstID, actionName, err)
+	if data, err = s.getActionInstancePrivateData(nCtx, operInstID, actionName); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to get action instance private data")
 
 		return nil, fmt.Errorf("failed to get action instance private data, oper-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
@@ -590,7 +604,7 @@ func (s *Storage) GetActionInstancePrivateData(
 
 // UpdateActionInstanceLifecycle updates action instance lifecycle.
 func (s *Storage) UpdateActionInstanceLifecycle(
-	ctx contextx.IContext, operInstID, actionName string, lifecycle *action.Lifecycle) error {
+	nCtx contextx.IContext, operInstID, actionName string, lifecycle *action.Lifecycle) error {
 
 	var err error
 
@@ -598,9 +612,8 @@ func (s *Storage) UpdateActionInstanceLifecycle(
 	metric := s.metric().Start("update_action_instance_lifecycle")
 	defer metric.End(err)
 
-	if err = s.updateActionInstanceLifecycle(ctx, operInstID, actionName, lifecycle); err != nil {
-		s.Logger.Errorf("failed to update action instance lifecycle, oper-inst-id(%s), action-name(%s): %v",
-			operInstID, actionName, err)
+	if err = s.updateActionInstanceLifecycle(nCtx, operInstID, actionName, lifecycle); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to update action instance lifecycle")
 
 		return fmt.Errorf("failed to update action instance lifecycle, oper-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
@@ -611,7 +624,7 @@ func (s *Storage) UpdateActionInstanceLifecycle(
 
 // PushActionInstanceMessage pushes action instance message.
 func (s *Storage) PushActionInstanceMessage(
-	ctx contextx.IContext, operInstID, actionName string, messages ...common.Message) error {
+	nCtx contextx.IContext, operInstID, actionName string, messages ...common.Message) error {
 
 	var err error
 
@@ -619,9 +632,8 @@ func (s *Storage) PushActionInstanceMessage(
 	metric := s.metric().Start("push_action_instance_message")
 	defer metric.End(err)
 
-	if err = s.pushActionInstanceMessage(ctx, operInstID, actionName, messages...); err != nil {
-		s.Logger.Errorf("failed to push action instance message, oper-inst-id(%s), action-name(%s): %v",
-			operInstID, actionName, err)
+	if err = s.pushActionInstanceMessage(nCtx, operInstID, actionName, messages...); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to push action instance message")
 
 		return fmt.Errorf("failed to push action instance message, oper-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
@@ -632,7 +644,7 @@ func (s *Storage) PushActionInstanceMessage(
 
 // GetOperationInstanceFullData gets full operation instance data.
 func (s *Storage) GetOperationInstanceFullData(
-	ctx contextx.IContext, operInstID string) (*workoper.InstanceData, error) {
+	nCtx contextx.IContext, operInstID string) (*workoper.InstanceData, error) {
 
 	var (
 		data *workoper.InstanceData
@@ -643,9 +655,10 @@ func (s *Storage) GetOperationInstanceFullData(
 	metric := s.metric().Start("get_operation_instance_full_data")
 	defer metric.End(err)
 
-	if data, err = s.getOperationInstanceData(ctx, operInstID); err != nil {
-		s.Logger.Errorf("failed to get operation inst data, oper-inst-id(%s): %v", operInstID, err)
-		return nil, fmt.Errorf("failed to get operation inst data, oper-inst-id(%s): %w", operInstID, err)
+	if data, err = s.getOperationInstanceData(nCtx, operInstID); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to get operation instance full data")
+
+		return nil, fmt.Errorf("failed to get operation instance data, oper-inst-id(%s): %w", operInstID, err)
 	}
 
 	return data, nil
@@ -653,7 +666,7 @@ func (s *Storage) GetOperationInstanceFullData(
 
 // GetOperationInstanceBriefData gets brief operation instance data.
 func (s *Storage) GetOperationInstanceBriefData(
-	ctx contextx.IContext, operInstID string) (*workoper.InstanceBriefData, error) {
+	nCtx contextx.IContext, operInstID string) (*workoper.InstanceBriefData, error) {
 
 	var (
 		briefData *workoper.InstanceBriefData
@@ -664,9 +677,10 @@ func (s *Storage) GetOperationInstanceBriefData(
 	metric := s.metric().Start("get_operation_instance_brief_data")
 	defer metric.End(err)
 
-	if briefData, err = s.getOperationInstanceDataBriefData(ctx, operInstID); err != nil {
-		s.Logger.Errorf("failed to get operation inst data, oper-inst-id(%s): %v", operInstID, err)
-		return nil, fmt.Errorf("failed to get operation inst data, oper-inst-id(%s): %w", operInstID, err)
+	if briefData, err = s.getOperationInstanceDataBriefData(nCtx, operInstID); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to get operation instance brief data")
+
+		return nil, fmt.Errorf("failed to get operation instance data, oper-inst-id(%s): %w", operInstID, err)
 	}
 
 	return briefData, nil
@@ -674,7 +688,7 @@ func (s *Storage) GetOperationInstanceBriefData(
 
 // ListOperationInstanceBriefDataWithoutActionInst lists operation instance brief data. without action instance data.
 func (s *Storage) ListOperationInstanceBriefDataWithoutActionInst(
-	ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
+	nCtx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
 	[]*workoper.InstanceBriefData, int64, error) {
 
 	var (
@@ -688,8 +702,9 @@ func (s *Storage) ListOperationInstanceBriefDataWithoutActionInst(
 	defer metric.End(err)
 
 	if results, num, err = s.listOperationInstanceBriefDataWithoutActionInst(
-		ctx, page, conditions...); err != nil {
-		s.Logger.Errorf("failed to list operation instance brief data: %v", err)
+		nCtx, page, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list operation instance brief data")
+
 		return nil, 0, fmt.Errorf("failed to list operation instance brief data: %w", err)
 	}
 
@@ -698,7 +713,7 @@ func (s *Storage) ListOperationInstanceBriefDataWithoutActionInst(
 
 // CountOperationInstance counts operation instance.
 func (s *Storage) CountOperationInstance(
-	ctx contextx.IContext, triggerID string, states ...workoper.State) (int64, error) {
+	nCtx contextx.IContext, triggerID string, states ...workoper.State) (int64, error) {
 
 	var (
 		num int64
@@ -709,8 +724,9 @@ func (s *Storage) CountOperationInstance(
 	metric := s.metric().Start("count_operation_instance")
 	defer metric.End(err)
 
-	if num, err = s.countOperationInstance(ctx, triggerID, states...); err != nil {
-		s.Logger.Errorf("failed to count operation instance, trigger-id(%s), states(%v): %v", triggerID, states, err)
+	if num, err = s.countOperationInstance(nCtx, triggerID, states...); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID, "states", states).Error("failed to count operation instance")
+
 		return 0, fmt.Errorf("failed to count operation instance, trigger-id(%s), states(%v): %w",
 			triggerID, states, err)
 	}
@@ -720,7 +736,7 @@ func (s *Storage) CountOperationInstance(
 
 // ListOperInstanceBriefWithoutActionInstByOperationID lists operation instance brief data.
 func (s *Storage) ListOperInstanceBriefWithoutActionInstByOperationID(
-	ctx contextx.IContext, page types.Page, operationID ...string) (
+	nCtx contextx.IContext, page types.Page, operationID ...string) (
 	[]*workoper.InstanceBriefData, int64, error) {
 
 	var (
@@ -734,8 +750,9 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByOperationID(
 	defer metric.End(err)
 
 	if results, num, err = s.listOperationInstanceBriefDataWithoutActionInstByOperationID(
-		ctx, page, operationID...); err != nil {
-		s.Logger.Errorf("failed to list operation instance brief data by operation: %v", err)
+		nCtx, page, operationID...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list operation instance brief data by operation")
+
 		return nil, 0, fmt.Errorf("failed to list operation instance brief data by operation: %w", err)
 	}
 
@@ -744,7 +761,7 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByOperationID(
 
 // UpsertOperationInstanceData upserts operation instance data.
 func (s *Storage) UpsertOperationInstanceData(
-	ctx contextx.IContext, operInstData *workoper.InstanceData) error {
+	nCtx contextx.IContext, operInstData *workoper.InstanceData) error {
 
 	var err error
 
@@ -752,9 +769,10 @@ func (s *Storage) UpsertOperationInstanceData(
 	metric := s.metric().Start("upsert_operation_instance_data")
 	defer metric.End(err)
 
-	if err = s.upsertOperationInstanceData(ctx, operInstData); err != nil {
-		s.Logger.Errorf("failed to update operation inst data, operation-inst(%v): %v", operInstData, err)
-		return fmt.Errorf("failed to update operation inst data, operation-inst(%v): %w", operInstData, err)
+	if err = s.upsertOperationInstanceData(nCtx, operInstData); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst", operInstData).Error("failed to update operation instance data")
+
+		return fmt.Errorf("failed to update operation instance data, operation-inst(%v): %w", operInstData, err)
 	}
 
 	return nil
@@ -762,7 +780,7 @@ func (s *Storage) UpsertOperationInstanceData(
 
 // UpdateOperationInstanceLifecycle updates operation instance lifecycle.
 func (s *Storage) UpdateOperationInstanceLifecycle(
-	ctx contextx.IContext, operInstID string, lifecycle *workoper.Lifecycle) error {
+	nCtx contextx.IContext, operInstID string, lifecycle *workoper.Lifecycle) error {
 
 	var err error
 
@@ -770,9 +788,10 @@ func (s *Storage) UpdateOperationInstanceLifecycle(
 	metric := s.metric().Start("update_operation_instance_lifecycle")
 	defer metric.End(err)
 
-	if err = s.updateOperationInstanceLifecycle(ctx, operInstID, lifecycle); err != nil {
-		s.Logger.Errorf("failed to update operation inst lifecycle, oper-inst-id(%s): %v", operInstID, err)
-		return fmt.Errorf("failed to update operation inst lifecycle, oper-inst-id(%s): %w", operInstID, err)
+	if err = s.updateOperationInstanceLifecycle(nCtx, operInstID, lifecycle); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to update operation instance lifecycle")
+
+		return fmt.Errorf("failed to update operation instance lifecycle, oper-inst-id(%s): %w", operInstID, err)
 	}
 
 	return nil
@@ -780,7 +799,7 @@ func (s *Storage) UpdateOperationInstanceLifecycle(
 
 // UpdateOperationInstanceExtraExecutionMessages updates operation instance execution messages.
 func (s *Storage) UpdateOperationInstanceExtraExecutionMessages(
-	ctx contextx.IContext, operInstID string, messages ...common.Message) error {
+	nCtx contextx.IContext, operInstID string, messages ...common.Message) error {
 
 	var err error
 
@@ -788,11 +807,10 @@ func (s *Storage) UpdateOperationInstanceExtraExecutionMessages(
 	metric := s.metric().Start("update_operation_instance_extra_execution_messages")
 	defer metric.End(err)
 
-	if err = s.updateOperationInstanceExtraExecutionMessages(ctx, operInstID, messages...); err != nil {
-		s.Logger.Errorf("failed to update operation inst extra execution messages, oper-inst-id(%s): %v",
-			operInstID, err)
+	if err = s.updateOperationInstanceExtraExecutionMessages(nCtx, operInstID, messages...); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to update operation instance extra execution messages")
 
-		return fmt.Errorf("failed to update operation inst extra execution messages, oper-inst-id(%s): %w",
+		return fmt.Errorf("failed to update operation instance extra execution messages, oper-inst-id(%s): %w",
 			operInstID, err)
 	}
 
@@ -800,7 +818,7 @@ func (s *Storage) UpdateOperationInstanceExtraExecutionMessages(
 }
 
 // WatchOperInstStopping watches operation instance stopping.
-func (s *Storage) WatchOperInstStopping(ctx contextx.IContext, operInstID string) <-chan struct{} {
+func (s *Storage) WatchOperInstStopping(nCtx contextx.IContext, operInstID string) <-chan struct{} {
 	channel := make(chan struct{}, 1)
 	subscription := &StopEventSubscription{
 		OperInstID: operInstID,
@@ -813,7 +831,7 @@ func (s *Storage) WatchOperInstStopping(ctx contextx.IContext, operInstID string
 	s.stopEventSubsMapMutex.Unlock()
 
 	go func() {
-		<-ctx.Done()
+		<-nCtx.Done()
 
 		s.stopEventSubsMapMutex.Lock()
 		delete(s.stopEventSubsMap, subscriptionID)
@@ -821,10 +839,9 @@ func (s *Storage) WatchOperInstStopping(ctx contextx.IContext, operInstID string
 	}()
 
 	go func() {
-		err := s.checkNotifyStopping(ctx)
+		err := s.checkNotifyStopping(nCtx)
 		if err != nil {
-			s.Logger.Errorf("watch operation instance stopping event succeed, "+
-				"but check notify stopping failed: %v", err)
+			logger.G.Sys().WithErr(err).Error("watch operation instance stopping event succeed, but check notify stopping failed")
 		}
 	}()
 
@@ -833,7 +850,7 @@ func (s *Storage) WatchOperInstStopping(ctx contextx.IContext, operInstID string
 
 // UpdateActionInstanceContent update action instance content.
 func (s *Storage) UpdateActionInstanceContent(
-	ctx contextx.IContext, operInstID string, actionName string, content map[string]any) error {
+	nCtx contextx.IContext, operInstID string, actionName string, content map[string]any) error {
 
 	var err error
 
@@ -841,9 +858,8 @@ func (s *Storage) UpdateActionInstanceContent(
 	metric := s.metric().Start("update_action_instance_content")
 	defer metric.End(err)
 
-	if err = s.updateActionInstanceContent(ctx, operInstID, actionName, content); err != nil {
-		s.Logger.Errorf("failed to update action instance content, oper-inst-id(%s), action-name(%s): %v",
-			operInstID, actionName, err)
+	if err = s.updateActionInstanceContent(nCtx, operInstID, actionName, content); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to update action instance content")
 
 		return fmt.Errorf("failed to update action instance content, oper-inst-id(%s), action-name(%s): %w",
 			operInstID, actionName, err)
@@ -854,7 +870,7 @@ func (s *Storage) UpdateActionInstanceContent(
 
 // UpsertActionInstancePrivateData upserts action instance private data.
 func (s *Storage) UpsertActionInstancePrivateData(
-	ctx contextx.IContext, operInstID string, actionName string, privateData map[string]any) error {
+	nCtx contextx.IContext, operInstID string, actionName string, privateData map[string]any) error {
 
 	var err error
 
@@ -862,9 +878,8 @@ func (s *Storage) UpsertActionInstancePrivateData(
 	metric := s.metric().Start("upsert_action_instance_private_data")
 	defer metric.End(err)
 
-	if err = s.upsertActionInstancePrivateData(ctx, operInstID, actionName, privateData); err != nil {
-		s.Logger.Errorf("failed to update operation instance private data, operation-inst-id(%s), action-name(%s): %v",
-			operInstID, actionName, err)
+	if err = s.upsertActionInstancePrivateData(nCtx, operInstID, actionName, privateData); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID, "action-name", actionName).Error("failed to update operation instance private data")
 
 		return fmt.Errorf(
 			"failed to update operation instance private data, operation-inst-id(%s), action-name(%s): %w",
@@ -875,15 +890,16 @@ func (s *Storage) UpsertActionInstancePrivateData(
 }
 
 // DeleteOperationInstances deletes operation instances by given operation instance IDs.
-func (s *Storage) DeleteOperationInstances(ctx contextx.IContext, operInstID ...string) error {
+func (s *Storage) DeleteOperationInstances(nCtx contextx.IContext, operInstID ...string) error {
 	var err error
 
 	// record metric.
 	metric := s.metric().Start("delete_operation_instances")
 	defer metric.End(err)
 
-	if err = s.deleteOperationInstances(ctx, operInstID...); err != nil {
-		s.Logger.Errorf("failed to delete operation instances, oper-inst-ids(%v): %v", operInstID, err)
+	if err = s.deleteOperationInstances(nCtx, operInstID...); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to delete operation instances")
+
 		return fmt.Errorf("failed to delete operation instances, oper-inst-ids(%v): %w", operInstID, err)
 	}
 

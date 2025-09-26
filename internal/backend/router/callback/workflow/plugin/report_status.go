@@ -13,6 +13,7 @@ package plugin
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -28,7 +29,7 @@ const (
 func (h *handler) ReportStatus(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoCallback.PluginReportStatusReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("failed to report status, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to report status, failed to decode request body")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
@@ -36,7 +37,7 @@ func (h *handler) ReportStatus(rCtx restserver.IContext) (interface{}, error) {
 	operInstID := req.GetOperInstId()
 	status := req.GetStatus()
 
-	h.logger.Infof("operatin instance(%s), status(%s)", operInstID, status)
+	logger.G.Biz(rCtx).With("oper-inst-id", operInstID, "status", status).Info("report status")
 
 	var state action.State
 	switch status {
@@ -45,20 +46,20 @@ func (h *handler) ReportStatus(rCtx restserver.IContext) (interface{}, error) {
 	case pluginInstallerStatusFailed:
 		state = action.StateFailed
 	default:
-		h.logger.Errorf("failed to report status, invalid status: %s", status)
+		logger.G.Biz(rCtx).With("status", status).Error("failed to report status, got invalid status")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("invalid status: %s", req.GetStatus()))
 	}
 
 	info, err := h.daoPluginDeployment.GetPluginDeploymentInfo(rCtx, token)
 	if err != nil {
-		h.logger.Errorf("failed to report status, failed to get info: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to report status, failed to get info")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	if err = h.stgWorkflow.UpdateOperInstActionStatus(rCtx, operInstID, info.BlockingActionName, state); err != nil {
-		h.logger.Errorf("failed to report status, failed to update action status: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to report status, failed to update action status")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}

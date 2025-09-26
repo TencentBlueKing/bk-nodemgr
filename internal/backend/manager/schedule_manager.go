@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
@@ -84,14 +85,17 @@ func (mgr *Manager) startScheduleWorkflow(ctx contextx.IContext) error {
 
 		triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, dbSchedule.TriggerID)
 		if err != nil {
-			mgr.logger.Errorf("get schedule workflow(%s) trigger failed: %v", dbSchedule.WorkflowID, err)
+			logger.G.Sys().WithErr(err).With("workflow-id", dbSchedule.WorkflowID).Error("failed to get schedule workflow trigger")
+
 			return fmt.Errorf("get schedule workflow(%s) trigger failed: %w", dbSchedule.WorkflowID, err)
 		}
 
 		err = triggerCtl.RunTrigger(ctx)
 		if err != nil {
-			mgr.logger.Errorf("run schedule workflow(%s) trigger(%s) failed: %v",
-				dbSchedule.WorkflowID, dbSchedule.TriggerID, err)
+			logger.G.Sys().
+				WithErr(err).
+				With("workflow-id", dbSchedule.WorkflowID, "trigger-id", dbSchedule.TriggerID).
+				Error("failed to run schedule workflow trigger")
 
 			return fmt.Errorf("run schedule workflow(%s) trigger(%s) failed: %w",
 				dbSchedule.WorkflowID, dbSchedule.TriggerID, err)
@@ -101,13 +105,15 @@ func (mgr *Manager) startScheduleWorkflow(ctx contextx.IContext) error {
 	for _, workflowName := range unRegisteredWorkflows {
 		scheduleFn := scheduleWorkflowMaps[workflowName]
 		if scheduleFn == nil {
-			mgr.logger.Warnf("workflow-name(%s)'s function not found, skip", workflowName)
+			logger.G.Sys().With("workflow-name", workflowName).Warn("workflow function not found, skip")
+
 			continue
 		}
 
 		err := scheduleFn(ctx)
 		if err != nil {
-			mgr.logger.Errorf("register workflow-name(%s) failed: %v", workflowName, err)
+			logger.G.Sys().WithErr(err).With("workflow-name", workflowName).Warn("failed to register workflow")
+
 			return fmt.Errorf("register workflow-name(%s) failed: %w", workflowName, err)
 		}
 	}
@@ -119,19 +125,22 @@ func (mgr *Manager) startScheduleWorkflow(ctx contextx.IContext) error {
 func (mgr *Manager) createAndRunScheduleWorkflows(ctx contextx.IContext, workflowName string, interval string) error {
 	tenantID, err := tenant.GetID(ctx)
 	if err != nil {
-		mgr.logger.Errorf("get tenant id failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to get tenant id")
+
 		return fmt.Errorf("get tenant id failed: %w", err)
 	}
 
 	metadataPeriodic, err := trigger.NewMetadataPeriodic(interval, false)
 	if err != nil {
-		mgr.logger.Errorf("create periodic metadata failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to create periodic metadata")
+
 		return fmt.Errorf("create periodic metadata failed: %w", err)
 	}
 
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryPeriodic, metadataPeriodic)
 	if err != nil {
-		mgr.logger.Errorf("create periodic trigger failed: %v", err)
+		logger.G.Sys().WithErr(err).Error("failed to create periodic trigger")
+
 		return fmt.Errorf("create periodic trigger failed: %w", err)
 	}
 
@@ -145,7 +154,8 @@ func (mgr *Manager) createAndRunScheduleWorkflows(ctx contextx.IContext, workflo
 
 	err = mgr.conf.StorageWorkflow.CreateScheduleWorkflow(ctx, scheduleWf)
 	if err != nil {
-		mgr.logger.Errorf("create schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
+		logger.G.Sys().WithErr(err).With("schedule-workflow", scheduleWf.WorkflowName).Error("failed to create schedule workflow")
+
 		return fmt.Errorf("create schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
 	}
 
@@ -154,17 +164,20 @@ func (mgr *Manager) createAndRunScheduleWorkflows(ctx contextx.IContext, workflo
 		workflowName)
 	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
 	if err != nil {
-		mgr.logger.Errorf("create operation for schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
+		logger.G.Sys().WithErr(err).With("schedule-workflow", scheduleWf.WorkflowName).Error("failed to create operation for schedule workflow")
+
 		return fmt.Errorf("create operation for schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
 	}
 
-	mgr.logger.InfoCtxf(
-		ctx, "new schedule watch and apply cmdb resource task. tenant-id(%s), trigger-id(%s), operation-id(%s)",
-		tenantID, triggerCtl.GetTriggerID(), operCtl.GetOperationID())
+	logger.G.Sys().
+		With("tenant-id", tenantID).
+		With("workflow-name", scheduleWf.WorkflowName, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("new schedule watch and apply cmdb resource task")
 
 	err = triggerCtl.RunTrigger(ctx)
 	if err != nil {
-		mgr.logger.Errorf("run schedule-workflow(%s) failed: %v", scheduleWf.WorkflowName, err)
+		logger.G.Sys().WithErr(err).With("schedule-workflow", scheduleWf.WorkflowName).Error("failed to run schedule workflow")
+
 		return fmt.Errorf("run schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
 	}
 

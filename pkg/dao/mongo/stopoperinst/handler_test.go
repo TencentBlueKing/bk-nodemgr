@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,9 +34,9 @@ func testClient(t *testing.T) Handler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -53,13 +53,13 @@ func testClient(t *testing.T) Handler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 // Test_handler_Upsert ...
 func Test_handler_Upsert(t *testing.T) {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		operInstID string
 	}
 
@@ -71,15 +71,15 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "temp-test",
 			},
 			wantErr: false,
 		},
 		{
-			name: "nil ctx",
+			name: "nil nCtx",
 			args: args{
-				ctx:        nil,
+				nCtx:       nil,
 				operInstID: "temp-test",
 			},
 			wantErr: true,
@@ -87,7 +87,7 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "empty operInstID",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				operInstID: "",
 			},
 			wantErr: true,
@@ -97,7 +97,7 @@ func Test_handler_Upsert(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			if err := h.Upsert(tt.args.ctx, tt.args.operInstID); (err != nil) != tt.wantErr {
+			if err := h.Upsert(tt.args.nCtx, tt.args.operInstID); (err != nil) != tt.wantErr {
 				t.Errorf("Upsert() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -107,7 +107,7 @@ func Test_handler_Upsert(t *testing.T) {
 // Test_handler_WatchInsert ...
 func Test_handler_WatchInsert(t *testing.T) {
 	type args struct {
-		ctx context.Context
+		nCtx contextx.IContext
 	}
 
 	tests := []struct {
@@ -118,7 +118,7 @@ func Test_handler_WatchInsert(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 			},
 			want: []string{},
 		},
@@ -142,7 +142,7 @@ func Test_handler_WatchInsert(t *testing.T) {
 			})
 
 			for _, v := range tt.want {
-				if err := h.Upsert(tt.args.ctx, v); err != nil {
+				if err := h.Upsert(tt.args.nCtx, v); err != nil {
 					t.Errorf("Upsert() error = %v", err)
 				}
 			}
@@ -161,7 +161,7 @@ func Test_handler_WatchInsert(t *testing.T) {
 // Test_handler_FindAll ...
 func Test_handler_FindAll(t *testing.T) {
 	type args struct {
-		ctx context.Context
+		nCtx contextx.IContext
 	}
 
 	tests := []struct {
@@ -172,7 +172,7 @@ func Test_handler_FindAll(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 			},
 			wantErr: false,
 		},
@@ -181,7 +181,7 @@ func Test_handler_FindAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.FindAll(tt.args.ctx)
+			got, err := h.FindAll(tt.args.nCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindAll() error = %v, wantErr %v", err, tt.wantErr)
 				return

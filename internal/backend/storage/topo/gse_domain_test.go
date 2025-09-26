@@ -17,6 +17,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -25,16 +26,16 @@ var gsePrepareOnce = sync.Once{}
 var gsePrepareDirectUnitID int64
 var gsePrepareNormalUnitID int64
 
-func prepareGSEData(t *testing.T, ctx context.Context) {
+func prepareGSEData(t *testing.T, nCtx contextx.IContext) {
 	gsePrepareOnce.Do(func() {
-		tenantID, _ := tenant.GetID(ctx)
+		tenantID, _ := tenant.GetID(nCtx)
 
 		// pre insert.
 		h := testClient(t)
 
 		var apResult *AccessPointResult
 		var err error
-		gsePrepareDirectUnitID, apResult, err = h.CreateNetworkUnit(ctx, &types.NetworkUnit{
+		gsePrepareDirectUnitID, apResult, err = h.CreateNetworkUnit(nCtx, &types.NetworkUnit{
 			TenantID: tenantID,
 			Name:     "direct-unit",
 			IsDirect: true,
@@ -57,7 +58,7 @@ func prepareGSEData(t *testing.T, ctx context.Context) {
 			t.Fatal(err)
 		}
 
-		gsePrepareDirectUnitID, apResult, err = h.CreateNetworkUnit(ctx, &types.NetworkUnit{
+		gsePrepareDirectUnitID, apResult, err = h.CreateNetworkUnit(nCtx, &types.NetworkUnit{
 			TenantID: tenantID,
 			Name:     "in-direct-unit",
 			IsDirect: false,
@@ -81,7 +82,7 @@ func prepareGSEData(t *testing.T, ctx context.Context) {
 		}
 
 		directAccessPointID := apResult.Created[0].ID
-		gsePrepareNormalUnitID, _, err = h.CreateNetworkUnit(ctx, &types.NetworkUnit{
+		gsePrepareNormalUnitID, _, err = h.CreateNetworkUnit(nCtx, &types.NetworkUnit{
 			TenantID: tenantID,
 			Name:     "normal-unit",
 			IsDirect: false,
@@ -95,7 +96,7 @@ func prepareGSEData(t *testing.T, ctx context.Context) {
 			t.Fatal(err)
 		}
 
-		err = h.UpsertManyHost(ctx, &types.Host{
+		err = h.UpsertManyHost(nCtx, &types.Host{
 			HostID:   10001,
 			TenantID: tenantID,
 			Static: &types.HostStatic{
@@ -120,12 +121,12 @@ func prepareGSEData(t *testing.T, ctx context.Context) {
 // Test_storage_GetAgentV4AccessEndpoints test get agent access endpoints.
 func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareGSEData(t, ctx)
+	prepareGSEData(t, nCtx)
 
 	type args struct {
-		ctx    context.Context
+		nCtx   context.Context
 		unitID int64
 	}
 	tests := []struct {
@@ -139,7 +140,7 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 		{
 			name: "direct",
 			args: args{
-				ctx:    ctx,
+				nCtx:   nCtx,
 				unitID: gsePrepareDirectUnitID,
 			},
 			wantClusterEp: []string{"1.1.1.1:20001", "2.2.2.2:20001"},
@@ -150,7 +151,7 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:    ctx,
+				nCtx:   nCtx,
 				unitID: gsePrepareNormalUnitID,
 			},
 			wantClusterEp: []string{"9.9.9.9:12001", "10.10.10.10:12001"},
@@ -163,7 +164,7 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
-			clusterEp, fileEp, dataEp, err := s.GetV4AgentAccessEndpoints(tt.args.ctx, tt.args.unitID)
+			clusterEp, fileEp, dataEp, err := s.GetV4AgentAccessEndpoints(tt.args.nCtx, tt.args.unitID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAgentV4AccessEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -193,12 +194,12 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 // Test_storage_GetProxyUpstreamAccessEndpoints test get proxy upstream endpoints.
 func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareGSEData(t, ctx)
+	prepareGSEData(t, nCtx)
 
 	type args struct {
-		ctx    context.Context
+		nCtx   context.Context
 		unitID int64
 	}
 	tests := []struct {
@@ -212,7 +213,7 @@ func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 		{
 			name: "direct",
 			args: args{
-				ctx:    ctx,
+				nCtx:   nCtx,
 				unitID: gsePrepareDirectUnitID,
 			},
 			wantErr: true,
@@ -220,7 +221,7 @@ func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:    ctx,
+				nCtx:   nCtx,
 				unitID: gsePrepareNormalUnitID,
 			},
 			wantClusterEp: []string{"5.5.5.5", "6.6.6.6"},
@@ -233,7 +234,7 @@ func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
-			clusterEp, fileEp, dataEp, err := s.GetProxyUpstreamAccessEndpoints(tt.args.ctx, tt.args.unitID)
+			clusterEp, fileEp, dataEp, err := s.GetProxyUpstreamAccessEndpoints(tt.args.nCtx, tt.args.unitID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetAgentAccessEndpoints() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -257,12 +258,12 @@ func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 // TestStorage_NeedStaticAccess tests check static access.
 func TestStorage_NeedStaticAccess(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareGSEData(t, ctx)
+	prepareGSEData(t, nCtx)
 
 	type args struct {
-		ctx           context.Context
+		nCtx          context.Context
 		networkUnitID int64
 	}
 	tests := []struct {
@@ -274,7 +275,7 @@ func TestStorage_NeedStaticAccess(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx:           ctx,
+				nCtx:          nCtx,
 				networkUnitID: 0,
 			},
 			want:    false,
@@ -284,7 +285,7 @@ func TestStorage_NeedStaticAccess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := testClient(t)
-			got, err := s.NeedStaticAccess(tt.args.ctx, tt.args.networkUnitID)
+			got, err := s.NeedStaticAccess(tt.args.nCtx, tt.args.networkUnitID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NeedStaticAccess() error = %v, wantErr %v", err, tt.wantErr)
 				return

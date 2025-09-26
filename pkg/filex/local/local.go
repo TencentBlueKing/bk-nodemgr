@@ -9,6 +9,7 @@
  */
 
 // Package local support the realize of filex to control local LocalFile.
+// nolint: gochecknoglobals
 package local
 
 import (

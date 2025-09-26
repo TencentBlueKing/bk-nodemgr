@@ -16,13 +16,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -39,19 +39,17 @@ const (
 
 // NewActionCleanInstaller get a new action.
 func NewActionCleanInstaller(storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	gseHandler gse.IHandler,
-	logger logger.ILogger) action.Definition {
+	gseHandler gse.IHandler) action.Definition {
 
 	return &actionCleanInstaller{
 		storageNodeDeployment: storageNodeDeployment,
 		gseHandler:            gseHandler,
-		logger:                logger,
 	}
 }
 
 // ActionParamCleanInstaller defines the action param.
 type ActionParamCleanInstaller struct {
-	Token string `json:"token"`
+	utils.NodeActionStandardParam `json:",inline"`
 }
 
 // CleanParams this struct defines the parameters for clean installer temp files.
@@ -69,7 +67,6 @@ type CleanParams struct {
 type actionCleanInstaller struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	gseHandler            gse.IHandler
-	logger                logger.ILogger
 }
 
 // Name returns the name of the action.
@@ -121,36 +118,37 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
 
 	// select matching tools.
-	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
 		err = fmt.Errorf("failed to format tools name: %w", err)
 
 		return err
 	}
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	cleanParams := &CleanParams{
-		AgentID:          info.Host.Dynamic.AgentID,
+		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
 		InstallerName:    toolName,
-		InstallerWorkDir: info.InstallerWorkDir,
-		Generation:       info.Host.Dynamic.NodeGeneration,
-		NodeRole:         info.Host.Dynamic.NodeRole,
+		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
+		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
+		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
 		BaseDeployDir:    deployConstant.BaseDeployDir,
 	}
 
 	// exec upgrade command
-	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
+	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doCleanWindows(ctx, cleanParams)
 	}
 

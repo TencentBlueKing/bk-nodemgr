@@ -15,6 +15,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
@@ -22,24 +24,26 @@ import (
 
 // GetAgentConfig ...
 func (h *handler) GetAgentConfig(gCtx *gin.Context) {
+	nCtx := contextx.New(gCtx)
+
 	req := new(protoCallback.GetAgentConfReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		h.logger.Errorf("get gse agent config failed: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse agent config, failed to decode request")
 		gCtx.IndentedJSON(http.StatusBadRequest, err)
 
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("get gse agent config failed: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse agent config, failed to validate request")
 		gCtx.IndentedJSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	nodeConf, err := h.GetNodeDeploymentNodeConf(gCtx, req.GetToken())
+	nodeConf, err := h.GetNodeDeploymentNodeConf(nCtx, req.GetToken())
 	if err != nil {
-		h.logger.Errorf("get gse agent setting failed: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse agent config, failed to get node deployment conf")
 		gCtx.IndentedJSON(http.StatusInternalServerError, err)
 
 		return
@@ -48,8 +52,8 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 	configTemplate, ok := nodeConf.ConfigTemplate[types.ConfigKeyAgent]
 	if !ok {
 		err := fmt.Errorf("config template not found: %s", types.ConfigKeyAgent)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse agent config, config template not found")
 
-		h.logger.Errorf("get gse agent config failed: %v", err)
 		gCtx.IndentedJSON(http.StatusInternalServerError, err)
 
 		return
@@ -60,7 +64,7 @@ func (h *handler) GetAgentConfig(gCtx *gin.Context) {
 		Content:   configTemplate,
 	}, nodeConf)
 	if err != nil {
-		h.logger.Errorf("render gse agent config failed: %v", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse agent config, failed to render config")
 		gCtx.IndentedJSON(http.StatusInternalServerError, err)
 
 		return

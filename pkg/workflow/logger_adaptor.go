@@ -13,60 +13,57 @@ package workflow
 
 import (
 	"github.com/RichardKnop/logging"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 )
 
 type loggerAdaptor struct {
-	Logger logger.ILogger
 }
 
-func newLoggerAdaptor(l logger.ILogger) logging.LoggerInterface {
-	return &loggerAdaptor{
-		Logger: l,
-	}
+func newLoggerAdaptor() logging.LoggerInterface {
+	return &loggerAdaptor{}
 }
 
 // Print this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Print(args ...interface{}) {
-	l.Logger.Debug(args...)
+	logger.G.Sys().Debug("%v", args)
 }
 
 // Printf this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Printf(s string, args ...interface{}) {
-	l.Logger.Debugf(s, args...)
+	logger.G.Sys().Debug(s, args...)
 }
 
 // Println this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Println(args ...interface{}) {
-	l.Logger.Debug(args...)
+	logger.G.Sys().Debug("%v", args)
 }
 
 // Fatal this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Fatal(args ...interface{}) {
-	l.Logger.Error(args...)
+	logger.G.Sys().Error("%v", args)
 }
 
 // Fatalf this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Fatalf(s string, args ...interface{}) {
-	l.Logger.Errorf(s, args...)
+	logger.G.Sys().Error(s, args...)
 }
 
 // Fatalln this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Fatalln(args ...interface{}) {
-	l.Logger.Error(args...)
+	logger.G.Sys().Error("%v", args)
 }
 
 // Panic this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Panic(args ...interface{}) {
-	l.Logger.Error(args...)
+	logger.G.Sys().Error("%v", args)
 }
 
 // Panicf this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Panicf(s string, args ...interface{}) {
-	l.Logger.Errorf(s, args...)
+	logger.G.Sys().Error(s, args...)
 }
 
 // Panicln this is implement of logging.LoggerInterface.
 func (l *loggerAdaptor) Panicln(args ...interface{}) {
-	l.Logger.Error(args...)
+	logger.G.Sys().Error("%v", args)
 }

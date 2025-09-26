@@ -12,18 +12,19 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/pkg/errors"
 )
 
 // reportHostInfo report host info to callback.
-func (h *handler) reportHostInfo(ctx context.Context,
+func (h *handler) reportHostInfo(nCtx contextx.IContext,
 	actionName, operInstID string,
 	osType criteria.OSType, cpuArch criteria.CPUArch,
 	connectedDir, msg string) error {
@@ -38,30 +39,27 @@ func (h *handler) reportHostInfo(ctx context.Context,
 	}
 	jsonData, err := json.Marshal(req)
 	if err != nil {
-		h.logger.Errorf("failed to marshal status request: %v", err)
-		return fmt.Errorf("failed to marshal status request: %w", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to marshal status request")
+
+		return err
 	}
 
-	h.logger.Infof("report host info. action-name(%s), instance-id(%s), data(%s)",
-		actionName, operInstID, string(jsonData))
-	errCh := h.client.ClientPushReq(ctx, reportRelayDetectResultURL, jsonData)
+	logger.G.Biz(nCtx).With("action", actionName, "oper-inst-id", operInstID, "data", string(jsonData)).Info("report host info")
+	errCh := h.client.ClientPushReq(nCtx, reportRelayDetectResultURL, jsonData)
 
 	select {
 	case err := <-errCh:
 		if err != nil {
-			h.logger.Errorf("report host info failed. action-name(%s), instance-id(%s): %v",
-				req.ActionName, req.OperInstID, err)
+			logger.G.Biz(nCtx).WithErr(err).With("action", actionName, "oper-inst-id", operInstID).Error("failed to report host info")
 
 			return fmt.Errorf("report host info failed. action-name(%s), instance-id(%s): %w",
 				req.ActionName, req.OperInstID, err)
 		}
-		h.logger.Infof("report host info success. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
+		logger.G.Biz(nCtx).With("action", actionName, "oper-inst-id", operInstID).Info("success to report host info")
 
 		return nil
 	case <-time.After(ReportPrivateDataTimeout):
-		h.logger.Errorf("report host info timed out. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
+		logger.G.Biz(nCtx).With("action", actionName, "oper-inst-id", operInstID).Error("report host info timed out")
 
 		return errors.New("report host info timed out")
 	}
@@ -79,36 +77,32 @@ type reportHostInfo struct {
 }
 
 // reportRelayFileState report relay file state to callback.
-func (h *handler) reportRelayFileState(ctx context.Context,
+func (h *handler) reportRelayFileState(nCtx contextx.IContext,
 	client relayhandler.IClientMessager, req reportRelayFileState) error {
 
-	h.logger.Infof("report relay file state. action-name(%s), instance-id(%s)",
-		req.ActionName, req.OperInstID)
+	logger.G.Biz(nCtx).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Info("report relay file state")
 
 	jsonData, err := json.Marshal(req)
 	if err != nil {
-		h.logger.Errorf("failed to marshal status request: %v", err)
-		return fmt.Errorf("failed to marshal status request: %w", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to marshal file state request")
+
+		return err
 	}
 
-	errCh := client.ClientPushReq(ctx, reportRelayFileStateURL, jsonData)
+	errCh := client.ClientPushReq(nCtx, reportRelayFileStateURL, jsonData)
 
 	select {
 	case err := <-errCh:
 		if err != nil {
-			h.logger.Errorf("report relay file state failed. action-name(%s), instance-id(%s): %v",
-				req.ActionName, req.OperInstID, err)
+			logger.G.Biz(nCtx).WithErr(err).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Error("failed to report relay file state")
 
 			return fmt.Errorf("report relay file state failed. action-name(%s), instance-id(%s): %w",
 				req.ActionName, req.OperInstID, err)
 		}
-		h.logger.Infof("report relay file state success. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
+		logger.G.Biz(nCtx).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Info("success to report relay file state")
 
 		return nil
 	case <-time.After(ReportPrivateDataTimeout):
-		h.logger.Errorf("report relay file state timed out. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
 
 		return errors.New("report relay file state timed out")
 	}
@@ -127,36 +121,33 @@ type fileState struct {
 }
 
 // reportStorageResultReq report storage result to callback.
-func (h *handler) reportStorageResult(ctx context.Context,
+func (h *handler) reportStorageResult(nCtx contextx.IContext,
 	client relayhandler.IClientMessager, req reportRelayStorageResult) error {
 
-	h.logger.Infof("report storage result. action-name(%s), instance-id(%s)",
-		req.ActionName, req.OperInstID)
+	logger.G.Biz(nCtx).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Info("report storage result")
 
 	jsonData, err := json.Marshal(req)
 	if err != nil {
-		h.logger.Errorf("failed to marshal status request: %v", err)
-		return fmt.Errorf("failed to marshal status request: %w", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to marshal storage result request")
+
+		return err
 	}
 
-	errCh := client.ClientPushReq(ctx, reportRelayStorageResultURL, jsonData)
+	errCh := client.ClientPushReq(nCtx, reportRelayStorageResultURL, jsonData)
 
 	select {
 	case err := <-errCh:
 		if err != nil {
-			h.logger.Errorf("report storage result failed. action-name(%s), instance-id(%s): %v",
-				req.ActionName, req.OperInstID, err)
+			logger.G.Biz(nCtx).WithErr(err).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Error("failed to report storage result")
 
 			return fmt.Errorf("report storage result failed. action-name(%s), instance-id(%s): %w",
 				req.ActionName, req.OperInstID, err)
 		}
-		h.logger.Infof("report storage result success. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
+		logger.G.Biz(nCtx).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Info("success to report storage result")
 
 		return nil
 	case <-time.After(ReportPrivateDataTimeout):
-		h.logger.Errorf("report storage result timed out. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
+		logger.G.Biz(nCtx).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Error("report storage result timed out")
 
 		return errors.New("report storage result timed out")
 	}
@@ -169,11 +160,10 @@ type reportRelayStorageResult struct {
 }
 
 // reportInstallResult report install result to callback.
-func (h *handler) reportInstallResult(ctx context.Context,
+func (h *handler) reportInstallResult(nCtx contextx.IContext,
 	actionName, operInstID, outStr, errMsg string) error {
 
-	h.logger.Infof("report install info. action-name(%s), instance-id(%s)",
-		actionName, operInstID)
+	logger.G.Biz(nCtx).With("action", actionName, "oper-inst-id", operInstID).Info("report install result")
 
 	req := &reportInstallResult{
 		ActionName: actionName,
@@ -183,30 +173,28 @@ func (h *handler) reportInstallResult(ctx context.Context,
 	}
 	jsonData, err := json.Marshal(req)
 	if err != nil {
-		h.logger.Errorf("failed to marshal install result request: %v", err)
-		return fmt.Errorf("failed to marshal install result request: %w", err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to marshal install result request")
+
+		return err
 	}
 
-	errCh := h.client.ClientPushReq(ctx, reportRelayInstallResultURL, jsonData)
+	errCh := h.client.ClientPushReq(nCtx, reportRelayInstallResultURL, jsonData)
 
 	select {
 	case err := <-errCh:
 		if err != nil {
-			h.logger.Errorf("report install result failed. action-name(%s), instance-id(%s): %v",
-				req.ActionName, req.OperInstID, err)
+			logger.G.Biz(nCtx).WithErr(err).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Error("failed to report install result")
 
 			return fmt.Errorf("report install result failed. action-name(%s), instance-id(%s): %w",
 				req.ActionName, req.OperInstID, err)
 		}
-		h.logger.Infof("report install result success. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
+		logger.G.Biz(nCtx).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Info("success to report install result")
 
 		return nil
 	case <-time.After(ReportPrivateDataTimeout):
-		h.logger.Errorf("report install result timed out. action-name(%s), instance-id(%s)",
-			req.ActionName, req.OperInstID)
+		logger.G.Biz(nCtx).With("action", req.ActionName, "oper-inst-id", req.OperInstID).Error("report install result timed out")
 
-		return errors.New("report install result imed out")
+		return errors.New("report install result timed out")
 	}
 }
 

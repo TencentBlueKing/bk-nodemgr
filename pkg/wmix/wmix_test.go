@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -34,7 +33,6 @@ func testClient(t *testing.T) *Client {
 		Password:   os.Getenv("WIN-PASSWORD"),
 		Timeout:    10 * time.Second,
 		AuthMethod: AuthMethodPassword,
-		Logger:     logger.LoggerDefault{},
 	}
 
 	h, err := NewClient(config)

@@ -27,10 +27,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
@@ -50,7 +50,6 @@ func NewActionInstallPagentByWMI(
 	storageHostCredit credit.IStorageHostCredit,
 	storageActionInstance workflow.IStorageActionInstance,
 	passwordVault creditvault.IHostPasswordVault,
-	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionInstallPagentByWMI{
@@ -61,8 +60,6 @@ func NewActionInstallPagentByWMI(
 		passwordVault: passwordVault,
 
 		proxyMessager: proxyMessager,
-
-		logger: logger,
 	}
 }
 
@@ -72,8 +69,6 @@ type ActParamInstallPagentBywmi struct {
 }
 
 type actionInstallPagentByWMI struct {
-	logger logger.ILogger
-
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageActionInstance workflow.IStorageActionInstance
@@ -237,7 +232,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 		return std.Context().Err()
 	}
 
-	act.logger.Infof("notify relay to install pagent.")
+	logger.G.Sys().Info("notify relay to install pagent")
 
 	return nil
 }
@@ -262,8 +257,10 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 			privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 				timeoutCtx, std.InstanceData().OperationInstanceID, std.InstanceData().Name)
 			if err != nil {
-				act.logger.Warnf("get private data failed, retrying. oper_inst_id(%s), action_name(%s): %v",
-					std.InstanceData().OperationInstanceID, std.InstanceData().Name, err)
+				logger.G.Sys().
+					WithErr(err).
+					With("oper-inst-id", std.InstanceData().OperationInstanceID, "action_name", std.InstanceData().Name).
+					Error("failed to get action instance private data")
 
 				continue
 			}

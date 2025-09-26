@@ -11,11 +11,11 @@
 package accesspoint
 
 import (
-	"context"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,50 +24,47 @@ import (
 // IHandler accesspoint handler interface.
 type IHandler interface {
 	// Count counts accesspoint by conditions.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// List lists accesspoint by page and conditions.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.AccessPoint, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.AccessPoint, int64, error)
 
 	// Get gets accesspoint by id.
-	Get(ctx context.Context, accessPointID int64) (*types.AccessPoint, error)
+	Get(nCtx contextx.IContext, accessPointID int64) (*types.AccessPoint, error)
 
 	// Create creates accesspoint.
-	Create(ctx context.Context, accessPoint *types.AccessPoint) (int64, error)
+	Create(nCtx contextx.IContext, accessPoint *types.AccessPoint) (int64, error)
 
 	// CreateMany creates many accesspoint.
-	CreateMany(ctx context.Context, accessPoints ...*types.AccessPoint) ([]int64, error)
+	CreateMany(nCtx contextx.IContext, accessPoints ...*types.AccessPoint) ([]int64, error)
 
 	// UpdateMany updates accesspoint.
-	UpdateMany(ctx context.Context, accessPoints ...*types.AccessPoint) error
+	UpdateMany(nCtx contextx.IContext, accessPoints ...*types.AccessPoint) error
 
 	// DeleteMany deletes accesspoint.
-	DeleteMany(ctx context.Context, accessPointIDs ...int64) error
+	DeleteMany(nCtx contextx.IContext, accessPointIDs ...int64) error
 }
 
 type handler struct {
-	dao    *dao
-	logger logger.ILogger
+	dao *dao
 }
 
 // New create a new accesspoint handler.
-func New(client *mongo.Database, logger logger.ILogger) IHandler {
+func New(client *mongo.Database) IHandler {
 	h := &handler{
-		dao:    newDao(client, logger),
-		logger: logger,
+		dao: newDao(client),
 	}
 
 	if err := h.dao.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure accesspoint indexes: %v",
-			errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).Warn("failed to ensure accesspoint indexes")
 	}
 
 	return h
 }
 
 // Count counts networkunit by conditions.
-func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -78,14 +75,14 @@ func (h *handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 	}
 	filter = append(filter, tenantFilter(tenantID))
 
-	return h.dao.Count(ctx, filter)
+	return h.dao.Count(nCtx, filter)
 }
 
 // List lists accesspoint by page and conditions.
-func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
+func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*types.AccessPoint, int64, error) {
 
-	tenantID, err := tenant.GetID(ctx)
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -96,14 +93,14 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 	}
 	filter = append(filter, tenantFilter(tenantID))
 
-	num, err := h.dao.Count(ctx, filter)
+	num, err := h.dao.Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	accessPoints, err := h.dao.List(ctx, filter, findOpt)
+	accessPoints, err := h.dao.List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -117,8 +114,8 @@ func (h *handler) List(ctx context.Context, page types.Page, opts ...OptFn) (
 }
 
 // Get gets accesspoint by id.
-func (h *handler) Get(ctx context.Context, accessPointID int64) (*types.AccessPoint, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Get(nCtx contextx.IContext, accessPointID int64) (*types.AccessPoint, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +129,7 @@ func (h *handler) Get(ctx context.Context, accessPointID int64) (*types.AccessPo
 	filter = opt(filter)
 	filter = append(filter, tenantFilter(tenantID))
 
-	data, err := h.dao.Get(ctx, filter)
+	data, err := h.dao.Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -141,8 +138,8 @@ func (h *handler) Get(ctx context.Context, accessPointID int64) (*types.AccessPo
 }
 
 // Create creates a new accesspoint and return the generated id.
-func (h *handler) Create(ctx context.Context, accessPoint *types.AccessPoint) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) Create(nCtx contextx.IContext, accessPoint *types.AccessPoint) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return -1, err
 	}
@@ -163,12 +160,12 @@ func (h *handler) Create(ctx context.Context, accessPoint *types.AccessPoint) (i
 		return -1, errors.New("accesspoint networkarea-id is invalid")
 	}
 
-	return h.dao.create(ctx, convertAccessPointFromTypes(accessPoint))
+	return h.dao.create(nCtx, convertAccessPointFromTypes(accessPoint))
 }
 
 // CreateMany creates many accesspoints and return the generated ids.
-func (h *handler) CreateMany(ctx context.Context, accessPoints ...*types.AccessPoint) ([]int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) CreateMany(nCtx contextx.IContext, accessPoints ...*types.AccessPoint) ([]int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -190,12 +187,12 @@ func (h *handler) CreateMany(ctx context.Context, accessPoints ...*types.AccessP
 		}
 	}
 
-	return h.dao.createMany(ctx, data)
+	return h.dao.createMany(nCtx, data)
 }
 
 // UpdateMany updates accesspoint.
-func (h *handler) UpdateMany(ctx context.Context, accessPoints ...*types.AccessPoint) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) UpdateMany(nCtx contextx.IContext, accessPoints ...*types.AccessPoint) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -213,7 +210,7 @@ func (h *handler) UpdateMany(ctx context.Context, accessPoints ...*types.AccessP
 		}
 	}
 
-	if err := h.dao.updateMany(ctx, tenantID, data); err != nil {
+	if err := h.dao.updateMany(nCtx, tenantID, data); err != nil {
 		return err
 	}
 
@@ -221,8 +218,8 @@ func (h *handler) UpdateMany(ctx context.Context, accessPoints ...*types.AccessP
 }
 
 // DeleteMany deletes accesspoint by ids.
-func (h *handler) DeleteMany(ctx context.Context, accessPointIDs ...int64) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *handler) DeleteMany(nCtx contextx.IContext, accessPointIDs ...int64) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -231,7 +228,7 @@ func (h *handler) DeleteMany(ctx context.Context, accessPointIDs ...int64) error
 		return base.ErrEmptyParamData()
 	}
 
-	if err := h.dao.deleteMany(ctx, tenantID, accessPointIDs...); err != nil {
+	if err := h.dao.deleteMany(nCtx, tenantID, accessPointIDs...); err != nil {
 		return err
 	}
 

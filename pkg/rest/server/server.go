@@ -18,6 +18,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
 	"github.com/gin-gonic/gin"
 )
@@ -113,7 +114,6 @@ type Options struct {
 	Name            string
 	IP              string
 	Port            int
-	LogWriter       ILogWriter
 	RequestIDSetter IRequestIDSetter
 	TenantIDSetter  ITenantIDSetter
 	StaticOptions   *StaticOptions
@@ -132,32 +132,25 @@ func NewServer(ctx context.Context,
 			engine.RedirectFixedPath = false
 		}),
 	}
+	gin.DebugPrintFunc = logger.G.Sys().Debug
 
 	// Recover from panic
-	svr.engine.Use(gin.RecoveryWithWriter(opts.LogWriter.ErrorWriter()))
+	svr.engine.Use(gin.RecoveryWithWriter(logger.G.Biz(nil).ErrorWriter()))
 
 	// Set authentication middleware.
 	svr.engine.Use(MiddlewareContext())
 
-	//
+	// Set tenant id middleware.
 	svr.engine.Use(MiddlewareSetTenantID(opts.TenantIDSetter))
 
 	// Set request id middleware.
 	svr.engine.Use(MiddlewareSetRequestID(opts.RequestIDSetter))
 
 	// Set received log middleware.
-	svr.engine.Use(MiddlewareReceivedLog(recvLoggerConfig{
-		Output:    opts.LogWriter.InfoWriter(),
-		Formatter: customLogRecvFormatter,
-		SkipPaths: []string{"/ping", "/healthz", "/metrics"},
-	}))
+	svr.engine.Use(MiddlewareReceivedLog("/ping", "/healthz", "/metrics"))
 
 	// Set done log middleware.
-	svr.engine.Use(gin.LoggerWithConfig(gin.LoggerConfig{
-		Output:    opts.LogWriter.InfoWriter(),
-		Formatter: customLogDoneFormatter,
-		SkipPaths: []string{"/ping", "/healthz", "/metrics"},
-	}))
+	svr.engine.Use(MiddlewareReturnedLog("/ping", "/healthz", "/metrics"))
 
 	// Set metrics monitor.
 	svr.metrics = restmetrics.NewMonitor("server_"+opts.Name,
@@ -188,42 +181,6 @@ func NewServer(ctx context.Context,
 	}
 
 	return svr
-}
-
-// customLogRecvFormatter is a custom log recv formatter.
-func customLogRecvFormatter(gCtx *gin.Context) string {
-	urlPath := gCtx.Request.URL.Path
-	raw := gCtx.Request.URL.RawQuery
-
-	if raw != "" {
-		urlPath = urlPath + "?" + raw
-	}
-
-	return fmt.Sprintf("%s[request recv] %s | %s",
-		logWithReqKeys(gCtx.Keys), urlPath, gCtx.ClientIP())
-}
-
-// customLogDoneFormatter is a custom log done formatter.
-func customLogDoneFormatter(param gin.LogFormatterParams) string {
-	if param.Latency > time.Minute {
-		param.Latency = param.Latency.Truncate(time.Second)
-	}
-
-	return fmt.Sprintf("%s[request done] %s | %s | code(%3d) cost(%dms) %s",
-		logWithReqKeys(param.Keys), param.Path, param.ClientIP,
-		param.StatusCode, param.Latency.Milliseconds(), param.ErrorMessage,
-	)
-}
-
-func logWithReqKeys(keys map[string]any) string {
-	if v, ok := keys[restRequestKey]; ok {
-		if r, ok := v.(*Request); ok {
-			return fmt.Sprintf("[request_id:%s][tenant_id:%s][bk_username:%s][login_name:%s]",
-				r.data.requestID, r.data.tenantID, r.data.bkUsername, r.data.loginName)
-		}
-	}
-
-	return ""
 }
 
 // Start starts the router.

@@ -17,8 +17,8 @@ import (
 	"syscall"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/service"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/blog"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 )
@@ -48,23 +48,35 @@ func NewWebServerCMD() *cobra.Command {
 				gin.SetMode(gin.DebugMode)
 			case config.RunModeRelease:
 				gin.SetMode(gin.ReleaseMode)
-				gin.DebugPrintFunc = func(format string, args ...interface{}) {
-					_, _ = fmt.Fprintf(blog.WriterDebug{}, format, args...)
-				}
 			default:
 				fmt.Printf("invalid mode: %s\n", conf.RunMode)
 				os.Exit(1)
 			}
 
+			fmt.Printf("run mode: %s\n", conf.RunMode)
+
 			// init log.
-			logConfig := blog.NewLogConfig()
-			logConfig.LogDir = conf.Log.Dir
-			logConfig.LogMaxSizeMB = conf.Log.MaxSizeMB
-			logConfig.LogMaxNum = conf.Log.MaxNum
-			logConfig.Level = string(conf.Log.Level)
-			logConfig.ToStdErr = conf.Log.ToStdErr
-			logConfig.AlsoToStdErr = conf.Log.AlsoToStdErr
-			blog.InitLogs(logConfig)
+			logger.Init(logger.Config{
+				LogDir:       conf.Log.Dir,
+				LogMaxSizeMB: conf.Log.MaxSizeMB,
+				LogMaxNum:    conf.Log.MaxNum,
+				Level: func(level config.LogLevel) logger.Level {
+					switch level {
+					case config.LogLevelDebug:
+						return logger.LevelDebug
+					case config.LogLevelInfo:
+						return logger.LevelInfo
+					case config.LogLevelWarn:
+						return logger.LevelWarn
+					case config.LogLevelError:
+						return logger.LevelError
+					default:
+						return logger.LevelInfo
+					}
+				}(conf.Log.Level),
+				ToStdErr:     conf.Log.ToStdErr,
+				AlsoToStdErr: conf.Log.AlsoToStdErr,
+			})
 
 			svc, err := service.NewService(conf)
 			if err != nil {
@@ -94,6 +106,9 @@ func watchShutdown(svc *service.Service) {
 	signalC := make(chan os.Signal, 1)
 	signal.Notify(signalC, syscall.SIGINT, syscall.SIGTERM)
 	receivedSignal := <-signalC
+
+	// flush logs before shutdown.
+	logger.G.Flush()
 
 	if err := svc.GracefulShutdown(); err != nil {
 		fmt.Printf("failed to graceful shutdown service: %v\n", err)

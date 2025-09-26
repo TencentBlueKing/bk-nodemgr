@@ -11,9 +11,8 @@
 package configpolicy
 
 import (
-	"context"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -27,32 +26,32 @@ type IStorage interface {
 // IDaoConfigPolicy defines the interface for config policy.
 type IDaoConfigPolicy interface {
 	// MatchConfigPolicy matches the config policy.
-	MatchConfigPolicy(ctx context.Context,
+	MatchConfigPolicy(nCtx contextx.IContext,
 		bizID, networkAreaID, networkUnitID int64,
 		osType criteria.OSType, cpuArch criteria.CPUArch) (*types.ConfigPolicy, bool, error)
 
 	// CountConfigPolicy counts the config policy by conditions.
-	CountConfigPolicy(ctx context.Context, conditions ...*types.ConfigPolicyCondition) (int64, error)
+	CountConfigPolicy(nCtx contextx.IContext, conditions ...*types.ConfigPolicyCondition) (int64, error)
 
 	// ListConfigPolicy lists the config policy by page and conditions.
-	ListConfigPolicy(ctx context.Context, page types.Page, conditions ...*types.ConfigPolicyCondition) (
+	ListConfigPolicy(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyCondition) (
 		[]*types.ConfigPolicy, int64, error)
 
 	// GetConfigPolicy gets the config policy.
-	GetConfigPolicy(ctx context.Context, configPolicyID int64) (*types.ConfigPolicy, error)
+	GetConfigPolicy(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error)
 
 	// CreateConfigPolicy creates the config policy.
-	CreateConfigPolicy(ctx context.Context, configPolicy *types.ConfigPolicy) (int64, error)
+	CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error)
 
 	// UpdateConfigPolicy updates the config policy.
-	UpdateConfigPolicy(ctx context.Context, configPolicy *types.ConfigPolicy) error
+	UpdateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) error
 
 	// DeleteManyConfigPolicy deletes the config policies.
-	DeleteManyConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error
+	DeleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
 
 	// EnableManyConfigPolicy enables the config policies.
-	EnableManyConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error
+	EnableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
 
 	// DisableManyConfigPolicy disables the config policies.
-	DisableManyConfigPolicy(ctx context.Context, configPolicyIDs ...int64) error
+	DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
 }

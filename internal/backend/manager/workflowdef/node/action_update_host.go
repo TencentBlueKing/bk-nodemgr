@@ -16,7 +16,6 @@ import (
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -31,13 +30,11 @@ const (
 func NewActionUpdateHost(
 	storageHost topo.IStorageHost,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	logger logger.ILogger,
 ) action.Definition {
 
 	return &actionUpdateHost{
 		storageHost:           storageHost,
 		storageNodeDeployment: storageNodeDeployment,
-		logger:                logger,
 	}
 }
 
@@ -50,7 +47,6 @@ type ActParamUpdateHost struct {
 type actionUpdateHost struct {
 	storageHost           topo.IStorageHost
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
-	logger                logger.ILogger
 }
 
 // Name returns the name of the action.

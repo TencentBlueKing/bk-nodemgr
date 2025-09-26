@@ -12,43 +12,39 @@
 package tenant
 
 import (
-	"context"
-
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func newDao(client *mongo.Database, logger logger.ILogger) *dao {
-	return &dao{client: client.Collection(TableName), logger: logger}
+func newDao(client *mongo.Database) *dao {
+	return &dao{client: client.Collection(TableName)}
 }
 
 type dao struct {
 	client *mongo.Collection
-	logger logger.ILogger
 }
 
 // upsert updates or inserts a tenant.
-func (d *dao) upsert(ctx context.Context, tenant *Tenant) error {
+func (d *dao) upsert(nCtx contextx.IContext, tenant *Tenant) error {
 	filter, upsert, opts := buildUpsertParams(tenant)
-	result, err := d.client.UpdateOne(ctx, filter, upsert, opts)
+	result, err := d.client.UpdateOne(nCtx, filter, upsert, opts)
 	if err != nil {
 		return err
 	}
 
 	switch {
 	case result.UpsertedCount > 0:
-		{
-			d.logger.Infof("successfully upserted tenant, unique-key(%s)", tenant.UniqueKey())
-		}
+		logger.G.Sys().With("unique-key", tenant.UniqueKey()).Info("inserted tenant")
+
 	case result.MatchedCount > 0:
-		{
-			d.logger.Infof("successfully updated tenant, unique-key(%s)", tenant.UniqueKey())
-		}
+		logger.G.Sys().With("unique-key", tenant.UniqueKey()).Info("updated tenant")
+
 	default:
-		d.logger.Warnf("try to upsert tenant but no changes made, unique-key(%s", tenant.UniqueKey())
+		logger.G.Sys().With("unique-key", tenant.UniqueKey()).Info("try to upsert tenant but no changes made")
 	}
 
 	return nil
@@ -69,17 +65,17 @@ func buildUpsertParams(tenant *Tenant) (bson.D, bson.D, *mongoOptions.UpdateOpti
 }
 
 // ListAll list all tenant.
-func (d *dao) listAll(ctx context.Context) ([]*Tenant, error) {
-	result, err := d.client.Find(ctx, bson.D{{Key: "basic.is_deleted", Value: false}})
+func (d *dao) listAll(nCtx contextx.IContext) ([]*Tenant, error) {
+	result, err := d.client.Find(nCtx, bson.D{{Key: "basic.is_deleted", Value: false}})
 	if err != nil {
 		return nil, err
 	}
 
 	tenants := make([]*Tenant, 0)
-	for result.Next(ctx) {
+	for result.Next(nCtx) {
 		table := &TableTenant{}
 		if err := result.Decode(table); err != nil {
-			d.logger.Warnf("failed to decode tenant, err %v", err)
+			logger.G.Sys().WithErr(err).Warn("failed to decode tenant")
 
 			continue
 		}

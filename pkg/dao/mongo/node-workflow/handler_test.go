@@ -15,7 +15,6 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/counter"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/test/mongodaotest"
 	"github.com/stretchr/testify/suite"
@@ -36,10 +35,10 @@ func TestAll(t *testing.T) {
 	}
 
 	testSuit := new(TestSuite)
-	testSuit.TestSuite = mongodaotest.NewMongoDaoTestSuite[*Data, Data](logger.LoggerDefault{}, func(client *mongo.Database, logger logger.ILogger) {
-		testSuit.Dao = newDao(client, logger)
-		testSuit.Handler = New(client, logger)
-		testSuit.counter = counter.New(client, logger)
+	testSuit.TestSuite = mongodaotest.NewMongoDaoTestSuite[*Data, Data](func(client *mongo.Database) {
+		testSuit.Dao = newDao(client)
+		testSuit.Handler = New(client)
+		testSuit.counter = counter.New(client)
 		testSuit.TestDatas = testSuit.prepareTestData()
 	})
 
@@ -84,7 +83,7 @@ func (testSuit *TestSuite) prepareTestData() []*Data {
 // TestCreate tests the Create method of the handler.
 func (testSuit *TestSuite) TestCreate() {
 	type args struct {
-		ctx          context.Context
+		nCtx         context.Context
 		nodeWorkflow *types.NodeWorkflow
 	}
 	tests := []struct {
@@ -95,7 +94,7 @@ func (testSuit *TestSuite) TestCreate() {
 		{
 			name: "normal",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				nodeWorkflow: &types.NodeWorkflow{
 					WorkflowID: "1",
 					TriggerID:  "T-123459",
@@ -108,7 +107,7 @@ func (testSuit *TestSuite) TestCreate() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.Create(tt.args.ctx, tt.args.nodeWorkflow)
+			err := testSuit.Handler.Create(tt.args.nCtx, tt.args.nodeWorkflow)
 			if !tt.wantErr {
 				testSuit.NoErrorf(err, "Create() error = %v", err)
 			}
@@ -121,7 +120,7 @@ func (testSuit *TestSuite) TestCreate() {
 // TestList tests the List method of the handler.
 func (testSuit *TestSuite) TestList() {
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		page types.Page
 		opts []OptFn
 	}
@@ -135,7 +134,7 @@ func (testSuit *TestSuite) TestList() {
 		{
 			name: "filter by workflow id",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				page: types.Page{
 					Offset: 0,
 					Limit:  1,
@@ -160,7 +159,7 @@ func (testSuit *TestSuite) TestList() {
 		{
 			name: "filter by status",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				page: types.Page{
 					Offset: 0,
 					Limit:  2,
@@ -193,7 +192,7 @@ func (testSuit *TestSuite) TestList() {
 		{
 			name: "filter by oper type",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				page: types.Page{
 					Offset: 0,
 					Limit:  1,
@@ -220,7 +219,7 @@ func (testSuit *TestSuite) TestList() {
 
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			got, gotNum, err := testSuit.Handler.List(tt.args.ctx, tt.args.page, tt.args.opts...)
+			got, gotNum, err := testSuit.Handler.List(tt.args.nCtx, tt.args.page, tt.args.opts...)
 			if !tt.wantErr {
 				testSuit.NoErrorf(err, "List() error = %v", err)
 			}
@@ -234,7 +233,7 @@ func (testSuit *TestSuite) TestList() {
 // TestCount tests the Count method of the handler.
 func (testSuit *TestSuite) TestCount() {
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		opts []OptFn
 	}
 	tests := []struct {
@@ -246,7 +245,7 @@ func (testSuit *TestSuite) TestCount() {
 		{
 			name: "filter by workflow id",
 			args: args{
-				ctx: context.Background(),
+				nCtx: context.Background(),
 				opts: []OptFn{
 					WithWorkflowID("1"),
 				},
@@ -258,7 +257,7 @@ func (testSuit *TestSuite) TestCount() {
 
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			got, err := testSuit.Handler.Count(tt.args.ctx, tt.args.opts...)
+			got, err := testSuit.Handler.Count(tt.args.nCtx, tt.args.opts...)
 			if !tt.wantErr {
 				testSuit.NoErrorf(err, "Count() error = %v", err)
 			}
@@ -271,7 +270,7 @@ func (testSuit *TestSuite) TestCount() {
 // TestUpdateStatus tests the UpdateStatus method of the handler.
 func (testSuit *TestSuite) TestUpdateStatus() {
 	type args struct {
-		ctx        context.Context
+		nCtx       context.Context
 		workflowID string
 		status     types.NodeWorkflowStatus
 	}
@@ -283,7 +282,7 @@ func (testSuit *TestSuite) TestUpdateStatus() {
 		{
 			name: "normal",
 			args: args{
-				ctx:        context.Background(),
+				nCtx:       context.Background(),
 				workflowID: "1",
 				status:     types.NodeWorkflowStatusSuccess,
 			},
@@ -292,7 +291,7 @@ func (testSuit *TestSuite) TestUpdateStatus() {
 	}
 	for _, tt := range tests {
 		testSuit.Run(tt.name, func() {
-			err := testSuit.Handler.UpdateStatus(tt.args.ctx, tt.args.workflowID, tt.args.status)
+			err := testSuit.Handler.UpdateStatus(tt.args.nCtx, tt.args.workflowID, tt.args.status)
 			if !tt.wantErr {
 				testSuit.NoErrorf(err, "UpdateStatus() error = %v", err)
 			}

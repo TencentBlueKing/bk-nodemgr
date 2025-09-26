@@ -26,27 +26,27 @@ type IStorage interface {
 
 // IDaoPluginDeployment defines the plugin deployment dao interface.
 type IDaoPluginDeployment interface {
-	// CreatePluginDeployment createPluginDeployment plugin deployment.
-	CreatePluginDeployment(ctx contextx.IContext, pluginDeployment *types.PluginDeployment) error
+	// CreatePluginDeployment create plugin deployment.
+	CreatePluginDeployment(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error
 
 	// UpdatePluginDeploymentInfo update plugin deployment info.
-	UpdatePluginDeploymentInfo(ctx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error
+	UpdatePluginDeploymentInfo(nCtx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error
 
 	// GetPluginDeploymentInfo get plugin deployment info.
-	GetPluginDeploymentInfo(ctx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
+	GetPluginDeploymentInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
 
 	// GetPluginDeploymentMainConfig get plugin deployment main config.
-	GetPluginDeploymentMainConfig(ctx contextx.IContext, token string) ([]byte, error)
+	GetPluginDeploymentMainConfig(nCtx contextx.IContext, token string) ([]byte, error)
 }
 
 // IDaoPluginWorkflow defines the dao interface.
 type IDaoPluginWorkflow interface {
 	// GetPluginWorkflow gets a plugin workflow by workflow-id.
-	GetPluginWorkflow(ctx contextx.IContext, workflowID string) (*types.PluginWorkflow, error)
+	GetPluginWorkflow(nCtx contextx.IContext, workflowID string) (*types.PluginWorkflow, error)
 
 	// CreatePluginWorkflow creates a new plugin workflow.
-	CreatePluginWorkflow(ctx contextx.IContext, workflow *types.PluginWorkflow) error
+	CreatePluginWorkflow(nCtx contextx.IContext, workflow *types.PluginWorkflow) error
 
 	// UpdatePluginWorkflowStatus updates the status of a plugin workflow.
-	UpdatePluginWorkflowStatus(ctx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error
+	UpdatePluginWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error
 }

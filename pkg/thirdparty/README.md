@@ -42,7 +42,6 @@ import (
 	"context"
 
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
 // IHandler defines the handler interface
@@ -75,7 +74,7 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (Handler, err
 
 	h := &Handler{
 		cli:    cli,
-		logger: logger.LoggerDefault{},
+		logger: ,
 	}
 
 	for _, opt := range opts {

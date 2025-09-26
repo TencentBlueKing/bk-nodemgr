@@ -17,7 +17,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -32,9 +32,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -51,19 +51,19 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 var once = sync.Once{}
 
 // prepareData for all tests.
-func prepareData(t *testing.T, ctx context.Context) {
+func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(ctx)
+		tenantID, _ := tenant.GetID(nCtx)
 
 		// pre insert.
 		h := testClient(t)
-		err := h.UpsertMany(ctx,
+		err := h.UpsertMany(nCtx,
 			&types.Business{
 				TenantID: tenantID,
 				BizID:    90001,
@@ -88,9 +88,9 @@ func prepareData(t *testing.T, ctx context.Context) {
 
 // Test_handler_ListAll ...
 func Test_handler_ListAll(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name    string
@@ -105,7 +105,7 @@ func Test_handler_ListAll(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.ListAll(ctx)
+			got, err := h.ListAll(nCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListAll() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -120,9 +120,9 @@ func Test_handler_ListAll(t *testing.T) {
 
 // Test_handler_Count covers count method.
 func Test_handler_Count(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -153,7 +153,7 @@ func Test_handler_Count(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Count(ctx, tt.optFn...)
+			got, err := h.Count(nCtx, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Count() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -170,9 +170,9 @@ func Test_handler_Count(t *testing.T) {
 
 // Test_handler_List covers list method.
 func Test_handler_List(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
-	prepareData(t, ctx)
+	prepareData(t, nCtx)
 
 	tests := []struct {
 		name      string
@@ -220,7 +220,7 @@ func Test_handler_List(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, total, err := h.List(ctx, tt.page, tt.optFn...)
+			got, total, err := h.List(nCtx, tt.page, tt.optFn...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -247,10 +247,10 @@ func Test_handler_List(t *testing.T) {
 
 // Test_handler_UpsertMany ...
 func Test_handler_UpsertMany(t *testing.T) {
-	ctx, _ := tenant.SetID(context.Background(), "test")
+	nCtx, _ := tenant.SetID(context.Background(), "test")
 
 	type args struct {
-		ctx  context.Context
+		nCtx context.Context
 		bizs []*types.Business
 	}
 
@@ -262,7 +262,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				bizs: []*types.Business{
 					{
 						TenantID: "single",
@@ -281,7 +281,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 		{
 			name: "tenant no match",
 			args: args{
-				ctx: ctx,
+				nCtx: nCtx,
 				bizs: []*types.Business{
 					{
 						TenantID: "test",
@@ -297,7 +297,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.UpsertMany(tt.args.ctx, tt.args.bizs...)
+			err := h.UpsertMany(tt.args.nCtx, tt.args.bizs...)
 			if err != nil {
 				t.Logf("UpsertMany() error = %v", err)
 			}

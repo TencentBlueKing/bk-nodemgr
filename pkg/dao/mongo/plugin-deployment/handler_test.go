@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -48,9 +47,9 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	nCtx := context.Background()
 	mongoClient, err := mongo.Connect(
-		ctx,
+		nCtx,
 		&options.ClientOptions{
 			Hosts: []string{
 				os.Getenv("MONGO_ADDRESS"),
@@ -67,13 +66,13 @@ func testClient(t *testing.T) IHandler {
 		t.Fatal(err)
 	}
 
-	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")), logger.LoggerDefault{})
+	return New(mongoClient.Database(os.Getenv("MONGO_DATABASE")))
 }
 
 // TestHandler_Create test handler Create
 func TestHandler_Create(t *testing.T) {
 	type args struct {
-		ctx              context.Context
+		nCtx             context.Context
 		pluginDeployment *types.PluginDeployment
 	}
 	tests := []struct {
@@ -84,7 +83,7 @@ func TestHandler_Create(t *testing.T) {
 		{
 			name: "normal test",
 			args: args{
-				ctx: contextx.NewContext(context.Background(), map[string]any{}),
+				nCtx: contextx.NewContext(context.Background(), map[string]any{}),
 				pluginDeployment: &types.PluginDeployment{
 					Token: token(),
 					Info: &types.PluginDeploymentInfo{
@@ -126,7 +125,7 @@ func TestHandler_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			if err := h.Create(tt.args.ctx, tt.args.pluginDeployment); (err != nil) != tt.wantErr {
+			if err := h.Create(tt.args.nCtx, tt.args.pluginDeployment); (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -135,7 +134,7 @@ func TestHandler_Create(t *testing.T) {
 
 func TestHandler_GetInfo(t *testing.T) {
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		token string
 	}
 	tests := []struct {
@@ -147,7 +146,7 @@ func TestHandler_GetInfo(t *testing.T) {
 		{
 			name: "normal test",
 			args: args{
-				ctx:   contextx.NewContext(context.Background(), map[string]any{}),
+				nCtx:  contextx.NewContext(context.Background(), map[string]any{}),
 				token: token(),
 			},
 			want: &types.PluginDeploymentInfo{
@@ -187,7 +186,7 @@ func TestHandler_GetInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.GetInfo(tt.args.ctx, tt.args.token)
+			got, err := h.GetInfo(tt.args.nCtx, tt.args.token)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetNodeDeploymentInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -202,7 +201,7 @@ func TestHandler_GetInfo(t *testing.T) {
 // TestHandler_UpdateInfo ...
 func TestHandler_UpdateInfo(t *testing.T) {
 	type args struct {
-		ctx   context.Context
+		nCtx  context.Context
 		token string
 		info  *types.PluginDeploymentInfo
 	}
@@ -214,7 +213,7 @@ func TestHandler_UpdateInfo(t *testing.T) {
 		{
 			name: "normal test",
 			args: args{
-				ctx:   contextx.NewContext(context.Background(), map[string]any{}),
+				nCtx:  contextx.NewContext(context.Background(), map[string]any{}),
 				token: token(),
 				info: &types.PluginDeploymentInfo{
 					BlockingActionName: "wait_plugin_installer_complete",
@@ -254,7 +253,7 @@ func TestHandler_UpdateInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			if err := h.UpdateInfo(tt.args.ctx, tt.args.token, tt.args.info); (err != nil) != tt.wantErr {
+			if err := h.UpdateInfo(tt.args.nCtx, tt.args.token, tt.args.info); (err != nil) != tt.wantErr {
 				t.Errorf("UpdateNodeDeploymentInfo() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

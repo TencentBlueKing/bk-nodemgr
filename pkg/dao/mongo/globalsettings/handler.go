@@ -12,12 +12,12 @@
 package globalsettings
 
 import (
-	"context"
 	"errors"
 	"sync"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,28 +26,27 @@ import (
 // IHandler global settings handler interface.
 type IHandler interface {
 	// Get gets global settings by key.
-	Get(ctx context.Context, key string) (*types.GlobalSettings, error)
+	Get(nCtx contextx.IContext, key string) (*types.GlobalSettings, error)
 
 	// Count counts global settings by opts.
-	Count(ctx context.Context, opts ...OptFn) (int64, error)
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// Exist checks if a global settings exists by key.
-	Exist(ctx context.Context, key string) (bool, error)
+	Exist(nCtx contextx.IContext, key string) (bool, error)
 
 	// List lists global settings by page and opts.
-	List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.GlobalSettings, int64, error)
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.GlobalSettings, int64, error)
 
 	// Upsert upserts global settings.
-	Upsert(ctx context.Context, settings ...*types.GlobalSettings) error
+	Upsert(nCtx contextx.IContext, settings ...*types.GlobalSettings) error
 
 	// Delete deletes global settings.
-	Delete(ctx context.Context, name ...string) error
+	Delete(nCtx contextx.IContext, name ...string) error
 }
 
 // Handler this is a Handler to operate global settings table.
 type Handler struct {
 	client *mongo.Database
-	logger logger.ILogger
 
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
@@ -59,9 +58,9 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 		return d.(*dao) // nolint: forcetypeassert
 	}
 
-	newDaoClient := newDao(tenantID, h.client, h.logger)
+	newDaoClient := newDao(tenantID, h.client)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
-		h.logger.Warnf("failed to ensure global settings indexes: %v", errors.Join(base.ErrEnsureIndexesFailed(), err))
+		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure global settings indexes")
 	}
 
 	d, _ := h.daoMap.LoadOrStore(tenantID, newDaoClient)
@@ -72,17 +71,16 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 }
 
 // New create a new global settings handler.
-func New(client *mongo.Database, logger logger.ILogger) *Handler {
+func New(client *mongo.Database) *Handler {
 	return &Handler{
 		client: client,
-		logger: logger,
 		daoMap: sync.Map{},
 	}
 }
 
 // Get gets global settings by key.
-func (h *Handler) Get(ctx context.Context, name string) (*types.GlobalSettings, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Get(nCtx contextx.IContext, name string) (*types.GlobalSettings, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +88,7 @@ func (h *Handler) Get(ctx context.Context, name string) (*types.GlobalSettings, 
 	filter := base.AliveFilter()
 	filter = WithSettingName(name)(filter)
 
-	data, err := h.tenantDao(tenantID).Get(ctx, filter)
+	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -99,8 +97,8 @@ func (h *Handler) Get(ctx context.Context, name string) (*types.GlobalSettings, 
 }
 
 // Count counts global settings by opts.
-func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return 0, err
 	}
@@ -110,7 +108,7 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 		filter = opt(filter)
 	}
 
-	count, err := h.tenantDao(tenantID).Count(ctx, filter)
+	count, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return 0, err
 	}
@@ -119,8 +117,8 @@ func (h *Handler) Count(ctx context.Context, opts ...OptFn) (int64, error) {
 }
 
 // Exist checks if a global settings exists by key.
-func (h *Handler) Exist(ctx context.Context, name string) (bool, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Exist(nCtx contextx.IContext, name string) (bool, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return false, err
 	}
@@ -128,7 +126,7 @@ func (h *Handler) Exist(ctx context.Context, name string) (bool, error) {
 	filter := base.AliveFilter()
 	filter = WithSettingName(name)(filter)
 
-	exist, err := h.tenantDao(tenantID).Exist(ctx, filter)
+	exist, err := h.tenantDao(tenantID).Exist(nCtx, filter)
 	if err != nil {
 		return false, err
 	}
@@ -137,8 +135,8 @@ func (h *Handler) Exist(ctx context.Context, name string) (bool, error) {
 }
 
 // List lists global settings by page and opts.
-func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*types.GlobalSettings, int64, error) {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.GlobalSettings, int64, error) {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -148,14 +146,14 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 		filter = opt(filter)
 	}
 
-	num, err := h.tenantDao(tenantID).Count(ctx, filter)
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	findOpt := base.ParsePage(page)
 
-	datas, err := h.tenantDao(tenantID).List(ctx, filter, findOpt)
+	datas, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -169,8 +167,8 @@ func (h *Handler) List(ctx context.Context, page types.Page, opts ...OptFn) ([]*
 }
 
 // Upsert upserts global settings.
-func (h *Handler) Upsert(ctx context.Context, settings ...*types.GlobalSettings) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Upsert(nCtx contextx.IContext, settings ...*types.GlobalSettings) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -184,7 +182,7 @@ func (h *Handler) Upsert(ctx context.Context, settings ...*types.GlobalSettings)
 		dataList = append(dataList, convertTypesToGlobalSettings(s))
 	}
 
-	if err := h.tenantDao(tenantID).upsertMany(ctx, dataList); err != nil {
+	if err := h.tenantDao(tenantID).upsertMany(nCtx, dataList); err != nil {
 		return err
 	}
 
@@ -192,8 +190,8 @@ func (h *Handler) Upsert(ctx context.Context, settings ...*types.GlobalSettings)
 }
 
 // Delete deletes global settings.
-func (h *Handler) Delete(ctx context.Context, name ...string) error {
-	tenantID, err := tenant.GetID(ctx)
+func (h *Handler) Delete(nCtx contextx.IContext, name ...string) error {
+	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
 		return err
 	}
@@ -205,7 +203,7 @@ func (h *Handler) Delete(ctx context.Context, name ...string) error {
 	filter := base.AliveFilter()
 	filter = WithSettingName(name...)(filter)
 
-	if err := h.tenantDao(tenantID).DeleteMany(ctx, filter); err != nil {
+	if err := h.tenantDao(tenantID).DeleteMany(nCtx, filter); err != nil {
 		return err
 	}
 
