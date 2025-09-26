@@ -1092,3 +1092,134 @@ func TestSliceToMap(t *testing.T) {
 		})
 	}
 }
+
+// TestStrSlice tests the StrSlice function.
+func TestStrSlice(t *testing.T) {
+	tests := []struct {
+		name string
+		s    any
+		want []string
+	}{
+		{
+			name: "normal case",
+			s:    []any{"apple", "banana", "cherry"},
+			want: []string{"apple", "banana", "cherry"},
+		},
+		{
+			name: "empty slice",
+			s:    []any{},
+			want: []string{},
+		},
+		{
+			name: "nil slice",
+			s:    nil,
+			want: []string{},
+		},
+		{
+			name: "slice with non-string elements",
+			s:    []any{"apple", 123, "cherry"},
+			want: []string{"apple", "123", "cherry"},
+		},
+		{
+			name: "slice with all non-string elements",
+			s:    []any{1, 2, 3},
+			want: []string{"1", "2", "3"},
+		},
+		{
+			name: "slice with mixed types",
+			s:    []any{"apple", 3.14, true, "banana"},
+			want: []string{"apple", "3.14", "true", "banana"},
+		},
+		{
+			name: "not a slice",
+			s:    "not a slice",
+			want: []string{"not a slice"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StrSlice(tt.s); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("StrSlice() = %#v, want %#v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestEmpty tests the Empty function.
+func TestEmpty(t *testing.T) {
+	tests := []struct {
+		name string
+		s    any
+		want bool
+	}{
+		{
+			name: "empty string",
+			s:    "",
+			want: true,
+		},
+		{
+			name: "string with spaces",
+			s:    "   ",
+			want: false,
+		},
+		{
+			name: "non-empty string",
+			s:    "hello",
+			want: false,
+		},
+		{
+			name: "empty slice",
+			s:    []string{},
+			want: true,
+		},
+		{
+			name: "nil slice",
+			s:    []string(nil),
+			want: true,
+		},
+		{
+			name: "non-empty slice",
+			s:    []string{"apple", "banana"},
+			want: false,
+		},
+		{
+			name: "empty map",
+			s:    map[string]int{},
+			want: true,
+		},
+		{
+			name: "nil map",
+			s:    map[string]int(nil),
+			want: true,
+		},
+		{
+			name: "non-empty map",
+			s:    map[string]int{"a": 1},
+			want: false,
+		},
+		{
+			name: "nil value",
+			s:    nil,
+			want: true,
+		},
+		{
+			name: "integer zero",
+			s:    0,
+			want: true,
+		},
+		{
+			name: "float zero",
+			s:    0.0,
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Empty(tt.s); got != tt.want {
+				t.Errorf("Empty() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

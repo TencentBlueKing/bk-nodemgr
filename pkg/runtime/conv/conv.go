@@ -422,3 +422,69 @@ func SliceToMap[K comparable, V any](s []V, fn func(V) K) (m map[K]V, err error)
 
 	return m, nil
 }
+
+// StrSlice convert interface to []string.
+func StrSlice(value any) []string {
+	if value == nil {
+		return []string{}
+	}
+
+	if strs, ok := value.([]string); ok {
+		return strs
+	}
+
+	if interfaces, ok := value.([]any); ok {
+		result := make([]string, 0)
+		for _, s := range interfaces {
+			if s != nil {
+				str, _ := ToString(s)
+				result = append(result, str)
+			}
+		}
+		return result
+	}
+
+	reflectedValue := reflect.ValueOf(value)
+	if reflectedValue.Kind() == reflect.Slice || reflectedValue.Kind() == reflect.Array {
+		result := make([]string, 0)
+		for i := 0; i < reflectedValue.Len(); i++ {
+			value := reflectedValue.Index(i).Interface()
+			if value != nil {
+				str, _ := ToString(value)
+				result = append(result, str)
+			}
+		}
+		return result
+	}
+
+	str, _ := ToString(value)
+
+	return []string{str}
+}
+
+// Empty checks if a given value is "empty".
+func Empty(given any) bool {
+	g := reflect.ValueOf(given)
+	if !g.IsValid() {
+		return true
+	}
+
+	switch g.Kind() {
+	case reflect.Array, reflect.Slice, reflect.Map, reflect.String:
+		return g.Len() == 0
+	case reflect.Bool:
+		return !g.Bool()
+	case reflect.Complex64, reflect.Complex128:
+		return g.Complex() == 0
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return g.Int() == 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return g.Uint() == 0
+	case reflect.Float32, reflect.Float64:
+		return g.Float() == 0
+	case reflect.Interface, reflect.Ptr:
+		return g.IsNil()
+	default:
+		return false
+	}
+}
