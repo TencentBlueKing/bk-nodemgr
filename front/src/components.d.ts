@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BatchEdit: typeof import('./components/batch-edit.vue')['default']
     ChooseVersionDialog: typeof import('./components/choose-version-dialog.vue')['default']
     ConfigTemplate: typeof import('./components/config-template.vue')['default']
     CopyIp: typeof import('./components/copy-ip.vue')['default']

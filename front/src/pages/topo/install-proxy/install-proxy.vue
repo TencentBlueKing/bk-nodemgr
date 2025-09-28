@@ -3,6 +3,7 @@
     v-model:is-show="isShow"
     :title="$t('topoManager.installProxy.title')"
     width="1490"
+    render-directive="if"
     :before-close="handleBeforeClose"
   >
     <div class="py-[20px] px-[40px]">
@@ -10,7 +11,7 @@
       <Form ref="formRef" :model="form" class="mt-[24px]">
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.method')"
-          property=""
+          property="method"
           label-width="90"
           required
         >
@@ -32,7 +33,7 @@
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.password')"
-          property=""
+          property="saveTime"
           label-width="90"
           required
         >
@@ -51,7 +52,7 @@
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.os')"
-          property=""
+          property="os_type"
           label-width="90"
           required
         >
@@ -59,7 +60,7 @@
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.port')"
-          property=""
+          property="login_port"
           label-width="90"
           required
         >
@@ -67,7 +68,7 @@
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.account')"
-          property=""
+          property="login_user"
           label-width="90"
           required
         >
@@ -75,7 +76,7 @@
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.business')"
-          property=""
+          property="bk_biz_id"
           label-width="90"
           required
         >
@@ -157,6 +158,29 @@
               :class="{ 'transform rotate-180': isTargetShow }"
             />
           </Button>
+        </Form.FormItem>
+        <Form.FormItem
+          v-if="isTargetShow"
+          :label="'安装源'"
+          property="proxy_install_origin"
+          label-width="90"
+          required
+        >
+          <Select
+            class="w-[488px]"
+            v-model="form.proxy_install_origin"
+            auto-focus
+            filterable
+          >
+            <Select.Option
+              v-for="option in installOriginList"
+              :key="option.id"
+              :id="option.id"
+              :name="option.name"
+            >
+              {{ option.name }}
+            </Select.Option>
+          </Select>
         </Form.FormItem>
         <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
           <div class="w-[488px]">
@@ -281,6 +305,7 @@ const form = reactive({
   bk_networkarea_name: '',
   bk_networkunit_id: '', // 管控单元
   target_version: [] as TargetVersion[],
+  proxy_install_origin: '',
 });
 const settings = reactive({
   fields: [
@@ -343,6 +368,20 @@ const installMethodList = ref([
     title: t('topoManager.installProxy.installMethodList.manual.title'),
     content: t('topoManager.installProxy.installMethodList.manual.content'),
     value: 2,
+  },
+]);
+const installOriginList = ref([
+  {
+    id: 'server',
+    name: '当前服务器发起',
+  },
+  {
+    id: 'same_networkunit_proxy',
+    name: '当前区域proxy发起',
+  },
+  {
+    id: 'upstream_networkunit_proxy',
+    name: '上游区域proxy发起',
   },
 ]);
 const networkAreaList = ref<NetworkArea[]>([]);
@@ -468,6 +507,7 @@ const handleConfirm = async () => {
           os_type: 'linux',
           bk_biz_id: form.bk_biz_id,
           login_user: form.login_user,
+          proxy_install_origin: form.proxy_install_origin,
           login_port: Number(form.login_port),
           bk_networkunit_id: props.bk_networkunit_id || Number(form.bk_networkunit_id),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
@@ -496,6 +536,8 @@ watch(() => isShow.value, async () => {
   if (isShow.value) {
     await getNetworkAreaList();
     Object.assign(form, props.data);
+  } else {
+    formRef.value?.clearValidate();
   }
 });
 watch(

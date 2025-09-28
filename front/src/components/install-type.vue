@@ -1,60 +1,61 @@
 <template>
-    <div class="form-item-content">
-        <div 
-            v-for="item in installTypeList"
-            :key="item.type"
-            :class="['type', {'active': activeType === item.type}]"
-            @click="handleClick(item.type)"
-        >
-            <div class="prefix">
-                <i :class="['nodeman-icon', item.icon]"></i>
-            </div>
-            <div class="text">
-                <p>{{ item.name }}</p>
-                <p>{{ item.desc }}</p>
-            </div>
-            <div class="checked" v-show="activeType === item.type">
-                <i class="nodeman-icon nc-check-small"></i>
-            </div>
-        </div>
+  <div class="form-item-content">
+    <div
+      v-for="item in installTypeList"
+      :key="item.type"
+      :class="['type', { 'active': activeType === item.type }]"
+      @click="handleClick(item.type)"
+    >
+      <div class="prefix">
+        <i :class="['nodeman-icon', item.icon]"></i>
+      </div>
+      <div class="text">
+        <p>{{ item.name }}</p>
+        <p>{{ item.desc }}</p>
+      </div>
+      <div class="checked" v-show="activeType === item.type">
+        <i class="nodeman-icon nc-check-small"></i>
+      </div>
     </div>
+  </div>
 </template>
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
+
 import { useMainStore } from '@/stores/main';
 
 const props = defineProps({
-    needTypeList: {
-        type: Array,
-        default: () => ['setup', 'import', 'manual']
-    }
+  needTypeList: {
+    type: Array,
+    default: () => ['setup', 'import', 'manual'],
+  },
 });
 const mainStore = useMainStore();
 const installTypeConfig = [
-    {
-        type: 'setup',
-        name: '普通远程安装',
-        icon: 'nc-monitor',
-        desc: '线上表单填写，需要提供登录信息'
-    },
-    {
-        type: 'import',
-        name: 'Excel 导入远程安装',
-        icon: 'nc-excel',
-        desc: 'Excel 导入填写， 需要提供登录信息'
-    },
-    {
-        type: 'manual',
-        name: '手动安装',
-        icon: 'nc-manual',
-        desc: '无需提供登录信息，自行在服务器上执行给定命令完成安装'
-    }
+  {
+    type: 'setup',
+    name: '普通远程安装',
+    icon: 'nc-monitor',
+    desc: '线上表单填写，需要提供登录信息',
+  },
+  {
+    type: 'import',
+    name: 'Excel 导入远程安装',
+    icon: 'nc-excel',
+    desc: 'Excel 导入填写， 需要提供登录信息',
+  },
+  {
+    type: 'manual',
+    name: '手动安装',
+    icon: 'nc-manual',
+    desc: '无需提供登录信息，自行在服务器上执行给定命令完成安装',
+  },
 ];
 const installTypeList = computed(() => installTypeConfig.filter(item => props.needTypeList.includes(item.type)));
 const activeType = computed(() => mainStore.agentSetupType);
 const handleClick = (type: string) => {
-    mainStore.updateAgentSetupType(type);
-}
+  mainStore.updateAgentSetupType(type);
+};
 </script>
 <style lang="postcss" scoped>
 .form-item-content {

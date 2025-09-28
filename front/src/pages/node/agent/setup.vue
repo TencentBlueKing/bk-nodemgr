@@ -19,7 +19,7 @@
               :accept="'.xlsx'"
               :handle-res-code="handleRes"
               :select-change="handleSelectChange"
-              :url="'https://jsonplaceholder.typicode.com/posts/'"
+              :url="''"
               :files="fileList"
               with-credentials
               @done="handleDone"
@@ -33,7 +33,7 @@
                   <span>{{ '仅支持 .xlsx 类型文件，下载'}}</span>
                   <a :href="url" download="bk_nodeman_info.xlsx">
                     <Button text theme="primary">
-                      {{ '模版文件' }}
+                      {{ '模板文件' }}
                     </Button>
                   </a>
                 </div>
@@ -437,6 +437,13 @@ const handleCancel = () => {
   router.push({ name: 'agent' });
 };
 const debouncedCheck = debounce(checkIfAtBottom, 100);
+watch(() => activeInstallType.value, () => {
+  if (activeInstallType.value === 'import') {
+    formData.info = [];
+  } else {
+    formData.info = [cloneDeep(initData)];
+  }
+}, { immediate: true });
 watch(
   () => formData.bk_networkarea_id,
   async () => {
@@ -445,14 +452,8 @@ watch(
 );
 watch(
   () => isShow.value,
-  (val: boolean) => {
+  () => {
     checkIfAtBottom();
-  },
-);
-watch(
-  () => activeInstallType.value,
-  (val: string) => {
-    // installTableRef.value?.clearTableValidate();
   },
 );
 onMounted(async () => {

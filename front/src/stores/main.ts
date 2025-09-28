@@ -30,17 +30,18 @@ export const useMainStore = defineStore('mainStore', {
     updateBusinessList(list: Business[]) {
       this.businessList = list;
     },
-    
+
     updateCurBusiness(businessId: number[] = []) {
       this.selectedBusinessId = businessId;
-      this.selectedBusinessName = businessId.map(id => this.businessList.find(item => item.bk_biz_id === id)?.bk_biz_name) as string[];
+      this.selectedBusinessName = businessId.map(id =>
+        this.businessList.find(item => item.bk_biz_id === id)?.bk_biz_name) as string[];
     },
     updateAgentSetupType(type: string) {
       this.agentSetupType = type;
     },
     updateConfigEditData(data: ConfigPolicy) {
       this.configEditData = data;
-    }
+    },
   },
 });
 

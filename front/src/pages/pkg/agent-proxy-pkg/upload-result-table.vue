@@ -28,7 +28,7 @@
       <TableColumn
         field="labels"
         :title="'标签信息'"
-        v-if="currentType !== 'cert'"
+        v-if="!['cert', 'bintool'].includes(currentType)"
         min-width="200"
       >
         <template #header>

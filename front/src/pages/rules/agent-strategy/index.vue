@@ -27,9 +27,9 @@
           ref="searchSelect"
           :data="searchSelectData"
           v-model="searchSelectValue"
-          :uniqueSelect="true"
+          :unique-select="true"
           :placeholder="'请输入 配置名称、修改人 搜索'"
-          @update:modelValue="handleSearchSelectChange"
+          @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>
       </div>
@@ -113,7 +113,7 @@
         >
           <template #default="{ row }">
             <Tag v-if="row.enabled" theme="success">启用</Tag>
-            <Tag v-else >未启用</Tag>
+            <Tag v-else>未启用</Tag>
           </template>
         </TableColumn>
         <TableColumn
@@ -150,7 +150,7 @@
                 trigger="click"
                 placement="top-start"
                 title="确认删除该配置策略？"
-                confirmText="删除"
+                confirm-text="删除"
                 @confirm="handleDelete(row)"
               >
                 <Button
@@ -178,60 +178,62 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Tab, SearchSelect, Loading, Tag, PopConfirm } from 'bkui-vue';
-import { Table, TableColumn } from "@blueking/table";
-import { ref, reactive, computed, onMounted, watch } from 'vue';
-import { useMainStore } from "@/stores/main";
-import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
-import useTableSetting from "@/composables/use-table-setting";
-import { useRoute, useRouter } from "vue-router";
-import { formatTimestamp } from '@/common/util';
+import { Button, Loading, PopConfirm, SearchSelect, Tab, Tag } from 'bkui-vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+import { Table, TableColumn } from '@blueking/table';
+
 import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@/@types/configpolicy';
+import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
+import { formatTimestamp } from '@/common/util';
+import useTableSetting from '@/composables/use-table-setting';
+import { useMainStore } from '@/stores/main';
 
 const mainStore = useMainStore();
 const route = useRoute();
 const router = useRouter();
-const nodeRole = computed(() => route.name === 'agentStrategy' ? 'agent' : 'proxy');
+const nodeRole = computed(() => (route.name === 'agentStrategy' ? 'agent' : 'proxy'));
 const maxHeight = computed(() => mainStore.windowInnerHeight - 255);
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableData = ref<ConfigPolicy[]>([]);
 const loading = ref(false);
 const active = ref('');
 const panels = ref([
-  {name: 'configStrategy', label: '配置策略'},
-  {name: 'deploymentStrategy', label: '部署策略'}
+  { name: 'configStrategy', label: '配置策略' },
+  { name: 'deploymentStrategy', label: '部署策略' },
 ]);
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    "configpolicy_name",
-    "version",
-    "biz_name ",
-    "remark",
-    "scopes",
-    "operator",
-    "updated_time",
-    "enabled",
-    "action",
+    'configpolicy_name',
+    'version',
+    'biz_name ',
+    'remark',
+    'scopes',
+    'operator',
+    'updated_time',
+    'enabled',
+    'action',
   ],
-  disabled: ["action"],
+  disabled: ['action'],
 });
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = ref([
   {
-    id: "configpolicy_name",
+    id: 'configpolicy_name',
     name: '配置名称',
     children: [],
   },
   {
-    id: "operator",
+    id: 'operator',
     name: '修改人',
     children: [],
   },
 ]);
-const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
-  
-}
+const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
+
+};
 const handleFilter = ({
   checked,
   field,
@@ -239,9 +241,7 @@ const handleFilter = ({
   checked: string[];
   field: string;
 }) => {
-  const index = searchSelectValue.value.findIndex(
-    (item: any) => item.id === field
-  );
+  const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (checked.length) {
     searchSelectValue.value.push({
@@ -251,7 +251,7 @@ const handleFilter = ({
         let name;
         switch (field) {
           case 'enabled':
-            name = item ? "启用" : "禁用";
+            name = item ? '启用' : '禁用';
             break;
           default:
             name = item;
@@ -276,55 +276,55 @@ const pageValueChange = async (current: number) => {
 };
 const handleUpdate = async (row: ConfigPolicy) => {
   const res = await ConfigPolicyAPIService.ConfigPolicyGet({
-    configpolicy_id: row.configpolicy_id
-  })
-  mainStore.updateConfigEditData({...res})
+    configpolicy_id: row.configpolicy_id,
+  });
+  mainStore.updateConfigEditData({ ...res });
   router.push({
     name: 'editConfig',
     params: {
-      node_role: nodeRole.value
-    }
+      node_role: nodeRole.value,
+    },
   });
 };
 const handleCreate = () => {
   router.push({
     name: 'createConfig',
     params: {
-      node_role: nodeRole.value
-    }
+      node_role: nodeRole.value,
+    },
   });
-}
+};
 const handleEnabled = async (row: ConfigPolicy) => {
   await ConfigPolicyAPIService.ConfigPolicyEnable({
-    configpolicy_id: [row.configpolicy_id]
+    configpolicy_id: [row.configpolicy_id],
   });
   await getConfigPolicyList();
 };
 const handleDisabled = async (row: ConfigPolicy) => {
   await ConfigPolicyAPIService.ConfigPolicyDisable({
-    configpolicy_id: [row.configpolicy_id]
+    configpolicy_id: [row.configpolicy_id],
   });
   await getConfigPolicyList();
 };
 const handleDelete = async (row: ConfigPolicy) => {
   await ConfigPolicyAPIService.ConfigPolicyDelete({
-    configpolicy_id: [row.configpolicy_id]
+    configpolicy_id: [row.configpolicy_id],
   });
   await getConfigPolicyList();
 };
 const fuzzyKeys = new Set([
-  "configpolicy_name",
-  "operator",
+  'configpolicy_name',
+  'operator',
 ]);
 const getParams = () => {
   const params = {
     page: {
       limit: pagination.limit,
-      offset: (pagination.current - 1)*pagination.limit,
+      offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {
       node_role: [nodeRole.value],
-      biz_id: mainStore.selectedBusinessId
+      biz_id: mainStore.selectedBusinessId,
     } as ConfigPolicyExactConditions,
     fuzzy_include_conditions: {} as ConfigPolicyFuzzyConditions,
   };
@@ -340,18 +340,19 @@ const getConfigPolicyList = async () => {
   loading.value = true;
   const res = await ConfigPolicyAPIService.ConfigPolicyList(getParams()).catch(() => ({
     total: 0,
-    items: []
+    items: [],
   }));
   loading.value = false;
+  pagination.count = res.total;
   tableData.value = res.items;
-}
+};
 watch([
   () => route.name,
   searchSelectValue,
-  () => mainStore.selectedBusinessId
+  () => mainStore.selectedBusinessId,
 ], async () => {
   await getConfigPolicyList();
-},{immediate: true, deep: true});
+}, { immediate: true, deep: true });
 
 onMounted(async () => {
   await getConfigPolicyList();

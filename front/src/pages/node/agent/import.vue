@@ -7,7 +7,7 @@
           :label="$t('platform.nodeMan.installAgentPage.type')"
           required
         >
-          <install-type :needTypeList="['setup', 'manual']"></install-type>
+          <install-type :need-type-list="['setup', 'manual']"></install-type>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.info')"
@@ -16,7 +16,7 @@
           <install-table
             ref="installTableRef"
             v-model:data="formData.info"
-            :isReinstall="true"
+            :is-reinstall="true"
           ></install-table>
         </Form.FormItem>
       </Form>
@@ -32,8 +32,8 @@
         class="w-[100px] mr-[8px]"
         theme="primary"
         @click="handlePreview"
-        >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
-      >
+      >{{ $t("platform.nodeMan.installAgentPage.button.install") }}
+      </Button>
       <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
     <preview
@@ -43,19 +43,20 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { ref, reactive, onMounted, onUnmounted, watch } from "vue";
-import { Button, Form, Select, Input, Upload, Message } from "bkui-vue";
-import { Table, TableColumn } from "@blueking/table";
-import { AngleDoubleDownLine } from "bkui-vue/lib/icon";
-import { debounce } from "lodash";
-import { useMainStore } from "@/stores/main";
-import { computed } from "vue";
-import { TopoService } from "@/api/modules/topo";
-import { useRouter } from "vue-router";
-import Preview from "./preview.vue";
-import { cloneDeep } from "lodash";
-import type { AgentInstallInfo } from "@/@types/node_agent.d";
-import { useNodeManageStore } from "@/stores/node-manage";
+import { Button, Form, Input, Message, Select, Upload } from 'bkui-vue';
+import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
+import { cloneDeep, debounce  } from 'lodash';
+import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
+import { useRouter } from 'vue-router';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import Preview from './preview.vue';
+
+import type { AgentInstallInfo } from '@/@types/node_agent.d';
+import { TopoService } from '@/api/modules/topo';
+import { useMainStore } from '@/stores/main';
+import { useNodeManageStore } from '@/stores/node-manage';
 
 const router = useRouter();
 const mainStore = useMainStore();
@@ -63,27 +64,27 @@ const nodeManageStore = useNodeManageStore();
 const showRightPanel = ref(false);
 const initData = {
   login_credit_valid: false,
-  bk_addressing: "static",
-  bk_host_innerip: "",
-  bk_host_innerip_v6: "",
-  os_type: "",
-  login_ip: "",
-  login_port: "",
-  login_user: "",
-  login_mode: "password",
-  login_password: "",
-  login_key_file: "",
-  bk_networkunit_id: "",
-  bk_biz_id: "",
-  bk_host_id: "",
+  bk_addressing: 'static',
+  bk_host_innerip: '',
+  bk_host_innerip_v6: '',
+  os_type: '',
+  login_ip: '',
+  login_port: '',
+  login_user: '',
+  login_mode: 'password',
+  login_password: '',
+  login_key_file: '',
+  bk_networkunit_id: '',
+  bk_biz_id: '',
+  bk_host_id: '',
   re_register: false,
-  prove: "",
+  prove: '',
 };
 const formData = reactive({
-  type: "",
-  business: "",
-  cloud: "",
-  cloud_unit: "",
+  type: '',
+  business: '',
+  cloud: '',
+  cloud_unit: '',
   info: [cloneDeep(initData)] as AgentInstallInfo[],
 });
 const previewData = reactive({
@@ -133,7 +134,7 @@ const handlePreview = async () => {
 const footerRef = ref<Element | null>(null);
 const checkIfAtBottom = () => {
   if (footerRef.value) {
-    let bottom = footerRef.value.getBoundingClientRect().bottom;
+    let { bottom } = footerRef.value.getBoundingClientRect();
     if (isShow.value) {
       bottom += 224;
     } else {
@@ -147,23 +148,21 @@ watch(
   () => isShow.value,
   (val: boolean) => {
     checkIfAtBottom();
-  }
+  },
 );
 onMounted(async () => {
   if (footerRef.value) {
-    window.addEventListener("resize", debouncedCheck);
+    window.addEventListener('resize', debouncedCheck);
     checkIfAtBottom();
   }
-  formData.info = nodeManageStore.agentEditParams.tableData.map(
-    (item: Host) => ({
-      ...item,
-      target_version: item.state.node_version,
-    })
-  );
+  formData.info = nodeManageStore.agentEditParams.tableData.map((item: Host) => ({
+    ...item,
+    target_version: item.state.node_version,
+  }));
 });
 onUnmounted(() => {
   if (footerRef.value) {
-    window.removeEventListener("resize", debouncedCheck);
+    window.removeEventListener('resize', debouncedCheck);
   }
 });
 </script>

@@ -23,7 +23,7 @@ export const useWorkareaStore = defineStore("workarea", () => {
   const osTypeList = ref<string[]>([]);
   // const all
   const loading = ref(false);
-  const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
+  const pagination = reactive({ count: 0, limit: 50, current: 1 });
 
   interface IncludeConditions {
     bk_networkarea_id: number[]; // 管控区域ID
@@ -118,6 +118,8 @@ export const useWorkareaStore = defineStore("workarea", () => {
         item.networkunit_count = match.networkunit_count;
         item.proxy_count = match.proxy_count;
         item.agent_count = match.agent_count;
+        item.last_operate_time = match.last_operate_time;
+        item.last_operator = match.last_operator;
       }
     }
     loading.value = false;

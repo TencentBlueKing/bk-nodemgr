@@ -88,7 +88,13 @@
           <template #header>
             <span class="mr-[5px]">操作系统</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
-            <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
+            <BatchEdit
+              :title="'批量编辑操作系统'"
+              type="select"
+              :options="datasourceList"
+              @confirm="(value) => handleBatchEdit('os_type', value)"
+            >
+            </BatchEdit>
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
@@ -178,7 +184,12 @@
           <template #header>
             <span class="mr-[5px]">登录端口</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
-            <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
+            <BatchEdit
+              :title="'批量编辑登录端口'"
+              type="input"
+              @confirm="(value) => handleBatchEdit('login_port', value)"
+            >
+            </BatchEdit>
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
@@ -200,7 +211,12 @@
           <template #header>
             <span class="mr-[5px]">登录账号</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
-            <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
+            <BatchEdit
+              :title="'批量编辑登录账号'"
+              type="input"
+              @confirm="(value) => handleBatchEdit('login_user', value)"
+            >
+            </BatchEdit>
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
@@ -221,7 +237,13 @@
           <template #header>
             <span class="mr-[5px]">认证方式</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
-            <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
+            <BatchEdit
+              :title="'批量编辑认证方式'"
+              type="select"
+              :options="authenticationTypes"
+              @confirm="(value) => handleBatchEdit('login_mode', value)"
+            >
+            </BatchEdit>
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
@@ -255,7 +277,12 @@
             <div class="flex">
               <span class="mr-[5px]">密码 / 密钥</span>
               <span class="mx-[3px] text-[#FF5656]">*</span>
-              <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
+              <BatchEdit
+                :title="'批量编辑密码/密钥'"
+                type="prove"
+                @confirm="(value) => handleBatchEdit('prove', value)"
+              >
+              </BatchEdit>
             </div>
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
@@ -273,12 +300,23 @@
                 }"
               >
                 <Input
-                  v-if="curMode === 'password'"
+                  v-if="row.login_mode === 'password'"
                   v-model.trim="row.prove"
                   type="password"
                 ></Input>
+                <Upload
+                  ref="uploader"
+                  type="formdata"
+                  v-if="row.login_mode === 'key'"
+                  :url="url"
+                  :size="100"
+                  :multiple="false"
+                  :limit="1"
+                  theme="button"
+                  :before-upload="(val) => handleBeforeUpload(val,row)"
+                  :custom-request="() => {}"
+                ></Upload>
               </div>
-              <Input v-if="curMode === 'key'" v-model="row.prove" />
             </Validate>
           </template>
         </VxeColumn>
@@ -370,8 +408,8 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Input, Message, Select, Switcher, Table } from 'bkui-vue';
-import { cloneDeep } from 'lodash';
+import { Button, Input, Message, Select, Switcher, Upload } from 'bkui-vue';
+import { cloneDeep, template } from 'lodash';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
@@ -381,8 +419,10 @@ import Validate from './validate.vue';
 import type { TopoHostDistinctRespData } from '@/@types/topo.d';
 import { TopoService } from '@/api/modules/topo';
 import { VALIDATE_REGEX } from '@/common/const';
+import BatchEdit from '@/components/batch-edit.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import { useMainStore } from '@/stores/main';
+
 type VxeComponentSizeType = 'small' | 'medium' | 'large';
 interface IValidate {
   validator: Function | RegExp | string;
@@ -507,10 +547,9 @@ const authenticationTypes = ref([
   },
 ]);
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
-const curMode = ref('password');
 // 切换认证方式
 const handleChangeMode = (newValue: string, row: any) => {
-  curMode.value = newValue;
+  row.login_mode = newValue;
   row.prove = '';
 };
 // 登录ip默认回填内网ipv4的值
@@ -529,6 +568,7 @@ const handleChangeOsType = (val: string, row: any) => {
     row.login_user = 'administrator';
   }
 };
+// 获取操作系统
 const getHostDistinct = async () => {
   const res = await TopoService.HostDistinct({}).catch(() => null);
   if (res) {
@@ -554,6 +594,39 @@ const handleDelRow = (index: number, rowid: string, fields: string[]) => {
     inputRefs.value?.delete(colKey);
   }
 };
+
+// 表头批量操作
+const handleBatchEdit = (field: string, value: string | number | Object) => {
+  tableData.value?.forEach((item: any) => {
+    if (field === 'prove') {
+      if (item.login_mode === 'password') {
+        item.prove = value.password;
+      } else {
+        item.prove = value.key;
+        item.file = value.file;
+      }
+    } else {
+      item[field] = value;
+    }
+  });
+};
+
+// 上传密钥
+const url = location.href;
+const handleBeforeUpload = (file: File, row: any) => {
+  console.log(file)
+  row.file = file;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const result = event.target?.result as string;
+    if (result) {
+      row.prove = result.split(',')[1];
+    }
+  };
+  reader.readAsDataURL(file);
+  return true;
+};
+
 const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
 
 const setInputRef = (

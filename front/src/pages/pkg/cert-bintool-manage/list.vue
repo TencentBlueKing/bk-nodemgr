@@ -9,7 +9,7 @@
         :data="searchSelectData"
         v-model="searchSelectValue"
         :unique-select="true"
-        :placeholder="t('版本号、操作系统/架构、标签、上传用户、状态')"
+        :placeholder="t('包名称、上传用户')"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -39,19 +39,6 @@
           fixed="left"
           show-overflow="tooltip"
         ></TableColumn>
-        <TableColumn
-          field="labels"
-          :title="'标签信息'"
-          :min-width="180"
-          v-if="currentType !== 'cert'"
-          :filter="filterOptionSource.labels"
-        >
-          <template #default="{ row }">
-            <div v-show="!row.isShowTagInput" class="flex items-center group gap-[5px]">
-              <create-tag :data="row" @blur="handleBlur"></create-tag>
-            </div>
-          </template>
-        </TableColumn>
         <TableColumn
           field="operator"
           :title="'上传用户'"
@@ -133,7 +120,7 @@ import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 type PkgType = 'gse_agent' | 'gse_proxy';
-type filterProp = 'labels' | 'operator' | 'enabled';
+type filterProp = 'file_name' | 'operator';
 interface IFilterOption {
   list: { value: string | boolean, text: string;  }[];
   checked: string[];
@@ -180,7 +167,7 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
 });
 
 const filterOptionSource = reactive<Record<string, IFilterOption>>({
-  labels: {
+  file_name: {
     list: [],
     checked: [],
     match: 'fuzzy',
@@ -190,14 +177,6 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
     list: [],
     checked: [],
     match: 'fuzzy',
-    filterScope: 'all',
-  },
-  enabled: {
-    list: [
-      { value: true, text: t('启用') },
-      { value: false, text: t('禁用') },
-    ],
-    checked: [],
     filterScope: 'all',
   },
 });
@@ -224,9 +203,9 @@ function getUniqueChildren(prop: string) {
 
 const searchSelectData = computed(() => [
   {
-    id: 'labels',
-    name: t('标签'),
-    children: getUniqueChildren('labels'),
+    id: 'file_name',
+    name: t('包名称'),
+    children: getUniqueChildren('file_name'),
     multiple: true,
   },
   {
@@ -235,26 +214,14 @@ const searchSelectData = computed(() => [
     children: getUniqueChildren('operator'),
     multiple: true,
   },
-  {
-    id: 'enabled',
-    name: t('状态'),
-    children: [
-      { id: true, name: t('启用') },
-      { id: false, name: t('禁用') },
-    ],
-  },
 ]);
 
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'file_name',
-    'labels',
     'operator',
     'updated_at',
-    'host',
-    'enabled',
-    'as_default',
     'action',
   ],
   disabled: ['action'],
@@ -347,7 +314,7 @@ const handleConfirm = async () => {
   await getPackages();
 };
 watch(originPackageList, () => {
-  filterOptionSource.labels.list = getUniqueChildren('labels');
+  filterOptionSource.file_name.list = getUniqueChildren('file_name');
   filterOptionSource.operator.list = getUniqueChildren('operator');
 }, { immediate: true, deep: true });
 // 前端过滤数据

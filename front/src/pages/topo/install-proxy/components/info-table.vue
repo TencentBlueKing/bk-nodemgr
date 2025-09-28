@@ -219,10 +219,11 @@ import { useI18n } from 'vue-i18n';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 
-import BatchEdit from './batch-edit.vue';
 import CustomCol from './custom-col.vue';
 import CustomColGroup from './custom-col-group.vue';
 import ValidateInput from './validate-input.vue';
+
+import BatchEdit from '@/components/batch-edit.vue';
 
 const tableData = defineModel<Array<ReturnType<typeof getInitData>>>('data');
 

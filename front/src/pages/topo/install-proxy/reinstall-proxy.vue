@@ -3,6 +3,7 @@
     v-model:is-show="isShow"
     :title="$t('topoManager.installProxy.reinstall')"
     width="1490"
+    render-directive="if"
     :before-close="handleBeforeClose"
   >
     <div class="py-[20px] px-[40px]">
@@ -45,6 +46,29 @@
               :class="{ 'transform rotate-180': isTargetShow }"
             />
           </Button>
+        </Form.FormItem>
+        <Form.FormItem
+          v-if="isTargetShow"
+          :label="'安装源'"
+          property="proxy_install_origin"
+          label-width="90"
+          required
+        >
+          <Select
+            class="w-[488px]"
+            v-model="form.proxy_install_origin"
+            auto-focus
+            filterable
+          >
+            <Select.Option
+              v-for="option in installOriginList"
+              :key="option.id"
+              :id="option.id"
+              :name="option.name"
+            >
+              {{ option.name }}
+            </Select.Option>
+          </Select>
         </Form.FormItem>
         <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
           <div class="w-[488px]">
@@ -198,6 +222,7 @@ const form = reactive({
     cloneDeep(initData),
   ],
   target_version: [] as TargetVersion[],
+  proxy_install_origin: '',
 });
 const isTargetShow = ref(false);
 const systemData = ref([
@@ -214,6 +239,20 @@ const systemData = ref([
     cpu_arch: 'arm64',
     os_type: 'linux',
     version: '默认',
+  },
+]);
+const installOriginList = ref([
+  {
+    id: 'server',
+    name: '当前服务器发起',
+  },
+  {
+    id: 'same_networkunit_proxy',
+    name: '当前区域proxy发起',
+  },
+  {
+    id: 'upstream_networkunit_proxy',
+    name: '上游区域proxy发起',
   },
 ]);
 // 安装方式列表
@@ -315,6 +354,7 @@ const handleConfirm = async () => {
           ...rest,
           os_type: 'linux',
           login_port: Number(rest.login_port),
+          proxy_install_origin: form.proxy_install_origin,
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
       }),
@@ -352,6 +392,7 @@ watch(() => isShow.value, () => {
       data.prove = !item.info.login_credit_valid ? '******' : '';
       return data;
     });
+    form.proxy_install_origin = props.data[0].proxy_install_origin;
   }
 });
 </script>
