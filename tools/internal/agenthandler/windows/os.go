@@ -126,11 +126,15 @@ func (handler *AgentHandler) removeAll(relativePath string) error {
 
 	absPath := handler.getAbsPath(relativePath)
 
+	// Windows system path check
 	if absPath == "" ||
-		absPath == "/" ||
-		strings.HasPrefix(absPath, "/dev/") ||
-		strings.HasPrefix(absPath, "/sys/") ||
-		strings.HasPrefix(absPath, "/proc/") {
+		// check if it's the root directory (like C:\)
+		len(absPath) <= 3 ||
+		// check the Windows system key directory
+		strings.HasPrefix(strings.ToUpper(absPath), "C:\\WINDOWS") ||
+		strings.HasPrefix(strings.ToUpper(absPath), "C:\\PROGRAM FILES") ||
+		strings.HasPrefix(strings.ToUpper(absPath), "C:\\PROGRAM FILES (X86)") ||
+		strings.HasPrefix(strings.ToUpper(absPath), "C:\\SYSTEM32") {
 
 		return fmt.Errorf("failed to remove all, got invalid path. path(%s)", absPath)
 	}
