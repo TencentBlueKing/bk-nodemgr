@@ -43,7 +43,7 @@ type ILoggerOption interface {
 	// WithErr add error into logger.
 	WithErr(err error) ILoggerOption
 
-	// WithCost add cost into logger.
+	// WithDuration add cost into logger.
 	WithDuration(duration time.Duration) ILoggerOption
 
 	// AssignWhenLogging assigns the logger message to str when logging.

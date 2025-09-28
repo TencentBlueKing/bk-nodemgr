@@ -168,7 +168,7 @@ func (o *Option) WithErr(err error) ILoggerOption {
 	return o
 }
 
-// WithCost add cost into logger.
+// WithDuration add duration into logger.
 func (o *Option) WithDuration(duration time.Duration) ILoggerOption {
 	o.duration = &duration
 
