@@ -76,7 +76,7 @@ func (step *Step) Run(ctx context.Context) error {
 }
 
 const (
-	bulkReportStatusTimeout = 10 * time.Second
+	reportStatusTimeout = 10 * time.Second
 )
 
 func (step *Step) reportStatus(ctx context.Context) error {
@@ -108,7 +108,7 @@ func (step *Step) reportStatus(ctx context.Context) error {
 	request.Header.Set("Content-Type", "application/json")
 
 	httpClient := &http.Client{
-		Timeout: bulkReportStatusTimeout,
+		Timeout: reportStatusTimeout,
 	}
 	resp, err := httpClient.Do(request)
 	if err != nil {
