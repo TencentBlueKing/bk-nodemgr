@@ -101,3 +101,29 @@ type NodeAgentInstallCheckResult struct {
 	InstallEligibilitiy NodeAgentInstallEligibility
 	DuplicateHostIDs    []int64
 }
+
+// ParsedInfo describes the parsed information from the uploaded template file.
+type ParsedInfo struct {
+	InnerIP   string
+	InnerIPV6 string
+	OsType    string
+	LoginIP   string
+	LoginPort int64
+	LoginUser string
+	LoginMode string
+	Credit    string
+}
+
+// ToRowData converts ParsedInfo to a slice for excel writing.
+func (info *ParsedInfo) ToRowData() []any {
+	return []any{
+		info.InnerIP,
+		info.InnerIPV6,
+		info.OsType,
+		info.LoginIP,
+		info.LoginPort,
+		info.LoginUser,
+		info.LoginMode,
+		info.Credit,
+	}
+}

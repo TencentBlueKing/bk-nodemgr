@@ -76,6 +76,30 @@ message NodeAgentInstallElig {
   repeated int64 duplicate_host_ids = 3;
 }
 
+// UploadAgentTemplateReq is the request for upload agent tempalte file.
+message UploadAgentTemplateReq {}
+
+// ParsedInfo describes the result for tempalte file parsed info.
+message ParsedInfo {
+  string inner_ip = 1;
+  string inner_ipv6 = 2;
+  string os_type = 3;
+  string login_ip = 4;
+  int64 login_port = 5;
+  string login_user = 6;
+  string login_mode = 7;
+  string credential = 8;
+}
+
+// UploadAgentTemplateResp ...
+message UploadAgentTemplateResp {
+  message Data {
+    repeated ParsedInfo info = 1;
+    int64 total_count = 2;
+  }
+  Data data = 1;
+}
+
 service NodeAgent {
   // NodeAgentInstall installs node agent.
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
@@ -90,6 +114,14 @@ service NodeAgent {
       returns (NodeAgentInstallCheckResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/install_check"
+      body : "*"
+    };
+  }
+
+  rpc UploadAgentTemplate(UploadAgentTemplateReq)
+      returns (UploadAgentTemplateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/upload_template"
       body : "*"
     };
   }

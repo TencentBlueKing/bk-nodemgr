@@ -83,6 +83,39 @@
           "NodeAgent"
         ]
       }
+    },
+    "/api/v3/node/agent/upload_template": {
+      "post": {
+        "operationId": "NodeAgent_UploadAgentTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadAgentTemplateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadAgentTemplateReq is the request for upload agent tempalte file.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadAgentTemplateReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
     }
   },
   "definitions": {
@@ -336,6 +369,37 @@
         }
       }
     },
+    "v3ParsedInfo": {
+      "type": "object",
+      "properties": {
+        "inner_ip": {
+          "type": "string"
+        },
+        "inner_ipv6": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_user": {
+          "type": "string"
+        },
+        "login_mode": {
+          "type": "string"
+        },
+        "credential": {
+          "type": "string"
+        }
+      },
+      "description": "ParsedInfo describes the result for tempalte file parsed info."
+    },
     "v3TargetVersion": {
       "type": "object",
       "properties": {
@@ -347,6 +411,35 @@
         },
         "os_type": {
           "type": "string"
+        }
+      }
+    },
+    "v3UploadAgentTemplateReq": {
+      "type": "object",
+      "description": "UploadAgentTemplateReq is the request for upload agent tempalte file."
+    },
+    "v3UploadAgentTemplateResp": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/definitions/v3UploadAgentTemplateRespData"
+        }
+      },
+      "description": "UploadAgentTemplateResp ..."
+    },
+    "v3UploadAgentTemplateRespData": {
+      "type": "object",
+      "properties": {
+        "info": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ParsedInfo"
+          }
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     }

@@ -37,4 +37,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/install", restserver.Handler(h.AgentInstall))
 	h.rg.POST("/install_check", restserver.Handler(h.AgentInstallCheck))
+
+	h.rg.POST("/download_template", restserver.FileHandler(h.DownloadTemplate))
+	h.rg.POST("/upload_template", restserver.Handler(h.UploadTemplate))
 }
