@@ -23,19 +23,19 @@ export const useWorkareaStore = defineStore("workarea", () => {
   const osTypeList = ref<string[]>([]);
   // const all
   const loading = ref(false);
-  const pagination = reactive({ count: 0, limit: 50, current: 1 });
+  const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 
   interface IncludeConditions {
     bk_networkarea_id: number[]; // 管控区域ID
     bk_networkarea_name: string[]; // 管控区域
-    bk_cloud_vendor: number[]; // 云服务商
+    cloud_vendor: number[]; // 云服务商
   }
 
   // 可搜索字段
   const includeConditions = reactive<IncludeConditions>({
     bk_networkarea_id: [],
+    cloud_vendor: [],
     bk_networkarea_name: [],
-    bk_cloud_vendor: [],
   });
 
   // 获取管控区域列表
@@ -46,11 +46,17 @@ export const useWorkareaStore = defineStore("workarea", () => {
         page: {
           // todo
           // 接口文档示例 offset为0，了解下前端是否需要-1
-          offset: pagination.current - 1,
+          offset: (pagination.current - 1) * pagination.limit,
           limit: pagination.limit,
         },
         onlyCount: false,
-        includeConditions,
+        exact_include_conditions: {
+          bk_networkarea_id: includeConditions.bk_networkarea_id,
+          cloud_vendor: includeConditions.cloud_vendor,
+        },
+        fuzzy_include_conditions: {
+          bk_networkarea_name: includeConditions.bk_networkarea_name,
+        }
       });
       workareaList.value = (result?.items as INetWorkArea[]) || [];
       pagination.count = result?.total || 0;
@@ -59,6 +65,16 @@ export const useWorkareaStore = defineStore("workarea", () => {
     } finally {
       loading.value = false;
     }
+  };
+
+  // 分页操作
+  const pageLimitChange = async (limit: number) => {
+    pagination.limit = limit;
+    await handleFetchWorkareaList();
+  };
+  const pageValueChange = async (current: number) => {
+    pagination.current = current;
+    await handleFetchWorkareaList();
   };
 
   const handleDeleteWorkarea = async (bk_networkarea_id: number) => {
@@ -80,6 +96,7 @@ export const useWorkareaStore = defineStore("workarea", () => {
 
   // 获取所有管控区域数据，用于复制
   const handleGetAllWorkareaList = async () => {
+    loading.value = true;
     const params: Partial<TopoNetworkAreaListReq> = {
       page: {
         offset: 0,
@@ -103,6 +120,7 @@ export const useWorkareaStore = defineStore("workarea", () => {
         item.agent_count = match.agent_count;
       }
     }
+    loading.value = false;
   };
 
   // 将所有管控区域存入Map
@@ -173,6 +191,8 @@ export const useWorkareaStore = defineStore("workarea", () => {
     allAccessPointList,
     vendorList,
     osTypeList,
+    pageLimitChange,
+    pageValueChange,
     handleCreateWorkarea,
     handleUpdateWorkarea,
     handleDeleteWorkarea,

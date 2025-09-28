@@ -492,8 +492,9 @@ const handleConfirm = async () => {
     }
   }
 };
-watch(() => isShow.value, () => {
+watch(() => isShow.value, async () => {
   if (isShow.value) {
+    await getNetworkAreaList();
     Object.assign(form, props.data);
   }
 });
@@ -503,7 +504,4 @@ watch(
     await getNetworkUnitList();
   },
 );
-onMounted(async () => {
-  await getNetworkAreaList();
-});
 </script>

@@ -6,7 +6,9 @@
   >
     <span class="mx-[6px] text-[#979BA5] text-[14px]">-</span>
     <span class="text-[#979BA5] text-[14px] mr-[14px]" v-if="currentData">{{ currentData?.workflow_id }}</span>
-    <Tag :theme="statusMap[currentStatus]?.tagTheme" type="filled" v-if="currentStatus">{{ statusMap[currentStatus]?.text || '' }}</Tag>
+    <Tag :theme="statusMap[currentStatus]?.tagTheme" type="filled" v-if="currentStatus">
+      {{ statusMap[currentStatus]?.text || '' }}
+    </Tag>
   </PageHeader>
   <div class="p-[24px] mt-[52px]">
     <div class="flex">
@@ -89,7 +91,12 @@
           <TableColumn field="bk_host_innerip_v6" :title="t('IPv6')" width="150"></TableColumn>
           <TableColumn field="bk_networkarea_id" :title="t('云区域')" min-width="150"></TableColumn>
           <TableColumn field="bk_biz_name" :title="t('业务')" min-width="150"></TableColumn>
-          <TableColumn field="node_version" :title="t('目标版本')" min-width="150" :filter="filterOptionSource.node_version"></TableColumn>
+          <TableColumn
+            field="node_version"
+            :title="t('目标版本')"
+            min-width="150"
+            :filter="filterOptionSource.node_version">
+          </TableColumn>
           <TableColumn field="total_time_second" :title="t('耗时')">
             <template #default="{ row }">
               <span>{{ formatTimeToMS(row.total_time_second) }}</span>
@@ -229,6 +236,11 @@ const statusMap = {
     icon: 'unknown',
     tagTheme: '',
   },
+  init: {
+    text: t('初始化'),
+    icon: 'unknown',
+    tagTheme: '',
+  },
 };
 const typeMap = {
   install_agent: t('platform.nodeMan.taskHistory.taskType.install_agent'),
@@ -244,16 +256,48 @@ const typeMap = {
   restart_proxy: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
 };
+
 const formatTimeToMS = (duration = 0) => {
-  const minutes = Math.floor(duration / 60000);
-  const seconds = Math.floor((duration % 60000) / 1000);
-  return `${minutes}m ${seconds}s`;
+  // 处理非数字或负数情况
+  if (typeof duration !== 'number' || duration < 0) {
+    return '0m 0s';
+  }
+
+  // 智能判断单位：
+  // 1. 大于等于100000的整数视为毫秒（时间戳差值通常较大）
+  // 2. 小数视为毫秒（如1234.5毫秒）
+  // 3. 较小的整数视为秒（如3600秒 = 1小时）
+  const isMs = duration >= 100000 || !Number.isInteger(duration);
+  const ms = isMs ? duration : duration * 1000;
+
+  // 计算各时间单位
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainingSecondsAfterHours = totalSeconds % 3600;
+  const minutes = Math.floor(remainingSecondsAfterHours / 60);
+  const seconds = remainingSecondsAfterHours % 60;
+
+  // 补零规则：非0且小于10时补零，0则直接显示0
+  const padIfNeeded = (num: number) => num === 0 ? '0' : num < 10 ? `0${num}` : num.toString();
+
+  // 构建结果
+  const parts = [];
+  if (hours > 0) {
+    parts.push(`${hours}h`);
+    parts.push(`${padIfNeeded(minutes)}m`);
+  } else if (minutes > 0) {
+    parts.push(`${minutes}m`);
+  }
+  parts.push(`${padIfNeeded(seconds)}s`);
+
+  return parts.join(' ');
 };
+
 const timeFormatter = (val: number | string | undefined, format = 'YYYY-MM-DD HH:mm:ss') => (val ? dayjs(val).format(format) : '--');
 
 const sliceWorkflowId = (val: string) => `#${val?.slice(-4)}`;
 const taskInfoList = computed(() => ([
-  { prop: 'type', name: t('任务类型'), value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType] } || nodeManageStore.taskHistoryTableRowData?.type,
+  { prop: 'type', name: t('任务类型'), value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType] || nodeManageStore.taskHistoryTableRowData?.type },
   { prop: 'cost_time', name: t('总耗时'), value: formatTimeToMS(nodeManageStore.taskHistoryTableRowData?.cost_time) },
   { prop: 'workflow_id', name: t('任务ID'), value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id) },
   { prop: 'operator', name: t('执行人'), value: nodeManageStore.taskHistoryTableRowData?.operator },
@@ -401,7 +445,7 @@ const list = [
 ];
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
-const failedSelection = computed(() => selection.value.filter((item: any) => item.state === 'failed'));
+const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout'].includes(item.state)));
 const handleSelectChange = ({ checked, row }: {checked: boolean, row: any}) => {
   row.checked = checked;
 };
@@ -418,7 +462,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'bk_networkarea_id',
     'bk_biz_name',
     'node_version',
-    'timeout_second',
+    'total_time_second',
     'state',
   ],
   disabled: [],
@@ -447,6 +491,9 @@ const handleRetry = async (row: any, type: string) => {
   }).catch(() => false);
   if (res) {
     await getOperateList();
+    if (nodeManageStore.currentStatus === 'running' || needInterval.value) {
+      start();
+    }
     await updataCurrentTaskInfo();
   }
 };
@@ -458,6 +505,10 @@ const handleFullRetry = async (type: string) => {
   }).catch(() => false);
   if (res) {
     await getOperateList();
+    if (nodeManageStore.currentStatus === 'running' || needInterval.value) {
+      start();
+    }
+    await updataCurrentTaskInfo();
   }
 };
 const updataCurrentTaskInfo = async () => {
@@ -534,7 +585,7 @@ const handleViewLog = async (row: any) => {
     logRef.value?.show();
   });
 };
-const { start, stop } = useInterval(getOperateList, 10000); // 轮询
+const { start, stop } = useInterval(getOperateList, 1000); // 轮询
 const handleStop = async () => {
   await updataCurrentTaskInfo();
   await getOperateList();

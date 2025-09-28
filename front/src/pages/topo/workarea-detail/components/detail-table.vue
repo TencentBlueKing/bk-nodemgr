@@ -31,7 +31,7 @@
           :label="$t('topoManager.workAreaDetail.table.ipv6')"
           field="bk_host_innerip_v6"
           show-overflow="tooltip"
-          :min-width="100">
+          :min-width="130">
           <template #default="{ row }">
             <span class="!text-[12px]">
               {{ row.bk_host_innerip_v6 ? `#${row.bk_host_innerip_v6}` : '--' }}
@@ -42,19 +42,19 @@
           label="出口IP"
           field="export_ip"
           show-overflow="tooltip"
-          :min-width="100">
+          :min-width="130">
         </TableColumn>
         <TableColumn
           label="服务IP"
           field="advertise_ip"
           show-overflow="tooltip"
-          :min-width="100">
+          :min-width="130">
         </TableColumn>
         <TableColumn
           label="登录IP"
           field="login_ip"
           show-overflow="tooltip"
-          :min-width="100">
+          :min-width="130">
         </TableColumn>
         <TableColumn
           label="所属业务"
@@ -76,7 +76,7 @@
           field="node_version"
           show-overflow="tooltip"
           :filter="proxyVersionFilter"
-          :min-width="120">
+          :min-width="150">
         </TableColumn>
         <TableColumn
           :label="$t('topoManager.workAreaDetail.table.proxyStatus')"
@@ -101,7 +101,7 @@
           label="proxy服务"
           field="proxy_tags"
           show-overflow="tooltip"
-          :min-width="230">
+          :min-width="300">
           <template #default="{ row }">
             <div class="flex items-center gap-[4px]">
               <div v-for="tag in row.proxy_tags" :key="tag">

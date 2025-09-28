@@ -105,9 +105,9 @@
                   >停用</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[4px]">
-                      <div class="text-[16px] text-[#313238] mb-[6px]">确认停用该 Agent 包？</div>
+                      <div class="text-[16px] text-[#313238] mb-[6px]">确认停用该插件包？</div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">停用目标：{{row.file_name}}</div>
-                      <div class="text-[12px] text-[#262830] w-full">停用后，Agent 安装、重装、升级时，不可选择</div>
+                      <div class="text-[12px] text-[#262830] w-full">停用后，插件 安装、重装、升级时，不可选择</div>
                       <div class="mt-[20px] flex gap-[8px] justify-end">
                         <Button theme="primary" @click="handleDisabled(row)">停用</Button>
                         <Button @click="row.isDisabledPopShow = false">取消</Button>
@@ -137,7 +137,7 @@
                   >删除</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[4px]">
-                      <div class="text-[16px] text-[#313238] mb-[6px]">确认删除该 Agent 包？</div>
+                      <div class="text-[16px] text-[#313238] mb-[6px]">确认删除该插件包？</div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
                       <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
                       <div class="mt-[20px] flex gap-[8px] justify-end">
@@ -157,41 +157,23 @@
   <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
-type PkgQuickType = "os_cpu_arch" | "version";
-type PkgType = "gse_agent" | "gse_proxy";
-interface ISearchSelect {
-  id: string;
-  name: string;
-  children: {
-    id: string;
-    name: string;
-    count: number;
-    icon?: string;
-    tips?: boolean;
-    isAll?: boolean;
-  }[];
-}
-interface IFilterOption {
-  list: { value: string | boolean, text: string;  }[];
-  checked: string[];
-  filterScope: string;
-}
-// 排序类型
-type PkgOrderType = "version" | "-version";
-import { ref, reactive, computed, onMounted, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { Button, SearchSelect, Tag, Select, Loading, Popover, TagInput } from "bkui-vue";
-import useTableSetting from "@/composables/use-table-setting";
-import { PackageService } from "@/api/modules/pkg";
-import { Table, TableColumn } from "@blueking/table";
-import { formatTimestamp, capitalizeFirstLetter, compareVersions } from "@/common/util";
-import type { Release } from "@/@types/common.d";
-import { isArray } from "lodash";
-import { useRoute, useRouter } from "vue-router";
+import { Button, Loading, Popover, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
+import { EditLine } from 'bkui-vue/lib/icon';
+import { isArray } from 'lodash';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import type { VxeTablePropTypes } from 'vxe-table';
+
+import { Table, TableColumn } from '@blueking/table';
+
+import PkgUploadSideslider from './agent-proxy-pkg/pkg-upload-sideslider.vue';
+
+import type { Release } from '@/@types/common.d';
+import { PackageService } from '@/api/modules/pkg';
+import { capitalizeFirstLetter, compareVersions, formatTimestamp } from '@/common/util';
 import usePage from '@/composables/use-page';
-import PkgUploadSideslider from "./agent-proxy-pkg/pkg-upload-sideslider.vue";
-import { EditLine } from "bkui-vue/lib/icon";
+import useTableSetting from '@/composables/use-table-setting';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -202,20 +184,19 @@ const originPackageList = ref<Release[]>([]);
 const isShow = ref(false);
 // 分页
 const {
-  pagination
+  pagination,
 } = usePage(packageList);
 const sortConfig = ref<VxeTablePropTypes.SortConfig>({
-  sortMethod ({ data, sortList }) {
-    const sortItem = sortList[0]
+  sortMethod({ data, sortList }) {
+    const sortItem = sortList[0];
     // 取出第一个排序的列
-    const { field, order } = sortItem
+    const { field, order } = sortItem;
     // 通用排序函数
     function sortData(a: Release, b: Release, field: string) {
       if (field === 'version') {
         return compareVersions(a[field], b[field]);
-      } else {
-        return a[field] - b[field];
       }
+      return a[field] - b[field];
     }
 
     const sortedList = data.sort((a: Release, b: Release) => {
@@ -224,7 +205,7 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
     });
 
     return sortedList;
-  }
+  },
 });
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
@@ -240,20 +221,16 @@ function countByProp(data: Release[], prop: string) {
   }, {});
 }
 function getUniqueChildren(prop: string) {
-  const res = Array.from(
-    new Set(
-      originPackageList.value
-        .map((item: any) => item[prop])
-        .filter((item: any) => String(item))
-    )
-  );
+  const res = Array.from(new Set(originPackageList.value
+    .map((item: any) => item[prop])
+    .filter((item: any) => String(item))));
   const uniqueValues = isArray(res[0]) ? [...res[0]] : res;
   return uniqueValues.map((value: any) => {
     let name = String(value);
     let count;
-    if (["os_cpu_arch", "version"].includes(prop)) {
+    if (['os_cpu_arch', 'version'].includes(prop)) {
       count = countByProp(originPackageList.value, prop)[value as string];
-      if (prop === "os_cpu_arch") {
+      if (prop === 'os_cpu_arch') {
         name = capitalizeFirstLetter(value);
       }
     }
@@ -270,27 +247,27 @@ function getUniqueChildren(prop: string) {
 
 const searchSelectData = computed(() => [
   {
-    id: "version",
-    name: t("版本号"),
-    children: getUniqueChildren("version"),
+    id: 'version',
+    name: t('版本号'),
+    children: getUniqueChildren('version'),
   },
   {
-    id: "os_cpu_arch",
-    name: t("操作系统/架构"),
-    children: getUniqueChildren("os_cpu_arch"),
+    id: 'os_cpu_arch',
+    name: t('操作系统/架构'),
+    children: getUniqueChildren('os_cpu_arch'),
   },
   {
-    id: "operator",
-    name: t("上传用户"),
-    children: getUniqueChildren("operator"),
+    id: 'operator',
+    name: t('上传用户'),
+    children: getUniqueChildren('operator'),
     multiple: true,
   },
   {
-    id: "enabled",
-    name: t("状态"),
+    id: 'enabled',
+    name: t('状态'),
     children: [
-      { id: true, name: t("启用") },
-      { id: false, name: t("禁用") },
+      { id: true, name: t('启用') },
+      { id: false, name: t('禁用') },
     ],
   },
 ]);
@@ -298,44 +275,41 @@ const searchSelectData = computed(() => [
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    "file_name",
-    "version",
-    "os_cpu_arch",
-    "host",
-    "enabled",
-    "action",
+    'file_name',
+    'version',
+    'os_cpu_arch',
+    'host',
+    'enabled',
+    'action',
   ],
-  disabled: ["action"],
+  disabled: ['action'],
 });
 
 // 搜索
-const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string,name: string}[]}[]) => {
-  
-}
+const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
+
+};
 const handleClickHost = (row: Release) => {
-  if(!row.host || row.release_type !== 'agent') return;
+  if (!row.host) return;
   router.push({
     name: 'agent',
     query: {
       os_type: row.os_type,
-      node_version: row.version
-    }
+      node_version: row.version,
+    },
   });
-}
-const handleChangeTag = () => {
-
-}
+};
 const handleUpload = () => {
   isShow.value = true;
-}
+};
 const handleConfirm = async () => {
   await getPackages();
-}
+};
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
-    release_type: "agent",
-    generation: 2
+    release_type: 'official_plugin',
+    generation: 2,
   });
   const hostList = await PackageService.DeployedHostCount({
     request_items: res.items.map(item => ({
@@ -344,35 +318,33 @@ const getPackages = async () => {
       version: item.version,
       platform: {
         os_type: item.os_type,
-        cpu_arch: item.cpu_arch
-      }
-    }))
+        cpu_arch: item.cpu_arch,
+      },
+    })),
   });
   const items = res.items.map((item, index) => ({
     ...item,
-    os_cpu_arch: item.os_type + "_" + item.cpu_arch,
+    os_cpu_arch: `${item.os_type}_${item.cpu_arch}`,
     host: hostList.items[index],
     isDisabledPopShow: false,
     isDeletePopShow: false,
     isShowTagInput: false,
-    createPopShow: false
+    createPopShow: false,
   }))
-  .sort((a, b) => compareVersions(a.version,b.version));
+    .sort((a, b) => compareVersions(a.version, b.version));
   originPackageList.value = items;
   packageList.value = items;
   loading.value = false;
 };
-const getParams = (row: Release) => {
-  return {
-    generation: row.generation,
-    release_type: row.release_type,
-    platform: {
-      os_type: row.os_type,
-      cpu_arch: row.cpu_arch,
-    },
-    version: row.version,
-  };
-};
+const getParams = (row: Release) => ({
+  generation: row.generation,
+  release_type: row.release_type,
+  platform: {
+    os_type: row.os_type,
+    cpu_arch: row.cpu_arch,
+  },
+  version: row.version,
+});
 const handleSetDefaultVersion = async (row: Release) => {
   await PackageService.SetAsDefaultRelease(getParams(row));
   await getPackages();
@@ -393,26 +365,24 @@ const handleDelete = async (row: Release) => {
 watch(
   searchSelectValue,
   () => {
-    packageList.value = originPackageList.value.filter((row: Release) => {
-      return searchSelectValue.value.every((searchItem: any) => {
-        const { id: searchField, values } = searchItem;
-        const searchIds = values.map((value: {id: string}) => value.id);
-        if (searchField === 'enabled') {
-          return searchIds.includes(row[searchField]);
-        }
-        
+    packageList.value = originPackageList.value.filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
+      const { id: searchField, values } = searchItem;
+      const searchIds = values.map((value: {id: string}) => value.id);
+      if (searchField === 'enabled') {
         return searchIds.includes(row[searchField]);
-      });
-    });
+      }
+
+      return searchIds.includes(row[searchField]);
+    }));
   },
-  { immediate: true, deep: true }
+  { immediate: true, deep: true },
 );
 watch(
   () => route.name,
   async () => {
     await getPackages();
   },
-  { immediate: true }
+  { immediate: true },
 );
 onMounted(async () => {
 });

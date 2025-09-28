@@ -56,7 +56,7 @@
         <div class="w-[258px] border-r border-[#0A0A0A] text-[#a8acb8]" :class="{ 'w-[360px]': isFullscreen }">
           <div
             v-for="(item, key, index) in logData.oper_inst_logs"
-            :key="key"
+            :key="`${key}${Math.random()}`"
             @click="handleToggleLogItem(key)"
             :class="[
               'h-[32px] flex items-center pl-[16.8px] cursor-pointer',
@@ -146,7 +146,7 @@ const emit = defineEmits(['stop']);
 const { t } = useI18n();
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
-const { start, stop } = useInterval(getLog, 5000); // 轮询
+const { start, stop } = useInterval(getLog, 1000); // 轮询
 const activeKey = ref('');
 const curOperInstId = ref('');
 const curOperInstVal = ref('LATEST');
@@ -251,6 +251,7 @@ const handleToggleLogItem = (key: string) => {
 const show = async () => {
   slideDetailRef.value?.show();
   curOperationId.value = props.data.operation_id;
+  hasErrorOrTimeout.value = false;
   await getInstance();
   await getLog();
   if (isInterval.value) {

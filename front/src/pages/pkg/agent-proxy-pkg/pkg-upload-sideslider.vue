@@ -99,12 +99,9 @@ const submit = async () => {
   }
 };
 
-
-onMounted(async () => {
-  await packageStore.getPackages();
-});
-watch(() => isShow.value, () => {
+watch(() => isShow.value, async () => {
   if (isShow.value) {
+    await packageStore.getPackages();
     uploadData.value = null;
   }
 }, { immediate: true });

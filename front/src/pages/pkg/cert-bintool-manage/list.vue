@@ -377,6 +377,4 @@ watch(
   },
   { immediate: true },
 );
-onMounted(async () => {
-});
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <Loading :loading="loading">
+  <Loading :loading="workareaStore.loading">
     <Table
       class="mt-[16px] w-full"
       ref="tableRef"
@@ -10,6 +10,8 @@
       :show-settings="isShowSetting"
       :settings="settings"
       :max-height="maxHeight"
+      @page-limit-change="workareaStore.pageLimitChange"
+      @page-value-change="workareaStore.pageValueChange"
       @setting-change="handleSettingChange"
       @column-filter="handleColumnFilter">
       <TableColumn type="checkbox" :width="60" :resizable="false" />
@@ -124,7 +126,7 @@ import { useWorkareaStore } from '@/stores/workarea';
 
 interface IProps {
   list: INetWorkArea[],
-  vendorList: string[]
+  vendorList: string[],
 }
 const props = defineProps<IProps>();
 
@@ -161,7 +163,6 @@ const filterOption = reactive<{
   list: [],
   checked: [],
 });
-const loading = ref(true);
 const handleColumnFilter = ({ checked }: { checked: string[] }) => {
   filterOption.checked = checked;
   handleFilter(checked);
@@ -215,9 +216,7 @@ watch(() => props.vendorList, () => {
 });
 
 watch(() => props.list, () => {
-  loading.value = true;
   tableData.value = props.list;
-  loading.value = false;
 }, { immediate: true });
 
 const tableRef = ref();

@@ -32,12 +32,12 @@
             ></copy-ip-dropdown>
           </div>
           <div class="flex gap-[8px]">
-            <Button @click="handleBatchInstall">{{
-              $t("platform.nodeMan.preview.button.batchInstall")
-            }}</Button>
-            <Button @click="handleBatchRemove">{{
-              $t("platform.nodeMan.preview.button.batchRemove")
-            }}</Button>
+            <Button @click="handleBatchInstall">
+              {{ $t("platform.nodeMan.preview.button.batchInstall") }}
+            </Button>
+            <Button @click="handleBatchRemove">
+              {{ $t("platform.nodeMan.preview.button.batchRemove") }}
+            </Button>
           </div>
         </div>
         <Tab class="mt-[16px]" v-model:active="active" type="card" :key="tabKey">
@@ -456,8 +456,13 @@ const handleBatchRemove = () => {
   tabKey.value = Date.now();
 };
 const handleSetup = async () => {
+  // 过滤掉每条数据中的duplicate_host_ids和elig_status字段
+  const filteredData = tableData.value.map((item: any) => {
+    const { duplicate_host_ids, elig_status, ...rest } = item;
+    return rest;
+  });
   const res = await NodeAgentService.NodeAgentInstall({
-    info: tableData.value,
+    info: filteredData,
     target_version: props.data.target_version,
     disable_default_target_version: props.data.disable_default_target_version,
   }).catch(() => ({

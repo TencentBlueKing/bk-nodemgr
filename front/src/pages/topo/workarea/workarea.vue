@@ -8,8 +8,6 @@
             <i class="nodeman-icon nc-plus-line mr-[4.5px]"></i>
             <span>{{ $t('action.create') }}</span>
           </Button>
-          <!-- 复制 -->
-          <CopyIp :get-select-data="handleGetSelectData"></CopyIp>
         </div>
       </template>
       <template #right>
@@ -42,7 +40,7 @@
 <script setup lang="ts">
 import { Button, SearchSelect } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import InstallProxy from '../install-proxy/install-proxy.vue';
@@ -51,7 +49,12 @@ import RegionTable from './components/region-table.vue';
 import UpsertWorkarea from './components/upsert-workarea.vue';
 import { vendorMap } from './vendorMap';
 
-import CopyIp from '@/components/copy-ip.vue';
+import type {
+  TopoNetworkAreaListReq,
+  TopoNetworkAreaListReqExactConditions,
+  TopoNetworkAreaListReqFuzzyConditions,
+} from '@/@types/topo';
+import { TopoService } from '@/api/modules/topo';
 import type { INetWorkArea } from '@/stores/workarea';
 import { useWorkareaStore } from '@/stores/workarea';
 
@@ -80,20 +83,6 @@ const handleInstallProxy = () => {
 // 编辑更新
 const handleUpdate = async () => {
   await getTableData();
-};
-
-// 复制
-const regionTableRef = ref();
-const handleGetSelectData = async (type: string) => {
-  let tableData = [];
-  if (type === 'select') {
-    // 获取勾选行
-    tableData = regionTableRef.value.tableRef.getVxeTableInstance().getCheckboxRecords();
-  } else {
-    // 获取全部行
-    tableData = await workareaStore.handleGetAllWorkareaList();
-  }
-  return tableData;
 };
 
 // 表格数据
@@ -136,29 +125,29 @@ const initSearchData = () => {
       id: 'vendor',
       multiple: true,
       children: workareaStore.vendorList.map((item, id) => ({
-        id: String(id),
+        id: String(item),
         name: t(String(vendorMap[item]?.label || '')),
       })),
     },
   ];
 };
-// 前端过滤数据
-watch(searchKey, (newVal) => {
-  let data: INetWorkArea[] = workareaStore.workareaList;
-  for (const item of newVal) {
-    switch (item.id) {
-      case 'workareaName':
-        data = data.filter(area => item.values?.find(o => o.id === area.bk_networkarea_name));
-        break;
-      case 'workareaId':
-        data = data.filter(area => item.values?.find(o => o.id === String(area.bk_networkarea_id)));
-        break;
-      case 'vendor':
-        data = data.filter(area => item.values?.find(o => o.id === area.cloud_vendor));
-        break;
+// 后端端过滤数据
+watch(searchKey, async (newVal) => {
+  workareaStore.includeConditions.bk_networkarea_name = [];
+  workareaStore.includeConditions.bk_networkarea_id = [];
+  workareaStore.includeConditions.cloud_vendor = [];
+  newVal.forEach((item: any) => {
+    const keyMap = {
+      workareaName: 'bk_networkarea_name',
+      workareaId: 'bk_networkarea_id',
+      vendor: 'cloud_vendor',
+    };
+    if (keyMap[item.id]) {
+      workareaStore.includeConditions[keyMap[item.id]] = item.values.map((value: any) => (item.id === 'workareaId' ? Number(value.id) : value.id));
     }
-  }
-  tableData.value = data;
+  });
+  await workareaStore.handleFetchWorkareaList();
+  tableData.value = workareaStore.workareaList;
 });
 const getTableData = async () => {
   await Promise.all([
