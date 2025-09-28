@@ -81,6 +81,13 @@ func NewFullInstall() *cobra.Command {
 		},
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
+			// init log settings.
+			lHandler := logreporter.NewHandler(logDir, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
+			if err := lHandler.Start(); err != nil {
+				return fmt.Errorf("failed to init logger: %w", err)
+			}
+			defer lHandler.Stop()
+
 			// report status.
 			defer func() {
 				state := types.ProcessStateSuccess
@@ -95,13 +102,6 @@ func NewFullInstall() *cobra.Command {
 					CallbackSvrAddr: callbackSvrAddr,
 				}).Run(cmd.Context())
 			}()
-
-			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
-			if err := lHandler.Start(); err != nil {
-				return fmt.Errorf("failed to init logger: %w", err)
-			}
-			defer lHandler.Stop()
 
 			// download files.
 			if err := filedownloader.NewStep(filedownloader.StepArgs{
