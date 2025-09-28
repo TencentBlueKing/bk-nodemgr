@@ -120,11 +120,18 @@ func New(ctx context.Context, opts ...Opts) *Context {
 
 // From with context.
 func From(nCtx IContext, opts ...Opts) *Context {
-	c := New(nCtx, append([]Opts{WithValues(nCtx.Values())}, opts...)...)
 
-	c.tenantID = nCtx.TenantID()
-	c.bkUsername = nCtx.BKUsername()
-	c.messageID = nCtx.MessageID()
+	newOpts := []Opts{
+		WithTenantID(nCtx.TenantID()),
+		WithBKUsername(nCtx.BKUsername()),
+		WithMessageID(nCtx.MessageID()),
+		WithValues(nCtx.Values()),
+	}
+
+	// append opts to newOpts, if there has same optFn, the latter one will cover the front.
+	newOpts = append(newOpts, opts...)
+
+	c := New(nCtx, newOpts...)
 
 	return c
 }
