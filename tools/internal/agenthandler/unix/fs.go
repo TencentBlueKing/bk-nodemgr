@@ -73,7 +73,7 @@ func (handler *AgentHandler) CheckIntegrity(_ context.Context) error {
 }
 
 // Init init agent file system.
-func (handler *AgentHandler) Init(_ context.Context) error {
+func (handler *AgentHandler) Init() error {
 	if err := handler.mkdirAll(handler.setupDir); err != nil {
 		return fmt.Errorf("failed to make setup-dir(%s): %w", handler.setupDir, err)
 	}

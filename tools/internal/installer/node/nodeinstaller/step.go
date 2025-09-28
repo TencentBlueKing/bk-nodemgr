@@ -56,7 +56,7 @@ func (step *Step) Run(ctx context.Context) (*StepResult, error) {
 	logger.Infof(node.StepInstallNode, "start to install node. %s", step.args.String())
 
 	// 1. init file-system architecture.
-	if err := step.args.AgentHandler.FS().Init(ctx); err != nil {
+	if err := step.args.AgentHandler.FS().Init(); err != nil {
 		logger.Errorf(node.StepInstallNode, "failed to init file-system: %v", err)
 
 		return nil, err

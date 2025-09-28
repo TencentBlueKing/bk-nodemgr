@@ -43,7 +43,7 @@ func testClient(t *testing.T) agenthandler.IAgentFSHandler {
 func Test_CheckIntegrity(t *testing.T) {
 	handler := testClient(t)
 
-	if err := handler.Init(context.Background()); err != nil {
+	if err := handler.Init(); err != nil {
 		t.Fatalf("failed to init fs: %v", err)
 	}
 
@@ -68,7 +68,7 @@ func Test_CheckIntegrity(t *testing.T) {
 func Test_Init(t *testing.T) {
 	handler := testClient(t)
 
-	if err := handler.Init(context.Background()); err != nil {
+	if err := handler.Init(); err != nil {
 		t.Fatalf("failed to init fs: %v", err)
 	}
 }
@@ -95,7 +95,7 @@ func Test_Purge(t *testing.T) {
 func Test_CopyConfigDir(t *testing.T) {
 	handler := testClient(t)
 
-	if err := handler.Init(context.Background()); err != nil {
+	if err := handler.Init(); err != nil {
 		t.Fatalf("failed to init fs: %v", err)
 	}
 

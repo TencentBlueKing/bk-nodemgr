@@ -35,7 +35,7 @@ type IAgentFSHandler interface {
 	CheckIntegrity(ctx context.Context) error
 
 	// Init init agent file system.
-	Init(ctx context.Context) error
+	Init() error
 
 	// Backup backup agent file system.
 	Backup(ctx context.Context) error
