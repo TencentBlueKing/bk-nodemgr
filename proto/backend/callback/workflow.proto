@@ -153,3 +153,17 @@ message PluginReportStatusResp {
 
 // PluginGetMainConfigReq describes the HTTP request body when get agent conf.
 message PluginGetMainConfigReq { string token = 1; }
+
+// PluginReportDataReq describes the HTTP request body when report data.
+message PluginReportDataReq { string token = 1; }
+
+// PluginReportDataResp describes the HTTP request body when report data.
+message PluginReportDataResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}

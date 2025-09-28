@@ -64,3 +64,16 @@ func (x *PluginGetMainConfigReq) Validate() error {
 
 	return nil
 }
+
+// AutoConvert auto convert.
+func (x *PluginReportDataReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *PluginReportDataReq) Validate() error {
+	if x.GetToken() == "" {
+		return errors.New("token is required")
+	}
+
+	return nil
+}

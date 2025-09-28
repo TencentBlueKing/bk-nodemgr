@@ -54,6 +54,8 @@ func (h *handler) Plugin(rCtx restserver.IContext) (*restserver.FileResponse, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("normalize arch failed: %w", err))
 	}
 
+	version := req.GetVersion()
+
 	file, _, err := h.manager.EnsurePluginToLocal(rCtx,
 		rt,
 		pluginName,
@@ -61,7 +63,7 @@ func (h *handler) Plugin(rCtx restserver.IContext) (*restserver.FileResponse, er
 		platform.Platform{
 			OS:   os,
 			Arch: arch,
-		}, req.GetVersion())
+		}, version)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}

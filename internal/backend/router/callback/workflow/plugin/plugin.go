@@ -33,7 +33,9 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/plugin"),
+		rg:                  rg.Group("/plugin"),
+		daoPluginDeployment: capability.StoragePlugin,
+		stgWorkflow:         capability.StorageWorkflow,
 	}
 }
 
@@ -42,6 +44,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/report_log", restserver.Handler(h.ReportLog))
+	h.rg.POST("/report_data", restserver.Handler(h.ReportData))
 	h.rg.POST("/report_status", restserver.Handler(h.ReportStatus))
 	h.rg.POST("/get_main_config", restserver.FileHandler(h.GetMainConfig))
 }

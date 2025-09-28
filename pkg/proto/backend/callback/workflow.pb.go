@@ -1235,6 +1235,128 @@ func (x *PluginGetMainConfigReq) GetToken() string {
 	return ""
 }
 
+// PluginReportDataReq describes the HTTP request body when report data.
+type PluginReportDataReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginReportDataReq) Reset() {
+	*x = PluginReportDataReq{}
+	mi := &file_workflow_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginReportDataReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginReportDataReq) ProtoMessage() {}
+
+func (x *PluginReportDataReq) ProtoReflect() protoreflect.Message {
+	mi := &file_workflow_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginReportDataReq.ProtoReflect.Descriptor instead.
+func (*PluginReportDataReq) Descriptor() ([]byte, []int) {
+	return file_workflow_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *PluginReportDataReq) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+// PluginReportDataResp describes the HTTP request body when report data.
+type PluginReportDataResp struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Code          int32                      `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                     `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                     `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                     `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Data          *PluginReportDataResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginReportDataResp) Reset() {
+	*x = PluginReportDataResp{}
+	mi := &file_workflow_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginReportDataResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginReportDataResp) ProtoMessage() {}
+
+func (x *PluginReportDataResp) ProtoReflect() protoreflect.Message {
+	mi := &file_workflow_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginReportDataResp.ProtoReflect.Descriptor instead.
+func (*PluginReportDataResp) Descriptor() ([]byte, []int) {
+	return file_workflow_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *PluginReportDataResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *PluginReportDataResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *PluginReportDataResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *PluginReportDataResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *PluginReportDataResp) GetData() *PluginReportDataResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type ReportFileStateReqFileState struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FileName      string                 `protobuf:"bytes,1,opt,name=file_name,json=fileName,proto3" json:"file_name"`
@@ -1245,7 +1367,7 @@ type ReportFileStateReqFileState struct {
 
 func (x *ReportFileStateReqFileState) Reset() {
 	*x = ReportFileStateReqFileState{}
-	mi := &file_workflow_proto_msgTypes[18]
+	mi := &file_workflow_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1257,7 +1379,7 @@ func (x *ReportFileStateReqFileState) String() string {
 func (*ReportFileStateReqFileState) ProtoMessage() {}
 
 func (x *ReportFileStateReqFileState) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[18]
+	mi := &file_workflow_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1295,7 +1417,7 @@ type PluginReportLogResp_Data struct {
 
 func (x *PluginReportLogResp_Data) Reset() {
 	*x = PluginReportLogResp_Data{}
-	mi := &file_workflow_proto_msgTypes[19]
+	mi := &file_workflow_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1307,7 +1429,7 @@ func (x *PluginReportLogResp_Data) String() string {
 func (*PluginReportLogResp_Data) ProtoMessage() {}
 
 func (x *PluginReportLogResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[19]
+	mi := &file_workflow_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1331,7 +1453,7 @@ type PluginReportStatusResp_Data struct {
 
 func (x *PluginReportStatusResp_Data) Reset() {
 	*x = PluginReportStatusResp_Data{}
-	mi := &file_workflow_proto_msgTypes[20]
+	mi := &file_workflow_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1343,7 +1465,7 @@ func (x *PluginReportStatusResp_Data) String() string {
 func (*PluginReportStatusResp_Data) ProtoMessage() {}
 
 func (x *PluginReportStatusResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_workflow_proto_msgTypes[20]
+	mi := &file_workflow_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1357,6 +1479,42 @@ func (x *PluginReportStatusResp_Data) ProtoReflect() protoreflect.Message {
 // Deprecated: Use PluginReportStatusResp_Data.ProtoReflect.Descriptor instead.
 func (*PluginReportStatusResp_Data) Descriptor() ([]byte, []int) {
 	return file_workflow_proto_rawDescGZIP(), []int{16, 0}
+}
+
+type PluginReportDataResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginReportDataResp_Data) Reset() {
+	*x = PluginReportDataResp_Data{}
+	mi := &file_workflow_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginReportDataResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginReportDataResp_Data) ProtoMessage() {}
+
+func (x *PluginReportDataResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_workflow_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginReportDataResp_Data.ProtoReflect.Descriptor instead.
+func (*PluginReportDataResp_Data) Descriptor() ([]byte, []int) {
+	return file_workflow_proto_rawDescGZIP(), []int{19, 0}
 }
 
 var File_workflow_proto protoreflect.FileDescriptor
@@ -1521,11 +1679,27 @@ var file_workflow_proto_rawDesc = string([]byte{
 	0x22, 0x2e, 0x0a, 0x16, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x47, 0x65, 0x74, 0x4d, 0x61, 0x69,
 	0x6e, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f,
 	0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e,
-	0x42, 0x45, 0x5a, 0x43, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54,
-	0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62,
-	0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x63,
-	0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x22, 0x2b, 0x0a, 0x13, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74,
+	0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x71, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x22, 0xcb, 0x01,
+	0x0a, 0x14, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x44, 0x61,
+	0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65,
+	0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73,
+	0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f,
+	0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x49, 0x64, 0x12, 0x25, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x63, 0x61, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x2e, 0x45, 0x72,
+	0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x37, 0x0a, 0x04, 0x64, 0x61,
+	0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x63, 0x61, 0x6c, 0x6c, 0x62,
+	0x61, 0x63, 0x6b, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74,
+	0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64,
+	0x61, 0x74, 0x61, 0x1a, 0x06, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x42, 0x45, 0x5a, 0x43, 0x67,
+	0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e,
+	0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64,
+	0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f,
+	0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x63, 0x61, 0x6c, 0x6c, 0x62, 0x61,
+	0x63, 0x6b, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -1540,7 +1714,7 @@ func file_workflow_proto_rawDescGZIP() []byte {
 	return file_workflow_proto_rawDescData
 }
 
-var file_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_workflow_proto_goTypes = []any{
 	(*GetAgentConfReq)(nil),             // 0: callback.GetAgentConfReq
 	(*GetFileProxyConfReq)(nil),         // 1: callback.GetFileProxyConfReq
@@ -1560,24 +1734,29 @@ var file_workflow_proto_goTypes = []any{
 	(*PluginReportStatusReq)(nil),       // 15: callback.PluginReportStatusReq
 	(*PluginReportStatusResp)(nil),      // 16: callback.PluginReportStatusResp
 	(*PluginGetMainConfigReq)(nil),      // 17: callback.PluginGetMainConfigReq
-	(*ReportFileStateReqFileState)(nil), // 18: callback.ReportFileStateReq.fileState
-	(*PluginReportLogResp_Data)(nil),    // 19: callback.PluginReportLogResp.Data
-	(*PluginReportStatusResp_Data)(nil), // 20: callback.PluginReportStatusResp.Data
-	(*Error)(nil),                       // 21: callback.Error
+	(*PluginReportDataReq)(nil),         // 18: callback.PluginReportDataReq
+	(*PluginReportDataResp)(nil),        // 19: callback.PluginReportDataResp
+	(*ReportFileStateReqFileState)(nil), // 20: callback.ReportFileStateReq.fileState
+	(*PluginReportLogResp_Data)(nil),    // 21: callback.PluginReportLogResp.Data
+	(*PluginReportStatusResp_Data)(nil), // 22: callback.PluginReportStatusResp.Data
+	(*PluginReportDataResp_Data)(nil),   // 23: callback.PluginReportDataResp.Data
+	(*Error)(nil),                       // 24: callback.Error
 }
 var file_workflow_proto_depIdxs = []int32{
 	5,  // 0: callback.ReportLogReq.logs:type_name -> callback.ReportLog
-	18, // 1: callback.ReportFileStateReq.file_state:type_name -> callback.ReportFileStateReq.fileState
+	20, // 1: callback.ReportFileStateReq.file_state:type_name -> callback.ReportFileStateReq.fileState
 	13, // 2: callback.PluginReportLogReq.logs:type_name -> callback.PluginReportLog
-	21, // 3: callback.PluginReportLogResp.error:type_name -> callback.Error
-	19, // 4: callback.PluginReportLogResp.data:type_name -> callback.PluginReportLogResp.Data
-	21, // 5: callback.PluginReportStatusResp.error:type_name -> callback.Error
-	20, // 6: callback.PluginReportStatusResp.data:type_name -> callback.PluginReportStatusResp.Data
-	7,  // [7:7] is the sub-list for method output_type
-	7,  // [7:7] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	24, // 3: callback.PluginReportLogResp.error:type_name -> callback.Error
+	21, // 4: callback.PluginReportLogResp.data:type_name -> callback.PluginReportLogResp.Data
+	24, // 5: callback.PluginReportStatusResp.error:type_name -> callback.Error
+	22, // 6: callback.PluginReportStatusResp.data:type_name -> callback.PluginReportStatusResp.Data
+	24, // 7: callback.PluginReportDataResp.error:type_name -> callback.Error
+	23, // 8: callback.PluginReportDataResp.data:type_name -> callback.PluginReportDataResp.Data
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_workflow_proto_init() }
@@ -1592,7 +1771,7 @@ func file_workflow_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflow_proto_rawDesc), len(file_workflow_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
