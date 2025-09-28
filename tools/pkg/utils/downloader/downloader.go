@@ -125,7 +125,7 @@ func (d *HTTPDownloader) Download(ctx context.Context, config Config) error {
 	// write the response body to a file.
 	file, err := os.Create(config.DestPath)
 	if err != nil {
-		return fmt.Errorf("create destination file %s failed: %v", config.DestPath, err)
+		return fmt.Errorf("failed to create destination file, destination-path(%s): %v", config.DestPath, err)
 	}
 	defer func() {
 		_ = file.Close()
