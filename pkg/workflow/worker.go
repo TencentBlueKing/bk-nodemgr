@@ -68,7 +68,7 @@ func (mgr *manager) launchWorker() error {
 // nolint: funlen,gocognit,cyclop,gocyclo
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 // notice: this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
-func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
+func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) (err error) {
 	var nCtx contextx.IContext
 	nCtx = contextx.New(ctx, contextx.WithMessageID(actionMessageID(operationInstanceID, actionName)))
 
@@ -89,6 +89,30 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		return fmt.Errorf("failed to get action instance data from operation instance. "+
 			"oper-inst-id(%s), action-name(%s): %v", operationInstanceID, actionName, err)
 	}
+
+	// start log recording.
+	actionInstData.Start()
+
+	defer func() {
+		// close log recording.
+		actionInstData.Close()
+
+		// updates action instance lifecycle.
+		if dbErr := mgr.updateActionLifecycle(nCtx, operationInstanceID, actionName, actionInstData.Lifecycle); dbErr != nil {
+			err = fmt.Errorf("failed to update action instance lifecycle, original-err(%w): %w", err, dbErr)
+		}
+
+		// updates action content.
+		if dbErr := mgr.updateActionContent(nCtx, operationInstanceID, actionName, actionInstData.Content); dbErr != nil {
+			err = fmt.Errorf("failed to update action instance content, original-err(%w): %w", err, dbErr)
+		}
+
+		// updates action instance private data.
+		if dbErr := mgr.updateActionInstancePrivateData(
+			nCtx, operationInstanceID, actionName, actionInstData.PrivateData); dbErr != nil {
+			err = fmt.Errorf("failed to update action instance private data, original-err(%w): %w", err, dbErr)
+		}
+	}()
 
 	// record metric.
 	m := metric.NewActionProcess(actionInstData).Start()
@@ -157,22 +181,6 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	// execute and wait for action done.
 	executeErr := mgr.executeAndWatchAction(nCtx, actionDef, operInstBriefData, actionInstData)
 
-	// updates action instance lifecycle.
-	if err = mgr.updateActionLifecycle(nCtx, operationInstanceID, actionName, actionInstData.Lifecycle); err != nil {
-		return err
-	}
-
-	// updates action content.
-	if err = mgr.updateActionContent(nCtx, operationInstanceID, actionName, actionInstData.Content); err != nil {
-		return err
-	}
-
-	// updates action instance private data.
-	if err = mgr.updateOperationInstancePrivateData(
-		nCtx, operationInstanceID, actionName, actionInstData.PrivateData); err != nil {
-		return err
-	}
-
 	// when action done or error happens, we need to update the state of the operation instance.
 	if actionInstData.IsLast() || executeErr != nil {
 		// record oper inst metric.
@@ -240,7 +248,7 @@ func (mgr *manager) updateOperationInstanceLifecycle(
 	return nil
 }
 
-func (mgr *manager) updateOperationInstancePrivateData(
+func (mgr *manager) updateActionInstancePrivateData(
 	ctx contextx.IContext,
 	operationInstanceID string,
 	actionName string,

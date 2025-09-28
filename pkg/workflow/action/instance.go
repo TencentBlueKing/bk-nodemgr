@@ -12,6 +12,7 @@ package action
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -25,6 +26,36 @@ type InstanceContext struct {
 
 	// Data is the action being executed
 	Data *InstanceData
+}
+
+func (data *InstanceData) processMessages() {
+	for {
+		select {
+		case msg := <-data.msgChan:
+			data.Messages = append(data.Messages, msg)
+		case <-data.msgDone:
+			for len(data.msgChan) > 0 {
+				msg := <-data.msgChan
+				data.Messages = append(data.Messages, msg)
+			}
+			return
+		}
+	}
+}
+
+// Start starts the InstanceData.
+func (data *InstanceData) Start() {
+	data.msgChan = make(chan common.Message, 100)
+	data.msgDone = make(chan struct{})
+	data.msgCloseOnce = sync.Once{}
+	go data.processMessages()
+}
+
+// Close closes the InstanceData.
+func (data *InstanceData) Close() {
+	data.msgCloseOnce.Do(func() {
+		close(data.msgDone)
+	})
 }
 
 // InstanceData represents the data of an action instance.
@@ -41,6 +72,10 @@ type InstanceData struct {
 	Content     map[string]any
 	PrivateData map[string]any
 	Lifecycle   *Lifecycle
+
+	msgChan      chan common.Message
+	msgCloseOnce sync.Once
+	msgDone      chan struct{}
 }
 
 // Info gets info string.
@@ -52,33 +87,45 @@ func (data *InstanceData) Info() string {
 // LogI logs messages.
 func (data *InstanceData) LogI(messages ...string) {
 	for _, message := range messages {
-		data.Messages = append(data.Messages, common.Message{
+		select {
+		case data.msgChan <- common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "INFO",
-		})
+		}:
+		case <-data.msgDone:
+			return
+		}
 	}
 }
 
 // LogW logs error messages.
 func (data *InstanceData) LogW(messages ...string) {
 	for _, message := range messages {
-		data.Messages = append(data.Messages, common.Message{
+		select {
+		case data.msgChan <- common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "WARN",
-		})
+		}:
+		case <-data.msgDone:
+			return
+		}
 	}
 }
 
 // LogE logs error messages.
 func (data *InstanceData) LogE(messages ...string) {
 	for _, message := range messages {
-		data.Messages = append(data.Messages, common.Message{
+		select {
+		case data.msgChan <- common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "ERROR",
-		})
+		}:
+		case <-data.msgDone:
+			return
+		}
 	}
 }
 
