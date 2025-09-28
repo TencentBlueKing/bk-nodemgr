@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
@@ -104,7 +105,6 @@ func testClient(t *testing.T) IHandler {
 		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               ,
 	}
 
 	apigwClientConfig, err := LoadAuthHeader()
@@ -124,6 +124,8 @@ func testClient(t *testing.T) IHandler {
 
 // Test_handler_ListAgentInfo tests Handler.ListAgentInfo.
 func Test_handler_ListAgentInfo(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
 	type args struct {
 		agentIDList []string
 	}
@@ -145,7 +147,7 @@ func Test_handler_ListAgentInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.ListAgentInfo(context.Background(), tt.args.agentIDList...)
+			got, err := h.ListAgentInfo(nCtx, tt.args.agentIDList...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListAgentInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -165,6 +167,8 @@ func Test_handler_ListAgentInfo(t *testing.T) {
 
 // Test_handler_ListAgentState tests Handler.ListAgentState.
 func Test_handler_ListAgentState(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
 	type args struct {
 		agentIDList []string
 	}
@@ -186,7 +190,7 @@ func Test_handler_ListAgentState(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.ListAgentState(context.Background(), tt.args.agentIDList...)
+			got, err := h.ListAgentState(nCtx, tt.args.agentIDList...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ListAgentState() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -206,6 +210,8 @@ func Test_handler_ListAgentState(t *testing.T) {
 
 // Test_handler_ExecuteScript tests Handler.ExecuteScript.
 func Test_handler_ExecuteScript(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
 	type args struct {
 		endpoints     []*types.EndpointWithAuth
 		scriptContent string
@@ -251,7 +257,7 @@ func Test_handler_ExecuteScript(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
 			taskID, err := h.ExecuteScript(
-				context.Background(), types.ScriptTypeBash, tt.args.scriptContent, tt.args.timeout, tt.args.endpoints...)
+				nCtx, types.ScriptTypeBash, tt.args.scriptContent, tt.args.timeout, tt.args.endpoints...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ExecuteScript() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -266,6 +272,8 @@ func Test_handler_ExecuteScript(t *testing.T) {
 
 // Test_handler_TerminateScriptExecution tests Handler.TerminateScriptExecution.
 func Test_handler_TerminateScriptExecution(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
 	type args struct {
 		taskID    string
 		endpoints []*types.Endpoint
@@ -296,7 +304,7 @@ func Test_handler_TerminateScriptExecution(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			termTaskID, err := h.TerminateScriptExecution(context.Background(), tt.args.taskID, tt.args.endpoints...)
+			termTaskID, err := h.TerminateScriptExecution(nCtx, tt.args.taskID, tt.args.endpoints...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TerminateScriptExecution() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -309,6 +317,8 @@ func Test_handler_TerminateScriptExecution(t *testing.T) {
 
 // Test_handler_QueryScriptExecutionResult tests Handler.QueryScriptExecutionResult.
 func Test_handler_QueryScriptExecutionResult(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
 	type args struct {
 		taskID    string
 		endpoints []*types.EndpointWithRestrict
@@ -356,7 +366,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 			var err error
 
 			for attempt := 0; attempt < 5; attempt++ {
-				resp, err = h.QueryScriptExecutionResult(context.Background(), tt.args.taskID, tt.args.endpoints...)
+				resp, err = h.QueryScriptExecutionResult(nCtx, tt.args.taskID, tt.args.endpoints...)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("QueryScriptExecutionResult() error = %v, wantErr %v", err, tt.wantErr)
 					return
@@ -396,6 +406,8 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 
 // Test_handler_TransferFile tests Handler.TransferFile.
 func Test_handler_TransferFile(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
 	type args struct {
 		options *types.TransferOptions
 		details []*types.TransferDetail
@@ -477,7 +489,7 @@ func Test_handler_TransferFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			taskID, err := h.TransferFile(context.Background(), tt.args.options, tt.args.details...)
+			taskID, err := h.TransferFile(nCtx, tt.args.options, tt.args.details...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TransferFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -492,6 +504,8 @@ func Test_handler_TransferFile(t *testing.T) {
 
 // Test_handler_TerminateFileTransmission tests Handler.TerminateFileTransmission.
 func Test_handler_TerminateFileTransmission(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
 	type args struct {
 		taskID    string
 		endpoints []*types.Endpoint
@@ -516,7 +530,7 @@ func Test_handler_TerminateFileTransmission(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			_, err := h.TerminateFileTransmission(context.Background(), tt.args.taskID, tt.args.endpoints...)
+			_, err := h.TerminateFileTransmission(nCtx, tt.args.taskID, tt.args.endpoints...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("TerminateFileTransmission() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -529,6 +543,8 @@ func Test_handler_TerminateFileTransmission(t *testing.T) {
 
 // Test_handler_QueryFileTransmissionResult tests Handler.QueryFileTransmissionResult.
 func Test_handler_QueryFileTransmissionResult(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
 	type args struct {
 		taskID    string
 		endpoints []*types.Endpoint
@@ -578,7 +594,7 @@ func Test_handler_QueryFileTransmissionResult(t *testing.T) {
 			var err error
 
 			for attempt := 0; attempt < 20; attempt++ {
-				resp, err = h.QueryFileTransmissionResult(context.Background(), tt.args.taskID, tt.args.endpoints...)
+				resp, err = h.QueryFileTransmissionResult(nCtx, tt.args.taskID, tt.args.endpoints...)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("QueryFileTransmissionResult() error = %v, wantErr %v", err, tt.wantErr)
 					return

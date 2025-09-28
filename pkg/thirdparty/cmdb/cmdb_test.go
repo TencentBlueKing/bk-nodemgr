@@ -62,10 +62,10 @@ func testCCClient(t *testing.T) *cli {
 
 // Test_cmdb_listBizHosts ...
 func Test_handler_listBizHosts(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListBizHostsReq
 	}
 	tests := []struct {
@@ -107,10 +107,10 @@ func Test_handler_listBizHosts(t *testing.T) {
 
 // Test_cmdb_searchBusiness ...
 func Test_handler_searchBusiness(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *SearchBusinessReq
 	}
 	tests := []struct {
@@ -152,10 +152,10 @@ func Test_handler_searchBusiness(t *testing.T) {
 
 // Test_cmdb_cloudArea...
 func Test_cmdb_cloudArea(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx           contextx.ITenantUserContext
+		ctx           contextx.IContext
 		cloudAreaName string
 		cloudVendor   string
 		page          Page
@@ -254,10 +254,10 @@ func Test_cmdb_cloudArea(t *testing.T) {
 
 // Test_cmdb_createAndUpdateHost...
 func Test_cmdb_createAndUpdateHost(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx   contextx.ITenantUserContext
+		ctx   contextx.IContext
 		bizID int64
 		hosts []*CreateHostInfo
 	}
@@ -360,10 +360,10 @@ func Test_cmdb_createAndUpdateHost(t *testing.T) {
 
 // Test_cmdb_listResourcePoolHosts...
 func Test_cmdb_listResourcePoolHosts(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListResourcePoolHostsReq
 	}
 	tests := []struct {
@@ -405,10 +405,10 @@ func Test_cmdb_listResourcePoolHosts(t *testing.T) {
 
 // Test_cmdb_addHostToResource...
 func Test_cmdb_addHostToResource(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *AddHostToResourcePoolReq
 	}
 
@@ -459,10 +459,10 @@ func Test_cmdb_addHostToResource(t *testing.T) {
 
 // Test_cmdb_searchBizInstTopo...
 func Test_cmdb_searchBizInstTopo(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *SearchBizInstTopoReq
 	}
 	tests := []struct {
@@ -500,10 +500,10 @@ func Test_cmdb_searchBizInstTopo(t *testing.T) {
 
 // Test_cmdb_getBizInternalModule...
 func Test_cmdb_getBizInternalModule(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *GetBizInternalModuleReq
 	}
 	tests := []struct {
@@ -538,10 +538,10 @@ func Test_cmdb_getBizInternalModule(t *testing.T) {
 
 // Test_cmdb_findTopoNodePaths...
 func Test_cmdb_findTopoNodePaths(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindTopoNodePathsReq
 	}
 	tests := []struct {
@@ -584,10 +584,10 @@ func Test_cmdb_findTopoNodePaths(t *testing.T) {
 
 // Test_cmdb_findModuleBatch...
 func Test_cmdb_findModuleBatch(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindModuleBatchReq
 	}
 	tests := []struct {
@@ -629,10 +629,10 @@ func Test_cmdb_findModuleBatch(t *testing.T) {
 
 // Test_cmdb_searchObjectAttribute...
 func Test_cmdb_searchObjectAttribute(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *SearchObjectAttributeReq
 	}
 	tests := []struct {
@@ -670,10 +670,10 @@ func Test_cmdb_searchObjectAttribute(t *testing.T) {
 
 // Test_cmdb_listServiceTemplate...
 func Test_cmdb_listServiceTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListServiceTemplateReq
 	}
 	tests := []struct {
@@ -719,10 +719,10 @@ func Test_cmdb_listServiceTemplate(t *testing.T) {
 
 // Test_cmdb_listServiceInstance...
 func Test_cmdb_listServiceInstance(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListServiceInstanceReq
 	}
 	tests := []struct {
@@ -768,10 +768,10 @@ func Test_cmdb_listServiceInstance(t *testing.T) {
 
 // Test_cmdb_listProcessInstance...
 func Test_cmdb_listProcessInstance(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListProcessInstanceReq
 	}
 
@@ -811,10 +811,10 @@ func Test_cmdb_listProcessInstance(t *testing.T) {
 
 // Test_cmdb_listProcTemplate...
 func Test_cmdb_listProcTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListProcTemplateReq
 	}
 	tests := []struct {
@@ -854,10 +854,10 @@ func Test_cmdb_listProcTemplate(t *testing.T) {
 
 // Test_cmdb_findSetBatch...
 func Test_cmdb_findSetBatch(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindSetBatchReq
 	}
 	tests := []struct {
@@ -900,10 +900,10 @@ func Test_cmdb_findSetBatch(t *testing.T) {
 
 // Test_cmdb_searchSet...
 func Test_cmdb_searchSet(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *SearchSetReq
 	}
 
@@ -951,10 +951,10 @@ func Test_cmdb_searchSet(t *testing.T) {
 
 // Test_cmdb_searchModule...
 func Test_cmdb_searchModule(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *SearchModuleReq
 	}
 
@@ -1002,10 +1002,10 @@ func Test_cmdb_searchModule(t *testing.T) {
 
 // Test_cmdb_findHostTopoRelation...
 func Test_cmdb_findHostTopoRelation(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindHostTopoRelationReq
 	}
 
@@ -1051,10 +1051,10 @@ func Test_cmdb_findHostTopoRelation(t *testing.T) {
 
 // Test_cmdb_findHostBizRelation...
 func Test_cmdb_findHostBizRelations(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindHostBizRelationsReq
 	}
 
@@ -1093,10 +1093,10 @@ func Test_cmdb_findHostBizRelations(t *testing.T) {
 
 // Test_cmdb_findHostByServiceTemplate...
 func Test_cmdb_findHostByServiceTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindHostByServiceTemplateReq
 	}
 
@@ -1145,10 +1145,10 @@ func Test_cmdb_findHostByServiceTemplate(t *testing.T) {
 
 // Test_cmdb_findHostBySetTemplate...
 func Test_cmdb_findHostBySetTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindHostBySetTemplateReq
 	}
 
@@ -1197,10 +1197,10 @@ func Test_cmdb_findHostBySetTemplate(t *testing.T) {
 
 // Test_cmdb_findHostByTopo...
 func Test_cmdb_findHostByTopo(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindHostByTopoReq
 	}
 
@@ -1249,10 +1249,10 @@ func Test_cmdb_findHostByTopo(t *testing.T) {
 
 // Test_cmdb_findHostRelationsWithTopo...
 func Test_cmdb_findHostRelationsWithTopo(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindHostRelationsWithTopoReq
 	}
 
@@ -1302,10 +1302,10 @@ func Test_cmdb_findHostRelationsWithTopo(t *testing.T) {
 
 // Test_cmdb_listServiceInstanceDetail...
 func Test_cmdb_listServiceInstanceDetail(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListServiceInstanceDetailReq
 	}
 
@@ -1348,10 +1348,10 @@ func Test_cmdb_listServiceInstanceDetail(t *testing.T) {
 
 // Test_cmdb_getMainlineObjectTopo...
 func Test_cmdb_getMainlineObjectTopo(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *GetMainlineObjectTopoReq
 	}
 
@@ -1388,10 +1388,10 @@ func Test_cmdb_getMainlineObjectTopo(t *testing.T) {
 
 // Test_cmdb_listBizHostsTopo...
 func Test_cmdb_listBizHostsTopo(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListBizHostsTopoReq
 	}
 
@@ -1435,10 +1435,10 @@ func Test_cmdb_listBizHostsTopo(t *testing.T) {
 
 // Test_cmdb_listServiceInstanceByHost...
 func Test_cmdb_listServiceInstanceByHost(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListServiceInstanceByHostReq
 	}
 
@@ -1482,10 +1482,10 @@ func Test_cmdb_listServiceInstanceByHost(t *testing.T) {
 
 // Test_cmdb_listServiceInstanceBySetTemplate...
 func Test_cmdb_listServiceInstanceBySetTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListServiceInstanceBySetTemplateReq
 	}
 
@@ -1529,10 +1529,10 @@ func Test_cmdb_listServiceInstanceBySetTemplate(t *testing.T) {
 
 // Test_cmdb_listSetTemplate...
 func Test_cmdb_listSetTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *ListSetTemplateReq
 	}
 
@@ -1575,10 +1575,10 @@ func Test_cmdb_listSetTemplate(t *testing.T) {
 
 // Test_handler_dynamicGroup...
 func Test_cmdb_dynamicGroup(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx       contextx.ITenantUserContext
+		ctx       contextx.IContext
 		bizID     int64
 		objID     string
 		groupName string
@@ -1695,10 +1695,10 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 
 // Test_cmdb_findHostServiceTemplate...
 func Test_cmdb_findHostServiceTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		req *FindHostServiceTemplateReq
 	}
 

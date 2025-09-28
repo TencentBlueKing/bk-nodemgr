@@ -61,10 +61,10 @@ func testPrivateCli(t *testing.T) *cli {
 
 // Test_enumOSTypeKeeper_getValue test get value.
 func Test_enumOSTypeKeeper_getValue(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		key string
 	}
 	tests := []struct {
@@ -115,10 +115,10 @@ func Test_enumOSTypeKeeper_getValue(t *testing.T) {
 
 // Test_enumOSTypeKeeper_getKey test get key.
 func Test_enumOSTypeKeeper_getKey(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx   contextx.ITenantUserContext
+		ctx   contextx.IContext
 		cache map[string]string
 		value string
 	}
@@ -170,10 +170,10 @@ func Test_enumOSTypeKeeper_getKey(t *testing.T) {
 
 // Test_enumCloudVendorKeeper_getValue test get value.
 func Test_enumCloudVendorKeeper_getValue(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 		key string
 	}
 	tests := []struct {
@@ -224,10 +224,10 @@ func Test_enumCloudVendorKeeper_getValue(t *testing.T) {
 
 // Test_enumCloudVendorKeeper_getKey test get key.
 func Test_enumCloudVendorKeeper_getKey(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx   contextx.ITenantUserContext
+		ctx   contextx.IContext
 		cache map[string]string
 		value string
 	}

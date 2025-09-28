@@ -61,7 +61,6 @@ func testClient(t *testing.T) IHandler {
 		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
-		Logger:               ,
 	}
 
 	apigwClientConfig, err := LoadAuthHeader()
@@ -72,7 +71,7 @@ func testClient(t *testing.T) IHandler {
 	h, err := New(clientCap, &Config{
 		SupplierAccount: os.Getenv("BK_SUPPLIER_ACCOUNT"),
 		APIGWAppConfig:  apigwClientConfig,
-	}, WithLogger())
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,10 +81,10 @@ func testClient(t *testing.T) IHandler {
 
 // Test_handler_ListBizHosts ...
 func Test_handler_ListBizHosts(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx  contextx.ITenantUserContext
+		ctx  contextx.IContext
 		biz  types.Business
 		page types.Page
 	}
@@ -143,10 +142,10 @@ func Test_handler_ListBizHosts(t *testing.T) {
 
 // Test_handler_SearchBusiness ...
 func Test_handler_SearchBusiness(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx  contextx.ITenantUserContext
+		ctx  contextx.IContext
 		page types.Page
 	}
 	tests := []struct {
@@ -185,10 +184,10 @@ func Test_handler_SearchBusiness(t *testing.T) {
 
 // Test_handler_SearchNetArea ...
 func Test_handler_SearchNetworkArea(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx  contextx.ITenantUserContext
+		ctx  contextx.IContext
 		page types.Page
 	}
 	tests := []struct {
@@ -227,9 +226,9 @@ func Test_handler_SearchNetworkArea(t *testing.T) {
 
 // Test_handler_NetworkArea... handle network area curd test
 func Test_handler_NetworkArea(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 	type args struct {
-		ctx             contextx.ITenantUserContext
+		ctx             contextx.IContext
 		networkAreaName string
 		cloudVendor     string
 	}
@@ -295,9 +294,9 @@ func Test_handler_NetworkArea(t *testing.T) {
 
 // Test_handler_CreateAndUpdateHost...
 func Test_handler_CreateAndUpdateHost(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 	type args struct {
-		ctx   contextx.ITenantUserContext
+		ctx   contextx.IContext
 		bizID int64
 		hosts []*types.Host
 	}
@@ -408,10 +407,10 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 
 // Test_handler_ListResourcePoolHosts...
 func Test_handler_ListResourcePoolHosts(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx  contextx.ITenantUserContext
+		ctx  contextx.IContext
 		page types.Page
 	}
 	tests := []struct {
@@ -449,10 +448,10 @@ func Test_handler_ListResourcePoolHosts(t *testing.T) {
 }
 
 func Test_handler_ListHostsWithoutBusiness(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx  contextx.ITenantUserContext
+		ctx  contextx.IContext
 		page types.Page
 	}
 
@@ -491,10 +490,10 @@ func Test_handler_ListHostsWithoutBusiness(t *testing.T) {
 
 // Test_handler_DynamicGroup...
 func Test_handler_DynamicGroup(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx   contextx.ITenantUserContext
+		ctx   contextx.IContext
 		bizID int64
 		group *types.DynamicGroup
 		page  types.Page
@@ -552,10 +551,10 @@ func Test_handler_DynamicGroup(t *testing.T) {
 
 // Test_handler_ListServiceTemplate...
 func Test_handler_ListServiceTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 
 	type args struct {
-		ctx   contextx.ITenantUserContext
+		ctx   contextx.IContext
 		bizID int64
 		page  types.Page
 	}
@@ -596,9 +595,9 @@ func Test_handler_ListServiceTemplate(t *testing.T) {
 
 // Test_handler_FindHostByServiceTemplate...
 func Test_handler_FindHostByServiceTemplate(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 	type args struct {
-		ctx                contextx.ITenantUserContext
+		ctx                contextx.IContext
 		bizID              int64
 		serviceTemplateIDs []int64
 		page               types.Page
@@ -642,9 +641,9 @@ func Test_handler_FindHostByServiceTemplate(t *testing.T) {
 
 // Test_handler_WatchResourceEvent...
 func Test_handler_WatchResourceEvent(t *testing.T) {
-	ctx := contextx.NewTenantUserContext(context.Background(), "0", "test")
+	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
 	type args struct {
-		ctx contextx.ITenantUserContext
+		ctx contextx.IContext
 	}
 
 	tests := []struct {

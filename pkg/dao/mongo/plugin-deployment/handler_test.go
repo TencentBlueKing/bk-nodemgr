@@ -72,7 +72,7 @@ func testClient(t *testing.T) IHandler {
 // TestHandler_Create test handler Create
 func TestHandler_Create(t *testing.T) {
 	type args struct {
-		nCtx             context.Context
+		nCtx             contextx.IContext
 		pluginDeployment *types.PluginDeployment
 	}
 	tests := []struct {
@@ -83,7 +83,7 @@ func TestHandler_Create(t *testing.T) {
 		{
 			name: "normal test",
 			args: args{
-				nCtx: contextx.NewContext(context.Background(), map[string]any{}),
+				nCtx: contextx.New(context.Background()),
 				pluginDeployment: &types.PluginDeployment{
 					Token: token(),
 					Info: &types.PluginDeploymentInfo{
@@ -134,7 +134,7 @@ func TestHandler_Create(t *testing.T) {
 
 func TestHandler_GetInfo(t *testing.T) {
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		token string
 	}
 	tests := []struct {
@@ -146,7 +146,7 @@ func TestHandler_GetInfo(t *testing.T) {
 		{
 			name: "normal test",
 			args: args{
-				nCtx:  contextx.NewContext(context.Background(), map[string]any{}),
+				nCtx:  contextx.New(context.Background()),
 				token: token(),
 			},
 			want: &types.PluginDeploymentInfo{
@@ -201,7 +201,7 @@ func TestHandler_GetInfo(t *testing.T) {
 // TestHandler_UpdateInfo ...
 func TestHandler_UpdateInfo(t *testing.T) {
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		token string
 		info  *types.PluginDeploymentInfo
 	}
@@ -213,7 +213,7 @@ func TestHandler_UpdateInfo(t *testing.T) {
 		{
 			name: "normal test",
 			args: args{
-				nCtx:  contextx.NewContext(context.Background(), map[string]any{}),
+				nCtx:  contextx.New(context.Background()),
 				token: token(),
 				info: &types.PluginDeploymentInfo{
 					BlockingActionName: "wait_plugin_installer_complete",

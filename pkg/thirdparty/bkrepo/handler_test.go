@@ -48,7 +48,7 @@ func testClient(t *testing.T) IHandler {
 		ProjectID: os.Getenv("BK_REPO_PROJECTID"),
 		Username:  os.Getenv("BK_REPO_USERNAME"),
 		Password:  os.Getenv("BK_REPO_PASSWORD"),
-	}, WithLogger())
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

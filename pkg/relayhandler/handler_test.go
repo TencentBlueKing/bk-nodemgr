@@ -25,7 +25,7 @@ import (
 
 // testClient ...
 func testClient(t *testing.T) IServerMessager {
-	ctx := context.Background()
+	ctx := contextx.New(context.Background())
 	proxyMessanger := NewServerMessager(ServerMessagerConfig{
 		SlotID:        0,
 		Token:         "",
@@ -60,7 +60,7 @@ func TestServerPushMessage(t *testing.T) {
 		{
 			name: "echo message",
 			args: args{
-				ctx: contextx.NewContext(context.Background(), map[string]any{}),
+				ctx: contextx.New(context.Background()),
 			},
 			wantErr: false,
 			agentID: "",
