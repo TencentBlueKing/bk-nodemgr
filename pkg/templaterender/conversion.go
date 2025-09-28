@@ -16,8 +16,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
-func RegisterConversionFunctions(fnMap template.FuncMap) {
-	AddFunction(fnMap, "int", toInt)
+// registerConversionFunctions register conversion related functions.
+func registerConversionFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, "int", toInt)
 }
 
 func toInt(value any) (int, error) {

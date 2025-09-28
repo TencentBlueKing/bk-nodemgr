@@ -8,89 +8,51 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// templaterender defines a lightweight template rendering engine with common functions.
+// Package templaterender defines a lightweight template rendering engine with common functions.
 package templaterender
 
 import (
+	"fmt"
 	"strings"
 	"text/template"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/logger"
 )
 
-type TemplateFunc func(*Handler)
-
+// Handler is the main struct for the template rendering engine.
 type Handler struct {
-	logger  logger.ILogger
 	funcMap template.FuncMap
 }
 
-// New create a new light template handler
-func New(opts ...TemplateFunc) *Handler {
+// New create a new light template handler.
+func New() *Handler {
 	handler := &Handler{
-		logger:  logger.LoggerDefault{},
 		funcMap: make(template.FuncMap),
 	}
 
-	for _, opt := range opts {
-		opt(handler)
-	}
+	registerStringsFunctions(handler.funcMap)
+	registerDefaultFunctions(handler.funcMap)
+	registerConversionFunctions(handler.funcMap)
 
 	return handler
 }
 
-func WithLogger(log logger.ILogger) TemplateFunc {
-	return func(h *Handler) {
-		h.logger = log
-	}
-}
-
-func WithStringsFunctions() TemplateFunc {
-	return func(h *Handler) {
-		RegisterStringsFunctions(h.funcMap)
-	}
-}
-
-func WithDefaultFunctions() TemplateFunc {
-	return func(h *Handler) {
-		RegisterDefaultFunctions(h.funcMap)
-	}
-}
-
-func WithConversionFunctions() TemplateFunc {
-	return func(h *Handler) {
-		RegisterConversionFunctions(h.funcMap)
-	}
-}
-
-func WithAllFunctions() TemplateFunc {
-	return func(h *Handler) {
-		RegisterStringsFunctions(h.funcMap)
-		RegisterDefaultFunctions(h.funcMap)
-		RegisterConversionFunctions(h.funcMap)
-	}
-}
-
-// AddFunction add a custom function to the funcMap
-func AddFunction(funcsMap template.FuncMap, name string, function any) {
+// addFunction add a custom function to the funcMap.
+func addFunction(funcsMap template.FuncMap, name string, function any) {
 	if _, ok := funcsMap[name]; ok {
 		return
 	}
 	funcsMap[name] = function
 }
 
-// Render render template with data
-func (h *Handler) Render(tmpl string, data any) (string, error) {
-	t, err := template.New("template").Funcs(h.funcMap).Parse(tmpl)
+// Render render template with data.
+func (h *Handler) Render(tmpl string, data map[string]any) (string, error) {
+	template, err := template.New("template").Funcs(h.funcMap).Parse(tmpl)
 	if err != nil {
-		h.logger.Errorf("parse template failed: %v", err)
-		return "", err
+		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
 
 	var output strings.Builder
-	if err := t.Execute(&output, data); err != nil {
-		h.logger.Errorf("execute template failed: %v", err)
-		return "", err
+	if err := template.Execute(&output, data); err != nil {
+		return "", fmt.Errorf("failed to execute template: %w", err)
 	}
 
 	return output.String(), nil

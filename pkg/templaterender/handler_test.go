@@ -12,13 +12,12 @@ package templaterender
 
 import "testing"
 
+// Test_TemplateRender_Render tests the Render method of the template rendering handler.
 func Test_TemplateRender_Render(t *testing.T) {
-
-	render := New(WithAllFunctions())
 
 	type args struct {
 		tmpl string
-		data any
+		data map[string]any
 	}
 	tests := []struct {
 		name    string
@@ -58,7 +57,29 @@ func Test_TemplateRender_Render(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "invalid template",
+			name: "use join function",
+			args: args{
+				tmpl: "items: {{ .items | join \", \" }}",
+				data: map[string]any{
+					"items": []string{"apple", "banana", "cherry"},
+				},
+			},
+			want:    "items: apple, banana, cherry",
+			wantErr: false,
+		},
+		{
+			name: "use replace function",
+			args: args{
+				tmpl: "path: {{ .path | replace \"/\" \"-\" }}",
+				data: map[string]any{
+					"path": "/usr/local/bin",
+				},
+			},
+			want:    "path: -usr-local-bin",
+			wantErr: false,
+		},
+		{
+			name: "use invalid template",
 			args: args{
 				tmpl: "hello, {{.name | unknownFunc}}",
 				data: map[string]any{
@@ -68,14 +89,57 @@ func Test_TemplateRender_Render(t *testing.T) {
 			want:    "",
 			wantErr: true,
 		},
+		{
+			name: "use join int function",
+			args: args{
+				tmpl: "items: {{ .items | join 2 }}",
+				data: map[string]any{
+					"items": []string{"apple", "banana", "cherry"},
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "use default function without quotes",
+			args: args{
+				tmpl: "hello, {{ .name | default guest }}",
+				data: map[string]any{},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "use replace function whithsout quotes",
+			args: args{
+				tmpl: "path: {{ .path | replace / - }}",
+				data: map[string]any{
+					"path": "/usr/local/bin",
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "use replace function whith int args",
+			args: args{
+				tmpl: "path: {{ .path | replace 2 1 }}",
+				data: map[string]any{
+					"path": "usr2local2bin",
+				},
+			},
+			want:    "",
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := render.Render(tt.args.tmpl, tt.args.data)
+			got, err := New().Render(tt.args.tmpl, tt.args.data)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Render() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+
 			if got != tt.want {
 				t.Errorf("Render() got = %v, want %v", got, tt.want)
 			}

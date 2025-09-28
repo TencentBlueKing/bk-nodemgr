@@ -16,13 +16,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
-func RegisterDefaultFunctions(fnMap template.FuncMap) {
-	AddFunction(fnMap, "default", defaultFn)
+// registerDefaultFunctions register default related functions.
+func registerDefaultFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, "default", defaultFn)
 }
 
+// defaultFn returns the first value if it's non-empty; otherwise, it returns the defaultValue.
 func defaultFn(defaultValue any, value ...any) any {
-	if len(value) == 0 || conv.Empty(value[0]) {
+	if len(value) == 0 || conv.IsEmpty(value[0]) {
 		return defaultValue
 	}
+
 	return value[0]
 }

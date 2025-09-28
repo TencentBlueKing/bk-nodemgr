@@ -1093,59 +1093,6 @@ func TestSliceToMap(t *testing.T) {
 	}
 }
 
-// TestStrSlice tests the StrSlice function.
-func TestStrSlice(t *testing.T) {
-	tests := []struct {
-		name string
-		s    any
-		want []string
-	}{
-		{
-			name: "normal case",
-			s:    []any{"apple", "banana", "cherry"},
-			want: []string{"apple", "banana", "cherry"},
-		},
-		{
-			name: "empty slice",
-			s:    []any{},
-			want: []string{},
-		},
-		{
-			name: "nil slice",
-			s:    nil,
-			want: []string{},
-		},
-		{
-			name: "slice with non-string elements",
-			s:    []any{"apple", 123, "cherry"},
-			want: []string{"apple", "123", "cherry"},
-		},
-		{
-			name: "slice with all non-string elements",
-			s:    []any{1, 2, 3},
-			want: []string{"1", "2", "3"},
-		},
-		{
-			name: "slice with mixed types",
-			s:    []any{"apple", 3.14, true, "banana"},
-			want: []string{"apple", "3.14", "true", "banana"},
-		},
-		{
-			name: "not a slice",
-			s:    "not a slice",
-			want: []string{"not a slice"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := StrSlice(tt.s); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("StrSlice() = %#v, want %#v", got, tt.want)
-			}
-		})
-	}
-}
-
 // TestEmpty tests the Empty function.
 func TestEmpty(t *testing.T) {
 	tests := []struct {
@@ -1213,11 +1160,34 @@ func TestEmpty(t *testing.T) {
 			s:    0.0,
 			want: true,
 		},
+		{
+			name: "nil channel",
+			s:    (chan int)(nil),
+			want: true},
+		{
+			name: "non-nil channel",
+			s:    make(chan int),
+			want: false},
+		{
+			name: "empty struct",
+			s:    struct{}{},
+			want: true},
+		{
+			name: "nil function",
+			s:    (func())(nil),
+			want: true},
+		{
+			name: "pointer to zero",
+			s: func() interface{} {
+				x := 0
+				return &x
+			}(),
+			want: true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Empty(tt.s); got != tt.want {
+			if got := IsEmpty(tt.s); got != tt.want {
 				t.Errorf("Empty() = %v, want %v", got, tt.want)
 			}
 		})

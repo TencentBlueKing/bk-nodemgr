@@ -13,24 +13,22 @@ package templaterender
 import (
 	"strings"
 	"text/template"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
-// RegisterStringsFunctions register string related template functions
-func RegisterStringsFunctions(fnMap template.FuncMap) {
-	AddFunction(fnMap, "upper", strings.ToUpper)
-	AddFunction(fnMap, "lower", strings.ToLower)
-	AddFunction(fnMap, "replace", replace)
-	AddFunction(fnMap, "join", join)
+// registerStringsFunctions register string related template functions.
+func registerStringsFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, "upper", strings.ToUpper)
+	addFunction(fnMap, "lower", strings.ToLower)
+	addFunction(fnMap, "replace", replace)
+	addFunction(fnMap, "join", join)
 }
 
-// replace is a wrapper of strings.ReplaceAll to be used in template functions
-func replace(old, new, s string) string {
-	return strings.ReplaceAll(s, old, new)
+// replace is a wrapper of strings.ReplaceAll to be used in template functions.
+func replace(oldStr, newStr, s string) string {
+	return strings.ReplaceAll(s, oldStr, newStr)
 }
 
-// join is a wrapper of strings.Join to be used in template functions
-func join(sep string, s any) string {
-	return strings.Join(conv.StrSlice(s), sep)
+// join is a wrapper of strings.Join to be used in template functions.
+func join(sep string, s []string) string {
+	return strings.Join(s, sep)
 }

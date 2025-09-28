@@ -8,11 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// templaterender defines a lightweight template rendering engine with common functions.
+// Package templaterender defines a lightweight template rendering engine with common functions.
 package templaterender
 
 // IHandler defines the interface for template rendering handlers.
 type IHandler interface {
-	// Render render template with data
-	Render(tmpl string, data interface{}) (string, error)
+	// Render render template with data.
+	Render(tmpl string, data map[string]any) (string, error)
 }

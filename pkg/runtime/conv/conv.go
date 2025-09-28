@@ -163,6 +163,7 @@ func floatToInt64BoundaryCheck(v float64) error {
 	if v <= math.MinInt64 {
 		return errors.New("value is underflow")
 	}
+
 	return nil
 }
 
@@ -179,7 +180,7 @@ func ToInt64Default(value interface{}, defaultVal int64) int64 {
 // MapToStruct map to struct.
 // Note: dst must be a pointer.
 // Note: this function is based on json.Marshal and json.Unmarshal, so it will allow json tags.
-func MapToStruct(m map[string]any, dst any) (err error) {
+func MapToStruct(src map[string]any, dst any) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("failed to convert map to struct: %v", r)
@@ -195,7 +196,7 @@ func MapToStruct(m map[string]any, dst any) (err error) {
 		return fmt.Errorf("dst must be a struct pointer, target-kind(%v)", typeof.Elem().Kind())
 	}
 
-	data, err := json.Marshal(m)
+	data, err := json.Marshal(src)
 	if err != nil {
 		return fmt.Errorf("failed to marshal map: %w", err)
 	}
@@ -203,6 +204,7 @@ func MapToStruct(m map[string]any, dst any) (err error) {
 	if err := json.Unmarshal(data, dst); err != nil {
 		return fmt.Errorf("failed to unmarshal into dst: %w", err)
 	}
+
 	return nil
 }
 
@@ -226,6 +228,7 @@ func ToString(value interface{}) (string, error) {
 }
 
 // convNormalTypeToString convert normal type to string.
+// nolint: unparam
 func convNormalTypeToString(value interface{}) (string, bool, error) {
 	// this is the most common case, but it can't handle custom types.
 	switch v := value.(type) {
@@ -353,6 +356,7 @@ func StructToMapIgnoreError(obj interface{}) map[string]interface{} {
 }
 
 // SliceUnique this is a function used to deduplicate slice.
+// nolint: varnamelen
 func SliceUnique[T comparable](source []T) []T {
 	if source == nil {
 		return nil
@@ -423,67 +427,45 @@ func SliceToMap[K comparable, V any](s []V, fn func(V) K) (m map[K]V, err error)
 	return m, nil
 }
 
-// StrSlice convert interface to []string.
-func StrSlice(value any) []string {
-	if value == nil {
-		return []string{}
-	}
-
-	if strs, ok := value.([]string); ok {
-		return strs
-	}
-
-	if interfaces, ok := value.([]any); ok {
-		result := make([]string, 0)
-		for _, s := range interfaces {
-			if s != nil {
-				str, _ := ToString(s)
-				result = append(result, str)
-			}
-		}
-		return result
-	}
-
-	reflectedValue := reflect.ValueOf(value)
-	if reflectedValue.Kind() == reflect.Slice || reflectedValue.Kind() == reflect.Array {
-		result := make([]string, 0)
-		for i := 0; i < reflectedValue.Len(); i++ {
-			value := reflectedValue.Index(i).Interface()
-			if value != nil {
-				str, _ := ToString(value)
-				result = append(result, str)
-			}
-		}
-		return result
-	}
-
-	str, _ := ToString(value)
-
-	return []string{str}
-}
-
-// Empty checks if a given value is "empty".
-func Empty(given any) bool {
-	g := reflect.ValueOf(given)
-	if !g.IsValid() {
+// IsEmpty checks if a given value is "empty".
+func IsEmpty(given any) bool {
+	if given == nil {
 		return true
 	}
 
-	switch g.Kind() {
+	value := reflect.ValueOf(given)
+	if !value.IsValid() {
+		return true
+	}
+
+	switch value.Kind() {
 	case reflect.Array, reflect.Slice, reflect.Map, reflect.String:
-		return g.Len() == 0
+		return value.Len() == 0
 	case reflect.Bool:
-		return !g.Bool()
+		return !value.Bool()
 	case reflect.Complex64, reflect.Complex128:
-		return g.Complex() == 0
+		return value.Complex() == 0
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return g.Int() == 0
+		return value.Int() == 0
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return g.Uint() == 0
+		return value.Uint() == 0
 	case reflect.Float32, reflect.Float64:
-		return g.Float() == 0
-	case reflect.Interface, reflect.Ptr:
-		return g.IsNil()
+		return value.Float() == 0
+	case reflect.Interface, reflect.Chan, reflect.Func:
+		return value.IsNil()
+	case reflect.Ptr:
+		if value.IsNil() {
+			return true
+		}
+
+		return IsEmpty(value.Elem().Interface())
+	case reflect.Struct:
+		for i := 0; i < value.NumField(); i++ {
+			if !IsEmpty(value.Field(i).Interface()) {
+				return false
+			}
+		}
+		return true
 	default:
 		return false
 	}
