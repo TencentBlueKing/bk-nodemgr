@@ -28,36 +28,6 @@ type InstanceContext struct {
 	Data *InstanceData
 }
 
-func (data *InstanceData) processMessages() {
-	for {
-		select {
-		case msg := <-data.msgChan:
-			data.Messages = append(data.Messages, msg)
-		case <-data.msgDone:
-			for len(data.msgChan) > 0 {
-				msg := <-data.msgChan
-				data.Messages = append(data.Messages, msg)
-			}
-			return
-		}
-	}
-}
-
-// Start starts the InstanceData.
-func (data *InstanceData) Start() {
-	data.msgChan = make(chan common.Message, 100)
-	data.msgDone = make(chan struct{})
-	data.msgCloseOnce = sync.Once{}
-	go data.processMessages()
-}
-
-// Close closes the InstanceData.
-func (data *InstanceData) Close() {
-	data.msgCloseOnce.Do(func() {
-		close(data.msgDone)
-	})
-}
-
 // InstanceData represents the data of an action instance.
 type InstanceData struct {
 	TriggerID           string
@@ -65,17 +35,14 @@ type InstanceData struct {
 	OperationDefName    string
 	OperationInstanceID string
 
-	Name        string
-	Index       int
-	TotalIndex  int
-	Messages    []common.Message
-	Content     map[string]any
-	PrivateData map[string]any
-	Lifecycle   *Lifecycle
-
-	msgChan      chan common.Message
-	msgCloseOnce sync.Once
-	msgDone      chan struct{}
+	Name          string
+	Index         int
+	TotalIndex    int
+	Messages      []common.Message
+	MessagesMutex sync.Mutex
+	Content       map[string]any
+	PrivateData   map[string]any
+	Lifecycle     *Lifecycle
 }
 
 // Info gets info string.
@@ -86,46 +53,43 @@ func (data *InstanceData) Info() string {
 
 // LogI logs messages.
 func (data *InstanceData) LogI(messages ...string) {
+	data.MessagesMutex.Lock()
+	defer data.MessagesMutex.Unlock()
+
 	for _, message := range messages {
-		select {
-		case data.msgChan <- common.Message{
+		data.Messages = append(data.Messages, common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "INFO",
-		}:
-		case <-data.msgDone:
-			return
-		}
+		})
 	}
 }
 
 // LogW logs error messages.
 func (data *InstanceData) LogW(messages ...string) {
+	data.MessagesMutex.Lock()
+	defer data.MessagesMutex.Unlock()
+
 	for _, message := range messages {
-		select {
-		case data.msgChan <- common.Message{
+		data.Messages = append(data.Messages, common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "WARN",
-		}:
-		case <-data.msgDone:
-			return
-		}
+		})
 	}
 }
 
 // LogE logs error messages.
 func (data *InstanceData) LogE(messages ...string) {
+	data.MessagesMutex.Lock()
+	defer data.MessagesMutex.Unlock()
+
 	for _, message := range messages {
-		select {
-		case data.msgChan <- common.Message{
+		data.Messages = append(data.Messages, common.Message{
 			Time:  time.Now(),
 			Text:  message,
 			Level: "ERROR",
-		}:
-		case <-data.msgDone:
-			return
-		}
+		})
 	}
 }
 
