@@ -14,9 +14,6 @@ package types
 type ProcessState string
 
 const (
-	// ProcessStateStart this state means the step is starting.
-	ProcessStateStart ProcessState = "start"
-
 	// ProcessStateSuccess this state means the step is success.
 	ProcessStateSuccess ProcessState = "success"
 
@@ -25,10 +22,4 @@ const (
 
 	// ProcessStateTimeout this state means the step is timeout.
 	ProcessStateTimeout ProcessState = "timeout"
-
-	// ProcessStateSkip this state means the step is skipped.
-	ProcessStateSkip ProcessState = "skip"
-
-	// ProcessStateRunning this state means the step is running.
-	ProcessStateRunning ProcessState = "running"
 )
