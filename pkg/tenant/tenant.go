@@ -62,7 +62,7 @@ func GetMode() Mode {
 
 const (
 	// SingleModeTenantID tenant id for single mode.
-	SingleModeTenantID = "single"
+	SingleModeTenantID = "default"
 )
 
 // GetID get tenant id from context.
