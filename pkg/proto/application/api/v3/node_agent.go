@@ -234,31 +234,3 @@ func (x *UploadAgentTemplateReq) AutoConvert() {
 func (x *UploadAgentTemplateReq) Validate() error {
 	return nil
 }
-
-// ConvertResultFromData convert result from data.
-func (x *UploadAgentTemplateResp) ConvertResultFromData(parsedInfos []types.ParsedInfo) {
-	if parsedInfos == nil {
-		return
-	}
-
-	infos := make([]*ParsedInfo, len(parsedInfos))
-	for idx, info := range parsedInfos {
-		infos[idx] = &ParsedInfo{
-			InnerIp:    info.InnerIP,
-			InnerIpv6:  info.InnerIPV6,
-			OsType:     info.OsType,
-			LoginIp:    info.LoginIP,
-			LoginPort:  info.LoginPort,
-			LoginUser:  info.LoginUser,
-			LoginMode:  info.LoginMode,
-			Credential: info.Credit,
-		}
-	}
-
-	data := &UploadAgentTemplateResp_Data{
-		Info:       infos,
-		TotalCount: int64(len(parsedInfos)),
-	}
-
-	x.Data = data
-}

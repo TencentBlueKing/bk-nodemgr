@@ -21,6 +21,7 @@ import (
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/xuri/excelize/v2"
 )
@@ -28,6 +29,10 @@ import (
 const (
 	sheetName = "install_template"
 	fileName  = "install_template.xlsx"
+
+	exampleUserDesc   = "login_username"
+	exampleCreditDesc = "fill in your password or key according to LoginMode"
+	exampleLoginPort  = 22
 )
 
 type column struct {
@@ -120,36 +125,36 @@ func createTemplate() (io.ReadCloser, error) {
 // setSampleData sets sample data to the excel file.
 // nolint: errcheck, mnd
 func setSampleData(f *excelize.File) error {
-	sampleInfos := []types.ParsedInfo{
+	sampleInfos := []ParsedInfo{
 		{
 			InnerIP:   "1.1.1.1",
 			InnerIPV6: "",
-			OsType:    "linux",
+			OsType:    criteria.OSLinux,
 			LoginIP:   "1.1.1.1",
-			LoginPort: 22,
-			LoginUser: "root",
-			LoginMode: "password",
-			Credit:    "123456",
+			LoginPort: exampleLoginPort,
+			LoginUser: exampleUserDesc,
+			LoginMode: types.LoginModePassword,
+			Credit:    exampleCreditDesc,
 		},
 		{
 			InnerIP:   "1.1.1.2",
 			InnerIPV6: "",
-			OsType:    "windows",
+			OsType:    criteria.OSWindows,
 			LoginIP:   "1.1.1.2",
-			LoginPort: 36000,
-			LoginUser: "Administrator",
-			LoginMode: "password",
-			Credit:    "66666",
+			LoginPort: exampleLoginPort,
+			LoginUser: exampleUserDesc,
+			LoginMode: types.LoginModePassword,
+			Credit:    exampleCreditDesc,
 		},
 		{
 			InnerIP:   "1.1.1.3",
 			InnerIPV6: "",
-			OsType:    "linux",
+			OsType:    criteria.OSDarwin,
 			LoginIP:   "1.1.1.3",
-			LoginPort: 36000,
-			LoginUser: "root",
-			LoginMode: "password",
-			Credit:    "8888888",
+			LoginPort: exampleLoginPort,
+			LoginUser: exampleUserDesc,
+			LoginMode: types.LoginModePasswordVault,
+			Credit:    exampleCreditDesc,
 		},
 	}
 
@@ -192,15 +197,14 @@ func (h *handler) UploadTemplate(rCtx restserver.IContext) (interface{}, error) 
 
 	logger.G.Biz(rCtx).With("info-count", len(infos)).Info("successfully parsed uploaded template")
 
-	resp := new(protoApplication.UploadAgentTemplateResp)
-	resp.ConvertResultFromData(infos)
+	respData := convertParsedInfosToData(infos)
 
-	return resp.GetData(), nil
+	return respData, nil
 }
 
 // parseExcelToInfos parses the uploaded excel file and returns parsed info slice.
 // nolint: errcheck, mnd
-func parseExcelToInfos(file io.Reader) ([]types.ParsedInfo, error) {
+func parseExcelToInfos(file io.Reader) ([]ParsedInfo, error) {
 	f, err := excelize.OpenReader(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open excel file: %w", err)
@@ -217,7 +221,7 @@ func parseExcelToInfos(file io.Reader) ([]types.ParsedInfo, error) {
 	}
 
 	columns := getColumns()
-	infos := make([]types.ParsedInfo, len(rows)-1)
+	infos := make([]ParsedInfo, len(rows)-1)
 	for idx, row := range rows[1:] {
 		rowMap := make(map[string]string)
 		for colIndex, cell := range row {
@@ -236,14 +240,21 @@ func parseExcelToInfos(file io.Reader) ([]types.ParsedInfo, error) {
 
 // parseRowToInfo parses a row map to ParsedInfo.
 // nolint: errcheck,unparam
-func parseRowToInfo(rowMap map[string]string) (types.ParsedInfo, error) {
-	info := types.ParsedInfo{}
+func parseRowToInfo(rowMap map[string]string) (ParsedInfo, error) {
+	info := ParsedInfo{}
 
 	parsers := map[string]func(string) error{
 		templateKeyInnerIP:   func(val string) error { info.InnerIP = val; return nil },
 		templateKeyInnerIPV6: func(val string) error { info.InnerIPV6 = val; return nil },
-		templateKeyOsType:    func(val string) error { info.OsType = val; return nil },
-		templateKeyLoginIP:   func(val string) error { info.LoginIP = val; return nil },
+		templateKeyOsType: func(val string) error {
+			info.OsType = criteria.OSType(val)
+			if err := info.OsType.Validate(); err != nil {
+				return fmt.Errorf("failed to validate os type. os-type(%s):%w", val, err)
+			}
+
+			return nil
+		},
+		templateKeyLoginIP: func(val string) error { info.LoginIP = val; return nil },
 		templateKeyLoginPort: func(val string) error {
 			port, err := strconv.ParseInt(val, 10, 64)
 			if err != nil {
@@ -254,17 +265,82 @@ func parseRowToInfo(rowMap map[string]string) (types.ParsedInfo, error) {
 			return nil
 		},
 		templateKeyLoginUser: func(val string) error { info.LoginUser = val; return nil },
-		templateKeyLoginMode: func(val string) error { info.LoginMode = val; return nil },
-		templateKeyCredit:    func(val string) error { info.Credit = val; return nil },
+		templateKeyLoginMode: func(val string) error {
+			info.LoginMode = types.LoginMode(val)
+			if err := info.LoginMode.Validate(); err != nil {
+				return fmt.Errorf("failed to validate login mode. mode(%s):%w", val, err)
+			}
+
+			return nil
+		},
+		templateKeyCredit: func(val string) error { info.Credit = val; return nil },
 	}
 
 	for key, parseFunc := range parsers {
-		if val, exists := rowMap[key]; exists {
-			if err := parseFunc(val); err != nil {
-				return info, err
-			}
+		val, exists := rowMap[key]
+		if !exists {
+			continue
+		}
+
+		if err := parseFunc(val); err != nil {
+			return info, err
 		}
 	}
 
 	return info, nil
+}
+
+// ParsedInfo describes the parsed information from the uploaded template file.
+type ParsedInfo struct {
+	InnerIP   string
+	InnerIPV6 string
+	OsType    criteria.OSType
+	LoginIP   string
+	LoginPort int64
+	LoginUser string
+	LoginMode types.LoginMode
+	Credit    string
+}
+
+// ToRowData converts ParsedInfo to a slice for excel writing.
+func (info *ParsedInfo) ToRowData() []any {
+	return []any{
+		info.InnerIP,
+		info.InnerIPV6,
+		info.OsType,
+		info.LoginIP,
+		info.LoginPort,
+		info.LoginUser,
+		info.LoginMode,
+		info.Credit,
+	}
+}
+
+// convertParsedInfosToData converts ParsedInfo slice to UploadAgentTemplateResp_Data.
+func convertParsedInfosToData(parsedInfos []ParsedInfo) *protoApplication.UploadAgentTemplateResp_Data {
+	if len(parsedInfos) == 0 {
+		return &protoApplication.UploadAgentTemplateResp_Data{
+			Info:       []*protoApplication.ParsedInfo{},
+			TotalCount: 0,
+		}
+	}
+
+	infos := make([]*protoApplication.ParsedInfo, len(parsedInfos))
+	for idx, info := range parsedInfos {
+		infos[idx] = &protoApplication.ParsedInfo{
+			InnerIp:    info.InnerIP,
+			InnerIpv6:  info.InnerIPV6,
+			OsType:     string(info.OsType),
+			LoginIp:    info.LoginIP,
+			LoginPort:  info.LoginPort,
+			LoginUser:  info.LoginUser,
+			LoginMode:  string(info.LoginMode),
+			Credential: info.Credit,
+		}
+	}
+
+	return &protoApplication.UploadAgentTemplateResp_Data{
+		Info:       infos,
+		TotalCount: int64(len(parsedInfos)),
+	}
 }
