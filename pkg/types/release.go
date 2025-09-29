@@ -290,6 +290,7 @@ type PluginPkgConfigTemplate struct {
 	Format        string
 	IsMainConfig  string
 	SourcePath    string
+	SourceContent string
 	Variables     *PluginPkgConfigTemplateProperty
 }
 

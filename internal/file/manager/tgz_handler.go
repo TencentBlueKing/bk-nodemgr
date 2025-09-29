@@ -260,7 +260,11 @@ func checkTgz(sourceFile io.ReadCloser, rules []tgzReadRule) (err error) {
 					continue
 				}
 
-				if rule.filePath[idx] != paths[idx] {
+				// support prefix or suffix match
+				if rule.filePath[idx] != paths[idx] &&
+					!strings.HasPrefix(paths[idx], rule.filePath[idx]) &&
+					!strings.HasSuffix(paths[idx], rule.filePath[idx]) {
+
 					matched = false
 					break
 				}

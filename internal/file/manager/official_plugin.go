@@ -215,6 +215,24 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 				return nil
 			},
 		},
+		{
+			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, originalOfficialPluginDirNameEtc, originalOfficialPluginFileNameEtcExt},
+			callback: func(path []string, tplFile io.Reader) error {
+				for idx := range detail.ConfigTemplates {
+					if !strings.Contains(detail.ConfigTemplates[idx].SourcePath, path[len(path)-1]) {
+						continue
+					}
+
+					content, err := io.ReadAll(tplFile)
+					if err != nil {
+						return fmt.Errorf("failed to read (%s) template file: %w", path[len(path)-1], err)
+					}
+					detail.ConfigTemplates[idx].SourceContent = string(content)
+				}
+
+				return nil
+			},
+		},
 	}); err != nil {
 		return nil, err
 	}
@@ -466,14 +484,6 @@ func (m *Manager) generateOfficialPluginPkg(nCtx contextx.IContext,
 								targetFileMode: tgzModeExe,
 							},
 							{
-								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, originalOfficialPluginDirNameEtc,
-									tgzPathNameAny2},
-								targetFilePath: []string{
-									officialPluginPkgDirNameEtc, tgzPathNameAny2,
-								},
-								targetFileMode: tgzModeFile,
-							},
-							{
 								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, originalOfficialPluginFileNameProject},
 								targetFilePath: []string{
 									fmt.Sprintf("project_%s.yaml", pluginName),
@@ -516,6 +526,7 @@ func (m *Manager) generateOfficialPluginPkg(nCtx contextx.IContext,
 
 const (
 	originalOfficialPluginFileNameProject       = "project.yaml"
+	originalOfficialPluginFileNameEtcExt        = ".tpl"
 	originalOfficialPluginDirNameBin            = "bin"
 	originalOfficialPluginDirNameEtc            = "etc"
 	originalOfficialPluginDirNamePlatPrefix     = "plugins_"
