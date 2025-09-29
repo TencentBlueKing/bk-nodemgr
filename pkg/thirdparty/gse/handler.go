@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -30,7 +31,7 @@ type IHandler interface {
 	// @return agentInfoList agent detail information list.
 	ListAgentInfo(nCtx contextx.IContext, agentIDList ...string) ([]*types.AgentInfo, error)
 
-	// ListAgentState list agent state information. AgentState is a subset of AgentInfo.
+	// ListAgentState list agent state information. agentState is a subset of agentInfo.
 	// This method is more efficient than ListAgentInfo.
 	// @param agentIDList given agent id list.
 	// @return agentStateList agent state information list.
@@ -117,14 +118,14 @@ func (h *Handler) ListAgentInfo(nCtx contextx.IContext, agentIDList ...string) (
 
 		data[idx] = &types.AgentInfo{
 			AgentState: types.AgentState{
-				AgentID:    info.BKAgentID,
-				CloudID:    info.BKCloudID,
-				Version:    info.Version,
-				NodeRole:   convRunModeToNodeRole(info.RunMode),
-				StatusCode: types.AgentStatusCode(info.StatusCode),
-				ReportTime: info.ReportTime,
+				AgentID:        info.BKAgentID,
+				CloudID:        info.BKCloudID,
+				Version:        info.Version,
+				NodeRole:       convRunModeToNodeRole(info.RunMode),
+				NodeGeneration: detectGeneration(info.BKAgentID),
+				NodeStatus:     info.StatusCode.ToNodeStatus(),
+				ReportTime:     info.ReportTime,
 			},
-			HostIP:         info.BKHostIP,
 			OSType:         osType,
 			Arch:           arch,
 			ParentIP:       info.ParentIP,
@@ -136,14 +137,21 @@ func (h *Handler) ListAgentInfo(nCtx contextx.IContext, agentIDList ...string) (
 			StartTime:      info.StartTime,
 			LastWorkTime:   info.LastWorkTime,
 			ConnCycleTime:  info.ConnCycleTime,
-			LastStatusCode: types.AgentStatusCode(info.LastStatusCode),
-			Status:         info.Status,
-			LastStatus:     info.LastStatus,
+			LastNodeStatus: info.LastStatusCode.ToNodeStatus(),
 			Remark:         info.Remark,
 		}
 	}
 
 	return data, nil
+}
+
+// notice: this is a special logic for generation.
+func detectGeneration(agentID string) types.Generation {
+	if strings.ContainsRune(agentID, ':') {
+		return types.Generation1
+	}
+
+	return types.Generation2
 }
 
 // ListAgentState list agent state.
@@ -167,19 +175,20 @@ func (h *Handler) ListAgentState(nCtx contextx.IContext, agentIDList ...string) 
 	data := make([]*types.AgentState, len(resp))
 	for idx, info := range resp {
 		data[idx] = &types.AgentState{
-			AgentID:    info.BKAgentID,
-			CloudID:    info.BKCloudID,
-			Version:    info.Version,
-			NodeRole:   convRunModeToNodeRole(info.RunMode),
-			StatusCode: types.AgentStatusCode(info.StatusCode),
-			ReportTime: info.ReportTime,
+			AgentID:        info.BKAgentID,
+			CloudID:        info.BKCloudID,
+			Version:        info.Version,
+			NodeRole:       convRunModeToNodeRole(info.RunMode),
+			NodeStatus:     info.StatusCode.ToNodeStatus(),
+			NodeGeneration: detectGeneration(info.BKAgentID),
+			ReportTime:     info.ReportTime,
 		}
 	}
 
 	return data, nil
 }
 
-func convRunModeToNodeRole(runMode RunMode) types.NodeRole {
+func convRunModeToNodeRole(runMode runMode) types.NodeRole {
 	switch runMode {
 	case RunModeAgent:
 		return types.NodeRoleAgent
@@ -295,7 +304,7 @@ func (h *Handler) QueryScriptExecutionResult(nCtx contextx.IContext, taskID stri
 				AgentID:     rst.BKAgentID,
 				ContainerID: rst.BKContainerID,
 			},
-			Status:       types.ScriptStatus(rst.Status),
+			Status:       rst.Status.ToScriptStatus(),
 			ErrorCode:    rst.ErrorCode,
 			ErrorMessage: rst.ErrorMessage,
 			StartTime:    time.UnixMilli(rst.StartTime),

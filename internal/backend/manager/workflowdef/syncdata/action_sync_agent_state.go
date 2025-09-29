@@ -128,8 +128,10 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		upsertHosts = append(upsertHosts, &types.Host{
 			HostID: host.HostID,
 			Dynamic: &types.HostDynamic{
-				NodeVersion: agentState.Version,
-				NodeStatus:  agentState.StatusCode.ToNodeStatus(),
+				NodeRole:       agentState.NodeRole,
+				NodeGeneration: agentState.NodeGeneration,
+				NodeVersion:    agentState.Version,
+				NodeStatus:     agentState.NodeStatus,
 			},
 		})
 	}
@@ -140,7 +142,12 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	err = act.topoStg.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{NodeVersion: true, NodeStatus: true}, upsertHosts...)
+	err = act.topoStg.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{
+		NodeRole:       true,
+		NodeGeneration: true,
+		NodeVersion:    true,
+		NodeStatus:     true,
+	}, upsertHosts...)
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to update host dynamic")
 

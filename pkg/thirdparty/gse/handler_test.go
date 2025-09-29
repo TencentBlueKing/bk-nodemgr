@@ -337,7 +337,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 		name       string
 		args       args
 		wantErr    bool
-		wantStatus types.ScriptStatus
+		wantStatus scriptStatusCode
 	}{
 		{
 			name: "script_base",
@@ -346,7 +346,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 				endpoints: endpoints,
 			},
 			wantErr:    false,
-			wantStatus: types.ScriptStatusFinished,
+			wantStatus: scriptStatusCodeFinished,
 		},
 		{
 			name: "script_wait_for_termination",
@@ -355,7 +355,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 				endpoints: endpoints,
 			},
 			wantErr:    false,
-			wantStatus: types.ScriptStatusStopped,
+			wantStatus: ScriptStatusStopped,
 		},
 	}
 	for _, tt := range tests {
@@ -374,7 +374,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 
 				stillRunning := false
 				for _, v := range resp {
-					if v.Status == types.ScriptStatusRunning {
+					if v.Status == scriptStatusCodeRunning {
 						stillRunning = true
 						break
 					}
