@@ -389,7 +389,7 @@ watch(() => isShow.value, () => {
     form.info = props.data.map((item: Host) => {
       const data = cloneDeep(initData);
       assign(data, item, item.info);
-      data.prove = !item.info.login_credit_valid ? '******' : '';
+      data.prove = item.info.login_credit_valid ? '******' : '';
       return data;
     });
     form.proxy_install_origin = props.data[0].proxy_install_origin;

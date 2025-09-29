@@ -9,7 +9,7 @@
         :data="searchSelectData"
         v-model="searchSelectValue"
         :unique-select="true"
-        :placeholder="'版本号、操作系统/架构、标签、上传用户、状态'"
+        :placeholder="'版本号、操作系统/架构、标签、上传用户、状态、默认版本'"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -127,6 +127,7 @@
           <TableColumn
             field="os_cpu_arch"
             :title="'操作系统/架构'"
+            :filter="filterOptionSource.os_cpu_arch"
             :min-width="150"
           ></TableColumn>
           <TableColumn
@@ -185,6 +186,7 @@
             field="as_default"
             :title="'默认版本'"
             :min-width="120"
+            :filter="filterOptionSource.as_default"
           >
             <template #default="{ row }">
               <Tag v-if="row.as_default" theme="success">是</Tag>
@@ -403,6 +405,12 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
     match: 'fuzzy',
     filterScope: 'all',
   },
+  os_cpu_arch: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
   labels: {
     list: [],
     checked: [],
@@ -419,6 +427,14 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
     list: [
       { value: true, text: '启用' },
       { value: false, text: '禁用' },
+    ],
+    checked: [],
+    filterScope: 'all',
+  },
+  as_default: {
+    list: [
+      { value: true, text: '是' },
+      { value: false, text: '否' },
     ],
     checked: [],
     filterScope: 'all',
@@ -488,6 +504,14 @@ const searchSelectData = computed(() => [
     children: [
       { id: true, name: '启用' },
       { id: false, name: '禁用' },
+    ],
+  },
+  {
+    id: 'as_default',
+    name: '默认版本',
+    children: [
+      { id: true, name: '是' },
+      { id: false, name: '否' },
     ],
   },
 ]);
@@ -657,6 +681,7 @@ const handleConfirm = async () => {
 };
 watch(originPackageList, () => {
   filterOptionSource.version.list = getUniqueChildren('version');
+  filterOptionSource.os_cpu_arch.list = getUniqueChildren('os_cpu_arch');
   filterOptionSource.labels.list = getUniqueChildren('labels');
   filterOptionSource.operator.list = getUniqueChildren('operator');
 }, { immediate: true, deep: true });

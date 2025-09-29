@@ -9,7 +9,7 @@
         :data="searchSelectData"
         v-model="searchSelectValue"
         :unique-select="true"
-        :placeholder="t('包名称、上传用户')"
+        :placeholder="t('包文件名、上传用户')"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -34,7 +34,7 @@
       >
         <TableColumn
           field="file_name"
-          :title="'包名称'"
+          :title="'包文件名'"
           :min-width="320"
           fixed="left"
           show-overflow="tooltip"
@@ -204,7 +204,7 @@ function getUniqueChildren(prop: string) {
 const searchSelectData = computed(() => [
   {
     id: 'file_name',
-    name: t('包名称'),
+    name: t('包文件名'),
     children: getUniqueChildren('file_name'),
     multiple: true,
   },
