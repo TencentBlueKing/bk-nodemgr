@@ -88,10 +88,12 @@ func populatePluginDefaultValuesUnix(conf *PluginDeployConf) {
 	env := system.GetEnv()
 
 	conf.DeployDir = filepath.Join(conf.BaseDeployDir, env)
+	conf.WorkDir = filepath.Join(conf.BaseWorkDir, env)
 }
 
 func populatePluginDefaultValuesWindows(conf *PluginDeployConf) {
 	env := system.GetEnv()
 
 	conf.DeployDir = winpath.Join(conf.BaseDeployDir, env)
+	conf.WorkDir = filepath.Join(conf.BaseWorkDir, env)
 }
