@@ -125,7 +125,7 @@ func createTemplate() (io.ReadCloser, error) {
 // setSampleData sets sample data to the excel file.
 // nolint: errcheck, mnd
 func setSampleData(f *excelize.File) error {
-	sampleInfos := []ParsedInfo{
+	sampleInfos := []parsedInfo{
 		{
 			InnerIP:   "1.1.1.1",
 			InnerIPV6: "",
@@ -143,7 +143,7 @@ func setSampleData(f *excelize.File) error {
 			LoginIP:   "1.1.1.2",
 			LoginPort: exampleLoginPort,
 			LoginUser: exampleUserDesc,
-			LoginMode: types.LoginModePassword,
+			LoginMode: types.LoginModeKeyFile,
 			Credit:    exampleCreditDesc,
 		},
 		{
@@ -159,7 +159,7 @@ func setSampleData(f *excelize.File) error {
 	}
 
 	for rowIndex, info := range sampleInfos {
-		rowData := info.ToRowData()
+		rowData := info.toRowData()
 		for colIndex, cellData := range rowData {
 			cell, err := excelize.CoordinatesToCellName(colIndex+1, rowIndex+2)
 			if err != nil {
@@ -195,8 +195,6 @@ func (h *handler) UploadTemplate(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidFileResource, err)
 	}
 
-	logger.G.Biz(rCtx).With("info-count", len(infos)).Info("successfully parsed uploaded template")
-
 	respData := convertParsedInfosToData(infos)
 
 	return respData, nil
@@ -204,7 +202,7 @@ func (h *handler) UploadTemplate(rCtx restserver.IContext) (interface{}, error) 
 
 // parseExcelToInfos parses the uploaded excel file and returns parsed info slice.
 // nolint: errcheck, mnd
-func parseExcelToInfos(file io.Reader) ([]ParsedInfo, error) {
+func parseExcelToInfos(file io.Reader) ([]parsedInfo, error) {
 	f, err := excelize.OpenReader(file)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open excel file: %w", err)
@@ -221,7 +219,7 @@ func parseExcelToInfos(file io.Reader) ([]ParsedInfo, error) {
 	}
 
 	columns := getColumns()
-	infos := make([]ParsedInfo, len(rows)-1)
+	infos := make([]parsedInfo, len(rows)-1)
 	for idx, row := range rows[1:] {
 		rowMap := make(map[string]string)
 		for colIndex, cell := range row {
@@ -238,10 +236,10 @@ func parseExcelToInfos(file io.Reader) ([]ParsedInfo, error) {
 	return infos, nil
 }
 
-// parseRowToInfo parses a row map to ParsedInfo.
+// parseRowToInfo parses a row map to parsedInfo.
 // nolint: errcheck,unparam
-func parseRowToInfo(rowMap map[string]string) (ParsedInfo, error) {
-	info := ParsedInfo{}
+func parseRowToInfo(rowMap map[string]string) (parsedInfo, error) {
+	info := parsedInfo{}
 
 	parsers := map[string]func(string) error{
 		templateKeyInnerIP:   func(val string) error { info.InnerIP = val; return nil },
@@ -290,8 +288,8 @@ func parseRowToInfo(rowMap map[string]string) (ParsedInfo, error) {
 	return info, nil
 }
 
-// ParsedInfo describes the parsed information from the uploaded template file.
-type ParsedInfo struct {
+// parsedInfo describes the parsed information from the uploaded template file.
+type parsedInfo struct {
 	InnerIP   string
 	InnerIPV6 string
 	OsType    criteria.OSType
@@ -302,8 +300,7 @@ type ParsedInfo struct {
 	Credit    string
 }
 
-// ToRowData converts ParsedInfo to a slice for excel writing.
-func (info *ParsedInfo) ToRowData() []any {
+func (info *parsedInfo) toRowData() []any {
 	return []any{
 		info.InnerIP,
 		info.InnerIPV6,
@@ -316,8 +313,8 @@ func (info *ParsedInfo) ToRowData() []any {
 	}
 }
 
-// convertParsedInfosToData converts ParsedInfo slice to UploadAgentTemplateResp_Data.
-func convertParsedInfosToData(parsedInfos []ParsedInfo) *protoApplication.UploadAgentTemplateResp_Data {
+// convertParsedInfosToData converts parsedInfo slice to UploadAgentTemplateResp_Data.
+func convertParsedInfosToData(parsedInfos []parsedInfo) *protoApplication.UploadAgentTemplateResp_Data {
 	if len(parsedInfos) == 0 {
 		return &protoApplication.UploadAgentTemplateResp_Data{
 			Info:       []*protoApplication.ParsedInfo{},
