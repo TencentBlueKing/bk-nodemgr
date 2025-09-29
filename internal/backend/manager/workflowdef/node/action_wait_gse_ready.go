@@ -16,11 +16,10 @@ import (
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -119,9 +118,9 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		}
 
 		state := states[0]
-		info.Host.Dynamic.NodeStatus = state.StatusCode.ToNodeStatus()
-		if state.StatusCode != types.AgentStatusCodeRunning {
-			return fmt.Errorf("agent state is not running, status(%s)", state.StatusCode.String())
+		info.Host.Dynamic.NodeStatus = state.NodeStatus
+		if state.NodeStatus != types.NodeStatusRunning {
+			return fmt.Errorf("agent state is not running, status(%s)", state.NodeStatus)
 		}
 
 		if state.Version != info.Host.Dynamic.NodeVersion {

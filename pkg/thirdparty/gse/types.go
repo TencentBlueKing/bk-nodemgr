@@ -16,8 +16,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// RunMode represents the gse agent run mode.
-type RunMode int
+// runMode represents the gse agent run mode.
+type runMode int
 
 const (
 	// RunModeAgent means agent run mode.
@@ -26,40 +26,145 @@ const (
 	RunModeProxy = 0
 )
 
-// AgentInfo describes the agent information from gse.
-type AgentInfo struct {
-	BKAgentID      string  `json:"bk_agent_id"`
-	BKCloudID      int     `json:"bk_cloud_id"`
-	BKHostIP       string  `json:"bk_host_ip"`
-	BKOSType       string  `json:"bk_os_type"`
-	BKCPUArch      string  `json:"bk_cpu_architecture"`
-	ParentIP       string  `json:"parent_ip"`
-	ParentPort     uint    `json:"parent_port"`
-	ReportTime     uint64  `json:"report_time"`
-	Version        string  `json:"version"`
-	CPURate        float32 `json:"cpu_rate"`
-	MemRate        float32 `json:"mem_rate"`
-	CPUNum         uint    `json:"cpu_num"`
-	MemSize        uint64  `json:"mem_size"`
-	StartTime      uint64  `json:"start_time"`
-	LastWorkTime   uint64  `json:"last_work_time"`
-	ConnCycleTime  string  `json:"conn_cycle_time"`
-	RunMode        RunMode `json:"run_mode"`
-	StatusCode     int     `json:"status_code"`
-	Status         string  `json:"status"`
-	LastStatusCode int     `json:"last_status_code"`
-	LastStatus     string  `json:"last_status"`
-	Remark         string  `json:"remark"`
+// agentStatusCode represents the gse agent status code.
+type agentStatusCode int
+
+const (
+	// agentStatusCodeUnknown means status unknown.
+	agentStatusCodeUnknown agentStatusCode = -1
+
+	// agentStatusCodeInit means status init.
+	agentStatusCodeInit agentStatusCode = 0
+
+	// agentStatusCodeStarting means status starting.
+	agentStatusCodeStarting agentStatusCode = 1
+
+	// agentStatusCodeRunning means agent is OK.
+	agentStatusCodeRunning agentStatusCode = 2
+
+	// agentStatusCodeDamaged means status damaged.
+	agentStatusCodeDamaged agentStatusCode = 3
+
+	// agentStatusCodeBusy means status busy.
+	agentStatusCodeBusy agentStatusCode = 4
+
+	// agentStatusCodeUpgrade means agent is upgrading.
+	agentStatusCodeUpgrade agentStatusCode = 5
+
+	// agentStatusCodeStopping means status stopping.
+	agentStatusCodeStopping agentStatusCode = 6
+
+	// agentStatusCodeUninit means status uninit.
+	agentStatusCodeUninit agentStatusCode = 7
+)
+
+// ToNodeStatus returns the node status.
+func (code agentStatusCode) ToNodeStatus() types.NodeStatus {
+	switch code {
+	case agentStatusCodeInit:
+		return types.NodeStatusInit
+	case agentStatusCodeStarting:
+		return types.NodeStatusStarting
+	case agentStatusCodeRunning:
+		return types.NodeStatusRunning
+	case agentStatusCodeDamaged:
+		return types.NodeStatusDamaged
+	case agentStatusCodeBusy:
+		return types.NodeStatusBusy
+	case agentStatusCodeUpgrade:
+		return types.NodeStatusUpgrade
+	case agentStatusCodeStopping:
+		return types.NodeStatusStopping
+	case agentStatusCodeUninit:
+		return types.NodeStatusUninit
+	case agentStatusCodeUnknown:
+		return types.NodeStatusUnknown
+	default:
+		return types.NodeStatusUnknown
+	}
 }
 
-// AgentState describes the agent state. It is a subset of AgentInfo.
-type AgentState struct {
-	BKAgentID  string  `json:"bk_agent_id"`
-	BKCloudID  int     `json:"bk_cloud_id"`
-	Version    string  `json:"version"`
-	RunMode    RunMode `json:"run_mode"`
-	StatusCode int     `json:"status_code"`
-	ReportTime uint64  `json:"report_time"`
+// scriptStatusCode represents the gse script status.
+type scriptStatusCode int
+
+const (
+	// scriptStatusCodeReceived means script received. It is the initial state.
+	scriptStatusCodeReceived scriptStatusCode = 0
+
+	// scriptStatusCodeRunning means script running.
+	scriptStatusCodeRunning scriptStatusCode = 1
+
+	// scriptStatusCodeFinished means script finished and has an exit code 0.
+	scriptStatusCodeFinished scriptStatusCode = 2
+
+	// scriptStatusCodeTimeout means script timeout while execution.
+	scriptStatusCodeTimeout scriptStatusCode = 3
+
+	// scriptStatusCodeStopped means script is force stopped by others.
+	scriptStatusCodeStopped scriptStatusCode = 4
+
+	// scriptStatusCodeFailed means script execution failed and exit with a non-zero code.
+	scriptStatusCodeFailed scriptStatusCode = 5
+
+	// scriptStatusCodeAgentRestarted means agent was restarted during script execution and the script is aborted.
+	scriptStatusCodeAgentRestarted scriptStatusCode = 6
+)
+
+func (code scriptStatusCode) ToScriptStatus() types.ScriptStatus {
+	switch code {
+	case scriptStatusCodeReceived:
+		return types.ScriptStatusReceived
+	case scriptStatusCodeRunning:
+		return types.ScriptStatusRunning
+	case scriptStatusCodeFinished:
+		return types.ScriptStatusFinished
+	case scriptStatusCodeTimeout:
+		return types.ScriptStatusTimeout
+	case scriptStatusCodeStopped:
+		return types.ScriptStatusStopped
+	case scriptStatusCodeFailed:
+		return types.ScriptStatusFailed
+	case scriptStatusCodeAgentRestarted:
+		return types.ScriptStatusAgentRestarted
+	default:
+		return types.ScriptStatusUnknown
+	}
+}
+
+// agentInfo describes the agent information from gse.
+type agentInfo struct {
+	BKAgentID      string          `json:"bk_agent_id"`
+	BKCloudID      int             `json:"bk_cloud_id"`
+	BKHostIP       string          `json:"bk_host_ip"`
+	BKOSType       string          `json:"bk_os_type"`
+	BKCPUArch      string          `json:"bk_cpu_architecture"`
+	ParentIP       string          `json:"parent_ip"`
+	ParentPort     uint            `json:"parent_port"`
+	ReportTime     uint64          `json:"report_time"`
+	Version        string          `json:"version"`
+	CPURate        float32         `json:"cpu_rate"`
+	MemRate        float32         `json:"mem_rate"`
+	CPUNum         uint            `json:"cpu_num"`
+	MemSize        uint64          `json:"mem_size"`
+	StartTime      uint64          `json:"start_time"`
+	LastWorkTime   uint64          `json:"last_work_time"`
+	ConnCycleTime  string          `json:"conn_cycle_time"`
+	RunMode        runMode         `json:"run_mode"`
+	StatusCode     agentStatusCode `json:"status_code"`
+	Status         string          `json:"status"`
+	LastStatusCode agentStatusCode `json:"last_status_code"`
+	LastStatus     string          `json:"last_status"`
+	Remark         string          `json:"remark"`
+}
+
+// agentState describes the agent state. It is a subset of agentInfo.
+type agentState struct {
+	BKAgentID  string          `json:"bk_agent_id"`
+	BKCloudID  int             `json:"bk_cloud_id"`
+	Version    string          `json:"version"`
+	RunMode    runMode         `json:"run_mode"`
+	StatusCode agentStatusCode `json:"status_code"`
+	ReportTime uint64          `json:"report_time"`
 }
 
 // Endpoint describes the basic endpoint information.
@@ -106,7 +211,7 @@ type ListAgentInfoReq struct {
 }
 
 // ListAgentInfoResp describes the response data of list_agent_info.
-type ListAgentInfoResp []*AgentInfo
+type ListAgentInfoResp []*agentInfo
 
 // ListAgentStateReq describes the request data of list_agent_state.
 type ListAgentStateReq struct {
@@ -114,7 +219,7 @@ type ListAgentStateReq struct {
 }
 
 // ListAgentStateResp describe the response data of list_agent_state.
-type ListAgentStateResp []*AgentState
+type ListAgentStateResp []*agentState
 
 // ScriptDetail describes the script detail.
 type ScriptDetail struct {
@@ -149,15 +254,15 @@ type AsyncExecuteScriptReq struct {
 type ScriptResult struct {
 	Endpoint
 
-	AtomicTaskID int    `json:"atomic_task_id"`
-	Status       int    `json:"status"`
-	ErrorCode    int    `json:"error_code"`
-	ErrorMessage string `json:"error_msg"`
-	StartTime    int64  `json:"start_time"`
-	EndTime      int64  `json:"end_time"`
-	ExitCode     int    `json:"script_exit_code"`
-	Tag          string `json:"tag"`
-	ScreenLog    string `json:"screen"`
+	AtomicTaskID int              `json:"atomic_task_id"`
+	Status       scriptStatusCode `json:"status"`
+	ErrorCode    int              `json:"error_code"`
+	ErrorMessage string           `json:"error_msg"`
+	StartTime    int64            `json:"start_time"`
+	EndTime      int64            `json:"end_time"`
+	ExitCode     int              `json:"script_exit_code"`
+	Tag          string           `json:"tag"`
+	ScreenLog    string           `json:"screen"`
 }
 
 // AsyncExecuteScriptResp describes the response data of execute_script.

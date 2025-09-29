@@ -52,7 +52,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		WorkflowId: workflowID,
 	}
 
-	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install agent workflow")
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install plugin workflow")
 
 	return respData, nil
 }

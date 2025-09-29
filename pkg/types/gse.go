@@ -20,103 +20,21 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
-// AgentStatusCode represents the gse agent status code.
-type AgentStatusCode int
-
-const (
-	// AgentStatusCodeUnknown means status unknown.
-	AgentStatusCodeUnknown AgentStatusCode = iota - 1
-
-	// AgentStatusCodeInit means status init.
-	AgentStatusCodeInit
-
-	// AgentStatusCodeStarting means status starting.
-	AgentStatusCodeStarting
-
-	// AgentStatusCodeRunning means agent is OK.
-	AgentStatusCodeRunning
-
-	// AgentStatusCodeDamaged means status damaged.
-	AgentStatusCodeDamaged
-
-	// AgentStatusCodeBusy means status busy.
-	AgentStatusCodeBusy
-
-	// AgentStatusCodeUpgrade means agent is upgrading.
-	AgentStatusCodeUpgrade
-
-	// AgentStatusCodeStopping means status stopping.
-	AgentStatusCodeStopping
-
-	// AgentStatusCodeUninit means status uninit.
-	AgentStatusCodeUninit
-)
-
-// String returns the string representation of the AgentStatusCode.
-func (code AgentStatusCode) String() string {
-	switch code {
-	case AgentStatusCodeUnknown:
-		return "Unknown"
-	case AgentStatusCodeInit:
-		return "Init"
-	case AgentStatusCodeStarting:
-		return "Starting"
-	case AgentStatusCodeRunning:
-		return "Running"
-	case AgentStatusCodeDamaged:
-		return "Damaged"
-	case AgentStatusCodeBusy:
-		return "Busy"
-	case AgentStatusCodeUpgrade:
-		return "Upgrade"
-	case AgentStatusCodeStopping:
-		return "Stopping"
-	case AgentStatusCodeUninit:
-		return "Uninit"
-	}
-
-	return "Unknown"
-}
-
-// ToNodeStatus returns the node status.
-func (code AgentStatusCode) ToNodeStatus() NodeStatus {
-	switch code {
-	case AgentStatusCodeInit:
-		return NodeStatusInit
-	case AgentStatusCodeStarting:
-		return NodeStatusStarting
-	case AgentStatusCodeRunning:
-		return NodeStatusRunning
-	case AgentStatusCodeDamaged:
-		return NodeStatusDamaged
-	case AgentStatusCodeBusy:
-		return NodeStatusBusy
-	case AgentStatusCodeUpgrade:
-		return NodeStatusUpgrade
-	case AgentStatusCodeStopping:
-		return NodeStatusStopping
-	case AgentStatusCodeUninit:
-		return NodeStatusUninit
-	default:
-		return NodeStatusUnknown
-	}
-}
-
 // AgentState describes the agent state. It is a subset of AgentInfo.
 type AgentState struct {
-	AgentID    string
-	CloudID    int
-	Version    string
-	NodeRole   NodeRole
-	StatusCode AgentStatusCode
-	ReportTime uint64
+	AgentID        string
+	CloudID        int
+	NodeRole       NodeRole
+	NodeGeneration Generation
+	Version        string
+	NodeStatus     NodeStatus
+	ReportTime     uint64
 }
 
 // AgentInfo represents the gse agent information.
 type AgentInfo struct {
 	AgentState
 
-	HostIP         string
 	OSType         criteria.OSType
 	Arch           criteria.CPUArch
 	ParentIP       string
@@ -127,11 +45,68 @@ type AgentInfo struct {
 	MemSize        uint64
 	StartTime      uint64
 	LastWorkTime   uint64
-	LastStatusCode AgentStatusCode
 	ConnCycleTime  string
-	Status         string
-	LastStatus     string
+	LastNodeStatus NodeStatus
 	Remark         string
+}
+
+// ScriptType represents the gse script type.
+type ScriptType string
+
+const (
+	// ScriptTypeBash means bash script.
+	ScriptTypeBash ScriptType = "bash"
+
+	// ScriptTypeBat means bat script.
+	ScriptTypeBat ScriptType = "bat"
+
+	// ScriptTypePowershell means powershell script.
+	ScriptTypePowershell ScriptType = "powershell"
+
+	// ScriptTypePython means python script.
+	ScriptTypePython ScriptType = "python"
+)
+
+// ScriptStatus represents the gse script status.
+type ScriptStatus string
+
+const (
+	// ScriptStatusUnknown means script status unknown.
+	ScriptStatusUnknown ScriptStatus = "unknown"
+
+	// ScriptStatusReceived means script received. It is the initial state.
+	ScriptStatusReceived ScriptStatus = "received"
+
+	// ScriptStatusRunning means script running.
+	ScriptStatusRunning ScriptStatus = "running"
+
+	// ScriptStatusFinished means script finished and has an exit code 0.
+	ScriptStatusFinished ScriptStatus = "finished"
+
+	// ScriptStatusTimeout means script timeout while execution.
+	ScriptStatusTimeout ScriptStatus = "timeout"
+
+	// ScriptStatusStopped means script is force stopped by others.
+	ScriptStatusStopped ScriptStatus = "stopped"
+
+	// ScriptStatusFailed means script execution failed and exit with a non-zero code.
+	ScriptStatusFailed ScriptStatus = "failed"
+
+	// ScriptStatusAgentRestarted means agent was restarted during script execution and the script is aborted.
+	ScriptStatusAgentRestarted ScriptStatus = "agent_restarted"
+)
+
+// ScriptResult represents the gse script result.
+type ScriptResult struct {
+	Endpoint
+
+	Status       ScriptStatus
+	ErrorCode    int
+	ErrorMessage string
+	StartTime    time.Time
+	EndTime      time.Time
+	ExitCode     int
+	ScreenLog    string
 }
 
 // Endpoint represents the gse execution/transmission target.
@@ -155,62 +130,6 @@ type EndpointWithRestrict struct {
 	Offset uint
 	Limit  uint
 }
-
-// ScriptStatus represents the gse script status.
-type ScriptStatus int
-
-const (
-	// ScriptStatusReceived means script received. It is the initial state.
-	ScriptStatusReceived ScriptStatus = iota
-
-	// ScriptStatusRunning means script running.
-	ScriptStatusRunning
-
-	// ScriptStatusFinished means script finished and has an exit code 0.
-	ScriptStatusFinished
-
-	// ScriptStatusTimeout means script timeout while execution.
-	ScriptStatusTimeout
-
-	// ScriptStatusStopped means script is force stopped by others.
-	ScriptStatusStopped
-
-	// ScriptStatusFailed means script execution failed and exit with a non-zero code.
-	ScriptStatusFailed
-
-	// ScriptStatusAgentRestarted means agent was restarted during script execution and the script is aborted.
-	ScriptStatusAgentRestarted
-)
-
-// ScriptResult represents the gse script result.
-type ScriptResult struct {
-	Endpoint
-
-	Status       ScriptStatus
-	ErrorCode    int
-	ErrorMessage string
-	StartTime    time.Time
-	EndTime      time.Time
-	ExitCode     int
-	ScreenLog    string
-}
-
-// ScriptType represents the gse script type.
-type ScriptType string
-
-const (
-	// ScriptTypeBash means bash script.
-	ScriptTypeBash ScriptType = "bash"
-
-	// ScriptTypeBat means bat script.
-	ScriptTypeBat ScriptType = "bat"
-
-	// ScriptTypePowershell means powershell script.
-	ScriptTypePowershell ScriptType = "powershell"
-
-	// ScriptTypePython means python script.
-	ScriptTypePython ScriptType = "python"
-)
 
 // TransferOptions represents the gse transfer option.
 type TransferOptions struct {
