@@ -372,10 +372,10 @@
     "v3ParsedInfo": {
       "type": "object",
       "properties": {
-        "inner_ip": {
+        "bk_host_innerip": {
           "type": "string"
         },
-        "inner_ipv6": {
+        "bk_host_inner_ip_v6": {
           "type": "string"
         },
         "os_type": {
@@ -394,7 +394,7 @@
         "login_mode": {
           "type": "string"
         },
-        "credential": {
+        "credit": {
           "type": "string"
         }
       },

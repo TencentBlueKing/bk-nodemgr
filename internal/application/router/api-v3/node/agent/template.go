@@ -77,7 +77,11 @@ func getColumns() []column {
 func (h *handler) DownloadTemplate(rCtx restserver.IContext) (*restserver.FileResponse, error) {
 	// create template file
 	f := excelize.NewFile()
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to close excel file")
+		}
+	}()
 
 	// create sheet
 	index, err := f.NewSheet(sheetName)
@@ -188,7 +192,11 @@ func (h *handler) UploadTemplate(rCtx restserver.IContext) (interface{}, error) 
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload template, failed to open file")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to close excel file")
+		}
+	}()
 
 	// parse excel file to infos
 	infos, err := parseExcelToInfos(file)
@@ -327,14 +335,14 @@ func convertParsedInfosToData(parsedInfos []parsedInfo) *protoApplication.Upload
 	infos := make([]*protoApplication.ParsedInfo, len(parsedInfos))
 	for idx, info := range parsedInfos {
 		infos[idx] = &protoApplication.ParsedInfo{
-			InnerIp:    info.InnerIP,
-			InnerIpv6:  info.InnerIPV6,
-			OsType:     string(info.OsType),
-			LoginIp:    info.LoginIP,
-			LoginPort:  info.LoginPort,
-			LoginUser:  info.LoginUser,
-			LoginMode:  string(info.LoginMode),
-			Credential: info.Credit,
+			BkHostInnerip:   info.InnerIP,
+			BkHostInnerIpV6: info.InnerIPV6,
+			OsType:          string(info.OsType),
+			LoginIp:         info.LoginIP,
+			LoginPort:       info.LoginPort,
+			LoginUser:       info.LoginUser,
+			LoginMode:       string(info.LoginMode),
+			Credit:          info.Credit,
 		}
 	}
 

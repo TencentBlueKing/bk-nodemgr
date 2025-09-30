@@ -81,14 +81,14 @@ message UploadAgentTemplateReq {}
 
 // ParsedInfo describes the result for tempalte file parsed info.
 message ParsedInfo {
-  string inner_ip = 1;
-  string inner_ipv6 = 2;
+  string bk_host_innerip = 1;
+  string bk_host_inner_ip_v6 = 2;
   string os_type = 3;
   string login_ip = 4;
   int64 login_port = 5;
   string login_user = 6;
   string login_mode = 7;
-  string credential = 8;
+  string credit = 8;
 }
 
 // UploadAgentTemplateResp ...
