@@ -35,8 +35,8 @@
                 {
                   'bg-[#E1ECFF] text-[#3A84FF]':
                     option.id === 'version'
-                      ? state.versionDimensionOptional === 'all'
-                      : state.osDimensionOptional === 'all'
+                      ? state.versionDimensionOptional.has('all')
+                      : state.osDimensionOptional.has('all')
                 },
               ]"
               @click="selectDimensionOptional('all', option.id as PkgQuickType, 'click')"
@@ -50,8 +50,8 @@
                   size="large"
                   checkable
                   :checked="option.id === 'version'
-                    ? state.versionDimensionOptional === 'all'
-                    : state.osDimensionOptional === 'all'"
+                    ? state.versionDimensionOptional.has('all')
+                    : state.osDimensionOptional.has('all')"
                 >{{ originPackageList.length }}</Tag
                 >
               </div>
@@ -65,8 +65,8 @@
                   {
                     'bg-[#E1ECFF] text-[#3A84FF]':
                       option.id === 'version'
-                        ? state.versionDimensionOptional === item.id
-                        : state.osDimensionOptional === item.id,
+                        ? state.versionDimensionOptional.has(item.id)
+                        : state.osDimensionOptional.has(item.id),
                   },
                 ]"
                 @click="selectDimensionOptional(item.id, option.id as PkgQuickType, 'click')"
@@ -81,8 +81,8 @@
                   size="large"
                   checkable
                   :checked="option.id === 'version'
-                    ? state.versionDimensionOptional === item.id
-                    : state.osDimensionOptional === item.id"
+                    ? state.versionDimensionOptional.has(item.id)
+                    : state.osDimensionOptional.has(item.id)"
                 >
                   {{ item.count }}
                 </Tag>
@@ -340,8 +340,8 @@ const state = reactive<{
   panels: { name: PkgType; label: string }[];
   active: PkgType;
   dimension: PkgQuickType;
-  versionDimensionOptional: string;
-  osDimensionOptional: string;
+  versionDimensionOptional: Set<string>;
+  osDimensionOptional: Set<string>;
   versionExpand: boolean;
   osExpand: boolean;
   uploadShow: boolean;
@@ -355,8 +355,8 @@ const state = reactive<{
   active: 'gse_agent',
   // 维度
   dimension: 'os_cpu_arch',
-  versionDimensionOptional: 'all',
-  osDimensionOptional: 'all',
+  versionDimensionOptional: new Set(['all']),
+  osDimensionOptional: new Set(['all']),
   versionExpand: true,
   osExpand: true,
   uploadShow: false,
@@ -479,11 +479,13 @@ const searchSelectData = computed(() => [
   {
     id: 'version',
     name: '版本号',
+    multiple: true,
     children: getUniqueChildren('version'),
   },
   {
     id: 'os_cpu_arch',
     name: '操作系统/架构',
+    multiple: true,
     children: getUniqueChildren('os_cpu_arch'),
   },
   {
@@ -580,27 +582,48 @@ const handleSearchSelectChange = async (data: {id: string, name: string, values:
     }
   });
 };
-// 维度nav click
+// 维度nav click 可以多选, 如果选择非all，则all取消选中状态，如果空了则选择all
 const selectDimensionOptional = (id: string, dimension: PkgQuickType, type?: string) => {
   // 维度映射到状态属性
   const stateProperty = dimension === 'version' ? 'versionDimensionOptional' : 'osDimensionOptional';
+  const targetSet = state[stateProperty]; // 提取目标集合，减少重复访问
 
-  // 切换逻辑：如果选中当前非'all'的值，则设置为'all'，否则设置为当前值
-  state[stateProperty] = (id === state[stateProperty] && id !== 'all') ? 'all' : id;
+  // 处理全选逻辑：清空并仅保留'all'
+  if (id === 'all') {
+    targetSet.clear();
+    targetSet.add('all');
+    return; // 全选后无需执行后续逻辑
+  }
 
+  // 若当前有全选状态，先取消全选（避免同时存在'all'和其他选项）
+  if (targetSet.has('all')) {
+    targetSet.delete('all');
+  }
+
+  // 切换当前选项的选中状态（存在则删除，不存在则添加）
+  if (targetSet.has(id)) {
+    targetSet.delete(id);
+  } else {
+    targetSet.add(id);
+  }
+
+  // 若所有选项都被取消，自动选中全选
+  if (targetSet.size === 0) {
+    targetSet.add('all');
+  }
   if (type === 'click') {
-    updateQuickOptToSearch(id, dimension);
+    updateQuickOptToSearch(targetSet, dimension);
   }
 };
-const updateQuickOptToSearch = (id: string, dimension: PkgQuickType) => {
+const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
   const index = searchSelectValue.value.findIndex((item: any) => item.id === dimension);
   index > -1 && searchSelectValue.value.splice(index, 1);
-  if (id === 'all') return;
+  if (ids.has('all')) return;
   const findData = searchSelectData.value.find((item: {id: string}) => item.id === dimension);
   findData && searchSelectValue.value.push({
     id: dimension,
     name: findData.name,
-    values: [findData.children.find((item: any) => item.id === id)],
+    values: [findData.children.find((item: any) => ids.has(item.id))],
   });
 };
 const handleClickHost = (row: Release) => {

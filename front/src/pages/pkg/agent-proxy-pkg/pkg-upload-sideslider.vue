@@ -8,8 +8,13 @@
   >
     <template #default>
       <div class="px-[24px] pt-[28px]">
-        <pkg-upload @upload="handleUpload" @cancel="handleCancel" class="mb-[24px]"></pkg-upload>
-        <upload-result-table :data="uploadData"></upload-result-table>
+        <pkg-upload
+          @upload="handleUpload"
+          @cancel="handleCancel"
+          @loading="handleLoading"
+          class="mb-[24px]">
+        </pkg-upload>
+        <upload-result-table :data="uploadData" :loading="parseLoading"></upload-result-table>
       </div>
     </template>
     <template #footer>
@@ -68,6 +73,11 @@ const handleUpload = (data: PackageUploadOriginAgentRespData) => {
 };
 const handleCancel = () => {
   isShow.value = false;
+};
+// 加载到100后到解析完成的时间
+const parseLoading = ref(false);
+const handleLoading = (val: boolean) => {
+  parseLoading.value = val;
 };
 const loading = ref(false);
 const submit = async () => {

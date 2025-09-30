@@ -24,6 +24,8 @@
         const BK_LOGIN_URL = '{{ .BK_LOGIN_URL }}'
         const SITE_URL = '{{ .SITE_URL }}'
         const BK_REQUEST_ID_HEADER_KEY = '{{ .BK_REQUEST_ID_HEADER_KEY }}'
+        const PASSWORD_VAULT_SWITCH = '{{ .PASSWORD_VAULT_SWITCH }}'
+        const PASSWORD_VAULT_NAME = '{{ .PASSWORD_VAULT_NAME }}'
         
         return {
           BK_API_PREFIX,
@@ -32,6 +34,8 @@
           BK_LOGIN_URL,
           SITE_URL,
           BK_REQUEST_ID_HEADER_KEY,
+          PASSWORD_VAULT_SWITCH,
+          PASSWORD_VAULT_NAME,
         }
       })()
     </script>

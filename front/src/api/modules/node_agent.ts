@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp } from '@/@types/node_agent';
+import type { NodeAgentInstallReq, NodeAgentInstallResp, NodeAgentInstallCheckReq, NodeAgentInstallCheckResp, UploadAgentTemplateReq, UploadAgentTemplateResp } from '@/@types/node_agent';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -13,5 +13,6 @@ export const NodeAgentService = {
   NodeAgentInstall: async <Request = NodeAgentInstallReq, ResponseData = NodeAgentInstallResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/install')(params, config),
   // NodeAgentInstallCheck  check installs node agent.
   NodeAgentInstallCheck: async <Request = NodeAgentInstallCheckReq, ResponseData = NodeAgentInstallCheckResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/install_check')(params, config),
+  UploadAgentTemplate: async <Request = UploadAgentTemplateReq, ResponseData = UploadAgentTemplateResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/agent/upload_template')(params, config),
 };
 

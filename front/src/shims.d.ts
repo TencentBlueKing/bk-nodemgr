@@ -8,7 +8,9 @@ declare interface Window {
     BK_SHARED_RES_BASE_JS_URL: string,
     BK_LOGIN_URL: string,
     SITE_URL: string,
-    BK_REQUEST_ID_HEADER_KEY: string
+    BK_REQUEST_ID_HEADER_KEY: string,
+    PASSWORD_VAULT_SWITCH: boolean,
+    PASSWORD_VAULT_NAME: string,
   }
   loginModal: Object
 }

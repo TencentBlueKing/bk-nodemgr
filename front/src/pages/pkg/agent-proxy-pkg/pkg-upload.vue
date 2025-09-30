@@ -96,7 +96,7 @@ import { useRoute } from 'vue-router';
 import { bytesToMegabytes, capitalizeFirstLetter } from '@/common/util';
 
 
-const emit = defineEmits(['upload', 'cancel']);
+const emit = defineEmits(['upload', 'cancel', 'loading']);
 const route = useRoute();
 const uploader = ref(null);
 const currentType = computed(() => {
@@ -154,13 +154,16 @@ const handleUpload = () => {
     if (event.lengthComputable) {
       const progress = (event.loaded / event.total) * 100;
       curFile.progress = progress;
+      if (progress === 100) {
+        emit('loading', true);
+      }
     }
   };
 
   xhr.onload = () => {
+    emit('loading', false);
     if (xhr.status >= 200 && xhr.status < 300) {
       const response = JSON.parse(xhr.responseText);
-
       curFile.status = response.code === 0
         ? (response.data.existed && !overwrite.value)
         ? 'existed'

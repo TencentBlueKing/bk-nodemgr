@@ -78,7 +78,7 @@ const initData = {
   bk_biz_id: '',
   bk_host_id: '',
   re_register: false,
-  prove: '',
+  credit: '',
 };
 const formData = reactive({
   type: '',
@@ -125,7 +125,7 @@ const handlePreview = async () => {
       key: 'login_key_file',
     };
     formData.info.forEach((item) => {
-      item[modeMap[item.login_mode]] = item.prove;
+      item[modeMap[item.login_mode]] = item.credit;
     });
     previewData.data = { ...formData };
   }

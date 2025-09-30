@@ -20,11 +20,16 @@
         </div>
         <div class="flex justify-between mt-[16px]">
           <div class="w-[50%] flex gap-[8px]">
-            <Input
-              type="search"
-              v-model="searchValue"
-              :placeholder="$t('platform.nodeMan.preview.placeholder')"
-            />
+            <SearchSelect
+              class="ml-[16px] flex-1"
+              ref="searchSelect"
+              :data="searchSelectData"
+              v-model="searchSelectValue"
+              :unique-select="true"
+              :placeholder="'IPV4、IPV6、操作系统、主机名'"
+              @update:model-value="handleSearchSelectChange"
+            >
+            </SearchSelect>
             <copy-ip-dropdown
               :type="'agent'"
               :disabled="!selection.length"
@@ -32,18 +37,21 @@
             ></copy-ip-dropdown>
           </div>
           <div class="flex gap-[8px]">
-            <Button @click="handleBatchInstall">
+            <Button
+              @click="handleBatchInstall"
+              :disabled="!selection.length
+                || !selection.find(item => ['conflict_ip', 'duplicate_dynamic_ip'].includes(item.elig_status))">
               {{ $t("platform.nodeMan.preview.button.batchInstall") }}
             </Button>
-            <Button @click="handleBatchRemove">
+            <Button
+              @click="handleBatchRemove"
+              :disabled="!selection.length
+                || !selection.find(item => ['exist_proxy', 'exist_agent'].includes(item.elig_status))">
               {{ $t("platform.nodeMan.preview.button.batchRemove") }}
             </Button>
           </div>
         </div>
         <Tab class="mt-[16px]" v-model:active="active" type="card" :key="tabKey">
-          <!-- <template #setting>
-            <div class="leading-[50px]"><i class="mr-[16px] nodeman-icon nc-setting"></i></div>
-          </template> -->
           <Tab.TabPanel
             v-for="item in tabs"
             :key="item.name"
@@ -207,7 +215,7 @@
                             ></TableColumn>
                             <TableColumn
                               field="bk_host_name"
-                              :title="t('主机名')"
+                              :title="'主机名'"
                               min-width="150"
                             ></TableColumn>
                             <TableColumn
@@ -257,13 +265,12 @@
 <script lang="ts" setup>
 import {
   Button,
-  Input,
   Message,
   PopConfirm,
   Radio,
+  SearchSelect,
   Sideslider,
-  Tab,
-  Tag
+  Tab
 } from 'bkui-vue';
 import { Close } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
@@ -291,12 +298,37 @@ const props = defineProps({
 const { t } = useI18n();
 const nodeManageStore = useNodeManageStore();
 const router = useRouter();
-const selection = ref([]);
 const searchValue = ref('');
 const originData = ref<AgentInstallInfo[]>([]);
 const tableData = ref<AgentInstallInfo[]>([]);
 const tabKey = ref(Date.now());
 const disabledDataNum = ref(0);
+// 搜索
+const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const searchSelectData = computed(() => [
+  {
+    id: 'bk_host_innerip',
+    name: t('platform.nodeMan.inner_ip'),
+    children: getUniqueChildren('bk_host_innerip'),
+  },
+  {
+    id: 'bk_host_innerip_v6',
+    name: t('platform.nodeMan.inner_ipv6'),
+    children: getUniqueChildren('bk_host_innerip_v6'),
+  },
+  {
+    id: 'os_type',
+    name: t('platform.nodeMan.os_type'),
+    children: getUniqueChildren('os_type'),
+    multiple: true,
+  },
+  {
+    id: 'bk_host_name',
+    name: '主机名',
+    children: getUniqueChildren('bk_host_name'),
+    multiple: true,
+  },
+]);
 const tabs = computed(() => {
   const countResult = originData.value.reduce((acc: any, item: any) => {
     acc.all += 1;
@@ -413,11 +445,23 @@ const statusMap = {
     iconColor: '#FF9C01',
   },
 };
-const handleSelectChange = () => {};
-const handleSelectAllChange = () => {};
 
 const radioValue = ref('cmdb');
+function getUniqueChildren(prop: string) {
+  const res = Array.from(new Set(originData.value
+    .map((item: any) => item[prop])
+    .filter((item: any) => item)));
+  return res.map((value: any) => {
+    const name = String(value);
 
+    return {
+      id: value,
+      name,
+      value,
+      text: name,
+    };
+  });
+}
 const handleBeforeClose = () => {
   isShow.value = false;
 };
@@ -439,9 +483,26 @@ const handleRemove = (row: AgentInstallInfo) => {
     message: '全部“错误”Agent 已被移除',
   });
 };
+
+// 表格勾选
+const selection = computed(() => tableData.value.filter((item: any) => item.checked));
+const handleSelectChange = ({
+  checked,
+  row,
+}: {
+  checked: boolean;
+  row: any;
+}) => {
+  row.checked = checked;
+};
+
+// 表格全选
+const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
+  tableData.value.forEach((item: any) => (item.checked = checked));
+};
 const handleBatchInstall = () => {
   tableData.value.forEach((item: any) => {
-    if (item.elig_status === 'conflict_ip' || item.elig_status === 'duplicate_dynamic_ip') {
+    if ((item.elig_status === 'conflict_ip' || item.elig_status === 'duplicate_dynamic_ip') && item.checked) {
       item.elig_status = 'clean_install';
     }
   });
@@ -452,7 +513,7 @@ const handleBatchInstall = () => {
   });
 };
 const handleBatchRemove = () => {
-  originData.value = originData.value.filter((item: any) => !['exist_proxy', 'exist_agent'].includes(item.elig_status));
+  originData.value = originData.value.filter((item: any) => !['exist_proxy', 'exist_agent'].includes(item.elig_status) || !item.checked);
   tabKey.value = Date.now();
 };
 const handleSetup = async () => {
@@ -537,6 +598,20 @@ const getAgentList = async (row: any) => {
     ...item,
   }));
 };
+// 前端过滤数据
+watch(
+  [
+    searchSelectValue,
+  ],
+  () => {
+    tableData.value = originData.value.filter((row: any) => searchSelectValue.value.every((searchItem: any) => {
+      const { id: searchField, values } = searchItem;
+      const searchIds = values?.map((value: {id: string}) => value.id);
+      return searchIds.includes(row[searchField]);
+    }));
+  },
+  { immediate: true, deep: true },
+);
 watch(() => tableData.value, () => {
   // 每次tableData变化时，重新生成一个key，以强制刷新tab
   tabKey.value = Date.now();

@@ -73,3 +73,29 @@ export interface NodeAgentInstallElig {
   duplicate_host_ids: number[];
 }
 
+// UploadAgentTemplateReq is the request for upload agent tempalte file.
+export interface UploadAgentTemplateReq {
+}
+
+// ParsedInfo describes the result for tempalte file parsed info.
+export interface ParsedInfo {
+  inner_ip: string;
+  inner_ipv6: string;
+  os_type: string;
+  login_ip: string;
+  login_port: number;
+  login_user: string;
+  login_mode: string;
+  credential: string;
+}
+
+// UploadAgentTemplateResp ...
+export interface UploadAgentTemplateResp {
+  data: UploadAgentTemplateRespData;
+}
+
+export interface UploadAgentTemplateRespData {
+  info: ParsedInfo[];
+  total_count: number;
+}
+

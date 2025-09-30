@@ -23,7 +23,7 @@
         <Form.FormItem :label="$t('topoManager.installProxy.table.loginIp')" property="login_ip" required>
           <Input v-model="formData.login_ip" />
         </Form.FormItem>
-        <Form.FormItem :label="$t('topoManager.installProxy.table.authenticationMethod')" property="prove" required>
+        <Form.FormItem :label="$t('topoManager.installProxy.table.authenticationMethod')" property="credit" required>
           <div class="flex w-full gap-[8px]">
             <Select
               v-model="formData.login_mode"
@@ -39,7 +39,7 @@
               >
               </Select.Option>
             </Select>
-            <Input v-model="formData.prove" class="flex-1" type="password" />
+            <Input v-model="formData.credit" class="flex-1" type="password" />
           </div>
         </Form.FormItem>
         <Form.FormItem :label="$t('topoManager.installProxy.form.port')" property="login_port">
@@ -115,7 +115,7 @@ const rules: ValidationRules = {
   ],
   login_user: [{ validator: (val: string) => val, message: '请输入登录账号' }],
   login_mode: [{ validator: (val: string) => val, message: '请输入认证方式' }],
-  prove: [{ validator: (val: string) => val, message: '请输入密码 / 密钥' }],
+  credit: [{ validator: (val: string) => val, message: '请输入密码 / 密钥' }],
 };
 const initData = {
   bk_host_id: '',
@@ -127,7 +127,7 @@ const initData = {
   login_mode: 'password',
   login_password: '',
   login_key_file: '',
-  prove: '',
+  credit: '',
   export_ip: '',
   advertise_ip: '',
   dedicated_installer: false,
@@ -142,15 +142,18 @@ const authenticationTypes = ref([
     name: '密码',
   },
   {
-    id: 'key',
+    id: 'keyfile',
     name: '密钥',
   },
+  ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === true
+    ? [{ id: 'password_vault', name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME }]
+    : []),
 ]);
 const formData = reactive(cloneDeep(initData));
 // 切换认证方式
 const handleChangeMode = (newValue: string) => {
   formData.login_mode = newValue;
-  formData.prove = '';
+  formData.credit = '';
 };
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
   InfoBox({
@@ -173,7 +176,7 @@ const handleSave = async () => {
     password: 'login_password',
     key: 'login_key_file',
   };
-  formData[modeMap[formData.login_mode]] = formData.prove;
+  formData[modeMap[formData.login_mode]] = formData.credit;
   formData.proxy_tags = [];
   proxyTags.forEach((key) => {
     formData[key] && formData.proxy_tags.push(key);

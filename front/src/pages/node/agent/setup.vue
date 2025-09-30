@@ -1,49 +1,7 @@
 <template>
   <div class="setup pt-[24px] pb-[48px]">
     <setup-tip></setup-tip>
-    <div class="m-[24px]" v-if="activeInstallType === 'import'">
-      <Form ref="formRef" :model="formData" :rules="rules">
-        <Form.FormItem
-          :label="$t('platform.nodeMan.installAgentPage.type')"
-          required
-        >
-          <install-type></install-type>
-        </Form.FormItem>
-        <Form.FormItem
-          :label="$t('platform.nodeMan.installAgentPage.info')"
-          required
-        >
-          <install-table ref="installTableRef" v-model:data="formData.info">
-            <Upload
-              class="p-[24px]"
-              :accept="'.xlsx'"
-              :handle-res-code="handleRes"
-              :select-change="handleSelectChange"
-              :url="''"
-              :files="fileList"
-              with-credentials
-              @done="handleDone"
-              @error="handleError"
-              @progress="handleProgress"
-              @success="handleSuccess"
-              :before-upload="handleBeforeUpload"
-            >
-              <template #tip>
-                <div class="flex items-center gap-[3px]">
-                  <span>{{ '仅支持 .xlsx 类型文件，下载'}}</span>
-                  <a :href="url" download="bk_nodeman_info.xlsx">
-                    <Button text theme="primary">
-                      {{ '模板文件' }}
-                    </Button>
-                  </a>
-                </div>
-              </template>
-            </Upload>
-          </install-table>
-        </Form.FormItem>
-      </Form>
-    </div>
-    <div class="m-[24px]" v-else>
+    <div class="m-[24px]">
       <Form ref="formRef" :model="formData" :rules="rules">
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.type')"
@@ -124,7 +82,9 @@
           <install-table
             ref="installTableRef"
             v-model:data="formData.info"
-          ></install-table>
+          >
+            <UploadExcel @upload="handleUpload" v-if="activeInstallType === 'import'"></UploadExcel>
+          </install-table>
         </Form.FormItem>
         <Form.FormItem>
           <Button
@@ -174,17 +134,30 @@
     </div>
     <div
       :class="[
-        'h-[48px] w-full flex items-center pl-[174px]',
+        'h-[48px] w-full flex gap-[8px] items-center pl-[174px]',
         { 'fixed bottom-[0] bg-[#fff] z-[100]': isAtBottom },
       ]"
       ref="footerRef"
     >
       <Button
-        class="w-[100px] mr-[8px]"
+        v-if="excelImportData.length && formData.info.length === 0"
+        class="w-[100px]"
+        theme="primary"
+        @click="handleImport">
+        {{ '导入' }}
+      </Button>
+      <Button
+        class="w-[100px]"
         theme="primary"
         @click="handlePreview"
       >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
       >
+      <Button
+        v-if="excelImportData.length && activeInstallType === 'import' && formData.info.length > 0"
+        class="w-[88px]"
+        @click="handleSetpBack">
+        {{ '上一步' }}
+      </Button>
       <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
     <preview
@@ -209,6 +182,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import Preview from './preview.vue';
+import UploadExcel from './upload-excel.vue';
 
 import { TopoService } from '@/api/modules/topo';
 import { capitalizeFirstLetter } from '@/common/util';
@@ -231,7 +205,7 @@ const initData = {
   bk_networkunit_id: '',
   bk_biz_id: '',
   re_register: false,
-  prove: '',
+  credit: '',
 };
 const mainStore = useMainStore();
 const formData = reactive({
@@ -322,47 +296,14 @@ const getNetworkUnitList = async () => {
   });
   networkUnitList.value = res.items;
 };
-
-// Excel 导入
-const fileList = ref<File[]>([]);
-const url = `${window.location.origin}${import.meta.env.BK_SITE_URL}${
-  import.meta.env.BK_API_PREFIX
-}api/excel/download`;
-const handleSuccess = (file: File, fileList: File[]) => {};
-const handleProgress = (event: Event, file: File, fileList: File[]) => {};
-const handleError = (
-  file: File,
-  fileList: File[],
-  error: { message: string },
-) => {
-  Message({
-    theme: 'error',
-    message: error.message,
-  });
+const excelImportData = ref([]);
+// excel 导入
+const handleUpload = (data: any) => {
+  excelImportData.value = data.info;
 };
-const handleDone = (curFileList: File[]) => {
-  fileList.value = [...curFileList];
+const handleImport = () => {
+  formData.info = excelImportData.value;
 };
-const handleRes = (response: { id: number | string }) => {
-  if (response.id) {
-    return true;
-  }
-  return false;
-};
-const handleBeforeUpload = (file: File, fileList: File[]) => {
-  const whiteList = ['xlsx'];
-  const AllFiles = fileList.filter(v => whiteList.includes(v.name.substring(file.name.lastIndexOf('.') + 1)));
-  if (AllFiles.length !== fileList.length) {
-    fileList.pop();
-    Message({
-      theme: 'warning',
-      message: '仅支持 .xlsx 类型文件',
-    });
-    return false;
-  }
-  return true;
-};
-const handleSelectChange = (event: Event) => {};
 
 const formRef = ref(null);
 const installTableRef = ref(null);
@@ -402,7 +343,7 @@ const handlePreview = async () => {
       key: 'login_key_file',
     };
     formData.info.forEach((item) => {
-      item[modeMap[item.login_mode]] = item.prove;
+      item[modeMap[item.login_mode]] = item.credit;
       delete item.bk_host_id;
     });
     if (isShow.value) {
@@ -420,6 +361,12 @@ const handlePreview = async () => {
     previewData.data = { ...formData };
   }
 };
+const handleSetpBack = () => {
+  formData.info = [];
+};
+const handleCancel = () => {
+  router.push({ name: 'agent' });
+};
 const footerRef = ref<Element | null>(null);
 const checkIfAtBottom = () => {
   if (footerRef.value) {
@@ -433,16 +380,15 @@ const checkIfAtBottom = () => {
   }
 };
 
-const handleCancel = () => {
-  router.push({ name: 'agent' });
-};
 const debouncedCheck = debounce(checkIfAtBottom, 100);
 watch(() => activeInstallType.value, () => {
+  excelImportData.value = [];
   if (activeInstallType.value === 'import') {
     formData.info = [];
   } else {
     formData.info = [cloneDeep(initData)];
   }
+  formRef.value?.clearValidate();
 }, { immediate: true });
 watch(
   () => formData.bk_networkarea_id,

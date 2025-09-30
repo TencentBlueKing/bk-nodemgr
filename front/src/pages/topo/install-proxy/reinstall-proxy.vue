@@ -2,7 +2,7 @@
   <Sideslider
     v-model:is-show="isShow"
     :title="$t('topoManager.installProxy.reinstall')"
-    width="1490"
+    width="1390"
     render-directive="if"
     :before-close="handleBeforeClose"
   >
@@ -89,7 +89,7 @@
                   <Validate
                     :value="row.version"
                     required
-                    :ref="`${row.os}_ref`"
+                    :ref="(el) => setInputRef(row.os, el)"
                   >
                     <Input
                       :model-value="row.version"
@@ -148,6 +148,7 @@ import { Table, TableColumn } from '@blueking/table';
 import SelectItemGroup from './components/select-item-group.vue';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
+import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
@@ -172,7 +173,7 @@ const settings = reactive({
     { field: 'advertise_ip', title: '服务IP' },
     { field: 'login_ip', title: '登录 IP' },
     { field: 'login_mode', title: '认证方式' },
-    { field: 'prove', title: '密码 / 密钥' },
+    { field: 'credit', title: '密码 / 密钥' },
     { field: 'dedicated_installer', title: '安装跳板' },
     { field: 'cluster_tunnel', title: 'Agent控制' },
     { field: 'file_tunnel', title: '文件传输' },
@@ -187,14 +188,14 @@ const settings = reactive({
     'login_ip',
     'login_user',
     'login_mode',
-    'prove',
+    'credit',
   ],
-  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'prove'],
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
   size: 'medium',
 });
 const initData = {
   login_credit_valid: false,
-  prove: '',
+  credit: '',
   bk_host_id: '',
   bk_host_innerip: '',
   bk_host_innerip_v6: '',
@@ -300,19 +301,31 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
 });
 const formRef = ref(null);
 const installTableRef = ref(null);
-const Linux_amd64_ref = ref();
-const Linux_arm64_ref = ref();
+const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
+const setInputRef = (
+  os: string,
+  el: InstanceType<typeof Validate> | null,
+) => {
+  if (el) {
+    const key = os;
+    inputRefs.value.set(key, el);
+  }
+};
+const systemValidate = async () => {
+  const refs = Array.from(inputRefs.value.values());
+  const validate = [];
+  for (const item of refs) {
+    validate.push(item.validate('blur'));
+  }
+  const result = await Promise.all(validate);
+  return result.every(item => item);
+};
 const proxy_tags = ['dedicated_installer', 'cluster_tunnel', 'file_tunnel', 'data_tunnel'];
 const handleConfirm = async () => {
   const result = await Promise.all([
     formRef.value?.validate().catch(() => false),
     installTableRef.value?.tableValidate(),
-    isTargetShow.value
-      ? Promise.all([
-        Linux_amd64_ref.value?.validate('blur').catch(() => false),
-        Linux_arm64_ref.value?.validate('blur').catch(() => false),
-      ])
-      : true,
+    isTargetShow.value ? systemValidate() : true,
   ]);
   // 合并多重Promise
   if (Array.isArray(result[2])) {
@@ -324,7 +337,7 @@ const handleConfirm = async () => {
       key: 'login_key_file',
     };
     form.info.forEach((item: any) => {
-      item[modeMap[item.login_mode]] = item.prove === '******' ? '' : item.prove;
+      item[modeMap[item.login_mode]] = item.credit === '******' ? '' : item.credit;
       Object.keys(item).forEach((key: string) => {
         if (proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
           item.proxy_tags.push(key);
@@ -389,7 +402,7 @@ watch(() => isShow.value, () => {
     form.info = props.data.map((item: Host) => {
       const data = cloneDeep(initData);
       assign(data, item, item.info);
-      data.prove = item.info.login_credit_valid ? '******' : '';
+      data.credit = item.info.login_credit_valid ? '******' : '';
       return data;
     });
     form.proxy_install_origin = props.data[0].proxy_install_origin;

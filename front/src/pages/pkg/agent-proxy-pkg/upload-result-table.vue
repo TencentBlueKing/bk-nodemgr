@@ -1,70 +1,72 @@
 <template>
   <div>
     <div class="text-[12px] text-[#4D4F56] mb-[8px]">结果预览</div>
-    <Table
-      :data="tableData"
-    >
-      <TableColumn
-        field="name"
-        :title="'包名'"
-        min-width="350"
-      ></TableColumn>
-      <TableColumn
-        field="os_type"
-        :title="'操作系统架构'"
-        v-if="currentType !== 'cert'"
-        min-width="150"
+    <bk-loading title="数据解析中" :loading="loading">
+      <Table
+        :data="tableData"
       >
-        <template #default="{ row }">
-          {{ `${row.os_type}_${row.cpu_arch}` }}
-        </template>
-      </TableColumn>
-      <TableColumn
-        field="release_type"
-        :title="'包类型'"
-        v-if="currentType !== 'cert'"
-        min-width="70"
-      ></TableColumn>
-      <TableColumn
-        field="labels"
-        :title="'标签信息'"
-        v-if="!['cert', 'bintool'].includes(currentType)"
-        min-width="200"
-      >
-        <template #header>
-          <span class="mr-[5px]">标签信息</span>
-          <span class="mx-[3px] text-[#FF5656]">*</span>
-          <PopConfirm
-            width="320"
-            theme="light"
-            trigger="click"
-            title="批量编辑标签"
-            @confirm="batchUpdateTag"
-          >
-            <Button text :disabled="!props.data">
-              <i class="nodeman-icon nc-edit text-[18px]  cursor-pointer"></i>
-            </Button>
-            <template #content>
-              <div class="text-[12px] text-[#4D4F56] mb-[6px]">统一填充</div>
-              <Select
-                class="mb-[18px]"
-                v-model="selectTag"
-                :list="tagList"
-                :popover-options="{
-                  boundary: 'parent'
-                }"
-                auto-focus
-                multiple
-                filterable>
-              </Select>
-            </template>
-          </PopConfirm>
-        </template>
-        <template #default="{ row }">
-          <create-tag :data="row"></create-tag>
-        </template>
-      </TableColumn>
-    </Table>
+        <TableColumn
+          field="name"
+          :title="'包名'"
+          min-width="350"
+        ></TableColumn>
+        <TableColumn
+          field="os_type"
+          :title="'操作系统架构'"
+          v-if="currentType !== 'cert'"
+          min-width="150"
+        >
+          <template #default="{ row }">
+            {{ `${row.os_type}_${row.cpu_arch}` }}
+          </template>
+        </TableColumn>
+        <TableColumn
+          field="release_type"
+          :title="'包类型'"
+          v-if="currentType !== 'cert'"
+          min-width="70"
+        ></TableColumn>
+        <TableColumn
+          field="labels"
+          :title="'标签信息'"
+          v-if="!['cert', 'bintool'].includes(currentType)"
+          min-width="200"
+        >
+          <template #header>
+            <span class="mr-[5px]">标签信息</span>
+            <span class="mx-[3px] text-[#FF5656]">*</span>
+            <PopConfirm
+              width="320"
+              theme="light"
+              trigger="click"
+              title="批量编辑标签"
+              @confirm="batchUpdateTag"
+            >
+              <Button text :disabled="!props.data">
+                <i class="nodeman-icon nc-edit text-[18px]  cursor-pointer"></i>
+              </Button>
+              <template #content>
+                <div class="text-[12px] text-[#4D4F56] mb-[6px]">统一填充</div>
+                <Select
+                  class="mb-[18px]"
+                  v-model="selectTag"
+                  :list="tagList"
+                  :popover-options="{
+                    boundary: 'parent'
+                  }"
+                  auto-focus
+                  multiple
+                  filterable>
+                </Select>
+              </template>
+            </PopConfirm>
+          </template>
+          <template #default="{ row }">
+            <create-tag :data="row"></create-tag>
+          </template>
+        </TableColumn>
+      </Table>
+    </bk-loading>
     <template v-if="data?.change_log_zh">
       <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px]">描述</div>
       <div
@@ -88,6 +90,10 @@ const props = defineProps({
   data: {
     type: Object,
     default: null,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
   },
 });
 const route = useRoute();

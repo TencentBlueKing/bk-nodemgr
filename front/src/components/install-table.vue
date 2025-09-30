@@ -269,9 +269,9 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          field="prove"
-          min-width="130"
-          :visible="settings.checked.includes('prove')"
+          field="credit"
+          min-width="80"
+          :visible="settings.checked.includes('credit')"
         >
           <template #header>
             <div class="flex">
@@ -279,16 +279,22 @@
               <span class="mx-[3px] text-[#FF5656]">*</span>
               <BatchEdit
                 :title="'批量编辑密码/密钥'"
-                type="prove"
-                @confirm="(value) => handleBatchEdit('prove', value)"
+                type="credit"
+                @confirm="(value) => handleBatchEdit('credit', value)"
               >
               </BatchEdit>
             </div>
           </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
+            <Input
+              v-if="row.login_mode === 'password_vault'"
+              :value="'自动拉取'"
+              disabled
+            ></Input>
             <Validate
-              :value="row.prove"
-              :rules="rules.prove"
+              v-else
+              :value="row.credit"
+              :rules="rules.credit"
               required
               :ref="(el) => setInputRef($rowIndex, $columnIndex, el)"
             >
@@ -296,18 +302,13 @@
                 v-bk-tooltips="{
                   content: '密码有效，点击修改',
                   disabled:
-                    !isReinstall || !row.prove || !row.login_credit_valid,
+                    !isReinstall || !row.credit || !row.login_credit_valid,
                 }"
               >
-                <Input
-                  v-if="row.login_mode === 'password'"
-                  v-model.trim="row.prove"
-                  type="password"
-                ></Input>
                 <Upload
                   ref="uploader"
                   type="formdata"
-                  v-if="row.login_mode === 'key'"
+                  v-if="row.login_mode === 'keyfile'"
                   :url="url"
                   :size="100"
                   :multiple="false"
@@ -316,6 +317,11 @@
                   :before-upload="(val) => handleBeforeUpload(val,row)"
                   :custom-request="() => {}"
                 ></Upload>
+                <Input
+                  v-else
+                  v-model.trim="row.credit"
+                  type="password"
+                ></Input>
               </div>
             </Validate>
           </template>
@@ -455,7 +461,7 @@ const props = defineProps({
         { field: 'login_user', title: '登录账号' },
         { field: 'login_ip', title: '登录 IP' },
         { field: 'login_mode', title: '认证方式' },
-        { field: 'prove', title: '密码 / 密钥' },
+        { field: 'credit', title: '密码 / 密钥' },
       ],
       checked: [
         'bk_host_innerip',
@@ -465,9 +471,9 @@ const props = defineProps({
         'login_ip',
         'login_user',
         'login_mode',
-        'prove',
+        'credit',
       ],
-      disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'prove'],
+      disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
       size: 'medium' as VxeComponentSizeType,
     },
   },
@@ -487,7 +493,7 @@ const initData = {
   bk_biz_id: '',
   bk_host_id: '',
   re_register: false,
-  prove: '',
+  credit: '',
   export_ip: '',
   advertise_ip: '',
   dedicated_installer: true,
@@ -511,7 +517,7 @@ const rules: ValidationRules = {
   ],
   login_user: [{ validator: (val: string) => val, message: '请输入登录账号' }],
   login_mode: [{ validator: (val: string) => val, message: '请输入认证方式' }],
-  prove: [{ validator: (val: string) => val, message: '请输入密码 / 密钥' }],
+  credit: [{ validator: (val: string) => val, message: '请输入密码 / 密钥' }],
 };
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
@@ -542,15 +548,18 @@ const authenticationTypes = ref([
     name: '密码',
   },
   {
-    id: 'key',
+    id: 'keyfile',
     name: '密钥',
   },
+  ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === true
+    ? [{ id: 'password_vault', name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME }]
+    : []),
 ]);
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 // 切换认证方式
 const handleChangeMode = (newValue: string, row: any) => {
   row.login_mode = newValue;
-  row.prove = '';
+  row.credit = '';
 };
 // 登录ip默认回填内网ipv4的值
 const handleChangeIPv4 = (val: string, row: any) => {
@@ -598,11 +607,11 @@ const handleDelRow = (index: number, rowid: string, fields: string[]) => {
 // 表头批量操作
 const handleBatchEdit = (field: string, value: string | number | Object) => {
   tableData.value?.forEach((item: any) => {
-    if (field === 'prove') {
+    if (field === 'credit') {
       if (item.login_mode === 'password') {
-        item.prove = value.password;
+        item.credit = value.password;
       } else {
-        item.prove = value.key;
+        item.credit = value.key;
         item.file = value.file;
       }
     } else {
@@ -620,7 +629,7 @@ const handleBeforeUpload = (file: File, row: any) => {
   reader.onload = (event) => {
     const result = event.target?.result as string;
     if (result) {
-      row.prove = result.split(',')[1];
+      row.credit = result.split(',')[1];
     }
   };
   reader.readAsDataURL(file);

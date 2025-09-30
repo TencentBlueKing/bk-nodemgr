@@ -26,7 +26,7 @@
           :name="item.name">
         </Select.Option>
       </Select>
-      <div v-if="type === 'prove'">
+      <div v-if="type === 'credit'">
         <Input type="password" v-model="batchValue" class="mb-[15px]" />
         <p class="text-[12px] text-[#979ba5] mt-[-6px]">仅对密码认证生效</p>
         <p class="mt-[14px] mb-[10px] text-[14px]">批量编辑密钥</p>
@@ -51,7 +51,7 @@
 import { Input, PopConfirm, Select, Switcher, Upload } from 'bkui-vue';
 import { ref, watch } from 'vue';
 
-type batchEditType = 'input' | 'prove' | 'switcher' | 'select';
+type batchEditType = 'input' | 'credit' | 'switcher' | 'select';
 
 interface IOptions {
   id: string | number
@@ -72,7 +72,7 @@ const batchValue = ref();
 const keyFile = ref();
 const keyBase64 = ref();
 const handleBatchEdit = () => {
-  if (props.type === 'prove') {
+  if (props.type === 'credit') {
     emit('confirm', {
       password: batchValue.value,
       key: keyBase64.value,
