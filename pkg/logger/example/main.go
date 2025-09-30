@@ -38,15 +38,15 @@ func main() {
 	ctx := contextx.New(context.Background(), contextx.WithValues(map[string]any{"a": "ok", "b": 3, "c": false}))
 
 	// business logs.
-	logger.G.Biz().Ctx(ctx).Debug("debug message")
-	logger.G.Biz().Ctx(ctx).Info("received a request %s", "install/agent")
-	logger.G.Biz().Ctx(ctx).WithErr(errors.New("invalid params")).Error("failed to decode params")
-	logger.G.Biz().Ctx(ctx).
+	logger.G.Biz(ctx).Debug("debug message")
+	logger.G.Biz(ctx).Info("received a request %s", "install/agent")
+	logger.G.Biz(ctx).WithErr(errors.New("invalid params")).Error("failed to decode params")
+	logger.G.Biz(ctx).
 		With("host-id", 123).With("state", "unknown").
 		Warn("got unexpected data")
-	logger.G.Biz().Ctx(ctx).With("host-id", 123, "state", "unknown").
+	logger.G.Biz(ctx).With("host-id", 123, "state", "unknown").
 		Warn("got unexpected data")
-	logger.G.Biz().Ctx(ctx).With("wrong-key").Info("try to print a wrong key-value pair")
+	logger.G.Biz(ctx).With("wrong-key").Info("try to print a wrong key-value pair")
 
 	// system logs.
 	logger.G.Sys().Debug("debug message")

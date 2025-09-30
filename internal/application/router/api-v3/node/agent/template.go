@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	sheetName = "install_template"
-	fileName  = "install_template.xlsx"
+	sheetName        = "install_template"
+	templateFileName = "install_template.xlsx"
 
 	exampleUserDesc   = "login_username"
 	exampleCreditDesc = "fill in your password or key according to LoginMode"
@@ -82,7 +82,7 @@ func (h *handler) DownloadTemplate(rCtx restserver.IContext) (*restserver.FileRe
 	// create sheet
 	index, err := f.NewSheet(sheetName)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to create sheet: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to create sheet")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, fmt.Errorf("failed to create sheet: %w", err))
 	}
 
@@ -91,7 +91,7 @@ func (h *handler) DownloadTemplate(rCtx restserver.IContext) (*restserver.FileRe
 
 	// delete default sheet
 	if err := f.DeleteSheet("Sheet1"); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete default sheet: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete default sheet")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, fmt.Errorf("failed to delete default sheet: %w", err))
 	}
 
@@ -99,27 +99,27 @@ func (h *handler) DownloadTemplate(rCtx restserver.IContext) (*restserver.FileRe
 	for colIndex, col := range getColumns() {
 		cell, _ := excelize.CoordinatesToCellName(colIndex+1, 1)
 		if err := f.SetCellValue(sheetName, cell, col.name); err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to set cell value: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to set cell value")
 			return nil, resterrf.ErrWrap(resterrf.Aborted, fmt.Errorf("failed to set cell value: %w", err))
 		}
 	}
 
 	// set sample data
 	if err := setSampleData(f); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to set sample data: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set sample data")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	buffer := new(bytes.Buffer)
 	if err := f.Write(buffer); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to write buffer: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to write buffer")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, fmt.Errorf("failed to write buffer: %w", err))
 	}
 
 	return &restserver.FileResponse{
 		Data:        io.NopCloser(buffer),
 		Size:        int64(buffer.Len()),
-		FileName:    fileName,
+		FileName:    templateFileName,
 		ContentType: restserver.MIMETypeXls,
 	}, nil
 }
@@ -179,13 +179,13 @@ func (h *handler) UploadTemplate(rCtx restserver.IContext) (interface{}, error) 
 	req := new(protoApplication.UploadAgentTemplateReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload template, failed to parse file form: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload template, failed to parse file form")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload template, failed to open file: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload template, failed to open file")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer file.Close()
@@ -193,7 +193,7 @@ func (h *handler) UploadTemplate(rCtx restserver.IContext) (interface{}, error) 
 	// parse excel file to infos
 	infos, err := parseExcelToInfos(file)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to parse excel file: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to parse excel file")
 		return nil, resterrf.ErrWrap(resterrf.InvalidFileResource, err)
 	}
 
