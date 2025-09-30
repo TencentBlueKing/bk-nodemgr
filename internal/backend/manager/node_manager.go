@@ -205,15 +205,24 @@ func (mgr *Manager) createInstallNodeOper(
 
 func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
 	// proxy.
+	// user select install origin form upstream or current or server.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
+		if deploy.Info.InstallOptions.DirectInstall {
+			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+		}
+
+		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
 	}
 
+	// system select install origin form server or proxy.
 	// direct agent.
-	if deploy.Info.InstallOptions.DirectLink {
+	if deploy.Info.InstallOptions.DirectInstall {
 		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
 		case criteria.OSLinux, criteria.OSDarwin:
 			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{

@@ -74,8 +74,8 @@ func (mode LoginMode) Validate() error {
 
 // DeploymentInstallOptions this is the options for nodemgr tools.
 type DeploymentInstallOptions struct {
-	ReRegister bool
-	DirectLink bool
+	ReRegister    bool
+	DirectInstall bool
 }
 
 // DeploymentUpgradeOptions this is the options for node upgrade.

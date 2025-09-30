@@ -119,4 +119,7 @@ const (
 
 	// FieldKeyDynamicRelayCallbackPort the dynamic relay callback port field key.
 	FieldKeyDynamicRelayCallbackPort = "data.dynamic.relay_callback_port"
+
+	// FieldKeyDynamicProxyInstallOriginUnitID the dynamic proxy install origin network unit id field key.
+	FiledKeyProxyInstallOriginUnitID = "data.dynamic.proxy_install_origin_unit_id"
 )

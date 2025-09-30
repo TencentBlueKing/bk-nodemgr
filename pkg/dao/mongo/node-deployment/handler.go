@@ -117,8 +117,8 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 		},
 		InstallerWorkDir: info.InstallerWorkDir,
 		InstallOptions: types.DeploymentInstallOptions{
-			ReRegister: info.InstallOptions.ReRegister,
-			DirectLink: info.InstallOptions.DirectLink,
+			ReRegister:    info.InstallOptions.ReRegister,
+			DirectInstall: info.InstallOptions.DirectInstall,
 		},
 		RestartOptions: types.DeploymentRestartOptions{
 			ForceRestart:           info.RestartOptions.ForceRestart,
@@ -335,8 +335,8 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		ProxyFilePort:    info.Host.Dynamic.ProxyFilePort,
 		InstallerWorkDir: info.InstallerWorkDir,
 		InstallOptions: InstallOptions{
-			ReRegister: info.InstallOptions.ReRegister,
-			DirectLink: info.InstallOptions.DirectLink,
+			ReRegister:    info.InstallOptions.ReRegister,
+			DirectInstall: info.InstallOptions.DirectInstall,
 		},
 		RestartOptions: RestartOptions{
 			ForceRestart:           info.RestartOptions.ForceRestart,

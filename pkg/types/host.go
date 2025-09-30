@@ -140,6 +140,9 @@ type HostDynamic struct {
 	// RelayCallbackPort represents the port of relay callback server.
 	RelayDownloadPort int64
 	RelayCallbackPort int64
+
+	// ProxyInstallOriginUnitID represents the origin network unit id where this proxy is installed.
+	ProxyInstallOriginUnitID int64
 }
 
 // ProxySupportInstaller returns whether this node support installer.
@@ -205,10 +208,11 @@ type HostDynamicFields struct {
 	ExportIP      bool
 	AdvertiseIP   bool
 
-	ProxyTags        bool
-	ProxyClusterPort bool
-	ProxyDataPort    bool
-	ProxyFilePort    bool
+	ProxyTags                bool
+	ProxyClusterPort         bool
+	ProxyDataPort            bool
+	ProxyFilePort            bool
+	ProxyInstallOriginUnitID bool
 
 	RelayDownloadPort bool
 	RelayCallbackPort bool

@@ -125,9 +125,16 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) (err error) {
 func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	std *nodeUtils.NodeActionStandarder) (types.RelayInfo, error) {
 
+	// for agent, we select relay host by random in its own network unit.
+	networkunitID := std.DeployInfo().Host.Dynamic.NetworkUnitID
+	// for proxy, we should use user selected of origin network unit id to select relay host.
+	if std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleProxy {
+		networkunitID = std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID
+	}
+
 	hosts, num, err := act.storageHost.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 		ExactInclude: &types.HostExactFields{
-			NetworkUnitID: []int64{std.DeployInfo().Host.Dynamic.NetworkUnitID},
+			NetworkUnitID: []int64{networkunitID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
 		},

@@ -14,23 +14,24 @@ import "time"
 
 // NodeProxyInstallHost describes the node proxy install host.
 type NodeProxyInstallHost struct {
-	HostID        int64
-	BizID         int64
-	InnerIP       string
-	InnerIPV6     string
-	Addressing    Addressing
-	LoginIP       string
-	LoginPort     int64
-	LoginUser     string
-	LoginMode     LoginMode
-	LoginPassword string
-	LoginKeyFile  string
-	NetworkUnitID int64
-	OSType        string
-	ExportIP      string
-	AdvertiseIP   string
-	ReRegister    bool
-	ProxyTags     []ProxyTag
+	HostID                   int64
+	BizID                    int64
+	InnerIP                  string
+	InnerIPV6                string
+	Addressing               Addressing
+	LoginIP                  string
+	LoginPort                int64
+	LoginUser                string
+	LoginMode                LoginMode
+	LoginPassword            string
+	LoginKeyFile             string
+	NetworkUnitID            int64
+	OSType                   string
+	ExportIP                 string
+	AdvertiseIP              string
+	ReRegister               bool
+	ProxyTags                []ProxyTag
+	ProxyInstallOriginUnitID int64
 }
 
 // NodeProxyInstallParam describes the node proxy install parameter.

@@ -77,8 +77,8 @@ type TargetVersion struct {
 
 // InstallOptions this is the options for nodemgr tools.
 type InstallOptions struct {
-	ReRegister bool `json:"re_register" bson:"re_register"`
-	DirectLink bool `json:"direct_link" bson:"direct_link"`
+	ReRegister    bool `json:"re_register" bson:"re_register"`
+	DirectInstall bool `json:"direct_install" bson:"direct_install"`
 }
 
 // UpgradeOptions this is the options for node upgrade.

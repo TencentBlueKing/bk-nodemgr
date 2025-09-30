@@ -417,18 +417,19 @@ func convertHostFromTypes(host *types.Host) *Host {
 
 				return tags
 			}(),
-			ProxyClusterPort:  host.Dynamic.ProxyClusterPort,
-			ProxyDataPort:     host.Dynamic.ProxyDataPort,
-			ProxyFilePort:     host.Dynamic.ProxyFilePort,
-			LoginIP:           host.Dynamic.LoginIP,
-			LoginPort:         host.Dynamic.LoginPort,
-			LoginUser:         host.Dynamic.LoginUser,
-			LoginMode:         string(host.Dynamic.LoginMode),
-			LoginCreditID:     host.Dynamic.LoginCreditID,
-			ExportIP:          host.Dynamic.ExportIP,
-			AdvertiseIP:       host.Dynamic.AdvertiseIP,
-			RelayDownloadPort: host.Dynamic.RelayDownloadPort,
-			RelayCallbackPort: host.Dynamic.RelayCallbackPort,
+			ProxyClusterPort:         host.Dynamic.ProxyClusterPort,
+			ProxyDataPort:            host.Dynamic.ProxyDataPort,
+			ProxyFilePort:            host.Dynamic.ProxyFilePort,
+			LoginIP:                  host.Dynamic.LoginIP,
+			LoginPort:                host.Dynamic.LoginPort,
+			LoginUser:                host.Dynamic.LoginUser,
+			LoginMode:                string(host.Dynamic.LoginMode),
+			LoginCreditID:            host.Dynamic.LoginCreditID,
+			ExportIP:                 host.Dynamic.ExportIP,
+			AdvertiseIP:              host.Dynamic.AdvertiseIP,
+			RelayDownloadPort:        host.Dynamic.RelayDownloadPort,
+			RelayCallbackPort:        host.Dynamic.RelayCallbackPort,
+			ProxyInstallOriginUnitID: host.Dynamic.ProxyInstallOriginUnitID,
 		}
 	}
 
@@ -482,19 +483,20 @@ func convertHostToTypes(host *Host) *types.Host {
 
 				return tags
 			}(),
-			ProxyAccessDisabled: host.Dynamic.ProxyAccessDisabled,
-			ProxyClusterPort:    host.Dynamic.ProxyClusterPort,
-			ProxyDataPort:       host.Dynamic.ProxyDataPort,
-			ProxyFilePort:       host.Dynamic.ProxyFilePort,
-			LoginIP:             host.Dynamic.LoginIP,
-			LoginPort:           host.Dynamic.LoginPort,
-			LoginUser:           host.Dynamic.LoginUser,
-			LoginMode:           types.LoginMode(host.Dynamic.LoginMode),
-			LoginCreditID:       host.Dynamic.LoginCreditID,
-			ExportIP:            host.Dynamic.ExportIP,
-			AdvertiseIP:         host.Dynamic.AdvertiseIP,
-			RelayDownloadPort:   host.Dynamic.RelayDownloadPort,
-			RelayCallbackPort:   host.Dynamic.RelayCallbackPort,
+			ProxyAccessDisabled:      host.Dynamic.ProxyAccessDisabled,
+			ProxyClusterPort:         host.Dynamic.ProxyClusterPort,
+			ProxyDataPort:            host.Dynamic.ProxyDataPort,
+			ProxyFilePort:            host.Dynamic.ProxyFilePort,
+			LoginIP:                  host.Dynamic.LoginIP,
+			LoginPort:                host.Dynamic.LoginPort,
+			LoginUser:                host.Dynamic.LoginUser,
+			LoginMode:                types.LoginMode(host.Dynamic.LoginMode),
+			LoginCreditID:            host.Dynamic.LoginCreditID,
+			ExportIP:                 host.Dynamic.ExportIP,
+			AdvertiseIP:              host.Dynamic.AdvertiseIP,
+			RelayDownloadPort:        host.Dynamic.RelayDownloadPort,
+			RelayCallbackPort:        host.Dynamic.RelayCallbackPort,
+			ProxyInstallOriginUnitID: host.Dynamic.ProxyInstallOriginUnitID,
 		}
 	}
 
@@ -649,6 +651,10 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	}
 	if fields.RelayCallbackPort {
 		updates[FieldKeyDynamicRelayCallbackPort] = host.Dynamic.RelayCallbackPort
+	}
+
+	if fields.ProxyInstallOriginUnitID {
+		updates[FiledKeyProxyInstallOriginUnitID] = host.Dynamic.ProxyInstallOriginUnitID
 	}
 
 	return updates

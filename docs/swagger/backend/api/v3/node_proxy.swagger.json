@@ -306,6 +306,10 @@
           "items": {
             "type": "string"
           }
+        },
+        "proxy_install_origin_unit_id": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "NodeProxyInstallHost describes the node proxy install host."
