@@ -537,9 +537,17 @@ application:
     ## tenant_mode: multi or single, default is single.
     tenantMode: "single"
 
-    ## defines the backend server advertise-ip, if not set then will use the pod-ip.
+    ## defines the application server advertise-ip, if not set then will use the pod-ip.
     advertiseIPV4: ""
     advertiseIPV6: ""
+
+    ## defines the front settings.
+    front:
+      # password vault related settings.
+      ## password vault switch, default is false.
+      passwordVaultSwitch: false
+      ## password vault name, default is password_vault.
+      passwordVaultName: "password_vault"
 
     # defines the nodemgr backend (BK API gateway) related settings.
     backend:
@@ -559,11 +567,11 @@ application:
       # 3. at use accessToken auth.
       # 4. un use no user authentication required
       authMode: "un"
-      # bkTicket is the BlueKing access ticket of costops to request api gateway.
+      # bkTicket is the BlueKing access ticket of bk_nodemgr to request api gateway.
       bkTicket: ""
-      # bkToken is the BlueKing user token of costops to request api gateway.
+      # bkToken is the BlueKing user token of bk_nodemgr to request api gateway.
       bkToken: ""
-      # accessToken is the BlueKing access token of costops to request api gateway.
+      # accessToken is the BlueKing access token of bk_nodemgr to request api gateway.
       accessToken: ""
       # defines tls related options.
       tls:
@@ -734,11 +742,11 @@ backend:
       # 3. at use accessToken auth.
       # 4. un use no user authentication required
       authMode: "un"
-      # bkTicket is the BlueKing access ticket of costops to request api gateway.
+      # bkTicket is the BlueKing access ticket of bk_nodemgr to request api gateway.
       bkTicket: ""
-      # bkToken is the BlueKing user token of costops to request api gateway.
+      # bkToken is the BlueKing user token of bk_nodemgr to request api gateway.
       bkToken: ""
-      # accessToken is the BlueKing access token of costops to request api gateway.
+      # accessToken is the BlueKing access token of bk_nodemgr to request api gateway.
       accessToken: ""
       # defines tls related options.
       tls:
@@ -771,11 +779,11 @@ backend:
       # 3. at use accessToken auth.
       # 4. un use no user authentication required
       authMode: "un"
-      # bkTicket is the BlueKing access ticket of costops to request api gateway.
+      # bkTicket is the BlueKing access ticket of bk_nodemgr to request api gateway.
       bkTicket: ""
-      # bkToken is the BlueKing user token of costops to request api gateway.
+      # bkToken is the BlueKing user token of bk_nodemgr to request api gateway.
       bkToken: ""
-      # accessToken is the BlueKing access token of costops to request api gateway.
+      # accessToken is the BlueKing access token of bk_nodemgr to request api gateway.
       accessToken: ""
       # plugin SlotID and SlotToken
       pluginSlotID: 0
@@ -814,11 +822,11 @@ backend:
           # 3. at use accessToken auth.
           # 4. un use no user authentication required
           authMode: "un"
-          # bkTicket is the BlueKing access ticket of costops to request api gateway.
+          # bkTicket is the BlueKing access ticket of bk_nodemgr to request api gateway.
           bkTicket: ""
-          # bkToken is the BlueKing user token of costops to request api gateway.
+          # bkToken is the BlueKing user token of bk_nodemgr to request api gateway.
           bkToken: ""
-          # accessToken is the BlueKing access token of costops to request api gateway.
+          # accessToken is the BlueKing access token of bk_nodemgr to request api gateway.
           accessToken: ""
           # plugin SlotID and SlotToken
           pluginSlotID: 0
@@ -979,11 +987,11 @@ file:
       # 3. at use accessToken auth.
       # 4. un use no user authentication required
       authMode: "un"
-      # bkTicket is the BlueKing access ticket of costops to request api gateway.
+      # bkTicket is the BlueKing access ticket of bk_nodemgr to request api gateway.
       bkTicket: ""
-      # bkToken is the BlueKing user token of costops to request api gateway.
+      # bkToken is the BlueKing user token of bk_nodemgr to request api gateway.
       bkToken: ""
-      # accessToken is the BlueKing access token of costops to request api gateway.
+      # accessToken is the BlueKing access token of bk_nodemgr to request api gateway.
       accessToken: ""
       # plugin SlotID and SlotToken
       pluginSlotID: 0

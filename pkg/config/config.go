@@ -463,6 +463,13 @@ type BKPaaS struct {
 	AnalysisScript string `yaml:"analysisScript" usage:"analysis script of bk PaaS"`
 }
 
+// Front the config of front.
+type Front struct {
+	// PasswordVault Options.
+	PasswordVaultSwitch bool
+	PasswordVaultName   string
+}
+
 // Validate validates the config.
 func (paas *BKPaaS) Validate() error {
 	return nil

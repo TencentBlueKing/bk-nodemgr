@@ -23,25 +23,41 @@ import (
 )
 
 const (
-	// application service config default values.
-	defaultApplicationRunMode        = RunModeRelease
-	defaultApplicationTenantMode     = tenant.ModeSingle
-	defaultApplicationInfoBindIP     = "127.0.0.1"
-	defaultApplicationInfoPort       = 28000
-	defaultApplicationInfoIdentity   = AuthIdentityNone
-	defaultApplicationAdminBindIP    = "127.0.0.1"
-	defaultApplicationAdminPort      = 28001
-	defaultApplicationAdminIdentity  = AuthIdentityRestServer
+	// run mode default values.
+	defaultApplicationRunMode = RunModeRelease
+
+	// tenant mode default values.
+	defaultApplicationTenantMode = tenant.ModeSingle
+
+	// front config default values.
+	defaultApplicationFrontPasswordVaultSwitch = false
+	defaultApplicationFrontPasswordVaultName   = "password_vault"
+
+	// info server config default values.
+	defaultApplicationInfoBindIP   = "127.0.0.1"
+	defaultApplicationInfoPort     = 28000
+	defaultApplicationInfoIdentity = AuthIdentityNone
+
+	// admin server config default values.
+	defaultApplicationAdminBindIP   = "127.0.0.1"
+	defaultApplicationAdminPort     = 28001
+	defaultApplicationAdminIdentity = AuthIdentityRestServer
+
+	// basic server config default values.
 	defaultApplicationBasicBindIP    = "127.0.0.1"
 	defaultApplicationBasicPort      = 28002
 	defaultApplicationBasicStaticDir = "/bk-nodemgr/static/"
 	defaultApplicationBasicIdentity  = AuthIdentityBKLogin
-	defaultApplicationLogDir         = "/bk-nodemgr/log/"
-	defaultApplicationLogMaxNum      = 10
-	defaultApplicationLogMaxSizeMB   = 200
-	defaultApplicationLogLevel       = "INFO"
-	defaultApplicationAdvertiseIPv4  = "127.0.0.1"
-	defaultApplicationAdvertiseIPv6  = "::1"
+
+	// log config default values.
+	defaultApplicationLogDir       = "/bk-nodemgr/log/"
+	defaultApplicationLogMaxNum    = 10
+	defaultApplicationLogMaxSizeMB = 200
+	defaultApplicationLogLevel     = "INFO"
+
+	// advertise config default values.
+	defaultApplicationAdvertiseIPv4 = "127.0.0.1"
+	defaultApplicationAdvertiseIPv6 = "::1"
 )
 
 // BackendGateway the config of backend gateway config.
@@ -55,6 +71,7 @@ type ApplicationService struct {
 	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
 	BKSaas      BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
 	BKPaas      BKPaaS         `yaml:"bkPaaS" usage:"bk paas config of application service"`
+	Front       Front          `yaml:"front" usage:"front config of application service"`
 	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
 	Etcd        Etcd           `yaml:"etcd" usage:"etcd config of application service"`
 	MongoDB     MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`
@@ -69,6 +86,10 @@ func NewApplicationService() *ApplicationService {
 	return &ApplicationService{
 		RunMode:    defaultApplicationRunMode,
 		TenantMode: defaultApplicationTenantMode,
+		Front: Front{
+			PasswordVaultSwitch: defaultApplicationFrontPasswordVaultSwitch,
+			PasswordVaultName:   defaultApplicationFrontPasswordVaultName,
+		},
 		InfoServer: HTTPServer{
 			BindIP:        defaultApplicationInfoBindIP,
 			Port:          defaultApplicationInfoPort,

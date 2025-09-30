@@ -21,10 +21,18 @@ import (
 type IFrontSetting interface {
 	// BKLoginURL the front setting field.
 	BKLoginURL() string
+
 	// BKRequestIDHeaderKey the front setting field.
 	BKRequestIDHeaderKey() string
+
 	// BKPassAnalyticsScript the front setting field.
 	BKPassAnalyticsScript() template.HTML
+
+	// PasswordVaultSwitch the front setting field.
+	PasswordVaultSwitch() bool
+
+	// PasswordVaultName the front setting field.
+	PasswordVaultName() string
 }
 
 var _ IFrontSetting = &FrontSetting{}
@@ -34,6 +42,9 @@ type FrontSetting struct {
 	bkloginURL            string
 	bkRequestIDHeaderKEy  string
 	bkPassAnalyticsScript string
+
+	passwordVaultSwitch bool
+	passwordVaultName   string
 }
 
 // Option front setting option.
@@ -41,6 +52,10 @@ type Option struct {
 	BKLoginURL            string
 	BKRequestIDHeaderKEy  string
 	BKPassAnalyticsScript string
+
+	// PasswordVault Options.
+	PasswordVaultSwitch bool
+	PasswordVaultName   string
 }
 
 // Validate validate.
@@ -66,6 +81,8 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		bkloginURL:            opt.BKLoginURL,
 		bkRequestIDHeaderKEy:  opt.BKRequestIDHeaderKEy,
 		bkPassAnalyticsScript: opt.BKPassAnalyticsScript,
+		passwordVaultSwitch:   opt.PasswordVaultSwitch,
+		passwordVaultName:     opt.PasswordVaultName,
 	}, nil
 }
 
@@ -82,4 +99,14 @@ func (setting *FrontSetting) BKRequestIDHeaderKey() string {
 // BKPassAnalyticsScript get bk pass analytics script.
 func (setting *FrontSetting) BKPassAnalyticsScript() template.HTML {
 	return template.HTML(setting.bkPassAnalyticsScript)
+}
+
+// PasswordVaultSwitch get password vault switch.
+func (setting *FrontSetting) PasswordVaultSwitch() bool {
+	return setting.passwordVaultSwitch
+}
+
+// PasswordVaultName get password vault name.
+func (setting *FrontSetting) PasswordVaultName() string {
+	return setting.passwordVaultName
 }
