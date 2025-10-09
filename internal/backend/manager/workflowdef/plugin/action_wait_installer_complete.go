@@ -21,7 +21,7 @@ import (
 
 const (
 	// ActionNameWaitInstallerComplete defines the action name.
-	ActionNameWaitInstallerComplete = "wait_installer_complete"
+	ActionNameWaitInstallerComplete = "wait_plugin_installer_complete"
 )
 
 // NewActionWaitInstallerComplete get a new action.
