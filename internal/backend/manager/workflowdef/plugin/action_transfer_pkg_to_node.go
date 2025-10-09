@@ -112,53 +112,46 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
-
-	nCtx := std.Context()
-
-	ctx.Data.LogI("transfer plugin pkg to node start.")
-
-	info, err := act.daoPluginDeployment.GetPluginDeploymentInfo(nCtx, std.Token())
-	if err != nil {
-		return err
-	}
-
 	defer func() {
-		if storeErr := act.daoPluginDeployment.UpdatePluginDeploymentInfo(nCtx, std.Token(), info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	targetHost, err := act.daoHost.GetHostByID(nCtx, info.Plugin.HostID)
+	ctx.Data.LogI("transfer plugin pkg to node start.")
+
+	nCtx := std.Context()
+	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", info.Plugin.HostID, err)
+		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.HostID, err)
 	}
 
-	deployConstant, err := deployconstant.GetPluginDeployConf(info.Plugin.Generation, info.Plugin.Platform.OS)
+	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Plugin.Generation, std.DeployInfo().Plugin.Platform.OS)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default.
-	if info.InstallerWorkDir == "" {
-		info.InstallerWorkDir = deployConstant.WorkDir
+	if std.DeployInfo().InstallerWorkDir == "" {
+		std.DeployInfo().InstallerWorkDir = deployConstant.WorkDir
 	}
 
 	gp := gopool.NewPool()
-	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableReleasePackage {
+	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		gp.Go(func() error {
 			ctx.Data.LogI("transfer release start.")
 			defer ctx.Data.LogI("transfer release done.")
 
-			if err := act.transferRelease(nCtx, info, targetHost); err != nil {
+			if err := act.transferRelease(nCtx, std.DeployInfo(), targetHost); err != nil {
 				return fmt.Errorf("failed to transfer release. host-id(%d), err: %w", targetHost.HostID, err)
 			}
 
 			return nil
 		})
 	}
-	if !info.TransferOptions.SelectDownloads || info.TransferOptions.EnableInstaller {
+	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
 		gp.Go(func() error {
-			return act.transferInstaller(nCtx, info, targetHost)
+			return act.transferInstaller(nCtx, std.DeployInfo(), targetHost)
 		})
 	}
 
@@ -181,9 +174,9 @@ func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext
 
 	var dataDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerWorkDir, "data")
+		dataDir = winpath.Join(info.InstallerWorkDir, "data", "plugin", info.Plugin.Name)
 	} else {
-		dataDir = filepath.Join(info.InstallerWorkDir, "data")
+		dataDir = filepath.Join(info.InstallerWorkDir, "data", "plugin", info.Plugin.Name)
 	}
 
 	transferHandler, err := act.fileHandler.LaunchTransferPlugin(nCtx,

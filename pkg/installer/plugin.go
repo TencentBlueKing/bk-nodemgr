@@ -68,8 +68,6 @@ const (
 	pluginFlagPluginVersion pluginFlagName = "plugin_version"
 )
 
-// ./installer_linux_amd64 plugin full-install --deploy_env gse2 --plugin_type official --plugin_name bkbscp --plugin_version 1.3.5  --dlsvr_addr http://9.134.43.70:7002 --cbsvr_addr http://9.134.43.70:8002 --deploy_token 79e2557f1d54d04bf05e94947cf6879 --oper_inst_id oper-inst:c88f6ab6f8b54933a503fba65f6f4d40
-
 // PluginCommonParams defines the common params of installer.
 type PluginCommonParams struct {
 	InstallWorkDir    string

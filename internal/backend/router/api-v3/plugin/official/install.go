@@ -94,7 +94,7 @@ func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOffic
 				InstallOptions: types.PluginDeploymentInstallOptions{},
 				TransferOptions: types.PluginDeploymentTransferOptions{
 					SelectDownloads:      true,
-					EnableReleasePackage: true,
+					EnableReleasePackage: false,
 					EnableInstaller:      true,
 				},
 				TargetVersion: targetVersions,

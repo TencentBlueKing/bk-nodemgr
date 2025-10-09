@@ -30,7 +30,6 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -85,7 +84,7 @@ func (act *RenderPluginDeployment) Tags() []action.Tag {
 
 // MaxRetryCount returns the max retry count of the action.
 func (act *RenderPluginDeployment) MaxRetryCount() uint {
-	return 3
+	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
@@ -108,41 +107,23 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
-
-	nCtx := std.Context()
-
-	info, err := act.daoPluginDeployment.GetPluginDeploymentInfo(nCtx, std.Token())
-	if err != nil {
-		return fmt.Errorf("failed to get plugin deployment info: %w", err)
-	}
-
 	defer func() {
-		if storeErr := act.daoPluginDeployment.UpdatePluginDeploymentInfo(nCtx, std.Token(), info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
-	host, err := act.daoHost.GetHostByID(nCtx, info.Plugin.HostID)
+	nCtx := std.Context()
+	host, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", info.Plugin.HostID, err)
+		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.HostID, err)
 	}
 
-	info = &types.PluginDeploymentInfo{
-		BlockingActionName: ActionNameWaitInstallerComplete,
-		Plugin: types.Plugin{
-			Name:       info.Plugin.Name,
-			HostID:     info.Plugin.HostID,
-			Type:       info.Plugin.Type,
-			Generation: host.Dynamic.NodeGeneration,
-			Platform: platform.Platform{
-				OS:   host.Dynamic.NodeOsType,
-				Arch: host.Dynamic.NodeCPUArch,
-			},
-			Version: info.Plugin.Version,
-		},
-		InstallOptions:  types.PluginDeploymentInstallOptions{},
-		TransferOptions: types.PluginDeploymentTransferOptions{},
-		TargetVersion:   nil,
+	std.DeployInfo().BlockingActionName = ActionNameRenderPluginDeployment
+	std.DeployInfo().Plugin.Generation = host.Dynamic.NodeGeneration
+	std.DeployInfo().Plugin.Platform = platform.Platform{
+		OS:   host.Dynamic.NodeOsType,
+		Arch: host.Dynamic.NodeCPUArch,
 	}
 
 	return nil
