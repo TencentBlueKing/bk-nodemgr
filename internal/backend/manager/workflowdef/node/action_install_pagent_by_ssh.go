@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
@@ -65,7 +65,7 @@ func NewActionInstallPagentBySSH(
 
 // ActParamInstallPagentBySSH ...
 type ActParamInstallPagentBySSH struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallPagentBySSH struct {
@@ -129,7 +129,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
 	// get ssh credit.
-	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -174,7 +174,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error)
 }
 
 func (act *actionInstallPagentBySSH) notifyRelayToInstall(
-	std *utils.NodeActionStandarder,
+	std *nodeUtils.NodeActionStandarder,
 	cMethod sshx.AuthMethod, cKey,
 	toolsName, installCmd string,
 ) error {
@@ -215,7 +215,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 
 // nolint: gocognit
 func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
-	std *utils.NodeActionStandarder) error {
+	std *nodeUtils.NodeActionStandarder) error {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
@@ -273,7 +273,7 @@ func (act *actionInstallPagentBySSH) waitForRelayReportInstall(
 	}
 }
 
-func (act *actionInstallPagentBySSH) setupInstallationTools(std *utils.NodeActionStandarder) (
+func (act *actionInstallPagentBySSH) setupInstallationTools(std *nodeUtils.NodeActionStandarder) (
 	string, string, deployconstant.NodeDeployConf, error) {
 
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -296,7 +296,7 @@ func (act *actionInstallPagentBySSH) setupInstallationTools(std *utils.NodeActio
 }
 
 func (act *actionInstallPagentBySSH) buildInstallCmd(
-	std *utils.NodeActionStandarder,
+	std *nodeUtils.NodeActionStandarder,
 	installerPath string, deployConstant deployconstant.NodeDeployConf) string {
 
 	installParams := &InstallParams{

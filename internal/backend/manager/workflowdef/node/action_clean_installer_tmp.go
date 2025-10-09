@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -49,7 +49,7 @@ func NewActionCleanInstaller(storageNodeDeployment nodeStg.IDaoNodeDeployment,
 
 // ActionParamCleanInstaller defines the action param.
 type ActionParamCleanInstaller struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 // CleanParams this struct defines the parameters for clean installer temp files.
@@ -119,7 +119,7 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

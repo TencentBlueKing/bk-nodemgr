@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
@@ -64,7 +64,7 @@ func NewActionInstallPagentByWMI(
 
 // ActParamInstallPagentBywmi ...
 type ActParamInstallPagentBywmi struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionInstallPagentByWMI struct {
@@ -128,7 +128,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
 	// get ssh credit.
-	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -172,7 +172,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) (err error)
 	return nil
 }
 
-func (act *actionInstallPagentByWMI) setupInstallationTools(std *utils.NodeActionStandarder) (
+func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeActionStandarder) (
 	string, string, deployconstant.NodeDeployConf, error) {
 
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -195,7 +195,7 @@ func (act *actionInstallPagentByWMI) setupInstallationTools(std *utils.NodeActio
 }
 
 func (act *actionInstallPagentByWMI) notifyRelayToInstall(
-	std *utils.NodeActionStandarder,
+	std *nodeUtils.NodeActionStandarder,
 	cMethod wmix.AuthMethod,
 	cKey string,
 	toolsName string,
@@ -238,7 +238,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 
 // nolint: gocognit
 func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
-	std *utils.NodeActionStandarder) error {
+	std *nodeUtils.NodeActionStandarder) error {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()
@@ -298,7 +298,7 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 }
 
 func (act *actionInstallPagentByWMI) buildInstallCmd(
-	std *utils.NodeActionStandarder,
+	std *nodeUtils.NodeActionStandarder,
 	installerPath string, deployConstant deployconstant.NodeDeployConf) string {
 
 	installParams := &InstallParamsWin{

@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -58,7 +58,7 @@ func NewActionInstallNodeBySSH(
 
 // ActParamInstallAgentBySSH ...
 type ActParamInstallAgentBySSH struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 // InstallParams this struct defines the parameters for installing agent.
@@ -136,7 +136,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
 	// get ssh credit.
-	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -201,7 +201,7 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func (act *actionInstallNodeBySSH) ensureWorkspace(std *utils.NodeActionStandarder, client *sshx.Client) error {
+func (act *actionInstallNodeBySSH) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *sshx.Client) error {
 	if result, err := client.RunCommand("mkdir -p " + std.DeployInfo().InstallerWorkDir); err != nil {
 		err = fmt.Errorf("failed to run command. command(mkdir -p %s), result(%s): %w", std.DeployInfo().InstallerWorkDir, result, err)
 
@@ -211,7 +211,7 @@ func (act *actionInstallNodeBySSH) ensureWorkspace(std *utils.NodeActionStandard
 	return nil
 }
 
-func (act *actionInstallNodeBySSH) ensureInstallerTool(std *utils.NodeActionStandarder, client *sshx.Client) (string, error) {
+func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeActionStandarder, client *sshx.Client) (string, error) {
 	// select matching tools, and use sftp to transfer it.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -242,7 +242,7 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *utils.NodeActionStan
 	return installerPath, nil
 }
 
-func (act *actionInstallNodeBySSH) executeInstallCMD(std *utils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
+func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *sshx.Client, installerPath string) error {
 	randSelector := discover.NewRandomSelector()
 	downloadSvrEndpoint, err := act.provider.GetEndpoint(
 		discover.ServiceNameFile,

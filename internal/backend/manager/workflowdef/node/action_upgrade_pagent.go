@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -54,7 +54,7 @@ func NewActionUpgradePagent(
 
 // ActionParamUpgradePagent defines the action param.
 type ActionParamUpgradePagent struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionUpgradePagent struct {
@@ -113,7 +113,7 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionUpgradePagent) setupUpgradeParams(
-	std *utils.NodeActionStandarder) (*UpgradeParams, error) {
+	std *nodeUtils.NodeActionStandarder) (*UpgradeParams, error) {
 
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -177,7 +177,7 @@ func (act *actionUpgradePagent) setupUpgradeParams(
 }
 
 // nolint: perfsprint
-func (act *actionUpgradePagent) doUpgradeUnix(std *utils.NodeActionStandarder, param *UpgradeParams) error {
+func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarder, param *UpgradeParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -224,7 +224,7 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *utils.NodeActionStandarder, p
 }
 
 // nolint: perfsprint
-func (act *actionUpgradePagent) doUpgradeWindows(std *utils.NodeActionStandarder, param *UpgradeParams) error {
+func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStandarder, param *UpgradeParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -269,7 +269,7 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *utils.NodeActionStandarder
 	return nil
 }
 
-func (act *actionUpgradePagent) getServiceAddresses(std *utils.NodeActionStandarder) (
+func (act *actionUpgradePagent) getServiceAddresses(std *nodeUtils.NodeActionStandarder) (
 	string, string) {
 
 	downloadSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort)

@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -37,7 +37,7 @@ func NewActionEnableReleaseTransfer(
 
 // ActionParamEnableReleaseTransfer defines the action param.
 type ActionParamEnableReleaseTransfer struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionEnableReleaseTransfer struct {
@@ -94,7 +94,7 @@ func (act *actionEnableReleaseTransfer) Do(ctx *action.InstanceContext) (err err
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

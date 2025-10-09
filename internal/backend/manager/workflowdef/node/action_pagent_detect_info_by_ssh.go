@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -68,7 +68,7 @@ func NewActionPagentDetectInfoBySSH(
 
 // ActParamPagentDetectInfoBySSH ...
 type ActParamPagentDetectInfoBySSH struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionPagentDetectInfoBySSH struct {
@@ -134,7 +134,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	}()
 
 	// get ssh credit.
-	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetSSHCredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get ssh credit: %w", err)
@@ -230,7 +230,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 }
 
 func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
-	std *utils.NodeActionStandarder, cMethod sshx.AuthMethod, cKey string) error {
+	std *nodeUtils.NodeActionStandarder, cMethod sshx.AuthMethod, cKey string) error {
 
 	detectInfoEvent := protoRelay.DetectInfoBySSHReq{
 		ActionName: std.InstanceData().Name,
@@ -265,7 +265,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
 
 // nolint: gocognit
 func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
-	std *utils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
+	std *nodeUtils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, string, error) {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()

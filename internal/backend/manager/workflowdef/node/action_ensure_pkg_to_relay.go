@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
@@ -70,7 +70,7 @@ func NewActionEnsurePkgToRelay(
 
 // ActParamEnsurePkgToRelay ...
 type ActParamEnsurePkgToRelay struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionEnsurePkgToRelay struct {
@@ -136,7 +136,7 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
 }
 
 func (act *actionEnsurePkgToRelay) getRequiredPackages(
-	std *utils.NodeActionStandarder) (*types.Release, fileiface.File, error) {
+	std *nodeUtils.NodeActionStandarder) (*types.Release, fileiface.File, error) {
 
 	releasePkg, err := act.getReleasePackageInfo(std.Context(), std)
 	if err != nil {
@@ -210,7 +210,7 @@ func (act *actionEnsurePkgToRelay) getRequiredPackages(
 }
 
 func (act *actionEnsurePkgToRelay) determineFilesToProcess(
-	std *utils.NodeActionStandarder, releasePkg *types.Release, installPkg fileiface.File) []protoRelay.FileInfo {
+	std *nodeUtils.NodeActionStandarder, releasePkg *types.Release, installPkg fileiface.File) []protoRelay.FileInfo {
 
 	files := make([]protoRelay.FileInfo, 0)
 
@@ -231,7 +231,7 @@ func (act *actionEnsurePkgToRelay) determineFilesToProcess(
 	return files
 }
 
-func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *utils.NodeActionStandarder,
+func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *nodeUtils.NodeActionStandarder,
 	files []protoRelay.FileInfo) error {
 
 	event := protoRelay.CheckPkgStateReq{
@@ -263,7 +263,7 @@ func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *utils.NodeActionS
 
 // nolint: gocognit
 func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
-	std *utils.NodeActionStandarder, files []protoRelay.FileInfo) (map[string]bool, string, error) {
+	std *nodeUtils.NodeActionStandarder, files []protoRelay.FileInfo) (map[string]bool, string, error) {
 
 	results := make(map[string]bool, len(files))
 	for _, file := range files {
@@ -333,7 +333,7 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 }
 
 func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
-	nCtx contextx.IContext, std *utils.NodeActionStandarder) (*types.Release, error) {
+	nCtx contextx.IContext, std *nodeUtils.NodeActionStandarder) (*types.Release, error) {
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
@@ -377,7 +377,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 }
 
 func (act *actionEnsurePkgToRelay) getInstallerFile(
-	nCtx contextx.IContext, std *utils.NodeActionStandarder) (fileiface.File, error) {
+	nCtx contextx.IContext, std *nodeUtils.NodeActionStandarder) (fileiface.File, error) {
 
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -395,7 +395,7 @@ func (act *actionEnsurePkgToRelay) getInstallerFile(
 }
 
 func (act *actionEnsurePkgToRelay) transferMissingPackages(
-	std *utils.NodeActionStandarder,
+	std *nodeUtils.NodeActionStandarder,
 	releasePkg *types.Release,
 	installPkg fileiface.File,
 	pkgStates map[string]bool) ([]string, error) {
@@ -437,7 +437,7 @@ func (act *actionEnsurePkgToRelay) transferMissingPackages(
 	return transferred, nil
 }
 
-func (act *actionEnsurePkgToRelay) transferReleasePkg(std *utils.NodeActionStandarder,
+func (act *actionEnsurePkgToRelay) transferReleasePkg(std *nodeUtils.NodeActionStandarder,
 	rt types.ReleaseType) error {
 
 	std.InstanceData().LogI(fmt.Sprintf("transferring release package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID))
@@ -482,7 +482,7 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(std *utils.NodeActionStand
 }
 
 func (act *actionEnsurePkgToRelay) transferInstaller(
-	std *utils.NodeActionStandarder) error {
+	std *nodeUtils.NodeActionStandarder) error {
 
 	std.InstanceData().LogI(fmt.Sprintf("transferring installer package. relay-host-id(%d)", std.DeployInfo().RelayInfo.HostID))
 
@@ -524,7 +524,7 @@ func (act *actionEnsurePkgToRelay) transferInstaller(
 }
 
 func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
-	std *utils.NodeActionStandarder, pkgNames []string) error {
+	std *nodeUtils.NodeActionStandarder, pkgNames []string) error {
 
 	event := protoRelay.NotifyReceiveReq{
 		ActionName: std.InstanceData().Name,
@@ -553,7 +553,7 @@ func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
 }
 
 func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
-	std *utils.NodeActionStandarder) error {
+	std *nodeUtils.NodeActionStandarder) error {
 
 	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
 	defer cancel()

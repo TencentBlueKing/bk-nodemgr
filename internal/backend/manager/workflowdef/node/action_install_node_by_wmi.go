@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -61,7 +61,7 @@ func NewActionInstallNodeByWMI(
 
 // ActParamInstallAgentByWMI ...
 type ActParamInstallAgentByWMI struct {
-	utils.NodeActionStandardParam `json:",inline"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 // InstallParamsWin this struct defines the parameters for installing agent.
@@ -140,7 +140,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := utils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
 	// get wmi credit.
-	credit := utils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
+	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
 	cMethod, cKey, err := credit.GetWMICredit(std)
 	if err != nil {
 		return fmt.Errorf("failed to get wmi credit: %w", err)
@@ -197,7 +197,7 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 	return nil
 }
 
-func (act *actionInstallNodeByWMI) ensureWorkspace(std *utils.NodeActionStandarder, client *wmix.Client) error {
+func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *wmix.Client) error {
 	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+std.DeployInfo().InstallerWorkDir)
 	if err != nil {
 		err = fmt.Errorf("failed to run command. command(mkdir %s), stdout(%s), stderr(%s): %w",
@@ -212,7 +212,7 @@ func (act *actionInstallNodeByWMI) ensureWorkspace(std *utils.NodeActionStandard
 	return nil
 }
 
-func (act *actionInstallNodeByWMI) ensureInstallerTool(std *utils.NodeActionStandarder, client *wmix.Client) (string, error) {
+func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeActionStandarder, client *wmix.Client) (string, error) {
 	// select matching tools, and use sftp to transfer it.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
@@ -236,7 +236,7 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *utils.NodeActionStan
 	return installerPath, nil
 }
 
-func (act *actionInstallNodeByWMI) executeInstallCMD(std *utils.NodeActionStandarder, client *wmix.Client, installerPath string) error {
+func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *wmix.Client, installerPath string) error {
 	randSelector := discover.NewRandomSelector()
 	downloadSvrEndpoint, err := act.provider.GetEndpoint(
 		discover.ServiceNameFile,
