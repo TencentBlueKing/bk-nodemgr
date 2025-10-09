@@ -13,7 +13,6 @@ package plugin
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -49,7 +48,7 @@ func (oper *operInstallPlugin) ActionDefNames() []string {
 	return []string{
 		ActionNameRenderPluginDeployment,
 		ActionNameTransferPluginPkgToNode,
-		common.ActionNameWaitInstallerComplete,
+		ActionNameWaitInstallerComplete,
 	}
 }
 

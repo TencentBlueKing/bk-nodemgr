@@ -17,7 +17,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -134,7 +133,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) (err error) {
 		return err
 	}
 	// let the callback server known which action to mark and log.
-	info.BlockingActionName = common.ActionNameWaitInstallerComplete
+	info.BlockingActionName = ActionNameWaitInstallerComplete
 
 	defer func() {
 		if storeErr := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); storeErr != nil {

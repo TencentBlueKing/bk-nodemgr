@@ -13,7 +13,6 @@ package node
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -53,7 +52,7 @@ func (oper *operUpgradePagent) ActionDefNames() []string {
 		ActionNameEnableReleaseTransfer,
 		ActionNameEnsurePkgToRelay,
 		ActionNameUpgradePagent,
-		common.ActionNameWaitInstallerComplete,
+		ActionNameWaitInstallerComplete,
 		ActionNameRestartNode,
 		ActionNameWaitGseReady,
 		ActionNameCleanInstaller,
@@ -68,19 +67,19 @@ func (oper *operUpgradePagent) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameSelectRelayHost:              true,
-			ActionNameVersionCompatCheck:           true,
-			ActionNameRenderNodeDeployment:         true,
-			ActionNameTransferPkgToNode:            true,
-			ActionNameEnableReleaseTransfer:        true,
-			ActionNameEnsurePkgToRelay:             true,
-			ActionNameUpgradePagent:                true,
-			common.ActionNameWaitInstallerComplete: false,
-			ActionNameRestartNode:                  true,
-			ActionNameWaitGseReady:                 false,
-			ActionNameCleanInstaller:               true,
-			ActionNameSyncNodeInfo:                 true,
-			ActionNameUpdateHost:                   true,
+			ActionNameSelectRelayHost:       true,
+			ActionNameVersionCompatCheck:    true,
+			ActionNameRenderNodeDeployment:  true,
+			ActionNameTransferPkgToNode:     true,
+			ActionNameEnableReleaseTransfer: true,
+			ActionNameEnsurePkgToRelay:      true,
+			ActionNameUpgradePagent:         true,
+			ActionNameWaitInstallerComplete: false,
+			ActionNameRestartNode:           true,
+			ActionNameWaitGseReady:          false,
+			ActionNameCleanInstaller:        true,
+			ActionNameSyncNodeInfo:          true,
+			ActionNameUpdateHost:            true,
 		},
 	}
 }

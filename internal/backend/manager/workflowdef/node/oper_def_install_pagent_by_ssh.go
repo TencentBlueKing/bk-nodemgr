@@ -13,7 +13,6 @@ package node
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -53,7 +52,7 @@ func (oper *operInstallPagentNodeBySSH) ActionDefNames() []string {
 		ActionNameRenderNodeDeployment,
 		ActionNameEnsurePkgToRelay,
 		ActionNameInstallPagentBySSH,
-		common.ActionNameWaitInstallerComplete,
+		ActionNameWaitInstallerComplete,
 		ActionNameWaitGseReady,
 		ActionNameSyncNodeInfo,
 		ActionNameBindAgentHostRel,
@@ -68,19 +67,19 @@ func (oper *operInstallPagentNodeBySSH) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameTryReuseAgentID:              true,
-			ActionNameUpsertHostToCMDB:             true,
-			ActionNameSelectRelayHost:              true,
-			ActionNamePagentDetectInfoBySSH:        true,
-			ActionNameRenderNodeDeployment:         true,
-			ActionNameEnsurePkgToRelay:             true,
-			ActionNameInstallPagentBySSH:           true,
-			common.ActionNameWaitInstallerComplete: false,
-			ActionNameWaitGseReady:                 false,
-			ActionNameSyncNodeInfo:                 true,
-			ActionNameBindAgentHostRel:             true,
-			ActionNamePushHostIdentifier:           true,
-			ActionNameUpdateHost:                   true,
+			ActionNameTryReuseAgentID:       true,
+			ActionNameUpsertHostToCMDB:      true,
+			ActionNameSelectRelayHost:       true,
+			ActionNamePagentDetectInfoBySSH: true,
+			ActionNameRenderNodeDeployment:  true,
+			ActionNameEnsurePkgToRelay:      true,
+			ActionNameInstallPagentBySSH:    true,
+			ActionNameWaitInstallerComplete: false,
+			ActionNameWaitGseReady:          false,
+			ActionNameSyncNodeInfo:          true,
+			ActionNameBindAgentHostRel:      true,
+			ActionNamePushHostIdentifier:    true,
+			ActionNameUpdateHost:            true,
 		},
 	}
 }

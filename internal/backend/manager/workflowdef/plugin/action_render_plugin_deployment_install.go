@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	pluginployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -124,7 +123,7 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	info = &types.PluginDeploymentInfo{
-		BlockingActionName: common.ActionNameWaitInstallerComplete,
+		BlockingActionName: ActionNameWaitInstallerComplete,
 		Plugin: types.Plugin{
 			Name:       info.Plugin.Name,
 			HostID:     info.Plugin.HostID,

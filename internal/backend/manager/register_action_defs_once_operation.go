@@ -13,7 +13,6 @@ package manager
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
@@ -43,7 +42,7 @@ func (mgr *Manager) registerActionDefsOnceOperation() error {
 
 func (mgr *Manager) registerActionDefCommon() error {
 	return mgr.workflowMgr.RegisterActions(
-		common.NewActionWaitInstallerComplete(mgr.conf.StorageWorkflow),
+		node.NewActionWaitInstallerComplete(mgr.conf.StorageWorkflow),
 	)
 }
 
@@ -101,6 +100,7 @@ func (mgr *Manager) registerActionDefPlugin() error {
 	actionDefs := []action.Definition{
 		plugin.NewActionTransferPluginPkgToNode(mgr.conf.StoragePlugin, mgr.conf.StorageTopo, mgr.conf.FileHandler),
 		plugin.NewActionRenderPluginDeployment(mgr.conf.StorageTopo, mgr.conf.StoragePlugin),
+		plugin.NewActionWaitInstallerComplete(mgr.conf.StorageWorkflow),
 	}
 
 	if err := mgr.workflowMgr.RegisterActions(actionDefs...); err != nil {

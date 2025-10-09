@@ -19,7 +19,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
@@ -125,7 +124,7 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
 	}()
 
 	// let the callback server known which action to mark and log.
-	std.DeployInfo().BlockingActionName = common.ActionNameWaitInstallerComplete
+	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
 	// get upgrade params.
 	upgradeParams, err := act.setupUpgradeParams(std)

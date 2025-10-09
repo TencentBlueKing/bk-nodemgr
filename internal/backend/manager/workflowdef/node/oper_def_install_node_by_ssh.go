@@ -13,7 +13,6 @@ package node
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -51,7 +50,7 @@ func (oper *operInstallNodeBySSH) ActionDefNames() []string {
 		ActionNameDetectInfoBySSH,
 		ActionNameRenderNodeDeployment,
 		ActionNameInstallNodeBySSH,
-		common.ActionNameWaitInstallerComplete,
+		ActionNameWaitInstallerComplete,
 		ActionNameWaitGseReady,
 		ActionNameSyncNodeInfo,
 		ActionNameBindAgentHostRel,
@@ -66,17 +65,17 @@ func (oper *operInstallNodeBySSH) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameTryReuseAgentID:              true,
-			ActionNameUpsertHostToCMDB:             true,
-			ActionNameDetectInfoBySSH:              true,
-			ActionNameRenderNodeDeployment:         true,
-			ActionNameInstallNodeBySSH:             true,
-			common.ActionNameWaitInstallerComplete: false,
-			ActionNameWaitGseReady:                 false,
-			ActionNameSyncNodeInfo:                 true,
-			ActionNameBindAgentHostRel:             true,
-			ActionNamePushHostIdentifier:           true,
-			ActionNameUpdateHost:                   true,
+			ActionNameTryReuseAgentID:       true,
+			ActionNameUpsertHostToCMDB:      true,
+			ActionNameDetectInfoBySSH:       true,
+			ActionNameRenderNodeDeployment:  true,
+			ActionNameInstallNodeBySSH:      true,
+			ActionNameWaitInstallerComplete: false,
+			ActionNameWaitGseReady:          false,
+			ActionNameSyncNodeInfo:          true,
+			ActionNameBindAgentHostRel:      true,
+			ActionNamePushHostIdentifier:    true,
+			ActionNameUpdateHost:            true,
 		},
 	}
 }

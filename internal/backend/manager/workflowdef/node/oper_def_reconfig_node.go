@@ -13,7 +13,6 @@ package node
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -50,7 +49,7 @@ func (oper *operReconfigNode) ActionDefNames() []string {
 		ActionNameRenderNodeDeployment,
 		ActionNameTransferPkgToNode,
 		ActionNameReconfigNode,
-		common.ActionNameWaitInstallerComplete,
+		ActionNameWaitInstallerComplete,
 		ActionNameRestartNode,
 		ActionNameWaitGseReady,
 		ActionNameCleanInstaller,
@@ -65,16 +64,16 @@ func (oper *operReconfigNode) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameVersionCompatCheck:           true,
-			ActionNameRenderNodeDeployment:         true,
-			ActionNameTransferPkgToNode:            true,
-			ActionNameReconfigNode:                 true,
-			common.ActionNameWaitInstallerComplete: false,
-			ActionNameRestartNode:                  true,
-			ActionNameWaitGseReady:                 false,
-			ActionNameCleanInstaller:               true,
-			ActionNameSyncNodeInfo:                 true,
-			ActionNameUpdateHost:                   true,
+			ActionNameVersionCompatCheck:    true,
+			ActionNameRenderNodeDeployment:  true,
+			ActionNameTransferPkgToNode:     true,
+			ActionNameReconfigNode:          true,
+			ActionNameWaitInstallerComplete: false,
+			ActionNameRestartNode:           true,
+			ActionNameWaitGseReady:          false,
+			ActionNameCleanInstaller:        true,
+			ActionNameSyncNodeInfo:          true,
+			ActionNameUpdateHost:            true,
 		},
 	}
 }
