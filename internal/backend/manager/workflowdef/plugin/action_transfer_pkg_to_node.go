@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"time"
 
+	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -48,9 +49,7 @@ func NewActionTransferPluginPkgToNode(daoPluginDeployment pluginStg.IDaoPluginDe
 
 // ActionParamTransferPluginPkgToNode defines the action param.
 type ActionParamTransferPluginPkgToNode struct {
-	Token    string `json:"token"`
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
 type actionTransferPluginPkgToNode struct {
@@ -108,17 +107,23 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 		return err
 	}
 
-	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	// initialize standard data.
+	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
+		return err
+	}
+
+	nCtx := std.Context()
 
 	ctx.Data.LogI("transfer plugin pkg to node start.")
 
-	info, err := act.daoPluginDeployment.GetPluginDeploymentInfo(nCtx, param.Token)
+	info, err := act.daoPluginDeployment.GetPluginDeploymentInfo(nCtx, std.Token())
 	if err != nil {
 		return err
 	}
 
 	defer func() {
-		if storeErr := act.daoPluginDeployment.UpdatePluginDeploymentInfo(nCtx, param.Token, info); storeErr != nil {
+		if storeErr := act.daoPluginDeployment.UpdatePluginDeploymentInfo(nCtx, std.Token(), info); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()

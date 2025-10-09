@@ -13,6 +13,7 @@ package plugin
 import (
 	"time"
 
+	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -33,9 +34,7 @@ type operInstallPlugin struct {
 
 // OperParamInstallPlugin defines the parameters for operInstallPlugin.
 type OperParamInstallPlugin struct {
-	Token    string `json:"token"`
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
 // Name returns the name.

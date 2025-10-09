@@ -25,9 +25,9 @@ import (
 	"fmt"
 	"time"
 
+	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -49,9 +49,7 @@ func NewActionRenderPluginDeployment(daoHost topoStg.IStorageHost, daoPluginDepl
 
 // ActParamRenderPluginDeployment ...
 type ActParamRenderPluginDeployment struct {
-	Token    string `json:"token"`
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
 // RenderPluginDeployment ...
@@ -105,14 +103,21 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	nCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
-	info, err := act.daoPluginDeployment.GetPluginDeploymentInfo(nCtx, param.Token)
+	// initialize standard data.
+	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
+		return err
+	}
+
+	nCtx := std.Context()
+
+	info, err := act.daoPluginDeployment.GetPluginDeploymentInfo(nCtx, std.Token())
 	if err != nil {
 		return fmt.Errorf("failed to get plugin deployment info: %w", err)
 	}
 
 	defer func() {
-		if storeErr := act.daoPluginDeployment.UpdatePluginDeploymentInfo(nCtx, param.Token, info); storeErr != nil {
+		if storeErr := act.daoPluginDeployment.UpdatePluginDeploymentInfo(nCtx, std.Token(), info); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()

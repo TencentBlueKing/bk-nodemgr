@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
+	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -121,9 +122,11 @@ func (mgr *Manager) getPluginInstallOperationDef(deploy *types.PluginDeployment,
 	switch deploy.Info.Plugin.Type {
 	case types.PluginTypeOfficial:
 		return plugin.NewOperInstallPlugin(plugin.OperParamInstallPlugin{
-			Token:    deploy.Token,
-			TenantID: deploy.Info.Plugin.TenantID,
-			Operator: operator,
+			PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+				Token:    deploy.Token,
+				TenantID: deploy.Info.Plugin.TenantID,
+				Operator: operator,
+			},
 		}), nil
 	default:
 		return nil, fmt.Errorf("unsupported plugin type: %s", deploy.Info.Plugin.Type)
