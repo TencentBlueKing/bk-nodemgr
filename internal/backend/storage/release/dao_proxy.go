@@ -14,39 +14,28 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IProxy define the proxy interface.
-type IProxy interface {
-	// GetReleaseProxy gets release by generation, release type, platform and version.
-	GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
-}
+// getReleaseProxy gets release by generation, release type, platform and version.
+func (s *Storage) getReleaseProxy(
+	nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
 
-// GetReleaseProxy gets release by generation, release type, platform and version.
-func (s *Storage) GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
-	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeProxy,
-		release.WithGeneration(gen),
-		release.WithPlatform(plat),
-		release.WithVersion(version),
-	)
+	rls, err := s.getRelease(nCtx, gen, types.ReleaseTypeProxy, plat, version)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release proxy: %v", err)
+		return nil, err
 	}
 
 	additionInfo := new(types.ReleaseAdditionInfoProxy)
 	err = conv.MapToStruct(rls.AdditionInfo, additionInfo)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release proxy: %v", err)
+		return nil, fmt.Errorf("failed to convert addition info to struct: %w", err)
 	}
 
-	releaseProxy := &types.ReleaseProxy{
+	return &types.ReleaseProxy{
 		Release:                  *rls,
 		ReleaseAdditionInfoProxy: *additionInfo,
-	}
-
-	return releaseProxy, nil
+	}, nil
 }

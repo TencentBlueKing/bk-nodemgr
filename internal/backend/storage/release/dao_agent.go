@@ -14,39 +14,28 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IAgent define the agent interface.
-type IAgent interface {
-	// GetReleaseAgent gets release by generation, release type, platform and version.
-	GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
-}
+// getReleaseAgent gets release by generation, release type, platform and version.
+func (s *Storage) getReleaseAgent(
+	nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
 
-// GetReleaseAgent gets release by generation, release type, platform and version.
-func (s *Storage) GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
-	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeAgent,
-		release.WithGeneration(gen),
-		release.WithPlatform(plat),
-		release.WithVersion(version),
-	)
+	rls, err := s.getRelease(nCtx, gen, types.ReleaseTypeAgent, plat, version)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release agent: %v", err)
+		return nil, err
 	}
 
 	additionInfo := new(types.ReleaseAdditionInfoAgent)
 	err = conv.MapToStruct(rls.AdditionInfo, additionInfo)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release agent: %v", err)
+		return nil, fmt.Errorf("failed to convert addition info to struct: %w", err)
 	}
 
-	releaseAgent := &types.ReleaseAgent{
+	return &types.ReleaseAgent{
 		Release:                  *rls,
 		ReleaseAdditionInfoAgent: *additionInfo,
-	}
-
-	return releaseAgent, nil
+	}, nil
 }
