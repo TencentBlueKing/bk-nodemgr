@@ -101,6 +101,7 @@ func (mgr *Manager) registerActionDefPlugin() error {
 		plugin.NewActionTransferPluginPkgToNode(mgr.conf.StoragePlugin, mgr.conf.StorageTopo, mgr.conf.FileHandler),
 		plugin.NewActionRenderPluginDeployment(mgr.conf.StorageTopo, mgr.conf.StoragePlugin),
 		plugin.NewActionWaitInstallerComplete(mgr.conf.StorageWorkflow),
+		plugin.NewActionInstallPlugin(mgr.conf.StorageTopo, mgr.conf.StoragePlugin, mgr.conf.Provider, mgr.conf.GSEHandler),
 	}
 
 	if err := mgr.workflowMgr.RegisterActions(actionDefs...); err != nil {
