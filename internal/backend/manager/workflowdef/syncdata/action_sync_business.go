@@ -14,7 +14,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
@@ -31,7 +31,7 @@ const (
 )
 
 // NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
-func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, storageBusiness topo.IStorageBusiness) action.Definition {
+func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, storageBusiness topoStg.IStorageBusiness) action.Definition {
 
 	return &actionSyncBusinessFromCMDB{
 		cmdbHandler:     cmdbHandler,
@@ -47,7 +47,7 @@ type SyncBizFromCMDBParam struct {
 
 type actionSyncBusinessFromCMDB struct {
 	cmdbHandler     cmdb.IHandler
-	storageBusiness topo.IStorageBusiness
+	storageBusiness topoStg.IStorageBusiness
 }
 
 // Name returns the name of the action.

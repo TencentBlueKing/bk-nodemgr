@@ -15,7 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
@@ -24,11 +24,11 @@ import (
 type handler struct {
 	rg                 *gin.RouterGroup
 	manager            manager.IManager
-	storageNetworkUnit topo.IStorageNetworkUnit
-	storageHost        topo.IStorageHost
+	storageNetworkUnit topoStg.IStorageNetworkUnit
+	storageHost        topoStg.IStorageHost
 	storageHostCredit  credit.IStorageHostCredit
 
-	domainNodeInstall topo.IDomainNodeInstall
+	domainNodeInstall topoStg.IDomainNodeInstall
 }
 
 // newHandler ...

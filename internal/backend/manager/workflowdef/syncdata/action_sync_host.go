@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -29,7 +29,7 @@ const (
 )
 
 // NewActionSyncHostFromCMDB ...
-func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, storageHost topo.IStorageHost) action.Definition {
+func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, storageHost topoStg.IStorageHost) action.Definition {
 	return &actionSyncHostFromCMDB{
 		cmdbHandler: cmdbHandler,
 		storageHost: storageHost,
@@ -45,7 +45,7 @@ type SyncHostFromCMDBParam struct {
 
 type actionSyncHostFromCMDB struct {
 	cmdbHandler cmdb.IHandler
-	storageHost topo.IStorageHost
+	storageHost topoStg.IStorageHost
 }
 
 // Name ...

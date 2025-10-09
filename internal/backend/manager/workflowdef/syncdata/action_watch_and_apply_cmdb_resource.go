@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -38,7 +38,7 @@ const (
 func NewActionWatchCMDBResource(
 	cache cache.ICache,
 	cmdbHandler cmdb.IHandler,
-	storageTopo topo.IStorage,
+	storageTopo topoStg.IStorage,
 ) action.Definition {
 
 	return &actionWatchCMDBResource{
@@ -62,7 +62,7 @@ type WatchCMDBResourceParam struct {
 type actionWatchCMDBResource struct {
 	cache       cache.ICache
 	cmdbHandler cmdb.IHandler
-	storageTopo topo.IStorage
+	storageTopo topoStg.IStorage
 
 	mu                         sync.Mutex
 	pendingProcessEvents       []*types.HostEvent

@@ -16,7 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
@@ -31,7 +31,7 @@ const (
 
 // NewActionTryReuseAgentID ...
 func NewActionTryReuseAgentID(
-	storageHost topo.IStorageHost,
+	storageHost topoStg.IStorageHost,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 ) action.Definition {
 
@@ -48,7 +48,7 @@ type ActParamTryReuseAgentID struct {
 
 // TryReuseAgentID ...
 type TryReuseAgentID struct {
-	storageHost           topo.IStorageHost
+	storageHost           topoStg.IStorageHost
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 

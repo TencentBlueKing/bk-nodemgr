@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -34,7 +34,7 @@ const (
 )
 
 // NewActionGenOperSyncAgentState this action will create host sync operation for all business.
-func NewActionGenOperSyncAgentState(topoStg topo.IStorageHost, workflowCtl workflow.IController) action.Definition {
+func NewActionGenOperSyncAgentState(topoStg topoStg.IStorageHost, workflowCtl workflow.IController) action.Definition {
 	return &actionGenOperSyncAgentState{
 		topoStg:     topoStg,
 		workflowCtl: workflowCtl,
@@ -48,7 +48,7 @@ type GenOperSyncAgentStateParam struct {
 }
 
 type actionGenOperSyncAgentState struct {
-	topoStg     topo.IStorageHost
+	topoStg     topoStg.IStorageHost
 	workflowCtl workflow.IController
 }
 

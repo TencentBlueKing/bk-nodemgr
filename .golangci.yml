@@ -681,6 +681,9 @@ linters-settings:
       # Using `nodeStg` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node`
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node
         alias: nodeStg
+      # Using `pluginStg` alias for `github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin`
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin
+        alias: pluginStg
       # Using `machinery` things.
       - pkg: github.com/RichardKnop/machinery/v2/backends/iface
         alias: backendIface
@@ -750,3 +753,5 @@ linters-settings:
         alias: pluginworkflow
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment
         alias: plugindeployment
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils
+        alias: nodeUtils

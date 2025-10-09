@@ -16,7 +16,7 @@ import (
 	"time"
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -34,7 +34,7 @@ const (
 // NewActionUpsertHostToCMDB get a new action.
 func NewActionUpsertHostToCMDB(
 	cmdbHandler cmdb.IHandler,
-	storageHost topo.IStorageHost,
+	storageHost topoStg.IStorageHost,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 ) action.Definition {
 
@@ -53,7 +53,7 @@ type ActParamUpsertHostToCMDB struct {
 
 type actionUpsertHostToCMDB struct {
 	cmdbHandler           cmdb.IHost
-	storageHost           topo.IStorageHost
+	storageHost           topoStg.IStorageHost
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 

@@ -26,7 +26,7 @@ import (
 	"time"
 
 	pluginployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -40,7 +40,7 @@ const (
 )
 
 // NewActionRenderPluginDeployment ...
-func NewActionRenderPluginDeployment(daoHost storageTopo.IStorageHost, daoPluginDeployment pluginployment.IDaoPluginDeployment) action.Definition {
+func NewActionRenderPluginDeployment(daoHost topoStg.IStorageHost, daoPluginDeployment pluginployment.IDaoPluginDeployment) action.Definition {
 	return &RenderPluginDeployment{
 		daoHost:             daoHost,
 		daoPluginDeployment: daoPluginDeployment,
@@ -56,7 +56,7 @@ type ActParamRenderPluginDeployment struct {
 
 // RenderPluginDeployment ...
 type RenderPluginDeployment struct {
-	daoHost             storageTopo.IStorageHost
+	daoHost             topoStg.IStorageHost
 	daoPluginDeployment pluginployment.IDaoPluginDeployment
 }
 

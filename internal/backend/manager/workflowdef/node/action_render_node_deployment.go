@@ -21,7 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -43,8 +43,8 @@ const (
 // NewActionRenderNodeDeployment get a new action.
 func NewActionRenderNodeDeployment(
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	storageHost topo.IStorageHost,
-	storageDomainGse topo.IStorageDomainGse,
+	storageHost topoStg.IStorageHost,
+	storageDomainGse topoStg.IStorageDomainGse,
 	storageRelease release.IStorage,
 	storageConfigPolicy configpolicy.IStorage,
 ) action.Definition {
@@ -65,8 +65,8 @@ type ActParamRenderNodeDeployment struct {
 
 type actionRenderNodeDeployment struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
-	storageHost           topo.IStorageHost
-	storageDomainGse      topo.IStorageDomainGse
+	storageHost           topoStg.IStorageHost
+	storageDomainGse      topoStg.IStorageDomainGse
 	storageRelease        release.IStorage
 	storageConfigPolicy   configpolicy.IStorage
 }

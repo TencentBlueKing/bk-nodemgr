@@ -14,7 +14,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -30,7 +30,7 @@ const (
 
 // NewActionSyncNetworkAreaFromCMDB get a new action.
 func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler,
-	storageNetworkArea topo.IStorageNetworkArea) action.Definition {
+	storageNetworkArea topoStg.IStorageNetworkArea) action.Definition {
 
 	return &actionSyncNetworkAreaFromCMDB{
 		cmdbHandler:        cmdbHandler,
@@ -46,7 +46,7 @@ type SyncNetworkAreaFromCMDBParam struct {
 
 type actionSyncNetworkAreaFromCMDB struct {
 	cmdbHandler        cmdb.IHandler
-	storageNetworkArea topo.IStorageNetworkArea
+	storageNetworkArea topoStg.IStorageNetworkArea
 }
 
 // Name returns the name of the action.

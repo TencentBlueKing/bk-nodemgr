@@ -19,7 +19,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -42,7 +42,7 @@ type Config struct {
 
 	LockerFactory locker.MutexFactory
 
-	StorageTopo         topo.IStorage
+	StorageTopo         topoStg.IStorage
 	StorageRelease      release.IStorage
 	StorageNode         nodeStg.IStorage
 	StorageWorkflow     workflow.IStorage

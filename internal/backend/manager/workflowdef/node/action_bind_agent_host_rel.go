@@ -16,7 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -34,7 +34,7 @@ const (
 // NewActionBindAgentHostRel get a new action.
 func NewActionBindAgentHostRel(
 	bindHostAgent cmdb.IBindHostAgent,
-	storageHost topo.IStorageHost,
+	storageHost topoStg.IStorageHost,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment) action.Definition {
 
 	return &actionBindAgentHostRel{
@@ -51,7 +51,7 @@ type ActParamBindAgentHostRel struct {
 
 type actionBindAgentHostRel struct {
 	cmdb.IBindHostAgent
-	storageHost           topo.IStorageHost
+	storageHost           topoStg.IStorageHost
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 

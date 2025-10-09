@@ -13,7 +13,7 @@ package syncdata
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -28,7 +28,7 @@ const (
 )
 
 // NewActionSyncAgentInfo ...
-func NewActionSyncAgentInfo(gseHandler gse.IHandler, topoStg topo.IStorageHost) action.Definition {
+func NewActionSyncAgentInfo(gseHandler gse.IHandler, topoStg topoStg.IStorageHost) action.Definition {
 
 	return &SyncAgentInfo{
 		gseHandler: gseHandler,
@@ -46,7 +46,7 @@ type ActParamSyncAgentInfo struct {
 // SyncAgentInfo ...
 type SyncAgentInfo struct {
 	gseHandler gse.IHandler
-	topoStg    topo.IStorageHost
+	topoStg    topoStg.IStorageHost
 }
 
 // Name returns the name of the action.

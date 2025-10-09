@@ -13,7 +13,7 @@ package syncdata
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -28,7 +28,7 @@ const (
 )
 
 // NewActionSyncAgentState creates a new syncAgentState.
-func NewActionSyncAgentState(gseHandler gse.IHandler, topoStg topo.IStorageHost) action.Definition {
+func NewActionSyncAgentState(gseHandler gse.IHandler, topoStg topoStg.IStorageHost) action.Definition {
 
 	return &actionSyncAgentState{
 		gseHandler: gseHandler,
@@ -51,7 +51,7 @@ type HostIDAgentID struct {
 
 type actionSyncAgentState struct {
 	gseHandler gse.IHandler
-	topoStg    topo.IStorageHost
+	topoStg    topoStg.IStorageHost
 }
 
 // Name returns the name of the action.

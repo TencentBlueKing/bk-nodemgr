@@ -32,7 +32,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
@@ -386,7 +386,7 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 func (svc *Service) initialStorages() error {
 	var err error
 
-	svc.Cap.StorageTopo, err = topo.NewStorage(
+	svc.Cap.StorageTopo, err = topoStg.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database)
 	if err != nil {

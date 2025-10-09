@@ -15,7 +15,7 @@ import (
 	"time"
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -28,7 +28,7 @@ const (
 
 // NewActionUpdateHost get a new action.
 func NewActionUpdateHost(
-	storageHost topo.IStorageHost,
+	storageHost topoStg.IStorageHost,
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 ) action.Definition {
 
@@ -45,7 +45,7 @@ type ActParamUpdateHost struct {
 
 // UpdateHost ...
 type actionUpdateHost struct {
-	storageHost           topo.IStorageHost
+	storageHost           topoStg.IStorageHost
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 
