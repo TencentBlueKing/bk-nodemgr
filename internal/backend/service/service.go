@@ -30,7 +30,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
@@ -166,7 +166,7 @@ func (svc *Service) initialStaticsConfigs() error {
 			DeployConf: deployConf,
 		}
 		if err := deployconstant.SetPluginDeployConf(pluginDeployConf); err != nil {
-			return fmt.Errorf("failed to set plugin deploy conf: %w", err)
+			return fmt.Errorf("failed to set pluginStg deploy conf: %w", err)
 		}
 	}
 
@@ -400,11 +400,11 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create node storage: %w", err)
 	}
 
-	svc.Cap.StoragePlugin, err = plugin.NewStorage(
+	svc.Cap.StoragePlugin, err = pluginStg.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database)
 	if err != nil {
-		return fmt.Errorf("failed to create plugin storage: %w", err)
+		return fmt.Errorf("failed to create pluginStg storage: %w", err)
 	}
 
 	svc.Cap.StorageWorkflow, err = workflow.NewStorage(

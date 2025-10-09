@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
@@ -54,7 +54,7 @@ type Capability struct {
 	StorageNode nodeStg.IStorage
 
 	// StoragePlugin plugin deployment storage.
-	StoragePlugin plugin.IStorage
+	StoragePlugin pluginStg.IStorage
 
 	// StorageScheduleWorkflow schedule workflow storage.
 	StorageWorkflow workflow.IStorage

@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"time"
 
-	pluginployment "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -40,7 +40,7 @@ const (
 )
 
 // NewActionRenderPluginDeployment ...
-func NewActionRenderPluginDeployment(daoHost topoStg.IStorageHost, daoPluginDeployment pluginployment.IDaoPluginDeployment) action.Definition {
+func NewActionRenderPluginDeployment(daoHost topoStg.IStorageHost, daoPluginDeployment pluginStg.IDaoPluginDeployment) action.Definition {
 	return &RenderPluginDeployment{
 		daoHost:             daoHost,
 		daoPluginDeployment: daoPluginDeployment,
@@ -57,7 +57,7 @@ type ActParamRenderPluginDeployment struct {
 // RenderPluginDeployment ...
 type RenderPluginDeployment struct {
 	daoHost             topoStg.IStorageHost
-	daoPluginDeployment pluginployment.IDaoPluginDeployment
+	daoPluginDeployment pluginStg.IDaoPluginDeployment
 }
 
 // Name returns the name of the action.

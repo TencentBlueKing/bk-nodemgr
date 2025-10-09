@@ -13,7 +13,7 @@ package plugin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	storagePlugin "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -24,7 +24,7 @@ import (
 type handler struct {
 	rg                  *gin.RouterGroup
 	logger              logger.ILogger
-	daoPluginDeployment storagePlugin.IDaoPluginDeployment
+	daoPluginDeployment pluginStg.IDaoPluginDeployment
 
 	stgWorkflow workflow.IStorage
 }
