@@ -50,8 +50,33 @@ func ConvPluginTypeToReleaseType(pluginType PluginType) (ReleaseType, error) {
 	}
 }
 
+// PluginStatus represents the status of plugin.
+type PluginStatus string
+
+const (
+	// PluginStatusInit represents plugin init status.
+	PluginStatusInit PluginStatus = "init"
+
+	// PluginStatusRunning represents plugin running status.
+	PluginStatusRunning PluginStatus = "running"
+
+	// PluginStatusStopped represents plugin stopped status.
+	PluginStatusStopped PluginStatus = "stopped"
+)
+
+// Validate validate the plugin status.
+func (pluginStatus PluginStatus) Validate() error {
+	switch pluginStatus {
+	case PluginStatusInit, PluginStatusRunning, PluginStatusStopped:
+		return nil
+	default:
+		return fmt.Errorf("invalid plugin status, plugin-status(%s)", pluginStatus)
+	}
+}
+
 // Plugin define the all info of plugin.
 type Plugin struct {
+	PluginID   string
 	TenantID   string
 	HostID     int64
 	Name       string
@@ -59,4 +84,6 @@ type Plugin struct {
 	Generation Generation
 	Platform   platform.Platform
 	Version    string
+
+	Status PluginStatus
 }
