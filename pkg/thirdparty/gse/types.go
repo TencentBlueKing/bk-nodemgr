@@ -429,12 +429,18 @@ const (
 	scriptExtBat        = "bat"
 	scriptExtPowershell = "ps1"
 	scriptExtPython     = "py"
+	scriptExtKsh        = "ksh"
+	scriptExtZsh        = "zsh"
 )
 
 func getScriptExt(scriptType types.ScriptType) (string, error) {
 	switch scriptType {
 	case types.ScriptTypeBash:
 		return scriptExtBash, nil
+	case types.ScriptTypeKsh:
+		return scriptExtKsh, nil
+	case types.ScriptTypeZsh:
+		return scriptExtZsh, nil
 	case types.ScriptTypeBat:
 		return scriptExtBat, nil
 	case types.ScriptTypePowershell:

@@ -57,6 +57,12 @@ const (
 	// ScriptTypeBash means bash script.
 	ScriptTypeBash ScriptType = "bash"
 
+	// ScriptTypeKsh means ksh script.
+	ScriptTypeKsh ScriptType = "ksh"
+
+	// ScriptTypeZsh means zsh script.
+	ScriptTypeZsh ScriptType = "zsh"
+
 	// ScriptTypeBat means bat script.
 	ScriptTypeBat ScriptType = "bat"
 
