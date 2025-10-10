@@ -1193,3 +1193,133 @@ func TestEmpty(t *testing.T) {
 		})
 	}
 }
+
+// TestStringToBool tests the StringToBool function.
+func TestStringToBool(t *testing.T) {
+	type args struct {
+		value string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name:    "string true",
+			args:    args{value: "true"},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "string false",
+			args:    args{value: "false"},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "string 1",
+			args:    args{value: "1"},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "string 0",
+			args:    args{value: "0"},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "string yes",
+			args:    args{value: "yes"},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "string no",
+			args:    args{value: "no"},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:    "invalid string",
+			args:    args{value: "notabool"},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:    "empty string",
+			args:    args{value: ""},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := StringToBool(tt.args.value)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ToBool() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("ToBool() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestNumberToBool tests the NumberToBool function.
+func TestNumberToBool(t *testing.T) {
+	type intCase struct {
+		val  int
+		want bool
+	}
+	type uintCase struct {
+		val  uint
+		want bool
+	}
+	type floatCase struct {
+		val  float64
+		want bool
+	}
+
+	intCases := []intCase{
+		{val: 0, want: false},
+		{val: 1, want: true},
+		{val: -1, want: true},
+	}
+	uintCases := []uintCase{
+		{val: 0, want: false},
+		{val: 1, want: true},
+	}
+	floatCases := []floatCase{
+		{val: 0.0, want: false},
+		{val: 1.5, want: true},
+		{val: -2.3, want: true},
+	}
+
+	for _, tc := range intCases {
+		t.Run(fmt.Sprintf("int_%v", tc.val), func(t *testing.T) {
+			got := NumberToBool(tc.val)
+			if got != tc.want {
+				t.Errorf("NumberToBool(int: %v) = %v, want %v", tc.val, got, tc.want)
+			}
+		})
+	}
+	for _, tc := range uintCases {
+		t.Run(fmt.Sprintf("uint_%v", tc.val), func(t *testing.T) {
+			got := NumberToBool(tc.val)
+			if got != tc.want {
+				t.Errorf("NumberToBool(uint: %v) = %v, want %v", tc.val, got, tc.want)
+			}
+		})
+	}
+	for _, tc := range floatCases {
+		t.Run(fmt.Sprintf("float64_%v", tc.val), func(t *testing.T) {
+			got := NumberToBool(tc.val)
+			if got != tc.want {
+				t.Errorf("NumberToBool(float64: %v) = %v, want %v", tc.val, got, tc.want)
+			}
+		})
+	}
+}

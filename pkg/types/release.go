@@ -288,7 +288,7 @@ type PluginPkgConfigTemplate struct {
 	Version       string
 	FilePath      string
 	Format        string
-	IsMainConfig  string
+	IsMainConfig  bool
 	SourcePath    string
 	SourceContent string
 	Variables     *PluginPkgConfigTemplateProperty

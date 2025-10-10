@@ -92,3 +92,24 @@ func (s *Storage) getPluginDeploymentMainConfig(ctx contextx.IContext, token str
 
 	return mainConfig, nil
 }
+
+// updatePluginDeploymentMainConfig set plugin deployment main config.
+func (s *Storage) updatePluginDeploymentMainConfig(ctx contextx.IContext, token string, mainConfig []byte) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if token == "" {
+		return basestorage.ErrEmptyUniqueKey()
+	}
+
+	if len(mainConfig) == 0 {
+		return errors.New("main config is empty")
+	}
+
+	if err := s.daoPluginDeployment.UpdateMainConfig(ctx, token, mainConfig); err != nil {
+		return fmt.Errorf("failed to set plugin deployment main config: %w", err)
+	}
+
+	return nil
+}

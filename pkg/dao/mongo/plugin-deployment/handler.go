@@ -35,6 +35,9 @@ type IHandler interface {
 
 	// GetMainConfig get main config.
 	GetMainConfig(nCtx contextx.IContext, token string) ([]byte, error)
+
+	// UpdateMainConfig set main config.
+	UpdateMainConfig(nCtx contextx.IContext, token string, mainConfig []byte) error
 }
 
 // Handler this is a Handler to operate node deployment table.
@@ -238,4 +241,23 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 	}
 
 	return data, nil
+}
+
+// UpdateMainConfig set main config.
+func (h *Handler) UpdateMainConfig(nCtx contextx.IContext, token string, mainConfig []byte) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return ErrInvalidToken()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyMainConfig, mainConfig); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -20,6 +20,7 @@ import (
 	"reflect"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 // ToInt64 conv interface{} to int64.
@@ -465,8 +466,36 @@ func IsEmpty(given any) bool {
 				return false
 			}
 		}
+
 		return true
 	default:
 		return false
 	}
+}
+
+// StringToBool converts a string to a boolean value.
+func StringToBool(val string) (bool, error) {
+	str := strings.ToLower(strings.TrimSpace(val))
+	switch str {
+	case "true", "yes", "on", "1":
+		return true, nil
+	case "false", "no", "off", "0", "":
+		return false, nil
+	default:
+		if num, err := strconv.ParseFloat(str, 64); err == nil {
+			return num != 0, nil
+		}
+
+		return false, fmt.Errorf("cannot convert string(%s) to bool", str)
+	}
+}
+
+// NumberConvertible defines a type constraint that matches all numeric types.
+type NumberConvertible interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
+}
+
+// NumberToBool converts a numeric value to a boolean value.
+func NumberToBool[T NumberConvertible](val T) bool {
+	return val != 0
 }

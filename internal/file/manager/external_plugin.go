@@ -193,13 +193,18 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				detail.LaunchMode = pluginProject.LaunchMode
 
 				for _, configTemplate := range pluginProject.ConfigTemplates {
+					isMainConfig, err := conv.StringToBool(configTemplate.IsMainConfig)
+					if err != nil {
+						return fmt.Errorf("failed to parse is_main_config: %w", err)
+					}
+
 					detail.ConfigTemplates = append(detail.ConfigTemplates, types.PluginPkgConfigTemplate{
 						PluginVersion: configTemplate.PluginVersion,
 						Name:          configTemplate.Name,
 						Version:       configTemplate.Version,
 						FilePath:      configTemplate.FilePath,
 						Format:        configTemplate.Format,
-						IsMainConfig:  configTemplate.IsMainConfig,
+						IsMainConfig:  isMainConfig,
 						SourcePath:    configTemplate.SourcePath,
 						Variables:     convPropertyToTypes(configTemplate.Variables),
 					})

@@ -190,3 +190,14 @@ func (s *Storage) GetPluginDeploymentMainConfig(ctx contextx.IContext, token str
 
 	return mainConfig, err
 }
+
+// UpdatePluginDeploymentMainConfig set plugin deployment main config.
+func (s *Storage) UpdatePluginDeploymentMainConfig(ctx contextx.IContext, token string, mainConfig []byte) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_plugin_deployment_main_config")
+	defer metric.End(err)
+
+	err = s.updatePluginDeploymentMainConfig(ctx, token, mainConfig)
+
+	return err
+}

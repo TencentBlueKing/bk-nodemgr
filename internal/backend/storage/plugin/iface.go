@@ -37,6 +37,9 @@ type IDaoPluginDeployment interface {
 
 	// GetPluginDeploymentMainConfig get plugin deployment main config.
 	GetPluginDeploymentMainConfig(nCtx contextx.IContext, token string) ([]byte, error)
+
+	// UpdatePluginDeploymentMainConfig set plugin deployment main config.
+	UpdatePluginDeploymentMainConfig(nCtx contextx.IContext, token string, mainConfig []byte) error
 }
 
 // IDaoPluginWorkflow defines the dao interface.
