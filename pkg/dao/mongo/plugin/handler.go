@@ -41,7 +41,7 @@ type IHandler interface {
 	Update(nCtx contextx.IContext, pluginType types.PluginType, plugin *types.Plugin) error
 }
 
-// Handler handler struct
+// Handler this is a Handler to operate plugin table.
 type Handler struct {
 	client *mongo.Database
 	// daoMap stores dao's containing tenant information.
@@ -165,7 +165,7 @@ func (h *Handler) List(nCtx contextx.IContext, pluginType types.PluginType, page
 	return plugins, num, nil
 }
 
-// Get get a plugin
+// Get get a plugin.
 func (h *Handler) Get(nCtx contextx.IContext, pluginType types.PluginType, opts ...OptFn) (*types.Plugin, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
