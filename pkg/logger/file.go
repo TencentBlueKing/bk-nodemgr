@@ -169,7 +169,7 @@ type logKeeper struct {
 }
 
 func (lk *logKeeper) add(category, tag string, newBlock *fileBlock) (ok bool) {
-	key := lk.key(category, tag)
+	key := logKey(category, tag)
 
 	block, ok := lk.tail[key]
 	if !ok {
@@ -193,7 +193,7 @@ func (lk *logKeeper) add(category, tag string, newBlock *fileBlock) (ok bool) {
 }
 
 func (lk *logKeeper) remove(category, tag string) (ok bool) {
-	key := lk.key(category, tag)
+	key := logKey(category, tag)
 
 	block, ok := lk.head[key]
 	if !ok || lk.total[key] == 0 {
@@ -214,10 +214,6 @@ func (lk *logKeeper) remove(category, tag string) (ok bool) {
 	lk.total[key]--
 
 	return ok
-}
-
-func (lk *logKeeper) key(category, tag string) string {
-	return category + ":" + tag
 }
 
 func (lk *logKeeper) removeFile(name string) error {
@@ -259,7 +255,7 @@ func (lk *logKeeper) load() {
 		}
 
 		name, category, timestamp, tag := result[0], result[1], result[2], result[3]
-		key := lk.key(category, tag)
+		key := logKey(category, tag)
 
 		if tmp[key] == nil {
 			tmp[key] = make([]fileInfo, 0, len(tmpDir))
@@ -309,10 +305,14 @@ func createLogDirs() {
 		head := make(map[string]*fileBlock)
 		tail := make(map[string]*fileBlock)
 		total := make(map[string]int)
-		for _, name := range levelName {
-			head[name] = nil
-			tail[name] = nil
-			total[name] = 0
+		for _, tag := range levelName {
+			for _, category := range categoryName {
+				key := logKey(category, tag)
+
+				head[key] = nil
+				tail[key] = nil
+				total[key] = 0
+			}
 		}
 
 		logDirs = append(logDirs, &logKeeper{dir: dir, head: head, tail: tail, total: total})
@@ -406,4 +406,8 @@ func create(category, tag string, t time.Time) (f *os.File, filename string, err
 	}
 
 	return nil, "", fmt.Errorf("cannot create log: %v", lastErr)
+}
+
+func logKey(category, tag string) string {
+	return category + ":" + tag
 }
