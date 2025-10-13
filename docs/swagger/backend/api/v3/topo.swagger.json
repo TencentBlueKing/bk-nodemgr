@@ -2286,6 +2286,12 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "is_direct": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
         }
       }
     },

@@ -134,6 +134,7 @@ type NetworkAreaCondition struct {
 type NetworkUnitExactFields struct {
 	NetworkUnitID []int64
 	NetworkAreaID []int64
+	IsDirect      []bool
 }
 
 // NetworkUnitFuzzyFields defines the network unit fuzzy fields.

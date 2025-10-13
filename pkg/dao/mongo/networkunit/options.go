@@ -34,3 +34,13 @@ func WithNetworkAreaID(networkAreaIDs ...int64) OptFn {
 func WithoutNetworkAreaID(networkAreaIDs ...int64) OptFn {
 	return base.WithoutInt64Values("data.networkarea_id", networkAreaIDs...)
 }
+
+// WithIsDirect filters by is_direct.
+func WithIsDirect(isDirect ...bool) OptFn {
+	return base.WithValues("data.is_direct", isDirect...)
+}
+
+// WithoutIsDirect filters by not contains is_direct.
+func WithoutIsDirect(isDirect ...bool) OptFn {
+	return base.WithoutValues("data.is_direct", isDirect...)
+}

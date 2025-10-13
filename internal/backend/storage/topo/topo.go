@@ -293,6 +293,7 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 			opts = append(opts,
 				networkunit.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
 				networkunit.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				networkunit.WithIsDirect(condition.ExactInclude.IsDirect...),
 			)
 		}
 
@@ -300,6 +301,7 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 			opts = append(opts,
 				networkunit.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
 				networkunit.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+				networkunit.WithoutIsDirect(condition.ExactExclude.IsDirect...),
 			)
 		}
 	}

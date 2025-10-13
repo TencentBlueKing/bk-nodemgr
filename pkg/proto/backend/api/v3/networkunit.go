@@ -237,6 +237,7 @@ func (x *TopoNetworkUnitListReq) ConvertConditionsToTypes() *types.NetworkUnitCo
 		condition.ExactInclude = &types.NetworkUnitExactFields{
 			NetworkUnitID: exactCond.GetBkNetworkunitId(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			IsDirect:      exactCond.GetIsDirect(),
 		}
 	}
 
@@ -253,6 +254,7 @@ func (x *TopoNetworkUnitListReq) ConvertConditionsFromTypes(condition *types.Net
 		x.ExactIncludeConditions = &TopoNetworkUnitListReq_ExactConditions{
 			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
 			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			IsDirect:        condition.ExactInclude.IsDirect,
 		}
 	}
 

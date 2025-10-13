@@ -166,6 +166,7 @@ message TopoNetworkUnitListReq {
   message ExactConditions {
     repeated int64 bk_networkunit_id = 1;
     repeated int64 bk_networkarea_id = 2;
+    repeated bool is_direct = 3;
   }
   ExactConditions exact_include_conditions = 3;
 }
