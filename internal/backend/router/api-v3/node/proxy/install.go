@@ -95,7 +95,7 @@ func (h *handler) generateInstallNodeDeployments(
 	}
 
 	gp := gopool.NewPool()
-	nodeDeployments := make([]*types.NodeDeployment, len(req.Host))
+	nodeDeployments := make([]*types.NodeDeployment, len(req.GetHost()))
 	for i := range req.GetHost() {
 		idx := i
 		reqHost := req.GetHost()[idx]
@@ -254,6 +254,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 		if err != nil {
 			return fmt.Errorf("failed to gen node deployment: %w", err)
 		}
+
 		return nil
 
 	case types.LoginModePassword:
@@ -276,6 +277,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 		if err != nil {
 			return fmt.Errorf("failed to gen node deployment: %w", err)
 		}
+
 		return nil
 
 	case types.LoginModePasswordVault:

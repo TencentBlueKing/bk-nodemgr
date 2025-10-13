@@ -584,6 +584,7 @@ func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostD
 	return nil
 }
 
+// nolint: gocognit, gocyclo, cyclop
 func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host) map[string]any {
 	updates := make(map[string]any)
 
@@ -654,7 +655,7 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	}
 
 	if fields.ProxyInstallOriginUnitID {
-		updates[FiledKeyProxyInstallOriginUnitID] = host.Dynamic.ProxyInstallOriginUnitID
+		updates[FieldKeyDynamicProxyInstallOriginUnitID] = host.Dynamic.ProxyInstallOriginUnitID
 	}
 
 	return updates

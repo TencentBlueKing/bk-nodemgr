@@ -204,25 +204,19 @@ func (mgr *Manager) createInstallNodeOper(
 }
 
 func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, operator string) operation.Definition {
-	// proxy.
-	// user select install origin form upstream or current or server.
+	// proxy use user selected install origin network unit id to select relay host.
 	if deploy.Info.Host.Dynamic.NodeRole == types.NodeRoleProxy {
-		if deploy.Info.InstallOptions.DirectInstall {
-			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		}
-
-		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
+		return mgr.getNodeInstallOperationDefProxy(deploy, operator)
 	}
 
-	// system select install origin form server or proxy.
-	// direct agent.
-	if deploy.Info.InstallOptions.DirectInstall {
+	// agent use system selected relay host in its own network unit.
+	return mgr.getNodeInstallOperationDefAgent(deploy, operator)
+}
+
+// agent install distinguish direct install or pagent install.
+func (mgr *Manager) getNodeInstallOperationDefAgent(deploy *types.NodeDeployment, operator string) operation.Definition {
+	switch {
+	case deploy.Info.InstallOptions.DirectInstall:
 		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
 		case criteria.OSLinux, criteria.OSDarwin:
 			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
@@ -242,28 +236,43 @@ func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, ope
 				Operator: operator,
 			})
 		}
-	}
-
-	// pagent under proxy.
-	switch criteria.OSType(deploy.Info.Host.Static.OSType) {
-	case criteria.OSLinux, criteria.OSDarwin:
-		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
-
-	case criteria.OSWindows:
-		return node.NewOperInstallPagentNodeByWMI(node.OperParamInstallPagentNodeByWMI{
-			Token:    deploy.Token,
-			Operator: operator,
-		})
 
 	default:
-		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
+		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
+		case criteria.OSLinux, criteria.OSDarwin:
+			return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+
+		case criteria.OSWindows:
+			return node.NewOperInstallPagentNodeByWMI(node.OperParamInstallPagentNodeByWMI{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+
+		default:
+			return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+		}
+	}
+}
+
+// proxy install distinguish direct install or pagent install.
+func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment, operator string) operation.Definition {
+	if deploy.Info.InstallOptions.DirectInstall {
+		return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
 			Token:    deploy.Token,
 			Operator: operator,
 		})
 	}
+
+	return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
+		Token:    deploy.Token,
+		Operator: operator,
+	})
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.

@@ -114,8 +114,8 @@ func (h *handler) generatesUpgradeNodeDeployments(
 	}
 	bizIDs := conv.MapKeyToSlice(bizIDMap)
 
-	nodeDeployments := make([]*types.NodeDeployment, len(req.Host))
-	for idx, reqHost := range req.Host {
+	nodeDeployments := make([]*types.NodeDeployment, len(req.GetHost()))
+	for idx, reqHost := range req.GetHost() {
 		host, ok := typeHosts[reqHost.GetBkHostId()]
 		if !ok {
 			return nil, nil, fmt.Errorf("host not found. host-id(%d)", reqHost.GetBkHostId())
