@@ -191,12 +191,12 @@ func (mgr *Manager) ScheduleSyncHostFromCMDB(ctx contextx.IContext) error {
 
 // ScheduleSyncNetworkAreaFromCMDB creates a new schedule workflow to sync network areas from CMDB.
 func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx contextx.IContext) error {
-	return mgr.createAndRunScheduleWorkflows(ctx, SyncCmdbNetworkAreaWorkflowName, scheduler.Every+"10s")
+	return mgr.createAndRunScheduleWorkflows(ctx, SyncCmdbNetworkAreaWorkflowName, scheduler.Every+"1h")
 }
 
 // ScheduleSyncAllAgentStateFromGSE creates a new schedule workflow to sync agent state from GSE.
 func (mgr *Manager) ScheduleSyncAllAgentStateFromGSE(ctx contextx.IContext) error {
-	return mgr.createAndRunScheduleWorkflows(ctx, SyncGseAgentStateWorkflowName, scheduler.Every+"10m")
+	return mgr.createAndRunScheduleWorkflows(ctx, SyncGseAgentStateWorkflowName, scheduler.Every+"30s")
 }
 
 // ScheduleWatchAndApplyCMDBResource creates a new schedule workflow to watch and apply CMDB resources.
@@ -206,5 +206,5 @@ func (mgr *Manager) ScheduleWatchAndApplyCMDBResource(ctx contextx.IContext) err
 
 // ScheduleSyncAliveHostAgentInfo creates a new schedule workflow to sync alive host agent info.
 func (mgr *Manager) ScheduleSyncAliveHostAgentInfo(ctx contextx.IContext) error {
-	return mgr.createAndRunScheduleWorkflows(ctx, SyncAliveHostAgentInfoWorkflowName, scheduler.Every+"10h")
+	return mgr.createAndRunScheduleWorkflows(ctx, SyncAliveHostAgentInfoWorkflowName, scheduler.Every+"10m")
 }
