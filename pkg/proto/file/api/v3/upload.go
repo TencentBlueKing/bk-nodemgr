@@ -316,7 +316,7 @@ func (x *UploadOriginOfficialPluginResp) ConvertResultFromTypes(generated bool, 
 		Scenario:     new(string),
 		ConfigFile:   new(string),
 		ConfigFormat: new(string),
-		LaunchMode:   new(string),
+		LaunchNode:   new(string),
 	}
 
 	*data.UploadId = detail.UploadID
@@ -337,7 +337,7 @@ func (x *UploadOriginOfficialPluginResp) ConvertResultFromTypes(generated bool, 
 	*data.Scenario = detail.Scenario
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
-	*data.LaunchMode = detail.LaunchNode
+	*data.LaunchNode = detail.LaunchNode
 
 	data.Platforms = plats
 
@@ -375,7 +375,7 @@ func (x *UploadOriginExternalPluginResp) ConvertResultFromTypes(generated bool, 
 		Scenario:     new(string),
 		ConfigFile:   new(string),
 		ConfigFormat: new(string),
-		LaunchMode:   new(string),
+		LaunchNode:   new(string),
 	}
 
 	*data.UploadId = detail.UploadID
@@ -396,7 +396,7 @@ func (x *UploadOriginExternalPluginResp) ConvertResultFromTypes(generated bool, 
 	*data.Scenario = detail.Scenario
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
-	*data.LaunchMode = detail.LaunchMode
+	*data.LaunchNode = detail.LaunchMode
 
 	data.Platforms = plats
 
