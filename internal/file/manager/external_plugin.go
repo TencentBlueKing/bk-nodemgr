@@ -140,13 +140,16 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 
 // ExternalPluginProject represents the project.yml file.
 type ExternalPluginProject struct {
-	Name            string                         `yaml:"name"`
-	Version         string                         `yaml:"version"`
-	Description     string                         `yaml:"description"`
-	Scenario        string                         `yaml:"scenario"`
-	ConfigFile      string                         `yaml:"config_file"`
-	ConfigFormat    string                         `yaml:"config_format"`
-	LaunchMode      string                         `yaml:"launch_mode"`
+	Name         string `yaml:"name"`
+	Version      string `yaml:"version"`
+	Description  string `yaml:"description"`
+	Scenario     string `yaml:"scenario"`
+	ConfigFile   string `yaml:"config_file"`
+	ConfigFormat string `yaml:"config_format"`
+	LaunchNode   string `yaml:"launch_node"`
+
+	Control PluginControl `yaml:"control"`
+
 	ConfigTemplates []ExternalPluginConfigTemplate `yaml:"config_templates"`
 }
 
@@ -190,7 +193,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				detail.Scenario = pluginProject.Scenario
 				detail.ConfigFile = pluginProject.ConfigFile
 				detail.ConfigFormat = pluginProject.ConfigFormat
-				detail.LaunchMode = pluginProject.LaunchMode
+				detail.LaunchMode = pluginProject.LaunchNode
 
 				for _, configTemplate := range pluginProject.ConfigTemplates {
 					isMainConfig, err := conv.StringToBool(configTemplate.IsMainConfig)
@@ -208,6 +211,16 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 						SourcePath:    configTemplate.SourcePath,
 						Variables:     convPropertyToTypes(configTemplate.Variables),
 					})
+				}
+
+				detail.Controller = types.PluginController{
+					StartCmd:   pluginProject.Control.StartCmd,
+					StopCmd:    pluginProject.Control.StopCmd,
+					RestartCmd: pluginProject.Control.RestartCmd,
+					ReloadCmd:  pluginProject.Control.ReloadCmd,
+					KillCmd:    pluginProject.Control.KillCmd,
+					VersionCmd: pluginProject.Control.VersionCmd,
+					HealthCmd:  pluginProject.Control.HealthCmd,
 				}
 
 				return nil
@@ -347,14 +360,15 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 					Labels:       []string{},
 					FileName:     file.Info().Name,
 					MD5:          file.Info().MD5,
-					Enabled:      true,
+					Enabled:      false,
 					AsDefault:    false,
 					UpdatedAt:    time.Now(),
 					Operator:     nCtx.BKUsername(),
 					AdditionInfo: nil,
 				},
 				ReleaseAdditionInfoExternalPlugin: types.ReleaseAdditionInfoExternalPlugin{
-					ConfigTemplates: detail.ConfigTemplates,
+					ConfigTemplates:  detail.ConfigTemplates,
+					PluginController: detail.Controller,
 				},
 			}
 

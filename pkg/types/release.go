@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"time"
 
-	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
@@ -178,7 +177,8 @@ type ReleaseOfficialPlugin struct {
 
 // ReleaseAdditionInfoOfficialPlugin defines the addition info of release official plugin.
 type ReleaseAdditionInfoOfficialPlugin struct {
-	ConfigTemplates []PluginPkgConfigTemplate
+	ConfigTemplates  []PluginPkgConfigTemplate
+	PluginController PluginController
 }
 
 // ReleaseExternalPlugin defines the external plugin, it is kind of Release.
@@ -189,99 +189,11 @@ type ReleaseExternalPlugin struct {
 
 // ReleaseAdditionInfoExternalPlugin defines the addition info of release external plugin.
 type ReleaseAdditionInfoExternalPlugin struct {
-	ConfigTemplates []PluginPkgConfigTemplate
+	ConfigTemplates  []PluginPkgConfigTemplate
+	PluginController PluginController
 }
 
-// OriginPkgDetail defines the detail of origin package.
-type OriginPkgDetail struct {
-	fileiface.FileInfo
-
-	UploadID       string
-	Existed        bool
-	Version        string
-	Platforms      []platform.Platform
-	ChangeLogEN    string
-	ChangeLogZH    string
-	ConfigTemplate map[string]string
-	ConfigEnviron  map[string]any
-}
-
-// NewOriginPkgDetail creates a new OriginPkgDetail.
-func NewOriginPkgDetail() *OriginPkgDetail {
-	return &OriginPkgDetail{
-		ConfigTemplate: make(map[string]string),
-		ConfigEnviron:  make(map[string]any),
-	}
-}
-
-// OriginCertPkgDetail defines the detail of cert package.
-type OriginCertPkgDetail struct {
-	fileiface.FileInfo
-
-	UploadID  string
-	Existed   bool
-	CertFiles []string
-}
-
-// OriginBinToolPkgDetail defines the detail of bin tool package.
-type OriginBinToolPkgDetail struct {
-	fileiface.FileInfo
-
-	UploadID       string
-	Existed        bool
-	AgentPlatforms []platform.Platform
-	ProxyPlatforms []platform.Platform
-}
-
-// OriginPluginBinToolPkgDetail defines the detail of plugin bin tool package.
-type OriginPluginBinToolPkgDetail struct {
-	fileiface.FileInfo
-
-	UploadID  string
-	Existed   bool
-	Platforms []platform.Platform
-}
-
-// OriginOfficialPluginPkgDetail defines the detail of official plugin package.
-type OriginOfficialPluginPkgDetail struct {
-	fileiface.FileInfo
-
-	UploadID string
-	Existed  bool
-
-	Name            string
-	Version         string
-	Description     string
-	Scenario        string
-	ConfigFile      string
-	ConfigFormat    string
-	LaunchMode      string
-	ConfigTemplates []PluginPkgConfigTemplate
-
-	Platforms []platform.Platform
-}
-
-// OriginExternalPluginPkgDetail defines the detail of external plugin package.
-type OriginExternalPluginPkgDetail struct {
-	fileiface.FileInfo
-
-	UploadID string
-	Existed  bool
-
-	Name            string
-	Version         string
-	Description     string
-	Scenario        string
-	ConfigFile      string
-	ConfigFormat    string
-	LaunchMode      string
-	SubDirPaths     map[string]map[string]struct{}
-	ConfigTemplates []PluginPkgConfigTemplate
-
-	Platforms []platform.Platform
-}
-
-// PluginPkgConfigTemplate defines the detail of plugin package.
+// PluginPkgConfigTemplate defines the template of plugin package.
 type PluginPkgConfigTemplate struct {
 	PluginVersion string
 	Name          string
@@ -294,7 +206,7 @@ type PluginPkgConfigTemplate struct {
 	Variables     *PluginPkgConfigTemplateProperty
 }
 
-// PluginPkgConfigTemplateProperty defines the detail of plugin package.
+// PluginPkgConfigTemplateProperty defines the template of plugin package.
 type PluginPkgConfigTemplateProperty struct {
 	Title      string                                      `yaml:"title,omitempty"`
 	Type       string                                      `yaml:"type,omitempty"`
@@ -302,4 +214,15 @@ type PluginPkgConfigTemplateProperty struct {
 	Default    any                                         `yaml:"default,omitempty"`
 	Items      *PluginPkgConfigTemplateProperty            `yaml:"items,omitempty"`
 	Properties map[string]*PluginPkgConfigTemplateProperty `yaml:"properties,omitempty"`
+}
+
+// PluginController defines the control of plugin.
+type PluginController struct {
+	StartCmd   string
+	StopCmd    string
+	RestartCmd string
+	ReloadCmd  string
+	KillCmd    string
+	VersionCmd string
+	HealthCmd  string
 }

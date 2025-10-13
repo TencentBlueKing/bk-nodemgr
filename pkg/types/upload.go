@@ -10,7 +10,12 @@
 
 package types
 
-import "time"
+import (
+	"time"
+
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+)
 
 // UploadCategory defines the category of upload.
 type UploadCategory string
@@ -45,4 +50,97 @@ type Upload struct {
 	SavedName string
 	Operator  string
 	CreatedAt time.Time
+}
+
+// OriginPkgDetail defines the detail of origin package.
+type OriginPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID       string
+	Existed        bool
+	Version        string
+	Platforms      []platform.Platform
+	ChangeLogEN    string
+	ChangeLogZH    string
+	ConfigTemplate map[string]string
+	ConfigEnviron  map[string]any
+}
+
+// NewOriginPkgDetail creates a new OriginPkgDetail.
+func NewOriginPkgDetail() *OriginPkgDetail {
+	return &OriginPkgDetail{
+		ConfigTemplate: make(map[string]string),
+		ConfigEnviron:  make(map[string]any),
+	}
+}
+
+// OriginCertPkgDetail defines the detail of cert package.
+type OriginCertPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID  string
+	Existed   bool
+	CertFiles []string
+}
+
+// OriginBinToolPkgDetail defines the detail of bin tool package.
+type OriginBinToolPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID       string
+	Existed        bool
+	AgentPlatforms []platform.Platform
+	ProxyPlatforms []platform.Platform
+}
+
+// OriginPluginBinToolPkgDetail defines the detail of plugin bin tool package.
+type OriginPluginBinToolPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID  string
+	Existed   bool
+	Platforms []platform.Platform
+}
+
+// OriginOfficialPluginPkgDetail defines the detail of official plugin package.
+type OriginOfficialPluginPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID string
+	Existed  bool
+
+	Name            string
+	Version         string
+	Description     string
+	Scenario        string
+	ConfigFile      string
+	ConfigFormat    string
+	LaunchNode      string
+	ConfigTemplates []PluginPkgConfigTemplate
+
+	Controller PluginController
+
+	Platforms []platform.Platform
+}
+
+// OriginExternalPluginPkgDetail defines the detail of external plugin package.
+type OriginExternalPluginPkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID string
+	Existed  bool
+
+	Name            string
+	Version         string
+	Description     string
+	Scenario        string
+	ConfigFile      string
+	ConfigFormat    string
+	LaunchMode      string
+	SubDirPaths     map[string]map[string]struct{}
+	ConfigTemplates []PluginPkgConfigTemplate
+
+	Controller PluginController
+
+	Platforms []platform.Platform
 }

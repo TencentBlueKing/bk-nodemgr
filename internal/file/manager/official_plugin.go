@@ -144,8 +144,19 @@ type OfficialPluginProject struct {
 	Scenario        string                         `yaml:"scenario"`
 	ConfigFile      string                         `yaml:"config_file"`
 	ConfigFormat    string                         `yaml:"config_format"`
-	LaunchMode      string                         `yaml:"launch_mode"`
+	LaunchNode      string                         `yaml:"launch_node"`
+	Control         PluginControl                  `yaml:"control"`
 	ConfigTemplates []OfficialPluginConfigTemplate `yaml:"config_templates"`
+}
+
+type PluginControl struct {
+	StartCmd   string `yaml:"start"`
+	StopCmd    string `yaml:"stop"`
+	RestartCmd string `yaml:"restart"`
+	ReloadCmd  string `yaml:"reload"`
+	VersionCmd string `yaml:"version"`
+	HealthCmd  string `yaml:"health"`
+	KillCmd    string `yaml:"kill"`
 }
 
 // OfficialPluginConfigTemplate represents the project.yml file's config_templates field.
@@ -197,7 +208,7 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 				detail.Scenario = pluginProject.Scenario
 				detail.ConfigFile = pluginProject.ConfigFile
 				detail.ConfigFormat = pluginProject.ConfigFormat
-				detail.LaunchMode = pluginProject.LaunchMode
+				detail.LaunchNode = pluginProject.LaunchNode
 
 				for _, configTemplate := range pluginProject.ConfigTemplates {
 					isMainConfig, err := conv.StringToBool(configTemplate.IsMainConfig)
@@ -215,6 +226,16 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 						SourcePath:    configTemplate.SourcePath,
 						Variables:     convPropertyToTypes(configTemplate.Variables),
 					})
+				}
+
+				detail.Controller = types.PluginController{
+					StartCmd:   pluginProject.Control.StartCmd,
+					StopCmd:    pluginProject.Control.StopCmd,
+					RestartCmd: pluginProject.Control.RestartCmd,
+					ReloadCmd:  pluginProject.Control.ReloadCmd,
+					KillCmd:    pluginProject.Control.KillCmd,
+					VersionCmd: pluginProject.Control.VersionCmd,
+					HealthCmd:  pluginProject.Control.HealthCmd,
 				}
 
 				return nil
@@ -378,14 +399,15 @@ func (m *Manager) PublishReleaseOfficialPlugin(nCtx contextx.IContext, uploadID 
 					Labels:       []string{},
 					FileName:     file.Info().Name,
 					MD5:          file.Info().MD5,
-					Enabled:      true,
+					Enabled:      false,
 					AsDefault:    false,
 					UpdatedAt:    time.Now(),
 					Operator:     nCtx.BKUsername(),
 					AdditionInfo: nil,
 				},
 				ReleaseAdditionInfoOfficialPlugin: types.ReleaseAdditionInfoOfficialPlugin{
-					ConfigTemplates: detail.ConfigTemplates,
+					ConfigTemplates:  detail.ConfigTemplates,
+					PluginController: detail.Controller,
 				},
 			}
 

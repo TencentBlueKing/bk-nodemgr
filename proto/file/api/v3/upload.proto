@@ -182,7 +182,7 @@ message UploadOriginOfficialPluginResp {
     optional string scenario = 9;
     optional string config_file = 10;
     optional string config_format = 11;
-    optional string launch_mode = 12;
+    optional string launch_node = 12;
     repeated Platform platforms = 13;
   }
   Data data = 4;
@@ -211,7 +211,7 @@ message UploadOriginExternalPluginResp {
     optional string scenario = 9;
     optional string config_file = 10;
     optional string config_format = 11;
-    optional string launch_mode = 12;
+    optional string launch_node = 12;
     repeated Platform platforms = 13;
   }
   Data data = 4;
