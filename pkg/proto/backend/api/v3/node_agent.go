@@ -221,11 +221,12 @@ func (x *NodeAgentUpgradeResp) ConvertWorkflowID(workflowID string) {
 
 // GetWorkflowID get workflow id.
 func (x *NodeAgentUpgradeResp) GetWorkflowID() string {
-	if x.GetData() != nil {
-		return x.GetData().GetWorkflowId()
+	data := x.GetData()
+	if data == nil {
+		return ""
 	}
 
-	return ""
+	return data.GetWorkflowId()
 }
 
 // Validate check body.
