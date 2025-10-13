@@ -132,6 +132,9 @@ type IStorageTrigger interface {
 
 	// DeleteTriggers deletes triggers by given trigger IDs.
 	DeleteTriggers(ctx contextx.IContext, triggerIDs ...string) error
+
+	// ExistTrigger checks if a trigger exists by triggerID.
+	ExistTrigger(nCtx contextx.IContext, triggerID string) (bool, error)
 }
 
 // IStorageSchedule defines the interface of schedule workflow storage.

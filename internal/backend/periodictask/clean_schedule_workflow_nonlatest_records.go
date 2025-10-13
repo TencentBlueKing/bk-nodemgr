@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
@@ -80,7 +79,9 @@ func (pt *PeriodicTask) DeleteNonLatestWorkflowScheduleOperInstRecords(nCtx cont
 
 		if err := pt.conf.StgWorkflow.PullOperationInstanceIDsFromOperation(
 			nCtx, opers[0].OperationID, nonLatestOperInstIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("operation-id", opers[0].OperationID, "oper-inst-ids", nonLatestOperInstIDs).Error("failed to pull operation instance ids from operation")
+			logger.G.Sys().WithErr(err).
+				With("operation-id", opers[0].OperationID, "oper-inst-ids", nonLatestOperInstIDs).
+				Error("failed to pull operation instance ids from operation")
 
 			return fmt.Errorf("delete operation-id(%s) related oper-inst-ids(%v) failed: %w",
 				opers[0].OperationID, nonLatestOperInstIDs, err)
@@ -100,19 +101,13 @@ func (pt *PeriodicTask) getOperationInstanceRelatedTriggerID(
 	actionName := fmt.Sprintf(schedule.ActionNameGenScheduleOnceTrigger, scheduleWorkflowName)
 	triggerIDs := make([]string, 0)
 	for _, operInstID := range operInstIDs {
-		privateData, err := pt.conf.StgWorkflow.GetActionInstancePrivateData(nCtx, operInstID, actionName)
+		actInstData, err := pt.conf.StgWorkflow.GetActionInstanceData(nCtx, operInstID, actionName)
 		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				logger.G.Sys().With("oper-inst-id", operInstID).Warn("operation instance already deleted, skip it")
-
-				continue
-			}
-
-			return nil, fmt.Errorf("get action private data by oper-inst-id(%s) and action-name(%s) failed: %w",
+			return nil, fmt.Errorf("failed to get action private data by oper-inst-id(%s) and action-name(%s): %w",
 				operInstID, actionName, err)
 		}
 
-		triggerID, ok := privateData["child_trigger_id"]
+		triggerID, ok := actInstData.PrivateData["child_trigger_id"]
 		if !ok {
 			continue
 		}
@@ -130,15 +125,19 @@ func (pt *PeriodicTask) getOperationInstanceRelatedTriggerID(
 
 // deleteOnceTriggerAndRelationd delete once trigger and its related operations and operation instances.
 func (pt *PeriodicTask) deleteOnceTriggerAndRelationd(nCtx contextx.IContext, triggerID string) error {
+	existTrigger, err := pt.conf.StgWorkflow.ExistTrigger(nCtx, triggerID)
+	if err != nil {
+		return err
+	}
+
+	if !existTrigger {
+		logger.G.Sys().With("trigger-id", triggerID).Info("trigger already deleted, skip it")
+		return nil
+	}
+
 	trig, err := pt.conf.StgWorkflow.GetTrigger(nCtx, triggerID)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			logger.G.Sys().With("trigger-id", triggerID).Warn("trigger already deleted, skip it")
-
-			return nil
-		}
-
-		return err
+		return fmt.Errorf("failed to get trigger by trigger-id(%s): %w", triggerID, err)
 	}
 
 	if trig.Category != trigger.CategoryOnce {

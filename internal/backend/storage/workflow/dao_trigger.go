@@ -67,3 +67,13 @@ func (s *Storage) deleteTriggers(nCtx contextx.IContext, triggerIDs ...string) e
 
 	return s.daoTrigger.Delete(nCtx, triggerIDs...)
 }
+
+// existTrigger checks if a trigger exists by triggerID.
+func (s *Storage) existTrigger(nCtx contextx.IContext, triggerID string) (bool, error) {
+	cnt, err := s.daoTrigger.Count(nCtx, daoTrigger.WithTriggerID(triggerID))
+	if err != nil {
+		return false, err
+	}
+
+	return cnt > 0, nil
+}

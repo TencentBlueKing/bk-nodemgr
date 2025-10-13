@@ -260,6 +260,26 @@ func (s *Storage) DeleteTriggers(nCtx contextx.IContext, triggerIDs ...string) e
 	return nil
 }
 
+// ExistTrigger checks if a trigger exists.
+func (s *Storage) ExistTrigger(nCtx contextx.IContext, triggerID string) (bool, error) {
+	var (
+		exist bool
+		err   error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_trigger")
+	defer metric.End(err)
+
+	if exist, err = s.existTrigger(nCtx, triggerID); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to check trigger exist")
+
+		return false, fmt.Errorf("failed to check trigger exist: %w", err)
+	}
+
+	return exist, nil
+}
+
 // ListScheduleWorkflow lists schedule workflow by page and conditions.
 func (s *Storage) ListScheduleWorkflow(
 	nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (

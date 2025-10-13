@@ -27,6 +27,9 @@ type IHandler interface {
 	// Get get a specified trigger.
 	Get(nCtx contextx.IContext, triggerID string) (*trigger.Trigger, error)
 
+	// Count counts triggers with options.
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
+
 	// List list triggers with options.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*trigger.Trigger, int64, error)
 
@@ -80,6 +83,25 @@ func (h *handler) Get(nCtx contextx.IContext, triggerID string) (*trigger.Trigge
 	}
 
 	return convertTriggerToTypes(data), nil
+}
+
+// Count counts triggers with options.
+func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	if nCtx == nil {
+		return 0, errors.New("nCtx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.dao.Count(nCtx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return num, nil
 }
 
 // List list triggers with options.
