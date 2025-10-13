@@ -243,9 +243,33 @@ func (x *NodeAgentReconfigReq) Validate() error {
 func (x *NodeAgentReconfigReq) AutoConvert() {
 }
 
+// ConvertParamFromTypes convert host param from types.
+func (x *NodeAgentReconfigReq) ConvertParamFromTypes(reconfigParam *types.NodeAgentReconfigParam) {
+	hostsParam := make([]*NodeAgentReconfigReq_Host, len(reconfigParam.Hosts))
+	for idx, host := range reconfigParam.Hosts {
+		hostsParam[idx] = &NodeAgentReconfigReq_Host{
+			BkHostId:                  host.HostID,
+			Force:                     host.Force,
+			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
+		}
+	}
+
+	x.Host = hostsParam
+}
+
 // ConvertWorkflowID convert workflow id.
 func (x *NodeAgentReconfigResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentReconfigResp_Data{WorkflowId: workflowID}
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeAgentReconfigResp) GetWorkflowID() string {
+	data := x.GetData()
+	if data == nil {
+		return ""
+	}
+
+	return data.GetWorkflowId()
 }
 
 // Validate check body.
@@ -262,9 +286,33 @@ func (x *NodeAgentRestartReq) Validate() error {
 func (x *NodeAgentRestartReq) AutoConvert() {
 }
 
+// ConvertParamFromTypes convert host param from types.
+func (x *NodeAgentRestartReq) ConvertParamFromTypes(restartParam *types.NodeAgentRestartParam) {
+	hostsParam := make([]*NodeAgentRestartReq_Host, len(restartParam.Hosts))
+	for idx, host := range restartParam.Hosts {
+		hostsParam[idx] = &NodeAgentRestartReq_Host{
+			BkHostId:                  host.HostID,
+			Force:                     host.Force,
+			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
+		}
+	}
+
+	x.Host = hostsParam
+}
+
 // ConvertWorkflowID convert workflow id.
 func (x *NodeAgentRestartResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentRestartResp_Data{WorkflowId: workflowID}
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeAgentRestartResp) GetWorkflowID() string {
+	data := x.GetData()
+	if data == nil {
+		return ""
+	}
+
+	return data.GetWorkflowId()
 }
 
 // Validate check body.

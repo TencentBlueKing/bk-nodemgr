@@ -161,6 +161,22 @@ service NodeAgent {
     };
   }
 
+  // NodeAgentRestart restarts node agent.
+  rpc NodeAgentRestart(NodeAgentRestartReq) returns (NodeAgentRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/restart"
+      body : "*"
+    };
+  }
+
+  // NodeAgentReconfig reconfigs node agent.
+  rpc NodeAgentReconfig(NodeAgentReconfigReq) returns (NodeAgentReconfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/reconfig"
+      body : "*"
+    };
+  }
+
   // NodeAgentInstallCheck provides node agent install check.
   rpc NodeAgentInstallCheck(NodeAgentInstallCheckReq)
       returns (NodeAgentInstallCheckResp) {

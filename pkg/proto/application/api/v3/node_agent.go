@@ -208,6 +208,132 @@ func (x *NodeAgentUpgradeResp) ConvertWorkflowID(workflowID string) {
 }
 
 // Validate check body.
+func (x *NodeAgentReconfigReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+func (x *NodeAgentReconfigReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentReconfigReq) AutoConvert() {
+}
+
+// ConvertParamToTypes convert to types.
+func (x *NodeAgentReconfigReq) ConvertParamToTypes() *types.NodeAgentReconfigParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.NodeAgentReconfigHost, len(hosts))
+
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.NodeAgentReconfigHost{
+			HostID:                 host.GetBkHostId(),
+			Force:                  host.GetForce(),
+			GracefulRestartTimeout: time.Duration(host.GetGracefulRestartTimeoutSec()) * time.Second,
+		}
+	}
+
+	return &types.NodeAgentReconfigParam{
+		Hosts: hostsParam,
+	}
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentReconfigResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentReconfigResp_Data{WorkflowId: workflowID}
+}
+
+// Validate check body.
+func (x *NodeAgentRestartReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+func (x *NodeAgentRestartReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentRestartReq) AutoConvert() {
+}
+
+// ConvertParamToTypes convert to types.
+func (x *NodeAgentRestartReq) ConvertParamToTypes() *types.NodeAgentRestartParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.NodeAgentRestartHost, len(hosts))
+
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.NodeAgentRestartHost{
+			HostID:                 host.GetBkHostId(),
+			Force:                  host.GetForce(),
+			GracefulRestartTimeout: time.Duration(host.GetGracefulRestartTimeoutSec()) * time.Second,
+		}
+	}
+
+	return &types.NodeAgentRestartParam{
+		Hosts: hostsParam,
+	}
+}
+
+// ConvertParamFromTypes convert host param from types.
+func (x *NodeAgentRestartReq) ConvertParamFromTypes(restartParam *types.NodeAgentRestartParam) {
+	hostsParam := make([]*NodeAgentRestartReq_Host, len(restartParam.Hosts))
+	for idx, host := range restartParam.Hosts {
+		hostsParam[idx] = &NodeAgentRestartReq_Host{
+			BkHostId:                  host.HostID,
+			Force:                     host.Force,
+			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
+		}
+	}
+
+	x.Host = hostsParam
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentRestartResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentRestartResp_Data{WorkflowId: workflowID}
+}
+
+// Validate check body.
 func (x *NodeAgentInstallCheckReq) Validate() error {
 	hosts := x.GetHost()
 	if len(hosts) == 0 {

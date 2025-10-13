@@ -51,6 +51,30 @@ type NodeAgentUpgradeParam struct {
 	Hosts []*NodeAgentUpgradeHost
 }
 
+// NodeAgentRestartHost describes the node agent restart host.
+type NodeAgentRestartHost struct {
+	HostID                 int64
+	Force                  bool
+	GracefulRestartTimeout time.Duration
+}
+
+// NodeAgentRestartParam describes the node agent restart parameter.
+type NodeAgentRestartParam struct {
+	Hosts []*NodeAgentRestartHost
+}
+
+// NodeAgentReconfigHost describes the node agent reconfig host.
+type NodeAgentReconfigHost struct {
+	HostID                 int64
+	Force                  bool
+	GracefulRestartTimeout time.Duration
+}
+
+// NodeAgentReconfigParam describes the node agent reconfig parameter.
+type NodeAgentReconfigParam struct {
+	Hosts []*NodeAgentReconfigHost
+}
+
 // NodeAgentInstallCheckInfo describes the node agent install check info.
 type NodeAgentInstallCheckInfo struct {
 	BizID         int64

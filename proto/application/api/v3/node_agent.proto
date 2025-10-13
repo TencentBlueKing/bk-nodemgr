@@ -65,6 +65,48 @@ message NodeAgentUpgradeResp {
   Data data = 5;
 }
 
+// NodeAgentReconfigReq describes the node agent reconfigure request.
+message NodeAgentReconfigReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+}
+
+// NodeAgentReconfigResp describes the node agent reconfigure response.
+message NodeAgentReconfigResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// NodeAgentRestartReq describes the node agent restart request.
+message NodeAgentRestartReq {
+  message Host {
+    int64 bk_host_id = 1;
+    bool force = 2;
+    int64 graceful_restart_timeout_sec = 3;
+  }
+  repeated Host host = 1;
+}
+
+// NodeAgentRestartResp describes the node agent restart response.
+message NodeAgentRestartResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // AgentInstallCheckInfo describes the node agent install check parameter.
 message AgentInstallCheckInfo {
   int64 bk_biz_id = 1;
@@ -135,6 +177,22 @@ service NodeAgent {
   rpc NodeAgentUpgrade(NodeAgentUpgradeReq) returns (NodeAgentUpgradeResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/upgrade"
+      body : "*"
+    };
+  }
+
+  // NodeAgentRestart restarts node agent.
+  rpc NodeAgentRestart(NodeAgentRestartReq) returns (NodeAgentRestartResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/restart"
+      body : "*"
+    };
+  }
+
+  // NodeAgentReconfig reconfigs node agent.
+  rpc NodeAgentReconfig(NodeAgentReconfigReq) returns (NodeAgentReconfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/reconfig"
       body : "*"
     };
   }

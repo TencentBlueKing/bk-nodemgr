@@ -842,6 +842,68 @@ func (c *cli) upgradeNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgen
 	return resp, nil
 }
 
+func (c *cli) restartNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgentRestartReq) (
+	*protoBackend.NodeAgentRestartResp, error) {
+
+	resp := new(protoBackend.NodeAgentRestartResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/agent/restart").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("restart node agent failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("restart node agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) reconfigNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgentReconfigReq) (
+	*protoBackend.NodeAgentReconfigResp, error) {
+
+	resp := new(protoBackend.NodeAgentReconfigResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/node/agent/reconfig").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("reconfig node agent failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("reconfig node agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAgentInstallCheckReq,
 ) (*protoBackend.NodeAgentInstallCheckResp, error) {
 

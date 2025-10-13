@@ -187,6 +187,18 @@ type IHandlerNodeAgent interface {
 	// @return the upgrading workflow-ids and error.
 	UpgradeAgent(ctx contextx.IContext, upgradeParam *types.NodeAgentUpgradeParam) (string, error)
 
+	// ReconfigAgent node agent.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param reconfigParam the reconfig param.
+	// @return the reconfig workflow-ids and error.
+	ReconfigAgent(ctx contextx.IContext, reconfigParam *types.NodeAgentReconfigParam) (string, error)
+
+	// RestartProxy node agent.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param restartParam the restart param.
+	// @return the restarting workflow-ids and error.
+	RestartAgent(ctx contextx.IContext, restartParam *types.NodeAgentRestartParam) (string, error)
+
 	// CheckAgentInstall node agent.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param checkParam the check param.

@@ -72,13 +72,29 @@ func (h *Handler) UpgradeAgent(ctx contextx.IContext, upgradeParam *types.NodeAg
 }
 
 // RestartAgent node agent.
-func (h *Handler) RestartAgent(_ contextx.IContext) (string, error) {
-	return "", nil
+func (h *Handler) RestartAgent(ctx contextx.IContext, restartParam *types.NodeAgentRestartParam) (string, error) {
+	req := new(protoBackend.NodeAgentRestartReq)
+	req.ConvertParamFromTypes(restartParam)
+
+	resp, err := h.cli.restartNodeAgent(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetWorkflowID(), nil
 }
 
 // ReconfigAgent node agent.
-func (h *Handler) ReconfigAgent(_ contextx.IContext) (string, error) {
-	return "", nil
+func (h *Handler) ReconfigAgent(ctx contextx.IContext, reconfigParam *types.NodeAgentReconfigParam) (string, error) {
+	req := new(protoBackend.NodeAgentReconfigReq)
+	req.ConvertParamFromTypes(reconfigParam)
+
+	resp, err := h.cli.reconfigNodeAgent(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetWorkflowID(), nil
 }
 
 // ReloadAgent node agent.

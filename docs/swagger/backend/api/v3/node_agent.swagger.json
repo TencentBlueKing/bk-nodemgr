@@ -84,6 +84,74 @@
         ]
       }
     },
+    "/api/v3/node/agent/reconfig": {
+      "post": {
+        "summary": "NodeAgentReconfig reconfigs node agent.",
+        "operationId": "NodeAgent_NodeAgentReconfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentReconfigResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentReconfigReq describes the node agent reconfigure request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentReconfigReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
+    "/api/v3/node/agent/restart": {
+      "post": {
+        "summary": "NodeAgentRestart restarts node agent.",
+        "operationId": "NodeAgent_NodeAgentRestart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentRestartResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentRestartReq describes the node agent restart request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentRestartReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
     "/api/v3/node/agent/upgrade": {
       "post": {
         "summary": "NodeAgentUpgrade upgrades node agent.",
@@ -378,6 +446,124 @@
       "description": "NodeAgentInstallResp describes the node agent install response."
     },
     "v3NodeAgentInstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeAgentReconfigReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentReconfigReqHost"
+          }
+        }
+      },
+      "description": "NodeAgentReconfigReq describes the node agent reconfigure request."
+    },
+    "v3NodeAgentReconfigReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "force": {
+          "type": "boolean"
+        },
+        "graceful_restart_timeout_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentReconfigResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentReconfigRespData"
+        }
+      },
+      "description": "NodeAgentReconfigResp describes the node agent reconfigure response."
+    },
+    "v3NodeAgentReconfigRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeAgentRestartReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentRestartReqHost"
+          }
+        }
+      },
+      "description": "NodeAgentRestartReq describes the node agent restart request."
+    },
+    "v3NodeAgentRestartReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "force": {
+          "type": "boolean"
+        },
+        "graceful_restart_timeout_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentRestartResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentRestartRespData"
+        }
+      },
+      "description": "NodeAgentRestartResp describes the node agent restart response."
+    },
+    "v3NodeAgentRestartRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {
