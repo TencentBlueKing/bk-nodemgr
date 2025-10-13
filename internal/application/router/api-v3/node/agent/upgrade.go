@@ -8,7 +8,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent provides the agent API handler.
 package agent
 
 import (
@@ -18,21 +17,21 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-// Install install agent.
-func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeAgentInstallReq)
+// Upgrade agent.
+func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.NodeAgentUpgradeReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install agent, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.InstallAgent(rCtx, req.ConvertAgentParamToTypes())
+	workflowID, err := h.backendHandler.UpgradeAgent(rCtx, req.ConvertParamToTypes())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install agent")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade agent")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install agent")
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched upgrade agent")
 
 	resp := new(protoApplication.NodeAgentInstallResp)
 	resp.ConvertWorkflowID(workflowID)

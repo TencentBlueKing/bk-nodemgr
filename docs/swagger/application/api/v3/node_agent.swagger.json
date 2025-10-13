@@ -84,6 +84,40 @@
         ]
       }
     },
+    "/api/v3/node/agent/upgrade": {
+      "post": {
+        "summary": "NodeAgentUpgrade upgrades node agent.",
+        "operationId": "NodeAgent_NodeAgentUpgrade",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentUpgradeReq describes the node agent upgrade request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
     "/api/v3/node/agent/upload_template": {
       "post": {
         "operationId": "NodeAgent_UploadAgentTemplate",
@@ -362,6 +396,68 @@
       "description": "NodeAgentInstallResp describes the node agent install response."
     },
     "v3NodeAgentInstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeAgentUpgradeReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentUpgradeReqHost"
+          }
+        }
+      },
+      "description": "NodeAgentUpgradeReq describes the node agent upgrade request."
+    },
+    "v3NodeAgentUpgradeReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "target_version": {
+          "type": "string"
+        },
+        "force": {
+          "type": "boolean"
+        },
+        "graceful_restart_timeout_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentUpgradeResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentUpgradeRespData"
+        }
+      },
+      "description": "NodeAgentUpgradeResp describes the node agent upgrade response."
+    },
+    "v3NodeAgentUpgradeRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {

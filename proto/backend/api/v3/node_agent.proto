@@ -143,3 +143,30 @@ message NodeAgentRestartResp {
   message Data { string workflow_id = 1; }
   Data data = 5;
 }
+
+service NodeAgent {
+  // NodeAgentInstall installs node agent.
+  rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/install"
+      body : "*"
+    };
+  }
+
+  // NodeAgentUpgrade upgrades node agent.
+  rpc NodeAgentUpgrade(NodeAgentUpgradeReq) returns (NodeAgentUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/upgrade"
+      body : "*"
+    };
+  }
+
+  // NodeAgentInstallCheck provides node agent install check.
+  rpc NodeAgentInstallCheck(NodeAgentInstallCheckReq)
+      returns (NodeAgentInstallCheckResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/install_check"
+      body : "*"
+    };
+  }
+}

@@ -4,14 +4,133 @@
     "title": "node_agent.proto",
     "version": "version not set"
   },
+  "tags": [
+    {
+      "name": "NodeAgent"
+    }
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/api/v3/node/agent/install": {
+      "post": {
+        "summary": "NodeAgentInstall installs node agent.",
+        "operationId": "NodeAgent_NodeAgentInstall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentInstallReq describes the node agent install request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
+    "/api/v3/node/agent/install_check": {
+      "post": {
+        "summary": "NodeAgentInstallCheck provides node agent install check.",
+        "operationId": "NodeAgent_NodeAgentInstallCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallCheckResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentInstallCheckReq describes the node agent install check request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentInstallCheckReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
+    "/api/v3/node/agent/upgrade": {
+      "post": {
+        "summary": "NodeAgentUpgrade upgrades node agent.",
+        "operationId": "NodeAgent_NodeAgentUpgrade",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentUpgradeReq describes the node agent upgrade request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUpgradeReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    }
+  },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -37,6 +156,294 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3NodeAgentInstallCheckReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallCheckReqHost"
+          }
+        }
+      },
+      "description": "NodeAgentInstallCheckReq describes the node agent install check request."
+    },
+    "v3NodeAgentInstallCheckReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentInstallCheckResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentInstallCheckRespData"
+        }
+      },
+      "description": "NodeAgentInstallCheckResp describes the response for node agent installation\ncheck."
+    },
+    "v3NodeAgentInstallCheckRespData": {
+      "type": "object",
+      "properties": {
+        "eligibilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallEligibility"
+          }
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentInstallEligibility": {
+      "type": "object",
+      "properties": {
+        "inner_ip": {
+          "type": "string"
+        },
+        "eligibility_status": {
+          "type": "string"
+        },
+        "duplicate_host_ids": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "NodeAgentInstallEligibility describes the eligibility for node agent\ninstallation."
+    },
+    "v3NodeAgentInstallReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallReqHost"
+          }
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentInstallReqTargetVersion"
+          }
+        },
+        "disable_default_target_version": {
+          "type": "boolean"
+        }
+      },
+      "description": "NodeAgentInstallReq describes the node agent install request."
+    },
+    "v3NodeAgentInstallReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_addressing": {
+          "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "login_ip": {
+          "type": "string"
+        },
+        "login_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "login_user": {
+          "type": "string"
+        },
+        "login_mode": {
+          "type": "string",
+          "title": "support: password_vault, password, keyfile"
+        },
+        "login_password": {
+          "type": "string"
+        },
+        "login_key_file": {
+          "type": "string"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "re_register": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v3NodeAgentInstallReqTargetVersion": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeAgentInstallResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentInstallRespData"
+        }
+      },
+      "description": "NodeAgentInstallResp describes the node agent install response."
+    },
+    "v3NodeAgentInstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeAgentUpgradeReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentUpgradeReqHost"
+          }
+        }
+      },
+      "description": "NodeAgentUpgradeReq describes the node agent upgrade request."
+    },
+    "v3NodeAgentUpgradeReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "target_version": {
+          "type": "string"
+        },
+        "force": {
+          "type": "boolean"
+        },
+        "graceful_restart_timeout_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentUpgradeResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentUpgradeRespData"
+        }
+      },
+      "description": "NodeAgentUpgradeResp describes the node agent upgrade response."
+    },
+    "v3NodeAgentUpgradeRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
         }
       }
     }

@@ -35,7 +35,9 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/install", restserver.Handler(h.AgentInstall))
+	h.rg.POST("/install", restserver.Handler(h.Install))
+	h.rg.POST("/upgrade", restserver.Handler(h.Upgrade))
+
 	h.rg.POST("/install_check", restserver.Handler(h.AgentInstallCheck))
 
 	h.rg.GET("/download_template", restserver.FileHandler(h.DownloadTemplate))

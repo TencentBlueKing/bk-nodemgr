@@ -12,6 +12,7 @@ package types
 
 import (
 	"fmt"
+	"time"
 )
 
 // NodeAgentInstallHost describes the node agent install host.
@@ -35,6 +36,19 @@ type NodeAgentInstallParam struct {
 	NodeAgentInstallHosts       []*NodeAgentInstallHost
 	NodeInstallTargetVersion    []*TargetVersion
 	DisableDefaultTargetVersion bool
+}
+
+// NodeAgentUpgradeHost describes the node agent upgrade host.
+type NodeAgentUpgradeHost struct {
+	HostID                 int64
+	Force                  bool
+	TargetVersion          string
+	GracefulRestartTimeout time.Duration
+}
+
+// NodeAgentUpgradeParam describes the node agent upgrade parameter.
+type NodeAgentUpgradeParam struct {
+	Hosts []*NodeAgentUpgradeHost
 }
 
 // NodeAgentInstallCheckInfo describes the node agent install check info.

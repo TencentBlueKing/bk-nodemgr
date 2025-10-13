@@ -43,6 +43,28 @@ message NodeAgentInstallResp {
   Data data = 5;
 }
 
+// NodeAgentUpgradeReq describes the node agent upgrade request.
+message NodeAgentUpgradeReq {
+  message Host {
+    int64 bk_host_id = 1;
+    string target_version = 2;
+    bool force = 3;
+    int64 graceful_restart_timeout_sec = 4;
+  }
+  repeated Host host = 1;
+}
+
+// NodeAgentUpgradeResp describes the node agent upgrade response.
+message NodeAgentUpgradeResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // AgentInstallCheckInfo describes the node agent install check parameter.
 message AgentInstallCheckInfo {
   int64 bk_biz_id = 1;
@@ -105,6 +127,14 @@ service NodeAgent {
   rpc NodeAgentInstall(NodeAgentInstallReq) returns (NodeAgentInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/install"
+      body : "*"
+    };
+  }
+
+  // NodeAgentUpgrade upgrades node agent.
+  rpc NodeAgentUpgrade(NodeAgentUpgradeReq) returns (NodeAgentUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/upgrade"
       body : "*"
     };
   }

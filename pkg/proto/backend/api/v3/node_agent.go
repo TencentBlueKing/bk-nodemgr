@@ -195,6 +195,21 @@ func (x *NodeAgentUpgradeReq_Host) Validate() error {
 	return nil
 }
 
+// ConvertParamFromTypes convert param from types.
+func (x *NodeAgentUpgradeReq) ConvertParamFromTypes(upgradeParam *types.NodeAgentUpgradeParam) {
+	hostsParam := make([]*NodeAgentUpgradeReq_Host, len(upgradeParam.Hosts))
+	for idx, host := range upgradeParam.Hosts {
+		hostsParam[idx] = &NodeAgentUpgradeReq_Host{
+			BkHostId:                  host.HostID,
+			Force:                     host.Force,
+			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
+			TargetVersion:             host.TargetVersion,
+		}
+	}
+
+	x.Host = hostsParam
+}
+
 // AutoConvert auto convert.
 func (x *NodeAgentUpgradeReq) AutoConvert() {
 }
@@ -202,6 +217,15 @@ func (x *NodeAgentUpgradeReq) AutoConvert() {
 // ConvertWorkflowID convert workflow id.
 func (x *NodeAgentUpgradeResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentUpgradeResp_Data{WorkflowId: workflowID}
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeAgentUpgradeResp) GetWorkflowID() string {
+	if x.GetData() != nil {
+		return x.GetData().GetWorkflowId()
+	}
+
+	return ""
 }
 
 // Validate check body.

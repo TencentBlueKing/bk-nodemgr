@@ -13,6 +13,7 @@ package v3
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -142,6 +143,68 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 // ConvertWorkflowID convert workflow id.
 func (x *NodeAgentInstallResp) ConvertWorkflowID(workflowID string) {
 	x.Data = &NodeAgentInstallResp_Data{WorkflowId: workflowID}
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentUpgradeReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *NodeAgentUpgradeReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ConvertParamToTypes convert to types.
+func (x *NodeAgentUpgradeReq) ConvertParamToTypes() *types.NodeAgentUpgradeParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.NodeAgentUpgradeHost, len(hosts))
+
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.NodeAgentUpgradeHost{
+			HostID:                 host.GetBkHostId(),
+			Force:                  host.GetForce(),
+			GracefulRestartTimeout: time.Duration(host.GetGracefulRestartTimeoutSec()) * time.Second,
+			TargetVersion:          host.GetTargetVersion(),
+		}
+	}
+
+	return &types.NodeAgentUpgradeParam{
+		Hosts: hostsParam,
+	}
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeAgentUpgradeReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	if x.GetTargetVersion() == "" {
+		return errors.New("target_version can not be empty")
+	}
+
+	return nil
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentUpgradeResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentUpgradeResp_Data{WorkflowId: workflowID}
 }
 
 // Validate check body.
