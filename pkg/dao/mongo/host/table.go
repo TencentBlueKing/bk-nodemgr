@@ -24,6 +24,7 @@ func TableName(tenantID string) string {
 }
 
 // HostStatic represents a host static information.
+// nolint: revive
 type HostStatic struct {
 	BizID         int64  `json:"biz_id" bson:"biz_id"`
 	NetworkAreaID int64  `json:"networkarea_id" bson:"networkarea_id"`
@@ -44,6 +45,7 @@ type HostStatic struct {
 }
 
 // HostDynamic represents a host dynamic information.
+// nolint: revive
 type HostDynamic struct {
 	NodeRole                 string   `json:"node_role" bson:"node_role"`
 	NodeStatus               string   `json:"node_status" bson:"node_status"`
