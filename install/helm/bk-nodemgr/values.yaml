@@ -856,6 +856,13 @@ backend:
           agentDataIPCPath: ""
           agentPluginIPCPath: ""
           environDir: ""
+        pluginCustom:
+          logDir: ""
+          dataDir: ""
+          runDir: ""
+          hostIDPath: ""
+          agentDataIPCPath: ""
+          agentPluginIPCPath: ""
       - # defines the gse deploy related settings.
         generation: 2
         osType: "windows"
@@ -867,6 +874,13 @@ backend:
           agentDataIPCPath: ""
           agentPluginIPCPath: ""
           environDir: ""
+        pluginCustom:
+          logDir: ""
+          dataDir: ""
+          runDir: ""
+          hostIDPath: ""
+          agentDataIPCPath: ""
+          agentPluginIPCPath: ""
 
     # defines the api gateway server related settings.
     apiGateWayServer:

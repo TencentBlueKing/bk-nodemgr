@@ -163,7 +163,13 @@ func (svc *Service) initialStaticsConfigs() error {
 		}
 
 		pluginDeployConf := deployconstant.PluginDeployConf{
-			DeployConf: deployConf,
+			DeployConf:         deployConf,
+			LogDir:             svc.conf.GSEDeployConfs[idx].PluginCustom.LogDir,
+			DataDir:            svc.conf.GSEDeployConfs[idx].PluginCustom.DataDir,
+			RunDir:             svc.conf.GSEDeployConfs[idx].PluginCustom.RunDir,
+			HostIDPath:         svc.conf.GSEDeployConfs[idx].PluginCustom.HostIDPath,
+			AgentDataIPCPath:   svc.conf.GSEDeployConfs[idx].PluginCustom.AgentDataIPCPath,
+			AgentPluginIPCPath: svc.conf.GSEDeployConfs[idx].PluginCustom.AgentPluginIPCPath,
 		}
 		if err := deployconstant.SetPluginDeployConf(pluginDeployConf); err != nil {
 			return fmt.Errorf("failed to set pluginStg deploy conf: %w", err)

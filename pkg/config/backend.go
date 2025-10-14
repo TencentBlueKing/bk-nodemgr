@@ -239,11 +239,12 @@ func (svc *BackendService) Validate() error {
 
 // GSEDeployConf defines the deployment configuration for gse node.
 type GSEDeployConf struct {
-	Generation    int64           `yaml:"generation" usage:"generation of deploy"`
-	OsType        string          `yaml:"osType" usage:"os type"`
-	BaseWorkDir   string          `yaml:"baseWorkDir" usage:"base work dir"`
-	BaseDeployDir string          `yaml:"baseDeployDir" usage:"base deploy dir"`
-	Custom        GSEDeployCustom `yaml:"custom" usage:"custom deploy conf"`
+	Generation    int64                 `yaml:"generation" usage:"generation of deploy"`
+	OsType        string                `yaml:"osType" usage:"os type"`
+	BaseWorkDir   string                `yaml:"baseWorkDir" usage:"base work dir"`
+	BaseDeployDir string                `yaml:"baseDeployDir" usage:"base deploy dir"`
+	Custom        GSEDeployCustom       `yaml:"custom" usage:"custom deploy conf"`
+	PluginCustom  GSEDeployPluginCustom `yaml:"pluginCustom" usage:"plugin custom deploy conf"`
 }
 
 // GSEDeployCustom defines the custom deployment configuration for gse node.
@@ -253,6 +254,16 @@ type GSEDeployCustom struct {
 	AgentDataIPCPath   string `yaml:"agentDataIPCPath" usage:"data ipc path"`
 	AgentPluginIPCPath string `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
 	EnvironDir         string `yaml:"environDir" usage:"environ dir"`
+}
+
+// GSEDeployPluginCustom defines the custom deployment configuration for plugin.
+type GSEDeployPluginCustom struct {
+	LogDir             string `yaml:"logDir" usage:"log dir"`
+	DataDir            string `yaml:"dataDir" usage:"data dir"`
+	RunDir             string `yaml:"runDir" usage:"run dir"`
+	HostIDPath         string `yaml:"hostIDPath" usage:"host id path"`
+	AgentDataIPCPath   string `yaml:"agentDataIPCPath" usage:"data ipc path"`
+	AgentPluginIPCPath string `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
 }
 
 // Access defines the access configuration for nodemgr system to authenticate.
