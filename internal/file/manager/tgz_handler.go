@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -25,15 +26,15 @@ const (
 	tgzModeFile = 0644
 	tgzModeExe  = 0755
 
-	tgzPathNameAny1 = "*~1"
-	tgzPathNameAny2 = "*~2"
-	tgzPathNameAny3 = "*~3"
+	tgzPathMatchingSegment1 = "*~1"
+	tgzPathMatchingSegment2 = "*~2"
+	tgzPathMatchingSegment3 = "*~3"
 )
 
-func isTgzPathNameAny(pathName string) bool {
-	return pathName == tgzPathNameAny1 ||
-		pathName == tgzPathNameAny2 ||
-		pathName == tgzPathNameAny3
+func isTgzPathMatchingSegment(pathName string) bool {
+	return pathName == tgzPathMatchingSegment1 ||
+		pathName == tgzPathMatchingSegment2 ||
+		pathName == tgzPathMatchingSegment3
 }
 
 type tgzWriteRuleDir struct {
@@ -53,8 +54,8 @@ type tgzWriteRuleStream struct {
 }
 
 type tgzReadRule struct {
-	filePath []string
-	callback func(path []string, r io.Reader) error
+	filePathRegex []string
+	callback      func(path []string, r io.Reader) error
 }
 
 // generateTgz takes responsibility for all source and target file to close.
@@ -159,7 +160,7 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 			matched := true
 			mapping := make(map[string]string)
 			for idx := range paths {
-				if isTgzPathNameAny(rule.sourceFilePath[idx]) {
+				if isTgzPathMatchingSegment(rule.sourceFilePath[idx]) {
 					mapping[rule.sourceFilePath[idx]] = paths[idx]
 					continue
 				}
@@ -176,7 +177,7 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 
 			target := make([]string, len(rule.targetFilePath))
 			for idx := range rule.targetFilePath {
-				if isTgzPathNameAny(rule.targetFilePath[idx]) {
+				if isTgzPathMatchingSegment(rule.targetFilePath[idx]) {
 					var ok bool
 					target[idx], ok = mapping[rule.targetFilePath[idx]]
 
@@ -209,6 +210,21 @@ func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWr
 	}
 
 	return nil
+}
+
+// buildFullMatchRegex build full match regex.
+func buildFullMatchRegex(str string) string {
+	return fmt.Sprintf(`^%s$`, str)
+}
+
+// buildPrefixMatchRegex build prefix match regex.
+func buildPrefixMatchRegex(str string) string {
+	return fmt.Sprintf(`^%s.*$`, str)
+}
+
+// buildSuffixMatchRegex build suffix match regex.
+func buildSuffixMatchRegex(str string) string {
+	return fmt.Sprintf(`.*%s$`, str)
 }
 
 // checkTgz takes responsibility for source file to close.
@@ -250,21 +266,13 @@ func checkTgz(sourceFile io.ReadCloser, rules []tgzReadRule) (err error) {
 
 		// validates if the paths match the rules.
 		for _, rule := range rules {
-			if len(paths) < len(rule.filePath) {
+			if len(paths) < len(rule.filePathRegex) {
 				continue
 			}
 
 			matched := true
-			for idx := range rule.filePath {
-				if isTgzPathNameAny(rule.filePath[idx]) {
-					continue
-				}
-
-				// support prefix or suffix match
-				if rule.filePath[idx] != paths[idx] &&
-					!strings.HasPrefix(paths[idx], rule.filePath[idx]) &&
-					!strings.HasSuffix(paths[idx], rule.filePath[idx]) {
-
+			for idx := range rule.filePathRegex {
+				if !regexp.MustCompile(rule.filePathRegex[idx]).MatchString(paths[idx]) {
 					matched = false
 					break
 				}

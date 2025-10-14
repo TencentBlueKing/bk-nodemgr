@@ -193,7 +193,7 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, originalOfficialPluginFileNameProject},
+			filePathRegex: []string{buildPrefixMatchRegex(originalOfficialPluginDirNamePlatPrefix), ".*", buildFullMatchRegex(originalOfficialPluginFileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
 				detail.Platforms = append(detail.Platforms, convOfficialPluginDirNameToPlat(path[0]))
 
@@ -242,7 +242,7 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, originalOfficialPluginDirNameEtc, originalOfficialPluginFileNameEtcExt},
+			filePathRegex: []string{buildPrefixMatchRegex(originalOfficialPluginDirNamePlatPrefix), ".*", buildFullMatchRegex(originalOfficialPluginDirNameEtc), buildSuffixMatchRegex(originalOfficialPluginFileNameEtcExt)},
 			callback: func(path []string, tplFile io.Reader) error {
 				for idx := range detail.ConfigTemplates {
 					if !strings.Contains(detail.ConfigTemplates[idx].SourcePath, path[len(path)-1]) {
@@ -504,9 +504,9 @@ func (m *Manager) generateOfficialPluginPkg(nCtx contextx.IContext,
 						fileRules: []tgzWriteRuleFile{
 							{
 								sourceFilePath: []string{convPlatToOfficialPluginDirName(plat), pluginName, originalOfficialPluginDirNameBin,
-									tgzPathNameAny2},
+									tgzPathMatchingSegment2},
 								targetFilePath: []string{
-									officialPluginPkgDirNameBin, tgzPathNameAny2,
+									officialPluginPkgDirNameBin, tgzPathMatchingSegment2,
 								},
 								targetFileMode: tgzModeExe,
 							},
@@ -524,8 +524,8 @@ func (m *Manager) generateOfficialPluginPkg(nCtx contextx.IContext,
 						sourceFile: originPluginBinToolFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, convPlatToPluginBinToolDirName(plat), tgzPathNameAny2},
-								targetFilePath: []string{officialPluginPkgDirNameBin, tgzPathNameAny2},
+								sourceFilePath: []string{tgzPathMatchingSegment1, convPlatToPluginBinToolDirName(plat), tgzPathMatchingSegment2},
+								targetFilePath: []string{officialPluginPkgDirNameBin, tgzPathMatchingSegment2},
 								targetFileMode: tgzModeExe,
 							},
 						},

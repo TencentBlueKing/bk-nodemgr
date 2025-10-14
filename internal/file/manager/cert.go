@@ -136,65 +136,65 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 	detail := new(types.OriginCertPkgDetail)
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{"gseca.crt"},
+			filePathRegex: []string{buildFullMatchRegex(certFileNameCaCrt)},
 			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, "gseca.crt")
+				detail.CertFiles = append(detail.CertFiles, certFileNameCaCrt)
 
 				return nil
 			},
 		},
 		{
-			filePath: []string{"gse_agent.crt"},
+			filePathRegex: []string{buildFullMatchRegex(certFileNameAgentCrt)},
 			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, "gse_agent.crt")
+				detail.CertFiles = append(detail.CertFiles, certFileNameAgentCrt)
 
 				return nil
 			},
 		},
 		{
-			filePath: []string{"gse_agent.key"},
+			filePathRegex: []string{buildFullMatchRegex(certFileNameAgentKey)},
 			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, "gse_agent.key")
+				detail.CertFiles = append(detail.CertFiles, certFileNameAgentKey)
 
 				return nil
 			},
 		},
 		{
-			filePath: []string{"gse_server.crt"},
+			filePathRegex: []string{buildFullMatchRegex(certFileNameServerCrt)},
 			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, "gse_server.crt")
+				detail.CertFiles = append(detail.CertFiles, certFileNameServerCrt)
 
 				return nil
 			},
 		},
 		{
-			filePath: []string{"gse_server.key"},
+			filePathRegex: []string{buildFullMatchRegex(certFileNameServerKey)},
 			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, "gse_server.key")
+				detail.CertFiles = append(detail.CertFiles, certFileNameServerKey)
 
 				return nil
 			},
 		},
 		{
-			filePath: []string{"gse_api_client.crt"},
+			filePathRegex: []string{buildFullMatchRegex(certFileNameAPIClientCrt)},
 			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, "gse_api_client.crt")
+				detail.CertFiles = append(detail.CertFiles, certFileNameAPIClientCrt)
 
 				return nil
 			},
 		},
 		{
-			filePath: []string{"gse_api_client.key"},
+			filePathRegex: []string{buildFullMatchRegex(certFileNameAPIClientKey)},
 			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, "gse_api_client.key")
+				detail.CertFiles = append(detail.CertFiles, certFileNameAPIClientKey)
 
 				return nil
 			},
 		},
 		{
-			filePath: []string{"cert_encrypt.key"},
+			filePathRegex: []string{buildFullMatchRegex(certFileNameCertEncryptKey)},
 			callback: func(_ []string, _ io.Reader) error {
-				detail.CertFiles = append(detail.CertFiles, "cert_encrypt.key")
+				detail.CertFiles = append(detail.CertFiles, certFileNameCertEncryptKey)
 
 				return nil
 			},

@@ -142,7 +142,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 	detail := types.NewOriginPkgDetail()
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{tgzPathNameAny1, originalAgentFileNameVersion},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalAgentFileNameVersion)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -155,7 +155,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalAgentFileNameDescription},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalAgentFileNameDescription)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -168,7 +168,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalAgentFileNameDescriptionEN},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalAgentFileNameDescriptionEN)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -181,7 +181,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalAgentDirNameSupportFile, originalAgentDirNameTemplates, originalAgentFileNameConfTemplateAgentTypeOne},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalAgentDirNameSupportFile), buildFullMatchRegex(originalAgentDirNameTemplates), buildFullMatchRegex(originalAgentFileNameConfTemplateAgentTypeOne)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -194,7 +194,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalAgentDirNameSupportFile, originalAgentDirNameTemplates, originalAgentFileNameConfTemplateAgentTypeTwo},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalAgentDirNameSupportFile), buildFullMatchRegex(originalAgentDirNameTemplates), buildFullMatchRegex(originalAgentFileNameConfTemplateAgentTypeTwo)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -207,7 +207,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalAgentDirNameSupportFile, originalAgentDirNameEnv, originalAgentFileNameAgentEnv},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalAgentDirNameSupportFile), buildFullMatchRegex(originalAgentDirNameEnv), buildFullMatchRegex(originalAgentFileNameAgentEnv)},
 			callback: func(_ []string, r io.Reader) error {
 				environ, err := parseEnvFile(r)
 				if err != nil {
@@ -220,7 +220,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, originalAgentDirNameBin, tgzPathNameAny3},
+			filePathRegex: []string{".*", ".*", buildFullMatchRegex(originalAgentDirNameBin), ".*"},
 			callback: func(path []string, _ io.Reader) error {
 				plat := convAgentDirNameToPlat(path[1])
 
@@ -455,8 +455,8 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 						sourceFile: originAgentFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, convPlatToAgentDirName(plat), originalAgentDirNameBin, tgzPathNameAny2},
-								targetFilePath: []string{agentPkgDirNameBin, tgzPathNameAny2},
+								sourceFilePath: []string{tgzPathMatchingSegment1, convPlatToAgentDirName(plat), originalAgentDirNameBin, tgzPathMatchingSegment2},
+								targetFilePath: []string{agentPkgDirNameBin, tgzPathMatchingSegment2},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -466,22 +466,22 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 						sourceFile: originCertFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameCaCrt},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameCaCrt},
 								targetFilePath: []string{agentPkgDirNameCert, agentPkgFileNameCaCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameAgentCrt},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameAgentCrt},
 								targetFilePath: []string{agentPkgDirNameCert, agentPkgFileNameAgentCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameAgentKey},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameAgentKey},
 								targetFilePath: []string{agentPkgDirNameCert, agentPkgFileNameAgentKey},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameCertEncryptKey},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameCertEncryptKey},
 								targetFilePath: []string{agentPkgDirNameCert, agentPkgFileNameCertEncryptKey},
 								targetFileMode: tgzModeFile,
 							},
@@ -492,8 +492,8 @@ func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.O
 						sourceFile: originBinToolFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, convPlatToBinToolDirName(types.ReleaseTypeAgent, plat), tgzPathNameAny2},
-								targetFilePath: []string{agentPkgDirNameBin, tgzPathNameAny2},
+								sourceFilePath: []string{tgzPathMatchingSegment1, convPlatToBinToolDirName(types.ReleaseTypeAgent, plat), tgzPathMatchingSegment2},
+								targetFilePath: []string{agentPkgDirNameBin, tgzPathMatchingSegment2},
 								targetFileMode: tgzModeExe,
 							},
 						},

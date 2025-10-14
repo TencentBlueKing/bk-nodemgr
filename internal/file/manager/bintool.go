@@ -134,7 +134,7 @@ func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, e
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{binToolDirNameRoot, tgzPathNameAny1, tgzPathNameAny2},
+			filePathRegex: []string{buildFullMatchRegex(binToolDirNameRoot), ".*", ".*"},
 			callback: func(path []string, _ io.Reader) error {
 				plat := convBinToolDirNameToPlat(path[1])
 				agentPlatforms[plat.String()] = plat
@@ -282,33 +282,33 @@ func (m *Manager) generateBinToolPkg(nCtx contextx.IContext, sourceFile io.ReadC
 			sourceFile: sourceFile,
 			fileRules: []tgzWriteRuleFile{
 				{
-					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameAgentPlatLinuxAmd64, tgzPathNameAny2},
-					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatLinuxAmd64, tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathMatchingSegment1, binToolDirNameAgentPlatLinuxAmd64, tgzPathMatchingSegment2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatLinuxAmd64, tgzPathMatchingSegment2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameAgentPlatLinuxArm64, tgzPathNameAny2},
-					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatLinuxArm64, tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathMatchingSegment1, binToolDirNameAgentPlatLinuxArm64, tgzPathMatchingSegment2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatLinuxArm64, tgzPathMatchingSegment2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameAgentPlatDarwinAmd64, tgzPathNameAny2},
-					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatDarwinAmd64, tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathMatchingSegment1, binToolDirNameAgentPlatDarwinAmd64, tgzPathMatchingSegment2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatDarwinAmd64, tgzPathMatchingSegment2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameAgentPlatWindowsAmd64, tgzPathNameAny2},
-					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatWindowsAmd64, tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathMatchingSegment1, binToolDirNameAgentPlatWindowsAmd64, tgzPathMatchingSegment2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameAgentPlatWindowsAmd64, tgzPathMatchingSegment2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameProxyPlatLinuxAmd64, tgzPathNameAny2},
-					targetFilePath: []string{binToolDirNameRoot, binToolDirNameProxyPlatLinuxAmd64, tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathMatchingSegment1, binToolDirNameProxyPlatLinuxAmd64, tgzPathMatchingSegment2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameProxyPlatLinuxAmd64, tgzPathMatchingSegment2},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{tgzPathNameAny1, binToolDirNameProxyPlatLinuxArm64, tgzPathNameAny2},
-					targetFilePath: []string{binToolDirNameRoot, binToolDirNameProxyPlatLinuxArm64, tgzPathNameAny2},
+					sourceFilePath: []string{tgzPathMatchingSegment1, binToolDirNameProxyPlatLinuxArm64, tgzPathMatchingSegment2},
+					targetFilePath: []string{binToolDirNameRoot, binToolDirNameProxyPlatLinuxArm64, tgzPathMatchingSegment2},
 					targetFileMode: tgzModeFile,
 				},
 			},

@@ -134,6 +134,7 @@ const (
 	originalServerDirNameSupportFile = "support-files"
 	originalServerDirNameTemplate    = "templates"
 
+	originalServerFileNameVersion                       = "VERSION"
 	originalServerFileNameProxyEnv                      = "gse_proxy.env"
 	originalServerFileNameFileServer                    = "gse_file"
 	originalServerFileNameDataServer                    = "gse_data"
@@ -151,7 +152,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 	var seenFile, seenData bool
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{tgzPathNameAny1, "VERSION"},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerFileNameVersion)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -164,7 +165,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameRoot, originalServerDirNameBin, originalServerFileNameFileServer},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameRoot), buildFullMatchRegex(originalServerDirNameBin), buildFullMatchRegex(originalServerFileNameFileServer)},
 			callback: func(_ []string, r io.Reader) error {
 				seenFile = true
 				plat, err := checkServerBinaryPlatform(r)
@@ -180,7 +181,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameRoot, originalServerDirNameBin, originalServerFileNameDataServer},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameRoot), buildFullMatchRegex(originalServerDirNameBin), buildFullMatchRegex(originalServerFileNameDataServer)},
 			callback: func(_ []string, r io.Reader) error {
 				seenData = true
 				plat, err := checkServerBinaryPlatform(r)
@@ -196,7 +197,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateFileServerTypeOne},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateFileServerTypeOne)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -209,7 +210,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateDataServerTypeOne},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateDataServerTypeOne)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -222,7 +223,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateFileServerTypeTwo},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateFileServerTypeTwo)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -235,7 +236,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameTemplate, originalServerFileNameConfTemplateDataServerTypeTwo},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateDataServerTypeTwo)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -248,7 +249,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, originalServerDirNameSupportFile, originalServerDirNameEnv, originalServerFileNameProxyEnv},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameEnv), buildFullMatchRegex(originalServerFileNameProxyEnv)},
 			callback: func(_ []string, r io.Reader) error {
 				environ, err := parseEnvFile(r)
 				if err != nil {

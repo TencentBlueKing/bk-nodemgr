@@ -297,13 +297,13 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 						sourceFile: originServerFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, originalServerDirNameRoot, originalServerDirNameBin,
+								sourceFilePath: []string{tgzPathMatchingSegment1, originalServerDirNameRoot, originalServerDirNameBin,
 									originalServerFileNameFileServer},
 								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameFileServer},
 								targetFileMode: tgzModeExe,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, originalServerDirNameRoot, originalServerDirNameBin,
+								sourceFilePath: []string{tgzPathMatchingSegment1, originalServerDirNameRoot, originalServerDirNameBin,
 									originalServerFileNameDataServer},
 								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameDataServer},
 								targetFileMode: tgzModeExe,
@@ -315,42 +315,42 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 						sourceFile: originCertFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameCaCrt},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameCaCrt},
 								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameCaCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameAgentCrt},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameAgentCrt},
 								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameAgentCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameAgentKey},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameAgentKey},
 								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameAgentKey},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameServerCrt},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameServerCrt},
 								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameServerCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameServerKey},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameServerKey},
 								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameServerKey},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameAPIClientCrt},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameAPIClientCrt},
 								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameAPIClientCrt},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameAPIClientKey},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameAPIClientKey},
 								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameAPIClientKey},
 								targetFileMode: tgzModeFile,
 							},
 							{
-								sourceFilePath: []string{tgzPathNameAny1, certFileNameCertEncryptKey},
+								sourceFilePath: []string{tgzPathMatchingSegment1, certFileNameCertEncryptKey},
 								targetFilePath: []string{proxyPkgDirNameCert, proxyPkgFileNameCertEncryptKey},
 								targetFileMode: tgzModeFile,
 							},
@@ -361,8 +361,8 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 						sourceFile: originBinToolFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, convPlatToBinToolDirName(types.ReleaseTypeProxy, plat), tgzPathNameAny2},
-								targetFilePath: []string{proxyPkgDirNameBin, tgzPathNameAny2},
+								sourceFilePath: []string{tgzPathMatchingSegment1, convPlatToBinToolDirName(types.ReleaseTypeProxy, plat), tgzPathMatchingSegment2},
+								targetFilePath: []string{proxyPkgDirNameBin, tgzPathMatchingSegment2},
 								targetFileMode: tgzModeExe,
 							},
 						},

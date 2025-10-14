@@ -141,7 +141,7 @@ func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinTool
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{pluginBinToolDirNameRoot, tgzPathNameAny1, tgzPathNameAny2},
+			filePathRegex: []string{buildFullMatchRegex(pluginBinToolDirNameRoot), ".*", ".*"},
 			callback: func(path []string, _ io.Reader) error {
 				plat := convPluginBinToolDirNameToPlat(path[1])
 				platforms[plat.String()] = plat
@@ -272,23 +272,23 @@ func (m *Manager) generatePluginBinToolPkg(nCtx contextx.IContext, sourceFile io
 			sourceFile: sourceFile,
 			fileRules: []tgzWriteRuleFile{
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64, tgzPathNameAny1},
-					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64, tgzPathNameAny1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64, tgzPathNameAny1},
-					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64, tgzPathNameAny1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64, tgzPathNameAny1},
-					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64, tgzPathNameAny1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64, tgzPathNameAny1},
-					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64, tgzPathNameAny1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 			},

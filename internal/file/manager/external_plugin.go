@@ -178,7 +178,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, "project.yaml"},
+			filePathRegex: []string{buildPrefixMatchRegex(originalExternalPluginDirNamePlatPrefix), ".*", buildFullMatchRegex(originalExternalPluginFileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
 				detail.Platforms = append(detail.Platforms, convExternalPluginDirNameToPlat(path[0]))
 
@@ -227,7 +227,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 			},
 		},
 		{
-			filePath: []string{tgzPathNameAny1, tgzPathNameAny2, tgzPathNameAny3},
+			filePathRegex: []string{buildPrefixMatchRegex(originalOfficialPluginDirNamePlatPrefix), ".*", ".*"},
 			callback: func(path []string, _ io.Reader) error {
 				plat := convExternalPluginDirNameToPlat(path[0])
 				if plat.Arch == criteria.CPUArchUnknown || plat.OS == criteria.OSUnknown {
@@ -464,7 +464,7 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 					})
 				}
 
-				subFilePaths := slices.Concat(dirPaths, []string{tgzPathNameAny1})
+				subFilePaths := slices.Concat(dirPaths, []string{tgzPathMatchingSegment1})
 				subFileMode := int64(tgzModeFile)
 				if len(dirPaths) > 0 && dirPaths[0] == externalPluginPkgDirNameBin {
 					subFileMode = tgzModeExe
@@ -490,8 +490,8 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 						sourceFile: originPluginBinToolFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathNameAny1, convPlatToPluginBinToolDirName(plat), tgzPathNameAny2},
-								targetFilePath: []string{externalPluginPkgDirNameBin, tgzPathNameAny2},
+								sourceFilePath: []string{tgzPathMatchingSegment1, convPlatToPluginBinToolDirName(plat), tgzPathMatchingSegment2},
+								targetFilePath: []string{externalPluginPkgDirNameBin, tgzPathMatchingSegment2},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -520,6 +520,8 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 const (
 	originalExternalPluginDirNamePlatPrefix     = "external_plugins_"
 	originalExternalPluginDirNamePlatSplitTimes = 4
+
+	originalExternalPluginFileNameProject = "project.yaml"
 
 	externalPluginPkgDirNameBin = "bin"
 )
