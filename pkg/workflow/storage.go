@@ -82,6 +82,7 @@ type IStorageOperation interface {
 }
 
 // IStorageOperationInstance defines the storage handler for operation instance.
+// nolint: interfacebloat
 type IStorageOperationInstance interface {
 	// GetOperationInstanceFullData gets full operation instance data.
 	GetOperationInstanceFullData(ctx contextx.IContext, operationInstanceID string) (*operation.InstanceData, error)

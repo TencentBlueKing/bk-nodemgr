@@ -102,6 +102,7 @@ func (act *actionRenderNodeDeployment) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
+// nolint: perfsprint,funlen,gocognit
 func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamRenderNodeDeployment)
 	err := conv.MapToStruct(ctx.Data.Content, param)

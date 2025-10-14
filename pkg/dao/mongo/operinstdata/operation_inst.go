@@ -24,6 +24,7 @@ import (
 )
 
 // IOperationInstData this define the crud interface.
+// nolint: interfacebloat
 type IOperationInstData interface {
 	// Upsert updates or inserts an OperInstData.
 	Upsert(nCtx contextx.IContext, data *operation.InstanceData) error

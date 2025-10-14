@@ -297,3 +297,97 @@ func Test_handler_Count(t *testing.T) {
 		})
 	}
 }
+
+// Test_handler_UpdateTriggerID tests the UpdateTriggerID method of the handler.
+func Test_handler_UpdateTriggerID(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+
+	type args struct {
+		nCtx       contextx.IContext
+		workflowID string
+		triggerID  string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "update",
+			args: args{
+				nCtx:       nCtx,
+				workflowID: "1",
+				triggerID:  "updated trigger",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			if err := h.UpdateTriggerID(tt.args.nCtx, tt.args.workflowID, tt.args.triggerID); (err != nil) != tt.wantErr {
+				t.Errorf("UpdateTriggerID() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			sw, err := h.Get(tt.args.nCtx, tt.args.workflowID)
+			if err != nil {
+				t.Errorf("UpdateTriggerID() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			if sw.TriggerID != tt.args.triggerID {
+				t.Errorf("UpdateTriggerID() got = %v, want %v", sw.TriggerID, tt.args.triggerID)
+			}
+		})
+	}
+}
+
+// Test_hander_UpdatePrivateData tests the UpdatePrivateData method of the handler.
+func Test_hander_UpdatePrivateData(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+
+	type args struct {
+		nCtx        contextx.IContext
+		workflowID  string
+		privateData map[string]any
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "update",
+			args: args{
+				nCtx:       nCtx,
+				workflowID: "1",
+				privateData: map[string]any{
+					"test":  "1",
+					"test2": 2,
+					"test3": true,
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			if err := h.UpdatePrivateData(tt.args.nCtx, tt.args.workflowID, tt.args.privateData); (err != nil) != tt.wantErr {
+				t.Errorf("UpdatePrivateData() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			sw, err := h.Get(tt.args.nCtx, tt.args.workflowID)
+			if err != nil {
+				t.Errorf("UpdatePrivateData() error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			for k := range tt.args.privateData {
+				if _, ok := sw.PrivateData[k]; !ok {
+					t.Errorf("UpdatePrivateData() want = %v, got nothing", k)
+				}
+			}
+		})
+	}
+}

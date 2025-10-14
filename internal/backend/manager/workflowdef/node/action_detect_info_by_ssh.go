@@ -97,7 +97,7 @@ func (act *actionDetectInfoBySSH) DelayFn() func() {
 
 // Do this func define what the action will do.
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
-// nolint: perfsprint,funlen
+// nolint: perfsprint,funlen,gocognit
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	param := new(ActParamDetectInfoBySSH)
@@ -191,22 +191,20 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 				break
 			}
 		}
-	} else {
+	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
-			std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
-				daoRelease:  act.storageRelease,
-				ReleaseType: releaseType,
-				Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
-				OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
-				CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
-			})
-			if err != nil {
-				return err
-			}
-			ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+			daoRelease:  act.storageRelease,
+			ReleaseType: releaseType,
+			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
+			OSType:      std.DeployInfo().Host.Dynamic.NodeOsType,
+			CPUArch:     std.DeployInfo().Host.Dynamic.NodeCPUArch,
+		})
+		if err != nil {
+			return err
 		}
+		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 	}
 
 	err = checkVersionAvailability(
