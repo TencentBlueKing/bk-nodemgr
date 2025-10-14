@@ -148,6 +148,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		StorageRelease:      mgr.conf.StorageRelease,
 		StorageNode:         mgr.conf.StorageNode,
 		StorageWorkflow:     mgr.conf.StorageWorkflow,
+		StoragePlugin:       mgr.conf.StoragePlugin,
 		StorageHostCredit:   mgr.conf.StorageHostCredit,
 		StorageConfigPolicy: mgr.conf.StorageConfigPolicy,
 		DiscoverProvider:    mgr.conf.Provider,
