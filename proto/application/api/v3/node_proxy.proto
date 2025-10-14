@@ -46,14 +46,16 @@ message NodeProxyInstallResp {
   Data data = 5;
 }
 
+message NodeProxyUpgradeHost {
+  int64 bk_host_id = 1;
+  bool force = 2;
+  int64 graceful_restart_timeout_sec = 3;
+}
+
 // NodeProxyUpgradeReq describes the node proxy upgrade request.
 message NodeProxyUpgradeReq {
-  message Host {
-    int64 bk_host_id = 1;
-    bool force = 2;
-    int64 graceful_restart_timeout_sec = 3;
-  }
-  repeated Host host = 1;
+
+  repeated NodeProxyUpgradeHost host = 1;
   repeated TargetVersion target_version = 2;
 }
 
@@ -68,15 +70,13 @@ message NodeProxyUpgradeResp {
   Data data = 5;
 }
 
-// NodeProxyReconfigReq describes the node proxy reconfig request.
-message NodeProxyReconfigReq {
-  message Host {
-    int64 bk_host_id = 1;
-    bool force = 2;
-    int64 graceful_restart_timeout_sec = 3;
-  }
-  repeated Host host = 1;
+message NodeProxyReconfigHost {
+  int64 bk_host_id = 1;
+  bool force = 2;
+  int64 graceful_restart_timeout_sec = 3;
 }
+// NodeProxyReconfigReq describes the node proxy reconfig request.
+message NodeProxyReconfigReq { repeated NodeProxyReconfigHost host = 1; }
 
 // NodeProxyReconfigResp describes the node proxy reconfig response.
 message NodeProxyReconfigResp {
@@ -89,15 +89,13 @@ message NodeProxyReconfigResp {
   Data data = 5;
 }
 
-// NodeProxyRestartReq describes the node proxy restart request.
-message NodeProxyRestartReq {
-  message Host {
-    int64 bk_host_id = 1;
-    bool force = 2;
-    int64 graceful_restart_timeout_sec = 3;
-  }
-  repeated Host host = 1;
+message NodeProxyRestartHost {
+  int64 bk_host_id = 1;
+  bool force = 2;
+  int64 graceful_restart_timeout_sec = 3;
 }
+// NodeProxyRestartReq describes the node proxy restart request.
+message NodeProxyRestartReq { repeated NodeProxyRestartHost host = 1; }
 
 // NodeProxyRestartResp describes the node proxy restart response.
 message NodeProxyRestartResp {

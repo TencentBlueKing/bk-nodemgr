@@ -204,7 +204,7 @@ func (x *NodeProxyUpgradeReq) ConvertParamToTypes() *types.NodeProxyUpgradeParam
 
 // Validate check body.
 // nolint: protogetter
-func (x *NodeProxyUpgradeReq_Host) Validate() error {
+func (x *NodeProxyUpgradeHost) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id must be >= 0")
 	}
@@ -217,7 +217,7 @@ func (x *NodeProxyUpgradeReq_Host) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *NodeProxyUpgradeReq_Host) AutoConvert() {
+func (x *NodeProxyUpgradeHost) AutoConvert() {
 }
 
 // ConvertWorkflowID convert workflow id.
@@ -249,11 +249,11 @@ func (x *NodeProxyRestartReq) AutoConvert() {
 	}
 }
 
-// convert host param from types.
+// ConvertParamFromTypes convert host param from types.
 func (x *NodeProxyRestartReq) ConvertParamFromTypes(restartParam *types.NodeProxyRestartParam) {
-	hostsParam := make([]*NodeProxyRestartReq_Host, len(restartParam.Hosts))
+	hostsParam := make([]*NodeProxyRestartHost, len(restartParam.Hosts))
 	for idx, host := range restartParam.Hosts {
-		hostsParam[idx] = &NodeProxyRestartReq_Host{
+		hostsParam[idx] = &NodeProxyRestartHost{
 			BkHostId:                  host.HostID,
 			Force:                     host.Force,
 			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),
@@ -287,7 +287,7 @@ func (x *NodeProxyRestartReq) ConvertParamToTypes() *types.NodeProxyRestartParam
 
 // Validate check body.
 // nolint: protogetter
-func (x *NodeProxyRestartReq_Host) Validate() error {
+func (x *NodeProxyRestartHost) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id must be >= 0")
 	}
@@ -300,7 +300,7 @@ func (x *NodeProxyRestartReq_Host) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *NodeProxyRestartReq_Host) AutoConvert() {
+func (x *NodeProxyRestartHost) AutoConvert() {
 }
 
 // ConvertWorkflowID convert workflow id.
@@ -356,7 +356,7 @@ func (x *NodeProxyReconfigReq) ConvertParamToTypes() *types.NodeProxyReconfigPar
 
 // Validate check body.
 // nolint: protogetter
-func (x *NodeProxyReconfigReq_Host) Validate() error {
+func (x *NodeProxyReconfigHost) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id must be >= 0")
 	}
@@ -369,7 +369,7 @@ func (x *NodeProxyReconfigReq_Host) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *NodeProxyReconfigReq_Host) AutoConvert() {
+func (x *NodeProxyReconfigHost) AutoConvert() {
 }
 
 // ConvertWorkflowID convert workflow id.
@@ -401,7 +401,7 @@ func (x *NodeProxyUpdateReq) AutoConvert() {
 	}
 }
 
-// convert host param from types.
+// ConvertParamToTypes convert host param from types.
 func (x *NodeProxyUpdateReq) ConvertParamToTypes() *types.NodeProxyUpdateParam {
 	hosts := x.GetHost()
 	if hosts == nil {

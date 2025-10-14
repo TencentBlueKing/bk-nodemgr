@@ -190,7 +190,7 @@ func (x *NodeAgentUpgradeReq) ConvertParamToTypes() *types.NodeAgentUpgradeParam
 
 // Validate check body.
 // nolint: protogetter
-func (x *NodeAgentUpgradeReq_Host) Validate() error {
+func (x *NodeAgentUpgradeHost) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id must be equal or greater than 0")
 	}
@@ -224,7 +224,7 @@ func (x *NodeAgentReconfigReq) Validate() error {
 }
 
 // Validate check body.
-func (x *NodeAgentReconfigReq_Host) Validate() error {
+func (x *NodeAgentReconfigHost) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id must be equal or greater than 0")
 	}
@@ -280,7 +280,7 @@ func (x *NodeAgentRestartReq) Validate() error {
 }
 
 // Validate check body.
-func (x *NodeAgentRestartReq_Host) Validate() error {
+func (x *NodeAgentRestartHost) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id must be equal or greater than 0")
 	}
@@ -316,9 +316,9 @@ func (x *NodeAgentRestartReq) ConvertParamToTypes() *types.NodeAgentRestartParam
 
 // ConvertParamFromTypes convert host param from types.
 func (x *NodeAgentRestartReq) ConvertParamFromTypes(restartParam *types.NodeAgentRestartParam) {
-	hostsParam := make([]*NodeAgentRestartReq_Host, len(restartParam.Hosts))
+	hostsParam := make([]*NodeAgentRestartHost, len(restartParam.Hosts))
 	for idx, host := range restartParam.Hosts {
-		hostsParam[idx] = &NodeAgentRestartReq_Host{
+		hostsParam[idx] = &NodeAgentRestartHost{
 			BkHostId:                  host.HostID,
 			Force:                     host.Force,
 			GracefulRestartTimeoutSec: int64(host.GracefulRestartTimeout.Seconds()),

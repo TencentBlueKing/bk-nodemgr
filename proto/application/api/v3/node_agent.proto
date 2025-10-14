@@ -43,16 +43,15 @@ message NodeAgentInstallResp {
   Data data = 5;
 }
 
-// NodeAgentUpgradeReq describes the node agent upgrade request.
-message NodeAgentUpgradeReq {
-  message Host {
-    int64 bk_host_id = 1;
-    string target_version = 2;
-    bool force = 3;
-    int64 graceful_restart_timeout_sec = 4;
-  }
-  repeated Host host = 1;
+message NodeAgentUpgradeHost {
+  int64 bk_host_id = 1;
+  string target_version = 2;
+  bool force = 3;
+  int64 graceful_restart_timeout_sec = 4;
 }
+
+// NodeAgentUpgradeReq describes the node agent upgrade request.
+message NodeAgentUpgradeReq { repeated NodeAgentUpgradeHost host = 1; }
 
 // NodeAgentUpgradeResp describes the node agent upgrade response.
 message NodeAgentUpgradeResp {
@@ -65,15 +64,13 @@ message NodeAgentUpgradeResp {
   Data data = 5;
 }
 
-// NodeAgentReconfigReq describes the node agent reconfigure request.
-message NodeAgentReconfigReq {
-  message Host {
-    int64 bk_host_id = 1;
-    bool force = 2;
-    int64 graceful_restart_timeout_sec = 3;
-  }
-  repeated Host host = 1;
+message NodeAgentReconfigHost {
+  int64 bk_host_id = 1;
+  bool force = 2;
+  int64 graceful_restart_timeout_sec = 3;
 }
+// NodeAgentReconfigReq describes the node agent reconfigure request.
+message NodeAgentReconfigReq { repeated NodeAgentReconfigHost host = 1; }
 
 // NodeAgentReconfigResp describes the node agent reconfigure response.
 message NodeAgentReconfigResp {
@@ -86,15 +83,13 @@ message NodeAgentReconfigResp {
   Data data = 5;
 }
 
-// NodeAgentRestartReq describes the node agent restart request.
-message NodeAgentRestartReq {
-  message Host {
-    int64 bk_host_id = 1;
-    bool force = 2;
-    int64 graceful_restart_timeout_sec = 3;
-  }
-  repeated Host host = 1;
+message NodeAgentRestartHost {
+  int64 bk_host_id = 1;
+  bool force = 2;
+  int64 graceful_restart_timeout_sec = 3;
 }
+// NodeAgentRestartReq describes the node agent restart request.
+message NodeAgentRestartReq { repeated NodeAgentRestartHost host = 1; }
 
 // NodeAgentRestartResp describes the node agent restart response.
 message NodeAgentRestartResp {

@@ -471,20 +471,7 @@
         }
       }
     },
-    "v3NodeAgentReconfigReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeAgentReconfigReqHost"
-          }
-        }
-      },
-      "description": "NodeAgentReconfigReq describes the node agent reconfigure request."
-    },
-    "v3NodeAgentReconfigReqHost": {
+    "v3NodeAgentReconfigHost": {
       "type": "object",
       "properties": {
         "bk_host_id": {
@@ -499,6 +486,19 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeAgentReconfigReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentReconfigHost"
+          }
+        }
+      },
+      "description": "NodeAgentReconfigReq describes the node agent reconfigure request."
     },
     "v3NodeAgentReconfigResp": {
       "type": "object",
@@ -530,20 +530,7 @@
         }
       }
     },
-    "v3NodeAgentRestartReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeAgentRestartReqHost"
-          }
-        }
-      },
-      "description": "NodeAgentRestartReq describes the node agent restart request."
-    },
-    "v3NodeAgentRestartReqHost": {
+    "v3NodeAgentRestartHost": {
       "type": "object",
       "properties": {
         "bk_host_id": {
@@ -558,6 +545,19 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeAgentRestartReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentRestartHost"
+          }
+        }
+      },
+      "description": "NodeAgentRestartReq describes the node agent restart request."
     },
     "v3NodeAgentRestartResp": {
       "type": "object",
@@ -589,20 +589,7 @@
         }
       }
     },
-    "v3NodeAgentUpgradeReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeAgentUpgradeReqHost"
-          }
-        }
-      },
-      "description": "NodeAgentUpgradeReq describes the node agent upgrade request."
-    },
-    "v3NodeAgentUpgradeReqHost": {
+    "v3NodeAgentUpgradeHost": {
       "type": "object",
       "properties": {
         "bk_host_id": {
@@ -620,6 +607,19 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeAgentUpgradeReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentUpgradeHost"
+          }
+        }
+      },
+      "description": "NodeAgentUpgradeReq describes the node agent upgrade request."
     },
     "v3NodeAgentUpgradeResp": {
       "type": "object",

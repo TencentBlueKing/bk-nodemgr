@@ -364,20 +364,7 @@
         }
       }
     },
-    "v3NodeProxyReconfigReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeProxyReconfigReqHost"
-          }
-        }
-      },
-      "description": "NodeProxyReconfigReq describes the node proxy reconfig request."
-    },
-    "v3NodeProxyReconfigReqHost": {
+    "v3NodeProxyReconfigHost": {
       "type": "object",
       "properties": {
         "bk_host_id": {
@@ -392,6 +379,19 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeProxyReconfigReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyReconfigHost"
+          }
+        }
+      },
+      "description": "NodeProxyReconfigReq describes the node proxy reconfig request."
     },
     "v3NodeProxyReconfigResp": {
       "type": "object",
@@ -423,20 +423,7 @@
         }
       }
     },
-    "v3NodeProxyRestartReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeProxyRestartReqHost"
-          }
-        }
-      },
-      "description": "NodeProxyRestartReq describes the node proxy restart request."
-    },
-    "v3NodeProxyRestartReqHost": {
+    "v3NodeProxyRestartHost": {
       "type": "object",
       "properties": {
         "bk_host_id": {
@@ -451,6 +438,19 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeProxyRestartReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyRestartHost"
+          }
+        }
+      },
+      "description": "NodeProxyRestartReq describes the node proxy restart request."
     },
     "v3NodeProxyRestartResp": {
       "type": "object",
@@ -562,27 +562,7 @@
     "v3NodeProxyUpdateRespData": {
       "type": "object"
     },
-    "v3NodeProxyUpgradeReq": {
-      "type": "object",
-      "properties": {
-        "host": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3NodeProxyUpgradeReqHost"
-          }
-        },
-        "target_version": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3TargetVersion"
-          }
-        }
-      },
-      "description": "NodeProxyUpgradeReq describes the node proxy upgrade request."
-    },
-    "v3NodeProxyUpgradeReqHost": {
+    "v3NodeProxyUpgradeHost": {
       "type": "object",
       "properties": {
         "bk_host_id": {
@@ -597,6 +577,26 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeProxyUpgradeReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyUpgradeHost"
+          }
+        },
+        "target_version": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3TargetVersion"
+          }
+        }
+      },
+      "description": "NodeProxyUpgradeReq describes the node proxy upgrade request."
     },
     "v3NodeProxyUpgradeResp": {
       "type": "object",
