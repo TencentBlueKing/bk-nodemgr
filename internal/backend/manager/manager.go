@@ -97,9 +97,7 @@ func (mgr *Manager) Start(ctx contextx.IContext) error {
 		return err
 	}
 
-	if err := mgr.startMonitoringScheduledWorkflow(ctx); err != nil {
-		return fmt.Errorf("failed to start monitoring scheduled workflow: %w", err)
-	}
+	mgr.startMonitoringScheduledWorkflow(ctx)
 
 	mgr.isRunning = true
 

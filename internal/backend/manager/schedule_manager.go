@@ -66,7 +66,7 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 	}
 }
 
-func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) error {
+func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
 	logger.G.Sys().With("time-gap", scheduledWorkflowMonitorTimeGap.String()).Info("start monitoring scheduled workflows")
 
 	for name, f := range mgr.getInitScheduledWorkflowFuncs() {
@@ -103,8 +103,6 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) err
 			}
 		}
 	}()
-
-	return nil
 }
 
 func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, workflowName string, initFunc initScheduledWorkflowFunc) error {
