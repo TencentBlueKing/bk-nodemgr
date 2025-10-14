@@ -61,6 +61,5 @@ type Param struct {
 	ParentOperationID string
 	Timeout           time.Duration
 	InitContent       map[string]any
-	ExtraContent      map[string]any
 	RetryStartPoint   map[string]bool
 }

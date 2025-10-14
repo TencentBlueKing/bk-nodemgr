@@ -13,6 +13,7 @@ package workflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
@@ -20,6 +21,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
@@ -30,19 +32,23 @@ const (
 )
 
 type handler struct {
-	rg              *gin.RouterGroup
-	manager         manager.IManager
-	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
+	rg      *gin.RouterGroup
+	manager manager.IManager
+
+	daoNodeWorkflow   nodeStg.IDaoNodeWorkflow
+	daoNodeDeployment nodeStg.IDaoNodeDeployment
+
 	storageWorkflow workflow.IStorage
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:              rg.Group("/workflow"),
-		manager:         capability.Manager,
-		daoNodeWorkflow: capability.StorageNode,
-		storageWorkflow: capability.StorageWorkflow,
+		rg:                rg.Group("/workflow"),
+		manager:           capability.Manager,
+		daoNodeWorkflow:   capability.StorageNode,
+		daoNodeDeployment: capability.StorageNode,
+		storageWorkflow:   capability.StorageWorkflow,
 	}
 }
 
@@ -137,10 +143,37 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	result, num, err := h.storageWorkflow.ListOperationByNodeWorkflowOperationCondition(
+	operations, num, err := h.storageWorkflow.ListOperationByNodeWorkflowOperationCondition(
 		rCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes(workflow.TriggerID))
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	result := make([]*types.OperationListResult, len(operations))
+
+	for idx, op := range operations {
+		param := new(utils.NodeActionStandardParam)
+
+		err := conv.MapToStruct(op.Param.InitContent, param)
+		if err != nil {
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		}
+
+		deployment, err := h.daoNodeDeployment.GetNodeDeploymentInfo(rCtx, param.Token)
+		if err != nil {
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		result[idx] = &types.OperationListResult{
+			Operator:        param.Operator,
+			NetworkAreaID:   deployment.Host.Static.NetworkAreaID,
+			InnerIP:         deployment.Host.Static.InnerIP,
+			InnerIPV6:       deployment.Host.Static.InnerIPV6,
+			BizID:           deployment.Host.Static.BizID,
+			OperationID:     op.OperationID,
+			OperInstanceIDs: op.InstanceIDs,
+			NodeVersion:     deployment.Host.Dynamic.NodeVersion,
+		}
 	}
 
 	resp := new(protoBackend.NodeWorkflowOperationListResp)

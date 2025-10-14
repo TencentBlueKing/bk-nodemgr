@@ -204,6 +204,18 @@ func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 	}
 }
 
+// OperationListResult operation list result.
+type OperationListResult struct {
+	NodeVersion     string
+	NetworkAreaID   int64
+	InnerIP         string
+	InnerIPV6       string
+	BizID           int64
+	Operator        string
+	OperationID     string
+	OperInstanceIDs []string
+}
+
 // OperationSummary ...
 type OperationSummary struct {
 	TotalDuration int64

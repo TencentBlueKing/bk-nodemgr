@@ -882,6 +882,9 @@
         "bk_biz_id": {
           "type": "integer",
           "format": "int64"
+        },
+        "operator": {
+          "type": "string"
         }
       }
     },

@@ -116,28 +116,16 @@ message NodeWorkflowDistinctResp {
   Data data = 5;
 }
 
-// NodeWorkflowOperationDefinition ...
-message NodeWorkflowOperationDefinition {
-  string opertion_name = 1;
-  repeated string action_names = 2;
-}
-
-//  NodeWorkflowOperationParam ...
-message NodeWorkflowOperationParam {
-  int64 timeout_second = 1;
-  int64 bk_networkarea_id = 2;
-  string bk_host_innerip = 3;
-  string bk_host_innerip_v6 = 4;
-  string node_version = 5;
-  int64 bk_biz_id = 6;
-}
-
 // NodeWorkflowOperation ...
 message NodeWorkflowOperation {
   string operation_id = 1;
-  NodeWorkflowOperationDefinition definition = 2;
-  repeated string instance_ids = 3;
-  NodeWorkflowOperationParam param = 4;
+  repeated string instance_ids = 2;
+  int64 bk_networkarea_id = 3;
+  string bk_host_innerip = 4;
+  string bk_host_innerip_v6 = 5;
+  string node_version = 6;
+  int64 bk_biz_id = 7;
+  string operator = 8;
 }
 
 // NodeWorflowOperationInstance describes the node operation instance.

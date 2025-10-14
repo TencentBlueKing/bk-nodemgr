@@ -110,6 +110,7 @@ message NodeWorkflowOperationParam {
   string bk_host_innerip_v6 = 3;
   string node_version = 4;
   int64 bk_biz_id = 5;
+  string operator = 6;
 }
 
 message NodeWorkflowOperation {

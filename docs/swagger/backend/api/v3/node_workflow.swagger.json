@@ -622,35 +622,34 @@
         "operation_id": {
           "type": "string"
         },
-        "definition": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationDefinition"
-        },
         "instance_ids": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "param": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationParam"
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip": {
+          "type": "string"
+        },
+        "bk_host_innerip_v6": {
+          "type": "string"
+        },
+        "node_version": {
+          "type": "string"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operator": {
+          "type": "string"
         }
       },
       "description": "NodeWorkflowOperation ..."
-    },
-    "v3NodeWorkflowOperationDefinition": {
-      "type": "object",
-      "properties": {
-        "opertion_name": {
-          "type": "string"
-        },
-        "action_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "NodeWorkflowOperationDefinition ..."
     },
     "v3NodeWorkflowOperationExactConditions": {
       "type": "object",
@@ -919,33 +918,6 @@
           "format": "int64"
         }
       }
-    },
-    "v3NodeWorkflowOperationParam": {
-      "type": "object",
-      "properties": {
-        "timeout_second": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_host_innerip": {
-          "type": "string"
-        },
-        "bk_host_innerip_v6": {
-          "type": "string"
-        },
-        "node_version": {
-          "type": "string"
-        },
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        }
-      },
-      "description": "NodeWorkflowOperationParam ..."
     },
     "v3NodeWorkflowOperationRetryReq": {
       "type": "object",

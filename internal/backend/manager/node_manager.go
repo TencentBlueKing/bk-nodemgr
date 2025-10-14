@@ -184,7 +184,6 @@ func (mgr *Manager) createInstallNodeOper(
 	operationDef := mgr.getNodeInstallOperationDef(deploy, operator)
 
 	operationParam := operationDef.DefaultParameters()
-	operationParam.ExtraContent = convNodeDeploymentInfoToMap(deploy.Info)
 
 	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
 	if err != nil {
@@ -308,7 +307,6 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param UpgradeNodeP
 			enablePagentInstaller(deploy)
 
 			operationParam := operationDef.DefaultParameters()
-			operationParam.ExtraContent = convNodeDeploymentInfoToMap(deploy.Info)
 
 			if err := mgr.conf.StorageNode.CreateNodeDeployment(nCtx, deploy); err != nil {
 				logger.G.Biz(nCtx).
@@ -318,8 +316,6 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param UpgradeNodeP
 
 				return err
 			}
-
-			operationParam.ExtraContent = convNodeDeploymentInfoToMap(deploy.Info)
 
 			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
 			if err != nil {
@@ -433,7 +429,6 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param ReconfigNod
 				Operator: param.Operator,
 			})
 			operationParam := operationDef.DefaultParameters()
-			operationParam.ExtraContent = convNodeDeploymentInfoToMap(deploy.Info)
 
 			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
 			if err != nil {
@@ -509,7 +504,6 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param RestartNodeP
 				Operator: param.Operator,
 			})
 			operationParam := operationDef.DefaultParameters()
-			operationParam.ExtraContent = convNodeDeploymentInfoToMap(deploy.Info)
 
 			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
 			if err != nil {
@@ -538,14 +532,4 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param RestartNodeP
 	}
 
 	return workflowID, nil
-}
-
-func convNodeDeploymentInfoToMap(info *types.DeploymentInfo) map[string]any {
-	return map[string]any{
-		"networkarea_id": info.Host.Static.NetworkAreaID,
-		"biz_id":         info.Host.Static.BizID,
-		"inner_ip":       info.Host.Static.InnerIP,
-		"inner_ipv6":     info.Host.Static.InnerIPV6,
-		"node_version":   info.Host.Dynamic.NodeVersion,
-	}
 }

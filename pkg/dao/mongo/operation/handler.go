@@ -137,8 +137,6 @@ func convertOperationFromDB(dbOp *Operation) *operation.Operation {
 	defSnapshot := convertDefFromDB(dbOp.DefSnapshot)
 	param := convertParamFromDB(dbOp.Parameters)
 
-	param.ExtraContent = dbOp.Extras
-
 	return &operation.Operation{
 		TriggerID:   dbOp.TriggerID,
 		OperationID: dbOp.OperationID,
@@ -163,7 +161,6 @@ func convertOperationToDB(bizOp *operation.Operation) *Operation {
 		OperInstIDs: bizOp.InstanceIDs,
 		DefSnapshot: defSnapshot,
 		Parameters:  convertParamToDB(bizOp.Param),
-		Extras:      bizOp.Param.ExtraContent,
 	}
 	if bizOp.InstanceIDs == nil || len(bizOp.InstanceIDs) == 0 {
 		opera.OperInstEmpty = true

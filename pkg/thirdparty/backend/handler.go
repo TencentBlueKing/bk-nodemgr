@@ -275,7 +275,7 @@ type IHandlerNodeWorkflow interface {
 	// @param workflowID the workflow id.
 	// @return the operation list with page and the total count with filter.
 	ListNodeWorkflowOperation(ctx contextx.IContext, page types.Page, condition *types.NodeWorkflowOperationCondition) (
-		[]*operation.Operation, int64, error)
+		[]*types.OperationListResult, int64, error)
 
 	// CountNodeWorkflowOperation count network area operation.
 	// @param ctx contextx.IContext, contains tenant-id and username.
@@ -827,7 +827,7 @@ func (h *Handler) DistinctNodeWorkflow(ctx contextx.IContext, _ types.NodeWorkfl
 // ListNodeWorkflowOperation list workflow  operation.
 func (h *Handler) ListNodeWorkflowOperation(ctx contextx.IContext,
 	page types.Page, condition *types.NodeWorkflowOperationCondition) (
-	[]*operation.Operation, int64, error) {
+	[]*types.OperationListResult, int64, error) {
 
 	req := &protoBackend.NodeWorkflowOperationListReq{
 		Page:      convertPage(page),

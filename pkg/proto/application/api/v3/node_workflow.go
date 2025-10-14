@@ -52,6 +52,7 @@ func (x *NodeWorkflowStatisticsReq) Validate() error {
 			return errors.New("workflow_id can not be empty")
 		}
 	}
+
 	return nil
 }
 
@@ -111,7 +112,6 @@ func (x *NodeWorkflowListReq) ConvertConditionsToTypes() *types.NodeWorkflowCond
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(),
 		x.GetOperateTimeRange())
-
 }
 
 // AutoConvert auto convert.
@@ -141,7 +141,6 @@ func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromTypes(result []*Nod
 		*items[i].FailedCount = int64(item.FailedCount)
 		*items[i].TimeoutCount = int64(item.TimeoutCount)
 		*items[i].TerminatedCount = int64(item.TerminatedCount)
-
 	}
 
 	x.Data = &NodeWorkflowStatisticsResp_Data{
@@ -184,6 +183,7 @@ func (x *NodeWorkflowOperationListReq) Validate() error {
 	if x.GetExactIncludeConditions() == nil || x.GetExactIncludeConditions().GetWorkflowId() == "" {
 		return errors.New("workflow_id is required")
 	}
+
 	return validatePage(x.GetPage())
 }
 
@@ -225,7 +225,7 @@ func (x *NodeWorkflowOperationListReq) AutoConvert() {
 
 // ConvertResultFromTypes convert workflow id to types.
 func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
-	total int64, result []*operation.Operation, operationsSummary []*types.OperationSummary) {
+	total int64, result []*types.OperationListResult, operationsSummary []*types.OperationSummary) {
 
 	items := make([]*NodeWorkflowOperation, 0, total)
 	for idx, op := range result {
@@ -235,13 +235,14 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 
 		item := &NodeWorkflowOperation{
 			OperationId: op.OperationID,
-			InstanceIds: op.InstanceIDs,
+			InstanceIds: op.OperInstanceIDs,
 			Param: &NodeWorkflowOperationParam{
-				BkNetworkareaId: safeGetInt64(op.Param.ExtraContent, "networkarea_id", -1),
-				BkBizId:         safeGetInt64(op.Param.ExtraContent, "biz_id", -1),
-				BkHostInner:     safeGetString(op.Param.ExtraContent, "inner_ip", ""),
-				BkHostInneripV6: safeGetString(op.Param.ExtraContent, "inner_ipv6", ""),
-				NodeVersion:     safeGetString(op.Param.ExtraContent, "node_version", ""),
+				Operator:        op.Operator,
+				BkNetworkareaId: op.NetworkAreaID,
+				BkBizId:         op.BizID,
+				BkHostInner:     op.InnerIP,
+				BkHostInneripV6: op.InnerIPV6,
+				NodeVersion:     op.NodeVersion,
 			},
 			Status: &NodeWorkflowOperationStatus{
 				State:           string(operationsSummary[idx].LastStatus),
@@ -275,6 +276,7 @@ func (x *NodeWorkflowOperationInstanceListReq) Validate() error {
 	if x.GetOperationId() == "" {
 		return errors.New("operation_id is required")
 	}
+
 	return nil
 }
 
@@ -333,7 +335,6 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 
 	operInstLogs := make(map[string]*NodeWorkflowActionData)
 	for actionID, v := range result.ActionInstanceDataMap {
-
 		lifecycle := &LifeCycle{
 			State:      string(v.Lifecycle.State),
 			CreateTime: v.Lifecycle.CreatedAt.Unix(),
@@ -533,28 +534,4 @@ func newEmptyNodeWorkflowOperationStatus() *NodeWorkflowStatisticsResp_Statistic
 		TimeoutCount:    new(int64),
 		TerminatedCount: new(int64),
 	}
-}
-
-func safeGetInt64(m map[string]interface{}, key string, def int64) int64 {
-	v, ok := m[key]
-	if !ok || v == nil {
-		return def
-	}
-	if val, ok := v.(int64); ok {
-		return val
-	}
-
-	return def
-}
-
-func safeGetString(m map[string]interface{}, key string, def string) string {
-	v, ok := m[key]
-	if !ok || v == nil {
-		return def
-	}
-	if val, ok := v.(string); ok {
-		return val
-	}
-
-	return def
 }

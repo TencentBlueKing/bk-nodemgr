@@ -96,7 +96,6 @@ func (mgr *Manager) createInstallPluginOper(nCtx contextx.IContext, operator str
 	}
 
 	operationParam := operationDef.DefaultParameters()
-	operationParam.ExtraContent = map[string]any{}
 
 	operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
 	if err != nil {
