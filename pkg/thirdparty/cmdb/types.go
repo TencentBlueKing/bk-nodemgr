@@ -294,21 +294,21 @@ type RespCommon struct {
 
 // Permission describe the permission of user.
 type Permission struct {
-	SystemId   string              `json:"system_id"`
+	SystemID   string              `json:"system_id"`
 	SystemName string              `json:"system_name"`
 	Actions    []PermissionActions `json:"actions"`
 }
 
 // PermissionActions describe the actions of permission.
 type PermissionActions struct {
-	Id                   string                                  `json:"id"`
+	ID                   string                                  `json:"id"`
 	Name                 string                                  `json:"name"`
 	RelatedResourceTypes []PermissionActionsRelatedResourceTypes `json:"related_resource_types"`
 }
 
 // PermissionActionsRelatedResourceTypes describe the related resource types of permission actions.
 type PermissionActionsRelatedResourceTypes struct {
-	SystemId   string                                            `json:"system_id"`
+	SystemID   string                                            `json:"system_id"`
 	SystemName string                                            `json:"system_name"`
 	Type       string                                            `json:"type"`
 	TypeName   string                                            `json:"type_name"`
@@ -319,7 +319,7 @@ type PermissionActionsRelatedResourceTypes struct {
 type PermissionActionsRelatedResourceTypesInstance struct {
 	Type     string `json:"type"`
 	TypeName string `json:"type_name"`
-	Id       string `json:"id"`
+	ID       string `json:"id"`
 	Name     string `json:"name"`
 }
 

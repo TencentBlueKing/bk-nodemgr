@@ -163,7 +163,9 @@ func (d *dao) pushField(nCtx contextx.IContext, filter bson.D, field string, val
 		return err
 	}
 
-	logger.G.Sys().With("field", field, "table", d.tableName, "value", value, "matched-count", result.MatchedCount).Debug("pushed operation instance data field")
+	logger.G.Sys().
+		With("field", field, "table", d.tableName, "value", value, "matched-count", result.MatchedCount).
+		Debug("pushed operation instance data field")
 
 	return nil
 }
@@ -175,13 +177,18 @@ func (d *dao) get(nCtx contextx.IContext, filter bson.D, fields ...string) (*Ope
 // listALLLastOperInst lists all last operation instances base on operation id.
 func (d *dao) listALLLastOperInst(nCtx contextx.IContext, filter bson.D) ([]*OperInstData, error) {
 	pipeline := mongo.Pipeline{
-		{{"$match", filter}},
-		{{"$sort", bson.D{{base.FieldKeyCreatedAt, -1}}}},
-		{{"$group", bson.D{
-			{"_id", "$" + FieldKeyOperationID},
-			{"doc", bson.D{{"$first", "$$ROOT"}}},
-		}}},
-		{{"$replaceRoot", bson.D{{"newRoot", "$doc"}}}},
+		bson.D{{Key: "$match", Value: filter}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: base.FieldKeyCreatedAt, Value: -1}}}},
+		bson.D{
+			{
+				Key: "$group",
+				Value: bson.D{
+					{Key: "_id", Value: "$" + FieldKeyOperationID},
+					{Key: "doc", Value: bson.D{{Key: "$first", Value: "$$ROOT"}}},
+				},
+			},
+		},
+		bson.D{{Key: "$replaceRoot", Value: bson.D{{Key: "newRoot", Value: "$doc"}}}},
 	}
 
 	opts := mongoOptions.Aggregate().SetAllowDiskUse(true)
@@ -220,7 +227,9 @@ func (d *dao) delete(nCtx contextx.IContext, operInstIDs ...string) error {
 		return err
 	}
 
-	logger.G.Sys().With("table", d.tableName, "oper-inst-ids", operInstIDs, "deleted-count", result.DeletedCount).Info("deleted operation instance data")
+	logger.G.Sys().
+		With("table", d.tableName, "oper-inst-ids", operInstIDs, "deleted-count", result.DeletedCount).
+		Info("deleted operation instance data")
 
 	return nil
 }

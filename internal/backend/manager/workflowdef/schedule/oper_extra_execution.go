@@ -28,9 +28,9 @@ const (
 )
 
 // NewOperationExtraExecution creates a new operation extra execution.
-func NewOperationExtraExecution(cap *Capability) operation.ExtraExecution {
+func NewOperationExtraExecution(capability *Capability) operation.ExtraExecution {
 	return &extraExecution{
-		workflowStg: cap.StorageWorkflow,
+		workflowStg: capability.StorageWorkflow,
 	}
 }
 

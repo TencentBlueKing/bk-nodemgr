@@ -29,10 +29,10 @@ const (
 )
 
 // NewOperationExtraExecution creates a new operation extra execution.
-func NewOperationExtraExecution(cap *Capability) operation.ExtraExecution {
+func NewOperationExtraExecution(capability *Capability) operation.ExtraExecution {
 	return &extraExecution{
-		locker:                cap.Cache,
-		storageNodeDeployment: cap.StorageNode,
+		locker:                capability.Cache,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 
