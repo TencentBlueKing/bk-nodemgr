@@ -21,7 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daomongo "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
@@ -124,10 +123,6 @@ func (orm *Orm[P, T]) Get(nCtx contextx.IContext, filter bson.D, fields ...strin
 	table := &TableBroker[P]{}
 	result := orm.dao.GetClient().FindOne(nCtx, filter, findOptions)
 	if err = result.Err(); err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, types.ErrStorageNotFound()
-		}
-
 		logger.G.Sys().WithErr(err).With("table", orm.dao.GetTableName()).Warn("failed to find one")
 
 		return nil, err

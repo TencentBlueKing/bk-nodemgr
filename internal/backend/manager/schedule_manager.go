@@ -153,10 +153,16 @@ func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.Sc
 		return mgr.trySyncingScheduledWorkflow(nCtx, sw)
 	}
 
-	trigCtl, err := mgr.workflowMgr.GetTrigger(nCtx, sw.TriggerID)
-	if types.IsErrStorageNotFound(err) {
+	// check if the trigger has been created.
+	ok, err := mgr.conf.StorageWorkflow.ExistTrigger(nCtx, sw.TriggerID)
+	if err != nil {
+		return err
+	}
+	if !ok {
 		return mgr.trySyncingScheduledWorkflow(nCtx, sw)
 	}
+
+	trigCtl, err := mgr.workflowMgr.GetTrigger(nCtx, sw.TriggerID)
 	if err != nil {
 		return err
 	}
