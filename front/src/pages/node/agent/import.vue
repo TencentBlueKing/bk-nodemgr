@@ -1,6 +1,6 @@
 <template>
   <div class="setup pt-[24px] pb-[48px]">
-    <setup-tip></setup-tip>
+    <setup-tip @show-setting="handleShowSetting"></setup-tip>
     <div class="m-[24px]">
       <Form ref="formRef" :model="formData" :rules="rules">
         <Form.FormItem
@@ -101,8 +101,7 @@ const activeInstallType = computed(() => mainStore.agentSetupType);
 const handleShowPanel = () => {
   showRightPanel.value = true;
 };
-// 显示表格设置
-const handleShowSetting = () => {};
+
 const handleCancel = () => {
   router.push({ name: 'agent' });
 };
@@ -130,7 +129,10 @@ const handlePreview = async () => {
     previewData.data = { ...formData };
   }
 };
-
+// 显示表格设置
+const handleShowSetting = () => {
+  installTableRef.value?.showSetting();
+};
 const footerRef = ref<Element | null>(null);
 const checkIfAtBottom = () => {
   if (footerRef.value) {

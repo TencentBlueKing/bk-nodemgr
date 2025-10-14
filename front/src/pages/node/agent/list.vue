@@ -5,9 +5,8 @@
       <div class="flex gap-[8px]">
         <Dropdown
           theme="light"
-          trigger="manual"
+          trigger="click"
           placement="bottom-start"
-          :is-show="dropdownShow"
         >
           <Button class="w-[130px]" theme="primary" @click="handleInstall">{{
             $t("platform.nodeMan.installAgent")
@@ -51,7 +50,7 @@
         ></copy-ip-dropdown>
       </div>
       <div class="flex gap-[8px]">
-        <!-- <Cascader
+        <Cascader
           class="w-[250px]"
           is-remote
           clearable
@@ -62,7 +61,7 @@
           :remote-method="topoRemotehandler"
           ref="topoSelect"
           :placeholder="$t('platform.nodeMan.bussinessTopology')"
-        /> -->
+        />
         <SearchSelect
           class="w-[480px] z-99"
           ref="searchSelect"
@@ -204,7 +203,7 @@
 </template>
 <script setup lang="ts">
 import { Button, Cascader, Dropdown, InfoBox, SearchSelect } from 'bkui-vue';
-import { toLower } from 'lodash';
+import { isEqual } from 'lodash';
 import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -264,6 +263,7 @@ const getHostDistinct = async () => {
   const params = {
     exact_include_conditions: {
       node_role: ['agent', 'blank'],
+      bk_biz_id: mainStore.selectedBusinessId,
     },
   };
   const res = await TopoService.HostDistinct(params).catch(() => null);
@@ -324,7 +324,7 @@ const pageValueChange = async (current: number) => {
 const operate = [
   {
     id: 'upgrade',
-    name: '升级',
+    name: '升级/回退',
     disabled: false,
     show: true,
   },
@@ -707,15 +707,17 @@ const getParams = () => {
       limit: pagination.limit,
       offset: (pagination.current - 1) * pagination.limit,
     },
-    exact_include_conditions: {} as TopoHostExactConditions,
+    exact_include_conditions: {
+      bk_biz_id: mainStore.selectedBusinessId,
+      node_role: ['agent', 'blank'],
+    } as TopoHostExactConditions,
     fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
   };
-  params.exact_include_conditions.node_role = ['agent', 'blank'];
   searchSelectValue.value.forEach((item: any) => {
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
-    target[item.id] = item.values.map((value: any) => value.id);
+      target[item.id] = item.values?.map((value: any) => value.id);
   });
   return params;
 };
@@ -767,10 +769,10 @@ watch(route, async () => {
     await getAgentList();
   }
 }, { immediate: true, deep: true });
-onMounted(async () => {
+watch(() => mainStore.selectedBusinessId, async () => {
   await getAgentList();
   await getHostDistinct();
-});
+}, { immediate: true });
 </script>
 <style lang="postcss" scoped>
 :deep(.vxe-table--empty-content) {

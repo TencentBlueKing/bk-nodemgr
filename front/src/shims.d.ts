@@ -11,6 +11,10 @@ declare interface Window {
     BK_REQUEST_ID_HEADER_KEY: string,
     PASSWORD_VAULT_SWITCH: boolean,
     PASSWORD_VAULT_NAME: string,
+    BK_COMPONENT_API_URL: string,
+    BK_DOMAIN: string,
+    BKAPP_NAV_OPEN_SOURCE_URL: string,
+    BK_DOCS_CENTER_URL: string
   }
   loginModal: Object
 }

@@ -353,8 +353,4 @@ watch([
 ], async () => {
   await getConfigPolicyList();
 }, { immediate: true, deep: true });
-
-onMounted(async () => {
-  await getConfigPolicyList();
-});
 </script>

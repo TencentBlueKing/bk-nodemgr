@@ -32,11 +32,6 @@
           field="bk_host_innerip_v6"
           show-overflow="tooltip"
           :min-width="130">
-          <template #default="{ row }">
-            <span class="!text-[12px]">
-              {{ row.bk_host_innerip_v6 ? `#${row.bk_host_innerip_v6}` : '--' }}
-            </span>
-          </template>
         </TableColumn>
         <TableColumn
           label="出口IP"
@@ -265,10 +260,14 @@ const getParams = () => {
       limit: pagination.limit,
       offset: (pagination.current - 1) * pagination.limit,
     },
-    exact_include_conditions: {} as TopoHostExactConditions,
+    exact_include_conditions: {
+      node_role: ['proxy'],
+    } as TopoHostExactConditions,
     fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
   };
-  params.exact_include_conditions.node_role = ['proxy'];
+  if (route.name === 'proxy') {
+    params.exact_include_conditions.bk_biz_id = mainStore.selectedBusinessId;
+  }
   if (props.bkNetworkunitId) {
     params.exact_include_conditions.bk_networkunit_id = [props.bkNetworkunitId];
   }
@@ -276,7 +275,7 @@ const getParams = () => {
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
-    target[item.id] = item.values.map((value: any) => value.id);
+    target[item.id] = item.values?.map((value: any) => value.id);
   });
   return params;
 };
@@ -307,9 +306,12 @@ const handleReinstall = (row: Host) => {
   isShowInstallProxy.value = true;
   reinstallData.value = [row];
 };
+watch(() => mainStore.selectedBusinessId, async () => {
+  await getAgentList();
+}, { immediate: true });
 watch(searchSelectValue, async () => {
   await getAgentList();
-}, { immediate: true, deep: true });
+}, { deep: true });
 </script>
 <style lang="postcss" scoped>
 .status-icon::before {

@@ -69,7 +69,7 @@ const handleChange = (values: string[]) => {
 
   // 子组件进行(IPv4/IPv6/管控区域+IPv4/管控区域+IPv6)处理并复制
   const copyList = getCopyValueBySubList(tableData, value);
-  copyText(copyList.join('\n'));
+  copyText(copyList.join(',\n'));
 };
 
 const data = ref([]);

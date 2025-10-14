@@ -454,7 +454,9 @@ const getParams = () => {
       limit: 0,
       offset: 0,
     },
-    exact_include_conditions: {} as Record<string, string[]>,
+    exact_include_conditions: {
+      bk_biz_id: mainStore.selectedBusinessId,
+    },
     fuzzy_include_conditions: {} as Record<string, string[]>,
     operate_time_range: {
       start_timestamp_sec: getTimestampInSeconds(dateValue.value[0]),
@@ -463,7 +465,7 @@ const getParams = () => {
   };
   searchSelectValue.value.forEach((item: any) => {
     const target = params.exact_include_conditions;
-    target[item.id] = item.values.map((value: any) => value.id);
+    target[item.id] = item.values?.map((value: any) => value.id);
   });
   return params;
 };
@@ -524,9 +526,9 @@ watch(
   },
   { deep: true },
 );
-onMounted(async () => {
+watch(() => mainStore.selectedBusinessId, async () => {
   await getTaskList();
-});
+}, { immediate: true });
 </script>
 <style lang="postcss" scoped>
 :deep(.vxe-table--empty-content) {

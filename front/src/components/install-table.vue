@@ -7,7 +7,7 @@
           field="bk_biz_id"
           title="归属业务"
           :visible="settings.checked.includes('bk_biz_id')"
-          :width="150"
+          :min-width="150"
         >
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
@@ -45,6 +45,7 @@
           field="bk_host_innerip"
           title="内网 IPv4"
           :visible="settings.checked.includes('bk_host_innerip')"
+          :min-width="150"
         >
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
@@ -63,6 +64,7 @@
         <VxeColumn
           field="bk_host_innerip_v6"
           title="内网 IPv6"
+          :min-width="150"
           :visible="settings.checked.includes('bk_host_innerip_v6')"
         >
           <template #default="{ row, $rowIndex, $columnIndex }">
@@ -82,6 +84,7 @@
         <VxeColumn
           field="os_type"
           title="操作系统"
+          :min-width="120"
           :visible="settings.checked.includes('os_type')"
           v-if="realeaseType !== 'proxy' || isReinstall"
         >
@@ -121,6 +124,7 @@
         </VxeColumn>
         <VxeColumn
           field="export_ip"
+          :min-width="150"
           :visible="settings.checked.includes('export_ip')"
           v-if="realeaseType === 'proxy'"
         >
@@ -141,9 +145,10 @@
         </VxeColumn>
         <VxeColumn
           field="advertise_ip"
-          :visible="settings.checked.includes('advertise_ip')"
           title="服务IP"
+          :min-width="150"
           v-if="realeaseType === 'proxy'"
+          :visible="settings.checked.includes('advertise_ip')"
         >
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
@@ -162,6 +167,7 @@
         <VxeColumn
           field="login_ip"
           title="登录 IP"
+          :min-width="150"
           :visible="settings.checked.includes('login_ip')"
         >
           <template #default="{ row, $rowIndex, $columnIndex }">
@@ -178,6 +184,7 @@
         <VxeColumn
           field="login_port"
           title="登录端口"
+          :min-width="120"
           :visible="settings.checked.includes('login_port')"
           v-if="realeaseType !== 'proxy' || isReinstall"
         >
@@ -205,6 +212,7 @@
         <VxeColumn
           field="login_user"
           title="登录账号"
+          :min-width="150"
           :visible="settings.checked.includes('login_user')"
           v-if="realeaseType !== 'proxy' || isReinstall"
         >
@@ -231,7 +239,7 @@
         </VxeColumn>
         <VxeColumn
           field="login_mode"
-          width="120"
+          :min-width="120"
           :visible="settings.checked.includes('login_mode')"
         >
           <template #header>
@@ -270,7 +278,7 @@
         </VxeColumn>
         <VxeColumn
           field="credit"
-          min-width="80"
+          :min-width="170"
           :visible="settings.checked.includes('credit')"
         >
           <template #header>
@@ -295,34 +303,27 @@
               v-else
               :value="row.credit"
               :rules="rules.credit"
-              required
+              :required="!isReinstall || !row.credit || !row.login_credit_valid"
               :ref="(el) => setInputRef($rowIndex, $columnIndex, el)"
             >
-              <div
-                v-bk-tooltips="{
-                  content: '密码有效，点击修改',
-                  disabled:
-                    !isReinstall || !row.credit || !row.login_credit_valid,
-                }"
-              >
-                <Upload
-                  ref="uploader"
-                  type="formdata"
-                  v-if="row.login_mode === 'keyfile'"
-                  :url="url"
-                  :size="100"
-                  :multiple="false"
-                  :limit="1"
-                  theme="button"
-                  :before-upload="(val) => handleBeforeUpload(val,row)"
-                  :custom-request="() => {}"
-                ></Upload>
-                <Input
-                  v-else
-                  v-model.trim="row.credit"
-                  type="password"
-                ></Input>
-              </div>
+              <Upload
+                ref="uploader"
+                type="formdata"
+                v-if="row.login_mode === 'keyfile'"
+                :url="url"
+                :size="100"
+                :multiple="false"
+                :limit="1"
+                theme="button"
+                :before-upload="(val) => handleBeforeUpload(val,row)"
+                :custom-request="() => {}"
+              ></Upload>
+              <Input
+                v-else
+                v-model.trim="row.credit"
+                :placeholder="(!isReinstall || !row.credit || !row.login_credit_valid) ? '请输入密码' : '密码有效，点击修改'"
+                type="password"
+              ></Input>
             </Validate>
           </template>
         </VxeColumn>
@@ -334,7 +335,7 @@
         v-if="realeaseType === 'proxy'"
       >
         <VxeColumn
-          width="80"
+          :min-width="90"
           field="dedicated_installer"
           title="安装跳板"
           :visible="settings.checked.includes('dedicated_installer')"
@@ -347,7 +348,7 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          width="90"
+          :min-width="90"
           field="cluster_tunnel"
           title="Agent控制"
           :visible="settings.checked.includes('cluster_tunnel')"
@@ -357,7 +358,7 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          width="80"
+          :min-width="90"
           field="file_tunnel"
           title="文件传输"
           :visible="settings.checked.includes('file_tunnel')"
@@ -367,7 +368,7 @@
           </template>
         </VxeColumn>
         <VxeColumn
-          width="80"
+          :min-width="90"
           field="data_tunnel"
           title="数据上报"
           :visible="settings.checked.includes('data_tunnel')"
@@ -381,6 +382,7 @@
         <template #header>
           <Button text style="margin-right: 8px">
             <Settings
+              ref="settingRef"
               :settings="settings"
               @setting-change="settingChange"
             ></Settings>
@@ -392,7 +394,7 @@
             <i class="nodeman-icon nc-icon-full-screen"></i>
           </Button>
         </template>
-        <VxeColumn width="80" field="action" title="操作">
+        <VxeColumn :min-width="80" field="action" title="操作">
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Button text @click="handleAddRow($rowIndex)">
               <i class="nodeman-icon nc-plus"></i>
@@ -619,11 +621,9 @@ const handleBatchEdit = (field: string, value: string | number | Object) => {
     }
   });
 };
-
 // 上传密钥
 const url = location.href;
 const handleBeforeUpload = (file: File, row: any) => {
-  console.log(file)
   row.file = file;
   const reader = new FileReader();
   reader.onload = (event) => {
@@ -659,8 +659,15 @@ const tableValidate = async () => {
   return result.every(item => item);
 };
 
+const settingRef = ref();
+const showSetting = () => {
+  console.log("🚀 ~ showSetting ~ settingRef.value:", settingRef.value)
+  settingRef.value?.showSetting();
+};
+
 defineExpose({
   tableValidate,
+  showSetting,
   // clearTableValidate
 });
 

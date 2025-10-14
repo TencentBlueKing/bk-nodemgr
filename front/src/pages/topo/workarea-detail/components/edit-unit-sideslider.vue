@@ -49,20 +49,30 @@
           <Input v-model="formData.login_user" />
         </Form.FormItem>
         <div class="flex items-center">
-          <Form.FormItem :label="$t('topoManager.installProxy.table.dedicated_installer')" class="w-1/2">
-            <Switcher v-model="formData.dedicated_installer" theme="primary"></Switcher>
-          </Form.FormItem>
-          <Form.FormItem :label="$t('topoManager.installProxy.table.cluster_tunnel')">
-            <Switcher v-model="formData.cluster_tunnel" theme="primary"></Switcher>
-          </Form.FormItem>
-        </div>
-        <div class="flex items-center">
-          <Form.FormItem :label="$t('topoManager.installProxy.table.file_tunnel')" class="w-1/2">
-            <Switcher v-model="formData.file_tunnel" theme="primary"></Switcher>
-          </Form.FormItem>
-          <Form.FormItem :label="$t('topoManager.installProxy.table.data_tunnel')">
-            <Switcher v-model="formData.data_tunnel" theme="primary"></Switcher>
-          </Form.FormItem>
+          <div class="flex items-center w-1/4">
+            <Checkbox v-model="formData.dedicated_installer" theme="primary"></Checkbox>
+            <span class="text-[#63656e] text-[14px] ml-[6px]">
+              {{ $t('topoManager.installProxy.table.dedicated_installer') }}
+            </span>
+          </div>
+          <div class="flex items-center w-1/4">
+            <Checkbox v-model="formData.cluster_tunnel" theme="primary"></Checkbox>
+            <span class="ml-[6px] text-[#63656e] text-[14px]">
+              {{ $t('topoManager.installProxy.table.cluster_tunnel') }}
+            </span>
+          </div>
+          <div class="flex items-center w-1/4">
+            <Checkbox v-model="formData.file_tunnel" theme="primary"></Checkbox>
+            <span class="ml-[6px] text-[#63656e] text-[14px]">
+              {{ $t('topoManager.installProxy.table.file_tunnel') }}
+            </span>
+          </div>
+          <div class="flex items-center w-1/4">
+            <Checkbox v-model="formData.data_tunnel" theme="primary"></Checkbox>
+            <span class="ml-[6px] text-[#63656e] text-[14px]">
+              {{ $t('topoManager.installProxy.table.data_tunnel') }}
+            </span>
+          </div>
         </div>
       </Form>
     </template>
@@ -75,7 +85,7 @@
   </Sideslider>
 </template>
 <script lang="ts" setup>
-import { Button, Form, InfoBox, Input, Message, Select, Sideslider, Switcher } from 'bkui-vue';
+import { Button, Checkbox, Form, InfoBox, Input, Message, Select, Sideslider, Switcher } from 'bkui-vue';
 import { cloneDeep } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, reactive, ref, watch } from 'vue';

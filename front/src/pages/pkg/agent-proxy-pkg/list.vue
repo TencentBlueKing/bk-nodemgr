@@ -9,7 +9,7 @@
         :data="searchSelectData"
         v-model="searchSelectValue"
         :unique-select="true"
-        :placeholder="'版本号、操作系统/架构、标签、上传用户、状态、默认版本'"
+        :placeholder="'版本号、操作系统、架构、标签、上传用户、状态、默认版本'"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -125,10 +125,16 @@
             show-overflow="tooltip"
           ></TableColumn>
           <TableColumn
-            field="os_cpu_arch"
-            :title="'操作系统/架构'"
-            :filter="filterOptionSource.os_cpu_arch"
-            :min-width="150"
+            field="os_type"
+            :title="'操作系统'"
+            :filter="filterOptionSource.os_type"
+            :min-width="80"
+          ></TableColumn>
+          <TableColumn
+            field="cpu_arch"
+            :title="'架构'"
+            :filter="filterOptionSource.cpu_arch"
+            :min-width="80"
           ></TableColumn>
           <TableColumn
             field="labels"
@@ -387,10 +393,20 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
     return sortedList;
   },
 });
-const dimensionList = computed(() => searchSelectData.value.filter((item: { id: string }) => ['version', 'os_cpu_arch'].includes(item.id)).sort((a: { id: string }, b: { id: string }) => {
-  const orderMap: { [key: string]: number } = { os_cpu_arch: 0, version: 1 };
-  return orderMap[a.id] - orderMap[b.id];
-}));
+const dimensionList = computed(() => [
+  {
+    id: 'os_cpu_arch',
+    name: '操作系统/架构',
+    multiple: true,
+    children: getUniqueChildren('os_cpu_arch'),
+  },
+  {
+    id: 'version',
+    name: '版本号',
+    multiple: true,
+    children: getUniqueChildren('version'),
+  },
+]);
 const handleExpand = (id: string) => {
   if (id === 'version') {
     state.versionExpand = !state.versionExpand;
@@ -405,7 +421,13 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
     match: 'fuzzy',
     filterScope: 'all',
   },
-  os_cpu_arch: {
+  os_type: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
+  cpu_arch: {
     list: [],
     checked: [],
     match: 'fuzzy',
@@ -483,10 +505,16 @@ const searchSelectData = computed(() => [
     children: getUniqueChildren('version'),
   },
   {
-    id: 'os_cpu_arch',
-    name: '操作系统/架构',
+    id: 'os_type',
+    name: '操作系统',
     multiple: true,
-    children: getUniqueChildren('os_cpu_arch'),
+    children: getUniqueChildren('os_type'),
+  },
+  {
+    id: 'cpu_arch',
+    name: '架构',
+    multiple: true,
+    children: getUniqueChildren('cpu_arch'),
   },
   {
     id: 'labels',
@@ -523,7 +551,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'file_name',
     'version',
-    'os_cpu_arch',
+    'os_type',
+    'cpu_arch',
     'labels',
     'operator',
     'updated_at',
@@ -565,22 +594,22 @@ const handleFilter = ({
       }),
     });
   }
+  // 当表头筛选版本和系统架构时，快捷筛选选择全部
+  if (field === 'version') {
+    selectDimensionOptional('all', 'version');
+  }
+  if (field === 'os_type' || field === 'cpu_arch') {
+    selectDimensionOptional('all', 'os_cpu_arch');
+  }
 };
 // 搜索
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
-  Object.keys(filterOptionSource).forEach((key) => {
-    filterOptionSource[key].checked = [];
-  });
-  selectDimensionOptional('all', 'os_cpu_arch');
-  selectDimensionOptional('all', 'version');
-  data.forEach((item) => {
-    if (filterOptionSource[item.id as filterProp]) {
-      filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
-    }
-    if (['version', 'os_cpu_arch'].includes(item.id)) {
-      selectDimensionOptional(item.values[0].id, item.id as PkgQuickType);
-    }
-  });
+  if (data.findIndex(item => item.id === 'version') === -1) {
+    selectDimensionOptional('all', 'version');
+  }
+  if (data.findIndex(item => item.id === 'os_type') === -1 || data.findIndex(item => item.id === 'cpu_arch') === -1) {
+    selectDimensionOptional('all', 'os_cpu_arch');
+  }
 };
 // 维度nav click 可以多选, 如果选择非all，则all取消选中状态，如果空了则选择all
 const selectDimensionOptional = (id: string, dimension: PkgQuickType, type?: string) => {
@@ -616,16 +645,52 @@ const selectDimensionOptional = (id: string, dimension: PkgQuickType, type?: str
   }
 };
 const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
-  const index = searchSelectValue.value.findIndex((item: any) => item.id === dimension);
-  index > -1 && searchSelectValue.value.splice(index, 1);
+  if (dimension === 'os_cpu_arch') {
+    const index = searchSelectValue.value.findIndex((item: any) => item.id === 'os_type');
+    index > -1 && searchSelectValue.value.splice(index, 1);
+    const index2 = searchSelectValue.value.findIndex((item: any) => item.id === 'cpu_arch');
+    index2 > -1 && searchSelectValue.value.splice(index2, 1);
+  } else {
+    const index = searchSelectValue.value.findIndex((item: any) => item.id === dimension);
+    index > -1 && searchSelectValue.value.splice(index, 1);
+  }
+
   if (ids.has('all')) return;
-  const findData = searchSelectData.value.find((item: {id: string}) => item.id === dimension);
-  findData && searchSelectValue.value.push({
-    id: dimension,
-    name: findData.name,
-    values: [findData.children.find((item: any) => ids.has(item.id))],
-  });
+  if (dimension === 'os_cpu_arch') {
+    const filterDatas = searchSelectData.value.filter((item: {id: string}) => ['os_type', 'cpu_arch'].includes(item.id));
+    filterDatas.forEach(item => {
+      searchSelectValue.value.push({
+        id: item.id,
+        name: item.name,
+        values: item.children.filter(child => {
+          for (const item of ids) {
+            if (item.includes(child.id)) {
+              return item.includes(child.id);
+            }
+          }
+          return false;
+        }),
+      });
+    });
+  } else {
+    const findData = searchSelectData.value.find((item: {id: string}) => item.id === dimension);
+    findData && searchSelectValue.value.push({
+      id: dimension,
+      name: findData.name,
+      values: findData.children.filter((item: any) => ids.has(item.id)),
+    });
+  }
 };
+watch(() => searchSelectValue.value, (data) => {
+  Object.keys(filterOptionSource).forEach((key) => {
+    filterOptionSource[key].checked = [];
+  });
+  data.forEach((item) => {
+    if (filterOptionSource[item.id as filterProp]) {
+      filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
+    }
+  });
+}, { immediate: true, deep: true });
 const handleClickHost = (row: Release) => {
   if (!row.host || row.release_type !== 'agent') return;
   router.push({
@@ -704,7 +769,8 @@ const handleConfirm = async () => {
 };
 watch(originPackageList, () => {
   filterOptionSource.version.list = getUniqueChildren('version');
-  filterOptionSource.os_cpu_arch.list = getUniqueChildren('os_cpu_arch');
+  filterOptionSource.os_type.list = getUniqueChildren('os_type');
+  filterOptionSource.cpu_arch.list = getUniqueChildren('cpu_arch');
   filterOptionSource.labels.list = getUniqueChildren('labels');
   filterOptionSource.operator.list = getUniqueChildren('operator');
 }, { immediate: true, deep: true });

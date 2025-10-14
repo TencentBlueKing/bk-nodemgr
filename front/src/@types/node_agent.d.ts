@@ -38,6 +38,31 @@ export interface NodeAgentInstallRespData {
   workflow_id: string;
 }
 
+// NodeAgentUpgradeReq describes the node agent upgrade request.
+export interface NodeAgentUpgradeReq {
+  host: Host[];
+}
+
+export interface NodeAgentUpgradeReqHost {
+  bk_host_id: number;
+  target_version: string;
+  force: boolean;
+  graceful_restart_timeout_sec: number;
+}
+
+// NodeAgentUpgradeResp describes the node agent upgrade response.
+export interface NodeAgentUpgradeResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeAgentUpgradeRespData;
+}
+
+export interface NodeAgentUpgradeRespData {
+  workflow_id: string;
+}
+
 // AgentInstallCheckInfo describes the node agent install check parameter.
 export interface AgentInstallCheckInfo {
   bk_biz_id: number;
@@ -79,14 +104,14 @@ export interface UploadAgentTemplateReq {
 
 // ParsedInfo describes the result for tempalte file parsed info.
 export interface ParsedInfo {
-  inner_ip: string;
-  inner_ipv6: string;
+  bk_host_innerip: string;
+  bk_host_inner_ip_v6: string;
   os_type: string;
   login_ip: string;
   login_port: number;
   login_user: string;
   login_mode: string;
-  credential: string;
+  credit: string;
 }
 
 // UploadAgentTemplateResp ...

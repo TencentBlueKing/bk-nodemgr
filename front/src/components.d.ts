@@ -17,6 +17,7 @@ declare module 'vue' {
     FlexRow: typeof import('./components/flex-row.vue')['default']
     InstallTable: typeof import('./components/install-table.vue')['default']
     InstallType: typeof import('./components/install-type.vue')['default']
+    LogVersion: typeof import('./components/log-version.vue')['default']
     PageHeader: typeof import('./components/page-header.vue')['default']
     README: typeof import('./components/README.md')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
@@ -24,6 +25,7 @@ declare module 'vue' {
     Settings: typeof import('./components/settings.vue')['default']
     SetupTip: typeof import('./components/setup-tip.vue')['default']
     SlideDetail: typeof import('./components/slide-detail.vue')['default']
+    UploadExcel: typeof import('./components/upload-excel.vue')['default']
     Validate: typeof import('./components/validate.vue')['default']
     ValidateInput: typeof import('./components/validate-input.vue')['default']
   }

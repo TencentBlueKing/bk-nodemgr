@@ -2,7 +2,7 @@
   <Sideslider
     v-model:is-show="isShow"
     :title="$t('topoManager.installProxy.reinstall')"
-    width="1390"
+    width="1200"
     render-directive="if"
     :before-close="handleBeforeClose"
   >
@@ -232,14 +232,14 @@ const systemData = ref([
     os: 'Linux_amd64',
     cpu_arch: 'amd64',
     os_type: 'linux',
-    version: '默认',
+    version: '自动',
   },
   {
     displayName: 'linux/arm64',
     os: 'Linux_arm64',
     cpu_arch: 'arm64',
     os_type: 'linux',
-    version: '默认',
+    version: '自动',
   },
 ]);
 const installOriginList = ref([
@@ -262,13 +262,13 @@ const installMethodList = ref([
     icon: 'nodeman-icon nc-remote-install',
     title: t('topoManager.installProxy.installMethodList.remote.title'),
     content: t('topoManager.installProxy.installMethodList.remote.content'),
-    value: 0,
+    value: '0',
   },
   {
     icon: 'nodeman-icon nc-custom-install',
     title: t('topoManager.installProxy.installMethodList.manual.title'),
     content: t('topoManager.installProxy.installMethodList.manual.content'),
-    value: 2,
+    value: '2',
   },
 ]);
 const isShowDialog = ref(false);

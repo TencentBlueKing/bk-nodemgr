@@ -9,6 +9,7 @@ export const useMainStore = defineStore('mainStore', {
     selectedBusinessName: string[];
     agentSetupType: string;
     configEditData: ConfigPolicy | null;
+    curLanguage: string;
   } => ({
     globalPageSize: 50, // 全局分页
     windowInnerHeight: 0,
@@ -17,6 +18,7 @@ export const useMainStore = defineStore('mainStore', {
     selectedBusinessName: [] as string[], // 当前业务名称
     agentSetupType: 'setup', // 代理安装方式
     configEditData: null,
+    curLanguage: 'zh-CN',
   }),
   actions: {
     // 更新全局分页
@@ -41,6 +43,9 @@ export const useMainStore = defineStore('mainStore', {
     },
     updateConfigEditData(data: ConfigPolicy) {
       this.configEditData = data;
+    },
+    updateLanguage(language: string) {
+      this.curLanguage = language;
     },
   },
 });

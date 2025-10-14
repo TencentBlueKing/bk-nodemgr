@@ -182,6 +182,7 @@ export interface TopoNetworkUnitListReq {
 export interface TopoNetworkUnitListReqExactConditions {
   bk_networkunit_id: number[];
   bk_networkarea_id: number[];
+  is_direct: boolean[];
 }
 
 // TopoNetworkUnitListResp describes the HTTP response body when list

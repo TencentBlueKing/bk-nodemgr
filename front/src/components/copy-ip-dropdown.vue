@@ -130,7 +130,7 @@ const handleChange = async () => {
   });
   if (isSupported) {
     try {
-      await copy(copyContent.join('\n'));
+      await copy(copyContent.join(',\n'));
       Message({
         theme: 'success',
         message: '复制成功',

@@ -19,6 +19,7 @@ export interface NodeProxyInstallHost {
   advertise_ip: string;
   re_register: boolean;
   proxy_tags: string[];
+  proxy_install_origin_unit_id: number;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.

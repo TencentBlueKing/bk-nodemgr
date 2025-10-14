@@ -157,6 +157,10 @@ const getTableData = async () => {
   tableData.value = workareaStore.workareaList;
   initSearchData();
 };
+// 对于NetworkAreaStatistics异步请求变化的数据监听
+watch(() => workareaStore.workareaList, () =>  {
+  tableData.value = workareaStore.workareaList;
+}, { deep: true });
 onMounted(async () => {
   await getTableData();
 });

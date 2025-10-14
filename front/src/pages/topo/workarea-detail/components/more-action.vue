@@ -203,42 +203,34 @@ const curWidth = computed(() => (actionConfirmProps.value.theme === 'primary' ? 
 
 // 升级
 const upgradeVersion = async () => await NodeProxyService.NodeProxyUpgrade({
-  host: [props.data],
+  host: [...props.data],
   target_version: [],
 }).catch(() => false);
 // 卸载
 const unloadProxy = async () => {
 };
 // 重载配置
-const overloadConfig = async () => await NodeProxyService.NodeProxyReconfig({ host: [props.data] }).catch(() => false);
+const overloadConfig = async () => await NodeProxyService.NodeProxyReconfig({ host: props.data }).catch(() => false);
 // 重启
-const restartProxy = async () => await NodeProxyService.NodeProxyRestart({ host: [props.data] }).catch(() => false);
+const restartProxy = async () => await NodeProxyService.NodeProxyRestart({ host: props.data }).catch(() => false);
 
 const handleConfirm = async () => {
   loading.value = true;
   let res: any;
-  let message;
   switch (curAction.value) {
     case 'upgrade':
       res = await upgradeVersion();
-      message = '升级成功！';
       break;
     case 'overload':
       res = await overloadConfig();
-      message = '重载配置成功！';
       break;
     case 'restart':
       res = await restartProxy();
-      message = '重启成功！';
       break;
     default:
       break;
   }
   if (!res) return;
-  Message({
-    theme: 'success',
-    message,
-  });
   loading.value = false;
   isShow.value = false;
   if (res.workflow_id) {

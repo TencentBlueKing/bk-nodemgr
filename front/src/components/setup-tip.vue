@@ -27,14 +27,17 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Button } from 'bkui-vue';
+import { ref } from 'vue';
 
+const emit = defineEmits(['showSetting']);
 const showRightPanel = ref(false);
 // 显示侧边栏安装策略
 const handleShowPanel = () => {
   showRightPanel.value = true;
 };
 // 显示表格设置
-const handleShowSetting = () => {};
+const handleShowSetting = () => {
+  emit('showSetting');
+};
 </script>

@@ -67,7 +67,7 @@
         :data="searchSelectData"
         v-model="searchSelectValue"
         :unique-select="true"
-        :placeholder="t('请输入IP、云区域、业务、目标版本、执行状态 搜索')"
+        :placeholder="t('请输入IP、管控区域、业务、目标版本、执行状态 搜索')"
         @update:model-value="handleSearchSelectChange">
       </SearchSelect>
     </div>
@@ -89,7 +89,7 @@
           <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
           <TableColumn field="bk_host_inner" :title="t('IPv4')" width="150" fixed="left"></TableColumn>
           <TableColumn field="bk_host_innerip_v6" :title="t('IPv6')" width="150"></TableColumn>
-          <TableColumn field="bk_networkarea_id" :title="t('云区域')" min-width="150"></TableColumn>
+          <TableColumn field="bk_networkarea_id" :title="t('管控区域')" min-width="150"></TableColumn>
           <TableColumn field="bk_biz_name" :title="t('业务')" min-width="150"></TableColumn>
           <TableColumn
             field="node_version"
@@ -292,13 +292,18 @@ const formatTimeToMS = (duration = 0) => {
 
   return parts.join(' ');
 };
+const formatCostTime = (duration: number) => {
+  const minutes = Math.floor(duration / 60000);
+  const seconds = Math.floor((duration % 60000) / 1000);
+  return `${minutes}m ${seconds}s`;
+};
 
 const timeFormatter = (val: number | string | undefined, format = 'YYYY-MM-DD HH:mm:ss') => (val ? dayjs(val).format(format) : '--');
 
 const sliceWorkflowId = (val: string) => `#${val?.slice(-4)}`;
 const taskInfoList = computed(() => ([
   { prop: 'type', name: t('任务类型'), value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType] || nodeManageStore.taskHistoryTableRowData?.type },
-  { prop: 'cost_time', name: t('总耗时'), value: formatTimeToMS(nodeManageStore.taskHistoryTableRowData?.cost_time) },
+  { prop: 'cost_time', name: t('总耗时'), value: formatCostTime(nodeManageStore.taskHistoryTableRowData?.cost_time) },
   { prop: 'workflow_id', name: t('任务ID'), value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id) },
   { prop: 'operator', name: t('执行人'), value: nodeManageStore.taskHistoryTableRowData?.operator },
   { prop: 'operate_time', name: t('执行时间'), value: timeFormatter(nodeManageStore.taskHistoryTableRowData?.operate_time) },
@@ -364,7 +369,7 @@ const loading = ref(false);
 const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
 const searchSelectData = computed(() => [
   { id: 'bk_host_innerip', name: t('IP'), multiple: true },
-  { id: 'bk_networkarea_id', name: t('云区域'), children: getUniqueChildren('bk_networkarea_id'), multiple: true },
+  { id: 'bk_networkarea_id', name: t('管控区域'), children: getUniqueChildren('bk_networkarea_id'), multiple: true },
   { id: 'bk_biz_id', name: t('业务'), children: bussinessMap.value, multiple: true },
   { id: 'node_version', name: t('目标版本'), children: getUniqueChildren('node_version'), multiple: true },
   { id: 'state', name: t('执行状态'), children: getUniqueChildren('state'), multiple: true },
@@ -513,7 +518,9 @@ const handleFullRetry = async (type: string) => {
 };
 const updataCurrentTaskInfo = async () => {
   const res = await NodeWorkflowService.NodeWorkflowList({
-    exact_include_conditions: {},
+    exact_include_conditions: {
+      bk_biz_id: mainStore.selectedBusinessId,
+    },
   }).catch((err) => {
     console.log(err);
     return {
@@ -543,7 +550,7 @@ const getParams = () => {
   };
   searchSelectValue.value.forEach((item: any) => {
     const target = params.exact_include_conditions;
-    target[item.id] = item.values.map((value: any) => value.id);
+    target[item.id] = item.values?.map((value: any) => value.id);
   });
   params.exact_include_conditions['workflow_id'] = route.params.taskId;
   return params;

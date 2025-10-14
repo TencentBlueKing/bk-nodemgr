@@ -1,6 +1,6 @@
-import { keyBy } from "lodash";
-import { defineStore } from "pinia";
-import { reactive, ref } from "vue";
+import { keyBy } from 'lodash';
+import { defineStore } from 'pinia';
+import { reactive, ref, onUpdated } from 'vue';
 
 import type {
   TopoEventListReq,
@@ -8,12 +8,12 @@ import type {
   TopoNetworkAreaListReq,
   TopoNetworkAreaStaticsRespStaticsInfo,
   TopoNetworkAreaUpdateReq,
-} from "@/@types/topo";
-import { TopoService } from "@/api/modules/topo";
+} from '@/@types/topo';
+import { TopoService } from '@/api/modules/topo';
 
 export type INetWorkArea = NetworkArea & TopoNetworkAreaStaticsRespStaticsInfo;
 
-export const useWorkareaStore = defineStore("workarea", () => {
+export const useWorkareaStore = defineStore('workarea', () => {
   const workareaList = ref<INetWorkArea[]>([]);
   const allWorkareaList = ref<Map<number, NetworkArea>>(new Map());
   const allWorkUnitList = ref<Map<number, NetworkUnit[]>>(new Map());
@@ -56,7 +56,7 @@ export const useWorkareaStore = defineStore("workarea", () => {
         },
         fuzzy_include_conditions: {
           bk_networkarea_name: includeConditions.bk_networkarea_name,
-        }
+        },
       });
       workareaList.value = (result?.items as INetWorkArea[]) || [];
       pagination.count = result?.total || 0;
@@ -98,31 +98,33 @@ export const useWorkareaStore = defineStore("workarea", () => {
   const handleGetAllWorkareaList = async () => {
     loading.value = true;
     const params: Partial<TopoNetworkAreaListReq> = {
-      page: {
-        offset: 0,
-        limit: 0,
-      },
+      page: { offset: 0, limit: 0 }
     };
-    const result = await TopoService.NetworkAreaList(params).catch(() => {});
-    workareaList.value = (result?.items as INetWorkArea[]) || [];
-    pagination.count = result?.total || 0;
 
-    const workareaIds = workareaList.value.map(
-      (item) => item.bk_networkarea_id
-    );
-    const countData = await handleFetchWorkareaInfoCount(workareaIds);
-    const lookup = keyBy(countData, "bk_networkarea_id");
-    for (const item of workareaList.value) {
-      const match = lookup[item.bk_networkarea_id];
-      if (match) {
-        item.networkunit_count = match.networkunit_count;
-        item.proxy_count = match.proxy_count;
-        item.agent_count = match.agent_count;
-        item.last_operate_time = match.last_operate_time;
-        item.last_operator = match.last_operator;
-      }
+    try {
+      // 1. 第一次请求：获取基础列表
+      const result = await TopoService.NetworkAreaList(params);
+      workareaList.value = (result?.items as INetWorkArea[]) || [];
+      pagination.count = result?.total || 0;
+      loading.value = false; // 立即结束加载，先渲染
+
+      // 2. 用微任务异步执行第二次请求（在当前同步任务后执行）
+      Promise.resolve().then(async () => {
+        const workareaIds = workareaList.value.map(item => item.bk_networkarea_id);
+        const countData = await handleFetchWorkareaInfoCount(workareaIds).catch(() => []);
+        const lookup = keyBy(countData, 'bk_networkarea_id');
+
+        // 更新数据（触发响应式更新）
+        workareaList.value = workareaList.value.map(item => ({
+          ...item,
+          ...lookup[item.bk_networkarea_id],
+        }));
+      });
+    } catch (error) {
+      workareaList.value = [];
+      pagination.count = 0;
+      loading.value = false;
     }
-    loading.value = false;
   };
 
   // 将所有管控区域存入Map
@@ -146,7 +148,10 @@ export const useWorkareaStore = defineStore("workarea", () => {
     allAccessPointList.value.clear();
     const result = await TopoService.NetworkUnitList({
       bk_networkarea_id: id || null,
-    });
+    }).catch(() => ({
+      total: 0,
+      items: [],
+    }));
     const list = result?.items || [];
     const accessPointList = [];
     for (const unit of list) {
@@ -162,7 +167,10 @@ export const useWorkareaStore = defineStore("workarea", () => {
 
   // 获取操作记录列表
   const handleFetchRecordList = async (params: Partial<TopoEventListReq>) => {
-    const result = await TopoService.EventList(params);
+    const result = await TopoService.EventList(params).catch(() => ({
+      total: 0,
+      items: [],
+    }));
     return result;
   };
 
@@ -170,17 +178,22 @@ export const useWorkareaStore = defineStore("workarea", () => {
   const handleFetchWorkareaInfoCount = async (bk_networkarea_id: number[]) => {
     const result = await TopoService.NetworkAreaStatistics({
       bk_networkarea_id,
-    });
-    return result?.items || [];
+    }).catch(() => ({
+      items: [],
+    }));
+    return result?.items;
   };
 
   const handleFetchVendorAndOs = async () => {
     const result = await TopoService.ConstantGet({
       cloud_vendor: true,
       os_type: true,
-    });
-    vendorList.value = result?.cloud_vendor || [];
-    osTypeList.value = result?.os_type || [];
+    }).catch(() => ({
+      cloud_vendor: [],
+      os_type: [],
+    }));;
+    vendorList.value = result?.cloud_vendor;
+    osTypeList.value = result?.os_type;
   };
 
   return {

@@ -1,6 +1,6 @@
 <template>
   <div class="setup pt-[24px] pb-[48px]">
-    <setup-tip></setup-tip>
+    <setup-tip @show-setting="handleShowSetting"></setup-tip>
     <div class="m-[24px]">
       <Form ref="formRef" :model="formData" :rules="rules">
         <Form.FormItem
@@ -182,7 +182,6 @@ import { useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import Preview from './preview.vue';
-import UploadExcel from './upload-excel.vue';
 
 import { TopoService } from '@/api/modules/topo';
 import { capitalizeFirstLetter } from '@/common/util';
@@ -326,6 +325,12 @@ const systemValidate = async () => {
   const result = await Promise.all(validate);
   return result.every(item => item);
 };
+
+// 显示表格设置
+const handleShowSetting = () => {
+  installTableRef.value?.showSetting();
+};
+
 const handlePreview = async () => {
   const result = await Promise.all([
     formRef.value?.validate().catch(() => false),

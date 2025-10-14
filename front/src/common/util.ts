@@ -88,3 +88,42 @@ export function bytesToMegabytes(bytes: number) {
   const megabytes = bytes / (1024 * 1024);
   return megabytes.toFixed(2);
 }
+
+/**
+ * 设置浏览器Cookie的函数
+ * @param key Cookie的键
+ * @param value Cookie的值
+ * @param domain Cookie所适用的域名
+ * @param expires Cookie的过期时间  Sat, 02 Aug 2025 07:02:43 GMT
+ */
+export function setCookie(key: string, value: string, domain?: string, expires?: string): void {
+  const expiresStr = expires ? `; expires=${expires}` : '';
+
+  // 构建Cookie字符串
+  let cookieString = `${encodeURIComponent(key)}=${encodeURIComponent(value)}${expiresStr}; path=/`;
+
+  // 如果提供了domain，则将其添加到Cookie字符串中
+  if (domain) {
+    cookieString += `; domain=${domain}`;
+  }
+
+  // 设置Cookie
+  document.cookie = cookieString;
+}
+
+export function parseCookies() {
+  const cookies: Record<string, string> = {};
+  if (!document.cookie) return cookies;
+
+  // 分割 cookie 字符串（; 后面可能有空格，需处理）
+  const cookieParts = document.cookie.split(/;\s*/);
+  for (const part of cookieParts) {
+    // 分割键值对（只分割第一个 =，避免值中包含 =）
+    const [key, value] = part.split('=', 2);
+    if (key && value) {
+      // 解码（处理特殊字符）
+      cookies[key] = decodeURIComponent(value);
+    }
+  }
+  return cookies;
+};

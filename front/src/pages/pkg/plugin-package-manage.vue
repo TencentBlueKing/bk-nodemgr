@@ -310,7 +310,10 @@ const getPackages = async () => {
   const res = await PackageService.ListRelease({
     release_type: 'official_plugin',
     generation: 2,
-  });
+  }).catch(() => ({
+    total: 0,
+    items: [],
+  }));
   const hostList = await PackageService.DeployedHostCount({
     request_items: res.items.map(item => ({
       generation: item.generation,
@@ -321,7 +324,10 @@ const getPackages = async () => {
         cpu_arch: item.cpu_arch,
       },
     })),
-  });
+  }).catch(() => ({
+    total: 0,
+    items: [],
+  }));
   const items = res.items.map((item, index) => ({
     ...item,
     os_cpu_arch: `${item.os_type}_${item.cpu_arch}`,
@@ -330,8 +336,7 @@ const getPackages = async () => {
     isDeletePopShow: false,
     isShowTagInput: false,
     createPopShow: false,
-  }))
-    .sort((a, b) => compareVersions(a.version, b.version));
+  })).sort((a, b) => compareVersions(a.version, b.version));
   originPackageList.value = items;
   packageList.value = items;
   loading.value = false;
@@ -387,3 +392,8 @@ watch(
 onMounted(async () => {
 });
 </script>
+<style>
+.bk-message-error {
+  z-index: 6001 !important;
+}
+</style>

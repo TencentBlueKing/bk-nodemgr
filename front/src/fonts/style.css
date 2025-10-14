@@ -314,6 +314,12 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .nc-manual:before {
 	content: "\e16b";
 }
+.nc-not-favorited:before {
+	content: "\e18a";
+}
+.nc-collect:before {
+	content: "\e189";
+}
 .nc-history:before {
 	content: "\e16c";
 }

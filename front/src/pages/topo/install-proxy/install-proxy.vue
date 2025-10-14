@@ -2,7 +2,7 @@
   <Sideslider
     v-model:is-show="isShow"
     :title="$t('topoManager.installProxy.title')"
-    width="1390"
+    width="1200"
     render-directive="if"
     :before-close="handleBeforeClose"
   >
@@ -29,7 +29,9 @@
             v-model:data="form.info"
             realease-type="proxy"
             :current-settings="settings"
-          ></install-table>
+          >
+            <UploadExcel @upload="handleUpload" v-if="form.method === '1'"></UploadExcel>
+          </install-table>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.password')"
@@ -208,10 +210,17 @@
             </Table>
           </div>
         </Form.FormItem>
-        <div class="flex mt-[32px] ml-[90px]">
+        <div class="flex mt-[32px] ml-[90px] gap-[8px]">
+          <Button
+            v-if="excelImportData.length && form.info.length === 0"
+            class="w-[100px]"
+            theme="primary"
+            @click="handleImport">
+            {{ '导入' }}
+          </Button>
           <Button
             theme="primary"
-            class="mr-[8px] w-[120px]"
+            class="w-[120px]"
             @click="handleConfirm"
           >
             <span>
@@ -222,6 +231,12 @@
             >
               {{ form.info.length }}
             </span>
+          </Button>
+          <Button
+            v-if="excelImportData.length && form.method === '1' && form.info.length > 0"
+            class="w-[88px]"
+            @click="handleSetpBack">
+            {{ '上一步' }}
           </Button>
           <Button @click="handleBeforeClose">
             {{ $t("action.cancel") }}
@@ -254,6 +269,7 @@ import { NodeProxyService } from '@/api/modules/node_proxy';
 import { TopoService } from '@/api/modules/topo';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
+import { cloneDeep } from 'lodash';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
 const props = defineProps({
@@ -269,28 +285,26 @@ const props = defineProps({
 const router = useRouter();
 const { t } = useI18n();
 const mainStore = useMainStore();
-
+const initData = {
+  bk_host_id: '',
+  bk_host_innerip: '',
+  bk_host_innerip_v6: '',
+  export_ip: '',
+  advertise_ip: '',
+  login_ip: '',
+  login_mode: 'password',
+  login_password: '',
+  login_key_file: '',
+  bk_addressing: 'static',
+  dedicated_installer: true,
+  cluster_tunnel: true,
+  file_tunnel: true,
+  data_tunnel: true,
+  proxy_tags: [] as string[],
+};
 const form = reactive({
   method: '0', // 安装方式
-  info: [
-    {
-      bk_host_id: '',
-      bk_host_innerip: '',
-      bk_host_innerip_v6: '',
-      export_ip: '',
-      advertise_ip: '',
-      login_ip: '',
-      login_mode: 'password',
-      login_password: '',
-      login_key_file: '',
-      bk_addressing: 'static',
-      dedicated_installer: true,
-      cluster_tunnel: true,
-      file_tunnel: true,
-      data_tunnel: true,
-      proxy_tags: [] as string[],
-    },
-  ], // 安装信息
+  info: [cloneDeep(initData)], // 安装信息
   saveTime: '保存 1 天', // 密钥/密码
   os_type: 'Linux', // 操作系统
   login_port: '36000', // 登录端口
@@ -334,14 +348,14 @@ const systemData = ref([
     os: 'Linux_amd64',
     cpu_arch: 'amd64',
     os_type: 'linux',
-    version: '默认',
+    version: '自动',
   },
   {
     displayName: 'linux/arm64',
     os: 'Linux_arm64',
     cpu_arch: 'arm64',
     os_type: 'linux',
-    version: '默认',
+    version: '自动',
   },
 ]);
 // 安装方式列表
@@ -350,19 +364,19 @@ const installMethodList = ref([
     icon: 'nodeman-icon nc-remote-install',
     title: t('topoManager.installProxy.installMethodList.remote.title'),
     content: t('topoManager.installProxy.installMethodList.remote.content'),
-    value: 0,
+    value: '0',
   },
   {
     icon: 'nodeman-icon nc-excel-2',
     title: t('topoManager.installProxy.installMethodList.excel.title'),
     content: t('topoManager.installProxy.installMethodList.excel.content'),
-    value: 1,
+    value: '1',
   },
   {
     icon: 'nodeman-icon nc-custom-install',
     title: t('topoManager.installProxy.installMethodList.manual.title'),
     content: t('topoManager.installProxy.installMethodList.manual.content'),
-    value: 2,
+    value: '2',
   },
 ]);
 const installOriginList = ref([
@@ -432,6 +446,13 @@ const handleComfirmVerion = (val: string) => {
 };
 const handleChange = (values: Array<string | number>) => {
   form.method = values[0] as string;
+  excelImportData.value = [];
+  if (form.method === '1') {
+    form.info = [];
+  } else {
+    form.info = [cloneDeep(initData)];
+  }
+  formRef.value?.clearValidate();
 };
 
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
@@ -539,6 +560,18 @@ const handleConfirm = async () => {
     }
   }
 };
+const excelImportData = ref([]);
+// excel 导入
+const handleUpload = (data: any) => {
+  excelImportData.value = data.info;
+};
+const handleImport = () => {
+  form.info = excelImportData.value;
+};
+const handleSetpBack = () => {
+  form.info = [];
+};
+
 watch(() => isShow.value, async () => {
   if (isShow.value) {
     await getNetworkAreaList();
