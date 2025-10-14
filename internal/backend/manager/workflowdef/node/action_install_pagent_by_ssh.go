@@ -44,22 +44,15 @@ const (
 )
 
 // NewActionInstallPagentBySSH get a new action.
-func NewActionInstallPagentBySSH(
-	proxyMessager relayhandler.IServerMessager,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	storageHostCredit credit.IStorageHostCredit,
-	storageActionInstance workflow.IStorageActionInstance,
-	passwordVault creditvault.IHostPasswordVault,
-) action.Definition {
-
+func NewActionInstallPagentBySSH(capability *Capability) action.Definition {
 	return &actionInstallPagentBySSH{
-		storageHostCredit:     storageHostCredit,
-		storageNodeDeployment: storageNodeDeployment,
-		storageActionInstance: storageActionInstance,
+		storageHostCredit:     capability.StorageHostCredit,
+		storageNodeDeployment: capability.StorageNode,
+		storageActionInstance: capability.StorageWorkflow,
 
-		passwordVault: passwordVault,
+		passwordVault: capability.HostPasswordVault,
 
-		proxyMessager: proxyMessager,
+		proxyMessager: capability.ProxyMessager,
 	}
 }
 

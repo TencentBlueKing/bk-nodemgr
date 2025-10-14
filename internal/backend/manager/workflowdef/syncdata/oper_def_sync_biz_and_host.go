@@ -17,41 +17,41 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// OperDefNameSyncBizAndHostFromCMDB sync all biz and their host from cmdb.
-const OperDefNameSyncBizAndHostFromCMDB = "sync_biz_and_host_from_cmdb"
+// OperDefNameSyncBizAndHost sync all biz and their host from cmdb.
+const OperDefNameSyncBizAndHost = "sync_biz_and_host"
 
-// NewOperSyncBizAndHostFromCMDB new an operation.
-func NewOperSyncBizAndHostFromCMDB(param OperParamSyncBizAndHostFromCMDB) operation.Definition {
-	return &operSyncBizAndHostFromCMDB{
+// NewOperSyncBizAndHost new an operation.
+func NewOperSyncBizAndHost(param OperParamSyncBizAndHost) operation.Definition {
+	return &operSyncBizAndHost{
 		param: param,
 	}
 }
 
-type operSyncBizAndHostFromCMDB struct {
-	param OperParamSyncBizAndHostFromCMDB
+type operSyncBizAndHost struct {
+	param OperParamSyncBizAndHost
 }
 
-// OperParamSyncBizAndHostFromCMDB defines the parameters for operSyncBizAndHostFromCMDB.
-type OperParamSyncBizAndHostFromCMDB struct {
+// OperParamSyncBizAndHost defines the parameters for operSyncBizAndHost.
+type OperParamSyncBizAndHost struct {
 	TenantID string `json:"tenant_id"`
 	Operator string `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operSyncBizAndHostFromCMDB) Name() string {
-	return OperDefNameSyncBizAndHostFromCMDB
+func (oper *operSyncBizAndHost) Name() string {
+	return OperDefNameSyncBizAndHost
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operSyncBizAndHostFromCMDB) ActionDefNames() []string {
+func (oper *operSyncBizAndHost) ActionDefNames() []string {
 	return []string{
-		ActionNameSyncBizFromCMDB,
+		ActionNameSyncBusiness,
 		ActionNameGenOperSyncHost,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncBizAndHostFromCMDB) DefaultParameters() operation.Param {
+func (oper *operSyncBizAndHost) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -59,6 +59,6 @@ func (oper *operSyncBizAndHostFromCMDB) DefaultParameters() operation.Param {
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operSyncBizAndHostFromCMDB) ExtraExecutionName() string {
+func (oper *operSyncBizAndHost) ExtraExecutionName() string {
 	return ""
 }

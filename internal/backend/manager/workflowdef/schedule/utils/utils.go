@@ -8,18 +8,5 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package schedule ...
-package schedule
-
-import (
-	"time"
-)
-
-// Schedule represents the workflow of a schedule.
-type Schedule struct {
-	WorkflowID   string
-	WorkflowName string
-	TriggerID    string
-	Operator     string
-	OperateTime  time.Time
-}
+// Package utils use to provide some common utils for schedule actions.
+package utils

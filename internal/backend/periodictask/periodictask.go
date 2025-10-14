@@ -86,10 +86,10 @@ func (pt *PeriodicTask) Terminate() {
 func (pt *PeriodicTask) registerTasks(ctx contextx.IContext) error {
 	periodicTasks := []*scheduler.Task{
 		scheduler.NewTask(
-			deleteNonLatestScheduleWorkflowOperInstRecordsTaskName,
-			pt.gs.Get(ctx, globalsettings.DeleteScheduleWorkflowNonLatestRecordsIntervalSecond, scheduler.Every1m),
-			deleteNonLatestScheduleWorkflowOperInstRecordsTimeout,
-			pt.DeleteNonLatestWorkflowScheduleOperInstRecords,
+			periodicTaskNameCleanTrigger,
+			pt.gs.Get(ctx, globalsettings.CleanTriggerIntervalSecond, scheduler.Every1m),
+			periodicTaskTimeoutCleanTrigger,
+			pt.CleanTrigger,
 		),
 	}
 

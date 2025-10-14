@@ -18,39 +18,39 @@ import (
 )
 
 // OperDefNameSyncAliveAgentInfo defines the operation def name.
-const OperDefNameSyncAliveAgentInfo = "sync_alive_agent_info_from_gse"
+const OperDefNameSyncAliveAgentInfo = "sync_alive_agent_info"
 
-// NewOperSyncAliveHostAgentInfoFromGSE new an operation.
-func NewOperSyncAliveHostAgentInfoFromGSE(param OperParamSyncAliveHostAgentInfoFromGSE) operation.Definition {
-	return &operSyncAliveHostAgentInfoFromGSE{
+// NewOperSyncAliveHostAgentInfo new an operation.
+func NewOperSyncAliveHostAgentInfo(param OperParamSyncAliveHostAgentInfo) operation.Definition {
+	return &operSyncAliveHostAgentInfo{
 		param: param,
 	}
 }
 
-type operSyncAliveHostAgentInfoFromGSE struct {
-	param OperParamSyncAliveHostAgentInfoFromGSE
+type operSyncAliveHostAgentInfo struct {
+	param OperParamSyncAliveHostAgentInfo
 }
 
-// OperParamSyncAliveHostAgentInfoFromGSE defines the parameters for operSyncAliveHostAgentInfoFromGSE.
-type OperParamSyncAliveHostAgentInfoFromGSE struct {
+// OperParamSyncAliveHostAgentInfo defines the parameters for operSyncAliveHostAgentInfo.
+type OperParamSyncAliveHostAgentInfo struct {
 	TenantID string `json:"tenant_id"`
 	Operator string `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operSyncAliveHostAgentInfoFromGSE) Name() string {
+func (oper *operSyncAliveHostAgentInfo) Name() string {
 	return OperDefNameSyncAliveAgentInfo
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operSyncAliveHostAgentInfoFromGSE) ActionDefNames() []string {
+func (oper *operSyncAliveHostAgentInfo) ActionDefNames() []string {
 	return []string{
-		ActionNameSyncAliveHostAgentInfo,
+		ActionNameGenOperSyncAgentInfo,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncAliveHostAgentInfoFromGSE) DefaultParameters() operation.Param {
+func (oper *operSyncAliveHostAgentInfo) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -58,6 +58,6 @@ func (oper *operSyncAliveHostAgentInfoFromGSE) DefaultParameters() operation.Par
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operSyncAliveHostAgentInfoFromGSE) ExtraExecutionName() string {
+func (oper *operSyncAliveHostAgentInfo) ExtraExecutionName() string {
 	return ""
 }

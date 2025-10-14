@@ -15,11 +15,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
 // IManager defines the Manager interface.
@@ -33,9 +31,6 @@ type IManager interface {
 
 	// GracefulShutdown ...
 	GracefulShutdown() error
-
-	// LaunchWatchAndApplyCMDBResource launch a task to watch and apply cmdb resource.
-	LaunchWatchAndApplyCMDBResource(ctx contextx.IContext) (string, error)
 
 	ISyncManager
 	INodeManager
@@ -102,8 +97,8 @@ func (mgr *Manager) Start(ctx contextx.IContext) error {
 		return err
 	}
 
-	if err := mgr.startScheduleWorkflow(ctx); err != nil {
-		return fmt.Errorf("failed to start schedule workflow: %w", err)
+	if err := mgr.startMonitoringScheduledWorkflow(ctx); err != nil {
+		return fmt.Errorf("failed to start monitoring scheduled workflow: %w", err)
 	}
 
 	mgr.isRunning = true
@@ -148,12 +143,7 @@ func (mgr *Manager) GracefulShutdown() error {
 }
 
 func (mgr *Manager) startWorkflowManager(ctx contextx.IContext) error {
-	// TODO: implement me
-	if err := mgr.registerActionDefs(); err != nil {
-		return err
-	}
-
-	if err := mgr.registerOperExecDefs(); err != nil {
+	if err := mgr.registerDefinitions(); err != nil {
 		return err
 	}
 
@@ -162,34 +152,4 @@ func (mgr *Manager) startWorkflowManager(ctx contextx.IContext) error {
 	}
 
 	return nil
-}
-
-// LaunchWatchAndApplyCMDBResource launch a task to watch and apply cmdb resource.
-func (mgr *Manager) LaunchWatchAndApplyCMDBResource(ctx contextx.IContext) (string, error) {
-	tenantID := ctx.TenantID()
-	operator := ctx.BKUsername()
-
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
-	if err != nil {
-		return "", err
-	}
-
-	operationDef := syncdata.NewOperWatchAndApplyCMDBResource(syncdata.OperParamWatchCMDBResource{
-		TenantID: tenantID,
-		Operator: operator,
-	})
-	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
-	if err != nil {
-		return "", err
-	}
-
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
-		return "", err
-	}
-
-	logger.G.Sys().
-		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
-		Info("launched watch and apply cmdb resource")
-
-	return triggerCtl.GetTriggerID(), nil
 }

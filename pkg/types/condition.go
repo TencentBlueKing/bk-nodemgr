@@ -389,33 +389,33 @@ type OperInstDataCondition struct {
 	FuzzyExclude *OperInstDataFuzzyFields
 }
 
-// ScheduleWorkflowExactFields defines the schedule workflow exact fields.
-type ScheduleWorkflowExactFields struct {
+// ScheduledWorkflowExactFields defines the scheduled workflow exact fields.
+type ScheduledWorkflowExactFields struct {
 	WorkflowID   []string
 	WorkflowName []string
 	Operator     []string
 }
 
-// ScheduleWorkflowFuzzyFields defines the schedule workflow fuzzy fields.
-type ScheduleWorkflowFuzzyFields struct {
+// ScheduledWorkflowFuzzyFields defines the scheduled workflow fuzzy fields.
+type ScheduledWorkflowFuzzyFields struct {
 }
 
-// ScheduleWorkflowCondition defines the schedule workflow condition.
-type ScheduleWorkflowCondition struct {
+// ScheduledWorkflowCondition defines the schedule workflow condition.
+type ScheduledWorkflowCondition struct {
 	// operate time range will be used whatever condition type is.
 	OperateTimeRange *TimeRange
 
 	// will be used when condition type is included in exact mode.
-	ExactInclude *ScheduleWorkflowExactFields
+	ExactInclude *ScheduledWorkflowExactFields
 
 	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *ScheduleWorkflowFuzzyFields
+	FuzzyInclude *ScheduledWorkflowFuzzyFields
 
 	// will be used when condition type is excluded in exact mode.
-	ExactExclude *ScheduleWorkflowExactFields
+	ExactExclude *ScheduledWorkflowExactFields
 
 	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *ScheduleWorkflowFuzzyFields
+	FuzzyExclude *ScheduledWorkflowFuzzyFields
 }
 
 // ScheduleWorkflowOperInstanceStatusExactFields defines the schedule workflow instance status exact fields.

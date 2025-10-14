@@ -13,8 +13,8 @@ package syncdata
 import (
 	"time"
 
+	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -27,83 +27,85 @@ const (
 	ActionNameSyncAgentInfo = "sync_agent_info"
 )
 
-// NewActionSyncAgentInfo ...
-func NewActionSyncAgentInfo(gseHandler gse.IHandler, topoStg topoStg.IStorageHost) action.Definition {
-
-	return &SyncAgentInfo{
-		gseHandler: gseHandler,
-		topoStg:    topoStg,
+// NewActionSyncAgentInfo creates a new syncAgentInfo.
+func NewActionSyncAgentInfo(capability *Capability) action.Definition {
+	return &actionSyncAgentInfo{
+		gseHandler: capability.GSEHandler,
+		topoStg:    capability.StorageTopo,
 	}
 }
 
-// ActParamSyncAgentInfo ...
-type ActParamSyncAgentInfo struct {
-	TenantID string           `json:"tenant_id"`
-	Hosts    []*HostIDAgentID `json:"hosts"`
-	Operator string           `json:"operator"`
+// ActionParamSyncAgentInfo defines the action's param.
+type ActionParamSyncAgentInfo struct {
+	syncDataUtils.SyncDataActionStandardParam
+
+	Hosts []*HostIDAgentID `json:"hosts"`
 }
 
-// SyncAgentInfo ...
-type SyncAgentInfo struct {
+type actionSyncAgentInfo struct {
 	gseHandler gse.IHandler
 	topoStg    topoStg.IStorageHost
 }
 
 // Name returns the name of the action.
-func (act *SyncAgentInfo) Name() string {
+func (act *actionSyncAgentInfo) Name() string {
 	return ActionNameSyncAgentInfo
 }
 
 // Version returns the version of the action.
-func (act *SyncAgentInfo) Version() string {
+func (act *actionSyncAgentInfo) Version() string {
 	return "v1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *SyncAgentInfo) Description() string {
+func (act *actionSyncAgentInfo) Description() string {
 	return "sync agent info from gse"
 }
 
 // Timeout returns the timeout of the action.
-func (act *SyncAgentInfo) Timeout() time.Duration {
+func (act *actionSyncAgentInfo) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *SyncAgentInfo) Tags() []action.Tag {
+func (act *actionSyncAgentInfo) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *SyncAgentInfo) MaxRetryCount() uint {
+func (act *actionSyncAgentInfo) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *SyncAgentInfo) DelayFn() func() {
+func (act *actionSyncAgentInfo) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *SyncAgentInfo) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamSyncAgentInfo)
+func (act *actionSyncAgentInfo) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamSyncAgentInfo)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	// initialize standard data.
+	std := syncDataUtils.NewSyncDataActionStandarder()
+	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
+		return err
+	}
 
 	agentIDs := make([]string, 0, len(param.Hosts))
 	for _, host := range param.Hosts {
 		agentIDs = append(agentIDs, host.AgentID)
 	}
 
-	result, err := act.gseHandler.ListAgentInfo(newCtx, agentIDs...)
+	result, err := act.gseHandler.ListAgentInfo(std.Context(), agentIDs...)
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent state")
+		logger.G.Sys().WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent info")
 
 		return err
 	}
@@ -140,7 +142,7 @@ func (act *SyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	err = act.topoStg.UpdateHostDynamicFields(newCtx, types.HostDynamicFields{
+	err = act.topoStg.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
 		NodeStatus:     true,
 		NodeGeneration: true,
 		NodeRole:       true,

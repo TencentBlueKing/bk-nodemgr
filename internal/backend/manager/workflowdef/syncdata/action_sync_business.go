@@ -14,9 +14,8 @@ import (
 	"context"
 	"time"
 
+	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -26,82 +25,85 @@ import (
 )
 
 const (
-	// ActionNameSyncBizFromCMDB defines the action name.
-	ActionNameSyncBizFromCMDB = "sync_biz_from_cmdb"
+	// ActionNameSyncBusiness defines the action name.
+	ActionNameSyncBusiness = "sync_business"
 )
 
-// NewActionSyncBusinessFromCMDB creates a new syncBusinessFromCMDB.
-func NewActionSyncBusinessFromCMDB(cmdbHandler cmdb.IHandler, storageBusiness topoStg.IStorageBusiness) action.Definition {
-
-	return &actionSyncBusinessFromCMDB{
-		cmdbHandler:     cmdbHandler,
-		storageBusiness: storageBusiness,
+// NewActionSyncBusiness creates a new actionSyncBusiness.
+func NewActionSyncBusiness(capability *Capability) action.Definition {
+	return &actionSyncBusiness{
+		cmdbHandler:     capability.CMDBHandler,
+		storageBusiness: capability.StorageTopo,
 	}
 }
 
-// SyncBizFromCMDBParam the action's param.
-type SyncBizFromCMDBParam struct {
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+// ActionParamSyncBusiness the action's param.
+type ActionParamSyncBusiness struct {
+	syncDataUtils.SyncDataActionStandardParam
 }
 
-type actionSyncBusinessFromCMDB struct {
+type actionSyncBusiness struct {
 	cmdbHandler     cmdb.IHandler
 	storageBusiness topoStg.IStorageBusiness
 }
 
 // Name returns the name of the action.
-func (act *actionSyncBusinessFromCMDB) Name() string {
-	return ActionNameSyncBizFromCMDB
+func (act *actionSyncBusiness) Name() string {
+	return ActionNameSyncBusiness
 }
 
 // Version returns the version of the action.
-func (act *actionSyncBusinessFromCMDB) Version() string {
+func (act *actionSyncBusiness) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionSyncBusinessFromCMDB) Description() string {
+func (act *actionSyncBusiness) Description() string {
 	return "sync business info from cmdb and update to storage"
 }
 
 // Timeout returns the timeout of this action.
-func (act *actionSyncBusinessFromCMDB) Timeout() time.Duration {
+func (act *actionSyncBusiness) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // MaxRetryCount returns the max retry count of this action.
-func (act *actionSyncBusinessFromCMDB) MaxRetryCount() uint {
+func (act *actionSyncBusiness) MaxRetryCount() uint {
 	return 2 // nolint: mnd
 }
 
 // DelayFn returns the delay of this action.
-func (act *actionSyncBusinessFromCMDB) DelayFn() func() {
+func (act *actionSyncBusiness) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Tags returns the tags of this action.
-func (act *actionSyncBusinessFromCMDB) Tags() []action.Tag {
+func (act *actionSyncBusiness) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // Do the action.
-func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
-	param := new(SyncBizFromCMDBParam)
+func (act *actionSyncBusiness) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamSyncBusiness)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
+		return err
+	}
+
+	// initialize standard data.
+	std := syncDataUtils.NewSyncDataActionStandarder()
+	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
 
 	gp := gopool.NewPool()
 	gp.SetLimit(10) // nolint: mnd
 
-	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(access.GetVirtualUser()))
 	executor := pageexecutor.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
 	fn := func(_ context.Context, p types.Page) ([]*types.Business, error) {
-		bizs, err := act.cmdbHandler.SearchBusiness(nCtx, p)
+		bizs, err := act.cmdbHandler.SearchBusiness(std.Context(), p)
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +116,7 @@ func (act *actionSyncBusinessFromCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err = act.storageBusiness.UpsertManyBusiness(nCtx, result.Items...); err != nil {
+	if err = act.storageBusiness.UpsertManyBusiness(std.Context(), result.Items...); err != nil {
 		return err
 	}
 

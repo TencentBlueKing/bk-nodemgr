@@ -25,10 +25,33 @@ type IStorage interface {
 	workflow.IStorageActionInstance
 	workflow.IStorageOperation
 	workflow.IStorageOperationInstance
-	workflow.IStorageSchedule
+
+	IStorageScheduledWorkflow
 
 	IDomainNodeInstall
 	IDomainPlugin
+}
+
+// IStorageScheduledWorkflow defines the interface of scheduled workflow storage.
+type IStorageScheduledWorkflow interface {
+	// ListScheduledWorkflow lists scheduled workflow by page and conditions.
+	ListScheduledWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduledWorkflowCondition) (
+		[]*types.ScheduledWorkflow, int64, error)
+
+	// CountScheduledWorkflow counts scheduled workflow by conditions.
+	CountScheduledWorkflow(nCtx contextx.IContext, conditions ...*types.ScheduledWorkflowCondition) (int64, error)
+
+	// GetScheduledWorkflow gets a scheduled workflow by workflow-id.
+	GetScheduledWorkflow(nCtx contextx.IContext, workflowID string) (*types.ScheduledWorkflow, error)
+
+	// CreateScheduledWorkflow creates a new scheduled workflow.
+	CreateScheduledWorkflow(nCtx contextx.IContext, workflow *types.ScheduledWorkflow) error
+
+	// UpdateScheduledWorkflowTriggerID updates a scheduled workflow's trigger ID.
+	UpdateScheduledWorkflowTriggerID(nCtx contextx.IContext, workflowID, triggerID string) error
+
+	// UpdateScheduledWorkflowPrivateData updates a scheduled workflow's private data.
+	UpdateScheduledWorkflowPrivateData(nCtx contextx.IContext, workflowID string, privateData map[string]any) error
 }
 
 // IDomainNodeInstall defines the interface for domain node installation related operations.

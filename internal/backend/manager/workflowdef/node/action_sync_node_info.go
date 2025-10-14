@@ -28,14 +28,10 @@ const (
 )
 
 // NewActionSyncNodeInfo get a new action.
-func NewActionSyncNodeInfo(
-	gseClient gse.IHandler,
-	storage nodeStg.IStorage,
-) action.Definition {
-
+func NewActionSyncNodeInfo(capability *Capability) action.Definition {
 	return &actionSyncNodeInfo{
-		gseClient: gseClient,
-		storage:   storage,
+		gseClient: capability.GSEHandler,
+		storage:   capability.StorageNode,
 	}
 }
 

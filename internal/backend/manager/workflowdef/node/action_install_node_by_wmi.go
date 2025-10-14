@@ -42,20 +42,13 @@ const (
 )
 
 // NewActionInstallNodeByWMI get a new action.
-func NewActionInstallNodeByWMI(
-	installerFileGroup fileiface.FileGroup,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	provider discover.Provider,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-) action.Definition {
-
+func NewActionInstallNodeByWMI(capability *Capability) action.Definition {
 	return &actionInstallNodeByWMI{
-		installerGroup:        installerFileGroup,
-		storageHostCredit:     storageHostCredit,
-		storageNodeDeployment: storageNodeDeployment,
-		provider:              provider,
-		passwordVault:         passwordVault,
+		installerGroup:        capability.InstallerFileGroup,
+		storageHostCredit:     capability.StorageHostCredit,
+		storageNodeDeployment: capability.StorageNode,
+		provider:              capability.DiscoverProvider,
+		passwordVault:         capability.HostPasswordVault,
 	}
 }
 

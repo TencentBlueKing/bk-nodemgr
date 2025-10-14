@@ -32,15 +32,11 @@ const (
 )
 
 // NewActionBindAgentHostRel get a new action.
-func NewActionBindAgentHostRel(
-	bindHostAgent cmdb.IBindHostAgent,
-	storageHost topoStg.IStorageHost,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment) action.Definition {
-
+func NewActionBindAgentHostRel(capability *Capability) action.Definition {
 	return &actionBindAgentHostRel{
-		IBindHostAgent:        bindHostAgent,
-		storageHost:           storageHost,
-		storageNodeDeployment: storageNodeDeployment,
+		IBindHostAgent:        capability.CMDBHandler,
+		storageHost:           capability.StorageTopo,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 

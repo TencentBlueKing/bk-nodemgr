@@ -50,12 +50,12 @@ func (mgr *Manager) LaunchSyncAllAgentState(nCtx contextx.IContext) (string, err
 	tenantID := nCtx.TenantID()
 	operator := nCtx.BKUsername()
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncAllAgentStateFromGSE(syncdata.OperParamSyncAllAgentStateFromGSE{
+	operationDef := syncdata.NewOperSyncAllAgentState(syncdata.OperParamSyncAllAgentState{
 		TenantID: tenantID,
 		Operator: operator,
 	})
@@ -84,7 +84,7 @@ func (mgr *Manager) LaunchSyncAgentState(ctx contextx.IContext, hostIDs ...int64
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
@@ -106,7 +106,7 @@ func (mgr *Manager) LaunchSyncAgentState(ctx contextx.IContext, hostIDs ...int64
 		})
 	}
 
-	operationDef := syncdata.NewOperSyncAgentStateFromGSE(syncdata.OperParamSyncAgentStateFromGSE{
+	operationDef := syncdata.NewOperSyncAgentState(syncdata.OperParamSyncAgentState{
 		TenantID: tenantID,
 		Hosts:    hostAgentID,
 		Operator: operator,
@@ -132,12 +132,12 @@ func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.IContext) (string, error) 
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncBizAndHostFromCMDB(syncdata.OperParamSyncBizAndHostFromCMDB{
+	operationDef := syncdata.NewOperSyncBizAndHost(syncdata.OperParamSyncBizAndHost{
 		TenantID: tenantID,
 		Operator: operator,
 	})
@@ -162,12 +162,12 @@ func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.IContext, bizID int64) (s
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncHostFromCMDB(syncdata.OperParamSyncHostFromCMDB{
+	operationDef := syncdata.NewOperSyncHost(syncdata.OperParamSyncHost{
 		TenantID: tenantID,
 		BizID:    bizID,
 		Operator: operator,
@@ -193,12 +193,12 @@ func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.IContext) (string, error)
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncNetworkAreaFromCMDB(syncdata.OperParamSyncNetworkAreaFromCMDB{
+	operationDef := syncdata.NewOperSyncNetworkArea(syncdata.OperParamSyncNetworkArea{
 		TenantID: tenantID,
 		Operator: operator,
 	})
@@ -223,12 +223,12 @@ func (mgr *Manager) LaunchSyncAliveHostAgentInfo(ctx contextx.IContext) (string,
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
 
-	operationDef := syncdata.NewOperSyncAliveHostAgentInfoFromGSE(syncdata.OperParamSyncAliveHostAgentInfoFromGSE{
+	operationDef := syncdata.NewOperSyncAliveHostAgentInfo(syncdata.OperParamSyncAliveHostAgentInfo{
 		TenantID: tenantID,
 		Operator: operator,
 	})
@@ -257,7 +257,7 @@ func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64)
 	tenantID := ctx.TenantID()
 	operator := ctx.BKUsername()
 
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
@@ -279,7 +279,7 @@ func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64)
 		})
 	}
 
-	operationDef := syncdata.NewOperSyncAgentInfoFromGSE(syncdata.OperParamSyncAgentInfoFromGSE{
+	operationDef := syncdata.NewOperSyncAgentInfo(syncdata.OperParamSyncAgentInfo{
 		TenantID: tenantID,
 		Hosts:    hostAgentID,
 		Operator: operator,

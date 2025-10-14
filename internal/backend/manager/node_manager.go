@@ -87,7 +87,7 @@ type RetryOperationNodeParam struct {
 
 // LaunchInstallNode launch a task to install node.
 func (mgr *Manager) LaunchInstallNode(ctx contextx.IContext, param InstallNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
@@ -277,7 +277,7 @@ func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
 func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param UpgradeNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
@@ -390,7 +390,7 @@ func enablePagentInstaller(deploy *types.NodeDeployment) {
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
 func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param ReconfigNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
@@ -466,7 +466,7 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param ReconfigNod
 
 // LaunchRestartNode launch a task to restart node. returns the workflow-id.
 func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param RestartNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}

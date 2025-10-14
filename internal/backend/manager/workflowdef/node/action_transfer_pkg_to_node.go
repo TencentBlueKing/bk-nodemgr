@@ -37,14 +37,10 @@ const (
 )
 
 // NewActionTransferPkgToNode get a new action.
-func NewActionTransferPkgToNode(
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	fileHandler file.IHandler,
-) action.Definition {
-
+func NewActionTransferPkgToNode(capability *Capability) action.Definition {
 	return &actionTransferPkgToNode{
-		storageNodeDeployment: storageNodeDeployment,
-		fileHandler:           fileHandler,
+		storageNodeDeployment: capability.StorageNode,
+		fileHandler:           capability.FileHandler,
 	}
 }
 

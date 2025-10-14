@@ -102,7 +102,22 @@ func (d *dao) delete(nCtx contextx.IContext, operIDs ...string) error {
 		return err
 	}
 
-	logger.G.Sys().With("trigger-ids", operIDs, "deleted-count", result.DeletedCount).Info("deleted triggers")
+	logger.G.Sys().With("operation-ids", operIDs, "deleted-count", result.DeletedCount).Info("deleted operations")
+
+	return nil
+}
+
+// delete deletes operations by trigger id.
+func (d *dao) deleteByTriggerID(nCtx contextx.IContext, triggerID ...string) error {
+	filter := base.AliveFilter()
+	filter = WithTriggerID(triggerID...)(filter)
+
+	result, err := d.client.DeleteMany(nCtx, filter)
+	if err != nil {
+		return err
+	}
+
+	logger.G.Sys().With("trigger-ids", triggerID, "deleted-count", result.DeletedCount).Info("deleted operations")
 
 	return nil
 }

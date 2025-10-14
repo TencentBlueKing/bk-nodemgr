@@ -210,13 +210,27 @@ func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {
 
 	switch trig.Category {
 	case trigger.CategoryOnce:
-		t.MetadataOnce = MetadataOnce{}
+		meta, ok := trig.Metadata.(*trigger.MetadataOnce)
+		if ok {
+			t.MetadataOnce = MetadataOnce{
+				CleanPolicy: CleanPolicy{
+					Namespace: meta.CleanPolicy.Namespace,
+					MaxNum:    meta.CleanPolicy.MaxNum,
+					MaxDays:   meta.CleanPolicy.MaxDays,
+				},
+			}
+		}
 
 	case trigger.CategoryOrdered:
 		meta, ok := trig.Metadata.(*trigger.MetadataOrdered)
 		if ok {
 			t.MetadataOrdered = MetadataOrdered{
 				MaxConcurrencyNum: meta.MaxConcurrencyNum,
+				CleanPolicy: CleanPolicy{
+					Namespace: meta.CleanPolicy.Namespace,
+					MaxNum:    meta.CleanPolicy.MaxNum,
+					MaxDays:   meta.CleanPolicy.MaxDays,
+				},
 			}
 		}
 
@@ -226,6 +240,9 @@ func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {
 			t.MetadataPeriodic = MetadataPeriodic{
 				Interval:           meta.Interval,
 				AllowedConcurrency: meta.AllowedConcurrency,
+				CleanPolicy: PeriodicCleanPolicy{
+					MaxOperInstNum: meta.CleanPolicy.MaxOperInstNum,
+				},
 			}
 		}
 	}
@@ -245,17 +262,31 @@ func convertTriggerToTypes(trig *Trigger) *trigger.Trigger {
 
 	switch trigger.Category(trig.Category) {
 	case trigger.CategoryOnce:
-		typeTrigger.Metadata = &trigger.MetadataOnce{}
+		typeTrigger.Metadata = &trigger.MetadataOnce{
+			CleanPolicy: trigger.MetadataCleanPolicy{
+				Namespace: trig.MetadataOnce.CleanPolicy.Namespace,
+				MaxNum:    trig.MetadataOnce.CleanPolicy.MaxNum,
+				MaxDays:   trig.MetadataOnce.CleanPolicy.MaxDays,
+			},
+		}
 
 	case trigger.CategoryOrdered:
 		typeTrigger.Metadata = &trigger.MetadataOrdered{
 			MaxConcurrencyNum: trig.MetadataOrdered.MaxConcurrencyNum,
+			CleanPolicy: trigger.MetadataCleanPolicy{
+				Namespace: trig.MetadataOrdered.CleanPolicy.Namespace,
+				MaxNum:    trig.MetadataOrdered.CleanPolicy.MaxNum,
+				MaxDays:   trig.MetadataOrdered.CleanPolicy.MaxDays,
+			},
 		}
 
 	case trigger.CategoryPeriodic:
 		typeTrigger.Metadata = &trigger.MetadataPeriodic{
 			Interval:           trig.MetadataPeriodic.Interval,
 			AllowedConcurrency: trig.MetadataPeriodic.AllowedConcurrency,
+			CleanPolicy: trigger.PeriodicMetadataCleanPolicy{
+				MaxOperInstNum: trig.MetadataPeriodic.CleanPolicy.MaxOperInstNum,
+			},
 		}
 	}
 

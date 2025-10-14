@@ -8,26 +8,20 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package manager
+package types
 
-import (
-	"fmt"
+import "errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
+var (
+	errStorageNotFound = errors.New("storage not found")
 )
 
-// registerOperExecDefs init operation execution definitions.
-func (mgr *Manager) registerOperExecDefs() error {
-	if err := mgr.registerOperExecDefNodeInstall(); err != nil {
-		return fmt.Errorf("register oper extra action def node install failed: %w", err)
-	}
-
-	return nil
+// ErrStorageNotFound get error storage not found.
+func ErrStorageNotFound() error {
+	return errStorageNotFound
 }
 
-// registerOperExecDefNodeInstall registers the operation execution definitions for node installation operations.
-func (mgr *Manager) registerOperExecDefNodeInstall() error {
-	return mgr.workflowMgr.RegisterOperExtraExecutions(
-		node.NewOperationExtraExecution(mgr.conf.Cache, mgr.conf.StorageNode),
-	)
+// IsErrStorageNotFound check error is storage not found.
+func IsErrStorageNotFound(err error) bool {
+	return errors.Is(err, errStorageNotFound)
 }

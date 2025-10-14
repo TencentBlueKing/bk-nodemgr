@@ -39,10 +39,10 @@ const (
 )
 
 // NewActionRenderPluginDeployment ...
-func NewActionRenderPluginDeployment(daoHost topoStg.IStorageHost, daoPluginDeployment pluginStg.IDaoPluginDeployment) action.Definition {
+func NewActionRenderPluginDeployment(capability *Capability) action.Definition {
 	return &RenderPluginDeployment{
-		daoHost:             daoHost,
-		daoPluginDeployment: daoPluginDeployment,
+		daoHost:             capability.StorageTopo,
+		daoPluginDeployment: capability.StoragePlugin,
 	}
 }
 

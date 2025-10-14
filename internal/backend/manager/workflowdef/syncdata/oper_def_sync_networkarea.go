@@ -18,39 +18,39 @@ import (
 )
 
 // OperDefNameSyncNetworkArea defines the operation def name.
-const OperDefNameSyncNetworkArea = "sync_networkarea_from_cmdb"
+const OperDefNameSyncNetworkArea = "sync_networkarea"
 
-// NewOperSyncNetworkAreaFromCMDB new an operation definition.
-func NewOperSyncNetworkAreaFromCMDB(param OperParamSyncNetworkAreaFromCMDB) operation.Definition {
-	return &operSyncNetworkAreaFromCMDB{
+// NewOperSyncNetworkArea new an operation definition.
+func NewOperSyncNetworkArea(param OperParamSyncNetworkArea) operation.Definition {
+	return &operSyncNetworkArea{
 		param: param,
 	}
 }
 
-type operSyncNetworkAreaFromCMDB struct {
-	param OperParamSyncNetworkAreaFromCMDB
+type operSyncNetworkArea struct {
+	param OperParamSyncNetworkArea
 }
 
-// OperParamSyncNetworkAreaFromCMDB defines the parameters for operSyncNetworkAreaFromCMDB.
-type OperParamSyncNetworkAreaFromCMDB struct {
+// OperParamSyncNetworkArea defines the parameters for operSyncNetworkArea.
+type OperParamSyncNetworkArea struct {
 	TenantID string `json:"tenant_id"`
 	Operator string `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operSyncNetworkAreaFromCMDB) Name() string {
+func (oper *operSyncNetworkArea) Name() string {
 	return OperDefNameSyncNetworkArea
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operSyncNetworkAreaFromCMDB) ActionDefNames() []string {
+func (oper *operSyncNetworkArea) ActionDefNames() []string {
 	return []string{
-		ActionNameSyncNetworkAreaFromCMDB,
+		ActionNameSyncNetworkArea,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncNetworkAreaFromCMDB) DefaultParameters() operation.Param {
+func (oper *operSyncNetworkArea) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     1 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -58,6 +58,6 @@ func (oper *operSyncNetworkAreaFromCMDB) DefaultParameters() operation.Param {
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operSyncNetworkAreaFromCMDB) ExtraExecutionName() string {
+func (oper *operSyncNetworkArea) ExtraExecutionName() string {
 	return ""
 }

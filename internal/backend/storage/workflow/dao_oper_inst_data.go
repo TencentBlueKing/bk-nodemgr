@@ -250,6 +250,22 @@ func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByOperationID(
 	return s.daoOperInstData.ListWithoutActInst(nCtx, page, operinstdata.WithOperationID(operationID...))
 }
 
+// listOperationInstanceBriefDataWithoutActionInstByTriggerID lists operation instance brief data without action instance data.
+func (s *Storage) listOperationInstanceBriefDataWithoutActionInstByTriggerID(
+	nCtx contextx.IContext, page types.Page, triggerID ...string) (
+	[]*operation.InstanceBriefData, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	if err := page.Validate(); err != nil {
+		return nil, 0, err
+	}
+
+	return s.daoOperInstData.ListWithoutActInst(nCtx, page, operinstdata.WithTriggerID(triggerID...))
+}
+
 // upsertOperationInstanceData upserts operation instance data.
 func (s *Storage) upsertOperationInstanceData(nCtx contextx.IContext, operInstData *operation.InstanceData) error {
 	if nCtx == nil {
@@ -486,6 +502,19 @@ func (s *Storage) deleteOperationInstances(nCtx contextx.IContext, operInstID ..
 	}
 
 	return s.daoOperInstData.Delete(nCtx, operInstID...)
+}
+
+// deleteOperationInstancesByTriggerID deletes operation instances by given triggerID IDs.
+func (s *Storage) deleteOperationInstancesByTriggerID(nCtx contextx.IContext, triggerID ...string) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if len(triggerID) == 0 {
+		return nil
+	}
+
+	return s.daoOperInstData.Delete(nCtx, triggerID...)
 }
 
 // convertOperInstDataConditionsToOptions converts OperInstDataCondition to OptFn.

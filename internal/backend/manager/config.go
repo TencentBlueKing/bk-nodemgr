@@ -34,14 +34,21 @@ import (
 
 // Config defines the config of Manager.
 type Config struct {
+	// thridparty handler.
 	CmdbHandler cmdb.IHandler
 	GSEHandler  gse.IHandler
-	Provider    discover.Provider
+	FileHandler file.IHandler
 
+	// discover provider.
+	Provider discover.Provider
+
+	// file group.
 	InstallerFileGroup fileiface.FileGroup
 
+	// workflow locker.
 	LockerFactory locker.MutexFactory
 
+	// storages.
 	StorageTopo         topoStg.IStorage
 	StorageRelease      release.IStorage
 	StorageNode         nodeStg.IStorage
@@ -50,11 +57,15 @@ type Config struct {
 	StorageHostCredit   credit.IStorageHostCredit
 	StorageConfigPolicy configpolicy.IStorage
 
+	// credit vault.
 	HostPasswordVault creditvault.IHostPasswordVault
 
-	FileHandler   file.IHandler
+	// relay handler.
 	ProxyMessager relayhandler.IServerMessager
-	Cache         cache.ICache
+
+	// distributed cache.
+	Cache cache.ICache
+
 	WorkflowConfig
 }
 

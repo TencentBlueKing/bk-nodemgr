@@ -25,6 +25,7 @@ type Metadata interface {
 
 // MetadataOnce will store the metadata of once trigger.
 type MetadataOnce struct {
+	CleanPolicy MetadataCleanPolicy
 }
 
 // Validate validates the metadata.
@@ -35,6 +36,7 @@ func (m *MetadataOnce) Validate() error {
 // MetadataOrdered will store the metadata of ordered trigger.
 type MetadataOrdered struct {
 	MaxConcurrencyNum int
+	CleanPolicy       MetadataCleanPolicy
 }
 
 // Validate validates the metadata.
@@ -46,6 +48,7 @@ func (m *MetadataOrdered) Validate() error {
 type MetadataPeriodic struct {
 	Interval           string
 	AllowedConcurrency bool
+	CleanPolicy        PeriodicMetadataCleanPolicy
 }
 
 // Validate validates the metadata.
@@ -56,6 +59,26 @@ func (m *MetadataPeriodic) Validate() error {
 	}
 
 	return nil
+}
+
+// NewMetadataOnce creates a new MetadataOnce instance.
+// nolint: mnd
+func NewMetadataOnce() *MetadataOnce {
+	return &MetadataOnce{
+		CleanPolicy: MetadataCleanPolicy{
+			MaxDays: 30,
+		},
+	}
+}
+
+// NewMetadataOrdered creates a new MetadataOrdered instance.
+// nolint: mnd
+func NewMetadataOrdered() *MetadataOrdered {
+	return &MetadataOrdered{
+		CleanPolicy: MetadataCleanPolicy{
+			MaxDays: 30,
+		},
+	}
 }
 
 // NewMetadataPeriodic creates a new MetadataPeriodic instance.
@@ -73,6 +96,9 @@ func NewMetadataPeriodic[T time.Duration | string](interval T, allowedConcurrenc
 	meta := &MetadataPeriodic{
 		Interval:           cronExpr,
 		AllowedConcurrency: allowedConcurrency,
+		CleanPolicy: PeriodicMetadataCleanPolicy{
+			MaxOperInstNum: 1000, // nolint: mnd
+		},
 	}
 
 	if err := meta.Validate(); err != nil {
@@ -80,4 +106,16 @@ func NewMetadataPeriodic[T time.Duration | string](interval T, allowedConcurrenc
 	}
 
 	return meta, nil
+}
+
+// MetadataCleanPolicy will store the clean policy of an once/ordered trigger.
+type MetadataCleanPolicy struct {
+	Namespace string
+	MaxNum    int
+	MaxDays   int
+}
+
+// PeriodicMetadataCleanPolicy will store the clean policy of a periodic trigger.
+type PeriodicMetadataCleanPolicy struct {
+	MaxOperInstNum int
 }

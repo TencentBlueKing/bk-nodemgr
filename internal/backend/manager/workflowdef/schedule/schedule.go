@@ -10,3 +10,11 @@
 
 // Package schedule provides the operation definition for scheduling host synchronization.
 package schedule
+
+import "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+
+// Capability encapsulates the various capabilities the service supports.
+type Capability struct {
+	// stroage.
+	StorageWorkflow workflow.IStorage
+}

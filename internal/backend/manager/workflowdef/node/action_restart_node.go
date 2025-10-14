@@ -36,12 +36,10 @@ const (
 )
 
 // NewActionRestartNode get a new action.
-func NewActionRestartNode(storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	gseHandler gse.IHandler) action.Definition {
-
+func NewActionRestartNode(capability *Capability) action.Definition {
 	return &actionRestartNode{
-		storageNodeDeployment: storageNodeDeployment,
-		gseHandler:            gseHandler,
+		storageNodeDeployment: capability.StorageNode,
+		gseHandler:            capability.GSEHandler,
 	}
 }
 

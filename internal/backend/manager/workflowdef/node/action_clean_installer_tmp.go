@@ -38,12 +38,10 @@ const (
 )
 
 // NewActionCleanInstaller get a new action.
-func NewActionCleanInstaller(storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	gseHandler gse.IHandler) action.Definition {
-
+func NewActionCleanInstaller(capability *Capability) action.Definition {
 	return &actionCleanInstaller{
-		storageNodeDeployment: storageNodeDeployment,
-		gseHandler:            gseHandler,
+		storageNodeDeployment: capability.StorageNode,
+		gseHandler:            capability.GSEHandler,
 	}
 }
 

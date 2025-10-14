@@ -139,13 +139,6 @@ func WithStorageActionInstance(storageActionInst IStorageActionInstance) Options
 	}
 }
 
-// WithStorageSchedule sets the storage schedule for the manager.
-func WithStorageSchedule(storageSchedule IStorageSchedule) OptionsFunc {
-	return func(mgr *manager) {
-		mgr.stgSchedule = storageSchedule
-	}
-}
-
 // WithLocker sets the locker for the manager.
 func WithLocker(lock locker.MutexFactory) OptionsFunc {
 	return func(mgr *manager) {
@@ -180,7 +173,6 @@ type manager struct {
 	stgOperation         IStorageOperation
 	stgOperationInstance IStorageOperationInstance
 	stgActionInstance    IStorageActionInstance
-	stgSchedule          IStorageSchedule
 
 	globalLocker locker.MutexFactory
 

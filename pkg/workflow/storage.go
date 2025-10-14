@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
@@ -66,11 +65,17 @@ type IStorageOperation interface {
 	// ListOperationByOperationID lists operation by operation ID.
 	ListOperationByOperationID(ctx contextx.IContext, operationID ...string) ([]*operation.Operation, int64, error)
 
+	// ListOperationByParentOperationID lists operation by parent operation ID.
+	ListOperationByParentOperationID(ctx contextx.IContext, page types.Page, parentID ...string) ([]*operation.Operation, int64, error)
+
 	// ListEmptyOperationByTriggerID lists empty operation.
 	ListEmptyOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
 
 	// DeleteOperations deletes operations.
 	DeleteOperations(ctx contextx.IContext, operationID ...string) error
+
+	// DeleteOperationsByTriggerID deletes operations by trigger ID.
+	DeleteOperationsByTriggerID(ctx contextx.IContext, triggerID ...string) error
 
 	// PullOperationInstanceIDsFromOperation pulls operation instance IDs from operation.
 	PullOperationInstanceIDsFromOperation(ctx contextx.IContext, operationID string, operInstIDs ...string) error
@@ -93,6 +98,10 @@ type IStorageOperationInstance interface {
 	ListOperInstanceBriefWithoutActionInstByOperationID(ctx contextx.IContext, page types.Page, operationID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
 
+	// ListOperInstanceBriefWithoutActionInstByTriggerID lists operation instance brief data.
+	ListOperInstanceBriefWithoutActionInstByTriggerID(ctx contextx.IContext, page types.Page, triggerID ...string) (
+		[]*operation.InstanceBriefData, int64, error)
+
 	// CountOperationInstance counts operation instance.
 	CountOperationInstance(ctx contextx.IContext, triggerID string, states ...operation.State) (int64, error)
 
@@ -111,6 +120,9 @@ type IStorageOperationInstance interface {
 
 	// DeleteOperationInstances deletes operation instances.
 	DeleteOperationInstances(ctx contextx.IContext, operationInstanceID ...string) error
+
+	// DeleteOperationInstancesByTriggerID deletes operation instances by trigger ID.
+	DeleteOperationInstancesByTriggerID(ctx contextx.IContext, triggerID ...string) error
 }
 
 // IStorageTrigger defines the storage handler for trigger.
@@ -130,25 +142,12 @@ type IStorageTrigger interface {
 	// ListAliveTrigger lists alive triggers by given category.
 	ListAliveTrigger(ctx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error)
 
+	// ListTrigger lists triggers by given category.
+	ListTrigger(ctx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, int64, error)
+
 	// DeleteTriggers deletes triggers by given trigger IDs.
 	DeleteTriggers(ctx contextx.IContext, triggerIDs ...string) error
 
 	// ExistTrigger checks if a trigger exists by triggerID.
 	ExistTrigger(nCtx contextx.IContext, triggerID string) (bool, error)
-}
-
-// IStorageSchedule defines the interface of schedule workflow storage.
-type IStorageSchedule interface {
-	// ListScheduleWorkflow lists schedule workflow by page and conditions.
-	ListScheduleWorkflow(ctx contextx.IContext, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (
-		[]*schedule.Schedule, int64, error)
-
-	// CountScheduleWorkflow counts schedule workflow by conditions.
-	CountScheduleWorkflow(ctx contextx.IContext, conditions ...*types.ScheduleWorkflowCondition) (int64, error)
-
-	// GetScheduleWorkflow gets a schedule workflow by workflow-id.
-	GetScheduleWorkflow(ctx contextx.IContext, workflowID string) (*schedule.Schedule, error)
-
-	// CreateScheduleWorkflow creates a new schedule workflow.
-	CreateScheduleWorkflow(ctx contextx.IContext, workflow *schedule.Schedule) error
 }

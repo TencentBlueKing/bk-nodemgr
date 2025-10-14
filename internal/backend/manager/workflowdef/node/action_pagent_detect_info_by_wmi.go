@@ -41,25 +41,16 @@ const (
 )
 
 // NewActionPagentDetectInfoByWMI get a new action.
-func NewActionPagentDetectInfoByWMI(
-	storageActionInstance workflow.IStorageActionInstance,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	storageRelease release.IStorage,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-
-	proxyMessager relayhandler.IServerMessager,
-) action.Definition {
-
+func NewActionPagentDetectInfoByWMI(capability *Capability) action.Definition {
 	return &actionPagentDetectInfoByWMI{
-		storageHostCredit:     storageHostCredit,
-		storageActionInstance: storageActionInstance,
-		storageNodeDeployment: storageNodeDeployment,
-		storageRelease:        storageRelease,
+		storageHostCredit:     capability.StorageHostCredit,
+		storageActionInstance: capability.StorageWorkflow,
+		storageNodeDeployment: capability.StorageNode,
+		storageRelease:        capability.StorageRelease,
 
-		passwordVault: passwordVault,
+		passwordVault: capability.HostPasswordVault,
 
-		proxyMessager: proxyMessager,
+		proxyMessager: capability.ProxyMessager,
 	}
 }
 

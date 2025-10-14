@@ -40,15 +40,11 @@ const (
 )
 
 // NewActionUpgradePagent get a new action.
-func NewActionUpgradePagent(
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	gseHandler gse.IHandler,
-	provider discover.Provider) action.Definition {
-
+func NewActionUpgradePagent(capability *Capability) action.Definition {
 	return &actionUpgradePagent{
-		storageNodeDeployment: storageNodeDeployment,
-		gseHandler:            gseHandler,
-		provider:              provider,
+		storageNodeDeployment: capability.StorageNode,
+		gseHandler:            capability.GSEHandler,
+		provider:              capability.DiscoverProvider,
 	}
 }
 

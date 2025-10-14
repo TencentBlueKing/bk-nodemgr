@@ -1,14 +1,14 @@
-# scheduleworkflow
+# scheduledworkflow
 
 ## 设计意图
 
-提供scheduleworkflow的数据库操作原子接口
+提供scheduledworkflow的数据库操作原子接口
 
 ## 功能边界
 
 1. 此包负责：
-    - scheduleworkflow的数据库操作
-    - scheduleworkflow的存储结构设计
+    - scheduledworkflow的数据库操作
+    - scheduledworkflow的存储结构设计
 2. 此包不负责：
     - 具体的业务关系和逻辑
 

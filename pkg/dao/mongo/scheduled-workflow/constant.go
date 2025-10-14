@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package scheduleworkflow provides storage for schedule workflow.
-package scheduleworkflow
+// Package scheduledworkflow provides storage for scheduled workflow.
+package scheduledworkflow
 
 const (
 	// FieldKeyWorkflowID is the key for workflow ID.
@@ -20,6 +20,9 @@ const (
 
 	// FieldKeyTriggerID is the key for status.
 	FieldKeyTriggerID = "data.trigger_id"
+
+	// FieldKeyPrivateData is the key for private data.
+	FieldKeyPrivateData = "data.private_data"
 
 	// FieldKeyOperator is the key for operator.
 	FieldKeyOperator = "data.operator"

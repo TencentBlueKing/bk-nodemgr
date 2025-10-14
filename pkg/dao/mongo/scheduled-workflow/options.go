@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package scheduleworkflow provides storage for schedule workflow.
-package scheduleworkflow
+// Package scheduledworkflow provides storage for schedule workflow.
+package scheduledworkflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"

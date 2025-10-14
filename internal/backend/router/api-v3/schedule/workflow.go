@@ -28,7 +28,7 @@ func (h *handler) EnableScheduleWorkflow(rCtx restserver.IContext) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	schedule, err := h.storageWorkflow.GetScheduleWorkflow(rCtx, req.GetWorkflowId())
+	schedule, err := h.storageWorkflow.GetScheduledWorkflow(rCtx, req.GetWorkflowId())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("workflow-id", req.GetWorkflowId()).Error("failed to get schedule workflow")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -56,7 +56,7 @@ func (h *handler) DisableScheduleWorkflow(rCtx restserver.IContext) (interface{}
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	schedule, err := h.storageWorkflow.GetScheduleWorkflow(rCtx, req.GetWorkflowId())
+	schedule, err := h.storageWorkflow.GetScheduledWorkflow(rCtx, req.GetWorkflowId())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("workflow-id", req.GetWorkflowId()).Error("failed to get schedule workflow")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -85,7 +85,7 @@ func (h *handler) ListScheduleWorkflow(rCtx restserver.IContext) (interface{}, e
 	}
 
 	if req.GetOnlyCount() {
-		cnt, err := h.storageWorkflow.CountScheduleWorkflow(rCtx, req.ConvertConditionsToTypes())
+		cnt, err := h.storageWorkflow.CountScheduledWorkflow(rCtx, req.ConvertConditionsToTypes())
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to count schedule workflow, failed to decode request body")
 			return nil, resterrf.ErrWrap(resterrf.Aborted, err)
@@ -97,7 +97,7 @@ func (h *handler) ListScheduleWorkflow(rCtx restserver.IContext) (interface{}, e
 		return resp.GetData(), nil
 	}
 
-	schedule, cnt, err := h.storageWorkflow.ListScheduleWorkflow(
+	schedule, cnt, err := h.storageWorkflow.ListScheduledWorkflow(
 		rCtx,
 		req.ConvertPageToTypes(maxScheduleWorkflowLimit),
 		req.ConvertConditionsToTypes(),

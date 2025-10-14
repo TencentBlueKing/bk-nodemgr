@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
@@ -35,16 +36,11 @@ const (
 )
 
 // NewActionWatchCMDBResource creates a new action to watch CMDB resource changes.
-func NewActionWatchCMDBResource(
-	cache cache.ICache,
-	cmdbHandler cmdb.IHandler,
-	storageTopo topoStg.IStorage,
-) action.Definition {
-
-	return &actionWatchCMDBResource{
-		cache:       cache,
-		cmdbHandler: cmdbHandler,
-		storageTopo: storageTopo,
+func NewActionWatchCMDBResource(capability *Capability) action.Definition {
+	return &actionWatchAndApplyCMDBResource{
+		cache:       capability.Cache,
+		cmdbHandler: capability.CMDBHandler,
+		storageTopo: capability.StorageTopo,
 
 		mu:                         sync.Mutex{},
 		pendingProcessEvents:       make([]*types.HostEvent, 0),
@@ -52,14 +48,13 @@ func NewActionWatchCMDBResource(
 	}
 }
 
-// WatchCMDBResourceParam ...
-type WatchCMDBResourceParam struct {
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+// ActionParamWatchAndApplyCMDBResource defines the action's param.
+type ActionParamWatchAndApplyCMDBResource struct {
+	syncDataUtils.SyncDataActionStandardParam
 }
 
-// actionWatchCMDBResource implements the action.Definition interface.
-type actionWatchCMDBResource struct {
+// actionWatchAndApplyCMDBResource implements the action.Definition interface.
+type actionWatchAndApplyCMDBResource struct {
 	cache       cache.ICache
 	cmdbHandler cmdb.IHandler
 	storageTopo topoStg.IStorage
@@ -70,62 +65,66 @@ type actionWatchCMDBResource struct {
 }
 
 // Name returns the name of the action.
-func (act *actionWatchCMDBResource) Name() string {
+func (act *actionWatchAndApplyCMDBResource) Name() string {
 	return ActionNameWatchAndApplyCMDBResource
 }
 
 // Version returns the version of the action.
-func (act *actionWatchCMDBResource) Version() string {
+func (act *actionWatchAndApplyCMDBResource) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionWatchCMDBResource) Description() string {
+func (act *actionWatchAndApplyCMDBResource) Description() string {
 	return "watch and apply cmdb resource changes."
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionWatchCMDBResource) Timeout() time.Duration {
-	return time.Second * 30 // nolint: mnd
+func (act *actionWatchAndApplyCMDBResource) Timeout() time.Duration {
+	return time.Minute * 1 // nolint: mnd
 }
 
 // Tags returns the tags of the action.
-func (act *actionWatchCMDBResource) Tags() []action.Tag {
+func (act *actionWatchAndApplyCMDBResource) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount this action creates a large number of synchronization tasks,
 // therefore does not allow the system to automatically retry.
-func (act *actionWatchCMDBResource) MaxRetryCount() uint {
+func (act *actionWatchAndApplyCMDBResource) MaxRetryCount() uint {
 	return 0
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionWatchCMDBResource) DelayFn() func() {
+func (act *actionWatchAndApplyCMDBResource) DelayFn() func() {
 	return func() {}
 }
 
 // Do this func define what the action will do.
-func (act *actionWatchCMDBResource) Do(ctx *action.InstanceContext) error {
-	param := new(WatchCMDBResourceParam)
+func (act *actionWatchAndApplyCMDBResource) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamWatchAndApplyCMDBResource)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	// initialize standard data.
+	std := syncDataUtils.NewSyncDataActionStandarder()
+	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
+		return err
+	}
 
-	err = act.watchHostResource(nCtx)
+	err = act.watchHostResource(std.Context())
 	if err != nil {
 		return fmt.Errorf("watch host resource failed: %w", err)
 	}
 
-	err = act.watchHostRelationResource(nCtx)
+	err = act.watchHostRelationResource(std.Context())
 	if err != nil {
 		return fmt.Errorf("watch host relation resource failed: %w", err)
 	}
 
-	err = act.applyHostEvent(nCtx)
+	err = act.applyHostEvent(std.Context())
 	if err != nil {
 		return fmt.Errorf("apply host event failed: %w", err)
 	}
@@ -134,7 +133,7 @@ func (act *actionWatchCMDBResource) Do(ctx *action.InstanceContext) error {
 }
 
 // watchHostResource watches the host resource events.
-func (act *actionWatchCMDBResource) watchHostResource(ctx contextx.IContext) error {
+func (act *actionWatchAndApplyCMDBResource) watchHostResource(ctx contextx.IContext) error {
 	cursor, err := act.getCursor(ctx, types.HostEventCursor)
 	if err != nil {
 		return fmt.Errorf("get host event cursor failed: %w", err)
@@ -159,7 +158,7 @@ func (act *actionWatchCMDBResource) watchHostResource(ctx contextx.IContext) err
 }
 
 // watchHostRelationResource watches the host relation resource events.
-func (act *actionWatchCMDBResource) watchHostRelationResource(ctx contextx.IContext) error {
+func (act *actionWatchAndApplyCMDBResource) watchHostRelationResource(ctx contextx.IContext) error {
 	cursor, err := act.getCursor(ctx, types.HostRelationEventCursor)
 	if err != nil {
 		return fmt.Errorf("get host event cursor failed: %w", err)
@@ -206,7 +205,7 @@ func (act *actionWatchCMDBResource) watchHostRelationResource(ctx contextx.ICont
 }
 
 // applyHostEvent applies the host event to the watcher.
-func (act *actionWatchCMDBResource) applyHostEvent(nCtx contextx.IContext) error {
+func (act *actionWatchAndApplyCMDBResource) applyHostEvent(nCtx contextx.IContext) error {
 	for _, event := range act.pendingProcessEvents {
 		switch event.Resource {
 		case types.ResourceTypeHost:
@@ -226,7 +225,7 @@ func (act *actionWatchCMDBResource) applyHostEvent(nCtx contextx.IContext) error
 }
 
 // handleHostResource this func defines how to handle the host resource event.
-func (act *actionWatchCMDBResource) handleHostResource(nCtx contextx.IContext, event *types.HostEvent) error {
+func (act *actionWatchAndApplyCMDBResource) handleHostResource(nCtx contextx.IContext, event *types.HostEvent) error {
 	switch event.EventType {
 	case types.EventTypeCreate:
 		host, ok := act.waitingCompleteDataHostMap[event.Detail.HostID]
@@ -279,7 +278,7 @@ func (act *actionWatchCMDBResource) handleHostResource(nCtx contextx.IContext, e
 }
 
 // handleHostRelationResource this func defines how to handle the host relation resource event.
-func (act *actionWatchCMDBResource) handleHostRelationResource(nCtx contextx.IContext, event *types.HostEvent) error {
+func (act *actionWatchAndApplyCMDBResource) handleHostRelationResource(nCtx contextx.IContext, event *types.HostEvent) error {
 	switch event.EventType {
 	case types.EventTypeCreate:
 		host, ok := act.waitingCompleteDataHostMap[event.Detail.HostID]
@@ -330,7 +329,7 @@ func (act *actionWatchCMDBResource) handleHostRelationResource(nCtx contextx.ICo
 }
 
 // getCursor retrieves the cursor for the given key from the cache.
-func (act *actionWatchCMDBResource) getCursor(ctx context.Context, key string) (string, error) {
+func (act *actionWatchAndApplyCMDBResource) getCursor(ctx context.Context, key string) (string, error) {
 	if key == "" {
 		return "", errors.New("get cursor from cache, key cannot be empty")
 	}
@@ -354,7 +353,7 @@ func (act *actionWatchCMDBResource) getCursor(ctx context.Context, key string) (
 }
 
 // setCursor sets the cursor for the given key in the cache.
-func (act *actionWatchCMDBResource) setCursor(ctx context.Context, key, value string) error {
+func (act *actionWatchAndApplyCMDBResource) setCursor(ctx context.Context, key, value string) error {
 	if key == "" {
 		return errors.New("set cursor to cache, key cannot be empty")
 	}

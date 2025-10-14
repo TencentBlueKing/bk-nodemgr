@@ -27,14 +27,10 @@ const (
 )
 
 // NewActionUpdateHost get a new action.
-func NewActionUpdateHost(
-	storageHost topoStg.IStorageHost,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-) action.Definition {
-
+func NewActionUpdateHost(capability *Capability) action.Definition {
 	return &actionUpdateHost{
-		storageHost:           storageHost,
-		storageNodeDeployment: storageNodeDeployment,
+		storageHost:           capability.StorageTopo,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 

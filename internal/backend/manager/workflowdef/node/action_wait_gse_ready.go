@@ -29,14 +29,10 @@ const (
 )
 
 // NewActionWaitGseReady get a new action.
-func NewActionWaitGseReady(
-	gseClient gse.IHandler,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-) action.Definition {
-
+func NewActionWaitGseReady(capability *Capability) action.Definition {
 	return &actionWaitGseReady{
-		gseClient:             gseClient,
-		storageNodeDeployment: storageNodeDeployment,
+		gseClient:             capability.GSEHandler,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 

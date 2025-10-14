@@ -44,25 +44,16 @@ const (
 )
 
 // NewActionPagentDetectInfoBySSH get a new action.
-func NewActionPagentDetectInfoBySSH(
-	storageActionInstance workflow.IStorageActionInstance,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	storageRelease release.IStorage,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-
-	proxyMessager relayhandler.IServerMessager,
-) action.Definition {
-
+func NewActionPagentDetectInfoBySSH(capability *Capability) action.Definition {
 	return &actionPagentDetectInfoBySSH{
-		storageHostCredit:     storageHostCredit,
-		storageActionInstance: storageActionInstance,
-		storageNodeDeployment: storageNodeDeployment,
-		storageRelease:        storageRelease,
+		storageHostCredit:     capability.StorageHostCredit,
+		storageActionInstance: capability.StorageWorkflow,
+		storageNodeDeployment: capability.StorageNode,
+		storageRelease:        capability.StorageRelease,
 
-		passwordVault: passwordVault,
+		passwordVault: capability.HostPasswordVault,
 
-		proxyMessager: proxyMessager,
+		proxyMessager: capability.ProxyMessager,
 	}
 }
 

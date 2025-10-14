@@ -12,199 +12,369 @@
 package manager
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	worksche "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
+	"github.com/google/uuid"
 )
 
 const (
-	// SyncCmdbHostWorkflowName defines the name of the sync host workflow.
-	SyncCmdbHostWorkflowName = "schedule_sync_cmdb_host"
-
-	// SyncCmdbNetworkAreaWorkflowName defines the name of the sync cmdb network area workflow.
-	SyncCmdbNetworkAreaWorkflowName = "schedule_sync_cmdb_network_area"
-
-	// SyncGseAgentStateWorkflowName defines the name of the sync GSE agent state workflow.
-	SyncGseAgentStateWorkflowName = "schedule_sync_gse_agent_state"
-
-	// SyncAliveHostAgentInfoWorkflowName defines the name of the sync alive host agent info workflow.
-	SyncAliveHostAgentInfoWorkflowName = "schedule_sync_alive_host_agent_info"
-
-	// WatchAndApplyCMDBResourceWorkflowName defines the name of the watch and apply cmdb resource workflow.
-	WatchAndApplyCMDBResourceWorkflowName = "schedule_watch_and_apply_cmdb_resource"
+	scheduledWorkflowSyncBizAndHost            = "sync_biz_and_host"
+	scheduledWorkflowSyncNetworkArea           = "sync_networkarea"
+	scheduledWorkflowSyncAgentState            = "sync_agent_state"
+	scheduledWorkflowSyncAliveAgentInfo        = "sync_alive_agent_info"
+	scheduledWorkflowWatchAndApplyCMDBResource = "watch_and_apply_cmdb_resource"
 )
 
-// ScheduleWorkflowFunc defines the function type for scheduling workflows.
-type ScheduleWorkflowFunc func(ctx contextx.IContext) error
+const (
+	scheduledWorkflowMonitorTimeGap = 10 * time.Second
+)
 
-// getScheduleWorkflow returns a map of workflow names to their corresponding scheduling functions.
-func (mgr *Manager) getScheduleWorkflow() map[string]ScheduleWorkflowFunc {
-	return map[string]ScheduleWorkflowFunc{
-		SyncCmdbHostWorkflowName:              mgr.ScheduleSyncHostFromCMDB,
-		SyncCmdbNetworkAreaWorkflowName:       mgr.ScheduleSyncNetworkAreaFromCMDB,
-		SyncGseAgentStateWorkflowName:         mgr.ScheduleSyncAllAgentStateFromGSE,
-		SyncAliveHostAgentInfoWorkflowName:    mgr.ScheduleSyncAliveHostAgentInfo,
-		WatchAndApplyCMDBResourceWorkflowName: mgr.ScheduleWatchAndApplyCMDBResource,
+type initScheduledWorkflowFunc func(nCtx contextx.IContext, tenantID string) error
+type syncScheduledWorkflowFunc func(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error
+
+func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWorkflowFunc {
+	return map[string]initScheduledWorkflowFunc{
+		scheduledWorkflowSyncBizAndHost:            mgr.initSWSyncBizAndHost,
+		scheduledWorkflowSyncNetworkArea:           mgr.initSWSyncNetworkArea,
+		scheduledWorkflowSyncAgentState:            mgr.initSWSyncAgentState,
+		scheduledWorkflowSyncAliveAgentInfo:        mgr.initSWSyncAliveAgentInfo,
+		scheduledWorkflowWatchAndApplyCMDBResource: mgr.initSWWatchAndApplyCMDBResource,
 	}
 }
 
-// startScheduleWorkflow starts the scheduled workflows.
-func (mgr *Manager) startScheduleWorkflow(ctx contextx.IContext) error {
-	dbScheduleWorkflows, _, err := mgr.conf.StorageWorkflow.ListScheduleWorkflow(ctx, types.UnlimitedPage(),
-		&types.ScheduleWorkflowCondition{ExactInclude: &types.ScheduleWorkflowExactFields{}})
+func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWorkflowFunc {
+	return map[string]syncScheduledWorkflowFunc{
+		scheduledWorkflowSyncBizAndHost:            mgr.syncSWSyncBizAndHost,
+		scheduledWorkflowSyncNetworkArea:           mgr.syncSWSyncNetworkArea,
+		scheduledWorkflowSyncAgentState:            mgr.syncSWSyncAgentState,
+		scheduledWorkflowSyncAliveAgentInfo:        mgr.syncSWSyncAliveAgentInfo,
+		scheduledWorkflowWatchAndApplyCMDBResource: mgr.syncSWWatchAndApplyCMDBResource,
+	}
+}
+
+func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) error {
+	logger.G.Sys().With("time-gap", scheduledWorkflowMonitorTimeGap.String()).Info("start monitoring scheduled workflows")
+
+	for name, f := range mgr.getInitScheduledWorkflowFuncs() {
+		_ = mgr.initScheduleWorkflow(nCtx, name, f)
+	}
+
+	go func() {
+		ticker := time.NewTicker(scheduledWorkflowMonitorTimeGap)
+		for {
+			select {
+			case <-nCtx.Done():
+				logger.G.Sys().Warn("stopping monitoring scheduled workflows")
+
+				return
+
+			case <-ticker.C:
+				sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(nCtx, types.UnlimitedPage())
+				if err != nil {
+					logger.G.Sys().WithErr(err).Error("failed to list scheduled workflows")
+
+					continue
+				}
+
+				for _, sw := range sws {
+					if err = mgr.ensureScheduledWorkflow(nCtx, sw); err != nil {
+						logger.G.Sys().
+							WithErr(err).
+							With("workflow-id", sw.WorkflowID, "trigger-id", sw.TriggerID).
+							Error("failed to ensure scheduled workflow")
+
+						continue
+					}
+				}
+			}
+		}
+	}()
+
+	return nil
+}
+
+func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, workflowName string, initFunc initScheduledWorkflowFunc) error {
+	// TODO: sync tenant list from bk-user and keep to init uninitialized scheduled workflows.
+	tenantID := tenant.SingleModeTenantID
+	locker := mgr.genScheduledWorkflowLocker(tenantID, workflowName)
+	if err := locker.tryLock(nCtx); err != nil {
+		return nil
+	}
+	defer func() {
+		_ = locker.unlock(nCtx)
+	}()
+
+	// reload the scheduled workflow after get the lock.
+	var err error
+	sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(nCtx, types.UnlimitedPage())
 	if err != nil {
-		return fmt.Errorf("failed to list schedule workflows from storage: %w", err)
+		return err
 	}
 
-	dbScheduleWorkflowsMap, err := conv.SliceToMap(dbScheduleWorkflows, func(swo *worksche.Schedule) string {
-		return swo.WorkflowName
-	})
+	for _, sw := range sws {
+		if sw.WorkflowName == workflowName && sw.TenantID == tenantID {
+			return nil
+		}
+	}
+
+	return initFunc(nCtx, tenantID)
+}
+
+func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	locker := mgr.genScheduledWorkflowLocker(sw.TenantID, sw.WorkflowName)
+	if err := locker.tryLock(nCtx); err != nil {
+		return nil
+	}
+	defer func() {
+		_ = locker.unlock(nCtx)
+	}()
+
+	// reload the scheduled workflow after get the lock.
+	var err error
+	sw, err = mgr.conf.StorageWorkflow.GetScheduledWorkflow(nCtx, sw.WorkflowID)
 	if err != nil {
-		return fmt.Errorf("failed to convert schedule workflows to map: %w", err)
+		return err
 	}
 
-	scheduleWorkflowMaps := mgr.getScheduleWorkflow()
-	unRegisteredWorkflows := make([]string, 0, len(scheduleWorkflowMaps))
-	for workflowName := range scheduleWorkflowMaps {
-		dbSchedule, ok := dbScheduleWorkflowsMap[workflowName]
-		if !ok {
-			unRegisteredWorkflows = append(unRegisteredWorkflows, workflowName)
-			continue
-		}
-
-		triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, dbSchedule.TriggerID)
-		if err != nil {
-			logger.G.Sys().WithErr(err).With("workflow-id", dbSchedule.WorkflowID).Error("failed to get schedule workflow trigger")
-
-			return fmt.Errorf("get schedule workflow(%s) trigger failed: %w", dbSchedule.WorkflowID, err)
-		}
-
-		err = triggerCtl.RunTrigger(ctx)
-		if err != nil {
-			logger.G.Sys().
-				WithErr(err).
-				With("workflow-id", dbSchedule.WorkflowID, "trigger-id", dbSchedule.TriggerID).
-				Error("failed to run schedule workflow trigger")
-
-			return fmt.Errorf("run schedule workflow(%s) trigger(%s) failed: %w",
-				dbSchedule.WorkflowID, dbSchedule.TriggerID, err)
-		}
+	// scheduled workflow has not been triggered yet.
+	if sw.TriggerID == "" {
+		return mgr.trySyncingScheduledWorkflow(nCtx, sw)
 	}
 
-	for _, workflowName := range unRegisteredWorkflows {
-		scheduleFn := scheduleWorkflowMaps[workflowName]
-		if scheduleFn == nil {
-			logger.G.Sys().With("workflow-name", workflowName).Warn("workflow function not found, skip")
+	trigCtl, err := mgr.workflowMgr.GetTrigger(nCtx, sw.TriggerID)
+	if types.IsErrStorageNotFound(err) {
+		return mgr.trySyncingScheduledWorkflow(nCtx, sw)
+	}
+	if err != nil {
+		return err
+	}
 
-			continue
-		}
-
-		err := scheduleFn(ctx)
-		if err != nil {
-			logger.G.Sys().WithErr(err).With("workflow-name", workflowName).Warn("failed to register workflow")
-
-			return fmt.Errorf("register workflow-name(%s) failed: %w", workflowName, err)
-		}
+	// check if the trigger state is changed.
+	state := trigCtl.GetTriggerState()
+	if state == trigger.StateRunning && !sw.Enabled {
+		return trigCtl.TerminateTrigger(nCtx)
+	}
+	if state == trigger.StateTerminated && sw.Enabled {
+		return trigCtl.RunTrigger(nCtx)
 	}
 
 	return nil
 }
 
-// createAndRunScheduleWorkflows creates and runs a scheduled workflow.
-func (mgr *Manager) createAndRunScheduleWorkflows(ctx contextx.IContext, workflowName string, interval string) error {
-	tenantID, err := tenant.GetID(ctx)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get tenant id")
+func (mgr *Manager) trySyncingScheduledWorkflow(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	funcs := mgr.getSyncScheduledWorkflowFuncs()
 
-		return fmt.Errorf("get tenant id failed: %w", err)
+	f, ok := funcs[sw.WorkflowName]
+	if !ok {
+		logger.G.Sys().With("workflow-name", sw.WorkflowName).Warn("workflow function not found, skip")
+
+		return nil
 	}
 
-	metadataPeriodic, err := trigger.NewMetadataPeriodic(interval, false)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to create periodic metadata")
+	return f(nCtx, sw)
+}
 
-		return fmt.Errorf("create periodic metadata failed: %w", err)
-	}
-
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryPeriodic, metadataPeriodic)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to create periodic trigger")
-
-		return fmt.Errorf("create periodic trigger failed: %w", err)
-	}
-
-	scheduleWf := &worksche.Schedule{
+func (mgr *Manager) initScheduledWorkflow(nCtx contextx.IContext, tenantID, workflowName, interval string) error {
+	sw := &types.ScheduledWorkflow{
 		WorkflowID:   identifier.GenWorkflowID(),
+		TenantID:     tenantID,
+		Enabled:      true,
 		WorkflowName: workflowName,
-		TriggerID:    triggerCtl.GetTriggerID(),
+		Interval:     interval,
 		Operator:     access.GetVirtualUser(),
 		OperateTime:  time.Now(),
 	}
 
-	err = mgr.conf.StorageWorkflow.CreateScheduleWorkflow(ctx, scheduleWf)
-	if err != nil {
-		logger.G.Sys().WithErr(err).With("schedule-workflow", scheduleWf.WorkflowName).Error("failed to create schedule workflow")
+	if err := mgr.conf.StorageWorkflow.CreateScheduledWorkflow(nCtx, sw); err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-name", sw.WorkflowName, "tenant-id", sw.TenantID).Error("failed to create scheduled workflow")
 
-		return fmt.Errorf("create schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
-	}
-
-	operationDef := schedule.NewOperScheduleOnceTriggerOperation(
-		schedule.OperParamScheduleOnceTriggerOperation{TenantID: tenantID, Operator: access.GetVirtualUser()},
-		workflowName)
-	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
-	if err != nil {
-		logger.G.Sys().WithErr(err).With("schedule-workflow", scheduleWf.WorkflowName).Error("failed to create operation for schedule workflow")
-
-		return fmt.Errorf("create operation for schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
-	}
-
-	logger.G.Sys().
-		With("tenant-id", tenantID).
-		With("workflow-name", scheduleWf.WorkflowName, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
-		Info("new schedule watch and apply cmdb resource task")
-
-	err = triggerCtl.RunTrigger(ctx)
-	if err != nil {
-		logger.G.Sys().WithErr(err).With("schedule-workflow", scheduleWf.WorkflowName).Error("failed to run schedule workflow")
-
-		return fmt.Errorf("run schedule-workflow(%s) failed: %w", scheduleWf.WorkflowName, err)
+		return fmt.Errorf("failed to create scheduled workflow: %w", err)
 	}
 
 	return nil
 }
 
-// ScheduleSyncHostFromCMDB creates a new schedule workflow to sync hosts from CMDB.
-func (mgr *Manager) ScheduleSyncHostFromCMDB(ctx contextx.IContext) error {
-	return mgr.createAndRunScheduleWorkflows(ctx, SyncCmdbHostWorkflowName, scheduler.Midnight)
+func (mgr *Manager) syncScheduledWorkflow(nCtx contextx.IContext, sw *types.ScheduledWorkflow, operationDef operation.Definition) error {
+	metadata, err := trigger.NewMetadataPeriodic(sw.Interval, false)
+	if err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-name", sw.WorkflowName).Error("failed to create periodic metadata")
+
+		return fmt.Errorf("failed to create periodic metadata: %w", err)
+	}
+	metadata.CleanPolicy.MaxOperInstNum = 100
+
+	trigCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryPeriodic, metadata)
+	if err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-name", sw.WorkflowName).Error("failed to create periodic trigger")
+
+		return fmt.Errorf("failed to create periodic trigger: %w", err)
+	}
+
+	sw.TriggerID = trigCtl.GetTriggerID()
+	if err = mgr.conf.StorageWorkflow.UpdateScheduledWorkflowTriggerID(nCtx, sw.WorkflowID, sw.TriggerID); err != nil {
+		logger.G.Sys().
+			WithErr(err).
+			With("workflow-name", sw.WorkflowName, "trigger-id", sw.TriggerID).
+			Error("failed to update scheduled workflow trigger id")
+
+		return fmt.Errorf("failed to update scheduled workflow trigger id: %w", err)
+	}
+
+	operCtl, err := trigCtl.CreateOperation(nCtx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		logger.G.Sys().
+			WithErr(err).
+			With("workflow-name", sw.WorkflowName, "trigger-id", trigCtl.GetTriggerID()).
+			Error("failed to create operation for scheduled workflow")
+
+		return fmt.Errorf("failed to create operation for scheduled workflow: %w", err)
+	}
+
+	logger.G.Sys().
+		With("workflow-name", sw.WorkflowName, "trigger-id", sw.TriggerID, "operation-id", operCtl.GetOperationID()).
+		Info("scheduled workflow with new trigger")
+
+	if sw.Enabled {
+		return trigCtl.RunTrigger(nCtx)
+	}
+
+	return nil
 }
 
-// ScheduleSyncNetworkAreaFromCMDB creates a new schedule workflow to sync network areas from CMDB.
-func (mgr *Manager) ScheduleSyncNetworkAreaFromCMDB(ctx contextx.IContext) error {
-	return mgr.createAndRunScheduleWorkflows(ctx, SyncCmdbNetworkAreaWorkflowName, scheduler.Every+"1h")
+func (mgr *Manager) initSWSyncBizAndHost(nCtx contextx.IContext, tenantID string) error {
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncBizAndHost, scheduler.Every30m)
 }
 
-// ScheduleSyncAllAgentStateFromGSE creates a new schedule workflow to sync agent state from GSE.
-func (mgr *Manager) ScheduleSyncAllAgentStateFromGSE(ctx contextx.IContext) error {
-	return mgr.createAndRunScheduleWorkflows(ctx, SyncGseAgentStateWorkflowName, scheduler.Every+"30s")
+func (mgr *Manager) syncSWSyncBizAndHost(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncBizAndHost(schedule.OperParamSyncBizAndHost{
+		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
+			WorkflowID: sw.WorkflowID,
+			TenantID:   sw.TenantID,
+			Operator:   access.GetVirtualUser(),
+		},
+	}))
 }
 
-// ScheduleWatchAndApplyCMDBResource creates a new schedule workflow to watch and apply CMDB resources.
-func (mgr *Manager) ScheduleWatchAndApplyCMDBResource(ctx contextx.IContext) error {
-	return mgr.createAndRunScheduleWorkflows(ctx, WatchAndApplyCMDBResourceWorkflowName, scheduler.Every+"10s")
+func (mgr *Manager) initSWSyncNetworkArea(nCtx contextx.IContext, tenantID string) error {
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncNetworkArea, scheduler.Every+"10s")
 }
 
-// ScheduleSyncAliveHostAgentInfo creates a new schedule workflow to sync alive host agent info.
-func (mgr *Manager) ScheduleSyncAliveHostAgentInfo(ctx contextx.IContext) error {
-	return mgr.createAndRunScheduleWorkflows(ctx, SyncAliveHostAgentInfoWorkflowName, scheduler.Every+"10m")
+func (mgr *Manager) syncSWSyncNetworkArea(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncNetworkArea(schedule.OperParamSyncNetworkArea{
+		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
+			WorkflowID: sw.WorkflowID,
+			TenantID:   sw.TenantID,
+			Operator:   access.GetVirtualUser(),
+		},
+	}))
+}
+
+func (mgr *Manager) initSWSyncAgentState(nCtx contextx.IContext, tenantID string) error {
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAgentState, scheduler.Every+"10m")
+}
+
+func (mgr *Manager) syncSWSyncAgentState(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncAgentState(schedule.OperParamSyncAgentState{
+		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
+			WorkflowID: sw.WorkflowID,
+			TenantID:   sw.TenantID,
+			Operator:   access.GetVirtualUser(),
+		},
+	}))
+}
+
+func (mgr *Manager) initSWSyncAliveAgentInfo(nCtx contextx.IContext, tenantID string) error {
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAliveAgentInfo, scheduler.Every+"10h")
+}
+
+func (mgr *Manager) syncSWSyncAliveAgentInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncAliveAgentInfo(schedule.OperParamSyncAliveAgentInfo{
+		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
+			WorkflowID: sw.WorkflowID,
+			TenantID:   sw.TenantID,
+			Operator:   access.GetVirtualUser(),
+		},
+	}))
+}
+
+func (mgr *Manager) initSWWatchAndApplyCMDBResource(nCtx contextx.IContext, tenantID string) error {
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowWatchAndApplyCMDBResource, scheduler.Every+"10s")
+}
+
+func (mgr *Manager) syncSWWatchAndApplyCMDBResource(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	return mgr.syncScheduledWorkflow(ctx, sw, schedule.NewOperWatchAndApplyCMDBResource(schedule.OperParamWatchAndApplyCMDBResource{
+		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
+			WorkflowID: sw.WorkflowID,
+			TenantID:   sw.TenantID,
+			Operator:   access.GetVirtualUser(),
+		},
+	}))
+}
+
+func (mgr *Manager) genScheduledWorkflowLocker(tenantID, workflowName string) *scheduledWorkflowLocker {
+	return &scheduledWorkflowLocker{
+		tenantID:     tenantID,
+		workflowName: workflowName,
+
+		key:        fmt.Sprintf("bknm:backend:scheduledworkflow:%s:%s", tenantID, workflowName),
+		uuid:       uuid.New().String(),
+		expiration: 1 * time.Minute,
+
+		cache: mgr.conf.Cache,
+	}
+}
+
+type scheduledWorkflowLocker struct {
+	tenantID     string
+	workflowName string
+
+	key        string
+	uuid       string
+	expiration time.Duration
+
+	cache cache.ICache
+}
+
+func (locker *scheduledWorkflowLocker) tryLock(nCtx contextx.IContext) error {
+	result, err := locker.cache.SetNXWithExpiration(nCtx, locker.key, []byte(locker.uuid), locker.expiration)
+	if err != nil {
+		return err
+	}
+
+	if !result {
+		return errors.New("failed to lock scheduled workflow, maybe already locked")
+	}
+
+	return nil
+}
+
+func (locker *scheduledWorkflowLocker) unlock(nCtx contextx.IContext) error {
+	result, err := locker.cache.Get(nCtx, locker.key)
+	if err != nil {
+		return err
+	}
+
+	if string(result) != locker.uuid {
+		return errors.New("failed to unlock scheduled workflow, maybe already unlocked")
+	}
+
+	if _, err := locker.cache.Delete(nCtx, locker.key); err != nil {
+		return err
+	}
+
+	return nil
 }

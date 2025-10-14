@@ -43,22 +43,15 @@ const (
 )
 
 // NewActionInstallPagentByWMI get a new action.
-func NewActionInstallPagentByWMI(
-	proxyMessager relayhandler.IServerMessager,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	storageHostCredit credit.IStorageHostCredit,
-	storageActionInstance workflow.IStorageActionInstance,
-	passwordVault creditvault.IHostPasswordVault,
-) action.Definition {
-
+func NewActionInstallPagentByWMI(capability *Capability) action.Definition {
 	return &actionInstallPagentByWMI{
-		storageHostCredit:     storageHostCredit,
-		storageNodeDeployment: storageNodeDeployment,
-		storageActionInstance: storageActionInstance,
+		storageHostCredit:     capability.StorageHostCredit,
+		storageNodeDeployment: capability.StorageNode,
+		storageActionInstance: capability.StorageWorkflow,
 
-		passwordVault: passwordVault,
+		passwordVault: capability.HostPasswordVault,
 
-		proxyMessager: proxyMessager,
+		proxyMessager: capability.ProxyMessager,
 	}
 }
 

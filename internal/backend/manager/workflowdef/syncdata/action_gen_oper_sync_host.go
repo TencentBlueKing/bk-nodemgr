@@ -11,15 +11,16 @@
 package syncdata
 
 import (
-	"fmt"
 	"time"
 
+	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
 const (
@@ -28,17 +29,16 @@ const (
 )
 
 // NewActionGenOperSyncHost this action will create host sync operation for all business.
-func NewActionGenOperSyncHost(storageBusiness topoStg.IStorageBusiness, workflowCtl workflow.IController) action.Definition {
+func NewActionGenOperSyncHost(capability *Capability) action.Definition {
 	return &actionGenOperSyncHost{
-		storageBusiness: storageBusiness,
-		workflowCtl:     workflowCtl,
+		storageBusiness: capability.StorageTopo,
+		workflowCtl:     capability.WorkflowCtl,
 	}
 }
 
-// GenOperSyncHostParam ...
-type GenOperSyncHostParam struct {
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+// ActionParamGenOperSyncHost defines the action's param.
+type ActionParamGenOperSyncHost struct {
+	syncDataUtils.SyncDataActionStandardParam
 }
 
 type actionGenOperSyncHost struct {
@@ -85,71 +85,82 @@ func (act *actionGenOperSyncHost) DelayFn() func() {
 
 // Do this func define what the action will do.
 func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
-	param := new(GenOperSyncHostParam)
+	param := new(ActionParamGenOperSyncHost)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
-	bizs, _, err := act.storageBusiness.ListBusinesses(newCtx, types.Page{})
-	if err != nil {
+	// initialize standard data.
+	std := syncDataUtils.NewSyncDataActionStandarder()
+	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
 		return err
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("found business, lens(%d)", len(bizs)))
+	bizs, _, err := act.storageBusiness.ListBusinesses(std.Context(), types.UnlimitedPage())
+	if err != nil {
+		return err
+	}
+	logger.G.Sys().With("action", act.Name()).Info("found business: %d", len(bizs))
 
-	for idx := range bizs {
-		biz := bizs[idx]
+	if len(bizs) == 0 {
+		return nil
+	}
 
-		if err = act.executeOper(ctx, param.Operator, biz); err != nil {
+	// create trigger for handling sync host operations.
+	meta := trigger.NewMetadataOnce()
+	meta.CleanPolicy = trigger.MetadataCleanPolicy{
+		Namespace: std.InstanceData().TriggerID,
+		MaxNum:    100, // nolint: mnd
+	}
+	trigCtl, err := act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOnce, meta)
+	if err != nil {
+		logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync host operations")
+
+		return err
+	}
+
+	for _, biz := range bizs {
+		if err = act.executeOper(std, trigCtl, biz); err != nil {
 			return err
 		}
 	}
+
+	if err = trigCtl.RunTrigger(std.Context()); err != nil {
+		logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync host operations")
+
+		return err
+	}
+
+	logger.G.Sys().With("action", act.Name()).Info("executed sync host operation for %d business", len(bizs))
 
 	return nil
 }
 
 // executeOper create an operation to sync all host from cmdb and then execute it.
-func (act *actionGenOperSyncHost) executeOper(
-	ctx *action.InstanceContext,
-	operator string,
-	biz *types.Business) error {
-
-	trigCtl, err := act.workflowCtl.GetTrigger(ctx.Ctx, ctx.Data.TriggerID)
-	if err != nil {
-		err = fmt.Errorf(
-			"failed to get trigger. tenant-id(%s), trigger-id(%s), biz-name(%s), biz-id(%d): %w",
-			biz.TenantID, ctx.Data.TriggerID, biz.BizName, biz.BizID, err)
-
-		ctx.Data.LogE(err.Error())
-
-		return err
-	}
-
-	operationDef := NewOperSyncHostFromCMDB(OperParamSyncHostFromCMDB{
+func (act *actionGenOperSyncHost) executeOper(std *syncDataUtils.SyncDataActionStandarder, trigCtl workflow.ITriggerCtl, biz *types.Business) error {
+	operationDef := NewOperSyncHost(OperParamSyncHost{
 		TenantID: biz.TenantID,
-		Operator: operator,
+		Operator: std.Operator(),
 		BizID:    biz.BizID,
 	})
 
 	operationParam := operationDef.DefaultParameters()
-	operationParam.ParentOperationID = ctx.Data.OperationID
+	operationParam.ParentOperationID = std.InstanceData().OperationID
 
-	operCtl, err := trigCtl.CreateOperation(ctx.Ctx, operationDef, operationParam)
+	operCtl, err := trigCtl.CreateOperation(std.Context(), operationDef, operationParam)
 	if err != nil {
-		err = fmt.Errorf(
-			"failed to create sync host operation for business, tenant-id(%s), biz-name(%s), biz-id(%d): %w",
-			biz.TenantID, biz.BizName, biz.BizID, err)
-
-		ctx.Data.LogE(err.Error())
+		logger.G.Sys().
+			WithErr(err).
+			With("action", act.Name(), "tenant-id", biz.TenantID, "biz-id", biz.BizID).
+			Error("failed to create sync host operation for business")
 
 		return err
 	}
 
-	ctx.Data.LogI(
-		fmt.Sprintf("created sync host operation for business, tenant-id(%s), operation-id(%s), biz-name(%s), biz-id(%d)",
-			biz.TenantID, operCtl.GetOperationID(), biz.BizName, biz.BizID))
+	logger.G.Sys().
+		With("action", act.Name(), "tenant-id", biz.TenantID, "biz-id", biz.BizID, "operation-id", operCtl.GetOperationID()).
+		Info("created sync host operation for business")
 
 	return nil
 }

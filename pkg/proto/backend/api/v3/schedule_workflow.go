@@ -14,7 +14,6 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 )
 
 // Validate check body.
@@ -50,7 +49,7 @@ func (x *ListScheduleWorkflowReq) ConvertPageToTypes(maxLimit int) types.Page {
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
-func (x *ListScheduleWorkflowReq) ConvertConditionsFromTypes(condition *types.ScheduleWorkflowCondition) error {
+func (x *ListScheduleWorkflowReq) ConvertConditionsFromTypes(condition *types.ScheduledWorkflowCondition) error {
 	exactCond, fuzzyCond, err := convertScheduleWorkConditionsFromTypes(condition)
 	if err != nil {
 		return err
@@ -63,7 +62,7 @@ func (x *ListScheduleWorkflowReq) ConvertConditionsFromTypes(condition *types.Sc
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *ListScheduleWorkflowReq) ConvertConditionsToTypes() *types.ScheduleWorkflowCondition {
+func (x *ListScheduleWorkflowReq) ConvertConditionsToTypes() *types.ScheduledWorkflowCondition {
 	return convertScheduleWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions())
@@ -72,13 +71,13 @@ func (x *ListScheduleWorkflowReq) ConvertConditionsToTypes() *types.ScheduleWork
 // convertScheduleWorkflowConditionsToTypes converts ScheduleWorkflowExactConditions and
 func convertScheduleWorkflowConditionsToTypes(
 	exactCond *ScheduleWorkflowExactConditions,
-	_ *ScheduleWorkflowFuzzyConditions) *types.ScheduleWorkflowCondition {
+	_ *ScheduleWorkflowFuzzyConditions) *types.ScheduledWorkflowCondition {
 
-	condition := &types.ScheduleWorkflowCondition{}
+	condition := &types.ScheduledWorkflowCondition{}
 
 	// exact conditions.
 	if exactCond != nil {
-		condition.ExactInclude = &types.ScheduleWorkflowExactFields{
+		condition.ExactInclude = &types.ScheduledWorkflowExactFields{
 			WorkflowID:   exactCond.GetWorkflowId(),
 			WorkflowName: exactCond.GetWorkflowName(),
 			Operator:     exactCond.GetOperator(),
@@ -89,7 +88,7 @@ func convertScheduleWorkflowConditionsToTypes(
 }
 
 // convertScheduleWorkConditionsFromTypes converts ScheduleWorkflowCondition to
-func convertScheduleWorkConditionsFromTypes(condition *types.ScheduleWorkflowCondition) (
+func convertScheduleWorkConditionsFromTypes(condition *types.ScheduledWorkflowCondition) (
 	*ScheduleWorkflowExactConditions, *ScheduleWorkflowFuzzyConditions, error) {
 
 	if condition == nil {
@@ -125,7 +124,7 @@ func newEmptyScheduleWorkflow() *ScheduleWorkflow {
 }
 
 // ConvertScheduleWorkflowsFromTypes convert node workflows from types.
-func (x *ListScheduleWorkflowResp) ConvertScheduleWorkflowsFromTypes(num int64, workflows []*schedule.Schedule) {
+func (x *ListScheduleWorkflowResp) ConvertScheduleWorkflowsFromTypes(num int64, workflows []*types.ScheduledWorkflow) {
 	items := make([]*ScheduleWorkflow, 0, len(workflows))
 	for _, workflow := range workflows {
 		item := newEmptyScheduleWorkflow()

@@ -1,7 +1,10 @@
 FROM alpine:3.21
 
 # install dependencies.
-RUN apk add jq vim busybox-extras redis
+RUN apk add jq vim busybox-extras redis tzdata
+
+# set timezone.
+ENV TZ Asia/Shanghai
 
 # install mongodb with old package cause it doesn’t exist for Alpine after version 3.9.
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories

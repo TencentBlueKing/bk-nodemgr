@@ -41,20 +41,13 @@ const (
 )
 
 // NewActionRenderNodeDeployment get a new action.
-func NewActionRenderNodeDeployment(
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	storageHost topoStg.IStorageHost,
-	storageDomainGse topoStg.IStorageDomainGse,
-	storageRelease release.IStorage,
-	storageConfigPolicy configpolicy.IStorage,
-) action.Definition {
-
+func NewActionRenderNodeDeployment(capability *Capability) action.Definition {
 	return &actionRenderNodeDeployment{
-		storageNodeDeployment: storageNodeDeployment,
-		storageHost:           storageHost,
-		storageDomainGse:      storageDomainGse,
-		storageRelease:        storageRelease,
-		storageConfigPolicy:   storageConfigPolicy,
+		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
+		storageDomainGse:      capability.StorageTopo,
+		storageRelease:        capability.StorageRelease,
+		storageConfigPolicy:   capability.StorageConfigPolicy,
 	}
 }
 

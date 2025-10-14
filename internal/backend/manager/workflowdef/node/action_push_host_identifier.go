@@ -30,14 +30,10 @@ const (
 )
 
 // NewActionPushHostIdentifier get a new action.
-func NewActionPushHostIdentifier(
-	cmdbClient cmdb.IHandler,
-	storage nodeStg.IStorage,
-) action.Definition {
-
+func NewActionPushHostIdentifier(capability *Capability) action.Definition {
 	return &actionPushHostIdentifier{
-		cmdbClient: cmdbClient,
-		storage:    storage,
+		cmdbClient: capability.CMDBHandler,
+		storage:    capability.StorageNode,
 	}
 }
 

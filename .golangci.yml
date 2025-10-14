@@ -745,8 +745,6 @@ linters-settings:
         alias: daoTrigger
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo
         alias: daomongo
-      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule
-        alias: worksche
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow
         alias: pluginworkflow
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment
@@ -755,3 +753,5 @@ linters-settings:
         alias: nodeUtils
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils
         alias: pluginUtils
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils
+        alias: syncDataUtils

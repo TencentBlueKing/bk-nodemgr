@@ -54,6 +54,9 @@ type IOperationInstData interface {
 
 	// Delete deletes operation instance data by given operation instance IDs.
 	Delete(nCtx contextx.IContext, operInstIDs ...string) error
+
+	// DeleteByTriggerID deletes operation instance data by given trigger IDs.
+	DeleteByTriggerID(nCtx contextx.IContext, triggerIDs ...string) error
 }
 
 // Upsert updates or inserts an OperInstData.
@@ -394,4 +397,17 @@ func (h *Handler) Delete(nCtx contextx.IContext, operInstIDs ...string) error {
 	}
 
 	return h.dao.delete(nCtx, operInstIDs...)
+}
+
+// DeleteByTriggerID deletes operation instance data by given trigger IDs.
+func (h *Handler) DeleteByTriggerID(nCtx contextx.IContext, triggerIDs ...string) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
+	}
+
+	if len(triggerIDs) == 0 {
+		return errors.New("trigger ids is empty")
+	}
+
+	return h.dao.deleteByTriggerID(nCtx, triggerIDs...)
 }

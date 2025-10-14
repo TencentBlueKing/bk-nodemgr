@@ -25,11 +25,9 @@ const (
 )
 
 // NewActionWaitInstallerComplete get a new action.
-func NewActionWaitInstallerComplete(
-	storageActionInstance workflow.IStorageActionInstance) action.Definition {
-
+func NewActionWaitInstallerComplete(capability *Capability) action.Definition {
 	return &actionWaitInstallerComplete{
-		storageActionInstance: storageActionInstance,
+		storageActionInstance: capability.StorageWorkflow,
 	}
 }
 

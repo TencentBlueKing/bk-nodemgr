@@ -28,6 +28,11 @@ func WithOperationID(ids ...string) OptFn {
 	return base.WithValues(FieldKeyOperationID, ids...)
 }
 
+// WithParentOperationID filter by parent operation id.
+func WithParentOperationID(parentID ...string) OptFn {
+	return base.WithValues(FieldKeyParentOperationID, parentID...)
+}
+
 // WithEmptyOperation filter by operation_instance.
 func WithEmptyOperation(isEmpty ...bool) OptFn {
 	return base.WithValues(FieldKeyOperationInstanceEmpty, isEmpty...)

@@ -161,7 +161,7 @@ func (h *Handler) ListAgentState(nCtx contextx.IContext, agentIDList ...string) 
 	}
 
 	if len(agentIDList) == 0 {
-		return nil, errors.New("agentIDList is empty")
+		return nil, errors.New("agent id list is empty")
 	}
 
 	req := &ListAgentStateReq{

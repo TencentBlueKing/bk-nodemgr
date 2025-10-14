@@ -39,15 +39,11 @@ const (
 )
 
 // NewActionUpgradeNode get a new action.
-func NewActionUpgradeNode(
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	gseHandler gse.IHandler,
-	provider discover.Provider) action.Definition {
-
+func NewActionUpgradeNode(capability *Capability) action.Definition {
 	return &actionUpgradeNode{
-		storageNodeDeployment: storageNodeDeployment,
-		gseHandler:            gseHandler,
-		provider:              provider,
+		storageNodeDeployment: capability.StorageNode,
+		gseHandler:            capability.GSEHandler,
+		provider:              capability.DiscoverProvider,
 	}
 }
 

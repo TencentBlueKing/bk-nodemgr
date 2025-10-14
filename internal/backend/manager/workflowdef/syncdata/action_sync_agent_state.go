@@ -13,8 +13,8 @@ package syncdata
 import (
 	"time"
 
+	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -28,25 +28,18 @@ const (
 )
 
 // NewActionSyncAgentState creates a new syncAgentState.
-func NewActionSyncAgentState(gseHandler gse.IHandler, topoStg topoStg.IStorageHost) action.Definition {
-
+func NewActionSyncAgentState(capability *Capability) action.Definition {
 	return &actionSyncAgentState{
-		gseHandler: gseHandler,
-		topoStg:    topoStg,
+		gseHandler: capability.GSEHandler,
+		topoStg:    capability.StorageTopo,
 	}
 }
 
-// SyncAgentStateParam the action's param.
-type SyncAgentStateParam struct {
-	TenantID string           `json:"tenant_id"`
-	Hosts    []*HostIDAgentID `json:"hosts"`
-	Operator string           `json:"operator"`
-}
+// ActionParamSyncAgentState the action's param.
+type ActionParamSyncAgentState struct {
+	syncDataUtils.SyncDataActionStandardParam
 
-// HostIDAgentID defines the host ID and agent ID.
-type HostIDAgentID struct {
-	HostID  int64  `json:"host_id"`
-	AgentID string `json:"agent_id"`
+	Hosts []*HostIDAgentID `json:"hosts"`
 }
 
 type actionSyncAgentState struct {
@@ -93,20 +86,24 @@ func (act *actionSyncAgentState) Tags() []action.Tag {
 
 // Do the action.
 func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
-	param := new(SyncAgentStateParam)
+	param := new(ActionParamSyncAgentState)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	// initialize standard data.
+	std := syncDataUtils.NewSyncDataActionStandarder()
+	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
+		return err
+	}
 
 	agentIDs := make([]string, 0, len(param.Hosts))
 	for _, host := range param.Hosts {
 		agentIDs = append(agentIDs, host.AgentID)
 	}
 
-	result, err := act.gseHandler.ListAgentState(nCtx, agentIDs...)
+	result, err := act.gseHandler.ListAgentState(std.Context(), agentIDs...)
 	if err != nil {
 		logger.G.Sys().WithErr(err).With("agent-ids", agentIDs).Error("failed to list agent state")
 
@@ -142,7 +139,7 @@ func (act *actionSyncAgentState) Do(ctx *action.InstanceContext) error {
 		return nil
 	}
 
-	err = act.topoStg.UpdateHostDynamicFields(nCtx, types.HostDynamicFields{
+	err = act.topoStg.UpdateHostDynamicFields(std.Context(), types.HostDynamicFields{
 		NodeRole:       true,
 		NodeGeneration: true,
 		NodeVersion:    true,

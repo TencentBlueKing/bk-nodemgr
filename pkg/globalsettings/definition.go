@@ -19,15 +19,15 @@ import (
 )
 
 const (
-	// DeleteScheduleWorkflowNonLatestRecordsIntervalSecond defines the interval second for deleting non-latest schedule workflow records.
-	DeleteScheduleWorkflowNonLatestRecordsIntervalSecond = "delete_schedule_workflow_nonlatest_records_interval_second"
+	// CleanTriggerIntervalSecond defines the interval of cleaning trigger records.
+	CleanTriggerIntervalSecond = "clean_trigger_interval_second"
 )
 
 // PreDefinition returns the definition of global settings.
 func PreDefinition() []*types.GlobalSettings {
 	return []*types.GlobalSettings{
 		{
-			SettingName: DeleteScheduleWorkflowNonLatestRecordsIntervalSecond,
+			SettingName: CleanTriggerIntervalSecond,
 			Value:       scheduler.Every1m,
 		},
 	}

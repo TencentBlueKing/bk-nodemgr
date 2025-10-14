@@ -59,6 +59,11 @@ func (s *Storage) listAliveTrigger(nCtx contextx.IContext, category trigger.Cate
 	return results, err
 }
 
+// listTrigger lists triggers by category.
+func (s *Storage) listTrigger(nCtx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, int64, error) {
+	return s.daoTrigger.List(nCtx, page, daoTrigger.WithCategory(category))
+}
+
 // deleteTriggers deletes triggers by given trigger IDs.
 func (s *Storage) deleteTriggers(nCtx contextx.IContext, triggerIDs ...string) error {
 	if len(triggerIDs) == 0 {

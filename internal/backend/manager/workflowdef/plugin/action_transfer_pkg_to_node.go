@@ -38,12 +38,11 @@ const (
 )
 
 // NewActionTransferPluginPkgToNode get a new action.
-func NewActionTransferPluginPkgToNode(daoPluginDeployment pluginStg.IDaoPluginDeployment, daoHost topoStg.IStorageHost, fileHandler file.IHandler) action.Definition {
-
+func NewActionTransferPluginPkgToNode(capability *Capability) action.Definition {
 	return &actionTransferPluginPkgToNode{
-		daoPluginDeployment: daoPluginDeployment,
-		fileHandler:         fileHandler,
-		daoHost:             daoHost,
+		daoPluginDeployment: capability.StoragePlugin,
+		fileHandler:         capability.FileHandler,
+		daoHost:             capability.StorageTopo,
 	}
 }
 

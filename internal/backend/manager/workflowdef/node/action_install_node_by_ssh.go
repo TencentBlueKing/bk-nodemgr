@@ -39,20 +39,13 @@ const (
 )
 
 // NewActionInstallNodeBySSH get a new action.
-func NewActionInstallNodeBySSH(
-	installerFileGroup fileiface.FileGroup,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	provider discover.Provider,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-) action.Definition {
-
+func NewActionInstallNodeBySSH(capability *Capability) action.Definition {
 	return &actionInstallNodeBySSH{
-		installerGroup:        installerFileGroup,
-		storageHostCredit:     storageHostCredit,
-		storageNodeDeployment: storageNodeDeployment,
-		provider:              provider,
-		passwordVault:         passwordVault,
+		installerGroup:        capability.InstallerFileGroup,
+		storageHostCredit:     capability.StorageHostCredit,
+		storageNodeDeployment: capability.StorageNode,
+		provider:              capability.DiscoverProvider,
+		passwordVault:         capability.HostPasswordVault,
 	}
 }
 

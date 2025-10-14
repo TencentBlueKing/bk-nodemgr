@@ -37,18 +37,12 @@ const (
 )
 
 // NewActionInstallPlugin ...
-func NewActionInstallPlugin(
-	daoHost topoStg.IStorageHost,
-	daoPluginDeployment pluginStg.IDaoPluginDeployment,
-	provider discover.Discover,
-	gseHandler gse.IHandler,
-) action.Definition {
-
+func NewActionInstallPlugin(capability *Capability) action.Definition {
 	return &actionInstallPlugin{
-		daoHost:             daoHost,
-		daoPluginDeployment: daoPluginDeployment,
-		provider:            provider,
-		gseHandler:          gseHandler,
+		daoHost:             capability.StorageTopo,
+		daoPluginDeployment: capability.StoragePlugin,
+		provider:            capability.DiscoverProvider,
+		gseHandler:          capability.GSEHandler,
 	}
 }
 

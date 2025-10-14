@@ -32,6 +32,9 @@ type IHandler interface {
 	// Delete deletes operations.
 	Delete(nCtx contextx.IContext, operationID ...string) error
 
+	// DeleteByTriggerID deletes operations by trigger id.
+	DeleteByTriggerID(nCtx contextx.IContext, triggerID ...string) error
+
 	// PullOperInstIDs pull operation instance ids by operation id.
 	PullOperInstIDs(nCtx contextx.IContext, operationID string, operInstIDs ...string) error
 }
@@ -106,6 +109,15 @@ func (h *handler) Delete(nCtx contextx.IContext, operationID ...string) error {
 	}
 
 	return h.dao.delete(nCtx, operationID...)
+}
+
+// DeleteByTriggerID deletes operations by trigger id.
+func (h *handler) DeleteByTriggerID(nCtx contextx.IContext, triggerID ...string) error {
+	if len(triggerID) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	return h.dao.deleteByTriggerID(nCtx, triggerID...)
 }
 
 // PullOperInstIDs pull operation instance ids by operation id.

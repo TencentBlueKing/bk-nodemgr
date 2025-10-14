@@ -36,18 +36,12 @@ const (
 )
 
 // NewActionDetectInfoBySSH get a new action.
-func NewActionDetectInfoBySSH(
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	storageRelease release.IStorage,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-) action.Definition {
-
+func NewActionDetectInfoBySSH(capability *Capability) action.Definition {
 	return &actionDetectInfoBySSH{
-		storageHostCredit:     storageHostCredit,
-		storageNodeDeployment: storageNodeDeployment,
-		storageRelease:        storageRelease,
-		passwordVault:         passwordVault,
+		storageHostCredit:     capability.StorageHostCredit,
+		storageNodeDeployment: capability.StorageNode,
+		storageRelease:        capability.StorageRelease,
+		passwordVault:         capability.HostPasswordVault,
 	}
 }
 

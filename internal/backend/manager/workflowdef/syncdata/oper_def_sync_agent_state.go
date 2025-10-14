@@ -18,40 +18,40 @@ import (
 )
 
 // OperDefNameSyncAgentState defines the operation def name.
-const OperDefNameSyncAgentState = "sync_agent_state_from_gse"
+const OperDefNameSyncAgentState = "sync_agent_state"
 
-// NewOperSyncAgentStateFromGSE new an operation.
-func NewOperSyncAgentStateFromGSE(param OperParamSyncAgentStateFromGSE) operation.Definition {
-	return &operSyncAgentStateFromGSE{
+// NewOperSyncAgentState new an operation.
+func NewOperSyncAgentState(param OperParamSyncAgentState) operation.Definition {
+	return &operSyncAgentState{
 		param: param,
 	}
 }
 
-type operSyncAgentStateFromGSE struct {
-	param OperParamSyncAgentStateFromGSE
+type operSyncAgentState struct {
+	param OperParamSyncAgentState
 }
 
-// OperParamSyncAgentStateFromGSE defines the parameters for operSyncAgentStateFromGSE.
-type OperParamSyncAgentStateFromGSE struct {
+// OperParamSyncAgentState defines the parameters for operSyncAgentState.
+type OperParamSyncAgentState struct {
 	TenantID string           `json:"tenant_id"`
 	Hosts    []*HostIDAgentID `json:"hosts"`
 	Operator string           `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operSyncAgentStateFromGSE) Name() string {
+func (oper *operSyncAgentState) Name() string {
 	return OperDefNameSyncAgentState
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operSyncAgentStateFromGSE) ActionDefNames() []string {
+func (oper *operSyncAgentState) ActionDefNames() []string {
 	return []string{
 		ActionNameSyncAgentState,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncAgentStateFromGSE) DefaultParameters() operation.Param {
+func (oper *operSyncAgentState) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -59,6 +59,6 @@ func (oper *operSyncAgentStateFromGSE) DefaultParameters() operation.Param {
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operSyncAgentStateFromGSE) ExtraExecutionName() string {
+func (oper *operSyncAgentState) ExtraExecutionName() string {
 	return ""
 }

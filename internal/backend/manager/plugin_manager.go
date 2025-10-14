@@ -42,7 +42,7 @@ type InstallPluginParam struct {
 
 // LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
 func (mgr *Manager) LaunchInstallPlugin(nCtx contextx.IContext, param InstallPluginParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, &trigger.MetadataOnce{})
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}

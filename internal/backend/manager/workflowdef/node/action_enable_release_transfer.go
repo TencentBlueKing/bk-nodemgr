@@ -27,11 +27,9 @@ const (
 )
 
 // NewActionEnableReleaseTransfer get a new action.
-func NewActionEnableReleaseTransfer(
-	storageNodeDeployment nodeStg.IDaoNodeDeployment) action.Definition {
-
+func NewActionEnableReleaseTransfer(capability *Capability) action.Definition {
 	return &actionEnableReleaseTransfer{
-		storageNodeDeployment: storageNodeDeployment,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 

@@ -48,23 +48,16 @@ const (
 )
 
 // NewActionEnsurePkgToRelay get a new action.
-func NewActionEnsurePkgToRelay(
-	installerFileGroup fileiface.FileGroup,
-	storageRelease release.IStorage,
-	storageActionInstance workflow.IStorageActionInstance,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	fileHandler file.IHandler,
-	proxyMessager relayhandler.IServerMessager) action.Definition {
-
+func NewActionEnsurePkgToRelay(capability *Capability) action.Definition {
 	return &actionEnsurePkgToRelay{
-		installerFileGroup: installerFileGroup,
+		installerFileGroup: capability.InstallerFileGroup,
 
-		storageRelease:        storageRelease,
-		storageActionInstance: storageActionInstance,
-		storageNodeDeployment: storageNodeDeployment,
+		storageRelease:        capability.StorageRelease,
+		storageActionInstance: capability.StorageWorkflow,
+		storageNodeDeployment: capability.StorageNode,
 
-		fileHandler:   fileHandler,
-		proxyMessager: proxyMessager,
+		fileHandler:   capability.FileHandler,
+		proxyMessager: capability.ProxyMessager,
 	}
 }
 

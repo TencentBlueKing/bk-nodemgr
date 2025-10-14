@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package scheduleworkflow provides storage for schedule workflow.
-package scheduleworkflow
+// Package scheduledworkflow provides storage for scheduled workflow.
+package scheduledworkflow
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -26,7 +26,7 @@ func newDao(client *mongo.Database) *dao {
 		tableName: tableName,
 	}
 
-	d.IOrm = base.NewOrm[*ScheduleWorkflow, ScheduleWorkflow](d)
+	d.IOrm = base.NewOrm[*ScheduledWorkflow, ScheduledWorkflow](d)
 
 	return d
 }
@@ -34,7 +34,8 @@ func newDao(client *mongo.Database) *dao {
 type dao struct {
 	client    *mongo.Collection
 	tableName string
-	base.IOrm[*ScheduleWorkflow, ScheduleWorkflow]
+
+	base.IOrm[*ScheduledWorkflow, ScheduledWorkflow]
 }
 
 // GetClient get the dao's client.

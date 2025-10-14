@@ -18,40 +18,40 @@ import (
 )
 
 // OperDefNameSyncHost defines the operation def name.
-const OperDefNameSyncHost = "sync_host_from_cmdb"
+const OperDefNameSyncHost = "sync_host"
 
-// NewOperSyncHostFromCMDB new an operation.
-func NewOperSyncHostFromCMDB(param OperParamSyncHostFromCMDB) operation.Definition {
-	return &operSyncHostFromCMDB{
+// NewOperSyncHost new an operation.
+func NewOperSyncHost(param OperParamSyncHost) operation.Definition {
+	return &operSyncHost{
 		param: param,
 	}
 }
 
-type operSyncHostFromCMDB struct {
-	param OperParamSyncHostFromCMDB
+type operSyncHost struct {
+	param OperParamSyncHost
 }
 
-// OperParamSyncHostFromCMDB defines the parameters for operSyncHostFromCMDB.
-type OperParamSyncHostFromCMDB struct {
+// OperParamSyncHost defines the parameters for operSyncHost.
+type OperParamSyncHost struct {
 	BizID    int64  `json:"biz_id"`
 	TenantID string `json:"tenant_id"`
 	Operator string `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operSyncHostFromCMDB) Name() string {
+func (oper *operSyncHost) Name() string {
 	return OperDefNameSyncHost
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operSyncHostFromCMDB) ActionDefNames() []string {
+func (oper *operSyncHost) ActionDefNames() []string {
 	return []string{
-		ActionNameSyncHostFromCMDB,
+		ActionNameSyncHost,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncHostFromCMDB) DefaultParameters() operation.Param {
+func (oper *operSyncHost) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -59,6 +59,6 @@ func (oper *operSyncHostFromCMDB) DefaultParameters() operation.Param {
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operSyncHostFromCMDB) ExtraExecutionName() string {
+func (oper *operSyncHost) ExtraExecutionName() string {
 	return ""
 }

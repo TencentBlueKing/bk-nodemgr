@@ -30,14 +30,10 @@ const (
 )
 
 // NewActionTryReuseAgentID ...
-func NewActionTryReuseAgentID(
-	storageHost topoStg.IStorageHost,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-) action.Definition {
-
+func NewActionTryReuseAgentID(capability *Capability) action.Definition {
 	return &TryReuseAgentID{
-		storageHost:           storageHost,
-		storageNodeDeployment: storageNodeDeployment,
+		storageHost:           capability.StorageTopo,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 

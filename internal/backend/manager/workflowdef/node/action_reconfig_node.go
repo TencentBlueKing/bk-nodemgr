@@ -39,14 +39,11 @@ const (
 )
 
 // NewActionReconfigNode get a new action.
-func NewActionReconfigNode(storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	gseHandler gse.IHandler,
-	provider discover.Provider) action.Definition {
-
+func NewActionReconfigNode(capability *Capability) action.Definition {
 	return &actionReconfigNode{
-		storageNodeDeployment: storageNodeDeployment,
-		gseHandler:            gseHandler,
-		provider:              provider,
+		storageNodeDeployment: capability.StorageNode,
+		gseHandler:            capability.GSEHandler,
+		provider:              capability.DiscoverProvider,
 	}
 }
 

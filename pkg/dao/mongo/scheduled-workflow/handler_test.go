@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package scheduleworkflow provides storage for schedule workflow.
-package scheduleworkflow
+// Package scheduledworkflow provides storage for scheduled workflow.
+package scheduledworkflow
 
 import (
 	"context"
@@ -18,9 +18,7 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -58,7 +56,7 @@ var once = sync.Once{}
 
 // prepareData for all tests.
 func prepareData(t *testing.T, nCtx contextx.IContext) {
-	testDatas := []*schedule.Schedule{
+	testDatas := []*types.ScheduledWorkflow{
 		{
 			WorkflowID:   "1",
 			WorkflowName: "schedule_sync_host",
@@ -84,13 +82,13 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 
 // Test_handler_Create tests the Create method of the handler.
 func Test_handler_Create(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx             context.Context
-		scheduleWorkflow *schedule.Schedule
+		nCtx              contextx.IContext
+		scheduledWorkflow *types.ScheduledWorkflow
 	}
 	tests := []struct {
 		name    string
@@ -100,8 +98,8 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx: context.Background(),
-				scheduleWorkflow: &schedule.Schedule{
+				nCtx: nCtx,
+				scheduledWorkflow: &types.ScheduledWorkflow{
 					WorkflowID:   "3",
 					WorkflowName: "schedule_sync_networkarea",
 					TriggerID:    "T-00003",
@@ -113,7 +111,7 @@ func Test_handler_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.Create(tt.args.nCtx, tt.args.scheduleWorkflow)
+			err := h.Create(tt.args.nCtx, tt.args.scheduledWorkflow)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr: %v", err, tt.wantErr)
 				return
@@ -124,28 +122,28 @@ func Test_handler_Create(t *testing.T) {
 
 // Test_handler_Get tests the Create method of the handler.
 func Test_handler_Get(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		workflowID string
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
-		want    *schedule.Schedule
+		want    *types.ScheduledWorkflow
 	}{
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       nCtx,
 				workflowID: "1",
 			},
 			wantErr: false,
-			want: &schedule.Schedule{
+			want: &types.ScheduledWorkflow{
 				WorkflowID:   "1",
 				WorkflowName: "schedule_sync_host",
 				TriggerID:    "T-00002",
@@ -172,17 +170,17 @@ func Test_handler_Get(t *testing.T) {
 
 // Test_handler_List tests the List method of the handler.
 func Test_handler_List(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
-		nCtx context.Context
+		nCtx contextx.IContext
 		page types.Page
 		opts []OptFn
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    []*schedule.Schedule
+		want    []*types.ScheduledWorkflow
 		wantNum int64
 		wantErr bool
 	}{
@@ -199,7 +197,7 @@ func Test_handler_List(t *testing.T) {
 					WithWorkflowID("1"),
 				},
 			},
-			want: []*schedule.Schedule{
+			want: []*types.ScheduledWorkflow{
 				{
 					WorkflowID:   "1",
 					WorkflowName: "schedule_sync_host",
@@ -222,7 +220,7 @@ func Test_handler_List(t *testing.T) {
 					WithWorkflowName("schedule_sync_biz"),
 				},
 			},
-			want: []*schedule.Schedule{
+			want: []*types.ScheduledWorkflow{
 				{
 					WorkflowID:   "2",
 					WorkflowName: "schedule_sync_biz",
@@ -257,10 +255,10 @@ func Test_handler_List(t *testing.T) {
 
 // Test_handler_Count tests the Count method of the handler.
 func Test_handler_Count(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
-		nCtx context.Context
+		nCtx contextx.IContext
 		opts []OptFn
 	}
 	tests := []struct {

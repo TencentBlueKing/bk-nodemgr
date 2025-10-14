@@ -224,3 +224,18 @@ func (d *dao) delete(nCtx contextx.IContext, operInstIDs ...string) error {
 
 	return nil
 }
+
+// deleteByTriggerID deletes operinstdata by given operInstIDs.
+func (d *dao) deleteByTriggerID(nCtx contextx.IContext, triggerID ...string) error {
+	filter := base.AliveFilter()
+	filter = WithTriggerID(triggerID...)(filter)
+
+	result, err := d.client.DeleteMany(nCtx, filter)
+	if err != nil {
+		return err
+	}
+
+	logger.G.Sys().With("table", d.tableName, "trigger-ids", triggerID, "deleted-count", result.DeletedCount).Info("deleted operation instance data")
+
+	return nil
+}

@@ -49,15 +49,30 @@ type TableTrigger base.TableBroker[*Trigger]
 
 // MetadataOnce will store the metadata of a trigger.
 type MetadataOnce struct {
+	CleanPolicy CleanPolicy `json:"clean_policy" bson:"clean_policy"`
 }
 
 // MetadataPeriodic will store the metadata of a trigger.
 type MetadataPeriodic struct {
-	Interval           string `json:"interval" bson:"interval"`
-	AllowedConcurrency bool   `json:"allowed_concurrency" bson:"allowed_concurrency"`
+	Interval           string              `json:"interval" bson:"interval"`
+	AllowedConcurrency bool                `json:"allowed_concurrency" bson:"allowed_concurrency"`
+	CleanPolicy        PeriodicCleanPolicy `json:"clean_policy" bson:"clean_policy"`
 }
 
 // MetadataOrdered will store the metadata of a trigger.
 type MetadataOrdered struct {
-	MaxConcurrencyNum int `json:"max_concurrency_num" bson:"max_concurrency_num"`
+	MaxConcurrencyNum int         `json:"max_concurrency_num" bson:"max_concurrency_num"`
+	CleanPolicy       CleanPolicy `json:"clean_policy" bson:"clean_policy"`
+}
+
+// CleanPolicy will store the clean policy of an once/ordered trigger.
+type CleanPolicy struct {
+	Namespace string `json:"namespace" bson:"namespace"`
+	MaxNum    int    `json:"max_num" bson:"max_num"`
+	MaxDays   int    `json:"max_days" bson:"max_days"`
+}
+
+// PeriodicCleanPolicy will store the clean policy of a periodic trigger.
+type PeriodicCleanPolicy struct {
+	MaxOperInstNum int `json:"max_oper_inst_num" bson:"max_oper_inst_num"`
 }

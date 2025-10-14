@@ -37,18 +37,12 @@ const (
 )
 
 // NewActionDetectInfoByWMI get a new action.
-func NewActionDetectInfoByWMI(
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-	storageRelease release.IStorage,
-	storageHostCredit credit.IStorageHostCredit,
-	passwordVault creditvault.IHostPasswordVault,
-) action.Definition {
-
+func NewActionDetectInfoByWMI(capability *Capability) action.Definition {
 	return &actionDetectInfoByWMI{
-		storageHostCredit:     storageHostCredit,
-		storageNodeDeployment: storageNodeDeployment,
-		storageRelease:        storageRelease,
-		passwordVault:         passwordVault,
+		storageHostCredit:     capability.StorageHostCredit,
+		storageNodeDeployment: capability.StorageNode,
+		storageRelease:        capability.StorageRelease,
+		passwordVault:         capability.HostPasswordVault,
 	}
 }
 

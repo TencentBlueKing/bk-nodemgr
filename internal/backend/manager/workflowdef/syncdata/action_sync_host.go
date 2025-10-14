@@ -14,8 +14,8 @@ import (
 	"fmt"
 	"time"
 
+	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -24,81 +24,85 @@ import (
 )
 
 const (
-	// ActionNameSyncHostFromCMDB defines the action name.
-	ActionNameSyncHostFromCMDB = "sync_host_from_cmdb"
+	// ActionNameSyncHost defines the action name.
+	ActionNameSyncHost = "sync_host"
 )
 
-// NewActionSyncHostFromCMDB ...
-func NewActionSyncHostFromCMDB(cmdbHandler cmdb.IHandler, storageHost topoStg.IStorageHost) action.Definition {
-	return &actionSyncHostFromCMDB{
-		cmdbHandler: cmdbHandler,
-		storageHost: storageHost,
+// NewActionSyncHost creates a new actionSyncHost.
+func NewActionSyncHost(capability *Capability) action.Definition {
+	return &actionSyncHost{
+		cmdbHandler: capability.CMDBHandler,
+		storageHost: capability.StorageTopo,
 	}
 }
 
-// SyncHostFromCMDBParam ...
-type SyncHostFromCMDBParam struct {
-	BizID    int64  `json:"biz_id"`
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+// ActionParamSyncHost ...
+type ActionParamSyncHost struct {
+	syncDataUtils.SyncDataActionStandardParam
+
+	BizID int64 `json:"biz_id"`
 }
 
-type actionSyncHostFromCMDB struct {
+type actionSyncHost struct {
 	cmdbHandler cmdb.IHandler
 	storageHost topoStg.IStorageHost
 }
 
-// Name ...
-func (act *actionSyncHostFromCMDB) Name() string {
-	return ActionNameSyncHostFromCMDB
+// Name returns the name of the action.
+func (act *actionSyncHost) Name() string {
+	return ActionNameSyncHost
 }
 
-// Version ...
-func (act *actionSyncHostFromCMDB) Version() string {
+// Version returns the version of the action.
+func (act *actionSyncHost) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
-// Description ...
-func (act *actionSyncHostFromCMDB) Description() string {
+// Description returns the description of the action.
+func (act *actionSyncHost) Description() string {
 	return "get the host information of the designated business from cmdb, and update to the database"
 }
 
-// Timeout ...
-func (act *actionSyncHostFromCMDB) Timeout() time.Duration {
+// Timeout returns the timeout of this action.
+func (act *actionSyncHost) Timeout() time.Duration {
 	return 5 * time.Minute // nolint: mnd
 }
 
-// Tags ...
-func (act *actionSyncHostFromCMDB) Tags() []action.Tag {
-	return []action.Tag{}
-}
-
-// MaxRetryCount ...
-func (act *actionSyncHostFromCMDB) MaxRetryCount() uint {
+// MaxRetryCount returns the max retry count of this action.
+func (act *actionSyncHost) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
-// DelayFn ...
-func (act *actionSyncHostFromCMDB) DelayFn() func() {
+// DelayFn returns the delay of this action.
+func (act *actionSyncHost) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
-// Do ...
-func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
-	param := new(SyncHostFromCMDBParam)
+// Tags returns the tags of this action.
+func (act *actionSyncHost) Tags() []action.Tag {
+	return []action.Tag{}
+}
+
+// Do the action.
+func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamSyncHost)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	nCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	// initialize standard data.
+	std := syncDataUtils.NewSyncDataActionStandarder()
+	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
+		return err
+	}
 
 	var cmdbData, dbData []*types.Host
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		cmdbData, err = act.cmdbHandler.ListBizHosts(nCtx, param.BizID, types.UnlimitedPage())
+		cmdbData, err = act.cmdbHandler.ListBizHosts(std.Context(), param.BizID, types.UnlimitedPage())
 		if err != nil {
 			return fmt.Errorf("list host from cmdb failed: %w", err)
 		}
@@ -107,7 +111,7 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		dbData, _, err = act.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+		dbData, _, err = act.storageHost.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
 				BizID: []int64{param.BizID},
 			},
@@ -133,22 +137,22 @@ func (act *actionSyncHostFromCMDB) Do(ctx *action.InstanceContext) error {
 		fmt.Sprintf("comapred hosts, %d hosts need to update, %d hosts need to insert, %d hosts need to delete",
 			len(updateHosts), len(insertHosts), len(deleteHostIDs)))
 
-	if err = act.storageHost.UpsertManyHostStatic(nCtx, updateHosts...); err != nil {
+	if err = act.storageHost.UpsertManyHostStatic(std.Context(), updateHosts...); err != nil {
 		return err
 	}
 
-	if err = act.storageHost.UpsertManyHost(nCtx, insertHosts...); err != nil {
+	if err = act.storageHost.UpsertManyHost(std.Context(), insertHosts...); err != nil {
 		return err
 	}
 
-	if err = act.storageHost.DeleteManyHost(nCtx, deleteHostIDs...); err != nil {
+	if err = act.storageHost.DeleteManyHost(std.Context(), deleteHostIDs...); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (act *actionSyncHostFromCMDB) compareData(cmdbData, dbData []*types.Host) (
+func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 	[]*types.Host, []*types.Host, []int64, error) {
 
 	updateHosts := make([]*types.Host, 0)

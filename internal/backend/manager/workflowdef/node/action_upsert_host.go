@@ -32,16 +32,11 @@ const (
 )
 
 // NewActionUpsertHostToCMDB get a new action.
-func NewActionUpsertHostToCMDB(
-	cmdbHandler cmdb.IHandler,
-	storageHost topoStg.IStorageHost,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-) action.Definition {
-
+func NewActionUpsertHostToCMDB(capability *Capability) action.Definition {
 	return &actionUpsertHostToCMDB{
-		cmdbHandler:           cmdbHandler,
-		storageHost:           storageHost,
-		storageNodeDeployment: storageNodeDeployment,
+		cmdbHandler:           capability.CMDBHandler,
+		storageHost:           capability.StorageTopo,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 

@@ -10,3 +10,49 @@
 
 // Package syncdata this package define the operation witch is used to sync data.
 package syncdata
+
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	wfStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+)
+
+// HostIDAgentID defines the host ID and agent ID.
+type HostIDAgentID struct {
+	HostID  int64  `json:"host_id"`
+	AgentID string `json:"agent_id"`
+}
+
+// Capability encapsulates the various capabilities the service supports.
+type Capability struct {
+	// thridparty handler.
+	CMDBHandler cmdb.IHandler
+	GSEHandler  gse.IHandler
+	FileHandler file.IHandler
+
+	// stroage.
+	StorageTopo         topoStg.IStorage
+	StorageRelease      release.IStorage
+	StorageNode         nodeStg.IStorage
+	StorageWorkflow     wfStg.IStorage
+	StorageHostCredit   credit.IStorageHostCredit
+	StorageConfigPolicy configpolicy.IStorage
+
+	// discover provider.
+	DiscoverProvider discover.Provider
+
+	// cache
+	Cache cache.ICache
+
+	// workflow manager.
+	WorkflowCtl workflow.IManager
+}

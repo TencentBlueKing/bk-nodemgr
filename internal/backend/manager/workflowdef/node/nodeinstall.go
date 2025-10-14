@@ -10,3 +10,51 @@
 
 // Package node this package provide node install workflow definition.
 package node
+
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+)
+
+// Capability encapsulates the various capabilities the service supports.
+type Capability struct {
+	// thridparty handler.
+	CMDBHandler cmdb.IHandler
+	GSEHandler  gse.IHandler
+	FileHandler file.IHandler
+
+	// stroage.
+	StorageTopo         topoStg.IStorage
+	StorageRelease      release.IStorage
+	StorageNode         nodeStg.IStorage
+	StorageWorkflow     workflow.IStorage
+	StorageHostCredit   credit.IStorageHostCredit
+	StorageConfigPolicy configpolicy.IStorage
+
+	// discover provider.
+	DiscoverProvider discover.Provider
+
+	// credit vault.
+	HostPasswordVault creditvault.IHostPasswordVault
+
+	// cache
+	Cache cache.ICache
+
+	// file group.
+	InstallerFileGroup fileiface.FileGroup
+
+	// relay handler.
+	ProxyMessager relayhandler.IServerMessager
+}

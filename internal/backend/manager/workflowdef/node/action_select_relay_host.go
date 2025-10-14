@@ -30,14 +30,10 @@ const (
 )
 
 // NewActionSelectRelayHost get a new action.
-func NewActionSelectRelayHost(
-	storageHost topoStg.IStorageHost,
-	storageNodeDeployment nodeStg.IDaoNodeDeployment,
-) action.Definition {
-
+func NewActionSelectRelayHost(capability *Capability) action.Definition {
 	return &actionSelectRelayHost{
-		storageHost:           storageHost,
-		storageNodeDeployment: storageNodeDeployment,
+		storageHost:           capability.StorageTopo,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 

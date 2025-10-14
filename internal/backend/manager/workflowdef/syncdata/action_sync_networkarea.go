@@ -14,8 +14,8 @@ import (
 	"context"
 	"time"
 
+	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -24,80 +24,82 @@ import (
 )
 
 const (
-	// ActionNameSyncNetworkAreaFromCMDB defines the action name.
-	ActionNameSyncNetworkAreaFromCMDB = "sync_networkarea_from_cmdb"
+	// ActionNameSyncNetworkArea defines the action name.
+	ActionNameSyncNetworkArea = "sync_networkarea"
 )
 
-// NewActionSyncNetworkAreaFromCMDB get a new action.
-func NewActionSyncNetworkAreaFromCMDB(cmdbHandler cmdb.IHandler,
-	storageNetworkArea topoStg.IStorageNetworkArea) action.Definition {
-
-	return &actionSyncNetworkAreaFromCMDB{
-		cmdbHandler:        cmdbHandler,
-		storageNetworkArea: storageNetworkArea,
+// NewActionSyncNetworkArea get a new action.
+func NewActionSyncNetworkArea(capability *Capability) action.Definition {
+	return &actionSyncNetworkArea{
+		cmdbHandler:        capability.CMDBHandler,
+		storageNetworkArea: capability.StorageTopo,
 	}
 }
 
-// SyncNetworkAreaFromCMDBParam describes the parameters.
-type SyncNetworkAreaFromCMDBParam struct {
-	TenantID string `json:"tenant_id"`
-	Operator string `json:"operator"`
+// ActionParamSyncNetworkArea describes the parameters.
+type ActionParamSyncNetworkArea struct {
+	syncDataUtils.SyncDataActionStandardParam
 }
 
-type actionSyncNetworkAreaFromCMDB struct {
+type actionSyncNetworkArea struct {
 	cmdbHandler        cmdb.IHandler
 	storageNetworkArea topoStg.IStorageNetworkArea
 }
 
 // Name returns the name of the action.
-func (act *actionSyncNetworkAreaFromCMDB) Name() string {
-	return ActionNameSyncNetworkAreaFromCMDB
+func (act *actionSyncNetworkArea) Name() string {
+	return ActionNameSyncNetworkArea
 }
 
 // Version returns the version of the action.
-func (act *actionSyncNetworkAreaFromCMDB) Version() string {
+func (act *actionSyncNetworkArea) Version() string {
 	return "v1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionSyncNetworkAreaFromCMDB) Description() string {
+func (act *actionSyncNetworkArea) Description() string {
 	return "get the networkareas which also called cloudarea from cmdb, and update to the database"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionSyncNetworkAreaFromCMDB) Timeout() time.Duration {
+func (act *actionSyncNetworkArea) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionSyncNetworkAreaFromCMDB) Tags() []action.Tag {
+func (act *actionSyncNetworkArea) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the retry count of the action.
-func (act *actionSyncNetworkAreaFromCMDB) MaxRetryCount() uint {
+func (act *actionSyncNetworkArea) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn returns the delay function.
-func (act *actionSyncNetworkAreaFromCMDB) DelayFn() func() {
+func (act *actionSyncNetworkArea) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do does the action.
-func (act *actionSyncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error {
-	param := new(SyncNetworkAreaFromCMDBParam)
+func (act *actionSyncNetworkArea) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamSyncNetworkArea)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
-	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
+	// initialize standard data.
+	std := syncDataUtils.NewSyncDataActionStandarder()
+	if err = std.Initialize(ctx, param.SyncDataActionStandardParam); err != nil {
+		return err
+	}
+
 	executor := pageexecutor.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour) // nolint: mnd
 	fn := func(_ context.Context, p types.Page) ([]*types.NetworkArea, error) {
-		networkareas, err := act.cmdbHandler.SearchNetworkArea(nCtx, p)
+		networkareas, err := act.cmdbHandler.SearchNetworkArea(std.Context(), p)
 		if err != nil {
 			return nil, err
 		}
@@ -105,12 +107,12 @@ func (act *actionSyncNetworkAreaFromCMDB) Do(ctx *action.InstanceContext) error 
 		return networkareas, nil
 	}
 
-	result, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
+	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)
 	if err != nil {
 		return err
 	}
 
-	if err = act.storageNetworkArea.UpsertManyNetworkArea(nCtx, result.Items...); err != nil {
+	if err = act.storageNetworkArea.UpsertManyNetworkArea(std.Context(), result.Items...); err != nil {
 		return err
 	}
 

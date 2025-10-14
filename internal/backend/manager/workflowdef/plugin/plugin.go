@@ -10,3 +10,37 @@
 
 // Package plugin this package provide plugin relate action definition.
 package plugin
+
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+)
+
+// Capability encapsulates the various capabilities the service supports.
+type Capability struct {
+	// thridparty handler.
+	CMDBHandler cmdb.IHandler
+	GSEHandler  gse.IHandler
+	FileHandler file.IHandler
+
+	// stroage.
+	StorageTopo         topoStg.IStorage
+	StorageRelease      release.IStorage
+	StorageNode         nodeStg.IStorage
+	StorageWorkflow     workflow.IStorage
+	StoragePlugin       pluginStg.IStorage
+	StorageHostCredit   credit.IStorageHostCredit
+	StorageConfigPolicy configpolicy.IStorage
+
+	// discover provider.
+	DiscoverProvider discover.Provider
+}

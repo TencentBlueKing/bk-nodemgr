@@ -18,40 +18,40 @@ import (
 )
 
 // OperDefNameSyncAgentInfo defines the operation def name.
-const OperDefNameSyncAgentInfo = "sync_agent_info_from_gse"
+const OperDefNameSyncAgentInfo = "sync_agent_info"
 
-// NewOperSyncAgentInfoFromGSE new an operation.
-func NewOperSyncAgentInfoFromGSE(param OperParamSyncAgentInfoFromGSE) operation.Definition {
-	return &operSyncAgentInfoFromGSE{
+// NewOperSyncAgentInfo new an operation.
+func NewOperSyncAgentInfo(param OperParamSyncAgentInfo) operation.Definition {
+	return &operSyncAgentInfo{
 		param: param,
 	}
 }
 
-type operSyncAgentInfoFromGSE struct {
-	param OperParamSyncAgentInfoFromGSE
+type operSyncAgentInfo struct {
+	param OperParamSyncAgentInfo
 }
 
-// OperParamSyncAgentInfoFromGSE defines the parameters for operSyncAgentInfoFromGSE.
-type OperParamSyncAgentInfoFromGSE struct {
+// OperParamSyncAgentInfo defines the parameters for operSyncAgentInfo.
+type OperParamSyncAgentInfo struct {
 	TenantID string           `json:"tenant_id"`
 	Hosts    []*HostIDAgentID `json:"hosts"`
 	Operator string           `json:"operator"`
 }
 
 // Name returns the name.
-func (oper *operSyncAgentInfoFromGSE) Name() string {
+func (oper *operSyncAgentInfo) Name() string {
 	return OperDefNameSyncAgentInfo
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operSyncAgentInfoFromGSE) ActionDefNames() []string {
+func (oper *operSyncAgentInfo) ActionDefNames() []string {
 	return []string{
 		ActionNameSyncAgentInfo,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operSyncAgentInfoFromGSE) DefaultParameters() operation.Param {
+func (oper *operSyncAgentInfo) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint:mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
@@ -59,6 +59,6 @@ func (oper *operSyncAgentInfoFromGSE) DefaultParameters() operation.Param {
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operSyncAgentInfoFromGSE) ExtraExecutionName() string {
+func (oper *operSyncAgentInfo) ExtraExecutionName() string {
 	return ""
 }

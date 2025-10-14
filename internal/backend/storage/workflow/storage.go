@@ -22,7 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduleworkflow"
+	scheduledworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduled-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/stopoperinst"
 	daoTrigger "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/trigger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -31,7 +31,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -74,11 +73,11 @@ func NewStorage(client *mongo.Client, database string) (IStorage, error) {
 type Storage struct {
 	basestorage.Storage
 
-	daoTrigger          daoTrigger.IHandler
-	daoOperation        operation.IHandler
-	daoScheduleWorkflow scheduleworkflow.IHandler
-	daoOperInstData     operinstdata.IHandler
-	daoStopOperInst     stopoperinst.Handler
+	daoTrigger           daoTrigger.IHandler
+	daoOperation         operation.IHandler
+	daoScheduledWorkflow scheduledworkflow.IHandler
+	daoOperInstData      operinstdata.IHandler
+	daoStopOperInst      stopoperinst.Handler
 
 	// stop event subscriptions
 	stopEventSubsMap      map[string]*StopEventSubscription
@@ -93,7 +92,7 @@ type Storage struct {
 func (s *Storage) initDao() error {
 	s.daoTrigger = daoTrigger.New(s.Database)
 	s.daoOperation = operation.New(s.Database)
-	s.daoScheduleWorkflow = scheduleworkflow.New(s.Database)
+	s.daoScheduledWorkflow = scheduledworkflow.New(s.Database)
 	s.daoOperInstData = operinstdata.New(s.Database)
 	s.daoStopOperInst = stopoperinst.New(s.Database)
 
@@ -243,6 +242,27 @@ func (s *Storage) ListAliveTrigger(nCtx contextx.IContext, category trigger.Cate
 	return results, nil
 }
 
+// ListTrigger lists triggers by given category.
+func (s *Storage) ListTrigger(nCtx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, int64, error) {
+	var (
+		results []*trigger.Trigger
+		num     int64
+		err     error
+	)
+
+	// record metric.
+	metric := s.metric().Start("list_trigger")
+	defer metric.End(err)
+
+	if results, num, err = s.listTrigger(nCtx, page, category); err != nil {
+		logger.G.Sys().WithErr(err).With("category", category).Error("failed to list triggers")
+
+		return nil, 0, fmt.Errorf("failed to list triggers, category(%s): %w", category, err)
+	}
+
+	return results, num, nil
+}
+
 // DeleteTriggers deletes triggers by given trigger IDs.
 func (s *Storage) DeleteTriggers(nCtx contextx.IContext, triggerIDs ...string) error {
 	var err error
@@ -280,33 +300,33 @@ func (s *Storage) ExistTrigger(nCtx contextx.IContext, triggerID string) (bool, 
 	return exist, nil
 }
 
-// ListScheduleWorkflow lists schedule workflow by page and conditions.
-func (s *Storage) ListScheduleWorkflow(
-	nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduleWorkflowCondition) (
-	[]*schedule.Schedule, int64, error) {
+// ListScheduledWorkflow lists scheduled workflow by page and conditions.
+func (s *Storage) ListScheduledWorkflow(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ScheduledWorkflowCondition) (
+	[]*types.ScheduledWorkflow, int64, error) {
 
 	var (
-		results []*schedule.Schedule
+		results []*types.ScheduledWorkflow
 		num     int64
 		err     error
 	)
 
 	// record metric.
-	metric := s.metric().Start("list_schedule_workflow")
+	metric := s.metric().Start("list_scheduled_workflow")
 	defer metric.End(err)
 
-	if results, num, err = s.listScheduleWorkflow(nCtx, page, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list schedule workflows")
+	if results, num, err = s.listScheduledWorkflow(nCtx, page, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list scheduled workflows")
 
-		return nil, 0, fmt.Errorf("failed to list schedule workflows: %w", err)
+		return nil, 0, fmt.Errorf("failed to list scheduled workflows: %w", err)
 	}
 
 	return results, num, nil
 }
 
-// CountScheduleWorkflow counts schedule workflow by conditions.
-func (s *Storage) CountScheduleWorkflow(
-	nCtx contextx.IContext, conditions ...*types.ScheduleWorkflowCondition) (
+// CountScheduledWorkflow counts scheduled workflow by conditions.
+func (s *Storage) CountScheduledWorkflow(
+	nCtx contextx.IContext, conditions ...*types.ScheduledWorkflowCondition) (
 	int64, error) {
 
 	var (
@@ -315,31 +335,31 @@ func (s *Storage) CountScheduleWorkflow(
 	)
 
 	// record metric.
-	metric := s.metric().Start("count_schedule_workflow")
+	metric := s.metric().Start("count_scheduled_workflow")
 	defer metric.End(err)
 
-	if num, err = s.countScheduleWorkflow(nCtx, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to count schedule workflows")
+	if num, err = s.countScheduledWorkflow(nCtx, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to count scheduled workflows")
 
-		return 0, fmt.Errorf("failed to count schedule workflows: %w", err)
+		return 0, fmt.Errorf("failed to count scheduled workflows: %w", err)
 	}
 
 	return num, nil
 }
 
-// GetScheduleWorkflow gets a schedule workflow by workflow-id.
-func (s *Storage) GetScheduleWorkflow(nCtx contextx.IContext, workflowID string) (*schedule.Schedule, error) {
+// GetScheduledWorkflow gets a scheduled workflow by workflow-id.
+func (s *Storage) GetScheduledWorkflow(nCtx contextx.IContext, workflowID string) (*types.ScheduledWorkflow, error) {
 	var (
-		workflow *schedule.Schedule
+		workflow *types.ScheduledWorkflow
 		err      error
 	)
 
 	// record metric.
-	metric := s.metric().Start("get_schedule_workflow")
+	metric := s.metric().Start("get_scheduled_workflow")
 	defer metric.End(err)
 
-	if workflow, err = s.getScheduleWorkflow(nCtx, workflowID); err != nil {
-		logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to get schedule workflow")
+	if workflow, err = s.getScheduledWorkflow(nCtx, workflowID); err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to get scheduled workflow")
 
 		return nil, fmt.Errorf("failed to get workflow, workflow-id(%s): %w", workflowID, err)
 	}
@@ -347,18 +367,52 @@ func (s *Storage) GetScheduleWorkflow(nCtx contextx.IContext, workflowID string)
 	return workflow, nil
 }
 
-// CreateScheduleWorkflow creates a new schedule workflow.
-func (s *Storage) CreateScheduleWorkflow(nCtx contextx.IContext, workflow *schedule.Schedule) error {
+// CreateScheduledWorkflow creates a new scheduled workflow.
+func (s *Storage) CreateScheduledWorkflow(nCtx contextx.IContext, workflow *types.ScheduledWorkflow) error {
 	var err error
 
 	// record metric.
-	metric := s.metric().Start("create_schedule_workflow")
+	metric := s.metric().Start("create_scheduled_workflow")
 	defer metric.End(err)
 
-	if err = s.createScheduleWorkflow(nCtx, workflow); err != nil {
-		logger.G.Sys().WithErr(err).With("workflow-id", workflow.WorkflowID).Error("failed to create schedule workflow")
+	if err = s.createScheduledWorkflow(nCtx, workflow); err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-id", workflow.WorkflowID).Error("failed to create scheduled workflow")
 
-		return fmt.Errorf("failed to create schedule workflow, workflow-id(%s): %w", workflow.WorkflowID, err)
+		return fmt.Errorf("failed to create scheduled workflow, workflow-id(%s): %w", workflow.WorkflowID, err)
+	}
+
+	return nil
+}
+
+// UpdateScheduledWorkflowTriggerID updates a scheduled workflow's trigger ID.
+func (s *Storage) UpdateScheduledWorkflowTriggerID(nCtx contextx.IContext, workflowID, triggerID string) error {
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("update_scheduled_workflow_trigger_id")
+	defer metric.End(err)
+
+	if err = s.updateScheduledWorkflowTriggerID(nCtx, workflowID, triggerID); err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to update scheduled workflow trigger id")
+
+		return err
+	}
+
+	return nil
+}
+
+// UpdateScheduledWorkflowPrivateData updates a scheduled workflow's private data.
+func (s *Storage) UpdateScheduledWorkflowPrivateData(nCtx contextx.IContext, workflowID string, privateData map[string]any) error {
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("update_scheduled_workflow_private_data")
+	defer metric.End(err)
+
+	if err = s.updateScheduledWorkflowPrivateData(nCtx, workflowID, privateData); err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to update scheduled workflow private data")
+
+		return err
 	}
 
 	return nil
@@ -448,6 +502,29 @@ func (s *Storage) ListOperationByOperationID(
 	return opers, num, nil
 }
 
+// ListOperationByParentOperationID lists operation by parent operation ID.
+func (s *Storage) ListOperationByParentOperationID(
+	nCtx contextx.IContext, page types.Page, parentID ...string) ([]*workoper.Operation, int64, error) {
+
+	var (
+		opers []*workoper.Operation
+		num   int64
+		err   error
+	)
+
+	// record metric.
+	metric := s.metric().Start("list_operation_by_parent_operation_id")
+	defer metric.End(err)
+
+	if opers, num, err = s.listOperationByParentOperationID(nCtx, page, parentID...); err != nil {
+		logger.G.Sys().WithErr(err).With("parent-ids", parentID).Error("failed to list operations by parent operation id")
+
+		return nil, 0, fmt.Errorf("failed to list operations by parent operation id, parent-ids(%v): %w", parentID, err)
+	}
+
+	return opers, num, nil
+}
+
 // ListOperationByNodeWorkflowOperationCondition lists operation by node workflow operation condition.
 func (s *Storage) ListOperationByNodeWorkflowOperationCondition(
 	nCtx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
@@ -508,6 +585,23 @@ func (s *Storage) DeleteOperations(nCtx contextx.IContext, operationID ...string
 		logger.G.Sys().WithErr(err).With("operation-ids", operationID).Error("failed to delete operations")
 
 		return fmt.Errorf("failed to delete operations, operation-ids(%v): %w", operationID, err)
+	}
+
+	return nil
+}
+
+// DeleteOperationsByTriggerID deletes operations by trigger ID.
+func (s *Storage) DeleteOperationsByTriggerID(ctx contextx.IContext, triggerID ...string) error {
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("delete_operations_by_trigger_id")
+	defer metric.End(err)
+
+	if err = s.deleteOperationsByTriggerID(ctx, triggerID...); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to delete operations by trigger id")
+
+		return fmt.Errorf("failed to delete operations by trigger id, trigger-id(%s): %w", triggerID, err)
 	}
 
 	return nil
@@ -779,6 +873,30 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByOperationID(
 	return results, num, nil
 }
 
+// ListOperInstanceBriefWithoutActionInstByTriggerID lists operation instance brief data.
+func (s *Storage) ListOperInstanceBriefWithoutActionInstByTriggerID(nCtx contextx.IContext, page types.Page, triggerID ...string) (
+	[]*workoper.InstanceBriefData, int64, error) {
+
+	var (
+		results []*workoper.InstanceBriefData
+		num     int64
+		err     error
+	)
+
+	// record metric.
+	metric := s.metric().Start("list_operation_instance_brief_without_action_inst_by_trigger_id")
+	defer metric.End(err)
+
+	if results, num, err = s.listOperationInstanceBriefDataWithoutActionInstByTriggerID(
+		nCtx, page, triggerID...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list operation instance brief data by trigger")
+
+		return nil, 0, fmt.Errorf("failed to list operation instance brief data by trigger: %w", err)
+	}
+
+	return results, num, nil
+}
+
 // UpsertOperationInstanceData upserts operation instance data.
 func (s *Storage) UpsertOperationInstanceData(
 	nCtx contextx.IContext, operInstData *workoper.InstanceData) error {
@@ -921,6 +1039,25 @@ func (s *Storage) DeleteOperationInstances(nCtx contextx.IContext, operInstID ..
 		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to delete operation instances")
 
 		return fmt.Errorf("failed to delete operation instances, oper-inst-ids(%v): %w", operInstID, err)
+	}
+
+	return nil
+}
+
+// DeleteOperationInstancesByTriggerID deletes operation instances by trigger ID.
+func (s *Storage) DeleteOperationInstancesByTriggerID(ctx contextx.IContext, triggerID ...string) error {
+	var (
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("delete_operation_instances_by_trigger_id")
+	defer metric.End(err)
+
+	if err = s.deleteOperationInstancesByTriggerID(ctx, triggerID...); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to delete operation instances by trigger ID")
+
+		return fmt.Errorf("failed to delete operation instances by trigger ID, trigger-ids(%v): %w", triggerID, err)
 	}
 
 	return nil

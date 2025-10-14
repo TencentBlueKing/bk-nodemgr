@@ -30,10 +30,9 @@ const (
 )
 
 // NewActionVersionCompatCheck get a new action.
-func NewActionVersionCompatCheck(storageNodeDeployment nodeStg.IDaoNodeDeployment) action.Definition {
-
+func NewActionVersionCompatCheck(capability *Capability) action.Definition {
 	return &actionVersionCompatCheck{
-		storageNodeDeployment: storageNodeDeployment,
+		storageNodeDeployment: capability.StorageNode,
 
 		operateAgentSupportedLowestVersionFmt: types.NewGSEVersionFormatter(agentOperateRestartLowestVersion),
 	}
