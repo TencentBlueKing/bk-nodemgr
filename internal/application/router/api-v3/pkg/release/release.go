@@ -81,14 +81,14 @@ func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.backendHandler.ListRelease(rCtx, releaseType, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	releases, num, err := h.backendHandler.ListRelease(rCtx, releaseType, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	resp := new(protoApplication.PackageReleaseListResp)
-	resp.ConvertReleasesFromTypes(num, hosts)
+	resp.ConvertReleasesFromTypes(num, releases)
 
 	return resp.GetData(), nil
 }

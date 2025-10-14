@@ -105,6 +105,7 @@ func (x *PackageReleaseListResp) ConvertReleasesFromTypes(total int64, releases 
 	items := make([]*Release, len(releases))
 	for idx, release := range releases {
 		item := newEmptyRelease()
+		*item.Name = release.Name
 		*item.Generation = int64(release.Generation)
 		*item.ReleaseType = string(release.Type)
 		*item.OsType = string(release.Platform.OS)
@@ -448,6 +449,7 @@ type PackageReleaseIdentifier struct {
 
 func newEmptyRelease() *Release {
 	return &Release{
+		Name:        new(string),
 		Generation:  new(int64),
 		ReleaseType: new(string),
 		OsType:      new(string),

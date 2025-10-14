@@ -104,6 +104,7 @@ func (x *PackageReleaseListResp) ConvertReleasesFromTypes(total int64, releases 
 	items := make([]*Release, len(releases))
 	for idx, release := range releases {
 		item := newEmptyRelease()
+		*item.Name = release.Name
 		*item.Generation = int64(release.Generation)
 		*item.ReleaseType = string(release.Type)
 		*item.OsType = string(release.Platform.OS)
@@ -140,18 +141,18 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 			Name:       item.GetName(),
 			Generation: types.Generation(item.GetGeneration()),
 			Type:       types.ReleaseType(item.GetReleaseType()),
+			Version:    item.GetVersion(),
 			Platform: platform.Platform{
 				OS:   criteria.OSType(item.GetOsType()),
 				Arch: criteria.CPUArch(item.GetCpuArch()),
 			},
 			Labels:    item.GetLabels(),
-			Version:   item.GetVersion(),
 			FileName:  item.GetFileName(),
 			MD5:       item.GetMd5(),
 			Enabled:   item.GetEnabled(),
 			AsDefault: item.GetAsDefault(),
-			Operator:  item.GetOperator(),
 			UpdatedAt: time.UnixMilli(int64(item.GetUpdatedAt())).Local(),
+			Operator:  item.GetOperator(),
 		}
 
 		result[idx] = release
@@ -414,6 +415,7 @@ func (x *PackageReleaseDeleteReq) SetIdentifer(
 
 func newEmptyRelease() *Release {
 	return &Release{
+		Name:        new(string),
 		Generation:  new(int64),
 		ReleaseType: new(string),
 		OsType:      new(string),
