@@ -1027,7 +1027,8 @@ func (h *Handler) operateProc(nCtx contextx.IContext, operateProcReq *operatePro
 				// continue to retry.
 				return fmt.Errorf("proc operate task is running, taskID(%s)", taskID)
 			default:
-				return fmt.Errorf("operate proc failed, taskID(%s), err-code(%d), err-msg(%s)", taskID, item.ErrorCode, item.ErrorMsg)
+				// other code is error, but that means that the task is finished.
+				continue
 			}
 		}
 
