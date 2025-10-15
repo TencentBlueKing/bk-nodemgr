@@ -90,6 +90,7 @@ import { Table, TableColumn } from '@blueking/table';
 
 import { PackageService } from '@/api/modules/pkg';
 import { capitalizeFirstLetter, compareVersions } from '@/common/util';
+import { useMainStore } from '@/stores/main';
 
 interface RowVO {
   name: string;
@@ -113,6 +114,8 @@ const props = defineProps({
 });
 const emit = defineEmits(['confirm', 'cancel']);
 const { t } = useI18n();
+
+const mainStore = useMainStore();
 
 const osVersions = ref<{
   name: string;
@@ -197,7 +200,7 @@ const getVersions = async () => {
       disabled: !item.enabled,
       lable: item.labels,
       packages: [item.file_name],
-      description: item.change_log_zh,
+      description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
     });
   });
   osVersions.value = Object.values(osMap);

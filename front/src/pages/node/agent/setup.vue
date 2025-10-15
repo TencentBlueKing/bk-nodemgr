@@ -77,10 +77,12 @@
         </Form.FormItem>
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.info')"
+          :max-height="700"
           required
         >
           <install-table
             ref="installTableRef"
+            class="max-h-[700px]"
             v-model:data="formData.info"
           >
             <UploadExcel @upload="handleUpload" v-if="activeInstallType === 'import'"></UploadExcel>

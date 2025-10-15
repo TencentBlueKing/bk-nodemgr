@@ -113,7 +113,37 @@ const loading = ref(false);
 
 const allWorkareaList = computed(() => Array.from(workareaStore.allWorkareaList.values()));
 
-const searchSelectData = ref<ISearchItem[]>([]);
+const searchSelectData = ref<ISearchItem[]>([
+  {
+    name: t('topoManager.record.searchItems.workareaName'),
+    id: 'workareaName',
+    multiple: false,
+  },
+  {
+    name: t('topoManager.record.searchItems.workareaId'),
+    id: 'workareaId',
+    multiple: true,
+    children: allWorkareaList.value.map(item => ({
+      id: String(item.bk_networkarea_id),
+      name: String(item.bk_networkarea_id),
+    })),
+  },
+  {
+    name: t('topoManager.record.searchItems.workUnit'),
+    id: 'workUnit',
+    multiple: false,
+  },
+  {
+    name: t('topoManager.record.searchItems.type'),
+    id: 'type',
+    multiple: true,
+  },
+  {
+    name: t('topoManager.record.searchItems.operator'),
+    id: 'actionPerson',
+    multiple: true,
+  },
+]);
 
 // 待优化 各影响table最大高度的元素的高度
 const tableOffset = 200;
@@ -210,50 +240,50 @@ const fetchRecordList = async () => {
   }
 };
 
-const initSearchList = async () => {
-  await Promise.all([
-    handleFetchAllWorkarea(),
-    handleFetchAllWorkUnit(),
-  ]);
+// const initSearchList = async () => {
+//   await Promise.all([
+//     handleFetchAllWorkarea(),
+//     handleFetchAllWorkUnit(),
+//   ]);
 
-  searchSelectData.value = [
-    {
-      name: t('topoManager.record.searchItems.workareaName'),
-      id: 'workareaName',
-      multiple: false,
-    },
-    {
-      name: t('topoManager.record.searchItems.workareaId'),
-      id: 'workareaId',
-      multiple: true,
-      children: allWorkareaList.value.map(item => ({
-        id: String(item.bk_networkarea_id),
-        name: String(item.bk_networkarea_id),
-      })),
-    },
-    {
-      name: t('topoManager.record.searchItems.workUnit'),
-      id: 'workUnit',
-      multiple: false,
-    },
-    {
-      name: t('topoManager.record.searchItems.type'),
-      id: 'type',
-      multiple: true,
-    },
-    {
-      name: t('topoManager.record.searchItems.operator'),
-      id: 'actionPerson',
-      multiple: true,
-    },
-  ];
-};
+//   searchSelectData.value = [
+//     {
+//       name: t('topoManager.record.searchItems.workareaName'),
+//       id: 'workareaName',
+//       multiple: false,
+//     },
+//     {
+//       name: t('topoManager.record.searchItems.workareaId'),
+//       id: 'workareaId',
+//       multiple: true,
+//       children: allWorkareaList.value.map(item => ({
+//         id: String(item.bk_networkarea_id),
+//         name: String(item.bk_networkarea_id),
+//       })),
+//     },
+//     {
+//       name: t('topoManager.record.searchItems.workUnit'),
+//       id: 'workUnit',
+//       multiple: false,
+//     },
+//     {
+//       name: t('topoManager.record.searchItems.type'),
+//       id: 'type',
+//       multiple: true,
+//     },
+//     {
+//       name: t('topoManager.record.searchItems.operator'),
+//       id: 'actionPerson',
+//       multiple: true,
+//     },
+//   ];
+// };
 
 watch([exactData, fuzzyData, operateTime], fetchRecordList);
 
 onMounted(() => {
   fetchRecordList();
-  initSearchList();
+  // initSearchList();
 });
 
 </script>

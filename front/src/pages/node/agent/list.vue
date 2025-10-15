@@ -114,7 +114,7 @@
         <TableColumn
           field="bk_networkarea_name"
           :title="t('platform.nodeMan.bk_cloud_name')"
-          :filter="areaFilterOption"
+          :filter="filterOptionSource.bk_networkarea_id"
           :min-width="120"
           show-overflow
         ></TableColumn>
@@ -323,6 +323,12 @@ const pageValueChange = async (current: number) => {
 // 批量操作
 const operate = [
   {
+    id: 'reinstall',
+    name: '重装',
+    disabled: false,
+    show: true,
+  },
+  {
     id: 'upgrade',
     name: '升级/回退',
     disabled: false,
@@ -346,13 +352,13 @@ const operate = [
     disabled: false,
     show: true,
   },
-  {
-    id: 'log',
-    name: '最新执行日志',
-    disabled: false,
-    show: true,
-    single: true,
-  },
+  // {
+  //   id: 'log',
+  //   name: '最新执行日志',
+  //   disabled: false,
+  //   show: true,
+  //   single: true,
+  // },
 ];
 // 安装方式
 const agentInstallType = [
@@ -466,16 +472,6 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   disabled: ['action'],
 });
 
-const areaFilterOption = reactive({
-  list: computed(() => Array.from(new Set(agentList.value
-    .map((item: any) => item['bk_networkarea_name'])
-    .filter((item: any) => item !== ''))).map(value => ({
-    text: value,
-    value,
-  }))),
-  checked: [] as string[],
-  filterScope: 'all',
-});
 const filterOptionSource: Record<string, FilterOption> = reactive({
   bk_networkarea_id: {
     list: [],
@@ -524,8 +520,8 @@ const triggerHandler = (type: string, setupType = 'setup') => {
 /**
  * 当前操作项是否显示
  */
-const getOperateShow = (row: Host, config: IOperateItem) => {
-  if (config.id === 'log' && (!row.job_result || !row.job_result.job_id)) {
+const getOperateShow = (row: Host, config: any) => {
+  if (config.id === 'reinstall') {
     return false;
   }
   return config.show;

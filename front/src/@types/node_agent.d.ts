@@ -38,16 +38,16 @@ export interface NodeAgentInstallRespData {
   workflow_id: string;
 }
 
-// NodeAgentUpgradeReq describes the node agent upgrade request.
-export interface NodeAgentUpgradeReq {
-  host: Host[];
-}
-
-export interface NodeAgentUpgradeReqHost {
+export interface NodeAgentUpgradeHost {
   bk_host_id: number;
   target_version: string;
   force: boolean;
   graceful_restart_timeout_sec: number;
+}
+
+// NodeAgentUpgradeReq describes the node agent upgrade request.
+export interface NodeAgentUpgradeReq {
+  host: NodeAgentUpgradeHost[];
 }
 
 // NodeAgentUpgradeResp describes the node agent upgrade response.
@@ -60,6 +60,54 @@ export interface NodeAgentUpgradeResp {
 }
 
 export interface NodeAgentUpgradeRespData {
+  workflow_id: string;
+}
+
+export interface NodeAgentReconfigHost {
+  bk_host_id: number;
+  force: boolean;
+  graceful_restart_timeout_sec: number;
+}
+
+// NodeAgentReconfigReq describes the node agent reconfigure request.
+export interface NodeAgentReconfigReq {
+  host: NodeAgentReconfigHost[];
+}
+
+// NodeAgentReconfigResp describes the node agent reconfigure response.
+export interface NodeAgentReconfigResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeAgentReconfigRespData;
+}
+
+export interface NodeAgentReconfigRespData {
+  workflow_id: string;
+}
+
+export interface NodeAgentRestartHost {
+  bk_host_id: number;
+  force: boolean;
+  graceful_restart_timeout_sec: number;
+}
+
+// NodeAgentRestartReq describes the node agent restart request.
+export interface NodeAgentRestartReq {
+  host: NodeAgentRestartHost[];
+}
+
+// NodeAgentRestartResp describes the node agent restart response.
+export interface NodeAgentRestartResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeAgentRestartRespData;
+}
+
+export interface NodeAgentRestartRespData {
   workflow_id: string;
 }
 

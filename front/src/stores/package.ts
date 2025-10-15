@@ -20,8 +20,14 @@ export const usePackageStore = defineStore('package', () => {
     const allLabels = res.items.flatMap(item => item.labels || []);
     tagList.value = Array.from(new Set(allLabels));
   };
+
+  const updateTagList = (list: string[]) => {
+    tagList.value = list;
+  };
+
   return {
     tagList,
     getPackages,
+    updateTagList,
   };
 });

@@ -41,16 +41,16 @@ export interface NodeProxyInstallRespData {
   workflow_id: string;
 }
 
-// NodeProxyUpgradeReq describes the node proxy upgrade request.
-export interface NodeProxyUpgradeReq {
-  host: Host[];
-  target_version: TargetVersion[];
-}
-
-export interface NodeProxyUpgradeReqHost {
+export interface NodeProxyUpgradeHost {
   bk_host_id: number;
   force: boolean;
   graceful_restart_timeout_sec: number;
+}
+
+// NodeProxyUpgradeReq describes the node proxy upgrade request.
+export interface NodeProxyUpgradeReq {
+  host: NodeProxyUpgradeHost[];
+  target_version: TargetVersion[];
 }
 
 // NodeProxyUpgradeResp describes the node proxy upgrade response.
@@ -66,15 +66,15 @@ export interface NodeProxyUpgradeRespData {
   workflow_id: string;
 }
 
-// NodeProxyReconfigReq describes the node proxy reconfig request.
-export interface NodeProxyReconfigReq {
-  host: Host[];
-}
-
-export interface NodeProxyReconfigReqHost {
+export interface NodeProxyReconfigHost {
   bk_host_id: number;
   force: boolean;
   graceful_restart_timeout_sec: number;
+}
+
+// NodeProxyReconfigReq describes the node proxy reconfig request.
+export interface NodeProxyReconfigReq {
+  host: NodeProxyReconfigHost[];
 }
 
 // NodeProxyReconfigResp describes the node proxy reconfig response.
@@ -90,15 +90,15 @@ export interface NodeProxyReconfigRespData {
   workflow_id: string;
 }
 
-// NodeProxyRestartReq describes the node proxy restart request.
-export interface NodeProxyRestartReq {
-  host: Host[];
-}
-
-export interface NodeProxyRestartReqHost {
+export interface NodeProxyRestartHost {
   bk_host_id: number;
   force: boolean;
   graceful_restart_timeout_sec: number;
+}
+
+// NodeProxyRestartReq describes the node proxy restart request.
+export interface NodeProxyRestartReq {
+  host: NodeProxyRestartHost[];
 }
 
 // NodeProxyRestartResp describes the node proxy restart response.

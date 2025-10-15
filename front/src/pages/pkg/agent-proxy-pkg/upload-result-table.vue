@@ -8,6 +8,7 @@
         <TableColumn
           field="name"
           :title="'包名'"
+          v-if="currentType !== 'bintool'"
           min-width="350"
         ></TableColumn>
         <TableColumn
@@ -23,10 +24,10 @@
         <TableColumn
           field="release_type"
           :title="'包类型'"
-          v-if="currentType !== 'cert'"
+          v-if="!['cert', 'bintool'].includes(currentType)"
           min-width="70"
         ></TableColumn>
-        <TableColumn
+        <!-- <TableColumn
           field="labels"
           :title="'标签信息'"
           v-if="!['cert', 'bintool'].includes(currentType)"
@@ -64,21 +65,27 @@
           <template #default="{ row }">
             <create-tag :data="row"></create-tag>
           </template>
-        </TableColumn>
+        </TableColumn> -->
       </Table>
     </bk-loading>
-    <template v-if="data?.change_log_zh">
-      <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px]">描述</div>
+    <template v-if="data?.change_log_zh || data?.change_log_en">
+      <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px] flex items-center gap-[16px]">
+        <span>描述</span>
+        <Radio.Group v-model="changLog">
+          <Radio.Button label="ZH"></Radio.Button>
+          <Radio.Button label="EN"></Radio.Button>
+        </Radio.Group>
+      </div>
       <div
         class="w-full bg-[#FAFBFD] min-h-[60px] border
         border-[#DCDEE5] text-[#4D4F56] text-[12px] px-[10px] py-[6px] formatted-text">
-        {{ data.change_log_zh }}
+        {{ changLog === 'ZH' ? data.change_log_zh : data.change_log_en }}
       </div>
     </template>
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, PopConfirm, Select } from 'bkui-vue';
+import { Button, PopConfirm, Radio, Select } from 'bkui-vue';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -107,6 +114,7 @@ const currentType = computed(() => {
   const type = routeName.split('PackageMng')[0];
   return type;
 });
+const changLog = ref('ZH');
 const selectTag = ref<string[]>([]);
 const tableData = ref();
 const batchUpdateTag = async () => {

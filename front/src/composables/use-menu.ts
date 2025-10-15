@@ -155,15 +155,15 @@ const navList = [
         title: i18n.global.t('插件'),
         children: [
           {
+            routeName: 'pluginPackageMng',
+            icon: 'nodeman-icon nc-plug-in',
+            title: i18n.global.t('插件包管理'),
+          },
+          {
             routeName: 'plugin_bintoolPackageMng',
             icon: 'nodeman-icon nc-manual',
             title: i18n.global.t('插件包工具管理'),
           },
-          {
-            routeName: 'pluginPackageMng',
-            icon: 'nodeman-icon nc-plug-in',
-            title: i18n.global.t('插件包管理'),
-          }
         ]
       },
       {

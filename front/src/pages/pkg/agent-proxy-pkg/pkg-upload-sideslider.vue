@@ -38,6 +38,7 @@
 import {
   Button,
   InfoBox,
+  Message,
   Sideslider,
 } from 'bkui-vue';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -99,7 +100,10 @@ const submit = async () => {
     if (serviceMethod && uploadData.value?.upload_id) {
       await serviceMethod({ upload_id: uploadData.value.upload_id });
     }
-
+    Message({
+      theme: 'success',
+      message: '发布成功！',
+    });
     isShow.value = false;
     emit('confirm');
   } catch (error) {
@@ -111,7 +115,7 @@ const submit = async () => {
 
 watch(() => isShow.value, async () => {
   if (isShow.value) {
-    await packageStore.getPackages();
+    // await packageStore.getPackages();
     uploadData.value = null;
   }
 }, { immediate: true });

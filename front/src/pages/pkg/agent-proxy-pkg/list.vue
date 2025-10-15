@@ -42,8 +42,8 @@
               @click="selectDimensionOptional('all', option.id as PkgQuickType, 'click')"
             >
               <div class="border-b flex justify-between items-center h-[36px]">
-                <div class="text-[13px]">
-                  <span class="mr-[5px]">All</span>
+                <div class="flex items-center text-[13px]">
+                  <text-all class="mr-[5px]" />
                   <span>全部</span>
                 </div>
                 <Tag
@@ -111,7 +111,7 @@
         >
           <TableColumn
             field="file_name"
-            :title="'包名称'"
+            :title="'包文件名'"
             :min-width="320"
             fixed="left"
             show-overflow="tooltip"
@@ -128,7 +128,7 @@
             field="os_type"
             :title="'操作系统'"
             :filter="filterOptionSource.os_type"
-            :min-width="80"
+            :min-width="110"
           ></TableColumn>
           <TableColumn
             field="cpu_arch"
@@ -142,6 +142,34 @@
             :min-width="180"
             :filter="filterOptionSource.labels"
           >
+            <template #header>
+              <span>标签信息</span>
+              <PopConfirm
+                width="320"
+                theme="light"
+                trigger="click"
+                title="批量编辑标签"
+                @confirm="batchUpdateTag"
+              >
+                <Button class="mx-[3px]" text :disabled="!packageList.length">
+                  <i class="nodeman-icon nc-edit text-[18px]  cursor-pointer"></i>
+                </Button>
+                <template #content>
+                  <div class="text-[12px] text-[#4D4F56] mb-[6px]">统一填充</div>
+                  <Select
+                    class="mb-[18px]"
+                    v-model="selectTag"
+                    :list="tagList"
+                    :popover-options="{
+                      boundary: 'parent'
+                    }"
+                    auto-focus
+                    multiple
+                    filterable>
+                  </Select>
+                </template>
+              </PopConfirm>
+            </template>
             <template #default="{ row }">
               <div v-show="!row.isShowTagInput" class="flex items-center group gap-[5px]">
                 <create-tag :data="row" @blur="handleBlur"></create-tag>
@@ -288,8 +316,8 @@
   <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
-import { Button, Loading, Popover, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
-import { AngleDown, AngleRight, EditLine } from 'bkui-vue/lib/icon';
+import { Button, Loading, PopConfirm, Popover, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
+import { AngleDown, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
 import { isArray } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -306,6 +334,7 @@ import { capitalizeFirstLetter, compareVersions, formatTimestamp } from '@/commo
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
+import { usePackageStore } from '@/stores/package';
 type PkgQuickType = 'os_cpu_arch' | 'version';
 type PkgType = 'gse_agent' | 'gse_proxy';
 type filterProp = 'version' | 'labels' | 'operator' | 'enabled';
@@ -334,6 +363,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
+const packageStore = usePackageStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314);
 const currentType = computed(() => (route.name === 'agentPackageMng' ? 'agent' : 'proxy'));
@@ -549,7 +579,6 @@ const searchSelectData = computed(() => [
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    'file_name',
     'version',
     'os_type',
     'cpu_arch',
@@ -681,6 +710,14 @@ const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
     });
   }
 };
+// 标签信息批量编辑
+const selectTag = ref<string[]>([]);
+const batchUpdateTag = async () => {
+  packageList.value = packageList.value.map((item: any) => ({
+    ...item,
+    labels: [...selectTag.value],
+  }));
+};
 watch(() => searchSelectValue.value, (data) => {
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
@@ -707,12 +744,20 @@ const handleBlur = async () => {
 const handleUpload = () => {
   isShow.value = true;
 };
+const tagList = ref<{value: string, label: string}[]>([]);
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
     release_type: currentType.value,
     generation: 2,
   });
+  const allLabels = res.items.flatMap(item => item.labels || []);
+  const list = Array.from(new Set(allLabels));
+  tagList.value = list.map((tag: string) => ({
+    value: tag,
+    label: tag,
+  }));
+  packageStore.updateTagList(list);
   const hostList = await PackageService.DeployedHostCount({
     request_items: res.items.map(item => ({
       generation: item.generation,
@@ -781,14 +826,15 @@ watch(
     originPackageList,
   ],
   () => {
-    packageList.value = originPackageList.value.filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
-      const { id: searchField, values } = searchItem;
-      const searchIds = values?.map((value: {id: string}) => value.id);
-      if (isArray(row[searchField])) {
-        return !!row[searchField].find((el: string) => searchIds.includes(el));
-      }
-      return searchIds.includes(row[searchField]);
-    }));
+    packageList.value = originPackageList.value.filter((row: Release) =>
+      searchSelectValue.value.every((searchItem: any) => {
+        const { id: searchField, values } = searchItem;
+        const searchIds = values?.map((value: {id: string}) => value.id);
+        if (isArray(row[searchField])) {
+          return !!row[searchField].find((el: string) => searchIds.includes(el));
+        }
+        return searchIds.includes(row[searchField]);
+      }));
   },
   { immediate: true, deep: true },
 );

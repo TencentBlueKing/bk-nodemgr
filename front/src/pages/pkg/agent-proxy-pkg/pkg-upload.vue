@@ -38,7 +38,7 @@
             <PopConfirm
               width="320"
               theme="light"
-              :title="`存在同名${ capitalizeFirstLetter(currentType) }包，是否覆盖上传？`"
+              :title="`${ capitalizeFirstLetter(currentType) }目标版本已存在，是否覆盖上传？`"
               confirmText="覆盖上传"
               cancelText="取消上传"
               @confirm="handleOverwrite"
@@ -46,7 +46,7 @@
             >
               <div class="w-full">
                 <i class="nodeman-icon nc-remind-fill text-[#F8B64F]"></i>
-                <span class="text-[#F59500] ml-[7px]">存在同名 {{ capitalizeFirstLetter(currentType) }} 包</span>
+                <span class="text-[#F59500] ml-[7px]">{{ capitalizeFirstLetter(currentType) }} 目标版本已存在</span>
               </div>
               <template #content>
                 <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
@@ -56,7 +56,7 @@
                   MD5：{{ curFile.data?.md5 }}
                 </div>
                 <div class="text-[12px] text-[#4D4F56] w-full mb-[22px]">
-                  继续上传，将会覆盖当前平台同名的 {{ capitalizeFirstLetter(currentType) }} 包
+                  继续上传，将会覆盖当前平台同版本的 {{ capitalizeFirstLetter(currentType) }} 包
                 </div>
               </template>
             </PopConfirm>
@@ -170,10 +170,6 @@ const handleUpload = () => {
         : 'success'
         : 'failed';
       curFile.data = response.data;
-      Message({
-        theme: 'success',
-        message: '文件上传成功',
-      });
       emit('upload', response.data);
     } else {
       curFile.message = xhr.statusText;

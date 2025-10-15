@@ -76,7 +76,7 @@ const handleInputchange = (value: string) => {
   if (value.length > 32) {
     return;
   }
-  const index = tagList.value.findIndex((item: any) => item === value);
+  const index = tagList.value.findIndex((item: any) => item.id === value);
   if (index === -1 && inputVal) {
     popShow.value = true;
     createTag.value = inputVal;

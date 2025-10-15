@@ -200,23 +200,7 @@ const getTaskList = async () => {
       items: [],
     };
   });
-  const statistics = await NodeWorkflowService.NodeWorkflowStatistics({
-    workflow_id: res.items.map(item => item.workflow_id),
-  }).catch((err) => {
-    console.log(err);
-    return {
-      items: [],
-    };
-  });
-  tableData.value = res.items.map((item) => {
-    const statisticsItem = statistics.items.find(statistic => statistic.workflow_id === item.workflow_id);
-    return {
-      statistics: statisticsItem,
-      ...item,
-      bk_biz_name: item.bk_biz_name.filter(item => item),
-      cost_time: item.finish_time > 0 ? (item.finish_time - item.operate_time) : 0,
-    };
-  });
+  tableData.value = res.items;
   loading.value = false;
 };
 
