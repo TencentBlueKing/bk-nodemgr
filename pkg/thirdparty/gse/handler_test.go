@@ -31,7 +31,7 @@ import (
 // LoadAuthHeader load auth header from environment variables.
 func LoadAuthHeader() (apigwclient.UserConfig, error) {
 	apigwAuthHeader := os.Getenv("BK_APIGW_AUTHHEADER")
-	header := make(map[string]string, 0)
+	header := make(map[string]string)
 	if err := json.Unmarshal([]byte(apigwAuthHeader), &header); err != nil {
 		return apigwclient.UserConfig{}, err
 	}
@@ -122,8 +122,8 @@ func testClient(t *testing.T) IHandler {
 	return h
 }
 
-// Test_handler_ListAgentInfo tests Handler.ListAgentInfo.
-func Test_handler_ListAgentInfo(t *testing.T) {
+// Test_Handler_ListAgentInfo tests Handler.ListAgentInfo.
+func Test_Handler_ListAgentInfo(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -165,8 +165,8 @@ func Test_handler_ListAgentInfo(t *testing.T) {
 	}
 }
 
-// Test_handler_ListAgentState tests Handler.ListAgentState.
-func Test_handler_ListAgentState(t *testing.T) {
+// Test_Handler_ListAgentState tests Handler.ListAgentState.
+func Test_Handler_ListAgentState(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -208,8 +208,8 @@ func Test_handler_ListAgentState(t *testing.T) {
 	}
 }
 
-// Test_handler_ExecuteScript tests Handler.ExecuteScript.
-func Test_handler_ExecuteScript(t *testing.T) {
+// Test_Handler_ExecuteScript tests Handler.ExecuteScript.
+func Test_Handler_ExecuteScript(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -270,8 +270,8 @@ func Test_handler_ExecuteScript(t *testing.T) {
 	}
 }
 
-// Test_handler_TerminateScriptExecution tests Handler.TerminateScriptExecution.
-func Test_handler_TerminateScriptExecution(t *testing.T) {
+// Test_Handler_TerminateScriptExecution tests Handler.TerminateScriptExecution.
+func Test_Handler_TerminateScriptExecution(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -315,8 +315,8 @@ func Test_handler_TerminateScriptExecution(t *testing.T) {
 	}
 }
 
-// Test_handler_QueryScriptExecutionResult tests Handler.QueryScriptExecutionResult.
-func Test_handler_QueryScriptExecutionResult(t *testing.T) {
+// Test_Handler_QueryScriptExecutionResult tests Handler.QueryScriptExecutionResult.
+func Test_Handler_QueryScriptExecutionResult(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -337,7 +337,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 		name       string
 		args       args
 		wantErr    bool
-		wantStatus scriptStatusCode
+		wantStatus types.ScriptStatus
 	}{
 		{
 			name: "script_base",
@@ -346,7 +346,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 				endpoints: endpoints,
 			},
 			wantErr:    false,
-			wantStatus: scriptStatusCodeFinished,
+			wantStatus: types.ScriptStatusFinished,
 		},
 		{
 			name: "script_wait_for_termination",
@@ -355,7 +355,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 				endpoints: endpoints,
 			},
 			wantErr:    false,
-			wantStatus: ScriptStatusStopped,
+			wantStatus: types.ScriptStatusStopped,
 		},
 	}
 	for _, tt := range tests {
@@ -374,7 +374,7 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 
 				stillRunning := false
 				for _, v := range resp {
-					if v.Status == scriptStatusCodeRunning {
+					if v.Status == types.ScriptStatusRunning {
 						stillRunning = true
 						break
 					}
@@ -404,8 +404,8 @@ func Test_handler_QueryScriptExecutionResult(t *testing.T) {
 	}
 }
 
-// Test_handler_TransferFile tests Handler.TransferFile.
-func Test_handler_TransferFile(t *testing.T) {
+// Test_Handler_TransferFile tests Handler.TransferFile.
+func Test_Handler_TransferFile(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -502,8 +502,8 @@ func Test_handler_TransferFile(t *testing.T) {
 	}
 }
 
-// Test_handler_TerminateFileTransmission tests Handler.TerminateFileTransmission.
-func Test_handler_TerminateFileTransmission(t *testing.T) {
+// Test_Handler_TerminateFileTransmission tests Handler.TerminateFileTransmission.
+func Test_Handler_TerminateFileTransmission(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -541,8 +541,8 @@ func Test_handler_TerminateFileTransmission(t *testing.T) {
 	}
 }
 
-// Test_handler_QueryFileTransmissionResult tests Handler.QueryFileTransmissionResult.
-func Test_handler_QueryFileTransmissionResult(t *testing.T) {
+// Test_Handler_QueryFileTransmissionResult tests Handler.QueryFileTransmissionResult.
+func Test_Handler_QueryFileTransmissionResult(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -636,6 +636,436 @@ func Test_handler_QueryFileTransmissionResult(t *testing.T) {
 
 				t.Logf("query-file: %#v", v)
 			}
+		})
+	}
+}
+
+// Test_Handler_ReloadProcess test Handler.ReloadProcess.
+func Test_Handler_ReloadProcess(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx        contextx.IContext
+		processSpec types.ProcessSpec
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx: nCtx,
+				processSpec: types.ProcessSpec{
+					AgentID: "020000000052540025157e1753363692251c",
+					Identity: types.ProcessIdentity{
+						Name:       "bkmonitorbeat",
+						SetupPath:  "/usr/local/gse2/plugins/bin",
+						PidPath:    "/var/run/gse2/bkmonitorbeat.pid",
+						ConfigPath: "/usr/local/gse2/plugins/etc/bkmonitorbeat.conf",
+						LogPath:    "/var/log/gse2",
+						User:       "root",
+					},
+					Controller: types.ProcessController{
+						StartCmd:   "./start.sh bkmonitorbeat",
+						StopCmd:    "./stop.sh bkmonitorbeat",
+						RestartCmd: "./restart.sh bkmonitorbeat",
+						ReloadCmd:  "./reload.sh bkmonitorbeat",
+						KillCmd:    "",
+						VersionCmd: "./bkmonitorbeat -v",
+						HealthCmd:  "",
+					},
+					Resource: types.ProcessResource{
+						CPULimitPercent: 10,
+						MemLimitPercent: 10,
+					},
+					MonitorPolicy: types.ProcessMonitorPolicy{
+						AutoType:       types.ProcessAutoTypeTrusteeship,
+						StartCheckSecs: 5,
+						StopCheckSecs:  0,
+						OpTimeoutSecs:  5,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.ReloadProcess(tt.args.nCtx, tt.args.processSpec)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ReloadProcess() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}
+
+// Test_Handler_RestartProcess test Handler.RestartProcess.
+func Test_Handler_RestartProcess(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx        contextx.IContext
+		processSpec types.ProcessSpec
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx: nCtx,
+				processSpec: types.ProcessSpec{
+					AgentID: "020000000052540025157e1753363692251c",
+					Identity: types.ProcessIdentity{
+						Name:       "bkmonitorbeat",
+						SetupPath:  "/usr/local/gse2/plugins/bin",
+						PidPath:    "/var/run/gse2/bkmonitorbeat.pid",
+						ConfigPath: "/usr/local/gse2/plugins/etc/bkmonitorbeat.conf",
+						LogPath:    "/var/log/gse2",
+						User:       "root",
+					},
+					Controller: types.ProcessController{
+						StartCmd:   "./start.sh bkmonitorbeat",
+						StopCmd:    "./stop.sh bkmonitorbeat",
+						RestartCmd: "./restart.sh bkmonitorbeat",
+						ReloadCmd:  "./reload.sh bkmonitorbeat",
+						KillCmd:    "",
+						VersionCmd: "./bkmonitorbeat -v",
+						HealthCmd:  "",
+					},
+					Resource: types.ProcessResource{
+						CPULimitPercent: 10,
+						MemLimitPercent: 10,
+					},
+					MonitorPolicy: types.ProcessMonitorPolicy{
+						AutoType:       types.ProcessAutoTypeTrusteeship,
+						StartCheckSecs: 5,
+						StopCheckSecs:  0,
+						OpTimeoutSecs:  5,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.RestartProcess(tt.args.nCtx, tt.args.processSpec)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RestartProcess() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}
+
+// Test_Handler_StartProcess test Handler.StartProcess.
+func Test_Handler_StartProcess(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx        contextx.IContext
+		processSpec types.ProcessSpec
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx: nCtx,
+				processSpec: types.ProcessSpec{
+					AgentID: "020000000052540025157e1753363692251c",
+					Identity: types.ProcessIdentity{
+						Name:       "bkmonitorbeat",
+						SetupPath:  "/usr/local/gse2/plugins/bin",
+						PidPath:    "/var/run/gse2/bkmonitorbeat.pid",
+						ConfigPath: "/usr/local/gse2/plugins/etc/bkmonitorbeat.conf",
+						LogPath:    "/var/log/gse2",
+						User:       "root",
+					},
+					Controller: types.ProcessController{
+						StartCmd:   "./start.sh bkmonitorbeat",
+						StopCmd:    "./stop.sh bkmonitorbeat",
+						RestartCmd: "./restart.sh bkmonitorbeat",
+						ReloadCmd:  "./reload.sh bkmonitorbeat",
+						KillCmd:    "",
+						VersionCmd: "./bkmonitorbeat -v",
+						HealthCmd:  "",
+					},
+					Resource: types.ProcessResource{
+						CPULimitPercent: 10,
+						MemLimitPercent: 10,
+					},
+					MonitorPolicy: types.ProcessMonitorPolicy{
+						AutoType:       types.ProcessAutoTypeTrusteeship,
+						StartCheckSecs: 5,
+						StopCheckSecs:  0,
+						OpTimeoutSecs:  5,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.StartProcess(tt.args.nCtx, tt.args.processSpec)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("StartProcess() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}
+
+// Test_Handler_StopProcess test Handler.StopProcess.
+func Test_Handler_StopProcess(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx        contextx.IContext
+		processSpec types.ProcessSpec
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx: nCtx,
+				processSpec: types.ProcessSpec{
+					AgentID: "020000000052540025157e1753363692251c",
+					Identity: types.ProcessIdentity{
+						Name:       "bkmonitorbeat",
+						SetupPath:  "/usr/local/gse2/plugins/bin",
+						PidPath:    "/var/run/gse2/bkmonitorbeat.pid",
+						ConfigPath: "/usr/local/gse2/plugins/etc/bkmonitorbeat.conf",
+						LogPath:    "/var/log/gse2",
+						User:       "root",
+					},
+					Controller: types.ProcessController{
+						StartCmd:   "./start.sh bkmonitorbeat",
+						StopCmd:    "./stop.sh bkmonitorbeat",
+						RestartCmd: "./restart.sh bkmonitorbeat",
+						ReloadCmd:  "./reload.sh bkmonitorbeat",
+						KillCmd:    "",
+						VersionCmd: "./bkmonitorbeat -v",
+						HealthCmd:  "",
+					},
+					Resource: types.ProcessResource{
+						CPULimitPercent: 10,
+						MemLimitPercent: 10,
+					},
+					MonitorPolicy: types.ProcessMonitorPolicy{
+						AutoType:       types.ProcessAutoTypeTrusteeship,
+						StartCheckSecs: 5,
+						StopCheckSecs:  0,
+						OpTimeoutSecs:  5,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.StopProcess(tt.args.nCtx, tt.args.processSpec)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("StopProcess() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}
+
+// Test_Handler_TrusteeshipProcess test Handler.TrusteeshipProcess.
+func Test_Handler_TrusteeshipProcess(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx        contextx.IContext
+		processSpec types.ProcessSpec
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx: nCtx,
+				processSpec: types.ProcessSpec{
+					AgentID: "020000000052540025157e1753363692251c",
+					Identity: types.ProcessIdentity{
+						Name:       "bkmonitorbeat",
+						SetupPath:  "/usr/local/gse2/plugins/bin",
+						PidPath:    "/var/run/gse2/bkmonitorbeat.pid",
+						ConfigPath: "/usr/local/gse2/plugins/etc/bkmonitorbeat.conf",
+						LogPath:    "/var/log/gse2",
+						User:       "root",
+					},
+					Controller: types.ProcessController{
+						StartCmd:   "./start.sh bkmonitorbeat",
+						StopCmd:    "./stop.sh bkmonitorbeat",
+						RestartCmd: "./restart.sh bkmonitorbeat",
+						ReloadCmd:  "./reload.sh bkmonitorbeat",
+						KillCmd:    "",
+						VersionCmd: "./bkmonitorbeat -v",
+						HealthCmd:  "",
+					},
+					Resource: types.ProcessResource{
+						CPULimitPercent: 10,
+						MemLimitPercent: 10,
+					},
+					MonitorPolicy: types.ProcessMonitorPolicy{
+						AutoType:       types.ProcessAutoTypeTrusteeship,
+						StartCheckSecs: 5,
+						StopCheckSecs:  0,
+						OpTimeoutSecs:  5,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.TrusteeshipProcess(tt.args.nCtx, tt.args.processSpec)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("TrusteeshipProcess() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}
+
+// Test_Handler_UnTrusteeshipProcess test Handler.UnTrusteeshipProcess.
+func Test_Handler_UnTrusteeshipProcess(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx        contextx.IContext
+		processSpec types.ProcessSpec
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx: nCtx,
+				processSpec: types.ProcessSpec{
+					AgentID: "020000000052540025157e1753363692251c",
+					Identity: types.ProcessIdentity{
+						Name:       "bkmonitorbeat",
+						SetupPath:  "/usr/local/gse2/plugins/bin",
+						PidPath:    "/var/run/gse2/bkmonitorbeat.pid",
+						ConfigPath: "/usr/local/gse2/plugins/etc/bkmonitorbeat.conf",
+						LogPath:    "/var/log/gse2",
+						User:       "root",
+					},
+					Controller: types.ProcessController{
+						StartCmd:   "./start.sh bkmonitorbeat",
+						StopCmd:    "./stop.sh bkmonitorbeat",
+						RestartCmd: "./restart.sh bkmonitorbeat",
+						ReloadCmd:  "./reload.sh bkmonitorbeat",
+						KillCmd:    "",
+						VersionCmd: "./bkmonitorbeat -v",
+						HealthCmd:  "",
+					},
+					Resource: types.ProcessResource{
+						CPULimitPercent: 10,
+						MemLimitPercent: 10,
+					},
+					MonitorPolicy: types.ProcessMonitorPolicy{
+						AutoType:       types.ProcessAutoTypeTrusteeship,
+						StartCheckSecs: 5,
+						StopCheckSecs:  0,
+						OpTimeoutSecs:  5,
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.UnTrusteeshipProcess(tt.args.nCtx, tt.args.processSpec)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnTrusteeshipProcess() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}
+
+// TestHandler_QueryProcessInfo test
+func TestHandler_QueryProcessInfo(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx        contextx.IContext
+		processName string
+		agentIDList []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx:        nCtx,
+				processName: "bkmonitorbeat",
+				agentIDList: []string{
+					"020000000052540025157e1753363692251c",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.QueryProcessInfo(tt.args.nCtx, tt.args.processName, tt.args.agentIDList...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("QueryProcessInfo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
 		})
 	}
 }
