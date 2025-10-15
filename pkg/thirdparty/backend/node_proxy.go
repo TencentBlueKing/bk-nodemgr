@@ -11,7 +11,7 @@
 package backend
 
 import (
-	"context"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -70,11 +70,6 @@ func (h *Handler) ReconfigProxy(ctx contextx.IContext, reconfigParam *types.Node
 	return resp.GetWorkflowID(), nil
 }
 
-// UninstallProxy node proxy.
-func (h *Handler) UninstallProxy(ctx context.Context) (string, error) {
-	return "", nil
-}
-
 // UpdateProxy update node proxy.
 func (h *Handler) UpdateProxy(ctx contextx.IContext, updateParam *types.NodeProxyUpdateParam) error {
 	req := new(protoBackend.NodeProxyUpdateReq)
@@ -86,4 +81,17 @@ func (h *Handler) UpdateProxy(ctx contextx.IContext, updateParam *types.NodeProx
 	}
 
 	return nil
+}
+
+// UninstallProxy node proxy.
+func (h *Handler) UninstallProxy(ctx contextx.IContext, uninstallParam *types.NodeProxyUninstallParam) (string, error) {
+	req := new(protoBackend.NodeProxyUninstallReq)
+	req.ConvertParamFromTypes(uninstallParam)
+
+	resp, err := h.cli.uninstallNodeProxy(ctx, req)
+	if err != nil {
+		return "", fmt.Errorf("failed to uninstall proxy: %w", err)
+	}
+
+	return resp.GetWorkflowID(), nil
 }

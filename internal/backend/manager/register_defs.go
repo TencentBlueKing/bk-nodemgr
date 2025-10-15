@@ -88,6 +88,8 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionInstallPagentByWMI(nodeCap),
 		node.NewActionEnableReleaseTransfer(nodeCap),
 		node.NewActionUpgradePagent(nodeCap),
+		node.NewActionUninstallNode(nodeCap),
+		node.NewActionUpdateNodeStatusDamaged(nodeCap),
 	); err != nil {
 		return err
 	}

@@ -118,6 +118,40 @@
         ]
       }
     },
+    "/api/v3/node/proxy/uninstall": {
+      "post": {
+        "summary": "NodeProxyUninstall uninstall node proxy.",
+        "operationId": "NodeProxy_NodeProxyUninstall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyUninstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeProxyUninstallReq describes the node proxy uninstall request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeProxyUninstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeProxy"
+        ]
+      }
+    },
     "/api/v3/node/proxy/update": {
       "post": {
         "summary": "NodeProxyUpdate updates node proxy.",
@@ -475,6 +509,58 @@
       "description": "NodeProxyRestartResp describes the node proxy restart response."
     },
     "v3NodeProxyRestartRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeProxyUninstallHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeProxyUninstallReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeProxyUninstallHost"
+          }
+        }
+      },
+      "description": "NodeProxyUninstallReq describes the node proxy uninstall request."
+    },
+    "v3NodeProxyUninstallResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeProxyUninstallRespData"
+        }
+      },
+      "description": "NodeProxyUninstallResp describes the node proxy uninstall response."
+    },
+    "v3NodeProxyUninstallRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {

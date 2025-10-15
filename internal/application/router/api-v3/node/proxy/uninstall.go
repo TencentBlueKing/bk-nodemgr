@@ -17,23 +17,23 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-// Install proxy.
-func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeProxyInstallReq)
+// Uninstall uninstalls proxy.
+func (h *handler) Uninstall(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.NodeProxyUninstallReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install proxy, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.backendHandler.InstallProxy(rCtx, req.ConvertProxyParamToTypes())
+	workflowID, err := h.backendHandler.UninstallProxy(rCtx, req.ConvertParamToTypes())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install proxy")
-		return nil, err
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched proxy install")
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched proxy uninstall")
 
-	resp := new(protoApplication.NodeProxyInstallResp)
+	resp := new(protoApplication.NodeProxyUninstallResp)
 	resp.ConvertWorkflowID(workflowID)
 
 	return resp.GetData(), nil

@@ -218,6 +218,12 @@ type IHandlerNodeAgent interface {
 	// @return the check result and error.
 	CheckAgentInstall(ctx contextx.IContext, checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error)
 
+	// UninstallAgent node agent.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param uninstallParam the uninstall param.
+	// @return the restarting workflow-ids and error.
+	UninstallAgent(ctx contextx.IContext, uninstallParam *types.NodeAgentUninstallParam) (string, error)
+
 	// OperationRetry node agent.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param retryParam the retry param.
@@ -256,6 +262,12 @@ type IHandlerNodeProxy interface {
 	// @param updateParam the update param.
 	// @return the error.
 	UpdateProxy(ctx contextx.IContext, updateParam *types.NodeProxyUpdateParam) error
+
+	// UninstallProxy node proxy.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param uninstallParam the uninstall param.
+	// @return the restarting workflow-ids and error.
+	UninstallProxy(ctx contextx.IContext, uninstallParm *types.NodeProxyUninstallParam) (string, error)
 }
 
 // IHandlerNodeWorkflow defines the node workflow Handler.

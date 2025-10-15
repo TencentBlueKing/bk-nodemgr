@@ -423,3 +423,58 @@ func (x *UploadAgentTemplateReq) AutoConvert() {
 func (x *UploadAgentTemplateReq) Validate() error {
 	return nil
 }
+
+// AutoConvert auto convert.
+func (x *NodeAgentUninstallReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *NodeAgentUninstallReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ConvertParamToTypes convert to types.
+func (x *NodeAgentUninstallReq) ConvertParamToTypes() *types.NodeAgentUninstallParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.NodeAgentUninstallHost, len(hosts))
+
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.NodeAgentUninstallHost{
+			HostID: host.GetBkHostId(),
+		}
+	}
+
+	return &types.NodeAgentUninstallParam{
+		Hosts: hostsParam,
+	}
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeAgentUninstallHost) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	return nil
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentUninstallResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentUninstallResp_Data{WorkflowId: workflowID}
+}

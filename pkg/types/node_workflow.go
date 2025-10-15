@@ -68,6 +68,12 @@ const (
 	// NodeWorkflowTypeReconfigAgent is the operation type for reconfig.
 	NodeWorkflowTypeReconfigAgent NodeWorkflowType = "reconfig_agent"
 
+	// NodeWorkflowTypeUninstallAgent is the operation type for reconfig.
+	NodeWorkflowTypeUninstallAgent NodeWorkflowType = "uninstall_agent"
+
+	// NodeWorkflowTypeUninstallProxy is the operation type for reconfig.
+	NodeWorkflowTypeUninstallProxy NodeWorkflowType = "uninstall_proxy"
+
 	// NodeWorkflowTypeReconfigProxy is the operation type for reconfig proxy.
 	NodeWorkflowTypeReconfigProxy NodeWorkflowType = "reconfig_proxy"
 
@@ -84,7 +90,8 @@ func (nwo NodeWorkflowType) Validate() error {
 	case NodeWorkflowTypeInstallAgent, NodeWorkflowTypeInstallProxy,
 		NodeWorkflowTypeUpgradeAgent, NodeWorkflowTypeUpgradeProxy,
 		NodeWorkflowTypeReconfigAgent, NodeWorkflowTypeReconfigProxy,
-		NodeWorkflowTypeRestartAgent, NodeWorkflowTypeRestartProxy:
+		NodeWorkflowTypeRestartAgent, NodeWorkflowTypeRestartProxy,
+		NodeWorkflowTypeUninstallAgent, NodeWorkflowTypeUninstallProxy:
 		return nil
 	default:
 		return fmt.Errorf("invalid node workflow oper type, oper-type(%s)", nwo)

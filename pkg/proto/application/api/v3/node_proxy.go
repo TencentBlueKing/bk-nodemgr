@@ -92,8 +92,8 @@ func (x *NodeProxyInstallHost) AutoConvert() {
 	}
 }
 
-// ConvertAgentParamToTypes convert to types.
-func (x *NodeProxyInstallReq) ConvertAgentParamToTypes() *types.NodeProxyInstallParam {
+// ConvertProxyParamToTypes convert to types.
+func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstallParam {
 	hosts := x.GetHost()
 	if hosts == nil {
 		return nil
@@ -440,4 +440,59 @@ func (x *NodeProxyUpdateHost) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeProxyUpdateHost) AutoConvert() {
+}
+
+// AutoConvert auto convert.
+func (x *NodeProxyUninstallReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *NodeProxyUninstallReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ConvertParamToTypes convert to types.
+func (x *NodeProxyUninstallReq) ConvertParamToTypes() *types.NodeProxyUninstallParam {
+	hosts := x.GetHost()
+	if hosts == nil {
+		return nil
+	}
+
+	hostsParam := make([]*types.NodeProxyUninstallHost, len(hosts))
+
+	for idx, host := range hosts {
+		hostsParam[idx] = &types.NodeProxyUninstallHost{
+			HostID: host.GetBkHostId(),
+		}
+	}
+
+	return &types.NodeProxyUninstallParam{
+		Hosts: hostsParam,
+	}
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *NodeProxyUninstallHost) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	return nil
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeProxyUninstallResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeProxyUninstallResp_Data{WorkflowId: workflowID}
 }

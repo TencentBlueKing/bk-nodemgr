@@ -75,6 +75,16 @@ type NodeAgentReconfigParam struct {
 	Hosts []*NodeAgentReconfigHost
 }
 
+// NodeAgentUninstallHost describes the node agent uninstall host.
+type NodeAgentUninstallHost struct {
+	HostID int64
+}
+
+// NodeAgentUninstallParam describes the node agent uninstall parameter.
+type NodeAgentUninstallParam struct {
+	Hosts []*NodeAgentUninstallHost
+}
+
 // NodeAgentInstallCheckInfo describes the node agent install check info.
 type NodeAgentInstallCheckInfo struct {
 	BizID         int64

@@ -152,6 +152,40 @@
         ]
       }
     },
+    "/api/v3/node/agent/uninstall": {
+      "post": {
+        "summary": "NodeAgentUninstall uninstalls node agent.",
+        "operationId": "NodeAgent_NodeAgentUninstall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUninstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeAgentUninstallReq describes the node agent uninstall request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeAgentUninstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeAgent"
+        ]
+      }
+    },
     "/api/v3/node/agent/upgrade": {
       "post": {
         "summary": "NodeAgentUpgrade upgrades node agent.",
@@ -564,6 +598,58 @@
       "description": "NodeAgentRestartResp describes the node agent restart response."
     },
     "v3NodeAgentRestartRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3NodeAgentUninstallReq": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NodeAgentUninstallReqHost"
+          }
+        }
+      },
+      "description": "NodeAgentUninstallReq describes the node agent uninstall request."
+    },
+    "v3NodeAgentUninstallReqHost": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3NodeAgentUninstallResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeAgentUninstallRespData"
+        }
+      },
+      "description": "NodeAgentUninstallResp describes the node agent uninstall response."
+    },
+    "v3NodeAgentUninstallRespData": {
       "type": "object",
       "properties": {
         "workflow_id": {

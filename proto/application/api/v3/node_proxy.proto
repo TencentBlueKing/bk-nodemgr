@@ -123,6 +123,22 @@ message NodeProxyUpdateHost {
   repeated string proxy_tags = 10;
 }
 
+message NodeProxyUninstallHost { int64 bk_host_id = 1; }
+
+// NodeProxyUninstallReq describes the node proxy uninstall request.
+message NodeProxyUninstallReq { repeated NodeProxyUninstallHost host = 1; }
+
+// NodeProxyUninstallResp describes the node proxy uninstall response.
+message NodeProxyUninstallResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // NodeProxyUpdateReq describes the node proxy update request.
 message NodeProxyUpdateReq { repeated NodeProxyUpdateHost Host = 1; }
 
@@ -174,6 +190,15 @@ service NodeProxy {
   rpc NodeProxyUpdate(NodeProxyUpdateReq) returns (NodeProxyUpdateResp) {
     option (google.api.http) = {
       post : "/api/v3/node/proxy/update"
+      body : "*"
+    };
+  }
+
+  // NodeProxyUninstall uninstall node proxy.
+  rpc NodeProxyUninstall(NodeProxyUninstallReq)
+      returns (NodeProxyUninstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/proxy/uninstall"
       body : "*"
     };
   }

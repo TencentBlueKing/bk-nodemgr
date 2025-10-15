@@ -316,6 +316,62 @@ func (x *NodeAgentRestartResp) GetWorkflowID() string {
 }
 
 // Validate check body.
+func (x *NodeAgentUninstallReq) Validate() error {
+	hosts := x.GetHost()
+	if len(hosts) == 0 {
+		return errors.New("host can not be empty")
+	}
+
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+func (x *NodeAgentUninstallReq_Host) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id must be equal or greater than 0")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeAgentUninstallReq) AutoConvert() {
+}
+
+// ConvertParamFromTypes convert host param from types.
+func (x *NodeAgentUninstallReq) ConvertParamFromTypes(restartParam *types.NodeAgentUninstallParam) {
+	hostsParam := make([]*NodeAgentUninstallReq_Host, len(restartParam.Hosts))
+	for idx, host := range restartParam.Hosts {
+		hostsParam[idx] = &NodeAgentUninstallReq_Host{
+			BkHostId: host.HostID,
+		}
+	}
+
+	x.Host = hostsParam
+}
+
+// ConvertWorkflowID convert workflow id.
+func (x *NodeAgentUninstallResp) ConvertWorkflowID(workflowID string) {
+	x.Data = &NodeAgentUninstallResp_Data{WorkflowId: workflowID}
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeAgentUninstallResp) GetWorkflowID() string {
+	data := x.GetData()
+	if data == nil {
+		return ""
+	}
+
+	return data.GetWorkflowId()
+}
+
+// Validate check body.
 func (x *NodeAgentInstallCheckReq) Validate() error {
 	hosts := x.GetHost()
 	if len(hosts) == 0 {

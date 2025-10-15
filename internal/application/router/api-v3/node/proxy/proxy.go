@@ -40,4 +40,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/restart", restserver.Handler(h.Restart))
 	h.rg.POST("/reconfig", restserver.Handler(h.Reconfig))
 	h.rg.POST("/update", restserver.Handler(h.Update))
+	h.rg.POST("/uninstall", restserver.Handler(h.Uninstall))
 }

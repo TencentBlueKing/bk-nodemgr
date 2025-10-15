@@ -52,11 +52,6 @@ func (h *Handler) CheckAgentInstall(ctx contextx.IContext,
 	return result, nil
 }
 
-// UninstallAgent node agent.
-func (h *Handler) UninstallAgent(_ contextx.IContext) (string, error) {
-	return "", nil
-}
-
 // UpgradeAgent node agent.
 func (h *Handler) UpgradeAgent(ctx contextx.IContext, upgradeParam *types.NodeAgentUpgradeParam) (string, error) {
 	req := new(protoBackend.NodeAgentUpgradeReq)
@@ -78,7 +73,7 @@ func (h *Handler) RestartAgent(ctx contextx.IContext, restartParam *types.NodeAg
 
 	resp, err := h.cli.restartNodeAgent(ctx, req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to restart agent: %w", err)
 	}
 
 	return resp.GetWorkflowID(), nil
@@ -91,13 +86,21 @@ func (h *Handler) ReconfigAgent(ctx contextx.IContext, reconfigParam *types.Node
 
 	resp, err := h.cli.reconfigNodeAgent(ctx, req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to reconfig agent: %w", err)
 	}
 
 	return resp.GetWorkflowID(), nil
 }
 
-// ReloadAgent node agent.
-func (h *Handler) ReloadAgent(_ contextx.IContext) (string, error) {
-	return "", nil
+// UninstallAgent node agent.
+func (h *Handler) UninstallAgent(ctx contextx.IContext, reconfigParam *types.NodeAgentUninstallParam) (string, error) {
+	req := new(protoBackend.NodeAgentUninstallReq)
+	req.ConvertParamFromTypes(reconfigParam)
+
+	resp, err := h.cli.uninstallNodeAgent(ctx, req)
+	if err != nil {
+		return "", fmt.Errorf("failed to uninstall agent: %w", err)
+	}
+
+	return resp.GetWorkflowID(), nil
 }

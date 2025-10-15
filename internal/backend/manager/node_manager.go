@@ -28,7 +28,6 @@ import (
 
 // INodeManager defines the NodeManager interface.
 type INodeManager interface {
-
 	// LaunchInstallNode launch a task to install node. returns the workflow-id.
 	LaunchInstallNode(ctx contextx.IContext, param InstallNodeParam) (string, error)
 
@@ -40,6 +39,9 @@ type INodeManager interface {
 
 	// LaunchRestartNode launch a task to restart node. returns the workflow-id.
 	LaunchRestartNode(ctx contextx.IContext, param RestartNodeParam) (string, error)
+
+	// LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
+	LaunchUninstallNode(ctx contextx.IContext, param UninstallNodeParam) (string, error)
 
 	// RetryOperationNode launch a task to retry operation instance
 	RetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) ([]string, error)
@@ -71,6 +73,14 @@ type ReconfigNodeParam struct {
 
 // RestartNodeParam restart node param.
 type RestartNodeParam struct {
+	Type            types.NodeWorkflowType
+	BizIDs          []int64
+	Operator        string
+	NodeDeployments []*types.NodeDeployment
+}
+
+// UninstallNodeParam uninstall node param.
+type UninstallNodeParam struct {
 	Type            types.NodeWorkflowType
 	BizIDs          []int64
 	Operator        string
@@ -525,6 +535,81 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param RestartNodeP
 
 	if err := gp.Wait(); err != nil {
 		return "", fmt.Errorf("failed to launch restart node task. err: %w", err)
+	}
+
+	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
+}
+
+// LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
+func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param UninstallNodeParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		BizIDs:      param.BizIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.NodeWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	logger.G.Biz(nCtx).
+		With("trigger-id", triggerCtl.GetTriggerID(), "node-deployments", len(param.NodeDeployments)).
+		Info("launching uninstall node")
+
+	gp := gopool.NewPool()
+	for _, nodeDeploy := range param.NodeDeployments {
+		deploy := nodeDeploy
+		deploy.Info.TransferOptions.SelectDownloads = true
+		deploy.Info.TransferOptions.EnableInstaller = true
+
+		gp.Go(func() error {
+			if err := mgr.conf.StorageNode.CreateNodeDeployment(nCtx, deploy); err != nil {
+				logger.G.Biz(nCtx).
+					WithErr(err).
+					With("trigger-id", triggerCtl.GetTriggerID(), "token", deploy.Token).
+					Error("failed to launch uninstall node, failed to create node deployment")
+
+				return err
+			}
+
+			operationDef := node.NewOperUninstallNode(node.OperParamUninstallNode{
+				Token:    deploy.Token,
+				Operator: param.Operator,
+			})
+			operationParam := operationDef.DefaultParameters()
+
+			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+			if err != nil {
+				logger.G.Biz(nCtx).
+					WithErr(err).
+					With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+					Error("failed to launch uninstall node, failed to create operation")
+
+				return err
+			}
+
+			logger.G.Biz(nCtx).
+				With("trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID(), "token", deploy.Token).
+				Info("launched uninstall node")
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch uninstall node task: %w", err)
 	}
 
 	if err = triggerCtl.RunTrigger(nCtx); err != nil {

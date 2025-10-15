@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package agent ...
-package agent
+// Package proxy ...
+package proxy
 
 import (
 	"errors"
@@ -25,17 +25,17 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// AgentUninstall uninstall agent.
-func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.NodeAgentUninstallReq)
+// Uninstall uninstalls proxy.
+func (h *handler) Uninstall(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.NodeProxyUninstallReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall agent, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	hosts, err := h.getUninstallNodeHosts(rCtx, req.GetHost())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall agent, failed to get host list")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy, failed to get host list")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -46,7 +46,7 @@ func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) 
 
 		nodeDeploy, err := h.generatesUninstallDeploys(rCtx.TenantID(), reqHost, hosts)
 		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall agent, failed to generate node deployment")
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy, failed to generate node deployment")
 
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
@@ -55,20 +55,20 @@ func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) 
 	}
 
 	workflowID, err := h.manager.LaunchUninstallNode(rCtx, manager.UninstallNodeParam{
-		Type:            types.NodeWorkflowTypeUninstallAgent,
+		Type:            types.NodeWorkflowTypeUninstallProxy,
 		BizIDs:          h.getUninstallNodeBizIDs(hosts),
 		Operator:        rCtx.BKUsername(),
 		NodeDeployments: nodeDeploys,
 	})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall agent")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to uninstall proxy")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	resp := new(protoBackend.NodeAgentUninstallResp)
+	resp := new(protoBackend.NodeProxyUninstallResp)
 	resp.ConvertWorkflowID(workflowID)
 
-	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched uninstall agent workflow")
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched uninstall proxy workflow")
 
 	return resp.GetData(), nil
 }
@@ -83,7 +83,7 @@ func (h *handler) getUninstallNodeBizIDs(hostMap map[int64]*types.Host) []int64 
 }
 
 func (h *handler) getUninstallNodeHosts(
-	nCtx contextx.IContext, reqHosts []*protoBackend.NodeAgentUninstallReq_Host) (map[int64]*types.Host, error) {
+	nCtx contextx.IContext, reqHosts []*protoBackend.NodeProxyUninstallReq_Host) (map[int64]*types.Host, error) {
 
 	if len(reqHosts) == 0 {
 		return nil, errors.New("empty host list")
@@ -110,7 +110,7 @@ func (h *handler) getUninstallNodeHosts(
 
 func (h *handler) generatesUninstallDeploys(
 	tenantID string,
-	reqHost *protoBackend.NodeAgentUninstallReq_Host,
+	reqHost *protoBackend.NodeProxyUninstallReq_Host,
 	hostMap map[int64]*types.Host) (*types.NodeDeployment, error) {
 
 	hostID := reqHost.GetBkHostId()
@@ -119,6 +119,7 @@ func (h *handler) generatesUninstallDeploys(
 		return nil, fmt.Errorf("host not found. host-id(%d)", hostID)
 	}
 
+	// uninstall ,we need to clear the proxy dynamic config
 	nodeDeployment := types.NewNodeDeployment(&types.DeploymentInfo{
 		Host: types.Host{
 			TenantID: tenantID,

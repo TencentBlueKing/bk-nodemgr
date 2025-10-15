@@ -102,6 +102,22 @@ message NodeAgentRestartResp {
   Data data = 5;
 }
 
+message NodeAgentUninstallHost { int64 bk_host_id = 1; }
+
+// NodeAgentUninstallReq describes the node agent uninstall request.
+message NodeAgentUninstallReq { repeated NodeAgentUninstallHost host = 1; }
+
+// NodeAgentUninstallResp describes the node agent uninstall response.
+message NodeAgentUninstallResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // AgentInstallCheckInfo describes the node agent install check parameter.
 message AgentInstallCheckInfo {
   int64 bk_biz_id = 1;
@@ -188,6 +204,15 @@ service NodeAgent {
   rpc NodeAgentReconfig(NodeAgentReconfigReq) returns (NodeAgentReconfigResp) {
     option (google.api.http) = {
       post : "/api/v3/node/agent/reconfig"
+      body : "*"
+    };
+  }
+
+  // NodeAgentUninstall uninstalls node agent.
+  rpc NodeAgentUninstall(NodeAgentUninstallReq)
+      returns (NodeAgentUninstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/agent/uninstall"
       body : "*"
     };
   }

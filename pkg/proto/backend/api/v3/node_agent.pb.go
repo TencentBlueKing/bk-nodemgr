@@ -711,6 +711,128 @@ func (x *NodeAgentRestartResp) GetData() *NodeAgentRestartResp_Data {
 	return nil
 }
 
+// NodeAgentUninstallReq describes the node agent uninstall request.
+type NodeAgentUninstallReq struct {
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	Host          []*NodeAgentUninstallReq_Host `protobuf:"bytes,1,rep,name=host,proto3" json:"host"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentUninstallReq) Reset() {
+	*x = NodeAgentUninstallReq{}
+	mi := &file_node_agent_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentUninstallReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentUninstallReq) ProtoMessage() {}
+
+func (x *NodeAgentUninstallReq) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentUninstallReq.ProtoReflect.Descriptor instead.
+func (*NodeAgentUninstallReq) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *NodeAgentUninstallReq) GetHost() []*NodeAgentUninstallReq_Host {
+	if x != nil {
+		return x.Host
+	}
+	return nil
+}
+
+// NodeAgentUninstallResp describes the node agent uninstall response.
+type NodeAgentUninstallResp struct {
+	state         protoimpl.MessageState       `protogen:"open.v1"`
+	Code          int32                        `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                       `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                       `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                       `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Data          *NodeAgentUninstallResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentUninstallResp) Reset() {
+	*x = NodeAgentUninstallResp{}
+	mi := &file_node_agent_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentUninstallResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentUninstallResp) ProtoMessage() {}
+
+func (x *NodeAgentUninstallResp) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentUninstallResp.ProtoReflect.Descriptor instead.
+func (*NodeAgentUninstallResp) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *NodeAgentUninstallResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *NodeAgentUninstallResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *NodeAgentUninstallResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *NodeAgentUninstallResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *NodeAgentUninstallResp) GetData() *NodeAgentUninstallResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type NodeAgentInstallReq_Host struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	BkAddressing    string                 `protobuf:"bytes,1,opt,name=bk_addressing,json=bkAddressing,proto3" json:"bk_addressing"`
@@ -734,7 +856,7 @@ type NodeAgentInstallReq_Host struct {
 
 func (x *NodeAgentInstallReq_Host) Reset() {
 	*x = NodeAgentInstallReq_Host{}
-	mi := &file_node_agent_proto_msgTypes[11]
+	mi := &file_node_agent_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -746,7 +868,7 @@ func (x *NodeAgentInstallReq_Host) String() string {
 func (*NodeAgentInstallReq_Host) ProtoMessage() {}
 
 func (x *NodeAgentInstallReq_Host) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[11]
+	mi := &file_node_agent_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -871,7 +993,7 @@ type NodeAgentInstallReq_TargetVersion struct {
 
 func (x *NodeAgentInstallReq_TargetVersion) Reset() {
 	*x = NodeAgentInstallReq_TargetVersion{}
-	mi := &file_node_agent_proto_msgTypes[12]
+	mi := &file_node_agent_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -883,7 +1005,7 @@ func (x *NodeAgentInstallReq_TargetVersion) String() string {
 func (*NodeAgentInstallReq_TargetVersion) ProtoMessage() {}
 
 func (x *NodeAgentInstallReq_TargetVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[12]
+	mi := &file_node_agent_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -929,7 +1051,7 @@ type NodeAgentInstallResp_Data struct {
 
 func (x *NodeAgentInstallResp_Data) Reset() {
 	*x = NodeAgentInstallResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[13]
+	mi := &file_node_agent_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -941,7 +1063,7 @@ func (x *NodeAgentInstallResp_Data) String() string {
 func (*NodeAgentInstallResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentInstallResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[13]
+	mi := &file_node_agent_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +1098,7 @@ type NodeAgentInstallCheckReq_Host struct {
 
 func (x *NodeAgentInstallCheckReq_Host) Reset() {
 	*x = NodeAgentInstallCheckReq_Host{}
-	mi := &file_node_agent_proto_msgTypes[14]
+	mi := &file_node_agent_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -988,7 +1110,7 @@ func (x *NodeAgentInstallCheckReq_Host) String() string {
 func (*NodeAgentInstallCheckReq_Host) ProtoMessage() {}
 
 func (x *NodeAgentInstallCheckReq_Host) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[14]
+	mi := &file_node_agent_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1042,7 +1164,7 @@ type NodeAgentInstallCheckResp_Data struct {
 
 func (x *NodeAgentInstallCheckResp_Data) Reset() {
 	*x = NodeAgentInstallCheckResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[15]
+	mi := &file_node_agent_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1054,7 +1176,7 @@ func (x *NodeAgentInstallCheckResp_Data) String() string {
 func (*NodeAgentInstallCheckResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentInstallCheckResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[15]
+	mi := &file_node_agent_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1096,7 +1218,7 @@ type NodeAgentUpgradeReq_Host struct {
 
 func (x *NodeAgentUpgradeReq_Host) Reset() {
 	*x = NodeAgentUpgradeReq_Host{}
-	mi := &file_node_agent_proto_msgTypes[16]
+	mi := &file_node_agent_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1108,7 +1230,7 @@ func (x *NodeAgentUpgradeReq_Host) String() string {
 func (*NodeAgentUpgradeReq_Host) ProtoMessage() {}
 
 func (x *NodeAgentUpgradeReq_Host) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[16]
+	mi := &file_node_agent_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1161,7 +1283,7 @@ type NodeAgentUpgradeResp_Data struct {
 
 func (x *NodeAgentUpgradeResp_Data) Reset() {
 	*x = NodeAgentUpgradeResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[17]
+	mi := &file_node_agent_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1173,7 +1295,7 @@ func (x *NodeAgentUpgradeResp_Data) String() string {
 func (*NodeAgentUpgradeResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentUpgradeResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[17]
+	mi := &file_node_agent_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1207,7 +1329,7 @@ type NodeAgentReconfigReq_Host struct {
 
 func (x *NodeAgentReconfigReq_Host) Reset() {
 	*x = NodeAgentReconfigReq_Host{}
-	mi := &file_node_agent_proto_msgTypes[18]
+	mi := &file_node_agent_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1219,7 +1341,7 @@ func (x *NodeAgentReconfigReq_Host) String() string {
 func (*NodeAgentReconfigReq_Host) ProtoMessage() {}
 
 func (x *NodeAgentReconfigReq_Host) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[18]
+	mi := &file_node_agent_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1265,7 +1387,7 @@ type NodeAgentReconfigResp_Data struct {
 
 func (x *NodeAgentReconfigResp_Data) Reset() {
 	*x = NodeAgentReconfigResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[19]
+	mi := &file_node_agent_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1277,7 +1399,7 @@ func (x *NodeAgentReconfigResp_Data) String() string {
 func (*NodeAgentReconfigResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentReconfigResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[19]
+	mi := &file_node_agent_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1311,7 +1433,7 @@ type NodeAgentRestartReq_Host struct {
 
 func (x *NodeAgentRestartReq_Host) Reset() {
 	*x = NodeAgentRestartReq_Host{}
-	mi := &file_node_agent_proto_msgTypes[20]
+	mi := &file_node_agent_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1323,7 +1445,7 @@ func (x *NodeAgentRestartReq_Host) String() string {
 func (*NodeAgentRestartReq_Host) ProtoMessage() {}
 
 func (x *NodeAgentRestartReq_Host) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[20]
+	mi := &file_node_agent_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1369,7 +1491,7 @@ type NodeAgentRestartResp_Data struct {
 
 func (x *NodeAgentRestartResp_Data) Reset() {
 	*x = NodeAgentRestartResp_Data{}
-	mi := &file_node_agent_proto_msgTypes[21]
+	mi := &file_node_agent_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1381,7 +1503,7 @@ func (x *NodeAgentRestartResp_Data) String() string {
 func (*NodeAgentRestartResp_Data) ProtoMessage() {}
 
 func (x *NodeAgentRestartResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_node_agent_proto_msgTypes[21]
+	mi := &file_node_agent_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1398,6 +1520,94 @@ func (*NodeAgentRestartResp_Data) Descriptor() ([]byte, []int) {
 }
 
 func (x *NodeAgentRestartResp_Data) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+type NodeAgentUninstallReq_Host struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BkHostId      int64                  `protobuf:"varint,1,opt,name=bk_host_id,json=bkHostId,proto3" json:"bk_host_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentUninstallReq_Host) Reset() {
+	*x = NodeAgentUninstallReq_Host{}
+	mi := &file_node_agent_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentUninstallReq_Host) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentUninstallReq_Host) ProtoMessage() {}
+
+func (x *NodeAgentUninstallReq_Host) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentUninstallReq_Host.ProtoReflect.Descriptor instead.
+func (*NodeAgentUninstallReq_Host) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{11, 0}
+}
+
+func (x *NodeAgentUninstallReq_Host) GetBkHostId() int64 {
+	if x != nil {
+		return x.BkHostId
+	}
+	return 0
+}
+
+type NodeAgentUninstallResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NodeAgentUninstallResp_Data) Reset() {
+	*x = NodeAgentUninstallResp_Data{}
+	mi := &file_node_agent_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeAgentUninstallResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeAgentUninstallResp_Data) ProtoMessage() {}
+
+func (x *NodeAgentUninstallResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_node_agent_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeAgentUninstallResp_Data.ProtoReflect.Descriptor instead.
+func (*NodeAgentUninstallResp_Data) Descriptor() ([]byte, []int) {
+	return file_node_agent_proto_rawDescGZIP(), []int{12, 0}
+}
+
+func (x *NodeAgentUninstallResp_Data) GetWorkflowId() string {
 	if x != nil {
 		return x.WorkflowId
 	}
@@ -1607,36 +1817,65 @@ var file_node_agent_proto_rawDesc = string([]byte{
 	0x52, 0x65, 0x73, 0x74, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61,
 	0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x27, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1f,
 	0x0a, 0x0b, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x64, 0x32,
-	0xcb, 0x04, 0x0a, 0x09, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x12, 0x6c, 0x0a,
-	0x10, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c,
-	0x6c, 0x12, 0x17, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74,
-	0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e,
-	0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c,
-	0x52, 0x65, 0x73, 0x70, 0x22, 0x25, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22,
-	0x1a, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x61, 0x67,
-	0x65, 0x6e, 0x74, 0x2f, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x12, 0x6c, 0x0a, 0x10, 0x4e,
-	0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x12,
-	0x17, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x70,
-	0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x71, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f,
-	0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65,
-	0x73, 0x70, 0x22, 0x25, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22, 0x1a, 0x2f,
-	0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e,
-	0x74, 0x2f, 0x75, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x12, 0x6c, 0x0a, 0x10, 0x4e, 0x6f, 0x64,
-	0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x74, 0x61, 0x72, 0x74, 0x12, 0x17, 0x2e,
-	0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x74,
-	0x61, 0x72, 0x74, 0x52, 0x65, 0x71, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65,
-	0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x74, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70,
-	0x22, 0x25, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22, 0x1a, 0x2f, 0x61, 0x70,
+	0x01, 0x28, 0x09, 0x52, 0x0a, 0x77, 0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x64, 0x22,
+	0x71, 0x0a, 0x15, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x6e, 0x69, 0x6e,
+	0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x12, 0x32, 0x0a, 0x04, 0x68, 0x6f, 0x73, 0x74,
+	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65,
+	0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65,
+	0x71, 0x2e, 0x48, 0x6f, 0x73, 0x74, 0x52, 0x04, 0x68, 0x6f, 0x73, 0x74, 0x1a, 0x24, 0x0a, 0x04,
+	0x48, 0x6f, 0x73, 0x74, 0x12, 0x1c, 0x0a, 0x0a, 0x62, 0x6b, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x5f,
+	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x62, 0x6b, 0x48, 0x6f, 0x73, 0x74,
+	0x49, 0x64, 0x22, 0xe4, 0x01, 0x0a, 0x16, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74,
+	0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a,
+	0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64,
+	0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65, 0x72,
+	0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e, 0x45,
+	0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x33, 0x0a, 0x04, 0x64,
+	0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x76, 0x33, 0x2e, 0x4e,
+	0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c,
+	0x6c, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61,
+	0x1a, 0x27, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1f, 0x0a, 0x0b, 0x77, 0x6f, 0x72, 0x6b,
+	0x66, 0x6c, 0x6f, 0x77, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x77,
+	0x6f, 0x72, 0x6b, 0x66, 0x6c, 0x6f, 0x77, 0x49, 0x64, 0x32, 0xc1, 0x05, 0x0a, 0x09, 0x4e, 0x6f,
+	0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x12, 0x6c, 0x0a, 0x10, 0x4e, 0x6f, 0x64, 0x65, 0x41,
+	0x67, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x12, 0x17, 0x2e, 0x76, 0x33,
+	0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c,
+	0x6c, 0x52, 0x65, 0x71, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67,
+	0x65, 0x6e, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70, 0x22, 0x25,
+	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22, 0x1a, 0x2f, 0x61, 0x70, 0x69, 0x2f,
+	0x76, 0x33, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x69, 0x6e,
+	0x73, 0x74, 0x61, 0x6c, 0x6c, 0x12, 0x6c, 0x0a, 0x10, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65,
+	0x6e, 0x74, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x12, 0x17, 0x2e, 0x76, 0x33, 0x2e, 0x4e,
+	0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52,
+	0x65, 0x71, 0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e,
+	0x74, 0x55, 0x70, 0x67, 0x72, 0x61, 0x64, 0x65, 0x52, 0x65, 0x73, 0x70, 0x22, 0x25, 0x82, 0xd3,
+	0xe4, 0x93, 0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22, 0x1a, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33,
+	0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x75, 0x70, 0x67, 0x72,
+	0x61, 0x64, 0x65, 0x12, 0x6c, 0x0a, 0x10, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74,
+	0x52, 0x65, 0x73, 0x74, 0x61, 0x72, 0x74, 0x12, 0x17, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64,
+	0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x73, 0x74, 0x61, 0x72, 0x74, 0x52, 0x65, 0x71,
+	0x1a, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52,
+	0x65, 0x73, 0x74, 0x61, 0x72, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x25, 0x82, 0xd3, 0xe4, 0x93,
+	0x02, 0x1f, 0x3a, 0x01, 0x2a, 0x22, 0x1a, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x6e,
+	0x6f, 0x64, 0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x72, 0x65, 0x73, 0x74, 0x61, 0x72,
+	0x74, 0x12, 0x70, 0x0a, 0x11, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65,
+	0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x71,
+	0x1a, 0x19, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52,
+	0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x22, 0x26, 0x82, 0xd3, 0xe4,
+	0x93, 0x02, 0x20, 0x3a, 0x01, 0x2a, 0x22, 0x1b, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f,
+	0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x72, 0x65, 0x63, 0x6f, 0x6e,
+	0x66, 0x69, 0x67, 0x12, 0x74, 0x0a, 0x12, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74,
+	0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x12, 0x19, 0x2e, 0x76, 0x33, 0x2e, 0x4e,
+	0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c,
+	0x6c, 0x52, 0x65, 0x71, 0x1a, 0x1a, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67,
+	0x65, 0x6e, 0x74, 0x55, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x52, 0x65, 0x73, 0x70,
+	0x22, 0x27, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x21, 0x3a, 0x01, 0x2a, 0x22, 0x1c, 0x2f, 0x61, 0x70,
 	0x69, 0x2f, 0x76, 0x33, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f,
-	0x72, 0x65, 0x73, 0x74, 0x61, 0x72, 0x74, 0x12, 0x70, 0x0a, 0x11, 0x4e, 0x6f, 0x64, 0x65, 0x41,
-	0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x18, 0x2e, 0x76,
-	0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x52, 0x65, 0x71, 0x1a, 0x19, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65,
-	0x41, 0x67, 0x65, 0x6e, 0x74, 0x52, 0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73,
-	0x70, 0x22, 0x26, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x20, 0x3a, 0x01, 0x2a, 0x22, 0x1b, 0x2f, 0x61,
-	0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x6e, 0x6f, 0x64, 0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74,
-	0x2f, 0x72, 0x65, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x12, 0x81, 0x01, 0x0a, 0x15, 0x4e, 0x6f,
+	0x75, 0x6e, 0x69, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x12, 0x81, 0x01, 0x0a, 0x15, 0x4e, 0x6f,
 	0x64, 0x65, 0x41, 0x67, 0x65, 0x6e, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x43, 0x68,
 	0x65, 0x63, 0x6b, 0x12, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x6f, 0x64, 0x65, 0x41, 0x67, 0x65,
 	0x6e, 0x74, 0x49, 0x6e, 0x73, 0x74, 0x61, 0x6c, 0x6c, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65,
@@ -1664,7 +1903,7 @@ func file_node_agent_proto_rawDescGZIP() []byte {
 	return file_node_agent_proto_rawDescData
 }
 
-var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_node_agent_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_node_agent_proto_goTypes = []any{
 	(*NodeAgentInstallReq)(nil),               // 0: v3.NodeAgentInstallReq
 	(*NodeAgentInstallResp)(nil),              // 1: v3.NodeAgentInstallResp
@@ -1677,52 +1916,61 @@ var file_node_agent_proto_goTypes = []any{
 	(*NodeAgentReconfigResp)(nil),             // 8: v3.NodeAgentReconfigResp
 	(*NodeAgentRestartReq)(nil),               // 9: v3.NodeAgentRestartReq
 	(*NodeAgentRestartResp)(nil),              // 10: v3.NodeAgentRestartResp
-	(*NodeAgentInstallReq_Host)(nil),          // 11: v3.NodeAgentInstallReq.Host
-	(*NodeAgentInstallReq_TargetVersion)(nil), // 12: v3.NodeAgentInstallReq.TargetVersion
-	(*NodeAgentInstallResp_Data)(nil),         // 13: v3.NodeAgentInstallResp.Data
-	(*NodeAgentInstallCheckReq_Host)(nil),     // 14: v3.NodeAgentInstallCheckReq.Host
-	(*NodeAgentInstallCheckResp_Data)(nil),    // 15: v3.NodeAgentInstallCheckResp.Data
-	(*NodeAgentUpgradeReq_Host)(nil),          // 16: v3.NodeAgentUpgradeReq.Host
-	(*NodeAgentUpgradeResp_Data)(nil),         // 17: v3.NodeAgentUpgradeResp.Data
-	(*NodeAgentReconfigReq_Host)(nil),         // 18: v3.NodeAgentReconfigReq.Host
-	(*NodeAgentReconfigResp_Data)(nil),        // 19: v3.NodeAgentReconfigResp.Data
-	(*NodeAgentRestartReq_Host)(nil),          // 20: v3.NodeAgentRestartReq.Host
-	(*NodeAgentRestartResp_Data)(nil),         // 21: v3.NodeAgentRestartResp.Data
-	(*Error)(nil),                             // 22: v3.Error
+	(*NodeAgentUninstallReq)(nil),             // 11: v3.NodeAgentUninstallReq
+	(*NodeAgentUninstallResp)(nil),            // 12: v3.NodeAgentUninstallResp
+	(*NodeAgentInstallReq_Host)(nil),          // 13: v3.NodeAgentInstallReq.Host
+	(*NodeAgentInstallReq_TargetVersion)(nil), // 14: v3.NodeAgentInstallReq.TargetVersion
+	(*NodeAgentInstallResp_Data)(nil),         // 15: v3.NodeAgentInstallResp.Data
+	(*NodeAgentInstallCheckReq_Host)(nil),     // 16: v3.NodeAgentInstallCheckReq.Host
+	(*NodeAgentInstallCheckResp_Data)(nil),    // 17: v3.NodeAgentInstallCheckResp.Data
+	(*NodeAgentUpgradeReq_Host)(nil),          // 18: v3.NodeAgentUpgradeReq.Host
+	(*NodeAgentUpgradeResp_Data)(nil),         // 19: v3.NodeAgentUpgradeResp.Data
+	(*NodeAgentReconfigReq_Host)(nil),         // 20: v3.NodeAgentReconfigReq.Host
+	(*NodeAgentReconfigResp_Data)(nil),        // 21: v3.NodeAgentReconfigResp.Data
+	(*NodeAgentRestartReq_Host)(nil),          // 22: v3.NodeAgentRestartReq.Host
+	(*NodeAgentRestartResp_Data)(nil),         // 23: v3.NodeAgentRestartResp.Data
+	(*NodeAgentUninstallReq_Host)(nil),        // 24: v3.NodeAgentUninstallReq.Host
+	(*NodeAgentUninstallResp_Data)(nil),       // 25: v3.NodeAgentUninstallResp.Data
+	(*Error)(nil),                             // 26: v3.Error
 }
 var file_node_agent_proto_depIdxs = []int32{
-	11, // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host
-	12, // 1: v3.NodeAgentInstallReq.target_version:type_name -> v3.NodeAgentInstallReq.TargetVersion
-	22, // 2: v3.NodeAgentInstallResp.error:type_name -> v3.Error
-	13, // 3: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
-	14, // 4: v3.NodeAgentInstallCheckReq.host:type_name -> v3.NodeAgentInstallCheckReq.Host
-	22, // 5: v3.NodeAgentInstallCheckResp.error:type_name -> v3.Error
-	15, // 6: v3.NodeAgentInstallCheckResp.data:type_name -> v3.NodeAgentInstallCheckResp.Data
-	16, // 7: v3.NodeAgentUpgradeReq.host:type_name -> v3.NodeAgentUpgradeReq.Host
-	22, // 8: v3.NodeAgentUpgradeResp.error:type_name -> v3.Error
-	17, // 9: v3.NodeAgentUpgradeResp.data:type_name -> v3.NodeAgentUpgradeResp.Data
-	18, // 10: v3.NodeAgentReconfigReq.host:type_name -> v3.NodeAgentReconfigReq.Host
-	22, // 11: v3.NodeAgentReconfigResp.error:type_name -> v3.Error
-	19, // 12: v3.NodeAgentReconfigResp.data:type_name -> v3.NodeAgentReconfigResp.Data
-	20, // 13: v3.NodeAgentRestartReq.host:type_name -> v3.NodeAgentRestartReq.Host
-	22, // 14: v3.NodeAgentRestartResp.error:type_name -> v3.Error
-	21, // 15: v3.NodeAgentRestartResp.data:type_name -> v3.NodeAgentRestartResp.Data
-	4,  // 16: v3.NodeAgentInstallCheckResp.Data.eligibilities:type_name -> v3.NodeAgentInstallEligibility
-	0,  // 17: v3.NodeAgent.NodeAgentInstall:input_type -> v3.NodeAgentInstallReq
-	5,  // 18: v3.NodeAgent.NodeAgentUpgrade:input_type -> v3.NodeAgentUpgradeReq
-	9,  // 19: v3.NodeAgent.NodeAgentRestart:input_type -> v3.NodeAgentRestartReq
-	7,  // 20: v3.NodeAgent.NodeAgentReconfig:input_type -> v3.NodeAgentReconfigReq
-	2,  // 21: v3.NodeAgent.NodeAgentInstallCheck:input_type -> v3.NodeAgentInstallCheckReq
-	1,  // 22: v3.NodeAgent.NodeAgentInstall:output_type -> v3.NodeAgentInstallResp
-	6,  // 23: v3.NodeAgent.NodeAgentUpgrade:output_type -> v3.NodeAgentUpgradeResp
-	10, // 24: v3.NodeAgent.NodeAgentRestart:output_type -> v3.NodeAgentRestartResp
-	8,  // 25: v3.NodeAgent.NodeAgentReconfig:output_type -> v3.NodeAgentReconfigResp
-	3,  // 26: v3.NodeAgent.NodeAgentInstallCheck:output_type -> v3.NodeAgentInstallCheckResp
-	22, // [22:27] is the sub-list for method output_type
-	17, // [17:22] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	13, // 0: v3.NodeAgentInstallReq.host:type_name -> v3.NodeAgentInstallReq.Host
+	14, // 1: v3.NodeAgentInstallReq.target_version:type_name -> v3.NodeAgentInstallReq.TargetVersion
+	26, // 2: v3.NodeAgentInstallResp.error:type_name -> v3.Error
+	15, // 3: v3.NodeAgentInstallResp.data:type_name -> v3.NodeAgentInstallResp.Data
+	16, // 4: v3.NodeAgentInstallCheckReq.host:type_name -> v3.NodeAgentInstallCheckReq.Host
+	26, // 5: v3.NodeAgentInstallCheckResp.error:type_name -> v3.Error
+	17, // 6: v3.NodeAgentInstallCheckResp.data:type_name -> v3.NodeAgentInstallCheckResp.Data
+	18, // 7: v3.NodeAgentUpgradeReq.host:type_name -> v3.NodeAgentUpgradeReq.Host
+	26, // 8: v3.NodeAgentUpgradeResp.error:type_name -> v3.Error
+	19, // 9: v3.NodeAgentUpgradeResp.data:type_name -> v3.NodeAgentUpgradeResp.Data
+	20, // 10: v3.NodeAgentReconfigReq.host:type_name -> v3.NodeAgentReconfigReq.Host
+	26, // 11: v3.NodeAgentReconfigResp.error:type_name -> v3.Error
+	21, // 12: v3.NodeAgentReconfigResp.data:type_name -> v3.NodeAgentReconfigResp.Data
+	22, // 13: v3.NodeAgentRestartReq.host:type_name -> v3.NodeAgentRestartReq.Host
+	26, // 14: v3.NodeAgentRestartResp.error:type_name -> v3.Error
+	23, // 15: v3.NodeAgentRestartResp.data:type_name -> v3.NodeAgentRestartResp.Data
+	24, // 16: v3.NodeAgentUninstallReq.host:type_name -> v3.NodeAgentUninstallReq.Host
+	26, // 17: v3.NodeAgentUninstallResp.error:type_name -> v3.Error
+	25, // 18: v3.NodeAgentUninstallResp.data:type_name -> v3.NodeAgentUninstallResp.Data
+	4,  // 19: v3.NodeAgentInstallCheckResp.Data.eligibilities:type_name -> v3.NodeAgentInstallEligibility
+	0,  // 20: v3.NodeAgent.NodeAgentInstall:input_type -> v3.NodeAgentInstallReq
+	5,  // 21: v3.NodeAgent.NodeAgentUpgrade:input_type -> v3.NodeAgentUpgradeReq
+	9,  // 22: v3.NodeAgent.NodeAgentRestart:input_type -> v3.NodeAgentRestartReq
+	7,  // 23: v3.NodeAgent.NodeAgentReconfig:input_type -> v3.NodeAgentReconfigReq
+	11, // 24: v3.NodeAgent.NodeAgentUninstall:input_type -> v3.NodeAgentUninstallReq
+	2,  // 25: v3.NodeAgent.NodeAgentInstallCheck:input_type -> v3.NodeAgentInstallCheckReq
+	1,  // 26: v3.NodeAgent.NodeAgentInstall:output_type -> v3.NodeAgentInstallResp
+	6,  // 27: v3.NodeAgent.NodeAgentUpgrade:output_type -> v3.NodeAgentUpgradeResp
+	10, // 28: v3.NodeAgent.NodeAgentRestart:output_type -> v3.NodeAgentRestartResp
+	8,  // 29: v3.NodeAgent.NodeAgentReconfig:output_type -> v3.NodeAgentReconfigResp
+	12, // 30: v3.NodeAgent.NodeAgentUninstall:output_type -> v3.NodeAgentUninstallResp
+	3,  // 31: v3.NodeAgent.NodeAgentInstallCheck:output_type -> v3.NodeAgentInstallCheckResp
+	26, // [26:32] is the sub-list for method output_type
+	20, // [20:26] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_node_agent_proto_init() }
@@ -1731,14 +1979,14 @@ func file_node_agent_proto_init() {
 		return
 	}
 	file_common_proto_init()
-	file_node_agent_proto_msgTypes[11].OneofWrappers = []any{}
+	file_node_agent_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_agent_proto_rawDesc), len(file_node_agent_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

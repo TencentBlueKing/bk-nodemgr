@@ -93,3 +93,13 @@ type NodeProxyUpdateHost struct {
 type NodeProxyUpdateParam struct {
 	Hosts []*NodeProxyUpdateHost
 }
+
+// NodeProxyUninstallHost describes the node proxy uninstall host.
+type NodeProxyUninstallHost struct {
+	HostID int64
+}
+
+// NodeProxyUninstallParam describes the node proxy uninstall parameter.
+type NodeProxyUninstallParam struct {
+	Hosts []*NodeProxyUninstallHost
+}

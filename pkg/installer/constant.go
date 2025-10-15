@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package installer defines the installer constants.
 package installer
 
 const (
@@ -19,6 +20,9 @@ const (
 
 	// NodeCmdFullReconfig defines the installer cmd.
 	NodeCmdFullReconfig = "node full-reconfig"
+
+	// NodeCmdFullUninstall defines the installer cmd.
+	NodeCmdFullUninstall = "node full-uninstall"
 
 	// NodeCmdStepCleanTmp defines the installer cmd.
 	NodeCmdStepCleanTmp = "node step clean-tmp"

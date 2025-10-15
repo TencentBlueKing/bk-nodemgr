@@ -21,12 +21,13 @@ import (
 )
 
 // NewNodeCommand creates a new node sub command.
+// nolint: lll
 func NewNodeCommand() *cobra.Command {
 	nodeCommand := &cobra.Command{
 		Use:   "node",
 		Short: "Node command",
 		Long:  "Node command",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
 				return err
@@ -47,6 +48,7 @@ func NewNodeCommand() *cobra.Command {
 	nodeCommand.AddCommand(NewFullInstall())
 	nodeCommand.AddCommand(NewFullUpgrade())
 	nodeCommand.AddCommand(NewFullReconfig())
+	nodeCommand.AddCommand(NewFullUninstall())
 
 	/*
 	 * persistent required flags.

@@ -1052,6 +1052,40 @@ func (c *cli) reconfigNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAge
 	return resp, nil
 }
 
+func (c *cli) uninstallNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgentUninstallReq) (
+	*protoBackend.NodeAgentUninstallResp, error) {
+
+	resp := new(protoBackend.NodeAgentUninstallResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/node/agent/uninstall").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("uninstall node agent failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("uninstall node agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAgentInstallCheckReq,
 ) (*protoBackend.NodeAgentInstallCheckResp, error) {
 
@@ -1278,6 +1312,34 @@ func (c *cli) updateNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxy
 
 	if code := resp.GetCode(); code != CodeOK {
 		return nil, fmt.Errorf("update node proxy failed. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) uninstallNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyUninstallReq) (
+	*protoBackend.NodeProxyUninstallResp, error) {
+
+	resp := new(protoBackend.NodeProxyUninstallResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/node/proxy/uninstall").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("uninstall node proxy failed. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
