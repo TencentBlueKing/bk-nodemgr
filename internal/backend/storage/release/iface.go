@@ -28,6 +28,7 @@ type IStorage interface {
 }
 
 // IRelease define the release interface.
+// nolint:interfacebloat
 type IRelease interface {
 	// GetRelease gets release by generation, release type, platform and version.
 	GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform,
