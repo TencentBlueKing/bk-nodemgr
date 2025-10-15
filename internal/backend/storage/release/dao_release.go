@@ -102,6 +102,14 @@ func (s *Storage) setReleaseLabels(
 	return s.daoRelease.SetLabels(nCtx, releaseType, gen, plat, version, labels...)
 }
 
+// setManyReleaseLabels sets release labels.
+func (s *Storage) setManyReleaseLabels(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
+	plats []platform.Platform, versions []string, labels []string) error {
+
+	return s.daoRelease.SetManyLabels(nCtx, releaseType, gens, plats, versions, labels...)
+}
+
 // enableRelease enables release active by generation, release type, platform and version.
 func (s *Storage) enableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
 	plat platform.Platform, version string) error {

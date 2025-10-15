@@ -1201,6 +1201,30 @@ func (c *cli) setReleaseLabels(ctx contextx.IContext, req *protoBackend.PackageR
 	return nil
 }
 
+func (c *cli) setManyReleaseLabels(ctx contextx.IContext, req *protoBackend.PackageReleaseSetManyLabelsReq) error {
+	resp := new(protoBackend.PackageReleaseSetManyLabelsResp)
+
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/package/release/set_many_labels").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("set many release labels failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
 func (c *cli) enableRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseEnableReq) error {
 	resp := new(protoBackend.PackageReleaseEnableResp)
 	header := c.getHeader(ctx)

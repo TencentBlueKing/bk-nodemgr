@@ -36,7 +36,12 @@ type IHandler interface {
 	List(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page, opts ...OptFn) ([]*types.Release, int64, error)
 
 	// SetLabels sets a release's labels.
-	SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string, labels ...string) error
+	SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType,
+		gen types.Generation, plat platform.Platform, version string, labels ...string) error
+
+	// SetManyLabels sets many release's labels.
+	SetManyLabels(nCtx contextx.IContext, releaseType types.ReleaseType,
+		gens []types.Generation, plats []platform.Platform, versions []string, labels ...string) error
 
 	// Count counts releases.
 	Count(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) (int64, error)
@@ -189,6 +194,30 @@ func (h *Handler) SetLabels(nCtx contextx.IContext, releaseType types.ReleaseTyp
 		WithOSType(string(plat.OS)),
 		WithVersion(version),
 	}
+	filter := base.AliveFilter()
+	for _, opt := range conditions {
+		filter = opt(filter)
+	}
+
+	return h.releaseTypeDao(releaseType).UpdateField(nCtx, filter, FieldKeyLabels, labels)
+}
+
+// SetManyLabels sets mamy release's labels.
+func (h *Handler) SetManyLabels(nCtx contextx.IContext, releaseType types.ReleaseType,
+	gens []types.Generation, plats []platform.Platform, versions []string,
+	labels ...string) error {
+
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
+	}
+
+	conditions := []OptFn{
+		WithGeneration(gens...),
+		WithType(releaseType),
+		WithVersion(versions...),
+		WithPlatform(plats...),
+	}
+
 	filter := base.AliveFilter()
 	for _, opt := range conditions {
 		filter = opt(filter)

@@ -44,6 +44,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/list", restserver.Handler(h.ListRelease))
 	h.rg.POST("/set_labels", restserver.Handler(h.SetReleaseLabels))
+	h.rg.POST("/set_many_labels", restserver.Handler(h.SetManyReleaseLabels))
 	h.rg.POST("/enable", restserver.Handler(h.EnableRelease))
 	h.rg.POST("/disable", restserver.Handler(h.DisableRelease))
 	h.rg.POST("/set_as_default", restserver.Handler(h.SetAsDefaultRelease))
@@ -112,6 +113,31 @@ func (h *handler) SetReleaseLabels(rCtx restserver.IContext) (interface{}, error
 	}
 
 	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version, "labels", req.GetLabels()).Info("set release labels")
+
+	resp := new(protoApplication.PackageReleaseSetLabelsResp)
+
+	return resp.GetData(), nil
+}
+
+// SetManyReleaseLabels set release labels.
+func (h *handler) SetManyReleaseLabels(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseSetManyLabelsReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set many release labels, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	rt, gen, plat, version := req.GetIdentifiers()
+	if err := h.backendHandler.SetManyReleaseLabels(rCtx, rt, gen, plat, version, req.GetLabels()); err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
+			Error("failed to set many release labels")
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version, "labels", req.GetLabels()).Info("set many release labels")
 
 	resp := new(protoApplication.PackageReleaseSetLabelsResp)
 

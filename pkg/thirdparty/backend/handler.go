@@ -333,6 +333,14 @@ type IHandlerRelease interface {
 		version string,
 		labels []string) error
 
+	// SetManyReleaseLabels sets many release labels.
+	SetManyReleaseLabels(ctx contextx.IContext,
+		releaseType types.ReleaseType,
+		gen []types.Generation,
+		plat []platform.Platform,
+		version []string,
+		labels []string) error
+
 	// EnableRelease enables release active by generation, release type, platform and version.
 	EnableRelease(ctx contextx.IContext,
 		gen types.Generation,
@@ -1050,6 +1058,20 @@ func (h *Handler) SetReleaseLabels(ctx contextx.IContext,
 	req.SetIdentifer(gen, releaseType, plat, version)
 
 	return h.cli.setReleaseLabels(ctx, req)
+}
+
+// SetManyReleaseLabels sets many release labels.
+func (h *Handler) SetManyReleaseLabels(ctx contextx.IContext,
+	rt types.ReleaseType,
+	gen []types.Generation,
+	plat []platform.Platform,
+	version []string,
+	labels []string) error {
+
+	req := &protoBackend.PackageReleaseSetManyLabelsReq{Labels: labels}
+	req.SetIdentifers(rt, gen, plat, version)
+
+	return h.cli.setManyReleaseLabels(ctx, req)
 }
 
 // EnableRelease enables release active by generation, release type, platform and version.

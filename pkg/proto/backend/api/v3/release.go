@@ -253,6 +253,57 @@ func (x *PackageReleaseSetLabelsReq) SetIdentifer(
 }
 
 // Validate check body.
+func (x *PackageReleaseSetManyLabelsReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleaseSetManyLabelsReq) AutoConvert() {
+}
+
+// GetIdentifiers get identifier.
+func (x *PackageReleaseSetManyLabelsReq) GetIdentifiers() (types.ReleaseType, []types.Generation, []platform.Platform, []string) {
+	rt := types.ReleaseType(x.GetReleaseType())
+
+	identify := x.GetIdentify()
+	if identify == nil {
+		return rt, nil, nil, nil
+	}
+
+	generations := make([]types.Generation, len(identify))
+	platforms := make([]platform.Platform, len(identify))
+	versions := make([]string, len(identify))
+
+	for idx, idt := range identify {
+		generations[idx] = types.Generation(idt.GetGeneration())
+		platforms[idx] = ConvertPlatformToTypes(idt.GetPlatform())
+		versions[idx] = idt.GetVersion()
+	}
+
+	return rt, generations, platforms, versions
+}
+
+// SetIdentifers set identifier.
+func (x *PackageReleaseSetManyLabelsReq) SetIdentifers(
+	rt types.ReleaseType, gen []types.Generation, plat []platform.Platform, ver []string) {
+
+	x.Identify = make([]*PackageReleaseSetManyLabelsReq_Identity, len(gen))
+	for idx := range gen {
+		x.Identify[idx] = &PackageReleaseSetManyLabelsReq_Identity{
+			Generation: int64(gen[idx]),
+			Platform:   ConvertPlatformFromTypes(plat[idx]),
+			Version:    ver[idx],
+		}
+	}
+
+	x.ReleaseType = string(rt)
+}
+
+// Validate check body.
 func (x *PackageReleaseEnableReq) Validate() error {
 	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
 		return err

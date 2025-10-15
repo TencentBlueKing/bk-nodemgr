@@ -191,6 +191,41 @@ func (x *PackageReleaseSetLabelsReq) SetIdentifer(
 }
 
 // Validate check body.
+func (x *PackageReleaseSetManyLabelsReq) Validate() error {
+	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleaseSetManyLabelsReq) AutoConvert() {
+}
+
+// GetIdentifiers get identifier.
+func (x *PackageReleaseSetManyLabelsReq) GetIdentifiers() (types.ReleaseType, []types.Generation, []platform.Platform, []string) {
+	rt := types.ReleaseType(x.GetReleaseType())
+
+	identify := x.GetIdentify()
+	if identify == nil {
+		return rt, nil, nil, nil
+	}
+
+	generations := make([]types.Generation, len(identify))
+	platforms := make([]platform.Platform, len(identify))
+	versions := make([]string, len(identify))
+
+	for idx, idt := range identify {
+		generations[idx] = types.Generation(idt.GetGeneration())
+		platforms[idx] = ConvertPlatformToTypes(idt.GetPlatform())
+		versions[idx] = idt.GetVersion()
+	}
+
+	return rt, generations, platforms, versions
+}
+
+// Validate check body.
 func (x *PackageReleaseEnableReq) Validate() error {
 	return nil
 }

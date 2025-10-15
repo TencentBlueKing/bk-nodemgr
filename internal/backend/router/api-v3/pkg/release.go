@@ -125,6 +125,33 @@ func (h *handler) SetReleaseLabels(rCtx restserver.IContext) (interface{}, error
 	return resp.GetData(), nil
 }
 
+// SetManyReleaseLabels set release labels.
+func (h *handler) SetManyReleaseLabels(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseSetManyLabelsReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set many release labels, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	rt, gen, plat, version := req.GetIdentifiers()
+	if err := h.storage.SetManyReleaseLabels(rCtx, rt, gen, plat, version, req.GetLabels()); err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "release-type", rt, "platform", plat, "version", version, "labels", req.GetLabels()).
+			Error("failed to set many release labels")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).
+		With("gen", gen, "release-type", rt, "platform", plat, "version", version, "labels", req.GetLabels()).
+		Info("set many release labels")
+
+	resp := new(protoBackend.PackageReleaseSetManyLabelsResp)
+
+	return resp.GetData(), nil
+}
+
 // EnableRelease enable release.
 func (h *handler) EnableRelease(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageReleaseEnableReq)
