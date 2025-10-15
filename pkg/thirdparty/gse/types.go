@@ -451,3 +451,163 @@ func getScriptExt(scriptType types.ScriptType) (string, error) {
 		return "", fmt.Errorf("unsupported script type: %s", scriptType)
 	}
 }
+
+// procMeta describes the meta data.
+type procMeta struct {
+	Namespace string             `json:"namespace"`
+	Name      string             `json:"name"`
+	Labels    procInfoMetaLabels `json:"labels"`
+}
+
+// procInfoMetaLabels describes the labels.
+type procInfoMetaLabels struct {
+	ProcName string `json:"proc_name"`
+}
+
+// procSpec describes the spec data of gse proc.
+type procSpec struct {
+	Identity      procSpecIdentity      `json:"identity"`
+	Control       procSpecControl       `json:"control"`
+	Resource      procSpecResource      `json:"resource"`
+	MonitorPolicy procSpecMonitorPolicy `json:"monitor_policy"`
+}
+
+// procSpecIdentity describes the identity data of gse proc spec.
+type procSpecIdentity struct {
+	ProcName   string `json:"proc_name"`
+	SetupPath  string `json:"setup_path"`
+	PidPath    string `json:"pid_path"`
+	ConfigPath string `json:"config_path"`
+	LogPath    string `json:"log_path"`
+	User       string `json:"user"`
+}
+
+// procSpecControl describes the control data of gse proc spec.
+type procSpecControl struct {
+	StartCmd   string `json:"start_cmd"`
+	StopCmd    string `json:"stop_cmd"`
+	RestartCmd string `json:"restart_cmd"`
+	ReloadCmd  string `json:"reload_cmd"`
+	KillCmd    string `json:"kill_cmd"`
+	VersionCmd string `json:"version_cmd"`
+	HealthCmd  string `json:"health_cmd"`
+}
+
+type procSpecMonitorPolicyAutoType int
+
+const (
+	// procSpecMonitorPolicyAutoTypeTrusteeship this means that this is a resident process, and will be restarted automatically.
+	procSpecMonitorPolicyAutoTypeTrusteeship procSpecMonitorPolicyAutoType = 1
+
+	// procSpecMonitorPolicyAutoTypeOnce this means that this is a one-time process, executed only once, and then exited.
+	procSpecMonitorPolicyAutoTypeOnce procSpecMonitorPolicyAutoType = 2
+)
+
+// procSpecMonitorPolicy describes the monitor policy of gse proc spec.
+type procSpecMonitorPolicy struct {
+	AutoType       procSpecMonitorPolicyAutoType `json:"auto_type"`
+	StartCheckSecs int64                         `json:"start_check_secs"`
+	StopCheckSecs  int64                         `json:"stop_check_secs"`
+	OpTimeoutSecs  int64                         `json:"op_timeout"`
+}
+
+// procSpecResource describes the resource data of gse proc spec.
+type procSpecResource struct {
+	CPU float64 `json:"cpu"`
+	Mem float64 `json:"mem"`
+}
+
+// procOperateResultCode describes the code of operate proc.
+type procOperateResultCode int64
+
+const (
+	// procOperateResultCodeOK means success.
+	procOperateResultCodeOK procOperateResultCode = 0
+	// procOperateResultCodeRunning means running.
+	procOperateResultCodeRunning procOperateResultCode = 155
+)
+
+// getProcOperateResultV2Req describes the request data of get_proc_operate_result_v2.
+type getProcOperateResultV2Req struct {
+	TaskID string `json:"task_id"`
+}
+
+// getProcOperateResultV2Resp describes the response data of get_proc_operate_result_v2.
+type getProcOperateResultV2Resp = map[string]procOperateResult
+
+// procOperateResult describes the result of update_proc_info.
+type procOperateResult struct {
+	ErrorCode procOperateResultCode `json:"error_code"`
+	ErrorMsg  string                `json:"error_msg"`
+	Content   string                `json:"content"`
+}
+
+// queryProcessContent describes the content when do query operate.
+// This struct has no valuable data and is only used for protocol conversion.
+type queryProcessContent struct {
+	BkAgentID string `json:"bk_agent_id"`
+	Utctime   string `json:"utctime"`
+	Utctime2  string `json:"utctime2"`
+	Timezone  int    `json:"timezone"`
+	Process   []struct {
+		Procname string `json:"procname"`
+		// Notice: this instance list always is a single list.
+		// It's just a historical legacy, don't modify it.
+		Instance []processInfo `json:"instance"`
+	} `json:"process"`
+}
+
+// processInfo describes the instance info.
+type processInfo struct {
+	ProcessName string  `json:"processName"`
+	Version     string  `json:"version"`
+	IsAuto      bool    `json:"isAuto"`
+	CPUUsage    float64 `json:"cpuUsage"`
+	PhyMemUsage float64 `json:"phyMemUsage"`
+	Pid         int     `json:"pid"`
+	ReportTime  int     `json:"report_time"`
+}
+
+// controlProcessContent describes the content when do start, stop, trusteeship, untrusteeship, kill, reload,
+// This struct has no valuable data and is only used for protocol conversion.
+type controlProcessContent struct {
+	Value []struct {
+		BkAgentID string `json:"bk_agent_id"`
+		ProcName  string `json:"procName"`
+		SetupPath string `json:"setupPath"`
+		Result    string `json:"result"`
+		IsAuto    bool   `json:"isAuto"`
+	} `json:"value"`
+}
+
+type procOperateCode int
+
+const (
+	// procOperateCodeStart proc operate code start.
+	procOperateCodeStart procOperateCode = 0
+	// procOperateCodeStop proc operate code stop.
+	procOperateCodeStop procOperateCode = 1
+	// procOperateCodeStatus proc operate code status.
+	procOperateCodeStatus procOperateCode = 2
+	// procOperateCodeTrusteeship proc operate code trusteeship.
+	procOperateCodeTrusteeship procOperateCode = 3
+	// procOperateCodeUnTrusteeship proc operate code untrusteeship.
+	procOperateCodeUnTrusteeship procOperateCode = 4
+	// procOperateCodeRestart proc operate code restart.
+	procOperateCodeRestart procOperateCode = 7
+	// procOperateCodeReload proc operate code reload.
+	procOperateCodeReload procOperateCode = 8
+)
+
+// operateProcV2Req describes the request data of operate_proc_v2.
+type operateProcV2Req struct {
+	Meta        procMeta        `json:"meta"`
+	OpType      procOperateCode `json:"op_type"`
+	AgentIDList []string        `json:"agent_id_list"`
+	Spec        procSpec        `json:"spec"`
+}
+
+// operateProcV2Resp describes the response data of operate_proc_v2.
+type operateProcV2Resp struct {
+	TaskID string `json:"task_id"`
+}

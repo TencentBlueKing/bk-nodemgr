@@ -82,10 +82,6 @@ func (h *Handler) Create(nCtx contextx.IContext, pluginType types.PluginType, pl
 		return err
 	}
 
-	if plugin.Type != pluginType {
-		return fmt.Errorf("plugin type mismatch, want %s, but got %s", pluginType, plugin.Type)
-	}
-
 	data := convPluginFromTypes(plugin)
 
 	if err := h.tenantDao(nCtx.TenantID(), pluginType).Create(nCtx, data); err != nil {
@@ -95,26 +91,68 @@ func (h *Handler) Create(nCtx contextx.IContext, pluginType types.PluginType, pl
 	return nil
 }
 
-func convPluginFromTypes(plugin *types.Plugin) *Data {
-	data := &Data{
-		TenantID:   plugin.TenantID,
-		PluginID:   plugin.PluginID,
-		Status:     string(plugin.Status),
-		HostID:     plugin.HostID,
-		Name:       plugin.Name,
-		Type:       string(plugin.Type),
-		Generation: int64(plugin.Generation),
-		Platform:   convPlatformFromTypes(plugin.Platform),
-		Version:    plugin.Version,
+func convPluginFromTypes(plugin *types.Plugin) *Plugin {
+	data := &Plugin{
+		TenantID: plugin.TenantID,
+		PluginID: plugin.PluginID,
+		Static: pluginStatic{
+			Info: ProcessInfo{
+				Pid:         plugin.Static.Info.Pid,
+				Version:     plugin.Static.Info.Version,
+				AgentID:     plugin.Static.Info.AgentID,
+				Trusteeship: plugin.Static.Info.Trusteeship,
+				Status:      string(plugin.Static.Info.Status),
+			},
+			Spec: processSpec{
+				AgentID: plugin.Static.Spec.AgentID,
+				Identity: processIdentity{
+					Name:       plugin.Static.Spec.Identity.Name,
+					SetupPath:  plugin.Static.Spec.Identity.SetupPath,
+					PidPath:    plugin.Static.Spec.Identity.PidPath,
+					ConfigPath: plugin.Static.Spec.Identity.ConfigPath,
+					LogPath:    plugin.Static.Spec.Identity.LogPath,
+					User:       plugin.Static.Spec.Identity.User,
+				},
+				Controller: processController{
+					StartCmd:   plugin.Static.Spec.Controller.StartCmd,
+					StopCmd:    plugin.Static.Spec.Controller.StopCmd,
+					RestartCmd: plugin.Static.Spec.Controller.RestartCmd,
+					ReloadCmd:  plugin.Static.Spec.Controller.ReloadCmd,
+					KillCmd:    plugin.Static.Spec.Controller.KillCmd,
+					VersionCmd: plugin.Static.Spec.Controller.VersionCmd,
+					HealthCmd:  plugin.Static.Spec.Controller.HealthCmd,
+				},
+				Resource: processResource{
+					CPU: plugin.Static.Spec.Resource.CPULimitPercent,
+					Mem: plugin.Static.Spec.Resource.MemLimitPercent,
+				},
+				MonitorPolicy: processMonitorPolicy{
+					AutoType:       string(plugin.Static.Spec.MonitorPolicy.AutoType),
+					StartCheckSecs: plugin.Static.Spec.MonitorPolicy.StartCheckSecs,
+					StopCheckSecs:  plugin.Static.Spec.MonitorPolicy.StopCheckSecs,
+					OpTimeoutSecs:  plugin.Static.Spec.MonitorPolicy.OpTimeoutSecs,
+				},
+			},
+		},
+		Dynamic: pluginDynamic{
+			Name:       plugin.Dynamic.Name,
+			Type:       string(plugin.Dynamic.Type),
+			Generation: int64(plugin.Dynamic.Generation),
+			Platform:   convPlatformFromTypes(plugin.Dynamic.Platform),
+			Version:    plugin.Dynamic.Version,
+			HostID:     plugin.Dynamic.HostID,
+			AgentID:    plugin.Dynamic.AgentID,
+			Status:     string(plugin.Dynamic.Status),
+		},
 	}
 
 	return data
 }
 
-func convPlatformFromTypes(platform platform.Platform) Platform {
+func convPlatformFromTypes(p platform.Platform) Platform {
 	return Platform{
-		OS:   string(platform.OS),
-		Arch: string(platform.Arch),
+		OS:   string(p.OS),
+		Arch: string(p.Arch),
 	}
 }
 
@@ -184,16 +222,59 @@ func (h *Handler) Get(nCtx contextx.IContext, pluginType types.PluginType, opts 
 	return convertPluginToTypes(data), nil
 }
 
-func convertPluginToTypes(data *Data) *types.Plugin {
+func convertPluginToTypes(data *Plugin) *types.Plugin {
 	plugin := &types.Plugin{
-		TenantID:   data.TenantID,
-		HostID:     data.HostID,
-		Name:       data.Name,
-		Type:       types.PluginType(data.Type),
-		Generation: types.Generation(data.Generation),
-		Platform:   convPlatformToTypes(data.Platform),
-		Version:    data.Version,
-		Status:     types.PluginStatus(data.Status),
+		PluginID: data.PluginID,
+		TenantID: data.TenantID,
+		Static: types.PluginStatic{
+			Info: types.ProcessInfo{
+				Pid:         data.Static.Info.Pid,
+				Version:     data.Static.Info.Version,
+				AgentID:     data.Static.Info.AgentID,
+				Trusteeship: data.Static.Info.Trusteeship,
+				Status:      types.ProcessStatus(data.Static.Info.Status),
+			},
+			Spec: types.ProcessSpec{
+				AgentID: data.Static.Spec.AgentID,
+				Identity: types.ProcessIdentity{
+					Name:       data.Static.Spec.Identity.Name,
+					SetupPath:  data.Static.Spec.Identity.SetupPath,
+					PidPath:    data.Static.Spec.Identity.PidPath,
+					ConfigPath: data.Static.Spec.Identity.ConfigPath,
+					LogPath:    data.Static.Spec.Identity.LogPath,
+					User:       data.Static.Spec.Identity.User,
+				},
+				Controller: types.ProcessController{
+					StartCmd:   data.Static.Spec.Controller.StartCmd,
+					StopCmd:    data.Static.Spec.Controller.StopCmd,
+					RestartCmd: data.Static.Spec.Controller.RestartCmd,
+					ReloadCmd:  data.Static.Spec.Controller.ReloadCmd,
+					KillCmd:    data.Static.Spec.Controller.KillCmd,
+					VersionCmd: data.Static.Spec.Controller.VersionCmd,
+					HealthCmd:  data.Static.Spec.Controller.HealthCmd,
+				},
+				Resource: types.ProcessResource{
+					CPULimitPercent: data.Static.Spec.Resource.CPU,
+					MemLimitPercent: data.Static.Spec.Resource.Mem,
+				},
+				MonitorPolicy: types.ProcessMonitorPolicy{
+					AutoType:       types.ProcessAutoType(data.Static.Spec.MonitorPolicy.AutoType),
+					StartCheckSecs: data.Static.Spec.MonitorPolicy.StartCheckSecs,
+					StopCheckSecs:  data.Static.Spec.MonitorPolicy.StopCheckSecs,
+					OpTimeoutSecs:  data.Static.Spec.MonitorPolicy.OpTimeoutSecs,
+				},
+			},
+		},
+		Dynamic: types.PluginDynamic{
+			Name:       data.Dynamic.Name,
+			Type:       types.PluginType(data.Dynamic.Type),
+			Generation: types.Generation(data.Dynamic.Generation),
+			Platform:   convPlatformToTypes(data.Dynamic.Platform),
+			Version:    data.Dynamic.Version,
+			HostID:     data.Dynamic.HostID,
+			AgentID:    data.Dynamic.AgentID,
+			Status:     types.ProcessStatus(data.Dynamic.Status),
+		},
 	}
 
 	return plugin

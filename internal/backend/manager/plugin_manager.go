@@ -119,7 +119,7 @@ func (mgr *Manager) createInstallPluginOper(nCtx contextx.IContext, operator str
 }
 
 func (mgr *Manager) getPluginInstallOperationDef(deploy *types.PluginDeployment, operator string) (operation.Definition, error) {
-	switch deploy.Info.Plugin.Type {
+	switch deploy.Info.Plugin.Dynamic.Type {
 	case types.PluginTypeOfficial:
 		return plugin.NewOperInstallPlugin(plugin.OperParamInstallPlugin{
 			PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
@@ -129,6 +129,6 @@ func (mgr *Manager) getPluginInstallOperationDef(deploy *types.PluginDeployment,
 			},
 		}), nil
 	default:
-		return nil, fmt.Errorf("unsupported plugin type: %s", deploy.Info.Plugin.Type)
+		return nil, fmt.Errorf("unsupported plugin type: %s", deploy.Info.Plugin.Dynamic.Type)
 	}
 }

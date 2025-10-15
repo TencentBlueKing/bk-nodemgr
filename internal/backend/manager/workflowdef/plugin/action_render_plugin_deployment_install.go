@@ -114,14 +114,14 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	}()
 
 	nCtx := std.Context()
-	host, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.HostID)
+	host, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.Dynamic.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.HostID, err)
+		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.Dynamic.HostID, err)
 	}
 
 	std.DeployInfo().BlockingActionName = ActionNameRenderPluginDeployment
-	std.DeployInfo().Plugin.Generation = host.Dynamic.NodeGeneration
-	std.DeployInfo().Plugin.Platform = platform.Platform{
+	std.DeployInfo().Plugin.Dynamic.Generation = host.Dynamic.NodeGeneration
+	std.DeployInfo().Plugin.Dynamic.Platform = platform.Platform{
 		OS:   host.Dynamic.NodeOsType,
 		Arch: host.Dynamic.NodeCPUArch,
 	}

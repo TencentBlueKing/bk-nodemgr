@@ -117,9 +117,9 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.HostID)
+	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.Dynamic.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.HostID, err)
+		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.Dynamic.HostID, err)
 	}
 
 	// select matching tools.
@@ -130,7 +130,7 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Plugin.Generation, std.DeployInfo().Plugin.Platform.OS)
+	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Plugin.Dynamic.Generation, std.DeployInfo().Plugin.Dynamic.Platform.OS)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
@@ -161,9 +161,9 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 				BaseWorkDir:       deployConstant.BaseWorkDir,
 				DeployEnv:         system.GetEnv(),
 			},
-			PluginType:      string(std.DeployInfo().Plugin.Type),
-			PluginName:      std.DeployInfo().Plugin.Name,
-			PluginVersion:   std.DeployInfo().Plugin.Version,
+			PluginType:      string(std.DeployInfo().Plugin.Dynamic.Type),
+			PluginName:      std.DeployInfo().Plugin.Dynamic.Name,
+			PluginVersion:   std.DeployInfo().Plugin.Dynamic.Version,
 			CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
 			DownloadSvrAddr: "http://" + downloadSvrEndpoint.GetIPV4Address(),
 			DeployToken:     std.Token(),

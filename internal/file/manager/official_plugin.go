@@ -149,6 +149,7 @@ type OfficialPluginProject struct {
 	ConfigTemplates []OfficialPluginConfigTemplate `yaml:"config_templates"`
 }
 
+// PluginControl represents the project.yml file's control field.
 type PluginControl struct {
 	StartCmd   string `yaml:"start"`
 	StopCmd    string `yaml:"stop"`
@@ -188,12 +189,16 @@ type Property struct {
  * project.yml
  * others can be ignored.
  */
+// nolint: funlen
 func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPluginPkgDetail, error) {
 	detail := new(types.OriginOfficialPluginPkgDetail)
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePathRegex: []string{buildPrefixMatchRegex(originalOfficialPluginDirNamePlatPrefix), ".*", buildFullMatchRegex(originalOfficialPluginFileNameProject)},
+			filePathRegex: []string{
+				buildPrefixMatchRegex(originalOfficialPluginDirNamePlatPrefix),
+				".*",
+				buildFullMatchRegex(originalOfficialPluginFileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
 				detail.Platforms = append(detail.Platforms, convOfficialPluginDirNameToPlat(path[0]))
 
@@ -228,7 +233,7 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 					})
 				}
 
-				detail.Controller = types.PluginController{
+				detail.Controller = types.ProcessController{
 					StartCmd:   pluginProject.Control.StartCmd,
 					StopCmd:    pluginProject.Control.StopCmd,
 					RestartCmd: pluginProject.Control.RestartCmd,
@@ -242,7 +247,11 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 			},
 		},
 		{
-			filePathRegex: []string{buildPrefixMatchRegex(originalOfficialPluginDirNamePlatPrefix), ".*", buildFullMatchRegex(originalOfficialPluginDirNameEtc), buildSuffixMatchRegex(originalOfficialPluginFileNameEtcExt)},
+			filePathRegex: []string{
+				buildPrefixMatchRegex(originalOfficialPluginDirNamePlatPrefix),
+				".*",
+				buildFullMatchRegex(originalOfficialPluginDirNameEtc),
+				buildSuffixMatchRegex(originalOfficialPluginFileNameEtcExt)},
 			callback: func(path []string, tplFile io.Reader) error {
 				for idx := range detail.ConfigTemplates {
 					if !strings.Contains(detail.ConfigTemplates[idx].SourcePath, path[len(path)-1]) {

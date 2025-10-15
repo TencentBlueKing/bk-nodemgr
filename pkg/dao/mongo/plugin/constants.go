@@ -13,13 +13,4 @@ package plugin
 const (
 	// FieldKeyPluginID the plugin id field key.
 	FieldKeyPluginID = "data.plugin_id"
-
-	// FieldKeyHostID the host id field key.
-	FieldKeyHostID = "data.host_id"
-
-	// FieldKeyPlatformOS the platform os field key.
-	FieldKeyPlatformOS = "data.platform.os"
-
-	// FieldKeyPlatformArch the platform arch field key.
-	FieldKeyPlatformArch = "data.platform.arch"
 )

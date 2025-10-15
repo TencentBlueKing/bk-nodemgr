@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -92,7 +91,7 @@ func TestHandler_Create(t *testing.T) {
 							HostID:     0,
 							Type:       "",
 							Generation: 0,
-							Platform: platform.Platform{
+							Platform: Platform.Platform{
 								OS:   "",
 								Arch: "",
 							},
@@ -109,7 +108,7 @@ func TestHandler_Create(t *testing.T) {
 						},
 						TargetVersion: []types.TargetPluginVersion{
 							{
-								Platform: platform.Platform{
+								Platform: Platform.Platform{
 									OS:   criteria.OSLinux,
 									Arch: criteria.CPUArchAmd64,
 								},
@@ -155,7 +154,7 @@ func TestHandler_GetInfo(t *testing.T) {
 					HostID:     0,
 					Type:       "",
 					Generation: 0,
-					Platform: platform.Platform{
+					Platform: Platform.Platform{
 						OS:   "",
 						Arch: "",
 					},
@@ -172,7 +171,7 @@ func TestHandler_GetInfo(t *testing.T) {
 				},
 				TargetVersion: []types.TargetPluginVersion{
 					{
-						Platform: platform.Platform{
+						Platform: Platform.Platform{
 							OS:   criteria.OSLinux,
 							Arch: criteria.CPUArchAmd64,
 						},
@@ -221,7 +220,7 @@ func TestHandler_UpdateInfo(t *testing.T) {
 						HostID:     0,
 						Type:       "",
 						Generation: 0,
-						Platform: platform.Platform{
+						Platform: Platform.Platform{
 							OS:   "",
 							Arch: "",
 						},
@@ -238,7 +237,7 @@ func TestHandler_UpdateInfo(t *testing.T) {
 					},
 					TargetVersion: []types.TargetPluginVersion{
 						{
-							Platform: platform.Platform{
+							Platform: Platform.Platform{
 								OS:   criteria.OSLinux,
 								Arch: criteria.CPUArchAmd64,
 							},

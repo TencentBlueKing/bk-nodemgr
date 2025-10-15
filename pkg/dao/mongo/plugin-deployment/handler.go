@@ -107,16 +107,53 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 	typesInfo := &types.PluginDeploymentInfo{
 		BlockingActionName: info.ActionName,
 		Plugin: types.Plugin{
-			TenantID:   info.Plugin.TenantID,
-			Name:       info.Plugin.Name,
-			HostID:     info.Plugin.HostID,
-			Type:       types.PluginType(info.Plugin.Type),
-			Generation: types.Generation(info.Plugin.Generation),
-			Platform: platform.Platform{
-				OS:   criteria.OSType(info.Plugin.Platform.OS),
-				Arch: criteria.CPUArch(info.Plugin.Platform.Arch),
+			PluginID: info.Plugin.PluginID,
+			TenantID: info.Plugin.TenantID,
+			Static: types.PluginStatic{
+				Spec: types.ProcessSpec{
+					AgentID: info.Plugin.Static.Spec.AgentID,
+					Identity: types.ProcessIdentity{
+						Name:       info.Plugin.Static.Spec.Identity.Name,
+						SetupPath:  info.Plugin.Static.Spec.Identity.SetupPath,
+						PidPath:    info.Plugin.Static.Spec.Identity.PidPath,
+						ConfigPath: info.Plugin.Static.Spec.Identity.ConfigPath,
+						LogPath:    info.Plugin.Static.Spec.Identity.LogPath,
+						User:       info.Plugin.Static.Spec.Identity.User,
+					},
+					Controller: types.ProcessController{
+						StartCmd:   info.Plugin.Static.Spec.Controller.StartCmd,
+						StopCmd:    info.Plugin.Static.Spec.Controller.StopCmd,
+						RestartCmd: info.Plugin.Static.Spec.Controller.RestartCmd,
+						ReloadCmd:  info.Plugin.Static.Spec.Controller.ReloadCmd,
+						KillCmd:    info.Plugin.Static.Spec.Controller.KillCmd,
+						VersionCmd: info.Plugin.Static.Spec.Controller.VersionCmd,
+						HealthCmd:  info.Plugin.Static.Spec.Controller.HealthCmd,
+					},
+					Resource: types.ProcessResource{
+						CPULimitPercent: info.Plugin.Static.Spec.Resource.CPULimitPercent,
+						MemLimitPercent: info.Plugin.Static.Spec.Resource.MemLimitPercent,
+					},
+					MonitorPolicy: types.ProcessMonitorPolicy{
+						AutoType:       types.ProcessAutoType(info.Plugin.Static.Spec.MonitorPolicy.AutoType),
+						StartCheckSecs: info.Plugin.Static.Spec.MonitorPolicy.StartCheckSecs,
+						StopCheckSecs:  info.Plugin.Static.Spec.MonitorPolicy.StopCheckSecs,
+						OpTimeoutSecs:  info.Plugin.Static.Spec.MonitorPolicy.OpTimeoutSecs,
+					},
+				},
 			},
-			Version: info.Plugin.Version,
+			Dynamic: types.PluginDynamic{
+				Name:       info.Plugin.Dynamic.Name,
+				Type:       types.PluginType(info.Plugin.Dynamic.Type),
+				Generation: types.Generation(info.Plugin.Dynamic.Generation),
+				Platform: platform.Platform{
+					OS:   criteria.OSType(info.Plugin.Dynamic.Platform.OS),
+					Arch: criteria.CPUArch(info.Plugin.Dynamic.Platform.Arch),
+				},
+				Version: info.Plugin.Dynamic.Version,
+				HostID:  info.Plugin.Dynamic.HostID,
+				AgentID: info.Plugin.Dynamic.AgentID,
+				Status:  types.ProcessStatus(info.Plugin.Dynamic.Status),
+			},
 		},
 		InstallerWorkDir: info.InstallerWorkDir,
 		InstallOptions:   types.PluginDeploymentInstallOptions{},
@@ -125,7 +162,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
 			EnableInstaller:      info.TransferOptions.EnableInstaller,
 		},
-		TargetVersion: nil,
+		TargetVersion: make([]types.TargetPluginVersion, 0),
 	}
 
 	for _, targetVersion := range info.TargetVersion {
@@ -202,36 +239,81 @@ func (h *Handler) UpdateInfo(nCtx contextx.IContext, token string, info *types.P
 	return nil
 }
 
+// nolint: funlen
 func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*Info, error) {
 	if info == nil {
 		return nil, errors.New("info is nil")
 	}
 
-	data := &Info{
+	var data = &Info{
 		ActionName:       info.BlockingActionName,
 		InstallerWorkDir: info.InstallerWorkDir,
-		Plugin: Plugin{
-			TenantID:   info.Plugin.TenantID,
-			Name:       info.Plugin.Name,
-			HostID:     info.Plugin.HostID,
-			Type:       string(info.Plugin.Type),
-			Generation: int64(info.Plugin.Generation),
-			Platform: Platform{
-				OS:   string(info.Plugin.Platform.OS),
-				Arch: string(info.Plugin.Platform.Arch),
+		Plugin: plugin{
+			TenantID: info.Plugin.TenantID,
+			PluginID: info.Plugin.PluginID,
+			Static: pluginStatic{
+				Info: ProcessInfo{
+					Pid:         info.Plugin.Static.Info.Pid,
+					Version:     info.Plugin.Static.Info.Version,
+					AgentID:     info.Plugin.Static.Info.AgentID,
+					Trusteeship: info.Plugin.Static.Info.Trusteeship,
+					Status:      string(info.Plugin.Static.Info.Status),
+				},
+				Spec: processSpec{
+					AgentID: info.Plugin.Static.Spec.AgentID,
+					Identity: processIdentity{
+						Name:       info.Plugin.Static.Spec.Identity.Name,
+						SetupPath:  info.Plugin.Static.Spec.Identity.SetupPath,
+						PidPath:    info.Plugin.Static.Spec.Identity.PidPath,
+						ConfigPath: info.Plugin.Static.Spec.Identity.ConfigPath,
+						LogPath:    info.Plugin.Static.Spec.Identity.LogPath,
+						User:       info.Plugin.Static.Spec.Identity.User,
+					},
+					Controller: processController{
+						StartCmd:   info.Plugin.Static.Spec.Controller.StartCmd,
+						StopCmd:    info.Plugin.Static.Spec.Controller.StopCmd,
+						RestartCmd: info.Plugin.Static.Spec.Controller.RestartCmd,
+						ReloadCmd:  info.Plugin.Static.Spec.Controller.ReloadCmd,
+						KillCmd:    info.Plugin.Static.Spec.Controller.KillCmd,
+						VersionCmd: info.Plugin.Static.Spec.Controller.VersionCmd,
+						HealthCmd:  info.Plugin.Static.Spec.Controller.HealthCmd,
+					},
+					Resource: processResource{
+						CPULimitPercent: info.Plugin.Static.Spec.Resource.CPULimitPercent,
+						MemLimitPercent: info.Plugin.Static.Spec.Resource.MemLimitPercent,
+					},
+					MonitorPolicy: processMonitorPolicy{
+						AutoType:       string(info.Plugin.Static.Spec.MonitorPolicy.AutoType),
+						StartCheckSecs: info.Plugin.Static.Spec.MonitorPolicy.StartCheckSecs,
+						StopCheckSecs:  info.Plugin.Static.Spec.MonitorPolicy.StopCheckSecs,
+						OpTimeoutSecs:  info.Plugin.Static.Spec.MonitorPolicy.OpTimeoutSecs,
+					},
+				},
 			},
-			Version: info.Plugin.Version,
+			Dynamic: pluginDynamic{
+				Name:       info.Plugin.Dynamic.Name,
+				Type:       string(info.Plugin.Dynamic.Type),
+				Generation: int64(info.Plugin.Dynamic.Generation),
+				Platform: Platform{
+					OS:   string(info.Plugin.Dynamic.Platform.OS),
+					Arch: string(info.Plugin.Dynamic.Platform.Arch),
+				},
+				Version: info.Plugin.Dynamic.Version,
+				HostID:  info.Plugin.Dynamic.HostID,
+				AgentID: info.Plugin.Dynamic.AgentID,
+				Status:  string(info.Plugin.Dynamic.Status),
+			},
 		},
-		TransferOptions: TransferOptions{
+		TransferOptions: transferOptions{
 			SelectDownloads:      info.TransferOptions.SelectDownloads,
 			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
 			EnableInstaller:      info.TransferOptions.EnableInstaller,
 		},
-		TargetVersion: nil,
+		InstallOptions: installOptions{},
+		TargetVersion:  nil,
 	}
-
 	for _, item := range info.TargetVersion {
-		data.TargetVersion = append(data.TargetVersion, TargetVersion{
+		data.TargetVersion = append(data.TargetVersion, targetVersion{
 			Platform: Platform{
 				OS:   string(item.Platform.OS),
 				Arch: string(item.Platform.Arch),

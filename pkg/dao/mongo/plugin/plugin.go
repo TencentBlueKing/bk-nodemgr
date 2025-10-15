@@ -22,7 +22,7 @@ func newDao(client *mongo.Database, tableName string) *dao {
 		tableName: tableName,
 		IOrm:      nil,
 	}
-	d.IOrm = base.NewOrm[*Data, Data](d)
+	d.IOrm = base.NewOrm[*Plugin, Plugin](d)
 
 	return d
 }
@@ -31,7 +31,7 @@ type dao struct {
 	client    *mongo.Collection
 	tableName string
 
-	base.IOrm[*Data, Data]
+	base.IOrm[*Plugin, Plugin]
 }
 
 // GetClient get the dao's client.

@@ -69,12 +69,6 @@ func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOffic
 		}
 	}
 
-	hostIDMap := make(map[int64]struct{})
-	for _, host := range req.GetPlugin() {
-		hostIDMap[host.GetBkHostId()] = struct{}{}
-	}
-	hostIDs := conv.MapKeyToSlice(hostIDMap)
-
 	gp := gopool.NewPool()
 	pluginDeployments := make([]*types.PluginDeployment, len(req.GetPlugin()))
 	for i := range req.GetPlugin() {
@@ -84,12 +78,16 @@ func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOffic
 		gp.Go(func() error {
 			pluginDeployment := types.NewPluginDeployment(&types.PluginDeploymentInfo{
 				Plugin: types.Plugin{
-					Name:       reqPlugin.GetName(),
-					HostID:     reqPlugin.GetBkHostId(),
-					Type:       types.PluginTypeOfficial,
-					Generation: types.Generation2,
-					Platform:   platform.Platform{},
-					Version:    reqPlugin.GetVersion(),
+					Static: types.PluginStatic{},
+					Dynamic: types.PluginDynamic{
+						Name:       reqPlugin.GetName(),
+						Type:       types.PluginTypeOfficial,
+						Generation: types.Generation2,
+						Platform:   platform.Platform{},
+						Version:    reqPlugin.GetVersion(),
+						HostID:     reqPlugin.GetBkHostId(),
+						Status:     types.ProcessStatusInit,
+					},
 				},
 				InstallOptions: types.PluginDeploymentInstallOptions{},
 				TransferOptions: types.PluginDeploymentTransferOptions{
@@ -109,6 +107,12 @@ func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOffic
 	if err := gp.Wait(); err != nil {
 		return nil, nil, err
 	}
+
+	hostIDMap := make(map[int64]struct{})
+	for _, host := range req.GetPlugin() {
+		hostIDMap[host.GetBkHostId()] = struct{}{}
+	}
+	hostIDs := conv.MapKeyToSlice(hostIDMap)
 
 	return pluginDeployments, hostIDs, nil
 }

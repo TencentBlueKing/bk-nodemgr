@@ -120,12 +120,12 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	ctx.Data.LogI("transfer plugin pkg to node start.")
 
 	nCtx := std.Context()
-	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.HostID)
+	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.Dynamic.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.HostID, err)
+		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.Dynamic.HostID, err)
 	}
 
-	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Plugin.Generation, std.DeployInfo().Plugin.Platform.OS)
+	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Plugin.Dynamic.Generation, std.DeployInfo().Plugin.Dynamic.Platform.OS)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
@@ -166,24 +166,24 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 }
 
 func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
-	rt, err := types.ConvPluginTypeToReleaseType(info.Plugin.Type)
+	rt, err := types.ConvPluginTypeToReleaseType(info.Plugin.Dynamic.Type)
 	if err != nil {
 		return fmt.Errorf("failed to convert plugin type to release type: %w", err)
 	}
 
 	var dataDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerWorkDir, "data", "plugin", info.Plugin.Name)
+		dataDir = winpath.Join(info.InstallerWorkDir, "data", "plugin", info.Plugin.Dynamic.Name)
 	} else {
-		dataDir = filepath.Join(info.InstallerWorkDir, "data", "plugin", info.Plugin.Name)
+		dataDir = filepath.Join(info.InstallerWorkDir, "data", "plugin", info.Plugin.Dynamic.Name)
 	}
 
 	transferHandler, err := act.fileHandler.LaunchTransferPlugin(nCtx,
-		info.Plugin.Name,
-		info.Plugin.Generation,
+		info.Plugin.Dynamic.Name,
+		info.Plugin.Dynamic.Generation,
 		rt,
-		info.Plugin.Platform,
-		info.Plugin.Version,
+		info.Plugin.Dynamic.Platform,
+		info.Plugin.Dynamic.Version,
 		dataDir,
 		targetHost)
 	if err != nil {

@@ -11,6 +11,7 @@
 package gse
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -20,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 )
@@ -84,6 +86,32 @@ type IHandler interface {
 	// @return agent operate result.
 	OperateAgent(nCtx contextx.IContext, operate types.OperateAgent, agentIDList ...string) (
 		*types.OperateAgentResult, error)
+
+	IHandlerProc
+}
+
+// IHandlerProc define the gse handler for process.
+type IHandlerProc interface {
+	// QueryProcessInfo order the gse_agent to trusteeship the process.
+	QueryProcessInfo(nCtx contextx.IContext, processName string, AgentIDList ...string) (map[string]types.ProcessInfo, error)
+
+	// TrusteeshipProcess order the gse_agent to trusteeship the process.
+	TrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+
+	// UnTrusteeshipProcess order the gse_agent to stop trusteeship the process.
+	UnTrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+
+	// StartProcess order the gse_agent to start the process.
+	StartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+
+	// StopProcess order the gse_agent to stop the process.
+	StopProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+
+	// RestartProcess order the gse_agent to restart the process.
+	RestartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+
+	// ReloadProcess order the gse_agent to reload the process.
+	ReloadProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
 }
 
 // Handler this define the gse handler.
@@ -534,4 +562,480 @@ func (h *Handler) OperateAgent(nCtx contextx.IContext, operate types.OperateAgen
 	}
 
 	return result, nil
+}
+
+const (
+	// ProcNameSpace the namespace of proc.
+	// Historical problems, in order to be compatible with existing data.
+	procNameSpace = "nodeman"
+)
+
+// QueryProcessInfo order the gse_agent to trusteeship the process
+// (trusteeshiping: when the managed process exits abnormally, the agent will automatically pull up the managed process;
+// When the managed process resources exceed the limit, the agent will kill the managed process).
+func (h *Handler) QueryProcessInfo(nCtx contextx.IContext, processName string, agentIDList ...string) (map[string]types.ProcessInfo, error) {
+	operateProcReq := operateProcV2Req{
+		Meta: procMeta{
+			Namespace: procNameSpace,
+			Name:      processName,
+			Labels: procInfoMetaLabels{
+				ProcName: processName,
+			},
+		},
+		OpType:      procOperateCodeStatus,
+		AgentIDList: agentIDList,
+		Spec: procSpec{
+			Identity: procSpecIdentity{
+				ProcName: processName,
+			},
+		},
+	}
+
+	procResult, err := h.operateProc(nCtx, &operateProcReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	procInfoMap, err := h.parseQueryProcResult(procResult)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	processInfoMap := make(map[string]types.ProcessInfo)
+	for agentID, info := range procInfoMap {
+		processInfoMap[agentID] = types.ProcessInfo{
+			Trusteeship: info.IsAuto,
+			Pid:         info.Pid,
+			Version:     info.Version,
+			Status:      convPidToProcStatus(info.Pid),
+		}
+	}
+
+	return processInfoMap, nil
+}
+
+func (h *Handler) parseQueryProcResult(operateProcResultResp getProcOperateResultV2Resp) (map[string]processInfo, error) {
+	procInfoMap := make(map[string]processInfo)
+	for key, item := range operateProcResultResp {
+		// notice: this key is formated as: agentID:namespace:procName
+		keys := strings.Split(key, ":")
+		agentID := keys[0]
+
+		result := queryProcessContent{}
+		err := json.Unmarshal([]byte(item.Content), &result)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal operate proc result: %w", err)
+		}
+
+		if len(result.Process) != 1 {
+			return nil, fmt.Errorf("failed to parse operate proc result: this result process has invalid length: %d", len(result.Process))
+		}
+
+		if len(result.Process[0].Instance) == 0 {
+			return nil, fmt.Errorf("failed to parse operate proc result: this result process instance has invalid length: %d",
+				len(result.Process[0].Instance))
+		}
+
+		// notice: this is can be sure that the length of the result is 1.
+		procInfoMap[agentID] = result.Process[0].Instance[0]
+	}
+
+	return procInfoMap, nil
+}
+
+func convPidToProcStatus(pid int) types.ProcessStatus {
+	if pid == -1 {
+		return types.ProcessStatusStopped
+	}
+
+	if pid > 1 {
+		return types.ProcessStatusRunning
+	}
+
+	return types.ProcessStatusUnknown
+}
+
+// TrusteeshipProcess order the gse_agent to trusteeship the process
+// (trusteeship: when the managed process exits abnormally, the agent will automatically pull up the managed process;
+// When the managed process resources exceed the limit, the agent will kill the managed process).
+func (h *Handler) TrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+	// The lower level will be based on the value issued by the upper level, so it must be checked here.
+	if err := processSpec.Validate(); err != nil {
+		return "", fmt.Errorf("failed to trusteeship process: %w", err)
+	}
+
+	operateProcReq := operateProcV2Req{
+		Meta: procMeta{
+			Namespace: procNameSpace,
+			Name:      processSpec.Identity.Name,
+			Labels: procInfoMetaLabels{
+				ProcName: processSpec.Identity.Name,
+			},
+		},
+		OpType:      procOperateCodeTrusteeship,
+		AgentIDList: []string{processSpec.AgentID},
+	}
+
+	var err error
+	operateProcReq.Spec, err = convProcessSpecFromType(processSpec)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse process spec: %w", err)
+	}
+
+	procResult, err := h.operateProc(nCtx, &operateProcReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	controlProcResultMap, err := h.parseControlProcResult(procResult)
+	if err != nil {
+		return "", fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	controlProcResult, ok := controlProcResultMap[processSpec.AgentID]
+	if !ok {
+		return "", fmt.Errorf("failed to parse control proc result: %w", err)
+	}
+
+	return controlProcResult, nil
+}
+
+// UnTrusteeshipProcess order the gse_agent to untrusteeship the process.
+func (h *Handler) UnTrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+	// The lower level will be based on the value issued by the upper level, so it must be checked here.
+	if err := processSpec.Validate(); err != nil {
+		return "", fmt.Errorf("failed to untrusteeship process: %w", err)
+	}
+
+	operateProcReq := operateProcV2Req{
+		Meta: procMeta{
+			Namespace: procNameSpace,
+			Name:      processSpec.Identity.Name,
+			Labels: procInfoMetaLabels{
+				ProcName: processSpec.Identity.Name,
+			},
+		},
+		OpType:      procOperateCodeUnTrusteeship,
+		AgentIDList: []string{processSpec.AgentID},
+	}
+
+	var err error
+	operateProcReq.Spec, err = convProcessSpecFromType(processSpec)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse process spec: %w", err)
+	}
+
+	procResult, err := h.operateProc(nCtx, &operateProcReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	controlProcResultMap, err := h.parseControlProcResult(procResult)
+	if err != nil {
+		return "", fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	controlProcResult, ok := controlProcResultMap[processSpec.AgentID]
+	if !ok {
+		return "", fmt.Errorf("failed to parse control proc result: %w", err)
+	}
+
+	return controlProcResult, nil
+}
+
+// StartProcess starts the process.
+func (h *Handler) StartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+	// The lower level will be based on the value issued by the upper level, so it must be checked here.
+	if err := processSpec.Validate(); err != nil {
+		return "", fmt.Errorf("failed to start process: %w", err)
+	}
+
+	operateProcReq := operateProcV2Req{
+		Meta: procMeta{
+			Namespace: procNameSpace,
+			Name:      processSpec.Identity.Name,
+			Labels: procInfoMetaLabels{
+				ProcName: processSpec.Identity.Name,
+			},
+		},
+		OpType:      procOperateCodeStart,
+		AgentIDList: []string{processSpec.AgentID},
+	}
+
+	var err error
+	operateProcReq.Spec, err = convProcessSpecFromType(processSpec)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse process spec: %w", err)
+	}
+
+	procResult, err := h.operateProc(nCtx, &operateProcReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	controlProcResultMap, err := h.parseControlProcResult(procResult)
+	if err != nil {
+		return "", fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	controlProcResult, ok := controlProcResultMap[processSpec.AgentID]
+	if !ok {
+		return "", fmt.Errorf("failed to parse control proc result: %w", err)
+	}
+
+	return controlProcResult, nil
+}
+
+// StopProcess stops the process.
+func (h *Handler) StopProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+	// The lower level will be based on the value issued by the upper level, so it must be checked here.
+	if err := processSpec.Validate(); err != nil {
+		return "", fmt.Errorf("failed to stop process: %w", err)
+	}
+
+	operateProcReq := operateProcV2Req{
+		Meta: procMeta{
+			Namespace: procNameSpace,
+			Name:      processSpec.Identity.Name,
+			Labels: procInfoMetaLabels{
+				ProcName: processSpec.Identity.Name,
+			},
+		},
+		OpType:      procOperateCodeStop,
+		AgentIDList: []string{processSpec.AgentID},
+	}
+
+	var err error
+	operateProcReq.Spec, err = convProcessSpecFromType(processSpec)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse process spec: %w", err)
+	}
+
+	procResult, err := h.operateProc(nCtx, &operateProcReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	controlProcResultMap, err := h.parseControlProcResult(procResult)
+	if err != nil {
+		return "", fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	controlProcResult, ok := controlProcResultMap[processSpec.AgentID]
+	if !ok {
+		return "", fmt.Errorf("failed to parse control proc result: %w", err)
+	}
+
+	return controlProcResult, nil
+}
+
+// RestartProcess restarts the process.
+func (h *Handler) RestartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+	// The lower level will be based on the value issued by the upper level, so it must be checked here.
+	if err := processSpec.Validate(); err != nil {
+		return "", fmt.Errorf("failed to restart process: %w", err)
+	}
+
+	operateProcReq := operateProcV2Req{
+		Meta: procMeta{
+			Namespace: procNameSpace,
+			Name:      processSpec.Identity.Name,
+			Labels: procInfoMetaLabels{
+				ProcName: processSpec.Identity.Name,
+			},
+		},
+		OpType:      procOperateCodeRestart,
+		AgentIDList: []string{processSpec.AgentID},
+	}
+
+	var err error
+	operateProcReq.Spec, err = convProcessSpecFromType(processSpec)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse process spec: %w", err)
+	}
+
+	procResult, err := h.operateProc(nCtx, &operateProcReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	controlProcResultMap, err := h.parseControlProcResult(procResult)
+	if err != nil {
+		return "", fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	controlProcResult, ok := controlProcResultMap[processSpec.AgentID]
+	if !ok {
+		return "", fmt.Errorf("failed to parse control proc result: %w", err)
+	}
+
+	return controlProcResult, nil
+}
+
+// ReloadProcess reload the process.
+func (h *Handler) ReloadProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+	// The lower level will be based on the value issued by the upper level, so it must be checked here.
+	if err := processSpec.Validate(); err != nil {
+		return "", fmt.Errorf("failed to reload process: %w", err)
+	}
+
+	operateProcReq := operateProcV2Req{
+		Meta: procMeta{
+			Namespace: procNameSpace,
+			Name:      processSpec.Identity.Name,
+			Labels: procInfoMetaLabels{
+				ProcName: processSpec.Identity.Name,
+			},
+		},
+		OpType:      procOperateCodeReload,
+		AgentIDList: []string{processSpec.AgentID},
+	}
+
+	var err error
+	operateProcReq.Spec, err = convProcessSpecFromType(processSpec)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse process spec: %w", err)
+	}
+
+	procResult, err := h.operateProc(nCtx, &operateProcReq)
+	if err != nil {
+		return "", fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	controlProcResultMap, err := h.parseControlProcResult(procResult)
+	if err != nil {
+		return "", fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	controlProcResult, ok := controlProcResultMap[processSpec.AgentID]
+	if !ok {
+		return "", fmt.Errorf("failed to parse control proc result: %w", err)
+	}
+
+	return controlProcResult, nil
+}
+
+func convProcessSpecFromType(processSpec types.ProcessSpec) (procSpec, error) {
+	spec := procSpec{
+		Identity: procSpecIdentity{
+			ProcName:   processSpec.Identity.Name,
+			SetupPath:  processSpec.Identity.SetupPath,
+			PidPath:    processSpec.Identity.PidPath,
+			ConfigPath: processSpec.Identity.ConfigPath,
+			LogPath:    processSpec.Identity.LogPath,
+			User:       processSpec.Identity.User,
+		},
+		Control: procSpecControl{
+			StartCmd:   processSpec.Controller.StartCmd,
+			StopCmd:    processSpec.Controller.StopCmd,
+			RestartCmd: processSpec.Controller.RestartCmd,
+			ReloadCmd:  processSpec.Controller.ReloadCmd,
+			KillCmd:    processSpec.Controller.KillCmd,
+			VersionCmd: processSpec.Controller.VersionCmd,
+			HealthCmd:  processSpec.Controller.HealthCmd,
+		},
+		Resource: procSpecResource{
+			CPU: processSpec.Resource.CPULimitPercent,
+			Mem: processSpec.Resource.MemLimitPercent,
+		},
+		MonitorPolicy: procSpecMonitorPolicy{
+			StartCheckSecs: processSpec.MonitorPolicy.StartCheckSecs,
+			StopCheckSecs:  processSpec.MonitorPolicy.StopCheckSecs,
+			OpTimeoutSecs:  processSpec.MonitorPolicy.OpTimeoutSecs,
+		},
+	}
+
+	var err error
+	spec.MonitorPolicy.AutoType, err = convAutoTypeFromType(processSpec.MonitorPolicy.AutoType)
+	if err != nil {
+		return spec, fmt.Errorf("failed to parse auto type: %w", err)
+	}
+
+	return spec, nil
+}
+
+func convAutoTypeFromType(autoType types.ProcessAutoType) (procSpecMonitorPolicyAutoType, error) {
+	if err := autoType.Validate(); err != nil {
+		return 0, fmt.Errorf("failed to parse auto type: %w", err)
+	}
+
+	switch autoType {
+	case types.ProcessAutoTypeTrusteeship:
+		return procSpecMonitorPolicyAutoTypeTrusteeship, nil
+	case types.ProcessAutoTypeOnce:
+		return procSpecMonitorPolicyAutoTypeOnce, nil
+	default:
+		return 0, fmt.Errorf("unsupport auto type: %s", autoType)
+	}
+}
+
+func (h *Handler) parseControlProcResult(operateProcResultResp getProcOperateResultV2Resp) (map[string]string, error) {
+	procControlResult := make(map[string]string)
+	for key, item := range operateProcResultResp {
+		// notice: this key is formated as: agentID:namespace:procName
+		keys := strings.Split(key, ":")
+		agentID := keys[0]
+
+		content := controlProcessContent{}
+		err := json.Unmarshal([]byte(item.Content), &content)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal operate proc content: %w", err)
+		}
+
+		if len(content.Value) != 1 {
+			return nil, fmt.Errorf("failed to parse operate proc content: this content value has invalid length: %d", len(content.Value))
+		}
+
+		// notice: this is can be sure that the length of the content is 1.
+		procControlResult[agentID] = content.Value[0].Result
+	}
+
+	return procControlResult, nil
+}
+
+func (h *Handler) operateProc(nCtx contextx.IContext, operateProcReq *operateProcV2Req) (getProcOperateResultV2Resp, error) {
+	operateProcResp, err := h.cli.operateProcV2(nCtx, operateProcReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	taskID := operateProcResp.TaskID
+	operateProcResultReq := getProcOperateResultV2Req{
+		TaskID: taskID,
+	}
+
+	var operateProcResultResp getProcOperateResultV2Resp
+	// nolint: mnd
+	expoBackoffOpts := retrier.ExpoBackoffOpts{
+		MaxRetries:    5,
+		BaseDelay:     time.Second,
+		MaxDelay:      5 * time.Second,
+		JitterPercent: 0.2,
+	}
+	expoBackoff := retrier.NewExpoBackoff(expoBackoffOpts)
+	err = expoBackoff.Do(nCtx, func(_ int) error {
+		operateProcResultResp, err = h.cli.getProcOperateResultV2(nCtx, &operateProcResultReq)
+		if err != nil {
+			return fmt.Errorf("failed to get operate proc result: %w", err)
+		}
+
+		for _, item := range operateProcResultResp {
+			switch item.ErrorCode {
+			case procOperateResultCodeOK:
+				continue
+			case procOperateResultCodeRunning:
+				// continue to retry.
+				return fmt.Errorf("proc operate task is running, taskID(%s)", taskID)
+			default:
+				return fmt.Errorf("operate proc failed, taskID(%s), err-code(%d), err-msg(%s)", taskID, item.ErrorCode, item.ErrorMsg)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get operate proc result: %w", err)
+	}
+
+	return operateProcResultResp, nil
 }

@@ -118,7 +118,7 @@ type OriginOfficialPluginPkgDetail struct {
 	LaunchNode      string
 	ConfigTemplates []PluginPkgConfigTemplate
 
-	Controller PluginController
+	Controller ProcessController
 
 	Platforms []platform.Platform
 }
@@ -140,7 +140,7 @@ type OriginExternalPluginPkgDetail struct {
 	SubDirPaths     map[string]map[string]struct{}
 	ConfigTemplates []PluginPkgConfigTemplate
 
-	Controller PluginController
+	Controller ProcessController
 
 	Platforms []platform.Platform
 }

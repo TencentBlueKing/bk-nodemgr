@@ -178,7 +178,7 @@ type ReleaseOfficialPlugin struct {
 // ReleaseAdditionInfoOfficialPlugin defines the addition info of release official plugin.
 type ReleaseAdditionInfoOfficialPlugin struct {
 	ConfigTemplates  []PluginPkgConfigTemplate
-	PluginController PluginController
+	PluginController ProcessController
 }
 
 // ReleaseExternalPlugin defines the external plugin, it is kind of Release.
@@ -190,7 +190,7 @@ type ReleaseExternalPlugin struct {
 // ReleaseAdditionInfoExternalPlugin defines the addition info of release external plugin.
 type ReleaseAdditionInfoExternalPlugin struct {
 	ConfigTemplates  []PluginPkgConfigTemplate
-	PluginController PluginController
+	PluginController ProcessController
 }
 
 // PluginPkgConfigTemplate defines the template of plugin package.
@@ -216,8 +216,8 @@ type PluginPkgConfigTemplateProperty struct {
 	Properties map[string]*PluginPkgConfigTemplateProperty `yaml:"properties,omitempty"`
 }
 
-// PluginController defines the control of plugin.
-type PluginController struct {
+// ProcessController defines the control of plugin.
+type ProcessController struct {
 	StartCmd   string
 	StopCmd    string
 	RestartCmd string
@@ -225,4 +225,22 @@ type PluginController struct {
 	KillCmd    string
 	VersionCmd string
 	HealthCmd  string
+}
+
+// Validate validates the release type.
+func (controller ProcessController) Validate() error {
+	if controller.StartCmd == "" {
+		return fmt.Errorf("start cmd is empty")
+	}
+	if controller.StopCmd == "" {
+		return fmt.Errorf("stop cmd is empty")
+	}
+	if controller.RestartCmd == "" {
+		return fmt.Errorf("restart cmd is empty")
+	}
+	if controller.ReloadCmd == "" {
+		return fmt.Errorf("reload cmd is empty")
+	}
+
+	return nil
 }

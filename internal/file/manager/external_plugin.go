@@ -172,13 +172,17 @@ type ExternalPluginConfigTemplate struct {
  * project.yml
  * others can be ignored.
  */
+// nolint: funlen
 func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPluginPkgDetail, error) {
 	detail := new(types.OriginExternalPluginPkgDetail)
 	detail.SubDirPaths = make(map[string]map[string]struct{})
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePathRegex: []string{buildPrefixMatchRegex(originalExternalPluginDirNamePlatPrefix), ".*", buildFullMatchRegex(originalExternalPluginFileNameProject)},
+			filePathRegex: []string{
+				buildPrefixMatchRegex(originalExternalPluginDirNamePlatPrefix),
+				".*",
+				buildFullMatchRegex(originalExternalPluginFileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
 				detail.Platforms = append(detail.Platforms, convExternalPluginDirNameToPlat(path[0]))
 
@@ -213,7 +217,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 					})
 				}
 
-				detail.Controller = types.PluginController{
+				detail.Controller = types.ProcessController{
 					StartCmd:   pluginProject.Control.StartCmd,
 					StopCmd:    pluginProject.Control.StopCmd,
 					RestartCmd: pluginProject.Control.RestartCmd,
