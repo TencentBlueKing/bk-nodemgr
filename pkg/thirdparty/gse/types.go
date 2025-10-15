@@ -524,7 +524,7 @@ const (
 	// procOperateResultCodeOK means success.
 	procOperateResultCodeOK procOperateResultCode = 0
 	// procOperateResultCodeRunning means running.
-	procOperateResultCodeRunning procOperateResultCode = 155
+	procOperateResultCodeRunning procOperateResultCode = 115
 )
 
 // getProcOperateResultV2Req describes the request data of get_proc_operate_result_v2.
