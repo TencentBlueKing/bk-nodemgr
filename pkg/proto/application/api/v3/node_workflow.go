@@ -225,7 +225,7 @@ func (x *NodeWorkflowOperationListReq) AutoConvert() {
 
 // ConvertResultFromTypes convert workflow id to types.
 func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
-	total int64, result []*types.OperationListResult, operationsSummary []*types.OperationSummary) {
+	total int64, result []*types.NodeWorkflowListOperationResult, operationsSummary []*types.OperationSummary) {
 
 	items := make([]*NodeWorkflowOperation, 0, total)
 	for idx, op := range result {

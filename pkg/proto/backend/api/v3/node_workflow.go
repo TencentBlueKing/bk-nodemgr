@@ -216,7 +216,7 @@ func (x *NodeWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) types.Pa
 }
 
 // ConvertResultFromTypes convert workflow id to types.
-func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, result []*types.OperationListResult) {
+func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, result []*types.NodeWorkflowListOperationResult) {
 	items := make([]*NodeWorkflowOperation, 0, total)
 	for _, op := range result {
 		item := &NodeWorkflowOperation{
@@ -239,17 +239,17 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 }
 
 // ConvertWorkflowOperationToTypes convert workflow operation to types.
-func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*types.OperationListResult, int64) {
+func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*types.NodeWorkflowListOperationResult, int64) {
 	data := x.GetData()
 	if data == nil {
 		return nil, 0
 	}
 
 	items := data.GetOperations()
-	result := make([]*types.OperationListResult, len(items))
+	result := make([]*types.NodeWorkflowListOperationResult, len(items))
 
 	for idx, item := range items {
-		operation := &types.OperationListResult{
+		operation := &types.NodeWorkflowListOperationResult{
 			OperationID:     item.GetOperationId(),
 			Operator:        item.GetOperator(),
 			OperInstanceIDs: item.GetInstanceIds(),

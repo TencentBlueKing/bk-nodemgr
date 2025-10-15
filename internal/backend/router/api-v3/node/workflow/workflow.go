@@ -149,7 +149,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	result := make([]*types.OperationListResult, len(operations))
+	result := make([]*types.NodeWorkflowListOperationResult, len(operations))
 
 	for idx, op := range operations {
 		param := new(utils.NodeActionStandardParam)
@@ -164,7 +164,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 		}
 
-		result[idx] = &types.OperationListResult{
+		result[idx] = &types.NodeWorkflowListOperationResult{
 			Operator:        param.Operator,
 			NetworkAreaID:   deployment.Host.Static.NetworkAreaID,
 			InnerIP:         deployment.Host.Static.InnerIP,

@@ -204,8 +204,8 @@ func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 	}
 }
 
-// OperationListResult operation list result.
-type OperationListResult struct {
+// NodeWorkflowListOperationResult operation list result.
+type NodeWorkflowListOperationResult struct {
 	NodeVersion     string
 	NetworkAreaID   int64
 	InnerIP         string

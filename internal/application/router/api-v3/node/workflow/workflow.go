@@ -424,10 +424,10 @@ func groupInstancesByOperationID(
 }
 
 func filterOperationsByState(
-	ops []*types.OperationListResult,
+	ops []*types.NodeWorkflowListOperationResult,
 	summaries []*types.OperationSummary,
 	targetStates []string) (
-	[]*types.OperationListResult, []*types.OperationSummary) {
+	[]*types.NodeWorkflowListOperationResult, []*types.OperationSummary) {
 
 	// no state filter required. directly return.
 	if len(targetStates) == 0 {
@@ -440,7 +440,7 @@ func filterOperationsByState(
 		targetStateSet[types.NodeWorkflowOperationState(state)] = struct{}{}
 	}
 
-	matchedOperations := make([]*types.OperationListResult, len(ops))
+	matchedOperations := make([]*types.NodeWorkflowListOperationResult, len(ops))
 	matchedSummaries := make([]*types.OperationSummary, len(ops))
 
 	for i, op := range ops {
