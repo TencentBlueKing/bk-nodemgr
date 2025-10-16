@@ -18,7 +18,7 @@ import (
 
 // registerDefaultFunctions register default related functions.
 func registerDefaultFunctions(fnMap template.FuncMap) {
-	addFunction(fnMap, "default", defaultFn)
+	addFunction(fnMap, customDefault, defaultFn)
 }
 
 // defaultFn returns the first value if it's non-empty; otherwise, it returns the defaultValue.

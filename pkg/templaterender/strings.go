@@ -11,16 +11,22 @@
 package templaterender
 
 import (
+	"fmt"
 	"strings"
 	"text/template"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
 // registerStringsFunctions register string related template functions.
 func registerStringsFunctions(fnMap template.FuncMap) {
-	addFunction(fnMap, "upper", strings.ToUpper)
-	addFunction(fnMap, "lower", strings.ToLower)
-	addFunction(fnMap, "replace", replace)
-	addFunction(fnMap, "join", join)
+	addFunction(fnMap, customUpper, strings.ToUpper)
+	addFunction(fnMap, customLower, strings.ToLower)
+	addFunction(fnMap, customReplace, replace)
+	addFunction(fnMap, customJoin, join)
+	addFunction(fnMap, customIndent, indent)
+	addFunction(fnMap, customNindent, nindent)
+	addFunction(fnMap, customToString, toString)
 }
 
 // replace is a wrapper of strings.ReplaceAll to be used in template functions.
@@ -31,4 +37,27 @@ func replace(oldStr, newStr, s string) string {
 // join is a wrapper of strings.Join to be used in template functions.
 func join(sep string, s []string) string {
 	return strings.Join(s, sep)
+}
+
+// indent indents each line in the given string with the specified number of spaces.
+func indent(spaces int, v string) string {
+	pad := strings.Repeat(" ", spaces)
+	return pad + strings.ReplaceAll(v, "\n", "\n"+pad)
+}
+
+// nindent indents each line in the given string with the specified number of spaces and adds a newline at the beginning.
+func nindent(spaces int, v string) string {
+	return "\n" + indent(spaces, v)
+}
+
+// toString converts the given value to a string.
+func toString(v interface{}) string {
+	switch v := v.(type) {
+	case error:
+		return v.Error()
+	case fmt.Stringer:
+		return v.String()
+	default:
+		return conv.ToStringDefault(v, "")
+	}
 }

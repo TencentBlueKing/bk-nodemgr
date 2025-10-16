@@ -11,21 +11,22 @@
 package templaterender
 
 import (
+	"reflect"
 	"text/template"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
-// registerConversionFunctions register conversion related functions.
-func registerConversionFunctions(fnMap template.FuncMap) {
-	addFunction(fnMap, customInt, toInt)
+// registerReflectFunctions register the reflect functions.
+func registerReflectFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, customKindIs, kindIs)
+	addFunction(fnMap, customKindOf, kindOf)
 }
 
-func toInt(value any) (int, error) {
-	res, err := conv.ToInt64(value)
-	if err != nil {
-		return 0, err
-	}
+// kindIs checks if the kind of src is the same as target.
+func kindIs(target string, src interface{}) bool {
+	return target == kindOf(src)
+}
 
-	return int(res), nil
+// kindOf returns the kind of src.
+func kindOf(src interface{}) string {
+	return reflect.ValueOf(src).Kind().String()
 }

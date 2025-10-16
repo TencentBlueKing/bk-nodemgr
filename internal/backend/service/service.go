@@ -170,6 +170,7 @@ func (svc *Service) initialStaticsConfigs() error {
 			HostIDPath:         svc.conf.GSEDeployConfs[idx].PluginCustom.HostIDPath,
 			AgentDataIPCPath:   svc.conf.GSEDeployConfs[idx].PluginCustom.AgentDataIPCPath,
 			AgentPluginIPCPath: svc.conf.GSEDeployConfs[idx].PluginCustom.AgentPluginIPCPath,
+			CommonConstants:    svc.conf.GSEDeployConfs[idx].PluginCustom.CommonConstants,
 		}
 		if err := deployconstant.SetPluginDeployConf(pluginDeployConf); err != nil {
 			return fmt.Errorf("failed to set pluginStg deploy conf: %w", err)

@@ -12,20 +12,14 @@ package templaterender
 
 import (
 	"text/template"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
-// registerConversionFunctions register conversion related functions.
-func registerConversionFunctions(fnMap template.FuncMap) {
-	addFunction(fnMap, customInt, toInt)
+// registerListFunctions register the list functions.
+func registerListFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, customList, list)
 }
 
-func toInt(value any) (int, error) {
-	res, err := conv.ToInt64(value)
-	if err != nil {
-		return 0, err
-	}
-
-	return int(res), nil
+// list creates a list from the given items.
+func list(items ...interface{}) []interface{} {
+	return items
 }

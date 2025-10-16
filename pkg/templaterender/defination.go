@@ -10,22 +10,29 @@
 
 package templaterender
 
-import (
-	"text/template"
+const (
+	// default function names.
+	customDefault = "default"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	// conversion function names.
+	customInt = "int"
+
+	// list function names.
+	customList = "list"
+
+	// dict function names.
+	customDict = "dict"
+
+	// reflect function names.
+	customKindOf = "kindOf"
+	customKindIs = "kindIs"
+
+	// string function names.
+	customUpper    = "upper"
+	customLower    = "lower"
+	customJoin     = "join"
+	customReplace  = "replace"
+	customIndent   = "indent"
+	customNindent  = "nindent"
+	customToString = "toString"
 )
-
-// registerConversionFunctions register conversion related functions.
-func registerConversionFunctions(fnMap template.FuncMap) {
-	addFunction(fnMap, customInt, toInt)
-}
-
-func toInt(value any) (int, error) {
-	res, err := conv.ToInt64(value)
-	if err != nil {
-		return 0, err
-	}
-
-	return int(res), nil
-}

@@ -31,6 +31,9 @@ func New() *Handler {
 	registerStringsFunctions(handler.funcMap)
 	registerDefaultFunctions(handler.funcMap)
 	registerConversionFunctions(handler.funcMap)
+	registerReflectFunctions(handler.funcMap)
+	registerListFunctions(handler.funcMap)
+	registerDictFunctions(handler.funcMap)
 
 	return handler
 }

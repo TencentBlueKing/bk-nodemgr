@@ -10,22 +10,24 @@
 
 package templaterender
 
-import (
-	"text/template"
+import "text/template"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-)
-
-// registerConversionFunctions register conversion related functions.
-func registerConversionFunctions(fnMap template.FuncMap) {
-	addFunction(fnMap, customInt, toInt)
+// registerDictFunctions register dict related template functions.
+func registerDictFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, customDict, dict)
 }
 
-func toInt(value any) (int, error) {
-	res, err := conv.ToInt64(value)
-	if err != nil {
-		return 0, err
+func dict(v ...interface{}) map[string]interface{} {
+	dict := map[string]interface{}{}
+	lenv := len(v)
+	for i := 0; i < lenv; i += 2 {
+		key := toString(v[i])
+		if i+1 >= lenv {
+			dict[key] = ""
+			continue
+		}
+		dict[key] = v[i+1]
 	}
 
-	return int(res), nil
+	return dict
 }

@@ -33,6 +33,7 @@ type PluginDeployConf struct {
 	AgentDataIPCPath   string
 	AgentPluginIPCPath string
 	SubConfigBaseDir   string
+	CommonConstants    map[string]any
 }
 
 // Validate checks if the deployment configuration is valid.

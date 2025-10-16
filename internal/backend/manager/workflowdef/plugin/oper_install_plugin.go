@@ -46,6 +46,7 @@ func (oper *operInstallPlugin) Name() string {
 func (oper *operInstallPlugin) ActionDefNames() []string {
 	return []string{
 		ActionNameRenderPluginDeployment,
+		ActionNameRenderPluginMainConfig,
 		ActionNameTransferPluginPkgToNode,
 		ActionNameInstallPlugin,
 		ActionNameWaitInstallerComplete,

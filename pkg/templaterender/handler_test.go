@@ -10,11 +10,25 @@
 
 package templaterender
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
+
+type customStringer struct {
+	value string
+}
+
+func (cs *customStringer) String() string {
+	return cs.value
+}
+
+type customString string
+
+type customByte []byte
 
 // Test_TemplateRender_Render tests the Render method of the template rendering handler.
 func Test_TemplateRender_Render(t *testing.T) {
-
 	type args struct {
 		tmpl string
 		data map[string]any
@@ -130,6 +144,93 @@ func Test_TemplateRender_Render(t *testing.T) {
 			},
 			want:    "",
 			wantErr: true,
+		},
+		{
+			name: "use indent function",
+			args: args{
+				tmpl: "content:\n{{ .content | indent 4 }}",
+				data: map[string]any{
+					"content": "line1\nline2\nline3",
+				},
+			},
+			want:    "content:\n    line1\n    line2\n    line3",
+			wantErr: false,
+		},
+		{
+			name: "use nindent function",
+			args: args{
+				tmpl: "content:{{ .content | nindent 4 }}",
+				data: map[string]any{
+					"content": "line1\nline2\nline3",
+				},
+			},
+			want:    "content:\n    line1\n    line2\n    line3",
+			wantErr: false,
+		},
+		{
+			name: "use toString function with int",
+			args: args{
+				tmpl: "value: {{ .value | toString }}",
+				data: map[string]any{
+					"value": 123,
+				},
+			},
+			want:    "value: 123",
+			wantErr: false,
+		},
+		{
+			name: "use toString function with error",
+			args: args{
+				tmpl: "error: {{ .err | toString }}",
+				data: map[string]any{
+					"err": func() error { return fmt.Errorf("an error occurred") }(),
+				},
+			},
+			want:    "error: an error occurred",
+			wantErr: false,
+		}, {
+			name: "use toString function with byte slice",
+			args: args{
+				tmpl: "data: {{ .data | toString }}",
+				data: map[string]any{
+					"data": []byte("byte slice data"),
+				},
+			},
+			want:    "data: byte slice data",
+			wantErr: false,
+		},
+		{
+			name: "use toString function with Stringer",
+			args: args{
+				tmpl: "stringer: {{ .str | toString }}",
+				data: map[string]any{
+					"str": struct{ fmt.Stringer }{Stringer: &customStringer{"custom string"}},
+				},
+			},
+			want:    "stringer: custom string",
+			wantErr: false,
+		},
+		{
+			name: "use toString function with custom string type",
+			args: args{
+				tmpl: "customString: {{ .cs | toString }}",
+				data: map[string]any{
+					"cs": customString("custom string type"),
+				},
+			},
+			want:    "customString: custom string type",
+			wantErr: false,
+		},
+		{
+			name: "use toString function with custom byte slice type",
+			args: args{
+				tmpl: "customByte: {{ .cb | toString }}",
+				data: map[string]any{
+					"cb": customByte("custom byte slice"),
+				},
+			},
+			want:    "customByte: custom byte slice",
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {

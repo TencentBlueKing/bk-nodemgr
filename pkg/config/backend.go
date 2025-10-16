@@ -258,12 +258,13 @@ type GSEDeployCustom struct {
 
 // GSEDeployPluginCustom defines the custom deployment configuration for plugin.
 type GSEDeployPluginCustom struct {
-	LogDir             string `yaml:"logDir" usage:"log dir"`
-	DataDir            string `yaml:"dataDir" usage:"data dir"`
-	RunDir             string `yaml:"runDir" usage:"run dir"`
-	HostIDPath         string `yaml:"hostIDPath" usage:"host id path"`
-	AgentDataIPCPath   string `yaml:"agentDataIPCPath" usage:"data ipc path"`
-	AgentPluginIPCPath string `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
+	LogDir             string         `yaml:"logDir" usage:"log dir"`
+	DataDir            string         `yaml:"dataDir" usage:"data dir"`
+	RunDir             string         `yaml:"runDir" usage:"run dir"`
+	HostIDPath         string         `yaml:"hostIDPath" usage:"host id path"`
+	AgentDataIPCPath   string         `yaml:"agentDataIPCPath" usage:"data ipc path"`
+	AgentPluginIPCPath string         `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
+	CommonConstants    map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
 }
 
 // Access defines the access configuration for nodemgr system to authenticate.

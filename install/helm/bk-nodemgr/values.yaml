@@ -863,6 +863,7 @@ backend:
           hostIDPath: ""
           agentDataIPCPath: ""
           agentPluginIPCPath: ""
+          commonConstants: {}
       - # defines the gse deploy related settings.
         generation: 2
         osType: "windows"
@@ -881,6 +882,7 @@ backend:
           hostIDPath: ""
           agentDataIPCPath: ""
           agentPluginIPCPath: ""
+          commonConstants: {}
 
     # defines the api gateway server related settings.
     apiGateWayServer:

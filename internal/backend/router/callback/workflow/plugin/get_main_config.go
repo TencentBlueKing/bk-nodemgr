@@ -48,10 +48,11 @@ func (h *handler) GetMainConfig(rCtx restserver.IContext) (*restserver.FileRespo
 
 	fileName := fmt.Sprintf("%s.conf", info.Plugin.Dynamic.Name)
 	data := io.NopCloser(bytes.NewReader(mainConfigBytes))
+	size := int64(len(mainConfigBytes))
 
 	resp := &restserver.FileResponse{
 		Data:        data,
-		Size:        0,
+		Size:        size,
 		FilePath:    "",
 		FileName:    fileName,
 		ContentType: restserver.MIMETypeText,
