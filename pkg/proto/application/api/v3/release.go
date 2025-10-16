@@ -474,6 +474,15 @@ func (x *PackageReleaseDeployedHostCountResp) ConvertResultFromTypes(result []in
 	}
 }
 
+// GetIdentifier get identifier.
+func (x *PackageReleaseAgentDownloadReq) GetIdentifier() (
+	types.Generation, platform.Platform, string) {
+
+	return types.Generation(x.GetGeneration()),
+		ConvertPlatformToTypes(x.GetPlatform()),
+		x.GetVersion()
+}
+
 // PackageReleaseIdentifier defines the identifier of package release.
 type PackageReleaseIdentifier struct {
 	Generation  types.Generation

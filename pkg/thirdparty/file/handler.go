@@ -21,6 +21,7 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -96,6 +97,9 @@ type IPkgManager interface {
 
 	// PublishReleaseBinTool publish release bintool.
 	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error
+
+	// DownloadReleaseAgent download release agent.
+	DownloadReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*restserver.StreamResponse, error)
 }
 
 const (
@@ -274,6 +278,27 @@ func (h *handler) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 	}
 
 	return nil
+}
+
+func (h *handler) DownloadReleaseAgent(nCtx contextx.IContext,
+	gen types.Generation, plat platform.Platform, version string) (*restserver.StreamResponse, error) {
+
+	tenantID, err := tenant.GetID(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tenant id: %w", err)
+	}
+
+	resp, err := h.cli.downloadReleaseAgent(nCtx, tenantID, &protoFile.DownloadAgentReq{
+		OsType:     string(plat.OS),
+		CpuArch:    string(plat.Arch),
+		Version:    version,
+		Generation: int64(gen),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to download release agent: %w", err)
+	}
+
+	return resp, nil
 }
 
 // PublishReleaseProxy publish release proxy.

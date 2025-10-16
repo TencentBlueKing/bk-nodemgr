@@ -305,7 +305,7 @@ func (r *Request) isToleranceLatencyExclusionURL(url string) bool {
 
 // Result http response result.
 type Result struct {
-	Body       []byte
+	Body       io.ReadCloser
 	Err        error
 	StatusCode int
 	Status     string
@@ -313,6 +313,9 @@ type Result struct {
 
 	// enableLogResponse was used to record some important info for debug.
 	enableLogResponse bool
+
+	// nCtx was used to record some important info for debug.
+	nCtx contextx.IContext
 }
 
 // Into parse body to obj.
@@ -321,17 +324,32 @@ func (r *Result) Into(obj interface{}) error {
 		return r.Err
 	}
 
-	if len(r.Body) == 0 {
+	logger.G.Biz(r.nCtx).
+		With("code", r.StatusCode, "body", r.maskResponseBody()).
+		Info("into result")
+
+	if r.Body == nil {
+		return fmt.Errorf("response body is nil")
+	}
+
+	bodyData, err := io.ReadAll(r.Body)
+	_ = r.Body.Close()
+
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	if len(bodyData) == 0 {
 		return nil
 	}
 
 	if r.StatusCode >= http.StatusInternalServerError {
-		return fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, r.Body)
+		return fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, bodyData)
 	}
 
-	err := json.Unmarshal(r.Body, obj)
+	err = json.Unmarshal(bodyData, obj)
 	if nil != err {
-		return fmt.Errorf("invalid response body, body(%s): %v", r.Body, err)
+		return fmt.Errorf("invalid response body, body(%s): %v", bodyData, err)
 	}
 
 	return nil
@@ -339,6 +357,38 @@ func (r *Result) Into(obj interface{}) error {
 
 // RawData get raw data.
 func (r *Result) RawData() ([]byte, error) {
+	if r.Err != nil {
+		return nil, r.Err
+	}
+
+	logger.G.Biz(r.nCtx).
+		With("code", r.StatusCode, "body", r.maskResponseBody()).
+		Info("raw result")
+
+	if r.Body == nil {
+		return nil, fmt.Errorf("response body is nil")
+	}
+
+	bodyData, err := io.ReadAll(r.Body)
+	_ = r.Body.Close()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	if len(bodyData) == 0 {
+		return nil, nil
+	}
+
+	if r.StatusCode >= http.StatusInternalServerError {
+		return nil, fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, bodyData)
+	}
+
+	return bodyData, nil
+}
+
+// RawStream get raw stream.
+func (r *Result) RawStream() (io.ReadCloser, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -441,36 +491,18 @@ func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int
 	// record latency if needed
 	r.checkToleranceLatency(&start, fullURL)
 
-	var body []byte
-	if resp.Body != nil {
-		data, err := io.ReadAll(resp.Body)
-		if err != nil {
-			if errors.Is(err, io.ErrUnexpectedEOF) {
-				// retry now
-				time.Sleep(retryDelay)
-				return nil, false
-			}
-
-			logger.G.Biz(r.nCtx).
-				WithErr(err).
-				With("method", r.verb, "url", fullURL, "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
-				Error("failed to do request")
-
-			return &Result{Err: err}, true
-		}
-		body = data
-	}
-
 	result := &Result{
-		Body:              body,
+		Body:              resp.Body,
 		StatusCode:        resp.StatusCode,
 		Status:            resp.Status,
 		Header:            resp.Header,
 		enableLogResponse: r.enableLogResponse,
+		nCtx:              r.nCtx,
 	}
 
 	logger.G.Biz(r.nCtx).
-		With("code", result.StatusCode, "method", r.verb, "url", fullURL, "header", r.maskHeader(r.headers), "body", result.maskResponseBody()).
+		With("code", result.StatusCode, "method", r.verb, "url", fullURL, "header",
+			r.maskHeader(r.headers), "body", result.maskResponseBody()).
 		Info("receive response")
 
 	return result, true
@@ -589,5 +621,12 @@ func (r *Result) maskResponseBody() string {
 		return "hidden"
 	}
 
-	return string(r.Body)
+	body := make([]byte, 0)
+
+	if r.Body != nil {
+		body, _ = io.ReadAll(r.Body)
+		r.Body = io.NopCloser(bytes.NewReader(body))
+	}
+
+	return string(body)
 }

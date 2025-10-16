@@ -20,6 +20,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 32M
+// bufferSize defines the buffer size of stream response.
+const bufferSize = 1024 * 1024 * 32
+
 // HandlerFunc defines the router handler.
 type HandlerFunc func(IContext) (interface{}, error)
 
@@ -75,7 +79,7 @@ func StdHandler(handler HandlerFunc) gin.HandlerFunc { // nolint
 }
 
 // StreamHandlerFunc defines the stream handler.
-type StreamHandlerFunc func(*Context)
+type StreamHandlerFunc func(IContext) (*StreamResponse, error)
 
 // StreamHandler stream handler.
 func StreamHandler(handler StreamHandlerFunc) gin.HandlerFunc {
@@ -86,8 +90,53 @@ func StreamHandler(handler StreamHandlerFunc) gin.HandlerFunc {
 
 			return
 		}
-		handler(rCtx)
+		streamResp, err := handler(rCtx)
+		unwrapCode, unwrapErrs := resterrf.ErrUnwrap(err)
+
+		switch unwrapCode {
+		case resterrf.OK:
+			if streamResp == nil || streamResp.Data == nil {
+				rCtx.AbortWithJSONError(resterrf.InvalidFileResource, nil)
+				return
+			}
+
+			// handle stream
+			if err := handleStream(gCtx, streamResp); err != nil {
+				gCtx.Status(http.StatusInternalServerError)
+				return
+			}
+
+		case resterrf.PermissionDenied:
+			rCtx.AbortWithJSONPermDenied(unwrapCode, unwrapErrs)
+		default:
+			rCtx.AbortWithJSONError(unwrapCode, unwrapErrs)
+		}
 	}
+}
+
+func handleStream(gCtx *gin.Context, streamResp *StreamResponse) error {
+	// copy headers
+	for key, values := range streamResp.Headers {
+		for _, value := range values {
+			gCtx.Header(key, value)
+		}
+	}
+
+	// copy status
+	gCtx.Status(streamResp.StatusCode)
+
+	defer func(Data io.ReadCloser) {
+		_ = Data.Close()
+	}(streamResp.Data)
+
+	// copy data
+	buffer := make([]byte, bufferSize)
+	_, err := io.CopyBuffer(gCtx.Writer, streamResp.Data, buffer)
+	if err != nil {
+		return fmt.Errorf("failed to copy stream data: %w", err)
+	}
+
+	return nil
 }
 
 // FileHandlerFunc define file handler.

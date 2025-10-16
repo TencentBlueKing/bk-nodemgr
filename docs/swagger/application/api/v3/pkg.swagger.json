@@ -152,6 +152,40 @@
         ]
       }
     },
+    "/api/v3/package/release/agent/download": {
+      "post": {
+        "summary": "DownloadAgent download release agent package.",
+        "operationId": "Package_DownloadAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseAgentDownloadReq is the request for download agent pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentDownloadReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/cancel_as_default": {
       "post": {
         "summary": "CancelAsDefaultRelease cancels release as default.",
@@ -672,6 +706,16 @@
         }
       }
     },
+    "v3FileChunk": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "description": "FileChunk describes the file chunk data."
+    },
     "v3PackagePublishReleaseAgentReq": {
       "type": "object",
       "properties": {
@@ -807,6 +851,22 @@
     },
     "v3PackagePublishReleaseProxyRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseAgentDownloadReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleaseAgentDownloadReq is the request for download agent pkg."
     },
     "v3PackageReleaseCancelAsDefaultReq": {
       "type": "object",

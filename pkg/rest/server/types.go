@@ -13,6 +13,7 @@ package server
 import (
 	"fmt"
 	"io"
+	"net/http"
 
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 )
@@ -80,6 +81,18 @@ type FileResponse struct {
 
 	// Headers defines custom headers.
 	Headers map[string]string
+}
+
+// StreamResponse stream response.
+type StreamResponse struct {
+	// Data defines file data.
+	Data io.ReadCloser
+
+	// StatusCode defines http status code.
+	StatusCode int
+
+	// Headers defines custom headers.
+	Headers http.Header
 }
 
 // MIMEType defines mime type..

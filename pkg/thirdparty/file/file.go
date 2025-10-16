@@ -25,6 +25,7 @@ import (
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 )
 
@@ -296,6 +297,33 @@ func (c *cli) publishReleaseAgent(nCtx contextx.IContext, tenantID string, req *
 	}
 
 	return resp.GetData(), nil
+}
+
+func (c *cli) downloadReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadAgentReq) (
+	*restserver.StreamResponse, error) {
+
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := c.client.Post().
+		SubResourcef("/download/agent").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do()
+	reader, err := result.RawStream()
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	return &restserver.StreamResponse{
+		Data:       reader,
+		StatusCode: result.StatusCode,
+		Headers:    result.Header,
+	}, nil
 }
 
 func (c *cli) publishReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleaseProxyReq) (

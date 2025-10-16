@@ -443,6 +443,7 @@ func (svc *Service) registerBasicServer() error {
 		withUpload(svc.Cap),
 		withPublish(svc.Cap),
 		withTransfer(svc.Cap),
+		withDownload(svc.Cap),
 	)
 
 	svc.servers = append(svc.servers, server)

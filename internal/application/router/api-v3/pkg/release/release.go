@@ -51,6 +51,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/cancel_as_default", restserver.Handler(h.CancelAsDefaultRelease))
 	h.rg.POST("/delete", restserver.Handler(h.DeleteRelease))
 	h.rg.POST("/deployed_host/count", restserver.Handler(h.CountDeployedHost))
+
+	h.rg.POST("/agent/download", restserver.StreamHandler(h.AgentDownload))
 }
 
 const (
@@ -296,4 +298,24 @@ func (h *handler) CountDeployedHost(rCtx restserver.IContext) (interface{}, erro
 	resp.ConvertResultFromTypes(result, pair)
 
 	return resp.GetData(), nil
+}
+
+func (h *handler) AgentDownload(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	req := new(protoApplication.PackageReleaseAgentDownloadReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen, plat, version := req.GetIdentifier()
+	resp, err := h.fileHandler.DownloadReleaseAgent(rCtx, gen, plat, version)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen, "plat", plat, "version", version).Info("downloaded release agent")
+
+	return resp, nil
 }

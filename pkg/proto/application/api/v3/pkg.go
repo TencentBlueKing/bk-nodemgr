@@ -233,3 +233,24 @@ func (x *PackagePublishReleaseBinToolReq) Validate() error {
 // AutoConvert auto convert.
 func (x *PackagePublishReleaseBinToolReq) AutoConvert() {
 }
+
+// Validate check request body.
+func (x *PackageReleaseAgentDownloadReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	if x.GetPlatform() == nil {
+		return errors.New("platform is required")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleaseAgentDownloadReq) AutoConvert() {
+}
