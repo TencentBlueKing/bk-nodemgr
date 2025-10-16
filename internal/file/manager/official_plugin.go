@@ -191,7 +191,7 @@ type Property struct {
  */
 // nolint: funlen
 func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPluginPkgDetail, error) {
-	detail := new(types.OriginOfficialPluginPkgDetail)
+	detail := types.NewOriginOfficialPluginPkgDetail()
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
@@ -200,7 +200,8 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 				".*",
 				buildFullMatchRegex(originalOfficialPluginFileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
-				detail.Platforms = append(detail.Platforms, convOfficialPluginDirNameToPlat(path[0]))
+				plat := convOfficialPluginDirNameToPlat(path[0])
+				detail.Platforms = append(detail.Platforms, plat)
 
 				pluginProject := new(OfficialPluginProject)
 				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
@@ -215,13 +216,17 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 				detail.ConfigFormat = pluginProject.ConfigFormat
 				detail.LaunchNode = pluginProject.LaunchNode
 
-				for _, configTemplate := range pluginProject.ConfigTemplates {
+				if _, ok := detail.ConfigTemplates[plat.String()]; !ok {
+					detail.ConfigTemplates[plat.String()] = make([]types.PluginPkgConfigTemplate, len(pluginProject.ConfigTemplates))
+				}
+
+				for idx, configTemplate := range pluginProject.ConfigTemplates {
 					isMainConfig, err := conv.StringToBool(configTemplate.IsMainConfig)
 					if err != nil {
 						return fmt.Errorf("failed to parse is_main_config: %w", err)
 					}
 
-					detail.ConfigTemplates = append(detail.ConfigTemplates, types.PluginPkgConfigTemplate{
+					detail.ConfigTemplates[plat.String()][idx] = types.PluginPkgConfigTemplate{
 						PluginVersion: configTemplate.PluginVersion,
 						Name:          configTemplate.Name,
 						Version:       configTemplate.Version,
@@ -230,10 +235,10 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 						IsMainConfig:  isMainConfig,
 						SourcePath:    configTemplate.SourcePath,
 						Variables:     convPropertyToTypes(configTemplate.Variables),
-					})
+					}
 				}
 
-				detail.Controller = types.ProcessController{
+				detail.Controller[plat.String()] = types.ProcessController{
 					StartCmd:   pluginProject.Control.StartCmd,
 					StopCmd:    pluginProject.Control.StopCmd,
 					RestartCmd: pluginProject.Control.RestartCmd,
@@ -253,8 +258,13 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 				buildFullMatchRegex(originalOfficialPluginDirNameEtc),
 				buildSuffixMatchRegex(originalOfficialPluginFileNameEtcExt)},
 			callback: func(path []string, tplFile io.Reader) error {
-				for idx := range detail.ConfigTemplates {
-					if !strings.Contains(detail.ConfigTemplates[idx].SourcePath, path[len(path)-1]) {
+				plat := convOfficialPluginDirNameToPlat(path[0])
+				if _, ok := detail.ConfigTemplates[plat.String()]; !ok {
+					return fmt.Errorf("cannot find detail for path: %s", path[0])
+				}
+
+				for idx := range detail.ConfigTemplates[plat.String()] {
+					if !strings.Contains(detail.ConfigTemplates[plat.String()][idx].SourcePath, path[len(path)-1]) {
 						continue
 					}
 
@@ -262,7 +272,7 @@ func checkOriginOfficialPluginPkg(file io.ReadCloser) (*types.OriginOfficialPlug
 					if err != nil {
 						return fmt.Errorf("failed to read (%s) template file: %w", path[len(path)-1], err)
 					}
-					detail.ConfigTemplates[idx].SourceContent = string(content)
+					detail.ConfigTemplates[plat.String()][idx].SourceContent = string(content)
 				}
 
 				return nil
@@ -415,8 +425,8 @@ func (m *Manager) PublishReleaseOfficialPlugin(nCtx contextx.IContext, uploadID 
 					AdditionInfo: nil,
 				},
 				ReleaseAdditionInfoOfficialPlugin: types.ReleaseAdditionInfoOfficialPlugin{
-					ConfigTemplates:  detail.ConfigTemplates,
-					PluginController: detail.Controller,
+					ConfigTemplates:  detail.ConfigTemplates[pkg.platform.String()],
+					PluginController: detail.Controller[pkg.platform.String()],
 				},
 			}
 

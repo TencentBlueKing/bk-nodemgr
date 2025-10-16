@@ -174,8 +174,7 @@ type ExternalPluginConfigTemplate struct {
  */
 // nolint: funlen
 func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPluginPkgDetail, error) {
-	detail := new(types.OriginExternalPluginPkgDetail)
-	detail.SubDirPaths = make(map[string]map[string]struct{})
+	detail := types.NewOriginExternalPluginPkgDetail()
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
@@ -184,7 +183,8 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				".*",
 				buildFullMatchRegex(originalExternalPluginFileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
-				detail.Platforms = append(detail.Platforms, convExternalPluginDirNameToPlat(path[0]))
+				plat := convExternalPluginDirNameToPlat(path[0])
+				detail.Platforms = append(detail.Platforms, plat)
 
 				pluginProject := new(ExternalPluginProject)
 				if err := yaml.NewDecoder(projectFile).Decode(pluginProject); err != nil {
@@ -199,13 +199,17 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				detail.ConfigFormat = pluginProject.ConfigFormat
 				detail.LaunchMode = pluginProject.LaunchNode
 
-				for _, configTemplate := range pluginProject.ConfigTemplates {
+				if _, ok := detail.ConfigTemplates[plat.String()]; !ok {
+					detail.ConfigTemplates[plat.String()] = make([]types.PluginPkgConfigTemplate, len(pluginProject.ConfigTemplates))
+				}
+
+				for idx, configTemplate := range pluginProject.ConfigTemplates {
 					isMainConfig, err := conv.StringToBool(configTemplate.IsMainConfig)
 					if err != nil {
 						return fmt.Errorf("failed to parse is_main_config: %w", err)
 					}
 
-					detail.ConfigTemplates = append(detail.ConfigTemplates, types.PluginPkgConfigTemplate{
+					detail.ConfigTemplates[plat.String()][idx] = types.PluginPkgConfigTemplate{
 						PluginVersion: configTemplate.PluginVersion,
 						Name:          configTemplate.Name,
 						Version:       configTemplate.Version,
@@ -214,10 +218,10 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 						IsMainConfig:  isMainConfig,
 						SourcePath:    configTemplate.SourcePath,
 						Variables:     convPropertyToTypes(configTemplate.Variables),
-					})
+					}
 				}
 
-				detail.Controller = types.ProcessController{
+				detail.Controller[plat.String()] = types.ProcessController{
 					StartCmd:   pluginProject.Control.StartCmd,
 					StopCmd:    pluginProject.Control.StopCmd,
 					RestartCmd: pluginProject.Control.RestartCmd,
@@ -371,8 +375,8 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 					AdditionInfo: nil,
 				},
 				ReleaseAdditionInfoExternalPlugin: types.ReleaseAdditionInfoExternalPlugin{
-					ConfigTemplates:  detail.ConfigTemplates,
-					PluginController: detail.Controller,
+					ConfigTemplates:  detail.ConfigTemplates[pkg.platform.String()],
+					PluginController: detail.Controller[pkg.platform.String()],
 				},
 			}
 

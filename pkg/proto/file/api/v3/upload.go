@@ -326,13 +326,6 @@ func (x *UploadOriginOfficialPluginResp) ConvertResultFromTypes(generated bool, 
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
-	*data.UploadId = detail.UploadID
-	*data.Existed = detail.Existed
-	*data.Generated = generated
-	*data.Name = detail.Name
-	*data.Size = detail.Size
-	*data.Md5 = detail.MD5
-	*data.Version = detail.Version
 	*data.Description = detail.Description
 	*data.Scenario = detail.Scenario
 	*data.ConfigFile = detail.ConfigFile
@@ -378,13 +371,6 @@ func (x *UploadOriginExternalPluginResp) ConvertResultFromTypes(generated bool, 
 		LaunchNode:   new(string),
 	}
 
-	*data.UploadId = detail.UploadID
-	*data.Existed = detail.Existed
-	*data.Generated = generated
-	*data.Name = detail.Name
-	*data.Size = detail.Size
-	*data.Md5 = detail.MD5
-	*data.Version = detail.Version
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated

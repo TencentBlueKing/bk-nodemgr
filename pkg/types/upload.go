@@ -109,18 +109,27 @@ type OriginOfficialPluginPkgDetail struct {
 	UploadID string
 	Existed  bool
 
-	Name            string
-	Version         string
-	Description     string
-	Scenario        string
-	ConfigFile      string
-	ConfigFormat    string
-	LaunchNode      string
-	ConfigTemplates []PluginPkgConfigTemplate
+	Name         string
+	Version      string
+	Description  string
+	Scenario     string
+	ConfigFile   string
+	ConfigFormat string
+	LaunchNode   string
 
-	Controller ProcessController
+	// key: platform.String()
+	ConfigTemplates map[string][]PluginPkgConfigTemplate
+	Controller      map[string]ProcessController
 
 	Platforms []platform.Platform
+}
+
+// NewOriginOfficialPluginPkgDetail creates a new OriginOfficialPluginPkgDetail.
+func NewOriginOfficialPluginPkgDetail() *OriginOfficialPluginPkgDetail {
+	return &OriginOfficialPluginPkgDetail{
+		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
+		Controller:      make(map[string]ProcessController),
+	}
 }
 
 // OriginExternalPluginPkgDetail defines the detail of external plugin package.
@@ -130,17 +139,27 @@ type OriginExternalPluginPkgDetail struct {
 	UploadID string
 	Existed  bool
 
-	Name            string
-	Version         string
-	Description     string
-	Scenario        string
-	ConfigFile      string
-	ConfigFormat    string
-	LaunchMode      string
-	SubDirPaths     map[string]map[string]struct{}
-	ConfigTemplates []PluginPkgConfigTemplate
+	Name         string
+	Version      string
+	Description  string
+	Scenario     string
+	ConfigFile   string
+	ConfigFormat string
+	LaunchMode   string
+	SubDirPaths  map[string]map[string]struct{}
 
-	Controller ProcessController
+	// key: platform.String()
+	ConfigTemplates map[string][]PluginPkgConfigTemplate
+	Controller      map[string]ProcessController
 
 	Platforms []platform.Platform
+}
+
+// NewOriginExternalPluginPkgDetail creates a new OriginExternalPluginPkgDetail.
+func NewOriginExternalPluginPkgDetail() *OriginExternalPluginPkgDetail {
+	return &OriginExternalPluginPkgDetail{
+		SubDirPaths:     make(map[string]map[string]struct{}),
+		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
+		Controller:      make(map[string]ProcessController),
+	}
 }
