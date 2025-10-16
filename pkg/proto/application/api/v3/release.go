@@ -191,7 +191,7 @@ func (x *PackageReleaseSetLabelsReq) SetIdentifer(
 }
 
 // Validate check body.
-func (x *PackageReleaseSetManyLabelsReq) Validate() error {
+func (x *PackageReleaseSetLabelsManyReq) Validate() error {
 	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
 		return err
 	}
@@ -200,11 +200,11 @@ func (x *PackageReleaseSetManyLabelsReq) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *PackageReleaseSetManyLabelsReq) AutoConvert() {
+func (x *PackageReleaseSetLabelsManyReq) AutoConvert() {
 }
 
 // GetIdentifiers get identifier.
-func (x *PackageReleaseSetManyLabelsReq) GetIdentifiers() (types.ReleaseType, []types.Generation, []platform.Platform, []string) {
+func (x *PackageReleaseSetLabelsManyReq) GetIdentifiers() (types.ReleaseType, []types.Generation, []platform.Platform, []string) {
 	rt := types.ReleaseType(x.GetReleaseType())
 
 	identify := x.GetIdentify()

@@ -1201,12 +1201,12 @@ func (c *cli) setReleaseLabels(ctx contextx.IContext, req *protoBackend.PackageR
 	return nil
 }
 
-func (c *cli) setManyReleaseLabels(ctx contextx.IContext, req *protoBackend.PackageReleaseSetManyLabelsReq) error {
-	resp := new(protoBackend.PackageReleaseSetManyLabelsResp)
+func (c *cli) setReleaseLabelsMany(ctx contextx.IContext, req *protoBackend.PackageReleaseSetLabelsManyReq) error {
+	resp := new(protoBackend.PackageReleaseSetLabelsManyResp)
 
 	header := c.getHeader(ctx)
 	err := c.client.Post().
-		SubResourcef("/package/release/set_many_labels").
+		SubResourcef("/package/release/set_labels_many").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).

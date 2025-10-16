@@ -550,31 +550,31 @@ func (x *PackageReleaseSetLabelsResp) GetData() *PackageReleaseSetLabelsResp_Dat
 	return nil
 }
 
-// PackageReleaseSetManyLabelsReq describes the HTTP request body when set many
+// PackageReleaseSetLabelsManyReq describes the HTTP request body when set many
 // labels.
-type PackageReleaseSetManyLabelsReq struct {
+type PackageReleaseSetLabelsManyReq struct {
 	state         protoimpl.MessageState                     `protogen:"open.v1"`
 	ReleaseType   string                                     `protobuf:"bytes,1,opt,name=release_type,json=releaseType,proto3" json:"release_type"`
-	Identify      []*PackageReleaseSetManyLabelsReq_Identity `protobuf:"bytes,2,rep,name=identify,proto3" json:"identify"`
+	Identify      []*PackageReleaseSetLabelsManyReq_Identity `protobuf:"bytes,2,rep,name=identify,proto3" json:"identify"`
 	Labels        []string                                   `protobuf:"bytes,3,rep,name=labels,proto3" json:"labels"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PackageReleaseSetManyLabelsReq) Reset() {
-	*x = PackageReleaseSetManyLabelsReq{}
+func (x *PackageReleaseSetLabelsManyReq) Reset() {
+	*x = PackageReleaseSetLabelsManyReq{}
 	mi := &file_pkg_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PackageReleaseSetManyLabelsReq) String() string {
+func (x *PackageReleaseSetLabelsManyReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PackageReleaseSetManyLabelsReq) ProtoMessage() {}
+func (*PackageReleaseSetLabelsManyReq) ProtoMessage() {}
 
-func (x *PackageReleaseSetManyLabelsReq) ProtoReflect() protoreflect.Message {
+func (x *PackageReleaseSetLabelsManyReq) ProtoReflect() protoreflect.Message {
 	mi := &file_pkg_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -586,59 +586,59 @@ func (x *PackageReleaseSetManyLabelsReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PackageReleaseSetManyLabelsReq.ProtoReflect.Descriptor instead.
-func (*PackageReleaseSetManyLabelsReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use PackageReleaseSetLabelsManyReq.ProtoReflect.Descriptor instead.
+func (*PackageReleaseSetLabelsManyReq) Descriptor() ([]byte, []int) {
 	return file_pkg_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *PackageReleaseSetManyLabelsReq) GetReleaseType() string {
+func (x *PackageReleaseSetLabelsManyReq) GetReleaseType() string {
 	if x != nil {
 		return x.ReleaseType
 	}
 	return ""
 }
 
-func (x *PackageReleaseSetManyLabelsReq) GetIdentify() []*PackageReleaseSetManyLabelsReq_Identity {
+func (x *PackageReleaseSetLabelsManyReq) GetIdentify() []*PackageReleaseSetLabelsManyReq_Identity {
 	if x != nil {
 		return x.Identify
 	}
 	return nil
 }
 
-func (x *PackageReleaseSetManyLabelsReq) GetLabels() []string {
+func (x *PackageReleaseSetLabelsManyReq) GetLabels() []string {
 	if x != nil {
 		return x.Labels
 	}
 	return nil
 }
 
-// PackageReleaseSetManyLabelsResp describes the HTTP response body when set
+// PackageReleaseSetLabelsManyResp describes the HTTP response body when set
 // many labels.
-type PackageReleaseSetManyLabelsResp struct {
+type PackageReleaseSetLabelsManyResp struct {
 	state         protoimpl.MessageState                `protogen:"open.v1"`
 	Code          int32                                 `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
 	Message       string                                `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
 	RequestId     string                                `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
 	Error         *Error                                `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
-	Data          *PackageReleaseSetManyLabelsResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	Data          *PackageReleaseSetLabelsManyResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PackageReleaseSetManyLabelsResp) Reset() {
-	*x = PackageReleaseSetManyLabelsResp{}
+func (x *PackageReleaseSetLabelsManyResp) Reset() {
+	*x = PackageReleaseSetLabelsManyResp{}
 	mi := &file_pkg_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PackageReleaseSetManyLabelsResp) String() string {
+func (x *PackageReleaseSetLabelsManyResp) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PackageReleaseSetManyLabelsResp) ProtoMessage() {}
+func (*PackageReleaseSetLabelsManyResp) ProtoMessage() {}
 
-func (x *PackageReleaseSetManyLabelsResp) ProtoReflect() protoreflect.Message {
+func (x *PackageReleaseSetLabelsManyResp) ProtoReflect() protoreflect.Message {
 	mi := &file_pkg_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -650,40 +650,40 @@ func (x *PackageReleaseSetManyLabelsResp) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PackageReleaseSetManyLabelsResp.ProtoReflect.Descriptor instead.
-func (*PackageReleaseSetManyLabelsResp) Descriptor() ([]byte, []int) {
+// Deprecated: Use PackageReleaseSetLabelsManyResp.ProtoReflect.Descriptor instead.
+func (*PackageReleaseSetLabelsManyResp) Descriptor() ([]byte, []int) {
 	return file_pkg_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *PackageReleaseSetManyLabelsResp) GetCode() int32 {
+func (x *PackageReleaseSetLabelsManyResp) GetCode() int32 {
 	if x != nil {
 		return x.Code
 	}
 	return 0
 }
 
-func (x *PackageReleaseSetManyLabelsResp) GetMessage() string {
+func (x *PackageReleaseSetLabelsManyResp) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *PackageReleaseSetManyLabelsResp) GetRequestId() string {
+func (x *PackageReleaseSetLabelsManyResp) GetRequestId() string {
 	if x != nil {
 		return x.RequestId
 	}
 	return ""
 }
 
-func (x *PackageReleaseSetManyLabelsResp) GetError() *Error {
+func (x *PackageReleaseSetLabelsManyResp) GetError() *Error {
 	if x != nil {
 		return x.Error
 	}
 	return nil
 }
 
-func (x *PackageReleaseSetManyLabelsResp) GetData() *PackageReleaseSetManyLabelsResp_Data {
+func (x *PackageReleaseSetLabelsManyResp) GetData() *PackageReleaseSetLabelsManyResp_Data {
 	if x != nil {
 		return x.Data
 	}
@@ -1621,7 +1621,7 @@ func (*PackageReleaseSetLabelsResp_Data) Descriptor() ([]byte, []int) {
 	return file_pkg_proto_rawDescGZIP(), []int{6, 0}
 }
 
-type PackageReleaseSetManyLabelsReq_Identity struct {
+type PackageReleaseSetLabelsManyReq_Identity struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Generation    int64                  `protobuf:"varint,1,opt,name=generation,proto3" json:"generation"`
 	Platform      *Platform              `protobuf:"bytes,2,opt,name=platform,proto3" json:"platform"`
@@ -1630,20 +1630,20 @@ type PackageReleaseSetManyLabelsReq_Identity struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PackageReleaseSetManyLabelsReq_Identity) Reset() {
-	*x = PackageReleaseSetManyLabelsReq_Identity{}
+func (x *PackageReleaseSetLabelsManyReq_Identity) Reset() {
+	*x = PackageReleaseSetLabelsManyReq_Identity{}
 	mi := &file_pkg_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PackageReleaseSetManyLabelsReq_Identity) String() string {
+func (x *PackageReleaseSetLabelsManyReq_Identity) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PackageReleaseSetManyLabelsReq_Identity) ProtoMessage() {}
+func (*PackageReleaseSetLabelsManyReq_Identity) ProtoMessage() {}
 
-func (x *PackageReleaseSetManyLabelsReq_Identity) ProtoReflect() protoreflect.Message {
+func (x *PackageReleaseSetLabelsManyReq_Identity) ProtoReflect() protoreflect.Message {
 	mi := &file_pkg_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1655,52 +1655,52 @@ func (x *PackageReleaseSetManyLabelsReq_Identity) ProtoReflect() protoreflect.Me
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PackageReleaseSetManyLabelsReq_Identity.ProtoReflect.Descriptor instead.
-func (*PackageReleaseSetManyLabelsReq_Identity) Descriptor() ([]byte, []int) {
+// Deprecated: Use PackageReleaseSetLabelsManyReq_Identity.ProtoReflect.Descriptor instead.
+func (*PackageReleaseSetLabelsManyReq_Identity) Descriptor() ([]byte, []int) {
 	return file_pkg_proto_rawDescGZIP(), []int{7, 0}
 }
 
-func (x *PackageReleaseSetManyLabelsReq_Identity) GetGeneration() int64 {
+func (x *PackageReleaseSetLabelsManyReq_Identity) GetGeneration() int64 {
 	if x != nil {
 		return x.Generation
 	}
 	return 0
 }
 
-func (x *PackageReleaseSetManyLabelsReq_Identity) GetPlatform() *Platform {
+func (x *PackageReleaseSetLabelsManyReq_Identity) GetPlatform() *Platform {
 	if x != nil {
 		return x.Platform
 	}
 	return nil
 }
 
-func (x *PackageReleaseSetManyLabelsReq_Identity) GetVersion() string {
+func (x *PackageReleaseSetLabelsManyReq_Identity) GetVersion() string {
 	if x != nil {
 		return x.Version
 	}
 	return ""
 }
 
-type PackageReleaseSetManyLabelsResp_Data struct {
+type PackageReleaseSetLabelsManyResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *PackageReleaseSetManyLabelsResp_Data) Reset() {
-	*x = PackageReleaseSetManyLabelsResp_Data{}
+func (x *PackageReleaseSetLabelsManyResp_Data) Reset() {
+	*x = PackageReleaseSetLabelsManyResp_Data{}
 	mi := &file_pkg_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *PackageReleaseSetManyLabelsResp_Data) String() string {
+func (x *PackageReleaseSetLabelsManyResp_Data) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PackageReleaseSetManyLabelsResp_Data) ProtoMessage() {}
+func (*PackageReleaseSetLabelsManyResp_Data) ProtoMessage() {}
 
-func (x *PackageReleaseSetManyLabelsResp_Data) ProtoReflect() protoreflect.Message {
+func (x *PackageReleaseSetLabelsManyResp_Data) ProtoReflect() protoreflect.Message {
 	mi := &file_pkg_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1712,8 +1712,8 @@ func (x *PackageReleaseSetManyLabelsResp_Data) ProtoReflect() protoreflect.Messa
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PackageReleaseSetManyLabelsResp_Data.ProtoReflect.Descriptor instead.
-func (*PackageReleaseSetManyLabelsResp_Data) Descriptor() ([]byte, []int) {
+// Deprecated: Use PackageReleaseSetLabelsManyResp_Data.ProtoReflect.Descriptor instead.
+func (*PackageReleaseSetLabelsManyResp_Data) Descriptor() ([]byte, []int) {
 	return file_pkg_proto_rawDescGZIP(), []int{8, 0}
 }
 
@@ -2008,13 +2008,13 @@ var file_pkg_proto_rawDesc = string([]byte{
 	0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x53, 0x65, 0x74, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x52,
 	0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x06,
 	0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x22, 0x94, 0x02, 0x0a, 0x1e, 0x50, 0x61, 0x63, 0x6b, 0x61,
-	0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x6e, 0x79,
-	0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x52, 0x65, 0x71, 0x12, 0x21, 0x0a, 0x0c, 0x72, 0x65, 0x6c,
+	0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x53, 0x65, 0x74, 0x4c, 0x61, 0x62, 0x65,
+	0x6c, 0x73, 0x4d, 0x61, 0x6e, 0x79, 0x52, 0x65, 0x71, 0x12, 0x21, 0x0a, 0x0c, 0x72, 0x65, 0x6c,
 	0x65, 0x61, 0x73, 0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x0b, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12, 0x47, 0x0a, 0x08,
 	0x69, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x66, 0x79, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2b,
 	0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61,
-	0x73, 0x65, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x6e, 0x79, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x52,
+	0x73, 0x65, 0x53, 0x65, 0x74, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x4d, 0x61, 0x6e, 0x79, 0x52,
 	0x65, 0x71, 0x2e, 0x49, 0x64, 0x65, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x08, 0x69, 0x64, 0x65,
 	0x6e, 0x74, 0x69, 0x66, 0x79, 0x12, 0x16, 0x0a, 0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x18,
 	0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x1a, 0x6e, 0x0a,
@@ -2026,7 +2026,7 @@ var file_pkg_proto_rawDesc = string([]byte{
 	0x6f, 0x72, 0x6d, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0xd5, 0x01,
 	0x0a, 0x1f, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65,
-	0x53, 0x65, 0x74, 0x4d, 0x61, 0x6e, 0x79, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x52, 0x65, 0x73,
+	0x53, 0x65, 0x74, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x4d, 0x61, 0x6e, 0x79, 0x52, 0x65, 0x73,
 	0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52,
 	0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
 	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12,
@@ -2036,7 +2036,7 @@ var file_pkg_proto_rawDesc = string([]byte{
 	0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12,
 	0x3c, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x28, 0x2e,
 	0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73,
-	0x65, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x6e, 0x79, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x52, 0x65,
+	0x65, 0x53, 0x65, 0x74, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x4d, 0x61, 0x6e, 0x79, 0x52, 0x65,
 	0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x06, 0x0a,
 	0x04, 0x44, 0x61, 0x74, 0x61, 0x22, 0xa0, 0x01, 0x0a, 0x17, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67,
 	0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x65,
@@ -2179,16 +2179,16 @@ var file_pkg_proto_rawDesc = string([]byte{
 	0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x22, 0x2d, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x27, 0x3a, 0x01,
 	0x2a, 0x22, 0x22, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x70, 0x61, 0x63, 0x6b, 0x61,
 	0x67, 0x65, 0x2f, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x2f, 0x73, 0x65, 0x74, 0x5f, 0x6c,
-	0x61, 0x62, 0x65, 0x6c, 0x73, 0x12, 0x93, 0x01, 0x0a, 0x14, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x6e,
-	0x79, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x12, 0x22,
+	0x61, 0x62, 0x65, 0x6c, 0x73, 0x12, 0x93, 0x01, 0x0a, 0x14, 0x53, 0x65, 0x74, 0x52, 0x65, 0x6c,
+	0x65, 0x61, 0x73, 0x65, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x4d, 0x61, 0x6e, 0x79, 0x12, 0x22,
 	0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61,
-	0x73, 0x65, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x6e, 0x79, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x52,
+	0x73, 0x65, 0x53, 0x65, 0x74, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x4d, 0x61, 0x6e, 0x79, 0x52,
 	0x65, 0x71, 0x1a, 0x23, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52,
-	0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x53, 0x65, 0x74, 0x4d, 0x61, 0x6e, 0x79, 0x4c, 0x61, 0x62,
-	0x65, 0x6c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x22, 0x32, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2c, 0x3a,
+	0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x53, 0x65, 0x74, 0x4c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x4d,
+	0x61, 0x6e, 0x79, 0x52, 0x65, 0x73, 0x70, 0x22, 0x32, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2c, 0x3a,
 	0x01, 0x2a, 0x22, 0x27, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x70, 0x61, 0x63, 0x6b,
 	0x61, 0x67, 0x65, 0x2f, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x2f, 0x73, 0x65, 0x74, 0x5f,
-	0x6d, 0x61, 0x6e, 0x79, 0x5f, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x12, 0x75, 0x0a, 0x0d, 0x45,
+	0x6c, 0x61, 0x62, 0x65, 0x6c, 0x73, 0x5f, 0x6d, 0x61, 0x6e, 0x79, 0x12, 0x75, 0x0a, 0x0d, 0x45,
 	0x6e, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x12, 0x1b, 0x2e, 0x76,
 	0x33, 0x2e, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x52, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65,
 	0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x1a, 0x1c, 0x2e, 0x76, 0x33, 0x2e, 0x50,
@@ -2259,8 +2259,8 @@ var file_pkg_proto_goTypes = []any{
 	(*PackageReleaseDistinctResp)(nil),              // 4: v3.PackageReleaseDistinctResp
 	(*PackageReleaseSetLabelsReq)(nil),              // 5: v3.PackageReleaseSetLabelsReq
 	(*PackageReleaseSetLabelsResp)(nil),             // 6: v3.PackageReleaseSetLabelsResp
-	(*PackageReleaseSetManyLabelsReq)(nil),          // 7: v3.PackageReleaseSetManyLabelsReq
-	(*PackageReleaseSetManyLabelsResp)(nil),         // 8: v3.PackageReleaseSetManyLabelsResp
+	(*PackageReleaseSetLabelsManyReq)(nil),          // 7: v3.PackageReleaseSetLabelsManyReq
+	(*PackageReleaseSetLabelsManyResp)(nil),         // 8: v3.PackageReleaseSetLabelsManyResp
 	(*PackageReleaseEnableReq)(nil),                 // 9: v3.PackageReleaseEnableReq
 	(*PackageReleaseEnableResp)(nil),                // 10: v3.PackageReleaseEnableResp
 	(*PackageReleaseDisableReq)(nil),                // 11: v3.PackageReleaseDisableReq
@@ -2275,8 +2275,8 @@ var file_pkg_proto_goTypes = []any{
 	(*PackageReleaseDistinctReq_DistinctField)(nil), // 20: v3.PackageReleaseDistinctReq.DistinctField
 	(*PackageReleaseDistinctResp_Data)(nil),         // 21: v3.PackageReleaseDistinctResp.Data
 	(*PackageReleaseSetLabelsResp_Data)(nil),        // 22: v3.PackageReleaseSetLabelsResp.Data
-	(*PackageReleaseSetManyLabelsReq_Identity)(nil), // 23: v3.PackageReleaseSetManyLabelsReq.Identity
-	(*PackageReleaseSetManyLabelsResp_Data)(nil),    // 24: v3.PackageReleaseSetManyLabelsResp.Data
+	(*PackageReleaseSetLabelsManyReq_Identity)(nil), // 23: v3.PackageReleaseSetLabelsManyReq.Identity
+	(*PackageReleaseSetLabelsManyResp_Data)(nil),    // 24: v3.PackageReleaseSetLabelsManyResp.Data
 	(*PackageReleaseEnableResp_Data)(nil),           // 25: v3.PackageReleaseEnableResp.Data
 	(*PackageReleaseDisableResp_Data)(nil),          // 26: v3.PackageReleaseDisableResp.Data
 	(*PackageReleaseSetAsDefaultResp_Data)(nil),     // 27: v3.PackageReleaseSetAsDefaultResp.Data
@@ -2300,9 +2300,9 @@ var file_pkg_proto_depIdxs = []int32{
 	30, // 9: v3.PackageReleaseSetLabelsReq.platform:type_name -> v3.Platform
 	32, // 10: v3.PackageReleaseSetLabelsResp.error:type_name -> v3.Error
 	22, // 11: v3.PackageReleaseSetLabelsResp.data:type_name -> v3.PackageReleaseSetLabelsResp.Data
-	23, // 12: v3.PackageReleaseSetManyLabelsReq.identify:type_name -> v3.PackageReleaseSetManyLabelsReq.Identity
-	32, // 13: v3.PackageReleaseSetManyLabelsResp.error:type_name -> v3.Error
-	24, // 14: v3.PackageReleaseSetManyLabelsResp.data:type_name -> v3.PackageReleaseSetManyLabelsResp.Data
+	23, // 12: v3.PackageReleaseSetLabelsManyReq.identify:type_name -> v3.PackageReleaseSetLabelsManyReq.Identity
+	32, // 13: v3.PackageReleaseSetLabelsManyResp.error:type_name -> v3.Error
+	24, // 14: v3.PackageReleaseSetLabelsManyResp.data:type_name -> v3.PackageReleaseSetLabelsManyResp.Data
 	30, // 15: v3.PackageReleaseEnableReq.platform:type_name -> v3.Platform
 	32, // 16: v3.PackageReleaseEnableResp.error:type_name -> v3.Error
 	25, // 17: v3.PackageReleaseEnableResp.data:type_name -> v3.PackageReleaseEnableResp.Data
@@ -2319,11 +2319,11 @@ var file_pkg_proto_depIdxs = []int32{
 	32, // 28: v3.PackageReleaseDeleteResp.error:type_name -> v3.Error
 	29, // 29: v3.PackageReleaseDeleteResp.data:type_name -> v3.PackageReleaseDeleteResp.Data
 	33, // 30: v3.PackageReleaseListResp.Data.items:type_name -> v3.Release
-	30, // 31: v3.PackageReleaseSetManyLabelsReq.Identity.platform:type_name -> v3.Platform
+	30, // 31: v3.PackageReleaseSetLabelsManyReq.Identity.platform:type_name -> v3.Platform
 	1,  // 32: v3.Package.ListRelease:input_type -> v3.PackageReleaseListReq
 	3,  // 33: v3.Package.DistinctRelease:input_type -> v3.PackageReleaseDistinctReq
 	5,  // 34: v3.Package.SetReleaseLabels:input_type -> v3.PackageReleaseSetLabelsReq
-	7,  // 35: v3.Package.SetManyReleaseLabels:input_type -> v3.PackageReleaseSetManyLabelsReq
+	7,  // 35: v3.Package.SetReleaseLabelsMany:input_type -> v3.PackageReleaseSetLabelsManyReq
 	9,  // 36: v3.Package.EnableRelease:input_type -> v3.PackageReleaseEnableReq
 	11, // 37: v3.Package.DisableRelease:input_type -> v3.PackageReleaseDisableReq
 	13, // 38: v3.Package.SetAsDefaultRelease:input_type -> v3.PackageReleaseSetAsDefaultReq
@@ -2332,7 +2332,7 @@ var file_pkg_proto_depIdxs = []int32{
 	2,  // 41: v3.Package.ListRelease:output_type -> v3.PackageReleaseListResp
 	4,  // 42: v3.Package.DistinctRelease:output_type -> v3.PackageReleaseDistinctResp
 	6,  // 43: v3.Package.SetReleaseLabels:output_type -> v3.PackageReleaseSetLabelsResp
-	8,  // 44: v3.Package.SetManyReleaseLabels:output_type -> v3.PackageReleaseSetManyLabelsResp
+	8,  // 44: v3.Package.SetReleaseLabelsMany:output_type -> v3.PackageReleaseSetLabelsManyResp
 	10, // 45: v3.Package.EnableRelease:output_type -> v3.PackageReleaseEnableResp
 	12, // 46: v3.Package.DisableRelease:output_type -> v3.PackageReleaseDisableResp
 	14, // 47: v3.Package.SetAsDefaultRelease:output_type -> v3.PackageReleaseSetAsDefaultResp

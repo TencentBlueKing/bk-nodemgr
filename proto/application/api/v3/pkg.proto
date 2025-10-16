@@ -226,23 +226,23 @@ message PackageReleaseSetLabelsResp {
   Data data = 5;
 }
 
-// PackageReleaseSetManyLabelsIdentity describes the HTTP request body.
-message PackageReleaseSetManyLabelsIdentity {
+// PackageReleaseSetLabelsManyIdentity describes the HTTP request body.
+message PackageReleaseSetLabelsManyIdentity {
   int64 generation = 1;
   Platform platform = 2;
   string version = 3;
 }
-// PackageReleaseSetManyLabelsReq describes the HTTP request body when set many
+// PackageReleaseSetLabelsManyReq describes the HTTP request body when set many
 // labels.
-message PackageReleaseSetManyLabelsReq {
+message PackageReleaseSetLabelsManyReq {
   string release_type = 1;
-  repeated PackageReleaseSetManyLabelsIdentity identify = 2;
+  repeated PackageReleaseSetLabelsManyIdentity identify = 2;
   repeated string labels = 3;
 }
 
-// PackageReleaseSetManyLabelsResp describes the HTTP response body when set
+// PackageReleaseSetLabelsManyResp describes the HTTP response body when set
 // many labels.
-message PackageReleaseSetManyLabelsResp {
+message PackageReleaseSetLabelsManyResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -476,11 +476,11 @@ service Package {
     };
   }
 
-  // SetReleaseLabels sets many release labels.
-  rpc SetManyReleaseLabels(PackageReleaseSetManyLabelsReq)
-      returns (PackageReleaseSetManyLabelsResp) {
+  // SetReleaseLabeslMany sets many release labels.
+  rpc SetReleaseLabelsMany(PackageReleaseSetLabelsManyReq)
+      returns (PackageReleaseSetLabelsManyResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/set_many_labels"
+      post : "/api/v3/package/release/set_labels_many"
       body : "*"
     };
   }

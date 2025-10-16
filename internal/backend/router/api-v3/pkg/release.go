@@ -125,16 +125,16 @@ func (h *handler) SetReleaseLabels(rCtx restserver.IContext) (interface{}, error
 	return resp.GetData(), nil
 }
 
-// SetManyReleaseLabels set release labels.
-func (h *handler) SetManyReleaseLabels(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.PackageReleaseSetManyLabelsReq)
+// SetReleaseLabelsMany set release labels.
+func (h *handler) SetReleaseLabelsMany(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseSetLabelsManyReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to set many release labels, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	rt, gen, plat, version := req.GetIdentifiers()
-	if err := h.storage.SetManyReleaseLabels(rCtx, rt, gen, plat, version, req.GetLabels()); err != nil {
+	if err := h.storage.SetReleaseLabelsMany(rCtx, rt, gen, plat, version, req.GetLabels()); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "release-type", rt, "platform", plat, "version", version, "labels", req.GetLabels()).
@@ -147,7 +147,7 @@ func (h *handler) SetManyReleaseLabels(rCtx restserver.IContext) (interface{}, e
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version, "labels", req.GetLabels()).
 		Info("set many release labels")
 
-	resp := new(protoBackend.PackageReleaseSetManyLabelsResp)
+	resp := new(protoBackend.PackageReleaseSetLabelsManyResp)
 
 	return resp.GetData(), nil
 }

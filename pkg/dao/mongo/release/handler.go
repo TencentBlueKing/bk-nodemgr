@@ -39,8 +39,8 @@ type IHandler interface {
 	SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType,
 		gen types.Generation, plat platform.Platform, version string, labels ...string) error
 
-	// SetManyLabels sets many release's labels.
-	SetManyLabels(nCtx contextx.IContext, releaseType types.ReleaseType,
+	// SetLabelsMany sets many release's labels.
+	SetLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType,
 		gens []types.Generation, plats []platform.Platform, versions []string, labels ...string) error
 
 	// Count counts releases.
@@ -202,8 +202,8 @@ func (h *Handler) SetLabels(nCtx contextx.IContext, releaseType types.ReleaseTyp
 	return h.releaseTypeDao(releaseType).UpdateField(nCtx, filter, FieldKeyLabels, labels)
 }
 
-// SetManyLabels sets mamy release's labels.
-func (h *Handler) SetManyLabels(nCtx contextx.IContext, releaseType types.ReleaseType,
+// SetLabelsMany sets mamy release's labels.
+func (h *Handler) SetLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType,
 	gens []types.Generation, plats []platform.Platform, versions []string,
 	labels ...string) error {
 

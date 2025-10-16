@@ -185,8 +185,8 @@ func (s *Storage) SetReleaseLabels(nCtx contextx.IContext, gen types.Generation,
 	return nil
 }
 
-// SetManyReleaseLabels sets many release labels.
-func (s *Storage) SetManyReleaseLabels(nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
+// SetReleaseLabelsMany sets many release labels.
+func (s *Storage) SetReleaseLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
 	plats []platform.Platform, versions []string, labels []string) error {
 
 	var err error
@@ -195,7 +195,7 @@ func (s *Storage) SetManyReleaseLabels(nCtx contextx.IContext, releaseType types
 	metric := s.metric().Start("set_many_release_labels")
 	defer metric.End(err)
 
-	if err = s.setManyReleaseLabels(nCtx, releaseType, gens, plats, versions, labels); err != nil {
+	if err = s.setReleaseLabelsMany(nCtx, releaseType, gens, plats, versions, labels); err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to set many release labels")
 		return fmt.Errorf("failed to set many release labels: %w", err)
 	}

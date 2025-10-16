@@ -50,8 +50,8 @@ type IRelease interface {
 	SetReleaseLabels(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
 		plat platform.Platform, version string, labels []string) error
 
-	// SetManyReleaseLabels sets many release labels.
-	SetManyReleaseLabels(nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
+	// SetReleaseLabelsMany sets many release labels.
+	SetReleaseLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
 		plats []platform.Platform, versions []string, labels []string) error
 
 	// EnableRelease enables release active by generation, release type, platform and version.
