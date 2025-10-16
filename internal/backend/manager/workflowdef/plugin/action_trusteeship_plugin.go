@@ -74,7 +74,7 @@ func (act *actTrusteeshipPlugin) Tags() []action.Tag {
 
 // MaxRetryCount returns the max retry count of the action.
 func (act *actTrusteeshipPlugin) MaxRetryCount() uint {
-	return 3
+	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
@@ -117,14 +117,13 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 	expoBackoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 
 	var processInfo *types.ProcessInfo
-	err = expoBackoff.Do(nCtx, func(attempt int) error {
+	err = expoBackoff.Do(nCtx, func(_ int) error {
 		processInfo, err = act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.Identity.Name, processSpec.AgentID)
 		if err != nil {
 			return fmt.Errorf("failed to query process info: %w", err)
 		}
 
 		if processInfo.Status != types.ProcessStatusRunning {
-
 			ctx.Data.LogI(fmt.Sprintf("process status is not running, status(%s)", processInfo.Status))
 
 			return fmt.Errorf("process status is not running, status(%s)", processInfo.Status)
