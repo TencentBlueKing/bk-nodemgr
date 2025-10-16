@@ -104,7 +104,13 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 	}()
 
 	nCtx := std.Context()
-	processSpec := std.DeployInfo().Plugin.Static.Spec
+	processSpec := types.ProcessSpec{
+		AgentID:       std.DeployInfo().Plugin.Static.Info.AgentID,
+		Identity:      std.DeployInfo().Plugin.Static.Identity,
+		Controller:    std.DeployInfo().Plugin.Static.Controller,
+		Resource:      std.DeployInfo().Plugin.Static.Resource,
+		MonitorPolicy: std.DeployInfo().Plugin.Static.MonitorPolicy,
+	}
 
 	result, err := act.gseHandlerProc.TrusteeshipProcess(nCtx, processSpec)
 	if err != nil {

@@ -34,8 +34,11 @@ type Plugin struct {
 
 // pluginStatic represents the static data of plugin.
 type pluginStatic struct {
-	Info ProcessInfo `json:"info" bson:"info"`
-	Spec processSpec `json:"spec" bson:"spec"`
+	Info          ProcessInfo          `json:"info" bson:"info"`
+	Identity      processIdentity      `json:"identity" bson:"identity"`
+	Controller    processController    `json:"controller" bson:"controller"`
+	Resource      processResource      `json:"resource" bson:"resource"`
+	MonitorPolicy processMonitorPolicy `json:"monitor_policy" bson:"monitor_policy"`
 }
 
 // ProcessInfo represents the info of process.
@@ -45,15 +48,6 @@ type ProcessInfo struct {
 	AgentID     string `json:"agent_id" bson:"agent_id"`
 	Trusteeship bool   `json:"trusteeship" bson:"trusteeship"`
 	Status      string `json:"status" bson:"status"`
-}
-
-// processSpec represents the spec of process.
-type processSpec struct {
-	AgentID       string               `json:"agent_id" bson:"agent_id"`
-	Identity      processIdentity      `json:"identity" bson:"identity"`
-	Controller    processController    `json:"controller" bson:"controller"`
-	Resource      processResource      `json:"resource" bson:"resource"`
-	MonitorPolicy processMonitorPolicy `json:"monitor_policy" bson:"monitor_policy"`
 }
 
 type processIdentity struct {

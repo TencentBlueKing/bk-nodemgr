@@ -61,8 +61,11 @@ type Plugin struct {
 
 // PluginStatic define the static info of plugin.
 type PluginStatic struct {
-	Info ProcessInfo
-	Spec ProcessSpec
+	Info          ProcessInfo
+	Identity      ProcessIdentity
+	Controller    ProcessController
+	Resource      ProcessResource
+	MonitorPolicy ProcessMonitorPolicy
 }
 
 // PluginDynamic define the dynamic info of plugin.
@@ -73,8 +76,8 @@ type PluginDynamic struct {
 	Platform   platform.Platform
 	Version    string
 
-	HostID  int64
-	AgentID string
+	HostID        int64
+	PluginGroupID int64
 
 	Status ProcessStatus
 }
