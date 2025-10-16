@@ -50,6 +50,7 @@ func (oper *operInstallPlugin) ActionDefNames() []string {
 		ActionNameTransferPluginPkgToNode,
 		ActionNameInstallPlugin,
 		ActionNameWaitInstallerComplete,
+		ActionNameTrusteeshipPlugin,
 	}
 }
 

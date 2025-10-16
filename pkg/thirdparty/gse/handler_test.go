@@ -1030,8 +1030,8 @@ func Test_Handler_UnTrusteeshipProcess(t *testing.T) {
 	}
 }
 
-// TestHandler_QueryProcessInfo test
-func TestHandler_QueryProcessInfo(t *testing.T) {
+// TestHandler_QueryProcessInfoMany test
+func TestHandler_QueryProcessInfoMany(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
@@ -1059,9 +1059,9 @@ func TestHandler_QueryProcessInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.QueryProcessInfo(tt.args.nCtx, tt.args.processName, tt.args.agentIDList...)
+			got, err := h.QueryProcessInfoMany(tt.args.nCtx, tt.args.processName, tt.args.agentIDList...)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("QueryProcessInfo() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("QueryProcessInfoMany() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

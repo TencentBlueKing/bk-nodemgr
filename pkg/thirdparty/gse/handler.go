@@ -93,7 +93,10 @@ type IHandler interface {
 // IHandlerProc define the gse handler for process.
 type IHandlerProc interface {
 	// QueryProcessInfo order the gse_agent to trusteeship the process.
-	QueryProcessInfo(nCtx contextx.IContext, processName string, AgentIDList ...string) (map[string]types.ProcessInfo, error)
+	QueryProcessInfo(nCtx contextx.IContext, processName string, AgentID string) (*types.ProcessInfo, error)
+
+	// QueryProcessInfoMany order the gse_agent to trusteeship the process.
+	QueryProcessInfoMany(nCtx contextx.IContext, processName string, AgentIDList ...string) (map[string]types.ProcessInfo, error)
 
 	// TrusteeshipProcess order the gse_agent to trusteeship the process.
 	TrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
@@ -573,7 +576,52 @@ const (
 // QueryProcessInfo order the gse_agent to trusteeship the process
 // (trusteeshiping: when the managed process exits abnormally, the agent will automatically pull up the managed process;
 // When the managed process resources exceed the limit, the agent will kill the managed process).
-func (h *Handler) QueryProcessInfo(nCtx contextx.IContext, processName string, agentIDList ...string) (map[string]types.ProcessInfo, error) {
+func (h *Handler) QueryProcessInfo(nCtx contextx.IContext, processName string, agentID string) (*types.ProcessInfo, error) {
+	operateProcReq := operateProcV2Req{
+		Meta: procMeta{
+			Namespace: procNameSpace,
+			Name:      processName,
+			Labels: procInfoMetaLabels{
+				ProcName: processName,
+			},
+		},
+		OpType:      procOperateCodeStatus,
+		AgentIDList: []string{agentID},
+		Spec: procSpec{
+			Identity: procSpecIdentity{
+				ProcName: processName,
+			},
+		},
+	}
+
+	procResult, err := h.operateProc(nCtx, &operateProcReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	procInfoMap, err := h.parseQueryProcResult(procResult)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	if _, ok := procInfoMap[agentID]; !ok {
+		return nil, fmt.Errorf("failed to query proc: agentID not found")
+	}
+
+	info := &types.ProcessInfo{
+		Trusteeship: procInfoMap[agentID].IsAuto,
+		Pid:         procInfoMap[agentID].Pid,
+		Version:     procInfoMap[agentID].Version,
+		Status:      convPidToProcStatus(procInfoMap[agentID].Pid),
+	}
+
+	return info, nil
+}
+
+// QueryProcessInfoMany order the gse_agent to trusteeship the process
+// (trusteeshiping: when the managed process exits abnormally, the agent will automatically pull up the managed process;
+// When the managed process resources exceed the limit, the agent will kill the managed process).
+func (h *Handler) QueryProcessInfoMany(nCtx contextx.IContext, processName string, agentIDList ...string) (map[string]types.ProcessInfo, error) {
 	operateProcReq := operateProcV2Req{
 		Meta: procMeta{
 			Namespace: procNameSpace,
