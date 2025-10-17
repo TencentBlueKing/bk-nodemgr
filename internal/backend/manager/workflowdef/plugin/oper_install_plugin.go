@@ -57,9 +57,15 @@ func (oper *operInstallPlugin) ActionDefNames() []string {
 // DefaultParameters returns the default parameters.
 func (oper *operInstallPlugin) DefaultParameters() operation.Param {
 	return operation.Param{
-		Timeout:         10 * time.Minute, // nolint: mnd
-		InitContent:     conv.StructToMapIgnoreError(oper.param),
-		RetryStartPoint: map[string]bool{},
+		Timeout:     10 * time.Minute, // nolint: mnd
+		InitContent: conv.StructToMapIgnoreError(oper.param),
+		RetryStartPoint: map[string]bool{
+			ActionNameRenderPluginDeployment:  true,
+			ActionNameTransferPluginPkgToNode: true,
+			ActionNameInstallPlugin:           true,
+			ActionNameWaitInstallerComplete:   false,
+			ActionNameTrusteeshipPlugin:       true,
+		},
 	}
 }
 

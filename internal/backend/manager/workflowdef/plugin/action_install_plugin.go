@@ -18,7 +18,6 @@ import (
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -34,6 +33,8 @@ import (
 const (
 	// ActionNameInstallPlugin defines the action name.
 	ActionNameInstallPlugin = "install_plugin"
+
+	pluginInstallScriptTimeout = 10 * time.Minute
 )
 
 // NewActionInstallPlugin ...
@@ -104,8 +105,6 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	nCtx := contextx.New(ctx.Ctx, contextx.WithTenantID(param.TenantID), contextx.WithBKUsername(param.Operator))
-
 	// initialize standard data.
 	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
@@ -117,22 +116,69 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	installParams, err := act.buildInstallParams(std)
+	if err != nil {
+		return fmt.Errorf("build install params failed: %w", err)
+	}
+
+	var (
+		installScriptType    types.ScriptType
+		installScriptContext string
+	)
+
+	if std.DeployInfo().Plugin.Dynamic.Platform.OS == criteria.OSWindows {
+		installScriptType, installScriptContext, err = act.buildWindowsInstallScript(installParams)
+	} else {
+		installScriptType, installScriptContext, err = act.buildUnixInstallScript(installParams)
+	}
+	if err != nil {
+		return fmt.Errorf("build script failed: %w", err)
+	}
+
+	nCtx := std.Context()
 	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.Dynamic.HostID)
 	if err != nil {
 		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.Dynamic.HostID, err)
 	}
 
+	ctx.Data.LogI(fmt.Sprintf("install script: \n%s\n", installScriptContext))
+
+	taskID, err := act.gseHandler.ExecuteScript(nCtx,
+		installScriptType,
+		installScriptContext,
+		pluginInstallScriptTimeout,
+		&types.EndpointWithAuth{
+			Endpoint: types.Endpoint{
+				AgentID: targetHost.Dynamic.AgentID,
+			},
+		})
+	if err != nil {
+		return err
+	}
+
+	ctx.Data.LogI("install plugin task-id: " + taskID)
+
+	return nil
+}
+
+type pluginInstallParams struct {
+	installer.PluginInstallParams
+
+	InstallerWorkDir string
+}
+
+func (act *actionInstallPlugin) buildInstallParams(std *pluginUtils.PluginActionStandarder) (*pluginInstallParams, error) {
 	// select matching tools.
-	toolName, err := tool.FormatInstallerName(targetHost.Dynamic.NodeOsType, targetHost.Dynamic.NodeCPUArch)
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Plugin.Dynamic.Platform.OS, std.DeployInfo().Plugin.Dynamic.Platform.Arch)
 	if err != nil {
 		err = fmt.Errorf("failed to format tools name: %w", err)
 
-		return err
+		return nil, err
 	}
 
 	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Plugin.Dynamic.Generation, std.DeployInfo().Plugin.Dynamic.Platform.OS)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return nil, fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
 
 	randSelector := discover.NewRandomSelector()
@@ -141,7 +187,7 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		discover.EndpointNameFileDownload,
 		randSelector)
 	if err != nil {
-		return fmt.Errorf("failed to get file endpoint: %w", err)
+		return nil, fmt.Errorf("failed to get file endpoint: %w", err)
 	}
 
 	callbackSvrEndpoint, err := act.provider.GetEndpoint(
@@ -149,7 +195,7 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		discover.EndpointNameBackendCallback,
 		randSelector)
 	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint: %w", err)
+		return nil, fmt.Errorf("failed to get backend callback endpoint: %w", err)
 	}
 
 	params := &pluginInstallParams{
@@ -167,90 +213,46 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 			CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
 			DownloadSvrAddr: "http://" + downloadSvrEndpoint.GetIPV4Address(),
 			DeployToken:     std.Token(),
-			OperInstID:      ctx.Data.OperationInstanceID,
+			OperInstID:      std.InstanceData().OperationInstanceID,
 		},
 		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
-		AgentID:          targetHost.Dynamic.AgentID,
 	}
 
-	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.doInstallWindows(ctx, params)
-	}
-
-	return act.doInstallUnix(ctx, params)
+	return params, nil
 }
 
-type pluginInstallParams struct {
-	installer.PluginInstallParams
-
-	InstallerWorkDir string
-
-	AgentID string
-}
-
-const pluginInstallScriptTimeout = 10 * time.Minute
-
-func (act *actionInstallPlugin) doInstallUnix(ctx *action.InstanceContext, param *pluginInstallParams) error {
+func (act *actionInstallPlugin) buildUnixInstallScript(param *pluginInstallParams) (types.ScriptType, string, error) {
 	scriptName, scriptContent, err := param.ToUnixScript()
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
-	ctx.Data.LogI("install plugin script: " + scriptContent)
+	scriptContent = fmt.Sprintf(
+		`mkdir -p %s && cd %s && echo "%s" > %s && sh %s`,
+		param.InstallerWorkDir,
+		param.InstallerWorkDir,
+		scriptContent,
+		scriptName,
+		scriptName,
+	)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
-		types.ScriptTypeBash,
-		fmt.Sprintf(
-			`mkdir -p %s && cd %s && echo "%s" > %s && sh %s`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			scriptContent,
-			scriptName,
-			scriptName,
-		),
-		pluginInstallScriptTimeout,
-		&types.EndpointWithAuth{
-			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
-			},
-		})
-
-	if err != nil {
-		return fmt.Errorf("failed to execute plugin install script: %w", err)
-	}
-	ctx.Data.LogI("install plugin task-id: " + taskID)
-
-	return nil
+	return types.ScriptTypeBash, scriptContent, nil
 }
 
-func (act *actionInstallPlugin) doInstallWindows(ctx *action.InstanceContext, param *pluginInstallParams) error {
+func (act *actionInstallPlugin) buildWindowsInstallScript(param *pluginInstallParams) (types.ScriptType, string, error) {
 	scriptName, scriptContent, err := param.ToWindowsScript()
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
-	ctx.Data.LogI("install plugin script: " + scriptContent)
+	scriptContent = fmt.Sprintf(
+		`mkdir "%s" 2>nul & cd "%s" && echo %s > "%s" && cmd /c "%s"`,
+		param.InstallerWorkDir,
+		param.InstallerWorkDir,
+		scriptContent,
+		scriptName,
+		scriptName,
+	)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
-		types.ScriptTypeBat,
-		fmt.Sprintf(
-			`mkdir "%s" 2>nul & cd "%s" && echo %s > "%s" && cmd /c "%s"`,
-			param.InstallerWorkDir,
-			param.InstallerWorkDir,
-			scriptContent,
-			scriptName,
-			scriptName,
-		),
-		pluginInstallScriptTimeout,
-		&types.EndpointWithAuth{
-			Endpoint: types.Endpoint{
-				AgentID: param.AgentID,
-			},
-		})
-	if err != nil {
-		return fmt.Errorf("failed to execute plugin install script: %w", err)
-	}
-	ctx.Data.LogI("install plugin task-id: " + taskID)
-
-	return nil
+	return types.ScriptTypeBat, scriptContent, nil
 }

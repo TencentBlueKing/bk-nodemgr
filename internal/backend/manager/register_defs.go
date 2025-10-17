@@ -160,6 +160,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionRenderPluginDeployment(pluginCap),
 		plugin.NewActionRenderPluginMainConfig(pluginCap),
 		plugin.NewActionWaitInstallerComplete(pluginCap),
+		plugin.NewActionTrusteeshipPlugin(pluginCap),
 		plugin.NewActionInstallPlugin(pluginCap),
 		plugin.NewActionTrusteeshipPlugin(pluginCap),
 	); err != nil {
