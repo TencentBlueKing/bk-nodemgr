@@ -1732,3 +1732,68 @@ func (c *cli) deleteConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 
 	return resp, nil
 }
+
+func (c *cli) listPackageEvent(ctx contextx.IContext, req *protoBackend.PackageEventListReq,
+) (*protoBackend.PackageEventListResp, error) {
+
+	resp := new(protoBackend.PackageEventListResp)
+	header := c.getHeader(ctx)
+	result := c.client.Post().
+		SubResourcef("/package/event/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list package event failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list package event failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) distinctPackageEvent(ctx contextx.IContext, req *protoBackend.PackageEventDistinctReq,
+) (*protoBackend.PackageEventDistinctResp, error) {
+
+	resp := new(protoBackend.PackageEventDistinctResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/event/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct package event failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct packag eevent failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

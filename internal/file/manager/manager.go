@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/event"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -240,6 +241,13 @@ func WithStorageTopo(storageTopo topo.IStorage) OptionFn {
 	}
 }
 
+// WithStorageEvent sets the storage for event.
+func WithStorageEvent(storageEvent event.IStorage) OptionFn {
+	return func(manager *Manager) {
+		manager.storageEvent = storageEvent
+	}
+}
+
 // WithAdvertiseIPV4 sets the host advertise ipv4.
 func WithAdvertiseIPV4(ipv4 string) OptionFn {
 	return func(manager *Manager) {
@@ -315,6 +323,7 @@ type Manager struct {
 	storageUpload  upload.IStorage
 	storageRelease release.IStorage
 	storageTopo    topo.IStorage
+	storageEvent   event.IStorage
 
 	// logger.
 
@@ -364,6 +373,10 @@ func (m *Manager) Start(_ context.Context) error {
 
 	if m.storageTopo == nil {
 		return errors.New("invalid storage topo")
+	}
+
+	if m.storageEvent == nil {
+		return errors.New("invalid storage event")
 	}
 
 	return nil

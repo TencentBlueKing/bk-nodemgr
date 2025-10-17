@@ -126,3 +126,26 @@ func (arch CPUArch) ToPkgArch() string {
 
 	return "unknown"
 }
+
+// StringListToCPUArchList converts a string list to a cpu arch list.
+func StringListToCPUArchList(stringList []string) ([]CPUArch, error) {
+	data := make([]CPUArch, len(stringList))
+	for idx, cpuArch := range stringList {
+		if err := CPUArch(cpuArch).Validate(); err != nil {
+			return nil, err
+		}
+		data[idx] = CPUArch(cpuArch)
+	}
+
+	return data, nil
+}
+
+// CPUArchListToStringList converts a os type list to a string list.
+func CPUArchListToStringList(cpuArchTypeList []CPUArch) []string {
+	data := make([]string, len(cpuArchTypeList))
+	for idx, cpuArchType := range cpuArchTypeList {
+		data[idx] = string(cpuArchType)
+	}
+
+	return data
+}

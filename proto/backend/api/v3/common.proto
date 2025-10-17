@@ -143,6 +143,18 @@ message TimeRange {
   int64 end_timestamp_sec = 2;
 }
 
+// PackageEvent describes the package event.
+message PackageEvent {
+  optional string event_type = 1;
+  optional int64 generation = 2;
+  optional string release_type = 3;
+  optional string os_type = 4;
+  optional string cpu_arch = 5;
+  optional string version = 6;
+  optional int64 operate_time = 7;
+  optional string operator = 8;
+}
+
 // Release describes the release.
 message Release {
   optional string name = 1;

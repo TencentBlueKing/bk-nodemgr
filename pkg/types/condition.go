@@ -14,6 +14,7 @@ import (
 	"time"
 
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -305,6 +306,39 @@ type ReleaseCondition struct {
 
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *ReleaseFuzzyFields
+}
+
+// PackageEventExactFields defines the package event exact fields.
+type PackageEventExactFields struct {
+	Generation  []Generation
+	ReleaseType []ReleaseType
+	OSType      []criteria.OSType
+	CPUArch     []criteria.CPUArch
+	Version     []string
+	Operator    []string
+	EventType   []PackageEventType
+}
+
+// PackageEventFuzzyFields defines the package event fuzzy fields.
+type PackageEventFuzzyFields struct {
+}
+
+// PackageEventCondition defines the package event condition.
+type PackageEventCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PackageEventExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PackageEventFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *PackageEventExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *PackageEventFuzzyFields
 }
 
 // NodeWorkflowOperationExactFields defines the condition of list operation.

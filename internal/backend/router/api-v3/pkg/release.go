@@ -11,6 +11,11 @@
 package pkg
 
 import (
+	"bytes"
+	"runtime/debug"
+	"time"
+
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -170,6 +175,9 @@ func (h *handler) EnableRelease(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// record package events.
+	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeEnable)
+
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
 		Info("enabled release")
@@ -196,6 +204,9 @@ func (h *handler) DisableRelease(rCtx restserver.IContext) (interface{}, error) 
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
+
+	// record package events.
+	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeDisable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -224,6 +235,9 @@ func (h *handler) SetAsDefaultRelease(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// record package events.
+	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeSetAsDefault)
+
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
 		Info("set as default release")
@@ -251,6 +265,9 @@ func (h *handler) CancelAsDefaultRelease(rCtx restserver.IContext) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// record package events.
+	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeCancelAsDefault)
+
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
 		Info("canceled as default release")
@@ -277,6 +294,9 @@ func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// record package events.
+	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeDelete)
+
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
 		Info("deleted release")
@@ -284,4 +304,46 @@ func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
 	resp := new(protoBackend.PackageReleaseDeleteResp)
 
 	return resp.GetData(), nil
+}
+
+func (h *handler) recordPackageEvent(rCtx restserver.IContext,
+	gen types.Generation, version string, plat platfmt.Platform, rt types.ReleaseType,
+	eventType types.PackageEventType) {
+	// recover panic.
+	defer func() {
+		if r := recover(); r != nil {
+			stack := debug.Stack()
+
+			// The first line of the stack trace is of the form "goroutine N [status]:",
+			// but by the time the panic reaches Do the goroutine may no longer exist,
+			// and its status will have changed. Trim out the misleading line.
+			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
+				stack = stack[line+1:]
+			}
+
+			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record package event")
+		}
+	}()
+
+	event := &types.PackageEvent{
+		EventType:   eventType,
+		ReleaseType: rt,
+		Generation:  gen,
+		Version:     version,
+		OSType:      plat.OS,
+		CPUArch:     plat.Arch,
+		OperateTime: time.Now(),
+		Operator:    rCtx.Data().GetLoginName(),
+	}
+
+	if err := h.storage.CreateManyPackageEvent(rCtx, event); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			With("release-type", rt,
+				"gen", gen,
+				"event-type", eventType,
+				"os-type", plat.OS,
+				"cpu-arch", plat.Arch,
+				"version", version).
+			Warn("failed to record package event event, failed to create package event")
+	}
 }

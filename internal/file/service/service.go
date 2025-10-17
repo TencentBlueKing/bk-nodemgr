@@ -25,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/publish"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/transfer"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/upload"
+	storageEvent "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/event"
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -244,6 +245,13 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create topo storage: %w", err)
 	}
 
+	svc.Cap.StorageEvent, err = storageEvent.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create event storage: %w", err)
+	}
+
 	return nil
 }
 
@@ -336,6 +344,7 @@ func (svc *Service) initialManager() error {
 		manager.WithStorageUpload(svc.Cap.StorageUpload),
 		manager.WithStorageRelease(svc.Cap.StorageRelease),
 		manager.WithStorageTopo(svc.Cap.StorageTopo),
+		manager.WithStorageEvent(svc.Cap.StorageEvent),
 		manager.WithAdvertiseIPV4(svc.conf.BasicServer.AdvertiseIPV4),
 		manager.WithAdvertiseIPV6(svc.conf.BasicServer.AdvertiseIPV6),
 		manager.WithMount(svc.conf.MountHostDir, svc.conf.WorkspaceFileGroup.FullPath),

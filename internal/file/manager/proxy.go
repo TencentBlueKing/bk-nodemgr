@@ -172,6 +172,8 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 
 			releasesMap[pkg.platform.String()] = proxyRelease
 
+			go m.recordPublishEvent(nCtx, &proxyRelease.Release)
+
 			return nil
 		})
 	}

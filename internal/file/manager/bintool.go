@@ -11,8 +11,10 @@
 package manager
 
 import (
+	"bytes"
 	"errors"
 	"io"
+	"runtime/debug"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -160,6 +162,7 @@ func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, e
 }
 
 // PublishReleaseBinTool generates release bintool by upload-id.
+// nolint:funlen
 func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetBinToolUpload(nCtx, uploadID)
 	if err != nil {
@@ -221,8 +224,7 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 	// get release info.
 	releaseInfo := releaseFile.Info()
 
-	// upsert release bintool.
-	if err = m.storageRelease.UpsertReleaseBinTool(nCtx, types.ReleaseBinTool{
+	bintoolInfo := &types.ReleaseBinTool{
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypeBinTool,
@@ -236,15 +238,58 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,
 		},
-	}); err != nil {
+	}
+
+	// upsert release bintool.
+	if err = m.storageRelease.UpsertReleaseBinTool(nCtx, *bintoolInfo); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release bintool, failed to upsert release bintool")
 
 		return err
 	}
 
+	go m.recordBinToolEvent(nCtx, &bintoolInfo.Release, types.PackageEventTypePublish, types.PackageEventTypeEnable, types.PackageEventTypeSetAsDefault)
+
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release bintool")
 
 	return nil
+}
+
+func (m *Manager) recordBinToolEvent(nCtx contextx.IContext, releaseInfo *types.Release, eventType ...types.PackageEventType) {
+	// recover panic.
+	defer func() {
+		if r := recover(); r != nil {
+			stack := debug.Stack()
+
+			// The first line of the stack trace is of the form "goroutine N [status]:",
+			// but by the time the panic reaches Do the goroutine may no longer exist,
+			// and its status will have changed. Trim out the misleading line.
+			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
+				stack = stack[line+1:]
+			}
+
+			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record package event")
+		}
+	}()
+
+	events := make([]*types.PackageEvent, len(eventType))
+	for idx, et := range eventType {
+		events[idx] = &types.PackageEvent{
+			EventType:   et,
+			ReleaseType: releaseInfo.Type,
+			Generation:  releaseInfo.Generation,
+			Version:     releaseInfo.Version,
+			OSType:      releaseInfo.Platform.OS,
+			CPUArch:     releaseInfo.Platform.Arch,
+			OperateTime: releaseInfo.UpdatedAt,
+			Operator:    releaseInfo.Operator,
+		}
+	}
+
+	if err := m.storageEvent.CreateManyPackageEvent(nCtx, events...); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("event-type", eventType).
+			Warn("failed to record package event event, failed to create package event")
+	}
 }
 
 const (

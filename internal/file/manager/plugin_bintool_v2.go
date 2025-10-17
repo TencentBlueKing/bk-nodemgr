@@ -163,6 +163,7 @@ func checkOriginPluginBinToolV2Pkg(file io.ReadCloser) (*types.OriginPluginBinTo
 }
 
 // PublishReleasePluginBinToolV2 generates release plugin bintool v2 by upload-id.
+// nolint: funlen
 func (m *Manager) PublishReleasePluginBinToolV2(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetPluginBinToolUpload(nCtx, uploadID)
 	if err != nil {
@@ -223,8 +224,7 @@ func (m *Manager) PublishReleasePluginBinToolV2(nCtx contextx.IContext, uploadID
 	// get release info.
 	releaseInfo := releaseFile.Info()
 
-	// upsert release plugin bintool v2.
-	if err = m.storageRelease.UpsertReleasePluginBinToolV2(nCtx, types.ReleasePluginBinToolV2{
+	pluginBinToolInfo := &types.ReleasePluginBinToolV2{
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypePluginBinToolV2,
@@ -238,11 +238,15 @@ func (m *Manager) PublishReleasePluginBinToolV2(nCtx contextx.IContext, uploadID
 			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,
 		},
-	}); err != nil {
+	}
+	// upsert release plugin bintool v2.
+	if err = m.storageRelease.UpsertReleasePluginBinToolV2(nCtx, *pluginBinToolInfo); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool v2, failed to upsert release plugin bintool v2")
 
 		return err
 	}
+
+	go m.recordBinToolEvent(nCtx, &pluginBinToolInfo.Release, types.PackageEventTypePublish)
 
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release plugin bintool v2")
 

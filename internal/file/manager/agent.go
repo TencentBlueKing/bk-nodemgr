@@ -11,9 +11,11 @@
 package manager
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"runtime/debug"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -135,7 +137,7 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 }
 
 // checkGSE2OriginAgentPkg check origin agent package.
-// nolint:funlen,gocognit,gocyclo,cyclop
+// nolint:funlen,gocognit,gocyclo,cyclop, lll
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	plats := make(map[string]platfmt.Platform)
@@ -345,7 +347,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 				return err
 			}
 
-			releasesMap[pkg.platform.String()] = &types.ReleaseAgent{
+			agentInfo := &types.ReleaseAgent{
 				Release: types.Release{
 					Generation: gen,
 					Type:       types.ReleaseTypeAgent,
@@ -362,6 +364,11 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 					ChangeLogZH:    detail.ChangeLogZH,
 				},
 			}
+
+			releasesMap[pkg.platform.String()] = agentInfo
+
+			// record package events.
+			go m.recordPublishEvent(nCtx, &agentInfo.Release)
 
 			return nil
 		})
@@ -382,6 +389,44 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 	logger.G.Biz(nCtx).With("platforms", detail.Platforms).Info("generated and published release agents")
 
 	return nil
+}
+
+func (m *Manager) recordPublishEvent(nCtx contextx.IContext, releaseInfo *types.Release) {
+	// recover panic.
+	defer func() {
+		if r := recover(); r != nil {
+			stack := debug.Stack()
+
+			// The first line of the stack trace is of the form "goroutine N [status]:",
+			// but by the time the panic reaches Do the goroutine may no longer exist,
+			// and its status will have changed. Trim out the misleading line.
+			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
+				stack = stack[line+1:]
+			}
+
+			logger.G.Sys().With("recover", r, "stack", stack).Error("failed to record package event")
+		}
+	}()
+
+	event := &types.PackageEvent{
+		EventType:   types.PackageEventTypePublish,
+		ReleaseType: releaseInfo.Type,
+		Generation:  releaseInfo.Generation,
+		Version:     releaseInfo.Version,
+		OSType:      releaseInfo.Platform.OS,
+		CPUArch:     releaseInfo.Platform.Arch,
+		OperateTime: releaseInfo.UpdatedAt,
+		Operator:    releaseInfo.Operator,
+	}
+
+	if err := m.storageEvent.CreateManyPackageEvent(nCtx, event); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("release-type", releaseInfo.Type,
+				"os-type", releaseInfo.Platform.OS,
+				"cpu-arch", releaseInfo.Platform.Arch,
+				"version", releaseInfo.Version).
+			Warn("failed to record publish package event event, failed to create package event")
+	}
 }
 
 type releaseAgentPkg struct {

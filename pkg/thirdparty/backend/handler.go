@@ -29,6 +29,7 @@ type IHandler interface {
 	IHandlerNodeProxy
 	IHandlerNodeWorkflow
 	IHandlerRelease
+	IHandlerPackage
 	IHandlerConfigPolicy
 
 	// ListBusiness list business within specified tenant in contextx.
@@ -415,6 +416,22 @@ type IHandlerConfigPolicy interface {
 
 	// DeleteConfigPolicy deletes config policy by config policy ids.
 	DeleteConfigPolicy(ctx contextx.IContext, configPolicyIDs ...int64) error
+}
+
+// IHandlerPackage defines the backend Handler for package.
+type IHandlerPackage interface {
+
+	// ListPackageEvent list package events by page and conditions.
+	ListPackageEvent(ctx contextx.IContext, page types.Page, condition *types.PackageEventCondition) (
+		[]*types.PackageEvent, int64, error)
+
+	// CountTopoEvent count package events by condition.
+	CountPackageEvent(ctx contextx.IContext, condition *types.PackageEventCondition) (int64, error)
+
+	// DistinctPackageEvent distinct package event by condition.
+	DistinctPackageEvent(
+		ctx contextx.IContext, condition *types.PackageEventCondition) (
+		*types.PackageEventDistinctResult, error)
 }
 
 var _ IHandler = &Handler{}
@@ -1301,4 +1318,60 @@ func (h *Handler) DeleteConfigPolicy(ctx contextx.IContext, configPolicyIDs ...i
 	}
 
 	return nil
+}
+
+// ListPackageEvent list package event within specified tenant in contextx.
+func (h *Handler) ListPackageEvent(ctx contextx.IContext, page types.Page, condition *types.PackageEventCondition) (
+	[]*types.PackageEvent, int64, error) {
+
+	req := &protoBackend.PackageEventListReq{
+		Page: convertPage(page),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listPackageEvent(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, events := resp.ConvertPackageEventsToTypes()
+
+	return events, total, nil
+}
+
+// CountPackageEvent count the number of package events by conditions.
+func (h *Handler) CountPackageEvent(ctx contextx.IContext, condition *types.PackageEventCondition) (int64, error) {
+	req := &protoBackend.PackageEventListReq{
+		OnlyCount: true,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, err
+	}
+
+	resp, err := h.cli.listPackageEvent(ctx, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
+}
+
+// DistinctPackageEvent distinct the number of package events by conditions.
+func (h *Handler) DistinctPackageEvent(
+	ctx contextx.IContext, condition *types.PackageEventCondition) (
+	*types.PackageEventDistinctResult, error) {
+
+	req := &protoBackend.PackageEventDistinctReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.distinctPackageEvent(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertResultToTypes()
 }

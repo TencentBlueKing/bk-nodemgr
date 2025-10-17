@@ -10,6 +10,8 @@
 
 package types
 
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+
 // HostDistinctRequest describes the wanted distinct fields.
 type HostDistinctRequest struct {
 	BizID         bool
@@ -126,5 +128,49 @@ func ReleaseDistinctFieldAllSet() ReleaseDistinctField {
 	return ReleaseDistinctField{
 		OSType:  true,
 		CPUArch: true,
+	}
+}
+
+// PackageEventDistinctRequest describes the wanted distinct fields.
+type PackageEventDistinctRequest struct {
+	EventType   bool
+	ReleaseType bool
+	OSType      bool
+	CPUArch     bool
+	Version     bool
+	Operator    bool
+}
+
+// NewpckageEventDistinctRequestAllSet creates a PackageEventDistinctRequest with all fields set to true.
+func NewpckageEventDistinctRequestAllSet() PackageEventDistinctRequest {
+	return PackageEventDistinctRequest{
+		EventType:   true,
+		ReleaseType: true,
+		OSType:      true,
+		CPUArch:     true,
+		Version:     true,
+		Operator:    true,
+	}
+}
+
+// PackageEventDistinctResult describes the result of distinct.
+type PackageEventDistinctResult struct {
+	EventType   []PackageEventType
+	ReleaseType []ReleaseType
+	OSType      []criteria.OSType
+	CPUArch     []criteria.CPUArch
+	Version     []string
+	Operator    []string
+}
+
+// NewPackageEventDistinctRequestAllSet creates a PackageEventDistinctRequest with all fields set to true.
+func NewPackageEventDistinctRequestAllSet() PackageEventDistinctRequest {
+	return PackageEventDistinctRequest{
+		EventType:   true,
+		ReleaseType: true,
+		OSType:      true,
+		CPUArch:     true,
+		Version:     true,
+		Operator:    true,
 	}
 }

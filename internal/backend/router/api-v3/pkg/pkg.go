@@ -44,4 +44,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release/set_as_default", restserver.Handler(h.SetAsDefaultRelease))
 	h.rg.POST("/release/cancel_as_default", restserver.Handler(h.CancelAsDefaultRelease))
 	h.rg.POST("/release/delete", restserver.Handler(h.DeleteRelease))
+
+	h.rg.POST("/event/list", restserver.Handler(h.ListPackageEvent))
+	h.rg.POST("/event/distinct", restserver.Handler(h.DistinctPackageEvent))
 }

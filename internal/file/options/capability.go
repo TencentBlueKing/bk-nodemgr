@@ -13,6 +13,7 @@ package options
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/event"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -43,6 +44,9 @@ type Capability struct {
 	// StorageTopo provides storage topo handler.
 	StorageTopo topo.IStorage
 
+	// StorageEvent provides storage event handler.
+	StorageEvent event.IStorage
+
 	// GSEHandler provides gse handler.
 	GSEHandler gse.IHandler
 
@@ -51,6 +55,7 @@ type Capability struct {
 }
 
 // Start start the capability.
+// nolint: varnamelen
 func (c *Capability) Start(nCtx contextx.IContext) error {
 	if err := c.DiscoverProvider.Start(nCtx); err != nil {
 		return err
@@ -65,6 +70,10 @@ func (c *Capability) Start(nCtx contextx.IContext) error {
 	}
 
 	if err := c.StorageTopo.Start(nCtx); err != nil {
+		return err
+	}
+
+	if err := c.StorageEvent.Start(nCtx); err != nil {
 		return err
 	}
 

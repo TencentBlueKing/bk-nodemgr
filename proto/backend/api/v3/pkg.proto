@@ -220,6 +220,73 @@ message PackageReleaseDeleteResp {
   Data data = 5;
 }
 
+// PackageEventExactConditions describes the conditions when list event.
+message PackageEventExactConditions {
+  repeated int64 generation = 1;
+  repeated string os_type = 2;
+  repeated string cpu_arch = 3;
+  repeated string release_type = 4;
+  repeated string operator = 5;
+  repeated string event_type = 6;
+  repeated string version = 7;
+}
+
+// PackageEventFuzzyConditions describes the conditions when list event
+message PackageEventFuzzyConditions {}
+
+// PackageEventListReq describes the HTTP request body when list event in
+// Package service.
+message PackageEventListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  PackageEventExactConditions exact_include_conditions = 3;
+  PackageEventFuzzyConditions fuzzy_include_conditions = 4;
+  TimeRange operate_time_range = 5;
+}
+
+// PackageEventListResp describes the HTTP response body when list event in
+// Package service.
+message PackageEventListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated PackageEvent items = 2;
+  }
+  Data data = 5;
+}
+
+// PackageEventDistinctReq describes the HTTP request body when distinct
+// packageevent in package service.
+message PackageEventDistinctReq {
+  PackageEventExactConditions exact_include_conditions = 1;
+  PackageEventFuzzyConditions fuzzy_include_conditions = 2;
+  TimeRange operate_time_range = 3;
+}
+
+// PackageEventDistinctResp describes the HTTP response body when distinct
+// packageevent in package service.
+message PackageEventDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    repeated string release_type = 1;
+    repeated string event_type = 2;
+    repeated string os_type = 3;
+    repeated string cpu_arch = 4;
+    repeated string version = 5;
+    repeated string operator = 6;
+  }
+  Data data = 5;
+}
+
 service Package {
   // ListRelease lists releases.
   rpc ListRelease(PackageReleaseListReq) returns (PackageReleaseListResp) {
@@ -297,6 +364,23 @@ service Package {
       returns (PackageReleaseDeleteResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/delete"
+      body : "*"
+    };
+  }
+
+  // PackageEventList provides package event listing.
+  rpc PackageEventList(PackageEventListReq) returns (PackageEventListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/event/list"
+      body : "*"
+    };
+  }
+
+  // PackageEventDistinct provides package event distincting.
+  rpc PackageEventDistinct(PackageEventDistinctReq)
+      returns (PackageEventDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/event/distinct"
       body : "*"
     };
   }

@@ -16,6 +16,74 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/package/event/distinct": {
+      "post": {
+        "summary": "PackageEventDistinct provides package event distincting.",
+        "operationId": "Package_PackageEventDistinct",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageEventDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageEventDistinctReq describes the HTTP request body when distinct\npackageevent in package service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageEventDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/event/list": {
+      "post": {
+        "summary": "PackageEventList provides package event listing.",
+        "operationId": "Package_PackageEventList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageEventListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageEventListReq describes the HTTP request body when list event in\nPackage service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageEventListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/cancel_as_default": {
       "post": {
         "summary": "CancelAsDefaultRelease cancels release as default.",
@@ -403,6 +471,228 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3PackageEvent": {
+      "type": "object",
+      "properties": {
+        "event_type": {
+          "type": "string"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "release_type": {
+          "type": "string"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "operate_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "description": "PackageEvent describes the package event."
+    },
+    "v3PackageEventDistinctReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageEventExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3PackageEventFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "PackageEventDistinctReq describes the HTTP request body when distinct\npackageevent in package service."
+    },
+    "v3PackageEventDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageEventDistinctRespData"
+        }
+      },
+      "description": "PackageEventDistinctResp describes the HTTP response body when distinct\npackageevent in package service."
+    },
+    "v3PackageEventDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "release_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "event_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3PackageEventExactConditions": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "release_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "event_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "PackageEventExactConditions describes the conditions when list event."
+    },
+    "v3PackageEventFuzzyConditions": {
+      "type": "object",
+      "title": "PackageEventFuzzyConditions describes the conditions when list event"
+    },
+    "v3PackageEventListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageEventExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3PackageEventFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "PackageEventListReq describes the HTTP request body when list event in\nPackage service."
+    },
+    "v3PackageEventListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageEventListRespData"
+        }
+      },
+      "description": "PackageEventListResp describes the HTTP response body when list event in\nPackage service."
+    },
+    "v3PackageEventListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PackageEvent"
           }
         }
       }
@@ -948,6 +1238,20 @@
         }
       },
       "description": "Release describes the release."
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
     }
   }
 }

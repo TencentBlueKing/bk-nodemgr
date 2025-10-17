@@ -375,7 +375,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 				return err
 			}
 
-			releasesMap[pkg.platform.String()] = &types.ReleasePlugin{
+			pluginInfo := &types.ReleasePlugin{
 				Release: types.Release{
 					Name:         detail.Name,
 					Generation:   gen,
@@ -396,6 +396,10 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 					PluginController: detail.Controller[pkg.platform.String()],
 				},
 			}
+
+			releasesMap[pkg.platform.String()] = pluginInfo
+
+			go m.recordPublishEvent(nCtx, &pluginInfo.Release)
 
 			return nil
 		})

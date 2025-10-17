@@ -703,6 +703,8 @@ linters-settings:
         alias: restheader
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base
         alias: daoBase
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/event
+        alias: storageEvent
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo
         alias: storageTopo
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release
@@ -765,3 +767,5 @@ linters-settings:
         alias: daoProcess
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin
         alias: daoPlugin
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/packageevent
+        alias: daoPackageEvent

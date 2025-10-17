@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	daoPackageEvent "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -59,11 +60,13 @@ var _ IStorage = &Storage{}
 type Storage struct {
 	basestorage.Storage
 
-	daoRelease release.IHandler
+	daoRelease      release.IHandler
+	daoPackageEvent daoPackageEvent.IHandler
 }
 
 func (s *Storage) initDao() error {
 	s.daoRelease = release.New(s.Database)
+	s.daoPackageEvent = daoPackageEvent.New(s.Database)
 
 	return nil
 }
@@ -71,6 +74,10 @@ func (s *Storage) initDao() error {
 func (s *Storage) check() error {
 	if s.daoRelease == nil {
 		return errors.New("dao release is nil")
+	}
+
+	if s.daoPackageEvent == nil {
+		return errors.New("dao package event is nil")
 	}
 
 	return nil
@@ -81,7 +88,9 @@ func (s *Storage) metric() *storage.MetricData {
 }
 
 // GetRelease gets release by generation, release type, platform and version.
-func (s *Storage) GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, name string, plat platfmt.Platform, version string) (*types.Release, error) {
+func (s *Storage) GetRelease(nCtx contextx.IContext,
+	gen types.Generation, releaseType types.ReleaseType, name string, plat platfmt.Platform, version string) (
+	*types.Release, error) {
 
 	var (
 		data *types.Release
@@ -337,7 +346,8 @@ func (s *Storage) GetReleaseProxy(
 }
 
 // GetReleasePlugin gets release by generation, release type, platform and version.
-func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleasePlugin, error) {
+func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+	*types.ReleasePlugin, error) {
 
 	var (
 		releasePlugin *types.ReleasePlugin
@@ -355,4 +365,82 @@ func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, name string, gen type
 	}
 
 	return releasePlugin, nil
+}
+
+// CountPackageEvent counts package events.
+func (s *Storage) CountPackageEvent(nCtx contextx.IContext, conditions ...*types.PackageEventCondition) (int64, error) {
+	var (
+		num int64
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("count_package_event")
+	defer metric.End(err)
+
+	if num, err = s.countPakcageEvent(nCtx, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to get count package event")
+		return 0, fmt.Errorf("failed to count package event: %w", err)
+	}
+
+	return num, nil
+}
+
+// ListPackageEvent lists package events.
+func (s *Storage) ListPackageEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
+	[]*types.PackageEvent, int64, error) {
+
+	var (
+		results []*types.PackageEvent
+		num     int64
+		err     error
+	)
+	// record metric.
+	metric := s.metric().Start("list_package_event")
+	defer metric.End(err)
+
+	if results, num, err = s.listPakcageEvent(nCtx, page, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list package event")
+		return nil, 0, fmt.Errorf("failed to list package event: %w", err)
+	}
+
+	return results, num, nil
+}
+
+// CreateManyPackageEvent creates package events.
+func (s *Storage) CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) error {
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("create_many_package_event")
+	defer metric.End(err)
+
+	if err = s.createManyPackageEvent(nCtx, events...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to create many package event")
+		return fmt.Errorf("failed to create many package event: %w", err)
+	}
+
+	return nil
+}
+
+// DistinctPackageEvent distincts release by conditions.
+func (s *Storage) DistinctPackageEvent(
+	nCtx contextx.IContext, request types.PackageEventDistinctRequest, conditions ...*types.PackageEventCondition) (
+	*types.PackageEventDistinctResult, error) {
+
+	var (
+		data *types.PackageEventDistinctResult
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("distinct_package_event")
+	defer metric.End(err)
+
+	if data, err = s.distinctPackageEvent(nCtx, request, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to distinct package event")
+		return nil, fmt.Errorf("failed to distinct package event: %w", err)
+	}
+
+	return data, nil
 }

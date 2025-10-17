@@ -165,7 +165,8 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameRoot), buildFullMatchRegex(originalServerDirNameBin), buildFullMatchRegex(originalServerFileNameFileServer)},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameRoot),
+				buildFullMatchRegex(originalServerDirNameBin), buildFullMatchRegex(originalServerFileNameFileServer)},
 			callback: func(_ []string, r io.Reader) error {
 				seenFile = true
 				plat, err := checkServerBinaryPlatform(r)
@@ -181,7 +182,8 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameRoot), buildFullMatchRegex(originalServerDirNameBin), buildFullMatchRegex(originalServerFileNameDataServer)},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameRoot),
+				buildFullMatchRegex(originalServerDirNameBin), buildFullMatchRegex(originalServerFileNameDataServer)},
 			callback: func(_ []string, r io.Reader) error {
 				seenData = true
 				plat, err := checkServerBinaryPlatform(r)
@@ -197,7 +199,9 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateFileServerTypeOne)},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile),
+				buildFullMatchRegex(originalServerDirNameTemplate),
+				buildFullMatchRegex(originalServerFileNameConfTemplateFileServerTypeOne)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -210,7 +214,8 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateDataServerTypeOne)},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile),
+				buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateDataServerTypeOne)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -223,7 +228,8 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateFileServerTypeTwo)},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile),
+				buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateFileServerTypeTwo)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -236,7 +242,8 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateDataServerTypeTwo)},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile),
+				buildFullMatchRegex(originalServerDirNameTemplate), buildFullMatchRegex(originalServerFileNameConfTemplateDataServerTypeTwo)},
 			callback: func(_ []string, r io.Reader) error {
 				content, err := io.ReadAll(r)
 				if err != nil {
@@ -249,7 +256,8 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 			},
 		},
 		{
-			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile), buildFullMatchRegex(originalServerDirNameEnv), buildFullMatchRegex(originalServerFileNameProxyEnv)},
+			filePathRegex: []string{".*", buildFullMatchRegex(originalServerDirNameSupportFile),
+				buildFullMatchRegex(originalServerDirNameEnv), buildFullMatchRegex(originalServerFileNameProxyEnv)},
 			callback: func(_ []string, r io.Reader) error {
 				environ, err := parseEnvFile(r)
 				if err != nil {

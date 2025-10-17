@@ -15,6 +15,7 @@ import (
 	"time"
 
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
 
 // ReleaseType defines the type of release.
@@ -76,6 +77,16 @@ func ReleaseTypeListToStringList(releaseTypeList []ReleaseType) []string {
 	data := make([]string, len(releaseTypeList))
 	for idx, releaseType := range releaseTypeList {
 		data[idx] = string(releaseType)
+	}
+
+	return data
+}
+
+// StringListToReleaseTypeList converts a string list to a release type list.
+func StringListToReleaseTypeList(stringList []string) []ReleaseType {
+	data := make([]ReleaseType, len(stringList))
+	for idx, eventType := range stringList {
+		data[idx] = ReleaseType(eventType)
 	}
 
 	return data
@@ -198,4 +209,73 @@ type PluginPkgConfigTemplateProperty struct {
 	Default    any                                         `yaml:"default,omitempty"`
 	Items      *PluginPkgConfigTemplateProperty            `yaml:"items,omitempty"`
 	Properties map[string]*PluginPkgConfigTemplateProperty `yaml:"properties,omitempty"`
+}
+
+// PackageEventType represents the event type of watch event.
+type PackageEventType string
+
+const (
+	// PackageEventTypePublish represents the publish event type.
+	PackageEventTypePublish PackageEventType = "publish"
+
+	// PackageEventTypeDelete represents the delete event type.
+	PackageEventTypeDelete PackageEventType = "delete"
+
+	// PackageEventTypeEnable represents the enable release event type.
+	PackageEventTypeEnable PackageEventType = "enable"
+
+	// PackageEventTypeDisable represents the disable release event type.
+	PackageEventTypeDisable PackageEventType = "disable"
+
+	// PackageEventTypeSetAsDefault represents the set as default event type.
+	PackageEventTypeSetAsDefault PackageEventType = "set_as_default"
+
+	// PackageEventTypeCancelAsDefault represents the cancel as default event type.
+	PackageEventTypeCancelAsDefault PackageEventType = "cancel_as_default"
+
+	// PackageEventTypeBlank represents an blank event type.
+	PackageEventTypeBlank PackageEventType = ""
+)
+
+// Validate validates the eventType type.
+func (eventType PackageEventType) Validate() error {
+	switch eventType {
+	case PackageEventTypePublish, PackageEventTypeDelete, PackageEventTypeEnable,
+		PackageEventTypeDisable, PackageEventTypeSetAsDefault, PackageEventTypeCancelAsDefault:
+		return nil
+	default:
+		return fmt.Errorf("invalid eventType type, type(%s)", eventType)
+	}
+}
+
+// PackageEventTypeListToStringList converts a packageevent type list to a string list.
+func PackageEventTypeListToStringList(eventTypeList []PackageEventType) []string {
+	data := make([]string, len(eventTypeList))
+	for idx, eventType := range eventTypeList {
+		data[idx] = string(eventType)
+	}
+
+	return data
+}
+
+// StringListToPackageEventTypeList converts a string list to a packageevent type list.
+func StringListToPackageEventTypeList(stringList []string) []PackageEventType {
+	data := make([]PackageEventType, len(stringList))
+	for idx, eventType := range stringList {
+		data[idx] = PackageEventType(eventType)
+	}
+
+	return data
+}
+
+// PackageEvent represents the event of package.
+type PackageEvent struct {
+	EventType   PackageEventType
+	Generation  Generation
+	ReleaseType ReleaseType
+	OSType      criteria.OSType
+	CPUArch     criteria.CPUArch
+	Version     string
+	OperateTime time.Time
+	Operator    string
 }

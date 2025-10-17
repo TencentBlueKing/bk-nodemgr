@@ -12,8 +12,10 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -261,4 +263,264 @@ func convertTopoEventConditionsFromTypes(condition *types.TopoEventCondition) (
 	}
 
 	return exactCond, fuzzyCond, timeRange, nil
+}
+
+// Validate check body.
+func (x *PackageEventListReq) Validate() error {
+	if err := validatePage(x.GetPage()); err != nil {
+		return err
+	}
+
+	if err := validateTimeRange(x.GetOperateTimeRange(), maxOperateTimeRangeDuration); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageEventListReq) AutoConvert() {
+	if x.GetOperateTimeRange() == nil {
+		x.OperateTimeRange = &TimeRange{
+			StartTimestampSec: time.Now().Add(-1 * maxOperateTimeRangeDuration).Unix(),
+			EndTimestampSec:   time.Now().Unix(),
+		}
+	}
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *PackageEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
+	return generatePage(x.GetPage(), maxLimit)
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *PackageEventListReq) ConvertConditionsToTypes() (*types.PackageEventCondition, error) {
+	return convertPackageEventConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
+}
+
+// ConvertConditionsFromTypes convert types to conditions.
+func (x *PackageEventListReq) ConvertConditionsFromTypes(condition *types.PackageEventCondition) error {
+	exactCond, fuzzyCond, timeRange, err := convertPackageEventConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.OperateTimeRange = timeRange
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// ConvertPackageEventsToTypes convert package events to types.
+func (x *TopoEventListResp) ConvertPackageEventsToTypes() (int64, []*types.TopoEvent) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.TopoEvent, len(items))
+	for idx, item := range items {
+		result[idx] = &types.TopoEvent{
+			TenantID:        item.GetTenantId(),
+			Type:            types.TopoEventType(item.GetType()),
+			NetworkAreaID:   item.GetBkNetworkareaId(),
+			NetworkAreaName: item.GetBkNetworkareaName(),
+			NetworkUnitID:   item.GetBkNetworkunitId(),
+			NetworkUnitName: item.GetBkNetworkunitName(),
+			AccessPointID:   item.GetAccesspointId(),
+			AccessPointName: item.GetAccesspointName(),
+			OperateTime:     time.UnixMilli(item.GetOperateTime()),
+			Operator:        item.GetOperator(),
+		}
+	}
+
+	return data.GetTotal(), result
+}
+
+// ConvertPackageEventsFromTypes convert types to topo events.
+func (x *PackageEventListResp) ConvertPackageEventsFromTypes(total int64, events []*types.PackageEvent) {
+	items := make([]*PackageEvent, len(events))
+	for idx, event := range events {
+		item := newEmptyPackageEvent()
+		*item.EventType = string(event.EventType)
+		*item.ReleaseType = string(event.ReleaseType)
+		*item.Generation = int64(event.Generation)
+		*item.CpuArch = string(event.CPUArch)
+		*item.OsType = string(event.OSType)
+		*item.Version = string(event.Version)
+		*item.OperateTime = event.OperateTime.UnixMilli()
+		*item.Operator = event.Operator
+
+		items[idx] = item
+	}
+
+	x.Data = &PackageEventListResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
+func convertPackageEventConditionsToTypes(
+	exactCond *PackageEventExactConditions,
+	fuzzyCond *PackageEventFuzzyConditions,
+	timeRange *TimeRange) (*types.PackageEventCondition, error) {
+
+	condition := &types.PackageEventCondition{}
+
+	if timeRange != nil {
+		condition.OperateTimeRange = &types.TimeRange{
+			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
+			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		}
+	}
+
+	osTypeList, err := criteria.StringListToOSTypeList(exactCond.GetOsType())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert os type list: %w", err)
+	}
+
+	cpuArchList, err := criteria.StringListToCPUArchList(exactCond.GetCpuArch())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert cpu arch list: %w", err)
+	}
+
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.PackageEventExactFields{
+			EventType:   types.StringListToPackageEventTypeList(exactCond.GetEventType()),
+			ReleaseType: types.StringListToReleaseTypeList(exactCond.GetReleaseType()),
+			Version:     exactCond.GetVersion(),
+			OSType:      osTypeList,
+			CPUArch:     cpuArchList,
+			Generation:  types.Int64ListToGenerationList(exactCond.GetGeneration()),
+			Operator:    exactCond.GetOperator(),
+		}
+	}
+
+	// fuzzy conditions.
+	if fuzzyCond != nil {
+		condition.FuzzyInclude = &types.PackageEventFuzzyFields{}
+	}
+
+	return condition, nil
+}
+
+func convertPackageEventConditionsFromTypes(condition *types.PackageEventCondition) (
+	*PackageEventExactConditions, *PackageEventFuzzyConditions, *TimeRange, error) {
+
+	if condition == nil {
+		return nil, nil, nil, nil
+	}
+
+	var timeRange *TimeRange
+	var exactCond *PackageEventExactConditions
+	var fuzzyCond *PackageEventFuzzyConditions
+
+	if condition.OperateTimeRange != nil {
+		timeRange = &TimeRange{
+			StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
+			EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
+		}
+	}
+
+	if condition.ExactInclude != nil {
+		exactCond = &PackageEventExactConditions{
+			EventType:   types.PackageEventTypeListToStringList(condition.ExactInclude.EventType),
+			ReleaseType: types.ReleaseTypeListToStringList(condition.ExactInclude.ReleaseType),
+			Version:     condition.ExactInclude.Version,
+			OsType:      criteria.OSTypeListToStringList(condition.ExactInclude.OSType),
+			CpuArch:     criteria.CPUArchListToStringList(condition.ExactInclude.CPUArch),
+			Generation:  types.GenerationListToInt64List(condition.ExactInclude.Generation),
+			Operator:    condition.ExactInclude.Operator,
+		}
+	}
+
+	if condition.FuzzyInclude != nil {
+		fuzzyCond = &PackageEventFuzzyConditions{}
+	}
+
+	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, nil, errors.New("exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return exactCond, fuzzyCond, timeRange, nil
+}
+
+// Validate check body.
+func (x *PackageEventDistinctReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageEventDistinctReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *PackageEventDistinctReq) ConvertConditionsToTypes() (*types.PackageEventCondition, error) {
+	return convertPackageEventConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
+}
+
+// ConvertResultToTypes convert result to types.
+func (x *PackageEventDistinctResp) ConvertResultToTypes() (*types.PackageEventDistinctResult, error) {
+	if x.GetData() == nil {
+		return &types.PackageEventDistinctResult{}, nil
+	}
+
+	data := x.GetData()
+
+	osTypeList, err := criteria.StringListToOSTypeList(data.GetOsType())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert os type list: %w", err)
+	}
+
+	cpuArchList, err := criteria.StringListToCPUArchList(data.GetCpuArch())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert cpu arch list: %w", err)
+	}
+
+	return &types.PackageEventDistinctResult{
+		ReleaseType: types.StringListToReleaseTypeList(data.GetReleaseType()),
+		EventType:   types.StringListToPackageEventTypeList(data.GetEventType()),
+		OSType:      osTypeList,
+		CPUArch:     cpuArchList,
+		Version:     data.GetVersion(),
+		Operator:    data.GetOperator(),
+	}, nil
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PackageEventDistinctResp) ConvertResultFromTypes(result *types.PackageEventDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &PackageEventDistinctResp_Data{
+		EventType:   formatRespSlice(types.PackageEventTypeListToStringList(result.EventType)),
+		ReleaseType: formatRespSlice(types.ReleaseTypeListToStringList(result.ReleaseType)),
+		OsType:      formatRespSlice(criteria.OSTypeListToStringList(result.OSType)),
+		CpuArch:     formatRespSlice(criteria.CPUArchListToStringList(result.CPUArch)),
+		Version:     formatRespSlice(result.Version),
+		Operator:    formatRespSlice(result.Operator),
+	}
+}
+
+func newEmptyPackageEvent() *PackageEvent {
+	return &PackageEvent{
+		EventType:   new(string),
+		ReleaseType: new(string),
+		Generation:  new(int64),
+		OsType:      new(string),
+		CpuArch:     new(string),
+		Version:     new(string),
+		OperateTime: new(int64),
+		Operator:    new(string),
+	}
 }

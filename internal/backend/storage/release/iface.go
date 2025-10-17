@@ -25,13 +25,15 @@ type IStorage interface {
 	IAgent
 	IProxy
 	IPlugin
+	IPackageEvent
 }
 
 // IRelease define the release interface.
 // nolint:interfacebloat
 type IRelease interface {
 	// GetRelease gets release by generation, release type, platform and version.
-	GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, name string, plat platform.Platform, version string) (*types.Release, error)
+	GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
+		name string, plat platform.Platform, version string) (*types.Release, error)
 
 	// ListRelease lists release by page and conditions.
 	ListRelease(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page,
@@ -92,4 +94,22 @@ type IAgent interface {
 type IPlugin interface {
 	// GetReleasePlugin gets release by generation, release type, platform and version.
 	GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleasePlugin, error)
+}
+
+// IPackageEvent define the package event interface.
+type IPackageEvent interface {
+	// CountPackageEvent counts package events by conditions.
+	CountPackageEvent(nCtx contextx.IContext, conditions ...*types.PackageEventCondition) (int64, error)
+
+	// ListPackageEvent lists package events by page and conditions.
+	ListPackageEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
+		[]*types.PackageEvent, int64, error)
+
+	// CreateManyPackageEvent creates multiple package events.
+	CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) error
+
+	// DistinctPackageEvent distincts package event fields.
+	DistinctPackageEvent(
+		nCtx contextx.IContext, request types.PackageEventDistinctRequest, conditions ...*types.PackageEventCondition) (
+		*types.PackageEventDistinctResult, error)
 }

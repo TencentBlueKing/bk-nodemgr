@@ -93,3 +93,26 @@ func (os OSType) Validate() error {
 func (os OSType) String() string {
 	return string(os)
 }
+
+// StringListToOSTypeList converts a string list to a os type list.
+func StringListToOSTypeList(stringList []string) ([]OSType, error) {
+	data := make([]OSType, len(stringList))
+	for idx, osType := range stringList {
+		if err := OSType(osType).Validate(); err != nil {
+			return nil, err
+		}
+		data[idx] = OSType(osType)
+	}
+
+	return data, nil
+}
+
+// OSTypeListToStringList converts a os type list to a string list.
+func OSTypeListToStringList(osTypeList []OSType) []string {
+	data := make([]string, len(osTypeList))
+	for idx, osType := range osTypeList {
+		data[idx] = string(osType)
+	}
+
+	return data
+}

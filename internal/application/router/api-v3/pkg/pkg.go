@@ -13,6 +13,7 @@ package pkg
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/event"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/publish"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg/upload"
@@ -43,4 +44,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	publish.Load(h.rg, capability)
 	upload.Load(h.rg, capability)
 	release.Load(h.rg, capability)
+	event.Load(h.rg, capability)
 }
