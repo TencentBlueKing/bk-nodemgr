@@ -151,40 +151,6 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 			}
 		}
 
-		// count agent.
-		gp.Go(func() error {
-			num, err := h.backendHandler.CountHost(rCtx, &types.HostCondition{
-				ExactInclude: &types.HostExactFields{
-					NetworkUnitID: []int64{networkAreaID},
-					NodeRole:      []types.NodeRole{types.NodeRoleAgent},
-				},
-			})
-			if err != nil {
-				return errors.Join(err, fmt.Errorf("failed to count agent, networkunit-id: %d", networkAreaID))
-			}
-
-			result[networkAreaID].AgentCount = num
-
-			return nil
-		})
-
-		// count proxy.
-		gp.Go(func() error {
-			num, err := h.backendHandler.CountHost(rCtx, &types.HostCondition{
-				ExactInclude: &types.HostExactFields{
-					NetworkUnitID: []int64{networkAreaID},
-					NodeRole:      []types.NodeRole{types.NodeRoleProxy},
-				},
-			})
-			if err != nil {
-				return errors.Join(err, fmt.Errorf("failed to count proxy, networkunit-id: %d", networkAreaID))
-			}
-
-			result[networkAreaID].ProxyCount = num
-
-			return nil
-		})
-
 		gp.Go(func() error {
 			events, _, err := h.backendHandler.ListTopoEvent(rCtx, types.Page{Limit: 1}, &types.TopoEventCondition{
 				ExactInclude: &types.TopoEventExactFields{
@@ -205,6 +171,42 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 			return nil
 		})
 	}
+
+	// get agent host count
+	gp.Go(func() error {
+		hostDistributionByNetworkAreaID, err := h.backendHandler.GetHostDistributionByNetworkAreaID(rCtx, &types.HostCondition{
+			ExactInclude: &types.HostExactFields{
+				NodeRole: []types.NodeRole{types.NodeRoleAgent},
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to count agent: %w", err)
+		}
+
+		for networkAreaID, hostCount := range hostDistributionByNetworkAreaID {
+			result[networkAreaID].AgentCount = hostCount
+		}
+
+		return nil
+	})
+
+	// get proxy host count
+	gp.Go(func() error {
+		hostDistributionByNetworkAreaID, err := h.backendHandler.GetHostDistributionByNetworkAreaID(rCtx, &types.HostCondition{
+			ExactInclude: &types.HostExactFields{
+				NodeRole: []types.NodeRole{types.NodeRoleProxy},
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to count agent: %w", err)
+		}
+
+		for networkAreaID, hostCount := range hostDistributionByNetworkAreaID {
+			result[networkAreaID].ProxyCount = hostCount
+		}
+
+		return nil
+	})
 
 	// wait until all servers stopped or application error.
 	if err := gp.Wait(); err != nil {

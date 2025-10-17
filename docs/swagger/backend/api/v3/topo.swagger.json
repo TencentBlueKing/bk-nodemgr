@@ -220,6 +220,74 @@
         ]
       }
     },
+    "/api/v3/topo/host/get_host_distribution_by_networkarea_id": {
+      "post": {
+        "summary": "GetHostDistributionByNetworkAreaIDReq uest provides getting host\ndistribution by node role.",
+        "operationId": "Topo_GetHostDistributionByNetworkAreaID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoGetHostDistributionByNetworkAreaIDResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoGetHostDistributionByNetworkAreaIDReq describes the HTTP request body\nwhen distinct host in topp service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoGetHostDistributionByNetworkAreaIDReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/host/get_host_distribution_by_node_role": {
+      "post": {
+        "summary": "GetHostDistributionByNodeRoleReq uest provides getting host\ndistribution by node role.",
+        "operationId": "Topo_GetHostDistributionByNodeRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoGetHostDistributionByNodeRoleResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoGetHostDistributionByNodeRoleReq describes the HTTP request body when\ndistinct host in topp service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoGetHostDistributionByNodeRoleReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/host/list": {
       "post": {
         "summary": "HostList provides host listing.",
@@ -1451,6 +1519,82 @@
           }
         }
       }
+    },
+    "v3TopoGetHostDistributionByNetworkAreaIDReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        }
+      },
+      "description": "TopoGetHostDistributionByNetworkAreaIDReq describes the HTTP request body\nwhen distinct host in topp service."
+    },
+    "v3TopoGetHostDistributionByNetworkAreaIDResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "TopoGetHostDistributionByNetworkAreaIDResp describes the HTTP response body\nwhen distinct host in topp service."
+    },
+    "v3TopoGetHostDistributionByNodeRoleReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        }
+      },
+      "description": "TopoGetHostDistributionByNodeRoleReq describes the HTTP request body when\ndistinct host in topp service."
+    },
+    "v3TopoGetHostDistributionByNodeRoleResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "TopoGetHostDistributionByNodeRoleResp describes the HTTP response body when\ndistinct host in topp service."
     },
     "v3TopoHostDistinctReq": {
       "type": "object",

@@ -374,6 +374,42 @@ message TopoHostDistinctResp {
   Data data = 5;
 }
 
+// TopoGetHostDistributionByNodeRoleReq describes the HTTP request body when
+// distinct host in topp service.
+message TopoGetHostDistributionByNodeRoleReq {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+}
+
+// TopoGetHostDistributionByNodeRoleResp describes the HTTP response body when
+// distinct host in topp service.
+message TopoGetHostDistributionByNodeRoleResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  map<string, int64> data = 5;
+}
+
+// TopoGetHostDistributionByNetworkAreaIDReq describes the HTTP request body
+// when distinct host in topp service.
+message TopoGetHostDistributionByNetworkAreaIDReq {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+}
+
+// TopoGetHostDistributionByNetworkAreaIDResp describes the HTTP response body
+// when distinct host in topp service.
+message TopoGetHostDistributionByNetworkAreaIDResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  map<int64, int64> data = 5;
+}
+
 // TopoEventExactConditions describes the conditions when list event
 message TopoEventExactConditions {
   repeated int64 bk_networkarea_id = 1;
@@ -601,6 +637,27 @@ service Topo {
   rpc HostDistinct(TopoHostDistinctReq) returns (TopoHostDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/host/distinct"
+      body : "*"
+    };
+  }
+
+  // GetHostDistributionByNodeRoleReq uest provides getting host
+  // distribution by node role.
+  rpc GetHostDistributionByNodeRole(TopoGetHostDistributionByNodeRoleReq)
+      returns (TopoGetHostDistributionByNodeRoleResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/get_host_distribution_by_node_role"
+      body : "*"
+    };
+  }
+
+  // GetHostDistributionByNetworkAreaIDReq uest provides getting host
+  // distribution by node role.
+  rpc GetHostDistributionByNetworkAreaID(
+      TopoGetHostDistributionByNetworkAreaIDReq)
+      returns (TopoGetHostDistributionByNetworkAreaIDResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/get_host_distribution_by_networkarea_id"
       body : "*"
     };
   }

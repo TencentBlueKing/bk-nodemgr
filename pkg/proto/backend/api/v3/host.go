@@ -229,6 +229,46 @@ func (x *TopoHostDistinctResp) ConvertResultToTypes() *types.HostDistinctResult 
 	}
 }
 
+// ConvertResultFromTypes converts the result from types.
+func (x *TopoGetHostDistributionByNodeRoleResp) ConvertResultFromTypes(result map[string]int64) {
+	if result == nil {
+		return
+	}
+
+	x.Data = result
+}
+
+// ConvertResultToTypes converts the response to types.
+func (x *TopoGetHostDistributionByNodeRoleResp) ConvertResultToTypes() map[string]int64 {
+	if x.GetData() == nil {
+		return map[string]int64{}
+	}
+
+	data := x.GetData()
+
+	return data
+}
+
+// ConvertResultFromTypes converts the result from types.
+func (x *TopoGetHostDistributionByNetworkAreaIDResp) ConvertResultFromTypes(result map[int64]int64) {
+	if result == nil {
+		return
+	}
+
+	x.Data = result
+}
+
+// ConvertResultToTypes converts the response to types.
+func (x *TopoGetHostDistributionByNetworkAreaIDResp) ConvertResultToTypes() map[int64]int64 {
+	if x.GetData() == nil {
+		return map[int64]int64{}
+	}
+
+	data := x.GetData()
+
+	return data
+}
+
 func newEmptyHost() *Host {
 	return &Host{
 		TenantId: new(string),
@@ -344,4 +384,58 @@ func convertHostConditionsFromTypes(
 	}
 
 	return exactCond, fuzzyCond, nil
+}
+
+// Validate validates the request.
+func (x *TopoGetHostDistributionByNodeRoleReq) Validate() error {
+	return nil
+}
+
+// AutoConvert automatically converts the request to types.
+func (x *TopoGetHostDistributionByNodeRoleReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes converts the request to types.
+func (x *TopoGetHostDistributionByNodeRoleReq) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertConditionsFromTypes converts the request to types.
+func (x *TopoGetHostDistributionByNodeRoleReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
+	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// Validate validates the request.
+func (x *TopoGetHostDistributionByNetworkAreaIDReq) Validate() error {
+	return nil
+}
+
+// AutoConvert automatically converts the request to types.
+func (x *TopoGetHostDistributionByNetworkAreaIDReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes converts the request to types.
+func (x *TopoGetHostDistributionByNetworkAreaIDReq) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertConditionsFromTypes converts the request to types.
+func (x *TopoGetHostDistributionByNetworkAreaIDReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
+	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
 }

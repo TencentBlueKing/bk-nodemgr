@@ -97,3 +97,53 @@ func (h *handler) DistinctHost(rCtx restserver.IContext) (interface{}, error) {
 
 	return resp.GetData(), nil
 }
+
+// GetHostDistributionByNodeRole get host distribution by node role.
+func (h *handler) GetHostDistributionByNodeRole(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoGetHostDistributionByNodeRoleReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get host distribution by node role, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.storage.GetHostDistributionByNodeRole(
+		rCtx,
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			Error("failed to get host distribution by node role. failed to get host distribution by node role fields: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoGetHostDistributionByNodeRoleResp)
+
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
+// GetHostDistributionByNetworkAreaID get host distribution by network area id.
+func (h *handler) GetHostDistributionByNetworkAreaID(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoGetHostDistributionByNetworkAreaIDReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get host distribution by network area id, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.storage.GetHostDistributionByNetworkAreaID(
+		rCtx,
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			Error("failed to get host distribution by network area id. failed to get host distribution by network area id fields: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoGetHostDistributionByNetworkAreaIDResp)
+
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}

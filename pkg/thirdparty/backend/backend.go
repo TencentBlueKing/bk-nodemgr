@@ -141,6 +141,66 @@ func (c *cli) listHost(ctx contextx.IContext, req *protoBackend.TopoHostListReq,
 	return resp, nil
 }
 
+func (c *cli) getHostDistributionByNodeRole(ctx contextx.IContext, req *protoBackend.TopoGetHostDistributionByNodeRoleReq,
+) (*protoBackend.TopoGetHostDistributionByNodeRoleResp, error) {
+
+	resp := new(protoBackend.TopoGetHostDistributionByNodeRoleResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/topo/host/get_host_distribution_by_node_role").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get host distribution by node role. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to get host distribution by node role, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) getHostDistributionByNetworkAreaID(ctx contextx.IContext, req *protoBackend.TopoGetHostDistributionByNetworkAreaIDReq,
+) (*protoBackend.TopoGetHostDistributionByNetworkAreaIDResp, error) {
+
+	resp := new(protoBackend.TopoGetHostDistributionByNetworkAreaIDResp)
+	header := c.getHeader(ctx)
+	err := c.client.Post().
+		SubResourcef("/topo/host/get_host_distribution_by_networkarea_id").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to get host distribution by network area id. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("failed to get host distribution by network area id, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) distinctHost(ctx contextx.IContext, req *protoBackend.TopoHostDistinctReq,
 ) (*protoBackend.TopoHostDistinctResp, error) {
 

@@ -98,6 +98,18 @@ type IHandlerHost interface {
 	// @param condition the filter conditions.
 	// @return the host count with filter.
 	CountHost(ctx contextx.IContext, condition *types.HostCondition) (int64, error)
+
+	// GetHostDistributionByNodeRole get host distribution by node role.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host distribution by node role.
+	GetHostDistributionByNodeRole(ctx contextx.IContext, condition *types.HostCondition) (map[types.NodeRole]int64, error)
+
+	// GetHostDistributionByNetworkAreaID get host distribution by node role.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host distribution by node role.
+	GetHostDistributionByNetworkAreaID(ctx contextx.IContext, condition *types.HostCondition) (map[int64]int64, error)
 }
 
 // IHandlerNetworkArea defines the network area Handler.
@@ -506,6 +518,41 @@ func (h *Handler) CountHost(ctx contextx.IContext, condition *types.HostConditio
 	}
 
 	return resp.GetData().GetTotal(), nil
+}
+
+// GetHostDistributionByNodeRole count host within specified tenant in contextx.
+func (h *Handler) GetHostDistributionByNodeRole(ctx contextx.IContext, condition *types.HostCondition) (map[types.NodeRole]int64, error) {
+	req := &protoBackend.TopoGetHostDistributionByNodeRoleReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.getHostDistributionByNodeRole(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hostDistributionByNodeRole := make(map[types.NodeRole]int64)
+	for nodeRole, hostCount := range resp.GetData() {
+		hostDistributionByNodeRole[types.NodeRole(nodeRole)] = hostCount
+	}
+
+	return hostDistributionByNodeRole, nil
+}
+
+// GetHostDistributionByNetworkAreaID count host within specified tenant in contextx.
+func (h *Handler) GetHostDistributionByNetworkAreaID(ctx contextx.IContext, condition *types.HostCondition) (map[int64]int64, error) {
+	req := &protoBackend.TopoGetHostDistributionByNetworkAreaIDReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.getHostDistributionByNetworkAreaID(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.GetData(), nil
 }
 
 // CreateNetworkArea creates a new networkarea.

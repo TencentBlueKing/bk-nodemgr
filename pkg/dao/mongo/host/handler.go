@@ -12,6 +12,7 @@
 package host
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -52,6 +53,12 @@ type IHandler interface {
 
 	// UpdateDynamicFields updates host dynamic fields.
 	UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error
+
+	// GetHostDistributionByNodeRole get host distribution by node role.
+	GetHostDistributionByNodeRole(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error)
+
+	// GetHostDistributionByNetworkAreaID get host distribution by network area id.
+	GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
 
 	IDistinctor
 }
@@ -659,4 +666,64 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	}
 
 	return updates
+}
+
+// GetHostDistributionByNodeRole gets the host distribution by node role.
+func (h *handler) GetHostDistributionByNodeRole(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by node role: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	results, err := h.tenantDao(tenantID).getHostDistributionByNodeRole(nCtx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by node role: %w", err)
+	}
+
+	nodeRoleDistribution := make(map[string]int64)
+	for _, result := range results {
+		nodeRoleDistribution[result.NodeRole] = result.HostCount
+	}
+
+	return nodeRoleDistribution, nil
+}
+
+// GetHostDistributionByNetworkAreaID gets the host distribution by network area id.
+func (h *handler) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by network area id: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	results, err := h.tenantDao(tenantID).getHostDistributionByNetworkAreaID(nCtx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by network area id: %w", err)
+	}
+
+	nodeRoleDistribution := make(map[int64]int64)
+	for _, result := range results {
+		nodeRoleDistribution[result.NetworkAreaID] = result.HostCount
+	}
+
+	return nodeRoleDistribution, nil
 }

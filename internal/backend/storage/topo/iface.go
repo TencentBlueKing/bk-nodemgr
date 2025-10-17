@@ -156,6 +156,14 @@ type IStorageHost interface {
 	// DistinctHost distincts host fields.
 	DistinctHost(nCtx contextx.IContext, request types.HostDistinctRequest, conditions ...*types.HostCondition) (
 		*types.HostDistinctResult, error)
+
+	// GetHostDistributionByNodeRole get host distribution by node role.
+	GetHostDistributionByNodeRole(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+		map[string]int64, error)
+
+	// GetHostDistributionByNetworkAreaID get host distribution by node role.
+	GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+		map[int64]int64, error)
 }
 
 // IStorageDomainGse this interface defines the operations which is only for domain gse.

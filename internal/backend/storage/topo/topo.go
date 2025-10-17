@@ -612,3 +612,29 @@ type AccessPointResult struct {
 	Updated []*types.AccessPoint
 	Deleted []*types.AccessPoint
 }
+
+// GetHostDistributionByNodeRole ...
+func (s *Storage) GetHostDistributionByNodeRole(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	hostDistributionByNodeRole map[string]int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("get_host_distribution_by_node_role")
+	defer metric.End(err)
+
+	hostDistributionByNodeRole, err = s.getHostDistributionByNodeRole(nCtx, conditions...)
+
+	return hostDistributionByNodeRole, err
+}
+
+// GetHostDistributionByNetworkAreaID ...
+func (s *Storage) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	hostDistributionByNetworkAreaID map[int64]int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("get_host_distribution_by_networkarea_id")
+	defer metric.End(err)
+
+	hostDistributionByNetworkAreaID, err = s.getHostDistributionByNetworkAreaID(nCtx, conditions...)
+
+	return hostDistributionByNetworkAreaID, err
+}

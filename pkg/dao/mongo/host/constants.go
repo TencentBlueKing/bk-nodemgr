@@ -14,7 +14,13 @@ const (
 	// FieldKeyHostID the host id field key.
 	FieldKeyHostID = "data.host_id"
 
+	// FieldKeyTenantID the tenant id field key.
+	FieldKeyTenantID = "data.tenant_id"
+
 	// Static fields.
+
+	// FieldKeyStatic the static field key.
+	FieldKeyStatic = "data.static"
 
 	// FieldKeyStaticBizID the static biz id field key.
 	FieldKeyStaticBizID = "data.static.biz_id"

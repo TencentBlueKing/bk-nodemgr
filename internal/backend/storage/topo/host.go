@@ -391,3 +391,37 @@ func (s *Storage) UpdateHostDynamicFields(nCtx contextx.IContext, fields types.H
 
 	return nil
 }
+
+// getHostDistributionByNodeRole ...
+func (s *Storage) getHostDistributionByNodeRole(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[string]int64, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts := convertHostConditionsToOptions(conditions...)
+	hostDistributionByNodeRole, err := s.daoHost.GetHostDistributionByNodeRole(nCtx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by node role: %w", err)
+	}
+
+	return hostDistributionByNodeRole, nil
+}
+
+// getHostDistributionByNetworkAreaID ...
+func (s *Storage) getHostDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
+	map[int64]int64, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts := convertHostConditionsToOptions(conditions...)
+	hostDistributionByNetworkAreaID, err := s.daoHost.GetHostDistributionByNetworkAreaID(nCtx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get host distribution by node role: %w", err)
+	}
+
+	return hostDistributionByNetworkAreaID, nil
+}
