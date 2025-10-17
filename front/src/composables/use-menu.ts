@@ -108,7 +108,7 @@ const navList = [
             icon: 'nodeman-icon nc-plug-in',
             title: i18n.global.t('插件策略'),
           },
-        ]
+        ],
       },
       {
         title: i18n.global.t('历史'),
@@ -116,11 +116,11 @@ const navList = [
           {
             routeName: 'strategyTaskHistory',
             icon: 'nodeman-icon nc-history',
-            title: i18n.global.t('历史任务'),
-          }
-        ]
+            title: i18n.global.t('操作记录'),
+          },
+        ],
       },
-    ]
+    ],
   },
   {
     routeName: 'pkgManager',
@@ -148,8 +148,8 @@ const navList = [
             routeName: 'bintoolPackageMng',
             icon: 'nodeman-icon nc-manual',
             title: i18n.global.t('工具管理'),
-          }
-        ]
+          },
+        ],
       },
       {
         title: i18n.global.t('插件'),
@@ -164,7 +164,7 @@ const navList = [
             icon: 'nodeman-icon nc-manual',
             title: i18n.global.t('插件包工具管理'),
           },
-        ]
+        ],
       },
       {
         title: i18n.global.t('记录'),
@@ -173,10 +173,10 @@ const navList = [
             routeName: 'operationRecords',
             icon: 'nodeman-icon nc-record',
             title: i18n.global.t('操作记录'),
-          }
-        ]
-      }
-    ]
+          },
+        ],
+      },
+    ],
   },
 ];
 

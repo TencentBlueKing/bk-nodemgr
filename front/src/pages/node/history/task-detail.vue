@@ -1,13 +1,13 @@
 <template>
   <PageHeader
     class="w-full absolute top-0 z-100"
-    :title="t('任务详情')"
+    :title="'任务详情'"
     :back="true"
   >
     <span class="mx-[6px] text-[#979BA5] text-[14px]">-</span>
     <span class="text-[#979BA5] text-[14px] mr-[14px]" v-if="currentData">{{ currentData?.workflow_id }}</span>
-    <Tag :theme="statusMap[currentStatus]?.tagTheme" type="filled" v-if="currentStatus">
-      {{ statusMap[currentStatus]?.text || '' }}
+    <Tag :theme="statusMap[currentTaskStatus]?.tagTheme" type="filled" v-if="currentTaskStatus">
+      {{ statusMap[currentTaskStatus]?.text || '' }}
     </Tag>
   </PageHeader>
   <div class="p-[24px] mt-[52px]">
@@ -67,7 +67,7 @@
         :data="searchSelectData"
         v-model="searchSelectValue"
         :unique-select="true"
-        :placeholder="t('请输入IP、管控区域、业务、目标版本、执行状态 搜索')"
+        :placeholder="'请输入IP、管控区域、业务、目标版本、执行状态 搜索'"
         @update:model-value="handleSearchSelectChange">
       </SearchSelect>
     </div>
@@ -87,24 +87,24 @@
           @column-filter="handleFilter"
         >
           <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
-          <TableColumn field="bk_host_inner" :title="t('IPv4')" width="150" fixed="left"></TableColumn>
-          <TableColumn field="bk_host_innerip_v6" :title="t('IPv6')" width="150"></TableColumn>
-          <TableColumn field="bk_networkarea_id" :title="t('管控区域')" min-width="150"></TableColumn>
-          <TableColumn field="bk_biz_name" :title="t('业务')" min-width="150"></TableColumn>
+          <TableColumn field="bk_host_inner" :title="'IPv4'" width="150" fixed="left"></TableColumn>
+          <TableColumn field="bk_host_innerip_v6" :title="'IPv6'" width="150"></TableColumn>
+          <TableColumn field="bk_networkarea_id" :title="'管控区域'" min-width="150"></TableColumn>
+          <TableColumn field="bk_biz_name" :title="'业务'" min-width="150"></TableColumn>
           <TableColumn
             field="node_version"
-            :title="t('目标版本')"
+            :title="'目标版本'"
             min-width="150"
             :filter="filterOptionSource.node_version">
           </TableColumn>
-          <TableColumn field="total_time_second" :title="t('耗时')">
+          <TableColumn field="total_time_second" :title="'耗时'">
             <template #default="{ row }">
               <span>{{ formatTimeToMS(row.total_time_second) }}</span>
             </template>
           </TableColumn>
           <TableColumn
             field="state"
-            :title="t('执行状态')"
+            :title="'执行状态'"
             :filter="filterOptionSource.state"
             min-width="150"
           >
@@ -123,7 +123,7 @@
             </template>
           </TableColumn>
           <TableColumn
-            :title="t('操作')"
+            :title="'操作'"
             fixed="right"
             width="150"
           >
@@ -196,48 +196,50 @@ const nodeManageStore = useNodeManageStore();
 const reTryType = [
   {
     id: 'full_node_instance_retry',
-    name: t('全部重试'),
+    name: '全部重试',
   },
   {
     id: 'partial_node_instance_retry',
-    name: t('部分重试'),
+    name: '部分重试',
   },
 ];
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
-const currentStatus = computed(() => nodeManageStore.currentStatus);
+
+// 当前任务状态
+const currentTaskStatus = computed(() => nodeManageStore.taskHistoryTableRowData.status);
 const statusMap = {
   running: {
-    text: t('执行中'),
+    text: '执行中',
     tagTheme: 'info',
   },
   failed: {
-    text: t('失败'),
+    text: '失败',
     icon: 'terminated',
     tagTheme: 'danger',
   },
   success: {
-    text: t('成功'),
+    text: '成功',
     icon: 'running',
     tagTheme: 'success',
   },
   partial_failed: {
-    text: t('部分失败'),
+    text: '部分失败',
     icon: 'warning',
     tagTheme: 'warning',
   },
   ignored: {
-    text: t('已忽略（没有需要变更的实例）'),
+    text: '已忽略（没有需要变更的实例）',
     icon: 'warning',
     tagTheme: '',
   },
   timeout: {
-    text: t('超时'),
+    text: '超时',
     icon: 'unknown',
     tagTheme: '',
   },
   init: {
-    text: t('初始化'),
+    text: '初始化',
     icon: 'unknown',
     tagTheme: '',
   },
@@ -302,11 +304,11 @@ const timeFormatter = (val: number | string | undefined, format = 'YYYY-MM-DD HH
 
 const sliceWorkflowId = (val: string) => `#${val?.slice(-4)}`;
 const taskInfoList = computed(() => ([
-  { prop: 'type', name: t('任务类型'), value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType] || nodeManageStore.taskHistoryTableRowData?.type },
-  { prop: 'cost_time', name: t('总耗时'), value: formatCostTime(nodeManageStore.taskHistoryTableRowData?.cost_time) },
-  { prop: 'workflow_id', name: t('任务ID'), value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id) },
-  { prop: 'operator', name: t('执行人'), value: nodeManageStore.taskHistoryTableRowData?.operator },
-  { prop: 'operate_time', name: t('执行时间'), value: timeFormatter(nodeManageStore.taskHistoryTableRowData?.operate_time) },
+  { prop: 'type', name: '任务类型', value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType] || nodeManageStore.taskHistoryTableRowData?.type },
+  { prop: 'cost_time', name: '总耗时', value: formatCostTime(nodeManageStore.taskHistoryTableRowData?.cost_time) },
+  { prop: 'workflow_id', name: '任务ID', value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id) },
+  { prop: 'operator', name: '执行人', value: nodeManageStore.taskHistoryTableRowData?.operator },
+  { prop: 'operate_time', name: '执行时间', value: timeFormatter(nodeManageStore.taskHistoryTableRowData?.operate_time) },
 ]));
 
 const tableData = ref<any[]>([]);
@@ -317,19 +319,19 @@ const curOperationId = ref('');
 const radioGroup = computed(() => ([
   {
     icon: '',
-    label: t('全部'),
+    label: '全部',
     name: 'all',
     count: tableData.value.length,
   },
   {
     icon: 'nodeman-icon nc-running status-icon',
-    label: t('成功'),
+    label: '成功',
     name: 'success',
     count: tableData.value.filter((item: {state: string}) => item.state === 'success').length,
   },
   {
     icon: 'nodeman-icon nc-terminated status-icon',
-    label: t('失败'),
+    label: '失败',
     name: 'failed',
     count: tableData.value.filter((item: {state: string}) => item.state === 'failed').length,
   },
@@ -368,11 +370,11 @@ const loading = ref(false);
 // 搜索
 const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
 const searchSelectData = computed(() => [
-  { id: 'bk_host_innerip', name: t('IP'), multiple: true },
-  { id: 'bk_networkarea_id', name: t('管控区域'), children: getUniqueChildren('bk_networkarea_id'), multiple: true },
-  { id: 'bk_biz_id', name: t('业务'), children: bussinessMap.value, multiple: true },
-  { id: 'node_version', name: t('目标版本'), children: getUniqueChildren('node_version'), multiple: true },
-  { id: 'state', name: t('执行状态'), children: getUniqueChildren('state'), multiple: true },
+  { id: 'bk_host_innerip', name: 'IP', multiple: true },
+  { id: 'bk_networkarea_id', name: '管控区域', children: getUniqueChildren('bk_networkarea_id'), multiple: true },
+  { id: 'bk_biz_id', name: '业务', children: bussinessMap.value, multiple: true },
+  { id: 'node_version', name: '目标版本', children: getUniqueChildren('node_version'), multiple: true },
+  { id: 'state', name: '执行状态', children: getUniqueChildren('state'), multiple: true },
 ]);
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
   Object.keys(filterOptionSource).forEach((key) => {
@@ -478,7 +480,7 @@ const handleFilter = ({ checked, field }: {checked: string[], field: string}) =>
   const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (checked.length) {
-    searchSelectValue.value.push({ id: field, name: t(field), values: checked.map((item: any) => {
+    searchSelectValue.value.push({ id: field, name: field, values: checked.map((item: any) => {
       const name = field === 'state' ? statusMap[item].text : item;
       return {
         id: item,
@@ -496,7 +498,7 @@ const handleRetry = async (row: any, type: string) => {
   }).catch(() => false);
   if (res) {
     await getOperateList();
-    if (nodeManageStore.currentStatus === 'running' || needInterval.value) {
+    if (currentTaskStatus.value === 'running' && needInterval.value) {
       start();
     }
     await updataCurrentTaskInfo();
@@ -510,7 +512,7 @@ const handleFullRetry = async (type: string) => {
   }).catch(() => false);
   if (res) {
     await getOperateList();
-    if (nodeManageStore.currentStatus === 'running' || needInterval.value) {
+    if (currentTaskStatus.value === 'running' && needInterval.value) {
       start();
     }
     await updataCurrentTaskInfo();
@@ -535,8 +537,10 @@ const updataCurrentTaskInfo = async () => {
   }));
   const findItem = list.find((item: any) => item.workflow_id === route.params.taskId);
   if (findItem) {
+    // 在任务list中找到当前任务，并更新任务信息和任务状态
     nodeManageStore.updateCurrentRowData(findItem);
-    nodeManageStore.updateCurrentStatus(findItem.status);
+    // 任务状态优先于子任务状态
+    subTasksStatus.value = [findItem.status];
   }
 };
 const getParams = () => {
@@ -555,8 +559,12 @@ const getParams = () => {
   params.exact_include_conditions['workflow_id'] = route.params.taskId;
   return params;
 };
-const needInterval = ref(false);
+// 所有子任务状态
+const subTasksStatus = ref<string[]>();
+// 如果所有子任务状态包含运行中或者初始状态则需要轮询，即needInterval为true
+const needInterval = computed(() => subTasksStatus.value?.includes('running') || subTasksStatus.value?.includes('empty_instance') || subTasksStatus.value?.includes('init'));
 const getOperateList = async () => {
+  subTasksStatus.value = [];
   const currentRowData = nodeManageStore.taskHistoryTableRowData;
   const searchParameters = getParams();
   const res = await NodeWorkflowService.NodeWorkflowOperationList(searchParameters).catch(() => ({
@@ -564,7 +572,7 @@ const getOperateList = async () => {
     total_count: 0,
   }));
   const mapList = res.operations.map((item) => {
-    needInterval.value = ['running', 'empty_instance'].includes(item.status.state);
+    subTasksStatus.value?.push(item.status.state);
     return {
       ...item.param,
       ...item.status,
@@ -593,6 +601,7 @@ const handleViewLog = async (row: any) => {
   });
 };
 const { start, stop } = useInterval(getOperateList, 1000); // 轮询
+// 日志中执行失败或者任务详情表中都失败则更新详情的信息状态
 const handleStop = async () => {
   await updataCurrentTaskInfo();
   await getOperateList();
@@ -604,16 +613,18 @@ watch(() => tableData, () => {
   filterOptionSource.node_version.list = filterOptionConfig('node_version', typeMap);
   filterOptionSource.state.list = filterOptionConfig('state', statusMap);
 }, { deep: true, immediate: true });
-watch(() => needInterval.value, async (val: boolean) => {
-  if (!val) {
+watch(() => needInterval.value, async () => {
+  if (!needInterval.value) {
     stop();
     await updataCurrentTaskInfo();
+  } else {
+    start();
   }
-}, { immediate: true });
+});
 onMounted(async () => {
   await updataCurrentTaskInfo();
   await getOperateList();
-  if (nodeManageStore.currentStatus === 'running' || needInterval.value) {
+  if (currentTaskStatus.value === 'running' && needInterval.value) {
     start();
   }
 });

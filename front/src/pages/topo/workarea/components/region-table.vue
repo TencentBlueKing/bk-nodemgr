@@ -14,7 +14,6 @@
       @page-value-change="workareaStore.pageValueChange"
       @setting-change="handleSettingChange"
       @column-filter="handleColumnFilter">
-      <TableColumn type="checkbox" :width="60" :resizable="false" />
       <TableColumn
         :label="$t('topoManager.workArea.table.workareaName')"
         field="bk_networkarea_name"

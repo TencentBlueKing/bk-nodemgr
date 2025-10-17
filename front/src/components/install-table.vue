@@ -661,7 +661,6 @@ const tableValidate = async () => {
 
 const settingRef = ref();
 const showSetting = () => {
-  console.log("🚀 ~ showSetting ~ settingRef.value:", settingRef.value)
   settingRef.value?.showSetting();
 };
 

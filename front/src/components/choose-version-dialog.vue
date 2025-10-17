@@ -98,14 +98,25 @@ interface RowVO {
   num: number;
 }
 
+interface IOsversion {
+  name: string;
+  versions: string[];
+  selected: boolean;
+  icon: string;
+}
+
 const isShow = defineModel('isShow', { type: Boolean, default: false });
 const props = defineProps({
   data: {
-    type: Object,
-    default: {
+    type: Array,
+    default: [{
       os: '',
       version: '',
-    },
+    }],
+  },
+  batch: {
+    type: Boolean,
+    default: false,
   },
   releaseType: {
     type: String,
@@ -117,12 +128,7 @@ const { t } = useI18n();
 
 const mainStore = useMainStore();
 
-const osVersions = ref<{
-  name: string;
-  version: string;
-  selected: boolean;
-  icon: string;
-}>();
+const osVersions = ref<IOsversion[]>();
 
 const selectedOs = ref();
 const selectedVersion = ref<{
@@ -133,9 +139,9 @@ const selectedVersion = ref<{
 }>();
 const selectedRadio = ref('');
 
-function selectOs(os) {
-  if (props.data?.os) return;
-  osVersions.value.forEach(o => (o.selected = false));
+function selectOs(os: IOsversion) {
+  if (!props.batch) return;
+  osVersions.value?.forEach((o: IOsversion) => (o.selected = false));
   os.selected = true;
   selectedOs.value = os;
   selectedVersion.value = os.versions[0];
@@ -177,21 +183,22 @@ const getVersions = async () => {
     items: [],
   }));
   const osMap: any = {};
-  res.items.forEach((item) => {
+  res.items.filter(item => !!props.data?.find(data => `${item.os_type}_${item.cpu_arch}`.includes(`${data.os_type}_${data.cpu_arch}`))).forEach((item) => {
     const key = `${capitalizeFirstLetter(item.os_type)}_${item.cpu_arch}`;
+    const iconType = item.os_type === 'darwin' ? 'macos' : item.os_type;
     if (!osMap[key]) {
       osMap[key] = {
         name: key,
         version: item.as_default ? item.version : '',
         selected: false,
-        versions: props.releaseType === 'proxy' ? [{
-          version: '默认',
+        versions: [{
+          version: '自动',
           disabled: false,
           lable: [],
           packages: [],
           description: '',
-        }] : [],
-        icon: `nodeman-icon nc-${item.os_type}`,
+        }],
+        icon: `nodeman-icon nc-${iconType}`,
       };
     }
 
@@ -210,14 +217,14 @@ watch(
   async () => {
     if (isShow.value) {
       await getVersions();
-      if (props.data?.os) {
-        const os = capitalizeFirstLetter(props.data.os);
-        selectedOs.value = osVersions.value.find(item => item.name === os);
+      if (props.data?.[0]?.os && !props.batch) {
+        const os = capitalizeFirstLetter(props.data?.[0].os);
+        selectedOs.value = osVersions.value?.find(item => item.name === os);
       } else {
-        selectedOs.value = osVersions.value[0];
+        selectedOs.value = osVersions.value?.[0];
       }
-      if (props.data?.version) {
-        selectedVersion.value = selectedOs.value?.versions.find(item => item.version === props.data?.version);
+      if (props.data?.[0]?.version && !props.batch) {
+        selectedVersion.value = selectedOs.value?.versions.find(item => item.version === props.data?.[0]?.version);
       } else {
         selectedVersion.value = selectedOs.value?.versions[0];
       }

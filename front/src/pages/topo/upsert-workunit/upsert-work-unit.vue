@@ -299,26 +299,31 @@ const handleConfirm = async () => {
     };
 
     if (!props.isCreate) (params as TopoNetworkUnitUpdateReq).bk_networkunit_id = props.workUnitId;
-
+    let res;
     if (props.isCreate) {
-      await TopoService.NetworkUnitCreate(params);
+      res = await TopoService.NetworkUnitCreate(params).catch(() => ({
+        bk_networkunit_id: null,
+      }));
       Message({
         theme: 'success',
         message: t('message.success.create'),
       });
     } else {
-      await TopoService.NetworkUnitUpdate(params);
+      res = await TopoService.NetworkUnitUpdate(params).catch(() => ({
+        bk_networkunit_id: null,
+      }));
       Message({
         theme: 'success',
         message: t('message.success.edit'),
       });
     }
+    if (res.bk_networkunit_id === null) return;
     // 关闭侧栏
     handleClose();
     // 初始化表单
     initForm();
     // 触发save 父组件刷新list
-    emit('save');
+    emit('save', res.bk_networkunit_id);
   } catch (err) {
     console.error(err);
   } finally {

@@ -502,7 +502,6 @@ const getTaskList = async () => {
 // 跳转详情
 const detailHandle = (row: NodeWorkflowInfo, status: string) => {
   nodeManageStore.updateCurrentRowData(row);
-  nodeManageStore.updateCurrentStatus(status);
   router.push({
     name: 'taskDetail',
     params: {

@@ -230,7 +230,7 @@ const handleChangeBiz = (val: any) => {
     formData.biz_id = ['不限'];
   }
 };
-const updateConfig = (configs: ConfigPolicyConfigBlock[]) => {
+const updateConfig = (configs: any[]) => {
   formData.configs = configs;
 };
 const handleSubmit = async () => {
@@ -263,7 +263,7 @@ const handleSubmit = async () => {
   }
 };
 const handleCancel = () => {
-  router.replace({ name: 'agentStrategy' });
+  router.go(-1);
 };
 const networkAreaList = ref<NetworkArea[]>([]);
 // 管控区域

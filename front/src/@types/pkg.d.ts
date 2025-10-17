@@ -233,6 +233,34 @@ export interface PackageReleaseSetLabelsResp {
 export interface PackageReleaseSetLabelsRespData {
 }
 
+// PackageReleaseSetLabelsManyIdentity describes the HTTP request body.
+export interface PackageReleaseSetLabelsManyIdentity {
+  generation: number;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseSetLabelsManyReq describes the HTTP request body when set many
+// labels.
+export interface PackageReleaseSetLabelsManyReq {
+  release_type: string;
+  identify: PackageReleaseSetLabelsManyIdentity[];
+  labels: string[];
+}
+
+// PackageReleaseSetLabelsManyResp describes the HTTP response body when set
+// many labels.
+export interface PackageReleaseSetLabelsManyResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseSetLabelsManyRespData;
+}
+
+export interface PackageReleaseSetLabelsManyRespData {
+}
+
 // PackageReleaseEnableReq describes the HTTP request body when enable package
 // release.
 export interface PackageReleaseEnableReq {

@@ -108,6 +108,7 @@ export interface NodeWorkflowOperationParam {
   bk_host_innerip_v6: string;
   node_version: string;
   bk_biz_id: number;
+  operator: string;
 }
 
 export interface NodeWorkflowOperation {

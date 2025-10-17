@@ -17,6 +17,7 @@ import OperationRecords from '@/pages/pkg/record.vue';
 import CreateConfig from '@/pages/rules/agent-strategy/create-config.vue';
 import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
 import Rules from '@/pages/rules/index.vue';
+import RulesRecord from '@/pages/rules/record/record.vue';
 import OperationRecord from '@/pages/topo/record/record.vue';
 import Topography from '@/pages/topo/topography/topo.vue';
 import WorkArea from '@/pages/topo/workarea/workarea.vue';
@@ -215,9 +216,9 @@ const routes = setupLayouts([
           {
             name: 'strategyTaskHistory',
             path: 'strategy-task-history',
-            component: Rules,
+            component: RulesRecord,
             meta: {
-              title: '任务历史',
+              title: '操作记录',
               back: false,
               mainMenu: 'ruleManager',
             },

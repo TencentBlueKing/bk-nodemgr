@@ -172,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { Dropdown, Menu, Navigation, Select } from 'bkui-vue';
+import { Button, Dropdown, Menu, Navigation, Select } from 'bkui-vue';
 import { AngleUpFill } from 'bkui-vue/lib/icon';
 import { debounce, isArray } from 'lodash';
 import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';

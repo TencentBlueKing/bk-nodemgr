@@ -4,11 +4,10 @@ import type { NodeWorkflowInfo } from '@/@types/node_workflow';
 export const useNodeManageStore = defineStore('nodeManageStore', {
   state: () => ({
     taskHistoryTableRowData: {} as NodeWorkflowInfo,
-    currentStatus: '',
     agentEditParams: {
       tableData: [] as Host[],
       type: '',
-      isSelectedAllPages: false
+      isSelectedAllPages: false,
     },
   }),
   actions: {
@@ -16,12 +15,9 @@ export const useNodeManageStore = defineStore('nodeManageStore', {
     updateCurrentRowData(data: NodeWorkflowInfo) {
       this.taskHistoryTableRowData = data;
     },
-    updateCurrentStatus(status: string) {
-      this.currentStatus = status;
-    },
     updateAgentEditRowData(params: any) {
-      this.agentEditParams = {...params};
-    }
+      this.agentEditParams = { ...params };
+    },
   },
 });
 

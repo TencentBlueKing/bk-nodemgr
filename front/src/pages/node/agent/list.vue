@@ -199,12 +199,25 @@
         </TableColumn>
       </Table>
     </bk-loading>
+    <ChooseVersionDialog
+      :data="chooseVersionData.data"
+      :batch="chooseVersionData.batch"
+      v-model:is-show="chooseVersionData.isShow"
+      @confirm="handleUpgrade"
+    >
+    </ChooseVersionDialog>
+    <operate-dialog
+      v-model:is-show="operateDialogIsShow"
+      :title="operateDialogData.title"
+      :type="operateDialogData.type"
+      :sub-title="operateDialogData.subTitle"
+      @confirm="operateJob"
+    ></operate-dialog>
   </div>
 </template>
 <script setup lang="ts">
-import { Button, Cascader, Dropdown, InfoBox, SearchSelect } from 'bkui-vue';
-import { isEqual } from 'lodash';
-import { computed, onMounted, reactive, ref, shallowRef, watch } from 'vue';
+import { Button, Cascader, Checkbox, Dropdown, InfoBox, Input, SearchSelect } from 'bkui-vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -215,12 +228,13 @@ import type {
   TopoHostExactConditions,
   TopoHostFuzzyConditions,
 } from '@/@types/topo.d';
+import { NodeAgentService } from '@/api/modules/node_agent';
 import { TopoService } from '@/api/modules/topo';
-import { WorkflowService } from '@/api/modules/workflow';
 import { capitalizeFirstLetter } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
+
 interface FilterOption {
   list: { text: string; value: string }[];
   checked: string[];
@@ -235,10 +249,19 @@ const nodeManageStore = useNodeManageStore();
 const tableData = ref<Host[]>([]);
 const agentList = ref<Host[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const chooseVersionData = reactive({
+  isShow: false,
+  data: null,
+  batch: false,
+});
+const operateDialogIsShow = ref(false);
+const operateDialogData = {
+  type: '',
+  title: '',
+  subTitle: '',
+};
 // 后端分页
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
-// 跨页全选
-const isSelectedAllPages = ref(false);
 const loading = ref(false);
 // 拓扑级联选择器的选值
 const topo = ref([]);
@@ -335,30 +358,17 @@ const operate = [
     show: true,
   },
   {
+    id: 'restart',
+    name: '重启',
+    disabled: false,
+    show: true,
+  },
+  {
     id: 'uninstall',
     name: '卸载',
     disabled: false,
     show: true,
   },
-  {
-    id: 'reload',
-    name: '重载配置',
-    disabled: false,
-    show: true,
-  },
-  {
-    id: 'reboot',
-    name: '重启',
-    disabled: false,
-    show: true,
-  },
-  // {
-  //   id: 'log',
-  //   name: '最新执行日志',
-  //   disabled: false,
-  //   show: true,
-  //   single: true,
-  // },
 ];
 // 安装方式
 const agentInstallType = [
@@ -502,13 +512,11 @@ const filterOptionSource: Record<string, FilterOption> = reactive({
 
 const triggerHandler = (type: string, setupType = 'setup') => {
   switch (type) {
-    // 批量重启 批量重装 批量重载配置 批量卸载 批量升级
-    case 'reboot':
+    // 重启 重装 重载配置 卸载 升级
+    case 'restart':
     case 'reinstall':
-    case 'reload':
     case 'uninstall':
     case 'upgrade':
-    case 'remove':
       handleOperate(type, selection.value, true);
       break;
     case 'setup':
@@ -528,44 +536,23 @@ const getOperateShow = (row: Host, config: any) => {
 };
 // 操作
 const handleOperate = (type: string, data: Host[], batch = false) => {
-  if (
-    !batch
-    && ['terminated', 'not_installed'].includes(data[0].state.node_version)
-    && !['log', 'reinstall', 'remove'].includes(type)
-  ) {
-    return;
-  }
-
   let jobType = '';
 
   switch (type) {
     // 重启
-    case 'reboot':
+    case 'restart':
       handleOperatetHost(data, batch, 'RESTART_AGENT');
-      break;
-    // 移除
-    case 'remove':
-      handleOperatetHost(data, batch, 'REMOVE_AGENT');
       break;
     // 重装
     case 'reinstall':
       jobType = 'REINSTALL_AGENT';
       break;
-    // 重载 只取其中一部分数据
-    case 'reload':
-      jobType = 'RELOAD_AGENT';
-      break;
     // 卸载
     case 'uninstall':
-      jobType = 'UNINSTALL_AGENT';
       break;
     // 升级
     case 'upgrade':
       handleOperatetHost(data, batch, 'UPGRADE_AGENT');
-      break;
-    // 日志详情
-    case 'log':
-      // handleGotoLog(data[0]);
       break;
   }
   if (!jobType) return;
@@ -576,8 +563,6 @@ const handleOperate = (type: string, data: Host[], batch = false) => {
       ...item,
     })),
     type: jobType,
-    // true：跨页全选（tableData表示标记删除的数据） false：非跨页全选（tableData表示编辑的数据）
-    isSelectedAllPages: String(batch && isSelectedAllPages.value),
   };
   nodeManageStore.updateAgentEditRowData(params);
 };
@@ -597,15 +582,62 @@ const handleSelectChange = ({
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
   tableData.value.forEach((item: any) => (item.checked = checked));
 };
+
+const operateData = ref<Host[]>();
+// 重启
+const operateJob = async (extraData: any = {}) => {
+  loading.value = true;
+  const params = {
+    host: operateData.value?.map((item: any) => ({
+      bk_host_id: item.bk_host_id,
+      force: extraData.isForce,
+      graceful_restart_timeout_sec: extraData.isForce ? 0 : extraData.time,
+    })),
+  };
+  let result;
+  if (extraData.isReconfig) {
+    result = await NodeAgentService.NodeAgentReconfig(params).catch(() => ({
+      workflow_id: '',
+    }));
+  } else {
+    result = await NodeAgentService.NodeAgentRestart(params).catch(() => ({
+      workflow_id: '',
+    }));
+  }
+  loading.value = false;
+  if (result.workflow_id) {
+    router.push({
+      name: 'taskDetail',
+      params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+    });
+  }
+};
+// 升级回退
+const handleUpgrade = async (version: string) => {
+  loading.value = true;
+  const params = {
+    host: operateData.value?.map((item: any) => ({
+      bk_host_id: item.bk_host_id,
+      target_version: version,
+    })),
+  };
+  const result = await NodeAgentService.NodeAgentUpgrade(params).catch(() => ({
+    workflow_id: '',
+  }));
+  loading.value = false;
+  if (result.workflow_id) {
+    router.push({
+      name: 'taskDetail',
+      params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+    });
+  }
+};
+
 /**
  * Agent操作
  * @param {String} type 操作类型
  * @param {Array} data agent数据
  * @param {Boolean} batch 是否是批量操作
- *
- * 重装都需要经过编辑页面 *****
- * Linux升级走job不需要编辑，windows升级需要编辑不走job， 混合走编辑 *****
- * Linux、window卸载都不需要经过编辑页面 *****
  */
 
 /**
@@ -618,41 +650,7 @@ const handleOperatetHost = async (
 ) => {
   const titleObj = {
     firstIp: data[0].info.bk_host_innerip,
-    num: tableData.value.length,
-  };
-  const operateJob = async (data: Host[]) => {
-    loading.value = true;
-    const params = {
-      hosts: data.map((item: any) => ({
-        bk_host_id: item.info.bk_host_id,
-        topo: {
-          bk_biz_id: item.info.bk_biz_id,
-          bk_networkarea_id: item.bk_networkarea_id,
-          bk_networkunit_id: item.bk_networkunit_id,
-        },
-        attributes: {
-          bk_host_innerip: item.bk_host_innerip,
-          bk_host_innerip_v6: item.bk_host_innerip_v6,
-          bk_host_outerip: item.bk_host_outerip,
-          bk_host_outerip_v6: item.bk_host_outerip_v6,
-          login_ip: item.login_ip,
-          login_port: item.login_port,
-          login_password: item.login_password,
-        },
-        config: {
-          version: item.node_version,
-        },
-      })),
-    };
-    const result = await WorkflowService.AgentUpgrade(params);
-    loading.value = false;
-    if (result.workflow_id) {
-      router.push({
-        name: 'taskDetail',
-        params: { taskId: result.workflow_id, routerBackName: 'taskList' },
-      });
-    }
-    return;
+    num: data.length,
   };
   let type = '';
   switch (operateType) {
@@ -662,35 +660,24 @@ const handleOperatetHost = async (
       break;
     // 升级
     case 'UPGRADE_AGENT':
-      type = '升级';
-      break;
-    case 'REMOVE_AGENT':
-      type = '移除';
+      type = '升级/回退';
       break;
   }
-
-  InfoBox({
-    title: batch ? `请确认是否批量${type}` : `请确认是否${type}`,
-    subTitle: batch
-      ? t('批量确认操作提示', {
-        ip: titleObj.firstIp,
-        num: titleObj.num,
-        type,
-        suffix: operateType === 'UPGRADE_AGENT' ? t('到最新版本') : '',
-      })
-      : `${type} ${titleObj.firstIp} 的Agent${
-        operateType === 'UPGRADE_AGENT' ? t('到最新版本') : ''
-      }`,
-    extCls: 'wrap-title',
-    onConfirm: () => {
-      if (operateType === 'REMOVE_AGENT') {
-        // handleRemoveHost(data);
-      } else {
-        operateJob(data);
-      }
-    },
-  });
+  operateData.value = data;
+  if (operateType === 'UPGRADE_AGENT') {
+    chooseVersionData.isShow = true;
+    chooseVersionData.data = data;
+    chooseVersionData.batch = batch;
+  } else {
+    operateDialogIsShow.value = true;
+    operateDialogData.type = operateType;
+    operateDialogData.title = batch ? `请确认是否批量${type}` : `请确认是否${type}`;
+    operateDialogData.subTitle = batch
+      ? `${type} ${titleObj.firstIp} 等${titleObj.num}个IP的Agent`
+      : `${type} ${titleObj.firstIp} 的Agent`;
+  }
 };
+
 const fuzzyKeys = new Set([
   'bk_host_innerip',
   'bk_host_innerip_v6',
@@ -713,7 +700,7 @@ const getParams = () => {
     const target = fuzzyKeys.has(item.id)
       ? params.fuzzy_include_conditions
       : params.exact_include_conditions;
-      target[item.id] = item.values?.map((value: any) => value.id);
+    target[item.id] = item.values?.map((value: any) => value.id);
   });
   return params;
 };

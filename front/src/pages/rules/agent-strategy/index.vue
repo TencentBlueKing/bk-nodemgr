@@ -61,6 +61,12 @@
           show-overflow="tooltip"
         ></TableColumn>
         <TableColumn
+          field="configpolicy_id"
+          :title="'配置ID'"
+          :min-width="100"
+          fixed="left"
+        ></TableColumn>
+        <TableColumn
           field="version"
           :title="'版本'"
           :min-width="120"
@@ -85,10 +91,40 @@
           field="scopes"
           :title="'范围'"
           :min-width="120"
-          show-overflow="tooltip"
         >
           <template #default="{ row }">
-            <Button text theme="primary">{{ row.scopes?.length }}</Button>
+            <Popover
+              theme="light"
+              trigger="hover"
+            >
+              <Button text theme="primary">{{ row.scopes?.length }}</Button>
+              <template #content>
+                <Table :data="row.scopes">
+                  <TableColumn field="bk_networkarea_id" title="管控区域">
+                    <template #default="{ row }">
+                      {{ networkAreaList?.find(item =>
+                        item.bk_networkarea_id === row.bk_networkarea_id )?.bk_networkarea_name || '不限' }}
+                    </template>
+                  </TableColumn>
+                  <TableColumn field="bk_networkunit_id" title="管控单元">
+                    <template #default="{ row }">
+                      {{ networkUnitList?.find(item =>
+                        item.bk_networkarea_id === row.bk_networkunit_id )?.bk_networkunit_name || '不限' }}
+                    </template>
+                  </TableColumn>
+                  <TableColumn field="os_type" title="操作系统">
+                    <template #default="{ row }">
+                      {{ row.os_type || '不限' }}
+                    </template>
+                  </TableColumn>
+                  <TableColumn field="cpu_arch" title="架构">
+                    <template #default="{ row }">
+                      {{ row.cpu_arch || '不限' }}
+                    </template>
+                  </TableColumn>
+                </Table>
+              </template>
+            </Popover>
           </template>
         </TableColumn>
         <TableColumn
@@ -100,7 +136,7 @@
         <TableColumn
           field="updated_time"
           :title="'修改时间'"
-          :min-width="120"
+          :min-width="150"
         >
           <template #default="{ row }">
             {{ formatTimestamp(row.updated_time) }}
@@ -178,7 +214,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Loading, PopConfirm, SearchSelect, Tab, Tag } from 'bkui-vue';
+import { Button, Loading, PopConfirm, Popover, SearchSelect, Tab, Tag } from 'bkui-vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -186,6 +222,7 @@ import { Table, TableColumn } from '@blueking/table';
 
 import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@/@types/configpolicy';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
+import { TopoService } from '@/api/modules/topo';
 import { formatTimestamp } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
@@ -312,6 +349,24 @@ const handleDelete = async (row: ConfigPolicy) => {
   });
   await getConfigPolicyList();
 };
+const networkAreaList = ref<NetworkArea[]>([]);
+// 管控区域
+const getNetworkAreaList = async () => {
+  const res = await TopoService.NetworkAreaList({}).catch(() => ({
+    total: 0,
+    items: [],
+  }));
+  networkAreaList.value = res.items;
+};
+// 管控单元下拉列表获取
+const networkUnitList = ref<NetworkUnit[]>([]);
+const getNetworkUnitList = async () => {
+  const res = await TopoService.NetworkUnitList({}).catch(() => ({
+    total: 0,
+    items: [],
+  }));
+  networkUnitList.value = res.items;
+};
 const fuzzyKeys = new Set([
   'configpolicy_name',
   'operator',
@@ -353,4 +408,8 @@ watch([
 ], async () => {
   await getConfigPolicyList();
 }, { immediate: true, deep: true });
+onMounted(async () => {
+  await getNetworkAreaList();
+  await getNetworkUnitList();
+});
 </script>

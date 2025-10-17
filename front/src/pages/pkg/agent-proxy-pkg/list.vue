@@ -713,10 +713,19 @@ const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
 // 标签信息批量编辑
 const selectTag = ref<string[]>([]);
 const batchUpdateTag = async () => {
-  packageList.value = packageList.value.map((item: any) => ({
-    ...item,
+  await PackageService.SetReleaseLabelsMany({
+    release_type: currentType.value,
+    identify: packageList.value.map(item => ({
+      generation: item.generation,
+      platform: {
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch,
+      },
+      version: item.version,
+    })),
     labels: [...selectTag.value],
-  }));
+  });
+  await getPackages();
 };
 watch(() => searchSelectValue.value, (data) => {
   Object.keys(filterOptionSource).forEach((key) => {

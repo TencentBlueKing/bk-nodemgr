@@ -42,6 +42,7 @@
                 </Button>
               </template>
             </FlexRow>
+            <!-- proxy 表格信息-->
             <template v-if="!curWorkUnit.is_direct">
               <Divider type="solid"></Divider>
               <proxy-info :active="active"></proxy-info>
@@ -83,7 +84,7 @@
 <script lang="ts" setup>
 import { Button, Divider, Exception, Loading, SearchSelect, Tab } from 'bkui-vue';
 import type { ISearchItem, ISearchValue } from 'bkui-vue/lib/search-select/utils';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -139,7 +140,7 @@ const handleAfterDelete = async () => {
     // 更新tabList
     workUnitList.value = workareaStore.allWorkUnitList.get(workAreaId) || [];
     // 更新active
-    active.value = workUnitList.value[0]?.bk_networkarea_id;
+    active.value = workUnitList.value[0]?.bk_networkunit_id;
     contentLoading.value = true;
   } catch (err) {
     console.error(err);
@@ -148,12 +149,15 @@ const handleAfterDelete = async () => {
   }
 };
 
-const handleWorkUnitSave = async () => {
+const handleWorkUnitSave = async (bk_networkunit_id: number) => {
   contentLoading.value = true;
   try {
     // 更新管控单元数据
     await handleFetchAllWorkUnit();
     workUnitList.value = workareaStore.allWorkUnitList.get(workAreaId) || [];
+    setTimeout(() => {
+      active.value = bk_networkunit_id;
+    }, 0);
   } catch (err) {
     console.error(err);
   } finally {
@@ -185,7 +189,7 @@ const initData = async () => {
 
   // 初始化 tab焦点
   if (!route.params?.workUnit) {
-    active.value = workUnitList.value[0]?.bk_networkarea_id;
+    active.value = workUnitList.value[0]?.bk_networkunit_id;
   } else {
     active.value = Number(route.params.workUnit);
   }

@@ -28,8 +28,8 @@
       </Select>
       <div v-if="type === 'credit'">
         <Input type="password" v-model="batchValue" class="mb-[15px]" />
-        <p class="text-[12px] text-[#979ba5] mt-[-6px]">仅对密码认证生效</p>
-        <p class="mt-[14px] mb-[10px] text-[14px]">批量编辑密钥</p>
+        <p class="text-[12px] text-[#979ba5] mt-[-6px]">{{ $t('components.batchEdit.passwordTip') }}</p>
+        <p class="mt-[14px] mb-[10px] text-[14px]">{{ $t('components.batchEdit.batchEditKey') }}</p>
         <Upload
           ref="uploader"
           type="formdata"
@@ -41,7 +41,7 @@
           :before-upload="handleBeforeUpload"
           :custom-request="() => {}"
         ></Upload>
-        <p class="text-[12px] text-[#979ba5] mt-[6px]">仅对密钥认证生效</p>
+        <p class="text-[12px] text-[#979ba5] mt-[6px]">{{ $t('components.batchEdit.keyTip') }}</p>
       </div>
     </template>
   </PopConfirm>

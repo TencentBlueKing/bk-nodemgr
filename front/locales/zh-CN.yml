@@ -337,3 +337,8 @@ message:
     keepAtLeast: 至少保留 {x} 行
 validate:
   required: 必填项
+components:
+  batchEdit:
+    passwordTip: 仅对密码认证生效
+    batchEditKey: 批量编辑密钥
+    keyTip: 仅对密钥认证生效

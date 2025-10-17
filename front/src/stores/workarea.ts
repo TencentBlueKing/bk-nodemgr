@@ -1,6 +1,6 @@
 import { keyBy } from 'lodash';
 import { defineStore } from 'pinia';
-import { reactive, ref, onUpdated } from 'vue';
+import { onUpdated, reactive, ref } from 'vue';
 
 import type {
   TopoEventListReq,
@@ -98,7 +98,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
   const handleGetAllWorkareaList = async () => {
     loading.value = true;
     const params: Partial<TopoNetworkAreaListReq> = {
-      page: { offset: 0, limit: 0 }
+      page: { offset: 0, limit: 0 },
     };
 
     try {

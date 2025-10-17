@@ -334,3 +334,8 @@ message:
     keepAtLeast: Keep at least {x} rows
 validate:
   required: Required
+components:
+  batchEdit:
+    passwordTip: Only applies to password authentication
+    batchEditKey: Batch edit keys
+    keyTip: Only applies to key authentication

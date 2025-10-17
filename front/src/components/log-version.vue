@@ -132,8 +132,6 @@ const getVersionLogsDetail = async () => {
 };
 // 监听isShow变化
 watch(isShow, async (v) => {
-    console.log("🚀 ~ logList.value:", logList.value)
-
   if (v) {
     loading.value = true;
     logList.value = await getVersionLogsList();

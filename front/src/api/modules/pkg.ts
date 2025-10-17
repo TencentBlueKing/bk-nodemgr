@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PackageUploadOriginAgentReq, PackageUploadOriginAgentResp, PackageUploadOriginServerReq, PackageUploadOriginServerResp, PackageUploadOriginCertReq, PackageUploadOriginCertResp, PackageUploadOriginBinToolReq, PackageUploadOriginBinToolResp, PackagePublishReleaseAgentReq, PackagePublishReleaseAgentResp, PackagePublishReleaseProxyReq, PackagePublishReleaseProxyResp, PackagePublishReleaseCertReq, PackagePublishReleaseCertResp, PackagePublishReleaseBinToolReq, PackagePublishReleaseBinToolResp, PackageReleaseListReq, PackageReleaseListResp, PackageReleaseSetLabelsReq, PackageReleaseSetLabelsResp, PackageReleaseEnableReq, PackageReleaseEnableResp, PackageReleaseDisableReq, PackageReleaseDisableResp, PackageReleaseSetAsDefaultReq, PackageReleaseSetAsDefaultResp, PackageReleaseCancelAsDefaultReq, PackageReleaseCancelAsDefaultResp, PackageReleaseDeleteReq, PackageReleaseDeleteResp, PackageReleaseDeployedHostCountReq, PackageReleaseDeployedHostCountResp } from '@/@types/pkg';
+import type { PackageUploadOriginAgentReq, PackageUploadOriginAgentResp, PackageUploadOriginServerReq, PackageUploadOriginServerResp, PackageUploadOriginCertReq, PackageUploadOriginCertResp, PackageUploadOriginBinToolReq, PackageUploadOriginBinToolResp, PackagePublishReleaseAgentReq, PackagePublishReleaseAgentResp, PackagePublishReleaseProxyReq, PackagePublishReleaseProxyResp, PackagePublishReleaseCertReq, PackagePublishReleaseCertResp, PackagePublishReleaseBinToolReq, PackagePublishReleaseBinToolResp, PackageReleaseListReq, PackageReleaseListResp, PackageReleaseSetLabelsReq, PackageReleaseSetLabelsResp, PackageReleaseSetLabelsManyReq, PackageReleaseSetLabelsManyResp, PackageReleaseEnableReq, PackageReleaseEnableResp, PackageReleaseDisableReq, PackageReleaseDisableResp, PackageReleaseSetAsDefaultReq, PackageReleaseSetAsDefaultResp, PackageReleaseCancelAsDefaultReq, PackageReleaseCancelAsDefaultResp, PackageReleaseDeleteReq, PackageReleaseDeleteResp, PackageReleaseDeployedHostCountReq, PackageReleaseDeployedHostCountResp } from '@/@types/pkg';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -29,6 +29,8 @@ export const PackageService = {
   ListRelease: async <Request = PackageReleaseListReq, ResponseData = PackageReleaseListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/list')(params, config),
   // SetReleaseLabels sets release labels.
   SetReleaseLabels: async <Request = PackageReleaseSetLabelsReq, ResponseData = PackageReleaseSetLabelsResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/set_labels')(params, config),
+  // SetReleaseLabeslMany sets many release labels.
+  SetReleaseLabelsMany: async <Request = PackageReleaseSetLabelsManyReq, ResponseData = PackageReleaseSetLabelsManyResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/set_labels_many')(params, config),
   // EnableRelease enables release.
   EnableRelease: async <Request = PackageReleaseEnableReq, ResponseData = PackageReleaseEnableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/enable')(params, config),
   // DisableRelease disables release.
