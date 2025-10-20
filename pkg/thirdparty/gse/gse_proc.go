@@ -63,3 +63,28 @@ func (c *cli) operateProcV2(nCtx contextx.IContext, req *operateProcV2Req) (*ope
 
 	return resp.Data, nil
 }
+
+// operateProcMulti operates multiple processes.
+func (c *cli) operateProcMulti(nCtx contextx.IContext, req *operateProcMultiReq) (*operateProcMultiResp, error) {
+	resp := new(BaseBroker[*operateProcMultiResp])
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/proc/operate_proc_multi").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to operate proc multi: %w", err)
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("failed to operate proc multi: %w", err)
+	}
+
+	return resp.Data, nil
+}

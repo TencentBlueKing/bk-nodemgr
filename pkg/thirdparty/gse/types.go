@@ -599,15 +599,30 @@ const (
 	procOperateCodeReload procOperateCode = 8
 )
 
-// operateProcV2Req describes the request data of operate_proc_v2.
-type operateProcV2Req struct {
+// procOperateReq describes the request data of operate_proc.
+type procOperateReq struct {
 	Meta        procMeta        `json:"meta"`
 	OpType      procOperateCode `json:"op_type"`
 	AgentIDList []string        `json:"agent_id_list"`
 	Spec        procSpec        `json:"spec"`
 }
 
+// operateProcV2Req describes the request data of operate_proc_v2.
+type operateProcV2Req procOperateReq
+
 // operateProcV2Resp describes the response data of operate_proc_v2.
 type operateProcV2Resp struct {
+	TaskID string `json:"task_id"`
+}
+
+type operateProcV2MultiReq []*procOperateReq
+
+// operateProcMultiReq describes the request data of operate_proc_multi.
+type operateProcMultiReq struct {
+	ProcOperateReq operateProcV2MultiReq `json:"proc_operate_req"`
+}
+
+// operateProcV2Resp describes the response data of operate_proc_v2.
+type operateProcMultiResp struct {
 	TaskID string `json:"task_id"`
 }

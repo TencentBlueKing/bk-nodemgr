@@ -1069,3 +1069,89 @@ func TestHandler_QueryProcessInfoMany(t *testing.T) {
 		})
 	}
 }
+
+// TestHandler_QueryMultiProcessInfo test.
+func TestHandler_QueryMultiProcessInfo(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx         contextx.IContext
+		agentID      string
+		processNames []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx:    nCtx,
+				agentID: "02000000000050568c22a41760081249022o",
+				processNames: []string{
+					"bkmonitorbeat",
+					"bkunifylogbeat",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.QueryMultiProcessInfo(tt.args.nCtx, tt.args.agentID, tt.args.processNames...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("QueryMultiProcessInfo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}
+
+// TestHandler_QueryMultiProcessInfoMany test.
+func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		nCtx         contextx.IContext
+		agentID      []string
+		processNames []string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx: nCtx,
+				agentID: []string{
+					"02000000000050568c81cb1756717277188u",
+					"02000000000050568c468217552397004082",
+					"02000000000050568c22a41760081249022o",
+				},
+				processNames: []string{
+					"bkmonitorbeat",
+					"bkunifylogbeat",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.QueryMultiProcessInfoMany(tt.args.nCtx, tt.args.agentID, tt.args.processNames)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("QueryMultiProcessInfoMany() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			t.Logf("got: %v", got)
+		})
+	}
+}

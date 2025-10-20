@@ -93,10 +93,28 @@ type IHandler interface {
 // IHandlerProc define the gse handler for process.
 type IHandlerProc interface {
 	// QueryProcessInfo order the gse_agent to trusteeship the process.
-	QueryProcessInfo(nCtx contextx.IContext, processName string, AgentID string) (*types.ProcessInfo, error)
+	// @param processName given process name.
+	// @param agentID given agent id.
+	// @return types.ProcessInfo
+	QueryProcessInfo(nCtx contextx.IContext, processName string, agentID string) (*types.ProcessInfo, error)
 
 	// QueryProcessInfoMany order the gse_agent to trusteeship the process.
-	QueryProcessInfoMany(nCtx contextx.IContext, processName string, AgentIDList ...string) (map[string]types.ProcessInfo, error)
+	// @param processName given process name.
+	// @param agentIDList given agent id list.
+	// @return map[agentID] -> types.ProcessInfo
+	QueryProcessInfoMany(nCtx contextx.IContext, processName string, agentIDList ...string) (map[string]types.ProcessInfo, error)
+
+	// QueryMultiProcessInfo query multiple process info.
+	// @param agentID given agent id.
+	// @param processName given process names.
+	// @return map[processName] -> []types.ProcessInfo
+	QueryMultiProcessInfo(nCtx contextx.IContext, agentID string, processName ...string) (map[string][]types.ProcessInfo, error)
+
+	// QueryMultiProcessInfoMany query multiple process info for many agents.
+	// @param agentIDList  given agent id list.
+	// @param processNameList given process name list.
+	// @return map[processName] -> []types.ProcessInfo
+	QueryMultiProcessInfoMany(nCtx contextx.IContext, agentIDList, processNameList []string) (map[string][]types.ProcessInfo, error)
 
 	// TrusteeshipProcess order the gse_agent to trusteeship the process.
 	TrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
@@ -691,6 +709,138 @@ func (h *Handler) parseQueryProcResult(operateProcResultResp getProcOperateResul
 	return procInfoMap, nil
 }
 
+// QueryMultiProcessInfo query multiple process info.
+func (h *Handler) QueryMultiProcessInfo(nCtx contextx.IContext, agentID string, processName ...string) (map[string][]types.ProcessInfo, error) {
+	operateProcReqs := make(operateProcV2MultiReq, 0, len(processName))
+	for _, name := range processName {
+		operateProcReqs = append(operateProcReqs, &procOperateReq{
+			Meta: procMeta{
+				Namespace: procNameSpace,
+				Name:      name,
+				Labels: procInfoMetaLabels{
+					ProcName: name,
+				},
+			},
+			OpType:      procOperateCodeStatus,
+			AgentIDList: []string{agentID},
+			Spec: procSpec{
+				Identity: procSpecIdentity{
+					ProcName: name,
+				},
+			},
+		})
+	}
+
+	procResult, err := h.operateProcMulti(nCtx, &operateProcMultiReq{
+		ProcOperateReq: operateProcReqs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to operate proc multi: %w", err)
+	}
+
+	procInfoMap, err := h.parseQueryMultiProcResult(procResult)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	processInfoMap := make(map[string][]types.ProcessInfo)
+	for agentID, infos := range procInfoMap {
+		for _, info := range infos {
+			processInfoMap[info.ProcessName] = append(processInfoMap[info.ProcessName], types.ProcessInfo{
+				Trusteeship: info.IsAuto,
+				AgentID:     agentID,
+				Pid:         info.Pid,
+				Version:     info.Version,
+				Status:      convPidToProcStatus(info.Pid),
+			})
+		}
+	}
+
+	return processInfoMap, nil
+}
+
+// QueryMultiProcessInfoMany query multiple process info for many agents.
+func (h *Handler) QueryMultiProcessInfoMany(nCtx contextx.IContext, agentIDList, processNameList []string) (map[string][]types.ProcessInfo, error) {
+	operateProcReqs := make([]*procOperateReq, 0, len(processNameList))
+	for _, name := range processNameList {
+		operateProcReqs = append(operateProcReqs, &procOperateReq{
+			Meta: procMeta{
+				Namespace: procNameSpace,
+				Name:      name,
+				Labels: procInfoMetaLabels{
+					ProcName: name,
+				},
+			},
+			OpType:      procOperateCodeStatus,
+			AgentIDList: agentIDList,
+			Spec: procSpec{
+				Identity: procSpecIdentity{
+					ProcName: name,
+				},
+			},
+		})
+	}
+
+	procResult, err := h.operateProcMulti(nCtx, &operateProcMultiReq{
+		ProcOperateReq: operateProcReqs,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to operate proc multi: %w", err)
+	}
+
+	procInfoMap, err := h.parseQueryMultiProcResult(procResult)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query proc: %w", err)
+	}
+
+	processInfoMap := make(map[string][]types.ProcessInfo)
+	for agentID, infos := range procInfoMap {
+		for _, info := range infos {
+			processInfoMap[info.ProcessName] = append(processInfoMap[info.ProcessName], types.ProcessInfo{
+				Trusteeship: info.IsAuto,
+				AgentID:     agentID,
+				Pid:         info.Pid,
+				Version:     info.Version,
+				Status:      convPidToProcStatus(info.Pid),
+			})
+		}
+	}
+
+	return processInfoMap, nil
+}
+
+func (h *Handler) parseQueryMultiProcResult(operateProcResultResp getProcOperateResultV2Resp) (map[string][]processInfo, error) {
+	procInfoMap := make(map[string][]processInfo)
+	for key, item := range operateProcResultResp {
+		// notice: this key is formated as: agentID:namespace:procName
+		keys := strings.Split(key, ":")
+		agentID := keys[0]
+
+		result := queryProcessContent{}
+		err := json.Unmarshal([]byte(item.Content), &result)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal operate proc result: %w", err)
+		}
+
+		if len(result.Process) != 1 {
+			return nil, fmt.Errorf("failed to parse operate proc result: this result process has invalid length: %d", len(result.Process))
+		}
+
+		if len(result.Process[0].Instance) == 0 {
+			return nil, fmt.Errorf("failed to parse operate proc result: this result process instance has invalid length: %d",
+				len(result.Process[0].Instance))
+		}
+
+		if _, ok := procInfoMap[agentID]; !ok {
+			procInfoMap[agentID] = make([]processInfo, 0)
+		}
+
+		procInfoMap[agentID] = append(procInfoMap[agentID], result.Process[0].Instance...)
+	}
+
+	return procInfoMap, nil
+}
+
 func convPidToProcStatus(pid int) types.ProcessStatus {
 	if pid == -1 {
 		return types.ProcessStatusStopped
@@ -1047,12 +1197,27 @@ func (h *Handler) operateProc(nCtx contextx.IContext, operateProcReq *operatePro
 		return nil, fmt.Errorf("failed to operate proc: %w", err)
 	}
 
-	taskID := operateProcResp.TaskID
+	return h.queryOperateProcResult(nCtx, operateProcResp.TaskID)
+}
+
+func (h *Handler) operateProcMulti(nCtx contextx.IContext, operateProcReq *operateProcMultiReq) (getProcOperateResultV2Resp, error) {
+	operateProcMultiResp, err := h.cli.operateProcMulti(nCtx, operateProcReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to operate proc: %w", err)
+	}
+
+	return h.queryOperateProcResult(nCtx, operateProcMultiResp.TaskID)
+}
+
+func (h *Handler) queryOperateProcResult(nCtx contextx.IContext, taskID string) (getProcOperateResultV2Resp, error) {
 	operateProcResultReq := getProcOperateResultV2Req{
 		TaskID: taskID,
 	}
 
-	var operateProcResultResp getProcOperateResultV2Resp
+	var (
+		operateProcResultResp getProcOperateResultV2Resp
+		err                   error
+	)
 	// nolint: mnd
 	expoBackoffOpts := retrier.ExpoBackoffOpts{
 		MaxRetries:    5,
