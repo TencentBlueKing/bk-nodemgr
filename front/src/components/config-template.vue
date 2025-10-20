@@ -26,8 +26,8 @@
               v-else-if="item.type === 2"
               @change="updateValue"
             >
-              <Radio.Button :label="true">开启</Radio.Button>
-              <Radio.Button :label="false">关闭</Radio.Button>
+              <Radio.Button :label="true">{{ $t('components.configTemplate.enable') }}</Radio.Button>
+              <Radio.Button :label="false">{{ $t('components.configTemplate.disabled') }}</Radio.Button>
             </Radio.Group>
             <Select
               v-else-if="item.type === 3"

@@ -9,7 +9,7 @@
   >
     <div class="w-full">
       <p class="text-[16px] mb-[20px]">{{ subTitle }}</p>
-      <template v-if="type === 'RESTART_AGENT'">
+      <template v-if="type === 'restart'">
         <Checkbox v-model="isReconfig">同时重载配置</Checkbox>
         <div class="flex items-center gap-[6px] h-[32px]">
           <Checkbox v-model="isForce" class="w-[100px]">强制重启</Checkbox>

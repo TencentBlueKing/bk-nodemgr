@@ -342,3 +342,19 @@ components:
     passwordTip: 仅对密码认证生效
     batchEditKey: 批量编辑密钥
     keyTip: 仅对密钥认证生效
+  chooseVersion:
+    title: 按操作系统选定版本
+    auto: 自动
+  configTemplate:
+    enable: 开启
+    disabled: 关闭
+  copyIpDropdown:
+    checkIp: 勾选IP
+    workareaAndIpv4: 管控区域+IPv4
+    workareaAndIpv6: 管控区域+IPv6
+    allIps: 所有IP
+    empty: 没有可复制的内容
+    success: 复制成功
+    failed: 复制失败
+    notSupport: 当前环境不支持剪贴板操作
+    copy: 复制

@@ -20,7 +20,7 @@
           <Select.Option
             :key="defaultNetWorkarea?.bk_networkarea_id"
             :id="defaultNetWorkarea?.bk_networkarea_id"
-            :name="defaultNetWorkarea?.bk_networkarea_name">
+            :name="`[${defaultNetWorkarea?.bk_networkarea_id}] ${defaultNetWorkarea?.bk_networkarea_name}`">
           </Select.Option>
         </Select.Group>
         <Select.Group :label="$t('topoManager.topo.select.other')">
@@ -28,7 +28,7 @@
             v-for="item in netWorkAreaList"
             :key="item.bk_networkarea_id"
             :id="item.bk_networkarea_id"
-            :name="item.bk_networkarea_name">
+            :name="`[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`">
           </Select.Option>
         </Select.Group>
       </Select>

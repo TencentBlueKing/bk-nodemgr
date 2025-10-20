@@ -47,6 +47,7 @@
           :type="'agent'"
           :disabled="!selection.length"
           :data="tableData"
+          :list="[]"
         ></copy-ip-dropdown>
       </div>
       <div class="flex gap-[8px]">
@@ -112,19 +113,27 @@
           :min-width="320"
         ></TableColumn>
         <TableColumn
-          field="bk_networkarea_name"
+          field="bk_networkarea_id"
           :title="t('platform.nodeMan.bk_cloud_name')"
           :filter="filterOptionSource.bk_networkarea_id"
           :min-width="120"
           show-overflow
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ row.bk_networkarea_name }}
+          </template>
+        </TableColumn>
         <TableColumn
           show-overflow
-          field="bk_networkunit_name"
+          field="bk_networkunit_id"
           :title="t('platform.nodeMan.bk_cloud_unit')"
           :filter="filterOptionSource.bk_networkunit_id"
           :min-width="120"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ row.bk_networkunit_name }}
+          </template>
+        </TableColumn>
         <TableColumn
           show-overflow
           field="os_type"
@@ -199,13 +208,14 @@
         </TableColumn>
       </Table>
     </bk-loading>
-    <ChooseVersionDialog
+    <choose-version-dialog
+      v-model:is-show="chooseVersionData.isShow"
+      :title="chooseVersionData.title"
       :data="chooseVersionData.data"
       :batch="chooseVersionData.batch"
-      v-model:is-show="chooseVersionData.isShow"
       @confirm="handleUpgrade"
     >
-    </ChooseVersionDialog>
+    </choose-version-dialog>
     <operate-dialog
       v-model:is-show="operateDialogIsShow"
       :title="operateDialogData.title"
@@ -217,7 +227,7 @@
 </template>
 <script setup lang="ts">
 import { Button, Cascader, Checkbox, Dropdown, InfoBox, Input, SearchSelect } from 'bkui-vue';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -250,6 +260,7 @@ const tableData = ref<Host[]>([]);
 const agentList = ref<Host[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const chooseVersionData = reactive({
+  title: '',
   isShow: false,
   data: null,
   batch: false,
@@ -260,89 +271,92 @@ const operateDialogData = {
   title: '',
   subTitle: '',
 };
-// 后端分页
-const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
-const loading = ref(false);
-// 拓扑级联选择器的选值
-const topo = ref([]);
-const topoBizFilterList = computed(() => mainStore.businessList);
-const topoRemotehandler = () => {};
-// 搜索
-const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
-const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
-  // 给筛选器添加选中值
-  Object.keys(filterOptionSource).forEach((key) => {
-    filterOptionSource[key].checked = [];
-  });
-  data.forEach((item) => {
-    if (filterOptionSource[item.id]) {
-      filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
-    }
-  });
-};
-const hostDistinct = ref<TopoHostDistinctRespData | null>();
-// 筛选
-const getHostDistinct = async () => {
-  const params = {
-    exact_include_conditions: {
-      node_role: ['agent', 'blank'],
-      bk_biz_id: mainStore.selectedBusinessId,
-    },
-  };
-  const res = await TopoService.HostDistinct(params).catch(() => null);
-  if (res) {
-    hostDistinct.value = res;
-    Object.keys(res).forEach((key: any) => {
-      const curUniqueValues = res[key] || [];
-      if (filterOptionSource[key]) {
-        filterOptionSource[key].list = curUniqueValues
-          .filter((item: any) => item !== '')
-          .map((value: string) => ({
-            text: key === 'os_type' && osMap[value] ? osMap[value] : value,
-            value,
-          }));
-      }
-    });
-  }
-};
-const handleFilter = ({
-  checked,
-  field,
-}: {
-  checked: string[];
-  field: string;
-}) => {
-  if (field === 'bk_networkarea_name') {
-    if (checked.length) {
-      tableData.value = agentList.value.filter((item: any) => checked.includes(item[field]));
-    } else {
-      tableData.value = agentList.value;
-    }
-  } else {
-    const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
-    index > -1 && searchSelectValue.value.splice(index, 1);
-    if (checked.length) {
-      searchSelectValue.value.push({
-        id: field,
-        name: t(field),
-        values: checked.map((item: any) => ({
-          id: item,
-          name: field === 'os_type' && osMap[item] ? osMap[item] : item,
-        })),
-      });
-    }
-  }
-};
-// 分页操作
-const pageLimitChange = async (limit: number) => {
-  pagination.limit = limit;
-  await getAgentList();
-};
-const pageValueChange = async (current: number) => {
-  pagination.current = current;
-  await getAgentList();
-};
+const searchSelectData = computed(() => [
+  {
+    id: 'bk_host_innerip',
+    name: t('platform.nodeMan.inner_ip'),
+    multiple: true,
+  },
+  {
+    id: 'bk_host_innerip_v6',
+    name: t('platform.nodeMan.inner_ipv6'),
+    multiple: true,
+  },
+  {
+    id: 'bk_networkarea_id',
+    name: '管控区域ID:IP',
+    children: getUniqueChildrenFrom('bk_networkarea_id'),
+    multiple: true,
+  },
+  { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
+  {
+    id: 'bk_networkunit_id',
+    name: '管控单元',
+    children: getUniqueChildrenFrom('bk_networkunit_id'),
+    multiple: true,
+  },
+  {
+    id: 'os_type',
+    name: '操作系统',
+    children: getUniqueChildrenFrom('os_type', osMap),
+    multiple: true,
+  },
+  {
+    id: 'node_version',
+    name: 'Agent版本',
+    children: getUniqueChildrenFrom('node_version'),
+    multiple: true,
+  },
+  {
+    id: 'node_status',
+    name: 'Agent 状态',
+    children: getUniqueChildrenFrom('node_status'),
+    multiple: true,
+  },
+]);
+// 表格
+const { isShowSetting, settings, handleSettingChange } = useTableSetting({
+  checked: [
+    'bk_host_innerip',
+    'bk_host_innerip_v6',
+    'bk_agent_id',
+    'bk_networkarea_id',
+    'bk_networkunit_id',
+    'os_type',
+    'node_version',
+    'node_status',
+    'action',
+  ],
+  disabled: ['action'],
+});
 
+const filterOptionSource: Record<string, FilterOption> = reactive({
+  bk_networkarea_id: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+  bk_networkunit_id: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+  os_type: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+  node_version: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+  node_status: {
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+});
 // 批量操作
 const operate = [
   {
@@ -391,6 +405,153 @@ const osMap = {
   darwin: 'Darwin',
   linux: 'Linux',
 };
+
+// 后端分页
+const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
+const loading = ref(false);
+// 拓扑级联选择器的选值
+const topo = ref([]);
+const topoBizFilterList = computed(() => mainStore.businessList);
+const topoRemotehandler = () => {};
+// 搜索
+const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  // 给筛选器添加选中值
+  Object.keys(filterOptionSource).forEach((key) => {
+    filterOptionSource[key].checked = [];
+  });
+  data.forEach((item) => {
+    if (filterOptionSource[item.id]) {
+      filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
+    }
+  });
+};
+
+const networkAreaListMap = new Map<number, string | number>([[-1, -1]]);
+// 管控区域下拉列表获取
+const getNetworkAreaList = async () => {
+  const res = await TopoService.NetworkAreaList({
+    page: {
+      limit: 0,
+    },
+  }).catch((err: any) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    };
+  });
+  res.items.forEach(item => {
+    networkAreaListMap.set(item.bk_networkarea_id, item.bk_networkarea_name);
+  });
+};
+// 管控单元下拉列表获取
+const networkUnitListMap = new Map<number, string | number>([[-1, -1]]);
+const getNetworkUnitList = async () => {
+  const res = await TopoService.NetworkUnitList({
+    exact_include_conditions: {
+      bk_networkarea_id: [],
+    },
+  }).catch((err: any) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    };
+  });
+  res.items.forEach(item => {
+    networkUnitListMap.set(item.bk_networkunit_id, item.bk_networkunit_name);
+  });
+};
+const hostDistinct = ref<TopoHostDistinctRespData | null>();
+// 筛选
+const getHostDistinct = async () => {
+  const params = {
+    exact_include_conditions: {
+      node_role: ['agent', 'blank'],
+      bk_biz_id: mainStore.selectedBusinessId,
+    },
+  };
+  const res = await TopoService.HostDistinct(params).catch(() => null);
+  if (res) {
+    hostDistinct.value = res;
+    Object.keys(res).forEach((key: any) => {
+      const curUniqueValues = res[key] || [];
+      if (filterOptionSource[key]) {
+        filterOptionSource[key].list = curUniqueValues
+          .filter((item: any) => item !== '')
+          .map((value: string | number) => {
+            let text;
+            switch (key) {
+              case 'os_type':
+                text = osMap[value] || value;
+                break;
+              case 'bk_networkarea_id':
+                text = networkAreaListMap.get(Number(value));
+                break;
+              case 'bk_networkunit_id':
+                text = networkUnitListMap.get(Number(value));
+                break;
+              default:
+                text = value;
+                break;
+            }
+            return {
+              text,
+              value,
+            };
+          });
+      }
+    });
+  }
+};
+const handleFilter = ({
+  checked,
+  field,
+}: {
+  checked: string[];
+  field: string;
+}) => {
+  const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
+  index > -1 && searchSelectValue.value.splice(index, 1);
+  if (checked.length) {
+    searchSelectValue.value.push({
+      id: field,
+      name: t(field),
+      values: checked.map((item: any) => {
+        let name;
+        switch (field) {
+          case 'os_type':
+            name = osMap[item] || item;
+            break;
+          case 'bk_networkarea_id':
+            name = networkAreaListMap.get(Number(item));
+            break;
+          case 'bk_networkunit_id':
+            name = networkUnitListMap.get(Number(item));
+            break;
+          default:
+            name = item;
+            break;
+        }
+        return {
+          id: item,
+          name,
+        };
+      }),
+    });
+  }
+};
+// 分页操作
+const pageLimitChange = async (limit: number) => {
+  pagination.limit = limit;
+  await getAgentList();
+};
+const pageValueChange = async (current: number) => {
+  pagination.current = current;
+  await getAgentList();
+};
+
 const dropdownShow = ref(false);
 const handleInstall = () => {
   if (selection.value.length) {
@@ -421,94 +582,6 @@ const getUniqueChildrenFrom = <K extends keyof TopoHostDistinctRespData>(
       name: keyMap && keyMap[value] ? keyMap[value] : String(value),
     }));
 };
-const searchSelectData = computed(() => [
-  {
-    id: 'bk_host_innerip',
-    name: t('platform.nodeMan.inner_ip'),
-    multiple: true,
-  },
-  {
-    id: 'bk_host_innerip_v6',
-    name: t('platform.nodeMan.inner_ipv6'),
-    multiple: true,
-  },
-  {
-    id: 'bk_networkarea_id',
-    name: '管控区域ID:IP',
-    children: getUniqueChildrenFrom('bk_networkarea_id'),
-    multiple: true,
-  },
-  { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
-  // {id: 'bk_networkarea_name', name: '管控区域', children: getUniqueChildren('bk_networkarea_name')},
-  {
-    id: 'bk_networkunit_id',
-    name: '管控单元',
-    children: getUniqueChildrenFrom('bk_networkunit_id'),
-    multiple: true,
-  },
-  {
-    id: 'os_type',
-    name: '操作系统',
-    children: getUniqueChildrenFrom('os_type', osMap),
-    multiple: true,
-  },
-  {
-    id: 'node_version',
-    name: 'Agent版本',
-    children: getUniqueChildrenFrom('node_version'),
-    multiple: true,
-  },
-  {
-    id: 'node_status',
-    name: 'Agent 状态',
-    children: getUniqueChildrenFrom('node_status'),
-    multiple: true,
-  },
-]);
-
-// 表格
-const { isShowSetting, settings, handleSettingChange } = useTableSetting({
-  checked: [
-    'bk_host_innerip',
-    'bk_host_innerip_v6',
-    'bk_agent_id',
-    'bk_networkarea_name',
-    'bk_networkunit_name',
-    'os_type',
-    'node_version',
-    'node_status',
-    'action',
-  ],
-  disabled: ['action'],
-});
-
-const filterOptionSource: Record<string, FilterOption> = reactive({
-  bk_networkarea_id: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-  bk_networkunit_id: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-  os_type: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-  node_version: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-  node_status: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-});
 
 const triggerHandler = (type: string, setupType = 'setup') => {
   switch (type) {
@@ -541,18 +614,18 @@ const handleOperate = (type: string, data: Host[], batch = false) => {
   switch (type) {
     // 重启
     case 'restart':
-      handleOperatetHost(data, batch, 'RESTART_AGENT');
+      handleOperatetHost(data, batch, 'restart');
       break;
     // 重装
     case 'reinstall':
-      jobType = 'REINSTALL_AGENT';
+      jobType = 'reinstall';
       break;
     // 卸载
     case 'uninstall':
       break;
     // 升级
     case 'upgrade':
-      handleOperatetHost(data, batch, 'UPGRADE_AGENT');
+      handleOperatetHost(data, batch, 'upgrade');
       break;
   }
   if (!jobType) return;
@@ -591,7 +664,7 @@ const operateJob = async (extraData: any = {}) => {
     host: operateData.value?.map((item: any) => ({
       bk_host_id: item.bk_host_id,
       force: extraData.isForce,
-      graceful_restart_timeout_sec: extraData.isForce ? 0 : extraData.time,
+      graceful_restart_timeout_sec: extraData.time,
     })),
   };
   let result;
@@ -613,12 +686,12 @@ const operateJob = async (extraData: any = {}) => {
   }
 };
 // 升级回退
-const handleUpgrade = async (version: string) => {
+const handleUpgrade = async (osVersion: any) => {
   loading.value = true;
   const params = {
     host: operateData.value?.map((item: any) => ({
       bk_host_id: item.bk_host_id,
-      target_version: version,
+      target_version: osVersion.version === 'auto' ? '' : osVersion.version,
     })),
   };
   const result = await NodeAgentService.NodeAgentUpgrade(params).catch(() => ({
@@ -655,16 +728,17 @@ const handleOperatetHost = async (
   let type = '';
   switch (operateType) {
     // 重启
-    case 'RESTART_AGENT':
+    case 'restart':
       type = '重启';
       break;
     // 升级
-    case 'UPGRADE_AGENT':
+    case 'upgrade':
       type = '升级/回退';
       break;
   }
   operateData.value = data;
-  if (operateType === 'UPGRADE_AGENT') {
+  if (operateType === 'upgrade') {
+    chooseVersionData.title = 'Agent 升级/回退';
     chooseVersionData.isShow = true;
     chooseVersionData.data = data;
     chooseVersionData.batch = batch;
@@ -754,8 +828,12 @@ watch(route, async () => {
 }, { immediate: true, deep: true });
 watch(() => mainStore.selectedBusinessId, async () => {
   await getAgentList();
-  await getHostDistinct();
 }, { immediate: true });
+onMounted(async () => {
+  await getNetworkAreaList();
+  await getNetworkUnitList();
+  await getHostDistinct();
+});
 </script>
 <style lang="postcss" scoped>
 :deep(.vxe-table--empty-content) {

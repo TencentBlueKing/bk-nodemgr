@@ -10,7 +10,7 @@
         v-for="item in curWorkAreaList"
         :key="item.bk_networkarea_id"
         :id="item.bk_networkarea_id"
-        :name="item.bk_networkarea_name">
+        :name="`[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`">
       </Select.Option>
     </Select>
     <Select
@@ -23,7 +23,7 @@
         v-for="item in curWorkUnitList"
         :key="item.bk_networkunit_id"
         :id="item.bk_networkunit_id"
-        :name="item.bk_networkunit_name">
+        :name="`[${item.bk_networkunit_id}] ${item.bk_networkunit_name}`">
       </Select.Option>
     </Select>
     <Select

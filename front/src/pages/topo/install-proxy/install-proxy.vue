@@ -119,7 +119,7 @@
               :id="String(option.bk_networkarea_id)"
               :name="option.bk_networkarea_name"
             >
-              {{ option.bk_networkarea_name }}
+              [{{ option.bk_networkarea_id }}] {{ option.bk_networkarea_name }}
             </Select.Option>
           </Select>
         </Form.FormItem>
@@ -138,12 +138,12 @@
             :disabled="!form.bk_networkarea_id"
           >
             <Select.Option
-              v-for="option in networkUnitList"
+              v-for="option in areaUnitlist"
               :key="option.bk_networkarea_id"
               :id="String(option.bk_networkunit_id)"
               :name="option.bk_networkunit_name"
             >
-              {{ option.bk_networkunit_name }}
+              [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
             </Select.Option>
           </Select>
         </Form.FormItem>
@@ -168,21 +168,12 @@
           label-width="90"
           required
         >
-          <Select
-            class="w-[488px]"
+          <Cascader
             v-model="form.proxy_install_origin"
-            auto-focus
-            filterable
-          >
-            <Select.Option
-              v-for="option in installOriginList"
-              :key="option.id"
-              :id="option.id"
-              :name="option.name"
-            >
-              {{ option.name }}
-            </Select.Option>
-          </Select>
+            :list="installOriginList"
+            class="w-[488px]"
+            trigger="click"
+          ></Cascader>
         </Form.FormItem>
         <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
           <div class="w-[488px]">
@@ -244,22 +235,23 @@
         </div>
       </Form>
     </div>
-    <chooseVersionDialog
+    <choose-version-dialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
       :release-type="'proxy'"
       @confirm="handleComfirmVerion"
-    ></chooseVersionDialog>
+    ></choose-version-dialog>
   </Sideslider>
 </template>
 
 <script lang="ts" setup>
-import { Button, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
+import { Button, Cascader, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
-import type { PropType } from 'vue';
+import { cloneDeep } from 'lodash';
+import { PropType } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
@@ -269,7 +261,6 @@ import { NodeProxyService } from '@/api/modules/node_proxy';
 import { TopoService } from '@/api/modules/topo';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
-import { cloneDeep } from 'lodash';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
 const props = defineProps({
@@ -282,6 +273,7 @@ const props = defineProps({
     default: [],
   },
 });
+const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
 const mainStore = useMainStore();
@@ -314,7 +306,7 @@ const form = reactive({
   bk_networkarea_name: '',
   bk_networkunit_id: '', // 管控单元
   target_version: [] as TargetVersion[],
-  proxy_install_origin: '',
+  proxy_install_origin: [],
 });
 const settings = reactive({
   fields: [
@@ -379,20 +371,6 @@ const installMethodList = ref([
     value: '2',
   },
 ]);
-const installOriginList = ref([
-  {
-    id: 'server',
-    name: '当前服务器发起',
-  },
-  {
-    id: 'same_networkunit_proxy',
-    name: '当前区域proxy发起',
-  },
-  {
-    id: 'upstream_networkunit_proxy',
-    name: '上游区域proxy发起',
-  },
-]);
 const networkAreaList = ref<NetworkArea[]>([]);
 // 管控区域下拉列表获取
 const getNetworkAreaList = async () => {
@@ -415,7 +393,7 @@ const networkUnitList = ref<NetworkUnit[]>([]);
 const getNetworkUnitList = async () => {
   const res = await TopoService.NetworkUnitList({
     exact_include_conditions: {
-      bk_networkarea_id: [Number(form.bk_networkarea_id)],
+      bk_networkarea_id: [],
     },
   }).catch((err: any) => {
     console.log(err);
@@ -430,19 +408,66 @@ const getNetworkUnitList = async () => {
 const handleSelect = (newValue: string) => {
   form.bk_networkarea_name = networkAreaList.value?.find((item: any) => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
 };
-
+const areaUnitlist = computed(() => networkUnitList.value.filter((item: NetworkUnit) =>
+  [Number(route.params.workarea), Number(form.bk_networkarea_id)].includes(item.bk_networkarea_id)
+));
+// 安装源
+const installOriginList = computed(() => {
+  const unit = areaUnitlist.value.find((item: NetworkUnit) =>
+    [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
+  let list;
+  if (unit?.links.cluster.bk_networkunit_id !== null) {
+    list = [
+      {
+        id: 'upstream',
+        name: '上级管控单元',
+        bk_networkunit_id: unit?.links.cluster.bk_networkunit_id,
+      },
+      {
+        id: 'current',
+        name: '当前管控单元',
+        bk_networkunit_id: Number(props.bk_networkunit_id || form.bk_networkunit_id),
+      },
+      {
+        id: 'custom',
+        name: '自定义',
+        children: areaUnitlist.value.map((item: NetworkUnit) => ({
+          id: String(item.bk_networkunit_id),
+          name: `[${item.bk_networkunit_id}] ${item.bk_networkunit_name}`,
+        })),
+      },
+    ];
+  } else {
+    list = [
+      {
+        id: 'current',
+        name: '当前管控单元',
+        bk_networkunit_id: Number(props.bk_networkunit_id || form.bk_networkunit_id),
+      },
+      {
+        id: 'custom',
+        name: '自定义',
+        children: areaUnitlist.value.map((item: NetworkUnit) => ({
+          id: String(item.bk_networkunit_id),
+          name: `[${item.bk_networkunit_id}] ${item.bk_networkunit_name}`,
+        })),
+      },
+    ];
+  }
+  return list;
+});
 const isShowDialog = ref(false);
-const dialogData = ref({
+const dialogData = ref([{
   os: '',
   version: '',
-});
+}]);
 
 const handleChooseVersion = (row: { version: string; os: string }) => {
   isShowDialog.value = true;
-  dialogData.value = row;
+  dialogData.value = [row];
 };
-const handleComfirmVerion = (val: string) => {
-  val && (dialogData.value.version = val);
+const handleComfirmVerion = (data: any) => {
+  data.version && (dialogData.value[0].version = data.version === 'auto' ? '自动' : data.version);
 };
 const handleChange = (values: Array<string | number>) => {
   form.method = values[0] as string;
@@ -496,8 +521,10 @@ const handleConfirm = async () => {
   ]);
   // 合并多重Promise
   if (Array.isArray(result[2])) {
+    console.log("🚀 11:", result)
     result[2] = result[2].every(item => item);
   }
+  console.log("🚀 ~ handleConfirm ~ result:", result)
   if (result.every(item => item)) {
     const modeMap = {
       password: 'login_password',
@@ -513,13 +540,16 @@ const handleConfirm = async () => {
     });
     if (isTargetShow.value) {
       form.target_version = systemData.value
-        .filter((item: any) => item.version !== '默认')
+        .filter((item: any) => item.version !== '自动')
         .map((item: any) => ({
           os_type: item.os_type,
           cpu_arch: item.cpu_arch,
           version: item.version,
         }));
     }
+    const proxy_install_origin_unit_id = form.proxy_install_origin[0] === 'custom'
+      ? Number(form.proxy_install_origin[1])
+      : installOriginList.value.find(item => item.id === form.proxy_install_origin[0])?.bk_networkunit_id;
     const params = {
       host: form.info.map((item: any) => {
         const {
@@ -535,7 +565,7 @@ const handleConfirm = async () => {
           os_type: 'linux',
           bk_biz_id: form.bk_biz_id,
           login_user: form.login_user,
-          proxy_install_origin: form.proxy_install_origin,
+          proxy_install_origin_unit_id,
           login_port: Number(form.login_port),
           bk_networkunit_id: props.bk_networkunit_id || Number(form.bk_networkunit_id),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
@@ -558,6 +588,11 @@ const handleConfirm = async () => {
         params: { taskId: res.workflow_id },
       });
     }
+  } else {
+    Message({
+      theme: 'warning',
+      message: '有填写的信息未通过校验',
+    });
   }
 };
 const excelImportData = ref([]);
@@ -575,14 +610,29 @@ const handleSetpBack = () => {
 watch(() => isShow.value, async () => {
   if (isShow.value) {
     await getNetworkAreaList();
-    Object.assign(form, props.data);
   } else {
     formRef.value?.clearValidate();
+    // 重置数据
+    Object.assign(form, {
+      method: '0', // 安装方式
+      info: [cloneDeep(initData)], // 安装信息
+      saveTime: '保存 1 天', // 密钥/密码
+      os_type: 'Linux', // 操作系统
+      login_port: '36000', // 登录端口
+      login_user: 'root', // 登录账号
+      bk_biz_id: '', // 归属业务
+      bk_networkarea_id: '', // 管控区域
+      bk_networkarea_name: '',
+      bk_networkunit_id: '', // 管控单元
+      target_version: [] as TargetVersion[],
+      proxy_install_origin: [],
+    });
   }
 });
 watch(
   () => form.bk_networkarea_id,
   async () => {
+    form.bk_networkunit_id = '';
     await getNetworkUnitList();
   },
 );

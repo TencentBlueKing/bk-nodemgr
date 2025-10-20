@@ -57,7 +57,7 @@
                   :id="String(option.bk_networkarea_id)"
                   :name="option.bk_networkarea_name"
                 >
-                  {{ option.bk_networkarea_name }}
+                  [{{ option.bk_networkarea_id }}] {{ option.bk_networkarea_name }}
                 </Select.Option>
               </Select.Group>
             </Select>
@@ -76,7 +76,7 @@
                   :id="String(option.bk_networkunit_id)"
                   :name="option.bk_networkunit_name"
                 >
-                  {{ option.bk_networkunit_name }}
+                  [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
                 </Select.Option>
               </Select.Group>
             </Select>

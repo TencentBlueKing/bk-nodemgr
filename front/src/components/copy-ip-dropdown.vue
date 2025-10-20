@@ -9,7 +9,7 @@
   >
     <template #trigger>
       <Button>
-        <span>复制</span>
+        <span>{{ $t('components.copyIpDropdown.copy') }}</span>
         <i
           class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
         ></i>
@@ -21,7 +21,8 @@
 <script lang="ts" setup>
 import { Button, Cascader, Message } from 'bkui-vue';
 import { cloneDeep } from 'lodash';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { useClipboard } from '@vueuse/core';
 
@@ -44,56 +45,63 @@ const props = defineProps({
   },
   list: {
     type: Array,
-    default: () => [
+    default: () => [],
+  },
+});
+
+const { t } = useI18n();
+const selectList = [
+  {
+    id: 'select',
+    name: t('components.copyIpDropdown.checkIp'),
+    disabled: true,
+    children: [
       {
-        id: 'select',
-        name: '勾选IP',
-        disabled: true,
-        children: [
-          {
-            id: 'ipv4',
-            name: 'IPv4',
-          },
-          {
-            id: 'ipv6',
-            name: 'IPv6',
-          },
-          {
-            id: 'workarea+ipv4',
-            name: '管控区域+IPv4',
-          },
-          {
-            id: 'workarea+ipv6',
-            name: '管控区域+IPv6',
-          },
-        ],
+        id: 'ipv4',
+        name: 'IPv4',
       },
       {
-        id: 'all',
-        name: '所有IP',
-        children: [
-          {
-            id: 'ipv4',
-            name: 'IPv4',
-          },
-          {
-            id: 'ipv6',
-            name: 'IPv6',
-          },
-          {
-            id: 'workarea+ipv4',
-            name: '管控区域+IPv4',
-          },
-          {
-            id: 'workarea+ipv6',
-            name: '管控区域+IPv6',
-          },
-        ],
+        id: 'ipv6',
+        name: 'IPv6',
+      },
+      {
+        id: 'workarea+ipv4',
+        name: t('components.copyIpDropdown.workareaAndIpv4'),
+      },
+      {
+        id: 'workarea+ipv6',
+        name: t('components.copyIpDropdown.workareaAndIpv6'),
       },
     ],
   },
+  {
+    id: 'all',
+    name: t('components.copyIpDropdown.allIps'),
+    children: [
+      {
+        id: 'ipv4',
+        name: 'IPv4',
+      },
+      {
+        id: 'ipv6',
+        name: 'IPv6',
+      },
+      {
+        id: 'workarea+ipv4',
+        name: t('components.copyIpDropdown.workareaAndIpv4'),
+      },
+      {
+        id: 'workarea+ipv6',
+        name: t('components.copyIpDropdown.workareaAndIpv6'),
+      },
+    ],
+  },
+];
+const copylist = computed(() => {
+  const list = props.list.length ? props.list : selectList;
+  list.forEach((item: any) => (item.disabled = item.id === 'all' ? false : props.disabled));
+  return list;
 });
-const copylist = ref(cloneDeep(props.list));
 const area = ref([]); // ['all', 'ipv4']
 // 使用 useClipboard 处理剪贴板操作
 const { copy, isSupported } = useClipboard({ legacy: true });
@@ -112,7 +120,7 @@ const handleChange = async () => {
   ) {
     Message({
       theme: 'primary',
-      message: '没有可复制的内容',
+      message: t('components.copyIpDropdown.empty'),
     });
     return;
   }
@@ -133,29 +141,22 @@ const handleChange = async () => {
       await copy(copyContent.join(',\n'));
       Message({
         theme: 'success',
-        message: '复制成功',
+        message: t('components.copyIpDropdown.success'),
       });
     } catch (error) {
       Message({
         theme: 'error',
-        message: '复制失败',
+        message: t('components.copyIpDropdown.failed'),
       });
     }
   } else {
     Message({
       theme: 'error',
-      message: '当前环境不支持剪贴板操作',
+      message: t('components.copyIpDropdown.notSupport'),
     });
   }
 };
 const handleToggle = (value: boolean) => {
   if (!value) area.value = []; // 关闭弹出面板时 清空选项
 };
-watch(
-  () => props.disabled,
-  (val: boolean) => {
-    copylist.value.forEach((item: any) => (item.disabled = item.id === 'all' ? false : val));
-  },
-  { immediate: true },
-);
 </script>

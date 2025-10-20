@@ -19,46 +19,22 @@
         </Dropdown.DropdownMenu>
       </template>
     </Dropdown>
-    <Dialog
-      v-model:is-show="isShow"
-      @closed="isShow = false"
-      :width="curWidth"
+    <choose-version-dialog
+      v-model:is-show="chooseVersionData.isShow"
+      :title="chooseVersionData.title"
+      :data="chooseVersionData.data"
+      :batch="chooseVersionData.batch"
+      release-type="proxy"
+      @confirm="handleUpgrade"
     >
-      <div>
-        <!-- title -->
-        <div class="text-[20px] text-[#313238] text-center font-medium mt-[40px]">
-          {{ actionConfirmProps.title }}
-        </div>
-        <!-- content -->
-        <div class="flex items-center mt-[16px]" :class="`justify-${actionConfirmProps.contentPosition}`">
-          <span class="text-[#4D4F56] text-[12px] mr-[5px]">
-            {{ $t('topoManager.workAreaDetail.dialogContent.ipv4') }} :
-          </span>
-          <span class="text-[#313238] text-[14px]">{{ actionConfirmProps.value }}</span>
-        </div>
-        <!-- tips -->
-        <div
-          v-if="actionConfirmProps.tips"
-          class="w-[416px] h-[46px] bg-[#F5F6FA] rounded-[2px] text-[#4D4F56]
-            text-[14px] mt-[16px] pl-[16px] leading-[46px]">
-          {{ actionConfirmProps.tips }}
-        </div>
-      </div>
-      <div class="flex items-center justify-center mt-[24px]">
-        <Button
-          :theme="actionConfirmProps.theme"
-          class="mr-[9px] w-[87px] h-[32px]"
-          @click="handleConfirm"
-          :loading="loading">
-          {{ actionConfirmProps.confirmText }}
-        </Button>
-        <Button class="w-[87px] h-[32px]" @click="isShow = false">
-          {{ $t('action.cancel') }}
-        </Button>
-      </div>
-      <template #footer>
-      </template>
-    </Dialog>
+    </choose-version-dialog>
+    <operate-dialog
+      v-model:is-show="operateDialogIsShow"
+      :title="operateDialogData.title"
+      :type="operateDialogData.type"
+      :sub-title="operateDialogData.subTitle"
+      @confirm="operateJob"
+    ></operate-dialog>
   </div>
 </template>
 
@@ -72,7 +48,7 @@
 
 import { Button, Dialog, Dropdown, Message } from 'bkui-vue';
 import type { PropType } from 'vue';
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -122,16 +98,12 @@ const dropMenuList = ref<{
     value: 'upgrade',
   },
   {
-    label: t('topoManager.workAreaDetail.dropdown.unload'),
-    value: 'unload',
-  },
-  {
-    label: t('topoManager.workAreaDetail.dropdown.overload'),
-    value: 'overload',
-  },
-  {
     label: t('topoManager.workAreaDetail.dropdown.restart'),
     value: 'restart',
+  },
+  {
+    label: t('topoManager.workAreaDetail.dropdown.unload'),
+    value: 'unload',
   },
 ]);
 // action dialog map
@@ -156,13 +128,6 @@ const confirmConfigMap = {
     contentPosition: 'start',
     confirmText: t('action.unload'),
   },
-  overload: {
-    title: t('topoManager.workAreaDetail.dialogTitle.overload'),
-    tips: '',
-    theme: 'primary',
-    contentPosition: 'center',
-    confirmText: t('action.confirm1'),
-  },
   restart: {
     title: t('topoManager.workAreaDetail.dialogTitle.restart'),
     tips: '',
@@ -174,23 +139,29 @@ const confirmConfigMap = {
 
 // show dropMenu
 const isShowDropdown = ref(false);
-// show action dialog
-const isShow = ref(false);
-// 根据 curAction 匹配对应的dialog props
-const curAction = ref<keyof typeof confirmConfigMap>('upgrade');
-const actionConfirmProps = computed((): DialogProps => ({
-  ...confirmConfigMap[curAction.value],
-  value: props.batch ? props.data.map((item: any) => item.bk_host_innerip).join(';') : props.ipv4,
-}));
 
 // 选择dropMenuItem，打开对应的action dialog，关闭dropdown
 const handleClickDropMenu = (action: keyof typeof confirmConfigMap) => {
   if (action === 'reinstall') {
     emit('reinstall');
   } else {
-    curAction.value = action;
-    // 打开dialog
-    isShow.value = true;
+    const titleObj = {
+      firstIp: props.data[0].info.bk_host_innerip,
+      num: props.data.length,
+    };
+    if (action === 'upgrade') {
+      chooseVersionData.title = 'Proxy 升级/回退';
+      chooseVersionData.isShow = true;
+      chooseVersionData.data = props.data;
+      chooseVersionData.batch = props.batch;
+    } else if (action === 'restart') {
+      operateDialogIsShow.value = true;
+      operateDialogData.type = action;
+      operateDialogData.title = props.batch ? '请确认是否批量重启' : '请确认是否重启';
+      operateDialogData.subTitle = props.batch
+        ? `重启 ${titleObj.firstIp} 等${titleObj.num}个IP的Proxy`
+        : `重启 ${titleObj.firstIp} 的Proxy`;
+    }
   }
   // 隐藏dropdown
   isShowDropdown.value = false;
@@ -200,54 +171,76 @@ const handleClickDropMenu = (action: keyof typeof confirmConfigMap) => {
 const loading = ref(false);
 // dialog width
 const curWidth = computed(() => (actionConfirmProps.value.theme === 'primary' ? 400 : 480));
-
-// 升级
-const upgradeVersion = async () => await NodeProxyService.NodeProxyUpgrade({
-  host: [...props.data],
-  target_version: [],
-}).catch(() => false);
+const chooseVersionData = reactive({
+  title: '',
+  isShow: false,
+  data: null,
+  batch: false,
+});
+const operateDialogIsShow = ref(false);
+const operateDialogData = {
+  type: '',
+  title: '',
+  subTitle: '',
+};
 // 卸载
 const unloadProxy = async () => {
 };
-// 重载配置
-const overloadConfig = async () => await NodeProxyService.NodeProxyReconfig({ host: props.data }).catch(() => false);
-// 重启
-const restartProxy = async () => await NodeProxyService.NodeProxyRestart({ host: props.data }).catch(() => false);
-
-const handleConfirm = async () => {
+const operateJob = async (extraData: any = {}) => {
   loading.value = true;
-  let res: any;
-  switch (curAction.value) {
-    case 'upgrade':
-      res = await upgradeVersion();
-      break;
-    case 'overload':
-      res = await overloadConfig();
-      break;
-    case 'restart':
-      res = await restartProxy();
-      break;
-    default:
-      break;
+  const params = {
+    host: props.data?.map((item: any) => ({
+      bk_host_id: item.bk_host_id,
+      force: extraData.isForce,
+      graceful_restart_timeout_sec: extraData.time,
+    })),
+  };
+  let result;
+  if (extraData.isReconfig) {
+    // 重载配置
+    result = await NodeProxyService.NodeProxyReconfig(params).catch(() => ({
+      workflow_id: '',
+    }));
+  } else {
+    // 重启
+    result = await NodeProxyService.NodeProxyRestart(params).catch(() => ({
+      workflow_id: '',
+    }));
   }
-  if (!res) return;
   loading.value = false;
-  isShow.value = false;
-  if (res.workflow_id) {
+  if (result.workflow_id) {
     router.push({
       name: 'taskDetail',
-      params: { taskId: res.workflow_id },
+      params: { taskId: result.workflow_id, routerBackName: 'taskList' },
     });
   }
 };
-
+// 升级回退
+const handleUpgrade = async (versionObj: any) => {
+  loading.value = true;
+  const params = {
+    host: props.data.map(item => ({
+      bk_host_id: item.bk_host_id,
+      force: false,
+      graceful_restart_timeout_sec: 0,
+    })),
+    target_version: [
+      {
+        version: versionObj.version === 'auto' ? '' : versionObj.version,
+        cpu_arch: versionObj.cpu_arch,
+        os_type: versionObj.os_type,
+      },
+    ],
+  };
+  const result = await NodeProxyService.NodeProxyUpgrade(params).catch(() => ({
+    workflow_id: '',
+  }));
+  loading.value = false;
+  if (result.workflow_id) {
+    router.push({
+      name: 'taskDetail',
+      params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+    });
+  }
+};
 </script>
-
-<style lang="less" scoped>
-:deep(.bk-dialog-header) {
-  display: none;
-}
-:deep(.bk-dialog-footer) {
-  display: none;
-}
-</style>

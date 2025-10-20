@@ -34,6 +34,7 @@
               :type="'agent'"
               :disabled="!selection.length"
               :data="tableData"
+              :list="[]"
             ></copy-ip-dropdown>
           </div>
           <div class="flex gap-[8px]">

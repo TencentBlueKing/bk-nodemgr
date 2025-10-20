@@ -54,21 +54,12 @@
           label-width="90"
           required
         >
-          <Select
-            class="w-[488px]"
+          <Cascader
             v-model="form.proxy_install_origin"
-            auto-focus
-            filterable
-          >
-            <Select.Option
-              v-for="option in installOriginList"
-              :key="option.id"
-              :id="option.id"
-              :name="option.name"
-            >
-              {{ option.name }}
-            </Select.Option>
-          </Select>
+            :list="installOriginList"
+            class="w-[488px]"
+            trigger="click"
+          ></Cascader>
         </Form.FormItem>
         <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
           <div class="w-[488px]">
@@ -79,12 +70,6 @@
                 width="200"
               ></TableColumn>
               <TableColumn field="version" :title="$t('版本')" width="288">
-                <!-- <template #header>
-                  <span>{{ $t('版本') }}</span>
-                  <Button text @click="handleChooseVersion(row)">
-                    <i class="nodeman-icon nc-edit text-[18px] cursor-pointer"></i>
-                  </Button>
-                </template> -->
                 <template #default="{ row }">
                   <Validate
                     :value="row.version"
@@ -125,17 +110,17 @@
         </Button>
       </div>
     </template>
-    <chooseVersionDialog
+    <choose-version-dialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
       :release-type="'proxy'"
       @confirm="handleComfirmVerion"
-    ></chooseVersionDialog>
+    ></choose-version-dialog>
   </Sideslider>
 </template>
 
 <script lang="ts" setup>
-import { Button, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
+import { Button, Cascader, Form, InfoBox, Input, Message, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
 import type { PropType } from 'vue';
@@ -148,8 +133,8 @@ import { Table, TableColumn } from '@blueking/table';
 import SelectItemGroup from './components/select-item-group.vue';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
+import { TopoService } from '@/api/modules/topo';
 import Validate from '@/components/validate.vue';
-import { useMainStore } from '@/stores/main';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
 const props = defineProps({
@@ -160,7 +145,6 @@ const props = defineProps({
 });
 const router = useRouter();
 const { t } = useI18n();
-const mainStore = useMainStore();
 const settings = reactive({
   fields: [
     { field: 'bk_biz_id', title: '归属业务' },
@@ -223,7 +207,7 @@ const form = reactive({
     cloneDeep(initData),
   ],
   target_version: [] as TargetVersion[],
-  proxy_install_origin: '',
+  proxy_install_origin: [],
 });
 const isTargetShow = ref(false);
 const systemData = ref([
@@ -242,20 +226,6 @@ const systemData = ref([
     version: '自动',
   },
 ]);
-const installOriginList = ref([
-  {
-    id: 'server',
-    name: '当前服务器发起',
-  },
-  {
-    id: 'same_networkunit_proxy',
-    name: '当前区域proxy发起',
-  },
-  {
-    id: 'upstream_networkunit_proxy',
-    name: '上游区域proxy发起',
-  },
-]);
 // 安装方式列表
 const installMethodList = ref([
   {
@@ -272,17 +242,58 @@ const installMethodList = ref([
   },
 ]);
 const isShowDialog = ref(false);
-const dialogData = ref({
+const dialogData = ref([{
   os: '',
   version: '',
-});
+}]);
+
+// 管控单元下拉列表获取
+const networkUnitList = ref<NetworkUnit[]>([]);
+const networkUnitListMap = new Map();
+const getNetworkUnitList = async () => {
+  const res = await TopoService.NetworkUnitList({
+    exact_include_conditions: {
+      bk_networkunit_id: props.data.map(item => item.info.bk_networkunit_id),
+    },
+  }).catch((err: any) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    };
+  });
+  networkUnitList.value = res.items;
+  res.items.forEach(item => {
+    networkUnitListMap.set(item.bk_networkunit_id, item.links.cluster.bk_networkunit_id);
+  });
+};
+
+// 安装源
+const installOriginList = computed(() => ([
+  {
+    id: 'upstream',
+    name: '上级管控单元',
+  },
+  {
+    id: 'current',
+    name: '当前管控单元',
+  },
+  {
+    id: 'custom',
+    name: '自定义',
+    children: networkUnitList.value.map(item => ({
+      id: String(item.bk_networkunit_id),
+      name: `[${item.bk_networkunit_id}] ${item.bk_networkunit_name}`,
+    })),
+  },
+]));
 
 const handleChooseVersion = (row: { version: string; os: string }) => {
   isShowDialog.value = true;
-  dialogData.value = row;
+  dialogData.value = [row];
 };
-const handleComfirmVerion = (val: string) => {
-  val && (dialogData.value.version = val);
+const handleComfirmVerion = (data: any) => {
+  data.version && (dialogData.value[0].version = data.version === 'auto' ? '自动' : data.version);
 };
 const handleChange = (values: Array<string | number>) => {
   form.method = values[0] as string;
@@ -337,7 +348,7 @@ const handleConfirm = async () => {
       key: 'login_key_file',
     };
     form.info.forEach((item: any) => {
-      item[modeMap[item.login_mode]] = item.credit === '******' ? '' : item.credit;
+      item[modeMap[item.login_mode]] = item.credit;
       Object.keys(item).forEach((key: string) => {
         if (proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
           item.proxy_tags.push(key);
@@ -346,7 +357,7 @@ const handleConfirm = async () => {
     });
     if (isTargetShow.value) {
       form.target_version = systemData.value
-        .filter((item: any) => item.version !== '默认')
+        .filter((item: any) => item.version !== '自动')
         .map((item: any) => ({
           os_type: item.os_type,
           cpu_arch: item.cpu_arch,
@@ -367,7 +378,7 @@ const handleConfirm = async () => {
           ...rest,
           os_type: 'linux',
           login_port: Number(rest.login_port),
-          proxy_install_origin: form.proxy_install_origin,
+          proxy_install_origin_unit_id: getinstallOriginUnitId(rest.bk_networkunit_id),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
         };
       }),
@@ -390,6 +401,22 @@ const handleConfirm = async () => {
     }
   }
 };
+function getinstallOriginUnitId(unit_id: Number) {
+  let id;
+  switch (form.proxy_install_origin[0]) {
+    case 'upstream':
+      id = networkUnitListMap.get(unit_id);
+      break;
+    case 'current':
+      id = unit_id;
+      break;
+    case 'custom':
+      id = Number(form.proxy_install_origin[1]);
+    default:
+      break;
+  }
+  return id;
+}
 // 工具函数
 const assign = (data1: any, data2: any, data3?: any) => {
   Object.keys(data1).forEach((key) => {
@@ -397,15 +424,14 @@ const assign = (data1: any, data2: any, data3?: any) => {
   });
 };
 
-watch(() => isShow.value, () => {
+watch(() => isShow.value, async () => {
   if (isShow.value && props.data.length) {
     form.info = props.data.map((item: Host) => {
       const data = cloneDeep(initData);
       assign(data, item, item.info);
-      data.credit = item.info.login_credit_valid ? '******' : '';
       return data;
     });
-    form.proxy_install_origin = props.data[0].proxy_install_origin;
+    await getNetworkUnitList();
   }
 });
 </script>

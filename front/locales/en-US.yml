@@ -339,3 +339,20 @@ components:
     passwordTip: Only applies to password authentication
     batchEditKey: Batch edit keys
     keyTip: Only applies to key authentication
+  chooseVersion:
+    title: Choose version based on operating system
+    auto: Auto
+  configTemplate:
+    enable: Enable
+    disabled: Disabled
+  copyIpDropdown:
+    checkIp: Check Ip
+    workareaAndIpv4: Workarea + IPv4
+    workareaAndIpv6: Workarea + IPv6
+    allIps: All IP
+    empty: No content available to copy
+    success: Copy succeeded
+    failed: Copy failed
+    notSupport: Clipboard operations are not supported in the current environment
+    copy: Copy
+      

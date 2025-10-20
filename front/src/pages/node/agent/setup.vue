@@ -49,7 +49,7 @@
               :id="String(option.bk_networkarea_id)"
               :name="option.bk_networkarea_name"
             >
-              {{ option.bk_networkarea_name }}
+              [{{ option.bk_networkarea_id }}] {{ option.bk_networkarea_name }}
             </Select.Option>
           </Select>
         </Form.FormItem>
@@ -71,7 +71,7 @@
               :id="String(option.bk_networkunit_id)"
               :name="option.bk_networkunit_name"
             >
-              {{ option.bk_networkunit_name }}
+              [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
             </Select.Option>
           </Select>
         </Form.FormItem>
@@ -166,12 +166,12 @@
       v-model:is-show="previewData.isShow"
       :data="previewData.data"
     ></preview>
-    <chooseVersionDialog
+    <choose-version-dialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
       :release-type="'agent'"
       @confirm="handleComfirmVerion"
-    ></chooseVersionDialog>
+    ></choose-version-dialog>
   </div>
 </template>
 <script lang="ts" setup>
@@ -187,7 +187,6 @@ import Preview from './preview.vue';
 
 import { TopoService } from '@/api/modules/topo';
 import { capitalizeFirstLetter } from '@/common/util';
-import chooseVersionDialog from '@/components/choose-version-dialog.vue';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 
@@ -251,16 +250,16 @@ const isAtBottom = ref(false);
 const handleSelect = (newValue: string, oldValue: string) => {
   formData.bk_networkarea_name =    networkAreaList.value?.find(item => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
 };
-const dialogData = ref({
+const dialogData = ref([{
   os: '',
   version: '',
-});
+}]);
 const handleChooseVersion = (row: { version: string; os: string }) => {
   isShowDialog.value = true;
-  dialogData.value = row;
+  dialogData.value = [row];
 };
-const handleComfirmVerion = (val: string) => {
-  dialogData.value.version = val;
+const handleComfirmVerion = (data: any) => {
+  dialogData.value[0].version = data.version === 'auto' ? '' : data.version;
 };
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);

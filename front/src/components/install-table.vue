@@ -401,7 +401,7 @@
             </Button>
             <Button
               text
-              @click="handleDelRow($rowIndex, rowid, Object.keys(row))"
+              @click="handleDelRow($rowIndex, $columnIndex, Object.keys(row))"
               style="margin-left: 8px"
             ><i class="nodeman-icon nc-minus"></i
             ></Button>
@@ -600,10 +600,10 @@ const handleDelRow = (index: number, rowid: string, fields: string[]) => {
     return;
   }
   tableData.value.splice(index, 1);
-  for (const field of fields) {
-    const colKey = `${rowid}-${field}`;
+  fields.forEach((_, index) => {
+    const colKey = `${rowid}-${index}`;
     inputRefs.value?.delete(colKey);
-  }
+  });
 };
 
 // 表头批量操作
@@ -640,11 +640,11 @@ const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
 
 const setInputRef = (
   rowid: string | number,
-  filed: string,
+  columnid: string,
   el: InstanceType<typeof Validate> | null,
 ) => {
   if (el) {
-    const key = `${rowid}-${filed}`;
+    const key = `${rowid}-${columnid}`;
     inputRefs.value.set(key, el);
   }
 };

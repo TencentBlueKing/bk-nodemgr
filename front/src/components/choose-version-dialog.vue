@@ -2,7 +2,7 @@
   <Dialog
     :is-show="isShow"
     :width="1048"
-    title="按操作系统选定版本"
+    :title="title"
     @closed="isShow = false"
     @confirm="handleConfirm"
     @cancel="handleCancel"
@@ -51,7 +51,7 @@
             </template>
           </TableColumn>
           <TableColumn
-            field="version"
+            field="versionName"
             :title="t('Agent 版本')"
             sortable
           ></TableColumn>
@@ -82,7 +82,7 @@
 <script lang="ts" setup>
 import { Button, Dialog, Radio, Tag } from 'bkui-vue';
 import { RightShape } from 'bkui-vue/lib/icon';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { VxeTablePropTypes } from 'vxe-table';
 
@@ -100,13 +100,22 @@ interface RowVO {
 
 interface IOsversion {
   name: string;
-  versions: string[];
+  version: string,
+  versions: {
+    version: string,
+    os_type: string,
+    cpu_arch: string
+  }[];
   selected: boolean;
   icon: string;
 }
 
 const isShow = defineModel('isShow', { type: Boolean, default: false });
 const props = defineProps({
+  title: {
+    type: String,
+    default: '',
+  },
   data: {
     type: Array,
     default: [{
@@ -129,14 +138,9 @@ const { t } = useI18n();
 const mainStore = useMainStore();
 
 const osVersions = ref<IOsversion[]>();
-
+const title = computed(() => props.title || t('components.chooseVersion.title'));
 const selectedOs = ref();
-const selectedVersion = ref<{
-  version: string;
-  description: string;
-  disabled: boolean;
-  label: Object;
-}>();
+const selectedVersion = ref<any>();
 const selectedRadio = ref('');
 
 function selectOs(os: IOsversion) {
@@ -151,7 +155,7 @@ const handleChange = (val: string) => {
   selectedVersion.value = selectedOs.value?.versions.find((item: any) => item.version === val);
 };
 function handleConfirm() {
-  emit('confirm', selectedRadio.value);
+  emit('confirm', selectedVersion.value);
   isShow.value = false;
 }
 
@@ -183,33 +187,40 @@ const getVersions = async () => {
     items: [],
   }));
   const osMap: any = {};
-  res.items.filter(item => !!props.data?.find(data => `${item.os_type}_${item.cpu_arch}`.includes(`${data.os_type}_${data.cpu_arch}`))).forEach((item) => {
-    const key = `${capitalizeFirstLetter(item.os_type)}_${item.cpu_arch}`;
-    const iconType = item.os_type === 'darwin' ? 'macos' : item.os_type;
-    if (!osMap[key]) {
-      osMap[key] = {
-        name: key,
-        version: item.as_default ? item.version : '',
-        selected: false,
-        versions: [{
-          version: '自动',
-          disabled: false,
-          lable: [],
-          packages: [],
-          description: '',
-        }],
-        icon: `nodeman-icon nc-${iconType}`,
-      };
-    }
+  res.items.filter(item => !!props.data?.find(data => `${item.os_type}_${item.cpu_arch}`.includes(`${data.os_type}_${data.cpu_arch}`)))
+    .forEach((item) => {
+      const key = `${capitalizeFirstLetter(item.os_type)}_${item.cpu_arch}`;
+      const iconType = item.os_type === 'darwin' ? 'macos' : item.os_type;
+      if (!osMap[key]) {
+        osMap[key] = {
+          name: key,
+          version: item.as_default ? item.version : '',
+          selected: false,
+          versions: [{
+            version: 'auto',
+            versionName: t('components.chooseVersion.auto'),
+            disabled: false,
+            lable: [],
+            packages: [],
+            os_type: '',
+            cpu_arch: '',
+            description: '',
+          }],
+          icon: `nodeman-icon nc-${iconType}`,
+        };
+      }
 
-    osMap[key].versions.push({
-      version: item.version,
-      disabled: !item.enabled,
-      lable: item.labels,
-      packages: [item.file_name],
-      description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
+      osMap[key].versions.push({
+        version: item.version,
+        versionName: item.version,
+        disabled: !item.enabled,
+        lable: item.labels,
+        packages: [item.file_name],
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch,
+        description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
+      });
     });
-  });
   osVersions.value = Object.values(osMap);
 };
 watch(

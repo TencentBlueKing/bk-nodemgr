@@ -164,6 +164,7 @@
                       boundary: 'parent'
                     }"
                     auto-focus
+                    allow-create
                     multiple
                     filterable>
                   </Select>
