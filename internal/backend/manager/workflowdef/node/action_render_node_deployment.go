@@ -24,7 +24,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -136,7 +136,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	case types.ReleaseTypeAgent:
 		rlsAgent, err := act.storageRelease.GetReleaseAgent(ctx.Ctx,
 			std.DeployInfo().Host.Dynamic.NodeGeneration,
-			platform.Platform{
+			platfmt.Platform{
 				OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
 				Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			},
@@ -151,7 +151,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	case types.ReleaseTypeProxy:
 		rlsProxy, err := act.storageRelease.GetReleaseProxy(ctx.Ctx,
 			std.DeployInfo().Host.Dynamic.NodeGeneration,
-			platform.Platform{
+			platfmt.Platform{
 				OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
 				Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
 			},

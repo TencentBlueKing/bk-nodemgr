@@ -14,7 +14,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -57,7 +57,7 @@ func (x *PackageReleaseListReq) ConvertConditionsFromTypes(condition *types.Rele
 func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *types.ReleaseCondition {
 	condition := types.ReleaseCondition{}
 
-	plats := make([]platform.Platform, 0)
+	plats := make([]platfmt.Platform, 0)
 	for _, plat := range exactCond.GetPlatform() {
 		plats = append(plats, ConvertPlatformToTypes(plat))
 	}
@@ -143,7 +143,7 @@ func (x *PackageReleaseListResp) ConvertReleasesToTypes() (int64, []*types.Relea
 			Generation: types.Generation(item.GetGeneration()),
 			Type:       types.ReleaseType(item.GetReleaseType()),
 			Version:    item.GetVersion(),
-			Platform: platform.Platform{
+			Platform: platfmt.Platform{
 				OS:   criteria.OSType(item.GetOsType()),
 				Arch: criteria.CPUArch(item.GetCpuArch()),
 			},
@@ -173,7 +173,7 @@ func (x *PackageReleaseSetLabelsReq) AutoConvert() {
 }
 
 // GetIdentifier get identifier.
-func (x *PackageReleaseSetLabelsReq) GetIdentifier() (types.Generation, types.ReleaseType, platform.Platform, string) {
+func (x *PackageReleaseSetLabelsReq) GetIdentifier() (types.Generation, types.ReleaseType, platfmt.Platform, string) {
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
 		ConvertPlatformToTypes(x.GetPlatform()),
@@ -182,7 +182,7 @@ func (x *PackageReleaseSetLabelsReq) GetIdentifier() (types.Generation, types.Re
 
 // SetIdentifer set identifier.
 func (x *PackageReleaseSetLabelsReq) SetIdentifer(
-	gen types.Generation, rt types.ReleaseType, plat platform.Platform, ver string) {
+	gen types.Generation, rt types.ReleaseType, plat platfmt.Platform, ver string) {
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
@@ -204,7 +204,7 @@ func (x *PackageReleaseSetLabelsManyReq) AutoConvert() {
 }
 
 // GetIdentifiers get identifier.
-func (x *PackageReleaseSetLabelsManyReq) GetIdentifiers() (types.ReleaseType, []types.Generation, []platform.Platform, []string) {
+func (x *PackageReleaseSetLabelsManyReq) GetIdentifiers() (types.ReleaseType, []types.Generation, []platfmt.Platform, []string) {
 	rt := types.ReleaseType(x.GetReleaseType())
 
 	identify := x.GetIdentify()
@@ -213,7 +213,7 @@ func (x *PackageReleaseSetLabelsManyReq) GetIdentifiers() (types.ReleaseType, []
 	}
 
 	generations := make([]types.Generation, len(identify))
-	platforms := make([]platform.Platform, len(identify))
+	platforms := make([]platfmt.Platform, len(identify))
 	versions := make([]string, len(identify))
 
 	for idx, idt := range identify {
@@ -235,7 +235,7 @@ func (x *PackageReleaseEnableReq) AutoConvert() {
 }
 
 // GetIdentifier get identifier.
-func (x *PackageReleaseEnableReq) GetIdentifier() (types.Generation, types.ReleaseType, platform.Platform, string) {
+func (x *PackageReleaseEnableReq) GetIdentifier() (types.Generation, types.ReleaseType, platfmt.Platform, string) {
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
 		ConvertPlatformToTypes(x.GetPlatform()),
@@ -244,7 +244,7 @@ func (x *PackageReleaseEnableReq) GetIdentifier() (types.Generation, types.Relea
 
 // SetIdentifer set identifier.
 func (x *PackageReleaseEnableReq) SetIdentifer(
-	gen types.Generation, rt types.ReleaseType, plat platform.Platform, ver string) {
+	gen types.Generation, rt types.ReleaseType, plat platfmt.Platform, ver string) {
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
@@ -262,7 +262,7 @@ func (x *PackageReleaseDisableReq) AutoConvert() {
 }
 
 // GetIdentifier get identifier.
-func (x *PackageReleaseDisableReq) GetIdentifier() (types.Generation, types.ReleaseType, platform.Platform, string) {
+func (x *PackageReleaseDisableReq) GetIdentifier() (types.Generation, types.ReleaseType, platfmt.Platform, string) {
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
 		ConvertPlatformToTypes(x.GetPlatform()),
@@ -271,7 +271,7 @@ func (x *PackageReleaseDisableReq) GetIdentifier() (types.Generation, types.Rele
 
 // SetIdentifer set identifier.
 func (x *PackageReleaseDisableReq) SetIdentifer(
-	gen types.Generation, rt types.ReleaseType, plat platform.Platform, ver string) {
+	gen types.Generation, rt types.ReleaseType, plat platfmt.Platform, ver string) {
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
@@ -290,7 +290,7 @@ func (x *PackageReleaseSetAsDefaultReq) AutoConvert() {
 
 // GetIdentifier get identifier.
 func (x *PackageReleaseSetAsDefaultReq) GetIdentifier() (
-	types.Generation, types.ReleaseType, platform.Platform, string) {
+	types.Generation, types.ReleaseType, platfmt.Platform, string) {
 
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
@@ -300,7 +300,7 @@ func (x *PackageReleaseSetAsDefaultReq) GetIdentifier() (
 
 // SetIdentifer set identifier.
 func (x *PackageReleaseSetAsDefaultReq) SetIdentifer(
-	gen types.Generation, rt types.ReleaseType, plat platform.Platform, ver string) {
+	gen types.Generation, rt types.ReleaseType, plat platfmt.Platform, ver string) {
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
@@ -319,7 +319,7 @@ func (x *PackageReleaseCancelAsDefaultReq) AutoConvert() {
 
 // GetIdentifier get identifier.
 func (x *PackageReleaseCancelAsDefaultReq) GetIdentifier() (
-	types.Generation, types.ReleaseType, platform.Platform, string) {
+	types.Generation, types.ReleaseType, platfmt.Platform, string) {
 
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
@@ -329,7 +329,7 @@ func (x *PackageReleaseCancelAsDefaultReq) GetIdentifier() (
 
 // SetIdentifer set identifier.
 func (x *PackageReleaseCancelAsDefaultReq) SetIdentifer(
-	gen types.Generation, rt types.ReleaseType, plat platform.Platform, ver string) {
+	gen types.Generation, rt types.ReleaseType, plat platfmt.Platform, ver string) {
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
@@ -348,7 +348,7 @@ func (x *PackageReleaseDeleteReq) AutoConvert() {
 
 // GetIdentifier get identifier.
 func (x *PackageReleaseDeleteReq) GetIdentifier() (
-	types.Generation, types.ReleaseType, platform.Platform, string) {
+	types.Generation, types.ReleaseType, platfmt.Platform, string) {
 
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
@@ -358,7 +358,7 @@ func (x *PackageReleaseDeleteReq) GetIdentifier() (
 
 // SetIdentifer set identifier.
 func (x *PackageReleaseDeleteReq) SetIdentifer(
-	gen types.Generation, rt types.ReleaseType, plat platform.Platform, ver string) {
+	gen types.Generation, rt types.ReleaseType, plat platfmt.Platform, ver string) {
 
 	x.Generation = int64(gen)
 	x.ReleaseType = string(rt)
@@ -431,7 +431,7 @@ func (x *PackageReleaseDeployedHostCountReq) CountHostsByOsTypeAndArch(hosts []*
 		}
 
 		key := PackageReleaseIdentifier{
-			Platform: platform.Platform{
+			Platform: platfmt.Platform{
 				OS:   host.Dynamic.NodeOsType,
 				Arch: host.Dynamic.NodeCPUArch,
 			},
@@ -448,7 +448,7 @@ func (x *PackageReleaseDeployedHostCountReq) CountHostsByOsTypeAndArch(hosts []*
 		}
 
 		reqKey := PackageReleaseIdentifier{
-			Platform: platform.Platform{
+			Platform: platfmt.Platform{
 				OS:   criteria.OSType(item.GetPlatform().GetOsType()),
 				Arch: criteria.CPUArch(item.GetPlatform().GetCpuArch()),
 			},
@@ -478,7 +478,7 @@ func (x *PackageReleaseDeployedHostCountResp) ConvertResultFromTypes(result []in
 type PackageReleaseIdentifier struct {
 	Generation  types.Generation
 	ReleaseType types.ReleaseType
-	Platform    platform.Platform
+	Platform    platfmt.Platform
 	Version     string
 }
 

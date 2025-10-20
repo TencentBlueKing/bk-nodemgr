@@ -12,7 +12,7 @@ package backend
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -341,7 +341,7 @@ type IHandlerRelease interface {
 	SetReleaseLabels(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string,
 		labels []string) error
 
@@ -349,7 +349,7 @@ type IHandlerRelease interface {
 	SetReleaseLabelsMany(ctx contextx.IContext,
 		releaseType types.ReleaseType,
 		gen []types.Generation,
-		plat []platform.Platform,
+		plat []platfmt.Platform,
 		version []string,
 		labels []string) error
 
@@ -357,35 +357,35 @@ type IHandlerRelease interface {
 	EnableRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string) error
 
 	// DisableRelease disables release disactive by generation, release type, platform and version.
 	DisableRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string) error
 
 	// SetAsDefaultRelease sets the release as default.
 	SetAsDefaultRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string) error
 
 	// CancelAsDefaultRelease cancels the release as default.
 	CancelAsDefaultRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string) error
 
 	// 	DeleteRelease deletes release by generation, release type, platform and version.
 	DeleteRelease(ctx contextx.IContext,
 		gen types.Generation,
 		releaseType types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string) error
 }
 
@@ -1097,7 +1097,7 @@ func (h *Handler) DistinctRelease(ctx contextx.IContext, releaseType types.Relea
 func (h *Handler) SetReleaseLabels(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string,
 	labels []string) error {
 
@@ -1111,7 +1111,7 @@ func (h *Handler) SetReleaseLabels(ctx contextx.IContext,
 func (h *Handler) SetReleaseLabelsMany(ctx contextx.IContext,
 	rt types.ReleaseType,
 	gen []types.Generation,
-	plat []platform.Platform,
+	plat []platfmt.Platform,
 	version []string,
 	labels []string) error {
 
@@ -1125,7 +1125,7 @@ func (h *Handler) SetReleaseLabelsMany(ctx contextx.IContext,
 func (h *Handler) EnableRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string) error {
 
 	req := &protoBackend.PackageReleaseEnableReq{}
@@ -1138,7 +1138,7 @@ func (h *Handler) EnableRelease(ctx contextx.IContext,
 func (h *Handler) DisableRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string) error {
 
 	req := &protoBackend.PackageReleaseDisableReq{}
@@ -1151,7 +1151,7 @@ func (h *Handler) DisableRelease(ctx contextx.IContext,
 func (h *Handler) SetAsDefaultRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string) error {
 
 	req := &protoBackend.PackageReleaseSetAsDefaultReq{}
@@ -1164,7 +1164,7 @@ func (h *Handler) SetAsDefaultRelease(ctx contextx.IContext,
 func (h *Handler) CancelAsDefaultRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string) error {
 
 	req := &protoBackend.PackageReleaseCancelAsDefaultReq{}
@@ -1177,7 +1177,7 @@ func (h *Handler) CancelAsDefaultRelease(ctx contextx.IContext,
 func (h *Handler) DeleteRelease(ctx contextx.IContext,
 	gen types.Generation,
 	releaseType types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string) error {
 
 	req := &protoBackend.PackageReleaseDeleteReq{}

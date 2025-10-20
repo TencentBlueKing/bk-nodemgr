@@ -19,7 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -45,7 +45,7 @@ func (lfp *localFilePool) get(filename string) (*localFile, bool) {
 }
 
 // EnsureNodeToLocal ensure the node to local.
-func (m *Manager) EnsureNodeToLocal(nCtx contextx.IContext, rt types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (
+func (m *Manager) EnsureNodeToLocal(nCtx contextx.IContext, rt types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string) (
 	fileiface.File, string, error) {
 
 	if gen != types.Generation2 {
@@ -76,7 +76,7 @@ func (m *Manager) EnsureNodeToLocal(nCtx contextx.IContext, rt types.ReleaseType
 }
 
 // EnsurePluginToLocal ensure the plugin to local.
-func (m *Manager) EnsurePluginToLocal(nCtx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platform.Platform,
+func (m *Manager) EnsurePluginToLocal(nCtx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platfmt.Platform,
 	version string) (fileiface.File, string, error) {
 
 	if gen != types.Generation2 {

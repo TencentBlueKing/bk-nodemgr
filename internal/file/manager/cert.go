@@ -17,7 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -284,7 +284,7 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypeCert,
-			Platform:     platform.EmptyPlatform(),
+			Platform:     platfmt.EmptyPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,

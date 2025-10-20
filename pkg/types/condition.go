@@ -13,7 +13,7 @@ package types
 import (
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -282,7 +282,7 @@ type NodeWorkflowOperInstanceStatusCondition struct {
 type ReleaseExactFields struct {
 	FileName   []string
 	Generation []Generation
-	Platform   []platform.Platform
+	Platform   []platfmt.Platform
 	Version    []string
 	AsDefault  []bool
 	Enabled    []bool

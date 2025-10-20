@@ -15,7 +15,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -26,7 +26,7 @@ const PkgExtension = "tgz"
 func FormatPkgName(
 	generation types.Generation,
 	releaseType types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string,
 ) (string, error) {
 

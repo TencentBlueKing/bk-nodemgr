@@ -22,7 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/epluginpkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -83,7 +83,7 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 
 	gen := types.Generation2
 	originalPkgName, err := epluginpkg.FormatPkgName(
-		detail.Name, types.ReleaseTypeOriginExternalPlugin, gen, platform.EmptyPlatform(), detail.Version)
+		detail.Name, types.ReleaseTypeOriginExternalPlugin, gen, platfmt.EmptyPlatform(), detail.Version)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to format package")
 
@@ -402,7 +402,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 }
 
 type releaseExternalPluginPkg struct {
-	platform     platform.Platform
+	platform     platfmt.Platform
 	tempFileName string
 }
 
@@ -534,23 +534,23 @@ const (
 	externalPluginPkgDirNameBin = "bin"
 )
 
-func convPlatToExternalPluginDirName(plat platform.Platform) string {
+func convPlatToExternalPluginDirName(plat platfmt.Platform) string {
 	return fmt.Sprintf("%s%s_%s", originalExternalPluginDirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
 }
 
-func convExternalPluginDirNameToPlat(dirName string) platform.Platform {
+func convExternalPluginDirNameToPlat(dirName string) platfmt.Platform {
 	if !strings.HasPrefix(dirName, originalExternalPluginDirNamePlatPrefix) {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
 	dirSplit := strings.SplitN(dirName, "_", originalExternalPluginDirNamePlatSplitTimes)
 	if len(dirSplit) != originalExternalPluginDirNamePlatSplitTimes {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
-	plat, err := platform.Normalize(dirSplit[2], dirSplit[3])
+	plat, err := platfmt.Normalize(dirSplit[2], dirSplit[3])
 	if err != nil {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
 	return plat

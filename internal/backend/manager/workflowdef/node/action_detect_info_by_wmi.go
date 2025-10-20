@@ -22,7 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/wmix"
@@ -229,7 +229,7 @@ func (act *actionDetectInfoByWMI) detectInfo(ctx *action.InstanceContext, client
 	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
 		return r == '\n'
 	})
-	osType, err = platform.NormalizeOS(osTypeStr)
+	osType, err = platfmt.NormalizeOS(osTypeStr)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
@@ -251,7 +251,7 @@ func (act *actionDetectInfoByWMI) detectInfo(ctx *action.InstanceContext, client
 	cpuArchStr = strings.TrimFunc(strings.ToLower(cpuArchStr), func(r rune) bool {
 		return r == '\n'
 	})
-	cpuArch, err = platform.NormalizeArch(cpuArchStr)
+	cpuArch, err = platfmt.NormalizeArch(cpuArchStr)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to detect info: %w", err)
 	}

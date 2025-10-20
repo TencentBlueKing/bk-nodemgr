@@ -15,7 +15,7 @@ import (
 	"sync"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
@@ -63,7 +63,7 @@ type enumCPUArchKeeper struct {
 }
 
 func (keeper *enumCPUArchKeeper) getValue(key string) string {
-	value, err := platform.NormalizeArch(keeper.enumBasicKeeper.getValue(key))
+	value, err := platfmt.NormalizeArch(keeper.enumBasicKeeper.getValue(key))
 	if err != nil {
 		return keeper.enumBasicKeeper.unknownValue
 	}
@@ -94,7 +94,7 @@ func (keeper *enumCPUArchKeeper) update(ctx contextx.IContext) error {
 
 	keeper.cpuArchMappingMutex.Lock()
 	for _, v := range values {
-		normalizeArch, err := platform.NormalizeArch(v)
+		normalizeArch, err := platfmt.NormalizeArch(v)
 		if err != nil {
 			continue
 		}
@@ -128,7 +128,7 @@ type enumOSTypeKeeper struct {
 }
 
 func (keeper *enumOSTypeKeeper) getValue(key string) string {
-	value, err := platform.NormalizeOS(keeper.enumBasicKeeper.getValue(key))
+	value, err := platfmt.NormalizeOS(keeper.enumBasicKeeper.getValue(key))
 	if err != nil {
 		return keeper.enumBasicKeeper.unknownValue
 	}
@@ -159,7 +159,7 @@ func (keeper *enumOSTypeKeeper) update(ctx contextx.IContext) error {
 
 	keeper.osTypeMappingMutex.Lock()
 	for _, v := range values {
-		normalizedOS, err := platform.NormalizeOS(v)
+		normalizedOS, err := platfmt.NormalizeOS(v)
 		if err != nil {
 			continue
 		}

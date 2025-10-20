@@ -17,7 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -137,7 +137,7 @@ const (
 )
 
 func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinToolPkgDetail, error) {
-	platforms := make(map[string]platform.Platform)
+	platforms := make(map[string]platfmt.Platform)
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
@@ -154,7 +154,7 @@ func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinTool
 	}
 
 	detail := new(types.OriginPluginBinToolPkgDetail)
-	detail.Platforms = make([]platform.Platform, 0)
+	detail.Platforms = make([]platfmt.Platform, 0)
 	for _, plat := range platforms {
 		detail.Platforms = append(detail.Platforms, plat)
 	}
@@ -228,7 +228,7 @@ func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID s
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypePluginBinTool,
-			Platform:     platform.EmptyPlatform(),
+			Platform:     platfmt.EmptyPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,
@@ -305,7 +305,7 @@ func (m *Manager) generatePluginBinToolPkg(nCtx contextx.IContext, sourceFile io
 	return file.Content(nCtx)
 }
 
-func convPlatToPluginBinToolDirName(plat platform.Platform) string {
+func convPlatToPluginBinToolDirName(plat platfmt.Platform) string {
 	if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
 		return pluginBinToolDirNamePlatLinuxAmd64
 	}
@@ -325,27 +325,27 @@ func convPlatToPluginBinToolDirName(plat platform.Platform) string {
 	return ""
 }
 
-func convPluginBinToolDirNameToPlat(dirName string) platform.Platform {
+func convPluginBinToolDirNameToPlat(dirName string) platfmt.Platform {
 	switch dirName {
 	case pluginBinToolDirNamePlatLinuxAmd64:
 		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
+			return platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
 		}
 	case pluginBinToolDirNamePlatLinuxArm64:
 		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
+			return platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
 		}
 	case pluginBinToolDirNamePlatWindowsAmd64:
 		{
-			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
+			return platfmt.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
 		}
 	case pluginBinToolDirNamePlatDarwinAmd64:
 		{
-			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
+			return platfmt.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
 		}
 	default:
 		{
-			return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+			return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 		}
 	}
 }

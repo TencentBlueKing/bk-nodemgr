@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -82,7 +82,7 @@ func (s *Storage) metric() *storage.MetricData {
 
 // GetRelease gets release by generation, release type, platform and version.
 func (s *Storage) GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) (*types.Release, error) {
+	plat platfmt.Platform, version string) (*types.Release, error) {
 
 	var (
 		data *types.Release
@@ -169,7 +169,7 @@ func (s *Storage) CountRelease(
 
 // SetReleaseLabels sets release labels.
 func (s *Storage) SetReleaseLabels(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string, labels []string) error {
+	plat platfmt.Platform, version string, labels []string) error {
 
 	var err error
 
@@ -187,7 +187,7 @@ func (s *Storage) SetReleaseLabels(nCtx contextx.IContext, gen types.Generation,
 
 // SetReleaseLabelsMany sets many release labels.
 func (s *Storage) SetReleaseLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
-	plats []platform.Platform, versions []string, labels []string) error {
+	plats []platfmt.Platform, versions []string, labels []string) error {
 
 	var err error
 
@@ -205,7 +205,7 @@ func (s *Storage) SetReleaseLabelsMany(nCtx contextx.IContext, releaseType types
 
 // EnableRelease enables release active by generation, release type, platform and version.
 func (s *Storage) EnableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	var err error
 
@@ -223,7 +223,7 @@ func (s *Storage) EnableRelease(nCtx contextx.IContext, gen types.Generation, re
 
 // DisableRelease disables release active by generation, release type, platform and version.
 func (s *Storage) DisableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	var err error
 
@@ -241,7 +241,7 @@ func (s *Storage) DisableRelease(nCtx contextx.IContext, gen types.Generation, r
 
 // SetAsDefaultRelease sets the release as default.
 func (s *Storage) SetAsDefaultRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	var err error
 
@@ -259,7 +259,7 @@ func (s *Storage) SetAsDefaultRelease(nCtx contextx.IContext, gen types.Generati
 
 // CancelAsDefaultRelease cancels the release as default.
 func (s *Storage) CancelAsDefaultRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	var err error
 
@@ -277,7 +277,7 @@ func (s *Storage) CancelAsDefaultRelease(nCtx contextx.IContext, gen types.Gener
 
 // DeleteRelease deletes the release.
 func (s *Storage) DeleteRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	var err error
 
@@ -295,7 +295,7 @@ func (s *Storage) DeleteRelease(nCtx contextx.IContext, gen types.Generation, re
 
 // GetReleaseAgent gets release by generation, release type, platform and version.
 func (s *Storage) GetReleaseAgent(
-	nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
+	nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseAgent, error) {
 
 	var (
 		releaseAgent *types.ReleaseAgent
@@ -317,7 +317,7 @@ func (s *Storage) GetReleaseAgent(
 
 // GetReleaseProxy gets release by generation, release type, platform and version.
 func (s *Storage) GetReleaseProxy(
-	nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
+	nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseProxy, error) {
 
 	var (
 		releaseProxy *types.ReleaseProxy
@@ -338,7 +338,7 @@ func (s *Storage) GetReleaseProxy(
 }
 
 // GetReleaseOfficialPlugin gets release by generation, release type, platform and version.
-func (s *Storage) GetReleaseOfficialPlugin(nCtx contextx.IContext, gen types.Generation, plat platform.Platform,
+func (s *Storage) GetReleaseOfficialPlugin(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform,
 	version string) (*types.ReleaseOfficialPlugin, error) {
 
 	var (

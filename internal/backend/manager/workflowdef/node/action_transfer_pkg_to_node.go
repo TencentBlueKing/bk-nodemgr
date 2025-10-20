@@ -20,7 +20,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -170,7 +170,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 	transferHandler, err := act.fileHandler.LaunchTransferNode(ctx,
 		info.Host.Dynamic.NodeGeneration,
 		rt,
-		platform.Platform{
+		platfmt.Platform{
 			OS:   info.Host.Dynamic.NodeOsType,
 			Arch: info.Host.Dynamic.NodeCPUArch,
 		},
@@ -207,7 +207,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, info *types.DeploymentInfo) error {
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
 		types.Generation2,
-		platform.Platform{
+		platfmt.Platform{
 			OS:   info.Host.Dynamic.NodeOsType,
 			Arch: info.Host.Dynamic.NodeCPUArch,
 		},

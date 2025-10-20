@@ -15,7 +15,7 @@ import (
 	"time"
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -105,13 +105,13 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 	}
 
 	agentInfo := agentInfos[0]
-	info.Host.Dynamic.NodeCPUArch, err = platform.NormalizeArch(string(agentInfo.Arch))
+	info.Host.Dynamic.NodeCPUArch, err = platfmt.NormalizeArch(string(agentInfo.Arch))
 	if err != nil {
 		return fmt.Errorf("normalize arch error, agent-id(%s), arch(%s), err(%v)",
 			info.Host.Dynamic.AgentID, agentInfo.Arch, err)
 	}
 
-	info.Host.Dynamic.NodeOsType, err = platform.NormalizeOS(string(agentInfo.OSType))
+	info.Host.Dynamic.NodeOsType, err = platfmt.NormalizeOS(string(agentInfo.OSType))
 	if err != nil {
 		return fmt.Errorf("normalize os error, agent-id(%s), os-type(%s), err(%v)",
 			info.Host.Dynamic.AgentID, agentInfo.OSType, err)

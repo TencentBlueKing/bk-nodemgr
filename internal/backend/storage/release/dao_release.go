@@ -16,14 +16,14 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // getRelease gets release by generation, release type, platform and version.
 func (s *Storage) getRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) (*types.Release, error) {
+	plat platfmt.Platform, version string) (*types.Release, error) {
 
 	return s.daoRelease.Get(nCtx, releaseType,
 		release.WithGeneration(gen),
@@ -97,7 +97,7 @@ func (s *Storage) countRelease(
 // setReleaseLabels sets release labels.
 func (s *Storage) setReleaseLabels(
 	nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string, labels []string) error {
+	plat platfmt.Platform, version string, labels []string) error {
 
 	return s.daoRelease.SetLabels(nCtx, releaseType, gen, plat, version, labels...)
 }
@@ -105,14 +105,14 @@ func (s *Storage) setReleaseLabels(
 // setReleaseLabelsMany sets release labels.
 func (s *Storage) setReleaseLabelsMany(
 	nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
-	plats []platform.Platform, versions []string, labels []string) error {
+	plats []platfmt.Platform, versions []string, labels []string) error {
 
 	return s.daoRelease.SetLabelsMany(nCtx, releaseType, gens, plats, versions, labels...)
 }
 
 // enableRelease enables release active by generation, release type, platform and version.
 func (s *Storage) enableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	return s.daoRelease.SetEnabled(nCtx, releaseType, true,
 		release.WithGeneration(gen),
@@ -123,7 +123,7 @@ func (s *Storage) enableRelease(nCtx contextx.IContext, gen types.Generation, re
 
 // disableRelease disables release active by generation, release type, platform and version.
 func (s *Storage) disableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	// cancel this release as default.
 	if err := s.daoRelease.SetAsDefault(nCtx, releaseType, false,
@@ -149,7 +149,7 @@ func (s *Storage) disableRelease(nCtx contextx.IContext, gen types.Generation, r
 
 // setAsDefaultRelease sets the release as default.
 func (s *Storage) setAsDefaultRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	// cancel all version as-default in this platform.
 	if err := s.daoRelease.CancelPlatformDefault(nCtx, releaseType,
@@ -173,7 +173,7 @@ func (s *Storage) setAsDefaultRelease(nCtx contextx.IContext, gen types.Generati
 
 // cancelAsDefaultRelease cancels the release as default.
 func (s *Storage) cancelAsDefaultRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	return s.daoRelease.SetAsDefault(nCtx, releaseType, false,
 		release.WithGeneration(gen),
@@ -184,7 +184,7 @@ func (s *Storage) cancelAsDefaultRelease(nCtx contextx.IContext, gen types.Gener
 
 // deleteRelease deletes the release.
 func (s *Storage) deleteRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platform.Platform, version string) error {
+	plat platfmt.Platform, version string) error {
 
 	return s.daoRelease.Delete(nCtx, releaseType,
 		release.WithGeneration(gen),

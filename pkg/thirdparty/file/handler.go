@@ -18,7 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -38,7 +38,7 @@ type ITransfer interface {
 	LaunchTransferNode(nCtx contextx.IContext,
 		gen types.Generation,
 		rt types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
@@ -48,7 +48,7 @@ type ITransfer interface {
 		name string,
 		gen types.Generation,
 		rt types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
@@ -56,7 +56,7 @@ type ITransfer interface {
 	// LaunchTransferInstaller launch transfer installer.
 	LaunchTransferInstaller(nCtx contextx.IContext,
 		gen types.Generation,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
@@ -131,9 +131,9 @@ func (h *handler) UploadOriginAgent(nCtx contextx.IContext, fileName string, fil
 		return nil, err
 	}
 
-	plats := make([]platform.Platform, 0)
+	plats := make([]platfmt.Platform, 0)
 	for _, plat := range resp.GetPlatforms() {
-		plats = append(plats, platform.Platform{
+		plats = append(plats, platfmt.Platform{
 			OS:   criteria.OSType(plat.GetOsType()),
 			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
@@ -169,9 +169,9 @@ func (h *handler) UploadOriginServer(nCtx contextx.IContext, fileName string, fi
 		return nil, err
 	}
 
-	plats := make([]platform.Platform, 0)
+	plats := make([]platfmt.Platform, 0)
 	for _, plat := range resp.GetPlatforms() {
-		plats = append(plats, platform.Platform{
+		plats = append(plats, platfmt.Platform{
 			OS:   criteria.OSType(plat.GetOsType()),
 			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
@@ -230,16 +230,16 @@ func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, f
 		return nil, err
 	}
 
-	agentPlats := make([]platform.Platform, 0)
+	agentPlats := make([]platfmt.Platform, 0)
 	for _, plat := range resp.GetAgentPlatforms() {
-		agentPlats = append(agentPlats, platform.Platform{
+		agentPlats = append(agentPlats, platfmt.Platform{
 			OS:   criteria.OSType(plat.GetOsType()),
 			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
 	}
-	proxyPlats := make([]platform.Platform, 0)
+	proxyPlats := make([]platfmt.Platform, 0)
 	for _, plat := range resp.GetProxyPlatforms() {
-		proxyPlats = append(proxyPlats, platform.Platform{
+		proxyPlats = append(proxyPlats, platfmt.Platform{
 			OS:   criteria.OSType(plat.GetOsType()),
 			Arch: criteria.CPUArch(plat.GetCpuArch()),
 		})
@@ -330,7 +330,7 @@ func (h *handler) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 func (h *handler) LaunchTransferNode(nCtx contextx.IContext,
 	gen types.Generation,
 	rt types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
@@ -370,7 +370,7 @@ func (h *handler) LaunchTransferPlugin(nCtx contextx.IContext,
 	name string,
 	gen types.Generation,
 	rt types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
@@ -409,7 +409,7 @@ func (h *handler) LaunchTransferPlugin(nCtx contextx.IContext,
 // LaunchTransferInstaller launch transfer installer.
 func (h *handler) LaunchTransferInstaller(nCtx contextx.IContext,
 	gen types.Generation,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 

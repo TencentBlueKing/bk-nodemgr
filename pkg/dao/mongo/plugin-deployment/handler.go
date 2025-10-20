@@ -15,7 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -142,7 +142,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 				Name:       info.Plugin.Dynamic.Name,
 				Type:       types.PluginType(info.Plugin.Dynamic.Type),
 				Generation: types.Generation(info.Plugin.Dynamic.Generation),
-				Platform: platform.Platform{
+				Platform: platfmt.Platform{
 					OS:   criteria.OSType(info.Plugin.Dynamic.Platform.OS),
 					Arch: criteria.CPUArch(info.Plugin.Dynamic.Platform.Arch),
 				},
@@ -163,7 +163,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 
 	for _, targetVersion := range info.TargetVersion {
 		typesInfo.TargetVersion = append(typesInfo.TargetVersion, types.TargetPluginVersion{
-			Platform: platform.Platform{
+			Platform: platfmt.Platform{
 				OS:   criteria.OSType(targetVersion.Platform.OS),
 				Arch: criteria.CPUArch(targetVersion.Platform.Arch),
 			},

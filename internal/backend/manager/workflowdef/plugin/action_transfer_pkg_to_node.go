@@ -21,7 +21,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -218,7 +218,7 @@ func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext
 func (act *actionTransferPluginPkgToNode) transferInstaller(ctx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
 		types.Generation2,
-		platform.Platform{
+		platfmt.Platform{
 			OS:   targetHost.Dynamic.NodeOsType,
 			Arch: targetHost.Dynamic.NodeCPUArch,
 		},

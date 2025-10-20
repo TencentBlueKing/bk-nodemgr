@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/opluginpkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -81,7 +81,7 @@ func (m *Manager) UploadOriginOfficialPlugin(nCtx contextx.IContext, officialPlu
 	}
 
 	gen := types.Generation2
-	originalPkgName, err := opluginpkg.FormatPkgName(detail.Name, types.ReleaseTypeOriginOfficialPlugin, gen, platform.EmptyPlatform(), detail.Version)
+	originalPkgName, err := opluginpkg.FormatPkgName(detail.Name, types.ReleaseTypeOriginOfficialPlugin, gen, platfmt.EmptyPlatform(), detail.Version)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin official plugin package, failed to format package")
 
@@ -452,7 +452,7 @@ func (m *Manager) PublishReleaseOfficialPlugin(nCtx contextx.IContext, uploadID 
 }
 
 type releaseOfficialPluginPkg struct {
-	platform     platform.Platform
+	platform     platfmt.Platform
 	tempFileName string
 }
 
@@ -582,23 +582,23 @@ const (
 	officialPluginPkgDirNameEtc = "etc"
 )
 
-func convPlatToOfficialPluginDirName(plat platform.Platform) string {
+func convPlatToOfficialPluginDirName(plat platfmt.Platform) string {
 	return fmt.Sprintf("%s%s_%s", originalOfficialPluginDirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
 }
 
-func convOfficialPluginDirNameToPlat(dirName string) platform.Platform {
+func convOfficialPluginDirNameToPlat(dirName string) platfmt.Platform {
 	if !strings.HasPrefix(dirName, originalOfficialPluginDirNamePlatPrefix) {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
 	dirSplit := strings.SplitN(dirName, "_", originalOfficialPluginDirNamePlatSplitTimes)
 	if len(dirSplit) != originalOfficialPluginDirNamePlatSplitTimes {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
-	plat, err := platform.Normalize(dirSplit[1], dirSplit[2])
+	plat, err := platfmt.Normalize(dirSplit[1], dirSplit[2])
 	if err != nil {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
 	return plat

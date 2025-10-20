@@ -17,7 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -37,11 +37,11 @@ type IHandler interface {
 
 	// SetLabels sets a release's labels.
 	SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType,
-		gen types.Generation, plat platform.Platform, version string, labels ...string) error
+		gen types.Generation, plat platfmt.Platform, version string, labels ...string) error
 
 	// SetLabelsMany sets many release's labels.
 	SetLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType,
-		gens []types.Generation, plats []platform.Platform, versions []string, labels ...string) error
+		gens []types.Generation, plats []platfmt.Platform, versions []string, labels ...string) error
 
 	// Count counts releases.
 	Count(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) (int64, error)
@@ -180,7 +180,7 @@ func (h *Handler) List(nCtx contextx.IContext, releaseType types.ReleaseType, pa
 }
 
 // SetLabels sets a release's labels.
-func (h *Handler) SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string,
+func (h *Handler) SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string,
 	labels ...string) error {
 
 	if nCtx == nil {
@@ -204,7 +204,7 @@ func (h *Handler) SetLabels(nCtx contextx.IContext, releaseType types.ReleaseTyp
 
 // SetLabelsMany sets mamy release's labels.
 func (h *Handler) SetLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType,
-	gens []types.Generation, plats []platform.Platform, versions []string,
+	gens []types.Generation, plats []platfmt.Platform, versions []string,
 	labels ...string) error {
 
 	if nCtx == nil {
@@ -349,7 +349,7 @@ func convertReleaseToTypes(release *Release) *types.Release {
 		Generation: types.Generation(release.Generation),
 		Type:       types.ReleaseType(release.Type),
 		Version:    release.Version,
-		Platform: platform.Platform{
+		Platform: platfmt.Platform{
 			Arch: criteria.CPUArch(release.CPUArch),
 			OS:   criteria.OSType(release.OSType),
 		},

@@ -14,13 +14,13 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // getReleaseOfficialPlugin gets release by generation, release type, platform and version.
-func (s *Storage) getReleaseOfficialPlugin(nCtx contextx.IContext, gen types.Generation, plat platform.Platform,
+func (s *Storage) getReleaseOfficialPlugin(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform,
 	version string) (*types.ReleaseOfficialPlugin, error) {
 
 	rls, err := s.getRelease(nCtx, gen, types.ReleaseTypeOfficialPlugin, plat, version)

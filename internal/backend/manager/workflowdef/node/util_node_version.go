@@ -15,7 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -31,14 +31,14 @@ type CheckAndSelectVersionParam struct {
 }
 
 func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersionParam) (string, error) {
-	plat := platform.NewPlatform(versionParam.OSType, versionParam.CPUArch)
+	plat := platfmt.NewPlatform(versionParam.OSType, versionParam.CPUArch)
 
 	releaseType := versionParam.ReleaseType
 	gen := versionParam.Generation
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			Platform:   []platform.Platform{plat},
+			Platform:   []platfmt.Platform{plat},
 			Generation: []types.Generation{gen},
 			AsDefault:  []bool{true},
 			Enabled:    []bool{true},
@@ -62,14 +62,14 @@ func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersio
 }
 
 func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelectVersionParam) error {
-	plat, err := platform.Normalize(string(versionParam.OSType), string(versionParam.CPUArch))
+	plat, err := platfmt.Normalize(string(versionParam.OSType), string(versionParam.CPUArch))
 	if err != nil {
 		return fmt.Errorf("invalid platform: %w", err)
 	}
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
-			Platform:   []platform.Platform{plat},
+			Platform:   []platfmt.Platform{plat},
 			Generation: []types.Generation{versionParam.Generation},
 			Version:    []string{versionParam.Version},
 			Enabled:    []bool{true},

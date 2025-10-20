@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
 // ReleaseType defines the type of release.
@@ -115,7 +115,7 @@ type Release struct {
 	Generation   Generation
 	Type         ReleaseType
 	Version      string
-	Platform     platform.Platform
+	Platform     platfmt.Platform
 	Labels       []string
 	FileName     string
 	MD5          string

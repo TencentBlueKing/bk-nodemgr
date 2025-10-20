@@ -759,3 +759,5 @@ linters-settings:
         alias: syncDataUtils
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduled-workflow
         alias: scheduledworkflow
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform
+        alias: platform

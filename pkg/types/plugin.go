@@ -13,7 +13,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
 // PluginType represents the type of plugin.
@@ -73,7 +73,7 @@ type PluginDynamic struct {
 	Name       string
 	Type       PluginType
 	Generation Generation
-	Platform   platform.Platform
+	Platform   platfmt.Platform
 	Version    string
 
 	HostID        int64

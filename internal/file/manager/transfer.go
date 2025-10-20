@@ -21,7 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -157,7 +157,7 @@ func (m *Manager) QueryTransfer(
 func (m *Manager) LaunchTransferNode(nCtx contextx.IContext,
 	gen types.Generation,
 	rt types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
@@ -185,7 +185,7 @@ func (m *Manager) LaunchTransferPlugin(nCtx contextx.IContext,
 	name string,
 	gen types.Generation,
 	rt types.ReleaseType,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	version string,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
@@ -210,7 +210,7 @@ func (m *Manager) LaunchTransferPlugin(nCtx contextx.IContext,
 
 // LaunchTransferInstaller launch transfer installer.
 func (m *Manager) LaunchTransferInstaller(nCtx contextx.IContext,
-	plat platform.Platform,
+	plat platfmt.Platform,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 

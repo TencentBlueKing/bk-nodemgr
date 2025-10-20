@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -162,8 +162,8 @@ func (h *Handler) ListAgentInfo(nCtx contextx.IContext, agentIDList ...string) (
 	}
 	data := make([]*types.AgentInfo, len(resp))
 	for idx, info := range resp {
-		osType, _ := platform.NormalizeOS(info.BKOSType)
-		arch, _ := platform.NormalizeArch(info.BKCPUArch)
+		osType, _ := platfmt.NormalizeOS(info.BKOSType)
+		arch, _ := platfmt.NormalizeArch(info.BKCPUArch)
 
 		data[idx] = &types.AgentInfo{
 			AgentState: types.AgentState{

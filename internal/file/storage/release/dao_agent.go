@@ -18,7 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -53,7 +53,7 @@ func (s *Storage) upsertManyReleaseAgent(ctx contextx.IContext, releaseAgents []
 }
 
 // existReleaseAgent checks if release agent exists.
-func (s *Storage) existReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
+func (s *Storage) existReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platfmt.Platform) (bool, error) {
 	var err error
 
 	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent,
@@ -72,7 +72,7 @@ func (s *Storage) existReleaseAgent(ctx contextx.IContext, gen types.Generation,
 
 // getReleaseAgent gets release by generation, type, platform and version.
 func (s *Storage) getReleaseAgent(
-	ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
+	ctx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseAgent, error) {
 
 	var (
 		rls *types.Release

@@ -15,7 +15,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
@@ -71,7 +71,7 @@ func Test_UpsertMany(t *testing.T) {
 						Generation: types.Generation2,
 						Type:       types.ReleaseTypeAgent,
 						Version:    "v2.1.6-beta.1",
-						Platform: platform.Platform{
+						Platform: platfmt.Platform{
 							OS:   criteria.OSLinux,
 							Arch: criteria.CPUArchAmd64,
 						},
@@ -86,7 +86,7 @@ func Test_UpsertMany(t *testing.T) {
 						Generation: types.Generation2,
 						Type:       types.ReleaseTypeAgent,
 						Version:    "v2.1.6-beta.1",
-						Platform: platform.Platform{
+						Platform: platfmt.Platform{
 							OS:   criteria.OSLinux,
 							Arch: criteria.CPUArchArm64,
 						},
@@ -101,7 +101,7 @@ func Test_UpsertMany(t *testing.T) {
 						Generation: types.Generation2,
 						Type:       types.ReleaseTypeAgent,
 						Version:    "v2.1.6-beta.2",
-						Platform: platform.Platform{
+						Platform: platfmt.Platform{
 							OS:   criteria.OSWindows,
 							Arch: criteria.CPUArchArm64,
 						},
@@ -135,7 +135,7 @@ func Test_Get(t *testing.T) {
 		generation  types.Generation
 		releaseType types.ReleaseType
 		version     string
-		platform    platform.Platform
+		platform    platfmt.Platform
 	}
 	tests := []struct {
 		name    string
@@ -148,7 +148,7 @@ func Test_Get(t *testing.T) {
 				generation:  types.Generation2,
 				releaseType: types.ReleaseTypeAgent,
 				version:     "v2.1.6-beta.1",
-				platform: platform.Platform{
+				platform: platfmt.Platform{
 					OS:   criteria.OSLinux,
 					Arch: criteria.CPUArchAmd64,
 				},
@@ -232,7 +232,7 @@ func Test_Delete(t *testing.T) {
 		generation  types.Generation
 		releaseType types.ReleaseType
 		version     string
-		platform    platform.Platform
+		platform    platfmt.Platform
 	}
 	tests := []struct {
 		name    string
@@ -245,7 +245,7 @@ func Test_Delete(t *testing.T) {
 				generation:  types.Generation2,
 				releaseType: types.ReleaseTypeAgent,
 				version:     "v2.1.6-beta.1",
-				platform: platform.Platform{
+				platform: platfmt.Platform{
 					OS:   criteria.OSLinux,
 					Arch: criteria.CPUArchAmd64,
 				},

@@ -13,7 +13,7 @@ package types
 import (
 	"strings"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/google/uuid"
 )
 
@@ -66,6 +66,6 @@ type PluginDeploymentTransferOptions struct {
 
 // TargetPluginVersion defines the target version for plugin.
 type TargetPluginVersion struct {
-	Platform platform.Platform
+	Platform platfmt.Platform
 	Version  string
 }

@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -92,7 +92,7 @@ func detectInfoBySSH(client *sshx.Client) (
 	osTypeStr = strings.TrimFunc(strings.ToLower(osTypeStr), func(r rune) bool {
 		return r == '\n'
 	})
-	osType, err = platform.NormalizeOS(osTypeStr)
+	osType, err = platfmt.NormalizeOS(osTypeStr)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
@@ -111,7 +111,7 @@ func detectInfoBySSH(client *sshx.Client) (
 	cpuArchStr = strings.TrimFunc(strings.ToLower(cpuArchStr), func(r rune) bool {
 		return r == '\n'
 	})
-	cpuArch, err = platform.NormalizeArch(cpuArchStr)
+	cpuArch, err = platfmt.NormalizeArch(cpuArchStr)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 	}

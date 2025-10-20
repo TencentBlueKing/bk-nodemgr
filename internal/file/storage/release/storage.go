@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -94,7 +94,7 @@ func (s *Storage) UpsertManyReleaseAgent(ctx contextx.IContext, releaseAgents []
 }
 
 // ExistReleaseAgent checks if release agent exists.
-func (s *Storage) ExistReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platform.Platform) (bool, error) {
+func (s *Storage) ExistReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platfmt.Platform) (bool, error) {
 	var (
 		result bool
 		err    error
@@ -110,7 +110,7 @@ func (s *Storage) ExistReleaseAgent(ctx contextx.IContext, gen types.Generation,
 }
 
 // GetReleaseAgent gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseAgent(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error) {
+func (s *Storage) GetReleaseAgent(ctx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseAgent, error) {
 	var (
 		data *types.ReleaseAgent
 		err  error
@@ -250,7 +250,7 @@ func (s *Storage) DeleteReleaseCert(ctx contextx.IContext, fileName string) erro
 }
 
 // GetReleaseProxy gets release by generation, type, platform and version.
-func (s *Storage) GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error) {
+func (s *Storage) GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseProxy, error) {
 	var (
 		data *types.ReleaseProxy
 		err  error
@@ -343,7 +343,7 @@ func (s *Storage) ExistReleasePluginBinTool(ctx contextx.IContext, gen types.Gen
 }
 
 // ExistReleaseExternalPlugin checks if release plugin exists.
-func (s *Storage) ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
+func (s *Storage) ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plats ...platfmt.Platform) (bool, error) {
 	var (
 		result bool
 		err    error
@@ -375,7 +375,7 @@ func (s *Storage) UpsertManyReleaseExternalPlugin(ctx contextx.IContext, release
 
 // ExistReleaseOfficialPlugin checks if release plugin exists.
 func (s *Storage) ExistReleaseOfficialPlugin(
-	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
+	ctx contextx.IContext, pluginName string, version string, plats ...platfmt.Platform) (bool, error) {
 
 	var (
 		result bool
@@ -405,7 +405,7 @@ func (s *Storage) UpsertManyReleaseOfficialPlugin(ctx contextx.IContext, release
 }
 
 // GetReleaseOfficialPlugin gets release official plugin.
-func (s *Storage) GetReleaseOfficialPlugin(ctx contextx.IContext, pluginName string, gen types.Generation, plat platform.Platform, version string) (
+func (s *Storage) GetReleaseOfficialPlugin(ctx contextx.IContext, pluginName string, gen types.Generation, plat platfmt.Platform, version string) (
 	*types.ReleaseOfficialPlugin, error) {
 
 	var (
@@ -423,7 +423,7 @@ func (s *Storage) GetReleaseOfficialPlugin(ctx contextx.IContext, pluginName str
 }
 
 // GetReleaseExternalPlugin gets release external plugin..
-func (s *Storage) GetReleaseExternalPlugin(ctx contextx.IContext, pluginName string, gen types.Generation, plat platform.Platform, version string) (
+func (s *Storage) GetReleaseExternalPlugin(ctx contextx.IContext, pluginName string, gen types.Generation, plat platfmt.Platform, version string) (
 	*types.ReleaseExternalPlugin, error) {
 
 	var (

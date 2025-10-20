@@ -24,7 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
@@ -338,7 +338,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 	filename, err := nodepkg.FormatPkgName(
 		gen,
 		releaseType,
-		platform.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
+		platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
 		std.DeployInfo().Host.Dynamic.NodeVersion,
 	)
 	if err != nil {
@@ -438,7 +438,7 @@ func (act *actionEnsurePkgToRelay) transferReleasePkg(std *nodeUtils.NodeActionS
 	transferHandler, err := act.fileHandler.LaunchTransferNode(std.Context(),
 		std.DeployInfo().Host.Dynamic.NodeGeneration,
 		rt,
-		platform.Platform{
+		platfmt.Platform{
 			OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
 			Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
 		},
@@ -481,7 +481,7 @@ func (act *actionEnsurePkgToRelay) transferInstaller(
 
 	transferHandler, err := act.fileHandler.LaunchTransferInstaller(std.Context(),
 		std.DeployInfo().Host.Dynamic.NodeGeneration,
-		platform.Platform{
+		platfmt.Platform{
 			OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
 			Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
 		},

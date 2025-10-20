@@ -18,7 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -52,7 +52,7 @@ func (s *Storage) deleteReleaseBinTool(ctx contextx.IContext, gen types.Generati
 func (s *Storage) getReleaseBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error) {
 	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeBinTool,
 		release.WithGeneration(gen),
-		release.WithPlatform(platform.EmptyPlatform()),
+		release.WithPlatform(platfmt.EmptyPlatform()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release bintool: %w", err)
@@ -66,7 +66,7 @@ func (s *Storage) getReleaseBinTool(ctx contextx.IContext, gen types.Generation)
 // existReleaseBinTool checks if release bintool exists.
 func (s *Storage) existReleaseBinTool(ctx contextx.IContext, gen types.Generation) (bool, error) {
 	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeBinTool,
-		release.WithPlatform(platform.EmptyPlatform()),
+		release.WithPlatform(platfmt.EmptyPlatform()),
 		release.WithGeneration(gen),
 	)
 	if err != nil {

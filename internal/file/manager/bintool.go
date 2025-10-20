@@ -17,7 +17,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -129,8 +129,8 @@ func (m *Manager) UploadOriginBinTool(
 }
 
 func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, error) {
-	agentPlatforms := make(map[string]platform.Platform)
-	proxyPlatforms := make(map[string]platform.Platform)
+	agentPlatforms := make(map[string]platfmt.Platform)
+	proxyPlatforms := make(map[string]platfmt.Platform)
 
 	if err := checkTgz(file, []tgzReadRule{
 		{
@@ -147,8 +147,8 @@ func checkOriginBinToolPkg(file io.ReadCloser) (*types.OriginBinToolPkgDetail, e
 	}
 
 	detail := new(types.OriginBinToolPkgDetail)
-	detail.AgentPlatforms = make([]platform.Platform, 0)
-	detail.ProxyPlatforms = make([]platform.Platform, 0)
+	detail.AgentPlatforms = make([]platfmt.Platform, 0)
+	detail.ProxyPlatforms = make([]platfmt.Platform, 0)
 	for _, plat := range agentPlatforms {
 		detail.AgentPlatforms = append(detail.AgentPlatforms, plat)
 	}
@@ -226,7 +226,7 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 		Release: types.Release{
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypeBinTool,
-			Platform:     platform.EmptyPlatform(),
+			Platform:     platfmt.EmptyPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,
@@ -325,7 +325,7 @@ func (m *Manager) generateBinToolPkg(nCtx contextx.IContext, sourceFile io.ReadC
 	return file.Content(nCtx)
 }
 
-func convPlatToBinToolDirName(releaseType types.ReleaseType, plat platform.Platform) string {
+func convPlatToBinToolDirName(releaseType types.ReleaseType, plat platfmt.Platform) string {
 	if releaseType == types.ReleaseTypeAgent {
 		if plat.Arch == criteria.CPUArchAmd64 && plat.OS == criteria.OSLinux {
 			return binToolDirNameAgentPlatLinuxAmd64
@@ -357,35 +357,35 @@ func convPlatToBinToolDirName(releaseType types.ReleaseType, plat platform.Platf
 	return ""
 }
 
-func convBinToolDirNameToPlat(dirName string) platform.Platform {
+func convBinToolDirNameToPlat(dirName string) platfmt.Platform {
 	switch dirName {
 	case binToolDirNameAgentPlatLinuxAmd64:
 		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
+			return platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
 		}
 	case binToolDirNameAgentPlatLinuxArm64:
 		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
+			return platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
 		}
 	case binToolDirNameAgentPlatWindowsAmd64:
 		{
-			return platform.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
+			return platfmt.NewPlatform(criteria.OSWindows, criteria.CPUArchAmd64)
 		}
 	case binToolDirNameAgentPlatDarwinAmd64:
 		{
-			return platform.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
+			return platfmt.NewPlatform(criteria.OSDarwin, criteria.CPUArchAmd64)
 		}
 	case binToolDirNameProxyPlatLinuxAmd64:
 		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
+			return platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchAmd64)
 		}
 	case binToolDirNameProxyPlatLinuxArm64:
 		{
-			return platform.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
+			return platfmt.NewPlatform(criteria.OSLinux, criteria.CPUArchArm64)
 		}
 	default:
 		{
-			return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+			return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 		}
 	}
 }

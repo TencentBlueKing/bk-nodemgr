@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -31,12 +31,12 @@ func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	os, err := platform.NormalizeOS(req.GetOsType())
+	os, err := platfmt.NormalizeOS(req.GetOsType())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("normalize os failed: %w", err))
 	}
 
-	arch, err := platform.NormalizeArch(req.GetCpuArch())
+	arch, err := platfmt.NormalizeArch(req.GetCpuArch())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("normalize arch failed: %w", err))
 	}
@@ -44,7 +44,7 @@ func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, err
 	file, _, err := h.manager.EnsureNodeToLocal(rCtx,
 		types.ReleaseTypeProxy,
 		types.Generation(req.GetGeneration()),
-		platform.Platform{
+		platfmt.Platform{
 			OS:   os,
 			Arch: arch,
 		}, req.GetVersion())

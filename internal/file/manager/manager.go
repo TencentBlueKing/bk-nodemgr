@@ -28,7 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
@@ -51,19 +51,19 @@ type IManager interface {
 
 	// EnsureNodeToLocal ensure the node pkg to local.
 	// returns file, local-file-dir, error.
-	EnsureNodeToLocal(ctx contextx.IContext, rt types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (
+	EnsureNodeToLocal(ctx contextx.IContext, rt types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string) (
 		fileiface.File, string, error)
 
 	// EnsurePluginToLocal ensure the plugin pkg to local.
 	// returns file, local-file-dir, error.
-	EnsurePluginToLocal(ctx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platform.Platform, version string) (
+	EnsurePluginToLocal(ctx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platfmt.Platform, version string) (
 		fileiface.File, string, error)
 
 	// LaunchTransferNode launch transfer node pkg.
 	LaunchTransferNode(ctx contextx.IContext,
 		gen types.Generation,
 		rt types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
@@ -73,14 +73,14 @@ type IManager interface {
 		name string,
 		gen types.Generation,
 		rt types.ReleaseType,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		version string,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// LaunchTransferInstaller launch transfer installer.
 	LaunchTransferInstaller(ctx contextx.IContext,
-		plat platform.Platform,
+		plat platfmt.Platform,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
@@ -490,7 +490,7 @@ func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext) (filei
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleaseAgentLocal(ctx contextx.IContext, plat platform.Platform, version string) (fileiface.File, error) {
+func (m *Manager) fetchReleaseAgentLocal(ctx contextx.IContext, plat platfmt.Platform, version string) (fileiface.File, error) {
 	// get agent.
 	agent, err := m.storageRelease.GetReleaseAgent(ctx, types.Generation2, plat, version)
 	if err != nil {

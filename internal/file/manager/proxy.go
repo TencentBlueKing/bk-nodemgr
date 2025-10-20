@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -194,7 +194,7 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 }
 
 type releaseProxyPkg struct {
-	platform     platform.Platform
+	platform     platfmt.Platform
 	tempFileName string
 }
 
@@ -213,7 +213,7 @@ const (
 	proxyPkgFileNameCertEncryptKey = "cert_encrypt.key"
 )
 
-func proxyPkgFileNameAgent(plat platform.Platform) string {
+func proxyPkgFileNameAgent(plat platfmt.Platform) string {
 	if plat.OS == criteria.OSWindows {
 		return "gse_agent.exe"
 	}

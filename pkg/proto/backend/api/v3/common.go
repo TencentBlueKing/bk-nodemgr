@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -91,15 +91,15 @@ func validateTimeRange(timeRange *TimeRange, maxDuration time.Duration) error {
 }
 
 // ConvertPlatformToTypes convert platform to types.
-func ConvertPlatformToTypes(plat *Platform) platform.Platform {
-	return platform.Platform{
+func ConvertPlatformToTypes(plat *Platform) platfmt.Platform {
+	return platfmt.Platform{
 		OS:   criteria.OSType(plat.GetOsType()),
 		Arch: criteria.CPUArch(plat.GetCpuArch()),
 	}
 }
 
 // ConvertPlatformFromTypes convert platform from types.
-func ConvertPlatformFromTypes(plat platform.Platform) *Platform {
+func ConvertPlatformFromTypes(plat platfmt.Platform) *Platform {
 	return &Platform{
 		OsType:  string(plat.OS),
 		CpuArch: string(plat.Arch),

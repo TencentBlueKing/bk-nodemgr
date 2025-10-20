@@ -20,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -279,7 +279,7 @@ const (
 	machineARM = 0xB7 // EM_AARCH64
 )
 
-func checkServerBinaryPlatform(r io.Reader) (*platform.Platform, error) {
+func checkServerBinaryPlatform(r io.Reader) (*platfmt.Platform, error) {
 	// read the ELF header.
 	buf := make([]byte, 20) // nolint:mnd
 	if _, err := r.Read(buf); err != nil {
@@ -306,9 +306,9 @@ func checkServerBinaryPlatform(r io.Reader) (*platform.Platform, error) {
 
 	switch machine {
 	case machineAMD:
-		return &platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}, nil
+		return &platfmt.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}, nil
 	case machineARM:
-		return &platform.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64}, nil
+		return &platfmt.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64}, nil
 	default:
 		return nil, fmt.Errorf("unsupported architecture: 0x%X", machine)
 	}

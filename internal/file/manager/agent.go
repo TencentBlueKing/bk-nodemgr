@@ -19,7 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -80,7 +80,7 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 	pkgName, err := nodepkg.FormatPkgName(
 		gen,
 		types.ReleaseTypeOriginAgent,
-		platform.EmptyPlatform(),
+		platfmt.EmptyPlatform(),
 		detail.Version,
 	)
 	if err != nil {
@@ -138,7 +138,7 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
-	plats := make(map[string]platform.Platform)
+	plats := make(map[string]platfmt.Platform)
 	detail := types.NewOriginPkgDetail()
 	if err := checkTgz(file, []tgzReadRule{
 		{
@@ -385,7 +385,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 }
 
 type releaseAgentPkg struct {
-	platform     platform.Platform
+	platform     platfmt.Platform
 	tempFileName string
 }
 
@@ -544,7 +544,7 @@ const (
 )
 
 // nolint: goconst
-func originalAgentFileNameAgent(plat platform.Platform) string {
+func originalAgentFileNameAgent(plat platfmt.Platform) string {
 	if plat.OS == criteria.OSWindows {
 		return "gse_agent.exe"
 	}
@@ -553,7 +553,7 @@ func originalAgentFileNameAgent(plat platform.Platform) string {
 }
 
 // nolint: goconst
-func agentPkgFileNameAgent(plat platform.Platform) string {
+func agentPkgFileNameAgent(plat platfmt.Platform) string {
 	if plat.OS == criteria.OSWindows {
 		return "gse_agent.exe"
 	}
@@ -561,23 +561,23 @@ func agentPkgFileNameAgent(plat platform.Platform) string {
 	return "gse_agent"
 }
 
-func convPlatToAgentDirName(plat platform.Platform) string {
+func convPlatToAgentDirName(plat platfmt.Platform) string {
 	return fmt.Sprintf("%s%s_%s", originalAgentDirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
 }
 
-func convAgentDirNameToPlat(dirName string) platform.Platform {
+func convAgentDirNameToPlat(dirName string) platfmt.Platform {
 	if !strings.HasPrefix(dirName, originalAgentDirNamePlatPrefix) {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
 	dirSplit := strings.SplitN(dirName, "_", originalAgentDirNamePlatSplitTimes)
 	if len(dirSplit) != originalAgentDirNamePlatSplitTimes {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
-	plat, err := platform.Normalize(dirSplit[1], dirSplit[2])
+	plat, err := platfmt.Normalize(dirSplit[1], dirSplit[2])
 	if err != nil {
-		return platform.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
+		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
 	return plat

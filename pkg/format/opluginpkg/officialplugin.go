@@ -15,7 +15,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -23,7 +23,7 @@ import (
 const PkgExtension = "tgz"
 
 // FormatPkgName formats the package name based on the node role, generation, and version.
-func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.Generation, plat platform.Platform, version string) (string, error) {
+func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string) (string, error) {
 	if err := releaseType.Validate(); err != nil {
 		return "", fmt.Errorf("format official plugin pkg name failed: %w", err)
 	}

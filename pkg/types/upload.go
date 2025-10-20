@@ -14,7 +14,7 @@ import (
 	"time"
 
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
 // UploadCategory defines the category of upload.
@@ -59,7 +59,7 @@ type OriginPkgDetail struct {
 	UploadID       string
 	Existed        bool
 	Version        string
-	Platforms      []platform.Platform
+	Platforms      []platfmt.Platform
 	ChangeLogEN    string
 	ChangeLogZH    string
 	ConfigTemplate map[string]string
@@ -89,8 +89,8 @@ type OriginBinToolPkgDetail struct {
 
 	UploadID       string
 	Existed        bool
-	AgentPlatforms []platform.Platform
-	ProxyPlatforms []platform.Platform
+	AgentPlatforms []platfmt.Platform
+	ProxyPlatforms []platfmt.Platform
 }
 
 // OriginPluginBinToolPkgDetail defines the detail of plugin bin tool package.
@@ -99,7 +99,7 @@ type OriginPluginBinToolPkgDetail struct {
 
 	UploadID  string
 	Existed   bool
-	Platforms []platform.Platform
+	Platforms []platfmt.Platform
 }
 
 // OriginOfficialPluginPkgDetail defines the detail of official plugin package.
@@ -121,7 +121,7 @@ type OriginOfficialPluginPkgDetail struct {
 	ConfigTemplates map[string][]PluginPkgConfigTemplate
 	Controller      map[string]ProcessController
 
-	Platforms []platform.Platform
+	Platforms []platfmt.Platform
 }
 
 // NewOriginOfficialPluginPkgDetail creates a new OriginOfficialPluginPkgDetail.
@@ -152,7 +152,7 @@ type OriginExternalPluginPkgDetail struct {
 	ConfigTemplates map[string][]PluginPkgConfigTemplate
 	Controller      map[string]ProcessController
 
-	Platforms []platform.Platform
+	Platforms []platfmt.Platform
 }
 
 // NewOriginExternalPluginPkgDetail creates a new OriginExternalPluginPkgDetail.

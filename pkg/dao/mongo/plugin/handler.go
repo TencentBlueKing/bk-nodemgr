@@ -16,7 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -145,7 +145,7 @@ func convPluginFromTypes(plugin *types.Plugin) *Plugin {
 	return data
 }
 
-func convPlatformFromTypes(p platform.Platform) Platform {
+func convPlatformFromTypes(p platfmt.Platform) Platform {
 	return Platform{
 		OS:   string(p.OS),
 		Arch: string(p.Arch),
@@ -272,8 +272,8 @@ func convertPluginToTypes(data *Plugin) *types.Plugin {
 	return plugin
 }
 
-func convPlatformToTypes(data Platform) platform.Platform {
-	return platform.Platform{
+func convPlatformToTypes(data Platform) platfmt.Platform {
+	return platfmt.Platform{
 		OS:   criteria.OSType(data.OS),
 		Arch: criteria.CPUArch(data.Arch),
 	}

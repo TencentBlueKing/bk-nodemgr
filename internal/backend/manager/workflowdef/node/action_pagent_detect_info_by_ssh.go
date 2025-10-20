@@ -24,7 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -305,12 +305,12 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 				return "", "", "", errors.New("incomplete relay detect result")
 			}
 
-			osType, err := platform.NormalizeOS(osTypeStr)
+			osType, err := platfmt.NormalizeOS(osTypeStr)
 			if err != nil {
 				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
 
-			cpuArch, err := platform.NormalizeArch(cpuArchStr)
+			cpuArch, err := platfmt.NormalizeArch(cpuArchStr)
 			if err != nil {
 				return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 			}

@@ -19,13 +19,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/epluginpkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // existReleaseExternalPlugin checks if release plugin exists.
-func (s *Storage) existReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (
+func (s *Storage) existReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plats ...platfmt.Platform) (
 	bool, error) {
 
 	var err error
@@ -78,7 +78,7 @@ func (s *Storage) upsertManyReleaseExternalPlugin(ctx contextx.IContext, release
 	return nil
 }
 
-func (s *Storage) getReleaseExternalPlugin(ctx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (
+func (s *Storage) getReleaseExternalPlugin(ctx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
 	*types.ReleaseExternalPlugin, error) {
 
 	var (

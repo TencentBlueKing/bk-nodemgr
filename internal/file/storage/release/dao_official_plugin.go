@@ -19,14 +19,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/opluginpkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // existReleaseOfficialPlugin checks if release plugin exists.
 func (s *Storage) existReleaseOfficialPlugin(
-	ctx contextx.IContext, pluginName string, version string, plats ...platform.Platform) (bool, error) {
+	ctx contextx.IContext, pluginName string, version string, plats ...platfmt.Platform) (bool, error) {
 
 	fileNames := make([]string, 0, len(plats))
 	for _, plat := range plats {
@@ -76,7 +76,7 @@ func (s *Storage) upsertManyReleaseOfficialPlugin(ctx contextx.IContext, release
 	return nil
 }
 
-func (s *Storage) getReleaseOfficialPlugin(ctx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (
+func (s *Storage) getReleaseOfficialPlugin(ctx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
 	*types.ReleaseOfficialPlugin, error) {
 
 	var (

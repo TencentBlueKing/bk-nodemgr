@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -41,7 +41,7 @@ func (h *handler) Agent(rCtx restserver.IContext) (*restserver.FileResponse, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	platform, err := platform.Normalize(req.GetOsType(), req.GetCpuArch())
+	platform, err := platfmt.Normalize(req.GetOsType(), req.GetCpuArch())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
@@ -91,7 +91,7 @@ func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	platform, err := platform.Normalize(req.GetOsType(), req.GetCpuArch())
+	platform, err := platfmt.Normalize(req.GetOsType(), req.GetCpuArch())
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}

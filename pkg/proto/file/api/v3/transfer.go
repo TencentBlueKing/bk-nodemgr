@@ -13,7 +13,7 @@ package v3
 import (
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -48,7 +48,7 @@ func (x *TransferLaunchNodeReq) AutoConvert() {
 
 // GetIdentifier get identifier.
 func (x *TransferLaunchNodeReq) GetIdentifier() (
-	types.Generation, types.ReleaseType, platform.Platform, string) {
+	types.Generation, types.ReleaseType, platfmt.Platform, string) {
 
 	return types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),
@@ -109,7 +109,7 @@ func (x *TransferLaunchPluginReq) AutoConvert() {
 }
 
 // GetIdentifier get identifier.
-func (x *TransferLaunchPluginReq) GetIdentifier() (string, types.Generation, types.ReleaseType, platform.Platform, string) {
+func (x *TransferLaunchPluginReq) GetIdentifier() (string, types.Generation, types.ReleaseType, platfmt.Platform, string) {
 	return x.GetName(),
 		types.Generation(x.GetGeneration()),
 		types.ReleaseType(x.GetReleaseType()),

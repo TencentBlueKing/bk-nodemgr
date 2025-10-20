@@ -12,7 +12,7 @@ package release
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -66,7 +66,7 @@ func WithFileName(filename ...string) OptFn {
 }
 
 // WithPlatform provides filtering by platform.
-func WithPlatform(platform ...platform.Platform) OptFn {
+func WithPlatform(platform ...platfmt.Platform) OptFn {
 	if len(platform) == 0 {
 		return func(f bson.D) bson.D {
 			return f

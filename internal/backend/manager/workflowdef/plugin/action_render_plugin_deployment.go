@@ -28,7 +28,7 @@ import (
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -121,7 +121,7 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 
 	std.DeployInfo().BlockingActionName = ActionNameRenderPluginDeployment
 	std.DeployInfo().Plugin.Dynamic.Generation = host.Dynamic.NodeGeneration
-	std.DeployInfo().Plugin.Dynamic.Platform = platform.Platform{
+	std.DeployInfo().Plugin.Dynamic.Platform = platfmt.Platform{
 		OS:   host.Dynamic.NodeOsType,
 		Arch: host.Dynamic.NodeCPUArch,
 	}

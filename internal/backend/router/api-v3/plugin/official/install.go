@@ -12,7 +12,7 @@ package official
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -61,7 +61,7 @@ func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOffic
 	targetVersions := make([]types.TargetPluginVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
 		targetVersions[idx] = types.TargetPluginVersion{
-			Platform: platform.Platform{
+			Platform: platfmt.Platform{
 				OS:   criteria.OSType(version.GetOsType()),
 				Arch: criteria.CPUArch(version.GetCpuArch()),
 			},
@@ -83,7 +83,7 @@ func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOffic
 						Name:       reqPlugin.GetName(),
 						Type:       types.PluginTypeOfficial,
 						Generation: types.Generation2,
-						Platform:   platform.Platform{},
+						Platform:   platfmt.Platform{},
 						Version:    reqPlugin.GetVersion(),
 						HostID:     reqPlugin.GetBkHostId(),
 						Status:     types.ProcessStatusInit,
