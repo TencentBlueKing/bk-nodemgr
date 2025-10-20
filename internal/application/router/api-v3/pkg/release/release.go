@@ -53,6 +53,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/deployed_host/count", restserver.Handler(h.CountDeployedHost))
 
 	h.rg.POST("/agent/download", restserver.StreamHandler(h.AgentDownload))
+	h.rg.POST("/proxy/download", restserver.StreamHandler(h.ProxyDownload))
 }
 
 const (
@@ -300,6 +301,7 @@ func (h *handler) CountDeployedHost(rCtx restserver.IContext) (interface{}, erro
 	return resp.GetData(), nil
 }
 
+// AgentDownload download release agent.
 func (h *handler) AgentDownload(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
 	req := new(protoApplication.PackageReleaseAgentDownloadReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -316,6 +318,27 @@ func (h *handler) AgentDownload(rCtx restserver.IContext) (*restserver.StreamRes
 	}
 
 	logger.G.Biz(rCtx).With("gen", gen, "plat", plat, "version", version).Info("downloaded release agent")
+
+	return resp, nil
+}
+
+// ProxyDownload download release proxy.
+func (h *handler) ProxyDownload(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	req := new(protoApplication.PackageReleaseProxyDownloadReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release proxy, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen, plat, version := req.GetIdentifier()
+	resp, err := h.fileHandler.DownloadReleaseProxy(rCtx, gen, plat, version)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release proxy: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen, "plat", plat, "version", version).Info("downloaded release proxy")
 
 	return resp, nil
 }

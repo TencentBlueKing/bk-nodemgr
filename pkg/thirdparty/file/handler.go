@@ -99,7 +99,10 @@ type IPkgManager interface {
 	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error
 
 	// DownloadReleaseAgent download release agent.
-	DownloadReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*restserver.StreamResponse, error)
+	DownloadReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
+
+	// DownloadReleaseProxy download release proxy.
+	DownloadReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
 }
 
 const (
@@ -280,8 +283,9 @@ func (h *handler) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 	return nil
 }
 
+// DownloadReleaseAgent download release agent.
 func (h *handler) DownloadReleaseAgent(nCtx contextx.IContext,
-	gen types.Generation, plat platform.Platform, version string) (*restserver.StreamResponse, error) {
+	gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error) {
 
 	tenantID, err := tenant.GetID(nCtx)
 	if err != nil {
@@ -296,6 +300,28 @@ func (h *handler) DownloadReleaseAgent(nCtx contextx.IContext,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to download release agent: %w", err)
+	}
+
+	return resp, nil
+}
+
+// DownloadReleaseProxy download release proxy.
+func (h *handler) DownloadReleaseProxy(nCtx contextx.IContext,
+	gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error) {
+
+	tenantID, err := tenant.GetID(nCtx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tenant id: %w", err)
+	}
+
+	resp, err := h.cli.downloadReleaseProxy(nCtx, tenantID, &protoFile.DownloadProxyReq{
+		OsType:     string(plat.OS),
+		CpuArch:    string(plat.Arch),
+		Version:    version,
+		Generation: int64(gen),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to download release proxy: %w", err)
 	}
 
 	return resp, nil

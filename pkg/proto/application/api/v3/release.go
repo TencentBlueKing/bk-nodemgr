@@ -422,7 +422,7 @@ func (x *PackageReleaseDeployedHostCountReq) ConvertConditionsToHostTypes() (*ty
 	}, nil
 }
 
-// CountHostsByOsType count hosts by request.
+// CountHostsByOsTypeAndArch count hosts by request.
 func (x *PackageReleaseDeployedHostCountReq) CountHostsByOsTypeAndArch(hosts []*types.Host) ([]int64, int64, error) {
 	statMap := make(map[PackageReleaseIdentifier]int64)
 	for _, host := range hosts {
@@ -472,15 +472,6 @@ func (x *PackageReleaseDeployedHostCountResp) ConvertResultFromTypes(result []in
 		Total: total,
 		Items: items,
 	}
-}
-
-// GetIdentifier get identifier.
-func (x *PackageReleaseAgentDownloadReq) GetIdentifier() (
-	types.Generation, platform.Platform, string) {
-
-	return types.Generation(x.GetGeneration()),
-		ConvertPlatformToTypes(x.GetPlatform()),
-		x.GetVersion()
 }
 
 // PackageReleaseIdentifier defines the identifier of package release.

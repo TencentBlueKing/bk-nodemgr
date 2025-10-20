@@ -393,6 +393,13 @@ message PackageReleaseAgentDownloadReq {
   string version = 3;
 }
 
+// PackageReleaseProxyDownloadReq is the request for download proxy pkg.
+message PackageReleaseProxyDownloadReq {
+  int64 generation = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
 // FileChunk describes the file chunk data.
 message FileChunk { bytes content = 1; }
 
@@ -553,6 +560,14 @@ service Package {
   rpc DownloadAgent(PackageReleaseAgentDownloadReq) returns (FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/package/release/agent/download"
+      body : "*"
+    };
+  }
+
+  // DownloadProxy download release proxy package.
+  rpc DownloadProxy(PackageReleaseProxyDownloadReq) returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/download"
       body : "*"
     };
   }

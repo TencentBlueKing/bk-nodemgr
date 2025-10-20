@@ -312,7 +312,32 @@ func (c *cli) downloadReleaseAgent(nCtx contextx.IContext, tenantID string, req 
 		WithContext(nCtx).
 		WithHeaders(header).
 		Body(req).
-		EnableLogBody().
+		Do()
+	reader, err := result.RawStream()
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	return &restserver.StreamResponse{
+		Data:       reader,
+		StatusCode: result.StatusCode,
+		Headers:    result.Header,
+	}, nil
+}
+
+func (c *cli) downloadReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadProxyReq) (
+	*restserver.StreamResponse, error) {
+
+	header, err := c.getCommonHeader(tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := c.client.Post().
+		SubResourcef("/download/proxy").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
 		Do()
 	reader, err := result.RawStream()
 	if err != nil {

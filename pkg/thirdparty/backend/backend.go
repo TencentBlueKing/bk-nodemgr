@@ -18,6 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
@@ -85,15 +86,18 @@ func (c *cli) listBusiness(ctx contextx.IContext, req *protoBackend.TopoBusiness
 
 	resp := new(protoBackend.TopoBusinessListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/business/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -116,15 +120,18 @@ func (c *cli) listHost(ctx contextx.IContext, req *protoBackend.TopoHostListReq,
 
 	resp := new(protoBackend.TopoHostListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/host/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -146,15 +153,18 @@ func (c *cli) getHostDistributionByNodeRole(ctx contextx.IContext, req *protoBac
 
 	resp := new(protoBackend.TopoGetHostDistributionByNodeRoleResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/host/get_host_distribution_by_node_role").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -176,15 +186,18 @@ func (c *cli) getHostDistributionByNetworkAreaID(ctx contextx.IContext, req *pro
 
 	resp := new(protoBackend.TopoGetHostDistributionByNetworkAreaIDResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/host/get_host_distribution_by_networkarea_id").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -206,15 +219,18 @@ func (c *cli) distinctHost(ctx contextx.IContext, req *protoBackend.TopoHostDist
 
 	resp := new(protoBackend.TopoHostDistinctResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/host/distinct").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -236,15 +252,18 @@ func (c *cli) createNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNet
 
 	resp := new(protoBackend.TopoNetworkAreaCreateResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkarea/create").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -266,15 +285,18 @@ func (c *cli) updateNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNet
 
 	resp := new(protoBackend.TopoNetworkAreaUpdateResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkarea/update").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -296,15 +318,18 @@ func (c *cli) listNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetwo
 
 	resp := new(protoBackend.TopoNetworkAreaListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkarea/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -327,15 +352,18 @@ func (c *cli) getNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetwor
 
 	resp := new(protoBackend.TopoNetworkAreaGetResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkarea/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -357,15 +385,18 @@ func (c *cli) deleteNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNet
 
 	resp := new(protoBackend.TopoNetworkAreaDeleteResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkarea/delete").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -387,15 +418,18 @@ func (c *cli) createNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNet
 
 	resp := new(protoBackend.TopoNetworkUnitCreateResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkunit/create").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -417,15 +451,18 @@ func (c *cli) updateNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNet
 
 	resp := new(protoBackend.TopoNetworkUnitUpdateResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkunit/update").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -447,15 +484,18 @@ func (c *cli) getNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetwor
 
 	resp := new(protoBackend.TopoNetworkUnitGetResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkunit/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -477,15 +517,18 @@ func (c *cli) listNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNetwo
 
 	resp := new(protoBackend.TopoNetworkUnitListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkunit/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -507,15 +550,18 @@ func (c *cli) deleteNetworkUnit(ctx contextx.IContext, req *protoBackend.TopoNet
 
 	resp := new(protoBackend.TopoNetworkUnitDeleteResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/networkunit/delete").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -537,15 +583,18 @@ func (c *cli) listTopoEvent(ctx contextx.IContext, req *protoBackend.TopoEventLi
 
 	resp := new(protoBackend.TopoEventListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/event/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -567,15 +616,18 @@ func (c *cli) distinctTopoEvent(ctx contextx.IContext, req *protoBackend.TopoEve
 
 	resp := new(protoBackend.TopoEventDistinctResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/event/distinct").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -597,15 +649,18 @@ func (c *cli) listAccessPoint(ctx contextx.IContext, req *protoBackend.TopoAcces
 
 	resp := new(protoBackend.TopoAccessPointListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/accesspoint/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -627,15 +682,18 @@ func (c *cli) getConstant(ctx contextx.IContext, req *protoBackend.TopoConstantG
 
 	resp := new(protoBackend.TopoConstantGetResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/topo/constant/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -657,15 +715,18 @@ func (c *cli) listNodeWorkflow(ctx contextx.IContext, req *protoBackend.NodeWork
 
 	resp := new(protoBackend.NodeWorkflowListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/workflow/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -687,15 +748,18 @@ func (c *cli) distinctNodeWorkflow(ctx contextx.IContext, req *protoBackend.Node
 
 	resp := new(protoBackend.NodeWorkflowDistinctResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/workflow/distinct").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -717,15 +781,18 @@ func (c *cli) listNodeWorkflowOperation(ctx contextx.IContext, req *protoBackend
 
 	resp := new(protoBackend.NodeWorkflowOperationListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/workflow/operation/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -749,15 +816,18 @@ func (c *cli) listNodeWorkflowOperationInstance(
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/workflow/operation/instance/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -781,15 +851,18 @@ func (c *cli) getOperationInstanceLog(
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceLogGetResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/workflow/operation/instance/log/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -814,15 +887,18 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(
 
 	resp := new(protoBackend.NodeWorkflowOperationInstanceListStatusResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/workflow/operation/instance/status/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -845,15 +921,18 @@ func (c *cli) installNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgen
 
 	resp := new(protoBackend.NodeAgentInstallResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/agent/install").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -876,15 +955,18 @@ func (c *cli) upgradeNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgen
 
 	resp := new(protoBackend.NodeAgentUpgradeResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/agent/upgrade").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -907,15 +989,18 @@ func (c *cli) restartNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgen
 
 	resp := new(protoBackend.NodeAgentRestartResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/agent/restart").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -938,15 +1023,18 @@ func (c *cli) reconfigNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAge
 
 	resp := new(protoBackend.NodeAgentReconfigResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/agent/reconfig").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -969,16 +1057,19 @@ func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAge
 
 	resp := new(protoBackend.NodeAgentInstallCheckResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/agent/install_check").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, fmt.Errorf("check agent install node failed: %v", err)
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
@@ -1000,15 +1091,18 @@ func (c *cli) retryOperation(ctx contextx.IContext, req *protoBackend.NodeWorkfl
 
 	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/workflow/operation/retry").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1031,15 +1125,18 @@ func (c *cli) installNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProx
 
 	resp := new(protoBackend.NodeProxyInstallResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/proxy/install").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1062,15 +1159,18 @@ func (c *cli) upgradeNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProx
 
 	resp := new(protoBackend.NodeProxyUpgradeResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/proxy/upgrade").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1093,15 +1193,18 @@ func (c *cli) restartNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProx
 
 	resp := new(protoBackend.NodeProxyRestartResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/proxy/restart").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1124,15 +1227,18 @@ func (c *cli) reconfigNodeProxy(ctx contextx.IContext, req *protoBackend.NodePro
 
 	resp := new(protoBackend.NodeProxyReconfigResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/proxy/reconfig").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1155,15 +1261,18 @@ func (c *cli) updateNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxy
 
 	resp := new(protoBackend.NodeProxyUpdateResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/node/proxy/update").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1180,15 +1289,18 @@ func (c *cli) listRelease(ctx contextx.IContext, req *protoBackend.PackageReleas
 
 	resp := new(protoBackend.PackageReleaseListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1211,15 +1323,18 @@ func (c *cli) distinctRelease(ctx contextx.IContext, req *protoBackend.PackageRe
 
 	resp := new(protoBackend.PackageReleaseDistinctResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/distinct").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1241,15 +1356,18 @@ func (c *cli) setReleaseLabels(ctx contextx.IContext, req *protoBackend.PackageR
 	resp := new(protoBackend.PackageReleaseSetLabelsResp)
 
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/set_labels").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return err
 	}
 
@@ -1265,15 +1383,18 @@ func (c *cli) setReleaseLabelsMany(ctx contextx.IContext, req *protoBackend.Pack
 	resp := new(protoBackend.PackageReleaseSetLabelsManyResp)
 
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/set_labels_many").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return err
 	}
 
@@ -1288,15 +1409,18 @@ func (c *cli) setReleaseLabelsMany(ctx contextx.IContext, req *protoBackend.Pack
 func (c *cli) enableRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseEnableReq) error {
 	resp := new(protoBackend.PackageReleaseEnableResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/enable").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return err
 	}
 
@@ -1311,15 +1435,18 @@ func (c *cli) enableRelease(ctx contextx.IContext, req *protoBackend.PackageRele
 func (c *cli) disableRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDisableReq) error {
 	resp := new(protoBackend.PackageReleaseDisableResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/disable").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return err
 	}
 
@@ -1334,15 +1461,18 @@ func (c *cli) disableRelease(ctx contextx.IContext, req *protoBackend.PackageRel
 func (c *cli) setAsDefaultRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
 	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/set_as_default").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return err
 	}
 
@@ -1359,15 +1489,18 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.IContext, req *protoBackend.Pa
 
 	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/cancel_as_default").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return err
 	}
 
@@ -1382,15 +1515,18 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.IContext, req *protoBackend.Pa
 func (c *cli) deleteRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDeleteReq) error {
 	resp := new(protoBackend.PackageReleaseDeleteResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/package/release/delete").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return err
 	}
 
@@ -1407,15 +1543,18 @@ func (c *cli) listConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPo
 
 	resp := new(protoBackend.ConfigPolicyListResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/policy/config/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1432,15 +1571,18 @@ func (c *cli) getConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPol
 
 	resp := new(protoBackend.ConfigPolicyGetResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/policy/config/get").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1457,15 +1599,18 @@ func (c *cli) createConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/policy/config/create").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1482,15 +1627,18 @@ func (c *cli) updateConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/policy/config/update").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1507,15 +1655,18 @@ func (c *cli) enableConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+
+	result := c.client.Post().
 		SubResourcef("/policy/config/enable").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1532,15 +1683,18 @@ func (c *cli) disableConfigPolicy(ctx contextx.IContext, req *protoBackend.Confi
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
-		SubResourcef("/policy/config/disable").
+
+	result := c.client.Post().
+		SubResourcef("/topo/networkarea/create").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 
@@ -1557,15 +1711,17 @@ func (c *cli) deleteConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
 	header := c.getHeader(ctx)
-	err := c.client.Post().
+	result := c.client.Post().
 		SubResourcef("/policy/config/delete").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
 		EnableLogBody().
 		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
 		return nil, err
 	}
 

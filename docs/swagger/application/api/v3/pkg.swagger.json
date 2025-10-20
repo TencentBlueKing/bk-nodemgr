@@ -390,6 +390,40 @@
         ]
       }
     },
+    "/api/v3/package/release/proxy/download": {
+      "post": {
+        "summary": "DownloadProxy download release proxy package.",
+        "operationId": "Package_DownloadProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseProxyDownloadReq is the request for download proxy pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyDownloadReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/set_as_default": {
       "post": {
         "summary": "SetAsDefaultRelease sets release as default.",
@@ -1198,6 +1232,22 @@
           }
         }
       }
+    },
+    "v3PackageReleaseProxyDownloadReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleaseProxyDownloadReq is the request for download proxy pkg."
     },
     "v3PackageReleaseSetAsDefaultReq": {
       "type": "object",

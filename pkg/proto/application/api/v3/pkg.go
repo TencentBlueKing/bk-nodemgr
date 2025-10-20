@@ -13,6 +13,7 @@ package v3
 import (
 	"errors"
 
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -253,4 +254,43 @@ func (x *PackageReleaseAgentDownloadReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *PackageReleaseAgentDownloadReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *PackageReleaseProxyDownloadReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	if x.GetPlatform() == nil {
+		return errors.New("platform is required")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleaseProxyDownloadReq) AutoConvert() {
+}
+
+// GetIdentifier get identifier.
+func (x *PackageReleaseAgentDownloadReq) GetIdentifier() (
+	types.Generation, platfmt.Platform, string) {
+
+	return types.Generation(x.GetGeneration()),
+		ConvertPlatformToTypes(x.GetPlatform()),
+		x.GetVersion()
+}
+
+// GetIdentifier get identifier.
+func (x *PackageReleaseProxyDownloadReq) GetIdentifier() (
+	types.Generation, platfmt.Platform, string) {
+
+	return types.Generation(x.GetGeneration()),
+		ConvertPlatformToTypes(x.GetPlatform()),
+		x.GetVersion()
 }

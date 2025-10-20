@@ -305,6 +305,7 @@ func (r *Request) isToleranceLatencyExclusionURL(url string) bool {
 
 // Result http response result.
 type Result struct {
+	FullURL    string
 	Body       io.ReadCloser
 	Err        error
 	StatusCode int
@@ -313,9 +314,6 @@ type Result struct {
 
 	// enableLogResponse was used to record some important info for debug.
 	enableLogResponse bool
-
-	// nCtx was used to record some important info for debug.
-	nCtx contextx.IContext
 }
 
 // Into parse body to obj.
@@ -323,10 +321,6 @@ func (r *Result) Into(obj interface{}) error {
 	if r.Err != nil {
 		return r.Err
 	}
-
-	logger.G.Biz(r.nCtx).
-		With("code", r.StatusCode, "body", r.maskResponseBody()).
-		Info("into result")
 
 	if r.Body == nil {
 		return fmt.Errorf("response body is nil")
@@ -360,10 +354,6 @@ func (r *Result) RawData() ([]byte, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
-
-	logger.G.Biz(r.nCtx).
-		With("code", r.StatusCode, "body", r.maskResponseBody()).
-		Info("raw result")
 
 	if r.Body == nil {
 		return nil, fmt.Errorf("response body is nil")
@@ -492,17 +482,17 @@ func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int
 	r.checkToleranceLatency(&start, fullURL)
 
 	result := &Result{
+		FullURL:           fullURL,
 		Body:              resp.Body,
 		StatusCode:        resp.StatusCode,
 		Status:            resp.Status,
 		Header:            resp.Header,
 		enableLogResponse: r.enableLogResponse,
-		nCtx:              r.nCtx,
 	}
 
 	logger.G.Biz(r.nCtx).
 		With("code", result.StatusCode, "method", r.verb, "url", fullURL, "header",
-			r.maskHeader(r.headers), "body", result.maskResponseBody()).
+			r.maskHeader(r.headers)).
 		Info("receive response")
 
 	return result, true
@@ -614,19 +604,23 @@ func (r *Request) maskRequestBody() string {
 	return string(r.body)
 }
 
-// maskResponseBody defaultHeaderMasker the http response body.
+// MaskResponseBody defaultHeaderMasker the http response body.
 // notice: please make sure the response body is necessary and hasn't security risk.
-func (r *Result) maskResponseBody() string {
+func (r *Result) MaskResponseBody() string {
 	if !r.enableLogResponse {
 		return "hidden"
 	}
 
-	body := make([]byte, 0)
-
-	if r.Body != nil {
-		body, _ = io.ReadAll(r.Body)
-		r.Body = io.NopCloser(bytes.NewReader(body))
+	if r.Body == nil {
+		return ""
 	}
 
-	return string(body)
+	bodyData, err := io.ReadAll(r.Body)
+	if err != nil {
+		return fmt.Sprintf("failed to read body: %v", err)
+	}
+
+	r.Body = io.NopCloser(bytes.NewReader(bodyData))
+
+	return string(bodyData)
 }

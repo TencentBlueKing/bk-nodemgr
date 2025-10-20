@@ -20,9 +20,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 32M
+// 32KB
 // bufferSize defines the buffer size of stream response.
-const bufferSize = 1024 * 1024 * 32
+const bufferSize = 32 * 1024
 
 // HandlerFunc defines the router handler.
 type HandlerFunc func(IContext) (interface{}, error)
