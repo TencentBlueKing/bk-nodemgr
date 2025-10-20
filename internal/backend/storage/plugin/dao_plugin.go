@@ -8,13 +8,26 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package handler
+package plugin
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	daoPlugin "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// NewPluginHandler creates a new PluginHandler according to the platform.
-func NewPluginHandler(rootAbsDir, pluginGroup, pluginName string) (pluginhandler.IPluginHandler, error) {
-	return newPluginHandler(rootAbsDir, pluginGroup, pluginName)
+func (s *Storage) getPluginByID(nCtx contextx.IContext, pluginID string) (*types.Plugin, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	plugin, err := s.daoPlugin.Get(nCtx, daoPlugin.WithPluginID(pluginID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get plugin: %w", err)
+	}
+
+	return plugin, nil
 }

@@ -8,37 +8,36 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package official
+package plugin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Install defines the handler to install external plugin.
+// Install defines the handler to install plugin.
 func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.PluginOfficialInstallReq)
+	req := new(protoBackend.PluginInstallReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install official plugin, failed to decode request body.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to decode request body.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginDeployments, hostIDs, err := h.generateInstallPluginDeployments(req)
+	pluginDeployments, hostIDs, err := h.generateInstallPluginDeployments(rCtx, req)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install official plugin, failed to generate plugin deployments.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	workflowID, err := h.manager.LaunchInstallPlugin(rCtx, manager.InstallPluginParam{
-		Type:              types.PluginWorkflowTypeInstallOfficial,
+		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
 		Operator:          rCtx.BKUsername(),
 		PluginDeployments: pluginDeployments,
@@ -48,7 +47,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	respData := &protoBackend.PluginOfficialInstallResp_Data{
+	respData := &protoBackend.PluginInstallResp_Data{
 		WorkflowId: workflowID,
 	}
 
@@ -57,36 +56,23 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	return respData, nil
 }
 
-func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOfficialInstallReq) ([]*types.PluginDeployment, []int64, error) {
-	targetVersions := make([]types.TargetPluginVersion, len(req.GetTargetVersion()))
-	for idx, version := range req.GetTargetVersion() {
-		targetVersions[idx] = types.TargetPluginVersion{
-			Platform: platfmt.Platform{
-				OS:   criteria.OSType(version.GetOsType()),
-				Arch: criteria.CPUArch(version.GetCpuArch()),
-			},
-			Version: version.GetVersion(),
-		}
-	}
+func (h *handler) generateInstallPluginDeployments(nCtx contextx.IContext, req *protoBackend.PluginInstallReq) (
+	[]*types.PluginDeployment, []int64, error) {
 
 	gp := gopool.NewPool()
-	pluginDeployments := make([]*types.PluginDeployment, len(req.GetPlugin()))
-	for i := range req.GetPlugin() {
+	pluginDeployments := make([]*types.PluginDeployment, len(req.GetProcess()))
+	for i := range req.GetProcess() {
 		idx := i
-		reqPlugin := req.GetPlugin()[idx]
+		reqProcess := req.GetProcess()[idx]
 
 		gp.Go(func() error {
 			pluginDeployment := types.NewPluginDeployment(&types.PluginDeploymentInfo{
-				Plugin: types.Plugin{
-					Static: types.PluginStatic{},
-					Dynamic: types.PluginDynamic{
-						Name:       reqPlugin.GetName(),
-						Type:       types.PluginTypeOfficial,
-						Generation: types.Generation2,
-						Platform:   platfmt.Platform{},
-						Version:    reqPlugin.GetVersion(),
-						HostID:     reqPlugin.GetBkHostId(),
-						Status:     types.ProcessStatusInit,
+				Process: types.Process{
+					TenantID: nCtx.TenantID(),
+					HostID:   reqProcess.GetBkHostId(),
+					PluginID: reqProcess.GetPluginId(),
+					Info: types.ProcessInfo{
+						Version: reqProcess.GetVersion(),
 					},
 				},
 				InstallOptions: types.PluginDeploymentInstallOptions{},
@@ -95,7 +81,6 @@ func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOffic
 					EnableReleasePackage: false,
 					EnableInstaller:      true,
 				},
-				TargetVersion: targetVersions,
 			})
 
 			pluginDeployments[idx] = pluginDeployment
@@ -109,7 +94,7 @@ func (h *handler) generateInstallPluginDeployments(req *protoBackend.PluginOffic
 	}
 
 	hostIDMap := make(map[int64]struct{})
-	for _, host := range req.GetPlugin() {
+	for _, host := range req.GetProcess() {
 		hostIDMap[host.GetBkHostId()] = struct{}{}
 	}
 	hostIDs := conv.MapKeyToSlice(hostIDMap)

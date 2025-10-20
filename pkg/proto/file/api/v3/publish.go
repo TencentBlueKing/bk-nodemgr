@@ -56,12 +56,12 @@ func (x *PublishReleasePluginBinToolReq) AutoConvert() {
 }
 
 // Validate check request body.
-func (x *PublishReleaseOfficialPluginReq) Validate() error {
+func (x *PublishReleasePluginReq) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *PublishReleaseOfficialPluginReq) AutoConvert() {
+func (x *PublishReleasePluginReq) AutoConvert() {
 }
 
 // Validate check request body.

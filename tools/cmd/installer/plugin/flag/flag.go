@@ -29,8 +29,8 @@ const (
 	// Status defines the status flag.
 	Status = "status"
 
-	// PluginType defines the plugin type flag.
-	PluginType = "plugin_type"
+	// PluginGroup defines the plugin group flag.
+	PluginGroup = "plugin_group"
 
 	// PluginName defines the plugin name flag.
 	PluginName = "plugin_name"

@@ -48,7 +48,7 @@ func (std *PluginActionStandarder) Initialize(instanceContext *action.InstanceCo
 		return fmt.Errorf("failed to get plugin deployment info: %w", err)
 	}
 
-	std.ctx = contextx.From(std.instanceContext.Ctx, contextx.WithTenantID(std.info.Plugin.TenantID), contextx.WithBKUsername(std.param.Operator))
+	std.ctx = contextx.From(std.instanceContext.Ctx, contextx.WithTenantID(std.info.Process.TenantID), contextx.WithBKUsername(std.param.Operator))
 
 	return nil
 }

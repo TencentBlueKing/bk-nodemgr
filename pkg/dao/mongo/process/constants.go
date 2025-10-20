@@ -8,13 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package handler
+package process
 
-import (
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
+const (
+	// FieldKeyProcessID the process id field key.
+	FieldKeyProcessID = "data.process_id"
+
+	// FieldKeyHostID the host id field key.
+	FieldKeyHostID = "data.host_id"
+
+	// FieldKeyPluginID the plugin id field key.
+	FieldKeyPluginID = "data.plugin_id"
+
+	// FieldKeyInfo the info field key.
+	FieldKeyInfo = "data.info"
 )
-
-// NewPluginHandler creates a new PluginHandler according to the platform.
-func NewPluginHandler(rootAbsDir, pluginGroup, pluginName string) (pluginhandler.IPluginHandler, error) {
-	return newPluginHandler(rootAbsDir, pluginGroup, pluginName)
-}

@@ -17,7 +17,6 @@ import (
 	"path/filepath"
 
 	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
 )
 
@@ -31,8 +30,8 @@ type Variables struct {
 	DeployEnv string
 
 	// optional flags.
-	PluginName string
-	PluginType types.PluginType
+	PluginName  string
+	PluginGroup string
 
 	// generates.
 	DeployDir string
@@ -73,11 +72,8 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, err
 	}
 
-	pluginType, err := cmd.Flags().GetString(pluginflag.PluginType)
+	pluginGroup, err := cmd.Flags().GetString(pluginflag.PluginGroup)
 	if err != nil {
-		return nil, err
-	}
-	if err := types.PluginType(pluginType).Validate(); err != nil {
 		return nil, err
 	}
 
@@ -98,12 +94,12 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 	}
 
 	return &Variables{
-		PluginName: pluginName,
-		PluginType: types.PluginType(pluginType),
-		DeployEnv:  deployEnv,
-		DeployDir:  filepath.Join(baseDeployDir, deployEnv),
-		WorkDir:    filepath.Join(baseWorkDir, deployEnv),
-		DataDir:    filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName),
-		ConfigDir:  filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName, "config"),
+		PluginName:  pluginName,
+		PluginGroup: pluginGroup,
+		DeployEnv:   deployEnv,
+		DeployDir:   filepath.Join(baseDeployDir, deployEnv),
+		WorkDir:     filepath.Join(baseWorkDir, deployEnv),
+		DataDir:     filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName),
+		ConfigDir:   filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName, "config"),
 	}, nil
 }

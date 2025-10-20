@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -87,33 +86,54 @@ func TestHandler_Create(t *testing.T) {
 					Token: token(),
 					Info: &types.PluginDeploymentInfo{
 						BlockingActionName: "wait_plugin_installer_complete",
-						Plugin: types.Plugin{
-							HostID:     0,
-							Type:       "",
-							Generation: 0,
-							Platform: Platform.Platform{
-								OS:   "",
-								Arch: "",
+						Process: types.Process{
+							TenantID: "",
+							HostID:   0,
+							PluginID: "",
+							Name:     "",
+							Info: types.ProcessInfo{
+								Pid:         233,
+								Version:     "1.0.0",
+								AgentID:     "123456",
+								Trusteeship: false,
+								Status:      "running",
 							},
-							Version: "",
+							Identity: types.ProcessIdentity{
+								Name:       "proc-test",
+								SetupPath:  "/usr/local/bin",
+								PidPath:    "/var/run/proc-test.pid",
+								ConfigPath: "/etc/proc-test/proc-test.conf",
+								LogPath:    "/var/log/proc-test.log",
+								User:       "root",
+							},
+							Controller: types.ProcessController{
+								StartCmd:   "./start.sh",
+								StopCmd:    "./stop.sh",
+								RestartCmd: "./restart.sh",
+								ReloadCmd:  "./reload.sh",
+								KillCmd:    "./kill.sh",
+								VersionCmd: "./version.sh",
+								HealthCmd:  "./health.sh",
+							},
+							Resource: types.ProcessResource{
+								CPULimitPercent: 10,
+								MemLimitPercent: 10,
+							},
+							MonitorPolicy: types.ProcessMonitorPolicy{
+								AutoType:       "trusteeship",
+								StartCheckSecs: 5,
+								StopCheckSecs:  5,
+								OpTimeoutSecs:  5,
+							},
 						},
-						InstallerWorkDir: "",
-						InstallOptions:   types.PluginDeploymentInstallOptions{},
-						UpgradeOptions:   types.PluginDeploymentUpgradeOptions{},
-						RestartOptions:   types.PluginDeploymentRestartOptions{},
+						InstallerWorkDir: "/usr/local/bin",
+						InstallOptions: types.PluginDeploymentInstallOptions{
+							Version: "1.0.0",
+						},
 						TransferOptions: types.PluginDeploymentTransferOptions{
 							SelectDownloads:      false,
 							EnableReleasePackage: false,
 							EnableInstaller:      false,
-						},
-						TargetVersion: []types.TargetPluginVersion{
-							{
-								Platform: Platform.Platform{
-									OS:   criteria.OSLinux,
-									Arch: criteria.CPUArchAmd64,
-								},
-								Version: "1.0.0",
-							},
 						},
 					},
 				},
@@ -150,33 +170,13 @@ func TestHandler_GetInfo(t *testing.T) {
 			},
 			want: &types.PluginDeploymentInfo{
 				BlockingActionName: "wait_plugin_installer_complete",
-				Plugin: types.Plugin{
-					HostID:     0,
-					Type:       "",
-					Generation: 0,
-					Platform: Platform.Platform{
-						OS:   "",
-						Arch: "",
-					},
-					Version: "",
-				},
-				InstallerWorkDir: "",
-				InstallOptions:   types.PluginDeploymentInstallOptions{},
-				UpgradeOptions:   types.PluginDeploymentUpgradeOptions{},
-				RestartOptions:   types.PluginDeploymentRestartOptions{},
+				Process:            types.Process{},
+				InstallerWorkDir:   "",
+				InstallOptions:     types.PluginDeploymentInstallOptions{},
 				TransferOptions: types.PluginDeploymentTransferOptions{
 					SelectDownloads:      false,
 					EnableReleasePackage: false,
 					EnableInstaller:      false,
-				},
-				TargetVersion: []types.TargetPluginVersion{
-					{
-						Platform: Platform.Platform{
-							OS:   criteria.OSLinux,
-							Arch: criteria.CPUArchAmd64,
-						},
-						Version: "1.0.0",
-					},
 				},
 			},
 			wantErr: false,
@@ -216,33 +216,54 @@ func TestHandler_UpdateInfo(t *testing.T) {
 				token: token(),
 				info: &types.PluginDeploymentInfo{
 					BlockingActionName: "wait_plugin_installer_complete",
-					Plugin: types.Plugin{
-						HostID:     0,
-						Type:       "",
-						Generation: 0,
-						Platform: Platform.Platform{
-							OS:   "",
-							Arch: "",
+					Process: types.Process{
+						TenantID: "",
+						HostID:   0,
+						PluginID: "",
+						Name:     "",
+						Info: types.ProcessInfo{
+							Pid:         233,
+							Version:     "1.0.0",
+							AgentID:     "123456",
+							Trusteeship: false,
+							Status:      "running",
 						},
-						Version: "",
+						Identity: types.ProcessIdentity{
+							Name:       "proc-test",
+							SetupPath:  "/usr/local/bin",
+							PidPath:    "/var/run/proc-test.pid",
+							ConfigPath: "/etc/proc-test/proc-test.conf",
+							LogPath:    "/var/log/proc-test.log",
+							User:       "root",
+						},
+						Controller: types.ProcessController{
+							StartCmd:   "./start.sh",
+							StopCmd:    "./stop.sh",
+							RestartCmd: "./restart.sh",
+							ReloadCmd:  "./reload.sh",
+							KillCmd:    "./kill.sh",
+							VersionCmd: "./version.sh",
+							HealthCmd:  "./health.sh",
+						},
+						Resource: types.ProcessResource{
+							CPULimitPercent: 10,
+							MemLimitPercent: 10,
+						},
+						MonitorPolicy: types.ProcessMonitorPolicy{
+							AutoType:       "trusteeship",
+							StartCheckSecs: 5,
+							StopCheckSecs:  5,
+							OpTimeoutSecs:  5,
+						},
 					},
-					InstallerWorkDir: "",
-					InstallOptions:   types.PluginDeploymentInstallOptions{},
-					UpgradeOptions:   types.PluginDeploymentUpgradeOptions{},
-					RestartOptions:   types.PluginDeploymentRestartOptions{},
+					InstallerWorkDir: "/usr/local/bin",
+					InstallOptions: types.PluginDeploymentInstallOptions{
+						Version: "1.0.0",
+					},
 					TransferOptions: types.PluginDeploymentTransferOptions{
-						SelectDownloads:      true,
-						EnableReleasePackage: true,
-						EnableInstaller:      true,
-					},
-					TargetVersion: []types.TargetPluginVersion{
-						{
-							Platform: Platform.Platform{
-								OS:   criteria.OSLinux,
-								Arch: criteria.CPUArchAmd64,
-							},
-							Version: "2.0.0",
-						},
+						SelectDownloads:      false,
+						EnableReleasePackage: false,
+						EnableInstaller:      false,
 					},
 				},
 			},

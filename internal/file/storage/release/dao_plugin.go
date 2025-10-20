@@ -18,19 +18,19 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/opluginpkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/pluginpkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// existReleaseOfficialPlugin checks if release plugin exists.
-func (s *Storage) existReleaseOfficialPlugin(
+// existReleasePlugin checks if release plugin exists.
+func (s *Storage) existReleasePlugin(
 	ctx contextx.IContext, pluginName string, version string, plats ...platfmt.Platform) (bool, error) {
 
 	fileNames := make([]string, 0, len(plats))
 	for _, plat := range plats {
-		pluginFileName, err := opluginpkg.FormatPkgName(pluginName, types.ReleaseTypeOfficialPlugin, types.Generation2, plat, version)
+		pluginFileName, err := pluginpkg.FormatPkgName(pluginName, types.ReleaseTypePlugin, types.Generation2, plat, version)
 		if err != nil {
 			return false, err
 		}
@@ -38,7 +38,7 @@ func (s *Storage) existReleaseOfficialPlugin(
 		fileNames = append(fileNames, pluginFileName)
 	}
 
-	num, err := s.daoRelease.Count(ctx, types.ReleaseTypeOfficialPlugin, release.WithFileName(fileNames...))
+	num, err := s.daoRelease.Count(ctx, types.ReleaseTypePlugin, release.WithFileName(fileNames...))
 	if err != nil {
 		return false, err
 	}
@@ -48,19 +48,19 @@ func (s *Storage) existReleaseOfficialPlugin(
 	return result, nil
 }
 
-// upsertManyReleaseOfficialPlugin upsert many release.
-func (s *Storage) upsertManyReleaseOfficialPlugin(ctx contextx.IContext, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error {
+// upsertManyReleasePlugin upsert many release.
+func (s *Storage) upsertManyReleasePlugin(ctx contextx.IContext, releasePlugins []*types.ReleasePlugin) error {
 	var err error
 
-	releases := make([]*types.Release, 0, len(releaseOfficialPlugins))
-	for _, rls := range releaseOfficialPlugins {
+	releases := make([]*types.Release, 0, len(releasePlugins))
+	for _, rls := range releasePlugins {
 		if rls == nil {
 			continue
 		}
 
 		rls.UpdatedAt = time.Now()
 		rls.Operator = ctx.BKUsername()
-		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoOfficialPlugin)
+		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoPlugin)
 		if err != nil {
 			return fmt.Errorf("failed to upsert many release agent: %v", err)
 		}
@@ -68,7 +68,7 @@ func (s *Storage) upsertManyReleaseOfficialPlugin(ctx contextx.IContext, release
 		releases = append(releases, &rls.Release)
 	}
 
-	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypeOfficialPlugin, releases...)
+	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypePlugin, releases...)
 	if err != nil {
 		return fmt.Errorf("failed to upsert many release agent: %v", err)
 	}
@@ -76,31 +76,31 @@ func (s *Storage) upsertManyReleaseOfficialPlugin(ctx contextx.IContext, release
 	return nil
 }
 
-func (s *Storage) getReleaseOfficialPlugin(ctx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
-	*types.ReleaseOfficialPlugin, error) {
+func (s *Storage) getReleasePlugin(ctx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+	*types.ReleasePlugin, error) {
 
 	var (
 		rls *types.Release
 		err error
 	)
 
-	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeOfficialPlugin,
+	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypePlugin,
 		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release official plugin: %w", err)
+		return nil, fmt.Errorf("failed to get release plugin: %w", err)
 	}
 
-	additionInfo := new(types.ReleaseAdditionInfoOfficialPlugin)
+	additionInfo := new(types.ReleaseAdditionInfoPlugin)
 	if err = conv.MapToStruct(rls.AdditionInfo, additionInfo); err != nil {
-		return nil, fmt.Errorf("failed to get release official plugin: %v", err)
+		return nil, fmt.Errorf("failed to get release plugin: %v", err)
 	}
 
-	return &types.ReleaseOfficialPlugin{
-		Release:                           *rls,
-		ReleaseAdditionInfoOfficialPlugin: *additionInfo,
+	return &types.ReleasePlugin{
+		Release:                   *rls,
+		ReleaseAdditionInfoPlugin: *additionInfo,
 	}, nil
 }

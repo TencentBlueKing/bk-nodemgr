@@ -23,7 +23,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils/downloader"
 )
 
@@ -37,7 +36,7 @@ type StepArgs struct {
 	DownloadSvrAddr string
 	CallbackSvrAddr string
 
-	PluginType     types.PluginType
+	PluginGroup    string
 	PluginName     string
 	DeployToken    string
 	PkgVersion     string
@@ -54,7 +53,7 @@ type StepArgs struct {
 // String step args string message.
 func (args StepArgs) String() string {
 	return fmt.Sprintf("plugin-type(%s), plugin-name(%s), deploy-token(%s), pkg-version(%s)",
-		args.PluginType, args.PluginName, args.DeployToken, args.PkgVersion)
+		args.PluginGroup, args.PluginName, args.DeployToken, args.PkgVersion)
 }
 
 // NewStep new a step to download package.
@@ -185,14 +184,12 @@ func (step *Step) downloadReleasePackage(ctx context.Context) error {
 		CPUArch    string `json:"cpu_arch"`
 		Version    string `json:"version"`
 		PluginName string `json:"plugin_name"`
-		PluginType string `json:"plugin_type"`
 	}
 
 	requestBody := getReleasePackageReq{
 		OSType:     runtime.GOOS,
 		CPUArch:    runtime.GOARCH,
 		PluginName: step.args.PluginName,
-		PluginType: string(step.args.PluginType),
 		Version:    step.args.PkgVersion,
 	}
 

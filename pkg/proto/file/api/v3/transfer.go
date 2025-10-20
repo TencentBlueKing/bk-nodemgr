@@ -97,10 +97,6 @@ func (x *TransferLaunchPluginReq) Validate() error {
 		return err
 	}
 
-	if err := types.ReleaseType(x.GetReleaseType()).Validate(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -109,10 +105,9 @@ func (x *TransferLaunchPluginReq) AutoConvert() {
 }
 
 // GetIdentifier get identifier.
-func (x *TransferLaunchPluginReq) GetIdentifier() (string, types.Generation, types.ReleaseType, platfmt.Platform, string) {
+func (x *TransferLaunchPluginReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
 	return x.GetName(),
 		types.Generation(x.GetGeneration()),
-		types.ReleaseType(x.GetReleaseType()),
 		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }

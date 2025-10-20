@@ -337,23 +337,23 @@ func (s *Storage) GetReleaseProxy(
 	return releaseProxy, nil
 }
 
-// GetReleaseOfficialPlugin gets release by generation, release type, platform and version.
-func (s *Storage) GetReleaseOfficialPlugin(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform,
-	version string) (*types.ReleaseOfficialPlugin, error) {
+// GetReleasePlugin gets release by generation, release type, platform and version.
+func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform,
+	version string) (*types.ReleasePlugin, error) {
 
 	var (
-		releasePlugin *types.ReleaseOfficialPlugin
+		releasePlugin *types.ReleasePlugin
 		err           error
 	)
 
 	// record metric.
-	metric := s.metric().Start("get_release_official_plugin")
+	metric := s.metric().Start("get_release_plugin")
 	defer metric.End(err)
 
-	releasePlugin, err = s.getReleaseOfficialPlugin(nCtx, gen, plat, version)
+	releasePlugin, err = s.getReleasePlugin(nCtx, gen, plat, version)
 	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get release official plugin")
-		return nil, fmt.Errorf("failed to get release official plugin: %w", err)
+		logger.G.Sys().WithErr(err).Error("failed to get release plugin")
+		return nil, fmt.Errorf("failed to get release plugin: %w", err)
 	}
 
 	return releasePlugin, nil

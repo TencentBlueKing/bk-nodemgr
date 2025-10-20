@@ -13,7 +13,7 @@ package release
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -27,26 +27,25 @@ type IStorage interface {
 	IDaoBinTool
 	IDaoCert
 	IDaoPluginBinTool
-	IDaoOfficialPlugin
-	IDaoExternalPlugin
+	IDaoPlugin
 }
 
 // IDaoAgent defines the agent interface.
 type IDaoAgent interface {
 	// GetReleaseAgent gets release agent by generation, type, platform and version.
-	GetReleaseAgent(ctx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseAgent, error)
+	GetReleaseAgent(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
 
 	// UpsertManyReleaseAgent upsert many release agent.
 	UpsertManyReleaseAgent(ctx contextx.IContext, releaseAgents []*types.ReleaseAgent) error
 
 	// ExistReleaseAgent checks if release agent exists.
-	ExistReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platfmt.Platform) (bool, error)
+	ExistReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platform.Platform) (bool, error)
 }
 
 // IDaoProxy defines the proxy interface.
 type IDaoProxy interface {
 	// GetReleaseProxy gets release proxy by generation, type, platform and version.
-	GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseProxy, error)
+	GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
 
 	// UpsertManyReleaseProxy upserts many proxy release.
 	UpsertManyReleaseProxy(ctx contextx.IContext, releaseProxys []*types.ReleaseProxy) error
@@ -97,28 +96,15 @@ type IDaoPluginBinTool interface {
 	DeleteReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error
 }
 
-// IDaoOfficialPlugin defines the interface of official plugin.
-type IDaoOfficialPlugin interface {
-	// GetReleaseOfficialPlugin gets release plugin official plugin.
-	GetReleaseOfficialPlugin(ctx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
-		*types.ReleaseOfficialPlugin, error)
+// IDaoPlugin defines the interface of plugin.
+type IDaoPlugin interface {
+	// GetReleasePlugin gets release plugin plugin.
+	GetReleasePlugin(ctx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (
+		*types.ReleasePlugin, error)
 
-	// ExistReleaseOfficialPlugin checks if release official plugin exists.
-	ExistReleaseOfficialPlugin(ctx contextx.IContext, pluginName string, version string, plat ...platfmt.Platform) (bool, error)
+	// ExistReleasePlugin checks if release plugin exists.
+	ExistReleasePlugin(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
 
-	// UpsertManyReleaseOfficialPlugin upserts many release official plugin.
-	UpsertManyReleaseOfficialPlugin(ctx contextx.IContext, releaseOfficialPlugins []*types.ReleaseOfficialPlugin) error
-}
-
-// IDaoExternalPlugin defines the interface of external plugin.
-type IDaoExternalPlugin interface {
-	// GetReleaseExternalPlugin gets release external plugin.
-	GetReleaseExternalPlugin(ctx contextx.IContext, pluginName string, gen types.Generation, plat platfmt.Platform, version string) (
-		*types.ReleaseExternalPlugin, error)
-
-	// ExistReleaseExternalPlugin checks if release external plugin exists.
-	ExistReleaseExternalPlugin(ctx contextx.IContext, pluginName string, version string, plat ...platfmt.Platform) (bool, error)
-
-	// UpsertManyReleaseExternalPlugin upserts many release external plugin.
-	UpsertManyReleaseExternalPlugin(ctx contextx.IContext, releaseExternalPlugins []*types.ReleaseExternalPlugin) error
+	// UpsertManyReleasePlugin upserts many release plugin.
+	UpsertManyReleasePlugin(ctx contextx.IContext, releasePlugins []*types.ReleasePlugin) error
 }

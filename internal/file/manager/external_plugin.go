@@ -21,8 +21,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/epluginpkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/pluginpkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -82,7 +82,7 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 	}
 
 	gen := types.Generation2
-	originalPkgName, err := epluginpkg.FormatPkgName(
+	originalPkgName, err := pluginpkg.FormatPkgName(
 		detail.Name, types.ReleaseTypeOriginExternalPlugin, gen, platfmt.EmptyPlatform(), detail.Version)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to format package")
@@ -113,7 +113,7 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existed, err := m.storageRelease.ExistReleaseExternalPlugin(nCtx, detail.Name, detail.Version, detail.Platforms...)
+	existed, err := m.storageRelease.ExistReleasePlugin(nCtx, detail.Name, detail.Version, detail.Platforms...)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to check if release existed")
 
@@ -176,7 +176,7 @@ type ExternalPluginConfigTemplate struct {
 func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPluginPkgDetail, error) {
 	detail := types.NewOriginExternalPluginPkgDetail()
 
-	if err := checkTgz(file, []tgzReadRule{
+	tgzReadRules := []tgzReadRule{
 		{
 			filePathRegex: []string{
 				buildPrefixMatchRegex(originalExternalPluginDirNamePlatPrefix),
@@ -203,39 +203,19 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 					detail.ConfigTemplates[plat.String()] = make([]types.PluginPkgConfigTemplate, len(pluginProject.ConfigTemplates))
 				}
 
-				for idx, configTemplate := range pluginProject.ConfigTemplates {
-					isMainConfig, err := conv.StringToBool(configTemplate.IsMainConfig)
-					if err != nil {
-						return fmt.Errorf("failed to parse is_main_config: %w", err)
-					}
-
-					detail.ConfigTemplates[plat.String()][idx] = types.PluginPkgConfigTemplate{
-						PluginVersion: configTemplate.PluginVersion,
-						Name:          configTemplate.Name,
-						Version:       configTemplate.Version,
-						FilePath:      configTemplate.FilePath,
-						Format:        configTemplate.Format,
-						IsMainConfig:  isMainConfig,
-						SourcePath:    configTemplate.SourcePath,
-						Variables:     convPropertyToTypes(configTemplate.Variables),
-					}
+				pkgConfigTemplates, err := parseExternalPluginPkgConfigTemplateFromProject(pluginProject)
+				if err != nil {
+					return fmt.Errorf("failed to parse external plugin project config templates: %w", err)
 				}
+				detail.ConfigTemplates[plat.String()] = pkgConfigTemplates
 
-				detail.Controller[plat.String()] = types.ProcessController{
-					StartCmd:   pluginProject.Control.StartCmd,
-					StopCmd:    pluginProject.Control.StopCmd,
-					RestartCmd: pluginProject.Control.RestartCmd,
-					ReloadCmd:  pluginProject.Control.ReloadCmd,
-					KillCmd:    pluginProject.Control.KillCmd,
-					VersionCmd: pluginProject.Control.VersionCmd,
-					HealthCmd:  pluginProject.Control.HealthCmd,
-				}
+				detail.Controller[plat.String()] = buildExternalPluginPkgController(pluginProject)
 
 				return nil
 			},
 		},
 		{
-			filePathRegex: []string{buildPrefixMatchRegex(originalOfficialPluginDirNamePlatPrefix), ".*", ".*"},
+			filePathRegex: []string{buildPrefixMatchRegex(originalExternalPluginDirNamePlatPrefix), ".*", ".*"},
 			callback: func(path []string, _ io.Reader) error {
 				plat := convExternalPluginDirNameToPlat(path[0])
 				if plat.Arch == criteria.CPUArchUnknown || plat.OS == criteria.OSUnknown {
@@ -255,11 +235,48 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				return nil
 			},
 		},
-	}); err != nil {
+	}
+	if err := checkTgz(file, tgzReadRules); err != nil {
 		return nil, err
 	}
 
 	return detail, nil
+}
+
+func parseExternalPluginPkgConfigTemplateFromProject(pluginProject *ExternalPluginProject) ([]types.PluginPkgConfigTemplate, error) {
+	pkgConfigTemplates := make([]types.PluginPkgConfigTemplate, len(pluginProject.ConfigTemplates))
+
+	for idx, configTemplate := range pluginProject.ConfigTemplates {
+		isMainConfig, err := conv.StringToBool(configTemplate.IsMainConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parseExternalPluginPkgConfigTemplateFromProject is_main_config: %w", err)
+		}
+
+		pkgConfigTemplates[idx] = types.PluginPkgConfigTemplate{
+			PluginVersion: configTemplate.PluginVersion,
+			Name:          configTemplate.Name,
+			Version:       configTemplate.Version,
+			FilePath:      configTemplate.FilePath,
+			Format:        configTemplate.Format,
+			IsMainConfig:  isMainConfig,
+			SourcePath:    configTemplate.SourcePath,
+			Variables:     convPropertyToTypes(configTemplate.Variables),
+		}
+	}
+
+	return pkgConfigTemplates, nil
+}
+
+func buildExternalPluginPkgController(pluginProject *ExternalPluginProject) types.ProcessController {
+	return types.ProcessController{
+		StartCmd:   pluginProject.Control.StartCmd,
+		StopCmd:    pluginProject.Control.StopCmd,
+		RestartCmd: pluginProject.Control.RestartCmd,
+		ReloadCmd:  pluginProject.Control.ReloadCmd,
+		KillCmd:    pluginProject.Control.KillCmd,
+		VersionCmd: pluginProject.Control.VersionCmd,
+		HealthCmd:  pluginProject.Control.HealthCmd,
+	}
 }
 
 // PublishReleaseExternalPlugin generates release external plugin by upload-id.
@@ -326,12 +343,12 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 	gp := gopool.NewPool()
 	gen := types.Generation2
 
-	releasesMap := make(map[string]*types.ReleaseExternalPlugin)
+	releasesMap := make(map[string]*types.ReleasePlugin)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
 		gp.Go(func() error {
 			// generate package name.
-			pkgName, err := epluginpkg.FormatPkgName(detail.Name, types.ReleaseTypeExternalPlugin, gen, pkg.platform, detail.Version)
+			pkgName, err := pluginpkg.FormatPkgName(detail.Name, types.ReleaseTypePlugin, gen, pkg.platform, detail.Version)
 			if err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release external plugin package, failed to format package")
 
@@ -345,24 +362,24 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 				return err
 			}
 
-			if err = m.upstreamReleaseExternalPlugin.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
+			if err = m.upstreamReleasePlugin.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to upload to upstream")
 
 				return err
 			}
 
-			file, err := m.upstreamReleaseExternalPlugin.GetFile(nCtx, pkgName)
+			file, err := m.upstreamReleasePlugin.GetFile(nCtx, pkgName)
 			if err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to get temp file")
 
 				return err
 			}
 
-			releasesMap[pkg.platform.String()] = &types.ReleaseExternalPlugin{
+			releasesMap[pkg.platform.String()] = &types.ReleasePlugin{
 				Release: types.Release{
 					Name:         detail.Name,
 					Generation:   gen,
-					Type:         types.ReleaseTypeExternalPlugin,
+					Type:         types.ReleaseTypePlugin,
 					Version:      detail.Version,
 					Platform:     pkg.platform,
 					Labels:       []string{},
@@ -374,7 +391,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 					Operator:     nCtx.BKUsername(),
 					AdditionInfo: nil,
 				},
-				ReleaseAdditionInfoExternalPlugin: types.ReleaseAdditionInfoExternalPlugin{
+				ReleaseAdditionInfoPlugin: types.ReleaseAdditionInfoPlugin{
 					ConfigTemplates:  detail.ConfigTemplates[pkg.platform.String()],
 					PluginController: detail.Controller[pkg.platform.String()],
 				},
@@ -390,7 +407,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 	}
 
 	// upsert release external plugin.
-	if err = m.storageRelease.UpsertManyReleaseExternalPlugin(nCtx, conv.MapValueToSlice(releasesMap)); err != nil {
+	if err = m.storageRelease.UpsertManyReleasePlugin(nCtx, conv.MapValueToSlice(releasesMap)); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release external plugin, failed to upsert release external plugin")
 
 		return err

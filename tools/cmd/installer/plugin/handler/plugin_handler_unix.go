@@ -13,20 +13,10 @@
 package handler
 
 import (
-	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler/unix"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 )
 
-func newPluginHandler(pluginType types.PluginType, rootAbsDir, pluginName string) (pluginhandler.IPluginHandler, error) {
-	switch pluginType {
-	case types.PluginTypeOfficial:
-		return unix.NewOfficialPluginHandler(rootAbsDir, pluginName)
-	case types.PluginTypeExternal:
-		return unix.NewExternalPluginHandler(rootAbsDir, pluginName)
-	default:
-		return nil, fmt.Errorf("plugin type %s not support", pluginType)
-	}
+func newPluginHandler(rootAbsDir, pluginGroup, pluginName string) (pluginhandler.IPluginHandler, error) {
+	return unix.NewPluginHandler(rootAbsDir, pluginGroup, pluginName)
 }

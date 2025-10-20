@@ -31,18 +31,7 @@ func (h *handler) Plugin(rCtx restserver.IContext) (*restserver.FileResponse, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginType := types.PluginType(req.GetPluginType())
 	pluginName := req.GetPluginName()
-
-	var rt types.ReleaseType
-	switch pluginType {
-	case types.PluginTypeOfficial:
-		rt = types.ReleaseTypeOfficialPlugin
-	case types.PluginTypeExternal:
-		rt = types.ReleaseTypeExternalPlugin
-	default:
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("unsupport plugin type(%s)", pluginType))
-	}
 
 	os, err := platfmt.NormalizeOS(req.GetOsType())
 	if err != nil {
@@ -55,15 +44,9 @@ func (h *handler) Plugin(rCtx restserver.IContext) (*restserver.FileResponse, er
 	}
 
 	version := req.GetVersion()
+	platform := platfmt.Platform{OS: os, Arch: arch}
 
-	file, _, err := h.manager.EnsurePluginToLocal(rCtx,
-		rt,
-		pluginName,
-		types.Generation2,
-		platfmt.Platform{
-			OS:   os,
-			Arch: arch,
-		}, version)
+	file, _, err := h.manager.EnsurePluginToLocal(rCtx, pluginName, types.Generation2, platform, version)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}

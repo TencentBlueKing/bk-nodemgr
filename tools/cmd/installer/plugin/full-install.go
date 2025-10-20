@@ -60,13 +60,13 @@ func NewFullInstall() *cobra.Command {
 			}
 			persistentVars = vars
 
-			pkgPath = filepath.Join(persistentVars.DataDir, step.GenReleasePkgName(persistentVars.PluginType, persistentVars.PluginName, pluginVersion))
+			pkgPath = filepath.Join(persistentVars.DataDir, step.GenReleasePkgName(persistentVars.PluginName, pluginVersion))
 
 			if logDir == "" {
 				logDir = filepath.Join(persistentVars.DataDir, "logs")
 			}
 
-			pluginHandler, err = handler.NewPluginHandler(vars.PluginType, vars.DeployDir, vars.PluginName)
+			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
 			if err != nil {
 				return err
 			}
@@ -100,7 +100,7 @@ func NewFullInstall() *cobra.Command {
 			if err := filedownloader.NewStep(filedownloader.StepArgs{
 				DownloadSvrAddr:              downloadSvrAddr,
 				CallbackSvrAddr:              callbackSvrAddr,
-				PluginType:                   persistentVars.PluginType,
+				PluginGroup:                  persistentVars.PluginGroup,
 				PluginName:                   persistentVars.PluginName,
 				DeployToken:                  deployToken,
 				PkgVersion:                   pluginVersion,

@@ -12,9 +12,6 @@ package v3
 
 import (
 	"errors"
-	"fmt"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Validate check request body.
@@ -71,10 +68,6 @@ func (x *DownloadProxyReq) AutoConvert() {
 func (x *DownloadPluginReq) Validate() error {
 	if x.GetPluginName() == "" {
 		return errors.New("plugin_name is required")
-	}
-
-	if err := types.PluginType(x.GetPluginType()).Validate(); err != nil {
-		return fmt.Errorf("plugin_type is invalid: %w", err)
 	}
 
 	if x.GetCpuArch() == "" {

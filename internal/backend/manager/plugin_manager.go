@@ -90,10 +90,7 @@ func (mgr *Manager) createInstallPluginOper(nCtx contextx.IContext, operator str
 		return err
 	}
 
-	operationDef, err := mgr.getPluginInstallOperationDef(deploy, operator)
-	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to get plugin install operation definition")
-	}
+	operationDef := mgr.getPluginInstallOperationDef(deploy, operator)
 
 	operationParam := operationDef.DefaultParameters()
 
@@ -117,17 +114,12 @@ func (mgr *Manager) createInstallPluginOper(nCtx contextx.IContext, operator str
 	return nil
 }
 
-func (mgr *Manager) getPluginInstallOperationDef(deploy *types.PluginDeployment, operator string) (operation.Definition, error) {
-	switch deploy.Info.Plugin.Dynamic.Type {
-	case types.PluginTypeOfficial:
-		return plugin.NewOperInstallPlugin(plugin.OperParamInstallPlugin{
-			PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
-				Token:    deploy.Token,
-				TenantID: deploy.Info.Plugin.TenantID,
-				Operator: operator,
-			},
-		}), nil
-	default:
-		return nil, fmt.Errorf("unsupported plugin type: %s", deploy.Info.Plugin.Dynamic.Type)
-	}
+func (mgr *Manager) getPluginInstallOperationDef(deploy *types.PluginDeployment, operator string) operation.Definition {
+	return plugin.NewOperInstallPlugin(plugin.OperParamInstallPlugin{
+		PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+			Token:    deploy.Token,
+			TenantID: deploy.Info.Process.TenantID,
+			Operator: operator,
+		},
+	})
 }

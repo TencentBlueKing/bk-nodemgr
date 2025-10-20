@@ -44,14 +44,15 @@ type ITransfer interface {
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// LaunchTransferPlugin launch transfer release.
-	LaunchTransferPlugin(nCtx contextx.IContext,
+	LaunchTransferPlugin(
+		nCtx contextx.IContext,
 		name string,
 		gen types.Generation,
-		rt types.ReleaseType,
 		plat platfmt.Platform,
 		version string,
 		dstDir string,
-		dstHost *types.Host) (types.ISimpleTransferHandler, error)
+		dstHost *types.Host,
+	) (types.ISimpleTransferHandler, error)
 
 	// LaunchTransferInstaller launch transfer installer.
 	LaunchTransferInstaller(nCtx contextx.IContext,
@@ -366,24 +367,23 @@ func (h *handler) LaunchTransferNode(nCtx contextx.IContext,
 }
 
 // LaunchTransferPlugin launch transfer release.
-func (h *handler) LaunchTransferPlugin(nCtx contextx.IContext,
+func (h *handler) LaunchTransferPlugin(
+	nCtx contextx.IContext,
 	name string,
 	gen types.Generation,
-	rt types.ReleaseType,
 	plat platfmt.Platform,
 	version string,
 	dstDir string,
-	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+	dstHost *types.Host,
+) (types.ISimpleTransferHandler, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.launchTransferPlugin(nCtx, tenantID, &protoFile.TransferLaunchPluginReq{
+	resp, err := h.cli.launchTransferPlugin(nCtx, nCtx.TenantID(), &protoFile.TransferLaunchPluginReq{
 		Name:         name,
 		Generation:   int64(gen),
-		ReleaseType:  string(rt),
 		Platform:     protoFile.ConvertPlatformFromTypes(plat),
 		Version:      version,
 		TargetDir:    dstDir,

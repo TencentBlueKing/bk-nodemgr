@@ -43,8 +43,8 @@ const (
 	// pluginFlagStatus plugin flag name defines the status.
 	pluginFlagStatus pluginFlagName = "status"
 
-	// pluginFlagPluginType plugin flag name defines the plugin type.
-	pluginFlagPluginType pluginFlagName = "plugin_type"
+	// pluginFlagPluginGroup plugin flag name defines the plugin type.
+	pluginFlagPluginGroup pluginFlagName = "plugin_type"
 
 	// pluginFlagPluginName plugin flag name defines the plugin name.
 	pluginFlagPluginName pluginFlagName = "plugin_name"
@@ -108,7 +108,7 @@ func (params *PluginCommonParams) Validate() error {
 type PluginInstallParams struct {
 	PluginCommonParams
 
-	PluginType    string
+	PluginGroup   string
 	PluginName    string
 	PluginVersion string
 
@@ -129,7 +129,7 @@ func (params *PluginInstallParams) buildArgs() []string {
 	args := []string{
 		fmt.Sprintf("--%s %s", pluginFlagBaseDeployDir, params.BaseDeployDir),
 		fmt.Sprintf("--%s %s", pluginFlagBaseWorkDir, params.BaseWorkDir),
-		fmt.Sprintf("--%s %s", pluginFlagPluginType, params.PluginType),
+		fmt.Sprintf("--%s %s", pluginFlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginFlagPluginName, params.PluginName),
 		fmt.Sprintf("--%s %s", pluginFlagPluginVersion, params.PluginVersion),
 		fmt.Sprintf("--%s %s", pluginFlagDeployEnv, params.DeployEnv),
@@ -155,7 +155,7 @@ func (params *PluginInstallParams) ToUnixScript() (string, string, error) {
 	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginCmdFullInstall, strings.Join(args, " "))
 
 	// wrap cmd with stdout.
-	scriptName := fmt.Sprintf("plugin_install_%s_%s.sh", params.PluginType, params.PluginName)
+	scriptName := fmt.Sprintf("plugin_install_%s_%s.sh", params.PluginGroup, params.PluginName)
 
 	stdoutPath := filepath.Join(params.InstallWorkDir, fmt.Sprintf("%s.stdout", scriptName))
 	scriptContent := fmt.Sprintf("%s >%s 2>&1 &", cmdStr, stdoutPath)
@@ -176,7 +176,7 @@ func (params *PluginInstallParams) ToWindowsScript() (string, string, error) {
 	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginCmdFullInstall, strings.Join(args, " "))
 
 	// wrap cmd with stdout.
-	scriptName := fmt.Sprintf("plugin_install_%s_%s.bat", params.PluginType, params.PluginName)
+	scriptName := fmt.Sprintf("plugin_install_%s_%s.bat", params.PluginGroup, params.PluginName)
 	scriptContent := fmt.Sprintf("%s", cmdStr)
 
 	return scriptName, scriptContent, nil

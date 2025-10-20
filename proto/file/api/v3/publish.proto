@@ -72,13 +72,13 @@ message PublishReleasePluginBinToolResp {
   Data data = 4;
 }
 
-// PublishReleaseOfficialPluginReq is the request for upload release official
+// PublishReleasePluginReq is the request for upload release
 // plugin pkg.
-message PublishReleaseOfficialPluginReq { string upload_id = 1; }
+message PublishReleasePluginReq { string upload_id = 1; }
 
-// PublishReleaseOfficialPluginResp is the response for upload release official
+// PublishReleasePluginResp is the response for upload release
 // plugin pkg.
-message PublishReleaseOfficialPluginResp {
+message PublishReleasePluginResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -149,11 +149,11 @@ service Publish {
     };
   }
 
-  // PublishReleaseOfficialPlugin provides release official plugin publish.
-  rpc PublishReleaseOfficialPlugin(PublishReleaseOfficialPluginReq)
-      returns (PublishReleaseOfficialPluginResp) {
+  // PublishReleasePlugin provides release plugin publish.
+  rpc PublishReleasePlugin(PublishReleasePluginReq)
+      returns (PublishReleasePluginResp) {
     option (google.api.http) = {
-      post : "/publish/release/official_plugin"
+      post : "/publish/release/plugin"
       body : "*"
     };
   }

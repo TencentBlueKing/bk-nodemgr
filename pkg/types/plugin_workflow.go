@@ -32,26 +32,26 @@ type PluginWorkflow struct {
 type PluginWorkflowType string
 
 const (
-	// PluginWorkflowTypeInstallOfficial is the operation type for install official.
-	PluginWorkflowTypeInstallOfficial PluginWorkflowType = "install_official"
+	// PluginWorkflowTypeInstall is the operation type for install plugin.
+	PluginWorkflowTypeInstall PluginWorkflowType = "install_plugin"
 
-	// PluginWorkflowTypeUpgradeOfficial is the operation type for upgrade official.
-	PluginWorkflowTypeUpgradeOfficial PluginWorkflowType = "upgrade_official"
+	// PluginWorkflowTypeUpgrade is the operation type for upgrade plugin.
+	PluginWorkflowTypeUpgrade PluginWorkflowType = "upgrade_plugin"
 
-	// PluginWorkflowTypeReconfigOfficial is the operation type for reconfig official.
-	PluginWorkflowTypeReconfigOfficial PluginWorkflowType = "reconfig_official"
+	// PluginWorkflowTypeReconfig is the operation type for reconfig plugin.
+	PluginWorkflowTypeReconfig PluginWorkflowType = "reconfig_plugin"
 
-	// PluginWorkflowTypeRestartOfficial is the operation type for restart official.
-	PluginWorkflowTypeRestartOfficial PluginWorkflowType = "restart_official"
+	// PluginWorkflowTypeRestart is the operation type for restart plugin.
+	PluginWorkflowTypeRestart PluginWorkflowType = "restart_plugin"
 )
 
 // Validate validates the plugin workflow type.
 func (pluginWorkflowType PluginWorkflowType) Validate() error {
 	switch pluginWorkflowType {
-	case PluginWorkflowTypeInstallOfficial,
-		PluginWorkflowTypeUpgradeOfficial,
-		PluginWorkflowTypeReconfigOfficial,
-		PluginWorkflowTypeRestartOfficial:
+	case PluginWorkflowTypeInstall,
+		PluginWorkflowTypeUpgrade,
+		PluginWorkflowTypeReconfig,
+		PluginWorkflowTypeRestart:
 		return nil
 	default:
 		return fmt.Errorf("invalid plugin workflow type: %s", pluginWorkflowType)

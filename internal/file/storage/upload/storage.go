@@ -30,7 +30,7 @@ type IStorage interface {
 	IBinTool
 	ICert
 	IPluginBinTool
-	IOfficialPlugin
+	IPlugin
 	IExternalPlugin
 }
 

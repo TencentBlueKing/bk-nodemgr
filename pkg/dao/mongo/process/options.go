@@ -8,13 +8,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package handler
+package process
 
-import (
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
-)
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 
-// NewPluginHandler creates a new PluginHandler according to the platform.
-func NewPluginHandler(rootAbsDir, pluginGroup, pluginName string) (pluginhandler.IPluginHandler, error) {
-	return newPluginHandler(rootAbsDir, pluginGroup, pluginName)
+// OptFn provides filtering options.
+type OptFn = base.OptFn
+
+// WithHostID filters by host-id.
+func WithHostID(hostIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyHostID, hostIDs...)
+}
+
+// WithPluginID filters by plugin-id.
+func WithPluginID(pluginIDs ...string) OptFn {
+	return base.WithValues(FieldKeyPluginID, pluginIDs...)
+}
+
+// WithProcessID filters by process-id.
+func WithProcessID(processIDs ...string) OptFn {
+	return base.WithValues(FieldKeyProcessID, processIDs...)
 }

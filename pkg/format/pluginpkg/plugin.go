@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package opluginpkg provides functions for formatting official plugin package names.
-package opluginpkg
+// Package pluginpkg provides functions for formatting plugin package names.
+package pluginpkg
 
 import (
 	"errors"
@@ -25,17 +25,17 @@ const PkgExtension = "tgz"
 // FormatPkgName formats the package name based on the node role, generation, and version.
 func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string) (string, error) {
 	if err := releaseType.Validate(); err != nil {
-		return "", fmt.Errorf("format official plugin pkg name failed: %w", err)
+		return "", fmt.Errorf("format plugin pkg name failed: %w", err)
 	}
 
 	if version == "" {
-		return "", errors.New("format official plugin pkg name failed, version is empty")
+		return "", errors.New("format plugin pkg name failed, version is empty")
 	}
 
 	// origin agent pkg contains all platforms in one pkg.
 	// so the pkg-name should not contain platform info.
 	switch releaseType {
-	case types.ReleaseTypeOriginOfficialPlugin:
+	case types.ReleaseTypeOriginPlugin, types.ReleaseTypeOriginExternalPlugin:
 		pkgName := fmt.Sprintf(
 			"bk-nodemgr_%s_%d_%s-%s-all.%s",
 			releaseType,
@@ -45,9 +45,9 @@ func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.G
 			PkgExtension)
 
 		return pkgName, nil
-	case types.ReleaseTypeOfficialPlugin:
+	case types.ReleaseTypePlugin:
 		if !plat.Validate() {
-			return "", fmt.Errorf("format official plugin pkg name failed, platform is invalid: %s", plat.String())
+			return "", fmt.Errorf("format plugin pkg name failed, platform is invalid: %s", plat.String())
 		}
 
 		pkgName := fmt.Sprintf(
@@ -62,6 +62,6 @@ func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.G
 
 		return pkgName, nil
 	default:
-		return "", fmt.Errorf("format official plugin pkg name failed, release type is invalid: %s", releaseType)
+		return "", fmt.Errorf("format plugin pkg name failed, release type is invalid: %s", releaseType)
 	}
 }

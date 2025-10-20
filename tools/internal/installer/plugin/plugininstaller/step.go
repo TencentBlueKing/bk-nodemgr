@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package plugininstaller this package is used to install bk-nodemgr official/external plugins.
+// Package plugininstaller this package is used to install bk-nodemgr plugins.
 package plugininstaller
 
 import (

@@ -14,28 +14,28 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// getReleaseOfficialPlugin gets release by generation, release type, platform and version.
-func (s *Storage) getReleaseOfficialPlugin(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform,
-	version string) (*types.ReleaseOfficialPlugin, error) {
+// getReleasePlugin gets release by generation, release type, platform and version.
+func (s *Storage) getReleasePlugin(nCtx contextx.IContext, gen types.Generation, plat platform.Platform,
+	version string) (*types.ReleasePlugin, error) {
 
-	rls, err := s.getRelease(nCtx, gen, types.ReleaseTypeOfficialPlugin, plat, version)
+	rls, err := s.getRelease(nCtx, gen, types.ReleaseTypePlugin, plat, version)
 	if err != nil {
 		return nil, err
 	}
 
-	additionInfo := new(types.ReleaseAdditionInfoOfficialPlugin)
+	additionInfo := new(types.ReleaseAdditionInfoPlugin)
 	err = conv.MapToStruct(rls.AdditionInfo, additionInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert addition info to struct: %w", err)
 	}
 
-	return &types.ReleaseOfficialPlugin{
-		Release:                           *rls,
-		ReleaseAdditionInfoOfficialPlugin: *additionInfo,
+	return &types.ReleasePlugin{
+		Release:                   *rls,
+		ReleaseAdditionInfoPlugin: *additionInfo,
 	}, nil
 }

@@ -12,34 +12,17 @@ package v3
 
 import (
 	"errors"
-	"fmt"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
 // Validate check body.
-func (x *PluginOfficialInstallReq) Validate() error {
-	switch {
-	case x.GetDisableDefaultTargetVersion() && len(x.GetTargetVersion()) == 0:
-		return errors.New("target_version can not be empty when disable_default_target_version is true")
-	case !x.GetDisableDefaultTargetVersion() && len(x.GetTargetVersion()) > 0:
-		return errors.New("target_version can not be set when disable_default_target_version is false")
-	}
-
-	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *PluginOfficialInstallReq_TargetVersion) string {
-		return fmt.Sprintf("%s:%s", v.GetOsType(), v.GetCpuArch())
-	})
-	if err != nil {
-		return err
-	}
-
-	plugins := x.GetPlugin()
-	if len(plugins) == 0 {
+func (x *PluginInstallReq) Validate() error {
+	process := x.GetProcess()
+	if len(process) == 0 {
 		return errors.New("plugin can not be empty")
 	}
 
-	for idx := range plugins {
-		if err := plugins[idx].Validate(); err != nil {
+	for idx := range process {
+		if err := process[idx].Validate(); err != nil {
 			return err
 		}
 	}
@@ -49,13 +32,13 @@ func (x *PluginOfficialInstallReq) Validate() error {
 
 // Validate check body.
 // nolint: protogetter
-func (x *PluginOfficialInstallReq_Plugin) Validate() error {
+func (x *PluginInstallReq_Process) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id can not be zero")
 	}
 
-	if x.GetName() == "" {
-		return errors.New("name can not be empty")
+	if x.GetPluginId() == "" {
+		return errors.New("plugin_id can not be empty")
 	}
 
 	if x.GetVersion() == "" {
@@ -66,15 +49,15 @@ func (x *PluginOfficialInstallReq_Plugin) Validate() error {
 }
 
 // AutoConvert auto convert.
-func (x *PluginOfficialInstallReq) AutoConvert() {
-	plugins := x.GetPlugin()
-	for idx := range plugins {
-		plugins[idx].AutoConvert()
+func (x *PluginInstallReq) AutoConvert() {
+	process := x.GetProcess()
+	for idx := range process {
+		process[idx].AutoConvert()
 	}
 }
 
 // AutoConvert auto convert.
-func (x *PluginOfficialInstallReq_Plugin) AutoConvert() {
+func (x *PluginInstallReq_Process) AutoConvert() {
 	if x.BkHostId == nil {
 		x.BkHostId = new(int64)
 		*x.BkHostId = -1

@@ -12,25 +12,31 @@
 package plugin
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin/official"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg *gin.RouterGroup
+	rg              *gin.RouterGroup
+	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
+	manager         manager.IPluginManager
 }
 
-func newHandler(rg *gin.RouterGroup) *handler {
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/plugin"),
+		rg:              rg.Group("/plugin"),
+		daoNodeWorkflow: capability.StorageNode,
+		manager:         capability.Manager,
 	}
 }
 
 // Load loads node handler.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
-	h := newHandler(rg)
+	h := newHandler(rg, capability)
 
-	official.Load(h.rg, capability)
+	h.rg.POST("/install", restserver.Handler(h.Install))
 }

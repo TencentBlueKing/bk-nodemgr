@@ -12,14 +12,12 @@ package pluginhandler
 
 import (
 	"context"
-
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 )
 
 // IPluginHandler plugin handler interface.
 type IPluginHandler interface {
-	// PluginType return plugin type.
-	PluginType() types.PluginType
+	// Group return plugin group.
+	Group() string
 
 	// FS return plugin file system handler.
 	FS() IPluginFSHandler

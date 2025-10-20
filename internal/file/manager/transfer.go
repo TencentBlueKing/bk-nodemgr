@@ -184,13 +184,13 @@ func (m *Manager) LaunchTransferNode(nCtx contextx.IContext,
 func (m *Manager) LaunchTransferPlugin(nCtx contextx.IContext,
 	name string,
 	gen types.Generation,
-	rt types.ReleaseType,
 	plat platfmt.Platform,
 	version string,
 	dstDir string,
-	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
+	dstHost *types.Host,
+) (types.ISimpleTransferHandler, error) {
 
-	file, dir, err := m.EnsurePluginToLocal(nCtx, rt, name, gen, plat, version)
+	file, dir, err := m.EnsurePluginToLocal(nCtx, name, gen, plat, version)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release file: %w", err)
 	}

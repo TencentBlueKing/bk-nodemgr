@@ -10,7 +10,11 @@
 
 package types
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+)
 
 // ProcessStatus represents the status of process.
 type ProcessStatus string
@@ -183,4 +187,54 @@ func (spec ProcessSpec) Validate() error {
 	}
 
 	return nil
+}
+
+// ProcessController defines the control of plugin.
+type ProcessController struct {
+	StartCmd   string
+	StopCmd    string
+	RestartCmd string
+	ReloadCmd  string
+	KillCmd    string
+	VersionCmd string
+	HealthCmd  string
+}
+
+// Validate validates the release type.
+func (controller ProcessController) Validate() error {
+	if controller.StartCmd == "" {
+		return fmt.Errorf("start cmd is empty")
+	}
+	if controller.StopCmd == "" {
+		return fmt.Errorf("stop cmd is empty")
+	}
+	if controller.RestartCmd == "" {
+		return fmt.Errorf("restart cmd is empty")
+	}
+	if controller.ReloadCmd == "" {
+		return fmt.Errorf("reload cmd is empty")
+	}
+
+	return nil
+}
+
+// Process define the all info of plugin.
+type Process struct {
+	TenantID  string
+	ProcessID string
+	HostID    int64
+	PluginID  string
+
+	Name    string
+	PkgName string
+	Group   string
+
+	Platform   platform.Platform
+	Generation Generation
+
+	Info          ProcessInfo
+	Identity      ProcessIdentity
+	Controller    ProcessController
+	Resource      ProcessResource
+	MonitorPolicy ProcessMonitorPolicy
 }

@@ -152,15 +152,15 @@
         ]
       }
     },
-    "/publish/release/official_plugin": {
+    "/publish/release/plugin": {
       "post": {
-        "summary": "PublishReleaseOfficialPlugin provides release official plugin publish.",
-        "operationId": "Publish_PublishReleaseOfficialPlugin",
+        "summary": "PublishReleasePlugin provides release plugin publish.",
+        "operationId": "Publish_PublishReleasePlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PublishReleaseOfficialPluginResp"
+              "$ref": "#/definitions/v3PublishReleasePluginResp"
             }
           },
           "default": {
@@ -173,11 +173,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PublishReleaseOfficialPluginReq is the request for upload release official\nplugin pkg.",
+            "description": "PublishReleasePluginReq is the request for upload release\nplugin pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PublishReleaseOfficialPluginReq"
+              "$ref": "#/definitions/v3PublishReleasePluginReq"
             }
           }
         ],
@@ -408,37 +408,6 @@
     "v3PublishReleaseExternalPluginRespData": {
       "type": "object"
     },
-    "v3PublishReleaseOfficialPluginReq": {
-      "type": "object",
-      "properties": {
-        "upload_id": {
-          "type": "string"
-        }
-      },
-      "description": "PublishReleaseOfficialPluginReq is the request for upload release official\nplugin pkg."
-    },
-    "v3PublishReleaseOfficialPluginResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PublishReleaseOfficialPluginRespData"
-        }
-      },
-      "description": "PublishReleaseOfficialPluginResp is the response for upload release official\nplugin pkg."
-    },
-    "v3PublishReleaseOfficialPluginRespData": {
-      "type": "object"
-    },
     "v3PublishReleasePluginBinToolReq": {
       "type": "object",
       "properties": {
@@ -468,6 +437,37 @@
       "description": "PublishReleasePluginBinToolResp is the response for upload release plugin\nbintool pkg."
     },
     "v3PublishReleasePluginBinToolRespData": {
+      "type": "object"
+    },
+    "v3PublishReleasePluginReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleasePluginReq is the request for upload release\nplugin pkg."
+    },
+    "v3PublishReleasePluginResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleasePluginRespData"
+        }
+      },
+      "description": "PublishReleasePluginResp is the response for upload release\nplugin pkg."
+    },
+    "v3PublishReleasePluginRespData": {
       "type": "object"
     },
     "v3PublishReleaseProxyReq": {

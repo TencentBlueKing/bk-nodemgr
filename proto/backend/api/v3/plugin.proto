@@ -1,0 +1,29 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// PluginInstallReq describes the plugin install request.
+message PluginInstallReq {
+  message Process {
+    optional int64 bk_host_id = 1;
+    string plugin_id = 2;
+    string version = 3;
+  }
+
+  repeated Process process = 1;
+}
+
+// PluginInstallResp describes the plugin install response.
+message PluginInstallResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}

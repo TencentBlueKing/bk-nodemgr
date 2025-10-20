@@ -372,9 +372,6 @@
           "type": "integer",
           "format": "int64"
         },
-        "release_type": {
-          "type": "string"
-        },
         "platform": {
           "$ref": "#/definitions/v3Platform"
         },

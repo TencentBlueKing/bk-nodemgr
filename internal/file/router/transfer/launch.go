@@ -93,8 +93,8 @@ func (h *handler) TransferLaunchPlugin(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	name, gen, rt, plat, version := req.GetIdentifier()
-	tf, err := h.manager.LaunchTransferPlugin(rCtx, name, gen, rt, plat, version, req.GetTargetDir(), host)
+	name, gen, plat, version := req.GetIdentifier()
+	tf, err := h.manager.LaunchTransferPlugin(rCtx, name, gen, plat, version, req.GetTargetDir(), host)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to launch transfer plugin")
 

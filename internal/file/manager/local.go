@@ -76,34 +76,24 @@ func (m *Manager) EnsureNodeToLocal(nCtx contextx.IContext, rt types.ReleaseType
 }
 
 // EnsurePluginToLocal ensure the plugin to local.
-func (m *Manager) EnsurePluginToLocal(nCtx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platfmt.Platform,
-	version string) (fileiface.File, string, error) {
+func (m *Manager) EnsurePluginToLocal(
+	nCtx contextx.IContext,
+	name string,
+	gen types.Generation,
+	plat platfmt.Platform,
+	version string,
+) (fileiface.File, string, error) {
 
 	if gen != types.Generation2 {
 		return nil, "", fmt.Errorf("not support generation: %d", gen)
 	}
 
-	var release types.Release
-	switch rt {
-	case types.ReleaseTypeOfficialPlugin:
-		releaseOfficialPlugin, err := m.storageRelease.GetReleaseOfficialPlugin(nCtx, name, gen, plat, version)
-		if err != nil {
-			return nil, "", fmt.Errorf("failed to get release: %w", err)
-		}
-
-		release = releaseOfficialPlugin.Release
-	case types.ReleaseTypeExternalPlugin:
-		releaseExternalPlugin, err := m.storageRelease.GetReleaseExternalPlugin(nCtx, name, gen, plat, version)
-		if err != nil {
-			return nil, "", fmt.Errorf("failed to get release: %w", err)
-		}
-
-		release = releaseExternalPlugin.Release
-	default:
-		return nil, "", fmt.Errorf("not support release type: %s", rt)
+	releasePlugin, err := m.storageRelease.GetReleasePlugin(nCtx, name, gen, plat, version)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get release: %w", err)
 	}
 
-	return m.ensureReleaseToLocal(nCtx, release)
+	return m.ensureReleaseToLocal(nCtx, releasePlugin.Release)
 }
 
 // ensureReleaseToLocal ensure the release to local.
@@ -124,10 +114,8 @@ func (m *Manager) ensureReleaseToLocal(nCtx contextx.IContext, release types.Rel
 		ufg = m.upstreamReleaseAgent
 	case types.ReleaseTypeProxy:
 		ufg = m.upstreamReleaseProxy
-	case types.ReleaseTypeOfficialPlugin:
-		ufg = m.upstreamReleaseOfficialPlugin
-	case types.ReleaseTypeExternalPlugin:
-		ufg = m.upstreamReleaseExternalPlugin
+	case types.ReleaseTypePlugin:
+		ufg = m.upstreamReleasePlugin
 
 	default:
 		return nil, "", fmt.Errorf("not support ensuring file to local with release type, type(%s)", release.Type)

@@ -27,8 +27,8 @@ const (
 	// ReleaseTypeOriginServer defines the release of origin gse server package.
 	ReleaseTypeOriginServer ReleaseType = "origin_server"
 
-	// ReleaseTypeOriginOfficialPlugin defines the release of nodemgr origin official plugin package.
-	ReleaseTypeOriginOfficialPlugin ReleaseType = "origin_official_plugin"
+	// ReleaseTypeOriginPlugin defines the release of nodemgr origin plugin package.
+	ReleaseTypeOriginPlugin ReleaseType = "origin_plugin"
 
 	// ReleaseTypeOriginExternalPlugin defines the release of nodemgr origin external plugin package.
 	ReleaseTypeOriginExternalPlugin ReleaseType = "origin_external_plugin"
@@ -48,11 +48,8 @@ const (
 	// ReleaseTypePluginBinTool defines the release of nodemgr plugin bin tool package.
 	ReleaseTypePluginBinTool ReleaseType = "plugin_bintool"
 
-	// ReleaseTypeOfficialPlugin defines the release of nodemgr official plugin package.
-	ReleaseTypeOfficialPlugin ReleaseType = "official_plugin"
-
-	// ReleaseTypeExternalPlugin defines the release of nodemgr external plugin package.
-	ReleaseTypeExternalPlugin ReleaseType = "external_plugin"
+	// ReleaseTypePlugin defines the release of nodemgr plugin package.
+	ReleaseTypePlugin ReleaseType = "plugin"
 )
 
 // Validate validates the release type.
@@ -64,11 +61,10 @@ func (rt ReleaseType) Validate() error {
 		ReleaseTypeProxy,
 		ReleaseTypeCert,
 		ReleaseTypeBinTool,
-		ReleaseTypeOriginOfficialPlugin,
+		ReleaseTypeOriginPlugin,
 		ReleaseTypeOriginExternalPlugin,
 		ReleaseTypePluginBinTool,
-		ReleaseTypeOfficialPlugin,
-		ReleaseTypeExternalPlugin:
+		ReleaseTypePlugin:
 		return nil
 	default:
 		return fmt.Errorf("invalid release type, type(%s)", rt)
@@ -169,26 +165,14 @@ type ReleasePluginBinTool struct {
 	Release
 }
 
-// ReleaseOfficialPlugin defines the official plugin, it is kind of Release.
-type ReleaseOfficialPlugin struct {
+// ReleasePlugin defines the plugin, it is kind of Release.
+type ReleasePlugin struct {
 	Release
-	ReleaseAdditionInfoOfficialPlugin
+	ReleaseAdditionInfoPlugin
 }
 
-// ReleaseAdditionInfoOfficialPlugin defines the addition info of release official plugin.
-type ReleaseAdditionInfoOfficialPlugin struct {
-	ConfigTemplates  []PluginPkgConfigTemplate
-	PluginController ProcessController
-}
-
-// ReleaseExternalPlugin defines the external plugin, it is kind of Release.
-type ReleaseExternalPlugin struct {
-	Release
-	ReleaseAdditionInfoExternalPlugin
-}
-
-// ReleaseAdditionInfoExternalPlugin defines the addition info of release external plugin.
-type ReleaseAdditionInfoExternalPlugin struct {
+// ReleaseAdditionInfoPlugin defines the addition info of release plugin.
+type ReleaseAdditionInfoPlugin struct {
 	ConfigTemplates  []PluginPkgConfigTemplate
 	PluginController ProcessController
 }
@@ -214,33 +198,4 @@ type PluginPkgConfigTemplateProperty struct {
 	Default    any                                         `yaml:"default,omitempty"`
 	Items      *PluginPkgConfigTemplateProperty            `yaml:"items,omitempty"`
 	Properties map[string]*PluginPkgConfigTemplateProperty `yaml:"properties,omitempty"`
-}
-
-// ProcessController defines the control of plugin.
-type ProcessController struct {
-	StartCmd   string
-	StopCmd    string
-	RestartCmd string
-	ReloadCmd  string
-	KillCmd    string
-	VersionCmd string
-	HealthCmd  string
-}
-
-// Validate validates the release type.
-func (controller ProcessController) Validate() error {
-	if controller.StartCmd == "" {
-		return fmt.Errorf("start cmd is empty")
-	}
-	if controller.StopCmd == "" {
-		return fmt.Errorf("stop cmd is empty")
-	}
-	if controller.RestartCmd == "" {
-		return fmt.Errorf("restart cmd is empty")
-	}
-	if controller.ReloadCmd == "" {
-		return fmt.Errorf("reload cmd is empty")
-	}
-
-	return nil
 }

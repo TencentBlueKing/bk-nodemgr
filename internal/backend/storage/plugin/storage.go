@@ -18,8 +18,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin"
 	plugindeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment"
 	pluginworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -61,11 +63,15 @@ type Storage struct {
 	// dao
 	daoPluginDeployment plugindeployment.IHandler
 	daoPluginWorkflow   pluginworkflow.IHandler
+	daoPlugin           plugin.IHandler
+	daoProcess          process.IHandler
 }
 
 func (s *Storage) initDao() error {
 	s.daoPluginDeployment = plugindeployment.New(s.Database)
 	s.daoPluginWorkflow = pluginworkflow.New(s.Database)
+	s.daoPlugin = plugin.New(s.Database)
+	s.daoProcess = process.New(s.Database)
 
 	return nil
 }
@@ -198,6 +204,61 @@ func (s *Storage) UpdatePluginDeploymentMainConfig(ctx contextx.IContext, token 
 	defer metric.End(err)
 
 	err = s.updatePluginDeploymentMainConfig(ctx, token, mainConfig)
+
+	return err
+}
+
+// GetPluginByID get plugin by id.
+func (s *Storage) GetPluginByID(nCtx contextx.IContext, pluginID string) (plugin *types.Plugin, err error) {
+	// record metric.
+	metric := s.metric().Start("get_plugin_by_id")
+	defer metric.End(err)
+
+	plugin, err = s.getPluginByID(nCtx, pluginID)
+
+	return plugin, err
+}
+
+// GetProcessByID get process by id.
+func (s *Storage) GetProcessByID(nCtx contextx.IContext, processID string) (process *types.Process, err error) {
+	// record metric.
+	metric := s.metric().Start("get_process_by_id")
+	defer metric.End(err)
+
+	process, err = s.getProcessByID(nCtx, processID)
+
+	return process, err
+}
+
+// CreateProcess create process.
+func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) (err error) {
+	// record metric.
+	metric := s.metric().Start("create_process")
+	defer metric.End(err)
+
+	err = s.createProcess(nCtx, process)
+
+	return err
+}
+
+// UpdateProcessInfo update process info.
+func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_process_info")
+	defer metric.End(err)
+
+	err = s.updateProcess(nCtx, processID, processInfo)
+
+	return err
+}
+
+// DeleteProcess delete process.
+func (s *Storage) DeleteProcess(nCtx contextx.IContext, processID string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_process")
+	defer metric.End(err)
+
+	err = s.deleteProcess(nCtx, processID)
 
 	return err
 }

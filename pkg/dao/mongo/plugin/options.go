@@ -14,3 +14,8 @@ import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 
 // OptFn provides filtering options.
 type OptFn = base.OptFn
+
+// WithPluginID filters by plugin-id.
+func WithPluginID(pluginIDs ...string) OptFn {
+	return base.WithValues(FieldKeyPluginID, pluginIDs...)
+}

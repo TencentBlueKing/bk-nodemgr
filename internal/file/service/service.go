@@ -266,9 +266,9 @@ func (svc *Service) initialManager() error {
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
 	}
-	upstreamOriginOfficialPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/official_plugin")
+	upstreamOriginPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/plugin")
 	if err != nil {
-		return fmt.Errorf("failed to ensure upstream origin official plugin file group: %w", err)
+		return fmt.Errorf("failed to ensure upstream origin plugin file group: %w", err)
 	}
 	upstreamOriginExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/external_plugin")
 	if err != nil {
@@ -300,13 +300,9 @@ func (svc *Service) initialManager() error {
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
-	upstreamReleaseOfficialPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/official_plugin")
+	upstreamReleasePlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/plugin")
 	if err != nil {
-		return fmt.Errorf("failed to ensure upstream release official plugin file group: %w", err)
-	}
-	upstreamReleaseExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/external_plugin")
-	if err != nil {
-		return fmt.Errorf("failed to ensure upstream release external plugin file group: %w", err)
+		return fmt.Errorf("failed to ensure upstream release plugin file group: %w", err)
 	}
 
 	// init local temp file group.
@@ -344,10 +340,9 @@ func (svc *Service) initialManager() error {
 		manager.WithAdvertiseIPV6(svc.conf.BasicServer.AdvertiseIPV6),
 		manager.WithMount(svc.conf.MountHostDir, svc.conf.WorkspaceFileGroup.FullPath),
 		manager.WithGSEHandler(svc.Cap.GSEHandler),
-		manager.WithUpstreamOriginOfficialPluginFileGroup(upstreamOriginOfficialPlugin),
-		manager.WithUpstreamReleaseOfficialPluginFileGroup(upstreamReleaseOfficialPlugin),
+		manager.WithUpstreamOriginPluginFileGroup(upstreamOriginPlugin),
+		manager.WithUpstreamReleasePluginFileGroup(upstreamReleasePlugin),
 		manager.WithUpstreamOriginExternalPluginFileGroup(upstreamOriginExternalPlugin),
-		manager.WithUpstreamReleaseExternalPluginFileGroup(upstreamReleaseExternalPlugin),
 	)
 
 	return nil

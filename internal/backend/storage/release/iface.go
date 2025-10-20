@@ -13,7 +13,7 @@ package release
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -31,7 +31,7 @@ type IStorage interface {
 // nolint:interfacebloat
 type IRelease interface {
 	// GetRelease gets release by generation, release type, platform and version.
-	GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platfmt.Platform,
+	GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform,
 		version string) (*types.Release, error)
 
 	// ListRelease lists release by page and conditions.
@@ -48,50 +48,50 @@ type IRelease interface {
 
 	// SetReleaseLabels sets release labels.
 	SetReleaseLabels(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-		plat platfmt.Platform, version string, labels []string) error
+		plat platform.Platform, version string, labels []string) error
 
 	// SetReleaseLabelsMany sets many release labels.
 	SetReleaseLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
-		plats []platfmt.Platform, versions []string, labels []string) error
+		plats []platform.Platform, versions []string, labels []string) error
 
 	// EnableRelease enables release active by generation, release type, platform and version.
-	EnableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platfmt.Platform,
+	EnableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform,
 		version string) error
 
 	// DisableRelease disables release disactive by generation, release type, platform and version.
-	DisableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platfmt.Platform,
+	DisableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform,
 		version string) error
 
 	// SetAsDefaultRelease sets the release as default.
 	SetAsDefaultRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-		plat platfmt.Platform, version string) error
+		plat platform.Platform, version string) error
 
 	// CancelAsDefaultRelease cancels the release as default.
 	CancelAsDefaultRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-		plat platfmt.Platform, version string) error
+		plat platform.Platform, version string) error
 
 	// 	DeleteRelease deletes release by generation, release type, platform and version.
-	DeleteRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platfmt.Platform,
+	DeleteRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform,
 		version string) error
 }
 
 // IProxy define the proxy interface.
 type IProxy interface {
 	// GetReleaseProxy gets release by generation, release type, platform and version.
-	GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (
+	GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (
 		*types.ReleaseProxy, error)
 }
 
 // IAgent define the agent interface.
 type IAgent interface {
 	// GetReleaseAgent gets release by generation, release type, platform and version.
-	GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (
+	GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (
 		*types.ReleaseAgent, error)
 }
 
 // IPlugin define the plugin interface.
 type IPlugin interface {
 	// GetReleasePlugin gets release by generation, release type, platform and version.
-	GetReleaseOfficialPlugin(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (
-		*types.ReleaseOfficialPlugin, error)
+	GetReleasePlugin(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (
+		*types.ReleasePlugin, error)
 }

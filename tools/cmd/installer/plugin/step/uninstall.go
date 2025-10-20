@@ -38,7 +38,7 @@ func NewUninstall() *cobra.Command {
 				return err
 			}
 
-			pluginHandler, err = handler.NewPluginHandler(vars.PluginType, vars.DeployDir, vars.PluginName)
+			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, vars.PluginGroup, vars.PluginName)
 			if err != nil {
 				return err
 			}

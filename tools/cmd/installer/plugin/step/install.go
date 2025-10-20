@@ -44,7 +44,7 @@ func NewInstall() *cobra.Command {
 			}
 			persistentVars = vars
 
-			pluginHandler, err = handler.NewPluginHandler(vars.PluginType, vars.DeployDir, vars.PluginName)
+			pluginHandler, err = handler.NewPluginHandler(vars.DeployDir, "", vars.PluginName)
 			if err != nil {
 				return err
 			}

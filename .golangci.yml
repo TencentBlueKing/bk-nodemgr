@@ -760,4 +760,8 @@ linters-settings:
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/scheduled-workflow
         alias: scheduledworkflow
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform
-        alias: platform
+        alias: platfmt
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process
+        alias: daoProcess
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin
+        alias: daoPlugin

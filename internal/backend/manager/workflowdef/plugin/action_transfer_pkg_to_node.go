@@ -120,12 +120,12 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	ctx.Data.LogI("transfer plugin pkg to node start.")
 
 	nCtx := std.Context()
-	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.Dynamic.HostID)
+	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.Dynamic.HostID, err)
+		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
-	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Plugin.Dynamic.Generation, std.DeployInfo().Plugin.Dynamic.Platform.OS)
+	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform.OS)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
@@ -166,24 +166,19 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 }
 
 func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
-	rt, err := types.ConvPluginTypeToReleaseType(info.Plugin.Dynamic.Type)
-	if err != nil {
-		return fmt.Errorf("failed to convert plugin type to release type: %w", err)
-	}
-
 	var dataDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerWorkDir, "data", "plugin", info.Plugin.Dynamic.Name)
+		dataDir = winpath.Join(info.InstallerWorkDir, "data", "plugin", info.Process.Name)
 	} else {
-		dataDir = filepath.Join(info.InstallerWorkDir, "data", "plugin", info.Plugin.Dynamic.Name)
+		dataDir = filepath.Join(info.InstallerWorkDir, "data", "plugin", info.Process.Name)
 	}
 
-	transferHandler, err := act.fileHandler.LaunchTransferPlugin(nCtx,
-		info.Plugin.Dynamic.Name,
-		info.Plugin.Dynamic.Generation,
-		rt,
-		info.Plugin.Dynamic.Platform,
-		info.Plugin.Dynamic.Version,
+	transferHandler, err := act.fileHandler.LaunchTransferPlugin(
+		nCtx,
+		info.Process.Name,
+		info.Process.Generation,
+		info.Process.Platform,
+		info.Process.Info.Version,
 		dataDir,
 		targetHost)
 	if err != nil {

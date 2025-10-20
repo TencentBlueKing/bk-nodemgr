@@ -159,13 +159,13 @@ message UploadOriginPluginBinToolResp {
   Data data = 4;
 }
 
-// UploadOriginOfficialPluginReq is the request for upload origin official
+// UploadOriginPluginReq is the request for upload origin
 // plugin pkg.
-message UploadOriginOfficialPluginReq { bool overwrite = 1; }
+message UploadOriginPluginReq { bool overwrite = 1; }
 
-// UploadOriginOfficialPluginResp is the response for upload origin official
+// UploadOriginPluginResp is the response for upload origin
 // plugin pkg.
-message UploadOriginOfficialPluginResp {
+message UploadOriginPluginResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -188,11 +188,11 @@ message UploadOriginOfficialPluginResp {
   Data data = 4;
 }
 
-// UploadOriginExternalPluginReq is the request for upload external official
+// UploadOriginExternalPluginReq is the request for upload external
 // plugin pkg.
 message UploadOriginExternalPluginReq { bool overwrite = 1; }
 
-// UploadOriginExternalPluginResp is the response for upload external official
+// UploadOriginExternalPluginResp is the response for upload external
 // plugin pkg.
 message UploadOriginExternalPluginResp {
   int32 code = 1;
@@ -262,11 +262,11 @@ service Upload {
     };
   }
 
-  // UploadOriginOfficialPlugin provides origin official plugin upload.
-  rpc UploadOriginOfficialPlugin(UploadOriginOfficialPluginReq)
-      returns (UploadOriginOfficialPluginResp) {
+  // UploadOriginPlugin provides origin plugin upload.
+  rpc UploadOriginPlugin(UploadOriginPluginReq)
+      returns (UploadOriginPluginResp) {
     option (google.api.http) = {
-      post : "/upload/origin/official_plugin"
+      post : "/upload/origin/plugin"
       body : "*"
     };
   }

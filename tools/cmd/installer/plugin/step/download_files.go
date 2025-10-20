@@ -18,7 +18,6 @@ import (
 	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
 )
 
@@ -53,11 +52,11 @@ func NewDownloadFiles() *cobra.Command {
 			step := filedownloader.NewStep(filedownloader.StepArgs{
 				DownloadSvrAddr:              downloadSvrAddr,
 				CallbackSvrAddr:              callbackSvrAddr,
-				PluginType:                   persistentVars.PluginType,
+				PluginGroup:                  persistentVars.PluginGroup,
 				PluginName:                   persistentVars.PluginName,
 				DeployToken:                  deployToken,
 				PkgVersion:                   pluginVersion,
-				PkgSavedPath:                 filepath.Join(persistentVars.DataDir, GenReleasePkgName(persistentVars.PluginType, persistentVars.PluginName, pluginVersion)),
+				PkgSavedPath:                 filepath.Join(persistentVars.DataDir, GenReleasePkgName(persistentVars.PluginName, pluginVersion)),
 				ConfigSavedDir:               filepath.Join(persistentVars.DataDir, "configs"),
 				SelectDownloads:              false,
 				EnableDownloadConfig:         false,
@@ -95,10 +94,9 @@ func NewDownloadFiles() *cobra.Command {
 const pluginReleasePkgExt = "tgz"
 
 // GenReleasePkgName generates release package name.
-func GenReleasePkgName(pluginType types.PluginType, pluginName, version string) string {
+func GenReleasePkgName(pluginName, version string) string {
 	return fmt.Sprintf(
 		"bk-nodemgr_%s_plugin_%s-%s-%s_%s.%s",
-		string(pluginType),
 		pluginName,
 		version,
 		runtime.GOOS,

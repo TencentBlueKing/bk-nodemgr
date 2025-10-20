@@ -22,6 +22,8 @@ type IStorage interface {
 
 	IDaoPluginDeployment
 	IDaoPluginWorkflow
+	IDaoPlugin
+	IDaoProcess
 }
 
 // IDaoPluginDeployment defines the plugin deployment dao interface.
@@ -52,4 +54,25 @@ type IDaoPluginWorkflow interface {
 
 	// UpdatePluginWorkflowStatus updates the status of a plugin workflow.
 	UpdatePluginWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error
+}
+
+// IDaoPlugin defines the plugin dao interface.
+type IDaoPlugin interface {
+	// GetPluginByID get plugin by id.
+	GetPluginByID(nCtx contextx.IContext, pluginID string) (*types.Plugin, error)
+}
+
+// IDaoProcess defines the process dao interface.
+type IDaoProcess interface {
+	// GetProcessByID get process by id.
+	GetProcessByID(nCtx contextx.IContext, processID string) (*types.Process, error)
+
+	// CreateProcess create process.
+	CreateProcess(nCtx contextx.IContext, process *types.Process) error
+
+	// UpdateProcess update process.
+	UpdateProcessInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) error
+
+	// DeleteProcess delete process.
+	DeleteProcess(nCtx contextx.IContext, processID string) error
 }

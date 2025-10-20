@@ -46,7 +46,7 @@ type IManager interface {
 	ICert
 	IBinTool
 	IPluginBinTool
-	IOfficialPlugin
+	IPlugin
 	IExternalPlugin
 
 	// EnsureNodeToLocal ensure the node pkg to local.
@@ -56,7 +56,7 @@ type IManager interface {
 
 	// EnsurePluginToLocal ensure the plugin pkg to local.
 	// returns file, local-file-dir, error.
-	EnsurePluginToLocal(ctx contextx.IContext, rt types.ReleaseType, name string, gen types.Generation, plat platfmt.Platform, version string) (
+	EnsurePluginToLocal(ctx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
 		fileiface.File, string, error)
 
 	// LaunchTransferNode launch transfer node pkg.
@@ -69,24 +69,23 @@ type IManager interface {
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// LaunchTransferPlugin launch transfer plugin pkg.
-	LaunchTransferPlugin(ctx contextx.IContext,
+	LaunchTransferPlugin(nCtx contextx.IContext,
 		name string,
 		gen types.Generation,
-		rt types.ReleaseType,
 		plat platfmt.Platform,
 		version string,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// LaunchTransferInstaller launch transfer installer.
-	LaunchTransferInstaller(ctx contextx.IContext,
+	LaunchTransferInstaller(nCtx contextx.IContext,
 		plat platfmt.Platform,
 		dstDir string,
 		dstHost *types.Host) (types.ISimpleTransferHandler, error)
 
 	// QueryTransfer query transfer.
 	// return upload result, download result and error.
-	QueryTransfer(ctx contextx.IContext, taskID string) (
+	QueryTransfer(nCtx contextx.IContext, taskID string) (
 		*types.SimpleTransferResult, *types.SimpleTransferResult, error)
 }
 
@@ -122,10 +121,10 @@ func WithUpstreamOriginAgentFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	}
 }
 
-// WithUpstreamOriginOfficialPluginFileGroup sets the upstream file group.
-func WithUpstreamOriginOfficialPluginFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+// WithUpstreamOriginPluginFileGroup sets the upstream file group.
+func WithUpstreamOriginPluginFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.upstreamOriginOfficialPlugin = fileGroup
+		manager.upstreamOriginPlugin = fileGroup
 	}
 }
 
@@ -164,17 +163,10 @@ func WithUpstreamReleaseAgentFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	}
 }
 
-// WithUpstreamReleaseOfficialPluginFileGroup sets the upstream file group.
-func WithUpstreamReleaseOfficialPluginFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+// WithUpstreamReleasePluginFileGroup sets the upstream file group.
+func WithUpstreamReleasePluginFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.upstreamReleaseOfficialPlugin = fileGroup
-	}
-}
-
-// WithUpstreamReleaseExternalPluginFileGroup sets the upstream file group.
-func WithUpstreamReleaseExternalPluginFileGroup(fileGroup fileiface.FileGroup) OptionFn {
-	return func(manager *Manager) {
-		manager.upstreamReleaseExternalPlugin = fileGroup
+		manager.upstreamReleasePlugin = fileGroup
 	}
 }
 
@@ -282,20 +274,19 @@ var _ IManager = &Manager{}
 // Manager provides the file manager.
 type Manager struct {
 	// upstream file group is regarded as the file source.
-	upstreamOriginAgent           fileiface.FileGroup
-	upstreamOriginServer          fileiface.FileGroup
-	upstreamOriginCert            fileiface.FileGroup
-	upstreamOriginBinTool         fileiface.FileGroup
-	upstreamOriginPluginBinTool   fileiface.FileGroup
-	upstreamOriginOfficialPlugin  fileiface.FileGroup
-	upstreamOriginExternalPlugin  fileiface.FileGroup
-	upstreamReleaseAgent          fileiface.FileGroup
-	upstreamReleaseProxy          fileiface.FileGroup
-	upstreamReleaseCert           fileiface.FileGroup
-	upstreamReleaseBinTool        fileiface.FileGroup
-	upstreamReleasePluginBinTool  fileiface.FileGroup
-	upstreamReleaseOfficialPlugin fileiface.FileGroup
-	upstreamReleaseExternalPlugin fileiface.FileGroup
+	upstreamOriginAgent          fileiface.FileGroup
+	upstreamOriginServer         fileiface.FileGroup
+	upstreamOriginCert           fileiface.FileGroup
+	upstreamOriginBinTool        fileiface.FileGroup
+	upstreamOriginPluginBinTool  fileiface.FileGroup
+	upstreamOriginPlugin         fileiface.FileGroup
+	upstreamOriginExternalPlugin fileiface.FileGroup
+	upstreamReleaseAgent         fileiface.FileGroup
+	upstreamReleaseProxy         fileiface.FileGroup
+	upstreamReleaseCert          fileiface.FileGroup
+	upstreamReleaseBinTool       fileiface.FileGroup
+	upstreamReleasePluginBinTool fileiface.FileGroup
+	upstreamReleasePlugin        fileiface.FileGroup
 
 	// cache file group.
 	cacheFileGroup fileiface.FileGroup

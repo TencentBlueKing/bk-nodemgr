@@ -36,8 +36,8 @@ const (
 	// UploadCategoryOriginPluginBinTool represents the origin bin tool.
 	UploadCategoryOriginPluginBinTool UploadCategory = "origin_plugin_bin_tool"
 
-	// UploadCategoryOriginOfficialPlugin represents the origin official plugin.
-	UploadCategoryOriginOfficialPlugin UploadCategory = "origin_official_plugin"
+	// UploadCategoryOriginPlugin represents the origin plugin.
+	UploadCategoryOriginPlugin UploadCategory = "origin_plugin"
 
 	// UploadCategoryOriginExternalPlugin represents the origin external plugin.
 	UploadCategoryOriginExternalPlugin UploadCategory = "origin_external_plugin"
@@ -102,8 +102,8 @@ type OriginPluginBinToolPkgDetail struct {
 	Platforms []platfmt.Platform
 }
 
-// OriginOfficialPluginPkgDetail defines the detail of official plugin package.
-type OriginOfficialPluginPkgDetail struct {
+// OriginPluginPkgDetail defines the detail of plugin package.
+type OriginPluginPkgDetail struct {
 	fileiface.FileInfo
 
 	UploadID string
@@ -124,9 +124,9 @@ type OriginOfficialPluginPkgDetail struct {
 	Platforms []platfmt.Platform
 }
 
-// NewOriginOfficialPluginPkgDetail creates a new OriginOfficialPluginPkgDetail.
-func NewOriginOfficialPluginPkgDetail() *OriginOfficialPluginPkgDetail {
-	return &OriginOfficialPluginPkgDetail{
+// NewOriginPluginPkgDetail creates a new OriginPluginPkgDetail.
+func NewOriginPluginPkgDetail() *OriginPluginPkgDetail {
+	return &OriginPluginPkgDetail{
 		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
 		Controller:      make(map[string]ProcessController),
 	}

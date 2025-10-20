@@ -9,26 +9,3 @@
  */
 
 package types
-
-import "fmt"
-
-// PluginType defines the plugin type.
-type PluginType string
-
-const (
-	// PluginTypeOfficial defines the official plugin type.
-	PluginTypeOfficial PluginType = "official"
-
-	// PluginTypeExternal defines the external plugin type.
-	PluginTypeExternal PluginType = "external"
-)
-
-// Validate validates the plugin type.
-func (pt PluginType) Validate() error {
-	switch pt {
-	case PluginTypeOfficial, PluginTypeExternal:
-		return nil
-	default:
-		return fmt.Errorf("plugin type is invalid, plugin-type(%s)", pt)
-	}
-}

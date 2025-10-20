@@ -10,74 +10,13 @@
 
 package types
 
-import (
-	"fmt"
-
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
-)
-
-// PluginType represents the type of plugin.
-type PluginType string
-
-const (
-	// PluginTypeUnknown represents unknown plugin type.
-	PluginTypeUnknown PluginType = "unknown"
-	// PluginTypeOfficial represents official plugin.
-	PluginTypeOfficial PluginType = "official"
-	// PluginTypeExternal represents external plugin.
-	PluginTypeExternal PluginType = "external"
-)
-
-// Validate validate the plugin type.
-func (pluginType PluginType) Validate() error {
-	switch pluginType {
-	case PluginTypeUnknown, PluginTypeOfficial, PluginTypeExternal:
-		return nil
-	default:
-		return fmt.Errorf("invalid plugin type, plugin-type(%s)", pluginType)
-	}
-}
-
-// ConvPluginTypeToReleaseType convert plugin type to release type.
-func ConvPluginTypeToReleaseType(pluginType PluginType) (ReleaseType, error) {
-	switch pluginType {
-	case PluginTypeOfficial:
-		return ReleaseTypeOfficialPlugin, nil
-	case PluginTypeExternal:
-		return ReleaseTypeExternalPlugin, nil
-	default:
-		return "", fmt.Errorf("unsupport plugin type, plugin-type(%s)", pluginType)
-	}
-}
-
 // Plugin define the all info of plugin.
 type Plugin struct {
 	PluginID string
 	TenantID string
 
-	Static  PluginStatic
-	Dynamic PluginDynamic
-}
+	Name  string
+	Group string
 
-// PluginStatic define the static info of plugin.
-type PluginStatic struct {
-	Info          ProcessInfo
-	Identity      ProcessIdentity
-	Controller    ProcessController
-	Resource      ProcessResource
-	MonitorPolicy ProcessMonitorPolicy
-}
-
-// PluginDynamic define the dynamic info of plugin.
-type PluginDynamic struct {
-	Name       string
-	Type       PluginType
-	Generation Generation
-	Platform   platfmt.Platform
-	Version    string
-
-	HostID        int64
-	PluginGroupID int64
-
-	Status ProcessStatus
+	PluginPkgName string
 }

@@ -18,46 +18,46 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IOfficialPlugin defines the interface of upload storage.
-type IOfficialPlugin interface {
-	// GetOfficialPluginUpload gets a upload by upload-id.
-	GetOfficialPluginUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
+// IPlugin defines the interface of upload storage.
+type IPlugin interface {
+	// GetPluginUpload gets a upload by upload-id.
+	GetPluginUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
-	// CreateOfficialPluginUpload creates a upload.
-	CreateOfficialPluginUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
+	// CreatePluginUpload creates a upload.
+	CreatePluginUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
-	// DeleteOfficialPluginUpload deletes a upload by upload-id.
-	DeleteOfficialPluginUpload(nCtx contextx.IContext, uploadID string) error
+	// DeletePluginUpload deletes a upload by upload-id.
+	DeletePluginUpload(nCtx contextx.IContext, uploadID string) error
 }
 
-// GetOfficialPluginUpload gets a upload by upload-id.
-func (s *Storage) GetOfficialPluginUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
+// GetPluginUpload gets a upload by upload-id.
+func (s *Storage) GetPluginUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
 	// record metric.
-	metric := s.metric().Start("get_official_plugin")
+	metric := s.metric().Start("get_plugin")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginOfficialPlugin, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginPlugin, uploadID)
 }
 
-// CreateOfficialPluginUpload creates a upload.
-func (s *Storage) CreateOfficialPluginUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
+// CreatePluginUpload creates a upload.
+func (s *Storage) CreatePluginUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
-	metric := s.metric().Start("create_official_plugin")
+	metric := s.metric().Start("create_plugin")
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginOfficialPlugin, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginPlugin, up); err != nil {
 		return "", err
 	}
 
 	return up.UploadID, nil
 }
 
-// DeleteOfficialPluginUpload deletes a upload by upload-id.
-func (s *Storage) DeleteOfficialPluginUpload(nCtx contextx.IContext, uploadID string) (err error) {
+// DeletePluginUpload deletes a upload by upload-id.
+func (s *Storage) DeletePluginUpload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
-	metric := s.metric().Start("delete_official_plugin")
+	metric := s.metric().Start("delete_plugin")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginOfficialPlugin, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginPlugin, uploadID)
 }

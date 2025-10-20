@@ -55,6 +55,7 @@ type ActParamInstallPlugin struct {
 // actionInstallPlugin ...
 type actionInstallPlugin struct {
 	daoHost             topoStg.IStorageHost
+	daoPlugin           pluginStg.IDaoPlugin
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	provider            discover.Discover
 	gseHandler          gse.IHandler
@@ -67,7 +68,7 @@ func (act *actionInstallPlugin) Name() string {
 
 // Version returns the version of the action.
 func (act *actionInstallPlugin) Version() string {
-	return "1.0.0"
+	return "1.0.0" // nolint: mnd,goconst
 }
 
 // Description returns the description of the action.
@@ -116,7 +117,18 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	installParams, err := act.buildInstallParams(std)
+	nCtx := std.Context()
+	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)
+	if err != nil {
+		return fmt.Errorf("failed to get host: %w", err)
+	}
+
+	targetPlugin, err := act.daoPlugin.GetPluginByID(nCtx, std.DeployInfo().Process.PluginID)
+	if err != nil {
+		return fmt.Errorf("failed to get plugin: %w", err)
+	}
+
+	installParams, err := act.buildInstallParams(std, targetHost, targetPlugin)
 	if err != nil {
 		return fmt.Errorf("build install params failed: %w", err)
 	}
@@ -126,19 +138,13 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		installScriptContext string
 	)
 
-	if std.DeployInfo().Plugin.Dynamic.Platform.OS == criteria.OSWindows {
+	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
 		installScriptType, installScriptContext, err = act.buildWindowsInstallScript(installParams)
 	} else {
 		installScriptType, installScriptContext, err = act.buildUnixInstallScript(installParams)
 	}
 	if err != nil {
 		return fmt.Errorf("build script failed: %w", err)
-	}
-
-	nCtx := std.Context()
-	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Plugin.Dynamic.HostID)
-	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Plugin.Dynamic.HostID, err)
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("install script: \n%s\n", installScriptContext))
@@ -167,16 +173,20 @@ type pluginInstallParams struct {
 	InstallerWorkDir string
 }
 
-func (act *actionInstallPlugin) buildInstallParams(std *pluginUtils.PluginActionStandarder) (*pluginInstallParams, error) {
+func (act *actionInstallPlugin) buildInstallParams(
+	std *pluginUtils.PluginActionStandarder,
+	targetHost *types.Host,
+	targetPlugin *types.Plugin,
+) (*pluginInstallParams, error) {
 	// select matching tools.
-	toolName, err := tool.FormatInstallerName(std.DeployInfo().Plugin.Dynamic.Platform.OS, std.DeployInfo().Plugin.Dynamic.Platform.Arch)
+	toolName, err := tool.FormatInstallerName(targetHost.Dynamic.NodeOsType, targetHost.Dynamic.NodeCPUArch)
 	if err != nil {
 		err = fmt.Errorf("failed to format tools name: %w", err)
 
 		return nil, err
 	}
 
-	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Plugin.Dynamic.Generation, std.DeployInfo().Plugin.Dynamic.Platform.OS)
+	deployConstant, err := deployconstant.GetPluginDeployConf(targetHost.Dynamic.NodeGeneration, targetHost.Dynamic.NodeOsType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get deploy constant, err: %w", err)
 	}
@@ -207,9 +217,9 @@ func (act *actionInstallPlugin) buildInstallParams(std *pluginUtils.PluginAction
 				BaseWorkDir:       deployConstant.BaseWorkDir,
 				DeployEnv:         system.GetEnv(),
 			},
-			PluginType:      string(std.DeployInfo().Plugin.Dynamic.Type),
-			PluginName:      std.DeployInfo().Plugin.Dynamic.Name,
-			PluginVersion:   std.DeployInfo().Plugin.Dynamic.Version,
+			PluginGroup:     targetPlugin.Group,
+			PluginName:      targetPlugin.Name,
+			PluginVersion:   std.DeployInfo().Process.Info.Version,
 			CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
 			DownloadSvrAddr: "http://" + downloadSvrEndpoint.GetIPV4Address(),
 			DeployToken:     std.Token(),

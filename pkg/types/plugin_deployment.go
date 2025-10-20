@@ -13,7 +13,6 @@ package types
 import (
 	"strings"
 
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/google/uuid"
 )
 
@@ -35,7 +34,8 @@ func NewPluginDeployment(info *PluginDeploymentInfo) *PluginDeployment {
 type PluginDeploymentInfo struct {
 	BlockingActionName string
 
-	Plugin Plugin
+	// Process is the process info.
+	Process Process
 
 	// InstallerWorkDir is used to store the installation files.
 	InstallerWorkDir string
@@ -45,9 +45,6 @@ type PluginDeploymentInfo struct {
 
 	// TransferOptions is used to control the tools when transfer plugin.
 	TransferOptions PluginDeploymentTransferOptions
-
-	// TargetVersion is used to control the target version for plugin.
-	TargetVersion []TargetPluginVersion
 }
 
 // PluginDeploymentInstallOptions defines the options for plugin deployment.
@@ -62,10 +59,4 @@ type PluginDeploymentTransferOptions struct {
 
 	EnableReleasePackage bool
 	EnableInstaller      bool
-}
-
-// TargetPluginVersion defines the target version for plugin.
-type TargetPluginVersion struct {
-	Platform platfmt.Platform
-	Version  string
 }
