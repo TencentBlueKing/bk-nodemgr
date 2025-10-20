@@ -245,16 +245,16 @@ func (x *UploadOriginBinToolResp) ConvertResultFromTypes(generated bool, detail 
 }
 
 // Validate check request body.
-func (x *UploadOriginPluginBinToolReq) Validate() error {
+func (x *UploadOriginPluginBinToolV2Req) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *UploadOriginPluginBinToolReq) AutoConvert() {
+func (x *UploadOriginPluginBinToolV2Req) AutoConvert() {
 }
 
 // ConvertResultFromTypes convert result from types.
-func (x *UploadOriginPluginBinToolResp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginBinToolPkgDetail) {
+func (x *UploadOriginPluginBinToolV2Resp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginBinToolV2PkgDetail) {
 	if detail == nil {
 		return
 	}
@@ -264,7 +264,7 @@ func (x *UploadOriginPluginBinToolResp) ConvertResultFromTypes(generated bool, d
 		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 
-	data := &UploadOriginPluginBinToolResp_Data{
+	data := &UploadOriginPluginBinToolV2Resp_Data{
 		UploadId:  new(string),
 		Existed:   new(bool),
 		Generated: new(bool),
@@ -286,15 +286,15 @@ func (x *UploadOriginPluginBinToolResp) ConvertResultFromTypes(generated bool, d
 }
 
 // Validate check request body.
-func (x *UploadOriginPluginReq) Validate() error {
+func (x *UploadOriginPluginV2Req) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *UploadOriginPluginReq) AutoConvert() {}
+func (x *UploadOriginPluginV2Req) AutoConvert() {}
 
 // ConvertResultFromTypes convert result from types.
-func (x *UploadOriginPluginResp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginPkgDetail) {
+func (x *UploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginV2PkgDetail) {
 	if detail == nil {
 		return
 	}
@@ -304,7 +304,7 @@ func (x *UploadOriginPluginResp) ConvertResultFromTypes(generated bool, detail *
 		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 
-	data := &UploadOriginPluginResp_Data{
+	data := &UploadOriginPluginV2Resp_Data{
 		UploadId:     new(string),
 		Existed:      new(bool),
 		Generated:    new(bool),
@@ -338,15 +338,15 @@ func (x *UploadOriginPluginResp) ConvertResultFromTypes(generated bool, detail *
 }
 
 // Validate check request body.
-func (x *UploadOriginExternalPluginReq) Validate() error {
+func (x *UploadOriginExternalPluginV2Req) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *UploadOriginExternalPluginReq) AutoConvert() {}
+func (x *UploadOriginExternalPluginV2Req) AutoConvert() {}
 
 // ConvertResultFromTypes convert result from types.
-func (x *UploadOriginExternalPluginResp) ConvertResultFromTypes(generated bool, detail *types.OriginExternalPluginPkgDetail) {
+func (x *UploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generated bool, detail *types.OriginExternalPluginV2PkgDetail) {
 	if detail == nil {
 		return
 	}
@@ -356,7 +356,7 @@ func (x *UploadOriginExternalPluginResp) ConvertResultFromTypes(generated bool, 
 		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 
-	data := &UploadOriginExternalPluginResp_Data{
+	data := &UploadOriginExternalPluginV2Resp_Data{
 		UploadId:     new(string),
 		Existed:      new(bool),
 		Generated:    new(bool),

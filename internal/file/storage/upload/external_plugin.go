@@ -20,44 +20,44 @@ import (
 
 // IExternalPlugin defines the interface of upload storage.
 type IExternalPlugin interface {
-	// GetExternalPluginUpload gets a upload by upload-id.
-	GetExternalPluginUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
+	// GetExternalPluginV2Upload gets a upload by upload-id.
+	GetExternalPluginV2Upload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
-	// CreateExternalPluginUpload creates a upload.
-	CreateExternalPluginUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
+	// CreateExternalPluginV2Upload creates a upload.
+	CreateExternalPluginV2Upload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
-	// DeleteExternalPluginUpload deletes a upload by upload-id.
-	DeleteExternalPluginUpload(nCtx contextx.IContext, uploadID string) error
+	// DeleteExternalPluginV2Upload deletes a upload by upload-id.
+	DeleteExternalPluginV2Upload(nCtx contextx.IContext, uploadID string) error
 }
 
-// GetExternalPluginUpload gets a upload by upload-id.
-func (s *Storage) GetExternalPluginUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
+// GetExternalPluginV2Upload gets a upload by upload-id.
+func (s *Storage) GetExternalPluginV2Upload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
 	// record metric.
-	metric := s.metric().Start("get_external_plugin")
+	metric := s.metric().Start("get_external_plugin_v2")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginExternalPlugin, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginExternalPluginV2, uploadID)
 }
 
-// CreateExternalPluginUpload creates a upload.
-func (s *Storage) CreateExternalPluginUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
+// CreateExternalPluginV2Upload creates a upload.
+func (s *Storage) CreateExternalPluginV2Upload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
-	metric := s.metric().Start("create_external_plugin")
+	metric := s.metric().Start("create_external_plugin_v2")
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginExternalPlugin, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginExternalPluginV2, up); err != nil {
 		return "", err
 	}
 
 	return up.UploadID, nil
 }
 
-// DeleteExternalPluginUpload deletes a upload by upload-id.
-func (s *Storage) DeleteExternalPluginUpload(nCtx contextx.IContext, uploadID string) (err error) {
+// DeleteExternalPluginV2Upload deletes a upload by upload-id.
+func (s *Storage) DeleteExternalPluginV2Upload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
-	metric := s.metric().Start("delete_external_plugin")
+	metric := s.metric().Start("delete_external_plugin_v2")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginExternalPlugin, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginExternalPluginV2, uploadID)
 }

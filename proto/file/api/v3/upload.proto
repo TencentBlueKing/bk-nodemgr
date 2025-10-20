@@ -135,14 +135,15 @@ message UploadOriginBinToolResp {
   Data data = 4;
 }
 
-// UploadOriginPluginBinToolReq is the request for upload origin bin tool pkg.
-message UploadOriginPluginBinToolReq {
+// UploadOriginPluginBinToolV2Req is the request for upload origin bin tool pkg.
+message UploadOriginPluginBinToolV2Req {
   int64 generation = 1;
   bool overwrite = 2;
 }
 
-// UploadOriginPluginBinToolResp is the response for upload origin bin tool pkg.
-message UploadOriginPluginBinToolResp {
+// UploadOriginPluginBinToolV2Resp is the response for upload origin bin tool
+// pkg.
+message UploadOriginPluginBinToolV2Resp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -159,13 +160,13 @@ message UploadOriginPluginBinToolResp {
   Data data = 4;
 }
 
-// UploadOriginPluginReq is the request for upload origin
+// UploadOriginPluginV2Req is the request for upload origin
 // plugin pkg.
-message UploadOriginPluginReq { bool overwrite = 1; }
+message UploadOriginPluginV2Req { bool overwrite = 1; }
 
-// UploadOriginPluginResp is the response for upload origin
+// UploadOriginPluginV2Resp is the response for upload origin
 // plugin pkg.
-message UploadOriginPluginResp {
+message UploadOriginPluginV2Resp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -188,13 +189,13 @@ message UploadOriginPluginResp {
   Data data = 4;
 }
 
-// UploadOriginExternalPluginReq is the request for upload external
+// UploadOriginExternalPluginV2Req is the request for upload external
 // plugin pkg.
-message UploadOriginExternalPluginReq { bool overwrite = 1; }
+message UploadOriginExternalPluginV2Req { bool overwrite = 1; }
 
-// UploadOriginExternalPluginResp is the response for upload external
+// UploadOriginExternalPluginV2Resp is the response for upload external
 // plugin pkg.
-message UploadOriginExternalPluginResp {
+message UploadOriginExternalPluginV2Resp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -253,18 +254,18 @@ service Upload {
     };
   }
 
-  // UploadOriginPluginBinTool provides origin bintool upload.
-  rpc UploadOriginPluginBinTool(UploadOriginPluginBinToolReq)
-      returns (UploadOriginPluginBinToolResp) {
+  // UploadOriginPluginBinToolV2 provides origin bintool upload.
+  rpc UploadOriginPluginBinToolV2(UploadOriginPluginBinToolV2Req)
+      returns (UploadOriginPluginBinToolV2Resp) {
     option (google.api.http) = {
       post : "/upload/origin/bintool"
       body : "*"
     };
   }
 
-  // UploadOriginPlugin provides origin plugin upload.
-  rpc UploadOriginPlugin(UploadOriginPluginReq)
-      returns (UploadOriginPluginResp) {
+  // UploadOriginPluginV2 provides origin plugin upload.
+  rpc UploadOriginPluginV2(UploadOriginPluginV2Req)
+      returns (UploadOriginPluginV2Resp) {
     option (google.api.http) = {
       post : "/upload/origin/plugin"
       body : "*"
@@ -272,8 +273,8 @@ service Upload {
   }
 
   // UploadOriginExternalPlugin provides origin external plugin upload.
-  rpc UploadOriginExternalPlugin(UploadOriginExternalPluginReq)
-      returns (UploadOriginExternalPluginResp) {
+  rpc UploadOriginExternalPlugin(UploadOriginExternalPluginV2Req)
+      returns (UploadOriginExternalPluginV2Resp) {
     option (google.api.http) = {
       post : "/upload/origin/external_plugin"
       body : "*"

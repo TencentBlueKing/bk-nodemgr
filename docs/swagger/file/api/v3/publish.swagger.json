@@ -160,7 +160,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PublishReleasePluginResp"
+              "$ref": "#/definitions/v3PublishReleasePluginV2Resp"
             }
           },
           "default": {
@@ -173,11 +173,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PublishReleasePluginReq is the request for upload release\nplugin pkg.",
+            "description": "PublishReleasePluginV2Req is the request for upload release\nplugin pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PublishReleasePluginReq"
+              "$ref": "#/definitions/v3PublishReleasePluginV2Req"
             }
           }
         ],
@@ -188,13 +188,13 @@
     },
     "/publish/release/plugin_bintool": {
       "post": {
-        "summary": "PublishReleasePluginBinTool provides release plugin bintool publish.",
-        "operationId": "Publish_PublishReleasePluginBinTool",
+        "summary": "PublishReleasePluginBinToolV2 provides release plugin bintool publish.",
+        "operationId": "Publish_PublishReleasePluginBinToolV2",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PublishReleasePluginBinToolResp"
+              "$ref": "#/definitions/v3PublishReleasePluginBinToolV2Resp"
             }
           },
           "default": {
@@ -207,11 +207,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PublishReleasePluginBinToolReq is the request for upload release plugin\nbintool pkg.",
+            "description": "PublishReleasePluginBinToolV2Req is the request for upload release plugin\nbintool pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PublishReleasePluginBinToolReq"
+              "$ref": "#/definitions/v3PublishReleasePluginBinToolV2Req"
             }
           }
         ],
@@ -408,16 +408,16 @@
     "v3PublishReleaseExternalPluginRespData": {
       "type": "object"
     },
-    "v3PublishReleasePluginBinToolReq": {
+    "v3PublishReleasePluginBinToolV2Req": {
       "type": "object",
       "properties": {
         "upload_id": {
           "type": "string"
         }
       },
-      "description": "PublishReleasePluginBinToolReq is the request for upload release plugin\nbintool pkg."
+      "description": "PublishReleasePluginBinToolV2Req is the request for upload release plugin\nbintool pkg."
     },
-    "v3PublishReleasePluginBinToolResp": {
+    "v3PublishReleasePluginBinToolV2Resp": {
       "type": "object",
       "properties": {
         "code": {
@@ -431,24 +431,24 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3PublishReleasePluginBinToolRespData"
+          "$ref": "#/definitions/v3PublishReleasePluginBinToolV2RespData"
         }
       },
-      "description": "PublishReleasePluginBinToolResp is the response for upload release plugin\nbintool pkg."
+      "description": "PublishReleasePluginBinToolV2Resp is the response for upload release plugin\nbintool pkg."
     },
-    "v3PublishReleasePluginBinToolRespData": {
+    "v3PublishReleasePluginBinToolV2RespData": {
       "type": "object"
     },
-    "v3PublishReleasePluginReq": {
+    "v3PublishReleasePluginV2Req": {
       "type": "object",
       "properties": {
         "upload_id": {
           "type": "string"
         }
       },
-      "description": "PublishReleasePluginReq is the request for upload release\nplugin pkg."
+      "description": "PublishReleasePluginV2Req is the request for upload release\nplugin pkg."
     },
-    "v3PublishReleasePluginResp": {
+    "v3PublishReleasePluginV2Resp": {
       "type": "object",
       "properties": {
         "code": {
@@ -462,12 +462,12 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3PublishReleasePluginRespData"
+          "$ref": "#/definitions/v3PublishReleasePluginV2RespData"
         }
       },
-      "description": "PublishReleasePluginResp is the response for upload release\nplugin pkg."
+      "description": "PublishReleasePluginV2Resp is the response for upload release\nplugin pkg."
     },
-    "v3PublishReleasePluginRespData": {
+    "v3PublishReleasePluginV2RespData": {
       "type": "object"
     },
     "v3PublishReleaseProxyReq": {

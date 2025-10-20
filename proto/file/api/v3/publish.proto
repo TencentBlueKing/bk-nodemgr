@@ -57,13 +57,13 @@ message PublishReleaseBinToolResp {
   Data data = 4;
 }
 
-// PublishReleasePluginBinToolReq is the request for upload release plugin
+// PublishReleasePluginBinToolV2Req is the request for upload release plugin
 // bintool pkg.
-message PublishReleasePluginBinToolReq { string upload_id = 1; }
+message PublishReleasePluginBinToolV2Req { string upload_id = 1; }
 
-// PublishReleasePluginBinToolResp is the response for upload release plugin
+// PublishReleasePluginBinToolV2Resp is the response for upload release plugin
 // bintool pkg.
-message PublishReleasePluginBinToolResp {
+message PublishReleasePluginBinToolV2Resp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -72,13 +72,13 @@ message PublishReleasePluginBinToolResp {
   Data data = 4;
 }
 
-// PublishReleasePluginReq is the request for upload release
+// PublishReleasePluginV2Req is the request for upload release
 // plugin pkg.
-message PublishReleasePluginReq { string upload_id = 1; }
+message PublishReleasePluginV2Req { string upload_id = 1; }
 
-// PublishReleasePluginResp is the response for upload release
+// PublishReleasePluginV2Resp is the response for upload release
 // plugin pkg.
-message PublishReleasePluginResp {
+message PublishReleasePluginV2Resp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -140,9 +140,9 @@ service Publish {
     };
   }
 
-  // PublishReleasePluginBinTool provides release plugin bintool publish.
-  rpc PublishReleasePluginBinTool(PublishReleasePluginBinToolReq)
-      returns (PublishReleasePluginBinToolResp) {
+  // PublishReleasePluginBinToolV2 provides release plugin bintool publish.
+  rpc PublishReleasePluginBinToolV2(PublishReleasePluginBinToolV2Req)
+      returns (PublishReleasePluginBinToolV2Resp) {
     option (google.api.http) = {
       post : "/publish/release/plugin_bintool"
       body : "*"
@@ -150,8 +150,8 @@ service Publish {
   }
 
   // PublishReleasePlugin provides release plugin publish.
-  rpc PublishReleasePlugin(PublishReleasePluginReq)
-      returns (PublishReleasePluginResp) {
+  rpc PublishReleasePlugin(PublishReleasePluginV2Req)
+      returns (PublishReleasePluginV2Resp) {
     option (google.api.http) = {
       post : "/publish/release/plugin"
       body : "*"

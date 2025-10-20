@@ -47,21 +47,21 @@ func (x *PublishReleaseBinToolReq) AutoConvert() {
 }
 
 // Validate check request body.
-func (x *PublishReleasePluginBinToolReq) Validate() error {
+func (x *PublishReleasePluginBinToolV2Req) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *PublishReleasePluginBinToolReq) AutoConvert() {
+func (x *PublishReleasePluginBinToolV2Req) AutoConvert() {
 }
 
 // Validate check request body.
-func (x *PublishReleasePluginReq) Validate() error {
+func (x *PublishReleasePluginV2Req) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *PublishReleasePluginReq) AutoConvert() {
+func (x *PublishReleasePluginV2Req) AutoConvert() {
 }
 
 // Validate check request body.

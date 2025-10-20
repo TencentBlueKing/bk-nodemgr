@@ -45,9 +45,9 @@ type IManager interface {
 	IServer
 	ICert
 	IBinTool
-	IPluginBinTool
-	IPlugin
-	IExternalPlugin
+	IPluginBinToolV2
+	IPluginV2
+	IExternalPluginV2
 
 	// EnsureNodeToLocal ensure the node pkg to local.
 	// returns file, local-file-dir, error.
@@ -121,17 +121,17 @@ func WithUpstreamOriginAgentFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	}
 }
 
-// WithUpstreamOriginPluginFileGroup sets the upstream file group.
-func WithUpstreamOriginPluginFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+// WithUpstreamOriginPluginV2FileGroup sets the upstream file group.
+func WithUpstreamOriginPluginV2FileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.upstreamOriginPlugin = fileGroup
+		manager.upstreamOriginPluginV2 = fileGroup
 	}
 }
 
-// WithUpstreamOriginExternalPluginFileGroup sets the upstream file group.
-func WithUpstreamOriginExternalPluginFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+// WithUpstreamOriginExternalPluginV2FileGroup sets the upstream file group.
+func WithUpstreamOriginExternalPluginV2FileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.upstreamOriginExternalPlugin = fileGroup
+		manager.upstreamOriginExternalPluginV2 = fileGroup
 	}
 }
 
@@ -149,10 +149,10 @@ func WithUpstreamOriginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn 
 	}
 }
 
-// WithUpstreamOriginPluginBinToolFileGroup sets the upstream file group.
-func WithUpstreamOriginPluginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+// WithUpstreamOriginPluginBinToolV2FileGroup sets the upstream file group.
+func WithUpstreamOriginPluginBinToolV2FileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.upstreamOriginPluginBinTool = fileGroup
+		manager.upstreamOriginPluginBinToolV2 = fileGroup
 	}
 }
 
@@ -191,10 +191,10 @@ func WithUpstreamReleaseBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn
 	}
 }
 
-// WithUpstreamReleasePluginBinToolFileGroup sets the upstream file group.
-func WithUpstreamReleasePluginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+// WithUpstreamReleasePluginBinToolV2FileGroup sets the upstream file group.
+func WithUpstreamReleasePluginBinToolV2FileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.upstreamReleasePluginBinTool = fileGroup
+		manager.upstreamReleasePluginBinToolV2 = fileGroup
 	}
 }
 
@@ -274,19 +274,19 @@ var _ IManager = &Manager{}
 // Manager provides the file manager.
 type Manager struct {
 	// upstream file group is regarded as the file source.
-	upstreamOriginAgent          fileiface.FileGroup
-	upstreamOriginServer         fileiface.FileGroup
-	upstreamOriginCert           fileiface.FileGroup
-	upstreamOriginBinTool        fileiface.FileGroup
-	upstreamOriginPluginBinTool  fileiface.FileGroup
-	upstreamOriginPlugin         fileiface.FileGroup
-	upstreamOriginExternalPlugin fileiface.FileGroup
-	upstreamReleaseAgent         fileiface.FileGroup
-	upstreamReleaseProxy         fileiface.FileGroup
-	upstreamReleaseCert          fileiface.FileGroup
-	upstreamReleaseBinTool       fileiface.FileGroup
-	upstreamReleasePluginBinTool fileiface.FileGroup
-	upstreamReleasePlugin        fileiface.FileGroup
+	upstreamOriginAgent            fileiface.FileGroup
+	upstreamOriginServer           fileiface.FileGroup
+	upstreamOriginCert             fileiface.FileGroup
+	upstreamOriginBinTool          fileiface.FileGroup
+	upstreamOriginPluginBinToolV2  fileiface.FileGroup
+	upstreamOriginPluginV2         fileiface.FileGroup
+	upstreamOriginExternalPluginV2 fileiface.FileGroup
+	upstreamReleaseAgent           fileiface.FileGroup
+	upstreamReleaseProxy           fileiface.FileGroup
+	upstreamReleaseCert            fileiface.FileGroup
+	upstreamReleaseBinTool         fileiface.FileGroup
+	upstreamReleasePluginBinToolV2 fileiface.FileGroup
+	upstreamReleasePlugin          fileiface.FileGroup
 
 	// cache file group.
 	cacheFileGroup fileiface.FileGroup
@@ -456,14 +456,14 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (fileiface.F
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext) (fileiface.File, error) {
+func (m *Manager) fetchReleasePluginBinToolV2ToLocal(ctx contextx.IContext) (fileiface.File, error) {
 	// get plugin bintool.
-	pluginBinTool, err := m.storageRelease.GetReleasePluginBinTool(ctx, types.Generation2)
+	pluginBinTool, err := m.storageRelease.GetReleasePluginBinToolV2(ctx, types.Generation2)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
 	}
 
-	file, err := m.upstreamReleasePluginBinTool.GetFile(ctx, pluginBinTool.FileName)
+	file, err := m.upstreamReleasePluginBinToolV2.GetFile(ctx, pluginBinTool.FileName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upstream release plugin bintool file: %w", err)
 	}

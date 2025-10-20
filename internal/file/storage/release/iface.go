@@ -26,7 +26,7 @@ type IStorage interface {
 	IDaoProxy
 	IDaoBinTool
 	IDaoCert
-	IDaoPluginBinTool
+	IDaoPluginBinToolV2
 	IDaoPlugin
 }
 
@@ -81,24 +81,24 @@ type IDaoBinTool interface {
 	DeleteReleaseBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error
 }
 
-// IDaoPluginBinTool defines the bin tool interface.
-type IDaoPluginBinTool interface {
-	// GetReleasePluginBinTool gets release plugin bintool.
-	GetReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinTool, error)
+// IDaoPluginBinToolV2 defines the plugin bin tool v2 interface.
+type IDaoPluginBinToolV2 interface {
+	// GetReleasePluginBinToolV2 gets release plugin bintool v2.
+	GetReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinToolV2, error)
 
-	// ExistReleasePluginBinTool checks if release plugin bintool exists.
-	ExistReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (bool, error)
+	// ExistReleasePluginBinToolV2 checks if release plugin bintool v2 exists.
+	ExistReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation) (bool, error)
 
-	// UpsertReleasePluginBinTool upserts release plugin bintool.
-	UpsertReleasePluginBinTool(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error
+	// UpsertReleasePluginBinToolV2 upserts release plugin bintool v2.
+	UpsertReleasePluginBinToolV2(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinToolV2) error
 
-	// DeleteReleasePluginBinTool deletes release plugin bintool.
-	DeleteReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error
+	// DeleteReleasePluginBinToolV2 deletes release plugin bintool v2.
+	DeleteReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation, fileName string) error
 }
 
 // IDaoPlugin defines the interface of plugin.
 type IDaoPlugin interface {
-	// GetReleasePlugin gets release plugin plugin.
+	// GetReleasePlugin gets release plugin.
 	GetReleasePlugin(ctx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (
 		*types.ReleasePlugin, error)
 

@@ -20,33 +20,33 @@ import (
 
 // IPlugin defines the interface of upload storage.
 type IPlugin interface {
-	// GetPluginUpload gets a upload by upload-id.
-	GetPluginUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
+	// GetPluginV2Upload gets a upload by upload-id.
+	GetPluginV2Upload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
-	// CreatePluginUpload creates a upload.
-	CreatePluginUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
+	// CreatePluginV2Upload creates a upload.
+	CreatePluginV2Upload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
 	// DeletePluginUpload deletes a upload by upload-id.
 	DeletePluginUpload(nCtx contextx.IContext, uploadID string) error
 }
 
-// GetPluginUpload gets a upload by upload-id.
-func (s *Storage) GetPluginUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
+// GetPluginV2Upload gets a upload by upload-id.
+func (s *Storage) GetPluginV2Upload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
 	// record metric.
-	metric := s.metric().Start("get_plugin")
+	metric := s.metric().Start("get_plugin_v2")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginPlugin, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginPluginV2, uploadID)
 }
 
-// CreatePluginUpload creates a upload.
-func (s *Storage) CreatePluginUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
+// CreatePluginV2Upload creates a upload.
+func (s *Storage) CreatePluginV2Upload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
-	metric := s.metric().Start("create_plugin")
+	metric := s.metric().Start("create_plugin_v2")
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginPlugin, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginPluginV2, up); err != nil {
 		return "", err
 	}
 
@@ -56,8 +56,8 @@ func (s *Storage) CreatePluginUpload(nCtx contextx.IContext, up *types.Upload) (
 // DeletePluginUpload deletes a upload by upload-id.
 func (s *Storage) DeletePluginUpload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
-	metric := s.metric().Start("delete_plugin")
+	metric := s.metric().Start("delete_plugin_v2")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginPlugin, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginPluginV2, uploadID)
 }

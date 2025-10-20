@@ -22,72 +22,72 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// upsertReleasePluginBinTool upserts release plugin bintool.
-func (s *Storage) upsertReleasePluginBinTool(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error {
+// upsertReleasePluginBinToolV2 upserts release plugin bintool v2.
+func (s *Storage) upsertReleasePluginBinToolV2(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinToolV2) error {
 	rls := &pluginBinTool.Release
 	rls.Operator = ctx.BKUsername()
 	rls.Name = releaseNamePluginBinTool
 	rls.Version = releaseVersionPluginBinTool
 	rls.UpdatedAt = time.Now()
 
-	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypePluginBinTool, rls)
+	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypePluginBinToolV2, rls)
 	if err != nil {
-		return fmt.Errorf("failed to upsert release plugin bintool: %w", err)
+		return fmt.Errorf("failed to upsert release plugin bintool v2: %w", err)
 	}
 
 	return nil
 }
 
-// deleteReleasePluginBinTool deletes release plugin bintool.
-func (s *Storage) deleteReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error {
-	err := s.daoRelease.Delete(ctx, types.ReleaseTypePluginBinTool,
+// deleteReleasePluginBinToolV2 deletes release plugin bintool v2.
+func (s *Storage) deleteReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation, fileName string) error {
+	err := s.daoRelease.Delete(ctx, types.ReleaseTypePluginBinToolV2,
 		release.WithGeneration(gen),
 		release.WithPlatform(platfmt.EmptyPlatform()),
 		release.WithFileName(fileName),
 	)
 	if err != nil {
-		return fmt.Errorf("failed to delete release plugin bintool: %w", err)
+		return fmt.Errorf("failed to delete release plugin bintool v2: %w", err)
 	}
 
 	return nil
 }
 
-// getReleasePluginBinTool gets release plugin bintool.
-func (s *Storage) getReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinTool, error) {
+// getReleasePluginBinToolV2 gets release plugin bintool v2.
+func (s *Storage) getReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinToolV2, error) {
 	var (
 		rls  *types.Release
-		data *types.ReleasePluginBinTool
+		data *types.ReleasePluginBinToolV2
 		err  error
 	)
 
-	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypePluginBinTool,
+	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypePluginBinToolV2,
 		release.WithGeneration(gen),
 		release.WithPlatform(platfmt.EmptyPlatform()),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
+		return nil, fmt.Errorf("failed to get release plugin bintool v2: %w", err)
 	}
 
-	data = &types.ReleasePluginBinTool{
+	data = &types.ReleasePluginBinToolV2{
 		Release: *rls,
 	}
 
 	return data, nil
 }
 
-// existReleasePluginBinTool checks if release plugin bintool exists.
-func (s *Storage) existReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (bool, error) {
+// existReleasePluginBinToolV2 checks if release plugin bintool v2 exists.
+func (s *Storage) existReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation) (bool, error) {
 	var (
 		result bool
 		err    error
 	)
 
-	result, err = s.daoRelease.Exist(ctx, types.ReleaseTypePluginBinTool,
+	result, err = s.daoRelease.Exist(ctx, types.ReleaseTypePluginBinToolV2,
 		release.WithGeneration(gen),
 		release.WithPlatform(platfmt.EmptyPlatform()),
 	)
 	if err != nil {
-		return false, fmt.Errorf("failed to check release plugin bintool: %w", err)
+		return false, fmt.Errorf("failed to check release plugin bintool v2: %w", err)
 	}
 
 	return result, nil

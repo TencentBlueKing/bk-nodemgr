@@ -52,13 +52,13 @@
     },
     "/upload/origin/bintool": {
       "post": {
-        "summary": "UploadOriginPluginBinTool provides origin bintool upload.",
-        "operationId": "Upload_UploadOriginPluginBinTool",
+        "summary": "UploadOriginPluginBinToolV2 provides origin bintool upload.",
+        "operationId": "Upload_UploadOriginPluginBinToolV2",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginBinToolResp"
+              "$ref": "#/definitions/v3UploadOriginPluginBinToolV2Resp"
             }
           },
           "default": {
@@ -71,11 +71,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UploadOriginPluginBinToolReq is the request for upload origin bin tool pkg.",
+            "description": "UploadOriginPluginBinToolV2Req is the request for upload origin bin tool pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginBinToolReq"
+              "$ref": "#/definitions/v3UploadOriginPluginBinToolV2Req"
             }
           }
         ],
@@ -126,7 +126,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginExternalPluginResp"
+              "$ref": "#/definitions/v3UploadOriginExternalPluginV2Resp"
             }
           },
           "default": {
@@ -139,11 +139,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UploadOriginExternalPluginReq is the request for upload external\nplugin pkg.",
+            "description": "UploadOriginExternalPluginV2Req is the request for upload external\nplugin pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginExternalPluginReq"
+              "$ref": "#/definitions/v3UploadOriginExternalPluginV2Req"
             }
           }
         ],
@@ -154,13 +154,13 @@
     },
     "/upload/origin/plugin": {
       "post": {
-        "summary": "UploadOriginPlugin provides origin plugin upload.",
-        "operationId": "Upload_UploadOriginPlugin",
+        "summary": "UploadOriginPluginV2 provides origin plugin upload.",
+        "operationId": "Upload_UploadOriginPluginV2",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginResp"
+              "$ref": "#/definitions/v3UploadOriginPluginV2Resp"
             }
           },
           "default": {
@@ -173,11 +173,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UploadOriginPluginReq is the request for upload origin\nplugin pkg.",
+            "description": "UploadOriginPluginV2Req is the request for upload origin\nplugin pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginReq"
+              "$ref": "#/definitions/v3UploadOriginPluginV2Req"
             }
           }
         ],
@@ -462,16 +462,16 @@
         }
       }
     },
-    "v3UploadOriginExternalPluginReq": {
+    "v3UploadOriginExternalPluginV2Req": {
       "type": "object",
       "properties": {
         "overwrite": {
           "type": "boolean"
         }
       },
-      "description": "UploadOriginExternalPluginReq is the request for upload external\nplugin pkg."
+      "description": "UploadOriginExternalPluginV2Req is the request for upload external\nplugin pkg."
     },
-    "v3UploadOriginExternalPluginResp": {
+    "v3UploadOriginExternalPluginV2Resp": {
       "type": "object",
       "properties": {
         "code": {
@@ -485,12 +485,12 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3UploadOriginExternalPluginRespData"
+          "$ref": "#/definitions/v3UploadOriginExternalPluginV2RespData"
         }
       },
-      "description": "UploadOriginExternalPluginResp is the response for upload external\nplugin pkg."
+      "description": "UploadOriginExternalPluginV2Resp is the response for upload external\nplugin pkg."
     },
-    "v3UploadOriginExternalPluginRespData": {
+    "v3UploadOriginExternalPluginV2RespData": {
       "type": "object",
       "properties": {
         "upload_id": {
@@ -539,7 +539,7 @@
         }
       }
     },
-    "v3UploadOriginPluginBinToolReq": {
+    "v3UploadOriginPluginBinToolV2Req": {
       "type": "object",
       "properties": {
         "generation": {
@@ -550,9 +550,9 @@
           "type": "boolean"
         }
       },
-      "description": "UploadOriginPluginBinToolReq is the request for upload origin bin tool pkg."
+      "description": "UploadOriginPluginBinToolV2Req is the request for upload origin bin tool pkg."
     },
-    "v3UploadOriginPluginBinToolResp": {
+    "v3UploadOriginPluginBinToolV2Resp": {
       "type": "object",
       "properties": {
         "code": {
@@ -566,12 +566,12 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3UploadOriginPluginBinToolRespData"
+          "$ref": "#/definitions/v3UploadOriginPluginBinToolV2RespData"
         }
       },
-      "description": "UploadOriginPluginBinToolResp is the response for upload origin bin tool pkg."
+      "description": "UploadOriginPluginBinToolV2Resp is the response for upload origin bin tool\npkg."
     },
-    "v3UploadOriginPluginBinToolRespData": {
+    "v3UploadOriginPluginBinToolV2RespData": {
       "type": "object",
       "properties": {
         "upload_id": {
@@ -602,16 +602,16 @@
         }
       }
     },
-    "v3UploadOriginPluginReq": {
+    "v3UploadOriginPluginV2Req": {
       "type": "object",
       "properties": {
         "overwrite": {
           "type": "boolean"
         }
       },
-      "description": "UploadOriginPluginReq is the request for upload origin\nplugin pkg."
+      "description": "UploadOriginPluginV2Req is the request for upload origin\nplugin pkg."
     },
-    "v3UploadOriginPluginResp": {
+    "v3UploadOriginPluginV2Resp": {
       "type": "object",
       "properties": {
         "code": {
@@ -625,12 +625,12 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3UploadOriginPluginRespData"
+          "$ref": "#/definitions/v3UploadOriginPluginV2RespData"
         }
       },
-      "description": "UploadOriginPluginResp is the response for upload origin\nplugin pkg."
+      "description": "UploadOriginPluginV2Resp is the response for upload origin\nplugin pkg."
     },
-    "v3UploadOriginPluginRespData": {
+    "v3UploadOriginPluginV2RespData": {
       "type": "object",
       "properties": {
         "upload_id": {

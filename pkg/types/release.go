@@ -27,11 +27,11 @@ const (
 	// ReleaseTypeOriginServer defines the release of origin gse server package.
 	ReleaseTypeOriginServer ReleaseType = "origin_server"
 
-	// ReleaseTypeOriginPlugin defines the release of nodemgr origin plugin package.
-	ReleaseTypeOriginPlugin ReleaseType = "origin_plugin"
+	// ReleaseTypeOriginPluginV2 defines the release of nodemgr origin plugin v2 package.
+	ReleaseTypeOriginPluginV2 ReleaseType = "origin_plugin_v2"
 
-	// ReleaseTypeOriginExternalPlugin defines the release of nodemgr origin external plugin package.
-	ReleaseTypeOriginExternalPlugin ReleaseType = "origin_external_plugin"
+	// ReleaseTypeOriginExternalPluginV2 defines the release of nodemgr origin external plugin v2 package.
+	ReleaseTypeOriginExternalPluginV2 ReleaseType = "origin_external_plugin_v2"
 
 	// ReleaseTypeAgent defines the release of nodemgr agent package transformed from origin gse agent package.
 	ReleaseTypeAgent ReleaseType = "agent"
@@ -45,8 +45,8 @@ const (
 	// ReleaseTypeBinTool defines the release of nodemgr bin tool package.
 	ReleaseTypeBinTool ReleaseType = "bintool"
 
-	// ReleaseTypePluginBinTool defines the release of nodemgr plugin bin tool package.
-	ReleaseTypePluginBinTool ReleaseType = "plugin_bintool"
+	// ReleaseTypePluginBinToolV2 defines the release of nodemgr plugin bin tool v2 package.
+	ReleaseTypePluginBinToolV2 ReleaseType = "plugin_bintool_v2"
 
 	// ReleaseTypePlugin defines the release of nodemgr plugin package.
 	ReleaseTypePlugin ReleaseType = "plugin"
@@ -61,9 +61,9 @@ func (rt ReleaseType) Validate() error {
 		ReleaseTypeProxy,
 		ReleaseTypeCert,
 		ReleaseTypeBinTool,
-		ReleaseTypeOriginPlugin,
-		ReleaseTypeOriginExternalPlugin,
-		ReleaseTypePluginBinTool,
+		ReleaseTypeOriginPluginV2,
+		ReleaseTypeOriginExternalPluginV2,
+		ReleaseTypePluginBinToolV2,
 		ReleaseTypePlugin:
 		return nil
 	default:
@@ -160,8 +160,8 @@ type ReleaseBinTool struct {
 	Release
 }
 
-// ReleasePluginBinTool defines the plugin bin tool, it is kind of Release.
-type ReleasePluginBinTool struct {
+// ReleasePluginBinToolV2 defines the plugin bin tool, it is kind of Release.
+type ReleasePluginBinToolV2 struct {
 	Release
 }
 

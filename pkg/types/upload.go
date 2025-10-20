@@ -33,14 +33,14 @@ const (
 	// UploadCategoryOriginBinTool represents the origin bin tool.
 	UploadCategoryOriginBinTool UploadCategory = "origin_bin_tool"
 
-	// UploadCategoryOriginPluginBinTool represents the origin bin tool.
-	UploadCategoryOriginPluginBinTool UploadCategory = "origin_plugin_bin_tool"
+	// UploadCategoryOriginPluginBinToolV2 represents the origin plugin bin tool v2.
+	UploadCategoryOriginPluginBinToolV2 UploadCategory = "origin_plugin_bin_tool_v2"
 
-	// UploadCategoryOriginPlugin represents the origin plugin.
-	UploadCategoryOriginPlugin UploadCategory = "origin_plugin"
+	// UploadCategoryOriginPluginV2 represents the origin plugin v2.
+	UploadCategoryOriginPluginV2 UploadCategory = "origin_plugin_v2"
 
-	// UploadCategoryOriginExternalPlugin represents the origin external plugin.
-	UploadCategoryOriginExternalPlugin UploadCategory = "origin_external_plugin"
+	// UploadCategoryOriginExternalPluginV2 represents the origin external plugin v2.
+	UploadCategoryOriginExternalPluginV2 UploadCategory = "origin_external_plugin_v2"
 )
 
 // Upload defines the upload struct.
@@ -93,8 +93,8 @@ type OriginBinToolPkgDetail struct {
 	ProxyPlatforms []platfmt.Platform
 }
 
-// OriginPluginBinToolPkgDetail defines the detail of plugin bin tool package.
-type OriginPluginBinToolPkgDetail struct {
+// OriginPluginBinToolV2PkgDetail defines the detail of plugin bin tool package.
+type OriginPluginBinToolV2PkgDetail struct {
 	fileiface.FileInfo
 
 	UploadID  string
@@ -102,8 +102,8 @@ type OriginPluginBinToolPkgDetail struct {
 	Platforms []platfmt.Platform
 }
 
-// OriginPluginPkgDetail defines the detail of plugin package.
-type OriginPluginPkgDetail struct {
+// OriginPluginV2PkgDetail defines the detail of plugin package.
+type OriginPluginV2PkgDetail struct {
 	fileiface.FileInfo
 
 	UploadID string
@@ -124,16 +124,16 @@ type OriginPluginPkgDetail struct {
 	Platforms []platfmt.Platform
 }
 
-// NewOriginPluginPkgDetail creates a new OriginPluginPkgDetail.
-func NewOriginPluginPkgDetail() *OriginPluginPkgDetail {
-	return &OriginPluginPkgDetail{
+// NewOriginPluginV2PkgDetail creates a new OriginPluginV2PkgDetail.
+func NewOriginPluginV2PkgDetail() *OriginPluginV2PkgDetail {
+	return &OriginPluginV2PkgDetail{
 		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
 		Controller:      make(map[string]ProcessController),
 	}
 }
 
-// OriginExternalPluginPkgDetail defines the detail of external plugin package.
-type OriginExternalPluginPkgDetail struct {
+// OriginExternalPluginV2PkgDetail defines the detail of external plugin package.
+type OriginExternalPluginV2PkgDetail struct {
 	fileiface.FileInfo
 
 	UploadID string
@@ -155,9 +155,9 @@ type OriginExternalPluginPkgDetail struct {
 	Platforms []platfmt.Platform
 }
 
-// NewOriginExternalPluginPkgDetail creates a new OriginExternalPluginPkgDetail.
-func NewOriginExternalPluginPkgDetail() *OriginExternalPluginPkgDetail {
-	return &OriginExternalPluginPkgDetail{
+// NewOriginExternalPluginV2PkgDetail creates a new OriginExternalPluginV2PkgDetail.
+func NewOriginExternalPluginV2PkgDetail() *OriginExternalPluginV2PkgDetail {
+	return &OriginExternalPluginV2PkgDetail{
 		SubDirPaths:     make(map[string]map[string]struct{}),
 		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
 		Controller:      make(map[string]ProcessController),

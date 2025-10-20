@@ -266,11 +266,11 @@ func (svc *Service) initialManager() error {
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
 	}
-	upstreamOriginPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/plugin")
+	upstreamOriginPluginV2, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/v2/plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin plugin file group: %w", err)
 	}
-	upstreamOriginExternalPlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/external_plugin")
+	upstreamOriginExternalPluginV2, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/v2/external_plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin external plugin file group: %w", err)
 	}
@@ -292,11 +292,11 @@ func (svc *Service) initialManager() error {
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
-	upstreamOriginPluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/plugin_bintool")
+	upstreamOriginPluginBinToolV2FG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/v2/plugin_bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin plugin bin tool file group: %w", err)
 	}
-	upstreamReleasePluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/plugin_bintool")
+	upstreamReleasePluginBinToolV2FG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/v2/plugin_bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
@@ -324,12 +324,12 @@ func (svc *Service) initialManager() error {
 		manager.WithUpstreamOriginServerFileGroup(upstreamOriginServerFG),
 		manager.WithUpstreamOriginCertFileGroup(upstreamOriginCertFG),
 		manager.WithUpstreamOriginBinToolFileGroup(upstreamOriginBinToolFG),
-		manager.WithUpstreamOriginPluginBinToolFileGroup(upstreamOriginPluginBinToolFG),
+		manager.WithUpstreamOriginPluginBinToolV2FileGroup(upstreamOriginPluginBinToolV2FG),
 		manager.WithUpstreamReleaseAgentFileGroup(upstreamReleaseAgentFG),
 		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
 		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
 		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
-		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
+		manager.WithUpstreamReleasePluginBinToolV2FileGroup(upstreamReleasePluginBinToolV2FG),
 		manager.WithTempFileGroup(tempFG),
 		manager.WithInstallerFileGroup(installerFG),
 		manager.WithCacheFileGroup(cacheFG),
@@ -340,9 +340,9 @@ func (svc *Service) initialManager() error {
 		manager.WithAdvertiseIPV6(svc.conf.BasicServer.AdvertiseIPV6),
 		manager.WithMount(svc.conf.MountHostDir, svc.conf.WorkspaceFileGroup.FullPath),
 		manager.WithGSEHandler(svc.Cap.GSEHandler),
-		manager.WithUpstreamOriginPluginFileGroup(upstreamOriginPlugin),
+		manager.WithUpstreamOriginPluginV2FileGroup(upstreamOriginPluginV2),
+		manager.WithUpstreamOriginExternalPluginV2FileGroup(upstreamOriginExternalPluginV2),
 		manager.WithUpstreamReleasePluginFileGroup(upstreamReleasePlugin),
-		manager.WithUpstreamOriginExternalPluginFileGroup(upstreamOriginExternalPlugin),
 	)
 
 	return nil

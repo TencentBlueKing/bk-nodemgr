@@ -24,7 +24,7 @@ type IPluginBinTool interface {
 	GetPluginBinToolUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
 	// CreatePluginBinToolUpload creates a upload.
-	CreatePluginBinToolUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
+	CreatePluginBinToolV2Upload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
 	// DeletePluginBinToolUpload deletes a upload by upload-id.
 	DeletePluginBinToolUpload(nCtx contextx.IContext, uploadID string) error
@@ -36,17 +36,17 @@ func (s *Storage) GetPluginBinToolUpload(nCtx contextx.IContext, uploadID string
 	metric := s.metric().Start("get_plugin_bintool")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginPluginBinTool, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginPluginBinToolV2, uploadID)
 }
 
-// CreatePluginBinToolUpload creates a upload.
-func (s *Storage) CreatePluginBinToolUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
+// CreatePluginBinToolV2Upload creates a upload.
+func (s *Storage) CreatePluginBinToolV2Upload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
 	metric := s.metric().Start("create_plugin_bintool")
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginPluginBinTool, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginPluginBinToolV2, up); err != nil {
 		return "", err
 	}
 
@@ -59,5 +59,5 @@ func (s *Storage) DeletePluginBinToolUpload(nCtx contextx.IContext, uploadID str
 	metric := s.metric().Start("delete_plugin_bintool")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginPluginBinTool, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginPluginBinToolV2, uploadID)
 }

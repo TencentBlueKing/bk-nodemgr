@@ -35,7 +35,7 @@ func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.G
 	// origin agent pkg contains all platforms in one pkg.
 	// so the pkg-name should not contain platform info.
 	switch releaseType {
-	case types.ReleaseTypeOriginPlugin, types.ReleaseTypeOriginExternalPlugin:
+	case types.ReleaseTypeOriginPluginV2, types.ReleaseTypeOriginExternalPluginV2:
 		pkgName := fmt.Sprintf(
 			"bk-nodemgr_%s_%d_%s-%s-all.%s",
 			releaseType,
