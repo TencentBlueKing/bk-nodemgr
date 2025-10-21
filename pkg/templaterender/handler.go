@@ -48,7 +48,7 @@ func addFunction(funcsMap template.FuncMap, name string, function any) {
 
 // Render render template with data.
 func (h *Handler) Render(tmpl string, data map[string]any) (string, error) {
-	template, err := template.New("template").Funcs(h.funcMap).Parse(tmpl)
+	template, err := h.ReadTemplate(tmpl)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse template: %w", err)
 	}
@@ -59,4 +59,14 @@ func (h *Handler) Render(tmpl string, data map[string]any) (string, error) {
 	}
 
 	return output.String(), nil
+}
+
+// ReadTemplate reads and parses the template string.
+func (h *Handler) ReadTemplate(tmpl string) (*template.Template, error) {
+	template, err := template.New("template").Funcs(h.funcMap).Parse(tmpl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	return template, nil
 }

@@ -8,16 +8,33 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package templaterender defines a lightweight template rendering engine with common functions.
-package templaterender
+// Package main is an example
+package main
 
-import "text/template"
+import (
+	"fmt"
+	"os"
 
-// IHandler defines the interface for template rendering handlers.
-type IHandler interface {
-	// Render render template with data.
-	Render(tmpl string, data map[string]any) (string, error)
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/templaterender"
+)
 
-	// ReadTemplate reads and parses the template to check for syntax errors.
-	ReadTemplate(tmpl string) (*template.Template, error)
+// nolint: mnd
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("用法: example <文件路径>")
+		os.Exit(1)
+	}
+	filename := os.Args[1]
+	templateContent, err := os.ReadFile(filename) // nolint: gosec
+	if err != nil {
+		fmt.Printf("读取文件失败: %v\n", err)
+		os.Exit(1)
+	}
+	template, err := templaterender.New().ReadTemplate(string(templateContent))
+	if err != nil {
+		fmt.Printf("渲染模板失败: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("渲染结果:")
+	fmt.Println(template)
 }
