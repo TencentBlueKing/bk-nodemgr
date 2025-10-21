@@ -771,3 +771,11 @@ linters-settings:
         alias: daoPackageEvent
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/deploy_policy
         alias: daoDeployPolicy
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow
+        alias: daoNodeWorkflow
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment
+        alias: daoNodeDeployment
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant
+        alias: tenantStg
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release
+        alias: releaseStg

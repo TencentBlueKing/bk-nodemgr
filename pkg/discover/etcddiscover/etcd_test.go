@@ -182,7 +182,7 @@ func TestProviderEtcd_GetAllService(t *testing.T) {
 				for _, want := range tt.want {
 					if instance.ID == want.ID {
 						if instance.Name != want.Name {
-							t.Errorf("instance.PluginName = %v, want.PluginName = %v", instance.Name, want.Name)
+							t.Errorf("instance.Name = %v, want.Name = %v", instance.Name, want.Name)
 						}
 
 						for name, endpoint := range instance.Endpoints {
@@ -525,7 +525,7 @@ func TestProviderEtcd_Update(t *testing.T) {
 				for _, want := range tt.want {
 					if instance.ID == want.ID {
 						if instance.Name != want.Name {
-							t.Errorf("instance.PluginName = %v, want.PluginName = %v", instance.Name, want.Name)
+							t.Errorf("instance.Name = %v, want.Name = %v", instance.Name, want.Name)
 						}
 
 						for name, endpoint := range instance.Endpoints {
@@ -673,7 +673,7 @@ func TestProviderEtcd_Deregister(t *testing.T) {
 				for _, want := range tt.want {
 					if instance.ID == want.ID {
 						if instance.Name != want.Name {
-							t.Errorf("instance.PluginName = %v, want.PluginName = %v", instance.Name, want.Name)
+							t.Errorf("instance.Name = %v, want.Name = %v", instance.Name, want.Name)
 						}
 
 						for name, endpoint := range instance.Endpoints {

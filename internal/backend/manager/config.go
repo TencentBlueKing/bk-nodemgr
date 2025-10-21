@@ -19,6 +19,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -30,14 +31,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 )
 
 // Config defines the config of Manager.
 type Config struct {
 	// thridparty handler.
-	CmdbHandler cmdb.IHandler
-	GSEHandler  gse.IHandler
-	FileHandler file.IHandler
+	CmdbHandler        cmdb.IHandler
+	GSEHandler         gse.IHandler
+	FileHandler        file.IHandler
+	UserManagerHandler usermanager.IHandler
 
 	// discover provider.
 	Provider discover.Provider
@@ -56,6 +59,7 @@ type Config struct {
 	StoragePlugin       pluginStg.IStorage
 	StorageHostCredit   credit.IStorageHostCredit
 	StorageConfigPolicy configpolicy.IStorage
+	StorageTenant       tenant.IStorage
 
 	// credit vault.
 	HostPasswordVault creditvault.IHostPasswordVault

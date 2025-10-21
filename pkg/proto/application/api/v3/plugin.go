@@ -39,8 +39,8 @@ func (x *PluginInstallReq_Process) Validate() error {
 		return errors.New("bk_host_id can not be zero")
 	}
 
-	if x.GetPluginId() == "" {
-		return errors.New("plugin_id can not be empty")
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
 	}
 
 	if x.GetVersion() == "" {
@@ -72,7 +72,7 @@ func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginIn
 	for idx, param := range installParam {
 		item := &PluginInstallReq_Process{}
 		item.BkHostId = &param.HostID
-		item.PluginId = param.PluginID
+		item.PluginName = param.PluginName
 		item.Version = param.Version
 
 		process[idx] = item
@@ -87,9 +87,9 @@ func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginInstallParam {
 	installParam := make([]*types.PluginInstallParam, len(process))
 	for idx, proc := range process {
 		item := &types.PluginInstallParam{
-			HostID:   proc.GetBkHostId(),
-			PluginID: proc.GetPluginId(),
-			Version:  proc.GetVersion(),
+			HostID:     proc.GetBkHostId(),
+			PluginName: proc.GetPluginName(),
+			Version:    proc.GetVersion(),
 		}
 
 		installParam[idx] = item
@@ -119,16 +119,16 @@ func convertPluginConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.PluginExactFields{
-			PluginID:    exactCond.GetPluginId(),
-			PluginGroup: exactCond.GetPluginGroup(),
+			Name:  exactCond.GetPluginName(),
+			Group: exactCond.GetPluginGroup(),
 		}
 	}
 
 	// fuzzy conditions.
 	if fuzzyCond != nil {
 		condition.FuzzyInclude = &types.PluginFuzzyFields{
-			PluginName:    fuzzyCond.GetPluginName(),
-			PluginPkgName: fuzzyCond.GetPluginPkgName(),
+			Name:    fuzzyCond.GetPluginName(),
+			PkgName: fuzzyCond.GetPluginPkgName(),
 		}
 	}
 
@@ -144,16 +144,16 @@ func (x *PluginListReq) ConvertConditionFromTypes(condition *types.PluginConditi
 	// exact conditions.
 	if condition.ExactInclude != nil {
 		x.ExactIncludeConditions = &PluginListReq_ExactConditions{
-			PluginId:    condition.ExactInclude.PluginID,
-			PluginGroup: condition.ExactInclude.PluginGroup,
+			PluginName:  condition.ExactInclude.Name,
+			PluginGroup: condition.ExactInclude.Group,
 		}
 	}
 
 	// fuzzy conditions.
 	if condition.FuzzyInclude != nil {
 		x.FuzzyIncludeConditions = &PluginListReq_FuzzyConditions{
-			PluginName:    condition.FuzzyInclude.PluginName,
-			PluginPkgName: condition.FuzzyInclude.PluginPkgName,
+			PluginName:    condition.FuzzyInclude.Name,
+			PluginPkgName: condition.FuzzyInclude.PkgName,
 		}
 	}
 }
@@ -169,10 +169,9 @@ func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Pl
 	for idx, plugin := range plugins {
 		item := newEmptyPlugin()
 		*item.TenantId = plugin.TenantID
-		*item.PluginId = plugin.PluginID
-		*item.PluginName = plugin.PluginName
-		*item.PluginGroup = plugin.PluginGroup
-		*item.PluginPkgName = plugin.PluginPkgName
+		*item.Name = plugin.Name
+		*item.Group = plugin.Group
+		*item.PkgName = plugin.PkgName
 
 		items[idx] = item
 	}
@@ -185,11 +184,10 @@ func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Pl
 
 func newEmptyPlugin() *Plugin {
 	return &Plugin{
-		TenantId:      new(string),
-		PluginId:      new(string),
-		PluginName:    new(string),
-		PluginGroup:   new(string),
-		PluginPkgName: new(string),
+		TenantId: new(string),
+		Name:     new(string),
+		Group:    new(string),
+		PkgName:  new(string),
 	}
 }
 
@@ -200,11 +198,10 @@ func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
 	plugins := make([]*types.Plugin, len(data.GetItems()))
 	for idx, plugin := range data.GetItems() {
 		item := &types.Plugin{
-			TenantID:      plugin.GetTenantId(),
-			PluginID:      plugin.GetPluginId(),
-			PluginName:    plugin.GetPluginName(),
-			PluginGroup:   plugin.GetPluginGroup(),
-			PluginPkgName: plugin.GetPluginPkgName(),
+			TenantID: plugin.GetTenantId(),
+			Name:     plugin.GetName(),
+			Group:    plugin.GetGroup(),
+			PkgName:  plugin.GetPkgName(),
 		}
 
 		plugins[idx] = item

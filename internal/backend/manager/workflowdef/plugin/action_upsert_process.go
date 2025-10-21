@@ -19,7 +19,6 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -35,6 +34,8 @@ const (
 func NewActionUpsertProcess(capability *Capability) action.Definition {
 	return &actionUpsertProcess{
 		daoHost:             capability.StorageTopo,
+		daoPlugin:           capability.StoragePlugin,
+		daoProcess:          capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
 		provider:            capability.DiscoverProvider,
 		gseHandler:          capability.GSEHandler,
@@ -114,47 +115,39 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 
 	nCtx := std.Context()
 	process := types.Process{
-		TenantID:  nCtx.TenantID(),
-		HostID:    std.DeployInfo().Process.HostID,
-		PluginID:  std.DeployInfo().Process.PluginID,
-		ProcessID: std.DeployInfo().Process.ProcessID,
+		TenantID:   nCtx.TenantID(),
+		HostID:     std.DeployInfo().Process.HostID,
+		PluginName: std.DeployInfo().Process.PluginName,
 		Info: types.ProcessInfo{
 			Version: std.DeployInfo().InstallOptions.Version,
 			Status:  types.ProcessStatusInit,
 		},
 	}
-	if process.ProcessID == "" {
-		ctx.Data.LogI("processID is empty, try create process")
 
-		process.ProcessID = identifier.GenProcessID()
+	exist, err := act.daoProcess.ExistProcess(nCtx, process.HostID, process.PluginName)
+	if err != nil {
+		return fmt.Errorf("failed to check process exist: %w", err)
+	}
+
+	if !exist {
+		ctx.Data.LogI(fmt.Sprintf("the specified process id does not exist, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
 
 		err = act.daoProcess.CreateProcess(nCtx, &process)
 		if err != nil {
 			return fmt.Errorf("failed to create process: %w", err)
 		}
 
-		ctx.Data.LogI(fmt.Sprintf("successfully create process, process-id(%s)", process.ProcessID))
-	} else {
-		ctx.Data.LogI("processID is not empty, try update process")
-
-		exist, err := act.daoProcess.ExistProcess(nCtx, process.ProcessID)
-		if err != nil {
-			return fmt.Errorf("failed to check process exist: %w", err)
-		}
-
-		if !exist {
-			ctx.Data.LogI(fmt.Sprintf("the specified process id does not exist, process-id(%s)", process.ProcessID))
-
-			return fmt.Errorf("failed to update process, process-id(%s) does not exist")
-		}
-
-		err = act.daoProcess.UpdateProcessInfo(nCtx, process.ProcessID, &process.Info)
-		if err != nil {
-			return fmt.Errorf("failed to update process info: %w", err)
-		}
-
-		ctx.Data.LogI(fmt.Sprintf("successfully update process, process-id(%s)", process.ProcessID))
+		ctx.Data.LogI(fmt.Sprintf("successfully create process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
 	}
+
+	err = act.daoProcess.UpdateProcessInfo(nCtx, process.HostID, process.PluginName, &process.Info)
+	if err != nil {
+		return fmt.Errorf("failed to update process info: %w", err)
+	}
+
+	ctx.Data.LogI(fmt.Sprintf("successfully update process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
+
+	std.DeployInfo().Process = process
 
 	return nil
 }

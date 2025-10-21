@@ -287,6 +287,140 @@ message PackageEventDistinctResp {
   Data data = 5;
 }
 
+// ReleasePlugin describes the package release plugin information.
+message ReleasePlugin { Release release = 1; }
+
+// PackageReleasePluginListReq describes the HTTP request body when list package
+// release.
+message PackageReleasePluginListReq {
+  Page page = 1;
+  int64 name = 2;
+  int64 generation = 3;
+  bool only_count = 4;
+
+  PackageReleaseExactConditions exact_include_conditions = 5;
+}
+
+// PackageReleasePluginListResp describes the HTTP response body when list
+// package release.
+message PackageReleasePluginListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated ReleasePlugin items = 2;
+  }
+  Data data = 5;
+}
+
+// PackageReleasePluginEnableReq describes the HTTP request body when enable
+// package release.
+message PackageReleasePluginEnableReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginEnableResp describes the HTTP response body when enable
+// package release.
+message PackageReleasePluginEnableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginDisableReq describes the HTTP request body when disable
+// package release.
+message PackageReleasePluginDisableReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginDisableResp describes the HTTP response body when disable
+// package release.
+message PackageReleasePluginDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set
+// default package release.
+message PackageReleasePluginSetAsDefaultReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginSetAsDefaultResp describes the HTTP response body when
+// set default package release.
+message PackageReleasePluginSetAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when
+// cancel default package release.
+message PackageReleasePluginCancelAsDefaultReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when
+// cancel default package release.
+message PackageReleasePluginCancelAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginDeleteReq describes the HTTP request body when delete
+// release.
+message PackageReleasePluginDeleteReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginDeleteResp describes the HTTP response body when delete
+// release.
+message PackageReleasePluginDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
 service Package {
   // ListRelease lists releases.
   rpc ListRelease(PackageReleaseListReq) returns (PackageReleaseListResp) {
@@ -381,6 +515,60 @@ service Package {
       returns (PackageEventDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/package/event/distinct"
+      body : "*"
+    };
+  }
+
+  // ListReleasePlugin lists releases.
+  rpc ListReleasePlugin(PackageReleasePluginListReq)
+      returns (PackageReleasePluginListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release_plugin/list"
+      body : "*"
+    };
+  }
+
+  // EnableReleasePlugin enables release.
+  rpc EnableReleasePlugin(PackageReleasePluginEnableReq)
+      returns (PackageReleasePluginEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/enable"
+      body : "*"
+    };
+  }
+
+  // DisableReleasePlugin disables release.
+  rpc DisableReleasePlugin(PackageReleasePluginDisableReq)
+      returns (PackageReleasePluginDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/disable"
+      body : "*"
+    };
+  }
+
+  // SetAsDefaultReleasePlugin sets release as default.
+  rpc SetAsDefaultReleasePlugin(PackageReleasePluginSetAsDefaultReq)
+      returns (PackageReleasePluginSetAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/set_as_default"
+      body : "*"
+    };
+  }
+
+  // CancelAsDefaultReleasePlugin cancels release as default.
+  rpc CancelAsDefaultReleasePlugin(PackageReleasePluginCancelAsDefaultReq)
+      returns (PackageReleasePluginCancelAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/cancel_as_default"
+      body : "*"
+    };
+  }
+
+  // DeleteReleasePlugin deletes release.
+  rpc DeleteReleasePlugin(PackageReleasePluginDeleteReq)
+      returns (PackageReleaseDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/delete"
       body : "*"
     };
   }

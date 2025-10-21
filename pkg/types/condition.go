@@ -553,18 +553,16 @@ type ProcessCondition struct {
 // ProcessExactFields defines the process exact fields.
 // support includes and excludes.
 type ProcessExactFields struct {
-	HostID       []int64
-	PluginID     []string
-	ProcessID    []string
-	Group        []string
-	Generation   []string
-	PlatformOS   []string
-	PlatformArch []string
-	InfoStatus   []string
-	InfoAgentID  []string
-	InfoVersion  []string
-	Name         []string
-	PkgName      []string
+	HostID         []int64
+	PluginGroup    []string
+	NodeGeneration []string
+	PlatformOS     []string
+	PlatformArch   []string
+	InfoStatus     []string
+	InfoAgentID    []string
+	InfoVersion    []string
+	PluginName     []string
+	PluginPkgName  []string
 }
 
 // ProcessFuzzyFields defines the process fuzzy fields.
@@ -591,12 +589,12 @@ type PluginCondition struct {
 
 // PluginExactFields defines the plugin exact fields.
 type PluginExactFields struct {
-	PluginID    []string
-	PluginGroup []string
+	Name  []string
+	Group []string
 }
 
 // PluginFuzzyFields defines the plugin fuzzy fields.
 type PluginFuzzyFields struct {
-	PluginName    []string
-	PluginPkgName []string
+	Name    []string
+	PkgName []string
 }

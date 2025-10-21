@@ -62,14 +62,14 @@ var otherTenantConfigPolicyIDs []int64
 // prepareData for all tests.
 func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(nCtx)
+		tenantID := nCtx.TenantID()
 
 		// pre insert.
 		h := testClient(t)
 
-		systemCtx, _ := tenant.SetID(context.Background(), "system_tenant")
+		systemCtx := contextx.New(context.Background(), contextx.WithTenantID("system_tenant"))
 		tests := []struct {
-			nCtx         context.Context
+			nCtx         contextx.IContext
 			configPolicy *types.ConfigPolicy
 			otherTenant  bool
 		}{
@@ -164,7 +164,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 // Test_Count tests the Count method.
 func Test_Count(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -209,7 +209,7 @@ func Test_Count(t *testing.T) {
 // Test_List tests the List method.
 func Test_List(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -287,7 +287,7 @@ func Test_List(t *testing.T) {
 // Test_Get tests the Get method.
 func Test_Get(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -349,12 +349,12 @@ func Test_Get(t *testing.T) {
 // Test_Create tests the Create method.
 func Test_Create(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx         context.Context
+		nCtx         contextx.IContext
 		configPolicy *types.ConfigPolicy
 	}
 	tests := []struct {
@@ -420,12 +420,12 @@ func Test_Create(t *testing.T) {
 // Test_UpdateMany tests the UpdateMany method.
 func Test_UpdateMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx          context.Context
+		nCtx          contextx.IContext
 		configPolicys []*types.ConfigPolicy
 	}
 
@@ -501,7 +501,7 @@ func Test_UpdateMany(t *testing.T) {
 // Test_EnableMany tests the EnableMany method.
 func Test_EnableMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -553,7 +553,7 @@ func Test_EnableMany(t *testing.T) {
 // Test_DisableMany tests the DisableMany method.
 func Test_DisableMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -605,7 +605,7 @@ func Test_DisableMany(t *testing.T) {
 // Test_DeleteMany tests the DeleteMany method.
 func Test_DeleteMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 

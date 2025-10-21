@@ -33,22 +33,22 @@ import (
 
 // IPluginV2 defines the interface of plugin.
 type IPluginV2 interface {
-	// UploadOriginPluginV2 uploads the origin plugin v2.
+	// UploadOriginPluginV2 uploads the origin plugin package v2.
 	UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.ReadCloser) (
 		*types.OriginPluginV2PkgDetail, error)
 
-	// PublishReleasePluginV2 generates release plugin v2 by upload-id.
+	// PublishReleasePluginV2 generates release plugin package v2 by upload-id.
 	PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error
 }
 
-// UploadOriginPluginV2 uploads origin plugin v2.
+// UploadOriginPluginV2 uploads origin plugin package v2.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.ReadCloser) (
 	*types.OriginPluginV2PkgDetail, error) {
 
 	if pluginFile == nil {
-		logger.G.Biz(nCtx).Error("failed to upload origin plugin v2 package, file is nil")
+		logger.G.Biz(nCtx).Error("failed to upload origin plugin package v2 package, file is nil")
 
 		return nil, errors.New("file is nil")
 	}
@@ -56,28 +56,28 @@ func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.Rea
 	// store file to temp.
 	tempFileName, err := m.saveTempFile(nCtx, pluginFile)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package. failed to save temp file")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package. failed to save temp file")
 
 		return nil, err
 	}
 
 	checkingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package. failed to get temp file")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package. failed to get temp file")
 
 		return nil, err
 	}
 
 	detail, err := checkOriginPluginV2Pkg(checkingFile)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package. failed to check origin plugin v2 package")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package. failed to check origin plugin package v2 package")
 
 		return nil, err
 	}
 
 	uploadingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package. failed to get temp file")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package. failed to get temp file")
 
 		return nil, err
 	}
@@ -85,18 +85,18 @@ func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.Rea
 	gen := types.Generation2
 	originalPkgName, err := pluginpkg.FormatPkgName(detail.Name, types.ReleaseTypeOriginPluginV2, gen, platfmt.EmptyPlatform(), detail.Version)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package, failed to format package")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package, failed to format package")
 
-		return nil, fmt.Errorf("failed to upload origin plugin v2 package: %w", err)
+		return nil, fmt.Errorf("failed to upload origin plugin package v2 package: %w", err)
 	}
 
-	logger.G.Biz(nCtx).With("filename", originalPkgName).Info("formatting origin plugin v2 package")
+	logger.G.Biz(nCtx).With("filename", originalPkgName).Info("formatting origin plugin package v2 package")
 
 	originalPkgName = m.wrapOriginPackageName(originalPkgName)
 
 	// upload to upstream.
 	if err := m.upstreamOriginPluginV2.Store(nCtx, fileiface.FileInfo{Name: originalPkgName}, uploadingFile, true); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package, failed to store to upstream")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package, failed to store to upstream")
 
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.Rea
 	// get file.
 	file, err := m.upstreamOriginPluginV2.GetFile(nCtx, originalPkgName)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package. failed to get file from upstream")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package. failed to get file from upstream")
 
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.Rea
 	// check if release existed.
 	existed, err := m.storageRelease.ExistReleasePlugin(nCtx, detail.Name, detail.Version, detail.Platforms...)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package. failed to check if release existed")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package. failed to check if release existed")
 
 		return nil, err
 	}
@@ -127,13 +127,13 @@ func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.Rea
 		SavedName: originalPkgName,
 	})
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin v2 package, failed to create upload")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v2 package, failed to create upload")
 
 		return nil, err
 	}
 	detail.UploadID = uploadID
 
-	logger.G.Biz(nCtx).With("filename", originalPkgName).Info("uploaded origin plugin v2 package to upstream")
+	logger.G.Biz(nCtx).With("filename", originalPkgName).Info("uploaded origin plugin package v2 package to upstream")
 
 	return detail, nil
 }
@@ -199,9 +199,9 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 	tgzReadRules := []tgzReadRule{
 		{
 			filePathRegex: []string{
-				buildPrefixMatchRegex(originalPluginV2DirNamePlatPrefix),
+				buildPrefixMatchRegex(originalPluginPkgV2DirNamePlatPrefix),
 				".*",
-				buildFullMatchRegex(originalPluginV2FileNameProject)},
+				buildFullMatchRegex(originalPluginPkgV2FileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
 				plat := convPluginDirNameToPlat(path[0])
 				detail.Platforms = append(detail.Platforms, plat)
@@ -236,10 +236,10 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 		},
 		{
 			filePathRegex: []string{
-				buildPrefixMatchRegex(originalPluginV2DirNamePlatPrefix),
+				buildPrefixMatchRegex(originalPluginPkgV2DirNamePlatPrefix),
 				".*",
-				buildFullMatchRegex(originalPluginV2DirNameEtc),
-				buildSuffixMatchRegex(originalPluginV2FileNameEtcExt)},
+				buildFullMatchRegex(originalPluginPkgV2DirNameEtc),
+				buildSuffixMatchRegex(originalPluginPkgV2FileNameEtcExt)},
 			callback: func(path []string, tplFile io.Reader) error {
 				plat := convPluginDirNameToPlat(path[0])
 
@@ -252,7 +252,7 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 					multiPlatConfigTplSourceContent[plat.String()] = make(map[string]string)
 				}
 
-				sourcePath := filepath.Clean(filepath.Join(originalPluginV2DirNameEtc, path[len(path)-1]))
+				sourcePath := filepath.Clean(filepath.Join(originalPluginPkgV2DirNameEtc, path[len(path)-1]))
 				multiPlatConfigTplSourceContent[plat.String()][sourcePath] = string(content)
 
 				return nil
@@ -366,13 +366,13 @@ const releasePluginV2Label = "v2"
 func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetPluginV2Upload(nCtx, uploadID)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin v2, failed to get upload")
+		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin package v2, failed to get upload")
 
 		return err
 	}
 
 	if up.Category != types.UploadCategoryOriginPluginV2 {
-		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release plugin v2, invalid category")
+		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release plugin package v2, invalid category")
 
 		return errors.New("invalid category")
 	}
@@ -380,7 +380,7 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 	// get origin file.
 	originFile, err := m.upstreamOriginPluginV2.GetFile(nCtx, up.SavedName)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin v2, failed to get file")
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin package v2, failed to get file")
 
 		return err
 	}
@@ -388,7 +388,7 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 	// get origin content.
 	originContent, err := originFile.Content(nCtx)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin v2, failed to get content")
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin package v2, failed to get content")
 
 		return err
 	}
@@ -396,21 +396,21 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 	// store file to temp.
 	originTempFileName, err := m.saveTempFile(nCtx, originContent)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin v2 package. failed to save temp file")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin package v2 package. failed to save temp file")
 
 		return err
 	}
 
 	checkingFile, err := m.getTempFile(nCtx, originTempFileName)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin v2 package. failed to get temp file")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin package v2 package. failed to get temp file")
 
 		return err
 	}
 
 	detail, err := checkOriginPluginV2Pkg(checkingFile)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin v2 package. failed to check origin plugin v2 package")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin package v2 package. failed to check origin plugin package v2 package")
 
 		return err
 	}
@@ -418,63 +418,64 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 	// generate release packages.
 	releasePkgs, err := m.generatePluginV2Pkg(nCtx, detail, originTempFileName)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin v2, failed to generate plugin pkg")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin package v2, failed to generate plugin pkg")
 
 		return err
 	}
 
 	gp := gopool.NewPool()
 	gen := types.Generation2
+	pluginPkgName := detail.Name
+	pluginPkgVersion := detail.Version
 
 	releasesMap := make(map[string]*types.ReleasePlugin)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
 		gp.Go(func() error {
 			// generate package name.
-			pkgName, err := pluginpkg.FormatPkgName(detail.Name, types.ReleaseTypePlugin, gen, pkg.platform, detail.Version)
+			pkgName, err := pluginpkg.FormatPkgName(pluginPkgName, types.ReleaseTypePlugin, gen, pkg.platform, pluginPkgVersion)
 			if err != nil {
-				logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin v2 package, failed to format package")
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin package v2 package, failed to format package")
 
 				return err
 			}
 
 			generatedFile, err := m.getTempFile(nCtx, pkg.tempFileName)
 			if err != nil {
-				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin v2, failed to get temp file")
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin package v2, failed to get temp file")
 
 				return err
 			}
 
 			if err = m.upstreamReleasePlugin.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
-				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin v2, failed to upload to upstream")
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin package v2, failed to upload to upstream")
 
 				return err
 			}
 
 			file, err := m.upstreamReleasePlugin.GetFile(nCtx, pkgName)
 			if err != nil {
-				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin v2, failed to get temp file")
+				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin package v2, failed to get temp file")
 
 				return err
 			}
 
 			pluginInfo := &types.ReleasePlugin{
 				Release: types.Release{
-					Name:       detail.Name,
+					Name:       pluginPkgName,
 					Generation: gen,
 					Type:       types.ReleaseTypePlugin,
-					Version:    detail.Version,
+					Version:    pluginPkgVersion,
 					Platform:   pkg.platform,
 					Labels: []string{
 						releasePluginV2Label,
 					},
-					FileName:     file.Info().Name,
-					MD5:          file.Info().MD5,
-					Enabled:      false,
-					AsDefault:    false,
-					UpdatedAt:    time.Now(),
-					Operator:     nCtx.BKUsername(),
-					AdditionInfo: nil,
+					FileName:  file.Info().Name,
+					MD5:       file.Info().MD5,
+					Enabled:   false,
+					AsDefault: false,
+					UpdatedAt: time.Now(),
+					Operator:  nCtx.BKUsername(),
 				},
 				ReleaseAdditionInfoPlugin: types.ReleaseAdditionInfoPlugin{
 					ConfigTemplates:  detail.ConfigTemplates[pkg.platform.String()],
@@ -490,19 +491,19 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 		})
 	}
 	if err = gp.Wait(); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin v2, failed to upload to upstream")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin package v2, failed to upload to upstream")
 
 		return err
 	}
 
-	// upsert release plugin v2.
+	// upsert release plugin package v2.
 	if err = m.storageRelease.UpsertManyReleasePlugin(nCtx, conv.MapValueToSlice(releasesMap)); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin v2, failed to upsert release plugin v2")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin package v2, failed to upsert release plugin package v2")
 
 		return err
 	}
 
-	logger.G.Biz(nCtx).With("platforms", detail.Platforms).Info("generated and published release plugins v2")
+	logger.G.Biz(nCtx).With("platforms", detail.Platforms).Info("generated and published release plugins package v2")
 
 	return nil
 }
@@ -519,7 +520,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 	originDetail *types.OriginPluginV2PkgDetail,
 	originLocalFileName string) ([]*releasePluginPkg, error) {
 
-	// local origin plugin v2.
+	// local origin plugin package v2.
 	localOrigin, err := m.tempFileGroup.GetFile(nCtx, originLocalFileName)
 	if err != nil {
 		return nil, err
@@ -543,7 +544,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 			// create target file.
 			tempFileName, err := m.createTempFile(nCtx)
 			if err != nil {
-				return fmt.Errorf("failed to create plugin pkg temp file. platform(%s): %w", plat.String(), err)
+				return fmt.Errorf("failed to create plugin package temp file. platform(%s): %w", plat.String(), err)
 			}
 			targetFile, err := m.openTempFile(nCtx, tempFileName)
 			if err != nil {
@@ -553,7 +554,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 			// open all source files.
 			origiPluginFile, err := localOrigin.Content(nCtx)
 			if err != nil {
-				return fmt.Errorf("failed to open origin plugin file: %w", err)
+				return fmt.Errorf("failed to open origin plugin package file: %w", err)
 			}
 
 			originPluginBinToolFile, err := localPluginBinTool.Content(nCtx)
@@ -578,7 +579,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 						sourceFile: origiPluginFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{convPlatToPluginDirName(plat), pluginName, originalPluginV2DirNameBin,
+								sourceFilePath: []string{convPlatToPluginDirName(plat), pluginName, originalPluginPkgV2DirNameBin,
 									tgzPathMatchingSegment2},
 								targetFilePath: []string{
 									pluginPkgDirNameBin, tgzPathMatchingSegment2,
@@ -586,7 +587,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 								targetFileMode: tgzModeExe,
 							},
 							{
-								sourceFilePath: []string{convPlatToPluginDirName(plat), pluginName, originalPluginV2FileNameProject},
+								sourceFilePath: []string{convPlatToPluginDirName(plat), pluginName, originalPluginPkgV2FileNameProject},
 								targetFilePath: []string{
 									fmt.Sprintf("project_%s.yaml", pluginName),
 								},
@@ -627,28 +628,28 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 }
 
 const (
-	originalPluginV2FileNameProject       = "project.yaml"
-	originalPluginV2FileNameEtcExt        = ".tpl"
-	originalPluginV2DirNameBin            = "bin"
-	originalPluginV2DirNameEtc            = "etc"
-	originalPluginV2DirNamePlatPrefix     = "plugins_"
-	originalPluginV2DirNamePlatSplitTimes = 3
+	originalPluginPkgV2FileNameProject       = "project.yaml"
+	originalPluginPkgV2FileNameEtcExt        = ".tpl"
+	originalPluginPkgV2DirNameBin            = "bin"
+	originalPluginPkgV2DirNameEtc            = "etc"
+	originalPluginPkgV2DirNamePlatPrefix     = "plugins_"
+	originalPluginPkgV2DirNamePlatSplitTimes = 3
 
 	pluginPkgDirNameBin = "bin"
 	pluginPkgDirNameEtc = "etc"
 )
 
 func convPlatToPluginDirName(plat platfmt.Platform) string {
-	return fmt.Sprintf("%s%s_%s", originalPluginV2DirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
+	return fmt.Sprintf("%s%s_%s", originalPluginPkgV2DirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
 }
 
 func convPluginDirNameToPlat(dirName string) platfmt.Platform {
-	if !strings.HasPrefix(dirName, originalPluginV2DirNamePlatPrefix) {
+	if !strings.HasPrefix(dirName, originalPluginPkgV2DirNamePlatPrefix) {
 		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 
-	dirSplit := strings.SplitN(dirName, "_", originalPluginV2DirNamePlatSplitTimes)
-	if len(dirSplit) != originalPluginV2DirNamePlatSplitTimes {
+	dirSplit := strings.SplitN(dirName, "_", originalPluginPkgV2DirNamePlatSplitTimes)
+	if len(dirSplit) != originalPluginPkgV2DirNamePlatSplitTimes {
 		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}
 

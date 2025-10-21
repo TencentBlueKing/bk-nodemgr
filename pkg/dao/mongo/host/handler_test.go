@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -61,7 +60,7 @@ var once = sync.Once{}
 // prepareData for all tests.
 func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(nCtx)
+		tenantID := nCtx.TenantID()
 
 		// pre insert.
 		h := testClient(t)
@@ -137,7 +136,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 
 // Test_handler_ListAll ...
 func Test_handler_ListAll(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	tests := []struct {
 		name    string
@@ -167,7 +166,7 @@ func Test_handler_ListAll(t *testing.T) {
 
 // UpsertMany upsert many hosts.
 func Test_handler_UpsertMany(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
 		nCtx  context.Context
@@ -303,7 +302,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 
 // Test_handler_UpsertStaticMany tests upsert host statics.
 func Test_handler_UpsertStaticMany(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
 		nCtx  context.Context
@@ -403,7 +402,7 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 
 // Test_handler_UpdateDynamicMany tests update host dynamics.
 func Test_handler_UpdateDynamicMany(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
 		nCtx  context.Context
@@ -502,7 +501,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 
 // Test_handler_Count covers count method.
 func Test_handler_Count(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -552,7 +551,7 @@ func Test_handler_Count(t *testing.T) {
 
 // Test_handler_List covers list method.
 func Test_handler_List(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -661,7 +660,7 @@ func Test_handler_List(t *testing.T) {
 
 // Test_handler_DistinctNodeVersion distinct node role fields.
 func Test_handler_DistinctNodeVersion(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -705,7 +704,7 @@ func Test_handler_DistinctNodeVersion(t *testing.T) {
 
 // Test_handler_DistinctNodeStatus distinct node status fields.
 func Test_handler_DistinctNodeStatus(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -749,7 +748,7 @@ func Test_handler_DistinctNodeStatus(t *testing.T) {
 
 // Test_handler_DistinctNetworkAreaID distinct networkarea fields.
 func Test_handler_DistinctNetworkAreaID(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -793,7 +792,7 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 
 // Test_handler_DeleteMany delete many hosts.
 func Test_handler_DeleteMany(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 

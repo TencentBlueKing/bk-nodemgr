@@ -17,6 +17,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	wfStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -24,6 +25,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 )
 
@@ -36,9 +38,10 @@ type HostIDAgentID struct {
 // Capability encapsulates the various capabilities the service supports.
 type Capability struct {
 	// thridparty handler.
-	CMDBHandler cmdb.IHandler
-	GSEHandler  gse.IHandler
-	FileHandler file.IHandler
+	CMDBHandler        cmdb.IHandler
+	GSEHandler         gse.IHandler
+	FileHandler        file.IHandler
+	UserManagerHandler usermanager.IHandler
 
 	// stroage.
 	StorageTopo         topoStg.IStorage
@@ -48,6 +51,7 @@ type Capability struct {
 	StoragePlugin       plugin.IStorage
 	StorageHostCredit   credit.IStorageHostCredit
 	StorageConfigPolicy configpolicy.IStorage
+	StorageTenant       tenant.IStorage
 
 	// discover provider.
 	DiscoverProvider discover.Provider

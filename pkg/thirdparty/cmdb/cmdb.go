@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package cmdb provides handlers to operate cmd api.
+// Package cmdb provides handlers to operate cmdb api.
 // nolint:dupl
 package cmdb
 

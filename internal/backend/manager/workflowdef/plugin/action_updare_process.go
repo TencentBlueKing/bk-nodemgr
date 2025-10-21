@@ -105,7 +105,7 @@ func (act *actUpdatePluginProcess) Do(ctx *action.InstanceContext) error {
 	}()
 
 	nCtx := std.Context()
-	err = act.daoProcess.UpdateProcess(nCtx, std.DeployInfo().Process.ProcessID, &std.DeployInfo().Process)
+	err = act.daoProcess.UpdateProcess(nCtx, std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName, &std.DeployInfo().Process)
 	if err != nil {
 		return fmt.Errorf("update process err:%v", err)
 	}

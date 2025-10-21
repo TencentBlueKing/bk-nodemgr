@@ -38,19 +38,19 @@ type IHandler interface {
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, error)
 
 	// Update update a process by conditions.
-	Update(nCtx contextx.IContext, processID string, process *types.Process) error
+	Update(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error
 
 	// UpdateInfo update a process info by conditions.
-	UpdateInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) error
+	UpdateInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error
 
 	// UpdateManyInfo batch update process info by process ID.
-	UpdateManyInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) error
+	UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*types.ProcessInfoDelta) error
 
 	// Delete delete a process by conditions.
-	Delete(nCtx contextx.IContext, processID string) error
+	Delete(nCtx contextx.IContext, hostID int64, pluginName string) error
 
 	// Exist check a process exist by conditions.
-	Exist(nCtx contextx.IContext, processID string) (bool, error)
+	Exist(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
 }
 
 var _ IHandler = &Handler{}
@@ -108,9 +108,7 @@ func (h *Handler) Create(nCtx contextx.IContext, process *types.Process) error {
 func convProcessFromTypes(process *types.Process) *Process {
 	data := &Process{
 		TenantID:      process.TenantID,
-		ProcessID:     process.ProcessID,
 		HostID:        process.HostID,
-		PluginID:      process.PluginID,
 		Name:          process.PluginName,
 		Group:         process.PluginGroup,
 		PluginPkgName: process.PluginPkgName,
@@ -237,9 +235,7 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, er
 func convertProcessToTypes(data *Process) *types.Process {
 	process := &types.Process{
 		TenantID:      data.TenantID,
-		ProcessID:     data.ProcessID,
 		HostID:        data.HostID,
-		PluginID:      data.PluginID,
 		PluginName:    data.Name,
 		PluginPkgName: data.PluginPkgName,
 		PluginGroup:   data.Group,
@@ -289,14 +285,15 @@ func convertProcessToTypes(data *Process) *types.Process {
 }
 
 // UpdateInfo update process info.
-func (h *Handler) UpdateInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) error {
+func (h *Handler) UpdateInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return fmt.Errorf("failed to check tenant id: %v", err)
 	}
 
 	filter := base.AliveFilter()
 	opts := []base.OptFn{
-		WithProcessID(processID),
+		WithHostID(hostID),
+		WithPluginName(pluginName),
 	}
 	for _, opt := range opts {
 		filter = opt(filter)
@@ -305,7 +302,7 @@ func (h *Handler) UpdateInfo(nCtx contextx.IContext, processID string, processIn
 	data := convProcessInfoFromTypes(*processInfo)
 	err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyInfo, data)
 	if err != nil {
-		logger.G.Sys().With("process-id", processID).WithErr(err).Error("failed to update process info")
+		logger.G.Sys().With("host-id", hostID).With("plugin-name", pluginName).WithErr(err).Error("failed to update process info")
 
 		return fmt.Errorf("failed to update process info: %v", err)
 	}
@@ -314,27 +311,28 @@ func (h *Handler) UpdateInfo(nCtx contextx.IContext, processID string, processIn
 }
 
 // UpdateManyInfo batch update process info by process ID.
-func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) error {
+func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*types.ProcessInfoDelta) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return fmt.Errorf("failed to check tenant id: %v", err)
 	}
 
-	processUpdates := make([]*base.DocumentFieldUpdate, 0, len(processes))
-	for procID, proc := range processes {
+	processUpdates := make([]*base.DocumentFieldUpdate, len(processInfosDeltas))
+	for idx, processInfosDelta := range processInfosDeltas {
 		filter := base.AliveFilter()
 		opts := []base.OptFn{
-			WithProcessID(procID),
+			WithHostID(processInfosDelta.HostID),
+			WithPluginName(processInfosDelta.PluginName),
 		}
 		for _, opt := range opts {
 			filter = opt(filter)
 		}
 
-		processUpdates = append(processUpdates, &base.DocumentFieldUpdate{
+		processUpdates[idx] = &base.DocumentFieldUpdate{
 			Filter: filter,
 			Fields: map[string]any{
-				FieldKeyInfo: convProcessInfoFromTypes(proc),
+				FieldKeyInfo: convProcessInfoFromTypes(processInfosDelta.ProcessInfo),
 			},
-		})
+		}
 	}
 
 	err := h.tenantDao(nCtx.TenantID()).UpdateFieldsBulk(nCtx, processUpdates)
@@ -348,14 +346,15 @@ func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processes types.Process
 }
 
 // Delete delete process.
-func (h *Handler) Delete(nCtx contextx.IContext, processID string) error {
+func (h *Handler) Delete(nCtx contextx.IContext, hostID int64, pluginName string) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return fmt.Errorf("failed to check tenant id: %v", err)
 	}
 
 	filter := base.AliveFilter()
 	opts := []base.OptFn{
-		WithProcessID(processID),
+		WithHostID(hostID),
+		WithPluginName(pluginName),
 	}
 
 	for _, opt := range opts {
@@ -365,7 +364,7 @@ func (h *Handler) Delete(nCtx contextx.IContext, processID string) error {
 	err := h.tenantDao(nCtx.TenantID()).DeleteMany(nCtx, filter)
 
 	if err != nil {
-		logger.G.Sys().With("process-id", processID).WithErr(err).Error("failed to delete process")
+		logger.G.Sys().With("host-id", hostID).With("plugin-name", pluginName).WithErr(err).Error("failed to delete process")
 
 		return fmt.Errorf("failed to delete process: %v", err)
 	}
@@ -374,14 +373,15 @@ func (h *Handler) Delete(nCtx contextx.IContext, processID string) error {
 }
 
 // Exist check process exist.
-func (h *Handler) Exist(nCtx contextx.IContext, processID string) (bool, error) {
+func (h *Handler) Exist(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return false, fmt.Errorf("failed to check tenant id: %v", err)
 	}
 
 	filter := base.AliveFilter()
 	opts := []base.OptFn{
-		WithProcessID(processID),
+		WithHostID(hostID),
+		WithPluginName(pluginName),
 	}
 	for _, opt := range opts {
 		filter = opt(filter)
@@ -396,7 +396,7 @@ func (h *Handler) Exist(nCtx contextx.IContext, processID string) (bool, error) 
 }
 
 // Update update process.
-func (h *Handler) Update(nCtx contextx.IContext, processID string, process *types.Process) error {
+func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return fmt.Errorf("failed to check tenant id: %v", err)
 	}
@@ -405,13 +405,10 @@ func (h *Handler) Update(nCtx contextx.IContext, processID string, process *type
 		return fmt.Errorf("process is nil")
 	}
 
-	if process.ProcessID != processID {
-		return fmt.Errorf("process id not match")
-	}
-
 	filter := base.AliveFilter()
 	opts := []base.OptFn{
-		WithProcessID(processID),
+		WithHostID(hostID),
+		WithPluginName(pluginName),
 	}
 
 	for _, opt := range opts {
@@ -425,8 +422,7 @@ func (h *Handler) Update(nCtx contextx.IContext, processID string, process *type
 			Filter: filter,
 			Fields: map[string]any{
 				FieldKeyHostID:        data.HostID,
-				FieldKeyPluginID:      data.PluginID,
-				FieldKeyName:          data.Name,
+				FieldKeyPluginName:    data.Name,
 				FieldKeyGroup:         data.Group,
 				FieldKeyPkgName:       data.PluginPkgName,
 				FieldKeyGeneration:    data.Generation,

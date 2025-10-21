@@ -1,0 +1,273 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package pkg
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+// ListReleasePlugin list plugin.
+func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	cond := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.daoReleasePlugin.CountReleasePlugin(rCtx, cond)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin. failed to count host")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.PackageReleasePluginListResp)
+		resp.ConvertReleasePluginsFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	page := req.ConvertPageToTypes(maxReleaseLimit)
+	hosts, num, err := h.daoReleasePlugin.ListReleasePlugin(rCtx, page, cond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleasePluginListResp)
+	resp.ConvertReleasePluginsFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
+// EnableReleasePlugin enable plugin.
+func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginEnableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	pluginPkgName, gen, plat, version := req.GetIdentifier()
+
+	exist, err := h.daoReleasePlugin.ExistReleasePlugin(rCtx, pluginPkgName, gen, plat, version)
+	if err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to enable plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	if !exist {
+		logger.G.Biz(rCtx).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to enable plugin. plugin not exist")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, errors.New("plugin not exist"))
+	}
+
+	if err := h.daoReleasePlugin.EnableReleasePlugin(rCtx, pluginPkgName, gen, plat, version); err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to enable plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	if err := h.initDefaultPluginForAllTenants(rCtx, pluginPkgName); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", gen, "platform", plat, "version", version).
+			Error("failed to chack and create default plugin for all tenants")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).
+		With("gen", gen, "platform", plat, "version", version).
+		Info("enabled plugin")
+
+	resp := new(protoBackend.PackageReleasePluginEnableResp)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, pluginPkgName string) error {
+	tenants, err := h.daoTenant.ListAllEnabledTenants(rCtx)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list all tenants")
+		return err
+	}
+
+	gp := gopool.NewPool()
+	for idx := range tenants {
+		tenant := tenants[idx]
+		nCtx := contextx.New(rCtx, contextx.WithTenantID(tenant.ID))
+
+		gp.Go(func() error {
+			exist, err := h.daoPlugin.ExistDefaultPluginByPluginPkgName(nCtx, pluginPkgName)
+			if err != nil {
+				logger.G.Biz(rCtx).WithErr(err).With("tenant_id", tenant.ID, "plugin_pkg_name", pluginPkgName).
+					Error("failed to check plugin exist for tenant")
+
+				return fmt.Errorf("failed to check tenant-id(%s) plugin(%s) exist", tenant.ID, pluginPkgName)
+			}
+
+			if exist {
+				return nil
+			}
+
+			defaultPlugin := &types.Plugin{
+				TenantID: tenant.ID,
+				Name:     pluginPkgName,
+				PkgName:  pluginPkgName,
+				Group:    types.PluginGroupDefault,
+			}
+			if err := h.daoPlugin.CreatePlugin(nCtx, defaultPlugin); err != nil {
+				logger.G.Biz(rCtx).WithErr(err).With("tenant_id", tenant.ID, "plugin_pkg_name", pluginPkgName).
+					Error("failed to create default plugin for tenant")
+
+				return fmt.Errorf("failed to create default plugin for tenant(%s) by plugin-pkg-name(%s): %w", tenant.ID, pluginPkgName, err)
+			}
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return fmt.Errorf("failed to create default plugin for all tenants: %w", err)
+	}
+
+	return nil
+}
+
+// DisableReleasePlugin disable plugin.
+func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginDisableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, plat, version := req.GetIdentifier()
+	if err := h.daoReleasePlugin.DisableReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to disable plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).
+		With("gen", gen, "platform", plat, "version", version).
+		Info("disable plugin")
+
+	resp := new(protoBackend.PackageReleasePluginDisableResp)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) SetAsDefaultReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginSetAsDefaultReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, plat, version := req.GetIdentifier()
+	if err := h.daoReleasePlugin.SetAsDefaultReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to set as default plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).
+		With("gen", gen, "platform", plat, "version", version).
+		Info("set as default plugin")
+
+	resp := new(protoBackend.PackageReleasePluginSetAsDefaultResp)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginCancelAsDefaultReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, plat, version := req.GetIdentifier()
+	if err := h.daoReleasePlugin.CancelAsDefaultReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to cancel as default plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).
+		With("gen", gen, "platform", plat, "version", version).
+		Info("canceled as default plugin")
+
+	resp := new(protoBackend.PackageReleasePluginCancelAsDefaultResp)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleasePluginDeleteReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, gen, plat, version := req.GetIdentifier()
+	if err := h.daoReleasePlugin.DeleteReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+		logger.G.Biz(rCtx).
+			WithErr(err).
+			With("gen", gen, "platform", plat, "version", version).
+			Error("failed to delete plugin")
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	logger.G.Biz(rCtx).
+		With("gen", gen, "platform", plat, "version", version).
+		Info("deleted plugin")
+
+	resp := new(protoBackend.PackageReleasePluginDeleteResp)
+
+	return resp.GetData(), nil
+}

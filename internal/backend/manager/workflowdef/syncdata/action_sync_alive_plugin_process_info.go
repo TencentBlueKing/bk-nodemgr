@@ -11,7 +11,6 @@
 package syncdata
 
 import (
-	"fmt"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -132,7 +131,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 		return nil
 	}
 
-	agentIDHostIDMap, hostIDProcNameProcessIDMap, pluginNameAgentIDList := aggregateHostsAndProcesses(hosts, aliveProcess)
+	agentIDHostIDMap, pluginNameAgentIDList := aggregateHostsAndProcesses(hosts, aliveProcess)
 	procInfos, err := act.gseHandler.QueryMultiProcessInfoMany(std.Context(), pluginNameAgentIDList...)
 	if err != nil {
 		return err
@@ -143,21 +142,21 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 		return nil
 	}
 
-	processIDInfoMap := make(types.ProcessIDInfo)
+	processInfoDeltas := make([]*types.ProcessInfoDelta, 0)
 	for name, infos := range procInfos {
 		for _, info := range infos {
-			key := genHostPluginKey(agentIDHostIDMap[info.AgentID], name)
-			processID, ok := hostIDProcNameProcessIDMap[key]
-			if !ok {
-				logger.G.Sys().Info("skip update process info for unknown process-id search by: %s", key)
-				continue
+			hostID := agentIDHostIDMap[info.AgentID]
+			processInfoDelta := &types.ProcessInfoDelta{
+				HostID:      hostID,
+				PluginName:  name,
+				ProcessInfo: info,
 			}
 
-			processIDInfoMap[processID] = info
+			processInfoDeltas = append(processInfoDeltas, processInfoDelta)
 		}
 	}
 
-	if err = act.processStg.UpdateManyProcessInfo(std.Context(), processIDInfoMap); err != nil {
+	if err = act.processStg.UpdateManyProcessInfo(std.Context(), processInfoDeltas); err != nil {
 		return err
 	}
 
@@ -166,21 +165,18 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	return nil
 }
 
-func aggregateHostsAndProcesses(hosts []*types.Host, processes []*types.Process) (
-	map[string]int64, map[string]string, []*types.ProcessAgentGroup) {
-
+func aggregateHostsAndProcesses(hosts []*types.Host, processes []*types.Process) (map[string]int64, []*types.ProcessAgentGroup) {
 	hostIDAgentIDMap := make(map[int64]string)
 	agentIDHostIDMap := make(map[string]int64)
+
 	for _, host := range hosts {
 		hostIDAgentIDMap[host.HostID] = host.Dynamic.AgentID
 		agentIDHostIDMap[host.Dynamic.AgentID] = host.HostID
 	}
 
 	nameAgentIDListMap := make(map[string][]string)
-	hostIDProcNameProcessIDMap := make(map[string]string)
 	for _, proc := range processes {
 		nameAgentIDListMap[proc.PluginName] = append(nameAgentIDListMap[proc.PluginName], hostIDAgentIDMap[proc.HostID])
-		hostIDProcNameProcessIDMap[genHostPluginKey(proc.HostID, proc.PluginName)] = proc.ProcessID
 	}
 
 	pluginNameAgentIDList := make([]*types.ProcessAgentGroup, 0)
@@ -191,9 +187,5 @@ func aggregateHostsAndProcesses(hosts []*types.Host, processes []*types.Process)
 		})
 	}
 
-	return agentIDHostIDMap, hostIDProcNameProcessIDMap, pluginNameAgentIDList
-}
-
-func genHostPluginKey(hostID int64, pluginName string) string {
-	return fmt.Sprintf("%d_%s", hostID, pluginName)
+	return agentIDHostIDMap, pluginNameAgentIDList
 }

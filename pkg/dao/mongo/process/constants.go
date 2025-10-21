@@ -11,14 +11,8 @@
 package process
 
 const (
-	// FieldKeyProcessID the process id field key.
-	FieldKeyProcessID = "data.process_id"
-
 	// FieldKeyHostID the host id field key.
 	FieldKeyHostID = "data.host_id"
-
-	// FieldKeyPluginID the plugin id field key.
-	FieldKeyPluginID = "data.plugin_id"
 
 	// FieldKeyInfo the info field key.
 	FieldKeyInfo = "data.info"
@@ -35,8 +29,8 @@ const (
 	// FieldKeyMonitorPolicy the monitor policy field key.
 	FieldKeyMonitorPolicy = "data.monitor_policy"
 
-	// FieldKeyName the name field key.
-	FieldKeyName = "data.name"
+	// FieldKeyPluginName the name field key.
+	FieldKeyPluginName = "data.name"
 
 	// FieldKeyGroup the group field key.
 	FieldKeyGroup = "data.group"

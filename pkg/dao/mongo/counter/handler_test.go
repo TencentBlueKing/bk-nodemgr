@@ -15,7 +15,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -51,7 +50,7 @@ func testClient(t *testing.T) Handler {
 
 // Test_handler_Generate generate sequence.
 func Test_handler_Generate(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	tests := []struct {
 		name    string

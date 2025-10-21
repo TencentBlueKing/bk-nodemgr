@@ -1,0 +1,430 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "process.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Package"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/process/list": {
+      "post": {
+        "summary": "ListProcesses lists the processes.",
+        "operationId": "Package_ListProcesses",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ProcessListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ProcessListReq describes the process list request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ProcessListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "ProcessListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "plugin_group": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node_generation": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "platform_os": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "platform_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "agent_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_pkg_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ProcessListReqFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_pkg_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ProcessListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Process"
+          }
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3Platform": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "Platform describes the platform informations."
+    },
+    "v3Process": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "plugin_pkg_name": {
+          "type": "string"
+        },
+        "plugin_group": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "process_info": {
+          "$ref": "#/definitions/v3ProcessInfo"
+        },
+        "process_identity": {
+          "$ref": "#/definitions/v3ProcessIdentity"
+        },
+        "process_controller": {
+          "$ref": "#/definitions/v3ProcessController"
+        },
+        "process_resource": {
+          "$ref": "#/definitions/v3ProcessResource"
+        },
+        "process_monitor_policy": {
+          "$ref": "#/definitions/v3ProcessMonitorPolicy"
+        }
+      },
+      "description": "Process describes the process."
+    },
+    "v3ProcessController": {
+      "type": "object",
+      "properties": {
+        "start_cmd": {
+          "type": "string"
+        },
+        "stop_cmd": {
+          "type": "string"
+        },
+        "restart_cmd": {
+          "type": "string"
+        },
+        "reload_cmd": {
+          "type": "string"
+        },
+        "kill_cmd": {
+          "type": "string"
+        },
+        "version_cmd": {
+          "type": "string"
+        },
+        "health_cmd": {
+          "type": "string"
+        }
+      },
+      "description": "ProcessController describes the process controller."
+    },
+    "v3ProcessIdentity": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "setup_path": {
+          "type": "string"
+        },
+        "pid_path": {
+          "type": "string"
+        },
+        "config_path": {
+          "type": "string"
+        },
+        "log_path": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        }
+      },
+      "description": "ProcessIdentity describes the process identity."
+    },
+    "v3ProcessInfo": {
+      "type": "object",
+      "properties": {
+        "pid": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "version": {
+          "type": "string"
+        },
+        "agent_id": {
+          "type": "string"
+        },
+        "trusteeship": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "description": "ProcessInfo describes the process information."
+    },
+    "v3ProcessListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/ProcessListReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/ProcessListReqFuzzyConditions"
+        }
+      },
+      "description": "ProcessListReq describes the process list request."
+    },
+    "v3ProcessListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/ProcessListRespData"
+        }
+      },
+      "description": "ProcessListResp describes the process list response."
+    },
+    "v3ProcessMonitorPolicy": {
+      "type": "object",
+      "properties": {
+        "auto_type": {
+          "type": "string"
+        },
+        "start_check_seconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "stop_check_seconds": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operate_timeout_seconds": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "ProcessMonitorPolicy describes the process monitor policy."
+    },
+    "v3ProcessResource": {
+      "type": "object",
+      "properties": {
+        "cpu_limit_percent": {
+          "type": "number",
+          "format": "double"
+        },
+        "mem_limit_percent": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "description": "ProcessResource describes the process resource."
+    }
+  }
+}

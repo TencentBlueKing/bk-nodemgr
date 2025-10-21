@@ -324,12 +324,10 @@ type Manager struct {
 	storageRelease release.IStorage
 	storageTopo    topo.IStorage
 	storageEvent   event.IStorage
-
-	// logger.
-
 }
 
 // Start starts the manager.
+// nolint:gocognit,gocyclo,cyclop,funlen
 func (m *Manager) Start(_ context.Context) error {
 	if m.upstreamOriginAgent == nil {
 		return errors.New("invalid upstream origin agent")
@@ -345,6 +343,18 @@ func (m *Manager) Start(_ context.Context) error {
 
 	if m.upstreamOriginBinTool == nil {
 		return errors.New("invalid upstream origin bintool")
+	}
+
+	if m.upstreamOriginPluginBinToolV2 == nil {
+		return errors.New("invalid upstream origin bin tool v2")
+	}
+
+	if m.upstreamOriginPluginV2 == nil {
+		return errors.New("invalid upstream origin plugin v2")
+	}
+
+	if m.upstreamOriginExternalPluginV2 == nil {
+		return errors.New("invalid upstream origin external plugin v2")
 	}
 
 	if m.upstreamReleaseAgent == nil {
@@ -363,6 +373,14 @@ func (m *Manager) Start(_ context.Context) error {
 		return errors.New("invalid upstream release bintool")
 	}
 
+	if m.upstreamReleasePlugin == nil {
+		return errors.New("invalid upstream release plugin")
+	}
+
+	if m.upstreamReleasePluginBinToolV2 == nil {
+		return errors.New("invalid upstream release plugin bin tool v2")
+	}
+
 	if m.storageUpload == nil {
 		return errors.New("invalid storage upload")
 	}
@@ -377,6 +395,26 @@ func (m *Manager) Start(_ context.Context) error {
 
 	if m.storageEvent == nil {
 		return errors.New("invalid storage event")
+	}
+
+	if m.cacheFileGroup == nil {
+		return errors.New("invalid cache file group")
+	}
+
+	if m.installerFileGroup == nil {
+		return errors.New("invalid installer file group")
+	}
+
+	if m.tempFileGroup == nil {
+		return errors.New("invalid temp file group")
+	}
+
+	if m.localFilePool == nil {
+		return errors.New("invalid local file pool")
+	}
+
+	if m.gseHandler == nil {
+		return errors.New("invalid gse handler")
 	}
 
 	return nil

@@ -11,39 +11,87 @@
 package tenant
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) upsertTenant(nCtx contextx.IContext, tenant *types.Tenant) error {
+func (s *Storage) listAllEnabledTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
 	if nCtx == nil {
-		return basestorage.ErrNilContent()
+		return nil, base.ErrInvalidContext()
 	}
 
-	if tenant == nil {
-		return errors.New("tenant is nil")
+	tenants, _, err := s.daoTenant.List(nCtx, types.UnlimitedPage(), tenant.WithStatus(true))
+	if err != nil {
+		return nil, fmt.Errorf("failed to list all enabled tenants: %w", err)
 	}
 
-	if err := s.daoTenant.Upsert(nCtx, tenant); err != nil {
-		return fmt.Errorf("failed to upsert tenant, err: %w", err)
+	return tenants, nil
+}
+
+func (s *Storage) listAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	tenants, _, err := s.daoTenant.List(nCtx, types.UnlimitedPage())
+	if err != nil {
+		return nil, fmt.Errorf("failed to list all tenants: %w", err)
+	}
+
+	return tenants, nil
+}
+
+func (s *Storage) createManyTenant(nCtx contextx.IContext, tenants ...*types.Tenant) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if len(tenants) == 0 {
+		return base.ErrInvalidParam(fmt.Errorf("tenants is empty"))
+	}
+
+	err := s.daoTenant.CreateMany(nCtx, tenants...)
+	if err != nil {
+		return fmt.Errorf("failed to create many tenants: %w", err)
 	}
 
 	return nil
 }
 
-func (s *Storage) listAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
+func (s *Storage) deleteManyTenant(nCtx contextx.IContext, tenantIDs []string) error {
 	if nCtx == nil {
-		return nil, basestorage.ErrNilContent()
+		return base.ErrInvalidContext()
 	}
 
-	tenants, err := s.daoTenant.ListAll(nCtx)
+	if len(tenantIDs) == 0 {
+		return base.ErrInvalidParam(fmt.Errorf("tenantIDs is empty"))
+	}
+
+	err := s.daoTenant.DeleteMany(nCtx, tenantIDs...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list all tenants, err: %w", err)
+		return fmt.Errorf("failed to delete many tenants: %w", err)
 	}
 
-	return tenants, nil
+	return nil
+}
+
+func (s *Storage) updateManyTenant(nCtx contextx.IContext, tenantMap map[string]*types.Tenant) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if len(tenantMap) == 0 {
+		return base.ErrInvalidParam(fmt.Errorf("tenantMap is empty"))
+	}
+
+	err := s.daoTenant.UpdateMany(nCtx, tenantMap)
+	if err != nil {
+		return fmt.Errorf("failed to update many tenants: %w", err)
+	}
+
+	return nil
 }

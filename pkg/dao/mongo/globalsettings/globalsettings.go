@@ -19,10 +19,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func newDao(tenantID string, client *mongo.Database) *dao {
+func newDao(client *mongo.Database) *dao {
 	tableName := TableName()
 	d := &dao{
-		tenantID:  tenantID,
 		client:    client.Collection(tableName),
 		tableName: tableName,
 	}
@@ -33,7 +32,6 @@ func newDao(tenantID string, client *mongo.Database) *dao {
 }
 
 type dao struct {
-	tenantID  string
 	client    *mongo.Collection
 	tableName string
 

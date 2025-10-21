@@ -23,7 +23,6 @@ import (
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -128,10 +127,11 @@ func New(c *restclient.Capability, conf *Config) (IHandler, error) {
 func (h *handler) UploadOriginAgent(nCtx contextx.IContext, fileName string, file io.Reader) (
 	*types.OriginPkgDetail, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.uploadOriginAgent(
 		nCtx, tenantID, &protoFile.UploadOriginAgentReq{Generation: int64(types.Generation2)}, fileName, file)
@@ -166,10 +166,11 @@ func (h *handler) UploadOriginAgent(nCtx contextx.IContext, fileName string, fil
 func (h *handler) UploadOriginServer(nCtx contextx.IContext, fileName string, file io.Reader) (
 	*types.OriginPkgDetail, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.uploadOriginServer(
 		nCtx, tenantID, &protoFile.UploadOriginServerReq{Generation: int64(types.Generation2)}, fileName, file)
@@ -202,10 +203,11 @@ func (h *handler) UploadOriginServer(nCtx contextx.IContext, fileName string, fi
 func (h *handler) UploadOriginCert(nCtx contextx.IContext, fileName string, file io.Reader) (
 	*types.OriginCertPkgDetail, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.uploadOriginCert(nCtx, tenantID, &protoFile.UploadOriginCertReq{}, fileName, file)
 	if err != nil {
@@ -228,10 +230,11 @@ func (h *handler) UploadOriginCert(nCtx contextx.IContext, fileName string, file
 func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, file io.Reader) (
 	*types.OriginBinToolPkgDetail, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.uploadOriginBinTool(nCtx, tenantID, &protoFile.UploadOriginBinToolReq{}, fileName, file)
 	if err != nil {
@@ -268,12 +271,13 @@ func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, f
 
 // PublishReleaseAgent publish release agent.
 func (h *handler) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
-	_, err = h.cli.publishReleaseAgent(nCtx, tenantID, &protoFile.PublishReleaseAgentReq{
+	tenantID := nCtx.TenantID()
+
+	_, err := h.cli.publishReleaseAgent(nCtx, tenantID, &protoFile.PublishReleaseAgentReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -287,10 +291,11 @@ func (h *handler) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 func (h *handler) DownloadReleaseAgent(nCtx contextx.IContext,
 	gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tenant id: %w", err)
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.downloadReleaseAgent(nCtx, tenantID, &protoFile.DownloadAgentReq{
 		OsType:     string(plat.OS),
@@ -309,10 +314,11 @@ func (h *handler) DownloadReleaseAgent(nCtx contextx.IContext,
 func (h *handler) DownloadReleaseProxy(nCtx contextx.IContext,
 	gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tenant id: %w", err)
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.downloadReleaseProxy(nCtx, tenantID, &protoFile.DownloadProxyReq{
 		OsType:     string(plat.OS),
@@ -329,12 +335,13 @@ func (h *handler) DownloadReleaseProxy(nCtx contextx.IContext,
 
 // PublishReleaseProxy publish release proxy.
 func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
-	_, err = h.cli.publishReleaseProxy(nCtx, tenantID, &protoFile.PublishReleaseProxyReq{
+	tenantID := nCtx.TenantID()
+
+	_, err := h.cli.publishReleaseProxy(nCtx, tenantID, &protoFile.PublishReleaseProxyReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -346,12 +353,13 @@ func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 
 // PublishReleaseCert publish release cert.
 func (h *handler) PublishReleaseCert(nCtx contextx.IContext, uploadID string) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
-	_, err = h.cli.publishReleaseCert(nCtx, tenantID, &protoFile.PublishReleaseCertReq{
+	tenantID := nCtx.TenantID()
+
+	_, err := h.cli.publishReleaseCert(nCtx, tenantID, &protoFile.PublishReleaseCertReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -363,12 +371,13 @@ func (h *handler) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 
 // PublishReleaseBinTool publish release bintool.
 func (h *handler) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
-	_, err = h.cli.publishReleaseBinTool(nCtx, tenantID, &protoFile.PublishReleaseBinToolReq{
+	tenantID := nCtx.TenantID()
+
+	_, err := h.cli.publishReleaseBinTool(nCtx, tenantID, &protoFile.PublishReleaseBinToolReq{
 		UploadId: uploadID,
 	})
 	if err != nil {
@@ -387,10 +396,11 @@ func (h *handler) LaunchTransferNode(nCtx contextx.IContext,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.launchTransferNode(nCtx, tenantID, &protoFile.TransferLaunchNodeReq{
 		Generation:   int64(gen),
@@ -464,10 +474,11 @@ func (h *handler) LaunchTransferInstaller(nCtx contextx.IContext,
 	dstDir string,
 	dstHost *types.Host) (types.ISimpleTransferHandler, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.launchTransferInstaller(nCtx, tenantID, &protoFile.TransferLaunchInstallerReq{
 		Generation:   int64(gen),
@@ -497,10 +508,11 @@ func (h *handler) LaunchTransferInstaller(nCtx contextx.IContext,
 func (h *handler) QueryTransfer(
 	nCtx contextx.IContext, taskID string) (*types.SimpleTransferResult, *types.SimpleTransferResult, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	resp, err := h.cli.queryTransfer(nCtx, tenantID, &protoFile.TransferQueryReq{
 		TaskId: taskID,

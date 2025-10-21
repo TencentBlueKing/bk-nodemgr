@@ -18,7 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -69,10 +68,11 @@ func New(client *mongo.Database) IHandler {
 
 // Get gets config policy template.
 func (h *handler) Get(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicyTemplate, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	filter = WithConfigPolicyID(configPolicyID)(filter)
@@ -87,10 +87,11 @@ func (h *handler) Get(nCtx contextx.IContext, configPolicyID int64) (*types.Conf
 
 // UpsertMany upsert many config policy template.
 func (h *handler) UpsertMany(nCtx contextx.IContext, configPolicyTemplates ...*types.ConfigPolicyTemplate) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	data := make([]*ConfigPolicyTemplate, len(configPolicyTemplates))
 	for idx, configPolicyTemplate := range configPolicyTemplates {
@@ -106,10 +107,11 @@ func (h *handler) UpsertMany(nCtx contextx.IContext, configPolicyTemplates ...*t
 
 // DeleteMany delete many config policy template.
 func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(configPolicyIDs) == 0 {
 		return base.ErrEmptyParamData()

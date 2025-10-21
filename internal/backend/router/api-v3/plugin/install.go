@@ -60,17 +60,17 @@ func (h *handler) generateInstallPluginDeployments(nCtx contextx.IContext, req *
 	[]*types.PluginDeployment, []int64, error) {
 
 	gp := gopool.NewPool()
-	pluginDeployments := make([]*types.PluginDeployment, len(req.GetProcess()))
-	for i := range req.GetProcess() {
+	pluginDeployments := make([]*types.PluginDeployment, len(req.GetPlugin()))
+	for i := range req.GetPlugin() {
 		idx := i
-		reqProcess := req.GetProcess()[idx]
+		reqProcess := req.GetPlugin()[idx]
 
 		gp.Go(func() error {
 			pluginDeployment := types.NewPluginDeployment(&types.PluginDeploymentInfo{
 				Process: types.Process{
-					TenantID: nCtx.TenantID(),
-					HostID:   reqProcess.GetBkHostId(),
-					PluginID: reqProcess.GetPluginId(),
+					TenantID:   nCtx.TenantID(),
+					HostID:     reqProcess.GetBkHostId(),
+					PluginName: reqProcess.GetPluginName(),
 				},
 				InstallOptions: types.PluginDeploymentInstallOptions{
 					Version: reqProcess.GetVersion(),
@@ -93,7 +93,7 @@ func (h *handler) generateInstallPluginDeployments(nCtx contextx.IContext, req *
 	}
 
 	hostIDMap := make(map[int64]struct{})
-	for _, host := range req.GetProcess() {
+	for _, host := range req.GetPlugin() {
 		hostIDMap[host.GetBkHostId()] = struct{}{}
 	}
 	hostIDs := conv.MapKeyToSlice(hostIDMap)

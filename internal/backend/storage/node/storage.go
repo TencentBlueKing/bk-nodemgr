@@ -21,12 +21,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	nodedeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
-	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
+	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
+	daoNodeWorkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -78,8 +80,8 @@ type Storage struct {
 	basestorage.Storage
 
 	// dao
-	daoNodeDeployment nodedeployment.IHandler
-	daoNodeWorkflow   nodeworkflow.IHandler
+	daoNodeDeployment daoNodeDeployment.IHandler
+	daoNodeWorkflow   daoNodeWorkflow.IHandler
 	daoOperInstData   operinstdata.IHandler
 
 	monitoredWorkflows      map[string]*types.NodeWorkflow
@@ -87,9 +89,9 @@ type Storage struct {
 }
 
 func (s *Storage) initDao() error {
-	s.daoNodeWorkflow = nodeworkflow.New(s.Database)
+	s.daoNodeWorkflow = daoNodeWorkflow.New(s.Database)
 	s.daoOperInstData = operinstdata.New(s.Database)
-	s.daoNodeDeployment = nodedeployment.New(s.Database)
+	s.daoNodeDeployment = daoNodeDeployment.New(s.Database)
 
 	return nil
 }
@@ -125,38 +127,52 @@ func (s *Storage) registerScheduler() error {
 
 // obtainMonitoredWorkflows Obtain a list of workflows that need to be listened to.
 func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
-	runningWorkflows, _, err := s.daoNodeWorkflow.List(
-		nCtx,
-		types.UnlimitedPage(),
-		nodeworkflow.WithStatus(types.NodeWorkflowStatusRunning))
-	if err != nil {
-		return fmt.Errorf("query running workflows failed: %w", err)
-	}
+	tenantIDs := tenant.GetAllTenantIDs()
 
-	recentFinishedWorkflows, _, err := s.daoNodeWorkflow.List(
-		nCtx,
-		types.UnlimitedPage(),
-		nodeworkflow.WithStatus(types.GetFinishedNodeWorkflowStatus()...),
-		daoBase.WithUpdateAtTimeRange(types.RecentTimeRange(recentMonitoredTime)),
+	var (
+		runningWorkflowMap        map[string]*types.NodeWorkflow
+		recentFinishedWorkflowMap map[string]*types.NodeWorkflow
 	)
-	if err != nil {
-		return fmt.Errorf("query recent finished workflows failed: %w", err)
+
+	gp := gopool.NewPool()
+	for _, tenantID := range tenantIDs {
+		tenantCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID))
+		fn := func() error {
+			runningWorkflows, _, err := s.daoNodeWorkflow.List(
+				tenantCtx,
+				types.UnlimitedPage(),
+				daoNodeWorkflow.WithStatus(types.NodeWorkflowStatusRunning))
+			if err != nil {
+				return fmt.Errorf("query running workflows failed: %w", err)
+			}
+
+			recentFinishedWorkflows, _, err := s.daoNodeWorkflow.List(
+				tenantCtx,
+				types.UnlimitedPage(),
+				daoNodeWorkflow.WithStatus(types.GetFinishedNodeWorkflowStatus()...),
+				daoBase.WithUpdateAtTimeRange(types.RecentTimeRange(recentMonitoredTime)),
+			)
+			if err != nil {
+				return fmt.Errorf("query recent finished workflows failed: %w", err)
+			}
+
+			// we can sure that the workflow id is unique, so we can use map in concurrency.
+			for _, workflow := range runningWorkflows {
+				runningWorkflowMap[workflow.WorkflowID] = workflow
+			}
+
+			for _, workflow := range recentFinishedWorkflows {
+				recentFinishedWorkflowMap[workflow.WorkflowID] = workflow
+			}
+
+			return nil
+		}
+
+		gp.Go(fn)
 	}
 
-	convFn := func(workflows []*types.NodeWorkflow) (map[string]*types.NodeWorkflow, error) {
-		return conv.SliceToMap(workflows, func(workflow *types.NodeWorkflow) string {
-			return workflow.WorkflowID
-		})
-	}
-
-	runningWorkflowMap, err := convFn(runningWorkflows)
-	if err != nil {
-		return fmt.Errorf("convert running workflows to map failed: %w", err)
-	}
-
-	recentFinishedWorkflowMap, err := convFn(recentFinishedWorkflows)
-	if err != nil {
-		return fmt.Errorf("convert recent finished workflows to map failed: %w", err)
+	if err := gp.Wait(); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to obtain monitored workflows")
 	}
 
 	s.monitoredWorkflowsMutex.Lock()

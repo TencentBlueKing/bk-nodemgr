@@ -12,17 +12,15 @@ message ProcessListReq {
   bool only_count = 2;
   message ExactConditions {
     repeated int64 bk_host_id = 1;
-    repeated string plugin_id = 2;
-    repeated string process_id = 3;
-    repeated string group = 4;
-    repeated string generation = 5;
-    repeated string platform_os = 6;
-    repeated string platform_arch = 7;
-    repeated string status = 8;
-    repeated string agent_id = 9;
-    repeated string version = 10;
-    repeated string name = 11;
-    repeated string plugin_pkg_name = 12;
+    repeated string plugin_group = 3;
+    repeated string node_generation = 4;
+    repeated string platform_os = 5;
+    repeated string platform_arch = 6;
+    repeated string status = 7;
+    repeated string agent_id = 8;
+    repeated string version = 9;
+    repeated string plugin_name = 10;
+    repeated string plugin_pkg_name = 11;
   }
   ExactConditions exact_include_conditions = 3;
 
@@ -80,19 +78,17 @@ message ProcessMonitorPolicy {
 // Process describes the process.
 message Process {
   optional string tenant_id = 1;
-  optional string process_id = 2;
-  optional int64 bk_host_id = 3;
-  optional string plugin_id = 4;
-  optional string plugin_name = 5;
-  optional string plugin_pkg_name = 6;
-  optional string plugin_group = 7;
-  optional Platform platform = 8;
-  optional int64 generation = 9;
-  optional ProcessInfo process_info = 10;
-  optional ProcessIdentity process_identity = 11;
-  optional ProcessController process_controller = 12;
-  optional ProcessResource process_resource = 13;
-  optional ProcessMonitorPolicy process_monitor_policy = 14;
+  optional int64 bk_host_id = 2;
+  optional string plugin_name = 3;
+  optional string plugin_pkg_name = 4;
+  optional string plugin_group = 5;
+  optional Platform platform = 6;
+  optional int64 generation = 7;
+  optional ProcessInfo process_info = 8;
+  optional ProcessIdentity process_identity = 9;
+  optional ProcessController process_controller = 10;
+  optional ProcessResource process_resource = 11;
+  optional ProcessMonitorPolicy process_monitor_policy = 12;
 }
 
 // ProcessListResp describes the process list response.

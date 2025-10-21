@@ -86,13 +86,13 @@
     },
     "/api/v3/package/release/cancel_as_default": {
       "post": {
-        "summary": "CancelAsDefaultRelease cancels release as default.",
-        "operationId": "Package_CancelAsDefaultRelease",
+        "summary": "CancelAsDefaultReleasePlugin cancels release as default.",
+        "operationId": "Package_CancelAsDefaultReleasePlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultResp"
+              "$ref": "#/definitions/v3PackageReleasePluginCancelAsDefaultResp"
             }
           },
           "default": {
@@ -105,11 +105,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\ndefault package release.",
+            "description": "PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when\ncancel default package release.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseCancelAsDefaultReq"
+              "$ref": "#/definitions/v3PackageReleasePluginCancelAsDefaultReq"
             }
           }
         ],
@@ -120,8 +120,8 @@
     },
     "/api/v3/package/release/delete": {
       "post": {
-        "summary": "DeleteRelease deletes release.",
-        "operationId": "Package_DeleteRelease",
+        "summary": "DeleteReleasePlugin deletes release.",
+        "operationId": "Package_DeleteReleasePlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -139,11 +139,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PackageReleaseDeleteReq describes the HTTP request body when delete release.",
+            "description": "PackageReleasePluginDeleteReq describes the HTTP request body when delete\nrelease.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseDeleteReq"
+              "$ref": "#/definitions/v3PackageReleasePluginDeleteReq"
             }
           }
         ],
@@ -154,13 +154,13 @@
     },
     "/api/v3/package/release/disable": {
       "post": {
-        "summary": "DisableRelease disables release.",
-        "operationId": "Package_DisableRelease",
+        "summary": "DisableReleasePlugin disables release.",
+        "operationId": "Package_DisableReleasePlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseDisableResp"
+              "$ref": "#/definitions/v3PackageReleasePluginDisableResp"
             }
           },
           "default": {
@@ -173,11 +173,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PackageReleaseDisableReq describes the HTTP request body when disable package\nrelease.",
+            "description": "PackageReleasePluginDisableReq describes the HTTP request body when disable\npackage release.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseDisableReq"
+              "$ref": "#/definitions/v3PackageReleasePluginDisableReq"
             }
           }
         ],
@@ -222,13 +222,13 @@
     },
     "/api/v3/package/release/enable": {
       "post": {
-        "summary": "EnableRelease enables release.",
-        "operationId": "Package_EnableRelease",
+        "summary": "EnableReleasePlugin enables release.",
+        "operationId": "Package_EnableReleasePlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseEnableResp"
+              "$ref": "#/definitions/v3PackageReleasePluginEnableResp"
             }
           },
           "default": {
@@ -241,11 +241,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PackageReleaseEnableReq describes the HTTP request body when enable package\nrelease.",
+            "description": "PackageReleasePluginEnableReq describes the HTTP request body when enable\npackage release.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseEnableReq"
+              "$ref": "#/definitions/v3PackageReleasePluginEnableReq"
             }
           }
         ],
@@ -290,13 +290,13 @@
     },
     "/api/v3/package/release/set_as_default": {
       "post": {
-        "summary": "SetAsDefaultRelease sets release as default.",
-        "operationId": "Package_SetAsDefaultRelease",
+        "summary": "SetAsDefaultReleasePlugin sets release as default.",
+        "operationId": "Package_SetAsDefaultReleasePlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseSetAsDefaultResp"
+              "$ref": "#/definitions/v3PackageReleasePluginSetAsDefaultResp"
             }
           },
           "default": {
@@ -309,11 +309,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PackageReleaseSetAsDefaultReq describes the HTTP request body when set\ndefault package release.",
+            "description": "PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set\ndefault package release.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PackageReleaseSetAsDefaultReq"
+              "$ref": "#/definitions/v3PackageReleasePluginSetAsDefaultReq"
             }
           }
         ],
@@ -382,6 +382,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleaseSetLabelsManyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release_plugin/list": {
+      "post": {
+        "summary": "ListReleasePlugin lists releases.",
+        "operationId": "Package_ListReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleasePluginListReq describes the HTTP request body when list package\nrelease.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginListReq"
             }
           }
         ],
@@ -1022,6 +1056,262 @@
         }
       }
     },
+    "v3PackageReleasePluginCancelAsDefaultReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when\ncancel default package release."
+    },
+    "v3PackageReleasePluginCancelAsDefaultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginCancelAsDefaultRespData"
+        }
+      },
+      "description": "PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when\ncancel default package release."
+    },
+    "v3PackageReleasePluginCancelAsDefaultRespData": {
+      "type": "object"
+    },
+    "v3PackageReleasePluginDeleteReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleasePluginDeleteReq describes the HTTP request body when delete\nrelease."
+    },
+    "v3PackageReleasePluginDisableReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleasePluginDisableReq describes the HTTP request body when disable\npackage release."
+    },
+    "v3PackageReleasePluginDisableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginDisableRespData"
+        }
+      },
+      "description": "PackageReleasePluginDisableResp describes the HTTP response body when disable\npackage release."
+    },
+    "v3PackageReleasePluginDisableRespData": {
+      "type": "object"
+    },
+    "v3PackageReleasePluginEnableReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleasePluginEnableReq describes the HTTP request body when enable\npackage release."
+    },
+    "v3PackageReleasePluginEnableResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginEnableRespData"
+        }
+      },
+      "description": "PackageReleasePluginEnableResp describes the HTTP response body when enable\npackage release."
+    },
+    "v3PackageReleasePluginEnableRespData": {
+      "type": "object"
+    },
+    "v3PackageReleasePluginListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "name": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        }
+      },
+      "description": "PackageReleasePluginListReq describes the HTTP request body when list package\nrelease."
+    },
+    "v3PackageReleasePluginListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginListRespData"
+        }
+      },
+      "description": "PackageReleasePluginListResp describes the HTTP response body when list\npackage release."
+    },
+    "v3PackageReleasePluginListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleasePlugin"
+          }
+        }
+      }
+    },
+    "v3PackageReleasePluginSetAsDefaultReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set\ndefault package release."
+    },
+    "v3PackageReleasePluginSetAsDefaultResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleasePluginSetAsDefaultRespData"
+        }
+      },
+      "description": "PackageReleasePluginSetAsDefaultResp describes the HTTP response body when\nset default package release."
+    },
+    "v3PackageReleasePluginSetAsDefaultRespData": {
+      "type": "object"
+    },
     "v3PackageReleaseSetAsDefaultReq": {
       "type": "object",
       "properties": {
@@ -1238,6 +1528,15 @@
         }
       },
       "description": "Release describes the release."
+    },
+    "v3ReleasePlugin": {
+      "type": "object",
+      "properties": {
+        "release": {
+          "$ref": "#/definitions/v3Release"
+        }
+      },
+      "description": "ReleasePlugin describes the package release plugin information."
     },
     "v3TimeRange": {
       "type": "object",

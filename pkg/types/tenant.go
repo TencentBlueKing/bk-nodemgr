@@ -19,6 +19,6 @@ type Tenant struct {
 	// name of the tenant.
 	Name string
 
-	// Status if the tenant is enabled or disabled.
-	Status bool
+	// Enabled if the tenant is enabled or disabled.
+	Enabled bool
 }

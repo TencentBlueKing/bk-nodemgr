@@ -53,7 +53,7 @@ func testClient(t *testing.T) IHandler {
 // Test_UpsertMany tests UpsertMany.
 func Test_UpsertMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
 		nCtx                 context.Context
@@ -120,7 +120,7 @@ func Test_UpsertMany(t *testing.T) {
 // Test_Get tests Get.
 func Test_Get(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
 		nCtx           context.Context
@@ -180,7 +180,7 @@ func Test_Get(t *testing.T) {
 // Test_DeleteMany tests DeleteMany.
 func Test_DeleteMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
 		nCtx           context.Context

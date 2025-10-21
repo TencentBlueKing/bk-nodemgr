@@ -26,21 +26,20 @@ var _ base.IData = &Plugin{}
 // Plugin represents the table of plugin deployment.
 // Token should be the unique key.
 type Plugin struct {
-	TenantID      string `json:"tenant_id" bson:"tenant_id"`
-	PluginID      string `json:"plugin_id" bson:"plugin_id"`
-	Name          string `json:"name" bson:"name"`
-	Group         string `json:"group" bson:"group"`
-	PluginPkgName string `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
+	TenantID string `json:"tenant_id" bson:"tenant_id"`
+	Name     string `json:"name" bson:"name"`
+	Group    string `json:"group" bson:"group"`
+	PkgName  string `json:"pkg_name" bson:"pkg_name"`
 }
 
 // UniqueFields unique fields of the table.
 func (deploy *Plugin) UniqueFields() []string {
-	return []string{FieldKeyPluginID}
+	return []string{FieldKeyName}
 }
 
 // UniqueKey unique key of the table.
 func (deploy *Plugin) UniqueKey() string {
-	return deploy.PluginID
+	return deploy.Name
 }
 
 // Table represent the complete db structures of plugin deployment.

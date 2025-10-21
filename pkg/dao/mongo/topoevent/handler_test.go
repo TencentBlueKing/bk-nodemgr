@@ -61,7 +61,7 @@ var once = sync.Once{}
 // prepareData for all tests.
 func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(nCtx)
+		tenantID := nCtx.TenantID()
 
 		// pre insert.
 		h := testClient(t)
@@ -118,7 +118,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 // Test_handler_List list event by page and conditions.
 func Test_handler_List(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -239,7 +239,7 @@ func Test_handler_List(t *testing.T) {
 // Test_handler_Count tests the count with filter.
 func Test_handler_Count(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -298,7 +298,7 @@ func Test_handler_Count(t *testing.T) {
 // Test_handler_DistinctType tests the distinct with type field.
 func Test_handler_DistinctType(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -354,7 +354,7 @@ func Test_handler_DistinctType(t *testing.T) {
 // Test_handler_DistinctAccessPoint tests the distinct with accesspoint-id field.
 func Test_handler_DistinctAccessPointID(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -410,7 +410,7 @@ func Test_handler_DistinctAccessPointID(t *testing.T) {
 // Test_handler_DistinctOperator tests the distinct with operator field.
 func Test_handler_DistinctOperator(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 

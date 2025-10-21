@@ -12,6 +12,7 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -78,7 +79,7 @@ func convertReleaseExactConditionsToTypes(exactCond *PackageReleaseExactConditio
 
 func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*PackageReleaseExactConditions, error) {
 	if conditions == nil {
-		return nil, nil
+		return &PackageReleaseExactConditions{}, nil
 	}
 
 	var exactCond *PackageReleaseExactConditions
@@ -480,4 +481,205 @@ func newEmptyRelease() *Release {
 		UpdatedAt:   new(uint64),
 		Operator:    new(string),
 	}
+}
+
+func newEmptyReleasePlugin() *ReleasePlugin {
+	plugin := &ReleasePlugin{
+		Release: newEmptyRelease(),
+	}
+
+	return plugin
+}
+
+// Validate check body.
+func (x *PackageReleasePluginListReq) Validate() error {
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginListReq) AutoConvert() {
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *PackageReleasePluginListReq) ConvertPageToTypes(maxLimit int) types.Page {
+	return generatePage(x.GetPage(), maxLimit)
+}
+
+// ConvertExactIncludeConditionsToTypes convert conditions to types.
+func (x *PackageReleasePluginListReq) ConvertExactIncludeConditionsToTypes() *types.ReleaseExactFields {
+	return convertReleaseExactConditionsToTypes(x.GetExactIncludeConditions())
+}
+
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *PackageReleasePluginListReq) ConvertConditionsFromTypes(condition *types.ReleaseCondition) error {
+	exactCond, err := convertReleaseConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+
+	return nil
+}
+
+// ConvertReleasePluginsFromTypes convert releases from types.
+func (x *PackageReleasePluginListResp) ConvertReleasePluginsFromTypes(total int64, releasePlugins []*types.ReleasePlugin) {
+	items := make([]*ReleasePlugin, len(releasePlugins))
+	for idx, release := range releasePlugins {
+		item := newEmptyReleasePlugin()
+		*item.Release.Name = release.Name
+		*item.Release.Generation = int64(release.Generation)
+		*item.Release.ReleaseType = string(release.Type)
+		*item.Release.OsType = string(release.Platform.OS)
+		*item.Release.CpuArch = string(release.Platform.Arch)
+		*item.Release.Version = release.Version
+		*item.Release.FileName = release.FileName
+		item.Release.Labels = release.Labels
+		*item.Release.Enabled = release.Enabled
+		*item.Release.AsDefault = release.AsDefault
+		*item.Release.Md5 = release.MD5
+		*item.Release.UpdatedAt = uint64(release.UpdatedAt.UnixMilli())
+		*item.Release.Operator = release.Operator
+
+		items[idx] = item
+	}
+
+	x.Data = &PackageReleasePluginListResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
+// Validate check body.
+func (x *PackageReleasePluginEnableReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginEnableReq) AutoConvert() {
+}
+
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginEnableReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+}
+
+// SetIdentifer set identifier.
+func (x *PackageReleasePluginEnableReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
+	x.Name = name
+	x.Generation = int64(gen)
+	x.Platform = ConvertPlatformFromTypes(plat)
+	x.Version = ver
+}
+
+// Validate check body.
+func (x *PackageReleasePluginDisableReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginDisableReq) AutoConvert() {
+}
+
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginDisableReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+}
+
+// SetIdentifer set identifier.
+func (x *PackageReleasePluginDisableReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
+	x.Name = name
+	x.Generation = int64(gen)
+	x.Platform = ConvertPlatformFromTypes(plat)
+	x.Version = ver
+}
+
+// Validate check body.
+func (x *PackageReleasePluginSetAsDefaultReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginSetAsDefaultReq) AutoConvert() {
+}
+
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginSetAsDefaultReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+}
+
+// SetIdentifer set identifier.
+func (x *PackageReleasePluginSetAsDefaultReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
+	x.Name = name
+	x.Generation = int64(gen)
+	x.Platform = ConvertPlatformFromTypes(plat)
+	x.Version = ver
+}
+
+// Validate check body.
+func (x *PackageReleasePluginCancelAsDefaultReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginCancelAsDefaultReq) AutoConvert() {
+}
+
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginCancelAsDefaultReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+}
+
+// SetIdentifer set identifier.
+func (x *PackageReleasePluginCancelAsDefaultReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
+	x.Name = name
+	x.Generation = int64(gen)
+	x.Platform = ConvertPlatformFromTypes(plat)
+	x.Version = ver
+}
+
+// Validate check body.
+func (x *PackageReleasePluginDeleteReq) Validate() error {
+	if !ConvertPlatformToTypes(x.GetPlatform()).Validate() {
+		return fmt.Errorf("failed to validate platform, plat(%+v)", x.GetPlatform())
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginDeleteReq) AutoConvert() {
+}
+
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginDeleteReq) GetIdentifier() (string, types.Generation, platfmt.Platform, string) {
+	return x.GetName(), types.Generation(x.GetGeneration()), ConvertPlatformToTypes(x.GetPlatform()), x.GetVersion()
+}
+
+// SetIdentifer set identifier.
+func (x *PackageReleasePluginDeleteReq) SetIdentifer(name string, gen types.Generation, plat platfmt.Platform, ver string) {
+	x.Name = name
+	x.Generation = int64(gen)
+	x.Platform = ConvertPlatformFromTypes(plat)
+	x.Version = ver
 }

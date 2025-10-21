@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -64,10 +63,11 @@ func New(client *mongo.Database) IHandler {
 
 // Count counts networkunit by conditions.
 func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return 0, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -82,10 +82,11 @@ func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*types.AccessPoint, int64, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, 0, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -115,10 +116,11 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 
 // Get gets accesspoint by id.
 func (h *handler) Get(nCtx contextx.IContext, accessPointID int64) (*types.AccessPoint, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if accessPointID < 0 {
 		return nil, base.ErrInvalidID()
@@ -139,16 +141,17 @@ func (h *handler) Get(nCtx contextx.IContext, accessPointID int64) (*types.Acces
 
 // Create creates a new accesspoint and return the generated id.
 func (h *handler) Create(nCtx contextx.IContext, accessPoint *types.AccessPoint) (int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return -1, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if accessPoint == nil {
 		return -1, base.ErrEmptyParamData()
 	}
 
-	if err = base.CheckTenantIDMatched(tenantID, accessPoint.TenantID); err != nil {
+	if err := base.CheckTenantIDMatched(tenantID, accessPoint.TenantID); err != nil {
 		return -1, err
 	}
 
@@ -165,10 +168,11 @@ func (h *handler) Create(nCtx contextx.IContext, accessPoint *types.AccessPoint)
 
 // CreateMany creates many accesspoints and return the generated ids.
 func (h *handler) CreateMany(nCtx contextx.IContext, accessPoints ...*types.AccessPoint) ([]int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(accessPoints) == 0 {
 		return nil, errors.New("empty accesspoint")
@@ -182,7 +186,7 @@ func (h *handler) CreateMany(nCtx contextx.IContext, accessPoints ...*types.Acce
 
 		data[idx] = convertAccessPointFromTypes(accessPoint)
 
-		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
 			return nil, err
 		}
 	}
@@ -192,10 +196,11 @@ func (h *handler) CreateMany(nCtx contextx.IContext, accessPoints ...*types.Acce
 
 // UpdateMany updates accesspoint.
 func (h *handler) UpdateMany(nCtx contextx.IContext, accessPoints ...*types.AccessPoint) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	data := make([]*AccessPoint, len(accessPoints))
 	for idx, accessPoint := range accessPoints {
@@ -205,7 +210,7 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, accessPoints ...*types.Acce
 
 		data[idx] = convertAccessPointFromTypes(accessPoint)
 
-		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
 			return err
 		}
 	}
@@ -219,10 +224,11 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, accessPoints ...*types.Acce
 
 // DeleteMany deletes accesspoint by ids.
 func (h *handler) DeleteMany(nCtx contextx.IContext, accessPointIDs ...int64) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(accessPointIDs) == 0 {
 		return base.ErrEmptyParamData()

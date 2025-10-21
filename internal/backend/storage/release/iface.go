@@ -94,6 +94,30 @@ type IAgent interface {
 type IPlugin interface {
 	// GetReleasePlugin gets release by generation, release type, platform and version.
 	GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleasePlugin, error)
+
+	// ListReleasePlugin lists release by page and conditions.
+	ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error)
+
+	// CountReleasePlugin counts release by conditions.
+	CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
+
+	// 	DeleteReleasePlugin deletes release by generation, release type, platform and version.
+	DeleteReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) error
+
+	// EnableReleasePlugin enables release active by generation, release type, platform and version.
+	EnableReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) error
+
+	// DisableReleasePlugin disables release disactive by generation, release type, platform and version.
+	DisableReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) error
+
+	// SetAsDefaultReleasePlugin sets the release as default.
+	SetAsDefaultReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) error
+
+	// CancelAsDefaultReleasePlugin cancels the release as default.
+	CancelAsDefaultReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) error
+
+	// ExistReleasePlugin exist release plugin.
+	ExistReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (bool, error)
 }
 
 // IPackageEvent define the package event interface.

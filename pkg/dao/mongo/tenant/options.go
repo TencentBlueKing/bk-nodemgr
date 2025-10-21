@@ -3,14 +3,29 @@
  * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
  * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at https://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * Unless required by applicable law or agreed to in writing, software distributed on the License is distributed on
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
 
 package tenant
 
-const (
-	// FieldKeyID is the key for the id field.
-	FieldKeyID = "data.id"
-)
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+
+// OptFn provides filtering options.
+type OptFn = base.OptFn
+
+// WithID filters by id.
+func WithID(ids ...string) OptFn {
+	return base.WithValues(FieldKeyID, ids...)
+}
+
+// WithName filters by name.
+func WithName(names ...string) OptFn {
+	return base.WithValues(FieldKeyName, names...)
+}
+
+// WithStatus filters by status.
+func WithStatus(status ...bool) OptFn {
+	return base.WithValues(FieldKeyEnabled, status...)
+}

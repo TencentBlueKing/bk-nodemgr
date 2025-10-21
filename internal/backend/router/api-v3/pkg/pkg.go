@@ -13,21 +13,31 @@ package pkg
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg      *gin.RouterGroup
-	storage release.IStorage
+	rg               *gin.RouterGroup
+	daoPackageEvent  release.IPackageEvent
+	daoReleasePlugin release.IPlugin
+	daoRelease       release.IRelease
+	daoPlugin        plugin.IDaoPlugin
+	daoTenant        tenant.IStorage
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:      rg.Group("/package"),
-		storage: capability.StorageRelease,
+		rg:               rg.Group("/package"),
+		daoPackageEvent:  capability.StorageRelease,
+		daoReleasePlugin: capability.StorageRelease,
+		daoRelease:       capability.StorageRelease,
+		daoPlugin:        capability.StoragePlugin,
+		daoTenant:        capability.StorageTenant,
 	}
 }
 
@@ -44,6 +54,12 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release/set_as_default", restserver.Handler(h.SetAsDefaultRelease))
 	h.rg.POST("/release/cancel_as_default", restserver.Handler(h.CancelAsDefaultRelease))
 	h.rg.POST("/release/delete", restserver.Handler(h.DeleteRelease))
+	h.rg.POST("/release_plugin/list", restserver.Handler(h.ListReleasePlugin))
+	h.rg.POST("/release_plugin/enable", restserver.Handler(h.EnableReleasePlugin))
+	h.rg.POST("/release_plugin/disable", restserver.Handler(h.DisableReleasePlugin))
+	h.rg.POST("/release_plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))
+	h.rg.POST("/release_plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
+	h.rg.POST("/release_plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
 
 	h.rg.POST("/event/list", restserver.Handler(h.ListPackageEvent))
 	h.rg.POST("/event/distinct", restserver.Handler(h.DistinctPackageEvent))

@@ -123,7 +123,7 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get host: %w", err)
 	}
 
-	targetPlugin, err := act.daoPlugin.GetPluginByID(nCtx, std.DeployInfo().Process.PluginID)
+	targetPlugin, err := act.daoPlugin.GetPlugin(nCtx, std.DeployInfo().Process.PluginName)
 	if err != nil {
 		return fmt.Errorf("failed to get plugin: %w", err)
 	}
@@ -217,8 +217,8 @@ func (act *actionInstallPlugin) buildInstallParams(
 				BaseWorkDir:       deployConstant.BaseWorkDir,
 				DeployEnv:         system.GetEnv(),
 			},
-			PluginGroup:     targetPlugin.PluginGroup,
-			PluginName:      targetPlugin.PluginName,
+			PluginGroup:     targetPlugin.Group,
+			PluginName:      targetPlugin.Name,
 			PluginVersion:   std.DeployInfo().Process.Info.Version,
 			CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
 			DownloadSvrAddr: "http://" + downloadSvrEndpoint.GetIPV4Address(),

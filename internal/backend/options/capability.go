@@ -21,6 +21,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -33,6 +34,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -75,6 +77,9 @@ type Capability struct {
 	// StorageDeployPolicy deploy policy storage.
 	StorageDeployPolicy deploypolicy.IStorage
 
+	// StorageTenant tenant storage.
+	StorageTenant tenant.IStorage
+
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
 
@@ -83,6 +88,9 @@ type Capability struct {
 
 	// FileHandler file handler.
 	FileHandler file.IHandler
+
+	// UserManagerHandler user manager handler.
+	UserManagerHandler usermanager.IHandler
 
 	// LockerFactory locker factory
 	LockerFactory locker.MutexFactory
@@ -149,6 +157,10 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 	}
 
 	if err := capability.StorageDeployPolicy.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := capability.StorageTenant.Start(ctx); err != nil {
 		return err
 	}
 

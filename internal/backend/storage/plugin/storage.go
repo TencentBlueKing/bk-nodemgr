@@ -232,13 +232,13 @@ func (s *Storage) ListProcesses(nCtx contextx.IContext, page types.Page, conditi
 	return processes, total, err
 }
 
-// GetPluginByID get plugin by id.
-func (s *Storage) GetPluginByID(nCtx contextx.IContext, pluginID string) (plugin *types.Plugin, err error) {
+// GetPlugin get plugin by id.
+func (s *Storage) GetPlugin(nCtx contextx.IContext, pluginName string) (plugin *types.Plugin, err error) {
 	// record metric.
-	metric := s.metric().Start("get_plugin_by_id")
+	metric := s.metric().Start("get_plugin")
 	defer metric.End(err)
 
-	plugin, err = s.getPluginByID(nCtx, pluginID)
+	plugin, err = s.getPlugin(nCtx, pluginName)
 
 	return plugin, err
 }
@@ -266,15 +266,37 @@ func (s *Storage) ListPlugins(nCtx contextx.IContext, page types.Page, condition
 	return plugins, cnt, err
 }
 
-// GetProcessByID get process by id.
-func (s *Storage) GetProcessByID(nCtx contextx.IContext, processID string) (process *types.Process, err error) {
+// ExistPluginByPluginName check plugin exist by plugin name.
+func (s *Storage) ExistPluginByPluginName(nCtx contextx.IContext, pluginName string) (exist bool, err error) {
 	// record metric.
-	metric := s.metric().Start("get_process_by_id")
+	metric := s.metric().Start("exist_plugin_by_plugin_name")
 	defer metric.End(err)
 
-	process, err = s.getProcessByID(nCtx, processID)
+	exist, err = s.existPluginByPluginName(nCtx, pluginName)
 
-	return process, err
+	return exist, err
+}
+
+// ExistDefaultPluginByPluginPkgName check default plugin exist by plugin package name.
+func (s *Storage) ExistDefaultPluginByPluginPkgName(nCtx contextx.IContext, pluginPkgName string) (exist bool, err error) {
+	// record metric.
+	metric := s.metric().Start("exist_plugin_by_plugin_pkg_name")
+	defer metric.End(err)
+
+	exist, err = s.existPluginByPluginPkgName(nCtx, pluginPkgName)
+
+	return exist, err
+}
+
+// CreatePlugin create plugin.
+func (s *Storage) CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) (err error) {
+	// record metric.
+	metric := s.metric().Start("create_plugin")
+	defer metric.End(err)
+
+	err = s.createPlugin(nCtx, plugin)
+
+	return err
 }
 
 // CreateProcess create process.
@@ -289,56 +311,56 @@ func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) 
 }
 
 // UpdateProcess create process.
-func (s *Storage) UpdateProcess(nCtx contextx.IContext, processID string, process *types.Process) (err error) {
+func (s *Storage) UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) (err error) {
 	// record metric.
 	metric := s.metric().Start("update_process")
 	defer metric.End(err)
 
-	err = s.updateProcess(nCtx, processID, process)
+	err = s.updateProcess(nCtx, process, hostID, pluginName)
 
 	return err
 }
 
 // UpdateProcessInfo update process info.
-func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) (err error) {
+func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) (err error) {
 	// record metric.
 	metric := s.metric().Start("update_process_info")
 	defer metric.End(err)
 
-	err = s.updateProcessInfo(nCtx, processID, processInfo)
+	err = s.updateProcessInfo(nCtx, hostID, pluginName, processInfo)
 
 	return err
 }
 
 // DeleteProcess delete process.
-func (s *Storage) DeleteProcess(nCtx contextx.IContext, processID string) (err error) {
+func (s *Storage) DeleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_process")
 	defer metric.End(err)
 
-	err = s.deleteProcess(nCtx, processID)
+	err = s.deleteProcess(nCtx, hostID, pluginName)
 
 	return err
 }
 
 // ExistProcess exist process id.
-func (s *Storage) ExistProcess(nCtx contextx.IContext, processID string) (exist bool, err error) {
+func (s *Storage) ExistProcess(nCtx contextx.IContext, hostID int64, pluginName string) (exist bool, err error) {
 	// record metric.
 	metric := s.metric().Start("exist_process_id")
 	defer metric.End(err)
 
-	exist, err = s.existProcess(nCtx, processID)
+	exist, err = s.existProcess(nCtx, hostID, pluginName)
 
 	return exist, err
 }
 
 // UpdateManyProcessInfo batch update process info by process ID.
-func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) (err error) {
+func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) (err error) {
 	// record metric.
 	metric := s.metric().Start("update_many_process_info")
 	defer metric.End(err)
 
-	err = s.updateManyProcessInfo(nCtx, processes)
+	err = s.updateManyProcessInfo(nCtx, processInfoDeltas)
 
 	return err
 }

@@ -20,12 +20,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) getPluginByID(nCtx contextx.IContext, pluginID string) (*types.Plugin, error) {
+func (s *Storage) getPlugin(nCtx contextx.IContext, pluginName string) (*types.Plugin, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
-	plugin, err := s.daoPlugin.Get(nCtx, daoPlugin.WithPluginID(pluginID))
+	plugin, err := s.daoPlugin.Get(nCtx,
+		daoPlugin.WithName(pluginName),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugin: %w", err)
 	}
@@ -78,15 +80,15 @@ func convertPluginConditionToOptions(conditions []*types.PluginCondition) ([]dao
 
 		if condition.ExactInclude != nil {
 			opts = append(opts,
-				daoPlugin.WithPluginID(condition.ExactInclude.PluginID...),
-				daoPlugin.WithGroup(condition.ExactInclude.PluginGroup...),
+				daoPlugin.WithName(condition.ExactInclude.Name...),
+				daoPlugin.WithGroup(condition.ExactInclude.Group...),
 			)
 		}
 
 		if condition.FuzzyInclude != nil {
 			opts = append(opts,
-				daoPlugin.WithFuzzyName(condition.FuzzyInclude.PluginName...),
-				daoPlugin.WithFuzzyPluginPkgName(condition.FuzzyInclude.PluginPkgName...),
+				daoPlugin.WithFuzzyName(condition.FuzzyInclude.Name...),
+				daoPlugin.WithFuzzyPkgName(condition.FuzzyInclude.PkgName...),
 			)
 		}
 
@@ -100,4 +102,46 @@ func convertPluginConditionToOptions(conditions []*types.PluginCondition) ([]dao
 	}
 
 	return opts, nil
+}
+
+func (s *Storage) existPluginByPluginName(nCtx contextx.IContext, name string) (bool, error) {
+	if nCtx == nil {
+		return false, base.ErrInvalidContext()
+	}
+
+	exist, err := s.daoPlugin.Exist(nCtx, daoPlugin.WithName(name))
+	if err != nil {
+		return false, fmt.Errorf("failed to get plugin: %w", err)
+	}
+
+	return exist, nil
+}
+
+func (s *Storage) existPluginByPluginPkgName(nCtx contextx.IContext, name string) (bool, error) {
+	if nCtx == nil {
+		return false, base.ErrInvalidContext()
+	}
+
+	exist, err := s.daoPlugin.Exist(nCtx, daoPlugin.WithPkgName(name), daoPlugin.WithGroup(types.PluginGroupDefault))
+	if err != nil {
+		return false, fmt.Errorf("failed to get plugin: %w", err)
+	}
+
+	return exist, nil
+}
+
+func (s *Storage) createPlugin(nCtx contextx.IContext, p *types.Plugin) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if p == nil {
+		return fmt.Errorf("plugin is nil")
+	}
+
+	if err := s.daoPlugin.Create(nCtx, p); err != nil {
+		return fmt.Errorf("failed to create plugin: %w", err)
+	}
+
+	return nil
 }

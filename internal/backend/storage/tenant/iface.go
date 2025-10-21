@@ -12,15 +12,32 @@
 package tenant
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IStorage defines tenant storage interface.
 type IStorage interface {
-	// UpsertTenant upsert tenant info.
-	UpsertTenant(nCtx contextx.IContext, tenant *types.Tenant) error
+	basestorage.Interface
 
-	// ListAllTenants list all tenants.
+	IDaoTenant
+}
+
+// IDaoTenant defines tenant dao interface.
+type IDaoTenant interface {
+	// CreateManyTenant create many tenant.
+	CreateManyTenant(nCtx contextx.IContext, tenant ...*types.Tenant) error
+
+	// DeleteManyTenant delete many tenant.
+	DeleteManyTenant(nCtx contextx.IContext, tenantID []string) error
+
+	// UpdateManyTenant update many tenant.
+	UpdateManyTenant(nCtx contextx.IContext, tenantMap map[string]*types.Tenant) error
+
+	// ListAllEnabledTenants list all enabled tenants.
+	ListAllEnabledTenants(nCtx contextx.IContext) ([]*types.Tenant, error)
+
+	// ListAllTenants list all enabled tenants.
 	ListAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error)
 }

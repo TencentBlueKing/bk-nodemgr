@@ -62,12 +62,12 @@ var preparedGlobalNetworkUnitID int64
 // prepareData for all tests.
 func prepareData(t *testing.T, nCtx contextx.IContext) {
 	once.Do(func() {
-		tenantID, _ := tenant.GetID(nCtx)
+		tenantID := nCtx.TenantID()
 
 		// pre insert.
 		h := testClient(t)
 
-		systemCtx, _ := tenant.SetID(context.Background(), "system_tenant")
+		systemCtx := contextx.New(context.Background(), contextx.WithTenantID("system_tenant"))
 		tests := []struct {
 			nCtx        context.Context
 			networkUnit *types.NetworkUnit
@@ -145,7 +145,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 // Test_handler_Get get network unit.
 func Test_handler_Get(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -194,7 +194,7 @@ func Test_handler_Get(t *testing.T) {
 // Test_handler_Count count network unit.
 func Test_handler_Count(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -245,7 +245,7 @@ func Test_handler_Count(t *testing.T) {
 // Test_handler_List list network unit.
 func Test_handler_List(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 
@@ -323,7 +323,7 @@ func Test_handler_List(t *testing.T) {
 // Test_handler_Create creates networkunit.
 func Test_handler_Create(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
 		nCtx        context.Context
@@ -391,10 +391,10 @@ func Test_handler_Create(t *testing.T) {
 // Test_handler_UpdateMany updates many networkunits.
 func Test_handler_UpdateMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	type args struct {
-		nCtx         context.Context
+		nCtx         contextx.IContext
 		networkUnits []*types.NetworkUnit
 	}
 
@@ -475,7 +475,7 @@ func Test_handler_UpdateMany(t *testing.T) {
 // Test_handler_DeleteMany deletes many networkunits.
 func Test_handler_DeleteMany(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 

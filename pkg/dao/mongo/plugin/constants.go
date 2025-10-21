@@ -11,15 +11,12 @@
 package plugin
 
 const (
-	// FieldKeyPluginID the plugin id field key.
-	FieldKeyPluginID = "data.plugin_id"
-
-	// FieldKeyName the plugin name field key.
-	FieldKeyName = "data.name"
-
 	// FieldKeyGroup the plugin group field key.
 	FieldKeyGroup = "data.group"
 
-	// FieldKeyPluginPkgName the plugin package name field key.
-	FieldKeyPluginPkgName = "data.plugin_pkg_name"
+	// FieldKeyPkgName the plugin package name field key.
+	FieldKeyPkgName = "data.pkg_name"
+
+	// FieldKeyName the plugin name field key.
+	FieldKeyName = "data.name"
 )

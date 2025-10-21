@@ -58,14 +58,23 @@ type IDaoPluginWorkflow interface {
 
 // IDaoPlugin defines the plugin dao interface.
 type IDaoPlugin interface {
-	// GetPluginByID get plugin by id.
-	GetPluginByID(nCtx contextx.IContext, pluginID string) (*types.Plugin, error)
+	// GetPlugin get plugin by id.
+	GetPlugin(nCtx contextx.IContext, pluginName string) (*types.Plugin, error)
 
 	// CountPlugins count plugins.
 	CountPlugins(nCtx contextx.IContext, conditions ...*types.PluginCondition) (int64, error)
 
 	// ListPlugins list plugins.
 	ListPlugins(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) ([]*types.Plugin, int64, error)
+
+	// ExistPluginByPluginName check if plugin exist by plugin name.
+	ExistPluginByPluginName(nCtx contextx.IContext, pluginName string) (bool, error)
+
+	// ExistDefaultPluginByPluginPkgName check if default plugin exist by plugin package name.
+	ExistDefaultPluginByPluginPkgName(nCtx contextx.IContext, pluginPkgName string) (exist bool, err error)
+
+	// CreatePlugin create a plugin.
+	CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) error
 }
 
 // IDaoProcess defines the process dao interface.
@@ -76,24 +85,21 @@ type IDaoProcess interface {
 	// ListProcesses list processes.
 	ListProcesses(nCtx contextx.IContext, page types.Page, condition ...*types.ProcessCondition) ([]*types.Process, int64, error)
 
-	// GetProcessByID get process by id.
-	GetProcessByID(nCtx contextx.IContext, processID string) (*types.Process, error)
-
 	// CreateProcess create process.
 	CreateProcess(nCtx contextx.IContext, process *types.Process) error
 
 	// UpdateProcess update process.
-	UpdateProcess(nCtx contextx.IContext, processID string, process *types.Process) error
+	UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error
 
 	// UpdateProcessInfo update process.
-	UpdateProcessInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) error
+	UpdateProcessInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error
 
 	// DeleteProcess delete process.
-	DeleteProcess(nCtx contextx.IContext, processID string) error
+	DeleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) error
 
 	// ExistProcess exist process.
-	ExistProcess(nCtx contextx.IContext, processID string) (bool, error)
+	ExistProcess(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
 
 	// UpdateManyProcessInfo batch update process info by process ID.
-	UpdateManyProcessInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) error
+	UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error
 }

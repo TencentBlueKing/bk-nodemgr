@@ -20,24 +20,14 @@ func WithHostID(hostIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyHostID, hostIDs...)
 }
 
-// WithPluginID filters by plugin-id.
-func WithPluginID(pluginIDs ...string) OptFn {
-	return base.WithValues(FieldKeyPluginID, pluginIDs...)
-}
-
-// WithProcessID filters by process-id.
-func WithProcessID(processIDs ...string) OptFn {
-	return base.WithValues(FieldKeyProcessID, processIDs...)
-}
-
-// WithName filters by name.
-func WithName(names ...string) OptFn {
-	return base.WithValues(FieldKeyName, names...)
+// WithPluginName filters by name.
+func WithPluginName(pluginNames ...string) OptFn {
+	return base.WithValues(FieldKeyPluginName, pluginNames...)
 }
 
 // WithFuzzyName filters by fuzzy name.
 func WithFuzzyName(names ...string) OptFn {
-	return base.WithFuzzyValues(FieldKeyName, names...)
+	return base.WithFuzzyValues(FieldKeyPluginName, names...)
 }
 
 // WithGroup filters by group.

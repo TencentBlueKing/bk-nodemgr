@@ -34,6 +34,9 @@ type IHandler interface {
 
 	// Get gets a plugin by conditions.
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.Plugin, error)
+
+	// Exist check a plugin exist by conditions.
+	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
 }
 
 var _ IHandler = &Handler{}
@@ -44,6 +47,25 @@ type Handler struct {
 	// daoMap stores dao's containing tenant information.
 	// Do not edit the daoMap except with the tenantDao func.
 	daoMap sync.Map
+}
+
+// Exist check a plugin exist by conditions.
+func (h *Handler) Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return false, err
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	exist, err := h.tenantDao(nCtx.TenantID()).Exist(nCtx, filter)
+	if err != nil {
+		return false, fmt.Errorf("failed to check plugin exist, err: %w", err)
+	}
+
+	return exist, nil
 }
 
 func (h *Handler) tenantDao(tenantID string) *dao {
@@ -90,11 +112,10 @@ func (h *Handler) Create(nCtx contextx.IContext, plugin *types.Plugin) error {
 
 func convPluginFromTypes(plugin *types.Plugin) *Plugin {
 	data := &Plugin{
-		TenantID:      plugin.TenantID,
-		PluginID:      plugin.PluginID,
-		Name:          plugin.PluginName,
-		Group:         plugin.PluginGroup,
-		PluginPkgName: plugin.PluginPkgName,
+		TenantID: plugin.TenantID,
+		Name:     plugin.Name,
+		Group:    plugin.Group,
+		PkgName:  plugin.PkgName,
 	}
 
 	return data
@@ -166,11 +187,10 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.Plugin, err
 
 func convertPluginToTypes(data *Plugin) *types.Plugin {
 	plugin := &types.Plugin{
-		PluginID:      data.PluginID,
-		TenantID:      data.TenantID,
-		PluginName:    data.Name,
-		PluginGroup:   data.Group,
-		PluginPkgName: data.PluginPkgName,
+		TenantID: data.TenantID,
+		Name:     data.Name,
+		Group:    data.Group,
+		PkgName:  data.PkgName,
 	}
 
 	return plugin

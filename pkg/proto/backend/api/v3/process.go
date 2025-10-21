@@ -37,18 +37,16 @@ func convertProcessConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.ProcessExactFields{
-			HostID:       exactCond.GetBkHostId(),
-			PluginID:     exactCond.GetPluginId(),
-			ProcessID:    exactCond.GetProcessId(),
-			Group:        exactCond.GetGroup(),
-			Generation:   exactCond.GetGeneration(),
-			PlatformOS:   exactCond.GetPlatformOs(),
-			PlatformArch: exactCond.GetPlatformArch(),
-			InfoStatus:   exactCond.GetStatus(),
-			InfoAgentID:  exactCond.GetAgentId(),
-			InfoVersion:  exactCond.GetVersion(),
-			Name:         exactCond.GetName(),
-			PkgName:      exactCond.GetPluginPkgName(),
+			HostID:         exactCond.GetBkHostId(),
+			PluginGroup:    exactCond.GetPluginGroup(),
+			NodeGeneration: exactCond.GetNodeGeneration(),
+			PlatformOS:     exactCond.GetPlatformOs(),
+			PlatformArch:   exactCond.GetPlatformArch(),
+			InfoStatus:     exactCond.GetStatus(),
+			InfoAgentID:    exactCond.GetAgentId(),
+			InfoVersion:    exactCond.GetVersion(),
+			PluginName:     exactCond.GetPluginName(),
+			PluginPkgName:  exactCond.GetPluginPkgName(),
 		}
 	}
 
@@ -77,18 +75,16 @@ func (x *ProcessListReq) ConvertConditionFromTypes(condition *types.ProcessCondi
 	// exact conditions.
 	if condition.ExactInclude != nil {
 		x.ExactIncludeConditions = &ProcessListReq_ExactConditions{
-			BkHostId:      condition.ExactInclude.HostID,
-			PluginId:      condition.ExactInclude.PluginID,
-			ProcessId:     condition.ExactInclude.ProcessID,
-			Group:         condition.ExactInclude.Group,
-			Generation:    condition.ExactInclude.Generation,
-			PlatformOs:    condition.ExactInclude.PlatformOS,
-			PlatformArch:  condition.ExactInclude.PlatformArch,
-			Status:        condition.ExactInclude.InfoStatus,
-			AgentId:       condition.ExactInclude.InfoAgentID,
-			Version:       condition.ExactInclude.InfoVersion,
-			Name:          condition.ExactInclude.Name,
-			PluginPkgName: condition.ExactInclude.PkgName,
+			BkHostId:       condition.ExactInclude.HostID,
+			PluginGroup:    condition.ExactInclude.PluginGroup,
+			NodeGeneration: condition.ExactInclude.NodeGeneration,
+			PlatformOs:     condition.ExactInclude.PlatformOS,
+			PlatformArch:   condition.ExactInclude.PlatformArch,
+			Status:         condition.ExactInclude.InfoStatus,
+			AgentId:        condition.ExactInclude.InfoAgentID,
+			Version:        condition.ExactInclude.InfoVersion,
+			PluginName:     condition.ExactInclude.PluginName,
+			PluginPkgName:  condition.ExactInclude.PluginPkgName,
 		}
 	}
 
@@ -107,9 +103,7 @@ func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.
 	for idx, proc := range process {
 		item := newEmptyProcess()
 		*item.TenantId = proc.TenantID
-		*item.ProcessId = proc.ProcessID
 		*item.BkHostId = proc.HostID
-		*item.PluginId = proc.PluginID
 		*item.PluginName = proc.PluginName
 		*item.PluginPkgName = proc.PluginPkgName
 		*item.PluginGroup = proc.PluginGroup
@@ -153,9 +147,7 @@ func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.
 func newEmptyProcess() *Process {
 	return &Process{
 		TenantId:      new(string),
-		ProcessId:     new(string),
 		BkHostId:      new(int64),
-		PluginId:      new(string),
 		PluginName:    new(string),
 		PluginPkgName: new(string),
 		PluginGroup:   new(string),
@@ -209,9 +201,7 @@ func (x *ProcessListResp) ConvertProcessToTypes() ([]*types.Process, int64) {
 	for idx, proc := range data.GetItems() {
 		item := &types.Process{
 			TenantID:      proc.GetTenantId(),
-			ProcessID:     proc.GetProcessId(),
 			HostID:        proc.GetBkHostId(),
-			PluginID:      proc.GetPluginId(),
 			PluginName:    proc.GetPluginName(),
 			PluginPkgName: proc.GetPluginPkgName(),
 			PluginGroup:   proc.GetPluginGroup(),

@@ -347,24 +347,116 @@ func (s *Storage) GetReleaseProxy(
 
 // GetReleasePlugin gets release by generation, release type, platform and version.
 func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
-	*types.ReleasePlugin, error) {
-
-	var (
-		releasePlugin *types.ReleasePlugin
-		err           error
-	)
+	releasePlugin *types.ReleasePlugin, err error) {
 
 	// record metric.
 	metric := s.metric().Start("get_release_plugin")
 	defer metric.End(err)
 
 	releasePlugin, err = s.getReleasePlugin(nCtx, name, gen, plat, version)
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to get release plugin")
-		return nil, fmt.Errorf("failed to get release plugin: %w", err)
-	}
 
-	return releasePlugin, nil
+	return releasePlugin, err
+}
+
+// ListReleasePlugin list release plugin.
+func (s *Storage) ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	results []*types.ReleasePlugin, num int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_release_plugin")
+	defer metric.End(err)
+
+	results, num, err = s.listReleasePlugin(nCtx, page, conditions...)
+
+	return results, num, err
+}
+
+// DeleteReleasePlugin delete release plugin.
+func (s *Storage) DeleteReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+	err error) {
+
+	// record metric.
+	metric := s.metric().Start("delete_release_plugin")
+	defer metric.End(err)
+
+	err = s.deleteReleasePlugin(nCtx, name, gen, plat, version)
+
+	return err
+}
+
+// EnableReleasePlugin enable release plugin.
+func (s *Storage) EnableReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+	err error) {
+
+	// record metric.
+	metric := s.metric().Start("enable_release_plugin")
+	defer metric.End(err)
+
+	err = s.enableReleasePlugin(nCtx, name, gen, plat, version)
+
+	return err
+}
+
+// DisableReleasePlugin disable release plugin.
+func (s *Storage) DisableReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+	err error) {
+
+	// record metric.
+	metric := s.metric().Start("disable_release_plugin")
+	defer metric.End(err)
+
+	err = s.disableReleasePlugin(nCtx, name, gen, plat, version)
+
+	return err
+}
+
+// SetAsDefaultReleasePlugin set as default release plugin.
+func (s *Storage) SetAsDefaultReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+	err error) {
+
+	// record metric.
+	metric := s.metric().Start("set_as_default_release_plugin")
+	defer metric.End(err)
+
+	err = s.setAsDefaultReleasePlugin(nCtx, name, gen, plat, version)
+
+	return err
+}
+
+// CancelAsDefaultReleasePlugin cancel as default release plugin.
+func (s *Storage) CancelAsDefaultReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform,
+	version string) (err error) {
+
+	// record metric.
+	metric := s.metric().Start("cancel_as_default_release_plugin")
+	defer metric.End(err)
+
+	err = s.cancelAsDefaultReleasePlugin(nCtx, name, gen, plat, version)
+
+	return err
+}
+
+// CountReleasePlugin count release plugin.
+func (s *Storage) CountReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (num int64, err error) {
+	// record metric.
+	metric := s.metric().Start("count_release_plugin")
+	defer metric.End(err)
+
+	num, err = s.countReleasePlugin(nCtx, conditions...)
+
+	return num, err
+}
+
+// ExistReleasePlugin check release plugin exist.
+func (s *Storage) ExistReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+	exist bool, err error) {
+	// record metric.
+	metric := s.metric().Start("exist_release_plugin")
+	defer metric.End(err)
+
+	exist, err = s.existReleasePlugin(nCtx, name, gen, plat, version)
+
+	return exist, err
 }
 
 // CountPackageEvent counts package events.

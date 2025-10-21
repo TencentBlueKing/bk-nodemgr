@@ -76,28 +76,62 @@ func (s *Storage) metric() *storage.MetricData {
 	return storage.Metric(StorageName)
 }
 
-// UpsertTenant upserts a tenant.
-func (s *Storage) UpsertTenant(nCtx contextx.IContext, tenant *types.Tenant) error {
-	var err error
-
+// ListAllEnabledTenants list all enable tenants.
+// nolint: nonamedreturns
+func (s *Storage) ListAllEnabledTenants(nCtx contextx.IContext) (tenants []*types.Tenant, err error) {
 	// record metric.
-	metric := s.metric().Start("upsert_tenant")
+	metric := s.metric().Start("list_all_enabled_tenants")
 	defer metric.End(err)
 
-	err = s.upsertTenant(nCtx, tenant)
+	tenants, err = s.listAllEnabledTenants(nCtx)
 
-	return err
+	return tenants, err
 }
 
-// ListAllTenants list all tenants.
-func (s *Storage) ListAllTenants(nCtx contextx.IContext) ([]*types.Tenant, error) {
-	var err error
-
+// ListAllTenants list all enable tenants.
+// nolint: nonamedreturns
+func (s *Storage) ListAllTenants(nCtx contextx.IContext) (tenants []*types.Tenant, err error) {
 	// record metric.
 	metric := s.metric().Start("list_all_tenants")
 	defer metric.End(err)
 
-	tenants, err := s.listAllTenants(nCtx)
+	tenants, err = s.listAllTenants(nCtx)
 
 	return tenants, err
+}
+
+// CreateManyTenant create many tenant.
+// nolint: nonamedreturns
+func (s *Storage) CreateManyTenant(nCtx contextx.IContext, tenants ...*types.Tenant) (err error) {
+	// record metric.
+	metric := s.metric().Start("create_many_tenant")
+	defer metric.End(err)
+
+	err = s.createManyTenant(nCtx, tenants...)
+
+	return err
+}
+
+// DeleteManyTenant delete many tenant.
+// nolint: nonamedreturns
+func (s *Storage) DeleteManyTenant(nCtx contextx.IContext, tenantIDs []string) (err error) {
+	// record metric.
+	metric := s.metric().Start("delete_many_tenant")
+	defer metric.End(err)
+
+	err = s.deleteManyTenant(nCtx, tenantIDs)
+
+	return err
+}
+
+// UpdateManyTenant update many tenant.
+// nolint: nonamedreturns
+func (s *Storage) UpdateManyTenant(nCtx contextx.IContext, tenantMap map[string]*types.Tenant) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_many_tenant")
+	defer metric.End(err)
+
+	err = s.updateManyTenant(nCtx, tenantMap)
+
+	return err
 }

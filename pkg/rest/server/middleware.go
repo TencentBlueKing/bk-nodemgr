@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/gin-gonic/gin"
 )
 
@@ -197,12 +196,8 @@ func (setter *TenantIDSetter) SetTenantID(r IRequest) error {
 	r.Data().SetTenantID(restheader.BKTenantIDGetter(r.GetRequest()))
 
 	if r.Data().GetTenantID() == "" {
-		tenantID, err := tenant.GetID(r.GContext())
-		if err != nil {
-			return fmt.Errorf("failed to set tenant id: %w", err)
-		}
-
-		r.Data().SetTenantID(tenantID)
+		// TODO: remove this logic, perfect the logic of rest to support set tenant setter for router group.
+		r.Data().SetTenantID("default")
 	}
 
 	mustCompile := regexp.MustCompile(TenantIDRegexp)

@@ -26,12 +26,8 @@ var _ base.IData = &Process{}
 // Process represents the table of process deployment.
 // Token should be the unique key.
 type Process struct {
-	TenantID  string `json:"tenant_id" bson:"tenant_id"`
-	ProcessID string `json:"process_id" bson:"process_id"`
-
-	HostID   int64  `json:"host_id" bson:"host_id"`
-	PluginID string `json:"plugin_id" bson:"plugin_id"`
-
+	TenantID      string `json:"tenant_id" bson:"tenant_id"`
+	HostID        int64  `json:"host_id" bson:"host_id"`
 	Name          string `json:"name" bson:"name"`
 	Group         string `json:"group" bson:"group"`
 	PluginPkgName string `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
@@ -93,13 +89,16 @@ type platform struct {
 }
 
 // UniqueFields unique fields of the table.
-func (deploy *Process) UniqueFields() []string {
-	return []string{FieldKeyProcessID}
+func (proc *Process) UniqueFields() []string {
+	return []string{
+		FieldKeyHostID,
+		FieldKeyPluginName,
+	}
 }
 
 // UniqueKey unique key of the table.
-func (deploy *Process) UniqueKey() string {
-	return deploy.ProcessID
+func (proc *Process) UniqueKey() string {
+	return fmt.Sprintf("%d:%s", proc.HostID, proc.Name)
 }
 
 // Table represent the complete db structures of process deployment.

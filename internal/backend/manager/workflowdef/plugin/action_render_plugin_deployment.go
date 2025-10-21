@@ -48,6 +48,7 @@ const (
 func NewActionRenderPluginDeployment(capability *Capability) action.Definition {
 	return &RenderPluginDeployment{
 		daoHost:             capability.StorageTopo,
+		daoPluginPkg:        capability.StorageRelease,
 		daoPlugin:           capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
 	}
@@ -104,6 +105,7 @@ func (act *RenderPluginDeployment) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
+// nolint: funlen,gocognit
 func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamRenderPluginDeployment)
 	err := conv.MapToStruct(ctx.Data.Content, param)
@@ -128,17 +130,18 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
-	plugin, err := act.daoPlugin.GetPluginByID(nCtx, std.DeployInfo().Process.PluginID)
+	plugin, err := act.daoPlugin.GetPlugin(nCtx, std.DeployInfo().Process.PluginName)
 	if err != nil {
-		return fmt.Errorf("failed to get plugin by id. plugin-id(%s): %w", std.DeployInfo().Process.PluginID, err)
+		return fmt.Errorf("failed to get plugin. host-id(%d), plugin-name(%s): %w",
+			std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName, err)
 	}
 
 	std.DeployInfo().BlockingActionName = ActionNameRenderPluginDeployment
 
 	version := std.DeployInfo().Process.Info.Version
-	pluginPkgName := plugin.PluginPkgName
-	pluginGroup := plugin.PluginGroup
-	pluginName := plugin.PluginName
+	pluginPkgName := plugin.PkgName
+	pluginGroup := plugin.Group
+	pluginName := plugin.Name
 	nodeGeneration := host.Dynamic.NodeGeneration
 	nodePlatform := platfmt.Platform{
 		OS:   host.Dynamic.NodeOsType,
@@ -165,6 +168,9 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		nodePlatform,
 		version,
 	)
+	if err != nil {
+		return fmt.Errorf("failed to get plugin pkg by name. plugin-pkg-name(%s): %w", pluginPkgName, err)
+	}
 
 	std.DeployInfo().Process.Controller = pluginPkg.PluginController
 
@@ -180,7 +186,7 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		programName += ".exe"
 	}
 
-	pidFilePath := ""
+	var pidFilePath string
 	pidFileName := fmt.Sprintf("%s.pid", pluginPkgName)
 	if nodePlatform.OS == criteria.OSWindows {
 		pidFilePath = winpath.Join(pluginDeployConf.RunDir, pidFileName)
@@ -188,14 +194,14 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		pidFilePath = filepath.Join(pluginDeployConf.RunDir, pidFileName)
 	}
 
-	setupPath := ""
+	var setupPath string
 	if nodePlatform.OS == criteria.OSWindows {
 		setupPath = winpath.Join(pluginDeployConf.DeployDir, pluginName)
 	} else {
 		setupPath = filepath.Join(pluginDeployConf.DeployDir, pluginName)
 	}
 
-	mainConfigPath := ""
+	var mainConfigPath string
 	for _, configTemplate := range pluginPkg.ConfigTemplates {
 		if !configTemplate.IsMainConfig {
 			continue
@@ -213,7 +219,7 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	logDirPath := pluginDeployConf.LogDir
 
 	// TODO: 接入配置管理
-	user := ""
+	var user string
 	if nodePlatform.OS == criteria.OSWindows {
 		user = "administrator"
 	} else {
@@ -229,12 +235,15 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		User:       user,
 	}
 
+	// TODO: 接入配置管理
+	// nolint: mnd
 	std.DeployInfo().Process.Resource = types.ProcessResource{
 		CPULimitPercent: 10,
 		MemLimitPercent: 10,
 	}
 
 	// TODO: 接入配置管理
+	// nolint: mnd
 	std.DeployInfo().Process.MonitorPolicy = types.ProcessMonitorPolicy{
 		AutoType:       types.ProcessAutoTypeTrusteeship,
 		StartCheckSecs: 5,

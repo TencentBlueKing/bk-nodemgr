@@ -17,8 +17,8 @@ import (
 )
 
 // TableName node workflow table name.
-func TableName() string {
-	return "node_workflow"
+func TableName(tenantID string) string {
+	return "node_workflow_" + tenantID
 }
 
 var _ base.IData = &Data{}

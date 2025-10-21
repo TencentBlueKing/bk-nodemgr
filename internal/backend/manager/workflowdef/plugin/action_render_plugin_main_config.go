@@ -160,7 +160,8 @@ func (act *RenderPluginMainConfig) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
-	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(std.Context(), "", std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform, std.DeployInfo().Process.Info.Version)
+	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(std.Context(), std.DeployInfo().Process.PluginName,
+		std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform, std.DeployInfo().Process.Info.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get plugin release info: %w", err)
 	}

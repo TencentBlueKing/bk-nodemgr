@@ -77,6 +77,7 @@ type BackendService struct {
 	CMDB               CMDB            `yaml:"cmdb" usage:"cmdb config of backend service"`
 	File               File            `yaml:"file" usage:"file config of backend service"`
 	GSE                GSE             `yaml:"gse" usage:"gse config of backend service"`
+	UserManager        UserManager     `yaml:"userManager" usage:"user manager config of backend service"`
 	Workflow           Workflow        `yaml:"workflow" usage:"workflow config of backend service"`
 	InfoServer         HTTPServer      `yaml:"infoServer" usage:"info server config of backend service"`
 	AdminServer        HTTPServer      `yaml:"adminServer" usage:"admin server config of backend service"`
@@ -96,6 +97,7 @@ type BackendService struct {
 }
 
 // NewBackendService generates a new BackendService with default values.
+// nolint: funlen
 func NewBackendService() *BackendService {
 	return &BackendService{
 		RunMode:    defaultBackendRunMode,
@@ -275,6 +277,10 @@ func (svc *BackendService) Validate() error {
 
 	if err := svc.GSE.Validate(); err != nil {
 		return fmt.Errorf("failed to validate gse service config: %w", err)
+	}
+
+	if err := svc.UserManager.Validate(); err != nil {
+		return fmt.Errorf("failed to validate user manager config: %w", err)
 	}
 
 	if svc.EncryptKey == "" {

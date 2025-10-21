@@ -109,7 +109,6 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 		Process: types.Process{
 			TenantID:   info.Process.TenantID,
 			HostID:     info.Process.HostID,
-			PluginID:   info.Process.PluginID,
 			PluginName: info.Process.Name,
 			Platform: platfmt.Platform{
 				OS:   criteria.OSType(info.Process.Platform.OS),
@@ -238,7 +237,6 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 		Process: process{
 			TenantID: info.Process.TenantID,
 			HostID:   info.Process.HostID,
-			PluginID: info.Process.PluginID,
 			Name:     info.Process.PluginName,
 			Platform: platform{
 				OS:   string(info.Process.Platform.OS),

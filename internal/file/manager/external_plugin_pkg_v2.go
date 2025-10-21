@@ -342,13 +342,15 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 
 	gp := gopool.NewPool()
 	gen := types.Generation2
+	pluginPkgName := detail.Name
+	pluginPkgVersion := detail.Version
 
 	releasesMap := make(map[string]*types.ReleasePlugin)
 	for idx := range releasePkgs {
 		pkg := releasePkgs[idx]
 		gp.Go(func() error {
 			// generate package name.
-			pkgName, err := pluginpkg.FormatPkgName(detail.Name, types.ReleaseTypePlugin, gen, pkg.platform, detail.Version)
+			pkgName, err := pluginpkg.FormatPkgName(pluginPkgName, types.ReleaseTypePlugin, gen, pkg.platform, pluginPkgVersion)
 			if err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release external plugin package, failed to format package")
 
@@ -377,10 +379,10 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 
 			pluginInfo := &types.ReleasePlugin{
 				Release: types.Release{
-					Name:         detail.Name,
+					Name:         pluginPkgName,
 					Generation:   gen,
 					Type:         types.ReleaseTypePlugin,
-					Version:      detail.Version,
+					Version:      pluginPkgVersion,
 					Platform:     pkg.platform,
 					Labels:       []string{},
 					FileName:     file.Info().Name,

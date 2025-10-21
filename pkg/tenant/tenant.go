@@ -12,20 +12,18 @@
 package tenant
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"strings"
 	"sync"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/contextvalues"
 )
 
 // Mode tenant mode.
 type Mode string
 
 const (
-	ModeSingle   Mode = "single"
+	// ModeSingle single mode.
+	ModeSingle Mode = "single"
+
+	// ModeMultiple multiple mode.
 	ModeMultiple Mode = "multiple"
 )
 
@@ -40,6 +38,7 @@ func (mode Mode) Validate() error {
 }
 
 // tenantMode tenant mode.
+// nolint: gochecknoglobals
 var tenantMode = struct {
 	mode Mode
 	once sync.Once
@@ -65,55 +64,7 @@ const (
 	SingleModeTenantID = "default"
 )
 
-// GetID get tenant id from context.
-// Deprecated: use GetID instead.
-func GetID(ctx context.Context) (string, error) {
-	if ctx == nil {
-		return "", errors.New("context is nil")
-	}
-
-	if tenantMode.mode == ModeSingle {
-		return SingleModeTenantID, nil
-	}
-
-	tenantID, err := contextvalues.Get(ctx, contextvalues.KeyTenantID)
-	if err != nil {
-		return "", err
-	}
-
-	if err := validate(tenantID); err != nil {
-		return "", err
-	}
-
-	return tenantID, nil
-}
-
-func validate(tenantID string) error {
-	tenantID = strings.ReplaceAll(tenantID, " ", "")
-	if len(tenantID) == 0 {
-		return errors.New("tenant_id is empty")
-	}
-
-	// TODO: support strict tenant id validation
-
-	return nil
-}
-
-// SetID set tenant id to context.
-// Deprecated: use SetID instead.
-func SetID(ctx context.Context, tenantID string) (context.Context, error) {
-	if tenantMode.mode == ModeSingle {
-		return contextvalues.Set(ctx, contextvalues.KeyTenantID, SingleModeTenantID)
-	}
-
-	if err := validate(tenantID); err != nil {
-		return nil, err
-	}
-
-	return contextvalues.Set(ctx, contextvalues.KeyTenantID, tenantID)
-}
-
-// ITenantIDStorage tenant id storage
+// ITenantIDStorage tenant id storage.
 type ITenantIDStorage interface {
 	GetAllTenantIDs() []string
 }
@@ -130,24 +81,12 @@ func (stg *singleModeTenantIDStorage) GetAllTenantIDs() []string {
 	}
 }
 
+// nolint: gochecknoglobals
 var tenantStorage = struct {
 	storage ITenantIDStorage
 	sync.Once
 }{
 	storage: new(singleModeTenantIDStorage),
-}
-
-// SetTenantIDStorage set tenant id storage.
-func SetTenantIDStorage(storage ITenantIDStorage) error {
-	if GetMode() != ModeMultiple {
-		return fmt.Errorf("can't set tenant id storage, mode(%s)", GetMode())
-	}
-
-	tenantStorage.Once.Do(func() {
-		tenantStorage.storage = storage
-	})
-
-	return nil
 }
 
 // GetAllTenantIDs get all tenant ids.

@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -79,7 +78,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 
 // Test_handler_UpsertMany tests the UpsertMany method of the handler.
 func Test_handler_UpsertMany(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 	prepareData(t, nCtx)
 
 	type args struct {
@@ -124,7 +123,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 
 // Test_handler_Get tests the Create method of the handler.
 func Test_handler_Get(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 	prepareData(t, nCtx)
 
 	type args struct {
@@ -180,7 +179,7 @@ func Test_handler_Get(t *testing.T) {
 
 // Test_handler_List tests the List method of the handler.
 func Test_handler_List(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 	prepareData(t, nCtx)
 
 	type args struct {
@@ -256,7 +255,7 @@ func Test_handler_List(t *testing.T) {
 
 // Test_handler_Count tests the Count method of the handler.
 func Test_handler_Count(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 	prepareData(t, nCtx)
 
 	type args struct {
@@ -303,7 +302,7 @@ func Test_handler_Count(t *testing.T) {
 
 // Test_handler_Exist tests the Exist method of the handler.
 func Test_handler_Exist(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 	prepareData(t, nCtx)
 
 	type args struct {
@@ -353,7 +352,7 @@ func Test_handler_Exist(t *testing.T) {
 }
 
 func Test_handler_DeleteMany(t *testing.T) {
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 	prepareData(t, nCtx)
 
 	type args struct {

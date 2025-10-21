@@ -97,31 +97,16 @@
         }
       }
     },
-    "PluginInstallReqProcess": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plugin_id": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        }
-      }
-    },
     "PluginListReqExactConditions": {
       "type": "object",
       "properties": {
-        "plugin_id": {
+        "name": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "plugin_group": {
+        "group": {
           "type": "array",
           "items": {
             "type": "string"
@@ -132,13 +117,13 @@
     "PluginListReqFuzzyConditions": {
       "type": "object",
       "properties": {
-        "plugin_name": {
+        "name": {
           "type": "array",
           "items": {
             "type": "string"
           }
         },
-        "plugin_pkg_name": {
+        "pkg_name": {
           "type": "array",
           "items": {
             "type": "string"
@@ -212,16 +197,13 @@
         "tenant_id": {
           "type": "string"
         },
-        "plugin_id": {
+        "name": {
           "type": "string"
         },
-        "plugin_name": {
+        "group": {
           "type": "string"
         },
-        "plugin_group": {
-          "type": "string"
-        },
-        "plugin_pkg_name": {
+        "pkg_name": {
           "type": "string"
         }
       },
@@ -230,15 +212,30 @@
     "v3PluginInstallReq": {
       "type": "object",
       "properties": {
-        "process": {
+        "plugin": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/PluginInstallReqProcess"
+            "$ref": "#/definitions/v3PluginInstallReqPlugin"
           }
         }
       },
       "description": "PluginInstallReq describes the plugin install request."
+    },
+    "v3PluginInstallReqPlugin": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
     },
     "v3PluginInstallResp": {
       "type": "object",

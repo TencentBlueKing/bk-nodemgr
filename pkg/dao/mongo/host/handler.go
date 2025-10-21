@@ -19,13 +19,13 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // IHandler host handler interface.
+// nolint: interfacebloat
 type IHandler interface {
 	// ListAll lists all hosts.
 	ListAll(nCtx contextx.IContext) ([]*types.Host, error)
@@ -130,10 +130,11 @@ func New(client *mongo.Database) IHandler {
 
 // ListAll list all host.
 func (h *handler) ListAll(nCtx contextx.IContext) ([]*types.Host, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	hosts, err := h.tenantDao(tenantID).List(nCtx, base.AliveFilter(), nil)
 	if err != nil {
@@ -150,10 +151,11 @@ func (h *handler) ListAll(nCtx contextx.IContext) ([]*types.Host, error) {
 
 // Count count host by conditions.
 func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return 0, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -167,10 +169,11 @@ func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*types.Host, int64, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, 0, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -264,10 +267,11 @@ func (h *handler) DistinctNetworkUnitID(nCtx contextx.IContext, opts ...OptFn) (
 
 // distinctInt64 returns distinct values of specified field.
 func (h *handler) distinctInt64(nCtx contextx.IContext, key string, opts ...OptFn) ([]int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -279,10 +283,11 @@ func (h *handler) distinctInt64(nCtx contextx.IContext, key string, opts ...OptF
 
 // distinctString returns distinct values of specified field.
 func (h *handler) distinctString(nCtx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -294,10 +299,11 @@ func (h *handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 
 // UpsertMany updates or inserts hosts.
 func (h *handler) UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(hosts) == 0 {
 		return base.ErrEmptyParamData()
@@ -311,7 +317,7 @@ func (h *handler) UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error
 
 		data[idx] = convertHostFromTypes(host)
 
-		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
 			return err
 		}
 	}
@@ -325,10 +331,11 @@ func (h *handler) UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error
 
 // UpsertStaticMany updates or inserts host statics.
 func (h *handler) UpsertStaticMany(nCtx contextx.IContext, hosts ...*types.Host) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(hosts) == 0 {
 		return base.ErrEmptyParamData()
@@ -342,7 +349,7 @@ func (h *handler) UpsertStaticMany(nCtx contextx.IContext, hosts ...*types.Host)
 
 		data[idx] = convertHostFromTypes(host)
 
-		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
 			return err
 		}
 	}
@@ -356,10 +363,11 @@ func (h *handler) UpsertStaticMany(nCtx contextx.IContext, hosts ...*types.Host)
 
 // UpdateDynamicMany updates host dynamics. will not insert.
 func (h *handler) UpdateDynamicMany(nCtx contextx.IContext, hosts ...*types.Host) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	data := make([]*Host, len(hosts))
 	for idx, host := range hosts {
@@ -369,7 +377,7 @@ func (h *handler) UpdateDynamicMany(nCtx contextx.IContext, hosts ...*types.Host
 
 		data[idx] = convertHostFromTypes(host)
 
-		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
 			return err
 		}
 	}
@@ -517,10 +525,11 @@ func convertHostToTypes(host *Host) *types.Host {
 
 // DeleteMany delete many hosts.
 func (h *handler) DeleteMany(nCtx contextx.IContext, hostIDs ...int64) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(hostIDs) == 0 {
 		return base.ErrEmptyParamData()
@@ -537,10 +546,11 @@ func (h *handler) DeleteMany(nCtx contextx.IContext, hostIDs ...int64) error {
 
 // FindWithDynamic finds hosts with dynamic fields.
 func (h *handler) FindWithDynamic(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -565,10 +575,11 @@ func (h *handler) FindWithDynamic(nCtx contextx.IContext, page types.Page, opts 
 
 // UpdateDynamicFields updates host dynamic fields.
 func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	docs := make([]*base.DocumentFieldUpdate, 0, len(hosts))
 	for _, host := range hosts {

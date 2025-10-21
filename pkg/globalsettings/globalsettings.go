@@ -47,9 +47,9 @@ func NewGlobalSettings(ctx contextx.IContext, stgGlobalSettings IStorage) (*Glob
 }
 
 // Init initializes the global settings with predefined values.
-func (gs *GlobalSettings) init(ctx contextx.IContext) error {
+func (gs *GlobalSettings) init(nCtx contextx.IContext) error {
 	for _, setting := range PreDefinition() {
-		exist, err := gs.stgGlobalSettings.ExistGlobalSettings(ctx, setting.SettingName)
+		exist, err := gs.stgGlobalSettings.ExistGlobalSettings(nCtx, setting.SettingName)
 		if err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ func (gs *GlobalSettings) init(ctx contextx.IContext) error {
 			continue
 		}
 
-		err = gs.stgGlobalSettings.UpsertGlobalSettings(ctx, setting)
+		err = gs.stgGlobalSettings.UpsertGlobalSettings(nCtx, setting)
 		if err != nil {
 			return err
 		}

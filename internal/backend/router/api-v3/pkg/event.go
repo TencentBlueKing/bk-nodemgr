@@ -40,7 +40,7 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountPackageEvent(
+		num, err := h.daoPackageEvent.CountPackageEvent(
 			rCtx,
 		)
 		if err != nil {
@@ -55,7 +55,7 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	events, num, err := h.storage.ListPackageEvent(
+	events, num, err := h.daoPackageEvent.ListPackageEvent(
 		rCtx,
 		req.ConvertPageToTypes(maxEventLimit),
 		conditions)
@@ -88,7 +88,7 @@ func (h *handler) DistinctPackageEvent(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.storage.DistinctPackageEvent(
+	result, err := h.daoPackageEvent.DistinctPackageEvent(
 		rCtx,
 		types.NewPackageEventDistinctRequestAllSet(),
 		conditions)

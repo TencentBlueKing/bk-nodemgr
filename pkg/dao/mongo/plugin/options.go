@@ -15,11 +15,6 @@ import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 // OptFn provides filtering options.
 type OptFn = base.OptFn
 
-// WithPluginID filters by plugin-id.
-func WithPluginID(pluginIDs ...string) OptFn {
-	return base.WithValues(FieldKeyPluginID, pluginIDs...)
-}
-
 // WithFuzzyName filters by fuzzy name.
 func WithFuzzyName(names ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyName, names...)
@@ -30,7 +25,17 @@ func WithGroup(groups ...string) OptFn {
 	return base.WithValues(FieldKeyGroup, groups...)
 }
 
-// WithFuzzyPluginPkgName filters by fuzzy plugin package name.
-func WithFuzzyPluginPkgName(pkgNames ...string) OptFn {
-	return base.WithFuzzyValues(FieldKeyPluginPkgName, pkgNames...)
+// WithFuzzyPkgName filters by fuzzy plugin package name.
+func WithFuzzyPkgName(pkgNames ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyPkgName, pkgNames...)
+}
+
+// WithName filters by name.
+func WithName(pluginNames ...string) OptFn {
+	return base.WithValues(FieldKeyName, pluginNames...)
+}
+
+// WithPkgName filters by plugin-pkg-name.
+func WithPkgName(pluginPkgNames ...string) OptFn {
+	return base.WithValues(FieldKeyPkgName, pluginPkgNames...)
 }

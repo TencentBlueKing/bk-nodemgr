@@ -39,7 +39,6 @@ type Info struct {
 type process struct {
 	TenantID string `json:"tenant_id" bson:"tenant_id"`
 	HostID   int64  `json:"host_id" bson:"host_id"`
-	PluginID string `json:"plugin_id" bson:"plugin_id"`
 
 	Name       string   `json:"name" bson:"name"`
 	Platform   platform `json:"platform" bson:"platform"`

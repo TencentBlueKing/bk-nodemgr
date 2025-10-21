@@ -34,6 +34,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	tenantStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
@@ -57,12 +58,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iegtjj"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -227,6 +230,12 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create file handler: %w", err)
 	}
 
+	// initial user manager handler.
+	svc.Cap.UserManagerHandler, err = svc.newUserManagerHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create user manager handler: %w", err)
+	}
+
 	// initial credit vault.
 	svc.Cap.CreditVault, err = svc.newCreditVault()
 	if err != nil {
@@ -333,6 +342,44 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 		RestJwtSecret:          svc.conf.File.JWTClientConfig.SymmetricKey,
 		RestJwtTokenExpiration: time.Duration(svc.conf.File.JWTClientConfig.TokenExpirationHour) * time.Hour,
 	})
+}
+
+func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
+	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.UserManager.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(&svc.conf.GSE.APIGatewayClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for gse: %w", err)
+	}
+
+	apiGwClientCapability.Name = "usermanager"
+
+	var (
+		gseHandler usermanager.IHandler
+	)
+
+	if tenant.GetMode() == tenant.ModeSingle {
+		gseHandler, err = usermanager.NewHandlerSingle(
+			apiGwClientCapability,
+			&usermanager.Config{
+				APIGWUserConfig: apiGWUserConfig,
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		gseHandler, err = usermanager.NewHandlerMultiTenant(
+			apiGwClientCapability,
+			&usermanager.Config{
+				APIGWUserConfig: apiGWUserConfig,
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return gseHandler, nil
 }
 
 func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {
@@ -457,6 +504,13 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create global settings storage: %w", err)
 	}
 
+	svc.Cap.StorageTenant, err = tenantStg.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create tenant storage: %w", err)
+	}
+
 	return nil
 }
 
@@ -475,6 +529,8 @@ func (svc *Service) initialManager() error {
 	svc.Cap.Manager, err = manager.NewManager(manager.Config{
 		CmdbHandler:         svc.Cap.CmdbHandler,
 		GSEHandler:          svc.Cap.GSEHandler,
+		FileHandler:         svc.Cap.FileHandler,
+		UserManagerHandler:  svc.Cap.UserManagerHandler,
 		Provider:            svc.Cap.DiscoverProvider,
 		InstallerFileGroup:  svc.Cap.InstallerFileGroup,
 		LockerFactory:       svc.Cap.LockerFactory,
@@ -485,8 +541,8 @@ func (svc *Service) initialManager() error {
 		StoragePlugin:       svc.Cap.StoragePlugin,
 		StorageHostCredit:   svc.Cap.StorageCredit,
 		StorageConfigPolicy: svc.Cap.StorageConfigPolicy,
+		StorageTenant:       svc.Cap.StorageTenant,
 		HostPasswordVault:   svc.Cap.CreditVault,
-		FileHandler:         svc.Cap.FileHandler,
 		ProxyMessager:       svc.Cap.ProxyMessager,
 		Cache:               rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
 		WorkflowConfig: manager.WorkflowConfig{

@@ -32,6 +32,7 @@ import (
 )
 
 const (
+	scheduledWorkflowSyncTenant                 = "sync_tenant"
 	scheduledWorkflowSyncBizAndHost             = "sync_biz_and_host"
 	scheduledWorkflowSyncNetworkArea            = "sync_networkarea"
 	scheduledWorkflowSyncAgentState             = "sync_agent_state"
@@ -49,6 +50,7 @@ type syncScheduledWorkflowFunc func(nCtx contextx.IContext, sw *types.ScheduledW
 
 func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWorkflowFunc {
 	return map[string]initScheduledWorkflowFunc{
+		scheduledWorkflowSyncTenant:                 mgr.initSWSyncTenant,
 		scheduledWorkflowSyncBizAndHost:             mgr.initSWSyncBizAndHost,
 		scheduledWorkflowSyncNetworkArea:            mgr.initSWSyncNetworkArea,
 		scheduledWorkflowSyncAgentState:             mgr.initSWSyncAgentState,
@@ -60,6 +62,7 @@ func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWork
 
 func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWorkflowFunc {
 	return map[string]syncScheduledWorkflowFunc{
+		scheduledWorkflowSyncTenant:                 mgr.syncSWSyncTenant,
 		scheduledWorkflowSyncBizAndHost:             mgr.syncSWSyncBizAndHost,
 		scheduledWorkflowSyncNetworkArea:            mgr.syncSWSyncNetworkArea,
 		scheduledWorkflowSyncAgentState:             mgr.syncSWSyncAgentState,
@@ -260,6 +263,20 @@ func (mgr *Manager) syncScheduledWorkflow(nCtx contextx.IContext, sw *types.Sche
 	}
 
 	return nil
+}
+
+func (mgr *Manager) initSWSyncTenant(nCtx contextx.IContext, tenantID string) error {
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncTenant, scheduler.Every+"10m")
+}
+
+func (mgr *Manager) syncSWSyncTenant(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncTenant(schedule.OperParamSyncTenant{
+		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
+			WorkflowID: sw.WorkflowID,
+			TenantID:   sw.TenantID,
+			Operator:   access.GetVirtualUser(),
+		},
+	}))
 }
 
 func (mgr *Manager) initSWSyncBizAndHost(nCtx contextx.IContext, tenantID string) error {

@@ -19,7 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -85,10 +84,11 @@ func New(client *mongo.Database) IHandler {
 
 // Count count config policy by conditions.
 func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return 0, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -100,10 +100,11 @@ func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 
 // List lists config policy by page and conditions.
 func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.ConfigPolicy, int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, 0, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -132,10 +133,11 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 
 // Get gets config policy.
 func (h *handler) Get(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	filter = WithConfigPolicyID(configPolicyID)(filter)
@@ -150,16 +152,17 @@ func (h *handler) Get(nCtx contextx.IContext, configPolicyID int64) (*types.Conf
 
 // Create creates config policy.
 func (h *handler) Create(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return -1, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if configPolicy == nil {
 		return -1, base.ErrEmptyParamData()
 	}
 
-	if err = base.CheckTenantIDMatched(tenantID, configPolicy.TenantID); err != nil {
+	if err := base.CheckTenantIDMatched(tenantID, configPolicy.TenantID); err != nil {
 		return -1, err
 	}
 
@@ -175,10 +178,11 @@ func (h *handler) Create(nCtx contextx.IContext, configPolicy *types.ConfigPolic
 
 // UpdateMany updates config policies.
 func (h *handler) UpdateMany(nCtx contextx.IContext, configPolicies ...*types.ConfigPolicy) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(configPolicies) == 0 {
 		return base.ErrEmptyParamData()
@@ -196,7 +200,7 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, configPolicies ...*types.Co
 
 		data[idx] = convertConfigPolicyFromTypes(configPolicy)
 
-		if err = base.CheckTenantIDMatched(tenantID, data[idx].Raw.TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].Raw.TenantID); err != nil {
 			return err
 		}
 	}
@@ -206,10 +210,11 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, configPolicies ...*types.Co
 
 // DeleteMany deletes config policies by ids.
 func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(configPolicyIDs) == 0 {
 		return base.ErrEmptyParamData()
@@ -220,10 +225,11 @@ func (h *handler) DeleteMany(nCtx contextx.IContext, configPolicyIDs ...int64) e
 
 // EnableMany enables config policies by ids.
 func (h *handler) EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(configPolicyIDs) == 0 {
 		return base.ErrEmptyParamData()
@@ -234,10 +240,11 @@ func (h *handler) EnableMany(nCtx contextx.IContext, configPolicyIDs ...int64) e
 
 // DisableMany disables config policies by ids.
 func (h *handler) DisableMany(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(configPolicyIDs) == 0 {
 		return base.ErrEmptyParamData()

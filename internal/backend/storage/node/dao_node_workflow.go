@@ -16,7 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	nodeworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
+	daoNodeWorkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -31,7 +31,7 @@ func (s *Storage) listNodeWorkflow(nCtx contextx.IContext, page types.Page, cond
 	var err error
 
 	page.Sort = types.WithSortFields(page.Sort,
-		types.WithFieldDesc(nodeworkflow.FieldKeyOperateTime))
+		types.WithFieldDesc(daoNodeWorkflow.FieldKeyOperateTime))
 	opts := convertNodeWorkflowConditionsToOptions(conditions...)
 	if results, num, err = s.daoNodeWorkflow.List(nCtx, page, opts...); err != nil {
 		return nil, 0, err
@@ -173,8 +173,8 @@ func (s *Storage) updateNodeWorkflowStatus(nCtx contextx.IContext, workflowID st
 }
 
 // convertNodeWorkflowConditionsToOptions converts node workflow conditions to options.
-func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCondition) []nodeworkflow.OptFn {
-	opts := make([]nodeworkflow.OptFn, 0)
+func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCondition) []daoNodeWorkflow.OptFn {
+	opts := make([]daoNodeWorkflow.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
 			continue
@@ -186,20 +186,20 @@ func convertNodeWorkflowConditionsToOptions(conditions ...*types.NodeWorkflowCon
 
 		if condition.ExactInclude != nil {
 			opts = append(opts,
-				nodeworkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
-				nodeworkflow.WithBizID(condition.ExactInclude.BizID...),
-				nodeworkflow.WithType(condition.ExactInclude.Type...),
-				nodeworkflow.WithOperator(condition.ExactInclude.Operator...),
-				nodeworkflow.WithStatus(condition.ExactInclude.Status...))
+				daoNodeWorkflow.WithWorkflowID(condition.ExactInclude.WorkflowID...),
+				daoNodeWorkflow.WithBizID(condition.ExactInclude.BizID...),
+				daoNodeWorkflow.WithType(condition.ExactInclude.Type...),
+				daoNodeWorkflow.WithOperator(condition.ExactInclude.Operator...),
+				daoNodeWorkflow.WithStatus(condition.ExactInclude.Status...))
 		}
 
 		if condition.ExactExclude != nil {
 			opts = append(opts,
-				nodeworkflow.WithoutWorkflowID(condition.ExactExclude.WorkflowID...),
-				nodeworkflow.WithoutBizID(condition.ExactExclude.BizID...),
-				nodeworkflow.WithoutType(condition.ExactExclude.Type...),
-				nodeworkflow.WithoutOperator(condition.ExactExclude.Operator...),
-				nodeworkflow.WithoutStatus(condition.ExactExclude.Status...))
+				daoNodeWorkflow.WithoutWorkflowID(condition.ExactExclude.WorkflowID...),
+				daoNodeWorkflow.WithoutBizID(condition.ExactExclude.BizID...),
+				daoNodeWorkflow.WithoutType(condition.ExactExclude.Type...),
+				daoNodeWorkflow.WithoutOperator(condition.ExactExclude.Operator...),
+				daoNodeWorkflow.WithoutStatus(condition.ExactExclude.Status...))
 		}
 	}
 

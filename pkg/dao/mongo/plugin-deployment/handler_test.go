@@ -89,7 +89,6 @@ func TestHandler_Create(t *testing.T) {
 						Process: types.Process{
 							TenantID:   "",
 							HostID:     0,
-							PluginID:   "",
 							PluginName: "",
 							Info: types.ProcessInfo{
 								Pid:         233,
@@ -219,7 +218,6 @@ func TestHandler_UpdateInfo(t *testing.T) {
 					Process: types.Process{
 						TenantID:   "",
 						HostID:     0,
-						PluginID:   "",
 						PluginName: "",
 						Info: types.ProcessInfo{
 							Pid:         233,

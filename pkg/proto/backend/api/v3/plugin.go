@@ -18,13 +18,13 @@ import (
 
 // Validate check body.
 func (x *PluginInstallReq) Validate() error {
-	process := x.GetProcess()
-	if len(process) == 0 {
-		return errors.New("plugin can not be empty")
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
 	}
 
-	for idx := range process {
-		if err := process[idx].Validate(); err != nil {
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
 			return err
 		}
 	}
@@ -34,13 +34,13 @@ func (x *PluginInstallReq) Validate() error {
 
 // Validate check body.
 // nolint: protogetter
-func (x *PluginInstallReq_Process) Validate() error {
+func (x *PluginInstallReq_Plugin) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id can not be zero")
 	}
 
-	if x.GetPluginId() == "" {
-		return errors.New("plugin_id can not be empty")
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
 	}
 
 	if x.GetVersion() == "" {
@@ -52,14 +52,14 @@ func (x *PluginInstallReq_Process) Validate() error {
 
 // AutoConvert auto convert.
 func (x *PluginInstallReq) AutoConvert() {
-	process := x.GetProcess()
-	for idx := range process {
-		process[idx].AutoConvert()
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
 	}
 }
 
 // AutoConvert auto convert.
-func (x *PluginInstallReq_Process) AutoConvert() {
+func (x *PluginInstallReq_Plugin) AutoConvert() {
 	if x.BkHostId == nil {
 		x.BkHostId = new(int64)
 		*x.BkHostId = -1
@@ -68,28 +68,28 @@ func (x *PluginInstallReq_Process) AutoConvert() {
 
 // ConvertParamFromTypes converts param from types.
 func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginInstallParam) {
-	process := make([]*PluginInstallReq_Process, len(installParam))
+	plugin := make([]*PluginInstallReq_Plugin, len(installParam))
 	for idx, param := range installParam {
-		item := &PluginInstallReq_Process{}
+		item := &PluginInstallReq_Plugin{}
 		item.BkHostId = &param.HostID
-		item.PluginId = param.PluginID
+		item.PluginName = param.PluginName
 		item.Version = param.Version
 
-		process[idx] = item
+		plugin[idx] = item
 	}
 
-	x.Process = process
+	x.Plugin = plugin
 }
 
 // ConvertParamToTypes converts param to types.
 func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginInstallParam {
-	process := x.GetProcess()
-	installParam := make([]*types.PluginInstallParam, len(process))
-	for idx, proc := range process {
+	plugin := x.GetPlugin()
+	installParam := make([]*types.PluginInstallParam, len(plugin))
+	for idx, proc := range plugin {
 		item := &types.PluginInstallParam{
-			HostID:   proc.GetBkHostId(),
-			PluginID: proc.GetPluginId(),
-			Version:  proc.GetVersion(),
+			HostID:     proc.GetBkHostId(),
+			PluginName: proc.GetPluginName(),
+			Version:    proc.GetVersion(),
 		}
 
 		installParam[idx] = item
@@ -119,16 +119,16 @@ func convertPluginConditionsToTypes(
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.PluginExactFields{
-			PluginID:    exactCond.GetPluginId(),
-			PluginGroup: exactCond.GetPluginGroup(),
+			Name:  exactCond.GetName(),
+			Group: exactCond.GetGroup(),
 		}
 	}
 
 	// fuzzy conditions.
 	if fuzzyCond != nil {
 		condition.FuzzyInclude = &types.PluginFuzzyFields{
-			PluginName:    fuzzyCond.GetPluginName(),
-			PluginPkgName: fuzzyCond.GetPluginPkgName(),
+			Name:    fuzzyCond.GetName(),
+			PkgName: fuzzyCond.GetPkgName(),
 		}
 	}
 
@@ -144,16 +144,16 @@ func (x *PluginListReq) ConvertConditionFromTypes(condition *types.PluginConditi
 	// exact conditions.
 	if condition.ExactInclude != nil {
 		x.ExactIncludeConditions = &PluginListReq_ExactConditions{
-			PluginId:    condition.ExactInclude.PluginID,
-			PluginGroup: condition.ExactInclude.PluginGroup,
+			Name:  condition.ExactInclude.Name,
+			Group: condition.ExactInclude.Group,
 		}
 	}
 
 	// fuzzy conditions.
 	if condition.FuzzyInclude != nil {
 		x.FuzzyIncludeConditions = &PluginListReq_FuzzyConditions{
-			PluginName:    condition.FuzzyInclude.PluginName,
-			PluginPkgName: condition.FuzzyInclude.PluginPkgName,
+			Name:    condition.FuzzyInclude.Name,
+			PkgName: condition.FuzzyInclude.PkgName,
 		}
 	}
 }
@@ -169,10 +169,9 @@ func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Pl
 	for idx, plugin := range plugins {
 		item := newEmptyPlugin()
 		*item.TenantId = plugin.TenantID
-		*item.PluginId = plugin.PluginID
-		*item.PluginName = plugin.PluginName
-		*item.PluginGroup = plugin.PluginGroup
-		*item.PluginPkgName = plugin.PluginPkgName
+		*item.Name = plugin.Name
+		*item.Group = plugin.Group
+		*item.PkgName = plugin.PkgName
 
 		items[idx] = item
 	}
@@ -185,11 +184,10 @@ func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Pl
 
 func newEmptyPlugin() *Plugin {
 	return &Plugin{
-		TenantId:      new(string),
-		PluginId:      new(string),
-		PluginName:    new(string),
-		PluginGroup:   new(string),
-		PluginPkgName: new(string),
+		TenantId: new(string),
+		Name:     new(string),
+		Group:    new(string),
+		PkgName:  new(string),
 	}
 }
 
@@ -200,11 +198,10 @@ func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
 	plugins := make([]*types.Plugin, len(data.GetItems()))
 	for idx, plugin := range data.GetItems() {
 		item := &types.Plugin{
-			TenantID:      plugin.GetTenantId(),
-			PluginID:      plugin.GetPluginId(),
-			PluginName:    plugin.GetPluginName(),
-			PluginGroup:   plugin.GetPluginGroup(),
-			PluginPkgName: plugin.GetPluginPkgName(),
+			TenantID: plugin.GetTenantId(),
+			Name:     plugin.GetName(),
+			Group:    plugin.GetGroup(),
+			PkgName:  plugin.GetPkgName(),
 		}
 
 		plugins[idx] = item

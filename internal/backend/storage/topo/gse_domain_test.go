@@ -28,7 +28,7 @@ var gsePrepareNormalUnitID int64
 
 func prepareGSEData(t *testing.T, nCtx contextx.IContext) {
 	gsePrepareOnce.Do(func() {
-		tenantID, _ := tenant.GetID(nCtx)
+		tenantID := nCtx.TenantID()
 
 		// pre insert.
 		h := testClient(t)
@@ -121,12 +121,12 @@ func prepareGSEData(t *testing.T, nCtx contextx.IContext) {
 // Test_storage_GetAgentV4AccessEndpoints test get agent access endpoints.
 func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareGSEData(t, nCtx)
 
 	type args struct {
-		nCtx   context.Context
+		nCtx   contextx.IContext
 		unitID int64
 	}
 	tests := []struct {
@@ -194,12 +194,12 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 // Test_storage_GetProxyUpstreamAccessEndpoints test get proxy upstream endpoints.
 func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareGSEData(t, nCtx)
 
 	type args struct {
-		nCtx   context.Context
+		nCtx   contextx.IContext
 		unitID int64
 	}
 	tests := []struct {
@@ -258,12 +258,12 @@ func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 // TestStorage_NeedStaticAccess tests check static access.
 func TestStorage_NeedStaticAccess(t *testing.T) {
 	tenant.SetMode(tenant.ModeMultiple)
-	nCtx, _ := tenant.SetID(context.Background(), "test")
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
 
 	prepareGSEData(t, nCtx)
 
 	type args struct {
-		nCtx          context.Context
+		nCtx          contextx.IContext
 		networkUnitID int64
 	}
 	tests := []struct {

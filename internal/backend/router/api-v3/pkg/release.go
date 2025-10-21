@@ -45,7 +45,7 @@ func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.storage.CountRelease(rCtx, releaseType, cond)
+		num, err := h.daoRelease.CountRelease(rCtx, releaseType, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release. failed to count host")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -58,7 +58,7 @@ func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	page := req.ConvertPageToTypes(maxReleaseLimit)
-	hosts, num, err := h.storage.ListRelease(rCtx, releaseType, page, cond)
+	hosts, num, err := h.daoRelease.ListRelease(rCtx, releaseType, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -91,7 +91,7 @@ func (h *handler) DistinctRelease(rCtx restserver.IContext) (interface{}, error)
 		CPUArch: req.GetDistinctField().GetCpuArch(),
 	}
 
-	result, err := h.storage.DistinctRelease(rCtx, releaseType, distinctField, cond)
+	result, err := h.daoRelease.DistinctRelease(rCtx, releaseType, distinctField, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host. failed to distinct host fields")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -112,7 +112,7 @@ func (h *handler) SetReleaseLabels(rCtx restserver.IContext) (interface{}, error
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.SetReleaseLabels(rCtx, gen, rt, plat, version, req.GetLabels()); err != nil {
+	if err := h.daoRelease.SetReleaseLabels(rCtx, gen, rt, plat, version, req.GetLabels()); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -139,7 +139,7 @@ func (h *handler) SetReleaseLabelsMany(rCtx restserver.IContext) (interface{}, e
 	}
 
 	rt, gen, plat, version := req.GetIdentifiers()
-	if err := h.storage.SetReleaseLabelsMany(rCtx, rt, gen, plat, version, req.GetLabels()); err != nil {
+	if err := h.daoRelease.SetReleaseLabelsMany(rCtx, rt, gen, plat, version, req.GetLabels()); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "release-type", rt, "platform", plat, "version", version, "labels", req.GetLabels()).
@@ -166,7 +166,7 @@ func (h *handler) EnableRelease(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.EnableRelease(rCtx, gen, rt, plat, version); err != nil {
+	if err := h.daoRelease.EnableRelease(rCtx, gen, rt, plat, version); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -196,7 +196,7 @@ func (h *handler) DisableRelease(rCtx restserver.IContext) (interface{}, error) 
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.DisableRelease(rCtx, gen, rt, plat, version); err != nil {
+	if err := h.daoRelease.DisableRelease(rCtx, gen, rt, plat, version); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -226,7 +226,7 @@ func (h *handler) SetAsDefaultRelease(rCtx restserver.IContext) (interface{}, er
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.SetAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
+	if err := h.daoRelease.SetAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -256,7 +256,7 @@ func (h *handler) CancelAsDefaultRelease(rCtx restserver.IContext) (interface{},
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.CancelAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
+	if err := h.daoRelease.CancelAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -285,7 +285,7 @@ func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.storage.DeleteRelease(rCtx, gen, rt, plat, version); err != nil {
+	if err := h.daoRelease.DeleteRelease(rCtx, gen, rt, plat, version); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -336,7 +336,7 @@ func (h *handler) recordPackageEvent(rCtx restserver.IContext,
 		Operator:    rCtx.Data().GetLoginName(),
 	}
 
-	if err := h.storage.CreateManyPackageEvent(rCtx, event); err != nil {
+	if err := h.daoPackageEvent.CreateManyPackageEvent(rCtx, event); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("release-type", rt,
 				"gen", gen,

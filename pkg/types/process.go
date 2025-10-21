@@ -230,10 +230,8 @@ func (controller ProcessController) Validate() error {
 
 // Process define the all info of plugin.
 type Process struct {
-	TenantID  string
-	ProcessID string
-	HostID    int64
-	PluginID  string
+	TenantID string
+	HostID   int64
 
 	PluginName    string
 	PluginPkgName string
@@ -249,8 +247,12 @@ type Process struct {
 	MonitorPolicy ProcessMonitorPolicy
 }
 
-// ProcessIDInfo is a map of process ID to process info.
-type ProcessIDInfo map[string]ProcessInfo
+// ProcessInfoDelta is a map of process ID to process info.
+type ProcessInfoDelta struct {
+	HostID      int64
+	PluginName  string
+	ProcessInfo ProcessInfo
+}
 
 // ProcessAgentGroup process agent group.
 type ProcessAgentGroup struct {

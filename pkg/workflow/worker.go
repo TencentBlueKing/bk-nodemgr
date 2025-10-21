@@ -155,6 +155,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	}
 
 	// execute and wait for action done.
+	// nolint: contextcheck
 	executeErr := mgr.executeAndWatchAction(nCtx, actionDef, operInstBriefData, actionInstData)
 
 	// updates action instance lifecycle.
@@ -265,16 +266,16 @@ func (mgr *manager) updateOperationInstancePrivateData(
 	return nil
 }
 
-func (mgr *manager) executeAndWatchAction(ctx contextx.IContext,
+func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 	actionDef action.Definition,
 	operInstBriefData *operation.InstanceBriefData,
 	actionInstData *action.InstanceData) error {
 
-	actionTimeoutCtx, actionTimeoutCancel := contextx.WithTimeout(contextx.From(ctx), actionDef.Timeout())
+	actionTimeoutCtx, actionTimeoutCancel := contextx.WithTimeout(contextx.From(nCtx), actionDef.Timeout())
 	defer actionTimeoutCancel()
 
 	operationTimeoutCtx, operationTimeoutCancel := context.WithDeadline(
-		ctx, operInstBriefData.Lifecycle.StartedAt.Add(operInstBriefData.Metadata.Timeout))
+		nCtx, operInstBriefData.Lifecycle.StartedAt.Add(operInstBriefData.Metadata.Timeout))
 	defer operationTimeoutCancel()
 
 	// watch storage for stopping event.
@@ -321,7 +322,7 @@ func (mgr *manager) executeAndWatchAction(ctx contextx.IContext,
 				operInstBriefData.Metadata.OperationID, actionInstData.Name)
 		}
 
-	case <-ctx.Done():
+	case <-nCtx.Done():
 		{
 			// TODO: 考虑关闭 worker 时，worker 退出时，action 未完成，如何处理
 			actionInstData.Lifecycle.EndWithTerminated()
@@ -343,7 +344,7 @@ func (mgr *manager) executeAction(
 			logger.G.Sys().
 				WithErr(err).
 				With("info", actionInstCtx.Data.Info(), "recover", r, "stack", debug.Stack()).
-				Debug("failed to execute action, recover from panic")
+				Info("failed to execute action, recover from panic")
 		}
 
 		doResult <- err

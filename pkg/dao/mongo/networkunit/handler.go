@@ -16,7 +16,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -61,10 +60,11 @@ func New(client *mongo.Database) IHandler {
 
 // Count counts networkunit by conditions.
 func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return 0, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -79,10 +79,11 @@ func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*types.NetworkUnit, int64, error) {
 
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, 0, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	filter := base.AliveFilter()
 	for _, opt := range opts {
@@ -112,10 +113,11 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 
 // Get gets networkunit by id.
 func (h *handler) Get(nCtx contextx.IContext, networkUnitID int64) (*types.NetworkUnit, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if networkUnitID < 0 {
 		return nil, base.ErrInvalidID()
@@ -136,16 +138,17 @@ func (h *handler) Get(nCtx contextx.IContext, networkUnitID int64) (*types.Netwo
 
 // Create creates a new networkunit and return the generated id.
 func (h *handler) Create(nCtx contextx.IContext, networkUnit *types.NetworkUnit) (int64, error) {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return -1, err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if networkUnit == nil {
 		return -1, base.ErrEmptyParamData()
 	}
 
-	if err = base.CheckTenantIDMatched(tenantID, networkUnit.TenantID); err != nil {
+	if err := base.CheckTenantIDMatched(tenantID, networkUnit.TenantID); err != nil {
 		return -1, err
 	}
 
@@ -162,10 +165,11 @@ func (h *handler) Create(nCtx contextx.IContext, networkUnit *types.NetworkUnit)
 
 // UpdateMany updates networkunit.
 func (h *handler) UpdateMany(nCtx contextx.IContext, networkUnits ...*types.NetworkUnit) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(networkUnits) == 0 {
 		return base.ErrEmptyParamData()
@@ -179,7 +183,7 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, networkUnits ...*types.Netw
 
 		data[idx] = convertNetworkUnitFromTypes(networkUnit)
 
-		if err = base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
+		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
 			return err
 		}
 	}
@@ -193,10 +197,11 @@ func (h *handler) UpdateMany(nCtx contextx.IContext, networkUnits ...*types.Netw
 
 // DeleteMany deletes networkunit by ids.
 func (h *handler) DeleteMany(nCtx contextx.IContext, networkUnitIDs ...int64) error {
-	tenantID, err := tenant.GetID(nCtx)
-	if err != nil {
+	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
+
+	tenantID := nCtx.TenantID()
 
 	if len(networkUnitIDs) == 0 {
 		return base.ErrEmptyParamData()
