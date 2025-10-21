@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PackageUploadOriginAgentReq, PackageUploadOriginAgentResp, PackageUploadOriginServerReq, PackageUploadOriginServerResp, PackageUploadOriginCertReq, PackageUploadOriginCertResp, PackageUploadOriginBinToolReq, PackageUploadOriginBinToolResp, PackagePublishReleaseAgentReq, PackagePublishReleaseAgentResp, PackagePublishReleaseProxyReq, PackagePublishReleaseProxyResp, PackagePublishReleaseCertReq, PackagePublishReleaseCertResp, PackagePublishReleaseBinToolReq, PackagePublishReleaseBinToolResp, PackageReleaseListReq, PackageReleaseListResp, PackageReleaseSetLabelsReq, PackageReleaseSetLabelsResp, PackageReleaseSetLabelsManyReq, PackageReleaseSetLabelsManyResp, PackageReleaseEnableReq, PackageReleaseEnableResp, PackageReleaseDisableReq, PackageReleaseDisableResp, PackageReleaseSetAsDefaultReq, PackageReleaseSetAsDefaultResp, PackageReleaseCancelAsDefaultReq, PackageReleaseCancelAsDefaultResp, PackageReleaseDeleteReq, PackageReleaseDeleteResp, PackageReleaseDeployedHostCountReq, PackageReleaseDeployedHostCountResp } from '@/@types/pkg';
+import type { PackageUploadOriginAgentReq, PackageUploadOriginAgentResp, PackageUploadOriginServerReq, PackageUploadOriginServerResp, PackageUploadOriginCertReq, PackageUploadOriginCertResp, PackageUploadOriginBinToolReq, PackageUploadOriginBinToolResp, PackagePublishReleaseAgentReq, PackagePublishReleaseAgentResp, PackagePublishReleaseProxyReq, PackagePublishReleaseProxyResp, PackagePublishReleaseCertReq, PackagePublishReleaseCertResp, PackagePublishReleaseBinToolReq, PackagePublishReleaseBinToolResp, PackageReleaseListReq, PackageReleaseListResp, PackageReleaseSetLabelsReq, PackageReleaseSetLabelsResp, PackageReleaseSetLabelsManyReq, PackageReleaseSetLabelsManyResp, PackageReleaseEnableReq, PackageReleaseEnableResp, PackageReleaseDisableReq, PackageReleaseDisableResp, PackageReleaseSetAsDefaultReq, PackageReleaseSetAsDefaultResp, PackageReleaseCancelAsDefaultReq, PackageReleaseCancelAsDefaultResp, PackageReleaseDeleteReq, PackageReleaseDeleteResp, PackageReleaseDeployedHostCountReq, PackageReleaseDeployedHostCountResp, PackageReleaseAgentDownloadReq, FileChunk, PackageReleaseProxyDownloadReq } from '@/@types/pkg';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -43,5 +43,9 @@ export const PackageService = {
   DeleteRelease: async <Request = PackageReleaseDeleteReq, ResponseData = PackageReleaseDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/delete')(params, config),
   // DeployedHostCount count deployed host.
   DeployedHostCount: async <Request = PackageReleaseDeployedHostCountReq, ResponseData = PackageReleaseDeployedHostCountResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/deployed_host/count')(params, config),
+  // DownloadAgent download release agent package.
+  DownloadAgent: async <Request = PackageReleaseAgentDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/download')(params, config),
+  // DownloadProxy download release proxy package.
+  DownloadProxy: async <Request = PackageReleaseProxyDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/download')(params, config),
 };
 

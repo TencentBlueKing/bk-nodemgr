@@ -400,3 +400,22 @@ export interface PackageReleaseDeployedHostCountRespData {
   items: number[];
 }
 
+// PackageReleaseAgentDownloadReq is the request for download agent pkg.
+export interface PackageReleaseAgentDownloadReq {
+  generation: number;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseProxyDownloadReq is the request for download proxy pkg.
+export interface PackageReleaseProxyDownloadReq {
+  generation: number;
+  platform: Platform;
+  version: string;
+}
+
+// FileChunk describes the file chunk data.
+export interface FileChunk {
+  content: bytes;
+}
+

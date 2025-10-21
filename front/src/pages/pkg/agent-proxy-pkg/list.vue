@@ -307,6 +307,7 @@
                     </div>
                   </template>
                 </Popover>
+                <download-pkg :data="row" :url="downloadUrl"></download-pkg>
               </div>
             </template>
           </TableColumn>
@@ -331,11 +332,12 @@ import PkgUploadSideslider from './pkg-upload-sideslider.vue';
 
 import type { Release } from '@/@types/common.d';
 import { PackageService } from '@/api/modules/pkg';
-import { capitalizeFirstLetter, compareVersions, formatTimestamp } from '@/common/util';
+import { compareVersions, formatTimestamp  } from '@/common/util';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { usePackageStore } from '@/stores/package';
+
 type PkgQuickType = 'os_cpu_arch' | 'version';
 type PkgType = 'gse_agent' | 'gse_proxy';
 type filterProp = 'version' | 'labels' | 'operator' | 'enabled';
@@ -368,6 +370,7 @@ const packageStore = usePackageStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314);
 const currentType = computed(() => (route.name === 'agentPackageMng' ? 'agent' : 'proxy'));
+const downloadUrl = computed(() => `${location.origin}/api/v3/package/release/${currentType.value}/download`);
 const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
@@ -688,11 +691,11 @@ const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
   if (ids.has('all')) return;
   if (dimension === 'os_cpu_arch') {
     const filterDatas = searchSelectData.value.filter((item: {id: string}) => ['os_type', 'cpu_arch'].includes(item.id));
-    filterDatas.forEach(item => {
+    filterDatas.forEach((item) => {
       searchSelectValue.value.push({
         id: item.id,
         name: item.name,
-        values: item.children.filter(child => {
+        values: item.children.filter((child) => {
           for (const item of ids) {
             if (item.includes(child.id)) {
               return item.includes(child.id);
@@ -728,6 +731,7 @@ const batchUpdateTag = async () => {
   });
   await getPackages();
 };
+
 watch(() => searchSelectValue.value, (data) => {
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
