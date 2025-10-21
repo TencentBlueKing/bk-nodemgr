@@ -92,8 +92,8 @@ func convPluginFromTypes(plugin *types.Plugin) *Plugin {
 	data := &Plugin{
 		TenantID:      plugin.TenantID,
 		PluginID:      plugin.PluginID,
-		Name:          plugin.Name,
-		Group:         plugin.Group,
+		Name:          plugin.PluginName,
+		Group:         plugin.PluginGroup,
 		PluginPkgName: plugin.PluginPkgName,
 	}
 
@@ -168,8 +168,8 @@ func convertPluginToTypes(data *Plugin) *types.Plugin {
 	plugin := &types.Plugin{
 		PluginID:      data.PluginID,
 		TenantID:      data.TenantID,
-		Name:          data.Name,
-		Group:         data.Group,
+		PluginName:    data.Name,
+		PluginGroup:   data.Group,
 		PluginPkgName: data.PluginPkgName,
 	}
 

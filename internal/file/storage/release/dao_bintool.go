@@ -26,8 +26,8 @@ import (
 func (s *Storage) upsertReleaseBinTool(ctx contextx.IContext, bintool types.ReleaseBinTool) error {
 	rls := &bintool.Release
 	rls.Operator = ctx.BKUsername()
-	rls.Name = releaseNameBinTool
-	rls.Version = releaseVersionBinTool
+	rls.Name = types.ReleaseNameBinTool
+	rls.Version = types.ReleaseVersionBinTool
 	rls.UpdatedAt = time.Now()
 
 	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypeBinTool, rls)

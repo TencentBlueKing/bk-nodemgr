@@ -60,8 +60,8 @@ func (s *Storage) existReleaseCert(ctx contextx.IContext) (bool, error) {
 func (s *Storage) upsertReleaseCert(ctx contextx.IContext, cert types.ReleaseCert) error {
 	rls := &cert.Release
 	rls.Operator = ctx.BKUsername()
-	rls.Name = releaseNameCert
-	rls.Version = releaseVersionCert
+	rls.Name = types.ReleaseNameCert
+	rls.Version = types.ReleaseVersionCert
 	rls.UpdatedAt = time.Now()
 
 	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, rls)

@@ -26,8 +26,8 @@ import (
 func (s *Storage) upsertReleasePluginBinToolV2(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinToolV2) error {
 	rls := &pluginBinTool.Release
 	rls.Operator = ctx.BKUsername()
-	rls.Name = releaseNamePluginBinTool
-	rls.Version = releaseVersionPluginBinTool
+	rls.Name = types.ReleaseNamePluginBinTool
+	rls.Version = types.ReleaseVersionPluginBinTool
 	rls.UpdatedAt = time.Now()
 
 	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypePluginBinToolV2, rls)

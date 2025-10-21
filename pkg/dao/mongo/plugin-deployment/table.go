@@ -101,6 +101,7 @@ type processMonitorPolicy struct {
 
 // installOptions this is the options for nodemgr tools.
 type installOptions struct {
+	Version string `json:"version" bson:"version"`
 }
 
 // transferOptions this is the options for plugin transfer.

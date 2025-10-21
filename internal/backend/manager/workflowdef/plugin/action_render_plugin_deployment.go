@@ -23,13 +23,19 @@ package plugin
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -42,6 +48,7 @@ const (
 func NewActionRenderPluginDeployment(capability *Capability) action.Definition {
 	return &RenderPluginDeployment{
 		daoHost:             capability.StorageTopo,
+		daoPlugin:           capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
 	}
 }
@@ -54,6 +61,8 @@ type ActParamRenderPluginDeployment struct {
 // RenderPluginDeployment ...
 type RenderPluginDeployment struct {
 	daoHost             topoStg.IStorageHost
+	daoPluginPkg        releaseStg.IPlugin
+	daoPlugin           pluginStg.IDaoPlugin
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 }
 
@@ -119,12 +128,119 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
+	plugin, err := act.daoPlugin.GetPluginByID(nCtx, std.DeployInfo().Process.PluginID)
+	if err != nil {
+		return fmt.Errorf("failed to get plugin by id. plugin-id(%s): %w", std.DeployInfo().Process.PluginID, err)
+	}
+
 	std.DeployInfo().BlockingActionName = ActionNameRenderPluginDeployment
-	std.DeployInfo().Process.Platform = platfmt.Platform{
+
+	version := std.DeployInfo().Process.Info.Version
+	pluginPkgName := plugin.PluginPkgName
+	pluginGroup := plugin.PluginGroup
+	pluginName := plugin.PluginName
+	nodeGeneration := host.Dynamic.NodeGeneration
+	nodePlatform := platfmt.Platform{
 		OS:   host.Dynamic.NodeOsType,
 		Arch: host.Dynamic.NodeCPUArch,
 	}
-	std.DeployInfo().Process.Generation = host.Dynamic.NodeGeneration
+
+	// setting process by host.
+	std.DeployInfo().Process.Platform = nodePlatform
+
+	std.DeployInfo().Process.Generation = nodeGeneration
+
+	// setting process by plugin.
+	std.DeployInfo().Process.PluginName = pluginName
+	std.DeployInfo().Process.PluginPkgName = pluginPkgName
+	std.DeployInfo().Process.PluginGroup = pluginGroup
+	std.DeployInfo().Process.Info.Version = version
+
+	// setting process by plugin pkg.
+
+	pluginPkg, err := act.daoPluginPkg.GetReleasePlugin(
+		nCtx,
+		pluginPkgName,
+		nodeGeneration,
+		nodePlatform,
+		version,
+	)
+
+	std.DeployInfo().Process.Controller = pluginPkg.PluginController
+
+	// setting process by plugin deploy conf.
+	pluginDeployConf, err := deployconstant.GetPluginDeployConf(nodeGeneration, nodePlatform.OS)
+	if err != nil {
+		return fmt.Errorf("failed to get plugin deploy conf. node-generation(%d), node-os(%s), node-arch(%s): %w",
+			nodeGeneration, nodePlatform.OS, nodePlatform.Arch, err)
+	}
+
+	programName := pluginPkgName
+	if nodePlatform.OS == criteria.OSWindows {
+		programName += ".exe"
+	}
+
+	pidFilePath := ""
+	pidFileName := fmt.Sprintf("%s.pid", pluginPkgName)
+	if nodePlatform.OS == criteria.OSWindows {
+		pidFilePath = winpath.Join(pluginDeployConf.RunDir, pidFileName)
+	} else {
+		pidFilePath = filepath.Join(pluginDeployConf.RunDir, pidFileName)
+	}
+
+	setupPath := ""
+	if nodePlatform.OS == criteria.OSWindows {
+		setupPath = winpath.Join(pluginDeployConf.DeployDir, pluginName)
+	} else {
+		setupPath = filepath.Join(pluginDeployConf.DeployDir, pluginName)
+	}
+
+	mainConfigPath := ""
+	for _, configTemplate := range pluginPkg.ConfigTemplates {
+		if !configTemplate.IsMainConfig {
+			continue
+		}
+
+		if nodePlatform.OS == criteria.OSWindows {
+			mainConfigPath = winpath.Join(pluginDeployConf.DeployDir, configTemplate.SourcePath)
+		} else {
+			mainConfigPath = filepath.Join(pluginDeployConf.DeployDir, configTemplate.SourcePath)
+		}
+
+		break
+	}
+
+	logDirPath := pluginDeployConf.LogDir
+
+	// TODO: 接入配置管理
+	user := ""
+	if nodePlatform.OS == criteria.OSWindows {
+		user = "administrator"
+	} else {
+		user = "root"
+	}
+
+	std.DeployInfo().Process.Identity = types.ProcessIdentity{
+		Name:       programName,
+		SetupPath:  setupPath,
+		PidPath:    pidFilePath,
+		ConfigPath: mainConfigPath,
+		LogPath:    logDirPath,
+		User:       user,
+	}
+
+	std.DeployInfo().Process.Resource = types.ProcessResource{
+		CPULimitPercent: 10,
+		MemLimitPercent: 10,
+	}
+
+	// TODO: 接入配置管理
+	std.DeployInfo().Process.MonitorPolicy = types.ProcessMonitorPolicy{
+		AutoType:       types.ProcessAutoTypeTrusteeship,
+		StartCheckSecs: 5,
+		StopCheckSecs:  5,
+		OpTimeoutSecs:  5,
+	}
 
 	return nil
 }

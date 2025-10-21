@@ -37,11 +37,17 @@ type IHandler interface {
 	// Get gets a process by conditions.
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, error)
 
+	// Update update a process by conditions.
+	Update(nCtx contextx.IContext, processID string, process *types.Process) error
+
 	// UpdateInfo update a process info by conditions.
 	UpdateInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) error
 
 	// Delete delete a process by conditions.
 	Delete(nCtx contextx.IContext, processID string) error
+
+	// Exist check a process exist by conditions.
+	Exist(nCtx contextx.IContext, processID string) (bool, error)
 }
 
 var _ IHandler = &Handler{}
@@ -98,17 +104,17 @@ func (h *Handler) Create(nCtx contextx.IContext, process *types.Process) error {
 
 func convProcessFromTypes(process *types.Process) *Process {
 	data := &Process{
-		TenantID:   process.TenantID,
-		ProcessID:  process.ProcessID,
-		HostID:     process.HostID,
-		PluginID:   process.PluginID,
-		Name:       process.Name,
-		Group:      process.Group,
-		PkgName:    process.PkgName,
-		Generation: int64(process.Generation),
-		Platform:   convPlatformFromTypes(process.Platform),
-		Info:       convProcessInfoFromTypes(process.Info),
-		Identity:   convProcessIdentityFromTypes(process.Identity),
+		TenantID:      process.TenantID,
+		ProcessID:     process.ProcessID,
+		HostID:        process.HostID,
+		PluginID:      process.PluginID,
+		Name:          process.PluginName,
+		Group:         process.PluginGroup,
+		PluginPkgName: process.PluginPkgName,
+		Generation:    int64(process.Generation),
+		Platform:      convPlatformFromTypes(process.Platform),
+		Info:          convProcessInfoFromTypes(process.Info),
+		Identity:      convProcessIdentityFromTypes(process.Identity),
 		Controller: processController{
 			StartCmd:   process.Controller.StartCmd,
 			StopCmd:    process.Controller.StopCmd,
@@ -227,13 +233,13 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, er
 
 func convertProcessToTypes(data *Process) *types.Process {
 	process := &types.Process{
-		TenantID:  data.TenantID,
-		ProcessID: data.ProcessID,
-		HostID:    data.HostID,
-		PluginID:  data.PluginID,
-		Name:      data.Name,
-		PkgName:   data.PkgName,
-		Group:     data.Group,
+		TenantID:      data.TenantID,
+		ProcessID:     data.ProcessID,
+		HostID:        data.HostID,
+		PluginID:      data.PluginID,
+		PluginName:    data.Name,
+		PluginPkgName: data.PluginPkgName,
+		PluginGroup:   data.Group,
 		Platform: platfmt.Platform{
 			OS:   criteria.OSType(data.Platform.OS),
 			Arch: criteria.CPUArch(data.Platform.Arch),
@@ -325,6 +331,80 @@ func (h *Handler) Delete(nCtx contextx.IContext, processID string) error {
 		logger.G.Sys().With("process-id", processID).WithErr(err).Error("failed to delete process")
 
 		return fmt.Errorf("failed to delete process: %v", err)
+	}
+
+	return nil
+}
+
+// Exist check process exist.
+func (h *Handler) Exist(nCtx contextx.IContext, processID string) (bool, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return false, fmt.Errorf("failed to check tenant id: %v", err)
+	}
+
+	filter := base.AliveFilter()
+	opts := []base.OptFn{
+		WithProcessID(processID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	exist, err := h.tenantDao(nCtx.TenantID()).Exist(nCtx, filter)
+	if err != nil {
+		return false, fmt.Errorf("failed to check process exist: %v", err)
+	}
+
+	return exist, nil
+}
+
+// Update update process.
+func (h *Handler) Update(nCtx contextx.IContext, processID string, process *types.Process) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %v", err)
+	}
+
+	if process == nil {
+		return fmt.Errorf("process is nil")
+	}
+
+	if process.ProcessID != processID {
+		return fmt.Errorf("process id not match")
+	}
+
+	filter := base.AliveFilter()
+	opts := []base.OptFn{
+		WithProcessID(processID),
+	}
+
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	data := convProcessFromTypes(process)
+
+	updates := []*base.DocumentFieldUpdate{
+		{
+			Filter: filter,
+			Fields: map[string]any{
+				FieldKeyHostID:        data.HostID,
+				FieldKeyPluginID:      data.PluginID,
+				FieldKeyName:          data.Name,
+				FieldKeyGroup:         data.Group,
+				FieldKeyPkgName:       data.PluginPkgName,
+				FieldKeyGeneration:    data.Generation,
+				FieldKeyPlatform:      data.Platform,
+				FieldKeyInfo:          data.Info,
+				FieldKeyIdentity:      data.Identity,
+				FieldKeyController:    data.Controller,
+				FieldKeyResource:      data.Resource,
+				FieldKeyMonitorPolicy: data.MonitorPolicy,
+			},
+		},
+	}
+
+	if err := h.tenantDao(nCtx.TenantID()).UpdateFieldsBulk(nCtx, updates); err != nil {
+		return fmt.Errorf("failed to update process: %v", err)
 	}
 
 	return nil

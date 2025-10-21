@@ -22,4 +22,46 @@ const (
 
 	// FieldKeyInfo the info field key.
 	FieldKeyInfo = "data.info"
+
+	// FieldKeyIdentity the identity field key.
+	FieldKeyIdentity = "data.identity"
+
+	// FieldKeyController the controller field key.
+	FieldKeyController = "data.controller"
+
+	// FieldKeyResource the resource field key.
+	FieldKeyResource = "data.resource"
+
+	// FieldKeyMonitorPolicy the monitor policy field key.
+	FieldKeyMonitorPolicy = "data.monitor_policy"
+
+	// FieldKeyName the name field key.
+	FieldKeyName = "data.name"
+
+	// FieldKeyGroup the group field key.
+	FieldKeyGroup = "data.group"
+
+	// FieldKeyPkgName the pkg_name field key.
+	FieldKeyPkgName = "data.pkg_name"
+
+	// FieldKeyGeneration the generation field key.
+	FieldKeyGeneration = "data.generation"
+
+	// FieldKeyPlatform the platform field key.
+	FieldKeyPlatform = "data.platform"
+
+	// FieldKeyPlatformOS the platform os field key.
+	FieldKeyPlatformOS = "data.platform.os"
+
+	// FieldKeyPlatformArch the platform arch field key.
+	FieldKeyPlatformArch = "data.platform.arch"
+
+	// FieldKeyInfoStatus the info status field key.
+	FieldKeyInfoStatus = "data.info.status"
+
+	// FieldKeyInfoAgentID the info agent_id field key.
+	FieldKeyInfoAgentID = "data.info.agent_id"
+
+	// FieldKeyInfoVersion the info version field key.
+	FieldKeyInfoVersion = "data.info.version"
 )

@@ -208,6 +208,19 @@ func (s *Storage) UpdatePluginDeploymentMainConfig(ctx contextx.IContext, token 
 	return err
 }
 
+// ListProcesses list processes.
+func (s *Storage) ListProcesses(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) (
+	processes []*types.Process, total int64, err error) {
+
+	// record metric.
+	metric := s.metric().Start("list_processes")
+	defer metric.End(err)
+
+	processes, total, err = s.listProcesses(nCtx, page, conditions...)
+
+	return processes, total, err
+}
+
 // GetPluginByID get plugin by id.
 func (s *Storage) GetPluginByID(nCtx contextx.IContext, pluginID string) (plugin *types.Plugin, err error) {
 	// record metric.
@@ -241,13 +254,24 @@ func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) 
 	return err
 }
 
+// UpdateProcess create process.
+func (s *Storage) UpdateProcess(nCtx contextx.IContext, processID string, process *types.Process) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_process")
+	defer metric.End(err)
+
+	err = s.updateProcess(nCtx, processID, process)
+
+	return err
+}
+
 // UpdateProcessInfo update process info.
 func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) (err error) {
 	// record metric.
 	metric := s.metric().Start("update_process_info")
 	defer metric.End(err)
 
-	err = s.updateProcess(nCtx, processID, processInfo)
+	err = s.updateProcessInfo(nCtx, processID, processInfo)
 
 	return err
 }
@@ -261,4 +285,15 @@ func (s *Storage) DeleteProcess(nCtx contextx.IContext, processID string) (err e
 	err = s.deleteProcess(nCtx, processID)
 
 	return err
+}
+
+// ExistProcess exist process id.
+func (s *Storage) ExistProcess(nCtx contextx.IContext, processID string) (exist bool, err error) {
+	// record metric.
+	metric := s.metric().Start("exist_process_id")
+	defer metric.End(err)
+
+	exist, err = s.existProcess(nCtx, processID)
+
+	return exist, err
 }

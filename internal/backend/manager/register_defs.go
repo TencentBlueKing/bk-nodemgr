@@ -162,6 +162,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionWaitInstallerComplete(pluginCap),
 		plugin.NewActionTrusteeshipPlugin(pluginCap),
 		plugin.NewActionInstallPlugin(pluginCap),
+		plugin.NewActionUpsertProcess(pluginCap),
 	); err != nil {
 		return err
 	}

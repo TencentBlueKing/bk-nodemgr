@@ -11,6 +11,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -32,8 +33,7 @@ func (s *Storage) getProcessByID(nCtx contextx.IContext, processID string) (*typ
 	return process, nil
 }
 
-// nolint: nonamedreturns
-func (s *Storage) createProcess(nCtx contextx.IContext, process *types.Process) (err error) {
+func (s *Storage) createProcess(nCtx contextx.IContext, process *types.Process) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -42,7 +42,7 @@ func (s *Storage) createProcess(nCtx contextx.IContext, process *types.Process) 
 		return base.ErrInvalidParam(fmt.Errorf("process is nil"))
 	}
 
-	err = s.daoProcess.Create(nCtx, process)
+	err := s.daoProcess.Create(nCtx, process)
 	if err != nil {
 		return fmt.Errorf("failed to create process: %w", err)
 	}
@@ -50,8 +50,29 @@ func (s *Storage) createProcess(nCtx contextx.IContext, process *types.Process) 
 	return nil
 }
 
+func (s *Storage) updateProcess(nCtx contextx.IContext, processID string, process *types.Process) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if process == nil {
+		return base.ErrInvalidParam(fmt.Errorf("process is nil"))
+	}
+
+	if process.ProcessID != processID {
+		return fmt.Errorf("failed to update process: processID != process.ProcessID")
+	}
+
+	err := s.daoProcess.Update(nCtx, processID, process)
+	if err != nil {
+		return fmt.Errorf("failed to update process: %w", err)
+	}
+
+	return nil
+}
+
 // nolint: nonamedreturns
-func (s *Storage) updateProcess(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) (err error) {
+func (s *Storage) updateProcessInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) (err error) {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -80,4 +101,68 @@ func (s *Storage) deleteProcess(nCtx contextx.IContext, processID string) (err e
 	}
 
 	return nil
+}
+
+func (s *Storage) listProcesses(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) ([]*types.Process, int64, error) {
+	var opts []daoProcess.OptFn
+	var err error
+
+	if opts, err = convertProcessConditionsToOptions(conditions...); err != nil {
+		return nil, 0, err
+	}
+
+	return s.daoProcess.List(nCtx, page, opts...)
+}
+
+func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([]daoProcess.OptFn, error) {
+	opts := make([]daoProcess.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				daoProcess.WithHostID(condition.ExactInclude.HostID...),
+				daoProcess.WithPluginID(condition.ExactInclude.PluginID...),
+				daoProcess.WithProcessID(condition.ExactInclude.ProcessID...),
+				daoProcess.WithGroup(condition.ExactInclude.Group...),
+				daoProcess.WithGeneration(condition.ExactInclude.Generation...),
+				daoProcess.WithPlatformOS(condition.ExactInclude.PlatformOS...),
+				daoProcess.WithPlatformArch(condition.ExactInclude.PlatformArch...),
+				daoProcess.WithInfoStatus(condition.ExactInclude.InfoStatus...),
+				daoProcess.WithInfoAgentID(condition.ExactInclude.InfoAgentID...),
+				daoProcess.WithInfoVersion(condition.ExactInclude.InfoVersion...))
+		}
+
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				daoProcess.WithName(condition.FuzzyInclude.Name...),
+				daoProcess.WithPkgName(condition.FuzzyInclude.PkgName...),
+				daoProcess.WithPlatform(condition.FuzzyInclude.Platform...))
+		}
+
+		if condition.ExactExclude != nil {
+			return nil, errors.New("exact exclude is not supported")
+		}
+
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
+		}
+	}
+
+	return opts, nil
+}
+
+func (s *Storage) existProcess(nCtx contextx.IContext, processID string) (exist bool, err error) {
+	if nCtx == nil {
+		return false, base.ErrInvalidContext()
+	}
+
+	exist, err = s.daoProcess.Exist(nCtx, processID)
+	if err != nil {
+		return false, fmt.Errorf("failed to count process: %w", err)
+	}
+
+	return exist, nil
 }

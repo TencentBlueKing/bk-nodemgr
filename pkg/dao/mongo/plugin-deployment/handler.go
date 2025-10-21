@@ -107,10 +107,10 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 	typesInfo := &types.PluginDeploymentInfo{
 		BlockingActionName: info.ActionName,
 		Process: types.Process{
-			TenantID: info.Process.TenantID,
-			HostID:   info.Process.HostID,
-			PluginID: info.Process.PluginID,
-			Name:     info.Process.Name,
+			TenantID:   info.Process.TenantID,
+			HostID:     info.Process.HostID,
+			PluginID:   info.Process.PluginID,
+			PluginName: info.Process.Name,
 			Platform: platfmt.Platform{
 				OS:   criteria.OSType(info.Process.Platform.OS),
 				Arch: criteria.CPUArch(info.Process.Platform.Arch),
@@ -152,7 +152,9 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 			},
 		},
 		InstallerWorkDir: info.InstallerWorkDir,
-		InstallOptions:   types.PluginDeploymentInstallOptions{},
+		InstallOptions: types.PluginDeploymentInstallOptions{
+			Version: info.InstallOptions.Version,
+		},
 		TransferOptions: types.PluginDeploymentTransferOptions{
 			SelectDownloads:      info.TransferOptions.SelectDownloads,
 			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
@@ -237,7 +239,7 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			TenantID: info.Process.TenantID,
 			HostID:   info.Process.HostID,
 			PluginID: info.Process.PluginID,
-			Name:     info.Process.Name,
+			Name:     info.Process.PluginName,
 			Platform: platform{
 				OS:   string(info.Process.Platform.OS),
 				Arch: string(info.Process.Platform.Arch),
@@ -283,7 +285,9 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			EnableReleasePackage: info.TransferOptions.EnableReleasePackage,
 			EnableInstaller:      info.TransferOptions.EnableInstaller,
 		},
-		InstallOptions: installOptions{},
+		InstallOptions: installOptions{
+			Version: info.InstallOptions.Version,
+		},
 	}
 
 	return data, nil

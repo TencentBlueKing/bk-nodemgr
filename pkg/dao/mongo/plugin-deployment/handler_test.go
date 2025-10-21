@@ -87,10 +87,10 @@ func TestHandler_Create(t *testing.T) {
 					Info: &types.PluginDeploymentInfo{
 						BlockingActionName: "wait_plugin_installer_complete",
 						Process: types.Process{
-							TenantID: "",
-							HostID:   0,
-							PluginID: "",
-							Name:     "",
+							TenantID:   "",
+							HostID:     0,
+							PluginID:   "",
+							PluginName: "",
 							Info: types.ProcessInfo{
 								Pid:         233,
 								Version:     "1.0.0",
@@ -217,10 +217,10 @@ func TestHandler_UpdateInfo(t *testing.T) {
 				info: &types.PluginDeploymentInfo{
 					BlockingActionName: "wait_plugin_installer_complete",
 					Process: types.Process{
-						TenantID: "",
-						HostID:   0,
-						PluginID: "",
-						Name:     "",
+						TenantID:   "",
+						HostID:     0,
+						PluginID:   "",
+						PluginName: "",
 						Info: types.ProcessInfo{
 							Pid:         233,
 							Version:     "1.0.0",

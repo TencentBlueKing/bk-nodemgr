@@ -135,6 +135,9 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("process status is not running, status(%s)", processInfo.Status)
 		}
 
+		// update process info
+		std.DeployInfo().Process.Info = *processInfo
+
 		return nil
 	})
 	if err != nil {

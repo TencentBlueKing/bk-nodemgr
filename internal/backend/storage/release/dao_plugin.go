@@ -20,10 +20,9 @@ import (
 )
 
 // getReleasePlugin gets release by generation, release type, platform and version.
-func (s *Storage) getReleasePlugin(nCtx contextx.IContext, gen types.Generation, plat platform.Platform,
-	version string) (*types.ReleasePlugin, error) {
+func (s *Storage) getReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleasePlugin, error) {
 
-	rls, err := s.getRelease(nCtx, gen, types.ReleaseTypePlugin, plat, version)
+	rls, err := s.getRelease(nCtx, types.ReleaseTypePlugin, gen, name, plat, version)
 	if err != nil {
 		return nil, err
 	}

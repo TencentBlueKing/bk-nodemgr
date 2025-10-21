@@ -33,7 +33,7 @@ func (s *Storage) upsertManyReleaseAgent(ctx contextx.IContext, releaseAgents []
 			continue
 		}
 
-		rls.Name = releaseNameAgent
+		rls.Name = types.ReleaseNameAgent
 		rls.Operator = ctx.BKUsername()
 		rls.UpdatedAt = time.Now()
 		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoAgent)

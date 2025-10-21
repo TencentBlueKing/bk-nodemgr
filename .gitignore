@@ -12,3 +12,5 @@ tools/build/
 pre-*-bkcodeai
 /etc/
 /file/
+CLAUDE.local.md
+CLAUDE.md

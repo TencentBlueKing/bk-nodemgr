@@ -168,14 +168,14 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
 	var dataDir string
 	if targetHost.Dynamic.NodeOsType == criteria.OSWindows {
-		dataDir = winpath.Join(info.InstallerWorkDir, "data", "plugin", info.Process.Name)
+		dataDir = winpath.Join(info.InstallerWorkDir, "data", "plugin", info.Process.PluginPkgName)
 	} else {
-		dataDir = filepath.Join(info.InstallerWorkDir, "data", "plugin", info.Process.Name)
+		dataDir = filepath.Join(info.InstallerWorkDir, "data", "plugin", info.Process.PluginPkgName)
 	}
 
 	transferHandler, err := act.fileHandler.LaunchTransferPlugin(
 		nCtx,
-		info.Process.Name,
+		info.Process.PluginPkgName,
 		info.Process.Generation,
 		info.Process.Platform,
 		info.Process.Info.Version,

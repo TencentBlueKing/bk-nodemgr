@@ -15,8 +15,7 @@ type Plugin struct {
 	PluginID string
 	TenantID string
 
-	Name  string
-	Group string
-
+	PluginName    string
 	PluginPkgName string
+	PluginGroup   string
 }

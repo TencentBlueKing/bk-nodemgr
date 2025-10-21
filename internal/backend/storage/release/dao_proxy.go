@@ -23,7 +23,7 @@ import (
 func (s *Storage) getReleaseProxy(
 	nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseProxy, error) {
 
-	rls, err := s.getRelease(nCtx, gen, types.ReleaseTypeProxy, plat, version)
+	rls, err := s.getRelease(nCtx, types.ReleaseTypeProxy, gen, types.ReleaseNameProxy, plat, version)
 	if err != nil {
 		return nil, err
 	}

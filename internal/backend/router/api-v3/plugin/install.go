@@ -71,11 +71,10 @@ func (h *handler) generateInstallPluginDeployments(nCtx contextx.IContext, req *
 					TenantID: nCtx.TenantID(),
 					HostID:   reqProcess.GetBkHostId(),
 					PluginID: reqProcess.GetPluginId(),
-					Info: types.ProcessInfo{
-						Version: reqProcess.GetVersion(),
-					},
 				},
-				InstallOptions: types.PluginDeploymentInstallOptions{},
+				InstallOptions: types.PluginDeploymentInstallOptions{
+					Version: reqProcess.GetVersion(),
+				},
 				TransferOptions: types.PluginDeploymentTransferOptions{
 					SelectDownloads:      true,
 					EnableReleasePackage: false,

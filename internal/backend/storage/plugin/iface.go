@@ -64,6 +64,9 @@ type IDaoPlugin interface {
 
 // IDaoProcess defines the process dao interface.
 type IDaoProcess interface {
+	// ListProcesses list processes.
+	ListProcesses(nCtx contextx.IContext, page types.Page, condition ...*types.ProcessCondition) ([]*types.Process, int64, error)
+
 	// GetProcessByID get process by id.
 	GetProcessByID(nCtx contextx.IContext, processID string) (*types.Process, error)
 
@@ -71,8 +74,14 @@ type IDaoProcess interface {
 	CreateProcess(nCtx contextx.IContext, process *types.Process) error
 
 	// UpdateProcess update process.
+	UpdateProcess(nCtx contextx.IContext, processID string, process *types.Process) error
+
+	// UpdateProcessInfo update process.
 	UpdateProcessInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) error
 
 	// DeleteProcess delete process.
 	DeleteProcess(nCtx contextx.IContext, processID string) error
+
+	// ExistProcess exist process.
+	ExistProcess(nCtx contextx.IContext, processID string) (bool, error)
 }

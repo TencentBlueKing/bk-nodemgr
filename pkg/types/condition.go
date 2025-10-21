@@ -499,3 +499,42 @@ type ConfigPolicyCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *ConfigPolicyFuzzyFields
 }
+
+// ProcessCondition defines the process condition.
+// in this condition, fields are generated with AND expr.
+type ProcessCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ProcessExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ProcessFuzzyFields
+
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *ProcessExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *ProcessFuzzyFields
+}
+
+// ProcessExactFields defines the process exact fields.
+// support includes and excludes.
+type ProcessExactFields struct {
+	HostID       []int64
+	PluginID     []string
+	ProcessID    []string
+	Group        []string
+	Generation   []string
+	PlatformOS   []string
+	PlatformArch []string
+	InfoStatus   []string
+	InfoAgentID  []string
+	InfoVersion  []string
+}
+
+// ProcessFuzzyFields defines the process fuzzy fields.
+// support includes and excludes.
+type ProcessFuzzyFields struct {
+	Name     []string
+	PkgName  []string
+	Platform []string
+}

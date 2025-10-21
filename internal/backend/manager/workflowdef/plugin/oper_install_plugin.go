@@ -45,6 +45,7 @@ func (oper *operInstallPlugin) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operInstallPlugin) ActionDefNames() []string {
 	return []string{
+		ActionNameUpsertProcess,
 		ActionNameRenderPluginDeployment,
 		ActionNameRenderPluginMainConfig,
 		ActionNameTransferPluginPkgToNode,

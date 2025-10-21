@@ -81,8 +81,7 @@ func (s *Storage) metric() *storage.MetricData {
 }
 
 // GetRelease gets release by generation, release type, platform and version.
-func (s *Storage) GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platfmt.Platform, version string) (*types.Release, error) {
+func (s *Storage) GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, name string, plat platfmt.Platform, version string) (*types.Release, error) {
 
 	var (
 		data *types.Release
@@ -93,7 +92,7 @@ func (s *Storage) GetRelease(nCtx contextx.IContext, gen types.Generation, relea
 	metric := s.metric().Start("get_release")
 	defer metric.End(err)
 
-	data, err = s.getRelease(nCtx, gen, releaseType, plat, version)
+	data, err = s.getRelease(nCtx, releaseType, gen, name, plat, version)
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to get release")
 		return nil, fmt.Errorf("failed to get release: %w", err)
@@ -338,8 +337,7 @@ func (s *Storage) GetReleaseProxy(
 }
 
 // GetReleasePlugin gets release by generation, release type, platform and version.
-func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform,
-	version string) (*types.ReleasePlugin, error) {
+func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleasePlugin, error) {
 
 	var (
 		releasePlugin *types.ReleasePlugin
@@ -350,7 +348,7 @@ func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, gen types.Generation,
 	metric := s.metric().Start("get_release_plugin")
 	defer metric.End(err)
 
-	releasePlugin, err = s.getReleasePlugin(nCtx, gen, plat, version)
+	releasePlugin, err = s.getReleasePlugin(nCtx, name, gen, plat, version)
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to get release plugin")
 		return nil, fmt.Errorf("failed to get release plugin: %w", err)

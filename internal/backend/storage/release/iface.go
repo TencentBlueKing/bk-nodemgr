@@ -31,8 +31,7 @@ type IStorage interface {
 // nolint:interfacebloat
 type IRelease interface {
 	// GetRelease gets release by generation, release type, platform and version.
-	GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, plat platform.Platform,
-		version string) (*types.Release, error)
+	GetRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType, name string, plat platform.Platform, version string) (*types.Release, error)
 
 	// ListRelease lists release by page and conditions.
 	ListRelease(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page,
@@ -92,6 +91,5 @@ type IAgent interface {
 // IPlugin define the plugin interface.
 type IPlugin interface {
 	// GetReleasePlugin gets release by generation, release type, platform and version.
-	GetReleasePlugin(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (
-		*types.ReleasePlugin, error)
+	GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleasePlugin, error)
 }

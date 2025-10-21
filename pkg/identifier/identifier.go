@@ -27,6 +27,8 @@ const (
 	tagActionInstanceID    = "act-inst"
 	tagServiceID           = "svc"
 	tagUploadID            = "up"
+	tagPluginID            = "plugin"
+	tagProcessID           = "proc"
 )
 
 func generateID(tag string) string {
@@ -76,4 +78,14 @@ func GenServiceID() string {
 // GenUploadID generates a upload id.
 func GenUploadID() string {
 	return generateID(tagUploadID)
+}
+
+// GenPluginID generates a plugin id.
+func GenPluginID() string {
+	return generateID(tagPluginID)
+}
+
+// GenProcessID generates a process id.
+func GenProcessID() string {
+	return generateID(tagProcessID)
 }

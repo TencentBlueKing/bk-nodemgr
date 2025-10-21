@@ -49,6 +49,7 @@ type PluginDeploymentInfo struct {
 
 // PluginDeploymentInstallOptions defines the options for plugin deployment.
 type PluginDeploymentInstallOptions struct {
+	Version string
 }
 
 // PluginDeploymentTransferOptions defines the options for plugin deployment.

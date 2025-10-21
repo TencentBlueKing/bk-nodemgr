@@ -56,7 +56,7 @@ func (s *Storage) upsertManyReleaseProxy(ctx contextx.IContext, releaseProxys []
 			continue
 		}
 
-		rls.Name = releaseNameProxy
+		rls.Name = types.ReleaseNameProxy
 		rls.UpdatedAt = time.Now()
 		rls.Operator = ctx.BKUsername()
 		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoProxy)

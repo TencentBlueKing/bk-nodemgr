@@ -32,9 +32,9 @@ type Process struct {
 	HostID   int64  `json:"host_id" bson:"host_id"`
 	PluginID string `json:"plugin_id" bson:"plugin_id"`
 
-	Name    string `json:"name" bson:"name"`
-	Group   string `json:"group" bson:"group"`
-	PkgName string `json:"pkg_name" bson:"pkg_name"`
+	Name          string `json:"name" bson:"name"`
+	Group         string `json:"group" bson:"group"`
+	PluginPkgName string `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
 
 	Generation int64    `json:"generation" bson:"generation"`
 	Platform   platform `json:"platform" bson:"platform"`

@@ -23,7 +23,7 @@ import (
 func (s *Storage) getReleaseAgent(
 	nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseAgent, error) {
 
-	rls, err := s.getRelease(nCtx, gen, types.ReleaseTypeAgent, plat, version)
+	rls, err := s.getRelease(nCtx, types.ReleaseTypeAgent, gen, types.ReleaseNameAgent, plat, version)
 	if err != nil {
 		return nil, err
 	}

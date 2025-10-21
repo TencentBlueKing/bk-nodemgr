@@ -22,10 +22,17 @@ import (
 )
 
 // getRelease gets release by generation, release type, platform and version.
-func (s *Storage) getRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platfmt.Platform, version string) (*types.Release, error) {
+func (s *Storage) getRelease(
+	nCtx contextx.IContext,
+	releaseType types.ReleaseType,
+	gen types.Generation,
+	name string,
+	plat platfmt.Platform,
+	version string,
+) (*types.Release, error) {
 
 	return s.daoRelease.Get(nCtx, releaseType,
+		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),

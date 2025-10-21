@@ -8,32 +8,32 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package release
+package types
 
 const (
-	// releaseVersionPluginBinTool defines the version of plugin bintool.
-	releaseVersionPluginBinTool = "default"
+	// ReleaseVersionPluginBinTool defines the version of plugin bintool.
+	ReleaseVersionPluginBinTool = "default"
 
-	// releaseVersionBinTool defines the version of bintool.
-	releaseVersionBinTool = "default"
+	// ReleaseVersionBinTool defines the version of bintool.
+	ReleaseVersionBinTool = "default"
 
-	// releaseVersionCert defines the version of cert.
-	releaseVersionCert = "default"
+	// ReleaseVersionCert defines the version of cert.
+	ReleaseVersionCert = "default"
 )
 
 const (
-	// releaseNameAgent defines the name of agent.
-	releaseNameAgent = "agent"
+	// ReleaseNameAgent defines the name of agent.
+	ReleaseNameAgent = "agent"
 
-	// releaseNameProxy defines the name of proxy.
-	releaseNameProxy = "proxy"
+	// ReleaseNameProxy defines the name of proxy.
+	ReleaseNameProxy = "proxy"
 
-	// releaseNameBinTool defines the name of bintool.
-	releaseNameBinTool = "bintool"
+	// ReleaseNameBinTool defines the name of bintool.
+	ReleaseNameBinTool = "bintool"
 
-	// releaseNamePluginBinTool defines the name of plugin bintool.
-	releaseNamePluginBinTool = "plugin_bintool"
+	// ReleaseNamePluginBinTool defines the name of plugin bintool.
+	ReleaseNamePluginBinTool = "plugin_bintool"
 
-	// releaseNameCert defines the name of cert.
-	releaseNameCert = "cert"
+	// ReleaseNameCert defines the name of cert.
+	ReleaseNameCert = "cert"
 )

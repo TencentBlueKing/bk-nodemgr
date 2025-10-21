@@ -46,7 +46,7 @@ func (h *handler) GetMainConfig(rCtx restserver.IContext) (*restserver.FileRespo
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	fileName := fmt.Sprintf("%s.conf", info.Process.PkgName)
+	fileName := fmt.Sprintf("%s.conf", info.Process.PluginPkgName)
 	data := io.NopCloser(bytes.NewReader(mainConfigBytes))
 	size := int64(len(mainConfigBytes))
 

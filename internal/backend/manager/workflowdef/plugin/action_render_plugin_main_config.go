@@ -160,9 +160,7 @@ func (act *RenderPluginMainConfig) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
-	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(
-		std.Context(), std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform,
-		std.DeployInfo().Process.Info.Version)
+	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(std.Context(), "", std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform, std.DeployInfo().Process.Info.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get plugin release info: %w", err)
 	}
@@ -186,7 +184,7 @@ func (act *RenderPluginMainConfig) Do(ctx *action.InstanceContext) error {
 	}
 
 	ctx.Data.LogI(fmt.Sprintf("rendered plugin(%s-%s-%s) main config success",
-		std.DeployInfo().Process.Name, std.DeployInfo().Process.Platform.String(),
+		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
 		std.DeployInfo().Process.Info.Version))
 
 	if err := std.UpdateMainConfig([]byte(result)); err != nil {
@@ -204,7 +202,7 @@ func (act *RenderPluginMainConfig) getRenderContext(
 		return nil, fmt.Errorf("failed to get plugin path: %w", err)
 	}
 
-	nodeContext, err := act.getNodeContext(info, hostInfo)
+	nodeManContext, err := act.getNodeContext(info, hostInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node context: %w", err)
 	}
@@ -216,7 +214,7 @@ func (act *RenderPluginMainConfig) getRenderContext(
 
 	return map[string]any{
 		keyPluginPath:   pluginPath,
-		keyNodeMan:      nodeContext,
+		keyNodeMan:      nodeManContext,
 		keyCmdbInstance: cmdbInstance,
 		keyTarget:       cmdbInstance,
 	}, nil
@@ -232,16 +230,16 @@ func (act *RenderPluginMainConfig) getPluginPath(info *types.PluginDeploymentInf
 	paths := map[string]any{
 		keyLogPath:   pluginDeployConf.LogDir,
 		keyDataPath:  pluginDeployConf.DataDir,
-		keyPidPath:   pluginDeployConf.RunDir,
-		keySetupPath: pluginDeployConf.DeployDir,
+		keyPidPath:   info.Process.Identity.PidPath,
+		keySetupPath: info.Process.Identity.SetupPath,
 		keyEndpoint:  pluginDeployConf.AgentDataIPCPath,
 		keyHostID:    pluginDeployConf.HostIDPath,
 	}
 
 	if info.Process.Platform.OS == criteria.OSWindows {
-		paths[keySubConfigPath] = winpath.Join(pluginDeployConf.SubConfigBaseDir, info.Process.Name)
+		paths[keySubConfigPath] = winpath.Join(info.Process.PluginName, pluginDeployConf.SubConfigBaseDir)
 	} else {
-		paths[keySubConfigPath] = filepath.Join(pluginDeployConf.SubConfigBaseDir, info.Process.Name)
+		paths[keySubConfigPath] = filepath.Join(info.Process.PluginName, pluginDeployConf.SubConfigBaseDir)
 	}
 
 	return paths, nil
@@ -268,7 +266,7 @@ func (act *RenderPluginMainConfig) getNodeContext(info *types.PluginDeploymentIn
 		keyConstants: map[string]any{},
 	}
 
-	if commonConstants, ok := pluginDeployConf.CommonConstants[info.Process.PkgName]; ok {
+	if commonConstants, ok := pluginDeployConf.CommonConstants[info.Process.PluginPkgName]; ok {
 		nodeContext[keyConstants] = commonConstants
 	}
 

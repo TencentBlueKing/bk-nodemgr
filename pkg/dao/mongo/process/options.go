@@ -29,3 +29,53 @@ func WithPluginID(pluginIDs ...string) OptFn {
 func WithProcessID(processIDs ...string) OptFn {
 	return base.WithValues(FieldKeyProcessID, processIDs...)
 }
+
+// WithName filters by name.
+func WithName(names ...string) OptFn {
+	return base.WithValues(FieldKeyName, names...)
+}
+
+// WithGroup filters by group.
+func WithGroup(groups ...string) OptFn {
+	return base.WithValues(FieldKeyGroup, groups...)
+}
+
+// WithPkgName filters by package name.
+func WithPkgName(pkgNames ...string) OptFn {
+	return base.WithValues(FieldKeyPkgName, pkgNames...)
+}
+
+// WithGeneration filters by generation.
+func WithGeneration(generations ...string) OptFn {
+	return base.WithValues(FieldKeyGeneration, generations...)
+}
+
+// WithPlatform filters by platform.
+func WithPlatform(platforms ...string) OptFn {
+	return base.WithValues(FieldKeyPlatform, platforms...)
+}
+
+// WithPlatformOS filters by platform OS.
+func WithPlatformOS(osList ...string) OptFn {
+	return base.WithValues(FieldKeyPlatformOS, osList...)
+}
+
+// WithPlatformArch filters by platform architecture.
+func WithPlatformArch(archs ...string) OptFn {
+	return base.WithValues(FieldKeyPlatformArch, archs...)
+}
+
+// WithInfoStatus filters by info status.
+func WithInfoStatus(statuses ...string) OptFn {
+	return base.WithValues(FieldKeyInfoStatus, statuses...)
+}
+
+// WithInfoAgentID filters by info agent ID.
+func WithInfoAgentID(agentIDs ...string) OptFn {
+	return base.WithValues(FieldKeyInfoAgentID, agentIDs...)
+}
+
+// WithInfoVersion filters by info version.
+func WithInfoVersion(versions ...string) OptFn {
+	return base.WithValues(FieldKeyInfoVersion, versions...)
+}

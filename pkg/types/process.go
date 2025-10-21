@@ -225,9 +225,9 @@ type Process struct {
 	HostID    int64
 	PluginID  string
 
-	Name    string
-	PkgName string
-	Group   string
+	PluginName    string
+	PluginPkgName string
+	PluginGroup   string
 
 	Platform   platform.Platform
 	Generation Generation
