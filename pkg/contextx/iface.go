@@ -33,6 +33,11 @@ type IContextValues interface {
 	// CheckBKUsername validate bk-username.
 	CheckBKUsername() error
 
+	// LoginName get login-name from values.
+	LoginName() string
+	// CheckLoginName validate login-name.
+	CheckLoginName() error
+
 	// MessageID get message-id from values.
 	MessageID() string
 	// CheckMessageID validate message-id.

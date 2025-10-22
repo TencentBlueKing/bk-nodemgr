@@ -27,6 +27,7 @@ type Context struct {
 
 	tenantID   string
 	bkUsername string
+	loginName  string
 	messageID  string
 }
 
@@ -90,6 +91,20 @@ func (c Context) CheckBKUsername() error {
 	return nil
 }
 
+// LoginName get login-name from values.
+func (c Context) LoginName() string {
+	return c.loginName
+}
+
+// CheckLoginName valcheckidate login-name.
+func (c Context) CheckLoginName() error {
+	if c.loginName == "" {
+		return errors.New("login-name not found")
+	}
+
+	return nil
+}
+
 // MessageID get message-id from values.
 func (c Context) MessageID() string {
 	return c.messageID
@@ -124,6 +139,7 @@ func From(nCtx IContext, opts ...Opts) *Context {
 	newOpts := []Opts{
 		WithTenantID(nCtx.TenantID()),
 		WithBKUsername(nCtx.BKUsername()),
+		WithLoginName(nCtx.LoginName()),
 		WithMessageID(nCtx.MessageID()),
 		WithValues(nCtx.Values()),
 	}
@@ -164,6 +180,13 @@ func WithTenantID(tenantID string) Opts {
 func WithBKUsername(bkUsername string) Opts {
 	return func(c *Context) {
 		c.bkUsername = bkUsername
+	}
+}
+
+// WithLoginName assign login-name.
+func WithLoginName(loginName string) Opts {
+	return func(c *Context) {
+		c.loginName = loginName
 	}
 }
 

@@ -65,6 +65,7 @@ func GenRestContext(c *gin.Context) (*Context, error) {
 			r.GContext(),
 			contextx.WithTenantID(r.Data().GetTenantID()),
 			contextx.WithBKUsername(r.Data().GetBKUsername()),
+			contextx.WithLoginName(r.Data().GetLoginName()),
 			contextx.WithMessageID(r.Data().GetRequestID()),
 		),
 		IRequest: r,

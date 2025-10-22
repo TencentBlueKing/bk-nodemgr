@@ -12,7 +12,11 @@
 package header
 
 import (
+	"fmt"
 	"net/http"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 const (
@@ -23,7 +27,7 @@ const (
 	BKNodemgrRequestIDKey = "X-Bknodemgr-Request-Id"
 
 	// BKNodemgrAuthorization is authorization header key.
-	BKNodemgrAuthorization = "X-Bknodemgr-Authorization"
+	BKNodemgrAuthorization = "X-Bknodemgr-BKNodeMgrAuthorization"
 )
 
 // BKTenantIDGetter get tenant id value.
@@ -45,4 +49,76 @@ func BKNodeMgrAuthorizationGetter(req *http.Request) string {
 	authorization := req.Header.Get(BKNodemgrAuthorization)
 
 	return authorization
+}
+
+var jwtSecret = []byte("your-bk-nodemgr-secret-key")
+
+// BKNodeMgrAuthorization is nodemgr authorization.
+type BKNodeMgrAuthorization struct {
+	LoginName  string `json:"login_name"`
+	BkUserName string `json:"bk_username"`
+}
+
+// BKNodeMgrClaims is nodemgr claims.
+type BKNodeMgrClaims struct {
+	BKNodeMgrAuthorization `json:",inline"`
+	jwt.RegisteredClaims
+}
+
+const (
+	// BKNodeMgrJWTIssuer is nodemgr jwt issuer.
+	BKNodeMgrJWTIssuer = "bk-nodemgr"
+
+	// BKNodeMgrJWTExpirationTime is nodemgr jwt expiration time.
+	BKNodeMgrJWTExpirationTime = 24 * time.Hour
+)
+
+// GenerateNodeMgrAuthorization generate nodemgr authorization.
+func GenerateNodeMgrAuthorization(loginName, bkUserName string) (string, error) {
+	claims := BKNodeMgrClaims{
+		BKNodeMgrAuthorization: BKNodeMgrAuthorization{
+			LoginName:  loginName,
+			BkUserName: bkUserName,
+		},
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(BKNodeMgrJWTExpirationTime)), // 24小时过期
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    BKNodeMgrJWTIssuer,
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate bk nodemgr authorization: %w", err)
+	}
+
+	return tokenString, nil
+}
+
+// ParseBKNodeMgrAuthorization parse bk-nodemgr authorization.
+func ParseBKNodeMgrAuthorization(authorizationStr string) (*BKNodeMgrAuthorization, error) {
+	token, err := jwt.ParseWithClaims(authorizationStr, &BKNodeMgrClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %w", token.Header["alg"])
+		}
+		return jwtSecret, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse bk nodemgr authorization: %w", err)
+	}
+
+	if !token.Valid {
+		return nil, fmt.Errorf("failed to parse bk nodemgr authorization: invalid token")
+	}
+
+	claims, ok := token.Claims.(*BKNodeMgrClaims)
+	if !ok {
+		return nil, fmt.Errorf("failed to parse bk nodemgr authorization: invalid claims")
+	}
+
+	return &BKNodeMgrAuthorization{
+		LoginName:  claims.LoginName,
+		BkUserName: claims.BkUserName,
+	}, nil
 }

@@ -59,10 +59,17 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 
 // getCommonHeader get backend common header.
 // nolint: unparam
-func (c *cli) getCommonHeader(tenantID string) (http.Header, error) {
+func (c *cli) getCommonHeader(nCtx contextx.IContext, tenantID string) (http.Header, error) {
 	header := http.Header{}
 	header.Set(restheader.BKTenantIDKey, tenantID)
 	header.Set(restheader.BKNodemgrRequestIDKey, identifier.GenRequestID())
+
+	authorization, err := restheader.GenerateNodeMgrAuthorization(nCtx.LoginName(), nCtx.BKUsername())
+	if err != nil {
+		return nil, err
+	}
+
+	header.Set(restheader.BKNodemgrAuthorization, authorization)
 
 	return header, nil
 }
@@ -72,7 +79,7 @@ func (c *cli) uploadOriginAgent(
 	*protoFile.UploadOriginAgentResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginAgentResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +121,7 @@ func (c *cli) uploadOriginServer(
 	*protoFile.UploadOriginServerResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginServerResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +163,7 @@ func (c *cli) uploadOriginCert(
 	*protoFile.UploadOriginCertResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginCertResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +205,7 @@ func (c *cli) uploadOriginBinTool(
 	*protoFile.UploadOriginBinToolResp_Data, error) {
 
 	resp := new(protoFile.UploadOriginBinToolResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +282,7 @@ func (c *cli) publishReleaseAgent(nCtx contextx.IContext, tenantID string, req *
 	*protoFile.PublishReleaseAgentResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseAgentResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +309,7 @@ func (c *cli) publishReleaseAgent(nCtx contextx.IContext, tenantID string, req *
 func (c *cli) downloadReleaseAgent(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadAgentReq) (
 	*restserver.StreamResponse, error) {
 
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -328,7 +335,7 @@ func (c *cli) downloadReleaseAgent(nCtx contextx.IContext, tenantID string, req 
 func (c *cli) downloadReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadProxyReq) (
 	*restserver.StreamResponse, error) {
 
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +362,7 @@ func (c *cli) publishReleaseProxy(nCtx contextx.IContext, tenantID string, req *
 	*protoFile.PublishReleaseProxyResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseProxyResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +390,7 @@ func (c *cli) publishReleaseCert(nCtx contextx.IContext, tenantID string, req *p
 	*protoFile.PublishReleaseCertResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseCertResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -411,7 +418,7 @@ func (c *cli) publishReleaseBinTool(nCtx contextx.IContext, tenantID string, req
 	*protoFile.PublishReleaseBinToolResp_Data, error) {
 
 	resp := new(protoFile.PublishReleaseBinToolResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -439,7 +446,7 @@ func (c *cli) launchTransferNode(nCtx contextx.IContext, tenantID string, req *p
 	*protoFile.TransferLaunchNodeResp, error) {
 
 	resp := new(protoFile.TransferLaunchNodeResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -471,7 +478,7 @@ func (c *cli) launchTransferPlugin(nCtx contextx.IContext, tenantID string, req 
 	*protoFile.TransferLaunchPluginResp, error) {
 
 	resp := new(protoFile.TransferLaunchPluginResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -503,7 +510,7 @@ func (c *cli) launchTransferInstaller(nCtx contextx.IContext, tenantID string, r
 	*protoFile.TransferLaunchInstallerResp, error) {
 
 	resp := new(protoFile.TransferLaunchInstallerResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}
@@ -535,7 +542,7 @@ func (c *cli) queryTransfer(nCtx contextx.IContext, tenantID string, req *protoF
 	*protoFile.TransferQueryResp, error) {
 
 	resp := new(protoFile.TransferQueryResp)
-	header, err := c.getCommonHeader(tenantID)
+	header, err := c.getCommonHeader(nCtx, tenantID)
 	if err != nil {
 		return nil, err
 	}

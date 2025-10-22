@@ -11,7 +11,6 @@
 package server
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -62,15 +61,15 @@ type RestServerAuthIdentity struct {
 
 // Verify verify auth info.
 func (identity *RestServerAuthIdentity) Verify(r IRequest) error {
-	nodeMgrAuthorization := restheader.BKNodeMgrAuthorizationGetter(r.GetRequest())
+	authorization := restheader.BKNodeMgrAuthorizationGetter(r.GetRequest())
 
-	authInfo := make(map[string]string, 0)
-	if err := json.Unmarshal([]byte(nodeMgrAuthorization), &authInfo); err != nil {
-		return fmt.Errorf("failed to verify rest auth indentity, auth info(%s): %w", nodeMgrAuthorization, err)
+	nodeMgrAuthorization, err := restheader.ParseBKNodeMgrAuthorization(authorization)
+	if err != nil {
+		return fmt.Errorf("failed to parse bk node mgr authorization: %v", err)
 	}
 
-	r.Data().SetLoginName(authInfo["login_name"])
-	r.Data().SetBKUsername(authInfo["bk_username"])
+	r.Data().SetLoginName(nodeMgrAuthorization.LoginName)
+	r.Data().SetBKUsername(nodeMgrAuthorization.BkUserName)
 
 	return nil
 }
