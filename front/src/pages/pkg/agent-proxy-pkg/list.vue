@@ -166,6 +166,7 @@
                     auto-focus
                     allow-create
                     multiple
+                    multiple-mode="tag"
                     filterable>
                   </Select>
                 </template>
@@ -232,12 +233,11 @@
             field="action"
             :title="'操作'"
             fixed="right"
-            :min-width="120"
+            :width="150"
           >
             <template #default="{ row }">
-              <div class="flex items-center">
+              <div class="flex items-center gap-[8px]">
                 <Button
-                  class="mr-[8px]"
                   theme="primary"
                   text
                   v-if="row.enabled && !row.as_default"
@@ -253,7 +253,6 @@
                   :is-show="row.isDisabledPopShow"
                 >
                   <Button
-                    class="mr-[8px]"
                     theme="primary"
                     text
                     v-show="row.enabled"
@@ -274,7 +273,6 @@
                   </template>
                 </Popover>
                 <Button
-                  class="mr-[8px]"
                   theme="primary"
                   text
                   v-if="!row.enabled"
@@ -307,8 +305,19 @@
                     </div>
                   </template>
                 </Popover>
-                <download-pkg :data="row" :url="downloadUrl"></download-pkg>
               </div>
+            </template>
+          </TableColumn>
+          <TableColumn
+            field="download"
+            title="下载"
+            fixed="right"
+            :width="60"
+          >
+            <template #default="{ row }">
+              <download-pkg :data="row" :url="downloadUrl">
+                <i class="nodeman-icon nc-xiazai"></i>
+              </download-pkg>
             </template>
           </TableColumn>
         </Table>
@@ -593,8 +602,9 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'enabled',
     'as_default',
     'action',
+    'download',
   ],
-  disabled: ['action'],
+  disabled: ['action', 'download'],
 });
 // 筛选
 const handleFilter = ({
@@ -654,7 +664,6 @@ const selectDimensionOptional = (id: string, dimension: PkgQuickType, type?: str
   if (id === 'all') {
     targetSet.clear();
     targetSet.add('all');
-    return; // 全选后无需执行后续逻辑
   }
 
   // 若当前有全选状态，先取消全选（避免同时存在'all'和其他选项）

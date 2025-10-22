@@ -99,27 +99,27 @@
             >
               <Button text theme="primary">{{ row.scopes?.length }}</Button>
               <template #content>
-                <Table :data="row.scopes">
-                  <TableColumn field="bk_networkarea_id" title="管控区域">
-                    <template #default="{ row }">
+                <Table :data="row.scopes" :min-width="600">
+                  <TableColumn field="bk_networkarea_id" title="管控区域" :min-width="120">
+                    <template #default="{ row: scopesRow }">
                       {{ networkAreaList?.find(item =>
-                        item.bk_networkarea_id === row.bk_networkarea_id )?.bk_networkarea_name || '不限' }}
+                        item.bk_networkarea_id === scopesRow.bk_networkarea_id )?.bk_networkarea_name || '不限' }}
                     </template>
                   </TableColumn>
-                  <TableColumn field="bk_networkunit_id" title="管控单元">
-                    <template #default="{ row }">
+                  <TableColumn field="bk_networkunit_id" title="管控单元" :min-width="120">
+                    <template #default="{ row: scopesRow }">
                       {{ networkUnitList?.find(item =>
-                        item.bk_networkarea_id === row.bk_networkunit_id )?.bk_networkunit_name || '不限' }}
+                        item.bk_networkunit_id === scopesRow.bk_networkunit_id )?.bk_networkunit_name || '不限' }}
                     </template>
                   </TableColumn>
                   <TableColumn field="os_type" title="操作系统">
-                    <template #default="{ row }">
-                      {{ row.os_type || '不限' }}
+                    <template #default="{ row: scopesRow }">
+                      {{ scopesRow.os_type || '不限' }}
                     </template>
                   </TableColumn>
-                  <TableColumn field="cpu_arch" title="架构">
-                    <template #default="{ row }">
-                      {{ row.cpu_arch || '不限' }}
+                  <TableColumn field="cpu_arch" title="架构" :min-width="120">
+                    <template #default="{ row: scopesRow }">
+                      {{ scopesRow.cpu_arch || '不限' }}
                     </template>
                   </TableColumn>
                 </Table>

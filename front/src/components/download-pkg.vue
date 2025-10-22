@@ -4,7 +4,9 @@
     theme="primary"
     :loading="downloadLoading"
     @click="handleDownload"
-  >下载</Button>
+  >
+    <slot></slot>
+  </Button>
 </template>
 <script setup lang="ts">
 import { Button } from 'bkui-vue';
