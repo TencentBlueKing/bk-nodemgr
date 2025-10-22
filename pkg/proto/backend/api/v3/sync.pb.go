@@ -7,12 +7,13 @@
 package v3
 
 import (
-	_ "google.golang.org/genproto/googleapis/api/annotations"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	_ "google.golang.org/genproto/googleapis/api/annotations"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -844,6 +845,245 @@ func (x *SyncAliveHostAgentInfoResp) GetData() *SyncAliveHostAgentInfoResp_Data 
 	return nil
 }
 
+// SyncAlivePluginProcessInfoReq describes the HTTP request body when sync alive
+type SyncAlivePluginProcessInfoReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HostIds       []int64                `protobuf:"varint,1,rep,packed,name=host_ids,json=hostIds,proto3" json:"host_ids"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncAlivePluginProcessInfoReq) Reset() {
+	*x = SyncAlivePluginProcessInfoReq{}
+	mi := &file_sync_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncAlivePluginProcessInfoReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncAlivePluginProcessInfoReq) ProtoMessage() {}
+
+func (x *SyncAlivePluginProcessInfoReq) ProtoReflect() protoreflect.Message {
+	mi := &file_sync_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncAlivePluginProcessInfoReq.ProtoReflect.Descriptor instead.
+func (*SyncAlivePluginProcessInfoReq) Descriptor() ([]byte, []int) {
+	return file_sync_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SyncAlivePluginProcessInfoReq) GetHostIds() []int64 {
+	if x != nil {
+		return x.HostIds
+	}
+	return nil
+}
+
+// SyncAlivePluginProcessInfoResp describes the HTTP response body when sync
+// alive
+type SyncAlivePluginProcessInfoResp struct {
+	state         protoimpl.MessageState               `protogen:"open.v1"`
+	Code          int32                                `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                               `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                               `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                               `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Data          *SyncAlivePluginProcessInfoResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncAlivePluginProcessInfoResp) Reset() {
+	*x = SyncAlivePluginProcessInfoResp{}
+	mi := &file_sync_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncAlivePluginProcessInfoResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncAlivePluginProcessInfoResp) ProtoMessage() {}
+
+func (x *SyncAlivePluginProcessInfoResp) ProtoReflect() protoreflect.Message {
+	mi := &file_sync_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncAlivePluginProcessInfoResp.ProtoReflect.Descriptor instead.
+func (*SyncAlivePluginProcessInfoResp) Descriptor() ([]byte, []int) {
+	return file_sync_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SyncAlivePluginProcessInfoResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SyncAlivePluginProcessInfoResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SyncAlivePluginProcessInfoResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *SyncAlivePluginProcessInfoResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *SyncAlivePluginProcessInfoResp) GetData() *SyncAlivePluginProcessInfoResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+// SyncAllAlivePluginProcessInfoReq describes the HTTP request body when sync
+// all alive
+type SyncAllAlivePluginProcessInfoReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncAllAlivePluginProcessInfoReq) Reset() {
+	*x = SyncAllAlivePluginProcessInfoReq{}
+	mi := &file_sync_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncAllAlivePluginProcessInfoReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncAllAlivePluginProcessInfoReq) ProtoMessage() {}
+
+func (x *SyncAllAlivePluginProcessInfoReq) ProtoReflect() protoreflect.Message {
+	mi := &file_sync_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncAllAlivePluginProcessInfoReq.ProtoReflect.Descriptor instead.
+func (*SyncAllAlivePluginProcessInfoReq) Descriptor() ([]byte, []int) {
+	return file_sync_proto_rawDescGZIP(), []int{16}
+}
+
+// SyncAllAlivePluginProcessInfoResp describes the HTTP response body when sync
+// all alive
+type SyncAllAlivePluginProcessInfoResp struct {
+	state         protoimpl.MessageState                  `protogen:"open.v1"`
+	Code          int32                                   `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	Message       string                                  `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	RequestId     string                                  `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	Error         *Error                                  `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	Data          *SyncAllAlivePluginProcessInfoResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp) Reset() {
+	*x = SyncAllAlivePluginProcessInfoResp{}
+	mi := &file_sync_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncAllAlivePluginProcessInfoResp) ProtoMessage() {}
+
+func (x *SyncAllAlivePluginProcessInfoResp) ProtoReflect() protoreflect.Message {
+	mi := &file_sync_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncAllAlivePluginProcessInfoResp.ProtoReflect.Descriptor instead.
+func (*SyncAllAlivePluginProcessInfoResp) Descriptor() ([]byte, []int) {
+	return file_sync_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp) GetError() *Error {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp) GetData() *SyncAllAlivePluginProcessInfoResp_Data {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type SyncCmdbHostResp_Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	WorkflowId    string                 `protobuf:"bytes,1,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id"`
@@ -853,7 +1093,7 @@ type SyncCmdbHostResp_Data struct {
 
 func (x *SyncCmdbHostResp_Data) Reset() {
 	*x = SyncCmdbHostResp_Data{}
-	mi := &file_sync_proto_msgTypes[14]
+	mi := &file_sync_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -865,7 +1105,7 @@ func (x *SyncCmdbHostResp_Data) String() string {
 func (*SyncCmdbHostResp_Data) ProtoMessage() {}
 
 func (x *SyncCmdbHostResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_sync_proto_msgTypes[14]
+	mi := &file_sync_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -897,7 +1137,7 @@ type SyncCmdbNetworkAreaResp_Data struct {
 
 func (x *SyncCmdbNetworkAreaResp_Data) Reset() {
 	*x = SyncCmdbNetworkAreaResp_Data{}
-	mi := &file_sync_proto_msgTypes[15]
+	mi := &file_sync_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -909,7 +1149,7 @@ func (x *SyncCmdbNetworkAreaResp_Data) String() string {
 func (*SyncCmdbNetworkAreaResp_Data) ProtoMessage() {}
 
 func (x *SyncCmdbNetworkAreaResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_sync_proto_msgTypes[15]
+	mi := &file_sync_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -941,7 +1181,7 @@ type SyncCmdbConstantsResp_Data struct {
 
 func (x *SyncCmdbConstantsResp_Data) Reset() {
 	*x = SyncCmdbConstantsResp_Data{}
-	mi := &file_sync_proto_msgTypes[16]
+	mi := &file_sync_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -953,7 +1193,7 @@ func (x *SyncCmdbConstantsResp_Data) String() string {
 func (*SyncCmdbConstantsResp_Data) ProtoMessage() {}
 
 func (x *SyncCmdbConstantsResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_sync_proto_msgTypes[16]
+	mi := &file_sync_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -985,7 +1225,7 @@ type SyncAgentStateResp_Data struct {
 
 func (x *SyncAgentStateResp_Data) Reset() {
 	*x = SyncAgentStateResp_Data{}
-	mi := &file_sync_proto_msgTypes[17]
+	mi := &file_sync_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -997,7 +1237,7 @@ func (x *SyncAgentStateResp_Data) String() string {
 func (*SyncAgentStateResp_Data) ProtoMessage() {}
 
 func (x *SyncAgentStateResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_sync_proto_msgTypes[17]
+	mi := &file_sync_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1029,7 +1269,7 @@ type SyncAllAgentStateResp_Data struct {
 
 func (x *SyncAllAgentStateResp_Data) Reset() {
 	*x = SyncAllAgentStateResp_Data{}
-	mi := &file_sync_proto_msgTypes[18]
+	mi := &file_sync_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1041,7 +1281,7 @@ func (x *SyncAllAgentStateResp_Data) String() string {
 func (*SyncAllAgentStateResp_Data) ProtoMessage() {}
 
 func (x *SyncAllAgentStateResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_sync_proto_msgTypes[18]
+	mi := &file_sync_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1073,7 +1313,7 @@ type SyncAgentInfoResp_Data struct {
 
 func (x *SyncAgentInfoResp_Data) Reset() {
 	*x = SyncAgentInfoResp_Data{}
-	mi := &file_sync_proto_msgTypes[19]
+	mi := &file_sync_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1085,7 +1325,7 @@ func (x *SyncAgentInfoResp_Data) String() string {
 func (*SyncAgentInfoResp_Data) ProtoMessage() {}
 
 func (x *SyncAgentInfoResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_sync_proto_msgTypes[19]
+	mi := &file_sync_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1117,7 +1357,7 @@ type SyncAliveHostAgentInfoResp_Data struct {
 
 func (x *SyncAliveHostAgentInfoResp_Data) Reset() {
 	*x = SyncAliveHostAgentInfoResp_Data{}
-	mi := &file_sync_proto_msgTypes[20]
+	mi := &file_sync_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1129,7 +1369,7 @@ func (x *SyncAliveHostAgentInfoResp_Data) String() string {
 func (*SyncAliveHostAgentInfoResp_Data) ProtoMessage() {}
 
 func (x *SyncAliveHostAgentInfoResp_Data) ProtoReflect() protoreflect.Message {
-	mi := &file_sync_proto_msgTypes[20]
+	mi := &file_sync_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1146,6 +1386,94 @@ func (*SyncAliveHostAgentInfoResp_Data) Descriptor() ([]byte, []int) {
 }
 
 func (x *SyncAliveHostAgentInfoResp_Data) GetTriggerId() string {
+	if x != nil {
+		return x.TriggerId
+	}
+	return ""
+}
+
+type SyncAlivePluginProcessInfoResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TriggerId     string                 `protobuf:"bytes,1,opt,name=trigger_id,json=triggerId,proto3" json:"trigger_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncAlivePluginProcessInfoResp_Data) Reset() {
+	*x = SyncAlivePluginProcessInfoResp_Data{}
+	mi := &file_sync_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncAlivePluginProcessInfoResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncAlivePluginProcessInfoResp_Data) ProtoMessage() {}
+
+func (x *SyncAlivePluginProcessInfoResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_sync_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncAlivePluginProcessInfoResp_Data.ProtoReflect.Descriptor instead.
+func (*SyncAlivePluginProcessInfoResp_Data) Descriptor() ([]byte, []int) {
+	return file_sync_proto_rawDescGZIP(), []int{15, 0}
+}
+
+func (x *SyncAlivePluginProcessInfoResp_Data) GetTriggerId() string {
+	if x != nil {
+		return x.TriggerId
+	}
+	return ""
+}
+
+type SyncAllAlivePluginProcessInfoResp_Data struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TriggerId     string                 `protobuf:"bytes,1,opt,name=trigger_id,json=triggerId,proto3" json:"trigger_id"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp_Data) Reset() {
+	*x = SyncAllAlivePluginProcessInfoResp_Data{}
+	mi := &file_sync_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp_Data) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SyncAllAlivePluginProcessInfoResp_Data) ProtoMessage() {}
+
+func (x *SyncAllAlivePluginProcessInfoResp_Data) ProtoReflect() protoreflect.Message {
+	mi := &file_sync_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SyncAllAlivePluginProcessInfoResp_Data.ProtoReflect.Descriptor instead.
+func (*SyncAllAlivePluginProcessInfoResp_Data) Descriptor() ([]byte, []int) {
+	return file_sync_proto_rawDescGZIP(), []int{17, 0}
+}
+
+func (x *SyncAllAlivePluginProcessInfoResp_Data) GetTriggerId() string {
 	if x != nil {
 		return x.TriggerId
 	}
@@ -1271,7 +1599,44 @@ var file_sync_proto_rawDesc = string([]byte{
 	0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a,
 	0x25, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1d, 0x0a, 0x0a, 0x74, 0x72, 0x69, 0x67, 0x67,
 	0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x74, 0x72, 0x69,
-	0x67, 0x67, 0x65, 0x72, 0x49, 0x64, 0x32, 0x9f, 0x06, 0x0a, 0x04, 0x53, 0x79, 0x6e, 0x63, 0x12,
+	0x67, 0x67, 0x65, 0x72, 0x49, 0x64, 0x22, 0x3a, 0x0a, 0x1d, 0x53, 0x79, 0x6e, 0x63, 0x41, 0x6c,
+	0x69, 0x76, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73,
+	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x12, 0x19, 0x0a, 0x08, 0x68, 0x6f, 0x73, 0x74, 0x5f,
+	0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x03, 0x52, 0x07, 0x68, 0x6f, 0x73, 0x74, 0x49,
+	0x64, 0x73, 0x22, 0xf2, 0x01, 0x0a, 0x1e, 0x53, 0x79, 0x6e, 0x63, 0x41, 0x6c, 0x69, 0x76, 0x65,
+	0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66,
+	0x6f, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73,
+	0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73,
+	0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69,
+	0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x49, 0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72,
+	0x72, 0x6f, 0x72, 0x12, 0x3b, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x27, 0x2e, 0x76, 0x33, 0x2e, 0x53, 0x79, 0x6e, 0x63, 0x41, 0x6c, 0x69, 0x76, 0x65,
+	0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66,
+	0x6f, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61,
+	0x1a, 0x25, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1d, 0x0a, 0x0a, 0x74, 0x72, 0x69, 0x67,
+	0x67, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x74, 0x72,
+	0x69, 0x67, 0x67, 0x65, 0x72, 0x49, 0x64, 0x22, 0x22, 0x0a, 0x20, 0x53, 0x79, 0x6e, 0x63, 0x41,
+	0x6c, 0x6c, 0x41, 0x6c, 0x69, 0x76, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f,
+	0x63, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x22, 0xf8, 0x01, 0x0a, 0x21,
+	0x53, 0x79, 0x6e, 0x63, 0x41, 0x6c, 0x6c, 0x41, 0x6c, 0x69, 0x76, 0x65, 0x50, 0x6c, 0x75, 0x67,
+	0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73,
+	0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12,
+	0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49, 0x64, 0x12, 0x1f,
+	0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e,
+	0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12,
+	0x3e, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x2a, 0x2e,
+	0x76, 0x33, 0x2e, 0x53, 0x79, 0x6e, 0x63, 0x41, 0x6c, 0x6c, 0x41, 0x6c, 0x69, 0x76, 0x65, 0x50,
+	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f,
+	0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a,
+	0x25, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1d, 0x0a, 0x0a, 0x74, 0x72, 0x69, 0x67, 0x67,
+	0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x74, 0x72, 0x69,
+	0x67, 0x67, 0x65, 0x72, 0x49, 0x64, 0x32, 0xda, 0x08, 0x0a, 0x04, 0x53, 0x79, 0x6e, 0x63, 0x12,
 	0x5c, 0x0a, 0x0c, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6d, 0x64, 0x62, 0x48, 0x6f, 0x73, 0x74, 0x12,
 	0x13, 0x2e, 0x76, 0x33, 0x2e, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6d, 0x64, 0x62, 0x48, 0x6f, 0x73,
 	0x74, 0x52, 0x65, 0x71, 0x1a, 0x14, 0x2e, 0x76, 0x33, 0x2e, 0x53, 0x79, 0x6e, 0x63, 0x43, 0x6d,
@@ -1321,12 +1686,31 @@ var file_sync_proto_rawDesc = string([]byte{
 	0x6e, 0x74, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x22, 0x2c, 0x82, 0xd3, 0xe4, 0x93,
 	0x02, 0x26, 0x3a, 0x01, 0x2a, 0x22, 0x21, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x2f, 0x73,
 	0x79, 0x6e, 0x63, 0x2f, 0x67, 0x73, 0x65, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x69, 0x6e,
-	0x66, 0x6f, 0x2f, 0x61, 0x6c, 0x69, 0x76, 0x65, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68,
-	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c,
-	0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67,
-	0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62,
-	0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x66, 0x6f, 0x2f, 0x61, 0x6c, 0x69, 0x76, 0x65, 0x12, 0x94, 0x01, 0x0a, 0x1a, 0x53, 0x79, 0x6e,
+	0x63, 0x41, 0x6c, 0x69, 0x76, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63,
+	0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x21, 0x2e, 0x76, 0x33, 0x2e, 0x53, 0x79, 0x6e,
+	0x63, 0x41, 0x6c, 0x69, 0x76, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63,
+	0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x1a, 0x22, 0x2e, 0x76, 0x33, 0x2e,
+	0x53, 0x79, 0x6e, 0x63, 0x41, 0x6c, 0x69, 0x76, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50,
+	0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x22, 0x2f,
+	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x29, 0x3a, 0x01, 0x2a, 0x22, 0x24, 0x2f, 0x61, 0x70, 0x69, 0x2f,
+	0x76, 0x33, 0x2f, 0x73, 0x79, 0x6e, 0x63, 0x2f, 0x67, 0x73, 0x65, 0x2f, 0x70, 0x6c, 0x75, 0x67,
+	0x69, 0x6e, 0x2f, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x2f, 0x69, 0x6e, 0x66, 0x6f, 0x12,
+	0xa1, 0x01, 0x0a, 0x1d, 0x53, 0x79, 0x6e, 0x63, 0x41, 0x6c, 0x6c, 0x41, 0x6c, 0x69, 0x76, 0x65,
+	0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66,
+	0x6f, 0x12, 0x24, 0x2e, 0x76, 0x33, 0x2e, 0x53, 0x79, 0x6e, 0x63, 0x41, 0x6c, 0x6c, 0x41, 0x6c,
+	0x69, 0x76, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73,
+	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x71, 0x1a, 0x25, 0x2e, 0x76, 0x33, 0x2e, 0x53, 0x79, 0x6e,
+	0x63, 0x41, 0x6c, 0x6c, 0x41, 0x6c, 0x69, 0x76, 0x65, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x50,
+	0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x73, 0x70, 0x22, 0x33,
+	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2d, 0x3a, 0x01, 0x2a, 0x22, 0x28, 0x2f, 0x61, 0x70, 0x69, 0x2f,
+	0x76, 0x33, 0x2f, 0x73, 0x79, 0x6e, 0x63, 0x2f, 0x67, 0x73, 0x65, 0x2f, 0x70, 0x6c, 0x75, 0x67,
+	0x69, 0x6e, 0x2f, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x2f, 0x69, 0x6e, 0x66, 0x6f, 0x2f,
+	0x61, 0x6c, 0x6c, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75, 0x65, 0x4b, 0x69, 0x6e,
+	0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72, 0x2f, 0x70, 0x6b, 0x67,
+	0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61, 0x63, 0x6b, 0x65, 0x6e,
+	0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -1341,65 +1725,79 @@ func file_sync_proto_rawDescGZIP() []byte {
 	return file_sync_proto_rawDescData
 }
 
-var file_sync_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_sync_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_sync_proto_goTypes = []any{
-	(*SyncCmdbHostReq)(nil),                 // 0: v3.SyncCmdbHostReq
-	(*SyncCmdbHostResp)(nil),                // 1: v3.SyncCmdbHostResp
-	(*SyncCmdbNetworkAreaReq)(nil),          // 2: v3.SyncCmdbNetworkAreaReq
-	(*SyncCmdbNetworkAreaResp)(nil),         // 3: v3.SyncCmdbNetworkAreaResp
-	(*SyncCmdbConstantsReq)(nil),            // 4: v3.SyncCmdbConstantsReq
-	(*SyncCmdbConstantsResp)(nil),           // 5: v3.SyncCmdbConstantsResp
-	(*SyncAgentStateReq)(nil),               // 6: v3.SyncAgentStateReq
-	(*SyncAgentStateResp)(nil),              // 7: v3.SyncAgentStateResp
-	(*SyncAllAgentStateReq)(nil),            // 8: v3.SyncAllAgentStateReq
-	(*SyncAllAgentStateResp)(nil),           // 9: v3.SyncAllAgentStateResp
-	(*SyncAgentInfoReq)(nil),                // 10: v3.SyncAgentInfoReq
-	(*SyncAgentInfoResp)(nil),               // 11: v3.SyncAgentInfoResp
-	(*SyncAliveHostAgentInfoReq)(nil),       // 12: v3.SyncAliveHostAgentInfoReq
-	(*SyncAliveHostAgentInfoResp)(nil),      // 13: v3.SyncAliveHostAgentInfoResp
-	(*SyncCmdbHostResp_Data)(nil),           // 14: v3.SyncCmdbHostResp.Data
-	(*SyncCmdbNetworkAreaResp_Data)(nil),    // 15: v3.SyncCmdbNetworkAreaResp.Data
-	(*SyncCmdbConstantsResp_Data)(nil),      // 16: v3.SyncCmdbConstantsResp.Data
-	(*SyncAgentStateResp_Data)(nil),         // 17: v3.SyncAgentStateResp.Data
-	(*SyncAllAgentStateResp_Data)(nil),      // 18: v3.SyncAllAgentStateResp.Data
-	(*SyncAgentInfoResp_Data)(nil),          // 19: v3.SyncAgentInfoResp.Data
-	(*SyncAliveHostAgentInfoResp_Data)(nil), // 20: v3.SyncAliveHostAgentInfoResp.Data
-	(*Error)(nil),                           // 21: v3.Error
+	(*SyncCmdbHostReq)(nil),                        // 0: v3.SyncCmdbHostReq
+	(*SyncCmdbHostResp)(nil),                       // 1: v3.SyncCmdbHostResp
+	(*SyncCmdbNetworkAreaReq)(nil),                 // 2: v3.SyncCmdbNetworkAreaReq
+	(*SyncCmdbNetworkAreaResp)(nil),                // 3: v3.SyncCmdbNetworkAreaResp
+	(*SyncCmdbConstantsReq)(nil),                   // 4: v3.SyncCmdbConstantsReq
+	(*SyncCmdbConstantsResp)(nil),                  // 5: v3.SyncCmdbConstantsResp
+	(*SyncAgentStateReq)(nil),                      // 6: v3.SyncAgentStateReq
+	(*SyncAgentStateResp)(nil),                     // 7: v3.SyncAgentStateResp
+	(*SyncAllAgentStateReq)(nil),                   // 8: v3.SyncAllAgentStateReq
+	(*SyncAllAgentStateResp)(nil),                  // 9: v3.SyncAllAgentStateResp
+	(*SyncAgentInfoReq)(nil),                       // 10: v3.SyncAgentInfoReq
+	(*SyncAgentInfoResp)(nil),                      // 11: v3.SyncAgentInfoResp
+	(*SyncAliveHostAgentInfoReq)(nil),              // 12: v3.SyncAliveHostAgentInfoReq
+	(*SyncAliveHostAgentInfoResp)(nil),             // 13: v3.SyncAliveHostAgentInfoResp
+	(*SyncAlivePluginProcessInfoReq)(nil),          // 14: v3.SyncAlivePluginProcessInfoReq
+	(*SyncAlivePluginProcessInfoResp)(nil),         // 15: v3.SyncAlivePluginProcessInfoResp
+	(*SyncAllAlivePluginProcessInfoReq)(nil),       // 16: v3.SyncAllAlivePluginProcessInfoReq
+	(*SyncAllAlivePluginProcessInfoResp)(nil),      // 17: v3.SyncAllAlivePluginProcessInfoResp
+	(*SyncCmdbHostResp_Data)(nil),                  // 18: v3.SyncCmdbHostResp.Data
+	(*SyncCmdbNetworkAreaResp_Data)(nil),           // 19: v3.SyncCmdbNetworkAreaResp.Data
+	(*SyncCmdbConstantsResp_Data)(nil),             // 20: v3.SyncCmdbConstantsResp.Data
+	(*SyncAgentStateResp_Data)(nil),                // 21: v3.SyncAgentStateResp.Data
+	(*SyncAllAgentStateResp_Data)(nil),             // 22: v3.SyncAllAgentStateResp.Data
+	(*SyncAgentInfoResp_Data)(nil),                 // 23: v3.SyncAgentInfoResp.Data
+	(*SyncAliveHostAgentInfoResp_Data)(nil),        // 24: v3.SyncAliveHostAgentInfoResp.Data
+	(*SyncAlivePluginProcessInfoResp_Data)(nil),    // 25: v3.SyncAlivePluginProcessInfoResp.Data
+	(*SyncAllAlivePluginProcessInfoResp_Data)(nil), // 26: v3.SyncAllAlivePluginProcessInfoResp.Data
+	(*Error)(nil),                                  // 27: v3.Error
 }
 var file_sync_proto_depIdxs = []int32{
-	21, // 0: v3.SyncCmdbHostResp.error:type_name -> v3.Error
-	14, // 1: v3.SyncCmdbHostResp.data:type_name -> v3.SyncCmdbHostResp.Data
-	21, // 2: v3.SyncCmdbNetworkAreaResp.error:type_name -> v3.Error
-	15, // 3: v3.SyncCmdbNetworkAreaResp.data:type_name -> v3.SyncCmdbNetworkAreaResp.Data
-	21, // 4: v3.SyncCmdbConstantsResp.error:type_name -> v3.Error
-	16, // 5: v3.SyncCmdbConstantsResp.data:type_name -> v3.SyncCmdbConstantsResp.Data
-	21, // 6: v3.SyncAgentStateResp.error:type_name -> v3.Error
-	17, // 7: v3.SyncAgentStateResp.data:type_name -> v3.SyncAgentStateResp.Data
-	21, // 8: v3.SyncAllAgentStateResp.error:type_name -> v3.Error
-	18, // 9: v3.SyncAllAgentStateResp.data:type_name -> v3.SyncAllAgentStateResp.Data
-	21, // 10: v3.SyncAgentInfoResp.error:type_name -> v3.Error
-	19, // 11: v3.SyncAgentInfoResp.data:type_name -> v3.SyncAgentInfoResp.Data
-	21, // 12: v3.SyncAliveHostAgentInfoResp.error:type_name -> v3.Error
-	20, // 13: v3.SyncAliveHostAgentInfoResp.data:type_name -> v3.SyncAliveHostAgentInfoResp.Data
-	0,  // 14: v3.Sync.SyncCmdbHost:input_type -> v3.SyncCmdbHostReq
-	2,  // 15: v3.Sync.SyncCmdbNetworkArea:input_type -> v3.SyncCmdbNetworkAreaReq
-	4,  // 16: v3.Sync.SyncCmdbConstants:input_type -> v3.SyncCmdbConstantsReq
-	6,  // 17: v3.Sync.SyncAgentState:input_type -> v3.SyncAgentStateReq
-	8,  // 18: v3.Sync.SyncAllAgentState:input_type -> v3.SyncAllAgentStateReq
-	10, // 19: v3.Sync.SyncAgentInfo:input_type -> v3.SyncAgentInfoReq
-	12, // 20: v3.Sync.SyncAliveHostAgentInfo:input_type -> v3.SyncAliveHostAgentInfoReq
-	1,  // 21: v3.Sync.SyncCmdbHost:output_type -> v3.SyncCmdbHostResp
-	3,  // 22: v3.Sync.SyncCmdbNetworkArea:output_type -> v3.SyncCmdbNetworkAreaResp
-	5,  // 23: v3.Sync.SyncCmdbConstants:output_type -> v3.SyncCmdbConstantsResp
-	7,  // 24: v3.Sync.SyncAgentState:output_type -> v3.SyncAgentStateResp
-	9,  // 25: v3.Sync.SyncAllAgentState:output_type -> v3.SyncAllAgentStateResp
-	11, // 26: v3.Sync.SyncAgentInfo:output_type -> v3.SyncAgentInfoResp
-	13, // 27: v3.Sync.SyncAliveHostAgentInfo:output_type -> v3.SyncAliveHostAgentInfoResp
-	21, // [21:28] is the sub-list for method output_type
-	14, // [14:21] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	27, // 0: v3.SyncCmdbHostResp.error:type_name -> v3.Error
+	18, // 1: v3.SyncCmdbHostResp.data:type_name -> v3.SyncCmdbHostResp.Data
+	27, // 2: v3.SyncCmdbNetworkAreaResp.error:type_name -> v3.Error
+	19, // 3: v3.SyncCmdbNetworkAreaResp.data:type_name -> v3.SyncCmdbNetworkAreaResp.Data
+	27, // 4: v3.SyncCmdbConstantsResp.error:type_name -> v3.Error
+	20, // 5: v3.SyncCmdbConstantsResp.data:type_name -> v3.SyncCmdbConstantsResp.Data
+	27, // 6: v3.SyncAgentStateResp.error:type_name -> v3.Error
+	21, // 7: v3.SyncAgentStateResp.data:type_name -> v3.SyncAgentStateResp.Data
+	27, // 8: v3.SyncAllAgentStateResp.error:type_name -> v3.Error
+	22, // 9: v3.SyncAllAgentStateResp.data:type_name -> v3.SyncAllAgentStateResp.Data
+	27, // 10: v3.SyncAgentInfoResp.error:type_name -> v3.Error
+	23, // 11: v3.SyncAgentInfoResp.data:type_name -> v3.SyncAgentInfoResp.Data
+	27, // 12: v3.SyncAliveHostAgentInfoResp.error:type_name -> v3.Error
+	24, // 13: v3.SyncAliveHostAgentInfoResp.data:type_name -> v3.SyncAliveHostAgentInfoResp.Data
+	27, // 14: v3.SyncAlivePluginProcessInfoResp.error:type_name -> v3.Error
+	25, // 15: v3.SyncAlivePluginProcessInfoResp.data:type_name -> v3.SyncAlivePluginProcessInfoResp.Data
+	27, // 16: v3.SyncAllAlivePluginProcessInfoResp.error:type_name -> v3.Error
+	26, // 17: v3.SyncAllAlivePluginProcessInfoResp.data:type_name -> v3.SyncAllAlivePluginProcessInfoResp.Data
+	0,  // 18: v3.Sync.SyncCmdbHost:input_type -> v3.SyncCmdbHostReq
+	2,  // 19: v3.Sync.SyncCmdbNetworkArea:input_type -> v3.SyncCmdbNetworkAreaReq
+	4,  // 20: v3.Sync.SyncCmdbConstants:input_type -> v3.SyncCmdbConstantsReq
+	6,  // 21: v3.Sync.SyncAgentState:input_type -> v3.SyncAgentStateReq
+	8,  // 22: v3.Sync.SyncAllAgentState:input_type -> v3.SyncAllAgentStateReq
+	10, // 23: v3.Sync.SyncAgentInfo:input_type -> v3.SyncAgentInfoReq
+	12, // 24: v3.Sync.SyncAliveHostAgentInfo:input_type -> v3.SyncAliveHostAgentInfoReq
+	14, // 25: v3.Sync.SyncAlivePluginProcessInfo:input_type -> v3.SyncAlivePluginProcessInfoReq
+	16, // 26: v3.Sync.SyncAllAlivePluginProcessInfo:input_type -> v3.SyncAllAlivePluginProcessInfoReq
+	1,  // 27: v3.Sync.SyncCmdbHost:output_type -> v3.SyncCmdbHostResp
+	3,  // 28: v3.Sync.SyncCmdbNetworkArea:output_type -> v3.SyncCmdbNetworkAreaResp
+	5,  // 29: v3.Sync.SyncCmdbConstants:output_type -> v3.SyncCmdbConstantsResp
+	7,  // 30: v3.Sync.SyncAgentState:output_type -> v3.SyncAgentStateResp
+	9,  // 31: v3.Sync.SyncAllAgentState:output_type -> v3.SyncAllAgentStateResp
+	11, // 32: v3.Sync.SyncAgentInfo:output_type -> v3.SyncAgentInfoResp
+	13, // 33: v3.Sync.SyncAliveHostAgentInfo:output_type -> v3.SyncAliveHostAgentInfoResp
+	15, // 34: v3.Sync.SyncAlivePluginProcessInfo:output_type -> v3.SyncAlivePluginProcessInfoResp
+	17, // 35: v3.Sync.SyncAllAlivePluginProcessInfo:output_type -> v3.SyncAllAlivePluginProcessInfoResp
+	27, // [27:36] is the sub-list for method output_type
+	18, // [18:27] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_sync_proto_init() }
@@ -1414,7 +1812,7 @@ func file_sync_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sync_proto_rawDesc), len(file_sync_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   21,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

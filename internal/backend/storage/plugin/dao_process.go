@@ -154,6 +154,7 @@ func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([
 	return opts, nil
 }
 
+// nolint: nonamedreturns
 func (s *Storage) existProcess(nCtx contextx.IContext, processID string) (exist bool, err error) {
 	if nCtx == nil {
 		return false, base.ErrInvalidContext()
@@ -165,4 +166,22 @@ func (s *Storage) existProcess(nCtx contextx.IContext, processID string) (exist 
 	}
 
 	return exist, nil
+}
+
+// nolint: nonamedreturns
+func (s *Storage) updateManyProcessInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) (err error) {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if len(processes) == 0 {
+		return base.ErrInvalidParam(fmt.Errorf("process info map is empty"))
+	}
+
+	err = s.daoProcess.UpdateManyInfo(nCtx, processes)
+	if err != nil {
+		return fmt.Errorf("failed to batch update process info: %w", err)
+	}
+
+	return nil
 }

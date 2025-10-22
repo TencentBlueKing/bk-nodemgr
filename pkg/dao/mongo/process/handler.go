@@ -43,6 +43,9 @@ type IHandler interface {
 	// UpdateInfo update a process info by conditions.
 	UpdateInfo(nCtx contextx.IContext, processID string, processInfo *types.ProcessInfo) error
 
+	// UpdateManyInfo batch update process info by process ID.
+	UpdateManyInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) error
+
 	// Delete delete a process by conditions.
 	Delete(nCtx contextx.IContext, processID string) error
 
@@ -305,6 +308,40 @@ func (h *Handler) UpdateInfo(nCtx contextx.IContext, processID string, processIn
 		logger.G.Sys().With("process-id", processID).WithErr(err).Error("failed to update process info")
 
 		return fmt.Errorf("failed to update process info: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateManyInfo batch update process info by process ID.
+func (h *Handler) UpdateManyInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %v", err)
+	}
+
+	processUpdates := make([]*base.DocumentFieldUpdate, 0, len(processes))
+	for procID, proc := range processes {
+		filter := base.AliveFilter()
+		opts := []base.OptFn{
+			WithProcessID(procID),
+		}
+		for _, opt := range opts {
+			filter = opt(filter)
+		}
+
+		processUpdates = append(processUpdates, &base.DocumentFieldUpdate{
+			Filter: filter,
+			Fields: map[string]any{
+				FieldKeyInfo: convProcessInfoFromTypes(proc),
+			},
+		})
+	}
+
+	err := h.tenantDao(nCtx.TenantID()).UpdateFieldsBulk(nCtx, processUpdates)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to batch update process info")
+
+		return fmt.Errorf("failed to batch update process info: %v", err)
 	}
 
 	return nil

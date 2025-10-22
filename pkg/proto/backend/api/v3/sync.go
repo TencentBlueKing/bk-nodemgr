@@ -71,3 +71,21 @@ func (x *SyncAliveHostAgentInfoReq) Validate() error {
 // AutoConvert auto convert.
 func (x *SyncAliveHostAgentInfoReq) AutoConvert() {
 }
+
+// AutoConvert auto convert.
+func (x *SyncAlivePluginProcessInfoReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncAlivePluginProcessInfoReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *SyncAllAlivePluginProcessInfoReq) AutoConvert() {
+}
+
+// Validate check body.
+func (x *SyncAllAlivePluginProcessInfoReq) Validate() error {
+	return nil
+}

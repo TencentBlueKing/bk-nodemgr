@@ -111,6 +111,7 @@ func (mgr *Manager) registerDefSyncData() error {
 		StorageTopo:         mgr.conf.StorageTopo,
 		StorageRelease:      mgr.conf.StorageRelease,
 		StorageNode:         mgr.conf.StorageNode,
+		StoragePlugin:       mgr.conf.StoragePlugin,
 		StorageWorkflow:     mgr.conf.StorageWorkflow,
 		StorageHostCredit:   mgr.conf.StorageHostCredit,
 		StorageConfigPolicy: mgr.conf.StorageConfigPolicy,
@@ -130,6 +131,8 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionSyncAgentInfo(syncdataCap),
 		syncdata.NewActionGenOperSyncAgentInfo(syncdataCap),
 		syncdata.NewActionWatchCMDBResource(syncdataCap),
+		syncdata.NewActionSyncAlivePluginProcessInfo(syncdataCap),
+		syncdata.NewActionGenOperSyncAlivePluginProcessInfo(syncdataCap),
 	); err != nil {
 		return err
 	}

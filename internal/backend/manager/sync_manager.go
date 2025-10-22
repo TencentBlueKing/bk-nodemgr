@@ -43,6 +43,12 @@ type ISyncManager interface {
 
 	// LaunchSyncAliveHostAgentInfo launch a task to sync alive host agent info. returns the trigger-id.
 	LaunchSyncAliveHostAgentInfo(ctx contextx.IContext) (string, error)
+
+	// LaunchSyncAlivePluginProcessInfo launch a task to sync alive plugin process info. returns the workflow-id.
+	LaunchSyncAlivePluginProcessInfo(ctx contextx.IContext, hostIDs ...int64) (string, error)
+
+	// LaunchSyncAllAlivePluginProcessInfo launch a task to sync all alive plugin process info. returns the workflow-id.
+	LaunchSyncAllAlivePluginProcessInfo(ctx contextx.IContext) (string, error)
 }
 
 // LaunchSyncAllAgentState launch a task to sync all agent state.
@@ -296,6 +302,71 @@ func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64)
 	logger.G.Sys().
 		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
 		Info("launched sync agent info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncAlivePluginProcessInfo launch a task to sync alive plugin process info.
+func (mgr *Manager) LaunchSyncAlivePluginProcessInfo(ctx contextx.IContext, hostIDs ...int64) (string, error) {
+	if len(hostIDs) == 0 {
+		return "", errors.New("hostIDs cannot be empty")
+	}
+
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncAlivePluginProcessInfo(syncdata.OperParamSyncAlivePluginProcessInfo{
+		TenantID: tenantID,
+		Operator: operator,
+		HostIDs:  hostIDs,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync alive plugin process info task")
+
+	return triggerCtl.GetTriggerID(), nil
+}
+
+// LaunchSyncAllAlivePluginProcessInfo launch a task to sync all alive plugin process info.
+func (mgr *Manager) LaunchSyncAllAlivePluginProcessInfo(ctx contextx.IContext) (string, error) {
+	tenantID := ctx.TenantID()
+	operator := ctx.BKUsername()
+
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	operationDef := syncdata.NewOperSyncAllAlivePluginProcessInfo(syncdata.OperParamSyncAllAlivePluginProcessInfo{
+		TenantID: tenantID,
+		Operator: operator,
+	})
+	operCtl, err := triggerCtl.CreateOperation(ctx, operationDef, operationDef.DefaultParameters())
+	if err != nil {
+		return "", err
+	}
+
+	if err = triggerCtl.RunTrigger(ctx); err != nil {
+		return "", err
+	}
+
+	logger.G.Sys().
+		With("tenant-id", tenantID, "trigger-id", triggerCtl.GetTriggerID(), "operation-id", operCtl.GetOperationID()).
+		Info("launched sync all alive plugin process info task")
 
 	return triggerCtl.GetTriggerID(), nil
 }

@@ -238,3 +238,12 @@ type Process struct {
 	Resource      ProcessResource
 	MonitorPolicy ProcessMonitorPolicy
 }
+
+// ProcessIDInfo is a map of process ID to process info.
+type ProcessIDInfo map[string]ProcessInfo
+
+// ProcessAgentGroup process agent group.
+type ProcessAgentGroup struct {
+	Name        string
+	AgentIDList []string
+}

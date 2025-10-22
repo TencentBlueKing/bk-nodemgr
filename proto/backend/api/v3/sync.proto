@@ -112,6 +112,37 @@ message SyncAliveHostAgentInfoResp {
   Data data = 5;
 }
 
+// SyncAlivePluginProcessInfoReq describes the HTTP request body when sync alive
+message SyncAlivePluginProcessInfoReq { repeated int64 host_ids = 1; }
+
+// SyncAlivePluginProcessInfoResp describes the HTTP response body when sync
+// alive
+message SyncAlivePluginProcessInfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
+// SyncAllAlivePluginProcessInfoReq describes the HTTP request body when sync
+// all alive
+message SyncAllAlivePluginProcessInfoReq {}
+
+// SyncAllAlivePluginProcessInfoResp describes the HTTP response body when sync
+// all alive
+message SyncAllAlivePluginProcessInfoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string trigger_id = 1; }
+  Data data = 5;
+}
+
 // sync service.
 service Sync {
   // SyncCmdbHost provides syncing cmdb host.
@@ -164,6 +195,22 @@ service Sync {
       returns (SyncAliveHostAgentInfoResp) {
     option (google.api.http) = {
       post : "/api/v3/sync/gse/agent/info/alive"
+      body : "*"
+    };
+  }
+
+  rpc SyncAlivePluginProcessInfo(SyncAlivePluginProcessInfoReq)
+      returns (SyncAlivePluginProcessInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process/info"
+      body : "*"
+    };
+  }
+
+  rpc SyncAllAlivePluginProcessInfo(SyncAllAlivePluginProcessInfoReq)
+      returns (SyncAllAlivePluginProcessInfoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/sync/gse/plugin/process/info/all"
       body : "*"
     };
   }

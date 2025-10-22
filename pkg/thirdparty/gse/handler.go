@@ -111,10 +111,9 @@ type IHandlerProc interface {
 	QueryMultiProcessInfo(nCtx contextx.IContext, agentID string, processName ...string) (map[string][]types.ProcessInfo, error)
 
 	// QueryMultiProcessInfoMany query multiple process info for many agents.
-	// @param agentIDList  given agent id list.
-	// @param processNameList given process name list.
+	// @param procNameAgentIDMap given agent id list and process name mapping.
 	// @return map[processName] -> []types.ProcessInfo
-	QueryMultiProcessInfoMany(nCtx contextx.IContext, agentIDList, processNameList []string) (map[string][]types.ProcessInfo, error)
+	QueryMultiProcessInfoMany(nCtx contextx.IContext, procNameAgentIDMap ...*types.ProcessAgentGroup) (map[string][]types.ProcessInfo, error)
 
 	// TrusteeshipProcess order the gse_agent to trusteeship the process.
 	TrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
@@ -760,22 +759,28 @@ func (h *Handler) QueryMultiProcessInfo(nCtx contextx.IContext, agentID string, 
 }
 
 // QueryMultiProcessInfoMany query multiple process info for many agents.
-func (h *Handler) QueryMultiProcessInfoMany(nCtx contextx.IContext, agentIDList, processNameList []string) (map[string][]types.ProcessInfo, error) {
-	operateProcReqs := make([]*procOperateReq, 0, len(processNameList))
-	for _, name := range processNameList {
+func (h *Handler) QueryMultiProcessInfoMany(
+	nCtx contextx.IContext, procNameAgentIDMap ...*types.ProcessAgentGroup) (map[string][]types.ProcessInfo, error) {
+
+	if len(procNameAgentIDMap) == 0 {
+		return make(map[string][]types.ProcessInfo), nil
+	}
+
+	operateProcReqs := make([]*procOperateReq, 0, len(procNameAgentIDMap))
+	for _, item := range procNameAgentIDMap {
 		operateProcReqs = append(operateProcReqs, &procOperateReq{
 			Meta: procMeta{
 				Namespace: procNameSpace,
-				Name:      name,
+				Name:      item.Name,
 				Labels: procInfoMetaLabels{
-					ProcName: name,
+					ProcName: item.Name,
 				},
 			},
 			OpType:      procOperateCodeStatus,
-			AgentIDList: agentIDList,
+			AgentIDList: item.AgentIDList,
 			Spec: procSpec{
 				Identity: procSpecIdentity{
-					ProcName: name,
+					ProcName: item.Name,
 				},
 			},
 		})

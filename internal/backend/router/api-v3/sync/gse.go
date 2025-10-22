@@ -101,3 +101,45 @@ func (h *handler) SyncAliveHostAgentInfo(rCtx restserver.IContext) (any, error) 
 
 	return resp, nil
 }
+
+// SyncAlivePluginProcessInfo start an operation to sync alive host plugin process info from gse.
+func (h *handler) SyncAlivePluginProcessInfo(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncAlivePluginProcessInfoReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync alive plugin process info decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncAlivePluginProcessInfo(rCtx, req.GetHostIds()...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync alive plugin process info operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncAlivePluginProcessInfoResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}
+
+// SyncAllAlivePluginProcessInfo start an operation to sync all alive host plugin process info from gse.
+func (h *handler) SyncAllAlivePluginProcessInfo(rCtx restserver.IContext) (any, error) {
+	req := new(protoBackend.SyncAllAlivePluginProcessInfoReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("sync all alive plugin process info decode request body failed")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	triggerID, err := h.manager.LaunchSyncAllAlivePluginProcessInfo(rCtx)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("trigger-id", triggerID).Error("start sync all alive plugin process info operation")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	resp := &protoBackend.SyncAllAlivePluginProcessInfoResp_Data{
+		TriggerId: triggerID,
+	}
+
+	return resp, nil
+}

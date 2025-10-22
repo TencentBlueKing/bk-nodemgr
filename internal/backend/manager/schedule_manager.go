@@ -32,11 +32,12 @@ import (
 )
 
 const (
-	scheduledWorkflowSyncBizAndHost            = "sync_biz_and_host"
-	scheduledWorkflowSyncNetworkArea           = "sync_networkarea"
-	scheduledWorkflowSyncAgentState            = "sync_agent_state"
-	scheduledWorkflowSyncAliveAgentInfo        = "sync_alive_agent_info"
-	scheduledWorkflowWatchAndApplyCMDBResource = "watch_and_apply_cmdb_resource"
+	scheduledWorkflowSyncBizAndHost             = "sync_biz_and_host"
+	scheduledWorkflowSyncNetworkArea            = "sync_networkarea"
+	scheduledWorkflowSyncAgentState             = "sync_agent_state"
+	scheduledWorkflowSyncAliveAgentInfo         = "sync_alive_agent_info"
+	scheduledWorkflowSyncAlivePluginProcessInfo = "sync_alive_plugin_process_info"
+	scheduledWorkflowWatchAndApplyCMDBResource  = "watch_and_apply_cmdb_resource"
 )
 
 const (
@@ -48,21 +49,23 @@ type syncScheduledWorkflowFunc func(nCtx contextx.IContext, sw *types.ScheduledW
 
 func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWorkflowFunc {
 	return map[string]initScheduledWorkflowFunc{
-		scheduledWorkflowSyncBizAndHost:            mgr.initSWSyncBizAndHost,
-		scheduledWorkflowSyncNetworkArea:           mgr.initSWSyncNetworkArea,
-		scheduledWorkflowSyncAgentState:            mgr.initSWSyncAgentState,
-		scheduledWorkflowSyncAliveAgentInfo:        mgr.initSWSyncAliveAgentInfo,
-		scheduledWorkflowWatchAndApplyCMDBResource: mgr.initSWWatchAndApplyCMDBResource,
+		scheduledWorkflowSyncBizAndHost:             mgr.initSWSyncBizAndHost,
+		scheduledWorkflowSyncNetworkArea:            mgr.initSWSyncNetworkArea,
+		scheduledWorkflowSyncAgentState:             mgr.initSWSyncAgentState,
+		scheduledWorkflowSyncAliveAgentInfo:         mgr.initSWSyncAliveAgentInfo,
+		scheduledWorkflowSyncAlivePluginProcessInfo: mgr.initSWSyncAlivePluginProcessInfo,
+		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.initSWWatchAndApplyCMDBResource,
 	}
 }
 
 func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWorkflowFunc {
 	return map[string]syncScheduledWorkflowFunc{
-		scheduledWorkflowSyncBizAndHost:            mgr.syncSWSyncBizAndHost,
-		scheduledWorkflowSyncNetworkArea:           mgr.syncSWSyncNetworkArea,
-		scheduledWorkflowSyncAgentState:            mgr.syncSWSyncAgentState,
-		scheduledWorkflowSyncAliveAgentInfo:        mgr.syncSWSyncAliveAgentInfo,
-		scheduledWorkflowWatchAndApplyCMDBResource: mgr.syncSWWatchAndApplyCMDBResource,
+		scheduledWorkflowSyncBizAndHost:             mgr.syncSWSyncBizAndHost,
+		scheduledWorkflowSyncNetworkArea:            mgr.syncSWSyncNetworkArea,
+		scheduledWorkflowSyncAgentState:             mgr.syncSWSyncAgentState,
+		scheduledWorkflowSyncAliveAgentInfo:         mgr.syncSWSyncAliveAgentInfo,
+		scheduledWorkflowSyncAlivePluginProcessInfo: mgr.syncSWSyncAlivePluginProcessInfo,
+		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.syncSWWatchAndApplyCMDBResource,
 	}
 }
 
@@ -307,6 +310,20 @@ func (mgr *Manager) initSWSyncAliveAgentInfo(nCtx contextx.IContext, tenantID st
 
 func (mgr *Manager) syncSWSyncAliveAgentInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
 	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncAliveAgentInfo(schedule.OperParamSyncAliveAgentInfo{
+		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
+			WorkflowID: sw.WorkflowID,
+			TenantID:   sw.TenantID,
+			Operator:   access.GetVirtualUser(),
+		},
+	}))
+}
+
+func (mgr *Manager) initSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, tenantID string) error {
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncAlivePluginProcessInfo, scheduler.Every+"10m")
+}
+
+func (mgr *Manager) syncSWSyncAlivePluginProcessInfo(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	return mgr.syncScheduledWorkflow(nCtx, sw, schedule.NewOperSyncAlivePluginProcessInfo(schedule.OperParamSyncAlivePluginProcessInfo{
 		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
 			WorkflowID: sw.WorkflowID,
 			TenantID:   sw.TenantID,

@@ -1116,9 +1116,8 @@ func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
 	nCtx := contextx.New(context.Background())
 
 	type args struct {
-		nCtx         contextx.IContext
-		agentID      []string
-		processNames []string
+		nCtx               contextx.IContext
+		procNameAgentIDMap []*types.ProcessAgentGroup
 	}
 	tests := []struct {
 		name    string
@@ -1129,14 +1128,23 @@ func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
 			name: "normal",
 			args: args{
 				nCtx: nCtx,
-				agentID: []string{
-					"02000000000050568c81cb1756717277188u",
-					"02000000000050568c468217552397004082",
-					"02000000000050568c22a41760081249022o",
-				},
-				processNames: []string{
-					"bkmonitorbeat",
-					"bkunifylogbeat",
+				procNameAgentIDMap: []*types.ProcessAgentGroup{
+					{
+						Name: "bkmonitorbeat",
+						AgentIDList: []string{
+							"02000000000050568c81cb1756717277188u",
+							"02000000000050568c468217552397004082",
+							"02000000000050568c22a41760081249022o",
+						},
+					},
+					{
+						Name: "bkunifylogbeat",
+						AgentIDList: []string{
+							"02000000000050568c81cb1756717277188u",
+							"02000000000050568c468217552397004082",
+							"02000000000050568c22a41760081249022o",
+						},
+					},
 				},
 			},
 			wantErr: false,
@@ -1145,7 +1153,7 @@ func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.QueryMultiProcessInfoMany(tt.args.nCtx, tt.args.agentID, tt.args.processNames)
+			got, err := h.QueryMultiProcessInfoMany(tt.args.nCtx, tt.args.procNameAgentIDMap...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("QueryMultiProcessInfoMany() error = %v, wantErr %v", err, tt.wantErr)
 				return

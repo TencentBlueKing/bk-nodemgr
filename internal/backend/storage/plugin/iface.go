@@ -84,4 +84,7 @@ type IDaoProcess interface {
 
 	// ExistProcess exist process.
 	ExistProcess(nCtx contextx.IContext, processID string) (bool, error)
+
+	// UpdateManyProcessInfo batch update process info by process ID.
+	UpdateManyProcessInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) error
 }

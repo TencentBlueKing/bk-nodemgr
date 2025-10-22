@@ -33,12 +33,6 @@ type Plugin struct {
 	PluginPkgName string `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
 }
 
-// Platform defines the Platform.
-type Platform struct {
-	OS   string `json:"os" bson:"os"`
-	Arch string `json:"arch" bson:"arch"`
-}
-
 // UniqueFields unique fields of the table.
 func (deploy *Plugin) UniqueFields() []string {
 	return []string{FieldKeyPluginID}

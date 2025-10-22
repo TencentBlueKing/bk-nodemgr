@@ -297,3 +297,14 @@ func (s *Storage) ExistProcess(nCtx contextx.IContext, processID string) (exist 
 
 	return exist, err
 }
+
+// UpdateManyProcessInfo batch update process info by process ID.
+func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processes types.ProcessIDInfo) (err error) {
+	// record metric.
+	metric := s.metric().Start("update_many_process_info")
+	defer metric.End(err)
+
+	err = s.updateManyProcessInfo(nCtx, processes)
+
+	return err
+}
