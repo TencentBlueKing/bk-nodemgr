@@ -639,10 +639,10 @@ const handleFilter = ({
   }
   // 当表头筛选版本和系统架构时，快捷筛选选择全部
   if (field === 'version') {
-    selectDimensionOptional('all', 'version');
+    selectDimensionOptional(null, 'version');
   }
   if (field === 'os_type' || field === 'cpu_arch') {
-    selectDimensionOptional('all', 'os_cpu_arch');
+    selectDimensionOptional(null, 'os_cpu_arch');
   }
 };
 // 搜索
@@ -655,10 +655,16 @@ const handleSearchSelectChange = async (data: {id: string, name: string, values:
   }
 };
 // 维度nav click 可以多选, 如果选择非all，则all取消选中状态，如果空了则选择all
-const selectDimensionOptional = (id: string, dimension: PkgQuickType, type?: string) => {
+const selectDimensionOptional = (id: string | null, dimension: PkgQuickType, type?: string) => {
   // 维度映射到状态属性
   const stateProperty = dimension === 'version' ? 'versionDimensionOptional' : 'osDimensionOptional';
   const targetSet = state[stateProperty]; // 提取目标集合，减少重复访问
+
+  // 处理筛选逻辑：清空并失去焦点
+  if (id === null) {
+    targetSet.clear();
+    return;
+  }
 
   // 处理全选逻辑：清空并仅保留'all'
   if (id === 'all') {
