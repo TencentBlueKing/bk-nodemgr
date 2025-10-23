@@ -28,6 +28,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
@@ -441,6 +442,13 @@ func (svc *Service) initialStorages() error {
 		svc.conf.MongoDB.Database)
 	if err != nil {
 		return fmt.Errorf("failed to create config policy storage: %w", err)
+	}
+
+	svc.Cap.StorageDeployPolicy, err = deploypolicy.NewStorage(
+		svc.Cap.MongoClient,
+		svc.conf.MongoDB.Database)
+	if err != nil {
+		return fmt.Errorf("failed to create deploy policy storage: %w", err)
 	}
 
 	svc.Cap.StorageGlobalSettings, err = globalsettingsStorage.NewStorage(

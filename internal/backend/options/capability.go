@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	globalsettingsStorage "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/globalsettings"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
@@ -70,6 +71,9 @@ type Capability struct {
 
 	// StorageConfigPolicy config policy storage.
 	StorageConfigPolicy configpolicy.IStorage
+
+	// StorageDeployPolicy deploy policy storage.
+	StorageDeployPolicy deploypolicy.IStorage
 
 	// CmdbHandler cmdb handler.
 	CmdbHandler cmdb.IHandler
@@ -141,6 +145,10 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 	}
 
 	if err := capability.StorageConfigPolicy.Start(ctx); err != nil {
+		return err
+	}
+
+	if err := capability.StorageDeployPolicy.Start(ctx); err != nil {
 		return err
 	}
 

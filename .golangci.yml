@@ -769,3 +769,5 @@ linters-settings:
         alias: daoPlugin
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/packageevent
         alias: daoPackageEvent
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/deploy_policy
+        alias: daoDeployPolicy

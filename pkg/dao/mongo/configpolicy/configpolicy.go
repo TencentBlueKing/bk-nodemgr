@@ -63,7 +63,7 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 }
 
 func (d *dao) create(nCtx contextx.IContext, configPolicy *ConfigPolicy) (int64, error) {
-	newSequence, err := d.counter.Generate(nCtx, "configpolicy")
+	newSequence, err := d.counter.Generate(nCtx, tableNamePrefix)
 	if err != nil {
 		return 0, err
 	}

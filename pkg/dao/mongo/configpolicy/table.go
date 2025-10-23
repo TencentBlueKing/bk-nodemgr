@@ -17,9 +17,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
+const tableNamePrefix = "configpolicy"
+
 // TableName config policy table name.
 func TableName(tenantID string) string {
-	return "configpolicy_" + tenantID
+	return tableNamePrefix + "_" + tenantID
 }
 
 var _ base.IData = &ConfigPolicy{}
