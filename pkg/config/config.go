@@ -352,6 +352,31 @@ type Repo struct {
 	SecretKey string `yaml:"secretKey" usage:"secret key of repo"`
 }
 
+// Validate validates the config.
+func (repo Repo) Validate() error {
+	if repo.Endpoint == "" {
+		return errors.New("endpoint of repo is empty")
+	}
+
+	if repo.ProjectID == "" {
+		return errors.New("projectID of repo is empty")
+	}
+
+	if repo.RepoName == "" {
+		return errors.New("repo name of repo is empty")
+	}
+
+	if repo.AccessKey == "" {
+		return errors.New("access key of repo is empty")
+	}
+
+	if repo.SecretKey == "" {
+		return errors.New("secret key of repo is empty")
+	}
+
+	return nil
+}
+
 // TLSConfig defines tls related options.
 type TLSConfig struct {
 	// Server should be accessed without verifying the TLS certificate.
@@ -458,16 +483,21 @@ type GSEPlugin struct {
 	MessageLocalSocketPort  int    `yaml:"messageLocalSocketPort" usage:"message local socket port of gse agent plugin"`
 }
 
-// BKPaaS the config of bk PaaS.
-type BKPaaS struct {
-	AnalysisScript string `yaml:"analysisScript" usage:"analysis script of bk PaaS"`
-}
-
 // Front the config of front.
 type Front struct {
 	// PasswordVault Options.
 	PasswordVaultSwitch bool
 	PasswordVaultName   string
+}
+
+// Validate validates the config.
+func (front *Front) Validate() error {
+	return nil
+}
+
+// BKPaaS the config of bk PaaS.
+type BKPaaS struct {
+	AnalysisScript string `yaml:"analysisScript" usage:"analysis script of bk PaaS"`
 }
 
 // Validate validates the config.
@@ -553,6 +583,20 @@ type APIGateWayServer struct {
 func (conf *APIGateWayServer) Validate() error {
 	if conf.PublickeyPem == "" {
 		return errors.New("publickey pem of api gateway is empty")
+	}
+
+	return nil
+}
+
+// RestServer defines the config of rest server.
+type RestServer struct {
+	JwtSecret string `yaml:"jwtSecret" usage:"jwt secret of rest server"`
+}
+
+// Validate validates the config.
+func (rest RestServer) Validate() error {
+	if rest.JwtSecret == "" {
+		return errors.New("jwt secret of rest server is empty")
 	}
 
 	return nil

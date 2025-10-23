@@ -55,7 +55,9 @@ func testClient(t *testing.T) IHandler {
 		MetricOpts:           restclient.MetricOption{},
 	}
 
-	h, err := New(clientCap, &Config{})
+	h, err := New(clientCap, &Config{
+		RestJwtSecret: "test",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

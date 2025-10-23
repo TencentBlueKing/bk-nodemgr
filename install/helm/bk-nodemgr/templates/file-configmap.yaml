@@ -32,6 +32,8 @@ data:
       advertiseIPV4: __ADVERTISE_IPV4__
       advertiseIPV6: __ADVERTISE_IPV6__
 
+    restServer: {{ .Values.file.config.restServer | toYaml | nindent 6 }}
+
     workspaceFileGroup: {{ .Values.file.config.workspaceFileGroup | toYaml | nindent 6 }}
 
     mountHostDir: {{ .Values.file.config.mountHostDir | toYaml | nindent 6 }}

@@ -18,6 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"gopkg.in/yaml.v2"
 )
 
@@ -87,6 +88,7 @@ type BackendService struct {
 	InstallerFileGroup FileGroup        `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
 	CreditVault        CreditVault      `yaml:"creditVault" usage:"credit vault config of backend service"`
 	APIGateWayServer   APIGateWayServer `yaml:"apiGateWayServer" usage:"api gateway config of backend service"`
+	RestServer         RestServer       `yaml:"restServer" usage:"rest server config of backend service"`
 	Access             Access           `yaml:"access" usage:"access config of backend service"`
 }
 
@@ -189,6 +191,7 @@ func (svc *BackendService) LoadFromFile(path string) error {
 }
 
 // Validate validates the config.
+// nolint: funlen, gocognit, gocyclo, cyclop
 func (svc *BackendService) Validate() error {
 	if err := svc.RunMode.Validate(); err != nil {
 		return fmt.Errorf("failed to validate run mode config: %w", err)
@@ -234,6 +237,52 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate log config: %w", err)
 	}
 
+	if err := svc.RestServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate rest service config: %w", err)
+	}
+
+	if err := svc.APIGateWayServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate rest service config: %w", err)
+	}
+
+	if err := svc.MongoDB.Validate(); err != nil {
+		return fmt.Errorf("failed to validate mongodb config: %w", err)
+	}
+
+	if err := svc.Redis.Validate(); err != nil {
+		return fmt.Errorf("failed to validate redis config: %w", err)
+	}
+
+	if err := svc.Etcd.Validate(); err != nil {
+		return fmt.Errorf("failed to validate etcd config: %w", err)
+	}
+
+	if err := svc.System.Validate(); err != nil {
+		return fmt.Errorf("failed to validate system config: %w", err)
+	}
+
+	if err := svc.CMDB.Validate(); err != nil {
+		return fmt.Errorf("failed to validate cmdb config: %w", err)
+	}
+
+	if err := svc.GSE.Validate(); err != nil {
+		return fmt.Errorf("failed to validate gse service config: %w", err)
+	}
+
+	if svc.EncryptKey == "" {
+		return fmt.Errorf("failed to validate encrypt key config: encrypt key is empty")
+	}
+
+	for _, conf := range svc.GSEDeployConfs {
+		if err := conf.Validate(); err != nil {
+			return fmt.Errorf("failed to validate gse deploy conf: %w", err)
+		}
+	}
+
+	if err := svc.InstallerFileGroup.Validate(); err != nil {
+		return fmt.Errorf("failed to validate installer file group config: %w", err)
+	}
+
 	return nil
 }
 
@@ -247,6 +296,31 @@ type GSEDeployConf struct {
 	PluginCustom  GSEDeployPluginCustom `yaml:"pluginCustom" usage:"plugin custom deploy conf"`
 }
 
+// Validate validates the config.
+func (conf GSEDeployConf) Validate() error {
+	if err := types.Generation(conf.Generation).Validate(); err != nil {
+		return fmt.Errorf("failed to validate generation config: %w", err)
+	}
+
+	if err := criteria.OSType(conf.OsType).Validate(); err != nil {
+		return fmt.Errorf("failed to validate os type config: %w", err)
+	}
+
+	if conf.BaseDeployDir == "" {
+		return fmt.Errorf("failed to validate base deploy dir config: base deploy dir is empty")
+	}
+
+	if err := conf.Custom.Validate(); err != nil {
+		return fmt.Errorf("failed to validate custom deploy conf: %w", err)
+	}
+
+	if err := conf.PluginCustom.Validate(); err != nil {
+		return fmt.Errorf("failed to validate plugin custom deploy conf: %w", err)
+	}
+
+	return nil
+}
+
 // GSEDeployCustom defines the custom deployment configuration for gse node.
 type GSEDeployCustom struct {
 	LogDir             string `yaml:"logDir" usage:"log dir"`
@@ -254,6 +328,11 @@ type GSEDeployCustom struct {
 	AgentDataIPCPath   string `yaml:"agentDataIPCPath" usage:"data ipc path"`
 	AgentPluginIPCPath string `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
 	EnvironDir         string `yaml:"environDir" usage:"environ dir"`
+}
+
+// Validate validates the config.
+func (conf *GSEDeployCustom) Validate() error {
+	return nil
 }
 
 // GSEDeployPluginCustom defines the custom deployment configuration for plugin.
@@ -265,6 +344,11 @@ type GSEDeployPluginCustom struct {
 	AgentDataIPCPath   string         `yaml:"agentDataIPCPath" usage:"data ipc path"`
 	AgentPluginIPCPath string         `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
 	CommonConstants    map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
+}
+
+// Validate validates the config.
+func (conf GSEDeployPluginCustom) Validate() error {
+	return nil
 }
 
 // Access defines the access configuration for nodemgr system to authenticate.

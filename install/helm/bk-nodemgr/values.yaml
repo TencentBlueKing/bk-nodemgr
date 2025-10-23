@@ -628,6 +628,10 @@ application:
           caFile: ""
           # the password to decrypt the certificate.
           password: ""
+    # defines the nodemgr inner api server related settings.
+    restServer:
+      # defines the nodemgr inner api's jwt secret.
+      jwtSecret: ""
 
 ## Nodeman backend.
 ##
@@ -889,6 +893,11 @@ backend:
       # publickeyPem is the public key pem saved as base64 string
       publickeyPem:
 
+    # defines the nodemgr inner api server related settings.
+    restServer:
+      # defines the nodemgr inner api's jwt secret.
+      jwtSecret: ""
+
     # defines the access settings.
     access:
       virtualUser: "admin"
@@ -1024,6 +1033,11 @@ file:
         caFile: ""
         # the password to decrypt the certificate.
         password: ""
+
+    # defines the nodemgr inner api server related settings.
+    restServer:
+      # defines the nodemgr inner api's jwt secret.
+      jwtSecret: ""
 
     ## defines the log related settings.
     log:

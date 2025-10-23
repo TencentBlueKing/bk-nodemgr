@@ -36,6 +36,8 @@ data:
 
     bkSaaS: {{ .Values.application.config.bkSaaS | toYaml | nindent 6 }}
 
+    restServer: {{ .Values.application.config.restServer | toYaml | nindent 6 }}
+
     etcd:
       {{- if .Values.etcd.enabled }}
       endpoints:

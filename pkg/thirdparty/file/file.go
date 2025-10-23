@@ -36,12 +36,14 @@ const CodeOK = 0
 
 // Config the config of backend.
 type Config struct {
+	RestJwtSecret string
 }
 
 // cli client for backend.
 type cli struct {
-	client restclient.IClient
-	config *Config
+	client       restclient.IClient
+	config       *Config
+	jwtGenerator restheader.IBKNodeMgrAuthorizationGenerator
 }
 
 // newClient initialize a new backend client.
@@ -51,9 +53,12 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 		return nil, err
 	}
 
+	jwtGenerator := restheader.NewNodeMgrAuthorizationManager(conf.RestJwtSecret)
+
 	return &cli{
-		client: restCli,
-		config: conf,
+		client:       restCli,
+		config:       conf,
+		jwtGenerator: jwtGenerator,
 	}, nil
 }
 
@@ -64,7 +69,7 @@ func (c *cli) getCommonHeader(nCtx contextx.IContext, tenantID string) (http.Hea
 	header.Set(restheader.BKTenantIDKey, tenantID)
 	header.Set(restheader.BKNodemgrRequestIDKey, identifier.GenRequestID())
 
-	authorization, err := restheader.GenerateNodeMgrAuthorization(nCtx.LoginName(), nCtx.BKUsername())
+	authorization, err := c.jwtGenerator.Generate(nCtx.LoginName(), nCtx.BKUsername())
 	if err != nil {
 		return nil, err
 	}

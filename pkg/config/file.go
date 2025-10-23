@@ -114,6 +114,7 @@ type FileService struct {
 	AdminServer        HTTPServer  `yaml:"adminServer" usage:"admin server config of file service"`
 	BasicServer        HTTPServer  `yaml:"basicServer" usage:"basic server config of file service"`
 	DownloadServer     HTTPServer  `yaml:"downloadServer" usage:"download server config of file service"`
+	RestServer         RestServer  `yaml:"restServer" usage:"rest server config of file service"`
 	WorkspaceFileGroup FileGroup   `yaml:"workspaceFileGroup" usage:"workspace file group config of file service"`
 	MountHostDir       string      `yaml:"mountHostDir" usage:"mount host dir of file service"`
 	Repo               Repo        `yaml:"repo" usage:"repo config of file service"`
@@ -173,6 +174,26 @@ func (svc *FileService) Validate() error {
 
 	if err := svc.Log.Validate(); err != nil {
 		return fmt.Errorf("failed to validate log config: %w", err)
+	}
+
+	if err := svc.MongoDB.Validate(); err != nil {
+		return fmt.Errorf("failed to validate mongodb config: %w", err)
+	}
+
+	if err := svc.Etcd.Validate(); err != nil {
+		return fmt.Errorf("failed to validate etcd config: %w", err)
+	}
+
+	if err := svc.GSE.Validate(); err != nil {
+		return fmt.Errorf("failed to validate gse config: %w", err)
+	}
+
+	if err := svc.RestServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate rest server config: %w", err)
+	}
+
+	if err := svc.Repo.Validate(); err != nil {
+		return fmt.Errorf("failed to validate repo config: %w", err)
 	}
 
 	return nil

@@ -116,9 +116,8 @@ func (svc *Service) initialStaticsConfigs() error {
 
 	// initial idenity map.
 	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
-		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
-		config.AuthIdentityBKLogin:    svc.bkloginHandler.GetAuthIdentity(),
-		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(),
+		config.AuthIdentityNone:    restserver.NewNodeAuthIdentity(),
+		config.AuthIdentityBKLogin: svc.bkloginHandler.GetAuthIdentity(),
 	}
 
 	return nil
@@ -210,7 +209,9 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 		MetricOpts:           restclient.MetricOption{},
 	}
 
-	return file.New(clientCap, &file.Config{})
+	return file.New(clientCap, &file.Config{
+		RestJwtSecret: svc.conf.RestServer.JwtSecret,
+	})
 }
 
 func (svc *Service) newMongoClient() (*mongo.Client, error) {

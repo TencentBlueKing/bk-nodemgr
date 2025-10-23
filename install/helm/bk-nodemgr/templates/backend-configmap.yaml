@@ -48,6 +48,8 @@ data:
 
     creditVault: {{ .Values.backend.config.creditVault | toYaml | nindent 6 }}
 
+    restServer: {{ .Values.backend.config.restServer | toYaml | nindent 6 }}
+
     log: {{ .Values.backend.config.log | toYaml | nindent 6 }}
 
     etcd:

@@ -84,6 +84,10 @@ installerFileGroup:
 apiGateWayServer:
   publickeyPem: "__BK_NODEMGR_BACKEND_APIGW_PUBLIC_PEM__"
 
+# restServer settings.
+restServer:
+  jwtSecret: "__BK_NODEMGR_RESTSERVER_JWTSECRET__
+
 # defines the access settings.
 access:
   virtualUser: "__BK_NODEMGR_VIRTUAL_USER__"

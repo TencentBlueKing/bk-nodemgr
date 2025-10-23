@@ -78,6 +78,7 @@ type ApplicationService struct {
 	InfoServer  HTTPServer     `yaml:"infoServer" usage:"info server config of application service"`
 	AdminServer HTTPServer     `yaml:"adminServer" usage:"admin server config of application service"`
 	BasicServer HTTPServer     `yaml:"basicServer" usage:"basic server config of application service"`
+	RestServer  RestServer     `yaml:"restServer" usage:"rest server config of application service"`
 	Log         Log            `yaml:"log" usage:"log config of application service"`
 }
 
@@ -306,6 +307,10 @@ func (svc *ApplicationService) Validate() error {
 
 	if err := svc.Log.Validate(); err != nil {
 		return fmt.Errorf("failed to validate log config: %w", err)
+	}
+
+	if err := svc.Front.Validate(); err != nil {
+		return fmt.Errorf("failed to validate front config: %w", err)
 	}
 
 	return nil

@@ -57,13 +57,14 @@ var _ IAuthIdentity = &RestServerAuthIdentity{}
 
 // RestServerAuthIdentity verify auth info.
 type RestServerAuthIdentity struct {
+	jwtParser restheader.IBKNodeMgrAuthorizationParser
 }
 
 // Verify verify auth info.
 func (identity *RestServerAuthIdentity) Verify(r IRequest) error {
 	authorization := restheader.BKNodeMgrAuthorizationGetter(r.GetRequest())
 
-	nodeMgrAuthorization, err := restheader.ParseBKNodeMgrAuthorization(authorization)
+	nodeMgrAuthorization, err := identity.jwtParser.Parse(authorization)
 	if err != nil {
 		return fmt.Errorf("failed to parse bk node mgr authorization: %v", err)
 	}
@@ -75,8 +76,10 @@ func (identity *RestServerAuthIdentity) Verify(r IRequest) error {
 }
 
 // NewRestServerAuthIdentity ...
-func NewRestServerAuthIdentity() *RestServerAuthIdentity {
-	return &RestServerAuthIdentity{}
+func NewRestServerAuthIdentity(jwtSecretStr string) *RestServerAuthIdentity {
+	return &RestServerAuthIdentity{
+		jwtParser: restheader.NewNodeMgrAuthorizationManager(jwtSecretStr),
+	}
 }
 
 var _ IAuthIdentity = &NodeAuthIdentity{}

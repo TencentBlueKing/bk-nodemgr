@@ -48,6 +48,10 @@ repo:
   accessKey: "__BK_NODEMGR_REPO_ACCESS_KEY__"
   secretKey: "__BK_NODEMGR_REPO_SECRET_KEY__"
 
+# restServer settings.
+restServer:
+  jwtSecret: "__BK_NODEMGR_RESTSERVER_JWTSECRET__
+
 # workspaceFileGroup defines the workspace file group settings.
 workspaceFileGroup:
   fullPath: /bk-nodemgr/workspace/

@@ -112,7 +112,7 @@ func NewService(conf *config.FileService) (*Service, error) {
 func (svc *Service) initialStaticsConfigs() error {
 	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
 		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
-		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(),
+		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(svc.conf.RestServer.JwtSecret),
 	}
 
 	return nil

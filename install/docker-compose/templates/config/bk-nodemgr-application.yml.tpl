@@ -63,6 +63,10 @@ mongodb:
   authMechanism: SCRAM-SHA-256
   database: bk_nodemgr
 
+# restServer settings.
+restServer:
+  jwtSecret: "__BK_NODEMGR_RESTSERVER_JWTSECRET__
+
 # bkSaaS saas settings.
 bkSaaS:
   bkLogin:
