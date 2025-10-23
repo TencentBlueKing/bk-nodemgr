@@ -79,7 +79,9 @@ func (s *Storage) metric() *storage.MetricData {
 
 // CreateManyPackageEvent creates package events.
 // nolint: nonamedreturns
-func (s *Storage) CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) (err error) {
+func (s *Storage) CreateManyPackageEvent(nCtx contextx.IContext, events ...*types.PackageEvent) error {
+	var err error
+
 	// record metric.
 	metric := s.metric().Start("create_many_package_event")
 	defer metric.End(err)
