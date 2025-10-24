@@ -173,6 +173,10 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) (err error) {
 	// let the callback server known which action to mark and log.
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
+	// preset the node status to "damaged" in the deployment table.
+	// if this action fails, the "damaged" status will not be set in the host table in the end.
+	std.DeployInfo().Host.Dynamic.NodeStatus = types.NodeStatusDamaged
+
 	// exec uninstall command
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doUninstallWindows(std, uninstallParams)

@@ -48,7 +48,6 @@ func (oper *operUninstallNode) ActionDefNames() []string {
 		ActionNameTransferPkgToNode,
 		ActionNameUninstallNode,
 		ActionNameWaitInstallerComplete,
-		ActionNameUpdateNodeStatusDamaged,
 		ActionNameUpdateHost,
 	}
 }
@@ -59,11 +58,10 @@ func (oper *operUninstallNode) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameTransferPkgToNode:       true,
-			ActionNameUninstallNode:           true,
-			ActionNameWaitInstallerComplete:   false,
-			ActionNameUpdateNodeStatusDamaged: true,
-			ActionNameUpdateHost:              true,
+			ActionNameTransferPkgToNode:     true,
+			ActionNameUninstallNode:         true,
+			ActionNameWaitInstallerComplete: false,
+			ActionNameUpdateHost:            true,
 		},
 	}
 }
