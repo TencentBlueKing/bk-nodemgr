@@ -17,8 +17,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Handler tenant handler interface.
-type Handler interface {
+// IHandler tenant handler interface.
+type IHandler interface {
 	Upsert(nCtx contextx.IContext, tenant *types.Tenant) error
 	ListAll(nCtx contextx.IContext) ([]*types.Tenant, error)
 }
@@ -28,7 +28,7 @@ type handler struct {
 }
 
 // New create a new host handler.
-func New(client *mongo.Database) Handler {
+func New(client *mongo.Database) IHandler {
 	return &handler{
 		dao: newDao(client),
 	}
