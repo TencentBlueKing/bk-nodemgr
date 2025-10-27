@@ -209,6 +209,17 @@ func (conf HTTPServer) Validate() error {
 		if err := conf.JWTServerConfig.Validate(); err != nil {
 			return fmt.Errorf("failed to validate JWT config: %w", err)
 		}
+
+		if conf.AuthIdentity == AuthIdentityAPIGW && conf.JWTServerConfig.CryptoType != JWTCryptoTypeAsymmetric {
+			return fmt.Errorf("crypto type of api-gateway's jwt server crypto type must be asymmetric, but got %s",
+				conf.JWTServerConfig.CryptoType)
+		}
+
+		if conf.AuthIdentity == AuthIdentityRestServer && conf.JWTServerConfig.CryptoType != JWTCryptoTypeSymmetric {
+			return fmt.Errorf("crypto type of rest-server's jwt server crypto type must be symmetric, but got %s",
+				conf.JWTServerConfig.CryptoType)
+		}
+
 	case AuthIdentityBKLogin, AuthIdentityNone:
 		// No JWT validation needed for these authentication methods
 		return nil
@@ -277,9 +288,14 @@ type File struct {
 	JWTClientConfig JWTClientConfig `yaml:"jwtClientConfig" usage:"jwt config of api-gateway"`
 }
 
+// Validate validates the config.
 func (file *File) Validate() error {
 	if err := file.JWTClientConfig.Validate(); err != nil {
 		return fmt.Errorf("jwt config of file is invalid: %s", err)
+	}
+
+	if file.JWTClientConfig.CryptoType != JWTCryptoTypeSymmetric {
+		return errors.New("jwt config of file is invalid: only support symmetric algorithm")
 	}
 
 	return nil
