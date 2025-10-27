@@ -210,7 +210,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 	}
 
 	return file.New(clientCap, &file.Config{
-		RestJwtSecret: svc.conf.RestServer.JwtSecret,
+		RestJwtSecret: svc.conf.File.JWTClientConfig.SymmetricKey,
 	})
 }
 

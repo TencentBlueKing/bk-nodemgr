@@ -22,6 +22,20 @@ adminServer:
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
 
+  # defines the authentication mode, currently only rest-server and none is supported.
+  authIdentity: rest-server
+
+  # defines the JWT server configuration for authentication
+  jwtServerConfig:
+    # JWT encryption type: symmetric or asymmetric
+    cryptoType: symmetric
+    # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+    symmetricKey: "__BK_NODEMGR_FILE_ADMINSERVERJWT_SYMMETRIC_KEY__"
+    # private key in PEM format for JWT RSA/ECDSA algorithms (RS256, ES256, etc.)
+    privateKeyPem: ""
+    # token expiration duration (e.g., 1h, 24h)
+    tokenExpirationHour: 24
+
 # basicServer defines self basic http server settings.
 basicServer:
   # listening IP and Port.
@@ -30,6 +44,16 @@ basicServer:
   
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+
+  # defines the authentication mode, currently only rest-server and none is supported.
+  authIdentity: rest-server
+
+  # defines the JWT server configuration for authentication
+  jwtServerConfig:
+    # JWT encryption type: symmetric or asymmetric
+    cryptoType: symmetric
+    # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+    symmetricKey: "__BK_NODEMGR_FILE_BASICSERVER_JWT_SYMMETRIC_KEY__"
 
 # downloadServer defines self node http server settings.
 downloadServer:
@@ -48,9 +72,6 @@ repo:
   accessKey: "__BK_NODEMGR_REPO_ACCESS_KEY__"
   secretKey: "__BK_NODEMGR_REPO_SECRET_KEY__"
 
-# restServer settings.
-restServer:
-  jwtSecret: "__BK_NODEMGR_RESTSERVER_JWTSECRET__
 
 # workspaceFileGroup defines the workspace file group settings.
 workspaceFileGroup:

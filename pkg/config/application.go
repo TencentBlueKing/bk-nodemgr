@@ -60,26 +60,26 @@ const (
 	defaultApplicationAdvertiseIPv6 = "::1"
 )
 
-// BackendGateway the config of backend gateway config.
-type BackendGateway struct {
+// Backend the config of backend gateway config.
+type Backend struct {
 	APIGatewayClient `yaml:",inline" usage:"api-gateway config of backend"`
 }
 
 // ApplicationService the config of application service.
 type ApplicationService struct {
-	RunMode     RunMode        `yaml:"mode" usage:"run mode of service"`
-	TenantMode  tenant.Mode    `yaml:"tenantMode" usage:"tenant mode of service"`
-	BKSaas      BKSaas         `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
-	BKPaas      BKPaaS         `yaml:"bkPaaS" usage:"bk paas config of application service"`
-	Front       Front          `yaml:"front" usage:"front config of application service"`
-	Backend     BackendGateway `yaml:"backend" usage:"backend gateway config"`
-	Etcd        Etcd           `yaml:"etcd" usage:"etcd config of application service"`
-	MongoDB     MongoDB        `yaml:"mongodb" usage:"mongodb config of application service"`
-	InfoServer  HTTPServer     `yaml:"infoServer" usage:"info server config of application service"`
-	AdminServer HTTPServer     `yaml:"adminServer" usage:"admin server config of application service"`
-	BasicServer HTTPServer     `yaml:"basicServer" usage:"basic server config of application service"`
-	RestServer  RestServer     `yaml:"restServer" usage:"rest server config of application service"`
-	Log         Log            `yaml:"log" usage:"log config of application service"`
+	RunMode     RunMode     `yaml:"mode" usage:"run mode of service"`
+	TenantMode  tenant.Mode `yaml:"tenantMode" usage:"tenant mode of service"`
+	BKSaas      BKSaas      `yaml:"bkSaaS" usage:"bk SaaS config of application service"`
+	BKPaas      BKPaaS      `yaml:"bkPaaS" usage:"bk paas config of application service"`
+	Front       Front       `yaml:"front" usage:"front config of application service"`
+	Backend     Backend     `yaml:"backend" usage:"backend gateway config"`
+	File        File        `yaml:"file" usage:"file config of backend service"`
+	Etcd        Etcd        `yaml:"etcd" usage:"etcd config of application service"`
+	MongoDB     MongoDB     `yaml:"mongodb" usage:"mongodb config of application service"`
+	InfoServer  HTTPServer  `yaml:"infoServer" usage:"info server config of application service"`
+	AdminServer HTTPServer  `yaml:"adminServer" usage:"admin server config of application service"`
+	BasicServer HTTPServer  `yaml:"basicServer" usage:"basic server config of application service"`
+	Log         Log         `yaml:"log" usage:"log config of application service"`
 }
 
 // NewApplicationService generatea a new ApplicationService with default values.
@@ -99,11 +99,12 @@ func NewApplicationService() *ApplicationService {
 			AdvertiseIPV6: defaultApplicationAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP:        defaultApplicationAdminBindIP,
-			Port:          defaultApplicationAdminPort,
-			AuthIdentity:  defaultApplicationAdminIdentity,
-			AdvertiseIPV4: defaultApplicationAdvertiseIPv4,
-			AdvertiseIPV6: defaultApplicationAdvertiseIPv6,
+			BindIP:          defaultApplicationAdminBindIP,
+			Port:            defaultApplicationAdminPort,
+			AuthIdentity:    defaultApplicationAdminIdentity,
+			AdvertiseIPV4:   defaultApplicationAdvertiseIPv4,
+			AdvertiseIPV6:   defaultApplicationAdvertiseIPv6,
+			JWTServerConfig: JWTServerConfig{CryptoType: JWTCryptoTypeSymmetric},
 		},
 		BasicServer: HTTPServer{
 			BindIP:       defaultApplicationBasicBindIP,
@@ -283,6 +284,10 @@ func (svc *ApplicationService) Validate() error {
 
 	if err := svc.Backend.Validate(); err != nil {
 		return fmt.Errorf("failed to validate backend config: %w", err)
+	}
+
+	if err := svc.File.Validate(); err != nil {
+		return fmt.Errorf("failed to validate file config: %w", err)
 	}
 
 	if err := svc.Etcd.Validate(); err != nil {

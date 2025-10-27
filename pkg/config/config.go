@@ -183,12 +183,13 @@ func (authIdentity AuthIdentity) Validate() error {
 
 // HTTPServer the config of http service.
 type HTTPServer struct {
-	BindIP        string       `yaml:"bindIP"`
-	AdvertiseIPV4 string       `yaml:"advertiseIPV4"`
-	AdvertiseIPV6 string       `yaml:"advertiseIPV6"`
-	Port          int          `yaml:"port"`
-	AuthIdentity  AuthIdentity `yaml:"authIdentity" usage:"identity of auth"`
-	StaticDir     string       `yaml:"staticDir"`
+	BindIP          string          `yaml:"bindIP"`
+	AdvertiseIPV4   string          `yaml:"advertiseIPV4"`
+	AdvertiseIPV6   string          `yaml:"advertiseIPV6"`
+	Port            int             `yaml:"port"`
+	AuthIdentity    AuthIdentity    `yaml:"authIdentity" usage:"identity of auth"`
+	JWTServerConfig JWTServerConfig `yaml:"jwtServerConfig" usage:"JWT configuration for authentication"`
+	StaticDir       string          `yaml:"staticDir"`
 }
 
 // Validate validates the config.
@@ -199,6 +200,20 @@ func (conf HTTPServer) Validate() error {
 
 	if conf.Port <= 0 {
 		return fmt.Errorf("failed to validate http server config: port(%d) must be greater than 0", conf.Port)
+	}
+
+	// Only validate JWT config for authentication methods that require JWT
+	switch conf.AuthIdentity {
+	case AuthIdentityAPIGW, AuthIdentityRestServer:
+		// Validate JWT config based on authentication identity
+		if err := conf.JWTServerConfig.Validate(); err != nil {
+			return fmt.Errorf("failed to validate JWT config: %w", err)
+		}
+	case AuthIdentityBKLogin, AuthIdentityNone:
+		// No JWT validation needed for these authentication methods
+		return nil
+	default:
+		return fmt.Errorf("invalid auth identity: %s", conf.AuthIdentity)
 	}
 
 	return nil
@@ -252,6 +267,19 @@ func (conf APIGatewayClient) Validate() error {
 
 	if err := conf.TLS.Validate(); err != nil {
 		return fmt.Errorf("tls config of api-gateway is invalid: %s", err)
+	}
+
+	return nil
+}
+
+// File the config of file.
+type File struct {
+	JWTClientConfig JWTClientConfig `yaml:"jwtClientConfig" usage:"jwt config of api-gateway"`
+}
+
+func (file *File) Validate() error {
+	if err := file.JWTClientConfig.Validate(); err != nil {
+		return fmt.Errorf("jwt config of file is invalid: %s", err)
 	}
 
 	return nil
@@ -574,29 +602,90 @@ func (bklogin *BKLogin) Validate() error {
 	return nil
 }
 
-// APIGateWayServer defines the api gateway config of backend service.
-type APIGateWayServer struct {
-	PublickeyPem string `yaml:"publickeyPem" usage:"publickey pem of api gateway, which is saved in base64 format"`
+// JWTCryptoType defines the JWT encryption type.
+type JWTCryptoType string
+
+const (
+	// JWTCryptoTypeSymmetric symmetric encryption.
+	JWTCryptoTypeSymmetric JWTCryptoType = "symmetric"
+	// JWTCryptoTypeAsymmetric asymmetric encryption.
+	JWTCryptoTypeAsymmetric JWTCryptoType = "asymmetric"
+)
+
+// Validate validates the JWT crypto type.
+func (cryptoType JWTCryptoType) Validate() error {
+	switch cryptoType {
+	case JWTCryptoTypeSymmetric, JWTCryptoTypeAsymmetric:
+		return nil
+	default:
+		return fmt.Errorf("invalid JWT crypto type: %s", cryptoType)
+	}
 }
 
-// Validate validates the config.
-func (conf *APIGateWayServer) Validate() error {
-	if conf.PublickeyPem == "" {
-		return errors.New("publickey pem of api gateway is empty")
+// JWTServerConfig defines the unified JWT configuration supporting both symmetric and asymmetric encryption.
+type JWTServerConfig struct {
+	// CryptoType specifies which encryption method to use
+	CryptoType JWTCryptoType `yaml:"cryptoType" usage:"JWT encryption type: symmetric or asymmetric"`
+	// SymmetricKey is the secret key for symmetric encryption.
+	SymmetricKey string `yaml:"symmetricKey" usage:"symmetric key for JWT signature algorithms"`
+	// PublicKeyPem is the public key in PEM format for asymmetric encryption.
+	PublicKeyPem string `yaml:"publicKeyPem" usage:"public key in PEM format for JWT signature algorithms"`
+}
+
+// Validate validates the JWT config based on the selected crypto type.
+func (conf JWTServerConfig) Validate() error {
+	if err := conf.CryptoType.Validate(); err != nil {
+		return err
+	}
+
+	switch conf.CryptoType {
+	case JWTCryptoTypeSymmetric:
+		if conf.SymmetricKey == "" {
+			return errors.New("symmetric key is required for symmetric encryption")
+		}
+	case JWTCryptoTypeAsymmetric:
+		if conf.PublicKeyPem == "" {
+			return errors.New("public key pem is required for asymmetric encryption")
+		}
 	}
 
 	return nil
 }
 
-// RestServer defines the config of rest server.
-type RestServer struct {
-	JwtSecret string `yaml:"jwtSecret" usage:"jwt secret of rest server"`
+// JWTClientConfig defines the JWT configuration for client-side authentication.
+// This is used when the service needs to act as a client and authenticate with other services.
+type JWTClientConfig struct {
+	// CryptoType specifies which encryption method to use
+	CryptoType JWTCryptoType `yaml:"cryptoType" usage:"JWT encryption type: symmetric (HMAC) or asymmetric (RSA/ECDSA)"`
+	// SymmetricKey is the secret key for symmetric encryption (HMAC algorithms)
+	SymmetricKey string `yaml:"symmetricKey" usage:"symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)"`
+	// PrivateKeyPem is the private key in PEM format for asymmetric encryption (RSA/ECDSA algorithms)
+	PrivateKeyPem string `yaml:"privateKeyPem" usage:"private key in PEM format for JWT RSA/ECDSA algorithms (RS256, ES256, etc.)"`
+	// TokenExpirationHour defines the expiration time for JWT tokens
+	TokenExpirationHour int64 `yaml:"tokenExpirationHour" usage:"token expiration duration (e.g., 1h, 24h)"`
 }
 
-// Validate validates the config.
-func (rest RestServer) Validate() error {
-	if rest.JwtSecret == "" {
-		return errors.New("jwt secret of rest server is empty")
+// Validate validates the JWT client config based on the selected crypto type.
+func (conf JWTClientConfig) Validate() error {
+	if err := conf.CryptoType.Validate(); err != nil {
+		return fmt.Errorf("invalid JWT crypto type: %w", err)
+	}
+
+	switch conf.CryptoType {
+	case JWTCryptoTypeSymmetric:
+		if conf.SymmetricKey == "" {
+			return errors.New("symmetric key is required for symmetric encryption")
+		}
+	case JWTCryptoTypeAsymmetric:
+		if conf.PrivateKeyPem == "" {
+			return errors.New("private key pem is required for asymmetric encryption")
+		}
+	default:
+		return fmt.Errorf("invalid JWT crypto type: %s", conf.CryptoType)
+	}
+
+	if conf.TokenExpirationHour == 0 {
+		return errors.New("token expiration is required for JWT client configuration")
 	}
 
 	return nil

@@ -596,6 +596,12 @@ application:
       bindIP: "0.0.0.0"
       port: 28001
       authIdentity: rest-server
+      # defines the JWT server configuration for authentication
+      jwtServerConfig:
+        # JWT encryption type: symmetric or asymmetric
+        cryptoType: symmetric
+        # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+        symmetricKey: ""
 
     ## defines the application http server related settings.
     basicServer:
@@ -611,6 +617,17 @@ application:
       maxSizeMB: 200
       toStderr: false
       alsoToStderr: false
+
+    ## defines the file related settings.
+    file:
+      # defines the JWT client configuration for file service
+      jwtClientConfig:
+        # JWT encryption type: symmetric or asymmetric
+        cryptoType: symmetric
+        # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+        symmetricKey: ""
+        # token expiration duration (e.g., 1h, 24h)
+        tokenExpirationHour: 24
 
     bkSaaS:
       bkLogin:
@@ -628,10 +645,6 @@ application:
           caFile: ""
           # the password to decrypt the certificate.
           password: ""
-    # defines the nodemgr inner api server related settings.
-    restServer:
-      # defines the nodemgr inner api's jwt secret.
-      jwtSecret: ""
 
 ## Nodeman backend.
 ##
@@ -704,12 +717,24 @@ backend:
       bindIP: "0.0.0.0"
       port: 28101
       authIdentity: rest-server
+      # defines the JWT server configuration for authentication
+      jwtServerConfig:
+        # JWT encryption type: symmetric or asymmetric
+        cryptoType: symmetric
+        # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+        symmetricKey: ""
 
     ## defines the backend basic server related settings.
     basicServer:
       bindIP: "0.0.0.0"
       port: 28102
       authIdentity: api-gateway
+      # defines the JWT server configuration for authentication
+      jwtServerConfig:
+        # JWT encryption type: symmetric or asymmetric
+        cryptoType: asymmetric
+        # public key in PEM format for JWT RSA/ECDSA algorithms (RS256, ES256, etc.)
+        publicKeyPem: ""
 
     ## defines the backend callback server related settings.
     callbackServer:
@@ -888,16 +913,6 @@ backend:
           agentPluginIPCPath: ""
           commonConstants: {}
 
-    # defines the api gateway server related settings.
-    apiGateWayServer:
-      # publickeyPem is the public key pem saved as base64 string
-      publickeyPem:
-
-    # defines the nodemgr inner api server related settings.
-    restServer:
-      # defines the nodemgr inner api's jwt secret.
-      jwtSecret: ""
-
     # defines the access settings.
     access:
       virtualUser: "admin"
@@ -910,6 +925,17 @@ backend:
       maxSizeMB: 200
       toStderr: false
       alsoToStderr: false
+
+    ## defines the file related settings.
+    file:
+      # defines the JWT client configuration for file service
+      jwtClientConfig:
+        # JWT encryption type: symmetric or asymmetric
+        cryptoType: symmetric
+        # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+        symmetricKey: ""
+        # token expiration duration (e.g., 1h, 24h)
+        tokenExpirationHour: 24
 
 ## Nodeman file
 ##
@@ -970,11 +996,18 @@ file:
       bindIP: "0.0.0.0"
       port: 28201
       authIdentity: rest-server
+      # defines the JWT server configuration for authentication
+      jwtServerConfig:
+        # JWT encryption type: symmetric or asymmetric
+        cryptoType: symmetric
+        # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
+        symmetricKey: ""
 
     ## defines the file basic server related settings.
     basicServer:
       bindIP: "0.0.0.0"
       port: 28202
+      authIdentity: none
 
     ## defines the file download server related settings.
     downloadServer:
@@ -1033,11 +1066,6 @@ file:
         caFile: ""
         # the password to decrypt the certificate.
         password: ""
-
-    # defines the nodemgr inner api server related settings.
-    restServer:
-      # defines the nodemgr inner api's jwt secret.
-      jwtSecret: ""
 
     ## defines the log related settings.
     log:

@@ -19,6 +19,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
@@ -36,7 +37,8 @@ const CodeOK = 0
 
 // Config the config of backend.
 type Config struct {
-	RestJwtSecret string
+	RestJwtSecret          string
+	RestJwtTokenExpiration time.Duration
 }
 
 // cli client for backend.
@@ -53,7 +55,7 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 		return nil, err
 	}
 
-	jwtGenerator := restheader.NewNodeMgrAuthorizationManager(conf.RestJwtSecret)
+	jwtGenerator := restheader.NewNodeMgrAuthorizationManager(conf.RestJwtSecret, restheader.WithJwtTokenExpiration(conf.RestJwtTokenExpiration))
 
 	return &cli{
 		client:       restCli,

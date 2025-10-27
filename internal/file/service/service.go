@@ -13,6 +13,7 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -42,6 +43,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/gin-gonic/gin"
@@ -78,8 +80,8 @@ type Service struct {
 	// instance is the discover instance of the service.
 	instance discover.Instance
 
-	// authIdentityMap defines the mapping between auth identity and auth identity handler.
-	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity
+	// authIdentityValidMap defines the mapping between auth identity and auth identity handler.
+	authIdentityValidMap map[config.AuthIdentity]struct{}
 }
 
 // NewService creates a new file service.
@@ -111,9 +113,9 @@ func NewService(conf *config.FileService) (*Service, error) {
 
 // nolint: unparam
 func (svc *Service) initialStaticsConfigs() error {
-	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
-		config.AuthIdentityNone:       restserver.NewNodeAuthIdentity(),
-		config.AuthIdentityRestServer: restserver.NewRestServerAuthIdentity(svc.conf.RestServer.JwtSecret),
+	svc.authIdentityValidMap = map[config.AuthIdentity]struct{}{
+		config.AuthIdentityNone:       {},
+		config.AuthIdentityRestServer: {},
 	}
 
 	return nil
@@ -377,6 +379,26 @@ func (svc *Service) registerRestServer() error {
 	return nil
 }
 
+func newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
+	switch conf.AuthIdentity {
+	case config.AuthIdentityNone:
+		return restserver.NewNodeAuthIdentity(), nil
+	case config.AuthIdentityAPIGW:
+		publickeyPem, err := base64.StdEncoding.DecodeString(conf.JWTServerConfig.PublicKeyPem)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode publickey: %w", err)
+		}
+
+		return apigwserver.NewBKGWJWTAuthIdentity(publickeyPem), nil
+
+	case config.AuthIdentityRestServer:
+		return restserver.NewRestServerAuthIdentity(conf.JWTServerConfig.SymmetricKey), nil
+
+	default:
+		return nil, fmt.Errorf("no support this auth identity, auth-identity(%s)", conf.AuthIdentity)
+	}
+}
+
 // nolint: unparam
 func (svc *Service) registerInfoServer() error {
 	server := restserver.NewServer(
@@ -404,10 +426,10 @@ func (svc *Service) registerInfoServer() error {
 }
 
 func (svc *Service) registerAdminServer() error {
-	authIdentity := svc.authIdentityMap[svc.conf.AdminServer.AuthIdentity]
-	if authIdentity == nil {
+	_, valid := svc.authIdentityValidMap[svc.conf.AdminServer.AuthIdentity]
+	if !valid {
 		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
 	}
 
 	server := restserver.NewServer(
@@ -433,10 +455,15 @@ func (svc *Service) registerAdminServer() error {
 }
 
 func (svc *Service) registerBasicServer() error {
-	authIdentity := svc.authIdentityMap[svc.conf.BasicServer.AuthIdentity]
-	if authIdentity == nil {
+	_, valid := svc.authIdentityValidMap[svc.conf.BasicServer.AuthIdentity]
+	if !valid {
 		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.BasicServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+			svc.conf.BasicServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	}
+
+	authIdentity, err := newAuthIdentity(svc.conf.BasicServer)
+	if err != nil {
+		return err
 	}
 
 	server := restserver.NewServer(
@@ -466,10 +493,15 @@ func (svc *Service) registerBasicServer() error {
 }
 
 func (svc *Service) registerDownloadServer() error {
-	authIdentity := svc.authIdentityMap[svc.conf.DownloadServer.AuthIdentity]
-	if authIdentity == nil {
+	_, valid := svc.authIdentityValidMap[svc.conf.DownloadServer.AuthIdentity]
+	if !valid {
 		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.DownloadServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+			svc.conf.DownloadServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	}
+
+	authIdentity, err := newAuthIdentity(svc.conf.DownloadServer)
+	if err != nil {
+		return err
 	}
 
 	server := restserver.NewServer(

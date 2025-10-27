@@ -88,13 +88,31 @@ var (
 
 // NodeMgrAuthorizationManager is nodemgr authorization manager.
 type NodeMgrAuthorizationManager struct {
-	jwtSecret []byte
+	jwtSecret          []byte
+	jwtTokenExpiration time.Duration
 }
 
+// OptFn is option function.
+type OptFn func(manager *NodeMgrAuthorizationManager)
+
 // NewNodeMgrAuthorizationManager create nodemgr authorization manager.
-func NewNodeMgrAuthorizationManager(jwtSecretStr string) *NodeMgrAuthorizationManager {
-	return &NodeMgrAuthorizationManager{
-		jwtSecret: []byte(jwtSecretStr),
+func NewNodeMgrAuthorizationManager(jwtSecretStr string, opts ...OptFn) *NodeMgrAuthorizationManager {
+	manager := &NodeMgrAuthorizationManager{
+		jwtSecret:          []byte(jwtSecretStr),
+		jwtTokenExpiration: BKNodeMgrJWTExpirationTime,
+	}
+
+	for _, opt := range opts {
+		opt(manager)
+	}
+
+	return manager
+}
+
+// WithJwtTokenExpiration set jwt token expiration.
+func WithJwtTokenExpiration(expiration time.Duration) OptFn {
+	return func(manager *NodeMgrAuthorizationManager) {
+		manager.jwtTokenExpiration = expiration
 	}
 }
 
@@ -125,7 +143,7 @@ func (manager *NodeMgrAuthorizationManager) Generate(loginName, bkUserName strin
 func (manager *NodeMgrAuthorizationManager) Parse(authorizationStr string) (*BKNodeMgrAuthorization, error) {
 	token, err := jwt.ParseWithClaims(authorizationStr, &BKNodeMgrClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %w", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %s", token.Header["alg"])
 		}
 
 		return manager.jwtSecret, nil

@@ -32,9 +32,11 @@ const (
 	defaultBackendAdminBindIP          = "127.0.0.1"
 	defaultBackendAdminPort            = 28101
 	defaultBackendAdminAuthIdentity    = AuthIdentityRestServer
+	defaultBackendAdminJWTCryptoType   = JWTCryptoTypeSymmetric
 	defaultBackendBasicBindIP          = "127.0.0.1"
 	defaultBackendBasicPort            = 28102
 	defaultBackendBasicAuthIdentity    = AuthIdentityAPIGW
+	defaultBackendBasicJWTCryptoType   = JWTCryptoTypeAsymmetric
 	defaultBackendCallbackBindIP       = "127.0.0.1"
 	defaultBackendCallbackPort         = 28103
 	defaultBackendCallbackAuthIdentity = AuthIdentityNone
@@ -50,6 +52,8 @@ const (
 	defaultBackendSystemEdition        = "ce"
 	defaultBackendAdvertiseIPv4        = "127.0.0.1"
 	defaultBackendAdvertiseIPv6        = "::1"
+
+	defaultBackendWorkflowWorkerNum = 10
 
 	defaultInstallerFileGroup = "/bk-nodemgr/file/tools"
 
@@ -68,28 +72,27 @@ const (
 
 // BackendService the config of backend service.
 type BackendService struct {
-	RunMode            RunMode          `yaml:"runMode" usage:"run mode of service"`
-	TenantMode         tenant.Mode      `yaml:"tenantMode" usage:"tenant mode of service"`
-	CMDB               CMDB             `yaml:"cmdb" usage:"cmdb config of backend service"`
-	GSE                GSE              `yaml:"gse" usage:"gse config of backend service"`
-	Workflow           Workflow         `yaml:"workflow" usage:"workflow config of backend service"`
-	InfoServer         HTTPServer       `yaml:"infoServer" usage:"info server config of backend service"`
-	AdminServer        HTTPServer       `yaml:"adminServer" usage:"admin server config of backend service"`
-	BasicServer        HTTPServer       `yaml:"basicServer" usage:"basic server config of backend service"`
-	CallbackServer     CallbackServer   `yaml:"callbackServer" usage:"callback server config of backend service"`
-	ProxyServer        ProxyServer      `yaml:"proxyServer" usage:"proxy server config of backend service"`
-	Etcd               Etcd             `yaml:"etcd" usage:"etcd config of backend service"`
-	Redis              Redis            `yaml:"redis" usage:"redis config of backend service"`
-	MongoDB            MongoDB          `yaml:"mongodb" usage:"mongodb config of backend service"`
-	Log                Log              `yaml:"log" usage:"log config of backend service"`
-	System             System           `yaml:"system" usage:"system config of backend service"`
-	EncryptKey         string           `yaml:"encryptKey" usage:"encrypt key of backend service"`
-	GSEDeployConfs     []GSEDeployConf  `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
-	InstallerFileGroup FileGroup        `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
-	CreditVault        CreditVault      `yaml:"creditVault" usage:"credit vault config of backend service"`
-	APIGateWayServer   APIGateWayServer `yaml:"apiGateWayServer" usage:"api gateway config of backend service"`
-	RestServer         RestServer       `yaml:"restServer" usage:"rest server config of backend service"`
-	Access             Access           `yaml:"access" usage:"access config of backend service"`
+	RunMode            RunMode         `yaml:"runMode" usage:"run mode of service"`
+	TenantMode         tenant.Mode     `yaml:"tenantMode" usage:"tenant mode of service"`
+	CMDB               CMDB            `yaml:"cmdb" usage:"cmdb config of backend service"`
+	File               File            `yaml:"file" usage:"file config of backend service"`
+	GSE                GSE             `yaml:"gse" usage:"gse config of backend service"`
+	Workflow           Workflow        `yaml:"workflow" usage:"workflow config of backend service"`
+	InfoServer         HTTPServer      `yaml:"infoServer" usage:"info server config of backend service"`
+	AdminServer        HTTPServer      `yaml:"adminServer" usage:"admin server config of backend service"`
+	BasicServer        HTTPServer      `yaml:"basicServer" usage:"basic server config of backend service"`
+	CallbackServer     CallbackServer  `yaml:"callbackServer" usage:"callback server config of backend service"`
+	ProxyServer        ProxyServer     `yaml:"proxyServer" usage:"proxy server config of backend service"`
+	Etcd               Etcd            `yaml:"etcd" usage:"etcd config of backend service"`
+	Redis              Redis           `yaml:"redis" usage:"redis config of backend service"`
+	MongoDB            MongoDB         `yaml:"mongodb" usage:"mongodb config of backend service"`
+	Log                Log             `yaml:"log" usage:"log config of backend service"`
+	System             System          `yaml:"system" usage:"system config of backend service"`
+	EncryptKey         string          `yaml:"encryptKey" usage:"encrypt key of backend service"`
+	GSEDeployConfs     []GSEDeployConf `yaml:"gseDeployConfs" usage:"gse deploy config of backend service"`
+	InstallerFileGroup FileGroup       `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
+	CreditVault        CreditVault     `yaml:"creditVault" usage:"credit vault config of backend service"`
+	Access             Access          `yaml:"access" usage:"access config of backend service"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -97,6 +100,9 @@ func NewBackendService() *BackendService {
 	return &BackendService{
 		RunMode:    defaultBackendRunMode,
 		TenantMode: defaultBackendTenantMode,
+		Workflow: Workflow{
+			WorkerNum: defaultBackendWorkflowWorkerNum,
+		},
 		InfoServer: HTTPServer{
 			BindIP:        defaultBackendInfoBindIP,
 			Port:          defaultBackendInfoBindPort,
@@ -105,18 +111,20 @@ func NewBackendService() *BackendService {
 			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP:        defaultBackendAdminBindIP,
-			Port:          defaultBackendAdminPort,
-			AuthIdentity:  defaultBackendAdminAuthIdentity,
-			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
-			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
+			BindIP:          defaultBackendAdminBindIP,
+			Port:            defaultBackendAdminPort,
+			AuthIdentity:    defaultBackendAdminAuthIdentity,
+			AdvertiseIPV4:   defaultBackendAdvertiseIPv4,
+			AdvertiseIPV6:   defaultBackendAdvertiseIPv6,
+			JWTServerConfig: JWTServerConfig{CryptoType: defaultBackendAdminJWTCryptoType},
 		},
 		BasicServer: HTTPServer{
-			BindIP:        defaultBackendBasicBindIP,
-			Port:          defaultBackendBasicPort,
-			AuthIdentity:  defaultBackendBasicAuthIdentity,
-			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
-			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
+			BindIP:          defaultBackendBasicBindIP,
+			Port:            defaultBackendBasicPort,
+			AuthIdentity:    defaultBackendBasicAuthIdentity,
+			AdvertiseIPV4:   defaultBackendAdvertiseIPv4,
+			AdvertiseIPV6:   defaultBackendAdvertiseIPv6,
+			JWTServerConfig: JWTServerConfig{CryptoType: defaultBackendBasicJWTCryptoType},
 		},
 		CallbackServer: CallbackServer{
 			HTTPServer: HTTPServer{
@@ -136,17 +144,20 @@ func NewBackendService() *BackendService {
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 			},
 		},
+		Etcd:    Etcd{},
+		Redis:   Redis{},
+		MongoDB: MongoDB{},
 		Log: Log{
 			Dir:       defaultBackendLogDir,
 			MaxSizeMB: defaultBackendLogMaxSizeMB,
 			MaxNum:    defaultBackendLogMaxNum,
 			Level:     defaultBackendLogLevel,
 		},
-		EncryptKey: defaultBackendEncryptKey,
 		System: System{
 			Env:     defaultBackendSystemEnv,
 			Edition: defaultBackendSystemEdition,
 		},
+		EncryptKey: defaultBackendEncryptKey,
 		GSEDeployConfs: []GSEDeployConf{
 			{
 				Generation:    defaultGseDeployConfLinuxGeneration,
@@ -164,6 +175,7 @@ func NewBackendService() *BackendService {
 		InstallerFileGroup: FileGroup{
 			FullPath: defaultInstallerFileGroup,
 		},
+		CreditVault: CreditVault{},
 		Access: Access{
 			VirtualUser: defaultAccessVirtualUser,
 		},
@@ -237,14 +249,6 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate log config: %w", err)
 	}
 
-	if err := svc.RestServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate rest service config: %w", err)
-	}
-
-	if err := svc.APIGateWayServer.Validate(); err != nil {
-		return fmt.Errorf("failed to validate rest service config: %w", err)
-	}
-
 	if err := svc.MongoDB.Validate(); err != nil {
 		return fmt.Errorf("failed to validate mongodb config: %w", err)
 	}
@@ -259,6 +263,10 @@ func (svc *BackendService) Validate() error {
 
 	if err := svc.System.Validate(); err != nil {
 		return fmt.Errorf("failed to validate system config: %w", err)
+	}
+
+	if err := svc.File.Validate(); err != nil {
+		return fmt.Errorf("failed to validate file config: %w", err)
 	}
 
 	if err := svc.CMDB.Validate(); err != nil {
