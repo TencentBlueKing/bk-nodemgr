@@ -563,12 +563,40 @@ type ProcessExactFields struct {
 	InfoStatus   []string
 	InfoAgentID  []string
 	InfoVersion  []string
+	Name         []string
+	PkgName      []string
 }
 
 // ProcessFuzzyFields defines the process fuzzy fields.
 // support includes and excludes.
 type ProcessFuzzyFields struct {
-	Name     []string
-	PkgName  []string
-	Platform []string
+	Name    []string
+	PkgName []string
+}
+
+// PluginCondition defines the plugin condition.
+type PluginCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PluginExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PluginFuzzyFields
+
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *PluginExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *PluginFuzzyFields
+}
+
+// PluginExactFields defines the plugin exact fields.
+type PluginExactFields struct {
+	PluginID    []string
+	PluginGroup []string
+}
+
+// PluginFuzzyFields defines the plugin fuzzy fields.
+type PluginFuzzyFields struct {
+	PluginName    []string
+	PluginPkgName []string
 }

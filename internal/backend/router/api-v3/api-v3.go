@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/policy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/process"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
@@ -50,4 +51,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity rest
 	pkg.Load(h.rg, capability)
 	schedule.Load(h.rg, capability)
 	policy.Load(h.rg, capability)
+	process.Load(h.rg, capability)
 }

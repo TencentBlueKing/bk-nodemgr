@@ -19,3 +19,18 @@ type OptFn = base.OptFn
 func WithPluginID(pluginIDs ...string) OptFn {
 	return base.WithValues(FieldKeyPluginID, pluginIDs...)
 }
+
+// WithFuzzyName filters by fuzzy name.
+func WithFuzzyName(names ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyName, names...)
+}
+
+// WithGroup filters by group.
+func WithGroup(groups ...string) OptFn {
+	return base.WithValues(FieldKeyGroup, groups...)
+}
+
+// WithFuzzyPluginPkgName filters by fuzzy plugin package name.
+func WithFuzzyPluginPkgName(pkgNames ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyPluginPkgName, pkgNames...)
+}

@@ -4,14 +4,148 @@
     "title": "plugin.proto",
     "version": "version not set"
   },
+  "tags": [
+    {
+      "name": "Package"
+    }
+  ],
   "consumes": [
     "application/json"
   ],
   "produces": [
     "application/json"
   ],
-  "paths": {},
+  "paths": {
+    "/api/v3/plugin/install": {
+      "post": {
+        "summary": "InstallPlugin installs a plugin on specified hosts.",
+        "operationId": "Package_InstallPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginInstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginInstallReq describes the plugin install request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginInstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/plugin/list": {
+      "post": {
+        "summary": "ListPlugins lists plugins based on the given conditions.",
+        "operationId": "Package_ListPlugins",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginListReq describes the plugin list request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    }
+  },
   "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "PluginInstallReqProcess": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "PluginListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "plugin_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_group": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "PluginListReqFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "plugin_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_pkg_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -36,6 +170,158 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3Plugin": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "plugin_id": {
+          "type": "string"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "plugin_group": {
+          "type": "string"
+        },
+        "plugin_pkg_name": {
+          "type": "string"
+        }
+      },
+      "description": "Plugin describes a plugin."
+    },
+    "v3PluginInstallReq": {
+      "type": "object",
+      "properties": {
+        "process": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PluginInstallReqProcess"
+          }
+        }
+      },
+      "description": "PluginInstallReq describes the plugin install request."
+    },
+    "v3PluginInstallResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginInstallRespData"
+        }
+      },
+      "description": "PluginInstallResp describes the plugin install response."
+    },
+    "v3PluginInstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PluginListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/PluginListReqExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/PluginListReqFuzzyConditions"
+        }
+      },
+      "description": "PluginListReq describes the plugin list request."
+    },
+    "v3PluginListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginListRespData"
+        }
+      },
+      "description": "PluginListResp describes the plugin list response."
+    },
+    "v3PluginListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Plugin"
           }
         }
       }

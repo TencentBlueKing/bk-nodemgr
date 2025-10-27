@@ -19,3 +19,15 @@ type Plugin struct {
 	PluginPkgName string
 	PluginGroup   string
 }
+
+// PluginInstallParam describe the plugin install param.
+type PluginInstallParam struct {
+	HostID   int64
+	PluginID string
+	Version  string
+}
+
+// PluginListParam describe the plugin list param.
+type PluginListParam struct {
+
+}

@@ -1859,3 +1859,105 @@ func (c *cli) distinctPackageEvent(ctx contextx.IContext, req *protoBackend.Pack
 
 	return resp, nil
 }
+
+func (c *cli) installPlugin(ctx contextx.IContext, req *protoBackend.PluginInstallReq) (
+	*protoBackend.PluginInstallResp, error) {
+
+	resp := new(protoBackend.PluginInstallResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/plugin/install").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("install plugin failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("install plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listPlugins(ctx contextx.IContext, req *protoBackend.PluginListReq) (
+	*protoBackend.PluginListResp, error) {
+
+	resp := new(protoBackend.PluginListResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/plugin/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list plugins failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list plugins failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listProcesses(ctx contextx.IContext, req *protoBackend.ProcessListReq) (
+	*protoBackend.ProcessListResp, error) {
+
+	resp := new(protoBackend.ProcessListResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/process/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list processes failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list processes failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

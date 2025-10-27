@@ -31,6 +31,8 @@ type IHandler interface {
 	IHandlerRelease
 	IHandlerPackage
 	IHandlerConfigPolicy
+	IHandlerPlugin
+	IHandlerProcess
 
 	// ListBusiness list business within specified tenant in contextx.
 	// @param ctx contextx.IContext, contains tenant-id and username.
@@ -444,6 +446,29 @@ type IHandlerPackage interface {
 	DistinctPackageEvent(
 		ctx contextx.IContext, condition *types.PackageEventCondition) (
 		*types.PackageEventDistinctResult, error)
+}
+
+// IHandlerPlugin defines the backend Handler for plugin.
+type IHandlerPlugin interface {
+	// ListPlugins lists plugins by page and conditions.
+	ListPlugins(ctx contextx.IContext, page types.Page, condition *types.PluginCondition) (
+		[]*types.Plugin, int64, error)
+
+	// CountPlugins counts plugins by conditions.
+	CountPlugins(ctx contextx.IContext, condition *types.PluginCondition) (int64, error)
+
+	// InstallPlugin install plugin.
+	InstallPlugin(ctx contextx.IContext, installParam ...*types.PluginInstallParam) (string, error)
+}
+
+// IHandlerProcess defines the backend Handler for process.
+type IHandlerProcess interface {
+	// ListProcesses lists processes by page and conditions.
+	ListProcesses(ctx contextx.IContext, page types.Page, condition *types.ProcessCondition) (
+		[]*types.Process, int64, error)
+
+	// CountProcesses counts processes by conditions.
+	CountProcesses(ctx contextx.IContext, condition *types.ProcessCondition) (int64, error)
 }
 
 var _ IHandler = &Handler{}

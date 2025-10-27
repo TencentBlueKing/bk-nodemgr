@@ -103,6 +103,17 @@ func (s *Storage) deleteProcess(nCtx contextx.IContext, processID string) (err e
 	return nil
 }
 
+func (s *Storage) countProcesses(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (int64, error) {
+	var opts []daoProcess.OptFn
+	var err error
+
+	if opts, err = convertProcessConditionsToOptions(conditions...); err != nil {
+		return 0, err
+	}
+
+	return s.daoProcess.Count(nCtx, opts...)
+}
+
 func (s *Storage) listProcesses(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) ([]*types.Process, int64, error) {
 	var opts []daoProcess.OptFn
 	var err error
@@ -132,14 +143,15 @@ func convertProcessConditionsToOptions(conditions ...*types.ProcessCondition) ([
 				daoProcess.WithPlatformArch(condition.ExactInclude.PlatformArch...),
 				daoProcess.WithInfoStatus(condition.ExactInclude.InfoStatus...),
 				daoProcess.WithInfoAgentID(condition.ExactInclude.InfoAgentID...),
-				daoProcess.WithInfoVersion(condition.ExactInclude.InfoVersion...))
+				daoProcess.WithInfoVersion(condition.ExactInclude.InfoVersion...),
+				daoProcess.WithName(condition.ExactInclude.Name...),
+				daoProcess.WithPkgName(condition.ExactInclude.PkgName...))
 		}
 
 		if condition.FuzzyInclude != nil {
 			opts = append(opts,
-				daoProcess.WithName(condition.FuzzyInclude.Name...),
-				daoProcess.WithPkgName(condition.FuzzyInclude.PkgName...),
-				daoProcess.WithPlatform(condition.FuzzyInclude.Platform...))
+				daoProcess.WithFuzzyName(condition.FuzzyInclude.Name...),
+				daoProcess.WithFuzzyPkgName(condition.FuzzyInclude.PkgName...))
 		}
 
 		if condition.ExactExclude != nil {

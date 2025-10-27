@@ -60,10 +60,19 @@ type IDaoPluginWorkflow interface {
 type IDaoPlugin interface {
 	// GetPluginByID get plugin by id.
 	GetPluginByID(nCtx contextx.IContext, pluginID string) (*types.Plugin, error)
+
+	// CountPlugins count plugins.
+	CountPlugins(nCtx contextx.IContext, conditions ...*types.PluginCondition) (int64, error)
+
+	// ListPlugins list plugins.
+	ListPlugins(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) ([]*types.Plugin, int64, error)
 }
 
 // IDaoProcess defines the process dao interface.
 type IDaoProcess interface {
+	// CountProcesses count processes.
+	CountProcesses(nCtx contextx.IContext, condition ...*types.ProcessCondition) (int64, error)
+
 	// ListProcesses list processes.
 	ListProcesses(nCtx contextx.IContext, page types.Page, condition ...*types.ProcessCondition) ([]*types.Process, int64, error)
 

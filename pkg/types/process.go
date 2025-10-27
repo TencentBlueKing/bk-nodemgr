@@ -46,6 +46,11 @@ func (status ProcessStatus) Validate() error {
 	}
 }
 
+// String convert process status to string.
+func (status ProcessStatus) String() string {
+	return string(status)
+}
+
 // ProcessInfo represents the process info.
 type ProcessInfo struct {
 	Pid         int
@@ -128,6 +133,11 @@ func (autoType ProcessAutoType) Validate() error {
 	default:
 		return fmt.Errorf("invalid process auto type(%s)", autoType)
 	}
+}
+
+// String convert process auto type to string.
+func (autoType ProcessAutoType) String() string {
+	return string(autoType)
 }
 
 // ProcessMonitorPolicy defines the monitor policy of process.

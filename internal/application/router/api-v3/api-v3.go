@@ -15,7 +15,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/policy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/process"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
@@ -44,4 +46,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity rest
 	node.Load(h.rg, capability)
 	policy.Load(h.rg, capability)
 	pkg.Load(h.rg, capability)
+	plugin.Load(h.rg, capability)
+	process.Load(h.rg, capability)
 }

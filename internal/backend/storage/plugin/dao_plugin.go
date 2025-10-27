@@ -11,6 +11,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -30,4 +31,73 @@ func (s *Storage) getPluginByID(nCtx contextx.IContext, pluginID string) (*types
 	}
 
 	return plugin, nil
+}
+
+func (s *Storage) countPlugins(nCtx contextx.IContext, condition ...*types.PluginCondition) (int64, error) {
+	if nCtx == nil {
+		return 0, base.ErrInvalidContext()
+	}
+
+	opts, err := convertPluginConditionToOptions(condition)
+	if err != nil {
+		return 0, fmt.Errorf("failed to convert plugin condition to options: %w", err)
+	}
+
+	count, err := s.daoPlugin.Count(nCtx, opts...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count plugins: %w", err)
+	}
+
+	return count, nil
+}
+
+func (s *Storage) listPlugins(nCtx contextx.IContext, page types.Page, condition ...*types.PluginCondition) ([]*types.Plugin, int64, error) {
+	if nCtx == nil {
+		return nil, 0, base.ErrInvalidContext()
+	}
+
+	opts, err := convertPluginConditionToOptions(condition)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to convert plugin condition to options: %w", err)
+	}
+
+	plugins, cnt, err := s.daoPlugin.List(nCtx, page, opts...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list plugins: %w", err)
+	}
+
+	return plugins, cnt, nil
+}
+
+func convertPluginConditionToOptions(conditions []*types.PluginCondition) ([]daoPlugin.OptFn, error) {
+	opts := make([]daoPlugin.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				daoPlugin.WithPluginID(condition.ExactInclude.PluginID...),
+				daoPlugin.WithGroup(condition.ExactInclude.PluginGroup...),
+			)
+		}
+
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				daoPlugin.WithFuzzyName(condition.FuzzyInclude.PluginName...),
+				daoPlugin.WithFuzzyPluginPkgName(condition.FuzzyInclude.PluginPkgName...),
+			)
+		}
+
+		if condition.ExactExclude != nil {
+			return nil, errors.New("exact exclude is not supported")
+		}
+
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
+		}
+	}
+
+	return opts, nil
 }

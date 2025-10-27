@@ -208,6 +208,17 @@ func (s *Storage) UpdatePluginDeploymentMainConfig(ctx contextx.IContext, token 
 	return err
 }
 
+// CountProcesses count processes.
+func (s *Storage) CountProcesses(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (count int64, err error) {
+	// record metric.
+	metric := s.metric().Start("count_processes")
+	defer metric.End(err)
+
+	count, err = s.countProcesses(nCtx, conditions...)
+
+	return count, err
+}
+
 // ListProcesses list processes.
 func (s *Storage) ListProcesses(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessCondition) (
 	processes []*types.Process, total int64, err error) {
@@ -230,6 +241,29 @@ func (s *Storage) GetPluginByID(nCtx contextx.IContext, pluginID string) (plugin
 	plugin, err = s.getPluginByID(nCtx, pluginID)
 
 	return plugin, err
+}
+
+// CountPlugins count plugins.
+func (s *Storage) CountPlugins(nCtx contextx.IContext, conditions ...*types.PluginCondition) (count int64, err error) {
+	// record metric.
+	metric := s.metric().Start("count_plugins")
+	defer metric.End(err)
+
+	count, err = s.countPlugins(nCtx, conditions...)
+
+	return count, err
+}
+
+// ListPlugins list plugins.
+func (s *Storage) ListPlugins(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) (plugins []*types.Plugin,
+	cnt int64, err error) {
+	// record metric.
+	metric := s.metric().Start("list_plugins")
+	defer metric.End(err)
+
+	plugins, cnt, err = s.listPlugins(nCtx, page, conditions...)
+
+	return plugins, cnt, err
 }
 
 // GetProcessByID get process by id.

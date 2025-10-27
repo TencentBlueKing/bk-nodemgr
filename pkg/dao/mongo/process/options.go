@@ -35,6 +35,11 @@ func WithName(names ...string) OptFn {
 	return base.WithValues(FieldKeyName, names...)
 }
 
+// WithFuzzyName filters by fuzzy name.
+func WithFuzzyName(names ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyName, names...)
+}
+
 // WithGroup filters by group.
 func WithGroup(groups ...string) OptFn {
 	return base.WithValues(FieldKeyGroup, groups...)
@@ -45,14 +50,14 @@ func WithPkgName(pkgNames ...string) OptFn {
 	return base.WithValues(FieldKeyPkgName, pkgNames...)
 }
 
+// WithFuzzyPkgName filters by fuzzy package name.
+func WithFuzzyPkgName(pkgNames ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyPkgName, pkgNames...)
+}
+
 // WithGeneration filters by generation.
 func WithGeneration(generations ...string) OptFn {
 	return base.WithValues(FieldKeyGeneration, generations...)
-}
-
-// WithPlatform filters by platform.
-func WithPlatform(platforms ...string) OptFn {
-	return base.WithValues(FieldKeyPlatform, platforms...)
 }
 
 // WithPlatformOS filters by platform OS.

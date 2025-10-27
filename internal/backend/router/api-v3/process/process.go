@@ -8,32 +8,26 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package plugin defines the router to handle the plugin request.
-package plugin
+// Package process defines the process handler.
+package process
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg              *gin.RouterGroup
-	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
-	daoPlugin       pluginStg.IDaoPlugin
-	manager         manager.IPluginManager
+	rg         *gin.RouterGroup
+	daoProcess pluginStg.IDaoProcess
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:              rg.Group("/plugin"),
-		daoNodeWorkflow: capability.StorageNode,
-		daoPlugin:       capability.StoragePlugin,
-		manager:         capability.Manager,
+		rg:         rg.Group("/process"),
+		daoProcess: capability.StoragePlugin,
 	}
 }
 
@@ -41,6 +35,5 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/install", restserver.Handler(h.Install))
 	h.rg.POST("/list", restserver.Handler(h.List))
 }
