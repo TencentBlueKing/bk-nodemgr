@@ -1747,7 +1747,7 @@ func (c *cli) disableConfigPolicy(ctx contextx.IContext, req *protoBackend.Confi
 	header := c.getHeader(ctx)
 
 	result := c.client.Post().
-		SubResourcef("/topo/networkarea/create").
+		SubResourcef("/policy/config/disable").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
