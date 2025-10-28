@@ -419,3 +419,70 @@ export interface FileChunk {
   content: bytes;
 }
 
+// PackageEventExactConditions describes the conditions when list event.
+export interface PackageEventExactConditions {
+  generation: number[];
+  os_type: string[];
+  cpu_arch: string[];
+  release_type: string[];
+  operator: string[];
+  event_type: string[];
+  version: string[];
+}
+
+// PackageEventFuzzyConditions describes the conditions when list event
+export interface PackageEventFuzzyConditions {
+}
+
+// PackageEventListReq describes the HTTP request body when list event in
+// Package service.
+export interface PackageEventListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: PackageEventExactConditions;
+  fuzzy_include_conditions: PackageEventFuzzyConditions;
+  operate_time_range: TimeRange;
+}
+
+// PackageEventListResp describes the HTTP response body when list event in
+// Package service.
+export interface PackageEventListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageEventListRespData;
+}
+
+export interface PackageEventListRespData {
+  total: number;
+  items: PackageEvent[];
+}
+
+// PackageEventDistinctReq describes the HTTP request body when distinct
+// packageevent in package service.
+export interface PackageEventDistinctReq {
+  exact_include_conditions: PackageEventExactConditions;
+  fuzzy_include_conditions: PackageEventFuzzyConditions;
+  operate_time_range: TimeRange;
+}
+
+// PackageEventDistinctResp describes the HTTP response body when distinct
+// packageevent in package service.
+export interface PackageEventDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageEventDistinctRespData;
+}
+
+export interface PackageEventDistinctRespData {
+  release_type: string[];
+  event_type: string[];
+  os_type: string[];
+  cpu_arch: string[];
+  version: string[];
+  operator: string[];
+}
+

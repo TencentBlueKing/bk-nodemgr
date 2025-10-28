@@ -111,6 +111,28 @@ export interface NodeAgentRestartRespData {
   workflow_id: string;
 }
 
+export interface NodeAgentUninstallHost {
+  bk_host_id: number;
+}
+
+// NodeAgentUninstallReq describes the node agent uninstall request.
+export interface NodeAgentUninstallReq {
+  host: NodeAgentUninstallHost[];
+}
+
+// NodeAgentUninstallResp describes the node agent uninstall response.
+export interface NodeAgentUninstallResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeAgentUninstallRespData;
+}
+
+export interface NodeAgentUninstallRespData {
+  workflow_id: string;
+}
+
 // AgentInstallCheckInfo describes the node agent install check parameter.
 export interface AgentInstallCheckInfo {
   bk_biz_id: number;

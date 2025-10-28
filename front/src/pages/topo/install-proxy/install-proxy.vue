@@ -177,7 +177,7 @@
         </Form.FormItem>
         <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
           <div class="w-[488px]">
-            <Table :data="systemData" :border="true">
+            <Table :data="systemData" :border="true" empty-text="当前无可用版本">
               <TableColumn
                 field="displayName"
                 :title="$t('操作系统/架构')"
@@ -191,7 +191,7 @@
                     :ref="(el) => setInputRef(row.os, el)"
                   >
                     <Input
-                      :model-value="row.version"
+                      :model-value="row.versionName"
                       :placeholder="$t('请选择')"
                       @click="handleChooseVersion(row)"
                     />
@@ -212,6 +212,11 @@
           <Button
             theme="primary"
             class="w-[120px]"
+            :disabled="systemData.length === 0"
+            v-bk-tooltips="{
+              content: '当前无可用版本, 不可安装',
+              disabled: systemData.length > 0
+            }"
             @click="handleConfirm"
           >
             <span>
@@ -248,7 +253,7 @@
 import { Button, Cascader, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
-import { PropType } from 'vue';
+import type { PropType } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -258,6 +263,7 @@ import { Table, TableColumn } from '@blueking/table';
 import SelectItemGroup from './components/select-item-group.vue';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
+import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
@@ -298,7 +304,7 @@ const form = reactive({
   method: '0', // 安装方式
   info: [cloneDeep(initData)], // 安装信息
   saveTime: '保存 1 天', // 密钥/密码
-  os_type: 'Linux', // 操作系统
+  os_type: 'linux', // 操作系统
   login_port: '36000', // 登录端口
   login_user: 'root', // 登录账号
   bk_biz_id: '', // 归属业务
@@ -337,17 +343,19 @@ const businessList = computed(() => mainStore.businessList);
 const systemData = ref([
   {
     displayName: 'linux/amd64',
-    os: 'Linux_amd64',
+    os: 'linux_amd64',
     cpu_arch: 'amd64',
     os_type: 'linux',
-    version: '自动',
+    version: 'auto',
+    versionName: '自动',
   },
   {
     displayName: 'linux/arm64',
-    os: 'Linux_arm64',
+    os: 'linux_arm64',
     cpu_arch: 'arm64',
     os_type: 'linux',
-    version: '自动',
+    version: 'auto',
+    versionName: '自动',
   },
 ]);
 // 安装方式列表
@@ -408,13 +416,10 @@ const getNetworkUnitList = async () => {
 const handleSelect = (newValue: string) => {
   form.bk_networkarea_name = networkAreaList.value?.find((item: any) => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
 };
-const areaUnitlist = computed(() => networkUnitList.value.filter((item: NetworkUnit) =>
-  [Number(route.params.workarea), Number(form.bk_networkarea_id)].includes(item.bk_networkarea_id)
-));
+const areaUnitlist = computed(() => networkUnitList.value.filter((item: NetworkUnit) => [Number(route.params.workarea), Number(form.bk_networkarea_id)].includes(item.bk_networkarea_id)));
 // 安装源
 const installOriginList = computed(() => {
-  const unit = areaUnitlist.value.find((item: NetworkUnit) =>
-    [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
+  const unit = areaUnitlist.value.find((item: NetworkUnit) => [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
   let list;
   if (unit?.links.cluster.bk_networkunit_id !== null) {
     list = [
@@ -460,14 +465,16 @@ const isShowDialog = ref(false);
 const dialogData = ref([{
   os: '',
   version: '',
+  versionName: '',
 }]);
 
-const handleChooseVersion = (row: { version: string; os: string }) => {
+const handleChooseVersion = (row: { version: string; os: string, versionName: string }) => {
   isShowDialog.value = true;
   dialogData.value = [row];
 };
 const handleComfirmVerion = (data: any) => {
-  data.version && (dialogData.value[0].version = data.version === 'auto' ? '自动' : data.version);
+  dialogData.value[0].version = data?.version;
+  dialogData.value[0].versionName = data?.versionName;
 };
 const handleChange = (values: Array<string | number>) => {
   form.method = values[0] as string;
@@ -521,10 +528,8 @@ const handleConfirm = async () => {
   ]);
   // 合并多重Promise
   if (Array.isArray(result[2])) {
-    console.log("🚀 11:", result)
     result[2] = result[2].every(item => item);
   }
-  console.log("🚀 ~ handleConfirm ~ result:", result)
   if (result.every(item => item)) {
     const modeMap = {
       password: 'login_password',
@@ -540,7 +545,7 @@ const handleConfirm = async () => {
     });
     if (isTargetShow.value) {
       form.target_version = systemData.value
-        .filter((item: any) => item.version !== '自动')
+        .filter((item: any) => item.version !== 'auto')
         .map((item: any) => ({
           os_type: item.os_type,
           cpu_arch: item.cpu_arch,
@@ -606,9 +611,42 @@ const handleImport = () => {
 const handleSetpBack = () => {
   form.info = [];
 };
+// 获取版本，用来检查是否有对应架构的包版本去安装
+const getVersions = async () => {
+  const res = await PackageService.ListRelease({
+    generation: 2,
+    release_type: 'proxy',
+  }).catch(() => ({
+    total: 0,
+    items: [],
+  }));
+  const osMap: any = {};
+  res.items.forEach((item) => {
+    const key = `${(item.os_type)}_${item.cpu_arch}`;
+    if (!osMap[key]) {
+      osMap[key] = {
+        name: key,
+        enableVersions: [],
+      };
+    }
+    if (item.enabled) {
+      osMap[key].enableVersions.push({
+        version: item.version,
+        versionName: item.version,
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch,
+      });
+    }
+  });
+  systemData.value = systemData.value.filter(item => {
+    const key = `${(item.os_type)}_${item.cpu_arch}`;
+    return !!osMap[key]?.enableVersions.length;
+  });
+};
 
 watch(() => isShow.value, async () => {
   if (isShow.value) {
+    await getVersions();
     await getNetworkAreaList();
   } else {
     formRef.value?.clearValidate();
@@ -617,7 +655,7 @@ watch(() => isShow.value, async () => {
       method: '0', // 安装方式
       info: [cloneDeep(initData)], // 安装信息
       saveTime: '保存 1 天', // 密钥/密码
-      os_type: 'Linux', // 操作系统
+      os_type: 'linux', // 操作系统
       login_port: '36000', // 登录端口
       login_user: 'root', // 登录账号
       bk_biz_id: '', // 归属业务

@@ -7,11 +7,11 @@
       @click="handleClick(item.type)"
     >
       <div class="prefix">
-        <i :class="['nodeman-icon', item.icon]"></i>
+        <i :class="['text-[18px]', 'nodeman-icon', item.icon]"></i>
       </div>
       <div class="text">
         <p>{{ item.name }}</p>
-        <p>{{ item.desc }}</p>
+        <OverflowTitle class="overflow-title" type="tips">{{ item.desc }}</OverflowTitle>
       </div>
       <div class="checked" v-show="activeType === item.type">
         <i class="nodeman-icon nc-check-small"></i>
@@ -20,6 +20,7 @@
   </div>
 </template>
 <script lang="ts" setup>
+import { OverflowTitle } from 'bkui-vue';
 import { computed, ref } from 'vue';
 
 import { useMainStore } from '@/stores/main';
@@ -64,12 +65,12 @@ const handleClick = (type: string) => {
     gap: 8px;
     .active {
         &.type {
-            border-color: #3A84FF;
-            .prefix {
-                background: #E1ECFF;
-                border-right: 1px solid #3A84FF;
-                color: #3A84FF;
-            }
+          border-color: none;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);;
+          .prefix {
+            background: #E1ECFF;
+            color: #3A84FF;
+          }
         }
     }
     .checked {
@@ -90,45 +91,48 @@ const handleClick = (type: string) => {
         }
     }
     .type {
-        position: relative;
-        min-width: 280px;
-        height: 56px;
-        background: #FFFFFF;
-        border: 1px solid #C4C6CC;
-        border-radius: 2px;
+      position: relative;
+      min-width: 280px;
+      height: 56px;
+      background: #FFFFFF;
+      border: 1px solid #C4C6CC;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      &:hover {
+        border-color: #3A84FF;
+      }
+      .prefix {
+        min-width: 48px;
+        height: 100%;
+        border-right: 1px solid #C4C6CC;
+        background: #F5F7FA;
         display: flex;
         align-items: center;
-        cursor: pointer;
+        justify-content: center;
+        font-size: 21px;
+        color: #979BA5;
+      }
 
-        .prefix {
-            width: 48px;
-            height: 100%;
-            border-right: 1px solid #C4C6CC;
-            background: #F5F7FA;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 21px;
-            color: #979BA5;
+      .text {
+        padding: 6px 8px;
+        min-width: 232px;
+        height: 100%;
+        p {
+            font-size: 14px;
+            color: #313238;
+            height: 22px;
+            line-height: 22px
         }
 
-        .text {
-            padding: 6px 8px;
-
-            p:first-child {
-                font-size: 14px;
-                color: #313238;
-                height: 22px;
-                line-height: 22px
-            }
-
-            p:last-child {
-                font-size: 12px;
-                color: #4D4F56;
-                height: 20px;
-                line-height: 20px;
-            }
+        .overflow-title {
+            font-size: 12px;
+            color: #4D4F56;
+            height: 20px;
+            line-height: 20px;
         }
+      }
     }
 }
 </style>

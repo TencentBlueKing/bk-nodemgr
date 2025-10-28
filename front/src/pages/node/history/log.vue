@@ -187,6 +187,31 @@ const handleClick = async (item: {
     stop();
   }
 };
+function getOrdinalSuffix(number: number) {
+  // 处理 11, 12, 13 的特殊情况
+  if (number % 100 >= 11 && number % 100 <= 13) {
+    return `${number}th`;
+  }
+
+  // 根据最后一位数字决定后缀
+  const lastDigit = number % 10;
+  let suffix;
+  switch (lastDigit) {
+    case 1:
+      suffix = 'st';
+      break;
+    case 2:
+      suffix = 'nd';
+      break;
+    case 3:
+      suffix = 'rd';
+      break;
+    default:
+      suffix = 'th';
+      break;
+  }
+  return `${number}${suffix}`;
+}
 const getInstance = async () => {
   const res = await NodeWorkflowService.NodeWorkflowOperationInstanceList({
     operation_id: curOperationId.value,
@@ -199,7 +224,7 @@ const getInstance = async () => {
   operInstList.value = [];
   for (let i = 1; i <= res.total; i++) {
     operInstList.value.push({
-      name: i < res.total ? `${i}nd` : 'LATEST',
+      name: i < res.total ? getOrdinalSuffix(i) : 'LATEST',
       id: res.oper_inst_data[i - 1].oper_inst_id,
       sort_names: res.oper_inst_data[i - 1].action_names,
     });

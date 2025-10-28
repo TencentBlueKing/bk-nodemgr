@@ -129,6 +129,28 @@ export interface NodeProxyUpdateHost {
   proxy_tags: string[];
 }
 
+export interface NodeProxyUninstallHost {
+  bk_host_id: number;
+}
+
+// NodeProxyUninstallReq describes the node proxy uninstall request.
+export interface NodeProxyUninstallReq {
+  host: NodeProxyUninstallHost[];
+}
+
+// NodeProxyUninstallResp describes the node proxy uninstall response.
+export interface NodeProxyUninstallResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeProxyUninstallRespData;
+}
+
+export interface NodeProxyUninstallRespData {
+  workflow_id: string;
+}
+
 // NodeProxyUpdateReq describes the node proxy update request.
 export interface NodeProxyUpdateReq {
   Host: NodeProxyUpdateHost[];

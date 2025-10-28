@@ -9,7 +9,8 @@
           format="yyyy-MM-dd HH:mm:ss"
           type="datetimerange"
           use-shortcut-text
-          @change="pickSuccess" />
+          @change="pickSuccess"
+        />
       </div>
       <div class="flex-1 ml-[8px]">
         <SearchSelect
@@ -17,8 +18,9 @@
           :data="searchSelectData"
           v-model="searchSelectValue"
           :unique-select="true"
-          :placeholder="t('请输入 包名称、类别、版本、操作、操作人 搜索')"
-          @update:model-value="handleSearchSelectChange">
+          :placeholder="'搜索版本号、操作系统、架构、操作类型、操作人、包类型'"
+          @update:model-value="handleSearchSelectChange"
+        >
         </SearchSelect>
       </div>
     </section>
@@ -34,12 +36,57 @@
         :settings="settings"
         @setting-change="handleSettingChange"
         @column-filter="handleFilter"
+        :sort-config="sortConfig"
       >
-        <TableColumn field="workflow_id" :title="t('类别')" min-width="100" fixed="left"></TableColumn>
-        <TableColumn field="type" :title="t('包名称')" min-width="150"></TableColumn>
-        <TableColumn field="bk_biz_name" :title="t('版本')" min-width="150"></TableColumn>
-        <TableColumn field="operator" :title="t('操作人')" min-width="150"></TableColumn>
-        <TableColumn field="operate_time" :title="t('操作时间')" min-width="200" show-overflow-tooltip>
+        <TableColumn
+          field="version"
+          :title="t('版本号')"
+          min-width="130"
+          fixed="left"
+          sortable
+          :filter="filterOptionSource.version"
+        ></TableColumn>
+        <TableColumn
+          field="release_type"
+          :title="t('包类型')"
+          min-width="130"
+          :filter="filterOptionSource.release_type"
+        ></TableColumn>
+        <TableColumn
+          field="os_type"
+          :title="t('操作系统')"
+          min-width="130"
+          :filter="filterOptionSource.os_type"
+        ></TableColumn>
+        <TableColumn
+          field="cpu_arch"
+          :title="t('架构')"
+          min-width="130"
+          :filter="filterOptionSource.cpu_arch"
+        ></TableColumn>
+        <TableColumn
+          field="event_type"
+          :title="t('操作类型')"
+          min-width="150"
+          :filter="filterOptionSource.event_type"
+        >
+          <template #default="{ row }">
+            {{ eventMap[row.event_type]}}
+          </template>
+        </TableColumn>
+        <TableColumn
+          field="operator"
+          :title="t('操作人')"
+          min-width="150"
+          :filter="filterOptionSource.operator"
+        ></TableColumn>
+        <TableColumn
+          field="operate_time"
+          :title="t('操作时间')"
+          sort-type="number"
+          sortable
+          min-width="200"
+        >
           <template #default="{ row }">
             <span>{{ timeFormatter(row.operate_time) }}</span>
           </template>
@@ -49,37 +96,79 @@
   </div>
 </template>
 <script setup lang="ts">
-import { Button, Cascader, Checkbox, DatePicker, Dropdown, InfoBox, SearchSelect } from 'bkui-vue';
+import {
+  DatePicker,
+  SearchSelect,
+} from 'bkui-vue';
 import dayjs from 'dayjs';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
+import type { VxeTablePropTypes } from 'vxe-table';
 
 import { Table, TableColumn } from '@blueking/table';
 
-import type { NodeWorkflowInfo } from '@/@types/node_workflow';
-import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import type { PackageEventDistinctRespData } from '@/@types/pkg';
 import { PackageService } from '@/api/modules/pkg';
+import { compareVersions  } from '@/common/util';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
+interface IFilterOption {
+  list: { value: string | boolean, text: string;  }[];
+  checked: string[];
+  filterScope: string;
+  match?: string,
+}
+interface ISearch {
+  id: string;
+  name: string;
+  values: {
+    id: string;
+    name: string
+  }[];
+}
+
 const { t } = useI18n();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
-const tableData = ref<NodeWorkflowInfo[]>([]);
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const tableData = ref<PackageEvent[]>([]);
 // 分页
-const {
-  pagination,
-} = usePage(tableData);
-// 跨页全选
+const { pagination } = usePage(tableData);
+
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const loading = ref(false);
 
+const sortConfig = ref<VxeTablePropTypes.SortConfig>({
+  sortMethod({ data, sortList }) {
+    const sortItem = sortList[0];
+    // 取出第一个排序的列
+    const { field, order } = sortItem;
+    // 通用排序函数
+    function sortData(a: Release, b: Release, field: string) {
+      if (field === 'version') {
+        return compareVersions(a[field], b[field]);
+      }
+      return a[field] - b[field];
+    }
+
+    const sortedList = data.sort((a: Release, b: Release) => {
+      const comparison = sortData(a, b, field);
+      return order === 'desc' ? -comparison : comparison;
+    });
+
+    return sortedList;
+  },
+});
+
 // 日期选择
-const dateValue = ref([new Date().setTime(new Date().getTime() - 3600 * 1000 * 24 * 7), new Date()]);
+const dateValue = ref([
+  new Date().setTime(new Date().getTime() - 3600 * 1000 * 24 * 7),
+  new Date(),
+]);
 const shortcutsRange = reactive([
   {
     text: '今天',
@@ -117,52 +206,100 @@ const shortcutsRange = reactive([
     },
   },
 ]);
-const pickSuccess = async (val: string[]) => {
+const pickSuccess = async () => {
   await getTaskList();
 };
 
 const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => (val ? dayjs(val).format(format) : '--');
 
-const formatTimeToMS = (duration: number) => {
-  const minutes = Math.floor(duration / 60000);
-  const seconds = Math.floor((duration % 60000) / 1000);
-  return `${minutes}m ${seconds}s`;
-};
 
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    'workflow_id',
-    'bk_biz_name',
-    'type',
-    'bk_policy_name',
+    'version',
+    'release_type',
+    'os_type',
+    'cpu_arch',
+    'event_type',
     'operator',
     'operate_time',
-    'cost_time',
-    'status',
-    'count',
   ],
   disabled: [],
 });
-const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
-  const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
-  return uniqueValues.map(value => ({
-    id: value,
-    name: map && map[value as string] ? map[value as string].text : value,
-  }));
+
+// 操作类型中文映射
+const eventMap = {
+  publish: '发布',
+  enable: '启用',
+  disable: '禁用',
+  delete: '删除',
+  set_as_default: '设置为默认版本',
+  unset_as_default: '取消默认版本',
+};
+
+const getUniqueChildrenFrom = <K extends keyof PackageEventDistinctRespData>(
+  prop: K,
+  keyMap?: Record<string, any>,
+) => {
+  const uniqueValues = hostDistinct.value?.[prop] || [];
+  return uniqueValues
+    .filter((item: any) => item !== '')
+    .map((value: any) => ({
+      id: value,
+      name: keyMap && keyMap[value] ? keyMap[value] : String(value),
+    }));
 };
 const searchSelectData = computed(() => [
-  // {id: 'workflow_id', name: t('platform.nodeMan.taskHistory.label.taskID')},
-  // {id: 'type', name: 'platform.nodeMan.taskHistory.label.taskType', children: getUniqueChildren('type', typeMap)},
-  // {id: 'bk_biz_id', name: 'platform.nodeMan.taskHistory.label.business', children: bussinessMap.value, multiple: true},
-  // {id: 'operator', name: 'platform.nodeMan.taskHistory.label.operator', children: getUniqueChildren('operator')},
-  // {id: 'status', name: 'platform.nodeMan.taskHistory.label.status', children: getUniqueChildren('status')},
+  {
+    id: 'version',
+    name: '版本号',
+    children: getUniqueChildrenFrom('version'),
+    multiple: true,
+  },
+  {
+    id: 'release_type',
+    name: '包类型',
+    children: getUniqueChildrenFrom('release_type'),
+    multiple: true,
+  },
+  {
+    id: 'os_type',
+    name: '操作系统',
+    children: getUniqueChildrenFrom('os_type'),
+    multiple: true,
+  },
+  {
+    id: 'cpu_arch',
+    name: '架构',
+    children: getUniqueChildrenFrom('cpu_arch'),
+    multiple: true,
+  },
+  {
+    id: 'event_type',
+    name: '操作类型',
+    children: getUniqueChildrenFrom('event_type', eventMap),
+    multiple: true,
+  },
+  {
+    id: 'operator',
+    name: '操作人',
+    children: getUniqueChildrenFrom('operator'),
+    multiple: true,
+  },
 ]);
 
 // 搜索
-const searchSelectValue = ref<{id: string, name: string, values: any}[]>([]);
-const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
-
+const searchSelectValue = ref<{ id: string; name: string; values: any }[]>([]);
+const handleSearchSelectChange = async (data: ISearch[]) => {
+  // 给筛选器添加选中值
+  Object.keys(filterOptionSource).forEach((key) => {
+    filterOptionSource[key].checked = [];
+  });
+  data.forEach((item) => {
+    if (filterOptionSource[item.id]) {
+      filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
+    }
+  });
 };
 
 const getTimestampInSeconds = (originalDate: number | Date) => {
@@ -176,9 +313,7 @@ const getParams = () => {
       limit: 0,
       offset: 0,
     },
-    exact_include_conditions: {
-      bk_biz_id: mainStore.selectedBusinessId,
-    },
+    exact_include_conditions: {},
     fuzzy_include_conditions: {} as Record<string, string[]>,
     operate_time_range: {
       start_timestamp_sec: getTimestampInSeconds(dateValue.value[0]),
@@ -193,21 +328,112 @@ const getParams = () => {
 };
 const getTaskList = async () => {
   loading.value = true;
-  const res = await NodeWorkflowService.NodeWorkflowList(getParams()).catch((err) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
-    };
-  });
+  const res = await PackageService.PackageEventList(getParams()).catch(() => ({
+    total: 0,
+    items: [],
+  }));
   tableData.value = res.items;
   loading.value = false;
 };
 
-watch(() => searchSelectValue, async () => {
-  await getTaskList();
-}, { deep: true });
+// 筛选
+const hostDistinct = ref<PackageEventDistinctRespData | null>();
+const filterOptionSource = reactive<Record<string, IFilterOption>>({
+  version: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
+  os_type: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
+  cpu_arch: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
+  release_type: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
+  operator: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
+  event_type: {
+    list: [],
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
+});
+const getHostDistinct = async () => {
+  const res = await PackageService.PackageEventDistinct({}).catch(() => null);
+  if (res) {
+    hostDistinct.value = res;
+    Object.keys(res).forEach((key: any) => {
+      const curUniqueValues = res[key] || [];
+      if (filterOptionSource[key]) {
+        filterOptionSource[key].list = curUniqueValues
+          .filter((item: any) => item !== '')
+          .map((value: string | number) => {
+            let text;
+            switch (key) {
+              case 'event_type':
+                text = eventMap[value] || value;
+                break;
+              default:
+                text = value;
+                break;
+            }
+            return {
+              text,
+              value,
+            };
+          });
+      }
+    });
+  }
+};
+const handleFilter = ({
+  checked,
+  field,
+}: {
+  checked: string[];
+  field: string;
+}) => {
+  const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
+  index > -1 && searchSelectValue.value.splice(index, 1);
+  if (checked.length) {
+    searchSelectValue.value.push({
+      id: field,
+      name: t(field),
+      values: checked.map((item: any) => ({
+        id: item,
+        name: item,
+      })),
+    });
+  }
+};
+
+watch(
+  () => searchSelectValue,
+  async () => {
+    await getTaskList();
+  },
+  { deep: true },
+);
 onMounted(async () => {
   await getTaskList();
+  await getHostDistinct();
 });
 </script>

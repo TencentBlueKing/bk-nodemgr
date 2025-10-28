@@ -103,11 +103,11 @@ const navList = [
             icon: 'nodeman-icon nc-remote-install',
             title: i18n.global.t('Proxy 策略'),
           },
-          {
-            routeName: 'pluginStrategy',
-            icon: 'nodeman-icon nc-plug-in',
-            title: i18n.global.t('插件策略'),
-          },
+          // {
+          //   routeName: 'pluginStrategy',
+          //   icon: 'nodeman-icon nc-plug-in',
+          //   title: i18n.global.t('插件策略'),
+          // },
         ],
       },
       {

@@ -188,6 +188,18 @@ interface TargetVersion {
   os_type: string;
 }
 
+// PackageEvent describes the package event.
+interface PackageEvent {
+  event_type: string;
+  generation: number;
+  release_type: string;
+  os_type: string;
+  cpu_arch: string;
+  version: string;
+  operate_time: number;
+  operator: string;
+}
+
 // ConfigPolicyScope describes the config policy scope.
 interface ConfigPolicyScope {
   bk_networkarea_id: number;

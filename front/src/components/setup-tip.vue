@@ -16,7 +16,10 @@
         <span class="text-[#313238] font-bold">{{
           $t("platform.nodeMan.installAgentPage.tip2FirstSlotText")
         }}</span>
-        <Button text theme="primary" @click="handleShowPanel">{{
+        <Button v-if="showInstallRequirement" text theme="primary" @click="handleShowPanel">{{
+          $t("platform.nodeMan.installAgentPage.tip2SecondSlotText")
+        }}</Button>
+        <Button v-else text @click="handleShowPanel">{{
           $t("platform.nodeMan.installAgentPage.tip2SecondSlotText")
         }}</Button>
         <Button text theme="primary" @click="handleShowSetting">{{
@@ -30,6 +33,12 @@
 import { Button } from 'bkui-vue';
 import { ref } from 'vue';
 
+defineProps({
+  showInstallRequirement: {
+    type: Boolean,
+    default: false,
+  },
+});
 const emit = defineEmits(['showSetting']);
 const showRightPanel = ref(false);
 // 显示侧边栏安装策略

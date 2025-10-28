@@ -87,11 +87,11 @@
         </div>
       </template>
       <!-- 下游接入点简化展示 -->
-      <div class="flex items-start">
-        <div class="text-[#4D4F56] w-[72px] mr-[3px]">
+      <div class="flex items-center">
+        <div class="text-[#4D4F56] w-[72px] mr-[3px] shrink-0">
           {{ $t('topoManager.workUnit.accessPoints.downstream') }} :
         </div>
-        <span v-if="isDownStreamDataExist">
+        <span v-if="isDownStreamDataExist" class="responsive-container">
           {{ downstreamData?.map(item => item.accesspoint_name).join(' , ') }}
         </span>
         <span v-else>--</span>
@@ -173,42 +173,46 @@
         <div v-else>--</div>
       </div>
       <!-- 下游接入点详细展示 -->
-      <div class="flex">
-        <div class="text-[#4D4F56] w-[72px] mr-[3px]">
+      <div class="flex items-baseline">
+        <div class="text-[#4D4F56] w-[72px] mr-[3px] shrink-0">
           {{ $t('topoManager.workUnit.accessPoints.downstream') }} :
         </div>
-        <div v-if="isDownStreamDataExist">
+        <div v-if="isDownStreamDataExist" class="flex gap-[10px] items-end overflow-x-auto responsive-container">
           <div v-for="(item, index) in downstreamData" class="mb-[8px]" :key="index">
-            <span>{{ item.accesspoint_name }}</span>
-            <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56] mt-[6px]">
-              <div class="flex items-center h-[20px]">
-                <div class="w-[45px] text-right mr-[8px]">cluster :</div>
-                <span>{{ item.endpoints.cluster.join(' ;') }}</span>
+            <div class="flex items-center">
+              <span>{{ item.accesspoint_name }}</span>
+              <Button
+                v-if="index === 0"
+                text
+                theme="primary"
+                class="ml-[15px]"
+                @click="toggleExpand">
+                <span>
+                  {{ $t('topoManager.workUnit.toggle.close') }}
+                </span>
+                <i class="nodeman-icon nc-double-up text-[24px]"></i>
+              </Button>
+            </div>
+            <div class="flex items-center gap-[10px]">
+              <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56] mt-[6px]">
+                <div class="flex items-center h-[20px]">
+                  <div class="w-[45px] text-right mr-[8px]">cluster :</div>
+                  <span>{{ item.endpoints.cluster.join(' ;') }}</span>
+                </div>
+                <div class="flex items-center h-[20px] mt-[12px]">
+                  <div class="w-[45px] text-right mr-[8px]">file :</div>
+                  <span>{{ item.endpoints.file.join(' ;') }}</span>
+                </div>
+                <div class="flex items-center h-[20px] mt-[12px]">
+                  <div class="w-[45px] text-right mr-[8px]">data :</div>
+                  <span>{{ item.endpoints.data.join(' ;') }}</span>
+                </div>
               </div>
-              <div class="flex items-center h-[20px] mt-[12px]">
-                <div class="w-[45px] text-right mr-[8px]">file :</div>
-                <span>{{ item.endpoints.file.join(' ;') }}</span>
-              </div>
-              <div class="flex items-center h-[20px] mt-[12px]">
-                <div class="w-[45px] text-right mr-[8px]">data :</div>
-                <span>{{ item.endpoints.data.join(' ;') }}</span>
-              </div>
+              <i class="nodeman-icon nc-arrows-right text-[24px]" v-if="index !== downstreamData.length - 1"></i>
             </div>
           </div>
         </div>
         <div v-else>--</div>
-        <div class="flex items-end">
-          <Button
-            text
-            theme="primary"
-            class="ml-[15px]"
-            @click="toggleExpand">
-            <span>
-              {{ $t('topoManager.workUnit.toggle.close') }}
-            </span>
-            <i class="nodeman-icon nc-double-up text-[24px]"></i>
-          </Button>
-        </div>
       </div>
     </div>
   </div>
@@ -233,12 +237,12 @@ const props = defineProps({
   },
   is_direct: {
     type: Boolean,
-    default: false
+    default: false,
   },
   directEndpoints: {
     type: Object as PropType<Endpoints>,
-    default: null
-  }
+    default: null,
+  },
 });
 const workareaStore = useWorkareaStore();
 const isDownStreamDataExist = computed(() => props.downstreamData.length !== 0);
@@ -309,3 +313,47 @@ const getAccessPointName = (workUnitId: number, accessPointId: number): string =
 
 
 </script>
+<style scoped lang="postcss">
+.responsive-container {
+  display: flex;
+  align-items: baseline;
+  overflow-x: auto;
+  max-width: min(900px, 80vw);
+  width: 100%;
+}
+
+@media (min-width: 2001px) {
+  .responsive-container {
+    max-width: 80vw;
+  }
+}
+
+@media (min-width: 1801px) and (max-width: 2000px) {
+  .responsive-container {
+    max-width: 77vw;
+  }
+}
+
+@media (min-width: 1601px) and (max-width: 1800px) {
+  .responsive-container {
+    max-width: 75vw;
+  }
+}
+
+@media (min-width: 1401px) and (max-width: 1600px) {
+  .responsive-container {
+    max-width: 73vw;
+  }
+}
+@media (min-width: 1201px) and (max-width: 1400px) {
+  .responsive-container {
+    max-width: 71vw;
+  }
+}
+
+@media (max-width: 1200px) {
+  .responsive-container {
+    max-width: 900px;
+  }
+}
+</style>

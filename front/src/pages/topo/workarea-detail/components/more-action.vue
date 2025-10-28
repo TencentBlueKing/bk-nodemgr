@@ -46,7 +46,7 @@
  *    搭配focusout能轻松关闭上一个open的DropMenu，实在巧妙！
  */
 
-import { Button, Dialog, Dropdown, Message } from 'bkui-vue';
+import { Button, Dropdown, InfoBox } from 'bkui-vue';
 import type { PropType } from 'vue';
 import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -161,6 +161,16 @@ const handleClickDropMenu = (action: keyof typeof confirmConfigMap) => {
       operateDialogData.subTitle = props.batch
         ? `重启 ${titleObj.firstIp} 等${titleObj.num}个IP的Proxy`
         : `重启 ${titleObj.firstIp} 的Proxy`;
+    } else if (action === 'unload') {
+      InfoBox({
+        title: props.batch ? '请确认是否批量卸载' : '请确认是否卸载',
+        subTitle: props.batch
+          ? `卸载 ${titleObj.firstIp} 等${titleObj.num}个IP的Agent`
+          : `卸载 ${titleObj.firstIp} 的Agent`,
+        onConfirm: () => {
+          handleUninstall();
+        },
+      });
     }
   }
   // 隐藏dropdown
@@ -184,7 +194,22 @@ const operateDialogData = {
   subTitle: '',
 };
 // 卸载
-const unloadProxy = async () => {
+const handleUninstall = async () => {
+  loading.value = true;
+  const result = await NodeProxyService.NodeProxyUninstall({
+    host: props.data?.map((item: any) => ({
+      bk_host_id: item.bk_host_id,
+    })),
+  }).catch(() => ({
+    workflow_id: '',
+  }));
+  loading.value = false;
+  if (result.workflow_id) {
+    router.push({
+      name: 'taskDetail',
+      params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+    });
+  }
 };
 const operateJob = async (extraData: any = {}) => {
   loading.value = true;

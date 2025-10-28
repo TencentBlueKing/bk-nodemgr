@@ -33,7 +33,7 @@ interceptors.response.use(async (response: Response, config: Config) => {
     return;
   }
 
-  const showMessageData = res?.message || res?.datas?.message || '';
+  const showMessageData = res?.message || res?.datas?.message || res?.error?.message || '';
   if (response.status >= 200 && response.status < 300) {
     // API状态码不正确
     if (config.validateCode && res.status !== 0 && res.code !== 0) {
@@ -55,20 +55,23 @@ interceptors.response.use(async (response: Response, config: Config) => {
   }
 
   // 优化后的Message
-  config.interceptorErr && Message({
-    theme: 'error',
-    message: {
-      code: response.status,
+  if (config.interceptorErr) {
+    const errorMessage = {
+      code: response.status ?? res.code,
       overview: showMessageData,
       suggestion: '',
       type: 'key-value',
       details: {
-        bizId: response.headers.get('X-Devops-Rid'),
-        message: showMessageData,
+        code: res.code,
+        message: res.error?.details?.[0]?.message ?? showMessageData,
         url: response.url,
       },
-    },
-  });
+    };
+    Message({
+      theme: 'error',
+      message: errorMessage,
+    });
+  }
 
   return Promise.reject(resData);
 });

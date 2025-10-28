@@ -342,6 +342,7 @@ components:
   chooseVersion:
     title: Choose version based on operating system
     auto: Auto
+    autoMatch: Auto-match default version
   configTemplate:
     enable: Enable
     disabled: Disabled

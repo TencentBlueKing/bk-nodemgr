@@ -280,7 +280,7 @@ const handleUpload = () => {
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
-    release_type: currentType.value,
+    release_type: currentType.value === 'plugin_bintool' ? 'plugin_bintool_v2' : currentType.value,
     generation: 2,
   }).catch(() => ({
     items: [],

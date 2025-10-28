@@ -125,16 +125,20 @@ const batchUpdateTag = async () => {
 };
 watch(() => props.data, () => {
   if (['agent', 'proxy'].includes(currentType.value)) {
-    tableData.value = props.data?.platforms?.map((item: Platform) => ({
-      ...item,
-      name: props.data.name.replace(
-        'all',
-        `${item.os_type}_${item.cpu_arch}`,
-      ).replace(/\.tgz.*$/, '.tgz'),
-      release_type: currentType.value,
-      labels: [],
-      version: props.data.version,
-    }));
+    tableData.value = props.data?.platforms?.map((item: Platform) => {
+      const fileName = props.data.name
+        .replace('all', `${item.os_type}_${item.cpu_arch}`)
+        .replace('_origin', '')
+        .replace(/\.tgz.*$/, '.tgz');
+
+      return {
+        ...item,
+        name: fileName,
+        release_type: currentType.value,
+        labels: [],
+        version: props.data.version,
+      };
+    }) ?? []; // 添加默认空数组
   } else if (currentType.value === 'cert') {
     tableData.value = props.data?.cert_files?.map((item: any) => ({
       ...item,

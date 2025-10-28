@@ -303,7 +303,7 @@
               v-else
               :value="row.credit"
               :rules="rules.credit"
-              :required="!isReinstall || !row.credit || !row.login_credit_valid"
+              :required="!row.login_credit_valid"
               :ref="(el) => setInputRef($rowIndex, $columnIndex, el)"
             >
               <Upload
@@ -321,7 +321,7 @@
               <Input
                 v-else
                 v-model.trim="row.credit"
-                :placeholder="(!isReinstall || !row.credit || !row.login_credit_valid) ? '请输入密码' : '密码有效，点击修改'"
+                :placeholder="row.login_credit_valid ? '密码有效，点击修改' : '请输入密码'"
                 type="password"
               ></Input>
             </Validate>

@@ -264,7 +264,9 @@
                         确认停用该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？
                       </div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">停用目标：{{row.file_name}}</div>
-                      <div class="text-[12px] text-[#262830] w-full">停用后，Agent 安装、重装、升级时，不可选择</div>
+                      <div class="text-[12px] text-[#262830] w-full">
+                        停用后，{{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 安装、重装、升级时，不可选择
+                      </div>
                       <div class="mt-[20px] flex gap-[8px] justify-end">
                         <Button theme="primary" @click="handleDisabled(row)">停用</Button>
                         <Button @click="row.isDisabledPopShow = false">取消</Button>
@@ -522,7 +524,7 @@ function getUniqueChildren(prop: string) {
   const res = Array.from(new Set(originPackageList.value
     .map((item: any) => item[prop])
     .filter((item: any) => String(item))));
-  const uniqueValues = isArray(res[0]) ? [...res[0]] : res;
+  const uniqueValues = prop === 'labels' ? [...new Set(res.flat())] : res;
   return uniqueValues.map((value: any) => {
     const name = String(value);
     let count;
@@ -779,7 +781,10 @@ const getPackages = async () => {
   const res = await PackageService.ListRelease({
     release_type: currentType.value,
     generation: 2,
-  });
+  }).catch(() => ({
+    total: 0,
+    items: [],
+  }));
   const allLabels = res.items.flatMap(item => item.labels || []);
   const list = Array.from(new Set(allLabels));
   tagList.value = list.map((tag: string) => ({
@@ -797,7 +802,10 @@ const getPackages = async () => {
         cpu_arch: item.cpu_arch,
       },
     })),
-  });
+  }).catch(() => ({
+    total: 0,
+    items: [],
+  }));
   const items = res.items.map((item, index) => ({
     ...item,
     labels: item.labels || [],

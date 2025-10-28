@@ -106,7 +106,7 @@
             field="state"
             :title="'执行状态'"
             :filter="filterOptionSource.state"
-            min-width="150"
+            min-width="120"
           >
             <template #default="{ row }">
               <div class="flex items-center" v-if="row.state && statusMap[row.state]">
@@ -122,6 +122,7 @@
               </div>
             </template>
           </TableColumn>
+          <TableColumn field="reTryCount" :title="'重试次数'" min-width="100"></TableColumn>
           <TableColumn
             :title="'操作'"
             fixed="right"
@@ -471,6 +472,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'node_version',
     'total_time_second',
     'state',
+    'reTryCount',
   ],
   disabled: [],
 });
@@ -578,6 +580,7 @@ const getOperateList = async () => {
       ...item.status,
       bk_biz_name: currentRowData?.bk_biz_name || item.bk_biz_id,
       operation_id: item.operation_id,
+      reTryCount: item.instance_ids.length - 1,
     };
   });
   let equal = false;

@@ -186,7 +186,6 @@ import { Table, TableColumn } from '@blueking/table';
 import Preview from './preview.vue';
 
 import { TopoService } from '@/api/modules/topo';
-import { capitalizeFirstLetter } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 
@@ -226,19 +225,19 @@ const previewData = reactive({
 });
 const systemData = ref([
   {
-    os: 'Linux_amd64',
+    os: 'linux_amd64',
     version: '',
   },
   {
-    os: 'Darwin_amd64',
+    os: 'darwin_amd64',
     version: '',
   },
   {
-    os: 'Linux_arm64',
+    os: 'linux_arm64',
     version: '',
   },
   {
-    os: 'Windows_amd64',
+    os: 'windows_amd64',
     version: '',
   },
 ]);
@@ -355,7 +354,7 @@ const handlePreview = async () => {
     if (isShow.value) {
       formData.target_version = systemData.value.map((item) => {
         const [type, cpu_arch] = item.os.split('_');
-        const os_type = capitalizeFirstLetter(type);
+        const os_type = type;
         return {
           os_type,
           cpu_arch,

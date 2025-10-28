@@ -140,11 +140,7 @@
           :title="t('platform.nodeMan.os_type')"
           :filter="filterOptionSource.os_type"
           :min-width="120"
-        >
-          <template #default="{ row }">
-            {{ osMap[row.os_type] }}
-          </template>
-        </TableColumn>
+        ></TableColumn>
         <TableColumn
           show-overflow
           field="node_version"
@@ -240,7 +236,6 @@ import type {
 } from '@/@types/topo.d';
 import { NodeAgentService } from '@/api/modules/node_agent';
 import { TopoService } from '@/api/modules/topo';
-import { capitalizeFirstLetter } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -298,7 +293,7 @@ const searchSelectData = computed(() => [
   {
     id: 'os_type',
     name: '操作系统',
-    children: getUniqueChildrenFrom('os_type', osMap),
+    children: getUniqueChildrenFrom('os_type'),
     multiple: true,
   },
   {
@@ -399,12 +394,6 @@ const agentInstallType = [
     name: '手动安装',
   },
 ];
-const osMap = {
-  windows: 'Windows',
-  unknown: 'Unknown',
-  darwin: 'Darwin',
-  linux: 'Linux',
-};
 
 // 后端分页
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
@@ -483,9 +472,6 @@ const getHostDistinct = async () => {
           .map((value: string | number) => {
             let text;
             switch (key) {
-              case 'os_type':
-                text = osMap[value] || value;
-                break;
               case 'bk_networkarea_id':
                 text = networkAreaListMap.get(Number(value));
                 break;
@@ -521,9 +507,6 @@ const handleFilter = ({
       values: checked.map((item: any) => {
         let name;
         switch (field) {
-          case 'os_type':
-            name = osMap[item] || item;
-            break;
           case 'bk_networkarea_id':
             name = networkAreaListMap.get(Number(item));
             break;
@@ -607,6 +590,7 @@ const getOperateShow = (row: Host, config: any) => {
   }
   return config.show;
 };
+
 // 操作
 const handleOperate = (type: string, data: Host[], batch = false) => {
   let jobType = '';
@@ -622,6 +606,7 @@ const handleOperate = (type: string, data: Host[], batch = false) => {
       break;
     // 卸载
     case 'uninstall':
+      handleOperatetHost(data, batch, 'uninstall');
       break;
     // 升级
     case 'upgrade':
@@ -706,6 +691,25 @@ const handleUpgrade = async (osVersion: any) => {
   }
 };
 
+// 卸载
+const handleUninstall = async () => {
+  loading.value = true;
+  const result = await NodeAgentService.NodeAgentUninstall({
+    host: operateData.value?.map((item: any) => ({
+      bk_host_id: item.bk_host_id,
+    })),
+  }).catch(() => ({
+    workflow_id: '',
+  }));
+  loading.value = false;
+  if (result.workflow_id) {
+    router.push({
+      name: 'taskDetail',
+      params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+    });
+  }
+};
+
 /**
  * Agent操作
  * @param {String} type 操作类型
@@ -735,6 +739,9 @@ const handleOperatetHost = async (
     case 'upgrade':
       type = '升级/回退';
       break;
+    case 'uninstall':
+      type = '卸载';
+      break;
   }
   operateData.value = data;
   if (operateType === 'upgrade') {
@@ -742,13 +749,23 @@ const handleOperatetHost = async (
     chooseVersionData.isShow = true;
     chooseVersionData.data = data;
     chooseVersionData.batch = batch;
-  } else {
+  } else if (operateType === 'restart') {
     operateDialogIsShow.value = true;
     operateDialogData.type = operateType;
     operateDialogData.title = batch ? `请确认是否批量${type}` : `请确认是否${type}`;
     operateDialogData.subTitle = batch
       ? `${type} ${titleObj.firstIp} 等${titleObj.num}个IP的Agent`
       : `${type} ${titleObj.firstIp} 的Agent`;
+  } else if (operateType === 'uninstall') {
+    InfoBox({
+      title: batch ? `请确认是否批量${type}` : `请确认是否${type}`,
+      subTitle: batch
+        ? `${type} ${titleObj.firstIp} 等${titleObj.num}个IP的Agent`
+        : `${type} ${titleObj.firstIp} 的Agent`,
+      onConfirm: () => {
+        handleUninstall();
+      },
+    });
   }
 };
 
@@ -811,7 +828,7 @@ watch(route, async () => {
         name: '操作系统',
         values: [{
           id: route.query.os_type,
-          name: capitalizeFirstLetter(route.query.os_type),
+          name: route.query.os_type,
         }],
       },
       {

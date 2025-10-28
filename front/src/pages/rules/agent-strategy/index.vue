@@ -238,7 +238,7 @@ const loading = ref(false);
 const active = ref('');
 const panels = ref([
   { name: 'configStrategy', label: '配置策略' },
-  { name: 'deploymentStrategy', label: '部署策略' },
+  // { name: 'deploymentStrategy', label: '部署策略' },
 ]);
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
@@ -399,7 +399,13 @@ const getConfigPolicyList = async () => {
   }));
   loading.value = false;
   pagination.count = res.total;
-  tableData.value = res.items;
+  tableData.value = res.items.map((item: any) => ({
+    ...item,
+    biz_name: mainStore.businessList
+      .filter(biz => item.biz_id.includes(biz.bk_biz_id))
+      .map(item => item.bk_biz_name)
+      .join(',') || '不限',
+  }));
 };
 watch([
   () => route.name,

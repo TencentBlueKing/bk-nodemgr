@@ -97,7 +97,7 @@
       <div class="nm-menu-biz mb-[10px]" v-if="isNeedBizSelect">
         <div
           v-show="!navToggle"
-          class="w-[30px] h-[30px] text-[12px] bg-[#F0F1F5] m-auto border-r-[2px] cursor-pointer flex items-center justify-center"
+          class="w-[30px] h-[30px] text-[12px] bg-[#F0F1F5] m-auto cursor-pointer flex items-center justify-center"
         >
           {{ navBizShrinkText }}
         </div>
@@ -464,5 +464,14 @@ onMounted(async () => {
       display: inline;
     }
   }
+}
+</style>
+<style>
+body {
+  min-width: 1280px;
+  overflow-y: hidden;
+}
+.bk-navigation .navigation-container {
+  max-width: none !important;
 }
 </style>

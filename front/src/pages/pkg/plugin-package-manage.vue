@@ -290,7 +290,7 @@ import PkgUploadSideslider from './agent-proxy-pkg/pkg-upload-sideslider.vue';
 
 import type { Release } from '@/@types/common.d';
 import { PackageService } from '@/api/modules/pkg';
-import { capitalizeFirstLetter, compareVersions, formatTimestamp } from '@/common/util';
+import { compareVersions, formatTimestamp } from '@/common/util';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
@@ -688,7 +688,7 @@ const handleUpload = () => {
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
-    release_type: 'official_plugin',
+    release_type: 'plugin',
     generation: 2,
   }).catch(() => ({
     total: 0,

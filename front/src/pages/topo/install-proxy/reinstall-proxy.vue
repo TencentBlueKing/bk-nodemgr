@@ -63,7 +63,7 @@
         </Form.FormItem>
         <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
           <div class="w-[488px]">
-            <Table :data="systemData" :border="true">
+            <Table :data="systemData" :border="true" empty-text="当前无可用版本">
               <TableColumn
                 field="displayName"
                 :title="$t('操作系统/架构')"
@@ -77,7 +77,7 @@
                     :ref="(el) => setInputRef(row.os, el)"
                   >
                     <Input
-                      :model-value="row.version"
+                      :model-value="row.versionName"
                       :placeholder="$t('请选择')"
                       @click="handleChooseVersion(row)"
                     />
@@ -94,6 +94,11 @@
         <Button
           theme="primary"
           class="mr-[8px] w-[120px]"
+          :disabled="systemData.length === 0"
+          v-bk-tooltips="{
+            content: '当前无可用版本, 不可安装',
+            disabled: systemData.length > 0
+          }"
           @click="handleConfirm"
         >
           <span>
@@ -133,6 +138,7 @@ import { Table, TableColumn } from '@blueking/table';
 import SelectItemGroup from './components/select-item-group.vue';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
+import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import Validate from '@/components/validate.vue';
 
@@ -213,17 +219,19 @@ const isTargetShow = ref(false);
 const systemData = ref([
   {
     displayName: 'linux/amd64',
-    os: 'Linux_amd64',
+    os: 'linux_amd64',
     cpu_arch: 'amd64',
     os_type: 'linux',
-    version: '自动',
+    version: 'auto',
+    versionName: '自动',
   },
   {
     displayName: 'linux/arm64',
-    os: 'Linux_arm64',
+    os: 'linux_arm64',
     cpu_arch: 'arm64',
     os_type: 'linux',
-    version: '自动',
+    version: 'auto',
+    versionName: '自动',
   },
 ]);
 // 安装方式列表
@@ -241,11 +249,6 @@ const installMethodList = ref([
     value: '2',
   },
 ]);
-const isShowDialog = ref(false);
-const dialogData = ref([{
-  os: '',
-  version: '',
-}]);
 
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
@@ -263,7 +266,7 @@ const getNetworkUnitList = async () => {
     };
   });
   networkUnitList.value = res.items;
-  res.items.forEach(item => {
+  res.items.forEach((item) => {
     networkUnitListMap.set(item.bk_networkunit_id, item.links.cluster.bk_networkunit_id);
   });
 };
@@ -288,12 +291,20 @@ const installOriginList = computed(() => ([
   },
 ]));
 
-const handleChooseVersion = (row: { version: string; os: string }) => {
+// 版本选择弹窗
+const isShowDialog = ref(false);
+const dialogData = ref([{
+  os: '',
+  version: '',
+  versionName: '',
+}]);
+const handleChooseVersion = (row: { version: string; os: string, versionName: string}) => {
   isShowDialog.value = true;
   dialogData.value = [row];
 };
 const handleComfirmVerion = (data: any) => {
-  data.version && (dialogData.value[0].version = data.version === 'auto' ? '自动' : data.version);
+  dialogData.value[0].version = data?.version;
+  dialogData.value[0].versionName = data?.versionName;
 };
 const handleChange = (values: Array<string | number>) => {
   form.method = values[0] as string;
@@ -357,7 +368,7 @@ const handleConfirm = async () => {
     });
     if (isTargetShow.value) {
       form.target_version = systemData.value
-        .filter((item: any) => item.version !== '自动')
+        .filter((item: any) => item.version !== 'auto')
         .map((item: any) => ({
           os_type: item.os_type,
           cpu_arch: item.cpu_arch,
@@ -424,6 +435,39 @@ const assign = (data1: any, data2: any, data3?: any) => {
   });
 };
 
+// 获取版本，用来检查是否有对应架构的包版本去安装
+const getVersions = async () => {
+  const res = await PackageService.ListRelease({
+    generation: 2,
+    release_type: 'proxy',
+  }).catch(() => ({
+    total: 0,
+    items: [],
+  }));
+  const osMap: any = {};
+  res.items.forEach((item) => {
+    const key = `${(item.os_type)}_${item.cpu_arch}`;
+    if (!osMap[key]) {
+      osMap[key] = {
+        name: key,
+        enableVersions: [],
+      };
+    }
+    if (item.enabled) {
+      osMap[key].enableVersions.push({
+        version: item.version,
+        versionName: item.version,
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch,
+      });
+    }
+  });
+  systemData.value = systemData.value.filter((item) => {
+    const key = `${(item.os_type)}_${item.cpu_arch}`;
+    return !!osMap[key]?.enableVersions.length;
+  });
+};
+
 watch(() => isShow.value, async () => {
   if (isShow.value && props.data.length) {
     form.info = props.data.map((item: Host) => {
@@ -431,6 +475,7 @@ watch(() => isShow.value, async () => {
       assign(data, item, item.info);
       return data;
     });
+    await getVersions();
     await getNetworkUnitList();
   }
 });

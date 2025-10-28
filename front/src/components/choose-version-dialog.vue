@@ -70,7 +70,7 @@
         <div
           class="text-[14px] bg-[#FAFBFD] border border-l-none border-[#DCDEE5] h-[40.69px] leading-[40.69px] pl-[24px]"
         >
-          {{ selectedVersion?.version }} 的详细信息
+          {{ selectedVersion?.versionName }} 的详细信息
         </div>
         <p class="text-[12px] border border-t-none h-full p-[16px]">
           {{ selectedVersion?.description }}
@@ -89,7 +89,7 @@ import type { VxeTablePropTypes } from 'vxe-table';
 import { Table, TableColumn } from '@blueking/table';
 
 import { PackageService } from '@/api/modules/pkg';
-import { capitalizeFirstLetter, compareVersions } from '@/common/util';
+import { compareVersions } from '@/common/util';
 import { useMainStore } from '@/stores/main';
 
 interface RowVO {
@@ -189,7 +189,7 @@ const getVersions = async () => {
   const osMap: any = {};
   res.items.filter(item => !!props.data?.find(data => `${item.os_type}_${item.cpu_arch}`.includes(`${data.os_type}_${data.cpu_arch}`)))
     .forEach((item) => {
-      const key = `${capitalizeFirstLetter(item.os_type)}_${item.cpu_arch}`;
+      const key = `${(item.os_type)}_${item.cpu_arch}`;
       const iconType = item.os_type === 'darwin' ? 'macos' : item.os_type;
       if (!osMap[key]) {
         osMap[key] = {
@@ -204,22 +204,23 @@ const getVersions = async () => {
             packages: [],
             os_type: '',
             cpu_arch: '',
-            description: '',
+            description: t('components.chooseVersion.autoMatch'),
           }],
           icon: `nodeman-icon nc-${iconType}`,
         };
       }
-
-      osMap[key].versions.push({
-        version: item.version,
-        versionName: item.version,
-        disabled: !item.enabled,
-        lable: item.labels,
-        packages: [item.file_name],
-        os_type: item.os_type,
-        cpu_arch: item.cpu_arch,
-        description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
-      });
+      if (item.enabled) {
+        osMap[key].versions.push({
+          version: item.version,
+          versionName: item.version,
+          disabled: !item.enabled,
+          lable: item.labels,
+          packages: [item.file_name],
+          os_type: item.os_type,
+          cpu_arch: item.cpu_arch,
+          description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
+        });
+      }
     });
   osVersions.value = Object.values(osMap);
 };
@@ -229,7 +230,7 @@ watch(
     if (isShow.value) {
       await getVersions();
       if (props.data?.[0]?.os && !props.batch) {
-        const os = capitalizeFirstLetter(props.data?.[0].os);
+        const os = props.data?.[0].os;
         selectedOs.value = osVersions.value?.find(item => item.name === os);
       } else {
         selectedOs.value = osVersions.value?.[0];
