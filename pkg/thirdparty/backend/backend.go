@@ -1380,6 +1380,74 @@ func (c *cli) listRelease(ctx contextx.IContext, req *protoBackend.PackageReleas
 	return resp, nil
 }
 
+func (c *cli) listReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentListReq,
+) (*protoBackend.PackageReleaseAgentListResp, error) {
+
+	resp := new(protoBackend.PackageReleaseAgentListResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/release_agent/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list release agent failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list release agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyListReq,
+) (*protoBackend.PackageReleaseProxyListResp, error) {
+
+	resp := new(protoBackend.PackageReleaseProxyListResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/release_proxy/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list release proxy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list release proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) distinctRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDistinctReq) (
 	*protoBackend.PackageReleaseDistinctResp, error) {
 

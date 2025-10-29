@@ -180,6 +180,17 @@ message Release {
   optional string operator = 13;
 }
 
+message ReleaseAgent {
+  Release release = 1;
+  optional string change_log_en = 2;
+  optional string change_log_zh = 3;
+}
+message ReleaseProxy {
+  Release release = 1;
+  optional string change_log_en = 2;
+  optional string change_log_zh = 3;
+}
+
 // Platform describes the platform informations.
 message Platform {
   string os_type = 1;

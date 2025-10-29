@@ -254,6 +254,40 @@
         ]
       }
     },
+    "/api/v3/package/release/agent/list": {
+      "post": {
+        "summary": "ListReleaseAgent lists releases.",
+        "operationId": "Package_ListReleaseAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseAgentListReq describes the HTTP request body when list package\nrelease.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseAgentListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/cancel_as_default": {
       "post": {
         "summary": "CancelAsDefaultRelease cancels release as default.",
@@ -484,6 +518,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleaseProxyDownloadReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/proxy/list": {
+      "post": {
+        "summary": "ListReleaseProxy lists releases.",
+        "operationId": "Package_ListReleaseProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseProxyListReq describes the HTTP request body when list package\nrelease.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseProxyListReq"
             }
           }
         ],
@@ -1192,6 +1260,63 @@
       },
       "description": "PackageReleaseAgentDownloadReq is the request for download agent pkg."
     },
+    "v3PackageReleaseAgentListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        }
+      },
+      "description": "PackageReleaseAgentListReq describes the HTTP request body when list package\nrelease."
+    },
+    "v3PackageReleaseAgentListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseAgentListRespData"
+        }
+      },
+      "description": "PackageReleaseAgentListResp describes the HTTP response body when list\npackage release."
+    },
+    "v3PackageReleaseAgentListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseAgent"
+          }
+        }
+      }
+    },
     "v3PackageReleaseCancelAsDefaultReq": {
       "type": "object",
       "properties": {
@@ -1538,6 +1663,63 @@
         }
       },
       "description": "PackageReleaseProxyDownloadReq is the request for download proxy pkg."
+    },
+    "v3PackageReleaseProxyListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3PackageReleaseExactConditions"
+        }
+      },
+      "description": "PackageReleaseProxyListReq describes the HTTP request body when list package\nrelease."
+    },
+    "v3PackageReleaseProxyListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageReleaseProxyListRespData"
+        }
+      },
+      "description": "PackageReleaseProxyListResp describes the HTTP response body when list\npackage release."
+    },
+    "v3PackageReleaseProxyListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ReleaseProxy"
+          }
+        }
+      }
     },
     "v3PackageReleaseSetAsDefaultReq": {
       "type": "object",
@@ -2055,6 +2237,34 @@
         }
       },
       "description": "Release describes the release."
+    },
+    "v3ReleaseAgent": {
+      "type": "object",
+      "properties": {
+        "release": {
+          "$ref": "#/definitions/v3Release"
+        },
+        "change_log_en": {
+          "type": "string"
+        },
+        "change_log_zh": {
+          "type": "string"
+        }
+      }
+    },
+    "v3ReleaseProxy": {
+      "type": "object",
+      "properties": {
+        "release": {
+          "$ref": "#/definitions/v3Release"
+        },
+        "change_log_en": {
+          "type": "string"
+        },
+        "change_log_zh": {
+          "type": "string"
+        }
+      }
     },
     "v3TimeRange": {
       "type": "object",

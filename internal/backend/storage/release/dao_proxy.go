@@ -39,3 +39,45 @@ func (s *Storage) getReleaseProxy(
 		ReleaseAdditionInfoProxy: *additionInfo,
 	}, nil
 }
+
+// listReleaseProxy lists release by page and conditions.
+func (s *Storage) listReleaseProxy(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleaseProxy, int64, error) {
+
+	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeProxy, page, conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list release proxy: %w", err)
+	}
+
+	releaseProxys := make([]*types.ReleaseProxy, len(rls))
+	for idx, r := range rls {
+		additionInfo := new(types.ReleaseAdditionInfoProxy)
+		err = conv.MapToStruct(r.AdditionInfo, additionInfo)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to convert addition info to struct: %w", err)
+		}
+
+		releaseProxys[idx] = &types.ReleaseProxy{
+			Release:                  *r,
+			ReleaseAdditionInfoProxy: *additionInfo,
+		}
+	}
+
+	return releaseProxys, total, nil
+}
+
+// CountReleaseProxy counts release by conditions.
+func (s *Storage) countReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	num, err := s.daoRelease.Count(nCtx, types.ReleaseTypeProxy, opts...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count release proxy: %w", err)
+	}
+
+	return num, nil
+}

@@ -306,6 +306,90 @@ func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
+// ListReleaseAgent lists releases agent with page and conditions.
+func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseAgentListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	cond := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.daoReleaseAgent.CountReleaseAgent(rCtx, cond)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent. failed to count release agent")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.PackageReleaseAgentListResp)
+		resp.ConvertReleasesFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	page := req.ConvertPageToTypes(maxReleaseLimit)
+	hosts, num, err := h.daoReleaseAgent.ListReleaseAgent(rCtx, page, cond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleaseAgentListResp)
+	resp.ConvertReleasesFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
+// ListReleaseProxy lists releases agent with page and conditions.
+func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PackageReleaseProxyListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	exactIncludeCond := req.ConvertExactIncludeConditionsToTypes()
+	exactIncludeCond.Generation = append(exactIncludeCond.Generation, gen)
+	cond := &types.ReleaseCondition{
+		ExactInclude: exactIncludeCond,
+	}
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.daoReleaseProxy.CountReleaseProxy(rCtx, cond)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy. failed to count release proxy")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.PackageReleaseProxyListResp)
+		resp.ConvertReleasesFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	page := req.ConvertPageToTypes(maxReleaseLimit)
+	hosts, num, err := h.daoReleaseProxy.ListReleaseProxy(rCtx, page, cond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PackageReleaseProxyListResp)
+	resp.ConvertReleasesFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
 func (h *handler) recordPackageEvent(rCtx restserver.IContext,
 	gen types.Generation, version string, plat platfmt.Platform, rt types.ReleaseType,
 	eventType types.PackageEventType) {

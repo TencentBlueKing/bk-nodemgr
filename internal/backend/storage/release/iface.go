@@ -78,6 +78,12 @@ type IRelease interface {
 
 // IProxy define the proxy interface.
 type IProxy interface {
+	// ListReleaseProxy lists release proxy by page and conditions.
+	ListReleaseProxy(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseProxy, int64, error)
+
+	// CountReleaseProxy counts release by conditions.
+	CountReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
+
 	// GetReleaseProxy gets release by generation, release type, platform and version.
 	GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (
 		*types.ReleaseProxy, error)
@@ -85,6 +91,12 @@ type IProxy interface {
 
 // IAgent define the agent interface.
 type IAgent interface {
+	// ListReleaseAgent lists release agent by page and conditions.
+	ListReleaseAgent(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleaseAgent, int64, error)
+
+	// CountReleaseAgent counts release by conditions.
+	CountReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error)
+
 	// GetReleaseAgent gets release by generation, release type, platform and version.
 	GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (
 		*types.ReleaseAgent, error)

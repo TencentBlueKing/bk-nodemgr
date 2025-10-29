@@ -340,6 +340,7 @@ type IHandlerNodeWorkflow interface {
 }
 
 // IHandlerRelease defines the backend Handler for release.
+// nolint: interfacebloat
 type IHandlerRelease interface {
 	// ListRelease lists release by page and conditions.
 	ListRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, page types.Page,
@@ -348,6 +349,20 @@ type IHandlerRelease interface {
 	// CountRelease counts release by conditions.
 	CountRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation,
 		condition *types.ReleaseCondition) (int64, error)
+
+	// ListReleaseAgent lists release by page and conditions.
+	ListReleaseAgent(ctx contextx.IContext, gen types.Generation, page types.Page,
+		condition *types.ReleaseCondition) ([]*types.ReleaseAgent, int64, error)
+
+	// CountReleaseAgent counts release by conditions.
+	CountReleaseAgent(ctx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error)
+
+	// ListReleaseProxy lists release proxy by page and conditions.
+	ListReleaseProxy(ctx contextx.IContext, gen types.Generation, page types.Page,
+		condition *types.ReleaseCondition) ([]*types.ReleaseProxy, int64, error)
+
+	// CountReleaseProxy counts release by conditions.
+	CountReleaseProxy(ctx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error)
 
 	// DistinctRelease distincts release by conditions.
 	DistinctRelease(ctx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, distinctField types.ReleaseDistinctField,
@@ -1116,6 +1131,90 @@ func (h *Handler) CountRelease(ctx contextx.IContext, releaseType types.ReleaseT
 	}
 
 	resp, err := h.cli.listRelease(ctx, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
+}
+
+// ListReleaseAgent lists release by page and conditions.
+func (h *Handler) ListReleaseAgent(ctx contextx.IContext, gen types.Generation, page types.Page,
+	condition *types.ReleaseCondition) ([]*types.ReleaseAgent, int64, error) {
+
+	req := &protoBackend.PackageReleaseAgentListReq{
+		Page:       convertPage(page),
+		Generation: int64(gen),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listReleaseAgent(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, releases := resp.ConvertReleasesAgentToTypes()
+
+	return releases, total, nil
+}
+
+// CountReleaseAgent counts release by conditions.
+func (h *Handler) CountReleaseAgent(ctx contextx.IContext, gen types.Generation,
+	condition *types.ReleaseCondition) (int64, error) {
+
+	req := &protoBackend.PackageReleaseAgentListReq{
+		Generation: int64(gen),
+		OnlyCount:  true,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, err
+	}
+
+	resp, err := h.cli.listReleaseAgent(ctx, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
+}
+
+// ListReleaseProxy lists release by page and conditions.
+func (h *Handler) ListReleaseProxy(ctx contextx.IContext, gen types.Generation, page types.Page,
+	condition *types.ReleaseCondition) ([]*types.ReleaseProxy, int64, error) {
+
+	req := &protoBackend.PackageReleaseProxyListReq{
+		Page:       convertPage(page),
+		Generation: int64(gen),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listReleaseProxy(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, releases := resp.ConvertReleasesProxyToTypes()
+
+	return releases, total, nil
+}
+
+// CountReleaseProxy counts release by conditions.
+func (h *Handler) CountReleaseProxy(ctx contextx.IContext, gen types.Generation,
+	condition *types.ReleaseCondition) (int64, error) {
+
+	req := &protoBackend.PackageReleaseProxyListReq{
+		Generation: int64(gen),
+		OnlyCount:  true,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, err
+	}
+
+	resp, err := h.cli.listReleaseProxy(ctx, req)
 	if err != nil {
 		return 0, err
 	}

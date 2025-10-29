@@ -205,6 +205,56 @@ message PackageReleaseListResp {
   Data data = 5;
 }
 
+// PackageReleaseAgentListReq describes the HTTP request body when list package
+// release.
+message PackageReleaseAgentListReq {
+  Page page = 1;
+  int64 generation = 2;
+  bool only_count = 3;
+
+  PackageReleaseExactConditions exact_include_conditions = 5;
+}
+
+// PackageReleaseAgentListResp describes the HTTP response body when list
+// package release.
+message PackageReleaseAgentListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated ReleaseAgent items = 2;
+  }
+  Data data = 5;
+}
+
+// PackageReleaseProxyListReq describes the HTTP request body when list package
+// release.
+message PackageReleaseProxyListReq {
+  Page page = 1;
+  int64 generation = 2;
+  bool only_count = 3;
+
+  PackageReleaseExactConditions exact_include_conditions = 5;
+}
+
+// PackageReleaseProxyListResp describes the HTTP response body when list
+// package release.
+message PackageReleaseProxyListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated ReleaseProxy items = 2;
+  }
+  Data data = 5;
+}
+
 // PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
 message PackageReleaseSetLabelsReq {
   int64 generation = 1;
@@ -652,6 +702,24 @@ service Package {
       returns (PackageEventDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/package/event/distinct"
+      body : "*"
+    };
+  }
+
+  // ListReleaseAgent lists releases.
+  rpc ListReleaseAgent(PackageReleaseAgentListReq)
+      returns (PackageReleaseAgentListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/agent/list"
+      body : "*"
+    };
+  }
+
+  // ListReleaseProxy lists releases.
+  rpc ListReleaseProxy(PackageReleaseProxyListReq)
+      returns (PackageReleaseProxyListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/list"
       body : "*"
     };
   }

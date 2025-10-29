@@ -323,6 +323,47 @@ func (s *Storage) GetReleaseAgent(
 	return releaseAgent, nil
 }
 
+// ListReleaseAgent lists release by page and conditions.
+func (s *Storage) ListReleaseAgent(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseAgent, int64, error) {
+
+	var (
+		results []*types.ReleaseAgent
+		num     int64
+		err     error
+	)
+
+	// record metric.
+	metric := s.metric().Start("list_release_agent")
+	defer metric.End(err)
+
+	if results, num, err = s.listReleaseAgent(nCtx, page, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list release agent")
+		return nil, 0, fmt.Errorf("failed to list release agent: %w", err)
+	}
+
+	return results, num, nil
+}
+
+// CountReleaseAgent count release agent by conditions.
+func (s *Storage) CountReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
+	var (
+		num int64
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("count_release_agent")
+	defer metric.End(err)
+
+	if num, err = s.countReleaseAgent(nCtx, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to count release agent")
+		return 0, fmt.Errorf("failed to count release agent: %w", err)
+	}
+
+	return num, err
+}
+
 // GetReleaseProxy gets release by generation, release type, platform and version.
 func (s *Storage) GetReleaseProxy(
 	nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseProxy, error) {
@@ -343,6 +384,47 @@ func (s *Storage) GetReleaseProxy(
 	}
 
 	return releaseProxy, nil
+}
+
+// CountReleaseProxy count release proxy by conditions.
+func (s *Storage) CountReleaseProxy(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
+	var (
+		num int64
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("count_release_proxy")
+	defer metric.End(err)
+
+	if num, err = s.countReleaseProxy(nCtx, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to count release proxy")
+		return 0, fmt.Errorf("failed to count release proxy: %w", err)
+	}
+
+	return num, err
+}
+
+// ListReleaseProxy lists release by page and conditions.
+func (s *Storage) ListReleaseProxy(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.ReleaseCondition) ([]*types.ReleaseProxy, int64, error) {
+
+	var (
+		results []*types.ReleaseProxy
+		num     int64
+		err     error
+	)
+
+	// record metric.
+	metric := s.metric().Start("list_release_proxy")
+	defer metric.End(err)
+
+	if results, num, err = s.listReleaseProxy(nCtx, page, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list release proxy")
+		return nil, 0, fmt.Errorf("failed to list release proxy: %w", err)
+	}
+
+	return results, num, nil
 }
 
 // GetEnabledReleasePlugin gets enabled release plugin by name, generation, platform and version.

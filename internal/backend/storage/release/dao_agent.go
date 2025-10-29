@@ -39,3 +39,45 @@ func (s *Storage) getReleaseAgent(
 		ReleaseAdditionInfoAgent: *additionInfo,
 	}, nil
 }
+
+// listRelease lists release by page and conditions.
+func (s *Storage) listReleaseAgent(
+	nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) (
+	[]*types.ReleaseAgent, int64, error) {
+
+	rls, total, err := s.listRelease(nCtx, types.ReleaseTypeAgent, page, conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list release agent: %w", err)
+	}
+
+	releaseAgents := make([]*types.ReleaseAgent, len(rls))
+	for idx, r := range rls {
+		additionInfo := new(types.ReleaseAdditionInfoAgent)
+		err = conv.MapToStruct(r.AdditionInfo, additionInfo)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to convert addition info to struct: %w", err)
+		}
+
+		releaseAgents[idx] = &types.ReleaseAgent{
+			Release:                  *r,
+			ReleaseAdditionInfoAgent: *additionInfo,
+		}
+	}
+
+	return releaseAgents, total, nil
+}
+
+// countReleaseAgent counts release by conditions.
+func (s *Storage) countReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	num, err := s.daoRelease.Count(nCtx, types.ReleaseTypeAgent, opts...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count release agent: %w", err)
+	}
+
+	return num, nil
+}

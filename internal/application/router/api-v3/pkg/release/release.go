@@ -51,6 +51,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/cancel_as_default", restserver.Handler(h.CancelAsDefaultRelease))
 	h.rg.POST("/delete", restserver.Handler(h.DeleteRelease))
 	h.rg.POST("/deployed_host/count", restserver.Handler(h.CountDeployedHost))
+	h.rg.POST("/agent/list", restserver.Handler(h.ListReleaseAgent))
+	h.rg.POST("/proxy/list", restserver.Handler(h.ListReleaseProxy))
 
 	h.rg.POST("/agent/download", restserver.StreamHandler(h.AgentDownload))
 	h.rg.POST("/proxy/download", restserver.StreamHandler(h.ProxyDownload))
@@ -92,6 +94,78 @@ func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	resp := new(protoApplication.PackageReleaseListResp)
+	resp.ConvertReleasesFromTypes(num, releases)
+
+	return resp.GetData(), nil
+}
+
+// ListReleaseAgent lists release agent with page and conditions.
+func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.backendHandler.CountReleaseAgent(rCtx, gen, req.ConvertConditionsToTypes())
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent. failed to count release agent")
+			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+		}
+
+		resp := new(protoApplication.PackageReleaseAgentListResp)
+		resp.ConvertReleasesFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	releases, num, err := h.backendHandler.ListReleaseAgent(rCtx, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.PackageReleaseAgentListResp)
+	resp.ConvertReleasesFromTypes(num, releases)
+
+	return resp.GetData(), nil
+}
+
+// ListReleaseProxy lists release proxy with page and conditions.
+func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.backendHandler.CountReleaseProxy(rCtx, gen, req.ConvertConditionsToTypes())
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy. failed to count release proxy")
+			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+		}
+
+		resp := new(protoApplication.PackageReleaseProxyListResp)
+		resp.ConvertReleasesFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	releases, num, err := h.backendHandler.ListReleaseProxy(rCtx, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.PackageReleaseProxyListResp)
 	resp.ConvertReleasesFromTypes(num, releases)
 
 	return resp.GetData(), nil

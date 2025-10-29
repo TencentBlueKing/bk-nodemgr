@@ -294,3 +294,12 @@ func (x *PackageReleaseProxyDownloadReq) GetIdentifier() (
 		ConvertPlatformToTypes(x.GetPlatform()),
 		x.GetVersion()
 }
+
+// Validate check body.
+func (x *PackageReleaseAgentListReq) Validate() error {
+	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}

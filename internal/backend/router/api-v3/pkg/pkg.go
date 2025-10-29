@@ -25,6 +25,8 @@ type handler struct {
 	daoPackageEvent  release.IPackageEvent
 	daoReleasePlugin release.IPlugin
 	daoRelease       release.IRelease
+	daoReleaseAgent  release.IAgent
+	daoReleaseProxy  release.IProxy
 	daoPlugin        plugin.IDaoPlugin
 	daoTenant        tenant.IStorage
 }
@@ -35,6 +37,8 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:               rg.Group("/package"),
 		daoPackageEvent:  capability.StorageRelease,
 		daoReleasePlugin: capability.StorageRelease,
+		daoReleaseAgent:  capability.StorageRelease,
+		daoReleaseProxy:  capability.StorageRelease,
 		daoRelease:       capability.StorageRelease,
 		daoPlugin:        capability.StoragePlugin,
 		daoTenant:        capability.StorageTenant,
@@ -60,7 +64,9 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release_plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))
 	h.rg.POST("/release_plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
 	h.rg.POST("/release_plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
-
+	h.rg.POST("/release_agent/list", restserver.Handler(h.ListReleaseAgent))
+	h.rg.POST("/release_proxy/list", restserver.Handler(h.ListReleaseProxy))
+	
 	h.rg.POST("/event/list", restserver.Handler(h.ListPackageEvent))
 	h.rg.POST("/event/distinct", restserver.Handler(h.DistinctPackageEvent))
 }

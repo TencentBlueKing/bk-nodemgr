@@ -45,7 +45,7 @@ data:
     cmdb: {{ .Values.backend.config.cmdb | toYaml | nindent 6 }}
 
     gse: {{ .Values.backend.config.gse | toYaml | nindent 6 }}
-
+    
     creditVault: {{ .Values.backend.config.creditVault | toYaml | nindent 6 }}
 
     log: {{ .Values.backend.config.log | toYaml | nindent 6 }}
