@@ -311,6 +311,35 @@ type AsyncTerminateExecuteScriptResp struct {
 	} `json:"result"`
 }
 
+const (
+	maxPushFileContentSize = 1 * 1024 * 100 // 100kb
+)
+
+// PushFileTask describes the push file task.
+type PushFileTask struct {
+	FileName    string      `json:"file_name"`
+	StoreDir    string      `json:"store_dir"`
+	FileContent string      `json:"file_content"`
+	Md5         string      `json:"md5"`
+	Owner       string      `json:"owner"`
+	Permission  int64       `json:"right"`
+	Endpoints   []*Endpoint `json:"agents"`
+}
+
+// AsyncPushFileReq describes the request data of push_file.
+type AsyncPushFileReq struct {
+	TimeoutSec uint            `json:"timeout_seconds,omitempty"`
+	AutoMkdir  bool            `json:"auto_mkdir,omitempty"`
+	Tasks      []*PushFileTask `json:"tasks"`
+}
+
+// AsyncPushFileResp describes the response data of push_file.
+type AsyncPushFileResp struct {
+	Result struct {
+		TaskID string `json:"task_id"`
+	} `json:"result"`
+}
+
 // TransferSource describes the transfer source.
 type TransferSource struct {
 	FileName  string           `json:"file_name"`

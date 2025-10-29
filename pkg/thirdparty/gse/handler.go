@@ -28,6 +28,12 @@ import (
 
 // IHandler is the interface for gse Handler.
 type IHandler interface {
+	IHandlerNode
+	IHandlerProc
+}
+
+// IHandlerNode define the gse handler for node.
+type IHandlerNode interface {
 	// ListAgentInfo list agent detail information.
 	// @param agentIDList given agent id list.
 	// @return agentInfoList agent detail information list.
@@ -61,6 +67,11 @@ type IHandler interface {
 	// @return gse-task-id for this operation.
 	TerminateScriptExecution(nCtx contextx.IContext, taskID string, endpoints ...*types.Endpoint) (string, error)
 
+	// PushFile push files to target endpoints.
+	// @param pushDetail given push file details.
+	// @return gse-task-id for this pushing.
+	PushFile(nCtx contextx.IContext, pushDetail ...*types.PushFileDetail) (string, error)
+
 	// TransferFile transfer files from source to targets.
 	// @param opts given options.
 	// @param transfers given transfer details.
@@ -86,8 +97,6 @@ type IHandler interface {
 	// @return agent operate result.
 	OperateAgent(nCtx contextx.IContext, operate types.OperateAgent, agentIDList ...string) (
 		*types.OperateAgentResult, error)
-
-	IHandlerProc
 }
 
 // IHandlerProc define the gse handler for process.
@@ -395,6 +404,93 @@ func (h *Handler) TerminateScriptExecution(nCtx contextx.IContext, taskID string
 	}
 
 	return resp.Result.TaskID, nil
+}
+
+// PushFile push file.
+func (h *Handler) PushFile(nCtx contextx.IContext, pushDetail ...*types.PushFileDetail) (string, error) {
+	if nCtx == nil {
+		return "", errors.New("context is nil")
+	}
+
+	if len(pushDetail) == 0 {
+		return "", errors.New("tasks detail is empty")
+	}
+
+	tasks := make([]*PushFileTask, len(pushDetail))
+	for i, detail := range pushDetail {
+		targetEndpoints := make([]*Endpoint, len(detail.Endpoints))
+		for j, endpoint := range detail.Endpoints {
+			targetEndpoints[j] = &Endpoint{
+				BKAgentID:     endpoint.AgentID,
+				BKContainerID: endpoint.ContainerID,
+			}
+		}
+
+		if err := checkPathSafe(detail.StoreDir); err != nil {
+			return "", err
+		}
+
+		// check file content size limit
+		if len(detail.FileContent) > maxPushFileContentSize {
+			return "", fmt.Errorf("file content size(%d bytes) exceeds the limit(%d bytes)", len(detail.FileContent), maxPushFileContentSize)
+		}
+
+		tasks[i] = &PushFileTask{
+			FileName:    detail.FileName,
+			StoreDir:    detail.StoreDir,
+			FileContent: detail.FileContent,
+			Owner:       detail.Owner,
+			Endpoints:   targetEndpoints,
+		}
+	}
+
+	req := &AsyncPushFileReq{
+		Tasks: tasks,
+	}
+
+	resp, err := h.cli.asyncPushFile(nCtx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Result.TaskID, nil
+}
+
+func checkPathSafe(dirPath string) error {
+	if dirPath == "" {
+		return errors.New("dirPath is empty")
+	}
+
+	cleanPath := filepath.Clean(dirPath)
+	// compare the cleaned path with the original path
+	if cleanPath != dirPath {
+		return fmt.Errorf("dirPath is not a clean path, clean-path(%s), origin-path(%s)", cleanPath, dirPath)
+	}
+
+	cleanPath = strings.ToLower(cleanPath)
+
+	if cleanPath == filepath.Clean("c:\\") || cleanPath == "/" {
+		return fmt.Errorf("dirPath is dangerous, dirPath(%s)", cleanPath)
+	}
+
+	dangerousDirPrefixs := []string{
+		"c:\\windows\\",
+		"c:\\program files\\",
+		"c:\\program files (x86)\\",
+		"c:\\programs\\",
+		"c:\\recovery\\",
+		"/proc/",
+		"/sys/",
+		"/dev/",
+	}
+
+	for _, dangerousDir := range dangerousDirPrefixs {
+		if strings.HasPrefix(cleanPath, strings.ToLower(filepath.Clean(dangerousDir))) {
+			return fmt.Errorf("dirPath is dangerous, dirPath(%s)", cleanPath)
+		}
+	}
+
+	return nil
 }
 
 // TransferFile transfer file.

@@ -137,6 +137,15 @@ type EndpointWithRestrict struct {
 	Limit  uint
 }
 
+// PushFileDetail represents the gse push file detail.
+type PushFileDetail struct {
+	FileName    string
+	StoreDir    string
+	FileContent string
+	Owner       string
+	Endpoints   []*Endpoint
+}
+
 // TransferOptions represents the gse transfer option.
 type TransferOptions struct {
 	Timeout               time.Duration

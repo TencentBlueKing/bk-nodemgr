@@ -196,6 +196,31 @@ func (c *cli) asyncTerminateExecuteScript(nCtx contextx.IContext, req *AsyncTerm
 	return resp.Data, nil
 }
 
+// asyncPushFile async push file.
+func (c *cli) asyncPushFile(nCtx contextx.IContext, req *AsyncPushFileReq) (*AsyncPushFileResp, error) {
+	resp := new(BaseBroker[*AsyncPushFileResp])
+	header, err := c.getCommonHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/task/extensions/async_push_file").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("async push file failed: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
 // asyncTransferFile async transfer file.
 func (c *cli) asyncTransferFile(nCtx contextx.IContext, req *AsyncTransferFileReq) (*AsyncTransferFileResp, error) {
 	resp := new(BaseBroker[*AsyncTransferFileResp])

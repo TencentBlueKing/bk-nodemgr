@@ -640,6 +640,104 @@ func Test_Handler_QueryFileTransmissionResult(t *testing.T) {
 	}
 }
 
+// Test_Handler_PushFile tests Handler.PushFile.
+func Test_Handler_PushFile(t *testing.T) {
+	nCtx := contextx.New(context.Background())
+
+	type args struct {
+		details []*types.PushFileDetail
+	}
+	tests := []struct {
+		name         string
+		args         args
+		wantStatuses []types.TransferStatus
+		wantErr      bool
+	}{
+		{
+			name: "file_base",
+			args: args{
+				details: []*types.PushFileDetail{
+					{
+						FileName:    "nodeman_gsetest",
+						StoreDir:    "/tmp",
+						FileContent: "This is a test file pushed by bk-nodemgr GSE client.\n",
+						Owner:       "root",
+						Endpoints: []*types.Endpoint{
+							{
+								AgentID: getGlobalContext(t).fileTargetAgentBase,
+							},
+						},
+					},
+				},
+			},
+			wantStatuses: []types.TransferStatus{
+				types.TransferStatusStopped,
+				types.TransferStatusEndDownloading,
+				types.TransferStatusEndUploading,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			taskID, err := h.PushFile(nCtx, tt.args.details...)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("PushFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			var resp []*types.TransferResult
+			for attempt := 0; attempt < 20; attempt++ {
+				resp, err = h.QueryFileTransmissionResult(nCtx, taskID, tt.args.details[0].Endpoints...)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("QueryFileTransmissionResult() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+
+				stillRunning := false
+				for _, v := range resp {
+					if v.StatusCode == types.TransferStatusChecking || v.StatusCode == types.TransferStatusRunning {
+						stillRunning = true
+						break
+					}
+				}
+
+				if !stillRunning && len(resp) == len(tt.args.details[0].Endpoints) {
+					break
+				}
+
+				time.Sleep(1 * time.Second)
+			}
+
+			if len(resp) != len(tt.args.details[0].Endpoints) {
+				t.Errorf("QueryFileTransmissionResult() result size = %v, wantLen %v", len(resp), len(tt.args.details[0].Endpoints))
+				return
+			}
+
+			for _, v := range resp {
+				statusMatched := false
+				for _, status := range tt.wantStatuses {
+					if v.StatusCode == status {
+						statusMatched = true
+						break
+					}
+				}
+
+				if !statusMatched {
+					t.Errorf("QueryFileTransmissionResult() status = %v, wantStatus %v", v.StatusCode, tt.wantStatuses)
+					return
+				}
+
+				t.Logf("query-file: %#v", v)
+			}
+
+			t.Logf("push-file: %v", taskID)
+		})
+	}
+}
+
 // Test_Handler_ReloadProcess test Handler.ReloadProcess.
 func Test_Handler_ReloadProcess(t *testing.T) {
 	nCtx := contextx.New(context.Background())
