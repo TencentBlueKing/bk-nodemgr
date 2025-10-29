@@ -13,6 +13,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"regexp"
 
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
@@ -30,12 +31,25 @@ func NewBKGWJWTAuthIdentity(pem []byte) *BKGWJWTAuthIdentityAppState {
 	}
 }
 
+// TenantIDRegexp tenant id regexp.
+const TenantIDRegexp = `^[a-z][a-z0-9-]{1,30}[a-z0-9]$`
+
 // Verify the jwt from apigateway.
-func (identity *BKGWJWTAuthIdentityAppState) Verify(rCtx restserver.IRequest) error {
-	if rCtx == nil {
+func (identity *BKGWJWTAuthIdentityAppState) Verify(r restserver.IRequest) error {
+	if r == nil {
 		return errors.New("failed to verify user authentication, rest context is nil")
 	}
-	jwtStr := rCtx.GetRequestHeader(apigwheader.BKGWJWTTokenKey)
+
+	tenantID := r.GetRequestHeader(apigwheader.BKGWTenantIDKey)
+
+	mustCompile := regexp.MustCompile(TenantIDRegexp)
+	if !mustCompile.MatchString(tenantID) {
+		return errors.New("failed to set tenant id: invalid tenant id")
+	}
+
+	r.Data().SetTenantID(tenantID)
+
+	jwtStr := r.GetRequestHeader(apigwheader.BKGWJWTTokenKey)
 	if jwtStr == "" {
 		return errors.New("failed to verify user authentication, jwt token is empty")
 	}
@@ -50,9 +64,9 @@ func (identity *BKGWJWTAuthIdentityAppState) Verify(rCtx restserver.IRequest) er
 		return fmt.Errorf("failed to verify user authentication: %w", err)
 	}
 
-	rCtx.Data().SetLoginName(claims.User.UserName)
-	// TODO: 等待多租户版本上线后，需要修改 rCtx.BKUsername1 的赋值
-	rCtx.Data().SetBKUsername(claims.User.UserName)
+	r.Data().SetLoginName(claims.User.UserName)
+	// TODO: 等待多租户版本上线后，需要修改 r.BKUsername 的赋值
+	r.Data().SetBKUsername(claims.User.UserName)
 
 	return nil
 }
@@ -74,6 +88,16 @@ func (identity *BKGWJWTAuthIdentityUserState) Verify(rCtx restserver.IContext) e
 	if rCtx == nil {
 		return errors.New("failed to verify user authentication, rest context is nil")
 	}
+
+	tenantID := rCtx.GetRequestHeader(apigwheader.BKGWTenantIDKey)
+
+	mustCompile := regexp.MustCompile(TenantIDRegexp)
+	if !mustCompile.MatchString(tenantID) {
+		return errors.New("failed to set tenant id: invalid tenant id")
+	}
+
+	rCtx.Data().SetTenantID(tenantID)
+
 	jwtStr := rCtx.GetRequestHeader(apigwheader.BKGWJWTTokenKey)
 	if jwtStr == "" {
 		return errors.New("failed to verify user authentication, jwt token is empty")

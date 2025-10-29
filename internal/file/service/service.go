@@ -13,7 +13,6 @@ package service
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -43,7 +42,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
-	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/gin-gonic/gin"
@@ -382,15 +380,7 @@ func (svc *Service) registerRestServer() error {
 func newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
 	switch conf.AuthIdentity {
 	case config.AuthIdentityNone:
-		return restserver.NewNodeAuthIdentity(), nil
-	case config.AuthIdentityAPIGW:
-		publickeyPem, err := base64.StdEncoding.DecodeString(conf.JWTServerConfig.PublicKeyPem)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode publickey: %w", err)
-		}
-
-		return apigwserver.NewBKGWJWTAuthIdentity(publickeyPem), nil
-
+		return restserver.NewNoneAuthIdentity(), nil
 	case config.AuthIdentityRestServer:
 		return restserver.NewRestServerAuthIdentity(conf.JWTServerConfig.SymmetricKey), nil
 
@@ -429,6 +419,11 @@ func (svc *Service) registerAdminServer() error {
 	if !valid {
 		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
 			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	}
+
+	_, err := newAuthIdentity(svc.conf.AdminServer)
+	if err != nil {
+		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
 
 	server := restserver.NewServer(
@@ -474,15 +469,12 @@ func (svc *Service) registerBasicServer() error {
 		},
 		restserver.WithPing(),
 		withUpload(svc.Cap,
-			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
 			restserver.MiddlewareAuth(authIdentity),
 		),
 		withPublish(svc.Cap,
-			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
 			restserver.MiddlewareAuth(authIdentity),
 		),
 		withTransfer(svc.Cap,
-			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
 			restserver.MiddlewareAuth(authIdentity),
 		),
 		withDownload(svc.Cap,
@@ -522,7 +514,6 @@ func (svc *Service) registerDownloadServer() error {
 		},
 		restserver.WithPing(),
 		withDownload(svc.Cap,
-			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)

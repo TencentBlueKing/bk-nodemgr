@@ -135,7 +135,7 @@ func (svc *Service) initialCapability() error {
 // nolint: unparam
 func (svc *Service) initialStaticsConfigs() error {
 	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
-		config.AuthIdentityNone: restserver.NewNodeAuthIdentity(),
+		config.AuthIdentityNone: restserver.NewNoneAuthIdentity(),
 	}
 
 	return nil
@@ -164,7 +164,6 @@ func (svc *Service) registerRestServer() error {
 // nolint: unparam
 func (svc *Service) registerInfoServer() error {
 	requestIDSetter := restserver.NewRequestIDSetter()
-	tenantIDSetter := restserver.NewTenantIDSetter()
 
 	server := restserver.NewServer(
 		svc.ctx,
@@ -173,7 +172,6 @@ func (svc *Service) registerInfoServer() error {
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
 			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
@@ -194,7 +192,6 @@ func (svc *Service) registerAdminServer() error {
 	}
 
 	requestIDSetter := restserver.NewRequestIDSetter()
-	tenantIDSetter := restserver.NewTenantIDSetter()
 
 	server := restserver.NewServer(
 		svc.ctx,
@@ -203,7 +200,6 @@ func (svc *Service) registerAdminServer() error {
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
 			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
 		},
 		restserver.WithPing(),
 	)
@@ -222,7 +218,6 @@ func (svc *Service) registerCallbackServer() error {
 	}
 
 	requestIDSetter := restserver.NewRequestIDSetter()
-	tenantIDSetter := restserver.NewTenantIDSetter()
 
 	server := restserver.NewServer(
 		svc.ctx,
@@ -231,7 +226,6 @@ func (svc *Service) registerCallbackServer() error {
 			IP:              svc.conf.CallbackServer.BindIP,
 			Port:            svc.conf.CallbackServer.Port,
 			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
 		},
 		restserver.WithPing(),
 		withCallbackServer(svc.Cap),
@@ -251,7 +245,6 @@ func (svc *Service) registerDownloadServer() error {
 	}
 
 	requestIDSetter := restserver.NewRequestIDSetter()
-	tenantIDSetter := restserver.NewTenantIDSetter()
 
 	server := restserver.NewServer(
 		svc.ctx,
@@ -260,7 +253,6 @@ func (svc *Service) registerDownloadServer() error {
 			IP:              svc.conf.DownloadServer.BindIP,
 			Port:            svc.conf.DownloadServer.Port,
 			RequestIDSetter: requestIDSetter,
-			TenantIDSetter:  tenantIDSetter,
 		},
 		restserver.WithPing(),
 		withDownload(svc.Cap),

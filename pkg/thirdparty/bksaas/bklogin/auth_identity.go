@@ -39,14 +39,14 @@ func (identity *AuthIdentity) Verify(r restserver.IRequest) error {
 		return fmt.Errorf("failed to verify authentication by get cookie: %w", err)
 	}
 
-	loginUsername, err := identity.handler.Verify(contextx.New(r.GContext()), token)
+	tenantID, bkUserName, loginName, err := identity.handler.Verify(contextx.New(r.GContext()), token)
 	if err != nil {
 		return fmt.Errorf("failed to verify authentication: %w", err)
 	}
 
-	// TODO: 等到多租户版本上线，LoginName 需要绑定新的 headerKey
-	r.Data().SetBKUsername(loginUsername)
-	r.Data().SetLoginName(loginUsername)
+	r.Data().SetTenantID(tenantID)
+	r.Data().SetBKUsername(bkUserName)
+	r.Data().SetLoginName(loginName)
 
 	return nil
 }

@@ -59,8 +59,20 @@ type RestServerAuthIdentity struct {
 	jwtParser restheader.IBKNodeMgrAuthorizationParser
 }
 
+// TenantIDRegexp tenant id regexp.
+const TenantIDRegexp = `^[a-z][a-z0-9-]{1,30}[a-z0-9]$`
+
 // Verify verify auth info.
 func (identity *RestServerAuthIdentity) Verify(r IRequest) error {
+	tenantID := restheader.BKTenantIDGetter(r.GetRequest())
+
+	mustCompile := regexp.MustCompile(TenantIDRegexp)
+	if !mustCompile.MatchString(tenantID) {
+		return errors.New("failed to set tenant id: invalid tenant id")
+	}
+
+	r.Data().SetTenantID(tenantID)
+
 	authorization := restheader.BKNodeMgrAuthorizationGetter(r.GetRequest())
 
 	nodeMgrAuthorization, err := identity.jwtParser.Parse(authorization)
@@ -81,23 +93,24 @@ func NewRestServerAuthIdentity(jwtSecretStr string) *RestServerAuthIdentity {
 	}
 }
 
-var _ IAuthIdentity = &NodeAuthIdentity{}
+var _ IAuthIdentity = &NoneAuthIdentity{}
 
-// NodeAuthIdentity verify auth info.
-type NodeAuthIdentity struct {
+// NoneAuthIdentity verify auth info.
+type NoneAuthIdentity struct {
 }
 
 // Verify verify auth info.
-func (identity *NodeAuthIdentity) Verify(r IRequest) error {
+func (identity *NoneAuthIdentity) Verify(r IRequest) error {
+	r.Data().SetTenantID("default")
 	r.Data().SetLoginName("unknown")
 	r.Data().SetBKUsername("unknown")
 
 	return nil
 }
 
-// NewNodeAuthIdentity ...
-func NewNodeAuthIdentity() *NodeAuthIdentity {
-	return &NodeAuthIdentity{}
+// NewNoneAuthIdentity ...
+func NewNoneAuthIdentity() *NoneAuthIdentity {
+	return &NoneAuthIdentity{}
 }
 
 // IRequestIDSetter set request id.
@@ -149,68 +162,6 @@ func (setter *RequestIDSetter) SetRequestID(r IRequest) error {
 // NewRequestIDSetter ...
 func NewRequestIDSetter() *RequestIDSetter {
 	return &RequestIDSetter{}
-}
-
-// ITenantIDSetter set request id.
-type ITenantIDSetter interface {
-	SetTenantID(r IRequest) error
-}
-
-// MiddlewareSetTenantID ...
-func MiddlewareSetTenantID(tenantIDSetter ITenantIDSetter) gin.HandlerFunc {
-	return func(gCtx *gin.Context) {
-		r := loadRestRequest(gCtx)
-
-		if tenantIDSetter == nil {
-			r.AbortWithJSONError(resterrf.Aborted, []error{errors.New("this server doesn't load tenant id setter")})
-
-			return
-		}
-
-		if err := tenantIDSetter.SetTenantID(r); err != nil {
-			r.AbortWithJSONError(resterrf.Aborted, []error{err})
-
-			return
-		}
-
-		if r.Data().GetTenantID() == "" {
-			r.AbortWithJSONError(resterrf.Aborted, []error{errors.New("failed to set tenant id")})
-		}
-
-		gCtx.Next()
-	}
-}
-
-var _ ITenantIDSetter = &TenantIDSetter{}
-
-// TenantIDSetter this is a midleware for setting request id.
-type TenantIDSetter struct {
-}
-
-// TenantIDRegexp tenant id regexp.
-const TenantIDRegexp = `^[a-z][a-z0-9-]{1,30}[a-z0-9]$`
-
-// SetTenantID ...
-func (setter *TenantIDSetter) SetTenantID(r IRequest) error {
-	// note: for thread safety you need to reset it here.
-	r.Data().SetTenantID(restheader.BKTenantIDGetter(r.GetRequest()))
-
-	if r.Data().GetTenantID() == "" {
-		// TODO: remove this logic, perfect the logic of rest to support set tenant setter for router group.
-		r.Data().SetTenantID("default")
-	}
-
-	mustCompile := regexp.MustCompile(TenantIDRegexp)
-	if !mustCompile.MatchString(r.Data().GetTenantID()) {
-		return errors.New("failed to set tenant id: invalid tenant id")
-	}
-
-	return nil
-}
-
-// NewTenantIDSetter ...
-func NewTenantIDSetter() *TenantIDSetter {
-	return &TenantIDSetter{}
 }
 
 // MiddlewareReceivedLog print log when received request.

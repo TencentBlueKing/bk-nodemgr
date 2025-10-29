@@ -73,8 +73,8 @@ type Service struct {
 	// instance is the discover instance of the service.
 	instance discover.Instance
 
-	// authIdentityMap defines the mapping between auth identity and auth identity handler.
-	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity
+	// authIdentityValidMap defines the mapping between auth identity and auth identity handler.
+	authIdentityValidMap map[config.AuthIdentity]struct{}
 
 	// bkloginHandler is the handler of bklogin.
 	bkloginHandler bksaasbklogin.IHandler
@@ -115,9 +115,9 @@ func (svc *Service) initialStaticsConfigs() error {
 	}
 
 	// initial idenity map.
-	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
-		config.AuthIdentityNone:    restserver.NewNodeAuthIdentity(),
-		config.AuthIdentityBKLogin: svc.bkloginHandler.GetAuthIdentity(),
+	svc.authIdentityValidMap = map[config.AuthIdentity]struct{}{
+		config.AuthIdentityNone:    {},
+		config.AuthIdentityBKLogin: {},
 	}
 
 	return nil
@@ -264,6 +264,17 @@ func (svc *Service) registerRestServer() error {
 	return nil
 }
 
+func (svc *Service) newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
+	switch conf.AuthIdentity {
+	case config.AuthIdentityNone:
+		return restserver.NewNoneAuthIdentity(), nil
+	case config.AuthIdentityBKLogin:
+		return svc.bkloginHandler.GetAuthIdentity(), nil
+	default:
+		return nil, fmt.Errorf("no support this auth identity, auth-identity(%s)", conf.AuthIdentity)
+	}
+}
+
 // nolint: unparam
 func (svc *Service) registerInfoServer() error {
 	server := restserver.NewServer(
@@ -290,10 +301,15 @@ func (svc *Service) registerInfoServer() error {
 }
 
 func (svc *Service) registerAdminServer() error {
-	authIdentity := svc.authIdentityMap[svc.conf.AdminServer.AuthIdentity]
-	if authIdentity == nil {
+	_, valid := svc.authIdentityValidMap[svc.conf.AdminServer.AuthIdentity]
+	if !valid {
 		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	}
+
+	_, err := svc.newAuthIdentity(svc.conf.AdminServer)
+	if err != nil {
+		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
 
 	server := restserver.NewServer(
@@ -318,10 +334,15 @@ func (svc *Service) registerAdminServer() error {
 }
 
 func (svc *Service) registerBasicServer() error {
-	authIdentity := svc.authIdentityMap[svc.conf.BasicServer.AuthIdentity]
-	if authIdentity == nil {
+	_, valid := svc.authIdentityValidMap[svc.conf.BasicServer.AuthIdentity]
+	if !valid {
 		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.BasicServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	}
+
+	authIdentity, err := svc.newAuthIdentity(svc.conf.BasicServer)
+	if err != nil {
+		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
 
 	server := restserver.NewServer(
@@ -341,7 +362,6 @@ func (svc *Service) registerBasicServer() error {
 		restserver.WithPing(),
 		withWeb(svc.Cap),
 		withAPIV3(svc.Cap,
-			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)

@@ -24,6 +24,9 @@ const (
 
 	// BKGWAuthKey is blueking api gateway authorization header key.
 	BKGWAuthKey = "X-Bkapi-Authorization"
+
+	// BKGWTenantIDKey is blueking api gateway tenant id header key.
+	BKGWTenantIDKey = "X-Bk-Tenant-Id"
 )
 
 // BKRIDGetter request id value.

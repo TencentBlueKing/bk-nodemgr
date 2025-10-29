@@ -25,7 +25,7 @@ type IHandler interface {
 	GetLoginURL() string
 
 	// Verify verify the bk_ticket or bk_token.
-	Verify(nCtx contextx.IContext, token string) (string, error)
+	Verify(nCtx contextx.IContext, token string) (string, string, string, error)
 
 	// GetAuthIdentity get the auth identity.
 	GetAuthIdentity() *AuthIdentity
@@ -88,28 +88,28 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 }
 
 // Verify the bk_ticket or bk_token is valid or not, and return the bk_username.
-func (h *Handler) Verify(ctx contextx.IContext, token string) (string, error) {
-	if ctx == nil {
-		return "", errors.New("failed to verify token: invalid context")
+func (h *Handler) Verify(nCtx contextx.IContext, token string) (tenantID string, bkUsername string, loginName string, err error) {
+	if nCtx == nil {
+		return "", "", "", errors.New("failed to verify token: invalid context")
 	}
 
 	switch h.conf.AuthType {
 	case CookieKeyBKTicket:
-		resp, err := h.cli.getUserInfoByBKTicket(ctx, &GetUserInfoByBKTicketReq{BKTicket: token})
+		resp, err := h.cli.getUserInfoByBKTicket(nCtx, &GetUserInfoByBKTicketReq{BKTicket: token})
 		if err != nil {
-			return "", fmt.Errorf("failed to verify bk_ticket: %w", err)
+			return "", "", "", fmt.Errorf("failed to verify bk_ticket: %w", err)
 		}
 
-		return resp.Username, nil
+		return "default", resp.Username, resp.Username, nil
 	case CookieKeyBKToken:
-		resp, err := h.cli.getUserInfoByBKToken(ctx, &GetUserInfoByBKTokenReq{BKToken: token})
+		resp, err := h.cli.getUserInfoByBKToken(nCtx, &GetUserInfoByBKTokenReq{BKToken: token})
 		if err != nil {
-			return "", fmt.Errorf("failed to verify bk_token: %w", err)
+			return "", "", "", fmt.Errorf("failed to verify bk_token: %w", err)
 		}
 
-		return resp.Username, nil
+		return "default", resp.Username, resp.Username, nil
 	default:
-		return "", fmt.Errorf("failed to verify token: unsupported auth type: %s", h.conf.AuthType)
+		return "", "", "", fmt.Errorf("failed to verify token: unsupported auth type: %s", h.conf.AuthType)
 	}
 }
 
