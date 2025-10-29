@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	types "github.com/TencentBlueKing/bk-nodemgr/internal/application/types/router/healthz"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,10 +34,12 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 }
 
 // Load ...
-func Load(rg *gin.RouterGroup, capability *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) restserver.IMiddlewareChain {
 	h := newHandler(rg, capability)
 
 	h.rg.GET("", h.Healthz)
+
+	return restserver.NewMiddlewareChain(h.rg)
 }
 
 // Healthz check service health.

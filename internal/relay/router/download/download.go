@@ -141,9 +141,11 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 }
 
 // Load enables web router into gin.Engine.
-func Load(rg *gin.RouterGroup, capability *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) restserver.IMiddlewareChain {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/agent", restserver.FileHandler(h.Agent))
 	h.rg.POST("/proxy", restserver.FileHandler(h.Proxy))
+
+	return restserver.NewMiddlewareChain(h.rg)
 }

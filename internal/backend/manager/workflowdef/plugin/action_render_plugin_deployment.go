@@ -161,7 +161,7 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 
 	// setting process by plugin pkg.
 
-	pluginPkg, err := act.daoPluginPkg.GetReleasePlugin(
+	pluginPkg, err := act.daoPluginPkg.GetEnabledReleasePlugin(
 		nCtx,
 		pluginPkgName,
 		nodeGeneration,

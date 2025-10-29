@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,10 +34,12 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 }
 
 // Load enables web router into gin.Engine.
-func Load(rg *gin.RouterGroup, capability *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) restserver.IMiddlewareChain {
 	h := newHandler(rg, capability)
 
 	h.rg.GET("", h.Index)
+
+	return restserver.NewMiddlewareChain(h.rg)
 }
 
 // Index return the index page.

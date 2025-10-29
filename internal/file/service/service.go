@@ -47,7 +47,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -411,8 +410,8 @@ func (svc *Service) registerInfoServer() error {
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
+		restserver.WithMetrics(),
 		withHealthz(svc.Cap),
-		withMetrics(svc.Cap),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -561,44 +560,37 @@ func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
 }
 
 // withHealthz load healthz.
-func withHealthz(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		healthz.Load(rg, capability)
-	}
-}
-
-// withMetrics load metrics.
-func withMetrics(_ *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
+func withHealthz(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return healthz.Load(rg, capability)
 	}
 }
 
 // withDownload load download.
-func withDownload(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		download.Load(rg, capability, authIdentity)
+func withDownload(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return download.Load(rg, capability, authIdentity)
 	}
 }
 
 // withUpload load upload.
-func withUpload(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		upload.Load(rg, capability, authIdentity)
+func withUpload(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return upload.Load(rg, capability, authIdentity)
 	}
 }
 
 // withPublish load publish.
-func withPublish(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		publish.Load(rg, capability, authIdentity)
+func withPublish(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return publish.Load(rg, capability, authIdentity)
 	}
 }
 
 // withTransfer load transfer.
-func withTransfer(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		transfer.Load(rg, capability, authIdentity)
+func withTransfer(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return transfer.Load(rg, capability, authIdentity)
 	}
 }
 

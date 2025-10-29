@@ -25,7 +25,7 @@ type handler struct {
 }
 
 // newHandler ...
-func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg: rg.Group("/admin"),
@@ -33,11 +33,13 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity restserver.IAuthIdentity) {
+func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.IMiddlewareChain {
 	h := newHandler(rg, capability)
 
 	h.rg.Use(restserver.MiddlewareAuth(authIdentity))
 
 	workflow.Load(h.rg, capability)
 	globalsettings.Load(h.rg, capability)
+
+	return restserver.NewMiddlewareChain(h.rg)
 }

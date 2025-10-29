@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -66,8 +67,10 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 }
 
 // Load register the callback router.
-func Load(rg *gin.RouterGroup, capability *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) restserver.IMiddlewareChain {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/*path", h.request)
+
+	return restserver.NewMiddlewareChain(h.rg)
 }

@@ -32,7 +32,7 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 }
 
 // Load enables web router into gin.Engine.
-func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity restserver.IAuthIdentity) {
+func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.IMiddlewareChain {
 	h := newHandler(rg, capability)
 
 	h.rg.Use(restserver.MiddlewareAuth(authIdentity))
@@ -44,4 +44,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity rest
 	h.rg.POST("/release/v2/plugin_bintool", restserver.Handler(h.PublishReleasePluginBinToolV2))
 	h.rg.POST("/release/v2/plugin", restserver.Handler(h.PublishReleasePluginV2))
 	h.rg.POST("/release/v2/external_plugin", restserver.Handler(h.PublishReleaseExternalPluginV2))
+
+	return restserver.NewMiddlewareChain(h.rg)
 }

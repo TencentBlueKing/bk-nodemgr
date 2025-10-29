@@ -14,6 +14,7 @@ package callback
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +24,7 @@ type handler struct {
 }
 
 // newHandler ...
-func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg: rg.Group("/callback"),
@@ -31,8 +32,10 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) restserver.IMiddlewareChain {
 	h := newHandler(rg, capability)
 
 	workflow.Load(h.rg, capability)
+
+	return restserver.NewMiddlewareChain(h.rg)
 }

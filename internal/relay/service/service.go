@@ -33,7 +33,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const (
@@ -176,8 +175,8 @@ func (svc *Service) registerInfoServer() error {
 			TenantIDSetter:  tenantIDSetter,
 		},
 		restserver.WithPing(),
+		restserver.WithMetrics(),
 		withHealthz(svc.Cap),
-		withMetrics(),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -271,30 +270,23 @@ func (svc *Service) registerDownloadServer() error {
 	return nil
 }
 
-func withHealthz(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		healthz.Load(rg, capability)
-	}
-}
-
-// withMetrics load metrics.
-func withMetrics() restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
+func withHealthz(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return healthz.Load(rg, capability)
 	}
 }
 
 // withCallbackServer load callback api.
-func withCallbackServer(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		callback.Load(rg, capability)
+func withCallbackServer(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return callback.Load(rg, capability)
 	}
 }
 
 // withDownload load download.
-func withDownload(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		download.Load(rg, capability)
+func withDownload(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return download.Load(rg, capability)
 	}
 }
 

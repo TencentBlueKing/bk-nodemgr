@@ -41,7 +41,6 @@ import (
 	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -276,8 +275,8 @@ func (svc *Service) registerInfoServer() error {
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
+		restserver.WithMetrics(),
 		withHealthz(svc.Cap),
-		withMetrics(svc.Cap),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -357,30 +356,26 @@ func (svc *Service) registerBasicServer() error {
 }
 
 // withHealthz load healthz.
-func withHealthz(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		healthz.Load(rg, capability)
-	}
-}
-
-// withMetrics load metrics.
-func withMetrics(_ *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
+func withHealthz(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return healthz.Load(rg, capability)
 	}
 }
 
 // withWeb load web page handler.
-func withWeb(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		web.Load(rg, capability)
+func withWeb(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return web.Load(rg, capability)
 	}
 }
 
 // withApiV3 load api v3.
-func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		applicationapiv3.Load(rg, capability, authIdentity)
+func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		middlewareChain := applicationapiv3.Load(rg, capability)
+		middlewareChain.Use(restserver.MiddlewareAuth(authIdentity))
+
+		return middlewareChain
 	}
 }
 

@@ -37,10 +37,8 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity restserver.IAuthIdentity) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) restserver.IMiddlewareChain {
 	h := newHandler(rg, capability)
-
-	h.rg.Use(restserver.MiddlewareAuth(authIdentity))
 
 	topo.Load(h.rg, capability)
 	node.Load(h.rg, capability)
@@ -48,4 +46,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity rest
 	pkg.Load(h.rg, capability)
 	plugin.Load(h.rg, capability)
 	process.Load(h.rg, capability)
+
+	return restserver.NewMiddlewareChain(h.rg)
 }

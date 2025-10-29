@@ -68,7 +68,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
@@ -597,8 +596,8 @@ func (svc *Service) registerInfoServer() error {
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
+		restserver.WithMetrics(),
 		withHealthz(svc.Cap),
-		withMetrics(svc.Cap),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -688,7 +687,7 @@ func (svc *Service) registerBasicServer() error {
 			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
-		withAPIV3(svc.Cap, authIdentity),
+		withBasicAPIV3(svc.Cap, authIdentity),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -752,44 +751,40 @@ func (svc *Service) registerProxyServer() error {
 }
 
 // withHealthz load healthz.
-func withHealthz(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		healthz.Load(rg, capability)
-	}
-}
-
-// withMetrics load metrics.
-func withMetrics(_ *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		rg.GET("/metrics", gin.WrapH(promhttp.Handler()))
+func withHealthz(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return healthz.Load(rg, capability)
 	}
 }
 
 // withApiV3 load api v3.
-func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		backendapiv3.Load(rg, capability, authIdentity)
+func withBasicAPIV3(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		middlewareChain := backendapiv3.Load(rg, capability)
+		middlewareChain.Use(restserver.MiddlewareAuth(authIdentity))
+
+		return middlewareChain
 	}
 }
 
 // withAdmin load admin.
-func withAdmin(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		admin.Load(rg, capability, authIdentity)
+func withAdmin(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return admin.Load(rg, capability, authIdentity)
 	}
 }
 
 // withCallback load callback.
-func withCallback(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		callback.Load(rg, capability)
+func withCallback(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return callback.Load(rg, capability)
 	}
 }
 
 // withProxy load proxy.
-func withProxy(capability *options.Capability) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		proxy.Load(rg, capability)
+func withProxy(capability *options.Capability) restserver.RouterOptionFunc {
+	return func(rg *gin.RouterGroup) restserver.IMiddlewareChain {
+		return proxy.Load(rg, capability)
 	}
 }
 

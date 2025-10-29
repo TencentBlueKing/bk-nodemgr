@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Server defines the restful API server.
@@ -35,17 +36,54 @@ type Server struct {
 	metrics *restmetrics.Monitor
 }
 
-// OptionFunc defines a function that can be used to modify the router.
-type OptionFunc func(rg *gin.RouterGroup)
+// IMiddlewareChain defines a function that can be used to modify the router.
+type IMiddlewareChain interface {
+	Use(middlewares ...gin.HandlerFunc)
+}
+
+var _ IMiddlewareChain = &MiddlewareChain{}
+
+// MiddlewareChain defines a function that can be used to modify the router.
+type MiddlewareChain struct {
+	rg gin.IRoutes
+}
+
+// Use adds middleware to the group.
+func (m *MiddlewareChain) Use(middlewares ...gin.HandlerFunc) {
+	m.rg = m.rg.Use(middlewares...)
+}
+
+// NewMiddlewareChain creates a new MiddlewareChain.
+func NewMiddlewareChain(rg *gin.RouterGroup) *MiddlewareChain {
+	return &MiddlewareChain{
+		rg: rg,
+	}
+}
+
+// RouterOptionFunc defines a function that can be used to modify the router.
+type RouterOptionFunc func(rg *gin.RouterGroup) IMiddlewareChain
 
 // WithPing with ping pong api.
-func WithPing() OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		rg.Any("/ping", func(c *gin.Context) {
+func WithPing() RouterOptionFunc {
+	return func(rg *gin.RouterGroup) IMiddlewareChain {
+		pingRg := rg.Group("/ping")
+		pingRg.Any("", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"message": "pong",
 			})
 		})
+
+		return NewMiddlewareChain(pingRg)
+	}
+}
+
+// WithMetrics with metrics api.
+func WithMetrics() RouterOptionFunc {
+	return func(rg *gin.RouterGroup) IMiddlewareChain {
+		metricsRg := rg.Group("/metrics")
+		metricsRg.GET("", gin.WrapH(promhttp.Handler()))
+
+		return NewMiddlewareChain(metricsRg)
 	}
 }
 
@@ -122,7 +160,7 @@ type Options struct {
 // NewServer creates a new restful API server.
 func NewServer(ctx context.Context,
 	opts Options,
-	apiOptFns ...OptionFunc) *Server {
+	apiOptFns ...RouterOptionFunc) *Server {
 
 	svr := &Server{
 		ctx:  ctx,
