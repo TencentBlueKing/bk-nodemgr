@@ -112,6 +112,10 @@ func (orm *Orm[P, T]) Get(nCtx contextx.IContext, filter bson.D, fields ...strin
 		}())
 	}()
 
+	if nCtx == nil {
+		return nil, errors.New("context is nil")
+	}
+
 	// set projection.
 	projection := make(bson.D, 0)
 	for _, field := range fields {
@@ -143,9 +147,9 @@ func (orm *Orm[P, T]) Get(nCtx contextx.IContext, filter bson.D, fields ...strin
 }
 
 // Exist check if the data by given filter exist.
-func (orm *Orm[P, T]) Exist(nCtx contextx.IContext, filter bson.D) (result bool, err error) {
+func (orm *Orm[P, T]) Exist(nCtx contextx.IContext, filter bson.D) (exist bool, err error) {
 	// record metric.
-	metric := orm.metric().start(daomongo.MetricOperationCountDucuments, len(filter))
+	metric := orm.metric().start(daomongo.MetricOperationFindOne, len(filter))
 	defer func() {
 		metric.end(err, func() int {
 			if err != nil {
@@ -156,13 +160,28 @@ func (orm *Orm[P, T]) Exist(nCtx contextx.IContext, filter bson.D) (result bool,
 		}())
 	}()
 
-	// count as exist check.
-	count, err := orm.dao.GetClient().CountDocuments(nCtx, filter)
+	if nCtx == nil {
+		return false, errors.New("context is nil")
+	}
+
+	// use FindOne for presence checks and query only _id fields to improve performance.
+	opts := mongoOptions.FindOne().SetProjection(bson.D{{"_id", 1}})
+
+	var result struct {
+		ID interface{} `bson:"_id"`
+	}
+
+	err = orm.dao.GetClient().FindOne(nCtx, filter, opts).Decode(&result)
 	if err != nil {
+		// not found, not an error
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, nil
+		}
+
 		return false, err
 	}
 
-	return count > 0, nil
+	return true, nil
 }
 
 // CreateMany this is a common operation for mongo db.
@@ -184,6 +203,10 @@ func (orm *Orm[P, T]) CreateMany(nCtx contextx.IContext, datas []P) (err error) 
 			return len(result.InsertedIDs)
 		}())
 	}()
+
+	if nCtx == nil {
+		return errors.New("context is nil")
+	}
 
 	// generates documents.
 	timeNow := time.Now()
@@ -221,6 +244,10 @@ func (orm *Orm[P, T]) Create(nCtx contextx.IContext, data P) (err error) {
 			return 1
 		}())
 	}()
+
+	if nCtx == nil {
+		return errors.New("context is nil")
+	}
 
 	// generates document.
 	document := &TableBroker[P]{
@@ -318,6 +345,10 @@ func (orm *Orm[P, T]) Count(nCtx contextx.IContext, filter bson.D) (num int64, e
 		}())
 	}()
 
+	if nCtx == nil {
+		return 0, errors.New("context is nil")
+	}
+
 	if num, err = orm.dao.GetClient().CountDocuments(nCtx, filter); err != nil {
 		return 0, err
 	}
@@ -336,6 +367,10 @@ func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongo
 	defer func() {
 		metric.end(err, len(dataPoints))
 	}()
+
+	if nCtx == nil {
+		return nil, errors.New("context is nil")
+	}
 
 	var cursor *mongo.Cursor
 	if cursor, err = orm.dao.GetClient().Find(nCtx, filter, findOpt); err != nil {
@@ -425,6 +460,10 @@ func (orm *Orm[P, T]) DeleteMany(nCtx contextx.IContext, filter bson.D) (err err
 			return int(result.MatchedCount)
 		}())
 	}()
+
+	if nCtx == nil {
+		return errors.New("context is nil")
+	}
 
 	if result, err = orm.dao.GetClient().BulkWrite(nCtx, models); err != nil {
 		return err
