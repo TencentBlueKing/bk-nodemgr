@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package event provides the event storage.
-package event
+// Package packageevent provides the event storage.
+package packageevent
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"

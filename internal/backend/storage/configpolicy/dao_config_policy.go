@@ -153,7 +153,7 @@ func convertConfigPolicyConditionsToOptions(conditions ...*types.ConfigPolicyCon
 			opts = append(opts,
 				configpolicy.WithConfigPolicyID(condition.ExactInclude.ConfigPolicyID...),
 				configpolicy.WithBizID(condition.ExactInclude.BizID...),
-				configpolicy.WithNodeRole(condition.ExactInclude.NodeRole...),
+				configpolicy.WithType(condition.ExactInclude.Type...),
 				configpolicy.WithEnabled(condition.ExactInclude.Enabled...))
 		}
 

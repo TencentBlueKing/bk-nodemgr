@@ -31,7 +31,7 @@ type RawData struct {
 	TenantID         string         `json:"tenant_id" bson:"tenant_id"`
 	ConfigPolicyID   int64          `json:"configpolicy_id" bson:"configpolicy_id"`
 	ConfigPolicyName string         `json:"configpolicy_name" bson:"configpolicy_name"`
-	NodeRole         string         `json:"node_role" bson:"node_role"`
+	ConfigPolicyType string         `json:"configpolicy_type" bson:"configpolicy_type"`
 	BizID            []int64        `json:"biz_id" bson:"biz_id"`
 	Remark           string         `json:"remark" bson:"remark"`
 	Scopes           []Scope        `json:"scopes" bson:"scopes"`

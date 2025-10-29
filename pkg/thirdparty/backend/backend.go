@@ -1853,7 +1853,72 @@ func (c *cli) distinctPackageEvent(ctx contextx.IContext, req *protoBackend.Pack
 	}
 
 	if resp.GetData() == nil {
-		return nil, fmt.Errorf("distinct packag eevent failed, get empty data. code(%d), message(%s), request-id(%s)",
+		return nil, fmt.Errorf("distinct package event failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listConfigPolicyEvent(ctx contextx.IContext, req *protoBackend.ConfigPolicyEventListReq,
+) (*protoBackend.ConfigPolicyEventListResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyEventListResp)
+	header := c.getHeader(ctx)
+	result := c.client.Post().
+		SubResourcef("/policy/config/event/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list config policy event failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list config policy event failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) distinctConfigPolicyEvent(ctx contextx.IContext, req *protoBackend.ConfigPolicyEventDistinctReq,
+) (*protoBackend.ConfigPolicyEventDistinctResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyEventDistinctResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/policy/config/event/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct config policy event failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct config policy event failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 

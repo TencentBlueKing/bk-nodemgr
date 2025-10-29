@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package event provides the event storage.
-package event
+// Package packageevent provides the event storage.
+package packageevent
 
 import (
 	"errors"
@@ -24,7 +24,7 @@ import (
 )
 
 // StorageName defines the storage name.
-const StorageName = "event"
+const StorageName = "packageevent"
 
 // NewStorage creates a new release storage.
 func NewStorage(client *mongo.Client, database string) (*Storage, error) {

@@ -524,3 +524,263 @@ func newEmptyPackageEvent() *PackageEvent {
 		Operator:    new(string),
 	}
 }
+
+// Validate check body.
+func (x *ConfigPolicyEventListReq) Validate() error {
+	if err := validatePage(x.GetPage()); err != nil {
+		return err
+	}
+
+	if err := validateTimeRange(x.GetOperateTimeRange(), maxOperateTimeRangeDuration); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ConfigPolicyEventListReq) AutoConvert() {
+	if x.GetOperateTimeRange() == nil {
+		x.OperateTimeRange = &TimeRange{
+			StartTimestampSec: time.Now().Add(-1 * maxOperateTimeRangeDuration).Unix(),
+			EndTimestampSec:   time.Now().Unix(),
+		}
+	}
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *ConfigPolicyEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
+	return generatePage(x.GetPage(), maxLimit)
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *ConfigPolicyEventListReq) ConvertConditionsToTypes() (*types.ConfigPolicyEventCondition, error) {
+	return convertConfigPolicyEventConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
+}
+
+// ConvertConditionsFromTypes convert types to conditions.
+func (x *ConfigPolicyEventListReq) ConvertConditionsFromTypes(condition *types.ConfigPolicyEventCondition) error {
+	exactCond, fuzzyCond, timeRange, err := convertConfigPolicyEventConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.OperateTimeRange = timeRange
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// ConvertConfigPolicyEventsToTypes convert policy events to types.
+func (x *TopoEventListResp) ConvertConfigPolicyEventsToTypes() (int64, []*types.TopoEvent) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.TopoEvent, len(items))
+	for idx, item := range items {
+		result[idx] = &types.TopoEvent{
+			TenantID:        item.GetTenantId(),
+			Type:            types.TopoEventType(item.GetType()),
+			NetworkAreaID:   item.GetBkNetworkareaId(),
+			NetworkAreaName: item.GetBkNetworkareaName(),
+			NetworkUnitID:   item.GetBkNetworkunitId(),
+			NetworkUnitName: item.GetBkNetworkunitName(),
+			AccessPointID:   item.GetAccesspointId(),
+			AccessPointName: item.GetAccesspointName(),
+			OperateTime:     time.UnixMilli(item.GetOperateTime()),
+			Operator:        item.GetOperator(),
+		}
+	}
+
+	return data.GetTotal(), result
+}
+
+// ConvertConfigPolicyEventsFromTypes convert types to topo events.
+func (x *ConfigPolicyEventListResp) ConvertConfigPolicyEventsFromTypes(total int64, events []*types.ConfigPolicyEvent) {
+	items := make([]*ConfigPolicyEvent, len(events))
+	for idx, event := range events {
+		item := newEmptyConfigPolicyEvent()
+		*item.TenantId = event.TenantID
+		*item.Type = string(event.Type)
+		*item.ConfigpolicyType = string(event.ConfigPolicyType)
+		*item.ConfigpolicyId = event.ConfigPolicyID
+		*item.ConfigpolicyName = event.ConfigPolicyName
+		*item.Version = event.Version
+		*item.OperateTime = event.OperateTime.UnixMilli()
+		*item.Operator = event.Operator
+
+		items[idx] = item
+	}
+
+	x.Data = &ConfigPolicyEventListResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
+func convertConfigPolicyEventConditionsToTypes(
+	exactCond *ConfigPolicyEventExactConditions,
+	fuzzyCond *ConfigPolicyEventFuzzyConditions,
+	timeRange *TimeRange) (*types.ConfigPolicyEventCondition, error) {
+
+	condition := &types.ConfigPolicyEventCondition{}
+
+	if timeRange != nil {
+		condition.OperateTimeRange = &types.TimeRange{
+			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
+			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		}
+	}
+
+	configPolicyTypeList, err := types.StringListToConfigPolicyTypeList(exactCond.GetConfigpolicyType())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert config policy type list: %w", err)
+	}
+
+	eventTypeList, err := types.StringListToConfigPolicyEventTypeList(exactCond.GetType())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert config policy event type list: %w", err)
+	}
+
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.ConfigPolicyEventExactFields{
+			Type:             eventTypeList,
+			ConfigPolicyType: configPolicyTypeList,
+			Version:          exactCond.GetVersion(),
+			ConfigPolicyID:   exactCond.GetConfigpolicyId(),
+		}
+	}
+
+	// fuzzy conditions.
+	if fuzzyCond != nil {
+		condition.FuzzyInclude = &types.ConfigPolicyEventFuzzyFields{
+			ConfigPolicyName: fuzzyCond.GetConfigpolicyName(),
+			Operator:         fuzzyCond.GetOperator(),
+		}
+	}
+
+	return condition, nil
+}
+
+func convertConfigPolicyEventConditionsFromTypes(condition *types.ConfigPolicyEventCondition) (
+	*ConfigPolicyEventExactConditions, *ConfigPolicyEventFuzzyConditions, *TimeRange, error) {
+
+	if condition == nil {
+		return nil, nil, nil, nil
+	}
+
+	var timeRange *TimeRange
+	var exactCond *ConfigPolicyEventExactConditions
+	var fuzzyCond *ConfigPolicyEventFuzzyConditions
+
+	if condition.OperateTimeRange != nil {
+		timeRange = &TimeRange{
+			StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
+			EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
+		}
+	}
+
+	if condition.ExactInclude != nil {
+		exactCond = &ConfigPolicyEventExactConditions{
+			Type:             types.ConfigPolicyEventTypeListToStringList(condition.ExactInclude.Type),
+			ConfigpolicyType: types.ConfigPolicyTypeListToStringList(condition.ExactInclude.ConfigPolicyType),
+			Version:          condition.ExactInclude.Version,
+			ConfigpolicyId:   condition.ExactInclude.ConfigPolicyID,
+		}
+	}
+
+	if condition.FuzzyInclude != nil {
+		fuzzyCond = &ConfigPolicyEventFuzzyConditions{
+			ConfigpolicyName: condition.FuzzyInclude.ConfigPolicyName,
+			Operator:         condition.FuzzyInclude.Operator,
+		}
+	}
+
+	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, nil, errors.New("exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return exactCond, fuzzyCond, timeRange, nil
+}
+
+// Validate check body.
+func (x *ConfigPolicyEventDistinctReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ConfigPolicyEventDistinctReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *ConfigPolicyEventDistinctReq) ConvertConditionsToTypes() (*types.ConfigPolicyEventCondition, error) {
+	return convertConfigPolicyEventConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
+}
+
+// ConvertResultToTypes convert result to types.
+func (x *ConfigPolicyEventDistinctResp) ConvertResultToTypes() (*types.ConfigPolicyEventDistinctResult, error) {
+	if x.GetData() == nil {
+		return &types.ConfigPolicyEventDistinctResult{}, nil
+	}
+
+	data := x.GetData()
+
+	eventTypeList, err := types.StringListToConfigPolicyEventTypeList(data.GetType())
+	if err != nil {
+		return &types.ConfigPolicyEventDistinctResult{}, fmt.Errorf("failed to convert config policy event type list: %w", err)
+	}
+
+	configPolicyTypeList, err := types.StringListToConfigPolicyTypeList(data.GetConfigpolicyType())
+	if err != nil {
+		return &types.ConfigPolicyEventDistinctResult{}, fmt.Errorf("failed to convert config policy type list: %w", err)
+	}
+
+	return &types.ConfigPolicyEventDistinctResult{
+		Type:             eventTypeList,
+		ConfigPolicyID:   data.GetConfigpolicyId(),
+		ConfigPolicyName: data.GetConfigpolicyName(),
+		ConfigPolicyType: configPolicyTypeList,
+		Version:          data.GetVersion(),
+		Operator:         data.GetOperator(),
+	}, nil
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *ConfigPolicyEventDistinctResp) ConvertResultFromTypes(result *types.ConfigPolicyEventDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &ConfigPolicyEventDistinctResp_Data{
+		Type:             formatRespSlice(types.ConfigPolicyEventTypeListToStringList(result.Type)),
+		ConfigpolicyType: formatRespSlice(types.ConfigPolicyTypeListToStringList(result.ConfigPolicyType)),
+		Version:          formatRespSlice(result.Version),
+		Operator:         formatRespSlice(result.Operator),
+		ConfigpolicyId:   formatRespSlice(result.ConfigPolicyID),
+		ConfigpolicyName: formatRespSlice(result.ConfigPolicyName),
+	}
+}
+
+func newEmptyConfigPolicyEvent() *ConfigPolicyEvent {
+	return &ConfigPolicyEvent{
+		TenantId:         new(string),
+		Type:             new(string),
+		ConfigpolicyType: new(string),
+		ConfigpolicyId:   new(int64),
+		ConfigpolicyName: new(string),
+		Version:          new(int64),
+		OperateTime:      new(int64),
+		Operator:         new(string),
+	}
+}

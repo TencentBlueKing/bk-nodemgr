@@ -30,9 +30,9 @@ func WithBizID(bizIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyBizID, bizIDs...)
 }
 
-// WithNodeRole filters by node role.
-func WithNodeRole(nodeRoles ...types.NodeRole) OptFn {
-	return base.WithValues(FieldKeyNodeRole, types.NodeRoleListToStringList(nodeRoles)...)
+// WithType filters by config policy type.
+func WithType(configPolicyTypes ...types.ConfigPolicyType) OptFn {
+	return base.WithStringValues(FieldKeyType, types.ConfigPolicyTypeListToStringList(configPolicyTypes)...)
 }
 
 // WithEnabled filters by enabled.

@@ -38,8 +38,8 @@ func (s *Storage) countPakcageEvent(nCtx contextx.IContext, conditions ...*types
 	return num, nil
 }
 
-// listPakcageEvent lists package events.
-func (s *Storage) listPakcageEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
+// listPackageEvent lists package events.
+func (s *Storage) listPackageEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.PackageEventCondition) (
 	[]*types.PackageEvent, int64, error) {
 
 	if nCtx == nil {

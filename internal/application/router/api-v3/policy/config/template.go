@@ -32,11 +32,11 @@ func isValueGroupKey(key string) bool {
 	return ok
 }
 
-func getConfigTemplate(nodeRole types.NodeRole) []types.ConfigPolicyTemplateBlock {
-	switch nodeRole {
-	case types.NodeRoleAgent:
+func getConfigTemplate(cptype types.ConfigPolicyType) []types.ConfigPolicyTemplateBlock {
+	switch cptype {
+	case types.ConfigPolicyTypeAgent:
 		return agentConfig
-	case types.NodeRoleProxy:
+	case types.ConfigPolicyTypeProxy:
 		return proxyConfig
 	default:
 		return nil

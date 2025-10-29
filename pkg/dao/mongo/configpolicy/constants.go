@@ -23,8 +23,8 @@ const (
 	// FieldKeyBizID the biz-id field key.
 	FieldKeyBizID = "data.raw.biz_id"
 
-	// FieldKeyNodeRole the node role field key.
-	FieldKeyNodeRole = "data.raw.node_role"
+	// FieldKeyType the config policy type field key.
+	FieldKeyType = "data.raw.type"
 
 	// FieldKeyEnabled the enabled field key.
 	FieldKeyEnabled = "data.raw.enabled"

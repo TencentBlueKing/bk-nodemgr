@@ -26,7 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/publish"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/transfer"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/upload"
-	storageEvent "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/event"
+	packageEventStg "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	storageUpload "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -247,7 +247,7 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create topo storage: %w", err)
 	}
 
-	svc.Cap.StorageEvent, err = storageEvent.NewStorage(
+	svc.Cap.StorageEvent, err = packageEventStg.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database)
 	if err != nil {

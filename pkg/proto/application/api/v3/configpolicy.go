@@ -34,7 +34,7 @@ func (x *ConfigPolicyListReq) ConvertPageToTypes(maxLimit int) types.Page {
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *ConfigPolicyListReq) ConvertConditionsToTypes() *types.ConfigPolicyCondition {
+func (x *ConfigPolicyListReq) ConvertConditionsToTypes() (*types.ConfigPolicyCondition, error) {
 	return convertConfigPolicyConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
 }
 
@@ -52,16 +52,21 @@ func (x *ConfigPolicyListReq) ConvertConditionsFromTypes(condition *types.Config
 }
 
 func convertConfigPolicyConditionsToTypes(
-	exactCond *ConfigPolicyExactConditions, fuzzyCond *ConfigPolicyFuzzyConditions) *types.ConfigPolicyCondition {
+	exactCond *ConfigPolicyExactConditions, fuzzyCond *ConfigPolicyFuzzyConditions) (*types.ConfigPolicyCondition, error) {
 
 	condition := types.ConfigPolicyCondition{}
+
+	configPolicyTypeList, err := types.StringListToConfigPolicyTypeList(exactCond.GetConfigpolicyType())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert config policy type list: %w", err)
+	}
 
 	// exact conditions.
 	if exactCond != nil {
 		condition.ExactInclude = &types.ConfigPolicyExactFields{
 			ConfigPolicyID: exactCond.GetConfigpolicyId(),
 			BizID:          exactCond.GetBizId(),
-			NodeRole:       types.StringListToNodeRoleList(exactCond.GetNodeRole()),
+			Type:           configPolicyTypeList,
 			Enabled:        exactCond.GetEnabled(),
 		}
 	}
@@ -74,7 +79,7 @@ func convertConfigPolicyConditionsToTypes(
 		}
 	}
 
-	return &condition
+	return &condition, nil
 }
 
 func convertConfigPolicyConditionsFromTypes(conditions *types.ConfigPolicyCondition) (
@@ -91,7 +96,7 @@ func convertConfigPolicyConditionsFromTypes(conditions *types.ConfigPolicyCondit
 		exactCond = new(ConfigPolicyExactConditions)
 		exactCond.ConfigpolicyId = conditions.ExactInclude.ConfigPolicyID
 		exactCond.BizId = conditions.ExactInclude.BizID
-		exactCond.NodeRole = types.NodeRoleListToStringList(conditions.ExactInclude.NodeRole)
+		exactCond.ConfigpolicyType = types.ConfigPolicyTypeListToStringList(conditions.ExactInclude.Type)
 		exactCond.Enabled = conditions.ExactInclude.Enabled
 	}
 
@@ -172,8 +177,8 @@ func (x *ConfigPolicyListPlatformReq) Validate() error {
 		return fmt.Errorf("invalid generation: %v", err)
 	}
 
-	if err := types.NodeRole(x.GetNodeRole()).Validate(); err != nil {
-		return fmt.Errorf("invalid node role: %v", err)
+	if err := types.ConfigPolicyType(x.GetConfigpolicyType()).Validate(); err != nil {
+		return fmt.Errorf("invalid config policy type: %v", err)
 	}
 
 	return nil
@@ -220,7 +225,7 @@ func (x *ConfigPolicyCreateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 
 	return &types.ConfigPolicy{
 		Name:     x.GetConfigpolicyName(),
-		NodeRole: types.NodeRole(x.GetNodeRole()),
+		Type:     types.ConfigPolicyType(x.GetConfigpolicyType()),
 		BizID:    x.GetBizId(),
 		Remark:   x.GetRemark(),
 		Scopes:   scopes,
@@ -255,7 +260,7 @@ func (x *ConfigPolicyUpdateReq) ConvertConfigPolicyToTypes() (*types.ConfigPolic
 	return &types.ConfigPolicy{
 		ID:       x.GetConfigpolicyId(),
 		Name:     x.GetConfigpolicyName(),
-		NodeRole: types.NodeRole(x.GetNodeRole()),
+		Type:     types.ConfigPolicyType(x.GetConfigpolicyType()),
 		BizID:    x.GetBizId(),
 		Remark:   x.GetRemark(),
 		Scopes:   scopes,
@@ -309,7 +314,7 @@ func convertConfigPolicyFromTypes(configPolicy *types.ConfigPolicy, blocks []typ
 	*item.TenantId = configPolicy.TenantID
 	*item.ConfigpolicyId = configPolicy.ID
 	*item.ConfigpolicyName = configPolicy.Name
-	*item.NodeRole = string(configPolicy.NodeRole)
+	*item.Type = string(configPolicy.Type)
 	item.BizId = configPolicy.BizID
 	*item.Remark = configPolicy.Remark
 	item.Scopes = scopes
@@ -332,7 +337,7 @@ func convertConfigPolicyToTypes(configPolicy *ConfigPolicy) *types.ConfigPolicy 
 		TenantID:  configPolicy.GetTenantId(),
 		ID:        configPolicy.GetConfigpolicyId(),
 		Name:      configPolicy.GetConfigpolicyName(),
-		NodeRole:  types.NodeRole(configPolicy.GetNodeRole()),
+		Type:      types.ConfigPolicyType(configPolicy.GetType()),
 		BizID:     configPolicy.GetBizId(),
 		Remark:    configPolicy.GetRemark(),
 		Scopes:    scopes,
@@ -402,8 +407,8 @@ func convertConfigPolicyConfigsToTypes(blocks []*ConfigPolicyConfigBlock) []type
 	data := make([]types.ConfigPolicyTemplateBlock, len(blocks))
 
 	for idx, block := range blocks {
-		items := make([]types.ConfigPolicyTemplateItem, len(block.Items))
-		for subIdx, item := range block.Items {
+		items := make([]types.ConfigPolicyTemplateItem, len(block.GetItems()))
+		for subIdx, item := range block.GetItems() {
 			items[subIdx] = types.ConfigPolicyTemplateItem{
 				ID:                item.GetId(),
 				Enabled:           item.GetEnabled(),
@@ -437,7 +442,7 @@ func newEmptyConfigPolicy() *ConfigPolicy {
 		TenantId:         new(string),
 		ConfigpolicyId:   new(int64),
 		ConfigpolicyName: new(string),
-		NodeRole:         new(string),
+		Type:             new(string),
 		BizId:            make([]int64, 0),
 		Remark:           new(string),
 		Scopes:           make([]*ConfigPolicyScope, 0),

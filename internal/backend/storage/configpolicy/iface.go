@@ -21,6 +21,7 @@ import (
 type IStorage interface {
 	basestorage.Interface
 	IDaoConfigPolicy
+	IDaoConfigPolicyEvent
 }
 
 // IDaoConfigPolicy defines the interface for config policy.
@@ -54,4 +55,22 @@ type IDaoConfigPolicy interface {
 
 	// DisableManyConfigPolicy disables the config policies.
 	DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
+}
+
+// IDaoConfigPolicyEvent defines the interface for policy event.
+type IDaoConfigPolicyEvent interface {
+	// CountConfigPolicyEvent counts topo events by conditions.
+	CountConfigPolicyEvent(nCtx contextx.IContext, conditions ...*types.ConfigPolicyEventCondition) (int64, error)
+
+	// ListConfigPolicyEvent lists topo events by page and conditions.
+	ListConfigPolicyEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyEventCondition) (
+		[]*types.ConfigPolicyEvent, int64, error)
+
+	// CreateManyConfigPolicyEvent creates multiple topo events.
+	CreateManyConfigPolicyEvent(nCtx contextx.IContext, events ...*types.ConfigPolicyEvent) error
+
+	// DistinctConfigPolicyEvent distincts topoevent fields.
+	DistinctConfigPolicyEvent(
+		nCtx contextx.IContext, request types.ConfigPolicyEventDistinctRequest, conditions ...*types.ConfigPolicyEventCondition) (
+		*types.ConfigPolicyEventDistinctResult, error)
 }

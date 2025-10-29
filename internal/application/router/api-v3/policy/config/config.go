@@ -57,6 +57,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/enable", restserver.Handler(h.EnableConfigPolicy))
 	h.rg.POST("/disable", restserver.Handler(h.DisableConfigPolicy))
 	h.rg.POST("/delete", restserver.Handler(h.DeleteConfigPolicy))
+
+	// package event apis.
+	h.rg.POST("/event/list", restserver.Handler(h.ListConfigPolicyEvent))
+	h.rg.POST("/event/distinct", restserver.Handler(h.DistinctConfigPolicyEvent))
 }
 
 // ListConfigPolicy lists config policy with page and conditions.
@@ -67,11 +71,16 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	conditions, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy, failed to convert conditions")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountConfigPolicy(
 			rCtx,
-			req.ConvertConditionsToTypes())
+			conditions)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy. failed to count host")
 			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
@@ -86,7 +95,7 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 	hosts, num, err := h.backendHandler.ListConfigPolicy(
 		rCtx,
 		req.ConvertPageToTypes(maxConfigPolicyLimit),
-		req.ConvertConditionsToTypes())
+		conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy")
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
@@ -127,7 +136,7 @@ func (h *handler) GetConfigPolicy(rCtx restserver.IContext) (interface{}, error)
 	}
 
 	// refresh template with new items.
-	templates := getConfigTemplate(configPolicy.NodeRole)
+	templates := getConfigTemplate(configPolicy.Type)
 	for _, block := range templates {
 		blocks = insertTemplateBlock(blocks, block)
 	}
@@ -146,7 +155,7 @@ func (h *handler) ListConfigPolicyPlatform(rCtx restserver.IContext) (interface{
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	releaseType, err := types.ConvertNodeRoleToReleaseType(types.NodeRole(req.GetNodeRole()))
+	releaseType, err := types.ConvertNodeRoleToReleaseType(types.NodeRole(req.GetConfigpolicyType()))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy platform, failed to convert release type")
 	}
@@ -174,7 +183,7 @@ func (h *handler) GetConfigPolicyTemplate(rCtx restserver.IContext) (interface{}
 	}
 
 	resp := new(protoApplication.ConfigPolicyGetTemplateResp)
-	resp.ConvertTemplateFromTypes(getConfigTemplate(types.NodeRole(req.GetNodeRole())))
+	resp.ConvertTemplateFromTypes(getConfigTemplate(types.ConfigPolicyType(req.GetConfigpolicyType())))
 
 	return resp.GetData(), nil
 }
@@ -312,6 +321,78 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	return resp.GetData(), nil
 }
 
+// ListConfigPolicyEvent lists events with page and conditions.
+func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.ConfigPolicyEventListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy event, failed to decode request body")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	conditions, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy event, failed to convert conditions")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.backendHandler.CountConfigPolicyEvent(
+			rCtx,
+			conditions)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy event. failed to count event")
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
+
+		resp := new(protoApplication.ConfigPolicyEventListResp)
+		resp.ConvertConfigPolicyEventsFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	events, num, err := h.backendHandler.ListConfigPolicyEvent(
+		rCtx,
+		req.ConvertPageToTypes(maxConfigPolicyLimit),
+		conditions)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy event")
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.ConfigPolicyEventListResp)
+	resp.ConvertConfigPolicyEventsFromTypes(num, events)
+
+	return resp.GetData(), nil
+}
+
+// DistinctEvent distincts events with conditions.
+// nolint: dupl
+func (h *handler) DistinctConfigPolicyEvent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.ConfigPolicyEventDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct config policy event, failed to decode request body")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	conditions, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct config policy event, failed to convert conditions")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+	result, err := h.backendHandler.DistinctConfigPolicyEvent(
+		rCtx,
+		conditions)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct config policy event. failed to distinct config policy fields: %v", err)
+		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.ConfigPolicyEventDistinctResp)
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
 func insertTemplateBlock(
 	src []types.ConfigPolicyTemplateBlock, extra types.ConfigPolicyTemplateBlock) []types.ConfigPolicyTemplateBlock {
 
@@ -373,7 +454,7 @@ func addCustomConfig(configPolicy *types.ConfigPolicy, blocks []types.ConfigPoli
 		configPolicy.Configs = make(map[string]any)
 	}
 
-	templates := getConfigTemplate(configPolicy.NodeRole)
+	templates := getConfigTemplate(configPolicy.Type)
 	for _, block := range blocks {
 		for _, item := range block.Items {
 			if !item.Enabled {

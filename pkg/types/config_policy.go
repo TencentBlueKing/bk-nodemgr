@@ -11,6 +11,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -22,7 +23,7 @@ type ConfigPolicy struct {
 	Version   int
 	ID        int64
 	Name      string
-	NodeRole  NodeRole
+	Type      ConfigPolicyType
 	BizID     []int64
 	Remark    string
 	Scopes    []ConfigPolicyScope
@@ -107,3 +108,50 @@ const (
 	// regards value_int_select as the options, and value_int as the value.
 	ConfigPolicyTemplateTypeIntSelect ConfigPolicyTemplateType = 4
 )
+
+// ConfigPolicyType defines the policy type.
+type ConfigPolicyType string
+
+const (
+	// ConfigPolicyTypeAgent defines the agent policy type.
+	ConfigPolicyTypeAgent ConfigPolicyType = "config_policy_agent"
+
+	// ConfigPolicyTypeProxy defines the proxy policy type.
+	ConfigPolicyTypeProxy ConfigPolicyType = "config_policy_proxy"
+
+	// ConfigPolicyTypePlugin defines the plugin policy type.
+	ConfigPolicyTypePlugin ConfigPolicyType = "config_policy_plugin"
+)
+
+// Validate validates the policy type.
+func (policyType ConfigPolicyType) Validate() error {
+	switch policyType {
+	case ConfigPolicyTypeAgent, ConfigPolicyTypeProxy, ConfigPolicyTypePlugin:
+		return nil
+	default:
+		return fmt.Errorf("invalid config policy type, type(%s)", policyType)
+	}
+}
+
+// ConfigPolicyTypeListToStringList converts a config policy evnt type list to a string list.
+func ConfigPolicyTypeListToStringList(configPolicyTypeList []ConfigPolicyType) []string {
+	data := make([]string, len(configPolicyTypeList))
+	for idx, configPolicyType := range configPolicyTypeList {
+		data[idx] = string(configPolicyType)
+	}
+
+	return data
+}
+
+// StringListToConfigPolicyTypeList converts a string list to a config policy type list.
+func StringListToConfigPolicyTypeList(stringList []string) ([]ConfigPolicyType, error) {
+	data := make([]ConfigPolicyType, len(stringList))
+	for idx, configPolicyType := range stringList {
+		if err := ConfigPolicyType(configPolicyType).Validate(); err != nil {
+			return nil, err
+		}
+		data[idx] = ConfigPolicyType(configPolicyType)
+	}
+
+	return data, nil
+}

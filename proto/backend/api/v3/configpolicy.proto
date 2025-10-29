@@ -10,7 +10,7 @@ import "google/api/annotations.proto";
 message ConfigPolicyExactConditions {
   repeated int64 configpolicy_id = 1;
   repeated int64 biz_id = 2;
-  repeated string node_role = 3;
+  repeated string configpolicy_type = 3;
   repeated bool enabled = 4;
 }
 
@@ -59,7 +59,7 @@ message ConfigPolicyGetResp {
 // ConfigPolicyCreateReq describes HTTP request body when create config policy.
 message ConfigPolicyCreateReq {
   string configpolicy_name = 1;
-  string node_role = 2;
+  string configpolicy_type = 2;
   repeated int64 biz_id = 3;
   string remark = 4;
   repeated ConfigPolicyScope scopes = 5;
@@ -85,7 +85,7 @@ message ConfigPolicyCreateResp {
 message ConfigPolicyUpdateReq {
   int64 configpolicy_id = 1;
   string configpolicy_name = 2;
-  string node_role = 3;
+  string configpolicy_type = 3;
   repeated int64 biz_id = 4;
   string remark = 5;
   repeated ConfigPolicyScope scopes = 6;
@@ -154,6 +154,73 @@ message ConfigPolicyDeleteResp {
   Data data = 5;
 }
 
+// ConfigPolicyEventExactConditions describes the conditions when list event
+message ConfigPolicyEventExactConditions {
+  repeated int64 configpolicy_id = 1;
+  repeated string configpolicy_type = 2;
+  repeated int64 version = 3;
+  repeated string type = 4;
+}
+
+// ConfigPolicyEventFuzzyConditions describes the conditions when list event
+message ConfigPolicyEventFuzzyConditions {
+  repeated string configpolicy_name = 1;
+  repeated string operator = 2;
+}
+
+// ConfigPolicyEventListReq describes the HTTP request body when list event in
+// policy service.
+message ConfigPolicyEventListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  ConfigPolicyEventExactConditions exact_include_conditions = 3;
+  ConfigPolicyEventFuzzyConditions fuzzy_include_conditions = 4;
+  TimeRange operate_time_range = 5;
+}
+
+// ConfigPolicyEventListResp describes the HTTP response body when list event in
+// policy service.
+message ConfigPolicyEventListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated ConfigPolicyEvent items = 2;
+  }
+  Data data = 5;
+}
+
+// ConfigPolicyEventDistinctReq describes the HTTP request body when distinct
+// policyevent in policy service.
+message ConfigPolicyEventDistinctReq {
+  ConfigPolicyEventExactConditions exact_include_conditions = 1;
+  ConfigPolicyEventFuzzyConditions fuzzy_include_conditions = 2;
+  TimeRange operate_time_range = 3;
+}
+
+// ConfigPolicyEventDistinctResp describes the HTTP response body when distinct
+// policyevent in policy service.
+message ConfigPolicyEventDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    repeated int64 configpolicy_id = 1;
+    repeated string configpolicy_name = 2;
+    repeated string configpolicy_type = 3;
+    repeated string type = 4;
+    repeated int64 version = 5;
+    repeated string operator = 6;
+  }
+  Data data = 5;
+}
+
 service ConfigPolicyAPI {
   // ListConfigPolicy lists config policy.
   rpc ConfigPolicyList(ConfigPolicyListReq) returns (ConfigPolicyListResp) {
@@ -212,6 +279,24 @@ service ConfigPolicyAPI {
       returns (ConfigPolicyDeleteResp) {
     option (google.api.http) = {
       post : "/api/v3/policy/config/delete"
+      body : "*"
+    };
+  }
+
+  // ConfigPolicyEventList provides policy event listing.
+  rpc ConfigPolicyEventList(ConfigPolicyEventListReq)
+      returns (ConfigPolicyEventListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/event/list"
+      body : "*"
+    };
+  }
+
+  // ConfigPolicyEventDistinct provides policy event distincting.
+  rpc ConfigPolicyEventDistinct(ConfigPolicyEventDistinctReq)
+      returns (ConfigPolicyEventDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/policy/config/event/distinct"
       body : "*"
     };
   }

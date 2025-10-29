@@ -509,7 +509,7 @@ type GlobalSettingsCondition struct {
 type ConfigPolicyExactFields struct {
 	ConfigPolicyID []int64
 	BizID          []int64
-	NodeRole       []NodeRole
+	Type           []ConfigPolicyType
 	Enabled        []bool
 }
 
@@ -597,4 +597,36 @@ type PluginExactFields struct {
 type PluginFuzzyFields struct {
 	Name    []string
 	PkgName []string
+}
+
+// ConfigPolicyEventExactFields defines the policy event exact fields.
+type ConfigPolicyEventExactFields struct {
+	ConfigPolicyID   []int64
+	ConfigPolicyType []ConfigPolicyType
+	Version          []int64
+	Type             []ConfigPolicyEventType
+}
+
+// ConfigPolicyEventFuzzyFields defines the policy event fuzzy fields.
+type ConfigPolicyEventFuzzyFields struct {
+	ConfigPolicyName []string
+	Operator         []string
+}
+
+// ConfigPolicyEventCondition defines the policy event condition.
+type ConfigPolicyEventCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ConfigPolicyEventExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ConfigPolicyEventFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *ConfigPolicyEventExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *ConfigPolicyEventFuzzyFields
 }

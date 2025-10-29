@@ -191,7 +191,7 @@ message ConfigPolicy {
   optional string tenant_id = 1;
   optional int64 configpolicy_id = 2;
   optional string configpolicy_name = 3;
-  optional string node_role = 4;
+  optional string configpolicy_type = 4;
   repeated int64 biz_id = 5;
   optional string remark = 6;
   repeated ConfigPolicyScope scopes = 7;
@@ -202,6 +202,18 @@ message ConfigPolicy {
   optional int64 updated_time = 12;
   optional string operator = 13;
   optional int64 version = 14;
+}
+
+// ConfigPolicyEvent describes the config policy event.
+message ConfigPolicyEvent {
+  optional string tenant_id = 1;
+  optional int64 configpolicy_id = 2;
+  optional string configpolicy_name = 3;
+  optional string type = 4;
+  optional string configpolicy_type = 5;
+  optional int64 version = 6;
+  optional int64 operate_time = 7;
+  optional string operator = 8;
 }
 
 message TargetVersion {

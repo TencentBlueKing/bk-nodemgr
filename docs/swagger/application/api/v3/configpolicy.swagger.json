@@ -152,6 +152,74 @@
         ]
       }
     },
+    "/api/v3/policy/config/event/distinct": {
+      "post": {
+        "summary": "ConfigPolicyEventDistinct provides policy event distincting.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyEventDistinct",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyEventDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyEventDistinctReq describes the HTTP request body when distinct\npolicyevent in policy service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyEventDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
+    "/api/v3/policy/config/event/list": {
+      "post": {
+        "summary": "ConfigPolicyEventList provides policy event listing.",
+        "operationId": "ConfigPolicyAPI_ConfigPolicyEventList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyEventListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ConfigPolicyEventListReq describes the HTTP request body when list event in\npolicy service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ConfigPolicyEventListReq"
+            }
+          }
+        ],
+        "tags": [
+          "ConfigPolicyAPI"
+        ]
+      }
+    },
     "/api/v3/policy/config/get": {
       "post": {
         "summary": "GetConfigPolicy gets config policy.",
@@ -376,7 +444,7 @@
         "configpolicy_name": {
           "type": "string"
         },
-        "node_role": {
+        "type": {
           "type": "string"
         },
         "biz_id": {
@@ -502,7 +570,7 @@
         "configpolicy_name": {
           "type": "string"
         },
-        "node_role": {
+        "configpolicy_type": {
           "type": "string"
         },
         "biz_id": {
@@ -680,6 +748,228 @@
     "v3ConfigPolicyEnableRespData": {
       "type": "object"
     },
+    "v3ConfigPolicyEvent": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "configpolicy_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "configpolicy_name": {
+          "type": "string"
+        },
+        "configpolicy_type": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "version": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operate_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "description": "ConfigPolicyEvent describes the config policy event."
+    },
+    "v3ConfigPolicyEventDistinctReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ConfigPolicyEventExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ConfigPolicyEventFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "ConfigPolicyEventDistinctReq describes the HTTP request body when distinct\npolicyevent in policy service."
+    },
+    "v3ConfigPolicyEventDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyEventDistinctRespData"
+        }
+      },
+      "description": "ConfigPolicyEventDistinctResp describes the HTTP response body when distinct\npolicyevent in policy service."
+    },
+    "v3ConfigPolicyEventDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "configpolicy_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "configpolicy_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3ConfigPolicyEventExactConditions": {
+      "type": "object",
+      "properties": {
+        "configpolicy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "configpolicy_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "ConfigPolicyEventExactConditions describes the conditions when list event"
+    },
+    "v3ConfigPolicyEventFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "configpolicy_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "ConfigPolicyEventFuzzyConditions describes the conditions when list event"
+    },
+    "v3ConfigPolicyEventListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ConfigPolicyEventExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ConfigPolicyEventFuzzyConditions"
+        },
+        "operate_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
+        }
+      },
+      "description": "ConfigPolicyEventListReq describes the HTTP request body when list event in\npolicy service."
+    },
+    "v3ConfigPolicyEventListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ConfigPolicyEventListRespData"
+        }
+      },
+      "description": "ConfigPolicyEventListResp describes the HTTP response body when list event in\npolicy service."
+    },
+    "v3ConfigPolicyEventListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ConfigPolicyEvent"
+          }
+        }
+      }
+    },
     "v3ConfigPolicyExactConditions": {
       "type": "object",
       "properties": {
@@ -697,7 +987,7 @@
             "format": "int64"
           }
         },
-        "node_role": {
+        "configpolicy_type": {
           "type": "array",
           "items": {
             "type": "string"
@@ -762,7 +1052,7 @@
     "v3ConfigPolicyGetTemplateReq": {
       "type": "object",
       "properties": {
-        "node_role": {
+        "configpolicy_type": {
           "type": "string"
         }
       },
@@ -805,7 +1095,7 @@
     "v3ConfigPolicyListPlatformReq": {
       "type": "object",
       "properties": {
-        "node_role": {
+        "configpolicy_type": {
           "type": "string"
         },
         "generation": {
@@ -940,7 +1230,7 @@
         "configpolicy_name": {
           "type": "string"
         },
-        "node_role": {
+        "configpolicy_type": {
           "type": "string"
         },
         "biz_id": {
@@ -1038,6 +1328,20 @@
         }
       },
       "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
     }
   }
 }

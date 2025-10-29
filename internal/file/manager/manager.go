@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/event"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -242,7 +242,7 @@ func WithStorageTopo(storageTopo topo.IStorage) OptionFn {
 }
 
 // WithStorageEvent sets the storage for event.
-func WithStorageEvent(storageEvent event.IStorage) OptionFn {
+func WithStorageEvent(storageEvent packageevent.IStorage) OptionFn {
 	return func(manager *Manager) {
 		manager.storageEvent = storageEvent
 	}
@@ -323,7 +323,7 @@ type Manager struct {
 	storageUpload  upload.IStorage
 	storageRelease release.IStorage
 	storageTopo    topo.IStorage
-	storageEvent   event.IStorage
+	storageEvent   packageevent.IStorage
 }
 
 // Start starts the manager.

@@ -174,3 +174,35 @@ func NewPackageEventDistinctRequestAllSet() PackageEventDistinctRequest {
 		Operator:    true,
 	}
 }
+
+// ConfigPolicyEventDistinctRequest describes the wanted distinct fields.
+type ConfigPolicyEventDistinctRequest struct {
+	Type             bool
+	ConfigPolicyType bool
+	ConfigPolicyID   bool
+	ConfigPolicyName bool
+	Version          bool
+	Operator         bool
+}
+
+// NewConfigPolicyEventDistinctRequestAllSet creates a policy event distinct request with all fields set to true.
+func NewConfigPolicyEventDistinctRequestAllSet() ConfigPolicyEventDistinctRequest {
+	return ConfigPolicyEventDistinctRequest{
+		Type:             true,
+		ConfigPolicyType: true,
+		ConfigPolicyID:   true,
+		ConfigPolicyName: true,
+		Version:          true,
+		Operator:         true,
+	}
+}
+
+// ConfigPolicyEventDistinctResult describes the result of distinct.
+type ConfigPolicyEventDistinctResult struct {
+	Type             []ConfigPolicyEventType
+	ConfigPolicyType []ConfigPolicyType
+	ConfigPolicyID   []int64
+	ConfigPolicyName []string
+	Version          []int64
+	Operator         []string
+}

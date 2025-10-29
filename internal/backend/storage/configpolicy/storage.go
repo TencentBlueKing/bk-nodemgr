@@ -13,11 +13,13 @@ package configpolicy
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/configpolicy"
+	daoConfigPolicyEvent "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/configpolicy-event"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -55,11 +57,13 @@ func NewStorage(client *mongo.Client, database string) (*Storage, error) {
 type Storage struct {
 	basestorage.Storage
 
-	daoConfigPolicy configpolicy.IHandler
+	daoConfigPolicy      configpolicy.IHandler
+	daoConfigPolicyEvent daoConfigPolicyEvent.IHandler
 }
 
 func (s *Storage) initDao() error {
 	s.daoConfigPolicy = configpolicy.New(s.Database)
+	s.daoConfigPolicyEvent = daoConfigPolicyEvent.New(s.Database)
 
 	return nil
 }
@@ -67,6 +71,10 @@ func (s *Storage) initDao() error {
 func (s *Storage) check() error {
 	if s.daoConfigPolicy == nil {
 		return errors.New("dao configpolicy is nil")
+	}
+
+	if s.daoConfigPolicyEvent == nil {
+		return errors.New("dao configpolicy event is nil")
 	}
 
 	return nil
@@ -221,4 +229,82 @@ func (s *Storage) DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyID
 
 func (s *Storage) metric() *storage.MetricData {
 	return storage.Metric(StorageName)
+}
+
+// CountConfigPolicyEvent counts policy events.
+func (s *Storage) CountConfigPolicyEvent(nCtx contextx.IContext, conditions ...*types.ConfigPolicyEventCondition) (int64, error) {
+	var (
+		num int64
+		err error
+	)
+
+	// record metric.
+	metric := s.metric().Start("count_config_policy_event")
+	defer metric.End(err)
+
+	if num, err = s.countConfigPolicyEvent(nCtx, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to count config policy event")
+		return 0, fmt.Errorf("failed to count config policy event: %w", err)
+	}
+
+	return num, nil
+}
+
+// ListConfigPolicyEvent lists policy events.
+func (s *Storage) ListConfigPolicyEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyEventCondition) (
+	[]*types.ConfigPolicyEvent, int64, error) {
+
+	var (
+		results []*types.ConfigPolicyEvent
+		num     int64
+		err     error
+	)
+	// record metric.
+	metric := s.metric().Start("list_config_policy_event")
+	defer metric.End(err)
+
+	if results, num, err = s.listConfigPolicyEvent(nCtx, page, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to list config policy event")
+		return nil, 0, fmt.Errorf("failed to list config policy event: %w", err)
+	}
+
+	return results, num, nil
+}
+
+// CreateManyConfigPolicyEvent creates policy events.
+func (s *Storage) CreateManyConfigPolicyEvent(nCtx contextx.IContext, events ...*types.ConfigPolicyEvent) error {
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("create_many_config_policy_event")
+	defer metric.End(err)
+
+	if err = s.createManyConfigPolicyEvent(nCtx, events...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to create many config policy event")
+		return fmt.Errorf("failed to create many config policy event: %w", err)
+	}
+
+	return nil
+}
+
+// DistinctConfigPolicyEvent distincts release by conditions.
+func (s *Storage) DistinctConfigPolicyEvent(
+	nCtx contextx.IContext, request types.ConfigPolicyEventDistinctRequest, conditions ...*types.ConfigPolicyEventCondition) (
+	*types.ConfigPolicyEventDistinctResult, error) {
+
+	var (
+		data *types.ConfigPolicyEventDistinctResult
+		err  error
+	)
+
+	// record metric.
+	metric := s.metric().Start("distinct_config_policy_event")
+	defer metric.End(err)
+
+	if data, err = s.distinctConfigPolicyEvent(nCtx, request, conditions...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to distinct config policy event")
+		return nil, fmt.Errorf("failed to distinct config policy event: %w", err)
+	}
+
+	return data, nil
 }

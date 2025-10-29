@@ -33,6 +33,7 @@ type IHandler interface {
 	IHandlerConfigPolicy
 	IHandlerPlugin
 	IHandlerProcess
+	IHandlerConfigPolicyEvent
 
 	// ListBusiness list business within specified tenant in contextx.
 	// @param ctx contextx.IContext, contains tenant-id and username.
@@ -434,7 +435,6 @@ type IHandlerConfigPolicy interface {
 
 // IHandlerPackage defines the backend Handler for package.
 type IHandlerPackage interface {
-
 	// ListPackageEvent list package events by page and conditions.
 	ListPackageEvent(ctx contextx.IContext, page types.Page, condition *types.PackageEventCondition) (
 		[]*types.PackageEvent, int64, error)
@@ -469,6 +469,21 @@ type IHandlerProcess interface {
 
 	// CountProcesses counts processes by conditions.
 	CountProcesses(ctx contextx.IContext, condition *types.ProcessCondition) (int64, error)
+}
+
+// IHandlerConfigPolicyEvent defines the backend Handler for policy event.
+type IHandlerConfigPolicyEvent interface {
+	// ListConfigPolicyEvent list policy events by page and conditions.
+	ListConfigPolicyEvent(ctx contextx.IContext, page types.Page, condition *types.ConfigPolicyEventCondition) (
+		[]*types.ConfigPolicyEvent, int64, error)
+
+	// CountConfigPolicyEvent count policy events by condition.
+	CountConfigPolicyEvent(ctx contextx.IContext, condition *types.ConfigPolicyEventCondition) (int64, error)
+
+	// DistinctConfigPolicyEvent distinct policy event by condition.
+	DistinctConfigPolicyEvent(
+		ctx contextx.IContext, condition *types.ConfigPolicyEventCondition) (
+		*types.ConfigPolicyEventDistinctResult, error)
 }
 
 var _ IHandler = &Handler{}
@@ -1406,6 +1421,62 @@ func (h *Handler) DistinctPackageEvent(
 	}
 
 	resp, err := h.cli.distinctPackageEvent(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertResultToTypes()
+}
+
+// ListConfigPolicyEvent list policy event within specified tenant in contextx.
+func (h *Handler) ListConfigPolicyEvent(ctx contextx.IContext, page types.Page, condition *types.ConfigPolicyEventCondition) (
+	[]*types.ConfigPolicyEvent, int64, error) {
+
+	req := &protoBackend.ConfigPolicyEventListReq{
+		Page: convertPage(page),
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	resp, err := h.cli.listConfigPolicyEvent(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, events := resp.ConvertConfigPolicyEventsToTypes()
+
+	return events, total, nil
+}
+
+// CountConfigPolicyEvent count the number of policy events by conditions.
+func (h *Handler) CountConfigPolicyEvent(ctx contextx.IContext, condition *types.ConfigPolicyEventCondition) (int64, error) {
+	req := &protoBackend.ConfigPolicyEventListReq{
+		OnlyCount: true,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return 0, err
+	}
+
+	resp, err := h.cli.listConfigPolicyEvent(ctx, req)
+	if err != nil {
+		return 0, err
+	}
+
+	return resp.GetData().GetTotal(), nil
+}
+
+// DistinctConfigPolicyEvent distinct the number of policy events by conditions.
+func (h *Handler) DistinctConfigPolicyEvent(
+	ctx contextx.IContext, condition *types.ConfigPolicyEventCondition) (
+	*types.ConfigPolicyEventDistinctResult, error) {
+
+	req := &protoBackend.ConfigPolicyEventDistinctReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.distinctConfigPolicyEvent(ctx, req)
 	if err != nil {
 		return nil, err
 	}

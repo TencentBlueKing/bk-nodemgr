@@ -12,17 +12,23 @@
 package config
 
 import (
+	"bytes"
+	"runtime/debug"
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
 const (
 	maxConfigPolicyLimit = 1000
+	initVersion          = 1
 )
 
 type handler struct {
@@ -49,6 +55,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/enable", restserver.Handler(h.EnableConfigPolicy))
 	h.rg.POST("/disable", restserver.Handler(h.DisableConfigPolicy))
 	h.rg.POST("/delete", restserver.Handler(h.DeleteConfigPolicy))
+
+	// package event apis.
+	h.rg.POST("/event/list", restserver.Handler(h.ListConfigPolicyEvent))
+	h.rg.POST("/event/distinct", restserver.Handler(h.DistinctConfigPolicyEvent))
 }
 
 // ListConfigPolicy lists config policy with page and conditions.
@@ -60,11 +70,17 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	conditions, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy, failed to convert conditions")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.storage.CountConfigPolicy(
 			rCtx,
-			req.ConvertConditionsToTypes())
+			conditions)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy. failed to count host")
 
@@ -80,7 +96,7 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 	hosts, num, err := h.storage.ListConfigPolicy(
 		rCtx,
 		req.ConvertPageToTypes(maxConfigPolicyLimit),
-		req.ConvertConditionsToTypes())
+		conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy")
 
@@ -127,12 +143,17 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 
 	configPolicy := req.ConvertConfigPolicyToTypes()
 	configPolicy.TenantID = rCtx.TenantID()
+	configPolicy.Version = initVersion
 	configPolicyID, err := h.storage.CreateConfigPolicy(rCtx, configPolicy)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to create config policy")
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
+
+	// record event
+	configPolicy.ID = configPolicyID
+	go h.recordCreateEvent(rCtx, types.ConfigPolicyEventTypeCreate, configPolicy)
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
 	resp.ConvertConfigPolicyID(configPolicyID)
@@ -157,6 +178,9 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
+	// record event
+	go h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeUpdate, configPolicy.ID)
+
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
 	resp.ConvertConfigPolicyID(req.GetConfigpolicyId())
 
@@ -178,6 +202,9 @@ func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
+	// record event
+	go h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeEnable, req.GetConfigpolicyId()...)
+
 	resp := new(protoBackend.ConfigPolicyEnableResp)
 
 	return resp.GetData(), nil
@@ -197,6 +224,9 @@ func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, er
 
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
+
+	// record event
+	go h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeDisable, req.GetConfigpolicyId()...)
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
 
@@ -218,7 +248,183 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
 	}
 
+	// record event
+	go h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeDelete, req.GetConfigpolicyId()...)
+
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
 
 	return resp.GetData(), nil
+}
+
+// ListConfigPolicyEvent lists events with page and conditions.
+func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.ConfigPolicyEventListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event, failed to decode request body")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	conditions, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event, failed to convert conditions")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.storage.CountConfigPolicyEvent(
+			rCtx,
+		)
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event, failed to count event")
+
+			return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.ConfigPolicyEventListResp)
+		resp.ConvertConfigPolicyEventsFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	events, num, err := h.storage.ListConfigPolicyEvent(
+		rCtx,
+		req.ConvertPageToTypes(maxConfigPolicyLimit),
+		conditions)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event")
+
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.ConfigPolicyEventListResp)
+	resp.ConvertConfigPolicyEventsFromTypes(num, events)
+
+	return resp.GetData(), nil
+}
+
+// DistinctConfigPolicyEvent distincts events with conditions.
+// nolint: dupl
+func (h *handler) DistinctConfigPolicyEvent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.ConfigPolicyEventDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct policy event, failed to decode request body")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	conditions, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct policy event, failed to convert conditions")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	result, err := h.storage.DistinctConfigPolicyEvent(
+		rCtx,
+		types.NewConfigPolicyEventDistinctRequestAllSet(),
+		conditions)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct policy event, failed to distinct host fields")
+
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.ConfigPolicyEventDistinctResp)
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) recordCreateEvent(rCtx restserver.IContext,
+	eventType types.ConfigPolicyEventType, configPolicy *types.ConfigPolicy) {
+	// recover panic.
+	defer func() {
+		if r := recover(); r != nil {
+			stack := debug.Stack()
+
+			// The first line of the stack trace is of the form "goroutine N [status]:",
+			// but by the time the panic reaches Do the goroutine may no longer exist,
+			// and its status will have changed. Trim out the misleading line.
+			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
+				stack = stack[line+1:]
+			}
+
+			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record policy event")
+		}
+	}()
+
+	event := &types.ConfigPolicyEvent{
+		TenantID:         configPolicy.TenantID,
+		Type:             eventType,
+		ConfigPolicyID:   configPolicy.ID,
+		ConfigPolicyName: configPolicy.Name,
+		ConfigPolicyType: configPolicy.Type,
+		Version:          int64(configPolicy.Version),
+		OperateTime:      time.Now(),
+		Operator:         configPolicy.Operator,
+	}
+
+	if err := h.storage.CreateManyConfigPolicyEvent(rCtx, event); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			With("event-type", eventType).
+			Warn("failed to record policy event, failed to create policy event")
+	}
+}
+
+func (h *handler) recordChangesEvent(rCtx restserver.IContext,
+	eventType types.ConfigPolicyEventType, configpolicyID ...int64) {
+	// recover panic.
+	defer func() {
+		if r := recover(); r != nil {
+			stack := debug.Stack()
+
+			// The first line of the stack trace is of the form "goroutine N [status]:",
+			// but by the time the panic reaches Do the goroutine may no longer exist,
+			// and its status will have changed. Trim out the misleading line.
+			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
+				stack = stack[line+1:]
+			}
+
+			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record policy event")
+		}
+	}()
+
+	// get the config policy info.
+	configpolicy, _, err := h.storage.ListConfigPolicy(rCtx, types.UnlimitedPage(),
+		&types.ConfigPolicyCondition{
+			ExactInclude: &types.ConfigPolicyExactFields{
+				ConfigPolicyID: configpolicyID,
+			},
+		})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			With("configpolicy-id", configpolicyID,
+				"event-type", eventType).
+			Warn("failed to record policy event, failed to get config policy")
+	}
+
+	events := make([]*types.ConfigPolicyEvent, len(configpolicy))
+	for idx, cp := range configpolicy {
+		event := &types.ConfigPolicyEvent{
+			TenantID:         cp.TenantID,
+			Type:             eventType,
+			ConfigPolicyID:   cp.ID,
+			ConfigPolicyName: cp.Name,
+			ConfigPolicyType: cp.Type,
+			Version:          int64(cp.Version),
+			OperateTime:      cp.UpdatedAt,
+			Operator:         cp.Operator,
+		}
+
+		events[idx] = event
+	}
+
+	if err := h.storage.CreateManyConfigPolicyEvent(rCtx, events...); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			With("event-type", eventType).
+			Warn("failed to record policy event, failed to create policy event")
+	}
 }

@@ -491,7 +491,7 @@ func (s *Storage) ListPackageEvent(nCtx contextx.IContext, page types.Page, cond
 	metric := s.metric().Start("list_package_event")
 	defer metric.End(err)
 
-	if results, num, err = s.listPakcageEvent(nCtx, page, conditions...); err != nil {
+	if results, num, err = s.listPackageEvent(nCtx, page, conditions...); err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to list package event")
 		return nil, 0, fmt.Errorf("failed to list package event: %w", err)
 	}

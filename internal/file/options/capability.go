@@ -13,7 +13,7 @@ package options
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/event"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/upload"
@@ -45,7 +45,7 @@ type Capability struct {
 	StorageTopo topo.IStorage
 
 	// StorageEvent provides storage event handler.
-	StorageEvent event.IStorage
+	StorageEvent packageevent.IStorage
 
 	// GSEHandler provides gse handler.
 	GSEHandler gse.IHandler
