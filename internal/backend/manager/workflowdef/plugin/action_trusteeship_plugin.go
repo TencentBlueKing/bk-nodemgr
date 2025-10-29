@@ -104,13 +104,7 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 	}()
 
 	nCtx := std.Context()
-	processSpec := types.ProcessSpec{
-		AgentID:       std.DeployInfo().Process.Info.AgentID,
-		Identity:      std.DeployInfo().Process.Identity,
-		Controller:    std.DeployInfo().Process.Controller,
-		Resource:      std.DeployInfo().Process.Resource,
-		MonitorPolicy: std.DeployInfo().Process.MonitorPolicy,
-	}
+	processSpec := std.DeployInfo().Process.ToProcessSpec()
 
 	result, err := act.gseHandlerProc.TrusteeshipProcess(nCtx, processSpec)
 	if err != nil {
@@ -124,7 +118,7 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 
 	var processInfo *types.ProcessInfo
 	err = expoBackoff.Do(nCtx, func(_ int) error {
-		processInfo, err = act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.Identity.Name, processSpec.AgentID)
+		processInfo, err = act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
 		if err != nil {
 			return fmt.Errorf("failed to query process info: %w", err)
 		}

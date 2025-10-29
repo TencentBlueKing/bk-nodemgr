@@ -1030,87 +1030,6 @@ func Test_Handler_UnTrusteeshipProcess(t *testing.T) {
 	}
 }
 
-// TestHandler_QueryProcessInfoMany test
-func TestHandler_QueryProcessInfoMany(t *testing.T) {
-	nCtx := contextx.New(context.Background())
-
-	type args struct {
-		nCtx        contextx.IContext
-		processName string
-		agentIDList []string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				nCtx:        nCtx,
-				processName: "bkmonitorbeat",
-				agentIDList: []string{
-					"020000000052540025157e1753363692251c",
-				},
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.QueryProcessInfoMany(tt.args.nCtx, tt.args.processName, tt.args.agentIDList...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("QueryProcessInfoMany() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %v", got)
-		})
-	}
-}
-
-// TestHandler_QueryMultiProcessInfo test.
-func TestHandler_QueryMultiProcessInfo(t *testing.T) {
-	nCtx := contextx.New(context.Background())
-
-	type args struct {
-		nCtx         contextx.IContext
-		agentID      string
-		processNames []string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				nCtx:    nCtx,
-				agentID: "02000000000050568c22a41760081249022o",
-				processNames: []string{
-					"bkmonitorbeat",
-					"bkunifylogbeat",
-				},
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.QueryMultiProcessInfo(tt.args.nCtx, tt.args.agentID, tt.args.processNames...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("QueryMultiProcessInfo() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			t.Logf("got: %v", got)
-		})
-	}
-}
-
 // TestHandler_QueryMultiProcessInfoMany test.
 func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
 	nCtx := contextx.New(context.Background())
@@ -1130,7 +1049,7 @@ func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
 				nCtx: nCtx,
 				procNameAgentIDMap: []*types.ProcessAgentGroup{
 					{
-						Name: "bkmonitorbeat",
+						PluginName: "bkmonitorbeat",
 						AgentIDList: []string{
 							"02000000000050568c81cb1756717277188u",
 							"02000000000050568c468217552397004082",
@@ -1138,7 +1057,7 @@ func TestHandler_QueryMultiProcessInfoMany(t *testing.T) {
 						},
 					},
 					{
-						Name: "bkunifylogbeat",
+						PluginName: "bkunifylogbeat",
 						AgentIDList: []string{
 							"02000000000050568c81cb1756717277188u",
 							"02000000000050568c468217552397004082",

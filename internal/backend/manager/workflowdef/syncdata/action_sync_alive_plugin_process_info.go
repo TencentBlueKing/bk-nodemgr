@@ -174,15 +174,18 @@ func aggregateHostsAndProcesses(hosts []*types.Host, processes []*types.Process)
 		agentIDHostIDMap[host.Dynamic.AgentID] = host.HostID
 	}
 
-	nameAgentIDListMap := make(map[string][]string)
+	pluginNameAgentIDListMap := make(map[string][]string)
+	pluginNameProcessNameMap := make(map[string]string)
 	for _, proc := range processes {
-		nameAgentIDListMap[proc.PluginName] = append(nameAgentIDListMap[proc.PluginName], hostIDAgentIDMap[proc.HostID])
+		pluginNameAgentIDListMap[proc.PluginName] = append(pluginNameAgentIDListMap[proc.PluginName], hostIDAgentIDMap[proc.HostID])
+		pluginNameProcessNameMap[proc.PluginName] = proc.Identity.Name
 	}
 
 	pluginNameAgentIDList := make([]*types.ProcessAgentGroup, 0)
-	for pluginName, agentIDList := range nameAgentIDListMap {
+	for pluginName, agentIDList := range pluginNameAgentIDListMap {
 		pluginNameAgentIDList = append(pluginNameAgentIDList, &types.ProcessAgentGroup{
-			Name:        pluginName,
+			PluginName:  pluginName,
+			ProcessName: pluginNameProcessNameMap[pluginName],
 			AgentIDList: agentIDList,
 		})
 	}

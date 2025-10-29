@@ -96,24 +96,12 @@ type IHandlerProc interface {
 	// @param processName given process name.
 	// @param agentID given agent id.
 	// @return types.ProcessInfo
-	QueryProcessInfo(nCtx contextx.IContext, processName string, agentID string) (*types.ProcessInfo, error)
-
-	// QueryProcessInfoMany order the gse_agent to trusteeship the process.
-	// @param processName given process name.
-	// @param agentIDList given agent id list.
-	// @return map[agentID] -> types.ProcessInfo
-	QueryProcessInfoMany(nCtx contextx.IContext, processName string, agentIDList ...string) (map[string]types.ProcessInfo, error)
-
-	// QueryMultiProcessInfo query multiple process info.
-	// @param agentID given agent id.
-	// @param processName given process names.
-	// @return map[processName] -> []types.ProcessInfo
-	QueryMultiProcessInfo(nCtx contextx.IContext, agentID string, processName ...string) (map[string][]types.ProcessInfo, error)
+	QueryProcessInfo(nCtx contextx.IContext, pluginName string, processName string, agentID string) (*types.ProcessInfo, error)
 
 	// QueryMultiProcessInfoMany query multiple process info for many agents.
 	// @param procNameAgentIDMap given agent id list and process name mapping.
 	// @return map[processName] -> []types.ProcessInfo
-	QueryMultiProcessInfoMany(nCtx contextx.IContext, procNameAgentIDMap ...*types.ProcessAgentGroup) (map[string][]types.ProcessInfo, error)
+	QueryMultiProcessInfoMany(nCtx contextx.IContext, procAgentIDMap ...*types.ProcessAgentGroup) (map[string][]types.ProcessInfo, error)
 
 	// TrusteeshipProcess order the gse_agent to trusteeship the process.
 	TrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
@@ -586,20 +574,19 @@ func (h *Handler) OperateAgent(nCtx contextx.IContext, operate types.OperateAgen
 
 const (
 	// ProcNameSpace the namespace of proc.
-	// Historical problems, in order to be compatible with existing data.
-	procNameSpace = "nodeman"
+	procNameSpace = "bk-nodemgr"
 )
 
 // QueryProcessInfo order the gse_agent to trusteeship the process
 // (trusteeshiping: when the managed process exits abnormally, the agent will automatically pull up the managed process;
 // When the managed process resources exceed the limit, the agent will kill the managed process).
-func (h *Handler) QueryProcessInfo(nCtx contextx.IContext, processName string, agentID string) (*types.ProcessInfo, error) {
+func (h *Handler) QueryProcessInfo(nCtx contextx.IContext, pluginName string, processName string, agentID string) (*types.ProcessInfo, error) {
 	operateProcReq := operateProcV2Req{
 		Meta: procMeta{
 			Namespace: procNameSpace,
-			Name:      processName,
+			Name:      pluginName,
 			Labels: procInfoMetaLabels{
-				ProcName: processName,
+				ProcName: pluginName,
 			},
 		},
 		OpType:      procOperateCodeStatus,
@@ -635,50 +622,6 @@ func (h *Handler) QueryProcessInfo(nCtx contextx.IContext, processName string, a
 	return info, nil
 }
 
-// QueryProcessInfoMany order the gse_agent to trusteeship the process
-// (trusteeshiping: when the managed process exits abnormally, the agent will automatically pull up the managed process;
-// When the managed process resources exceed the limit, the agent will kill the managed process).
-func (h *Handler) QueryProcessInfoMany(nCtx contextx.IContext, processName string, agentIDList ...string) (map[string]types.ProcessInfo, error) {
-	operateProcReq := operateProcV2Req{
-		Meta: procMeta{
-			Namespace: procNameSpace,
-			Name:      processName,
-			Labels: procInfoMetaLabels{
-				ProcName: processName,
-			},
-		},
-		OpType:      procOperateCodeStatus,
-		AgentIDList: agentIDList,
-		Spec: procSpec{
-			Identity: procSpecIdentity{
-				ProcName: processName,
-			},
-		},
-	}
-
-	procResult, err := h.operateProc(nCtx, &operateProcReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to operate proc: %w", err)
-	}
-
-	procInfoMap, err := h.parseQueryProcResult(procResult)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query proc: %w", err)
-	}
-
-	processInfoMap := make(map[string]types.ProcessInfo)
-	for agentID, info := range procInfoMap {
-		processInfoMap[agentID] = types.ProcessInfo{
-			Trusteeship: info.IsAuto,
-			Pid:         info.Pid,
-			Version:     info.Version,
-			Status:      convPidToProcStatus(info.Pid),
-		}
-	}
-
-	return processInfoMap, nil
-}
-
 func (h *Handler) parseQueryProcResult(operateProcResultResp getProcOperateResultV2Resp) (map[string]processInfo, error) {
 	procInfoMap := make(map[string]processInfo)
 	for key, item := range operateProcResultResp {
@@ -708,56 +651,6 @@ func (h *Handler) parseQueryProcResult(operateProcResultResp getProcOperateResul
 	return procInfoMap, nil
 }
 
-// QueryMultiProcessInfo query multiple process info.
-func (h *Handler) QueryMultiProcessInfo(nCtx contextx.IContext, agentID string, processName ...string) (map[string][]types.ProcessInfo, error) {
-	operateProcReqs := make(operateProcV2MultiReq, 0, len(processName))
-	for _, name := range processName {
-		operateProcReqs = append(operateProcReqs, &procOperateReq{
-			Meta: procMeta{
-				Namespace: procNameSpace,
-				Name:      name,
-				Labels: procInfoMetaLabels{
-					ProcName: name,
-				},
-			},
-			OpType:      procOperateCodeStatus,
-			AgentIDList: []string{agentID},
-			Spec: procSpec{
-				Identity: procSpecIdentity{
-					ProcName: name,
-				},
-			},
-		})
-	}
-
-	procResult, err := h.operateProcMulti(nCtx, &operateProcMultiReq{
-		ProcOperateReq: operateProcReqs,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to operate proc multi: %w", err)
-	}
-
-	procInfoMap, err := h.parseQueryMultiProcResult(procResult)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query proc: %w", err)
-	}
-
-	processInfoMap := make(map[string][]types.ProcessInfo)
-	for agentID, infos := range procInfoMap {
-		for _, info := range infos {
-			processInfoMap[info.ProcessName] = append(processInfoMap[info.ProcessName], types.ProcessInfo{
-				Trusteeship: info.IsAuto,
-				AgentID:     agentID,
-				Pid:         info.Pid,
-				Version:     info.Version,
-				Status:      convPidToProcStatus(info.Pid),
-			})
-		}
-	}
-
-	return processInfoMap, nil
-}
-
 // QueryMultiProcessInfoMany query multiple process info for many agents.
 func (h *Handler) QueryMultiProcessInfoMany(
 	nCtx contextx.IContext, procNameAgentIDMap ...*types.ProcessAgentGroup) (map[string][]types.ProcessInfo, error) {
@@ -771,16 +664,16 @@ func (h *Handler) QueryMultiProcessInfoMany(
 		operateProcReqs = append(operateProcReqs, &procOperateReq{
 			Meta: procMeta{
 				Namespace: procNameSpace,
-				Name:      item.Name,
+				Name:      item.PluginName,
 				Labels: procInfoMetaLabels{
-					ProcName: item.Name,
+					ProcName: item.PluginName,
 				},
 			},
 			OpType:      procOperateCodeStatus,
 			AgentIDList: item.AgentIDList,
 			Spec: procSpec{
 				Identity: procSpecIdentity{
-					ProcName: item.Name,
+					ProcName: item.ProcessName,
 				},
 			},
 		})

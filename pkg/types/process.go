@@ -167,6 +167,7 @@ func (monitorPolicy ProcessMonitorPolicy) Validate() error {
 
 // ProcessSpec defines the spec of process.
 type ProcessSpec struct {
+	PluginName    string
 	AgentID       string
 	Identity      ProcessIdentity
 	Controller    ProcessController
@@ -176,6 +177,10 @@ type ProcessSpec struct {
 
 // Validate validate the process spec.
 func (spec ProcessSpec) Validate() error {
+	if spec.PluginName == "" {
+		return fmt.Errorf("failed to validate process spec: plugin-name is empty")
+	}
+
 	if spec.AgentID == "" {
 		return fmt.Errorf("failed to validate process spec: agent-id is empty")
 	}
@@ -247,6 +252,18 @@ type Process struct {
 	MonitorPolicy ProcessMonitorPolicy
 }
 
+// ToProcessSpec converts the process to a process spec.
+func (proc *Process) ToProcessSpec() ProcessSpec {
+	return ProcessSpec{
+		PluginName:    proc.PluginName,
+		AgentID:       proc.Info.AgentID,
+		Identity:      proc.Identity,
+		Controller:    proc.Controller,
+		Resource:      proc.Resource,
+		MonitorPolicy: proc.MonitorPolicy,
+	}
+}
+
 // ProcessInfoDelta is a map of process ID to process info.
 type ProcessInfoDelta struct {
 	HostID      int64
@@ -256,6 +273,7 @@ type ProcessInfoDelta struct {
 
 // ProcessAgentGroup process agent group.
 type ProcessAgentGroup struct {
-	Name        string
+	PluginName  string
+	ProcessName string
 	AgentIDList []string
 }
