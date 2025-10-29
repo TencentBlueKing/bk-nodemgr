@@ -408,7 +408,6 @@ func (svc *Service) registerInfoServer() error {
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
@@ -439,7 +438,6 @@ func (svc *Service) registerAdminServer() error {
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
 	)
@@ -473,13 +471,23 @@ func (svc *Service) registerBasicServer() error {
 			IP:              svc.conf.BasicServer.BindIP,
 			Port:            svc.conf.BasicServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
-		withUpload(svc.Cap, authIdentity),
-		withPublish(svc.Cap, authIdentity),
-		withTransfer(svc.Cap, authIdentity),
-		withDownload(svc.Cap, authIdentity),
+		withUpload(svc.Cap,
+			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
+			restserver.MiddlewareAuth(authIdentity),
+		),
+		withPublish(svc.Cap,
+			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
+			restserver.MiddlewareAuth(authIdentity),
+		),
+		withTransfer(svc.Cap,
+			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
+			restserver.MiddlewareAuth(authIdentity),
+		),
+		withDownload(svc.Cap,
+			restserver.MiddlewareAuth(authIdentity),
+		),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -511,10 +519,12 @@ func (svc *Service) registerDownloadServer() error {
 			IP:              svc.conf.DownloadServer.BindIP,
 			Port:            svc.conf.DownloadServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
-		withDownload(svc.Cap, authIdentity),
+		withDownload(svc.Cap,
+			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
+			restserver.MiddlewareAuth(authIdentity),
+		),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -575,30 +585,30 @@ func withMetrics(_ *options.Capability) restserver.OptionFunc {
 }
 
 // withDownload load download.
-func withDownload(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
+func withDownload(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		download.Load(rg, capability, authIdentity)
+		download.Load(rg, capability, middleware...)
 	}
 }
 
 // withUpload load upload.
-func withUpload(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
+func withUpload(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		upload.Load(rg, capability, authIdentity)
+		upload.Load(rg, capability, middleware...)
 	}
 }
 
 // withPublish load publish.
-func withPublish(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
+func withPublish(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		publish.Load(rg, capability, authIdentity)
+		publish.Load(rg, capability, middleware...)
 	}
 }
 
 // withTransfer load transfer.
-func withTransfer(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
+func withTransfer(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		transfer.Load(rg, capability, authIdentity)
+		transfer.Load(rg, capability, middleware...)
 	}
 }
 

@@ -115,7 +115,6 @@ type Options struct {
 	IP              string
 	Port            int
 	RequestIDSetter IRequestIDSetter
-	TenantIDSetter  ITenantIDSetter
 	StaticOptions   *StaticOptions
 }
 
@@ -139,9 +138,6 @@ func NewServer(ctx context.Context,
 
 	// Set authentication middleware.
 	svr.engine.Use(MiddlewareContext())
-
-	// Set tenant id middleware.
-	svr.engine.Use(MiddlewareSetTenantID(opts.TenantIDSetter))
 
 	// Set request id middleware.
 	svr.engine.Use(MiddlewareSetRequestID(opts.RequestIDSetter))

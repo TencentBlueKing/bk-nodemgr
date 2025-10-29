@@ -273,7 +273,6 @@ func (svc *Service) registerInfoServer() error {
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
@@ -304,7 +303,6 @@ func (svc *Service) registerAdminServer() error {
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TenantIDSetter:  restserver.NewTenantIDSetter(),
 		},
 		restserver.WithPing(),
 	)
@@ -333,7 +331,6 @@ func (svc *Service) registerBasicServer() error {
 			IP:              svc.conf.BasicServer.BindIP,
 			Port:            svc.conf.BasicServer.Port,
 			RequestIDSetter: apigwserver.NewBKAPIRequestIDSetter(),
-			TenantIDSetter:  restserver.NewTenantIDSetter(),
 			StaticOptions: restserver.NewStaticOptions(svc.conf.BasicServer.StaticDir).
 				WithHTMLs("index.html").
 				WithDirs("assets").
@@ -343,7 +340,10 @@ func (svc *Service) registerBasicServer() error {
 		},
 		restserver.WithPing(),
 		withWeb(svc.Cap),
-		withAPIV3(svc.Cap, authIdentity),
+		withAPIV3(svc.Cap,
+			restserver.MiddlewareSetTenantID(restserver.NewTenantIDSetter()),
+			restserver.MiddlewareAuth(authIdentity),
+		),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -371,16 +371,16 @@ func withMetrics(_ *options.Capability) restserver.OptionFunc {
 }
 
 // withWeb load web page handler.
-func withWeb(capability *options.Capability) restserver.OptionFunc {
+func withWeb(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		web.Load(rg, capability)
+		web.Load(rg, capability, middleware...)
 	}
 }
 
 // withApiV3 load api v3.
-func withAPIV3(capability *options.Capability, authIdentity restserver.IAuthIdentity) restserver.OptionFunc {
+func withAPIV3(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		applicationapiv3.Load(rg, capability, authIdentity)
+		applicationapiv3.Load(rg, capability, middleware...)
 	}
 }
 

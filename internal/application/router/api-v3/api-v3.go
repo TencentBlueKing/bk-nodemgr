@@ -19,7 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/process"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/topo"
-	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,10 +36,10 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, authIdentity restserver.IAuthIdentity) {
+func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
 	h := newHandler(rg, capability)
 
-	h.rg.Use(restserver.MiddlewareAuth(authIdentity))
+	h.rg.Use(middlewares...)
 
 	topo.Load(h.rg, capability)
 	node.Load(h.rg, capability)
