@@ -20,13 +20,19 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// getReleasePlugin gets release by generation, release type, platform and version.
-func (s *Storage) getReleasePlugin(
+// getEnabledReleasePlugin gets release by generation, release type, platform and version.
+func (s *Storage) getEnabledReleasePlugin(
 	nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleasePlugin, error) {
 
-	rls, err := s.getRelease(nCtx, types.ReleaseTypePlugin, gen, name, plat, version)
+	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypePlugin,
+		release.WithName(name),
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+		release.WithEnabled(true),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get release: %w", err)
+		return nil, fmt.Errorf("failed to get enabled release plugin: %w", err)
 	}
 
 	additionInfo := new(types.ReleaseAdditionInfoPlugin)
@@ -35,10 +41,12 @@ func (s *Storage) getReleasePlugin(
 		return nil, fmt.Errorf("failed to convert addition info to struct: %w", err)
 	}
 
-	return &types.ReleasePlugin{
+	releasePlugin := &types.ReleasePlugin{
 		Release:                   *rls,
 		ReleaseAdditionInfoPlugin: *additionInfo,
-	}, nil
+	}
+
+	return releasePlugin, nil
 }
 
 func (s *Storage) listReleasePlugin(

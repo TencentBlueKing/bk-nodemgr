@@ -92,8 +92,9 @@ type IAgent interface {
 
 // IPlugin define the plugin interface.
 type IPlugin interface {
-	// GetReleasePlugin gets release by generation, release type, platform and version.
-	GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleasePlugin, error)
+	// GetEnabledReleasePlugin gets release by generation, release type, platform and version.
+	GetEnabledReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (
+		*types.ReleasePlugin, error)
 
 	// ListReleasePlugin lists release by page and conditions.
 	ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error)

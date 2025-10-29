@@ -345,15 +345,15 @@ func (s *Storage) GetReleaseProxy(
 	return releaseProxy, nil
 }
 
-// GetReleasePlugin gets release by generation, release type, platform and version.
-func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+// GetEnabledReleasePlugin gets enabled release plugin by name, generation, platform and version.
+func (s *Storage) GetEnabledReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
 	releasePlugin *types.ReleasePlugin, err error) {
 
 	// record metric.
-	metric := s.metric().Start("get_release_plugin")
+	metric := s.metric().Start("get_release_release_plugin")
 	defer metric.End(err)
 
-	releasePlugin, err = s.getReleasePlugin(nCtx, name, gen, plat, version)
+	releasePlugin, err = s.getEnabledReleasePlugin(nCtx, name, gen, plat, version)
 
 	return releasePlugin, err
 }
