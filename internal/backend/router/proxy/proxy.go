@@ -16,7 +16,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	urlUtils "net/url"
+	"net/url"
 	"path"
 	"strings"
 
@@ -138,7 +138,7 @@ func (h *handler) handleCallback(nCtx contextx.IContext, data *relayhandler.Serv
 		return
 	}
 
-	u := &urlUtils.URL{
+	u := &url.URL{
 		Scheme: "http",
 		Host:   callbackEndpoint.GetIPV4Address(),
 		Path:   path.Join("/", strings.TrimLeft(msg.URL, "/")),
@@ -147,6 +147,8 @@ func (h *handler) handleCallback(nCtx contextx.IContext, data *relayhandler.Serv
 	url := u.String()
 
 	logger.G.Biz(nCtx).With("agent-id", data.AgentID, "callback-url", url).Info("try to redirect request to callback")
+
+	// nolint: gosec
 	resp, err := http.Post(
 		url,
 		"application/json",
@@ -216,7 +218,7 @@ func (h *handler) callbackBackend(nCtx contextx.IContext, msg *protoRelay.Client
 		return
 	}
 
-	url, err := urlUtils.JoinPath(backendCallbackURLPrefix, msg.URL)
+	url, err := url.JoinPath(backendCallbackURLPrefix, msg.URL)
 	if err != nil {
 		logger.G.Biz(nCtx).
 			WithErr(err).
