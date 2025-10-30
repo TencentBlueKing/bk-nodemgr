@@ -16,7 +16,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	types "github.com/TencentBlueKing/bk-nodemgr/internal/backend/types/router/healthz"
 	"github.com/gin-gonic/gin"
 )
 
@@ -46,7 +45,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 
 // Healthz check service health.
 func (h *handler) Healthz(ctx *gin.Context) {
-	resp := new(types.Response)
+	resp := new(Response)
 
 	if h.manager == nil {
 		resp.OK = false

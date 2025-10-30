@@ -88,6 +88,7 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 }
 
 // Verify the bk_ticket or bk_token is valid or not, and return the bk_username.
+// nolint: nonamedreturns
 func (h *Handler) Verify(nCtx contextx.IContext, token string) (tenantID string, bkUsername string, loginName string, err error) {
 	if nCtx == nil {
 		return "", "", "", errors.New("failed to verify token: invalid context")
