@@ -211,6 +211,54 @@ export interface PackageReleaseListRespData {
   items: Release[];
 }
 
+// PackageReleaseAgentListReq describes the HTTP request body when list package
+// release.
+export interface PackageReleaseAgentListReq {
+  page: Page;
+  generation: number;
+  only_count: boolean;
+  exact_include_conditions: PackageReleaseExactConditions;
+}
+
+// PackageReleaseAgentListResp describes the HTTP response body when list
+// package release.
+export interface PackageReleaseAgentListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseAgentListRespData;
+}
+
+export interface PackageReleaseAgentListRespData {
+  total: number;
+  items: ReleaseAgent[];
+}
+
+// PackageReleaseProxyListReq describes the HTTP request body when list package
+// release.
+export interface PackageReleaseProxyListReq {
+  page: Page;
+  generation: number;
+  only_count: boolean;
+  exact_include_conditions: PackageReleaseExactConditions;
+}
+
+// PackageReleaseProxyListResp describes the HTTP response body when list
+// package release.
+export interface PackageReleaseProxyListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseProxyListRespData;
+}
+
+export interface PackageReleaseProxyListRespData {
+  total: number;
+  items: ReleaseProxy[];
+}
+
 // PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
 export interface PackageReleaseSetLabelsReq {
   generation: number;

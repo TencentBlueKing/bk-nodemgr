@@ -239,7 +239,9 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 const operateMap = {
   create: '新增',
   enable: '开启',
-  update: '修改',
+  disable: '禁用',
+  update: '更新',
+  delete: '删除',
 };
 // 配置类型映射
 const configMap = {

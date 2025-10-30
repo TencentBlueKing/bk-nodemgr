@@ -179,21 +179,36 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig<RowVO>>({
 });
 
 const getVersions = async () => {
-  const res = await PackageService.ListRelease({
-    generation: 2,
-    release_type: props.releaseType,
-  }).catch(() => ({
-    total: 0,
-    items: [],
-  }));
+  let res;
+  if (props.releaseType === 'agent') {
+    res = await PackageService.ListReleaseAgent({
+      generation: 2,
+      exact_include_conditions: {
+        release_type: [props.releaseType],
+      },
+    }).catch(() => ({
+      total: 0,
+      items: [],
+    }));
+  } else {
+    res = await PackageService.ListReleaseProxy({
+      generation: 2,
+      exact_include_conditions: {
+        release_type: [props.releaseType],
+      },
+    }).catch(() => ({
+      total: 0,
+      items: [],
+    }));
+  }
   const osMap: any = {};
   res.items.forEach((item) => {
-    const key = `${item.os_type}_${item.cpu_arch}`;
-    const iconType = item.os_type === 'darwin' ? 'macos' : item.os_type;
+    const key = `${item.release.os_type}_${item.release.cpu_arch}`;
+    const iconType = item.release.os_type === 'darwin' ? 'macos' : item.release.os_type;
     if (!osMap[key]) {
       osMap[key] = {
         name: key,
-        version: item.as_default ? item.version : '',
+        version: item.release.as_default ? item.release.version : '',
         selected: false,
         versions: [{
           version: 'auto',
@@ -208,15 +223,15 @@ const getVersions = async () => {
         icon: `nodeman-icon nc-${iconType}`,
       };
     }
-    if (item.enabled) {
+    if (item.release.enabled) {
       osMap[key].versions.push({
-        version: item.version,
-        versionName: item.version,
-        disabled: !item.enabled,
-        lable: item.labels,
-        packages: [item.file_name],
-        os_type: item.os_type,
-        cpu_arch: item.cpu_arch,
+        version: item.release.version,
+        versionName: item.release.version,
+        disabled: !item.release.enabled,
+        lable: item.release.labels,
+        packages: [item.release.file_name],
+        os_type: item.release.os_type,
+        cpu_arch: item.release.cpu_arch,
         description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
       });
     }

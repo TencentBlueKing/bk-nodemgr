@@ -13,11 +13,29 @@ export const usePackageStore = defineStore('package', () => {
     return type;
   });
   const getPackages = async () => {
-    const res = await PackageService.ListRelease({
-      release_type: currentType.value,
-      generation: 2,
-    });
-    const allLabels = res.items.flatMap(item => item.labels || []);
+    let res;
+    if (currentType.value === 'agent') {
+      res = await PackageService.ListReleaseAgent({
+        generation: 2,
+        exact_include_conditions: {
+          release_type: [currentType.value],
+        },
+      }).catch(() => ({
+        total: 0,
+        items: [],
+      }));
+    } else {
+      res = await PackageService.ListReleaseProxy({
+        generation: 2,
+        exact_include_conditions: {
+          release_type: [currentType.value],
+        },
+      }).catch(() => ({
+        total: 0,
+        items: [],
+      }));
+    }
+    const allLabels = res.items.flatMap(item => item.release.labels || []);
     tagList.value = Array.from(new Set(allLabels));
   };
 

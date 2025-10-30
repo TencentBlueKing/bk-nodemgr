@@ -613,28 +613,30 @@ const handleSetpBack = () => {
 };
 // 获取版本，用来检查是否有对应架构的包版本去安装
 const getVersions = async () => {
-  const res = await PackageService.ListRelease({
+  const res = await PackageService.ListReleaseProxy({
     generation: 2,
-    release_type: 'proxy',
+    exact_include_conditions: {
+      release_type: ['proxy'],
+    },
   }).catch(() => ({
     total: 0,
     items: [],
   }));
   const osMap: any = {};
   res.items.forEach((item) => {
-    const key = `${item.os_type}_${item.cpu_arch}`;
+    const key = `${item.release.os_type}_${item.release.cpu_arch}`;
     if (!osMap[key]) {
       osMap[key] = {
         name: key,
         enableVersions: [],
       };
     }
-    if (item.enabled) {
+    if (item.release.enabled) {
       osMap[key].enableVersions.push({
-        version: item.version,
-        versionName: item.version,
-        os_type: item.os_type,
-        cpu_arch: item.cpu_arch,
+        version: item.release.version,
+        versionName: item.release.version,
+        os_type: item.release.os_type,
+        cpu_arch: item.release.cpu_arch,
       });
     }
   });

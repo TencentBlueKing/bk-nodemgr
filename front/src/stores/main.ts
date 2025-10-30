@@ -10,6 +10,7 @@ export const useMainStore = defineStore('mainStore', {
     agentSetupType: string;
     configEditData: ConfigPolicy | null;
     curLanguage: string;
+    routeState: Object
   } => ({
     globalPageSize: 50, // 全局分页
     windowInnerHeight: 0,
@@ -19,6 +20,7 @@ export const useMainStore = defineStore('mainStore', {
     agentSetupType: 'setup', // 代理安装方式
     configEditData: null,
     curLanguage: 'zh-CN',
+    routeState: {},
   }),
   actions: {
     // 更新全局分页
@@ -46,6 +48,9 @@ export const useMainStore = defineStore('mainStore', {
     },
     updateLanguage(language: string) {
       this.curLanguage = language;
+    },
+    updateRouteState(routeState: {}) {
+      this.routeState = routeState;
     },
   },
 });

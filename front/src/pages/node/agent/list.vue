@@ -51,7 +51,7 @@
         ></copy-ip-dropdown>
       </div>
       <div class="flex gap-[8px]">
-        <Cascader
+        <!-- <Cascader
           class="w-[250px]"
           is-remote
           clearable
@@ -62,7 +62,7 @@
           :remote-method="topoRemotehandler"
           ref="topoSelect"
           :placeholder="$t('platform.nodeMan.bussinessTopology')"
-        />
+        /> -->
         <SearchSelect
           class="w-[480px] z-99"
           ref="searchSelect"
@@ -223,7 +223,7 @@
 </template>
 <script setup lang="ts">
 import { Button, Cascader, Checkbox, Dropdown, InfoBox, Input, SearchSelect } from 'bkui-vue';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -822,6 +822,14 @@ watch(route, async () => {
         values: [{
           id: route.query.os_type,
           name: route.query.os_type,
+        }],
+      },
+      {
+        id: 'cpu_arch',
+        name: '架构',
+        values: [{
+          id: route.query.cpu_arch,
+          name: route.query.cpu_arch,
         }],
       },
       {

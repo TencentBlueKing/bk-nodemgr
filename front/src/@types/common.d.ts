@@ -176,6 +176,18 @@ interface Release {
   operator: string;
 }
 
+interface ReleaseAgent {
+  release: Release;
+  change_log_en: string;
+  change_log_zh: string;
+}
+
+interface ReleaseProxy {
+  release: Release;
+  change_log_en: string;
+  change_log_zh: string;
+}
+
 // Platform describes the platform informations.
 interface Platform {
   os_type: string;

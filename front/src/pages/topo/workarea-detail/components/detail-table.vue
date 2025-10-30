@@ -135,7 +135,7 @@
 
 <script lang="ts" setup>
 import { Button, Tag } from 'bkui-vue';
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onUnmounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -315,6 +315,37 @@ watch(
   },
   { deep: true, immediate: true },
 );
+watch(route, async () => {
+  if (route.query.os_type) {
+    searchSelectValue.value.push(...[
+      {
+        id: 'os_type',
+        name: '操作系统',
+        values: [{
+          id: route.query.os_type,
+          name: route.query.os_type,
+        }],
+      },
+      {
+        id: 'cpu_arch',
+        name: '架构',
+        values: [{
+          id: route.query.cpu_arch,
+          name: route.query.cpu_arch,
+        }],
+      },
+      {
+        id: 'node_version',
+        name: 'Proxy 版本',
+        values: [{
+          id: route.query.node_version,
+          name: route.query.node_version,
+        }],
+      },
+    ]);
+    await getAgentList();
+  }
+}, { immediate: true, deep: true });
 watch(() => mainStore.selectedBusinessId, async () => {
   await getAgentList();
 }, { immediate: true });

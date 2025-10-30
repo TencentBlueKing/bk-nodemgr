@@ -762,11 +762,12 @@ watch(() => searchSelectValue.value, (data) => {
   });
 }, { immediate: true, deep: true });
 const handleClickHost = (row: Release) => {
-  if (!row.host || row.release_type !== 'agent') return;
+  if (!row.host) return;
   router.push({
-    name: 'agent',
+    name: row.release_type,
     query: {
       os_type: row.os_type,
+      cpu_arch: row.cpu_arch,
       node_version: row.version,
     },
   });
@@ -780,14 +781,29 @@ const handleUpload = () => {
 const tagList = ref<{value: string, label: string}[]>([]);
 const getPackages = async () => {
   loading.value = true;
-  const res = await PackageService.ListRelease({
-    release_type: currentType.value,
-    generation: 2,
-  }).catch(() => ({
-    total: 0,
-    items: [],
-  }));
-  const allLabels = res.items.flatMap(item => item.labels || []);
+  let res;
+  if (currentType.value === 'agent') {
+    res = await PackageService.ListReleaseAgent({
+      generation: 2,
+      exact_include_conditions: {
+        release_type: [currentType.value],
+      },
+    }).catch(() => ({
+      total: 0,
+      items: [],
+    }));
+  } else {
+    res = await PackageService.ListReleaseProxy({
+      generation: 2,
+      exact_include_conditions: {
+        release_type: [currentType.value],
+      },
+    }).catch(() => ({
+      total: 0,
+      items: [],
+    }));
+  }
+  const allLabels = res.items.flatMap(item => item.release.labels || []);
   const list = Array.from(new Set(allLabels));
   tagList.value = list.map((tag: string) => ({
     value: tag,
@@ -796,12 +812,12 @@ const getPackages = async () => {
   packageStore.updateTagList(list);
   const hostList = await PackageService.DeployedHostCount({
     request_items: res.items.map(item => ({
-      generation: item.generation,
-      release_type: item.release_type,
-      version: item.version,
+      generation: item.release.generation,
+      release_type: item.release.release_type,
+      version: item.release.version,
       platform: {
-        os_type: item.os_type,
-        cpu_arch: item.cpu_arch,
+        os_type: item.release.os_type,
+        cpu_arch: item.release.cpu_arch,
       },
     })),
   }).catch(() => ({
@@ -809,9 +825,9 @@ const getPackages = async () => {
     items: [],
   }));
   const items = res.items.map((item, index) => ({
-    ...item,
-    labels: item.labels || [],
-    os_cpu_arch: `${item.os_type}_${item.cpu_arch}`,
+    ...item.release,
+    labels: item.release.labels || [],
+    os_cpu_arch: `${item.release.os_type}_${item.release.cpu_arch}`,
     host: hostList.items[index],
     isDisabledPopShow: false,
     isDeletePopShow: false,
