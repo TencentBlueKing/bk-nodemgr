@@ -16,7 +16,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
+	urlUtils "net/url"
+	"path"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
@@ -137,7 +138,14 @@ func (h *handler) handleCallback(nCtx contextx.IContext, data *relayhandler.Serv
 		return
 	}
 
-	url := fmt.Sprintf("http://%s/%s", callbackEndpoint.GetIPV4Address(), strings.TrimLeft(msg.URL, "/"))
+	u := &urlUtils.URL{
+		Scheme: "http",
+		Host:   callbackEndpoint.GetIPV4Address(),
+		Path:   path.Join("/", strings.TrimLeft(msg.URL, "/")),
+	}
+
+	url := u.String()
+
 	logger.G.Biz(nCtx).With("agent-id", data.AgentID, "callback-url", url).Info("try to redirect request to callback")
 	resp, err := http.Post(
 		url,
@@ -208,7 +216,7 @@ func (h *handler) callbackBackend(nCtx contextx.IContext, msg *protoRelay.Client
 		return
 	}
 
-	url, err := url.JoinPath(backendCallbackURLPrefix, msg.URL)
+	url, err := urlUtils.JoinPath(backendCallbackURLPrefix, msg.URL)
 	if err != nil {
 		logger.G.Biz(nCtx).
 			WithErr(err).
