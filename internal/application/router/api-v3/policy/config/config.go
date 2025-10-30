@@ -155,7 +155,8 @@ func (h *handler) ListConfigPolicyPlatform(rCtx restserver.IContext) (interface{
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
-	releaseType, err := types.ConvertNodeRoleToReleaseType(types.NodeRole(req.GetConfigpolicyType()))
+	// get release type.
+	releaseType, err := types.ConvertConfigPolicyTypeToReleaseType(types.ConfigPolicyType(req.GetConfigpolicyType()))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy platform, failed to convert release type")
 	}

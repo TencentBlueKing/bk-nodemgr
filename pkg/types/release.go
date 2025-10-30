@@ -116,6 +116,18 @@ func ConvertNodeRoleToReleaseType(role NodeRole) (ReleaseType, error) {
 	}
 }
 
+// ConvertConfigPolicyTypeToReleaseType convert config policy type to release type.
+func ConvertConfigPolicyTypeToReleaseType(cpType ConfigPolicyType) (ReleaseType, error) {
+	switch cpType {
+	case ConfigPolicyTypeAgent:
+		return ReleaseTypeAgent, nil
+	case ConfigPolicyTypeProxy:
+		return ReleaseTypeProxy, nil
+	default:
+		return "", fmt.Errorf("invalid config policy type. type(%s)", cpType)
+	}
+}
+
 // Release defines the release package information.
 type Release struct {
 	Name         string
