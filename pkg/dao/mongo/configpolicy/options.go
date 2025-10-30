@@ -30,9 +30,9 @@ func WithBizID(bizIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyBizID, bizIDs...)
 }
 
-// WithType filters by config policy type.
-func WithType(configPolicyTypes ...types.ConfigPolicyType) OptFn {
-	return base.WithStringValues(FieldKeyType, types.ConfigPolicyTypeListToStringList(configPolicyTypes)...)
+// WithConfigPolicyType filters by config policy type.
+func WithConfigPolicyType(configPolicyTypes ...types.ConfigPolicyType) OptFn {
+	return base.WithStringValues(FieldKeyConfigPolicyType, types.ConfigPolicyTypeListToStringList(configPolicyTypes)...)
 }
 
 // WithEnabled filters by enabled.

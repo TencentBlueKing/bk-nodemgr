@@ -152,8 +152,8 @@ func convertConfigPolicyConditionsToOptions(conditions ...*types.ConfigPolicyCon
 		if condition.ExactInclude != nil {
 			opts = append(opts,
 				configpolicy.WithConfigPolicyID(condition.ExactInclude.ConfigPolicyID...),
+				configpolicy.WithConfigPolicyType(condition.ExactInclude.Type...),
 				configpolicy.WithBizID(condition.ExactInclude.BizID...),
-				configpolicy.WithType(condition.ExactInclude.Type...),
 				configpolicy.WithEnabled(condition.ExactInclude.Enabled...))
 		}
 

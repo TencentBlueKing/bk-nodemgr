@@ -17,14 +17,14 @@ const (
 	// FieldKeyConfigPolicyName the config policy name field key.
 	FieldKeyConfigPolicyName = "data.raw.configpolicy_name"
 
+	// FieldKeyConfigPolicyType the config policy type field key.
+	FieldKeyConfigPolicyType = "data.raw.configpolicy_type"
+
 	// FieldKeyTenantID the tenant-id field key.
 	FieldKeyTenantID = "data.raw.tenant_id"
 
 	// FieldKeyBizID the biz-id field key.
 	FieldKeyBizID = "data.raw.biz_id"
-
-	// FieldKeyType the config policy type field key.
-	FieldKeyType = "data.raw.type"
 
 	// FieldKeyEnabled the enabled field key.
 	FieldKeyEnabled = "data.raw.enabled"
