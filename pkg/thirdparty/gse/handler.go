@@ -889,7 +889,7 @@ func (h *Handler) TrusteeshipProcess(nCtx contextx.IContext, processSpec types.P
 		return "", fmt.Errorf("failed to parse control proc result: %w", err)
 	}
 
-	return controlProcResult, nil
+	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
 // UnTrusteeshipProcess order the gse_agent to untrusteeship the process.
@@ -932,7 +932,7 @@ func (h *Handler) UnTrusteeshipProcess(nCtx contextx.IContext, processSpec types
 		return "", fmt.Errorf("failed to parse control proc result: %w", err)
 	}
 
-	return controlProcResult, nil
+	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
 // StartProcess starts the process.
@@ -975,7 +975,7 @@ func (h *Handler) StartProcess(nCtx contextx.IContext, processSpec types.Process
 		return "", fmt.Errorf("failed to parse control proc result: %w", err)
 	}
 
-	return controlProcResult, nil
+	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
 // StopProcess stops the process.
@@ -1018,7 +1018,7 @@ func (h *Handler) StopProcess(nCtx contextx.IContext, processSpec types.ProcessS
 		return "", fmt.Errorf("failed to parse control proc result: %w", err)
 	}
 
-	return controlProcResult, nil
+	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
 // RestartProcess restarts the process.
@@ -1061,7 +1061,7 @@ func (h *Handler) RestartProcess(nCtx contextx.IContext, processSpec types.Proce
 		return "", fmt.Errorf("failed to parse control proc result: %w", err)
 	}
 
-	return controlProcResult, nil
+	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
 // ReloadProcess reload the process.
@@ -1104,7 +1104,7 @@ func (h *Handler) ReloadProcess(nCtx contextx.IContext, processSpec types.Proces
 		return "", fmt.Errorf("failed to parse control proc result: %w", err)
 	}
 
-	return controlProcResult, nil
+	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
 func convProcessSpecFromType(processSpec types.ProcessSpec) (procSpec, error) {
@@ -1161,8 +1161,13 @@ func convAutoTypeFromType(autoType types.ProcessAutoType) (procSpecMonitorPolicy
 	}
 }
 
-func (h *Handler) parseControlProcResult(operateProcResultResp getProcOperateResultV2Resp) (map[string]string, error) {
-	procControlResult := make(map[string]string)
+type controlProcessResult struct {
+	Err    error
+	CmdOut string
+}
+
+func (h *Handler) parseControlProcResult(operateProcResultResp getProcOperateResultV2Resp) (map[string]controlProcessResult, error) {
+	procControlResult := make(map[string]controlProcessResult)
 	for key, item := range operateProcResultResp {
 		// notice: this key is formated as: agentID:namespace:procName
 		keys := strings.Split(key, ":")
@@ -1178,8 +1183,16 @@ func (h *Handler) parseControlProcResult(operateProcResultResp getProcOperateRes
 			return nil, fmt.Errorf("failed to parse operate proc content: this content value has invalid length: %d", len(content.Value))
 		}
 
+		var controlErr error
+		if item.ErrorCode != procOperateResultCodeOK {
+			controlErr = fmt.Errorf("operate proc failed: %s", item.ErrorMsg)
+		}
+
 		// notice: this is can be sure that the length of the content is 1.
-		procControlResult[agentID] = content.Value[0].Result
+		procControlResult[agentID] = controlProcessResult{
+			Err:    controlErr,
+			CmdOut: content.Value[0].Result,
+		}
 	}
 
 	return procControlResult, nil
