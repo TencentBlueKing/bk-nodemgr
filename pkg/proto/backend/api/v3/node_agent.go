@@ -419,10 +419,10 @@ func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeA
 	for _, status := range result {
 		item := &NodeAgentInstallEligibility{
 			InnerIp:           status.InnerIP,
-			EligibilityStatus: string(status.InstallEligibilitiy),
+			EligibilityStatus: string(status.InstallElig),
 		}
-		if status.DuplicateHostIDs != nil {
-			item.DuplicateHostIds = status.DuplicateHostIDs
+		if status.PendingHostIDs != nil {
+			item.PendingHostIds = status.PendingHostIDs
 		}
 		items = append(items, item)
 	}
@@ -444,9 +444,9 @@ func (x *NodeAgentInstallCheckResp) ConvertResultToTypes() []*types.NodeAgentIns
 	items := make([]*types.NodeAgentInstallCheckResult, len(data.GetEligibilities()))
 	for idx, item := range data.GetEligibilities() {
 		items[idx] = &types.NodeAgentInstallCheckResult{
-			InnerIP:             item.GetInnerIp(),
-			InstallEligibilitiy: types.NodeAgentInstallEligibility(item.GetEligibilityStatus()),
-			DuplicateHostIDs:    item.GetDuplicateHostIds(),
+			InnerIP:        item.GetInnerIp(),
+			InstallElig:    types.NodeAgentInstallElig(item.GetEligibilityStatus()),
+			PendingHostIDs: item.GetPendingHostIds(),
 		}
 	}
 

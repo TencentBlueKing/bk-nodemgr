@@ -401,10 +401,10 @@ func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeA
 	for idx, status := range result {
 		item := &NodeAgentInstallElig{
 			InnerIp:    status.InnerIP,
-			EligStatus: string(status.InstallEligibilitiy),
+			EligStatus: string(status.InstallElig),
 		}
-		if status.DuplicateHostIDs != nil {
-			item.DuplicateHostIds = status.DuplicateHostIDs
+		if status.PendingHostIDs != nil {
+			item.PendingHostIds = status.PendingHostIDs
 		}
 		installElig[idx] = item
 	}

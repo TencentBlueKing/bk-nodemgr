@@ -77,7 +77,7 @@ message NodeAgentInstallCheckResp {
 message NodeAgentInstallEligibility {
   string inner_ip = 1;
   string eligibility_status = 2;
-  repeated int64 duplicate_host_ids = 3;
+  repeated int64 pending_host_ids = 3;
 }
 
 // NodeAgentUpgradeReq describes the node agent upgrade request.

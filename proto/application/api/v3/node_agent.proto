@@ -148,7 +148,7 @@ message NodeAgentInstallCheckResp {
 message NodeAgentInstallElig {
   string inner_ip = 1;
   string elig_status = 2;
-  repeated int64 duplicate_host_ids = 3;
+  repeated int64 pending_host_ids = 3;
 }
 
 // UploadAgentTemplateReq is the request for upload agent tempalte file.

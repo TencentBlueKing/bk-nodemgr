@@ -19,34 +19,47 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// GetNetworkUnitByAreaIDs list network unit by area id.
-// nolint: nonamedreturns
-func (s *Storage) GetNetworkUnitByAreaIDs(nCtx contextx.IContext, networkAreaIDs []int64) (
-	results []*types.NetworkUnit, err error) {
+func (s *Storage) getHostsByAreaAndInnerIP(nCtx contextx.IContext,
+	networkAreaID int64, innerip string) ([]*types.Host, error) {
 
-	opts := make([]networkunit.OptFn, 0)
+	opts := make([]host.OptFn, 0)
+	opts = append(opts,
+		host.WithNetworkAreaID(networkAreaID),
+		host.WithStaticInnerIP(innerip),
+	)
 
-	opts = append(opts, networkunit.WithNetworkAreaID(networkAreaIDs...))
-
-	if results, _, err = s.daoNetworkUnit.List(nCtx, types.UnlimitedPage(), opts...); err != nil {
-		return nil, fmt.Errorf("list network unit by area ids failed. ids(%v): %w", networkAreaIDs, err)
+	results, _, err := s.daoHost.List(nCtx, types.UnlimitedPage(), opts...)
+	if err != nil {
+		return nil, fmt.Errorf("list hosts failed. area-id(%d), innerip(%s): %w", networkAreaID, innerip, err)
 	}
 
 	return results, nil
 }
 
-// GetHostsByAreaAndInnerIP get hosts by area and inner ip.
-// nolint: nonamedreturns
-func (s *Storage) GetHostsByAreaAndInnerIP(nCtx contextx.IContext,
-	networkAreaID int64, innerip string) (results []*types.Host, err error) {
-
+func (s *Storage) countDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (int64, error) {
 	opts := make([]host.OptFn, 0)
+	opts = append(opts,
+		host.WithNetworkUnitID(networkUnitID),
+		host.WithNodeRole(types.NodeRoleProxy),
+		host.WithNodeStatus(types.NodeStatusRunning),
+		host.WithDynamicProxyTags(types.ProxyTagDedicatedInstaller),
+	)
 
-	opts = append(opts, host.WithNetworkAreaID(networkAreaID))
-	opts = append(opts, host.WithStaticInnerIP(innerip))
+	num, err := s.daoHost.Count(nCtx, opts...)
+	if err != nil {
+		return 0, fmt.Errorf("count dedicated installer proxy host failed. unit-id(%d): %w", networkUnitID, err)
+	}
 
-	if results, _, err = s.daoHost.List(nCtx, types.UnlimitedPage(), opts...); err != nil {
-		return nil, fmt.Errorf("get hosts by area and inner-ip failed. area-id(%d) inner-ip(%s): %w", networkAreaID, innerip, err)
+	return num, nil
+}
+
+func (s *Storage) getNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []int64) ([]*types.NetworkUnit, error) {
+	opts := make([]networkunit.OptFn, 0)
+	opts = append(opts, networkunit.WithNetworkUnitID(networkUnitIDs...))
+
+	results, _, err := s.daoNetworkUnit.List(nCtx, types.UnlimitedPage(), opts...)
+	if err != nil {
+		return nil, fmt.Errorf("list networkunits failed. unit-ids(%v): %w", networkUnitIDs, err)
 	}
 
 	return results, nil

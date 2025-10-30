@@ -13,101 +13,17 @@
 package topo
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkarea"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/networkunit"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/topoevent"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"go.mongodb.org/mongo-driver/mongo"
 )
-
-// StorageName ...
-const StorageName = "topo"
-
-// NewStorage ...
-func NewStorage(client *mongo.Client, database string) (*Storage, error) {
-	if client == nil {
-		return nil, errors.New("mongo client is nil")
-	}
-
-	s := &Storage{
-		Storage: basestorage.Storage{
-			Name:     StorageName,
-			Database: client.Database(database),
-		},
-	}
-	err := basestorage.InitStorage(&s.Storage,
-		basestorage.WithStartFunc(s.initDao),
-		basestorage.WithCheckFunc(s.check))
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to new storage")
-
-		return nil, err
-	}
-
-	return s, nil
-}
-
-// Storage implements the IStorage interface.
-type Storage struct {
-	basestorage.Storage
-
-	daoBusiness business.IHandler
-
-	daoHost host.IHandler
-
-	daoNetworkArea networkarea.IHandler
-
-	daoNetworkUnit networkunit.IHandler
-
-	daoAccessPoint accesspoint.IHandler
-
-	daoTopoEvent topoevent.IHandler
-}
-
-func (s *Storage) initDao() error {
-	s.daoBusiness = business.New(s.Database)
-	s.daoHost = host.New(s.Database)
-	s.daoNetworkArea = networkarea.New(s.Database)
-	s.daoNetworkUnit = networkunit.New(s.Database)
-	s.daoAccessPoint = accesspoint.New(s.Database)
-	s.daoTopoEvent = topoevent.New(s.Database)
-
-	return nil
-}
-
-func (s *Storage) check() error {
-	if s.daoBusiness == nil {
-		return errors.New("dao business is nil")
-	}
-
-	if s.daoHost == nil {
-		return errors.New("dao host is nil")
-	}
-	if s.daoNetworkArea == nil {
-		return errors.New("dao network area is nil")
-	}
-	if s.daoNetworkUnit == nil {
-		return errors.New("dao network unit is nil")
-	}
-	if s.daoAccessPoint == nil {
-		return errors.New("dao access point is nil")
-	}
-	if s.daoTopoEvent == nil {
-		return errors.New("dao topo event is nil")
-	}
-
-	return nil
-}
 
 // UpsertManyBusiness updates or inserts many business.
 func (s *Storage) UpsertManyBusiness(nCtx contextx.IContext, biz ...*types.Business) (err error) {
@@ -600,10 +516,6 @@ func (s *Storage) ListAccessPoint(nCtx contextx.IContext, page types.Page, condi
 	}
 
 	return results, num, nil
-}
-
-func (s *Storage) metric() *storage.MetricData {
-	return storage.Metric(StorageName)
 }
 
 // AccessPointResult describes the accesspoint result in networkunit handlers.

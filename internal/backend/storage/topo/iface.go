@@ -37,8 +37,11 @@ type IDomainNodeInstall interface {
 	// GetHostsByAreaAndInnerIP get hosts by area and inner ip.
 	GetHostsByAreaAndInnerIP(nCtx contextx.IContext, networkAreaID int64, ip string) ([]*types.Host, error)
 
-	// GetNetworkUnitByAreaIDs list network unit by area ids.
-	GetNetworkUnitByAreaIDs(nCtx contextx.IContext, networkAreaIDs []int64) ([]*types.NetworkUnit, error)
+	// CountDedicatedInstallerProxyHost counts dedicated installer proxy host by network unit id.
+	CountDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (int64, error)
+
+	// GetNetworkUnitByIDs list network unit by unit ids.
+	GetNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []int64) ([]*types.NetworkUnit, error)
 }
 
 // IStorageTopoEvent this interface defines the operations which is only for topo event.

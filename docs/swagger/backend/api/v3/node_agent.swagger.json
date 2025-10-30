@@ -358,7 +358,7 @@
         "eligibility_status": {
           "type": "string"
         },
-        "duplicate_host_ids": {
+        "pending_host_ids": {
           "type": "array",
           "items": {
             "type": "integer",
