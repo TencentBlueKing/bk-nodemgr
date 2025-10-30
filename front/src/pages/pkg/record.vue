@@ -16,7 +16,7 @@
         <SearchSelect
           ref="searchSelect"
           :data="searchSelectData"
-          v-model="searchSelectValue"
+          v-model.trim="searchSelectValue"
           :unique-select="true"
           :placeholder="'搜索版本号、操作系统、架构、操作类型、操作人、包类型'"
           @update:model-value="handleSearchSelectChange"
@@ -225,7 +225,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'operate_time',
   ],
   disabled: [],
-});
+}, 'pkgMng-record');
 
 // 操作类型中文映射
 const eventMap = {

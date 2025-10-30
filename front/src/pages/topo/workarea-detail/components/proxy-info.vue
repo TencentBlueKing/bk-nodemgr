@@ -34,6 +34,7 @@
         <SearchSelect
           class="w-[480px]"
           :placeholder="$t('topoManager.workAreaDetail.searchSelect.placeholder')"
+          :unique-select="true"
           v-model.trim="searchKey"
           :data="searchSelectData"
         >

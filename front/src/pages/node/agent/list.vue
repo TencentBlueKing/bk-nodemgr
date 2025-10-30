@@ -67,7 +67,7 @@
           class="w-[480px] z-99"
           ref="searchSelect"
           :data="searchSelectData"
-          v-model="searchSelectValue"
+          v-model.trim="searchSelectValue"
           :unique-select="true"
           :placeholder="$t('platform.nodeMan.agentSearchPlaceholder')"
           @update:model-value="handleSearchSelectChange"
@@ -277,17 +277,17 @@ const searchSelectData = computed(() => [
     name: t('platform.nodeMan.inner_ipv6'),
     multiple: true,
   },
+  { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
   {
     id: 'bk_networkarea_id',
-    name: '管控区域ID:IP',
-    children: getUniqueChildrenFrom('bk_networkarea_id'),
+    name: '管控区域',
+    children: getUniqueChildrenFrom('bk_networkarea_id', networkAreaListMap),
     multiple: true,
   },
-  { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
   {
     id: 'bk_networkunit_id',
     name: '管控单元',
-    children: getUniqueChildrenFrom('bk_networkunit_id'),
+    children: getUniqueChildrenFrom('bk_networkunit_id', networkUnitListMap),
     multiple: true,
   },
   {
@@ -298,7 +298,7 @@ const searchSelectData = computed(() => [
   },
   {
     id: 'node_version',
-    name: 'Agent版本',
+    name: 'Agent 版本',
     children: getUniqueChildrenFrom('node_version'),
     multiple: true,
   },
@@ -323,7 +323,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'action',
   ],
   disabled: ['action'],
-});
+}, 'nodeMng-agent');
 
 const filterOptionSource: Record<string, FilterOption> = reactive({
   bk_networkarea_id: {
@@ -546,23 +546,16 @@ const handleInstall = () => {
 };
 
 // 搜索
-const getUniqueChildren = (prop: string) => {
-  const uniqueValues = Array.from(new Set(agentList.value.map((item: any) => item[prop]).filter((item: any) => item)));
-  return uniqueValues.map(value => ({
-    id: value,
-    name: String(value),
-  }));
-};
-const getUniqueChildrenFrom = <K extends keyof TopoHostDistinctRespData>(
+function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
   prop: K,
   keyMap?: Record<string, any>,
-) => {
+) {
   const uniqueValues = hostDistinct.value?.[prop] || [];
   return uniqueValues
     .filter((item: any) => item !== '')
     .map((value: any) => ({
       id: value,
-      name: keyMap && keyMap[value] ? keyMap[value] : String(value),
+      name: keyMap && keyMap.get(value) ? keyMap.get(value) : String(value),
     }));
 };
 
@@ -853,10 +846,6 @@ onMounted(async () => {
 });
 </script>
 <style lang="postcss" scoped>
-:deep(.vxe-table--empty-content) {
-  height: 200px;
-  line-height: 200px;
-}
 .dropDown-menu {
   .bk-dropdown-item {
     font-size: 14px;
@@ -874,12 +863,13 @@ onMounted(async () => {
   content: "";
   display: inline-block;
   margin-right: 8px;
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   border: 3px solid #f0f1f5;
   border-radius: 6.5px;
   background: #b2b5bd;
   flex-shrink: 0;
+  vertical-align: middle;
 }
 .nc-running {
   &::before {

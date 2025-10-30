@@ -149,7 +149,7 @@ const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const { start, stop } = useInterval(getLog, 1000); // 轮询
 const activeKey = ref('');
 const curOperInstId = ref('');
-const curOperInstVal = ref('LATEST');
+const curOperInstVal = ref('latest');
 const curOperationId = ref('');
 const curSortNames = ref<string[]>([]);
 const logs = ref<{ text: string; level: string; time: string }[]>([]);
@@ -224,7 +224,7 @@ const getInstance = async () => {
   operInstList.value = [];
   for (let i = 1; i <= res.total; i++) {
     operInstList.value.push({
-      name: i < res.total ? getOrdinalSuffix(i) : 'LATEST',
+      name: i < res.total ? getOrdinalSuffix(i) : 'latest',
       id: res.oper_inst_data[i - 1].oper_inst_id,
       sort_names: res.oper_inst_data[i - 1].action_names,
     });

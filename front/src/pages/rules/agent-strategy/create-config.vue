@@ -20,7 +20,7 @@
             :name="item.bk_biz_name"
             :id="item.bk_biz_id"
           >
-            <span v-show="item.bk_biz_id !== -1">[{{ item.bk_biz_id }}]</span> {{ item.bk_biz_name }}
+            <span v-show="item.bk_biz_id !== -1">[{{ item.bk_biz_id }}] {{ item.bk_biz_name }}</span>
           </Select.Option>
         </Select>
       </Form.FormItem>
@@ -169,7 +169,7 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const userStore = useUserStore();
-const nodeRole = computed(() => route.params.node_role);
+const configpolicyType = computed(() => route.params.configpolicy_type);
 const title = computed(() => {
   // 定义操作类型映射
   const actionMap = {
@@ -178,12 +178,12 @@ const title = computed(() => {
   };
   // 定义角色类型映射
   const roleMap = {
-    agent: 'Agent',
-    proxy: 'Proxy',
+    config_policy_agent: 'Agent',
+    config_policy_proxy: 'Proxy',
   };
   // 获取当前操作和角色
   const action = actionMap[route.name as keyof typeof actionMap];
-  const role = roleMap[nodeRole.value as keyof typeof roleMap];
+  const role = roleMap[configpolicyType.value as keyof typeof roleMap];
 
   // 组合结果（如果有无效值则返回空字符串或默认标题）
   return action && role ? `${action} ${role} 配置` : '';
@@ -192,7 +192,7 @@ const isEdit = computed(() => route.name === 'editConfig');
 const businessList = computed(() => mainStore.businessList);
 const initData = {
   configpolicy_name: '',
-  node_role: nodeRole.value,
+  configpolicy_type: configpolicyType.value,
   biz_id: ['不限'] as string[] | number[],
   remark: '',
   scopes: [
@@ -258,8 +258,9 @@ const handleSubmit = async () => {
       biz_id,
     }).catch(() => false);
   }
-  if (res && nodeRole.value) {
-    router.replace({ name: `${nodeRole.value}Strategy` });
+  if (res && configpolicyType.value) {
+    const type = (configpolicyType.value as string).split('_').reverse()[0];
+    router.replace({ name: `${type}Strategy` });
   }
 };
 const handleCancel = () => {
@@ -289,7 +290,7 @@ const osTypeList = ref<{ value: string; label: string }[]>();
 const cpuArchList = ref<{ value: string; label: string }[]>();
 const getPlatform = async () => {
   const res = await ConfigPolicyAPIService.ConfigPolicyListPlatform({
-    node_role: nodeRole.value,
+    configpolicy_type: configpolicyType.value,
     generation: 2,
   }).catch(() => ({
     os_type: [],

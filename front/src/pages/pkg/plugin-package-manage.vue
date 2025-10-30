@@ -7,7 +7,7 @@
         class="ml-[16px] flex-1"
         ref="searchSelect"
         :data="searchSelectData"
-        v-model="searchSelectValue"
+        v-model.trim="searchSelectValue"
         :unique-select="true"
         :placeholder="'请输入 插件名称、插件别名、状态 搜索'"
         @update:model-value="handleSearchSelectChange"
@@ -546,7 +546,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'action',
   ],
   disabled: ['action'],
-});
+}, 'pkgMng-plugin');
 // 筛选
 const handleFilter = ({
   checked,

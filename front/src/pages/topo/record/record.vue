@@ -161,7 +161,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'operator',
     'operate_time',
   ],
-});
+}, 'topoMng-record');
 
 const list = ref<TopoEvent[]>([]);
 const operateTime = ref([]);

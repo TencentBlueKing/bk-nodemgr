@@ -9,16 +9,14 @@ export interface ProcessListReq {
 
 export interface ProcessListReqExactConditions {
   bk_host_id: number[];
-  plugin_id: string[];
-  process_id: string[];
-  group: string[];
-  generation: string[];
+  plugin_group: string[];
+  node_generation: string[];
   platform_os: string[];
   platform_arch: string[];
   status: string[];
   agent_id: string[];
   version: string[];
-  name: string[];
+  plugin_name: string[];
   plugin_pkg_name: string[];
 }
 
@@ -74,9 +72,7 @@ export interface ProcessMonitorPolicy {
 // Process describes the process.
 export interface Process {
   tenant_id: string;
-  process_id: string;
   bk_host_id: number;
-  plugin_id: string;
   plugin_name: string;
   plugin_pkg_name: string;
   plugin_group: string;

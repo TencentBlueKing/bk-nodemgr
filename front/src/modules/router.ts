@@ -65,6 +65,7 @@ const routes = setupLayouts([
               title: '安装 Agent',
               back: true,
               mainMenu: 'nodeManager',
+              parentName: 'agent', // 增加父路由节点名字，用来显示当前菜单
             },
           },
           {
@@ -76,6 +77,7 @@ const routes = setupLayouts([
               title: '安装/重装 Agent',
               back: true,
               mainMenu: 'nodeManager',
+              parentName: 'agent',
             },
           },
           {
@@ -102,6 +104,7 @@ const routes = setupLayouts([
             component: TaskDetail,
             meta: {
               mainMenu: 'nodeManager',
+              parentName: 'history',
             },
           },
         ],
@@ -131,6 +134,7 @@ const routes = setupLayouts([
               back: true,
               mainMenu: 'topoManager',
               title: '管控区域详情',
+              parentName: 'workarea',
             },
           },
           {
@@ -175,21 +179,17 @@ const routes = setupLayouts([
           },
           {
             name: 'createConfig',
-            path: 'createConfig/:node_role',
+            path: 'createConfig/:configpolicy_type',
             component: CreateConfig,
             meta: {
-              // title: '新建 Agent 配置',
-              // back: true,
               mainMenu: 'ruleManager',
             },
           },
           {
             name: 'editConfig',
-            path: 'editConfig/:node_role',
+            path: 'editConfig/:configpolicy_type',
             component: CreateConfig,
             meta: {
-              // title: '编辑 Agent 配置',
-              // back: true,
               mainMenu: 'ruleManager',
             },
           },

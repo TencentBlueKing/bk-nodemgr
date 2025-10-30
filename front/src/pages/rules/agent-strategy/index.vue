@@ -26,7 +26,7 @@
           class="w-[480px] z-99"
           ref="searchSelect"
           :data="searchSelectData"
-          v-model="searchSelectValue"
+          v-model.trim="searchSelectValue"
           :unique-select="true"
           :placeholder="'请输入 配置名称、修改人 搜索'"
           @update:model-value="handleSearchSelectChange"
@@ -230,7 +230,7 @@ import { useMainStore } from '@/stores/main';
 const mainStore = useMainStore();
 const route = useRoute();
 const router = useRouter();
-const nodeRole = computed(() => (route.name === 'agentStrategy' ? 'agent' : 'proxy'));
+const configpolicyType = computed(() => (route.name === 'agentStrategy' ? 'config_policy_agent' : 'config_policy_proxy'));
 const maxHeight = computed(() => mainStore.windowInnerHeight - 255);
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableData = ref<ConfigPolicy[]>([]);
@@ -254,7 +254,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'action',
   ],
   disabled: ['action'],
-});
+}, `rulesMng-${configpolicyType.value}`);
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = ref([
   {
@@ -319,7 +319,7 @@ const handleUpdate = async (row: ConfigPolicy) => {
   router.push({
     name: 'editConfig',
     params: {
-      node_role: nodeRole.value,
+      configpolicy_type: configpolicyType.value,
     },
   });
 };
@@ -327,7 +327,7 @@ const handleCreate = () => {
   router.push({
     name: 'createConfig',
     params: {
-      node_role: nodeRole.value,
+      configpolicy_type: configpolicyType.value,
     },
   });
 };
@@ -378,7 +378,7 @@ const getParams = () => {
       offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {
-      node_role: [nodeRole.value],
+      configpolicy_type: [configpolicyType.value],
       biz_id: mainStore.selectedBusinessId,
     } as ConfigPolicyExactConditions,
     fuzzy_include_conditions: {} as ConfigPolicyFuzzyConditions,

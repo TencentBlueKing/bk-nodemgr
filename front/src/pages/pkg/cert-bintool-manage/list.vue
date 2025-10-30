@@ -7,7 +7,7 @@
         class="flex-1"
         ref="searchSelect"
         :data="searchSelectData"
-        v-model="searchSelectValue"
+        v-model.trim="searchSelectValue"
         :unique-select="true"
         :placeholder="t('包文件名、上传用户')"
         @update:model-value="handleSearchSelectChange"
@@ -225,7 +225,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'action',
   ],
   disabled: ['action'],
-});
+}, `pkgMng-${currentType.value}`);
 // 筛选
 const handleFilter = ({
   checked,

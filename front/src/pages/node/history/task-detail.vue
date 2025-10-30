@@ -65,7 +65,7 @@
         class="flex-1"
         ref="searchSelect"
         :data="searchSelectData"
-        v-model="searchSelectValue"
+        v-model.trim="searchSelectValue"
         :unique-select="true"
         :placeholder="'请输入IP、管控区域、业务、目标版本、执行状态 搜索'"
         @update:model-value="handleSearchSelectChange">
@@ -475,7 +475,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'reTryCount',
   ],
   disabled: [],
-});
+}, 'nodeMng-task-detail');
 
 // 筛选
 const handleFilter = ({ checked, field }: {checked: string[], field: string}) => {

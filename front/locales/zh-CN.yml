@@ -58,7 +58,7 @@ platform:
     copy: 复制
     uninstall: 卸载
     bussinessTopology: 业务拓扑
-    agentSearchPlaceholder: 搜索IP、管控区域ID:IP、Agent ID、管控区域...
+    agentSearchPlaceholder: 搜索IP、Agent ID、管控区域、管控单元...
     inner_ip: 内网IPv4
     inner_ipv6: 内网IPv6
     agentId: Agent ID

@@ -6,7 +6,7 @@ export interface PluginInstallReq {
 
 export interface PluginInstallReqProcess {
   bk_host_id: number;
-  plugin_id: string;
+  plugin_name: string;
   version: string;
 }
 
@@ -32,7 +32,7 @@ export interface PluginListReq {
 }
 
 export interface PluginListReqExactConditions {
-  plugin_id: string[];
+  plugin_name: string[];
   plugin_group: string[];
 }
 
@@ -44,10 +44,9 @@ export interface PluginListReqFuzzyConditions {
 // Plugin describes a plugin.
 export interface Plugin {
   tenant_id: string;
-  plugin_id: string;
-  plugin_name: string;
-  plugin_group: string;
-  plugin_pkg_name: string;
+  name: string;
+  group: string;
+  pkg_name: string;
 }
 
 // PluginListResp describes the plugin list response.

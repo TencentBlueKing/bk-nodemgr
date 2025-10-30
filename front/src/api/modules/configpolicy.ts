@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { ConfigPolicyListReq, ConfigPolicyListResp, ConfigPolicyGetReq, ConfigPolicyGetResp, ConfigPolicyListPlatformReq, ConfigPolicyListPlatformResp, ConfigPolicyGetTemplateReq, ConfigPolicyGetTemplateResp, ConfigPolicyCreateReq, ConfigPolicyCreateResp, ConfigPolicyUpdateReq, ConfigPolicyUpdateResp, ConfigPolicyEnableReq, ConfigPolicyEnableResp, ConfigPolicyDisableReq, ConfigPolicyDisableResp, ConfigPolicyDeleteReq, ConfigPolicyDeleteResp } from '@/@types/configpolicy';
+import type { ConfigPolicyListReq, ConfigPolicyListResp, ConfigPolicyGetReq, ConfigPolicyGetResp, ConfigPolicyListPlatformReq, ConfigPolicyListPlatformResp, ConfigPolicyGetTemplateReq, ConfigPolicyGetTemplateResp, ConfigPolicyCreateReq, ConfigPolicyCreateResp, ConfigPolicyUpdateReq, ConfigPolicyUpdateResp, ConfigPolicyEnableReq, ConfigPolicyEnableResp, ConfigPolicyDisableReq, ConfigPolicyDisableResp, ConfigPolicyDeleteReq, ConfigPolicyDeleteResp, ConfigPolicyEventListReq, ConfigPolicyEventListResp, ConfigPolicyEventDistinctReq, ConfigPolicyEventDistinctResp } from '@/@types/configpolicy';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -27,5 +27,9 @@ export const ConfigPolicyAPIService = {
   ConfigPolicyDisable: async <Request = ConfigPolicyDisableReq, ResponseData = ConfigPolicyDisableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/disable')(params, config),
   // DeleteConfigPolicy deletes config policy.
   ConfigPolicyDelete: async <Request = ConfigPolicyDeleteReq, ResponseData = ConfigPolicyDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/delete')(params, config),
+  // ConfigPolicyEventList provides policy event listing.
+  ConfigPolicyEventList: async <Request = ConfigPolicyEventListReq, ResponseData = ConfigPolicyEventListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/event/list')(params, config),
+  // ConfigPolicyEventDistinct provides policy event distincting.
+  ConfigPolicyEventDistinct: async <Request = ConfigPolicyEventDistinctReq, ResponseData = ConfigPolicyEventDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/policy/config/event/distinct')(params, config),
 };
 

@@ -7,7 +7,7 @@
         class="ml-[16px] flex-1"
         ref="searchSelect"
         :data="searchSelectData"
-        v-model="searchSelectValue"
+        v-model.trim="searchSelectValue"
         :unique-select="true"
         :placeholder="'版本号、操作系统、架构、标签、上传用户、状态、默认版本'"
         @update:model-value="handleSearchSelectChange"
@@ -160,6 +160,8 @@
                     class="mb-[18px]"
                     v-model="selectTag"
                     :list="tagList"
+                    id-key="value"
+                    display-key="label"
                     :popover-options="{
                       boundary: 'parent'
                     }"
@@ -607,7 +609,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'download',
   ],
   disabled: ['action', 'download'],
-});
+}, `pkgMng-${currentType.value}`);
 // 筛选
 const handleFilter = ({
   checked,
@@ -744,7 +746,7 @@ const batchUpdateTag = async () => {
       },
       version: item.version,
     })),
-    labels: [...selectTag.value],
+    labels: [...Array.from(new Set(selectTag.value))],
   });
   await getPackages();
 };

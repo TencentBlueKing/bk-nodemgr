@@ -3,10 +3,10 @@
     <bk-loading
       title="数据加载中"
       :loading="loading"
-      class="w-full overflow-auto"
+      class="w-full overflow-auto mt-[16px]"
     >
       <Table
-        class="mt-[16px] w-full"
+        class="w-full"
         ref="tableRef"
         :data="list"
         :empty-text="$t('table.empty')"
@@ -127,8 +127,8 @@
         </TableColumn>
       </Table>
     </bk-loading>
-    <edit-unit-sideslider v-model:is-show="sidesliderData.isShow" :data="sidesliderData.data" @update="handleUpdate">
-    </edit-unit-sideslider>
+    <edit-proxy-sideslider v-model:is-show="sidesliderData.isShow" :data="sidesliderData.data" @update="handleUpdate">
+    </edit-proxy-sideslider>
     <ReinstallProxy v-model:is-show="isShowInstallProxy" :data="reinstallData" :bk_networkunit_id="bkNetworkunitId" />
   </div>
 </template>
@@ -142,7 +142,7 @@ import { Table, TableColumn } from '@blueking/table';
 
 import ReinstallProxy from '../../install-proxy/reinstall-proxy.vue';
 
-import EditUnitSideslider from './edit-unit-sideslider.vue';
+import EditProxySideslider from './edit-proxy-sideslider.vue';
 import MoreAction from './more-action.vue';
 
 import type {
@@ -200,7 +200,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'action',
   ],
   disabled: ['action'],
-});
+}, `topoMng-workarea-detail-${String(route.name)}`);
 // 表格勾选
 const selection = computed(() => list.value.filter((item: any) => item.checked));
 const handleSelectChange = ({
@@ -234,18 +234,19 @@ const proxyVersionFilter = reactive({
   checked: [],
 });
 const proxyStatusFilter = reactive({
-  list: [
-    {
-      text: 'success',
-      value: 1,
-    },
-    {
-      text: 'failed',
-      value: 0,
-    },
-  ],
+  list: [],
   checked: [],
 });
+
+const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
+  const uniqueValues = Array.from(new Set(list.value.map((item: any) => item[prop]).filter((item: any) => item)));
+  return uniqueValues.map(value => ({
+    text:
+      valMap && valMap[value as string] ? valMap[value as string].text : value,
+    value,
+  }));
+};
+
 const handleEdit = (row: Host) => {
   sidesliderData.isShow = true;
   sidesliderData.data = row;
@@ -306,6 +307,14 @@ const handleReinstall = (row: Host) => {
   isShowInstallProxy.value = true;
   reinstallData.value = [row];
 };
+watch(
+  () => list,
+  () => {
+    proxyVersionFilter.list = filterOptionConfig('node_version');
+    proxyStatusFilter.list = filterOptionConfig('node_status');
+  },
+  { deep: true, immediate: true },
+);
 watch(() => mainStore.selectedBusinessId, async () => {
   await getAgentList();
 }, { immediate: true });
@@ -318,12 +327,13 @@ watch(searchSelectValue, async () => {
   content: "";
   display: inline-block;
   margin-right: 8px;
-  width: 13px;
-  height: 13px;
+  width: 14px;
+  height: 14px;
   border: 3px solid #f0f1f5;
   border-radius: 6.5px;
   background: #b2b5bd;
   flex-shrink: 0;
+  vertical-align: middle;
 }
 .nc-running {
   &::before {

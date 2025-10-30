@@ -61,7 +61,7 @@ import { useMainStore } from '@/stores/main';
 const emit = defineEmits(['updateConfig']);
 const route = useRoute();
 const mainStore = useMainStore();
-const nodeRole = computed(() => route.params.node_role);
+const configpolicyType = computed(() => route.params.configpolicy_type);
 const isEdit = computed(() => route.name === 'editConfig');
 const configTemplates = ref<ConfigPolicyConfigBlock[]>([]);
 const typeMap = {
@@ -105,7 +105,7 @@ const getConfigs = async () => {
     return;
   }
   const res = await ConfigPolicyAPIService.ConfigPolicyTemplate({
-    node_role: nodeRole.value,
+    configpolicy_type: configpolicyType.value,
   }).catch(() => ({
     templates: [],
   }));

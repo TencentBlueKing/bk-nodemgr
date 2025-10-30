@@ -19,7 +19,7 @@
         <SearchSelect
           ref="searchSelect"
           :data="searchSelectData"
-          v-model="searchSelectValue"
+          v-model.trim="searchSelectValue"
           :unique-select="true"
           :placeholder="
             t('platform.nodeMan.taskHistory.placeholder.listSearch')
@@ -334,8 +334,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'status',
     'count',
   ],
-  disabled: [],
-});
+  disabled: ['workflow_id'],
+}, 'nodeMng-history');
 const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
@@ -513,7 +513,7 @@ watch(
   () => tableData,
   () => {
     filterOptionSource.type.list = filterOptionConfig('type', typeMap);
-    filterOptionSource.operator.list = filterOptionConfig('operator', typeMap);
+    filterOptionSource.operator.list = filterOptionConfig('operator');
     filterOptionSource.status.list = filterOptionConfig('status', statusMap);
   },
   { deep: true, immediate: true },

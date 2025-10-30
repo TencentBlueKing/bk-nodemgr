@@ -3,7 +3,7 @@
 export interface ConfigPolicyExactConditions {
   configpolicy_id: number[];
   biz_id: number[];
-  node_role: string[];
+  configpolicy_type: string[];
   enabled: boolean[];
 }
 
@@ -38,7 +38,7 @@ export interface ConfigPolicyListRespData {
 // ConfigPolicyGetTemplateReq describes HTTP request body when get config policy
 // template.
 export interface ConfigPolicyGetTemplateReq {
-  node_role: string;
+  configpolicy_type: string;
 }
 
 // ConfigPolicyGetTemplateResp describes HTTP response body when get config
@@ -58,7 +58,7 @@ export interface ConfigPolicyGetTemplateRespData {
 // ConfigPolicyListPlatformReq describes HTTP request body when list config
 // policy platform.
 export interface ConfigPolicyListPlatformReq {
-  node_role: string;
+  configpolicy_type: string;
   generation: number;
 }
 
@@ -93,7 +93,7 @@ export interface ConfigPolicyGetResp {
 // ConfigPolicyCreateReq describes HTTP request body when create config policy.
 export interface ConfigPolicyCreateReq {
   configpolicy_name: string;
-  node_role: string;
+  configpolicy_type: string;
   biz_id: number[];
   remark: string;
   scopes: ConfigPolicyScope[];
@@ -119,7 +119,7 @@ export interface ConfigPolicyCreateRespData {
 export interface ConfigPolicyUpdateReq {
   configpolicy_id: number;
   configpolicy_name: string;
-  node_role: string;
+  configpolicy_type: string;
   biz_id: number[];
   remark: string;
   scopes: ConfigPolicyScope[];
@@ -195,5 +195,71 @@ export interface ConfigPolicyDeleteResp {
 }
 
 export interface ConfigPolicyDeleteRespData {
+}
+
+// ConfigPolicyEventExactConditions describes the conditions when list event
+export interface ConfigPolicyEventExactConditions {
+  configpolicy_id: number[];
+  configpolicy_type: string[];
+  version: number[];
+  type: string[];
+}
+
+// ConfigPolicyEventFuzzyConditions describes the conditions when list event
+export interface ConfigPolicyEventFuzzyConditions {
+  configpolicy_name: string[];
+  operator: string[];
+}
+
+// ConfigPolicyEventListReq describes the HTTP request body when list event in
+// policy service.
+export interface ConfigPolicyEventListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: ConfigPolicyEventExactConditions;
+  fuzzy_include_conditions: ConfigPolicyEventFuzzyConditions;
+  operate_time_range: TimeRange;
+}
+
+// ConfigPolicyEventListResp describes the HTTP response body when list event in
+// policy service.
+export interface ConfigPolicyEventListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: ConfigPolicyEventListRespData;
+}
+
+export interface ConfigPolicyEventListRespData {
+  total: number;
+  items: ConfigPolicyEvent[];
+}
+
+// ConfigPolicyEventDistinctReq describes the HTTP request body when distinct
+// policyevent in policy service.
+export interface ConfigPolicyEventDistinctReq {
+  exact_include_conditions: ConfigPolicyEventExactConditions;
+  fuzzy_include_conditions: ConfigPolicyEventFuzzyConditions;
+  operate_time_range: TimeRange;
+}
+
+// ConfigPolicyEventDistinctResp describes the HTTP response body when distinct
+// policyevent in policy service.
+export interface ConfigPolicyEventDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: ConfigPolicyEventDistinctRespData;
+}
+
+export interface ConfigPolicyEventDistinctRespData {
+  configpolicy_id: number[];
+  configpolicy_name: string[];
+  configpolicy_type: string[];
+  type: string[];
+  version: number[];
+  operator: string[];
 }
 

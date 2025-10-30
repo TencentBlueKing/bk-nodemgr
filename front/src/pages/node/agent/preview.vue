@@ -24,7 +24,7 @@
               class="ml-[16px] flex-1"
               ref="searchSelect"
               :data="searchSelectData"
-              v-model="searchSelectValue"
+              v-model.trim="searchSelectValue"
               :unique-select="true"
               :placeholder="'IPV4、IPV6、操作系统、主机名'"
               @update:model-value="handleSearchSelectChange"
@@ -41,7 +41,11 @@
             <Button
               @click="handleBatchInstall"
               :disabled="!selection.length
-                || !selection.find(item => ['conflict_ip', 'duplicate_dynamic_ip'].includes(item.elig_status))">
+                || !selection.find(item => ['conflict_ip', 'duplicate_dynamic_ip'].includes(item.elig_status))"
+              v-bk-tooltips="{
+                content: '处理待确认为全新安装',
+              }"
+            >
               {{ $t("platform.nodeMan.preview.button.batchInstall") }}
             </Button>
             <Button
@@ -122,7 +126,7 @@
                 <TableColumn
                   field="bk_host_name"
                   :title="t('platform.nodeMan.bk_host_name')"
-                  min-width="150"
+                  min-width="200"
                 ></TableColumn>
                 <TableColumn
                   field="bk_networkarea_name"
@@ -217,7 +221,7 @@
                             <TableColumn
                               field="bk_host_name"
                               :title="'主机名'"
-                              min-width="150"
+                              min-width="200"
                             ></TableColumn>
                             <TableColumn
                               field="bk_networkarea_name"
@@ -413,7 +417,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'action',
   ],
   disabled: ['action'],
-});
+}, 'nodeMng-preview');
 const statusMap = {
   clean_install: {
     text: '可执行：全新安装并导入 CMDB',
@@ -632,10 +636,11 @@ watch(
       originData.value = props.data.info.map(item => ({
         ...item,
         login_port: Number(item.login_port),
-        bk_biz_id: props.data.bk_biz_id,
-        bk_networkunit_id: Number(props.data.bk_networkunit_id),
+        bk_biz_id: item.bk_biz_id ?? Number(props.data.bk_biz_id),
+        bk_networkunit_id: item.bk_networkunit_id ?? Number(props.data.bk_networkunit_id),
         bk_host_id: Number(item.bk_host_id),
-        bk_networkarea_name: props.data.bk_networkarea_name,
+        bk_networkarea_name: item.bk_networkarea_name ??  props.data.bk_networkarea_name,
+        bk_addressing: 'static',
       }));
       await installCheck();
     }

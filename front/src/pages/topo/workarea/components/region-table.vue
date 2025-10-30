@@ -149,7 +149,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'action',
   ],
   disabled: ['action'],
-});
+}, 'topoMng-workarea');
 
 // table filter逻辑
 const filterOption = reactive<{

@@ -213,6 +213,17 @@
           </div>
         </div>
         <div v-else>--</div>
+        <Button
+          v-if="!isDownStreamDataExist"
+          text
+          theme="primary"
+          class="ml-[15px]"
+          @click="toggleExpand">
+          <span>
+            {{ $t('topoManager.workUnit.toggle.close') }}
+          </span>
+          <i class="nodeman-icon nc-double-up text-[24px]"></i>
+        </Button>
       </div>
     </div>
   </div>

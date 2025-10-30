@@ -82,9 +82,12 @@ const initData = {
 };
 const formData = reactive({
   type: '',
-  business: '',
-  cloud: '',
-  cloud_unit: '',
+  bk_biz_id: '',
+  bk_networkarea_id: '',
+  bk_networkunit_id: '',
+  bk_networkarea_name: '',
+  bk_networkunit_name: '',
+  bk_host_name: '',
   info: [cloneDeep(initData)] as AgentInstallInfo[],
 });
 const previewData = reactive({
@@ -157,9 +160,9 @@ onMounted(async () => {
     window.addEventListener('resize', debouncedCheck);
     checkIfAtBottom();
   }
-  formData.info = nodeManageStore.agentEditParams.tableData.map((item: Host) => ({
-    ...item,
-    target_version: item.state.node_version,
+  formData.info = nodeManageStore.agentEditParams.tableData.map(({ info, state, ...rest }) => ({
+    target_version: state.node_version,
+    ...rest,
   }));
 });
 onUnmounted(() => {

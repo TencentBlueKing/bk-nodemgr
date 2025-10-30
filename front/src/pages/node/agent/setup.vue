@@ -103,12 +103,16 @@
         </Form.FormItem>
         <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.version')" required v-if="isShow">
           <div class="w-[568px]">
-            <Table :data="systemData" :border="true" width="568">
+            <Table :data="systemData" :border="true" width="568" empty-text="当前无可用版本">
               <TableColumn
                 field="os"
-                :title="$t('platform.nodeMan.os_type')"
+                title="操作系统/架构"
                 width="200"
-              ></TableColumn>
+              >
+                <template #default="{ row }">
+                  {{ row.os?.replace('_', '/') }}
+                </template>
+              </TableColumn>
               <TableColumn field="version" :title="$t('platform.nodeMan.installAgentPage.packageVersion')" width="368">
                 <template #header>
                   <span class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.packageVersion') }}</span>
@@ -122,7 +126,7 @@
                     :ref="(el) => setInputRef(row.os, el)"
                   >
                     <Input
-                      :model-value="row.version"
+                      :model-value="row.versionName"
                       :placeholder="$t('platform.nodeMan.installAgentPage.placeholder.select')"
                       @click="handleChooseVersion(row)"
                     />
@@ -151,6 +155,11 @@
       <Button
         class="w-[100px]"
         theme="primary"
+        :disabled="systemData.length === 0 && isShow"
+        v-bk-tooltips="{
+          content: '当前无可用版本, 不可安装',
+          disabled: systemData.length > 0 || !isShow
+        }"
         @click="handlePreview"
       >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
       >
@@ -179,16 +188,19 @@ import { Button, Form, Input, Message, Select, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, debounce  } from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
 import Preview from './preview.vue';
 
+import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 
+const { t } = useI18n();
 const router = useRouter();
 const initData = {
   bk_addressing: 'static',
@@ -226,19 +238,23 @@ const previewData = reactive({
 const systemData = ref([
   {
     os: 'linux_amd64',
-    version: '',
+    version: 'auto',
+    versionName: t('components.chooseVersion.auto'),
   },
   {
     os: 'darwin_amd64',
-    version: '',
+    version: 'auto',
+    versionName: t('components.chooseVersion.auto'),
   },
   {
     os: 'linux_arm64',
-    version: '',
+    version: 'auto',
+    versionName: t('components.chooseVersion.auto'),
   },
   {
     os: 'windows_amd64',
-    version: '',
+    version: 'auto',
+    versionName: t('components.chooseVersion.auto'),
   },
 ]);
 const rules = {};
@@ -252,13 +268,15 @@ const handleSelect = (newValue: string, oldValue: string) => {
 const dialogData = ref([{
   os: '',
   version: '',
+  versionName: '',
 }]);
-const handleChooseVersion = (row: { version: string; os: string }) => {
+const handleChooseVersion = (row: { version: string; os: string, versionName: string }) => {
   isShowDialog.value = true;
   dialogData.value = [row];
 };
 const handleComfirmVerion = (data: any) => {
-  dialogData.value[0].version = data.version === 'auto' ? '' : data.version;
+  dialogData.value[0].version = data?.version;
+  dialogData.value[0].versionName = data?.versionName;
 };
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);
@@ -352,15 +370,17 @@ const handlePreview = async () => {
       delete item.bk_host_id;
     });
     if (isShow.value) {
-      formData.target_version = systemData.value.map((item) => {
-        const [type, cpu_arch] = item.os.split('_');
-        const os_type = type;
-        return {
-          os_type,
-          cpu_arch,
-          version: item.version,
-        };
-      });
+      formData.target_version = systemData.value
+        .filter((item: any) => item.version !== 'auto')
+        .map((item) => {
+          const [type, cpu_arch] = item.os.split('_');
+          const os_type = type;
+          return {
+            os_type,
+            cpu_arch,
+            version: item.version,
+          };
+        });
       formData.disable_default_target_version = true;
     }
     previewData.data = { ...formData };
@@ -372,6 +392,37 @@ const handleSetpBack = () => {
 const handleCancel = () => {
   router.push({ name: 'agent' });
 };
+
+// 获取版本，用来检查是否有对应架构的包版本去安装
+const getVersions = async () => {
+  const res = await PackageService.ListRelease({
+    generation: 2,
+    release_type: 'agent',
+  }).catch(() => ({
+    total: 0,
+    items: [],
+  }));
+  const osMap: any = {};
+  res.items.forEach((item) => {
+    const key = `${item.os_type}_${item.cpu_arch}`;
+    if (!osMap[key]) {
+      osMap[key] = {
+        name: key,
+        enableVersions: [],
+      };
+    }
+    if (item.enabled) {
+      osMap[key].enableVersions.push({
+        version: item.version,
+        versionName: item.version,
+        os_type: item.os_type,
+        cpu_arch: item.cpu_arch,
+      });
+    }
+  });
+  systemData.value = systemData.value.filter((item) => !!osMap[item.os]?.enableVersions.length);
+};
+
 const footerRef = ref<Element | null>(null);
 const checkIfAtBottom = () => {
   if (footerRef.value) {
@@ -409,6 +460,7 @@ watch(
 );
 onMounted(async () => {
   await getNetworkAreaList();
+  await getVersions();
   if (footerRef.value) {
     window.addEventListener('resize', debouncedCheck);
     checkIfAtBottom();

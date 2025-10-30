@@ -138,7 +138,7 @@
           </Select.Option>
         </Select>
       </div>
-      <Menu :active-key="String(route.name)">
+      <Menu :active-key="String(currentActive)">
         <Menu.Group
           v-for="item in subMenuData"
           :key="item.title"
@@ -155,7 +155,7 @@
                 v-if="subItem.icon"
                 :class="[
                   subItem.icon,
-                  route.name === subItem.routeName
+                  currentActive === subItem.routeName
                     ? 'text-[#3A84FF]'
                     : 'text-[#979BA5]',
                 ]"
@@ -234,6 +234,7 @@ const handleNavToggle = (value: boolean) => {
 // 业务选择
 const business = ref<number[]>([]);
 const businessList = computed(() => mainStore.businessList);
+const currentActive = computed(() => route.meta.parentName || route.name);
 const loading = ref(false);
 const getBusinessList = async () => {
   loading.value = true;
@@ -473,5 +474,18 @@ body {
 }
 .bk-navigation .navigation-container {
   max-width: none !important;
+}
+.vxe-table--empty-content {
+  height: 200px;
+  line-height: 200px;
+}
+.bk-vxe-table {
+  min-height: 300px;
+}
+.bk-vxe-table .vxe-table--filter-body {
+  min-height: 80px;
+}
+.bk-loading-mask, .bk-loading-indicator {
+  z-index: 10 !important;
 }
 </style>

@@ -60,7 +60,7 @@ platform:
     copy: Copy
     uninstall: Uninstall
     bussinessTopology: Business topo
-    agentSearchPlaceholder: 'Search IP, BK-Net ID:IP, Agent ID, BK-Net and more'
+    agentSearchPlaceholder: 'Search IP, Agent ID, BK-Net, BK-Net unit and more'
     inner_ip: LAN IPv4
     inner_ipv6: LAN IPv6
     agentId: Agent ID

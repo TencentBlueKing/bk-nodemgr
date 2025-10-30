@@ -223,7 +223,7 @@ const systemData = ref([
     cpu_arch: 'amd64',
     os_type: 'linux',
     version: 'auto',
-    versionName: '自动',
+    versionName: t('components.chooseVersion.auto'),
   },
   {
     displayName: 'linux/arm64',
@@ -231,7 +231,7 @@ const systemData = ref([
     cpu_arch: 'arm64',
     os_type: 'linux',
     version: 'auto',
-    versionName: '自动',
+    versionName: t('components.chooseVersion.auto'),
   },
 ]);
 // 安装方式列表
@@ -446,7 +446,7 @@ const getVersions = async () => {
   }));
   const osMap: any = {};
   res.items.forEach((item) => {
-    const key = `${(item.os_type)}_${item.cpu_arch}`;
+    const key = `${item.os_type}_${item.cpu_arch}`;
     if (!osMap[key]) {
       osMap[key] = {
         name: key,
@@ -462,10 +462,7 @@ const getVersions = async () => {
       });
     }
   });
-  systemData.value = systemData.value.filter((item) => {
-    const key = `${(item.os_type)}_${item.cpu_arch}`;
-    return !!osMap[key]?.enableVersions.length;
-  });
+  systemData.value = systemData.value.filter(item => !!osMap[item.os]?.enableVersions.length);
 };
 
 watch(() => isShow.value, async () => {

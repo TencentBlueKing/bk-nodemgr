@@ -184,7 +184,7 @@ const generalLink = ref<Record<keyof Link, number | undefined>>({
 const form = reactive({
   bk_networkunit_name: '',
   bk_networkarea_id: workareaId,
-  accesspoints: [],
+  accesspoints: [] as AccessPoint[],
   direct_endpoints: {
     cluster: [''],
     file: [''],
@@ -292,7 +292,10 @@ const handleConfirm = async () => {
     const params: TopoNetworkUnitCreateReq = {
       bk_networkunit_name: form.bk_networkunit_name,
       bk_networkarea_id: form.bk_networkarea_id,
-      accesspoints: form.accesspoints,
+      accesspoints: form.accesspoints.map((item: AccessPoint) => ({
+        ...item,
+        accesspoint_id: item.accesspoint_id ?? -1,
+      })),
       direct_endpoints: form.direct_endpoints,
       links,
       is_direct: type.value === 'direct',

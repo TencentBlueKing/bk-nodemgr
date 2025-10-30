@@ -7,7 +7,7 @@
       >
         <TableColumn
           field="name"
-          :title="'包名'"
+          :title="currentType === 'cert' ? '文件名' : '包名'"
           v-if="currentType !== 'bintool'"
           min-width="350"
         ></TableColumn>

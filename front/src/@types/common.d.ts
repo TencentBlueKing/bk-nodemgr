@@ -238,7 +238,7 @@ interface ConfigPolicy {
   tenant_id: string;
   configpolicy_id: number;
   configpolicy_name: string;
-  node_role: string;
+  type: string;
   biz_id: number[];
   remark: string;
   scopes: ConfigPolicyScope[];
@@ -247,6 +247,18 @@ interface ConfigPolicy {
   updated_time: number;
   operator: string;
   version: number;
+}
+
+// ConfigPolicyEvent describes the config policy event.
+interface ConfigPolicyEvent {
+  tenant_id: string;
+  configpolicy_id: number;
+  configpolicy_name: string;
+  configpolicy_type: string;
+  type: string;
+  version: number;
+  operate_time: number;
+  operator: string;
 }
 
 interface Error {
