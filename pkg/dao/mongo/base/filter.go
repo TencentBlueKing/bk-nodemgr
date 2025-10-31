@@ -86,7 +86,7 @@ func WithStringValues(key string, values ...string) OptFn {
 }
 
 // WithValues filters by bool value.
-func WithValues[T bool | string | int64](key string, values ...T) OptFn {
+func WithValues[T ~bool | ~string | ~int64](key string, values ...T) OptFn {
 	if len(values) == 0 {
 		return func(f bson.D) bson.D {
 			return f
@@ -104,7 +104,7 @@ func WithValues[T bool | string | int64](key string, values ...T) OptFn {
 }
 
 // WithoutValues filters by not contains bool value.
-func WithoutValues[T bool | string | int64](key string, values ...T) OptFn {
+func WithoutValues[T ~bool | ~string | ~int64](key string, values ...T) OptFn {
 	if len(values) == 0 {
 		return func(f bson.D) bson.D {
 			return f
