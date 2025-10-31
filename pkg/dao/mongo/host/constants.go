@@ -55,6 +55,12 @@ const (
 	// FieldKeyStaticHostName the static hostname field key.
 	FieldKeyStaticHostName = "data.static.host_name"
 
+	// FieldKeyStaticCPUNum the static cpu num field key.
+	FieldKeyStaticCPUNum = "data.static.cpu_num"
+
+	// FieldKeyStaticMEMCap the static mem cap field key.
+	FieldKeyStaticMEMCap = "data.static.mem_cap"
+
 	// Dynamic fields.
 
 	// FieldKeyDynamic the dynamic field key.

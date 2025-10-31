@@ -309,6 +309,9 @@ type HostStatic struct {
 	Arch       string
 	Addressing Addressing
 
+	CPUNum float64
+	MEMCap float64
+
 	// synced types, do not use this for processing.
 	// just use it for comparing and checking.
 	SyncedAgentID string

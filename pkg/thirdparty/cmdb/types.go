@@ -233,7 +233,7 @@ type HostInfo struct {
 	// 套餐计费过期时间
 	BillingExpireTime time.Time `json:"billing_expire_time"`
 	// CPU逻辑核心数
-	BKCpu *float64 `json:"bk_cpu"`
+	BKCpu float64 `json:"bk_cpu"`
 	// CPU型号
 	BKCpuModule string `json:"bk_cpu_module"`
 	// 操作系统位数
@@ -241,7 +241,7 @@ type HostInfo struct {
 	// 内网Mac 地址
 	BKMac string `json:"bk_mac"`
 	// 内存容量
-	BKMem *float64 `json:"bk_mem"`
+	BKMem float64 `json:"bk_mem"`
 	// CPU架构
 	BKCpuArchitecture string `json:"bk_cpu_architecture"`
 	// 外网MAC地址

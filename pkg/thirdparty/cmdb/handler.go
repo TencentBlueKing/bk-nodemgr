@@ -828,6 +828,8 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 			OuterIP:       hostInfo.BKHostOuterIPV4,
 			OuterIPV6:     hostInfo.BKHostOuterIPV6,
 			Mac:           hostInfo.BKMac,
+			CPUNum:        hostInfo.BKCpu,
+			MEMCap:        hostInfo.BKMem,
 			OSTypeCCID:    hostInfo.BKOSType,
 			OSType:        h.osTypeKeeper.getValue(hostInfo.BKOSType),
 			Arch:          h.cpuArchKeeper.getValue(hostInfo.BKCpuArchitecture),
