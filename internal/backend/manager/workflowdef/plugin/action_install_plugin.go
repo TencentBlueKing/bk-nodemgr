@@ -41,6 +41,7 @@ const (
 func NewActionInstallPlugin(capability *Capability) action.Definition {
 	return &actionInstallPlugin{
 		daoHost:             capability.StorageTopo,
+		daoPlugin:           capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
 		provider:            capability.DiscoverProvider,
 		gseHandler:          capability.GSEHandler,

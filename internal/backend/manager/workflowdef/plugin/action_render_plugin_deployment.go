@@ -136,7 +136,7 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 			std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName, err)
 	}
 
-	std.DeployInfo().BlockingActionName = ActionNameRenderPluginDeployment
+	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
 	version := std.DeployInfo().Process.Info.Version
 	pluginPkgName := plugin.PkgName
@@ -157,7 +157,10 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	std.DeployInfo().Process.PluginName = pluginName
 	std.DeployInfo().Process.PluginPkgName = pluginPkgName
 	std.DeployInfo().Process.PluginGroup = pluginGroup
-	std.DeployInfo().Process.Info.Version = version
+	std.DeployInfo().Process.Info = types.ProcessInfo{
+		Version: version,
+		AgentID: host.Dynamic.AgentID,
+	}
 
 	// setting process by plugin pkg.
 

@@ -32,7 +32,8 @@ const (
 // NewActionTrusteeshipPlugin ...
 func NewActionTrusteeshipPlugin(capability *Capability) action.Definition {
 	return &actTrusteeshipPlugin{
-		gseHandlerProc: capability.GSEHandler,
+		daoPluginDeployment: capability.StoragePlugin,
+		gseHandlerProc:      capability.GSEHandler,
 	}
 }
 

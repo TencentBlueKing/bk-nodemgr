@@ -43,8 +43,8 @@ const (
 	// pluginFlagStatus plugin flag name defines the status.
 	pluginFlagStatus pluginFlagName = "status"
 
-	// pluginFlagPluginGroup plugin flag name defines the plugin type.
-	pluginFlagPluginGroup pluginFlagName = "plugin_type"
+	// pluginFlagPluginGroup plugin flag name defines the plugin group.
+	pluginFlagPluginGroup pluginFlagName = "plugin_group"
 
 	// pluginFlagPluginName plugin flag name defines the plugin name.
 	pluginFlagPluginName pluginFlagName = "plugin_name"
