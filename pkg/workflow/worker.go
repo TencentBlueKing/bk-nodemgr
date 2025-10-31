@@ -341,10 +341,15 @@ func (mgr *manager) executeAction(
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.New("action panic")
+
+			stack := string(debug.Stack())
+
 			logger.G.Sys().
 				WithErr(err).
-				With("info", actionInstCtx.Data.Info(), "recover", r, "stack", debug.Stack()).
+				With("info", actionInstCtx.Data.Info(), "recover", r, "stack", stack).
 				Info("failed to execute action, recover from panic")
+
+			actionInstCtx.Data.LogE(fmt.Sprintf("action panic: revoer(%v), stack(%s)", r, stack))
 		}
 
 		doResult <- err
