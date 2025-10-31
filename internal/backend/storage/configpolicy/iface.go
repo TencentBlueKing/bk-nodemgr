@@ -22,15 +22,11 @@ type IStorage interface {
 	basestorage.Interface
 	IDaoConfigPolicy
 	IDaoConfigPolicyEvent
+	IDaoConfigPolicyNode
 }
 
 // IDaoConfigPolicy defines the interface for config policy.
 type IDaoConfigPolicy interface {
-	// MatchConfigPolicy matches the config policy.
-	MatchConfigPolicy(nCtx contextx.IContext,
-		bizID, networkAreaID, networkUnitID int64,
-		osType criteria.OSType, cpuArch criteria.CPUArch) (*types.ConfigPolicy, bool, error)
-
 	// CountConfigPolicy counts the config policy by conditions.
 	CountConfigPolicy(nCtx contextx.IContext, conditions ...*types.ConfigPolicyCondition) (int64, error)
 
@@ -55,6 +51,14 @@ type IDaoConfigPolicy interface {
 
 	// DisableManyConfigPolicy disables the config policies.
 	DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error
+}
+
+// IDaoConfigPolicyNode defines the interface for config policy node.
+type IDaoConfigPolicyNode interface {
+	// MatchConfigPolicyNode matches the config policy node.
+	MatchConfigPolicyNode(nCtx contextx.IContext,
+		bizID, networkAreaID, networkUnitID int64,
+		osType criteria.OSType, cpuArch criteria.CPUArch, nodeRole types.NodeRole) (*types.ConfigPolicy, bool, error)
 }
 
 // IDaoConfigPolicyEvent defines the interface for policy event.

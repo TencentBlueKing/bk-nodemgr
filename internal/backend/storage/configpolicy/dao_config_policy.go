@@ -21,21 +21,31 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// matchConfigPolicy matches the config policy.
-func (s *Storage) matchConfigPolicy(nCtx contextx.IContext,
+// matchConfigPolicyNode matches the config policy node.
+func (s *Storage) matchConfigPolicyNode(nCtx contextx.IContext,
 	bizID, networkAreaID, networkUnitID int64,
-	osType criteria.OSType, cpuArch criteria.CPUArch) (*types.ConfigPolicy, bool, error) {
+	osType criteria.OSType, cpuArch criteria.CPUArch, nodeRole types.NodeRole) (*types.ConfigPolicy, bool, error) {
 
 	var results []*types.ConfigPolicy
 	var err error
 
-	if results, _, err = s.daoConfigPolicy.List(nCtx,
-		types.Page{
-			Limit: 1,
-			Sort:  "-" + configpolicy.FieldKeyUpdatedAt,
-		},
+	configpolicyType, err := types.ConvertNodeRoleToConfigPolicyType(nodeRole)
+	if err != nil {
+		return nil, false, fmt.Errorf("convert node role to config policy type failed: %w", err)
+	}
+
+	page := types.Page{Limit: 1}
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(configpolicy.FieldKeyUpdatedAt))
+
+	opts := make([]configpolicy.OptFn, 0)
+	opts = append(opts,
 		configpolicy.WithEnabledScope(bizID, networkAreaID, networkUnitID, osType, cpuArch),
-	); err != nil {
+		configpolicy.WithConfigPolicyType(configpolicyType),
+	)
+
+	if results, _, err = s.daoConfigPolicy.List(nCtx,
+		page, opts...); err != nil {
 		return nil, false, fmt.Errorf("list config policy failed: %w", err)
 	}
 

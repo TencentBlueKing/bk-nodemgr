@@ -111,7 +111,6 @@ func (m *Manager) UploadOriginPluginBinToolV2(
 	}
 	detail.Existed = existed
 
-	// create the upload record.
 	uploadID, err := m.storageUpload.CreatePluginBinToolV2Upload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginPluginBinToolV2,
 		SavedName: pkgName,

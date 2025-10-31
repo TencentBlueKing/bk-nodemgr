@@ -80,10 +80,10 @@ func (s *Storage) check() error {
 	return nil
 }
 
-// MatchConfigPolicy matches the config policy.
-func (s *Storage) MatchConfigPolicy(nCtx contextx.IContext,
+// MatchConfigPolicyNode matches the config policy.
+func (s *Storage) MatchConfigPolicyNode(nCtx contextx.IContext,
 	bizID, networkAreaID, networkUnitID int64,
-	osType criteria.OSType, cpuArch criteria.CPUArch) (*types.ConfigPolicy, bool, error) {
+	osType criteria.OSType, cpuArch criteria.CPUArch, nodeRole types.NodeRole) (*types.ConfigPolicy, bool, error) {
 
 	var (
 		result  *types.ConfigPolicy
@@ -95,7 +95,7 @@ func (s *Storage) MatchConfigPolicy(nCtx contextx.IContext,
 	metric := s.metric().Start("match")
 	defer metric.End(err)
 
-	result, matched, err = s.matchConfigPolicy(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch)
+	result, matched, err = s.matchConfigPolicyNode(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch, nodeRole)
 
 	return result, matched, err
 }

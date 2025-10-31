@@ -155,3 +155,15 @@ func StringListToConfigPolicyTypeList(stringList []string) ([]ConfigPolicyType, 
 
 	return data, nil
 }
+
+// ConvertNodeRoleToConfigPolicyType converts node role to config policy type.
+func ConvertNodeRoleToConfigPolicyType(nodeRole NodeRole) (ConfigPolicyType, error) {
+	switch nodeRole {
+	case NodeRoleAgent:
+		return ConfigPolicyTypeAgent, nil
+	case NodeRoleProxy:
+		return ConfigPolicyTypeProxy, nil
+	default:
+		return "", fmt.Errorf("invalid node role. role(%s)", nodeRole)
+	}
+}

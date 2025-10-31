@@ -107,7 +107,6 @@ func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadClose
 	}
 	detail.Existed = existed
 
-	// create the upload record.
 	uploadID, err := m.storageUpload.CreateCertUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginCert,
 		SavedName: pkgName,
@@ -292,7 +291,7 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 			MD5:          releaseInfo.MD5,
 			Enabled:      true,
 			AsDefault:    true,
-			UpdatedAt:    time.Time{},
+			UpdatedAt:    time.Now(),
 			Operator:     nCtx.BKUsername(),
 			AdditionInfo: nil,
 		},
@@ -338,8 +337,8 @@ func (m *Manager) recordCertEvent(nCtx contextx.IContext, certInfo *types.Releas
 			Version:     certInfo.Version,
 			OSType:      certInfo.Platform.OS,
 			CPUArch:     certInfo.Platform.Arch,
-			OperateTime: certInfo.UpdatedAt,
 			Operator:    certInfo.Operator,
+			OperateTime: certInfo.UpdatedAt,
 		}
 	}
 

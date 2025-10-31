@@ -113,7 +113,6 @@ func (m *Manager) UploadOriginBinTool(
 	}
 	detail.Existed = existed
 
-	// create the upload record.
 	uploadID, err := m.storageUpload.CreateBinToolUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginBinTool,
 		SavedName: pkgName,

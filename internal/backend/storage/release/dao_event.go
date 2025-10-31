@@ -48,6 +48,9 @@ func (s *Storage) listPackageEvent(nCtx contextx.IContext, page types.Page, cond
 
 	opts := convertPackageEventConditionsToOptions(conditions...)
 
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(daoPackageEvent.FieldKeyOperateTime))
+
 	events, num, err := s.daoPackageEvent.List(nCtx, page, opts...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list package event: %w", err)

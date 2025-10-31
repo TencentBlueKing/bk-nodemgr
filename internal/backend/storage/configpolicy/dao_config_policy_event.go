@@ -48,6 +48,9 @@ func (s *Storage) listConfigPolicyEvent(nCtx contextx.IContext, page types.Page,
 
 	opts := convertConfigPolicyEventConditionsToOptions(conditions...)
 
+	page.Sort = types.WithSortFields(page.Sort,
+		types.WithFieldDesc(daoConfigPolicyEvent.FieldKeyOperateTime))
+
 	events, num, err := s.daoConfigPolicyEvent.List(nCtx, page, opts...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list config policy event: %w", err)

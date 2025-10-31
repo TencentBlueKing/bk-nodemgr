@@ -121,7 +121,6 @@ func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.Rea
 	}
 	detail.Existed = existed
 
-	// create the upload record.
 	uploadID, err := m.storageUpload.CreatePluginV2Upload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginPluginV2,
 		SavedName: originalPkgName,

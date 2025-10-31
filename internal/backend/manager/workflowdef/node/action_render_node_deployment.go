@@ -541,29 +541,32 @@ func forbiddenKeys() []string {
 func (act *actionRenderNodeDeployment) renderCustomSetting(
 	ctx *action.InstanceContext, conf *types.NodeConf, info *types.DeploymentInfo) error {
 
-	configPolicy, matched, err := act.storageConfigPolicy.MatchConfigPolicy(ctx.Ctx,
-		info.Host.Static.BizID,
-		info.Host.Static.NetworkAreaID,
-		info.Host.Dynamic.NetworkUnitID,
-		info.Host.Dynamic.NodeOsType,
-		info.Host.Dynamic.NodeCPUArch)
-	if err != nil {
-		return fmt.Errorf("match config policy failed. "+
-			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s): %w",
-			info.Host.Static.BizID,
-			info.Host.Static.NetworkAreaID,
-			info.Host.Dynamic.NetworkUnitID,
-			info.Host.Dynamic.NodeOsType,
-			info.Host.Dynamic.NodeCPUArch,
-			err)
-	}
-	ctx.Data.LogI(fmt.Sprintf("match config policy. "+
-		"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), matched(%t)",
+	configPolicy, matched, err := act.storageConfigPolicy.MatchConfigPolicyNode(ctx.Ctx,
 		info.Host.Static.BizID,
 		info.Host.Static.NetworkAreaID,
 		info.Host.Dynamic.NetworkUnitID,
 		info.Host.Dynamic.NodeOsType,
 		info.Host.Dynamic.NodeCPUArch,
+		info.Host.Dynamic.NodeRole)
+	if err != nil {
+		return fmt.Errorf("match config policy failed. "+
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s): %w",
+			info.Host.Static.BizID,
+			info.Host.Static.NetworkAreaID,
+			info.Host.Dynamic.NetworkUnitID,
+			info.Host.Dynamic.NodeOsType,
+			info.Host.Dynamic.NodeCPUArch,
+			info.Host.Dynamic.NodeRole,
+			err)
+	}
+	ctx.Data.LogI(fmt.Sprintf("match config policy. "+
+		"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), matched(%t)",
+		info.Host.Static.BizID,
+		info.Host.Static.NetworkAreaID,
+		info.Host.Dynamic.NetworkUnitID,
+		info.Host.Dynamic.NodeOsType,
+		info.Host.Dynamic.NodeCPUArch,
+		info.Host.Dynamic.NodeRole,
 		matched))
 
 	if matched && configPolicy != nil {

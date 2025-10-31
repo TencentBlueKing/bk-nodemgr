@@ -17,6 +17,7 @@ import (
 	"io"
 	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -356,6 +357,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 					FileName:   file.Info().Name,
 					MD5:        file.Info().MD5,
 					Operator:   nCtx.BKUsername(),
+					UpdatedAt:  time.Now(),
 				},
 				ReleaseAdditionInfoAgent: types.ReleaseAdditionInfoAgent{
 					ConfigTemplate: detail.ConfigTemplate,
@@ -415,8 +417,8 @@ func (m *Manager) recordPublishEvent(nCtx contextx.IContext, releaseInfo *types.
 		Version:     releaseInfo.Version,
 		OSType:      releaseInfo.Platform.OS,
 		CPUArch:     releaseInfo.Platform.Arch,
-		OperateTime: releaseInfo.UpdatedAt,
 		Operator:    releaseInfo.Operator,
+		OperateTime: releaseInfo.UpdatedAt,
 	}
 
 	if err := m.storageEvent.CreateManyPackageEvent(nCtx, event); err != nil {
