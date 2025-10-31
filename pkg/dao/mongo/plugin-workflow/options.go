@@ -29,23 +29,23 @@ func WithoutWorkflowID(workflowIDs ...string) OptFn {
 }
 
 // WithStatus filters by status.
-func WithStatus(statuses ...types.NodeWorkflowStatus) OptFn {
-	return base.WithValues(FieldKeyStatus, types.NodeWorkflowStatusListToStringList(statuses)...)
+func WithStatus(statuses ...types.PluginWorkflowStatus) OptFn {
+	return base.WithValues(FieldKeyStatus, statuses...)
 }
 
 // WithoutStatus filters by not contains status.
-func WithoutStatus(statuses ...types.NodeWorkflowStatus) OptFn {
-	return base.WithoutValues(FieldKeyStatus, types.NodeWorkflowStatusListToStringList(statuses)...)
+func WithoutStatus(statuses ...types.PluginWorkflowStatus) OptFn {
+	return base.WithoutValues(FieldKeyStatus, statuses...)
 }
 
 // WithType filters by type.
-func WithType(nodeWorkflowTypes ...types.NodeWorkflowType) OptFn {
-	return base.WithValues(FieldKeyType, types.NodeWorkflowTypeListToStringList(nodeWorkflowTypes)...)
+func WithType(pluginWorkflowTypes ...types.PluginWorkflowType) OptFn {
+	return base.WithValues(FieldKeyType, pluginWorkflowTypes...)
 }
 
 // WithoutType filters by not contains type.
-func WithoutType(nodeWorkflowTypes ...types.NodeWorkflowType) OptFn {
-	return base.WithoutValues(FieldKeyType, types.NodeWorkflowTypeListToStringList(nodeWorkflowTypes)...)
+func WithoutType(pluginWorkflowTypes ...types.PluginWorkflowType) OptFn {
+	return base.WithoutValues(FieldKeyType, pluginWorkflowTypes...)
 }
 
 // WithHostIDs filters by biz-id.

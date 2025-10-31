@@ -75,7 +75,7 @@ func (h *Handler) tenantDao(tenantID string) *dao {
 		return d.(*dao) // nolint: forcetypeassert
 	}
 
-	newDaoClient := newDao(h.client)
+	newDaoClient := newDao(h.client, tenantID)
 	if err := newDaoClient.EnsureIndexes(); err != nil {
 		logger.G.Sys().WithErr(err).With("tenant-id", tenantID).Warn("failed to ensure plugin workflow indexes")
 	}
@@ -97,8 +97,8 @@ func New(client *mongo.Database) *Handler {
 
 // Count counts plugin workflow by opts.
 func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
-	if nCtx == nil {
-		return 0, base.ErrInvalidContext()
+	if err := nCtx.CheckTenantID(); err != nil {
+		return 0, err
 	}
 
 	tenantID := nCtx.TenantID()
@@ -113,8 +113,8 @@ func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 
 // List lists plugin workflow by page and opts.
 func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginWorkflow, int64, error) {
-	if nCtx == nil {
-		return nil, 0, base.ErrInvalidContext()
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, err
 	}
 
 	tenantID := nCtx.TenantID()
@@ -146,8 +146,8 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 
 // Create creates a new plugin workflow.
 func (h *Handler) Create(nCtx contextx.IContext, workflow *types.PluginWorkflow) error {
-	if nCtx == nil {
-		return base.ErrInvalidContext()
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
 	}
 
 	tenantID := nCtx.TenantID()
@@ -160,10 +160,6 @@ func (h *Handler) Create(nCtx contextx.IContext, workflow *types.PluginWorkflow)
 		return errors.New("trigger id should not be empty")
 	}
 
-	if workflow.Status != types.PluginWorkflowStatusRunning {
-		return errors.New("status should be running")
-	}
-
 	if err := h.tenantDao(tenantID).Create(nCtx, convertPluginWorkflowFromTypes(workflow)); err != nil {
 		return err
 	}
@@ -173,8 +169,8 @@ func (h *Handler) Create(nCtx contextx.IContext, workflow *types.PluginWorkflow)
 
 // Get gets plugin workflow by id.
 func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
-	if nCtx == nil {
-		return nil, base.ErrInvalidContext()
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
 	}
 
 	tenantID := nCtx.TenantID()
@@ -195,8 +191,8 @@ func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.PluginW
 
 // UpdateStatus updates the status of a plugin workflow.
 func (h *Handler) UpdateStatus(nCtx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
-	if nCtx == nil {
-		return base.ErrInvalidContext()
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
 	}
 
 	tenantID := nCtx.TenantID()
@@ -220,8 +216,8 @@ func (h *Handler) UpdateStatus(nCtx contextx.IContext, workflowID string, status
 
 // UpdateFinishTime updates the finish time of a plugin workflow.
 func (h *Handler) UpdateFinishTime(nCtx contextx.IContext, workflowID string, finishTime time.Time) error {
-	if nCtx == nil {
-		return base.ErrInvalidContext()
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
 	}
 
 	tenantID := nCtx.TenantID()
@@ -285,8 +281,8 @@ func (h *Handler) DistinctPluginWorkflowStatus(nCtx contextx.IContext, opts ...O
 
 // distinctInt64 returns distinct values of specified field.
 func (h *Handler) distinctInt64(nCtx contextx.IContext, key string, opts ...OptFn) ([]int64, error) {
-	if nCtx == nil {
-		return nil, base.ErrInvalidContext()
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
 	}
 
 	tenantID := nCtx.TenantID()
@@ -301,8 +297,8 @@ func (h *Handler) distinctInt64(nCtx contextx.IContext, key string, opts ...OptF
 
 // distinctString returns distinct values of specified field.
 func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
-	if nCtx == nil {
-		return nil, base.ErrInvalidContext()
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
 	}
 
 	tenantID := nCtx.TenantID()
