@@ -258,7 +258,7 @@ service Upload {
   rpc UploadOriginPluginBinToolV2(UploadOriginPluginBinToolV2Req)
       returns (UploadOriginPluginBinToolV2Resp) {
     option (google.api.http) = {
-      post : "/upload/origin/bintool"
+      post : "/upload/origin/plugin_bintool"
       body : "*"
     };
   }
@@ -267,7 +267,7 @@ service Upload {
   rpc UploadOriginPluginV2(UploadOriginPluginV2Req)
       returns (UploadOriginPluginV2Resp) {
     option (google.api.http) = {
-      post : "/upload/origin/plugin"
+      post : "/upload/origin/v2/plugin"
       body : "*"
     };
   }
@@ -276,7 +276,7 @@ service Upload {
   rpc UploadOriginExternalPlugin(UploadOriginExternalPluginV2Req)
       returns (UploadOriginExternalPluginV2Resp) {
     option (google.api.http) = {
-      post : "/upload/origin/external_plugin"
+      post : "/upload/origin/v2/external_plugin"
       body : "*"
     };
   }

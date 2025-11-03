@@ -52,13 +52,13 @@
     },
     "/upload/origin/bintool": {
       "post": {
-        "summary": "UploadOriginPluginBinToolV2 provides origin bintool upload.",
-        "operationId": "Upload_UploadOriginPluginBinToolV2",
+        "summary": "UploadOriginBinTool provides origin bintool upload.",
+        "operationId": "Upload_UploadOriginBinTool",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginBinToolV2Resp"
+              "$ref": "#/definitions/v3UploadOriginBinToolResp"
             }
           },
           "default": {
@@ -71,11 +71,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UploadOriginPluginBinToolV2Req is the request for upload origin bin tool pkg.",
+            "description": "UploadOriginBinToolReq is the request for upload origin bin tool pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginBinToolV2Req"
+              "$ref": "#/definitions/v3UploadOriginBinToolReq"
             }
           }
         ],
@@ -118,15 +118,15 @@
         ]
       }
     },
-    "/upload/origin/external_plugin": {
+    "/upload/origin/plugin_bintool": {
       "post": {
-        "summary": "UploadOriginExternalPlugin provides origin external plugin upload.",
-        "operationId": "Upload_UploadOriginExternalPlugin",
+        "summary": "UploadOriginPluginBinToolV2 provides origin bintool upload.",
+        "operationId": "Upload_UploadOriginPluginBinToolV2",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginExternalPluginV2Resp"
+              "$ref": "#/definitions/v3UploadOriginPluginBinToolV2Resp"
             }
           },
           "default": {
@@ -139,45 +139,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UploadOriginExternalPluginV2Req is the request for upload external\nplugin pkg.",
+            "description": "UploadOriginPluginBinToolV2Req is the request for upload origin bin tool pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginExternalPluginV2Req"
-            }
-          }
-        ],
-        "tags": [
-          "Upload"
-        ]
-      }
-    },
-    "/upload/origin/plugin": {
-      "post": {
-        "summary": "UploadOriginPluginV2 provides origin plugin upload.",
-        "operationId": "Upload_UploadOriginPluginV2",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginV2Resp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "UploadOriginPluginV2Req is the request for upload origin\nplugin pkg.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginV2Req"
+              "$ref": "#/definitions/v3UploadOriginPluginBinToolV2Req"
             }
           }
         ],
@@ -212,6 +178,74 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3UploadOriginServerReq"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
+    "/upload/origin/v2/external_plugin": {
+      "post": {
+        "summary": "UploadOriginExternalPlugin provides origin external plugin upload.",
+        "operationId": "Upload_UploadOriginExternalPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginExternalPluginV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginExternalPluginV2Req is the request for upload external\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginExternalPluginV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
+    "/upload/origin/v2/plugin": {
+      "post": {
+        "summary": "UploadOriginPluginV2 provides origin plugin upload.",
+        "operationId": "Upload_UploadOriginPluginV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginPluginV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginPluginV2Req is the request for upload origin\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginPluginV2Req"
             }
           }
         ],

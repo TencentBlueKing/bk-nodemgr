@@ -118,74 +118,6 @@
         ]
       }
     },
-    "/publish/release/external_plugin": {
-      "post": {
-        "summary": "PublishReleaseExternalPlugin provides release external plugin publish.",
-        "operationId": "Publish_PublishReleaseExternalPlugin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PublishReleaseExternalPluginResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "PublishReleaseExternalPluginReq is the request for upload release external\nplugin pkg.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PublishReleaseExternalPluginReq"
-            }
-          }
-        ],
-        "tags": [
-          "Publish"
-        ]
-      }
-    },
-    "/publish/release/plugin": {
-      "post": {
-        "summary": "PublishReleasePlugin provides release plugin publish.",
-        "operationId": "Publish_PublishReleasePlugin",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PublishReleasePluginV2Resp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "PublishReleasePluginV2Req is the request for upload release\nplugin pkg.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PublishReleasePluginV2Req"
-            }
-          }
-        ],
-        "tags": [
-          "Publish"
-        ]
-      }
-    },
     "/publish/release/plugin_bintool": {
       "post": {
         "summary": "PublishReleasePluginBinToolV2 provides release plugin bintool publish.",
@@ -246,6 +178,74 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PublishReleaseProxyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/v2/external_plugin": {
+      "post": {
+        "summary": "PublishReleaseExternalPlugin provides release external plugin publish.",
+        "operationId": "Publish_PublishReleaseExternalPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseExternalPluginResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleaseExternalPluginReq is the request for upload release external\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleaseExternalPluginReq"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/v2/plugin": {
+      "post": {
+        "summary": "PublishReleasePlugin provides release plugin publish.",
+        "operationId": "Publish_PublishReleasePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleasePluginV2Req is the request for upload release\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginV2Req"
             }
           }
         ],

@@ -153,7 +153,7 @@ service Publish {
   rpc PublishReleasePlugin(PublishReleasePluginV2Req)
       returns (PublishReleasePluginV2Resp) {
     option (google.api.http) = {
-      post : "/publish/release/plugin"
+      post : "/publish/release/v2/plugin"
       body : "*"
     };
   }
@@ -162,7 +162,7 @@ service Publish {
   rpc PublishReleaseExternalPlugin(PublishReleaseExternalPluginReq)
       returns (PublishReleaseExternalPluginResp) {
     option (google.api.http) = {
-      post : "/publish/release/external_plugin"
+      post : "/publish/release/v2/external_plugin"
       body : "*"
     };
   }
