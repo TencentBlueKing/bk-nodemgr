@@ -56,6 +56,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/agent/download", restserver.StreamHandler(h.AgentDownload))
 	h.rg.POST("/proxy/download", restserver.StreamHandler(h.ProxyDownload))
+	h.rg.POST("/plugin/download", restserver.StreamHandler(h.PluginDownload))
 }
 
 const (
@@ -413,6 +414,27 @@ func (h *handler) ProxyDownload(rCtx restserver.IContext) (*restserver.StreamRes
 	}
 
 	logger.G.Biz(rCtx).With("gen", gen, "plat", plat, "version", version).Info("downloaded release proxy")
+
+	return resp, nil
+}
+
+// PluginDownload download release plugin.
+func (h *handler) PluginDownload(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	req := new(protoApplication.PackageReleasePluginDownloadReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, plat, version := req.GetIdentifier()
+	resp, err := h.fileHandler.DownloadReleasePlugin(rCtx, name, plat, version)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("plugin_name", name, "plat", plat, "version", version).Info("downloaded release plugin")
 
 	return resp, nil
 }

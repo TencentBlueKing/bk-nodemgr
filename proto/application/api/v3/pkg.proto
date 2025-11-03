@@ -450,6 +450,13 @@ message PackageReleaseProxyDownloadReq {
   string version = 3;
 }
 
+// PackageReleasePluginDownloadReq is the request for download plugin pkg.
+message PackageReleasePluginDownloadReq {
+  string name = 1;
+  Platform platform = 2;
+  string version = 3;
+}
+
 // FileChunk describes the file chunk data.
 message FileChunk { bytes content = 1; }
 
@@ -685,6 +692,14 @@ service Package {
   rpc DownloadProxy(PackageReleaseProxyDownloadReq) returns (FileChunk) {
     option (google.api.http) = {
       post : "/api/v3/package/release/proxy/download"
+      body : "*"
+    };
+  }
+
+  // DownloadPlugin download release plugin package.
+  rpc DownloadPlugin(PackageReleasePluginDownloadReq) returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/download"
       body : "*"
     };
   }

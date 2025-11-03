@@ -492,6 +492,40 @@
         ]
       }
     },
+    "/api/v3/package/release/plugin/download": {
+      "post": {
+        "summary": "DownloadPlugin download release plugin package.",
+        "operationId": "Package_DownloadPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleasePluginDownloadReq is the request for download plugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginDownloadReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/proxy/download": {
       "post": {
         "summary": "DownloadProxy download release proxy package.",
@@ -1647,6 +1681,21 @@
           }
         }
       }
+    },
+    "v3PackageReleasePluginDownloadReq": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleasePluginDownloadReq is the request for download plugin pkg."
     },
     "v3PackageReleaseProxyDownloadReq": {
       "type": "object",

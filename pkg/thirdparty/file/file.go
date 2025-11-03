@@ -365,6 +365,32 @@ func (c *cli) downloadReleaseProxy(nCtx contextx.IContext, tenantID string, req 
 	}, nil
 }
 
+func (c *cli) downloadReleasePlugin(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadPluginReq) (
+	*restserver.StreamResponse, error) {
+
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := c.client.Post().
+		SubResourcef("/download/plugin").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do()
+	reader, err := result.RawStream()
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	return &restserver.StreamResponse{
+		Data:       reader,
+		StatusCode: result.StatusCode,
+		Headers:    result.Header,
+	}, nil
+}
+
 func (c *cli) publishReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleaseProxyReq) (
 	*protoFile.PublishReleaseProxyResp_Data, error) {
 

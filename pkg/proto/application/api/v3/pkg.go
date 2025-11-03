@@ -295,6 +295,36 @@ func (x *PackageReleaseProxyDownloadReq) GetIdentifier() (
 		x.GetVersion()
 }
 
+// GetIdentifier get identifier.
+func (x *PackageReleasePluginDownloadReq) GetIdentifier() (
+	string, platfmt.Platform, string) {
+
+	return x.GetName(),
+		ConvertPlatformToTypes(x.GetPlatform()),
+		x.GetVersion()
+}
+
+// Validate check request body.
+func (x *PackageReleasePluginDownloadReq) Validate() error {
+	if x.GetName() == "" {
+		return errors.New("name is required")
+	}
+
+	if x.GetPlatform() == nil {
+		return errors.New("platform is required")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginDownloadReq) AutoConvert() {
+}
+
 // Validate check body.
 func (x *PackageReleaseAgentListReq) Validate() error {
 	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {

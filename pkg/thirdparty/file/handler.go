@@ -102,6 +102,9 @@ type IPkgManager interface {
 
 	// DownloadReleaseProxy download release proxy.
 	DownloadReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
+
+	// DownloadReleasePlugin download release plugin.
+	DownloadReleasePlugin(nCtx contextx.IContext, pluginName string, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
 }
 
 const (
@@ -328,6 +331,29 @@ func (h *handler) DownloadReleaseProxy(nCtx contextx.IContext,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to download release proxy: %w", err)
+	}
+
+	return resp, nil
+}
+
+// DownloadReleasePlugin download release plugin.
+func (h *handler) DownloadReleasePlugin(nCtx contextx.IContext,
+	pluginName string, plat platfmt.Platform, version string) (*restserver.StreamResponse, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	resp, err := h.cli.downloadReleasePlugin(nCtx, tenantID, &protoFile.DownloadPluginReq{
+		OsType:     string(plat.OS),
+		CpuArch:    string(plat.Arch),
+		Version:    version,
+		PluginName: pluginName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to download release plugin: %w", err)
 	}
 
 	return resp, nil
