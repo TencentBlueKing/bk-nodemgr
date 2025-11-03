@@ -91,6 +91,8 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 			exactCond.Platform = append(exactCond.Platform, ConvertPlatformFromTypes(plat))
 		}
 		exactCond.Version = conditions.ExactInclude.Version
+		exactCond.AsDefault = conditions.ExactInclude.AsDefault
+		exactCond.Enabled = conditions.ExactInclude.Enabled
 	}
 
 	if conditions.FuzzyInclude != nil || conditions.ExactExclude != nil || conditions.FuzzyExclude != nil {
