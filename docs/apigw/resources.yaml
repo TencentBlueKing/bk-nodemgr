@@ -47,7 +47,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: SyncCmdbConstantsResp describes the HTTP response body when sync cmdb\\\\nconstants.
+                description: SyncCmdbConstantsResp describes the HTTP response body when sync cmdb\\\\\\\\nconstants.
           description: A successful response.
         default:
           content:
@@ -74,9 +74,9 @@ paths:
           application/json:
             schema:
               type: object
-              description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\\\\nconstants.
+              description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\\\\\\\\nconstants.
         required: true
-        description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\\\\nconstants.
+        description: SyncCmdbConstantsReq describes the HTTP request body when sync cmdb\\\\\\\\nconstants.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -223,7 +223,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: SyncCmdbNetworkAreaResp describes the HTTP response body when sync cmdb\\\\nnetworkarea.
+                description: SyncCmdbNetworkAreaResp describes the HTTP response body when sync cmdb\\\\\\\\nnetworkarea.
           description: A successful response.
         default:
           content:
@@ -250,9 +250,9 @@ paths:
           application/json:
             schema:
               type: object
-              description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\\\\nnetworkarea.
+              description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\\\\\\\\nnetworkarea.
         required: true
-        description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\\\\nnetworkarea.
+        description: SyncCmdbNetworkAreaReq describes the HTTP request body when sync cmdb\\\\\\\\nnetworkarea.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -405,7 +405,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: SyncAllAgentStateResp describes the HTTP response body when sync all agent\\\\nstate.
+                description: SyncAllAgentStateResp describes the HTTP response body when sync all agent\\\\\\\\nstate.
           description: A successful response.
         default:
           content:
@@ -432,9 +432,9 @@ paths:
           application/json:
             schema:
               type: object
-              description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\\\\nstate.
+              description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\\\\\\\\nstate.
         required: true
-        description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\\\\nstate.
+        description: SyncAllAgentStateReq describes the HTTP request body when sync all agent\\\\\\\\nstate.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2922,7 +2922,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: DisableScheduleWorkflowResp describes the HTTP response body when disable\\\\nschedule workflow.
+                description: DisableScheduleWorkflowResp describes the HTTP response body when disable\nschedule workflow.
           description: A successful response.
         default:
           content:
@@ -2952,9 +2952,9 @@ paths:
               properties:
                 workflow_id:
                   type: string
-              description: DisableScheduleWorkflowReq describes the HTTP request body when disable\\\\nschedule workflow.
+              description: DisableScheduleWorkflowReq describes the HTTP request body when disable\nschedule workflow.
         required: true
-        description: DisableScheduleWorkflowReq describes the HTTP request body when disable\\\\nschedule workflow.
+        description: DisableScheduleWorkflowReq describes the HTTP request body when disable\nschedule workflow.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -2971,7 +2971,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/schedule/workflow/enable:
     post:
       operationId: Schedule_EnableScheduleWorkflow
@@ -3010,7 +3010,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: EnableScheduleWorkflowResp describes the HTTP response body when enable\\\\nschedule workflow.
+                description: EnableScheduleWorkflowResp describes the HTTP response body when enable\nschedule workflow.
           description: A successful response.
         default:
           content:
@@ -3040,9 +3040,9 @@ paths:
               properties:
                 workflow_id:
                   type: string
-              description: EnableScheduleWorkflowReq describes the HTTP request body when enable\\\\nschedule workflow.
+              description: EnableScheduleWorkflowReq describes the HTTP request body when enable\nschedule workflow.
         required: true
-        description: EnableScheduleWorkflowReq describes the HTTP request body when enable\\\\nschedule workflow.
+        description: EnableScheduleWorkflowReq describes the HTTP request body when enable\nschedule workflow.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3059,7 +3059,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/schedule/workflow/list:
     post:
       operationId: Schedule_ListScheduleWorkflow
@@ -3119,7 +3119,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ListScheduleWorkflowResp describes the HTTP response body when list schedule\\\\nworkflow.
+                description: ListScheduleWorkflowResp describes the HTTP response body when list schedule\nworkflow.
           description: A successful response.
         default:
           content:
@@ -3184,13 +3184,13 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: ScheduleWorkflowExactConditions describes the exact conditions of schedule\\\\nworkflow list request.
+                  description: ScheduleWorkflowExactConditions describes the exact conditions of schedule\nworkflow list request.
                 fuzzy_include_conditions:
                   type: object
-                  description: ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule\\\\nworkflow list request.
-              description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\\\\nworkflow.
+                  description: ScheduleWorkflowFuzzyConditions describes the fuzzy conditions of schedule\nworkflow list request.
+              description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\nworkflow.
         required: true
-        description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\\\\nworkflow.
+        description: ListScheduleWorkflowReq describes the HTTP request body when list schedule\nworkflow.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3207,11 +3207,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/package/release/cancel_as_default:
     post:
-      operationId: Package_CancelAsDefaultRelease
-      description: CancelAsDefaultRelease cancels release as default.
+      operationId: Package_CancelAsDefaultReleasePlugin
+      description: CancelAsDefaultReleasePlugin cancels release as default.
       tags:
         - Package
       responses:
@@ -3246,7 +3246,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseCancelAsDefaultResp describes the HTTP response body when\\\\ncancel default package release.
+                description: PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when\ncancel default package release.
           description: A successful response.
         default:
           content:
@@ -3274,6 +3274,8 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
                 version:
                   type: string
                 platform:
@@ -3287,11 +3289,9 @@ paths:
                 generation:
                   type: integer
                   format: int64
-                release_type:
-                  type: string
-              description: PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\\\\ndefault package release.
+              description: PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when\ncancel default package release.
         required: true
-        description: PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel\\\\ndefault package release.
+        description: PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when\ncancel default package release.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3308,11 +3308,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/package/release/delete:
     post:
-      operationId: Package_DeleteRelease
-      description: DeleteRelease deletes release.
+      operationId: Package_DeleteReleasePlugin
+      description: DeleteReleasePlugin deletes release.
       tags:
         - Package
       responses:
@@ -3347,7 +3347,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseDeleteResp describes the HTTP response body when delete\\\\nrelease.
+                description: PackageReleaseDeleteResp describes the HTTP response body when delete\nrelease.
           description: A successful response.
         default:
           content:
@@ -3375,6 +3375,8 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
                 version:
                   type: string
                 platform:
@@ -3388,11 +3390,9 @@ paths:
                 generation:
                   type: integer
                   format: int64
-                release_type:
-                  type: string
-              description: PackageReleaseDeleteReq describes the HTTP request body when delete release.
+              description: PackageReleasePluginDeleteReq describes the HTTP request body when delete\nrelease.
         required: true
-        description: PackageReleaseDeleteReq describes the HTTP request body when delete release.
+        description: PackageReleasePluginDeleteReq describes the HTTP request body when delete\nrelease.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3409,11 +3409,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/package/release/disable:
     post:
-      operationId: Package_DisableRelease
-      description: DisableRelease disables release.
+      operationId: Package_DisableReleasePlugin
+      description: DisableReleasePlugin disables release.
       tags:
         - Package
       responses:
@@ -3448,7 +3448,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseDisableResp describes the HTTP response body when disable\\\\npackage release.
+                description: PackageReleasePluginDisableResp describes the HTTP response body when disable\npackage release.
           description: A successful response.
         default:
           content:
@@ -3476,6 +3476,8 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
                 version:
                   type: string
                 platform:
@@ -3489,11 +3491,9 @@ paths:
                 generation:
                   type: integer
                   format: int64
-                release_type:
-                  type: string
-              description: PackageReleaseDisableReq describes the HTTP request body when disable package\\\\nrelease.
+              description: PackageReleasePluginDisableReq describes the HTTP request body when disable\npackage release.
         required: true
-        description: PackageReleaseDisableReq describes the HTTP request body when disable package\\\\nrelease.
+        description: PackageReleasePluginDisableReq describes the HTTP request body when disable\npackage release.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3510,11 +3510,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/package/release/enable:
     post:
-      operationId: Package_EnableRelease
-      description: EnableRelease enables release.
+      operationId: Package_EnableReleasePlugin
+      description: EnableReleasePlugin enables release.
       tags:
         - Package
       responses:
@@ -3549,7 +3549,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseEnableResp describes the HTTP response body when enable package\\\\nrelease.
+                description: PackageReleasePluginEnableResp describes the HTTP response body when enable\npackage release.
           description: A successful response.
         default:
           content:
@@ -3577,6 +3577,8 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
                 version:
                   type: string
                 platform:
@@ -3590,11 +3592,9 @@ paths:
                 generation:
                   type: integer
                   format: int64
-                release_type:
-                  type: string
-              description: PackageReleaseEnableReq describes the HTTP request body when enable package\\\\nrelease.
+              description: PackageReleasePluginEnableReq describes the HTTP request body when enable\npackage release.
         required: true
-        description: PackageReleaseEnableReq describes the HTTP request body when enable package\\\\nrelease.
+        description: PackageReleasePluginEnableReq describes the HTTP request body when enable\npackage release.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3611,7 +3611,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/package/release/list:
     post:
       operationId: Package_ListRelease
@@ -3637,6 +3637,8 @@ paths:
                           type: object
                           properties:
                             md5:
+                              type: string
+                            name:
                               type: string
                             labels:
                               type: array
@@ -3688,7 +3690,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseListResp describes the HTTP response body when list package\\\\nrelease.
+                description: PackageReleaseListResp describes the HTTP response body when list package\nrelease.
           description: A successful response.
         default:
           content:
@@ -3726,6 +3728,9 @@ paths:
                       type: integer
                       format: int32
                   description: Page describes the generaic conditions when paging query.
+                generation:
+                  type: integer
+                  format: int64
                 only_count:
                   type: boolean
                 release_type:
@@ -3755,19 +3760,10 @@ paths:
                       type: array
                       items:
                         type: boolean
-                    generation:
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
-                    release_type:
-                      type: array
-                      items:
-                        type: string
                   description: PackageReleaseExactConditions describes release exact conditions.
-              description: PackageReleaseListReq describes the HTTP request body when list package\\\\nrelease.
+              description: PackageReleaseListReq describes the HTTP request body when list package\nrelease.
         required: true
-        description: PackageReleaseListReq describes the HTTP request body when list package\\\\nrelease.
+        description: PackageReleaseListReq describes the HTTP request body when list package\nrelease.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3784,11 +3780,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/package/release/set_as_default:
     post:
-      operationId: Package_SetAsDefaultRelease
-      description: SetAsDefaultRelease sets release as default.
+      operationId: Package_SetAsDefaultReleasePlugin
+      description: SetAsDefaultReleasePlugin sets release as default.
       tags:
         - Package
       responses:
@@ -3823,7 +3819,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseSetAsDefaultResp describes the HTTP response body when set\\\\ndefault package release.
+                description: PackageReleasePluginSetAsDefaultResp describes the HTTP response body when\nset default package release.
           description: A successful response.
         default:
           content:
@@ -3851,6 +3847,8 @@ paths:
             schema:
               type: object
               properties:
+                name:
+                  type: string
                 version:
                   type: string
                 platform:
@@ -3864,11 +3862,9 @@ paths:
                 generation:
                   type: integer
                   format: int64
-                release_type:
-                  type: string
-              description: PackageReleaseSetAsDefaultReq describes the HTTP request body when set\\\\ndefault package release.
+              description: PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set\ndefault package release.
         required: true
-        description: PackageReleaseSetAsDefaultReq describes the HTTP request body when set\\\\ndefault package release.
+        description: PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set\ndefault package release.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3885,7 +3881,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/package/release/set_labels:
     post:
       operationId: Package_SetReleaseLabels
@@ -3924,7 +3920,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseSetLabelsResp describes the HTTP response body when set\\\\nlabels.
+                description: PackageReleaseSetLabelsResp describes the HTTP response body when set\nlabels.
           description: A successful response.
         default:
           content:
@@ -3990,7 +3986,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/agent/install:
     post:
       operationId: NodeAgent_NodeAgentInstall
@@ -4133,10 +4129,10 @@ paths:
         descriptionEn:
   /api/v3/node/proxy/install:
     post:
-      operationId: NodeWorkflow_NodeProxyInstall
-      description: NodeProxyInstall provides node proxy install.
+      operationId: NodeProxy_NodeProxyInstall
+      description: NodeProxyInstall installs node proxy.
       tags:
-        - NodeWorkflow
+        - NodeProxy
       responses:
         '200':
           content:
@@ -4246,6 +4242,9 @@ paths:
                         format: int64
                       bk_host_innerip_v6:
                         type: string
+                      proxy_install_origin_unit_id:
+                        type: integer
+                        format: int64
                     description: NodeProxyInstallHost describes the node proxy install host.
                 target_version:
                   type: array
@@ -4277,7 +4276,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/workflow/distinct:
     post:
       operationId: NodeWorkflow_NodeWorkflowDistinct
@@ -4386,10 +4385,10 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\\\\nlist request.
+                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\nlist request.
                 fuzzy_include_conditions:
                   type: object
-                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\\\\nlist request.
+                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\nlist request.
               description: NodeWorkflowDistinctReq describes the node workflow distinct request.
         required: true
         description: NodeWorkflowDistinctReq describes the node workflow distinct request.
@@ -4409,7 +4408,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/workflow/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowList
@@ -4553,10 +4552,10 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\\\\nlist request.
+                  description: NodeWorkflowExactConditions describes the exact conditions of node workflow\nlist request.
                 fuzzy_include_conditions:
                   type: object
-                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\\\\nlist request.
+                  description: NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\nlist request.
               description: NodeWorkflowListReq describes the node workflow list request.
         required: true
         description: NodeWorkflowListReq describes the node workflow list request.
@@ -4576,11 +4575,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/workflow/operation/instance/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceList
-      description: NodeWorkflowOperationInstanceList provides node workflow operation instance\\\\nlist.
+      description: NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.
       tags:
         - NodeWorkflow
       responses:
@@ -4653,7 +4652,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: NodeWorkflowOperationInstanceListResp describes the node operation instance\\\\nlist by operation-id response.
+                description: NodeWorkflowOperationInstanceListResp describes the node operation instance\nlist by operation-id response.
           description: A successful response.
         default:
           content:
@@ -4687,9 +4686,9 @@ paths:
                   type: array
                   items:
                     type: string
-              description: NodeWorkflowOperationInstanceListReq describes the node operation instance\\\\nlist by operation-id request.
+              description: NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.
         required: true
-        description: NodeWorkflowOperationInstanceListReq describes the node operation instance\\\\nlist by operation-id request.
+        description: NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -4706,11 +4705,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/workflow/operation/instance/log/get:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceLogGet
-      description: NodeWorkflowOperationInstanceLogGet provides node operation instance log\\\\nget.
+      description: NodeWorkflowOperationInstanceLogGet provides node operation instance log\nget.
       tags:
         - NodeWorkflow
       responses:
@@ -4783,7 +4782,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: NodeWorkflowOperationInstanceLogGetResp describes the node operation action\\\\ninstance log response.
+                description: NodeWorkflowOperationInstanceLogGetResp describes the node operation action\ninstance log response.
           description: A successful response.
         default:
           content:
@@ -4813,9 +4812,9 @@ paths:
               properties:
                 oper_inst_id:
                   type: string
-              description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\\\\nlog request.
+              description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request.
         required: true
-        description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\\\\nlog request.
+        description: NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -4832,11 +4831,11 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/workflow/operation/instance/status/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationInstanceStatusList
-      description: NodeWorkflowOperationInstanceStatusList provides node workflow operation\\\\nlist status.
+      description: NodeWorkflowOperationInstanceStatusList provides node workflow operation\nlist status.
       tags:
         - NodeWorkflow
       responses:
@@ -4932,10 +4931,10 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: NodeWorkflowInstanceStatusExactConditions describes the exact conditions of\\\\nnode workflow list request.
+                  description: NodeWorkflowInstanceStatusExactConditions describes the exact conditions of\nnode workflow list request.
                 fuzzy_include_conditions:
                   type: object
-                  description: NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\\\\nnode workflow list request.
+                  description: NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\nnode workflow list request.
               description: NodeWorkflowOperationInstanceListStatusReq ...
         required: true
         description: NodeWorkflowOperationInstanceListStatusReq ...
@@ -4955,7 +4954,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/workflow/operation/list:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationList
@@ -4980,40 +4979,25 @@ paths:
                         items:
                           type: object
                           properties:
-                            param:
-                              type: object
-                              properties:
-                                bk_biz_id:
-                                  type: integer
-                                  format: int64
-                                node_version:
-                                  type: string
-                                timeout_second:
-                                  type: integer
-                                  format: int64
-                                bk_host_innerip:
-                                  type: string
-                                bk_networkarea_id:
-                                  type: integer
-                                  format: int64
-                                bk_host_innerip_v6:
-                                  type: string
-                              description: NodeWorkflowOperationParam ...
-                            definition:
-                              type: object
-                              properties:
-                                action_names:
-                                  type: array
-                                  items:
-                                    type: string
-                                opertion_name:
-                                  type: string
-                              description: NodeWorkflowOperationDefinition ...
+                            operator:
+                              type: string
+                            bk_biz_id:
+                              type: integer
+                              format: int64
                             instance_ids:
                               type: array
                               items:
                                 type: string
+                            node_version:
+                              type: string
                             operation_id:
+                              type: string
+                            bk_host_innerip:
+                              type: string
+                            bk_networkarea_id:
+                              type: integer
+                              format: int64
+                            bk_host_innerip_v6:
                               type: string
                           description: NodeWorkflowOperation ...
                       total_count:
@@ -5039,7 +5023,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: NodeWorkflowOperationListResp describes the node operation list by\\\\nworkflow-id response.
+                description: NodeWorkflowOperationListResp describes the node operation list by\nworkflow-id response.
           description: A successful response.
         default:
           content:
@@ -5106,13 +5090,13 @@ paths:
                       type: array
                       items:
                         type: string
-                  description: NodeWorkflowOperationExactConditions describes the exact conditions of node\\\\nworkflow operation list request.
+                  description: NodeWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request.
                 fuzzy_include_conditions:
                   type: object
-                  description: NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\\\\nworkflow list request.
-              description: NodeWorkflowOperationListReq describes the node operation list\\\\nrequest.
+                  description: NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\nworkflow list request.
+              description: NodeWorkflowOperationListReq describes the node operation list\nrequest.
         required: true
-        description: NodeWorkflowOperationListReq describes the node operation list\\\\nrequest.
+        description: NodeWorkflowOperationListReq describes the node operation list\nrequest.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -5129,7 +5113,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/workflow/operation/retry:
     post:
       operationId: NodeWorkflow_NodeWorkflowOperationRetry
@@ -5228,7 +5212,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/topo/accesspoint/list:
     post:
       operationId: Topo_AccessPointList
@@ -5418,7 +5402,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyCreateResp describes HTTP response body when create config\\\\npolicy.
+                description: ConfigPolicyCreateResp describes HTTP response body when create config\npolicy.
           description: A successful response.
         default:
           content:
@@ -5471,8 +5455,6 @@ paths:
                     description: ConfigPolicyScope describes the config policy scope.
                 operator:
                   type: string
-                node_role:
-                  type: string
                 configs_int:
                   type: object
                   additionalProperties:
@@ -5487,6 +5469,8 @@ paths:
                   additionalProperties:
                     type: string
                 configpolicy_name:
+                  type: string
+                configpolicy_type:
                   type: string
               description: ConfigPolicyCreateReq describes HTTP request body when create config policy.
         required: true
@@ -5507,7 +5491,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/policy/config/delete:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyDelete
@@ -5546,7 +5530,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyDeleteResp describes HTTP response body when delete config\\\\npolicy.
+                description: ConfigPolicyDeleteResp describes HTTP response body when delete config\npolicy.
           description: A successful response.
         default:
           content:
@@ -5598,7 +5582,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/policy/config/disable:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyDisable
@@ -5637,7 +5621,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyDisableResp describes HTTP response body when disable config\\\\npolicy.
+                description: ConfigPolicyDisableResp describes HTTP response body when disable config\npolicy.
           description: A successful response.
         default:
           content:
@@ -5670,9 +5654,9 @@ paths:
                   items:
                     type: integer
                     format: int64
-              description: ConfigPolicyDisableReq describes HTTP request body when disable config\\\\npolicy.
+              description: ConfigPolicyDisableReq describes HTTP request body when disable config\npolicy.
         required: true
-        description: ConfigPolicyDisableReq describes HTTP request body when disable config\\\\npolicy.
+        description: ConfigPolicyDisableReq describes HTTP request body when disable config\npolicy.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -5689,7 +5673,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/policy/config/enable:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyEnable
@@ -5728,7 +5712,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyEnableResp describes HTTP response body when enable config\\\\npolicy.
+                description: ConfigPolicyEnableResp describes HTTP response body when enable config\npolicy.
           description: A successful response.
         default:
           content:
@@ -5780,7 +5764,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/policy/config/get:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyGet
@@ -5830,8 +5814,6 @@ paths:
                         format: int64
                       operator:
                         type: string
-                      node_role:
-                        type: string
                       tenant_id:
                         type: string
                       configs_int:
@@ -5854,6 +5836,8 @@ paths:
                         type: integer
                         format: int64
                       configpolicy_name:
+                        type: string
+                      configpolicy_type:
                         type: string
                     description: ConfigPolocy decribes the config policy.
                   error:
@@ -5926,7 +5910,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/policy/config/list:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyList
@@ -5981,8 +5965,6 @@ paths:
                               format: int64
                             operator:
                               type: string
-                            node_role:
-                              type: string
                             tenant_id:
                               type: string
                             configs_int:
@@ -6005,6 +5987,8 @@ paths:
                               type: integer
                               format: int64
                             configpolicy_name:
+                              type: string
+                            configpolicy_type:
                               type: string
                           description: ConfigPolocy decribes the config policy.
                       total:
@@ -6082,15 +6066,15 @@ paths:
                       type: array
                       items:
                         type: boolean
-                    node_role:
-                      type: array
-                      items:
-                        type: string
                     configpolicy_id:
                       type: array
                       items:
                         type: integer
                         format: int64
+                    configpolicy_type:
+                      type: array
+                      items:
+                        type: string
                   description: ConfigPolicyExactConditions describes config policy exact conditions.
                 fuzzy_include_conditions:
                   type: object
@@ -6123,7 +6107,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/policy/config/update:
     post:
       operationId: ConfigPolicyAPI_ConfigPolicyUpdate
@@ -6166,7 +6150,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: ConfigPolicyUpdateResp describes HTTP response body when update config\\\\npolicy.
+                description: ConfigPolicyUpdateResp describes HTTP response body when update config\npolicy.
           description: A successful response.
         default:
           content:
@@ -6221,8 +6205,6 @@ paths:
                   type: boolean
                 operator:
                   type: string
-                node_role:
-                  type: string
                 configs_int:
                   type: object
                   additionalProperties:
@@ -6240,6 +6222,8 @@ paths:
                   type: integer
                   format: int64
                 configpolicy_name:
+                  type: string
+                configpolicy_type:
                   type: string
               description: ConfigPolicyUpdateReq describes HTTP request body when update config policy.
         required: true
@@ -6260,7 +6244,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/proxy/reconfig:
     post:
       operationId: NodeProxy_NodeProxyReconfig
@@ -6362,7 +6346,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/proxy/restart:
     post:
       operationId: NodeProxy_NodeProxyRestart
@@ -6464,7 +6448,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/proxy/upgrade:
     post:
       operationId: NodeProxy_NodeProxyUpgrade
@@ -6577,7 +6561,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/package/release/distinct:
     post:
       operationId: Package_DistinctRelease
@@ -6625,7 +6609,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseDistinctResp describes the HTTP response body when distinct\\\\nrelease.
+                description: PackageReleaseDistinctResp describes the HTTP response body when distinct\nrelease.
           description: A successful response.
         default:
           content:
@@ -6653,8 +6637,18 @@ paths:
             schema:
               type: object
               properties:
+                generation:
+                  type: integer
+                  format: int64
                 release_type:
                   type: string
+                distinctField:
+                  type: object
+                  properties:
+                    os_type:
+                      type: boolean
+                    cpu_arch:
+                      type: boolean
                 exact_include_conditions:
                   type: object
                   properties:
@@ -6680,19 +6674,10 @@ paths:
                       type: array
                       items:
                         type: boolean
-                    generation:
-                      type: array
-                      items:
-                        type: integer
-                        format: int64
-                    release_type:
-                      type: array
-                      items:
-                        type: string
                   description: PackageReleaseExactConditions describes release exact conditions.
-              description: PackageReleaseDistinctReq describes the HTTP request body when distinct\\\\nrelease.
+              description: PackageReleaseDistinctReq describes the HTTP request body when distinct\nrelease.
         required: true
-        description: PackageReleaseDistinctReq describes the HTTP request body when distinct\\\\nrelease.
+        description: PackageReleaseDistinctReq describes the HTTP request body when distinct\nrelease.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -6709,7 +6694,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/proxy/update:
     post:
       operationId: NodeProxy_NodeProxyUpdate
@@ -6826,7 +6811,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: None
+        descriptionEn:
   /api/v3/node/agent/upgrade:
     post:
       operationId: NodeAgent_NodeAgentUpgrade
@@ -7293,7 +7278,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: PackageReleaseSetManyLabelsResp describes the HTTP response body when set\nmany labels.
+                description: PackageReleaseSetManyLabelsResp describes the HTTP response body when set\\nmany labels.
           description: A successful response.
         default:
           content:
@@ -7345,9 +7330,9 @@ paths:
                         format: int64
                 release_type:
                   type: string
-              description: PackageReleaseSetManyLabelsReq describes the HTTP request body when set many\nlabels.
+              description: PackageReleaseSetManyLabelsReq describes the HTTP request body when set many\\nlabels.
         required: true
-        description: PackageReleaseSetManyLabelsReq describes the HTTP request body when set many\nlabels.
+        description: PackageReleaseSetManyLabelsReq describes the HTTP request body when set many\\nlabels.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -7364,7 +7349,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/package/release/agent/download:
     post:
       operationId: Package_DownloadAgent
@@ -7433,7 +7418,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/package/release/set_labels_many:
     post:
       operationId: Package_SetReleaseLabelsMany
@@ -7522,7 +7507,6 @@ paths:
                       generation:
                         type: integer
                         format: int64
-                    description: PackageReleaseSetLabelsManyIdentity describes the HTTP request body.
                 release_type:
                   type: string
               description: PackageReleaseSetLabelsManyReq describes the HTTP request body when set many\nlabels.
@@ -7548,7 +7532,7 @@ paths:
   /api/v3/topo/get_host_distribution_by_node_role:
     post:
       operationId: Topo_TopoGetHostDistributionByNodeRole
-      description: TopoGetHostDistributionByNodeRoleReq uest provides getting host\ndistribution by node role.
+      description: TopoGetHostDistributionByNodeRoleReq uest provides getting host\\ndistribution by node role.
       tags:
         - Topo
       responses:
@@ -7586,7 +7570,7 @@ paths:
                     type: string
                   request_id:
                     type: string
-                description: TopoGetHostDistributionByNodeRoleResp describes the HTTP response body when\ndistinct host in topp service.
+                description: TopoGetHostDistributionByNodeRoleResp describes the HTTP response body when\\ndistinct host in topp service.
           description: A successful response.
         default:
           content:
@@ -7695,9 +7679,9 @@ paths:
                       items:
                         type: string
                   description: TopoHostFuzzyConditions describes host fuzzy conditions.
-              description: TopoGetHostDistributionByNodeRoleReq describes the HTTP request body when\ndistinct host in topp service.
+              description: TopoGetHostDistributionByNodeRoleReq describes the HTTP request body when\\ndistinct host in topp service.
         required: true
-        description: TopoGetHostDistributionByNodeRoleReq describes the HTTP request body when\ndistinct host in topp service.
+        description: TopoGetHostDistributionByNodeRoleReq describes the HTTP request body when\\ndistinct host in topp service.
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -7714,7 +7698,7 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn:
+        descriptionEn: None
   /api/v3/topo/host/get_host_distribution_by_node_role:
     post:
       operationId: Topo_GetHostDistributionByNodeRole
@@ -8047,6 +8031,1877 @@ paths:
           name: default
           method: post
           path: /api/v3/topo/host/get_host_distribution_by_networkarea_id
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/policy/config/event/distinct:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyEventDistinct
+      description: ConfigPolicyEventDistinct provides policy event distincting.
+      tags:
+        - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      type:
+                        type: array
+                        items:
+                          type: string
+                      version:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      operator:
+                        type: array
+                        items:
+                          type: string
+                      configpolicy_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                      configpolicy_name:
+                        type: array
+                        items:
+                          type: string
+                      configpolicy_type:
+                        type: array
+                        items:
+                          type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyEventDistinctResp describes the HTTP response body when distinct\npolicyevent in policy service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  title: ConfigPolicyEventExactConditions describes the conditions when list event
+                  properties:
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    version:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    configpolicy_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    configpolicy_type:
+                      type: array
+                      items:
+                        type: string
+                fuzzy_include_conditions:
+                  type: object
+                  title: ConfigPolicyEventFuzzyConditions describes the conditions when list event
+                  properties:
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    configpolicy_name:
+                      type: array
+                      items:
+                        type: string
+              description: ConfigPolicyEventDistinctReq describes the HTTP request body when distinct\npolicyevent in policy service.
+        required: true
+        description: ConfigPolicyEventDistinctReq describes the HTTP request body when distinct\npolicyevent in policy service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/event/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/policy/config/event/list:
+    post:
+      operationId: ConfigPolicyAPI_ConfigPolicyEventList
+      description: ConfigPolicyEventList provides policy event listing.
+      tags:
+        - ConfigPolicyAPI
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            version:
+                              type: integer
+                              format: int64
+                            operator:
+                              type: string
+                            tenant_id:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                            configpolicy_id:
+                              type: integer
+                              format: int64
+                            configpolicy_name:
+                              type: string
+                            configpolicy_type:
+                              type: string
+                          description: ConfigPolicyEvent describes the config policy event.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ConfigPolicyEventListResp describes the HTTP response body when list event in\npolicy service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  title: ConfigPolicyEventExactConditions describes the conditions when list event
+                  properties:
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    version:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    configpolicy_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    configpolicy_type:
+                      type: array
+                      items:
+                        type: string
+                fuzzy_include_conditions:
+                  type: object
+                  title: ConfigPolicyEventFuzzyConditions describes the conditions when list event
+                  properties:
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    configpolicy_name:
+                      type: array
+                      items:
+                        type: string
+              description: ConfigPolicyEventListReq describes the HTTP request body when list event in\npolicy service.
+        required: true
+        description: ConfigPolicyEventListReq describes the HTTP request body when list event in\npolicy service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/policy/config/event/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/agent/uninstall:
+    post:
+      operationId: NodeAgent_NodeAgentUninstall
+      description: NodeAgentUninstall uninstalls node agent.
+      tags:
+        - NodeAgent
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeAgentUninstallResp describes the node agent uninstall response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bk_host_id:
+                        type: integer
+                        format: int64
+              description: NodeAgentUninstallReq describes the node agent uninstall request.
+        required: true
+        description: NodeAgentUninstallReq describes the node agent uninstall request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/agent/uninstall
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/node/proxy/uninstall:
+    post:
+      operationId: NodeProxy_NodeProxyUninstall
+      description: NodeProxyUninstall uninstalls node proxy.
+      tags:
+        - NodeProxy
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeProxyUninstallResp describes the node proxy uninstall response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                host:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      bk_host_id:
+                        type: integer
+                        format: int64
+              description: NodeProxyUninstallReq describes the node proxy uninstall request.
+        required: true
+        description: NodeProxyUninstallReq describes the node proxy uninstall request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/proxy/uninstall
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/event/distinct:
+    post:
+      operationId: Package_PackageEventDistinct
+      description: PackageEventDistinct provides package event distincting.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      os_type:
+                        type: array
+                        items:
+                          type: string
+                      version:
+                        type: array
+                        items:
+                          type: string
+                      cpu_arch:
+                        type: array
+                        items:
+                          type: string
+                      operator:
+                        type: array
+                        items:
+                          type: string
+                      event_type:
+                        type: array
+                        items:
+                          type: string
+                      release_type:
+                        type: array
+                        items:
+                          type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageEventDistinctResp describes the HTTP response body when distinct\npackageevent in package service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    os_type:
+                      type: array
+                      items:
+                        type: string
+                    version:
+                      type: array
+                      items:
+                        type: string
+                    cpu_arch:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    event_type:
+                      type: array
+                      items:
+                        type: string
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    release_type:
+                      type: array
+                      items:
+                        type: string
+                  description: PackageEventExactConditions describes the conditions when list event.
+                fuzzy_include_conditions:
+                  type: object
+                  title: PackageEventFuzzyConditions describes the conditions when list event
+              description: PackageEventDistinctReq describes the HTTP request body when distinct\npackageevent in package service.
+        required: true
+        description: PackageEventDistinctReq describes the HTTP request body when distinct\npackageevent in package service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/event/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/event/list:
+    post:
+      operationId: Package_PackageEventList
+      description: PackageEventList provides package event listing.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            os_type:
+                              type: string
+                            version:
+                              type: string
+                            cpu_arch:
+                              type: string
+                            operator:
+                              type: string
+                            event_type:
+                              type: string
+                            generation:
+                              type: integer
+                              format: int64
+                            operate_time:
+                              type: integer
+                              format: int64
+                            release_type:
+                              type: string
+                          description: PackageEvent describes the package event.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageEventListResp describes the HTTP response body when list event in\nPackage service.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    os_type:
+                      type: array
+                      items:
+                        type: string
+                    version:
+                      type: array
+                      items:
+                        type: string
+                    cpu_arch:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    event_type:
+                      type: array
+                      items:
+                        type: string
+                    generation:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    release_type:
+                      type: array
+                      items:
+                        type: string
+                  description: PackageEventExactConditions describes the conditions when list event.
+                fuzzy_include_conditions:
+                  type: object
+                  title: PackageEventFuzzyConditions describes the conditions when list event
+              description: PackageEventListReq describes the HTTP request body when list event in\nPackage service.
+        required: true
+        description: PackageEventListReq describes the HTTP request body when list event in\nPackage service.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/event/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release_agent/list:
+    post:
+      operationId: Package_ListReleaseAgent
+      description: ListReleaseAgent lists releases.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            release:
+                              type: object
+                              properties:
+                                md5:
+                                  type: string
+                                name:
+                                  type: string
+                                labels:
+                                  type: array
+                                  items:
+                                    type: string
+                                enabled:
+                                  type: boolean
+                                os_type:
+                                  type: string
+                                version:
+                                  type: string
+                                cpu_arch:
+                                  type: string
+                                operator:
+                                  type: string
+                                file_name:
+                                  type: string
+                                as_default:
+                                  type: boolean
+                                generation:
+                                  type: integer
+                                  format: int64
+                                updated_at:
+                                  type: string
+                                  format: uint64
+                                release_type:
+                                  type: string
+                              description: Release describes the release.
+                            change_log_en:
+                              type: string
+                            change_log_zh:
+                              type: string
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseAgentListResp describes the HTTP response body when list\npackage release.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                generation:
+                  type: integer
+                  format: int64
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    enabled:
+                      type: array
+                      items:
+                        type: boolean
+                    version:
+                      type: array
+                      items:
+                        type: string
+                    platform:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          os_type:
+                            type: string
+                          cpu_arch:
+                            type: string
+                        description: Platform describes the platform informations.
+                    as_default:
+                      type: array
+                      items:
+                        type: boolean
+                  description: PackageReleaseExactConditions describes release exact conditions.
+              description: PackageReleaseAgentListReq describes the HTTP request body when list package\nrelease.
+        required: true
+        description: PackageReleaseAgentListReq describes the HTTP request body when list package\nrelease.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release_agent/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release_plugin/list:
+    post:
+      operationId: Package_ListReleasePlugin
+      description: ListReleasePlugin lists releases.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            release:
+                              type: object
+                              properties:
+                                md5:
+                                  type: string
+                                name:
+                                  type: string
+                                labels:
+                                  type: array
+                                  items:
+                                    type: string
+                                enabled:
+                                  type: boolean
+                                os_type:
+                                  type: string
+                                version:
+                                  type: string
+                                cpu_arch:
+                                  type: string
+                                operator:
+                                  type: string
+                                file_name:
+                                  type: string
+                                as_default:
+                                  type: boolean
+                                generation:
+                                  type: integer
+                                  format: int64
+                                updated_at:
+                                  type: string
+                                  format: uint64
+                                release_type:
+                                  type: string
+                              description: Release describes the release.
+                          description: ReleasePlugin describes the package release plugin information.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleasePluginListResp describes the HTTP response body when list\npackage release.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: integer
+                  format: int64
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                generation:
+                  type: integer
+                  format: int64
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    enabled:
+                      type: array
+                      items:
+                        type: boolean
+                    version:
+                      type: array
+                      items:
+                        type: string
+                    platform:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          os_type:
+                            type: string
+                          cpu_arch:
+                            type: string
+                        description: Platform describes the platform informations.
+                    as_default:
+                      type: array
+                      items:
+                        type: boolean
+                  description: PackageReleaseExactConditions describes release exact conditions.
+              description: PackageReleasePluginListReq describes the HTTP request body when list package\nrelease.
+        required: true
+        description: PackageReleasePluginListReq describes the HTTP request body when list package\nrelease.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release_plugin/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/package/release_proxy/list:
+    post:
+      operationId: Package_ListReleaseProxy
+      description: ListReleaseProxy lists releases.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            release:
+                              type: object
+                              properties:
+                                md5:
+                                  type: string
+                                name:
+                                  type: string
+                                labels:
+                                  type: array
+                                  items:
+                                    type: string
+                                enabled:
+                                  type: boolean
+                                os_type:
+                                  type: string
+                                version:
+                                  type: string
+                                cpu_arch:
+                                  type: string
+                                operator:
+                                  type: string
+                                file_name:
+                                  type: string
+                                as_default:
+                                  type: boolean
+                                generation:
+                                  type: integer
+                                  format: int64
+                                updated_at:
+                                  type: string
+                                  format: uint64
+                                release_type:
+                                  type: string
+                              description: Release describes the release.
+                            change_log_en:
+                              type: string
+                            change_log_zh:
+                              type: string
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PackageReleaseProxyListResp describes the HTTP response body when list\npackage release.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                generation:
+                  type: integer
+                  format: int64
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    enabled:
+                      type: array
+                      items:
+                        type: boolean
+                    version:
+                      type: array
+                      items:
+                        type: string
+                    platform:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          os_type:
+                            type: string
+                          cpu_arch:
+                            type: string
+                        description: Platform describes the platform informations.
+                    as_default:
+                      type: array
+                      items:
+                        type: boolean
+                  description: PackageReleaseExactConditions describes release exact conditions.
+              description: PackageReleaseProxyListReq describes the HTTP request body when list package\nrelease.
+        required: true
+        description: PackageReleaseProxyListReq describes the HTTP request body when list package\nrelease.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/package/release_proxy/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/install:
+    post:
+      operationId: Package_InstallPlugin
+      description: InstallPlugin installs a plugin on specified hosts.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      workflow_id:
+                        type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginInstallResp describes the plugin install response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plugin:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      version:
+                        type: string
+                      bk_host_id:
+                        type: integer
+                        format: int64
+                      plugin_name:
+                        type: string
+              description: PluginInstallReq describes the plugin install request.
+        required: true
+        description: PluginInstallReq describes the plugin install request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/install
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/list:
+    post:
+      operationId: Package_ListPlugins
+      description: ListPlugins lists plugins based on the given conditions.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            group:
+                              type: string
+                            pkg_name:
+                              type: string
+                            tenant_id:
+                              type: string
+                          description: Plugin describes a plugin.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginListResp describes the plugin list response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    name:
+                      type: array
+                      items:
+                        type: string
+                    group:
+                      type: array
+                      items:
+                        type: string
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    name:
+                      type: array
+                      items:
+                        type: string
+                    pkg_name:
+                      type: array
+                      items:
+                        type: string
+              description: PluginListReq describes the plugin list request.
+        required: true
+        description: PluginListReq describes the plugin list request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/process/list:
+    post:
+      operationId: Package_ListProcesses
+      description: ListProcesses lists the processes.
+      tags:
+        - Package
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platform:
+                              type: object
+                              properties:
+                                os_type:
+                                  type: string
+                                cpu_arch:
+                                  type: string
+                              description: Platform describes the platform informations.
+                            tenant_id:
+                              type: string
+                            bk_host_id:
+                              type: integer
+                              format: int64
+                            generation:
+                              type: integer
+                              format: int64
+                            plugin_name:
+                              type: string
+                            plugin_group:
+                              type: string
+                            process_info:
+                              type: object
+                              properties:
+                                pid:
+                                  type: integer
+                                  format: int32
+                                status:
+                                  type: string
+                                version:
+                                  type: string
+                                agent_id:
+                                  type: string
+                                trusteeship:
+                                  type: boolean
+                              description: ProcessInfo describes the process information.
+                            plugin_pkg_name:
+                              type: string
+                            process_identity:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                user:
+                                  type: string
+                                log_path:
+                                  type: string
+                                pid_path:
+                                  type: string
+                                setup_path:
+                                  type: string
+                                config_path:
+                                  type: string
+                              description: ProcessIdentity describes the process identity.
+                            process_resource:
+                              type: object
+                              properties:
+                                cpu_limit_percent:
+                                  type: number
+                                  format: double
+                                mem_limit_percent:
+                                  type: number
+                                  format: double
+                              description: ProcessResource describes the process resource.
+                            process_controller:
+                              type: object
+                              properties:
+                                kill_cmd:
+                                  type: string
+                                stop_cmd:
+                                  type: string
+                                start_cmd:
+                                  type: string
+                                health_cmd:
+                                  type: string
+                                reload_cmd:
+                                  type: string
+                                restart_cmd:
+                                  type: string
+                                version_cmd:
+                                  type: string
+                              description: ProcessController describes the process controller.
+                            process_monitor_policy:
+                              type: object
+                              properties:
+                                auto_type:
+                                  type: string
+                                stop_check_seconds:
+                                  type: integer
+                                  format: int64
+                                start_check_seconds:
+                                  type: integer
+                                  format: int64
+                                operate_timeout_seconds:
+                                  type: integer
+                                  format: int64
+                              description: ProcessMonitorPolicy describes the process monitor policy.
+                          description: Process describes the process.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: ProcessListResp describes the process list response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    version:
+                      type: array
+                      items:
+                        type: string
+                    agent_id:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    platform_os:
+                      type: array
+                      items:
+                        type: string
+                    plugin_name:
+                      type: array
+                      items:
+                        type: string
+                    plugin_group:
+                      type: array
+                      items:
+                        type: string
+                    platform_arch:
+                      type: array
+                      items:
+                        type: string
+                    node_generation:
+                      type: array
+                      items:
+                        type: string
+                    plugin_pkg_name:
+                      type: array
+                      items:
+                        type: string
+                fuzzy_include_conditions:
+                  type: object
+                  properties:
+                    name:
+                      type: array
+                      items:
+                        type: string
+                    plugin_pkg_name:
+                      type: array
+                      items:
+                        type: string
+              description: ProcessListReq describes the process list request.
+        required: true
+        description: ProcessListReq describes the process list request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/process/list
           matchSubpath: false
           timeout: 0
         pluginConfigs: []
