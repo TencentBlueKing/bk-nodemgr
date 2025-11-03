@@ -121,6 +121,9 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 	}
 	detail.UploadID = uploadID
 
+	// record event.
+	m.recordUploadEvent(nCtx, types.ReleaseTypeOriginServer, pkgFileName, detail.Version, detail.Platforms)
+
 	logger.G.Biz(nCtx).With("platform", plat, "version", detail.Version, "filename", pkgFileName).Info("uploaded origin server package to upstream")
 
 	return detail, nil

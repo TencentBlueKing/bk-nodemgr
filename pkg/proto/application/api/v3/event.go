@@ -347,6 +347,7 @@ func (x *PackageEventListResp) ConvertPackageEventsFromTypes(total int64, events
 	items := make([]*PackageEvent, len(events))
 	for idx, event := range events {
 		item := newEmptyPackageEvent()
+		*item.Name = event.Name
 		*item.EventType = string(event.EventType)
 		*item.ReleaseType = string(event.ReleaseType)
 		*item.Generation = int64(event.Generation)
@@ -514,6 +515,7 @@ func (x *PackageEventDistinctResp) ConvertResultFromTypes(result *types.PackageE
 
 func newEmptyPackageEvent() *PackageEvent {
 	return &PackageEvent{
+		Name:        new(string),
 		EventType:   new(string),
 		ReleaseType: new(string),
 		Generation:  new(int64),

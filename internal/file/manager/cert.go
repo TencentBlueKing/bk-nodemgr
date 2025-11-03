@@ -11,10 +11,8 @@
 package manager
 
 import (
-	"bytes"
 	"errors"
 	"io"
-	"runtime/debug"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -117,6 +115,10 @@ func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadClose
 		return nil, err
 	}
 	detail.UploadID = uploadID
+
+	// record upload event.
+	m.recordUploadEvent(nCtx, types.ReleaseTypeCert, types.ReleaseNameCert, types.ReleaseVersionCert,
+		[]platfmt.Platform{{OS: types.ReleaseOSTypeCert, Arch: types.ReleaseCPUArchCert}})
 
 	logger.G.Biz(nCtx).With("filename", pkgName).Info("uploaded origin cert package to upstream")
 
@@ -283,9 +285,13 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 
 	certInfo := &types.ReleaseCert{
 		Release: types.Release{
-			Generation:   types.Generation2,
-			Type:         types.ReleaseTypeCert,
-			Platform:     platfmt.EmptyPlatform(),
+			Name:       releaseCertFileName,
+			Generation: types.Generation2,
+			Type:       types.ReleaseTypeCert,
+			Platform: platfmt.Platform{
+				OS:   types.ReleaseOSTypeCert,
+				Arch: types.ReleaseCPUArchCert,
+			},
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,
@@ -304,50 +310,12 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 		return err
 	}
 
-	go m.recordCertEvent(nCtx, certInfo, types.PackageEventTypePublish, types.PackageEventTypeEnable, types.PackageEventTypeSetAsDefault)
+	// record cert event.
+	m.recordPublishEvent(nCtx, &certInfo.Release)
 
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release cert")
 
 	return nil
-}
-
-func (m *Manager) recordCertEvent(nCtx contextx.IContext, certInfo *types.ReleaseCert, eventType ...types.PackageEventType) {
-	// recover panic.
-	defer func() {
-		if r := recover(); r != nil {
-			stack := debug.Stack()
-
-			// The first line of the stack trace is of the form "goroutine N [status]:",
-			// but by the time the panic reaches Do the goroutine may no longer exist,
-			// and its status will have changed. Trim out the misleading line.
-			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
-				stack = stack[line+1:]
-			}
-
-			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record package event")
-		}
-	}()
-
-	events := make([]*types.PackageEvent, len(eventType))
-	for idx, et := range eventType {
-		events[idx] = &types.PackageEvent{
-			EventType:   et,
-			ReleaseType: certInfo.Type,
-			Generation:  certInfo.Generation,
-			Version:     certInfo.Version,
-			OSType:      certInfo.Platform.OS,
-			CPUArch:     certInfo.Platform.Arch,
-			Operator:    certInfo.Operator,
-			OperateTime: certInfo.UpdatedAt,
-		}
-	}
-
-	if err := m.storageEvent.CreateManyPackageEvent(nCtx, events...); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).
-			With("event-type", eventType,
-				"release-type", certInfo.Type).
-			Warn("failed to record package event event, failed to create package event")
-	}
 }
 
 func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {

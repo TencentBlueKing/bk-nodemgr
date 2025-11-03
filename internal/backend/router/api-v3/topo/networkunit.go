@@ -84,7 +84,7 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 
 	// record event.
 	go func() {
-		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background()),
+		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background(), contextx.WithTenantID(rCtx.TenantID())),
 			append(events, &types.TopoEvent{
 				TenantID:        rCtx.TenantID(),
 				Type:            types.TopoEventNetworkUnitCreate,
@@ -95,7 +95,7 @@ func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 				OperateTime:     time.Now(),
 				Operator:        rCtx.BKUsername(),
 			})...); err != nil {
-			logger.G.Biz(rCtx).WithErr(err).With("networkunit-id", networkUnitID).Warn("failed to record topo event in networkunit create")
+			logger.G.Sys().WithErr(err).With("networkunit-id", networkUnitID).Warn("failed to record topo event in networkunit create")
 		}
 	}()
 
@@ -185,7 +185,7 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 
 	// record event.
 	go func() {
-		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background()),
+		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background(), contextx.WithTenantID(rCtx.TenantID())),
 			append(events, &types.TopoEvent{
 				TenantID:        rCtx.TenantID(),
 				Type:            types.TopoEventNetworkUnitUpdate,
@@ -196,12 +196,14 @@ func (h *handler) UpdateNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 				OperateTime:     time.Now(),
 				Operator:        rCtx.BKUsername(),
 			})...); err != nil {
-			logger.G.Biz(rCtx).WithErr(err).With("networkunit-id", networkUnitID).Warn("failed to record topo event in networkunit update")
+			logger.G.Sys().WithErr(err).With("networkunit-id", networkUnitID).Warn("failed to record topo event in networkunit update")
 		}
 	}()
 
 	logger.G.Biz(rCtx).
-		With("networkunit-id", networkUnitID, "created-accesspoints", len(accessPointResult.Created), "updated-accesspoints", len(accessPointResult.Updated)).
+		With("networkunit-id", networkUnitID,
+			"created-accesspoints", len(accessPointResult.Created),
+			"updated-accesspoints", len(accessPointResult.Updated)).
 		Info("updated networkunit")
 
 	resp := new(protoBackend.TopoNetworkUnitUpdateResp)
@@ -302,7 +304,7 @@ func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 			networkAreaName = networkArea.Name
 		}
 
-		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background()),
+		if err := h.storage.CreateManyTopoEvent(contextx.New(context.Background(), contextx.WithTenantID(rCtx.TenantID())),
 			&types.TopoEvent{
 				TenantID:        rCtx.TenantID(),
 				Type:            types.TopoEventNetworkUnitDelete,
@@ -313,7 +315,7 @@ func (h *handler) DeleteNetworkUnit(rCtx restserver.IContext) (interface{}, erro
 				OperateTime:     time.Now(),
 				Operator:        rCtx.BKUsername(),
 			}); err != nil {
-			logger.G.Biz(rCtx).WithErr(err).With("networkunit-id", networkUnitID).Warn("failed to record topo event in networkunit delete")
+			logger.G.Sys().WithErr(err).With("networkunit-id", networkUnitID).Warn("failed to record topo event in networkunit delete")
 		}
 	}()
 

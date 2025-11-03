@@ -11,10 +11,8 @@
 package manager
 
 import (
-	"bytes"
 	"errors"
 	"io"
-	"runtime/debug"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -124,6 +122,10 @@ func (m *Manager) UploadOriginBinTool(
 	}
 	detail.UploadID = uploadID
 
+	// record upload.
+	m.recordUploadEvent(nCtx, types.ReleaseTypeBinTool, types.ReleaseNameBinTool, types.ReleaseVersionBinTool,
+		[]platfmt.Platform{{OS: types.ReleaseOSTypeBinTool, Arch: types.ReleaseCPUArchBinTool}})
+
 	logger.G.Biz(nCtx).With("filename", pkgName).Info("uploaded origin bintool package to upstream")
 
 	return detail, nil
@@ -225,9 +227,13 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 
 	bintoolInfo := &types.ReleaseBinTool{
 		Release: types.Release{
-			Generation:   types.Generation2,
-			Type:         types.ReleaseTypeBinTool,
-			Platform:     platfmt.EmptyPlatform(),
+			Name:       types.ReleaseNameBinTool,
+			Generation: types.Generation2,
+			Type:       types.ReleaseTypeBinTool,
+			Platform: platfmt.Platform{
+				OS:   types.ReleaseOSTypeBinTool,
+				Arch: types.ReleaseCPUArchBinTool,
+			},
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,
@@ -246,49 +252,12 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 		return err
 	}
 
-	go m.recordBinToolEvent(nCtx, &bintoolInfo.Release, types.PackageEventTypePublish, types.PackageEventTypeEnable, types.PackageEventTypeSetAsDefault)
+	// record publish event.
+	m.recordPublishEvent(nCtx, &bintoolInfo.Release)
 
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release bintool")
 
 	return nil
-}
-
-func (m *Manager) recordBinToolEvent(nCtx contextx.IContext, releaseInfo *types.Release, eventType ...types.PackageEventType) {
-	// recover panic.
-	defer func() {
-		if r := recover(); r != nil {
-			stack := debug.Stack()
-
-			// The first line of the stack trace is of the form "goroutine N [status]:",
-			// but by the time the panic reaches Do the goroutine may no longer exist,
-			// and its status will have changed. Trim out the misleading line.
-			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
-				stack = stack[line+1:]
-			}
-
-			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record package event")
-		}
-	}()
-
-	events := make([]*types.PackageEvent, len(eventType))
-	for idx, et := range eventType {
-		events[idx] = &types.PackageEvent{
-			EventType:   et,
-			ReleaseType: releaseInfo.Type,
-			Generation:  releaseInfo.Generation,
-			Version:     releaseInfo.Version,
-			OSType:      releaseInfo.Platform.OS,
-			CPUArch:     releaseInfo.Platform.Arch,
-			OperateTime: releaseInfo.UpdatedAt,
-			Operator:    releaseInfo.Operator,
-		}
-	}
-
-	if err := m.storageEvent.CreateManyPackageEvent(nCtx, events...); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).
-			With("event-type", eventType).
-			Warn("failed to record package event event, failed to create package event")
-	}
 }
 
 const (

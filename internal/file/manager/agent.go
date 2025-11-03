@@ -11,11 +11,9 @@
 package manager
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
-	"runtime/debug"
 	"strings"
 	"time"
 
@@ -131,6 +129,9 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 		return nil, err
 	}
 	detail.UploadID = uploadID
+
+	// record event.
+	m.recordUploadEvent(nCtx, types.ReleaseTypeOriginAgent, types.ReleaseNameAgent, detail.Version, detail.Platforms)
 
 	logger.G.Biz(nCtx).With("version", detail.Version, "filename", pkgFileName).Info("uploaded origin agent package to upstream")
 
@@ -350,6 +351,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 
 			agentInfo := &types.ReleaseAgent{
 				Release: types.Release{
+					Name:       types.ReleaseNameAgent,
 					Generation: gen,
 					Type:       types.ReleaseTypeAgent,
 					Version:    detail.Version,
@@ -370,7 +372,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 			releasesMap[pkg.platform.String()] = agentInfo
 
 			// record package events.
-			go m.recordPublishEvent(nCtx, &agentInfo.Release)
+			m.recordPublishEvent(nCtx, &agentInfo.Release)
 
 			return nil
 		})
@@ -393,42 +395,48 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 	return nil
 }
 
-func (m *Manager) recordPublishEvent(nCtx contextx.IContext, releaseInfo *types.Release) {
-	// recover panic.
-	defer func() {
-		if r := recover(); r != nil {
-			stack := debug.Stack()
+func (m *Manager) recordUploadEvent(nCtx contextx.IContext, rt types.ReleaseType, name string, version string, platforms []platfmt.Platform) {
+	operation := nCtx.BKUsername()
 
-			// The first line of the stack trace is of the form "goroutine N [status]:",
-			// but by the time the panic reaches Do the goroutine may no longer exist,
-			// and its status will have changed. Trim out the misleading line.
-			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
-				stack = stack[line+1:]
+	go func() {
+		for _, plt := range platforms {
+			if err := m.storageEvent.CreateManyPackageEvent(contextx.Background(),
+				&types.PackageEvent{
+					Name:        name,
+					EventType:   types.PackageEventTypeUpload,
+					ReleaseType: rt,
+					Generation:  types.Generation2,
+					Version:     version,
+					OSType:      plt.OS,
+					CPUArch:     plt.Arch,
+					Operator:    operation,
+					OperateTime: time.Now(),
+				}); err != nil {
+				logger.G.Sys().WithErr(err).With("event-type", types.PackageEventTypeUpload).Error("failed to record package event")
 			}
-
-			logger.G.Sys().With("recover", r, "stack", stack).Error("failed to record package event")
 		}
 	}()
+}
 
-	event := &types.PackageEvent{
-		EventType:   types.PackageEventTypePublish,
-		ReleaseType: releaseInfo.Type,
-		Generation:  releaseInfo.Generation,
-		Version:     releaseInfo.Version,
-		OSType:      releaseInfo.Platform.OS,
-		CPUArch:     releaseInfo.Platform.Arch,
-		Operator:    releaseInfo.Operator,
-		OperateTime: releaseInfo.UpdatedAt,
-	}
+func (m *Manager) recordPublishEvent(nCtx contextx.IContext, releaseInfo *types.Release) {
+	operation := nCtx.BKUsername()
 
-	if err := m.storageEvent.CreateManyPackageEvent(nCtx, event); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).
-			With("release-type", releaseInfo.Type,
-				"os-type", releaseInfo.Platform.OS,
-				"cpu-arch", releaseInfo.Platform.Arch,
-				"version", releaseInfo.Version).
-			Warn("failed to record publish package event event, failed to create package event")
-	}
+	go func() {
+		if err := m.storageEvent.CreateManyPackageEvent(contextx.Background(),
+			&types.PackageEvent{
+				Name:        releaseInfo.Name,
+				EventType:   types.PackageEventTypePublish,
+				ReleaseType: releaseInfo.Type,
+				Generation:  releaseInfo.Generation,
+				Version:     releaseInfo.Version,
+				OSType:      releaseInfo.Platform.OS,
+				CPUArch:     releaseInfo.Platform.Arch,
+				Operator:    operation,
+				OperateTime: time.Now(),
+			}); err != nil {
+			logger.G.Sys().WithErr(err).With("event-type", types.PackageEventTypePublish).Error("failed to record package event")
+		}
+	}()
 }
 
 type releaseAgentPkg struct {

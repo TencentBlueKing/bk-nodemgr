@@ -110,6 +110,10 @@ func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile 
 	}
 	detail.UploadID = uploadID
 
+	// upload file.
+	m.recordUploadEvent(nCtx, types.ReleaseTypePluginBinTool, pkgName, types.ReleaseVersionPluginBinTool, []platfmt.Platform{
+		{OS: types.ReleaseOSTypePluginBinTool, Arch: types.ReleaseCPUArchPluginBinTool}})
+
 	logger.G.Biz(nCtx).With("filename", pkgName).Info("uploaded origin plugin bintool package to upstream")
 
 	return detail, nil
@@ -263,7 +267,8 @@ func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile f
 		return err
 	}
 
-	go m.recordBinToolEvent(nCtx, &pluginBinToolInfo.Release, types.PackageEventTypePublish)
+	// record publish event
+	m.recordPublishEvent(nCtx, &pluginBinToolInfo.Release)
 
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release plugin bintool v2")
 
@@ -327,7 +332,8 @@ func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile f
 		return err
 	}
 
-	go m.recordBinToolEvent(nCtx, &pluginBinToolInfo.Release, types.PackageEventTypePublish)
+	// record publish event
+	m.recordPublishEvent(nCtx, &pluginBinToolInfo.Release)
 
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release plugin bintool v3")
 

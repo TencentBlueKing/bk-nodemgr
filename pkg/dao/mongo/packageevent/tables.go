@@ -28,6 +28,7 @@ var _ base.IData = &PackageEvent{}
 
 // PackageEvent represents package event table.
 type PackageEvent struct {
+	Name        string    `json:"name" bson:"name"`
 	EventID     int64     `json:"event_id" bson:"event_id"`
 	EventType   string    `json:"event_type" bson:"event_type"`
 	Generation  int64     `json:"generation" bson:"generation"`

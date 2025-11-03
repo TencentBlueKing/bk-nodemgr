@@ -143,6 +143,7 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 
 			proxyRelease := &types.ReleaseProxy{
 				Release: types.Release{
+					Name:         types.ReleaseNameProxy,
 					Generation:   types.Generation2,
 					Type:         types.ReleaseTypeProxy,
 					Version:      detail.Version,
@@ -172,7 +173,8 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 
 			releasesMap[pkg.platform.String()] = proxyRelease
 
-			go m.recordPublishEvent(nCtx, &proxyRelease.Release)
+			// record publish event.
+			m.recordPublishEvent(nCtx, &proxyRelease.Release)
 
 			return nil
 		})

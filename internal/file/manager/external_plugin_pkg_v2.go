@@ -133,6 +133,10 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 	}
 	detail.UploadID = uploadID
 
+	// record upload.
+	m.recordUploadEvent(nCtx, types.ReleaseTypeOriginExternalPluginV2, pkgFileName, detail.Version,
+		detail.Platforms)
+
 	logger.G.Biz(nCtx).With("filename", pkgFileName).Info("uploaded origin external plugin package to upstream")
 
 	return detail, nil
@@ -402,7 +406,8 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 
 			releasesMap[pkg.platform.String()] = pluginInfo
 
-			go m.recordPublishEvent(nCtx, &pluginInfo.Release)
+			// record publish event.
+			m.recordPublishEvent(nCtx, &pluginInfo.Release)
 
 			return nil
 		})

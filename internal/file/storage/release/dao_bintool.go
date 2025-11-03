@@ -52,7 +52,10 @@ func (s *Storage) deleteReleaseBinTool(ctx contextx.IContext, gen types.Generati
 func (s *Storage) getReleaseBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error) {
 	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeBinTool,
 		release.WithGeneration(gen),
-		release.WithPlatform(platfmt.EmptyPlatform()),
+		release.WithPlatform(platfmt.Platform{
+			OS:   types.ReleaseOSTypeBinTool,
+			Arch: types.ReleaseCPUArchBinTool,
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release bintool: %w", err)
@@ -66,7 +69,10 @@ func (s *Storage) getReleaseBinTool(ctx contextx.IContext, gen types.Generation)
 // existReleaseBinTool checks if release bintool exists.
 func (s *Storage) existReleaseBinTool(ctx contextx.IContext, gen types.Generation) (bool, error) {
 	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeBinTool,
-		release.WithPlatform(platfmt.EmptyPlatform()),
+		release.WithPlatform(platfmt.Platform{
+			OS:   types.ReleaseOSTypeBinTool,
+			Arch: types.ReleaseCPUArchBinTool,
+		}),
 		release.WithGeneration(gen),
 	)
 	if err != nil {

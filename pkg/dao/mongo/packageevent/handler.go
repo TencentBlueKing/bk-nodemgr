@@ -234,6 +234,7 @@ func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 
 func convertPackageEventToTypes(event *PackageEvent) *types.PackageEvent {
 	return &types.PackageEvent{
+		Name:        event.Name,
 		EventType:   types.PackageEventType(event.EventType),
 		Generation:  types.Generation(event.Generation),
 		ReleaseType: types.ReleaseType(event.ReleaseType),
@@ -247,6 +248,7 @@ func convertPackageEventToTypes(event *PackageEvent) *types.PackageEvent {
 
 func convertPackageEventFromTypes(event *types.PackageEvent) *PackageEvent {
 	return &PackageEvent{
+		Name:        event.Name,
 		EventType:   string(event.EventType),
 		Generation:  int64(event.Generation),
 		ReleaseType: string(event.ReleaseType),

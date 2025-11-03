@@ -268,8 +268,8 @@ const (
 	// PackageEventTypeCancelAsDefault represents the cancel as default event type.
 	PackageEventTypeCancelAsDefault PackageEventType = "cancel_as_default"
 
-	// PackageEventTypeBlank represents an blank event type.
-	PackageEventTypeBlank PackageEventType = ""
+	// PackageEventTypeUpload represents the upload event type.
+	PackageEventTypeUpload PackageEventType = "upload"
 )
 
 // Validate validates the eventType type.
@@ -305,6 +305,7 @@ func StringListToPackageEventTypeList(stringList []string) []PackageEventType {
 
 // PackageEvent represents the event of package.
 type PackageEvent struct {
+	Name        string
 	EventType   PackageEventType
 	Generation  Generation
 	ReleaseType ReleaseType

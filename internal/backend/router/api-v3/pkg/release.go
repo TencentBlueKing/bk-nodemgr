@@ -11,10 +11,9 @@
 package pkg
 
 import (
-	"bytes"
-	"runtime/debug"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -176,7 +175,7 @@ func (h *handler) EnableRelease(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	// record package events.
-	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeEnable)
+	h.recordAgentOrProxyEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeEnable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -206,7 +205,7 @@ func (h *handler) DisableRelease(rCtx restserver.IContext) (interface{}, error) 
 	}
 
 	// record package events.
-	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeDisable)
+	h.recordAgentOrProxyEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeDisable)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -236,7 +235,7 @@ func (h *handler) SetAsDefaultRelease(rCtx restserver.IContext) (interface{}, er
 	}
 
 	// record package events.
-	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeSetAsDefault)
+	h.recordAgentOrProxyEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeSetAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -266,7 +265,7 @@ func (h *handler) CancelAsDefaultRelease(rCtx restserver.IContext) (interface{},
 	}
 
 	// record package events.
-	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeCancelAsDefault)
+	h.recordAgentOrProxyEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeCancelAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -295,7 +294,7 @@ func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	// record package events.
-	go h.recordPackageEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeDelete)
+	h.recordAgentOrProxyEvent(rCtx, gen, version, plat, rt, types.PackageEventTypeDelete)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "release-type", rt, "platform", plat, "version", version).
@@ -390,44 +389,36 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 	return resp.GetData(), nil
 }
 
-func (h *handler) recordPackageEvent(rCtx restserver.IContext,
-	gen types.Generation, version string, plat platfmt.Platform, rt types.ReleaseType,
-	eventType types.PackageEventType) {
-	// recover panic.
-	defer func() {
-		if r := recover(); r != nil {
-			stack := debug.Stack()
+func (h *handler) recordAgentOrProxyEvent(rCtx restserver.IContext, gen types.Generation, version string, plat platfmt.Platform,
+	rt types.ReleaseType, eventType types.PackageEventType) {
 
-			// The first line of the stack trace is of the form "goroutine N [status]:",
-			// but by the time the panic reaches Do the goroutine may no longer exist,
-			// and its status will have changed. Trim out the misleading line.
-			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
-				stack = stack[line+1:]
-			}
+	// check release type. only record agent and proxy.
+	if rt != types.ReleaseTypeAgent && rt != types.ReleaseTypeProxy {
+		logger.G.Biz(rCtx).With("release-type", rt).Error("failed to record package event, invalid release type")
 
-			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record package event")
+		return
+	}
+
+	operator := rCtx.Data().GetLoginName()
+	go func() {
+		// record package events.
+		event := &types.PackageEvent{
+			Name:        types.ReleaseNameAgent,
+			ReleaseType: rt,
+			Generation:  gen,
+			OSType:      plat.OS,
+			CPUArch:     plat.Arch,
+			Version:     version,
+			EventType:   eventType,
+			Operator:    operator,
+			OperateTime: time.Now(),
+		}
+		if rt == types.ReleaseTypeProxy {
+			event.Name = types.ReleaseNameProxy
+		}
+
+		if err := h.daoPackageEvent.CreateManyPackageEvent(contextx.Background(), event); err != nil {
+			logger.G.Sys().WithErr(err).With("event-type", eventType).Error("failed to record package event")
 		}
 	}()
-
-	event := &types.PackageEvent{
-		EventType:   eventType,
-		ReleaseType: rt,
-		Generation:  gen,
-		Version:     version,
-		OSType:      plat.OS,
-		CPUArch:     plat.Arch,
-		OperateTime: time.Now(),
-		Operator:    rCtx.Data().GetLoginName(),
-	}
-
-	if err := h.daoPackageEvent.CreateManyPackageEvent(rCtx, event); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).
-			With("release-type", rt,
-				"gen", gen,
-				"event-type", eventType,
-				"os-type", plat.OS,
-				"cpu-arch", plat.Arch,
-				"version", version).
-			Warn("failed to record package event event, failed to create package event")
-	}
 }

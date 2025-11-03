@@ -10,7 +10,9 @@
 
 package criteria
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // CPUArch define the cpu architecture.
 type CPUArch string

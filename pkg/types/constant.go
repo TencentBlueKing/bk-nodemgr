@@ -10,6 +10,8 @@
 
 package types
 
+import "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+
 const (
 	// ReleaseVersionPluginBinTool defines the version of plugin bintool.
 	ReleaseVersionPluginBinTool = "default"
@@ -19,6 +21,28 @@ const (
 
 	// ReleaseVersionCert defines the version of cert.
 	ReleaseVersionCert = "default"
+)
+
+const (
+	// ReleaseOSTypePluginBinTool defines the os type of plugin bintool.
+	ReleaseOSTypePluginBinTool = criteria.OSUnknown
+
+	// ReleaseOSTypeBinTool defines the os type of bintool.
+	ReleaseOSTypeBinTool = criteria.OSUnknown
+
+	// ReleaseOSTypeCert defines the os type of cert.
+	ReleaseOSTypeCert = criteria.OSUnknown
+)
+
+const (
+	// ReleaseCPUArchPluginBinTool defines the cpu arch of plugin bintool.
+	ReleaseCPUArchPluginBinTool = criteria.CPUArchUnknown
+
+	// ReleaseCPUArchBinTool defines the cpu arch of bintool.
+	ReleaseCPUArchBinTool = criteria.CPUArchUnknown
+
+	// ReleaseCPUArchCert defines the cpu arch of cert.
+	ReleaseCPUArchCert = criteria.CPUArchUnknown
 )
 
 const (

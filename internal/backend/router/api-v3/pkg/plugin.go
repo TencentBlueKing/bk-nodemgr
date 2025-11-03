@@ -13,8 +13,10 @@ package pkg
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -109,6 +111,9 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// record release plugin event.
+	h.recordPluginEvent(rCtx, gen, pluginPkgName, version, plat, types.PackageEventTypeEnable)
+
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
 		Info("enabled plugin")
@@ -185,6 +190,9 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// record release plugin event.
+	h.recordPluginEvent(rCtx, gen, name, version, plat, types.PackageEventTypeDisable)
+
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
 		Info("disable plugin")
@@ -210,6 +218,9 @@ func (h *handler) SetAsDefaultReleasePlugin(rCtx restserver.IContext) (interface
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
+
+	// record release plugin event.
+	h.recordPluginEvent(rCtx, gen, name, version, plat, types.PackageEventTypeSetAsDefault)
 
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
@@ -237,6 +248,9 @@ func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interf
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// record release plugin event.
+	h.recordPluginEvent(rCtx, gen, name, version, plat, types.PackageEventTypeCancelAsDefault)
+
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
 		Info("canceled as default plugin")
@@ -263,6 +277,9 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// record release plugin event.
+	h.recordPluginEvent(rCtx, gen, name, version, plat, types.PackageEventTypeDelete)
+
 	logger.G.Biz(rCtx).
 		With("gen", gen, "platform", plat, "version", version).
 		Info("deleted plugin")
@@ -270,4 +287,26 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	resp := new(protoBackend.PackageReleasePluginDeleteResp)
 
 	return resp.GetData(), nil
+}
+
+func (h *handler) recordPluginEvent(rCtx restserver.IContext, gen types.Generation, name, version string,
+	plat platfmt.Platform, eventType types.PackageEventType) {
+
+	operator := rCtx.Data().GetLoginName()
+	go func() {
+		if err := h.daoPackageEvent.CreateManyPackageEvent(contextx.Background(),
+			&types.PackageEvent{
+				Name:        name,
+				EventType:   eventType,
+				ReleaseType: types.ReleaseTypePlugin,
+				Generation:  gen,
+				Version:     version,
+				OSType:      plat.OS,
+				CPUArch:     plat.Arch,
+				OperateTime: time.Now(),
+				Operator:    operator,
+			}); err != nil {
+			logger.G.Sys().WithErr(err).With("event-type", eventType).Error("failed to record package event")
+		}
+	}()
 }

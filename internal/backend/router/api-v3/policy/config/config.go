@@ -12,12 +12,13 @@
 package config
 
 import (
-	"bytes"
-	"runtime/debug"
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -153,7 +154,7 @@ func (h *handler) CreateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 
 	// record event
 	configPolicy.ID = configPolicyID
-	go h.recordCreateEvent(rCtx, types.ConfigPolicyEventTypeCreate, configPolicy)
+	h.recordCreateEvent(rCtx, types.ConfigPolicyEventTypeCreate, configPolicy)
 
 	resp := new(protoBackend.ConfigPolicyCreateResp)
 	resp.ConvertConfigPolicyID(configPolicyID)
@@ -179,7 +180,7 @@ func (h *handler) UpdateConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// record event
-	go h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeUpdate, configPolicy.ID)
+	h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeUpdate, configPolicy.ID)
 
 	resp := new(protoBackend.ConfigPolicyUpdateResp)
 	resp.ConvertConfigPolicyID(req.GetConfigpolicyId())
@@ -203,7 +204,7 @@ func (h *handler) EnableConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// record event
-	go h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeEnable, req.GetConfigpolicyId()...)
+	h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeEnable, req.GetConfigpolicyId()...)
 
 	resp := new(protoBackend.ConfigPolicyEnableResp)
 
@@ -226,7 +227,7 @@ func (h *handler) DisableConfigPolicy(rCtx restserver.IContext) (interface{}, er
 	}
 
 	// record event
-	go h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeDisable, req.GetConfigpolicyId()...)
+	h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeDisable, req.GetConfigpolicyId()...)
 
 	resp := new(protoBackend.ConfigPolicyDisableResp)
 
@@ -242,6 +243,15 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
+	// get the config policy info.
+	configpolicy, err := h.getConfigPolicy(rCtx, req.GetConfigpolicyId())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete config policy")
+
+		return nil, errf.ErrWrap(errf.DBExecCmdFailed, err)
+	}
+
+	// delete the config policy.
 	if err := h.storage.DeleteManyConfigPolicy(rCtx, req.GetConfigpolicyId()...); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete config policy")
 
@@ -249,7 +259,7 @@ func (h *handler) DeleteConfigPolicy(rCtx restserver.IContext) (interface{}, err
 	}
 
 	// record event
-	go h.recordChangesEvent(rCtx, types.ConfigPolicyEventTypeDelete, req.GetConfigpolicyId()...)
+	h.recordDeleteEvent(rCtx, types.ConfigPolicyEventTypeDelete, configpolicy)
 
 	resp := new(protoBackend.ConfigPolicyDeleteResp)
 
@@ -338,93 +348,101 @@ func (h *handler) DistinctConfigPolicyEvent(rCtx restserver.IContext) (interface
 	return resp.GetData(), nil
 }
 
-func (h *handler) recordCreateEvent(rCtx restserver.IContext,
-	eventType types.ConfigPolicyEventType, configPolicy *types.ConfigPolicy) {
-	// recover panic.
-	defer func() {
-		if r := recover(); r != nil {
-			stack := debug.Stack()
+func (h *handler) recordCreateEvent(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, configPolicy *types.ConfigPolicy) {
+	tenantID := rCtx.TenantID()
 
-			// The first line of the stack trace is of the form "goroutine N [status]:",
-			// but by the time the panic reaches Do the goroutine may no longer exist,
-			// and its status will have changed. Trim out the misleading line.
-			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
-				stack = stack[line+1:]
-			}
+	go func() {
+		event := &types.ConfigPolicyEvent{
+			TenantID:         tenantID,
+			Type:             eventType,
+			ConfigPolicyID:   configPolicy.ID,
+			ConfigPolicyName: configPolicy.Name,
+			ConfigPolicyType: configPolicy.Type,
+			Version:          int64(configPolicy.Version),
+			OperateTime:      time.Now(),
+			Operator:         configPolicy.Operator,
+		}
 
-			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record policy event")
+		if err := h.storage.CreateManyConfigPolicyEvent(contextx.New(context.Background(), contextx.WithTenantID(tenantID)), event); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
 		}
 	}()
-
-	event := &types.ConfigPolicyEvent{
-		TenantID:         configPolicy.TenantID,
-		Type:             eventType,
-		ConfigPolicyID:   configPolicy.ID,
-		ConfigPolicyName: configPolicy.Name,
-		ConfigPolicyType: configPolicy.Type,
-		Version:          int64(configPolicy.Version),
-		OperateTime:      time.Now(),
-		Operator:         configPolicy.Operator,
-	}
-
-	if err := h.storage.CreateManyConfigPolicyEvent(rCtx, event); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).
-			With("event-type", eventType).
-			Warn("failed to record policy event, failed to create policy event")
-	}
 }
 
-func (h *handler) recordChangesEvent(rCtx restserver.IContext,
-	eventType types.ConfigPolicyEventType, configpolicyID ...int64) {
-	// recover panic.
-	defer func() {
-		if r := recover(); r != nil {
-			stack := debug.Stack()
+func (h *handler) recordDeleteEvent(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, configPolicy []*types.ConfigPolicy) {
+	tenantID := rCtx.TenantID()
 
-			// The first line of the stack trace is of the form "goroutine N [status]:",
-			// but by the time the panic reaches Do the goroutine may no longer exist,
-			// and its status will have changed. Trim out the misleading line.
-			if line := bytes.IndexByte(stack[:], '\n'); line >= 0 { //nolint: gocritic
-				stack = stack[line+1:]
+	go func() {
+		events := make([]*types.ConfigPolicyEvent, len(configPolicy))
+		for idx, cp := range configPolicy {
+			event := &types.ConfigPolicyEvent{
+				TenantID:         tenantID,
+				Type:             eventType,
+				ConfigPolicyID:   cp.ID,
+				ConfigPolicyName: cp.Name,
+				ConfigPolicyType: cp.Type,
+				Version:          int64(cp.Version),
+				OperateTime:      time.Now(),
+				Operator:         cp.Operator,
 			}
-
-			logger.G.Sys().With("event-type", eventType, "recover", r, "stack", stack).Error("failed to record policy event")
+			events[idx] = event
+		}
+		if err := h.storage.CreateManyConfigPolicyEvent(contextx.New(context.Background(), contextx.WithTenantID(tenantID)), events...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
 		}
 	}()
+}
+func (h *handler) recordChangesEvent(rCtx restserver.IContext, eventType types.ConfigPolicyEventType, configpolicyID ...int64) {
+	tenantID := rCtx.TenantID()
 
+	go func() {
+		newCtx := contextx.New(contextx.Background(), contextx.WithTenantID(tenantID))
+
+		// get the config policy info.
+		configpolicy, err := h.getConfigPolicy(newCtx, configpolicyID)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to get policy info")
+
+			return
+		}
+
+		events := make([]*types.ConfigPolicyEvent, len(configpolicy))
+		for idx, cp := range configpolicy {
+			event := &types.ConfigPolicyEvent{
+				TenantID:         tenantID,
+				Type:             eventType,
+				ConfigPolicyID:   cp.ID,
+				ConfigPolicyName: cp.Name,
+				ConfigPolicyType: cp.Type,
+				Version:          int64(cp.Version),
+				Operator:         cp.Operator,
+				OperateTime:      time.Now(),
+			}
+
+			events[idx] = event
+		}
+
+		if err := h.storage.CreateManyConfigPolicyEvent(newCtx, events...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to record policy event, failed to create event")
+		}
+	}()
+}
+
+func (h *handler) getConfigPolicy(nCtx contextx.IContext, configpolicyID []int64) ([]*types.ConfigPolicy, error) {
 	// get the config policy info.
-	configpolicy, _, err := h.storage.ListConfigPolicy(rCtx, types.UnlimitedPage(),
+	configpolicies, _, err := h.storage.ListConfigPolicy(nCtx, types.UnlimitedPage(),
 		&types.ConfigPolicyCondition{
 			ExactInclude: &types.ConfigPolicyExactFields{
 				ConfigPolicyID: configpolicyID,
 			},
 		})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).
-			With("configpolicy-id", configpolicyID,
-				"event-type", eventType).
-			Warn("failed to record policy event, failed to get config policy")
+		return nil, fmt.Errorf("failed to get config policy: %w", err)
 	}
 
-	events := make([]*types.ConfigPolicyEvent, len(configpolicy))
-	for idx, cp := range configpolicy {
-		event := &types.ConfigPolicyEvent{
-			TenantID:         cp.TenantID,
-			Type:             eventType,
-			ConfigPolicyID:   cp.ID,
-			ConfigPolicyName: cp.Name,
-			ConfigPolicyType: cp.Type,
-			Version:          int64(cp.Version),
-			OperateTime:      cp.UpdatedAt,
-			Operator:         cp.Operator,
-		}
-
-		events[idx] = event
+	if len(configpolicies) == 0 {
+		return nil, fmt.Errorf("config policy not found")
 	}
 
-	if err := h.storage.CreateManyConfigPolicyEvent(rCtx, events...); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).
-			With("event-type", eventType).
-			Warn("failed to record policy event, failed to create policy event")
-	}
+	return configpolicies, nil
 }

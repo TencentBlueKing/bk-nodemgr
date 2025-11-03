@@ -1151,6 +1151,9 @@
     "v3PackageEvent": {
       "type": "object",
       "properties": {
+        "name": {
+          "type": "string"
+        },
         "event_type": {
           "type": "string"
         },
