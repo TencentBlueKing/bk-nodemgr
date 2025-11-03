@@ -91,6 +91,7 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsToTypes() ([]*types.NodeWorkf
 
 	for idx, item := range items {
 		workflow := &types.NodeWorkflow{
+			TenantID:    item.GetTenantId(),
 			WorkflowID:  item.GetWorkflowId(),
 			TriggerID:   item.GetTriggerId(),
 			Type:        types.NodeWorkflowType(item.GetType()),

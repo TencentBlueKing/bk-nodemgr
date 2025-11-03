@@ -311,6 +311,7 @@ func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 // convertNodeWorkflowToTypes convert node workflow to types.
 func convertNodeWorkflowToTypes(data *Data) *types.NodeWorkflow {
 	return &types.NodeWorkflow{
+		TenantID:    data.TenantID,
 		WorkflowID:  data.WorkflowID,
 		TriggerID:   data.TriggerID,
 		Type:        types.NodeWorkflowType(data.Type),
@@ -325,6 +326,7 @@ func convertNodeWorkflowToTypes(data *Data) *types.NodeWorkflow {
 // convertNodeWorkflowFromTypes convert node workflow from types.
 func convertNodeWorkflowFromTypes(workflow *types.NodeWorkflow) *Data {
 	return &Data{
+		TenantID:    workflow.TenantID,
 		WorkflowID:  workflow.WorkflowID,
 		TriggerID:   workflow.TriggerID,
 		Type:        string(workflow.Type),

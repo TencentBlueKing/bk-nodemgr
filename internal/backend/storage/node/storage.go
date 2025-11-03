@@ -129,10 +129,8 @@ func (s *Storage) registerScheduler() error {
 func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 	tenantIDs := tenant.GetAllTenantIDs()
 
-	var (
-		runningWorkflowMap        map[string]*types.NodeWorkflow
-		recentFinishedWorkflowMap map[string]*types.NodeWorkflow
-	)
+	runningWorkflowMap := map[string]*types.NodeWorkflow{}
+	recentFinishedWorkflowMap := map[string]*types.NodeWorkflow{}
 
 	gp := gopool.NewPool()
 	for _, tenantID := range tenantIDs {
@@ -225,13 +223,20 @@ func (s *Storage) monitorWorkflowStatus(nCtx contextx.IContext) error {
 	for triggerID, operInsts := range finishedTriggerOperInstsMap {
 		status, finishTime := calWorkflowStatusAndTime(operInsts)
 
-		err = s.daoNodeWorkflow.UpdateStatus(nCtx, s.monitoredWorkflows[triggerID].WorkflowID, status)
+		nodeWorkflow, ok := s.monitoredWorkflows[triggerID]
+		if !ok {
+			continue
+		}
+
+		tenantNCtx := contextx.From(nCtx, contextx.WithTenantID(nodeWorkflow.TenantID))
+
+		err = s.daoNodeWorkflow.UpdateStatus(tenantNCtx, nodeWorkflow.WorkflowID, status)
 		if err != nil {
 			return fmt.Errorf("update node workflow status failed: %w", err)
 		}
 
 		err = s.daoNodeWorkflow.UpdateFinishTime(
-			nCtx, s.monitoredWorkflows[triggerID].WorkflowID, finishTime)
+			tenantNCtx, nodeWorkflow.WorkflowID, finishTime)
 		if err != nil {
 			return fmt.Errorf("update node workflow finish time failed: %w", err)
 		}

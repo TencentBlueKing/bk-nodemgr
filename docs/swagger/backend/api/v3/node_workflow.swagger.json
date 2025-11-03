@@ -508,6 +508,9 @@
     "v3NodeWorkflowInfo": {
       "type": "object",
       "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
         "workflow_id": {
           "type": "string"
         },

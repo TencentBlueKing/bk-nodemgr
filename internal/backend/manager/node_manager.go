@@ -96,14 +96,15 @@ type RetryOperationNodeParam struct {
 }
 
 // LaunchInstallNode launch a task to install node.
-func (mgr *Manager) LaunchInstallNode(ctx contextx.IContext, param InstallNodeParam) (string, error) {
-	triggerCtl, err := mgr.workflowMgr.CreateTrigger(ctx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param InstallNodeParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
 	}
 
 	workflowID := identifier.GenWorkflowID()
-	if err = mgr.conf.StorageNode.CreateNodeWorkflow(ctx, &types.NodeWorkflow{
+	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
+		TenantID:    nCtx.TenantID(),
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -120,7 +121,7 @@ func (mgr *Manager) LaunchInstallNode(ctx contextx.IContext, param InstallNodePa
 		deploy := nodeDeploy
 
 		gp.Go(func() error {
-			return mgr.createInstallNodeOper(ctx, param.Operator, triggerCtl, deploy)
+			return mgr.createInstallNodeOper(nCtx, param.Operator, triggerCtl, deploy)
 		})
 	}
 
@@ -128,7 +129,7 @@ func (mgr *Manager) LaunchInstallNode(ctx contextx.IContext, param InstallNodePa
 		return "", fmt.Errorf("failed to launch install node task. err: %w", err)
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.RunTrigger(nCtx); err != nil {
 		return "", err
 	}
 
@@ -293,6 +294,7 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param UpgradeNodeP
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
+		TenantID:    nCtx.TenantID(),
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -403,6 +405,7 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param ReconfigNod
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
+		TenantID:    nCtx.TenantID(),
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -478,6 +481,7 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param RestartNodeP
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
+		TenantID:    nCtx.TenantID(),
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -553,6 +557,7 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param UninstallN
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StorageNode.CreateNodeWorkflow(nCtx, &types.NodeWorkflow{
+		TenantID:    nCtx.TenantID(),
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,

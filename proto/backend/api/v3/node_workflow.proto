@@ -10,14 +10,15 @@ import "google/api/annotations.proto";
 
 // NodeWorkflowInfo describes the node workflow information.
 message NodeWorkflowInfo {
-  optional string workflow_id = 1;
-  optional string trigger_id = 2;
-  optional string type = 3;
-  repeated int64 bk_biz_id = 4;
-  optional string operator = 5;
-  optional int64 operate_time = 6;
-  optional int64 finish_time = 7;
-  optional string status = 8;
+  optional string tenant_id = 1;
+  optional string workflow_id = 2;
+  optional string trigger_id = 3;
+  optional string type = 4;
+  repeated int64 bk_biz_id = 5;
+  optional string operator = 6;
+  optional int64 operate_time = 7;
+  optional int64 finish_time = 8;
+  optional string status = 9;
 }
 
 // NodeWorkflowExactConditions describes the exact conditions of node workflow
