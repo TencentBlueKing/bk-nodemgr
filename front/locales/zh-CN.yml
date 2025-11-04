@@ -344,8 +344,6 @@ components:
     keyTip: 仅对密钥认证生效
   chooseVersion:
     title: 按操作系统选定版本
-    auto: 自动
-    autoMatch: 自动匹配默认版本
   configTemplate:
     enable: 开启
     disabled: 关闭

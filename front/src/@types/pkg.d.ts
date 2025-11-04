@@ -106,6 +106,106 @@ export interface PackageUploadOriginBinToolRespData {
   proxy_platforms: Platform[];
 }
 
+// PackageUploadOriginPluginV2Req is the request for upload origin plugin v2.
+export interface PackageUploadOriginPluginV2Req {
+  overwrite: boolean;
+}
+
+// PackageUploadOriginPluginV2Resp is the response for upload origin plugin v2.
+export interface PackageUploadOriginPluginV2Resp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageUploadOriginPluginV2RespData;
+}
+
+export interface PackageUploadOriginPluginV2RespData {
+  upload_id: string;
+  existed: boolean;
+  generated: boolean;
+  name: string;
+  size: number;
+  md5: string;
+  version: string;
+  description: string;
+  scenario: string;
+  config_file: string;
+  config_format: string;
+  launch_node: string;
+  platforms: Platform[];
+}
+
+// PackageUploadOriginExternalPluginV2Req is the request for upload origin
+// external plugin v2.
+export interface PackageUploadOriginExternalPluginV2Req {
+  overwrite: boolean;
+}
+
+// PackageUploadOriginExternalPluginV2Resp is the response for upload origin
+// external plugin v2.
+export interface PackageUploadOriginExternalPluginV2Resp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageUploadOriginExternalPluginV2RespData;
+}
+
+export interface PackageUploadOriginExternalPluginV2RespData {
+  upload_id: string;
+  existed: boolean;
+  generated: boolean;
+  name: string;
+  size: number;
+  md5: string;
+  version: string;
+  description: string;
+  scenario: string;
+  config_file: string;
+  config_format: string;
+  launch_node: string;
+  platforms: Platform[];
+}
+
+// PackagePublishReleasePluginV2Req is the request for publish release plugin v2
+// pkg.
+export interface PackagePublishReleasePluginV2Req {
+  upload_id: string;
+}
+
+// PackagePublishReleasePluginV2Resp is the response for publish release plugin
+// v2 pkg.
+export interface PackagePublishReleasePluginV2Resp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackagePublishReleasePluginV2RespData;
+}
+
+export interface PackagePublishReleasePluginV2RespData {
+}
+
+// PackagePublishReleaseExternalPluginV2Req is the request for publish release
+// external plugin v2 pkg.
+export interface PackagePublishReleaseExternalPluginV2Req {
+  upload_id: string;
+}
+
+// PackagePublishReleaseExternalPluginV2Resp is the response for publish release
+// external plugin v2 pkg.
+export interface PackagePublishReleaseExternalPluginV2Resp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackagePublishReleaseExternalPluginV2RespData;
+}
+
+export interface PackagePublishReleaseExternalPluginV2RespData {
+}
+
 // PackagePublishReleaseAgentReq is the request for upload release agent pkg.
 export interface PackagePublishReleaseAgentReq {
   upload_id: string;
@@ -458,6 +558,13 @@ export interface PackageReleaseAgentDownloadReq {
 // PackageReleaseProxyDownloadReq is the request for download proxy pkg.
 export interface PackageReleaseProxyDownloadReq {
   generation: number;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginDownloadReq is the request for download plugin pkg.
+export interface PackageReleasePluginDownloadReq {
+  name: string;
   platform: Platform;
   version: string;
 }

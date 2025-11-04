@@ -23,7 +23,7 @@
     </FlexRow>
     <Loading :loading="loading">
       <Table
-        class="mt-[16px] w-full"
+        class="mt-[16px] w-full filterTable"
         ref="tableRef"
         :data="list"
         :empty-text="$t('table.empty')"

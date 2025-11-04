@@ -126,7 +126,7 @@
                     :ref="(el) => setInputRef(row.os, el)"
                   >
                     <Input
-                      :model-value="row.versionName"
+                      :model-value="row.version"
                       :placeholder="$t('platform.nodeMan.installAgentPage.placeholder.select')"
                       @click="handleChooseVersion(row)"
                     />
@@ -197,6 +197,7 @@ import Preview from './preview.vue';
 
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
+import { scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 
@@ -238,23 +239,19 @@ const previewData = reactive({
 const systemData = ref([
   {
     os: 'linux_amd64',
-    version: 'auto',
-    versionName: t('components.chooseVersion.auto'),
+    version: '',
   },
   {
     os: 'darwin_amd64',
-    version: 'auto',
-    versionName: t('components.chooseVersion.auto'),
+    version: '',
   },
   {
     os: 'linux_arm64',
-    version: 'auto',
-    versionName: t('components.chooseVersion.auto'),
+    version: '',
   },
   {
     os: 'windows_amd64',
-    version: 'auto',
-    versionName: t('components.chooseVersion.auto'),
+    version: '',
   },
 ]);
 const rules = {};
@@ -268,15 +265,13 @@ const handleSelect = (newValue: string, oldValue: string) => {
 const dialogData = ref([{
   os: '',
   version: '',
-  versionName: '',
 }]);
-const handleChooseVersion = (row: { version: string; os: string, versionName: string }) => {
+const handleChooseVersion = (row: { version: string; os: string }) => {
   isShowDialog.value = true;
   dialogData.value = [row];
 };
-const handleComfirmVerion = (data: any) => {
-  dialogData.value[0].version = data?.version;
-  dialogData.value[0].versionName = data?.versionName;
+const handleComfirmVerion = (data: any[]) => {
+  dialogData.value[0].version = data[0]?.version;
 };
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);
@@ -371,7 +366,7 @@ const handlePreview = async () => {
     });
     if (isShow.value) {
       formData.target_version = systemData.value
-        .filter((item: any) => item.version !== 'auto')
+        .filter((item: any) => !!item.version)
         .map((item) => {
           const [type, cpu_arch] = item.os.split('_');
           const os_type = type;
@@ -384,6 +379,8 @@ const handlePreview = async () => {
       formData.disable_default_target_version = true;
     }
     previewData.data = { ...formData };
+  } else {
+    scrollToFirstErrorByClassNames();
   }
 };
 const handleSetpBack = () => {
@@ -416,13 +413,12 @@ const getVersions = async () => {
     if (item.release.enabled) {
       osMap[key].enableVersions.push({
         version: item.release.version,
-        versionName: item.release.version,
         os_type: item.release.os_type,
         cpu_arch: item.release.cpu_arch,
       });
     }
   });
-  systemData.value = systemData.value.filter((item) => !!osMap[item.os]?.enableVersions.length);
+  systemData.value = systemData.value.filter(item => !!osMap[item.os]?.enableVersions.length);
 };
 
 const footerRef = ref<Element | null>(null);

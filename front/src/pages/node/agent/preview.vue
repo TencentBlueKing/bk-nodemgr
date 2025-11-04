@@ -257,7 +257,11 @@
         <Button
           theme="primary"
           @click="handleSetup"
-          :disabled="disabledDataNum > 0"
+          :disabled="disabledDataNum > 0 || checkFailed"
+          v-bk-tooltips="{
+            content: disabledDataNum ? '有Agent 状态错误数据，不可安装' : '校验失败，不可安装',
+            disabled: !checkFailed && disabledDataNum === 0
+          }"
         >{{
           t("platform.nodeMan.preview.button.performInstallation")
         }}</Button
@@ -275,7 +279,7 @@ import {
   Radio,
   SearchSelect,
   Sideslider,
-  Tab
+  Tab,
 } from 'bkui-vue';
 import { Close } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
@@ -308,6 +312,7 @@ const originData = ref<AgentInstallInfo[]>([]);
 const tableData = ref<AgentInstallInfo[]>([]);
 const tabKey = ref(Date.now());
 const disabledDataNum = ref(0);
+const checkFailed = computed(() => tableData.value.some(item => !item.elig_status));
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = computed(() => [
@@ -563,6 +568,8 @@ function sortByEligStatus(arr: any[]) {
     return priorityA - priorityB;
   });
 }
+
+// 安装检查
 const installCheck = async () => {
   const res = await NodeAgentService.NodeAgentInstallCheck({
     host: originData.value.map((item: any) => ({
@@ -580,7 +587,7 @@ const installCheck = async () => {
       return {
         ...item,
         duplicate_host_ids: target?.duplicate_host_ids || [],
-        elig_status: target?.elig_status || 'clean_install',
+        elig_status: target?.elig_status || '',
       };
     }));
   }
@@ -603,6 +610,9 @@ const getAgentList = async (row: any) => {
     ...item,
   }));
 };
+function isEmpty(str: string | number | undefined | null) {
+  return str === undefined || str === null || str === '';
+}
 // 前端过滤数据
 watch(
   [
@@ -636,10 +646,11 @@ watch(
       originData.value = props.data.info.map(item => ({
         ...item,
         login_port: Number(item.login_port),
-        bk_biz_id: item.bk_biz_id ?? Number(props.data.bk_biz_id),
-        bk_networkunit_id: item.bk_networkunit_id ?? Number(props.data.bk_networkunit_id),
+        bk_biz_id: isEmpty(item.bk_biz_id) ? Number(props.data.bk_biz_id) : item.bk_biz_id,
+        bk_networkunit_id: isEmpty(item.bk_networkunit_id)
+          ? Number(props.data.bk_networkunit_id) : item.bk_networkunit_id,
         bk_host_id: Number(item.bk_host_id),
-        bk_networkarea_name: item.bk_networkarea_name ??  props.data.bk_networkarea_name,
+        bk_networkarea_name: item.bk_networkarea_name ||  props.data.bk_networkarea_name,
         bk_addressing: 'static',
       }));
       await installCheck();

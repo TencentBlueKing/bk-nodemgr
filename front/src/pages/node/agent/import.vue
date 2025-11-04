@@ -54,7 +54,7 @@ import { Table, TableColumn } from '@blueking/table';
 import Preview from './preview.vue';
 
 import type { AgentInstallInfo } from '@/@types/node_agent.d';
-import { TopoService } from '@/api/modules/topo';
+import { scrollToFirstErrorByClassNames } from '@/common/util';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
@@ -130,6 +130,8 @@ const handlePreview = async () => {
       item[modeMap[item.login_mode]] = item.credit;
     });
     previewData.data = { ...formData };
+  } else {
+    scrollToFirstErrorByClassNames();
   }
 };
 // 显示表格设置

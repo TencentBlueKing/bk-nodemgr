@@ -1,34 +1,31 @@
 <template>
   <div class="text-[12px]">
-    <!-- 收起状态 -->
-    <div v-show="!isExpand">
-      <template v-if="!is_direct">
-        <!-- 上游接入点简化展示 -->
-        <div class="mb-[14px] flex items-start" v-if="isShowUpstreamDefaultInfo">
-          <div class="text-[#4D4F56] w-[72px] mr-[3px]">{{ $t('topoManager.workUnit.accessPoints.upstream') }} :</div>
-          <div class="flex">
+    <div class="mb-[14px] flex items-start" v-if="!is_direct">
+      <div class="text-[#4D4F56] w-[72px] mr-[3px]">{{ $t('topoManager.workUnit.accessPoints.upstream') }} :</div>
+      <Popover
+        theme="light"
+        trigger="hover"
+        :is-show="true"
+      >
+        <div>
+          <div class="flex cursor-pointer text-[#3a84ff]">
             <span>{{ clusterData.workarea_name }}</span>
             <span
               v-show="clusterData.workunit_name"
-              class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]">
+              class="nodeman-icon nc-arrows-right mx-[5px] mt-[-3px] text-[24px]">
             </span>
             <span>{{ clusterData.workunit_name }}</span>
             <span
               v-show="clusterData.accesspoint_name"
-              class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] mt-[-3px] text-[24px]">
+              class="nodeman-icon nc-arrows-right mx-[5px] mt-[-3px] text-[24px]">
             </span>
             <span>{{ clusterData.accesspoint_name }}</span>
           </div>
         </div>
-        <!-- 上游接入点详细展示 -->
-        <div class="mb-[14px] flex" v-else>
-          <div class="text-[#4D4F56] w-[72px] mr-[3px]">
-            {{ $t('topoManager.workUnit.accessPoints.upstream') }} :
-          </div>
-          <div>
-            <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
-              <div class="flex items-center h-[20px]">
-                <div class="w-[45px] text-right mr-[8px]">cluster :</div>
+        <template #content>
+          <!-- <Table :data="upstreamTableData" :min-width="600">
+            <TableColumn field="cluster" title="cluster" :min-width="200">
+              <template #default>
                 <div class="flex items-center">
                   <span>{{ clusterData.workarea_name }}</span>
                   <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -36,9 +33,10 @@
                   <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
                   <span>{{ clusterData.accesspoint_name }}</span>
                 </div>
-              </div>
-              <div class="mt-[12px] flex items-center h-[20px]">
-                <div class="w-[45px] text-right mr-[8px]">file :</div>
+              </template>
+            </TableColumn>
+            <TableColumn field="file" title="file" :min-width="200">
+              <template #default>
                 <div class="flex items-center">
                   <span>{{ fileData.workarea_name }}</span>
                   <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -46,9 +44,10 @@
                   <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
                   <span>{{ fileData.accesspoint_name }}</span>
                 </div>
-              </div>
-              <div class="mt-[12px] flex items-center h-[20px]">
-                <div class="w-[45px] text-right mr-[8px]">data :</div>
+              </template>
+            </TableColumn>
+            <TableColumn field="data" title="data" :min-width="200">
+              <template #default>
                 <div class="flex items-center">
                   <span>{{ dataData.workarea_name }}</span>
                   <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
@@ -56,66 +55,10 @@
                   <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
                   <span>{{ dataData.accesspoint_name }}</span>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </template>
-      <template v-else>
-        <!--直连配置-->
-        <div class="mb-[14px] flex">
-          <div class="text-[#4D4F56] w-[72px] mr-[3px]">
-            {{ $t('topoManager.workUnit.accessPoints.directConfig') }}
-          </div>
-          <div v-if="directEndpoints">
-            <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
-              <div class="flex items-center h-[20px]">
-                <div class="w-[45px] text-right mr-[8px]">cluster :</div>
-                <span>{{ directEndpoints.cluster.join(' ;') }}</span>
-              </div>
-              <div class="flex items-center h-[20px] mt-[12px]">
-                <div class="w-[45px] text-right mr-[8px]">file :</div>
-                <span>{{ directEndpoints.file.join(' ;') }}</span>
-              </div>
-              <div class="flex items-center h-[20px] mt-[12px]">
-                <div class="w-[45px] text-right mr-[8px]">data :</div>
-                <span>{{ directEndpoints.data.join(' ;') }}</span>
-              </div>
-            </div>
-          </div>
-          <div v-else>--</div>
-        </div>
-      </template>
-      <!-- 下游接入点简化展示 -->
-      <div class="flex items-center">
-        <div class="text-[#4D4F56] w-[72px] mr-[3px] shrink-0">
-          {{ $t('topoManager.workUnit.accessPoints.downstream') }} :
-        </div>
-        <span v-if="isDownStreamDataExist" class="responsive-container">
-          {{ downstreamData?.map(item => item.accesspoint_name).join(' , ') }}
-        </span>
-        <span v-else>--</span>
-        <Button
-          text
-          theme="primary"
-          class="ml-[15px]"
-          @click="toggleExpand">
-          <span>
-            {{ $t('topoManager.workUnit.toggle.expand') }}
-          </span>
-          <i class="nodeman-icon nc-angle-double-down text-[24px]"></i>
-        </Button>
-      </div>
-    </div>
-    <!-- 展开状态 -->
-    <div v-show="isExpand">
-      <!-- 上游接入点详细展示 -->
-      <div class="mb-[14px] flex" v-if="!is_direct">
-        <div class="text-[#4D4F56] w-[72px] mr-[3px]">
-          {{ $t('topoManager.workUnit.accessPoints.upstream') }} :
-        </div>
-        <div>
-          <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
+              </template>
+            </TableColumn>
+          </Table> -->
+          <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]  max-w-[800] overflow-auto">
             <div class="flex items-center h-[20px]">
               <div class="w-[45px] text-right mr-[8px]">cluster :</div>
               <div class="flex items-center">
@@ -147,10 +90,11 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <!-- 直连配置 -->
-      <div class="mb-[14px] flex" v-else>
+        </template>
+      </Popover>
+    </div>
+    <template v-else>
+      <div class="mb-[14px] flex">
         <div class="text-[#4D4F56] w-[72px] mr-[3px]">
           {{ $t('topoManager.workUnit.accessPoints.directConfig') }}
         </div>
@@ -172,68 +116,58 @@
         </div>
         <div v-else>--</div>
       </div>
-      <!-- 下游接入点详细展示 -->
-      <div class="flex items-baseline">
-        <div class="text-[#4D4F56] w-[72px] mr-[3px] shrink-0">
-          {{ $t('topoManager.workUnit.accessPoints.downstream') }} :
-        </div>
-        <div v-if="isDownStreamDataExist" class="flex gap-[10px] items-end overflow-x-auto responsive-container">
-          <div v-for="(item, index) in downstreamData" class="mb-[8px]" :key="index">
-            <div class="flex items-center">
-              <span>{{ item.accesspoint_name }}</span>
-              <Button
-                v-if="index === 0"
-                text
-                theme="primary"
-                class="ml-[15px]"
-                @click="toggleExpand">
-                <span>
-                  {{ $t('topoManager.workUnit.toggle.close') }}
-                </span>
-                <i class="nodeman-icon nc-double-up text-[24px]"></i>
-              </Button>
-            </div>
-            <div class="flex items-center gap-[10px]">
-              <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56] mt-[6px]">
-                <div class="flex items-center h-[20px]">
-                  <div class="w-[45px] text-right mr-[8px]">cluster :</div>
-                  <span>{{ item.endpoints.cluster.join(' ;') }}</span>
-                </div>
-                <div class="flex items-center h-[20px] mt-[12px]">
-                  <div class="w-[45px] text-right mr-[8px]">file :</div>
-                  <span>{{ item.endpoints.file.join(' ;') }}</span>
-                </div>
-                <div class="flex items-center h-[20px] mt-[12px]">
-                  <div class="w-[45px] text-right mr-[8px]">data :</div>
-                  <span>{{ item.endpoints.data.join(' ;') }}</span>
-                </div>
-              </div>
-              <i class="nodeman-icon nc-arrows-right text-[24px]" v-if="index !== downstreamData.length - 1"></i>
-            </div>
-          </div>
-        </div>
-        <div v-else>--</div>
-        <Button
-          v-if="!isDownStreamDataExist"
-          text
-          theme="primary"
-          class="ml-[15px]"
-          @click="toggleExpand">
-          <span>
-            {{ $t('topoManager.workUnit.toggle.close') }}
-          </span>
-          <i class="nodeman-icon nc-double-up text-[24px]"></i>
-        </Button>
+    </template>
+    <div class="flex items-center">
+      <div class="text-[#4D4F56] w-[72px] mr-[3px] shrink-0">
+        {{ $t('topoManager.workUnit.accessPoints.downstream') }} :
       </div>
+      <span v-if="isDownStreamDataExist" class="responsive-container cursor-pointer text-[#3a84ff]">
+        <Popover
+          theme="light"
+          trigger="hover"
+          :is-show="true"
+        >
+          <div>
+            {{ downstreamData?.map(item => item.accesspoint_name).join(', ') }}
+          </div>
+          <template #content>
+            <Table :data="downstreamData" :min-width="600" :maxHeight="800">
+              <TableColumn field="accesspoint_name" title="接入点名称" :min-width="100">
+                <template #default="{ row }">
+                  {{ row.accesspoint_name }}
+                </template>
+              </TableColumn>
+              <TableColumn field="cluster" title="cluster" :min-width="200">
+                <template #default="{ row }">
+                  {{ row.endpoints.cluster.join('') }}
+                </template>
+              </TableColumn>
+              <TableColumn field="file" title="file" :min-width="200">
+                <template #default="{ row }">
+                  {{ row.endpoints.file.join('') }}
+                </template>
+              </TableColumn>
+              <TableColumn field="data" title="data" :min-width="200">
+                <template #default="{ row }">
+                  {{ row.endpoints.data.join('') }}
+                </template>
+              </TableColumn>
+            </Table>
+          </template>
+        </Popover>
+      </span>
+      <span v-else>--</span>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Button } from 'bkui-vue';
+import { Button, Popover } from 'bkui-vue';
 import { isEqual } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, ref } from 'vue';
+
+import { Table, TableColumn } from '@blueking/table';
 
 import { useWorkareaStore } from '@/stores/workarea';
 
@@ -261,7 +195,6 @@ const isExpand = ref(props.is_direct);
 const toggleExpand = () => {
   isExpand.value = !isExpand.value;
 };
-
 // 上游接入点的cluster/file/data是否一致
 // 如一致简化展示
 // 如不一致单独展开上游接入点,不再展示简化信息(不影响isExpand)
@@ -313,6 +246,13 @@ const dataData = computed(() => {
   };
 });
 
+const upstreamTableData = ref([
+  {
+    cluster: '',
+    file: '',
+    data: '',
+  },
+]);
 // 根据缓存和workareaId获取workareaName
 const getWorkareaName = (workareaId: number): string => workareaStore.allWorkareaList.get(workareaId)?.bk_networkarea_name || '';
 // 根据缓存和workareaId, workUnitId获取workUnitName
@@ -329,36 +269,36 @@ const getAccessPointName = (workUnitId: number, accessPointId: number): string =
   display: flex;
   align-items: baseline;
   overflow-x: auto;
-  max-width: min(900px, 80vw);
+  max-width: min(700px, 70vw);
   width: 100%;
 }
 
 @media (min-width: 2001px) {
   .responsive-container {
-    max-width: 80vw;
+    max-width: 70vw;
   }
 }
 
 @media (min-width: 1801px) and (max-width: 2000px) {
   .responsive-container {
-    max-width: 77vw;
+    max-width: 67vw;
   }
 }
 
 @media (min-width: 1601px) and (max-width: 1800px) {
   .responsive-container {
-    max-width: 75vw;
+    max-width: 65vw;
   }
 }
 
 @media (min-width: 1401px) and (max-width: 1600px) {
   .responsive-container {
-    max-width: 73vw;
+    max-width: 63vw;
   }
 }
 @media (min-width: 1201px) and (max-width: 1400px) {
   .responsive-container {
-    max-width: 71vw;
+    max-width: 61vw;
   }
 }
 

@@ -31,6 +31,7 @@
     </section>
     <bk-loading title="数据加载中" :loading="loading">
       <Table
+        class="filterTable"
         :data="tableData"
         :empty-text="'暂无数据'"
         :pagination="pagination"

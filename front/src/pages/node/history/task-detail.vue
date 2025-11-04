@@ -74,6 +74,7 @@
     <bk-loading title="数据加载中" :loading="loading">
       <div class="relative">
         <Table
+          class="filterTable"
           :data="filterTableData"
           :empty-text="'暂无数据'"
           :pagination="pagination"

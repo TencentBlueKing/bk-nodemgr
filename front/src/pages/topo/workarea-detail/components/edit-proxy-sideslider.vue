@@ -93,6 +93,8 @@ import { useI18n } from 'vue-i18n';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { VALIDATE_REGEX } from '@/common/const';
+import { scrollToFirstErrorByClassNames } from '@/common/util';
+
 interface IValidate {
   validator: Function | RegExp | string;
   message: string;
@@ -180,7 +182,10 @@ const loading = ref(false);
 const formRef = ref(null);
 const handleSave = async () => {
   const validRes = await formRef.value?.validate().catch(() => false);
-  if (!validRes) return;
+  if (!validRes) {
+    scrollToFirstErrorByClassNames();
+    return;
+  };
   loading.value = true;
   const modeMap = {
     password: 'login_password',

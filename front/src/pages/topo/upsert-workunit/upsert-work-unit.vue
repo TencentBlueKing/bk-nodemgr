@@ -134,6 +134,7 @@ import SelectGroup from './components/select-group.vue';
 
 import type { TopoNetworkUnitCreateReq, TopoNetworkUnitUpdateReq } from '@/@types/topo';
 import { TopoService } from '@/api/modules/topo';
+import { scrollToFirstErrorByClassNames } from '@/common/util';
 import { useWorkareaStore } from '@/stores/workarea';
 
 const isShow = defineModel<boolean>('isShow', { required: true });
@@ -279,7 +280,10 @@ const handleConfirm = async () => {
   try {
     saveLoading.value = true;
     const validate = await formRef.value?.validate().catch(() => false);
-    if (!validate) return;
+    if (!validate) {
+      scrollToFirstErrorByClassNames();
+      return;
+    };
 
     // params配置
     const links = form.links as Links;

@@ -95,17 +95,35 @@ import { useRoute } from 'vue-router';
 
 import { bytesToMegabytes, capitalizeFirstLetter } from '@/common/util';
 
+const props = defineProps({
+  pluginType: {
+    type: String,
+    default: '',
+  },
+});
 
 const emit = defineEmits(['upload', 'cancel', 'loading']);
 const route = useRoute();
 const uploader = ref(null);
+
 const currentType = computed(() => {
   const routeName = route.name?.toString() || '';
   const type = routeName.split('PackageMng')[0];
   return type;
 });
 const url = computed(() => {
-  const type = currentType.value === 'proxy' ? 'server' : currentType.value;
+  let type;
+  switch (currentType.value) {
+    case 'proxy':
+      type = 'server';
+      break;
+    case 'plugin':
+      type = props.pluginType;
+      break;
+    default:
+      type = currentType.value;
+      break;
+  }
   return `${location.origin}/api/v3/package/upload/origin/${type}`;
 });
 const curFile = reactive({

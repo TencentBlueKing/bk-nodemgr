@@ -1,5 +1,19 @@
 <template>
-  <div class="p-[24px]">
+  <Tab
+    v-model:active="active"
+    type="unborder-card"
+    :label-height="41"
+    class="text-[14px] bg-[#fff] h-[41px] absolute z-10 w-full"
+  >
+    <Tab.TabPanel
+      v-for="item in panels"
+      :key="item.name"
+      :label="item.label"
+      :name="item.name"
+    >
+    </Tab.TabPanel>
+  </Tab>
+  <div class="p-[24px] mt-[41px]">
     <section class="flex justify-between mb-[15px]">
       <div class="flex gap-[12px]">
         <DatePicker
@@ -26,6 +40,7 @@
     </section>
     <bk-loading title="数据加载中" :loading="loading">
       <Table
+        class="filterTable"
         :data="tableData"
         :empty-text="'暂无数据'"
         :pagination="pagination"
@@ -41,22 +56,22 @@
         :sort-config="sortConfig"
       >
         <TableColumn
+          field="configpolicy_name"
+          :title="t('配置名称')"
+          fixed="left"
+          min-width="130"
+          :filter="filterOptionSource.configpolicy_name"
+        ></TableColumn>
+        <TableColumn
           field="configpolicy_id"
           :title="t('配置ID')"
           min-width="130"
           :filter="filterOptionSource.configpolicy_id"
         ></TableColumn>
         <TableColumn
-          field="configpolicy_name"
-          :title="t('配置名称')"
-          min-width="130"
-          :filter="filterOptionSource.configpolicy_name"
-        ></TableColumn>
-        <TableColumn
           field="version"
           :title="t('版本')"
           min-width="130"
-          fixed="left"
           sortable
           :filter="filterOptionSource.version"
         >
@@ -109,6 +124,7 @@
 import {
   DatePicker,
   SearchSelect,
+  Tab,
 } from 'bkui-vue';
 import dayjs from 'dayjs';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
@@ -151,6 +167,12 @@ const tableData = ref<ConfigPolicyEvent[]>([]);
 
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const loading = ref(false);
+
+const active = ref('');
+const panels = ref([
+  { name: 'configStrategy', label: '配置策略' },
+  // { name: 'deploymentStrategy', label: '部署策略' },
+]);
 
 const sortConfig = ref<VxeTablePropTypes.SortConfig>({
   sortMethod({ data, sortList }) {

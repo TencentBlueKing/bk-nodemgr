@@ -36,7 +36,13 @@
         <template #right>
           <div class="flex items-center gap-[8px]">
             <!-- 语言切换 -->
-            <Dropdown class="mr-[8px]" ref="langRef" theme="light">
+            <Dropdown
+              class="mr-[8px]"
+              ref="langRef"
+              theme="light"
+              :popover-options="{
+                clickContentAutoHide: true,
+              }">
               <span class="header-icon text-[18px]">
                 <i :class="curLang.icon"></i>
               </span>
@@ -55,7 +61,12 @@
               </template>
             </Dropdown>
             <!-- 帮助文档 -->
-            <Dropdown class="mr-[8px]" theme="light">
+            <Dropdown
+              class="mr-[8px]"
+              theme="light"
+              :popover-options="{
+                clickContentAutoHide: true,
+              }">
               <span id="siteHelp" class="header-icon !text-[16px]">
                 <i class="nodeman-icon nc-help-document-fill"></i>
               </span>
@@ -470,7 +481,7 @@ onMounted(async () => {
 <style>
 body {
   min-width: 1280px;
-  overflow-y: hidden;
+  overflow-y: auto;
 }
 .bk-navigation .navigation-container {
   max-width: none !important;
@@ -479,7 +490,7 @@ body {
   height: 200px;
   line-height: 200px;
 }
-.bk-vxe-table {
+.filterTable {
   min-height: 300px;
 }
 .bk-vxe-table .vxe-table--filter-body {

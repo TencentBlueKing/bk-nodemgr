@@ -7,6 +7,9 @@
           theme="light"
           trigger="click"
           placement="bottom-start"
+          :popover-options="{
+            clickContentAutoHide: true,
+          }"
         >
           <Button class="w-[130px]" theme="primary" @click="handleInstall">{{
             $t("platform.nodeMan.installAgent")
@@ -24,7 +27,12 @@
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown>
-        <Dropdown theme="light" trigger="click">
+        <Dropdown
+          theme="light"
+          trigger="click"
+          :popover-options="{
+            clickContentAutoHide: true,
+          }">
           <Button :disabled="!selection.length">
             <span>{{ $t("platform.nodeMan.batchOperate") }}</span>
             <i
@@ -81,6 +89,7 @@
       class="w-full overflow-auto"
     >
       <Table
+        class="filterTable"
         :data="tableData"
         :empty-text="$t('table.empty')"
         :pagination="pagination"
@@ -183,7 +192,12 @@
               {{ $t("platform.nodeMan.agentStatus.button.reinstall") }}
             </Button>
 
-            <Dropdown theme="light" trigger="click">
+            <Dropdown
+              theme="light"
+              trigger="click"
+              :popover-options="{
+                clickContentAutoHide: true,
+              }">
               <Button class="ml-[15px]" text>
                 <span class="nodeman-icon nc-more"></span>
               </Button>
@@ -664,12 +678,12 @@ const operateJob = async (extraData: any = {}) => {
   }
 };
 // 升级回退
-const handleUpgrade = async (osVersion: any) => {
+const handleUpgrade = async (osVersion: any[]) => {
   loading.value = true;
   const params = {
     host: operateData.value?.map((item: any) => ({
       bk_host_id: item.bk_host_id,
-      target_version: osVersion.version === 'auto' ? '' : osVersion.version,
+      target_version: osVersion[0].version,
     })),
   };
   const result = await NodeAgentService.NodeAgentUpgrade(params).catch(() => ({

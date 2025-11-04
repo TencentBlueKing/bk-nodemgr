@@ -20,7 +20,7 @@
       class="flex-1 overflow-auto"
     >
       <Table
-        class="w-full"
+        class="w-full filterTable"
         :max-height="maxHeight"
         :data="packageList"
         :empty-text="'暂无数据'"

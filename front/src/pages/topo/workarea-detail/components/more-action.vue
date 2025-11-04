@@ -1,6 +1,12 @@
 <template>
   <div>
-    <Dropdown trigger="click" :placement="placement" :is-show="isShowDropdown">
+    <Dropdown
+      trigger="click"
+      :placement="placement"
+      :is-show="isShowDropdown"
+      :popover-options="{
+        clickContentAutoHide: true,
+      }">
       <Button
         text
         @click="isShowDropdown = true"
@@ -241,7 +247,7 @@ const operateJob = async (extraData: any = {}) => {
   }
 };
 // 升级回退
-const handleUpgrade = async (versionObj: any) => {
+const handleUpgrade = async (versionList: any[]) => {
   loading.value = true;
   const params = {
     host: props.data.map(item => ({
@@ -249,13 +255,7 @@ const handleUpgrade = async (versionObj: any) => {
       force: false,
       graceful_restart_timeout_sec: 0,
     })),
-    target_version: [
-      {
-        version: versionObj.version === 'auto' ? '' : versionObj.version,
-        cpu_arch: versionObj.cpu_arch,
-        os_type: versionObj.os_type,
-      },
-    ],
+    target_version: versionList,
   };
   const result = await NodeProxyService.NodeProxyUpgrade(params).catch(() => ({
     workflow_id: '',

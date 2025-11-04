@@ -36,6 +36,7 @@ const handleDownload = async () => {
       cpu_arch: props.data.cpu_arch,
     },
   };
+  props.data.name && (params['name'] = props.data.name);
   await fetchDownloadFile(props.url, params, props.data.file_name);
   downloadLoading.value = false;
 };

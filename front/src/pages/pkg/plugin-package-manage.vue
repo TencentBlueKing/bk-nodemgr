@@ -2,7 +2,36 @@
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
-      <Button theme="primary" @click="handleUpload">包上传</Button>
+      <Button theme="primary" @click="handleUpload">
+        <span>包上传</span>
+        <Dropdown
+          theme="light"
+          trigger="manual"
+          placement="bottom-start"
+          :is-show="isUploadTypeShow"
+          :popover-options="{
+            clickContentAutoHide: true,
+          }"
+        >
+          <angle-down-line
+            width="12px"
+            height="12px"
+            :class="['ml-[5px]', { 'transform rotate-180': isUploadTypeShow }]"
+            @click.stop="handleShowUploadType" />
+          <template #content>
+            <Dropdown.DropdownMenu ext-cls="dropDown-menu">
+              <Dropdown.DropdownItem
+                class="text-14px"
+                v-for="item in uploadTypeList"
+                :key="item.id"
+                @click="triggerHandler(item.id)"
+              >
+                {{ item.name }}
+              </Dropdown.DropdownItem>
+            </Dropdown.DropdownMenu>
+          </template>
+        </Dropdown>
+      </Button>
       <SearchSelect
         class="ml-[16px] flex-1"
         ref="searchSelect"
@@ -22,21 +51,18 @@
         <div v-for="option in dimensionList" :key="option.id">
           <div
             class="flex justify-between items-center bg-[#F0F1F5] h-[32px] px-[16px] cursor-pointer"
-            :class="{ 'bg-[#fff]': option.id === 'version' ? !state.versionExpand : !state.osExpand }"
-            @click="handleExpand(option.id)">
+            :class="{ 'bg-[#fff]': !option.expand }"
+            @click="handleExpand(option)">
             <div class="text-[12px]">{{ option.name }}</div>
-            <angle-down v-show="option.id === 'version' ? state.versionExpand : state.osExpand" />
-            <angle-right v-show="option.id === 'version' ? !state.versionExpand : !state.osExpand" />
+            <angle-down v-show="option.expand" />
+            <angle-right v-show="!option.expand" />
           </div>
-          <template v-if="option.id === 'version' ? state.versionExpand : state.osExpand">
+          <template v-if="option.expand">
             <div
               :class="[
                 'h-[36px] mt-[8px] px-[16px] cursor-pointer',
                 {
-                  'bg-[#E1ECFF] text-[#3A84FF]':
-                    option.id === 'version'
-                      ? state.versionDimensionOptional.has('all')
-                      : state.osDimensionOptional.has('all')
+                  'bg-[#E1ECFF] text-[#3A84FF]': option.optionalSet.has('all')
                 },
               ]"
               @click="selectDimensionOptional('all', option.id as PkgQuickType, 'click')"
@@ -49,9 +75,7 @@
                 <Tag
                   size="large"
                   checkable
-                  :checked="option.id === 'version'
-                    ? state.versionDimensionOptional.has('all')
-                    : state.osDimensionOptional.has('all')"
+                  :checked="option.optionalSet.has('all')"
                 >{{ originPackageList.length }}</Tag
                 >
               </div>
@@ -63,10 +87,7 @@
                 :class="[
                   'flex justify-between items-center h-[36px] cursor-pointer px-[16px]',
                   {
-                    'bg-[#E1ECFF] text-[#3A84FF]':
-                      option.id === 'version'
-                        ? state.versionDimensionOptional.has(item.id)
-                        : state.osDimensionOptional.has(item.id),
+                    'bg-[#E1ECFF] text-[#3A84FF]': option.optionalSet.has(item.id),
                   },
                 ]"
                 @click="selectDimensionOptional(item.id, option.id as PkgQuickType, 'click')"
@@ -80,9 +101,7 @@
                   v-if="item.count"
                   size="large"
                   checkable
-                  :checked="option.id === 'version'
-                    ? state.versionDimensionOptional.has(item.id)
-                    : state.osDimensionOptional.has(item.id)"
+                  :checked="option.optionalSet.has(item.id)"
                 >
                   {{ item.count }}
                 </Tag>
@@ -97,7 +116,7 @@
         class="flex-1 overflow-auto"
       >
         <Table
-          class="w-full"
+          class="w-full filterTable"
           :max-height="maxHeight"
           :data="packageList"
           :empty-text="'暂无数据'"
@@ -110,6 +129,13 @@
           :sort-config="sortConfig"
         >
           <TableColumn
+            field="name"
+            :title="'插件包名'"
+            :min-width="150"
+            fixed="left"
+            show-overflow="tooltip"
+          ></TableColumn>
+          <TableColumn
             field="file_name"
             :title="'包文件名'"
             :min-width="320"
@@ -120,7 +146,7 @@
             field="version"
             :filter="filterOptionSource.version"
             :title="'版本号'"
-            :min-width="130"
+            :min-width="180"
             sortable
             show-overflow="tooltip"
           ></TableColumn>
@@ -136,18 +162,6 @@
             :filter="filterOptionSource.cpu_arch"
             :min-width="80"
           ></TableColumn>
-          <!-- <TableColumn
-            field="labels"
-            :title="'标签信息'"
-            :min-width="180"
-            :filter="filterOptionSource.labels"
-          >
-            <template #default="{ row }">
-              <div v-show="!row.isShowTagInput" class="flex items-center group gap-[5px]">
-                <create-tag :data="row" @blur="handleBlur"></create-tag>
-              </div>
-            </template>
-          </TableColumn> -->
           <TableColumn
             field="operator"
             :title="'上传用户'"
@@ -191,7 +205,7 @@
             field="action"
             :title="'操作'"
             fixed="right"
-            :min-width="120"
+            :min-width="180"
           >
             <template #default="{ row }">
               <div class="flex items-center">
@@ -204,34 +218,28 @@
                 >
                   设为默认版本
                 </Button>
-                <Popover
-                  width="340"
+                <PopConfirm
                   theme="light"
                   trigger="click"
-                  placement="top-start"
-                  :is-show="row.isDisabledPopShow"
+                  confirm-text="停用"
+                  @confirm="handleDisabled(row)"
                 >
                   <Button
                     class="mr-[8px]"
                     theme="primary"
                     text
                     v-show="row.enabled"
-                    @click="row.isDisabledPopShow = true"
                   >停用</Button>
                   <template #content>
-                    <div class="px-[4px] pt-[8px] pb-[4px]">
+                    <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
                         确认停用该插件包？
                       </div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">停用目标：{{row.file_name}}</div>
                       <!-- <div class="text-[12px] text-[#262830] w-full">停用后，Agent 安装、重装、升级时，不可选择</div> -->
-                      <div class="mt-[20px] flex gap-[8px] justify-end">
-                        <Button theme="primary" @click="handleDisabled(row)">停用</Button>
-                        <Button @click="row.isDisabledPopShow = false">取消</Button>
-                      </div>
                     </div>
                   </template>
-                </Popover>
+                </PopConfirm>
                 <Button
                   class="mr-[8px]"
                   theme="primary"
@@ -239,46 +247,53 @@
                   v-if="!row.enabled"
                   @click="handleEnabled(row)"
                 >启用</Button>
-                <Popover
-                  width="360"
+                <PopConfirm
                   theme="light"
                   trigger="click"
-                  placement="top-start"
-                  :is-show="row.isDeletePopShow"
+                  confirm-text="删除"
+                  @confirm="handleDelete(row)"
                 >
                   <Button
                     theme="primary"
                     text
                     v-show="!row.enabled"
-                    @click="row.isDeletePopShow = true"
                   >删除</Button>
                   <template #content>
-                    <div class="px-[4px] pt-[8px] pb-[4px]">
+                    <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
                         确认删除该插件包？
                       </div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
                       <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
-                      <div class="mt-[20px] flex gap-[8px] justify-end">
-                        <Button theme="primary" @click="handleDelete(row)">删除</Button>
-                        <Button @click="row.isDeletePopShow = false">取消</Button>
-                      </div>
                     </div>
                   </template>
-                </Popover>
+                </PopConfirm>
               </div>
+            </template>
+          </TableColumn>
+          <TableColumn
+            field="download"
+            title="下载"
+            fixed="right"
+            :width="60"
+          >
+            <template #default="{ row }">
+              <download-pkg :data="row" :url="downloadUrl">
+                <i class="nodeman-icon nc-xiazai"></i>
+              </download-pkg>
             </template>
           </TableColumn>
         </Table>
       </Loading>
     </div>
   </div>
-  <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
+  <pkg-upload-sideslider v-model:is-show="isShow" :type="uploadType" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
-import { Button, Loading, Popover, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
-import { AngleDown, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
+import { Button, Dropdown, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
+import { AngleDownLine, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
 import { isArray } from 'lodash';
+import type { ComputedRef } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -294,7 +309,7 @@ import { compareVersions, formatTimestamp } from '@/common/util';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
-type PkgQuickType = 'os_cpu_arch' | 'version';
+type PkgQuickType = 'os_cpu_arch' | 'name';
 type PkgType = 'gse_agent' | 'gse_proxy';
 type filterProp = 'version' | 'labels' | 'operator' | 'enabled';
 interface ISearchSelect {
@@ -310,7 +325,7 @@ interface ISearchSelect {
   }[];
 }
 interface IFilterOption {
-  list: { value: string | boolean, text: string;  }[];
+  list: ComputedRef<{ value: string | boolean, text: string;  }[]> | { value: string | boolean, text: string;  }[];
   checked: string[];
   filterScope: string;
   match?: string,
@@ -324,6 +339,7 @@ const router = useRouter();
 const mainStore = useMainStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const quickMaxHeight = computed(() => mainStore.windowInnerHeight - 314);
+const downloadUrl = computed(() => `${location.origin}/api/v3/package/release/plugin/download`);
 const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
@@ -333,10 +349,6 @@ const state = reactive<{
   panels: { name: PkgType; label: string }[];
   active: PkgType;
   dimension: PkgQuickType;
-  versionDimensionOptional: Set<string>;
-  osDimensionOptional: Set<string>;
-  versionExpand: boolean;
-  osExpand: boolean;
   uploadShow: boolean;
   ordering: PkgOrderType | '';
 }>({
@@ -348,10 +360,6 @@ const state = reactive<{
   active: 'gse_agent',
   // 维度
   dimension: 'os_cpu_arch',
-  versionDimensionOptional: new Set(['all']),
-  osDimensionOptional: new Set(['all']),
-  versionExpand: true,
-  osExpand: true,
   uploadShow: false,
   ordering: '',
 });
@@ -380,54 +388,61 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
     return sortedList;
   },
 });
-const dimensionList = computed(() => [
+const dimensionList = ref([
   {
     id: 'os_cpu_arch',
     name: '操作系统/架构',
     multiple: true,
-    children: getUniqueChildren('os_cpu_arch'),
+    expand: true,
+    optionalSet: new Set(['all']),
+    children: computed(() => getUniqueChildren('os_cpu_arch')),
   },
   {
-    id: 'version',
-    name: '版本号',
+    id: 'name',
+    name: '插件包名',
     multiple: true,
-    children: getUniqueChildren('version'),
+    expand: true,
+    optionalSet: new Set(['all']),
+    children: computed(() => getUniqueChildren('name')),
   },
 ]);
-const handleExpand = (id: string) => {
-  if (id === 'version') {
-    state.versionExpand = !state.versionExpand;
-  } else {
-    state.osExpand = !state.osExpand;
-  }
+
+// 展示包上传类型下拉菜单
+const isUploadTypeShow = ref(false);
+const handleShowUploadType = () => {
+  isUploadTypeShow.value = !isUploadTypeShow.value;
+};
+
+const handleExpand = (option: any) => {
+  option.expand = !option.osExpand;
 };
 const filterOptionSource = reactive<Record<string, IFilterOption>>({
+  name: {
+    list: computed(() => getUniqueChildren('name')),
+    checked: [],
+    match: 'fuzzy',
+    filterScope: 'all',
+  },
   version: {
-    list: [],
+    list: computed(() => getUniqueChildren('version')),
     checked: [],
     match: 'fuzzy',
     filterScope: 'all',
   },
   os_type: {
-    list: [],
+    list: computed(() => getUniqueChildren('os_type')),
     checked: [],
     match: 'fuzzy',
     filterScope: 'all',
   },
   cpu_arch: {
-    list: [],
-    checked: [],
-    match: 'fuzzy',
-    filterScope: 'all',
-  },
-  labels: {
-    list: [],
+    list: computed(() => getUniqueChildren('cpu_arch')),
     checked: [],
     match: 'fuzzy',
     filterScope: 'all',
   },
   operator: {
-    list: [],
+    list: computed(() => getUniqueChildren('operator')),
     checked: [],
     match: 'fuzzy',
     filterScope: 'all',
@@ -486,6 +501,12 @@ function getUniqueChildren(prop: string) {
 
 const searchSelectData = computed(() => [
   {
+    id: 'name',
+    name: '插件包名',
+    multiple: true,
+    children: getUniqueChildren('name'),
+  },
+  {
     id: 'version',
     name: '版本号',
     multiple: true,
@@ -536,6 +557,7 @@ const searchSelectData = computed(() => [
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
+    'name',
     'version',
     'os_type',
     'cpu_arch',
@@ -544,8 +566,9 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'enabled',
     'as_default',
     'action',
+    'download',
   ],
-  disabled: ['action'],
+  disabled: ['action', 'download'],
 }, 'pkgMng-plugin');
 // 筛选
 const handleFilter = ({
@@ -579,57 +602,49 @@ const handleFilter = ({
     });
   }
   // 当表头筛选版本和系统架构时，快捷筛选选择全部
-  if (field === 'version') {
-    selectDimensionOptional(null, 'version');
-  }
   if (field === 'os_type' || field === 'cpu_arch') {
     selectDimensionOptional(null, 'os_cpu_arch');
   }
 };
 // 搜索
 const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
-  if (data.findIndex(item => item.id === 'version') === -1) {
-    selectDimensionOptional('all', 'version');
-  }
   if (data.findIndex(item => item.id === 'os_type') === -1 || data.findIndex(item => item.id === 'cpu_arch') === -1) {
     selectDimensionOptional('all', 'os_cpu_arch');
   }
 };
 // 维度nav click 可以多选, 如果选择非all，则all取消选中状态，如果空了则选择all
 const selectDimensionOptional = (id: string | null, dimension: PkgQuickType, type?: string) => {
-  // 维度映射到状态属性
-  const stateProperty = dimension === 'version' ? 'versionDimensionOptional' : 'osDimensionOptional';
-  const targetSet = state[stateProperty]; // 提取目标集合，减少重复访问
+  const targetSet = dimensionList.value.find(item => item.id === dimension)?.optionalSet;
 
   // 处理筛选逻辑：清空并失去焦点
   if (id === null) {
-    targetSet.clear();
+    targetSet?.clear();
     return;
   }
   // 处理全选逻辑：清空并仅保留'all'
   if (id === 'all') {
-    targetSet.clear();
-    targetSet.add('all');
+    targetSet?.clear();
+    targetSet?.add('all');
   }
 
   // 若当前有全选状态，先取消全选（避免同时存在'all'和其他选项）
-  if (targetSet.has('all')) {
-    targetSet.delete('all');
+  if (targetSet?.has('all')) {
+    targetSet?.delete('all');
   }
 
   // 切换当前选项的选中状态（存在则删除，不存在则添加）
-  if (targetSet.has(id)) {
-    targetSet.delete(id);
+  if (targetSet?.has(id)) {
+    targetSet?.delete(id);
   } else {
-    targetSet.add(id);
+    targetSet?.add(id);
   }
 
   // 若所有选项都被取消，自动选中全选
-  if (targetSet.size === 0) {
-    targetSet.add('all');
+  if (targetSet?.size === 0) {
+    targetSet?.add('all');
   }
   if (type === 'click') {
-    updateQuickOptToSearch(targetSet, dimension);
+    updateQuickOptToSearch(targetSet as Set<string>, dimension);
   }
 };
 const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
@@ -669,22 +684,29 @@ const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
     });
   }
 };
-watch(() => searchSelectValue.value, (data) => {
-  Object.keys(filterOptionSource).forEach((key) => {
-    filterOptionSource[key].checked = [];
-  });
-  data.forEach((item) => {
-    if (filterOptionSource[item.id as filterProp]) {
-      filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
-    }
-  });
-}, { immediate: true, deep: true });
-const handleBlur = async () => {
-  await getPackages();
-};
+
+// 上传
+const uploadTypeList = ref([
+  {
+    id: 'v2/plugin',
+    name: '2.0 官方插件包',
+  },
+  {
+    id: 'v2/external_plugin',
+    name: '2.0 业务插件包',
+  },
+]);
+const uploadType = ref('');
 const handleUpload = () => {
   isShow.value = true;
+  uploadType.value = 'v2/plugin';
 };
+const triggerHandler = (id: string) => {
+  isShow.value = true;
+  isUploadTypeShow.value = false;
+  uploadType.value = id;
+};
+
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
@@ -698,8 +720,6 @@ const getPackages = async () => {
     ...item,
     labels: item.labels || [],
     os_cpu_arch: `${item.os_type}_${item.cpu_arch}`,
-    isDisabledPopShow: false,
-    isDeletePopShow: false,
     isShowTagInput: false,
     createPopShow: false,
   }))
@@ -736,13 +756,6 @@ const handleDelete = async (row: Release) => {
 const handleConfirm = async () => {
   await getPackages();
 };
-watch(originPackageList, () => {
-  filterOptionSource.version.list = getUniqueChildren('version');
-  filterOptionSource.os_type.list = getUniqueChildren('os_type');
-  filterOptionSource.cpu_arch.list = getUniqueChildren('cpu_arch');
-  filterOptionSource.labels.list = getUniqueChildren('labels');
-  filterOptionSource.operator.list = getUniqueChildren('operator');
-}, { immediate: true, deep: true });
 // 前端过滤数据
 watch(
   [
@@ -766,13 +779,22 @@ watch(
   async () => {
     searchSelectValue.value = [];
     filterOptionSource.version.checked = [];
-    filterOptionSource.labels.checked = [];
     filterOptionSource.operator.checked = [];
     filterOptionSource.enabled.checked = [];
     await getPackages();
   },
   { immediate: true },
 );
+watch(() => searchSelectValue.value, (data) => {
+  Object.keys(filterOptionSource).forEach((key) => {
+    filterOptionSource[key].checked = [];
+  });
+  data.forEach((item) => {
+    if (filterOptionSource[item.id as filterProp]) {
+      filterOptionSource[item.id as filterProp].checked = item.values.map((item: any) => item.id) as string[];
+    }
+  });
+}, { immediate: true, deep: true });
 onMounted(async () => {
 });
 </script>

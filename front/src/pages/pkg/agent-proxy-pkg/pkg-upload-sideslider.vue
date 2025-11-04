@@ -9,12 +9,16 @@
     <template #default>
       <div class="px-[24px] pt-[28px]">
         <pkg-upload
+          :plugin-type="type"
           @upload="handleUpload"
           @cancel="handleCancel"
           @loading="handleLoading"
           class="mb-[24px]">
         </pkg-upload>
-        <upload-result-table :data="uploadData" :loading="parseLoading"></upload-result-table>
+        <upload-result-table
+          :data="uploadData"
+          :loading="parseLoading">
+        </upload-result-table>
       </div>
     </template>
     <template #footer>
@@ -39,6 +43,7 @@ import {
   Button,
   InfoBox,
   Message,
+  plugins,
   Sideslider,
 } from 'bkui-vue';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -50,6 +55,13 @@ import UploadResultTable from './upload-result-table.vue';
 import type { PackageUploadOriginAgentRespData } from '@/@types/pkg';
 import { PackageService } from '@/api/modules/pkg';
 import { usePackageStore } from '@/stores/package';
+
+const props = defineProps({
+  type: {
+    type: String,
+    default: '',
+  },
+});
 
 const isShow = defineModel('isShow', { type: Boolean });
 const emit = defineEmits('confirm');
@@ -91,10 +103,13 @@ const submit = async () => {
       proxyPackageMng: PackageService.PublishReleaseProxy,
       certPackageMng: PackageService.PublishReleaseCert,
       bintoolPackageMng: PackageService.PublishReleaseBinTool,
+      'pluginPackageMng_v2/plugin': PackageService.PublishReleasePluginV2,
+      'pluginPackageMng_v2/external_plugin': PackageService.PublishReleaseExternalPluginV2,
     };
 
+    const key = route.name === 'pluginPackageMng' ? `pluginPackageMng_${props.type}` : route.name;
     // 获取映射中的服务方法
-    const serviceMethod = route.name ? serviceMap[route.name] : undefined;
+    const serviceMethod = route.name ? serviceMap[key] : undefined;
 
     // 如果有对应的服务方法，调用它
     if (serviceMethod && uploadData.value?.upload_id) {

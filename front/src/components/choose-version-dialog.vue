@@ -20,42 +20,54 @@
           <div>
             <i :class="[os.icon, 'mr-[6px]', { 'text-[#3A84FF]': os.selected }]"></i>
             <span :class="{ 'text-[#3A84FF]': os.selected }">{{
-              os.name
+              os.name.replace('_', '/')
             }}</span>
           </div>
-          <template v-if="os.version">
+          <template v-if="os.selectedVersion?.version">
             <Tag v-if="os.selected" theme="info" type="filled">{{
-              os.version
+              os.selectedVersion.version
             }}</Tag>
-            <Tag v-else type="filled">{{ os.version }}</Tag>
+            <Tag v-else type="filled">{{
+              os.selectedVersion.version
+            }}</Tag>
           </template>
         </div>
       </div>
 
       <!-- Agent Version -->
-      <div class="w-[227px] ml-[11px]">
+      <div class="w-[280px] ml-[11px]">
         <Table
           :data="selectedOs?.versions"
           :empty-text="'暂无数据'"
           :sort-config="sortConfig"
         >
-          <TableColumn width="34">
+          <TableColumn fixed="left" width="34">
             <template #default="{ row }">
               <div class="flex items-center">
                 <Radio
                   :label="row.version"
-                  v-model="selectedRadio"
+                  :model-value="selectedRadio"
                   @change="handleChange"
                 />
               </div>
             </template>
           </TableColumn>
           <TableColumn
-            field="versionName"
+            field="version"
+            fixed="left"
             :title="t('Agent 版本')"
+            min-width="130"
             sortable
           ></TableColumn>
-          <TableColumn fixed="right" width="50">
+          <TableColumn
+            field="tag"
+            min-width="80"
+          >
+            <template #default="{ row }">
+              <Tag v-if="row.as_default">默认版本</Tag>
+            </template>
+          </TableColumn>
+          <TableColumn fixed="right" min-width="34">
             <template #default="{ row }">
               <div class="flex items-center">
                 <right-shape v-if="row.version === selectedVersion?.version" />
@@ -70,7 +82,7 @@
         <div
           class="text-[14px] bg-[#FAFBFD] border border-l-none border-[#DCDEE5] h-[40.69px] leading-[40.69px] pl-[24px]"
         >
-          {{ selectedVersion?.versionName }} 的详细信息
+          <span v-if="selectedVersion?.version">{{ selectedVersion?.version }} 的详细信息</span>
         </div>
         <p class="text-[12px] border border-t-none h-full p-[16px]">
           {{ selectedVersion?.description }}
@@ -98,15 +110,18 @@ interface RowVO {
   num: number;
 }
 
+interface IVersion {
+  version: string,
+  os_type: string,
+  cpu_arch: string,
+}
+
 interface IOsversion {
   name: string;
   version: string,
-  versions: {
-    version: string,
-    os_type: string,
-    cpu_arch: string
-  }[];
+  versions: IVersion[];
   selected: boolean;
+  selectedVersion: IVersion;
   icon: string;
 }
 
@@ -141,21 +156,27 @@ const osVersions = ref<IOsversion[]>();
 const title = computed(() => props.title || t('components.chooseVersion.title'));
 const selectedOs = ref();
 const selectedVersion = ref<any>();
-const selectedRadio = ref('');
+const selectedRadio = computed(() => selectedVersion.value.version || '');
 
 function selectOs(os: IOsversion) {
   if (!props.batch) return;
   osVersions.value?.forEach((o: IOsversion) => (o.selected = false));
   os.selected = true;
   selectedOs.value = os;
-  selectedVersion.value = os.versions[0];
+  selectedVersion.value = os.selectedVersion || os.versions[0];
 }
 
 const handleChange = (val: string) => {
   selectedVersion.value = selectedOs.value?.versions.find((item: any) => item.version === val);
+  const findOs = osVersions.value?.find(item => item.name === selectedOs.value.name);
+  findOs.selectedVersion = selectedVersion.value;
 };
 function handleConfirm() {
-  emit('confirm', selectedVersion.value);
+  emit('confirm', osVersions.value?.map(item => ({
+    version: item.selectedVersion.version,
+    os_type: item.selectedVersion.os_type,
+    cup_arch: item.selectedVersion.cpu_arch,
+  })));
   isShow.value = false;
 }
 
@@ -185,6 +206,7 @@ const getVersions = async () => {
       generation: 2,
       exact_include_conditions: {
         release_type: [props.releaseType],
+        enabled: [true],
       },
     }).catch(() => ({
       total: 0,
@@ -195,6 +217,7 @@ const getVersions = async () => {
       generation: 2,
       exact_include_conditions: {
         release_type: [props.releaseType],
+        enabled: [true],
       },
     }).catch(() => ({
       total: 0,
@@ -202,40 +225,37 @@ const getVersions = async () => {
     }));
   }
   const osMap: any = {};
-  res.items.forEach((item) => {
-    const key = `${item.release.os_type}_${item.release.cpu_arch}`;
-    const iconType = item.release.os_type === 'darwin' ? 'macos' : item.release.os_type;
-    if (!osMap[key]) {
-      osMap[key] = {
-        name: key,
-        version: item.release.as_default ? item.release.version : '',
-        selected: false,
-        versions: [{
-          version: 'auto',
-          versionName: t('components.chooseVersion.auto'),
-          disabled: false,
-          lable: [],
-          packages: [],
-          os_type: '',
-          cpu_arch: '',
-          description: t('components.chooseVersion.autoMatch'),
-        }],
-        icon: `nodeman-icon nc-${iconType}`,
-      };
-    }
-    if (item.release.enabled) {
-      osMap[key].versions.push({
+  const filterOs = props.data.map((el: any) => (el.os ? el.os : `${el.os_type}_${el.cpu_arch}`));
+  res.items
+    .filter(item => filterOs?.some(os => `${item.release.os_type}_${item.release.cpu_arch}`.includes(os)))
+    .forEach((item) => {
+      const key = `${item.release.os_type}_${item.release.cpu_arch}`;
+      const iconType = item.release.os_type === 'darwin' ? 'macos' : item.release.os_type;
+      if (!osMap[key]) {
+        osMap[key] = {
+          name: key,
+          version: '',
+          selected: false,
+          selectedVersion: '',
+          versions: [],
+          icon: `nodeman-icon nc-${iconType}`,
+        };
+      }
+      const versionObj = {
+        as_default: item.release.as_default,
         version: item.release.version,
-        versionName: item.release.version,
         disabled: !item.release.enabled,
         lable: item.release.labels,
         packages: [item.release.file_name],
         os_type: item.release.os_type,
         cpu_arch: item.release.cpu_arch,
         description: mainStore.curLanguage === 'zh-CN' ? item.change_log_zh : item.change_log_en,
-      });
-    }
-  });
+      };
+      osMap[key].versions.push(versionObj);
+      if (item.release.as_default) {
+        osMap[key].selectedVersion = versionObj;
+      }
+    });
   osVersions.value = Object.values(osMap);
 };
 watch(
@@ -244,7 +264,7 @@ watch(
     if (isShow.value) {
       await getVersions();
       if (props.data?.[0]?.os && !props.batch) {
-        const os = props.data?.[0].os;
+        const os = props.data?.[0].os || `${props.data?.[0].os_type}_${props.data?.[0].cpu_arch}`;
         selectedOs.value = osVersions.value?.find(item => item.name === os);
       } else {
         selectedOs.value = osVersions.value?.[0];
@@ -252,10 +272,10 @@ watch(
       if (props.data?.[0]?.version && !props.batch) {
         selectedVersion.value = selectedOs.value?.versions.find(item => item.version === props.data?.[0]?.version);
       } else {
-        selectedVersion.value = selectedOs.value?.versions[0];
+        selectedVersion.value = selectedOs.value?.versions.find(item => item.as_default) || selectedOs.value?.versions[0];
       }
-      selectedOs.value && (selectedOs.value.selected = true);
-      selectedRadio.value = selectedVersion.value?.version || '';
+      selectedOs.value.selected = true;
+      selectedOs.value.selectedVersion = selectedVersion.value;
     }
   },
   { immediate: true, deep: true },

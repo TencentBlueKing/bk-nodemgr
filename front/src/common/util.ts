@@ -127,3 +127,29 @@ export function parseCookies() {
   }
   return cookies;
 };
+
+/**
+ * 滚动到页面中第一个出现校验错误标红的元素
+ * 优先查找类名为 .bk-form-error 的元素，如果没有则查找 .error-tip
+ */
+export function scrollToFirstErrorByClassNames(classNames: string[] = ['.bk-form-error', '.error-tip']): void {
+  // 构造一个复合 CSS 选择器，例如 '.bk-form-error, .error-tip'
+  const selector = classNames.join(', ');
+
+  // 查找所有匹配该选择器的元素，按 DOM 顺序返回
+  const elements = document.querySelectorAll(selector);
+
+  if (elements.length === 0) {
+    console.warn(`未找到任何标红校验元素，查找的类名: ${classNames.join(', ')}`);
+    return;
+  }
+
+  // 取第一个元素（即 DOM 中最靠前的一个）
+  const firstErrorElement = elements[0];
+
+  // 滚动到该元素
+  firstErrorElement.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+  });
+}

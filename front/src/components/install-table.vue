@@ -170,6 +170,10 @@
           :min-width="150"
           :visible="settings.checked.includes('login_ip')"
         >
+          <template #header>
+            <span class="mr-[5px]">登录 IP</span>
+            <span class="mx-[3px] text-[#FF5656]">*</span>
+          </template>
           <template #default="{ row, $rowIndex, $columnIndex }">
             <Validate
               :value="row.login_ip"

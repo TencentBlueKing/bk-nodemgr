@@ -77,7 +77,7 @@
                     :ref="(el) => setInputRef(row.os, el)"
                   >
                     <Input
-                      :model-value="row.versionName"
+                      :model-value="row.version"
                       :placeholder="$t('请选择')"
                       @click="handleChooseVersion(row)"
                     />
@@ -140,6 +140,7 @@ import SelectItemGroup from './components/select-item-group.vue';
 import { NodeProxyService } from '@/api/modules/node_proxy';
 import { PackageService } from '@/api/modules/pkg';
 import { TopoService } from '@/api/modules/topo';
+import { scrollToFirstErrorByClassNames } from '@/common/util';
 import Validate from '@/components/validate.vue';
 
 const isShow = defineModel<boolean>('isShow', { default: false });
@@ -222,16 +223,14 @@ const systemData = ref([
     os: 'linux_amd64',
     cpu_arch: 'amd64',
     os_type: 'linux',
-    version: 'auto',
-    versionName: t('components.chooseVersion.auto'),
+    version: '',
   },
   {
     displayName: 'linux/arm64',
     os: 'linux_arm64',
     cpu_arch: 'arm64',
     os_type: 'linux',
-    version: 'auto',
-    versionName: t('components.chooseVersion.auto'),
+    version: '',
   },
 ]);
 // 安装方式列表
@@ -296,15 +295,13 @@ const isShowDialog = ref(false);
 const dialogData = ref([{
   os: '',
   version: '',
-  versionName: '',
 }]);
-const handleChooseVersion = (row: { version: string; os: string, versionName: string}) => {
+const handleChooseVersion = (row: { version: string; os: string }) => {
   isShowDialog.value = true;
   dialogData.value = [row];
 };
-const handleComfirmVerion = (data: any) => {
-  dialogData.value[0].version = data?.version;
-  dialogData.value[0].versionName = data?.versionName;
+const handleComfirmVerion = (data: any[]) => {
+  dialogData.value[0].version = data[0]?.version;
 };
 const handleChange = (values: Array<string | number>) => {
   form.method = values[0] as string;
@@ -368,7 +365,7 @@ const handleConfirm = async () => {
     });
     if (isTargetShow.value) {
       form.target_version = systemData.value
-        .filter((item: any) => item.version !== 'auto')
+        .filter((item: any) => !!item.version)
         .map((item: any) => ({
           os_type: item.os_type,
           cpu_arch: item.cpu_arch,
@@ -410,6 +407,8 @@ const handleConfirm = async () => {
         params: { taskId: res.workflow_id },
       });
     }
+  } else {
+    scrollToFirstErrorByClassNames();
   }
 };
 function getinstallOriginUnitId(unit_id: Number) {
@@ -458,7 +457,6 @@ const getVersions = async () => {
     if (item.release.enabled) {
       osMap[key].enableVersions.push({
         version: item.release.version,
-        versionName: item.release.version,
         os_type: item.release.os_type,
         cpu_arch: item.release.cpu_arch,
       });

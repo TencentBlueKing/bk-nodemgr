@@ -97,7 +97,7 @@
         class="flex-1 overflow-auto"
       >
         <Table
-          class="w-full"
+          class="w-full filterTable"
           :max-height="maxHeight"
           :data="packageList"
           :empty-text="'暂无数据'"
@@ -235,33 +235,42 @@
             field="action"
             :title="'操作'"
             fixed="right"
-            :width="150"
+            :width="180"
           >
             <template #default="{ row }">
-              <div class="flex items-center gap-[8px]">
+              <div class="flex">
                 <Button
                   theme="primary"
+                  class="mr-[8px]"
                   text
                   v-if="row.enabled && !row.as_default"
                   @click="handleSetDefaultVersion(row)"
                 >
                   设为默认版本
                 </Button>
-                <Popover
-                  width="340"
+                <Button
+                  theme="primary"
+                  class="mr-[8px]"
+                  text
+                  v-if="row.enabled && row.as_default"
+                  @click="handleCancelAsDefaultVersion(row)"
+                >
+                  取消设置默认版本
+                </Button>
+                <PopConfirm
                   theme="light"
                   trigger="click"
-                  placement="top-start"
-                  :is-show="row.isDisabledPopShow"
+                  confirm-text="停用"
+                  @confirm="handleDisabled(row)"
                 >
                   <Button
                     theme="primary"
+                    class="mr-[8px]"
                     text
                     v-show="row.enabled"
-                    @click="row.isDisabledPopShow = true"
                   >停用</Button>
                   <template #content>
-                    <div class="px-[4px] pt-[8px] pb-[4px]">
+                    <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
                         确认停用该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？
                       </div>
@@ -269,46 +278,37 @@
                       <div class="text-[12px] text-[#262830] w-full">
                         停用后，{{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 安装、重装、升级时，不可选择
                       </div>
-                      <div class="mt-[20px] flex gap-[8px] justify-end">
-                        <Button theme="primary" @click="handleDisabled(row)">停用</Button>
-                        <Button @click="row.isDisabledPopShow = false">取消</Button>
-                      </div>
                     </div>
                   </template>
-                </Popover>
+                </PopConfirm>
                 <Button
                   theme="primary"
+                  class="mr-[8px]"
                   text
                   v-if="!row.enabled"
                   @click="handleEnabled(row)"
                 >启用</Button>
-                <Popover
-                  width="360"
+                <PopConfirm
                   theme="light"
                   trigger="click"
-                  placement="top-start"
-                  :is-show="row.isDeletePopShow"
+                  confirm-text="删除"
+                  @confirm="handleDelete(row)"
                 >
                   <Button
                     theme="primary"
                     text
                     v-show="!row.enabled"
-                    @click="row.isDeletePopShow = true"
                   >删除</Button>
                   <template #content>
-                    <div class="px-[4px] pt-[8px] pb-[4px]">
+                    <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
                         确认删除该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？
                       </div>
                       <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
                       <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
-                      <div class="mt-[20px] flex gap-[8px] justify-end">
-                        <Button theme="primary" @click="handleDelete(row)">删除</Button>
-                        <Button @click="row.isDeletePopShow = false">取消</Button>
-                      </div>
                     </div>
                   </template>
-                </Popover>
+                </PopConfirm>
               </div>
             </template>
           </TableColumn>
@@ -331,7 +331,7 @@
   <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
-import { Button, Loading, PopConfirm, Popover, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
+import { Button, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
 import { AngleDown, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
 import { isArray } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
@@ -829,8 +829,6 @@ const getPackages = async () => {
     labels: item.release.labels || [],
     os_cpu_arch: `${item.release.os_type}_${item.release.cpu_arch}`,
     host: hostList.items[index],
-    isDisabledPopShow: false,
-    isDeletePopShow: false,
     isShowTagInput: false,
     createPopShow: false,
   }))
@@ -850,6 +848,10 @@ const getParams = (row: Release) => ({
 });
 const handleSetDefaultVersion = async (row: Release) => {
   await PackageService.SetAsDefaultRelease(getParams(row));
+  await getPackages();
+};
+const handleCancelAsDefaultVersion = async (row: Release) => {
+  await PackageService.CancelAsDefaultRelease(getParams(row));
   await getPackages();
 };
 const handleDisabled = async (row: Release) => {

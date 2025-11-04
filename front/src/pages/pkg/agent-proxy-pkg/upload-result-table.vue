@@ -27,51 +27,12 @@
           v-if="!['cert', 'bintool'].includes(currentType)"
           min-width="70"
         ></TableColumn>
-        <!-- <TableColumn
-          field="labels"
-          :title="'标签信息'"
-          v-if="!['cert', 'bintool'].includes(currentType)"
-          min-width="200"
-        >
-          <template #header>
-            <span class="mr-[5px]">标签信息</span>
-            <span class="mx-[3px] text-[#FF5656]">*</span>
-            <PopConfirm
-              width="320"
-              theme="light"
-              trigger="click"
-              title="批量编辑标签"
-              @confirm="batchUpdateTag"
-            >
-              <Button text :disabled="!props.data">
-                <i class="nodeman-icon nc-edit text-[18px]  cursor-pointer"></i>
-              </Button>
-              <template #content>
-                <div class="text-[12px] text-[#4D4F56] mb-[6px]">统一填充</div>
-                <Select
-                  class="mb-[18px]"
-                  v-model="selectTag"
-                  :list="tagList"
-                  :popover-options="{
-                    boundary: 'parent'
-                  }"
-                  auto-focus
-                  multiple
-                  filterable>
-                </Select>
-              </template>
-            </PopConfirm>
-          </template>
-          <template #default="{ row }">
-            <create-tag :data="row"></create-tag>
-          </template>
-        </TableColumn> -->
       </Table>
     </bk-loading>
-    <template v-if="data?.change_log_zh || data?.change_log_en">
+    <template v-if="data?.change_log_zh || data?.change_log_en || data?.description">
       <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px] flex items-center gap-[16px]">
         <span>描述</span>
-        <Radio.Group v-model="changLog">
+        <Radio.Group v-model="changLog" v-if="data?.change_log_zh || data?.change_log_en">
           <Radio.Button label="ZH"></Radio.Button>
           <Radio.Button label="EN"></Radio.Button>
         </Radio.Group>
@@ -79,7 +40,15 @@
       <div
         class="w-full bg-[#FAFBFD] min-h-[60px] border
         border-[#DCDEE5] text-[#4D4F56] text-[12px] px-[10px] py-[6px] formatted-text">
-        {{ changLog === 'ZH' ? data.change_log_zh : data.change_log_en }}
+        <span v-if="data?.change_log_zh || data?.change_log_en">
+          {{ changLog === 'ZH' ? data.change_log_zh : data.change_log_en }}
+        </span>
+        <div v-else-if="currentType === 'plugin'" class="flex flex-col gap-[10px] flex-wrap">
+          <span>描述信息：{{ data.description }}</span>
+          <span>配置文件：{{ data.config_file }}</span>
+          <span>配置格式：{{ data.config_format }}</span>
+          <span>运行节点类型：{{ data.launch_node }}</span>
+        </div>
       </div>
     </template>
   </div>
@@ -124,7 +93,7 @@ const batchUpdateTag = async () => {
   }));
 };
 watch(() => props.data, () => {
-  if (['agent', 'proxy'].includes(currentType.value)) {
+  if (['agent', 'proxy', 'plugin'].includes(currentType.value)) {
     tableData.value = props.data?.platforms?.map((item: Platform) => {
       const fileName = props.data.name
         .replace('all', `${item.os_type}_${item.cpu_arch}`)
