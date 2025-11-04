@@ -150,6 +150,8 @@ func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string
 }
 
 func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	nCtx = contextx.From(nCtx, contextx.WithTenantID(sw.TenantID))
+
 	locker := mgr.genScheduledWorkflowLocker(sw.TenantID, sw.WorkflowName)
 	if err := locker.tryLock(nCtx); err != nil {
 		return nil
