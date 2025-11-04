@@ -76,7 +76,7 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
 	logger.G.Sys().With("time-gap", scheduledWorkflowMonitorTimeGap.String()).Info("start monitoring scheduled workflows")
 
 	for name, f := range mgr.getInitScheduledWorkflowFuncs() {
-		_ = mgr.initScheduleWorkflow(nCtx, name, f)
+		_ = mgr.initAllTenantScheduleWorkflow(nCtx, name, f)
 	}
 
 	go func() {
@@ -111,9 +111,20 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
 	}()
 }
 
-func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, workflowName string, initFunc initScheduledWorkflowFunc) error {
-	// TODO: sync tenant list from bk-user and keep to init uninitialized scheduled workflows.
-	tenantID := tenant.SingleModeTenantID
+func (mgr *Manager) initAllTenantScheduleWorkflow(nCtx contextx.IContext, workflowName string, initFunc initScheduledWorkflowFunc) error {
+	tenantIDs := tenant.GetAllTenantIDs()
+	for _, tenantID := range tenantIDs {
+		if err := mgr.initScheduleWorkflow(nCtx, tenantID, workflowName, initFunc); err != nil {
+			return fmt.Errorf("failed to init scheduled workflow: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string, workflowName string, initFunc initScheduledWorkflowFunc) error {
+	nCtx = contextx.From(nCtx, contextx.WithTenantID(tenantID))
+
 	locker := mgr.genScheduledWorkflowLocker(tenantID, workflowName)
 	if err := locker.tryLock(nCtx); err != nil {
 		return nil
@@ -146,6 +157,8 @@ func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.Sc
 	defer func() {
 		_ = locker.unlock(nCtx)
 	}()
+
+	nCtx = contextx.From(nCtx, contextx.WithTenantID(sw.TenantID))
 
 	// reload the scheduled workflow after get the lock.
 	var err error
