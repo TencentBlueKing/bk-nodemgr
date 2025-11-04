@@ -114,6 +114,16 @@ cmdb:
   user: admin
   authMode: "un"
 
+# defines the UserManager (bk-apigw) related settings.
+userManager:
+  supplierAccount: "0"
+  endpoints:
+    - "__BK_NODEMGR_USER_MANAGER_ENDPOINT__"
+  appCode: __BK_NODEMGR_APPCODE__
+  appSecret: __BK_NODEMGR_APPSECRET__
+  user: admin
+  authMode: "un"
+
 # defines the GSE (bk-apigw) related settings.
 gse:
   # endpoints is a seed list of host:port addresses of esb nodes.
