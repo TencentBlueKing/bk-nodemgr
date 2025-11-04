@@ -151,7 +151,7 @@ func (h *handler) PublishReleasePluginV2(rCtx restserver.IContext) (interface{},
 
 // PublishReleaseExternalPluginV2 publish release external plugin.
 func (h *handler) PublishReleaseExternalPluginV2(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoFile.PublishReleaseExternalPluginReq)
+	req := new(protoFile.PublishReleaseExternalPluginV2Req)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release external plugin, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -166,7 +166,7 @@ func (h *handler) PublishReleaseExternalPluginV2(rCtx restserver.IContext) (inte
 
 	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release external plugin")
 
-	resp := new(protoFile.PublishReleaseExternalPluginResp)
+	resp := new(protoFile.PublishReleaseExternalPluginV2Resp)
 
 	return resp.GetData(), nil
 }

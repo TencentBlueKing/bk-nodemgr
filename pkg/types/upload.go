@@ -145,7 +145,7 @@ type OriginExternalPluginV2PkgDetail struct {
 	Scenario     string
 	ConfigFile   string
 	ConfigFormat string
-	LaunchMode   string
+	LaunchNode   string
 	SubDirPaths  map[string]map[string]struct{}
 
 	// key: platform.String()

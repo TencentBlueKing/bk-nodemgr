@@ -197,7 +197,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				detail.Scenario = pluginProject.Scenario
 				detail.ConfigFile = pluginProject.ConfigFile
 				detail.ConfigFormat = pluginProject.ConfigFormat
-				detail.LaunchMode = pluginProject.LaunchNode
+				detail.LaunchNode = pluginProject.LaunchNode
 
 				if _, ok := detail.ConfigTemplates[plat.String()]; !ok {
 					detail.ConfigTemplates[plat.String()] = make([]types.PluginPkgConfigTemplate, len(pluginProject.ConfigTemplates))

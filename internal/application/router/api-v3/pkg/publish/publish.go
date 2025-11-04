@@ -45,6 +45,8 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release/proxy", restserver.Handler(h.PublishReleaseProxy))
 	h.rg.POST("/release/cert", restserver.Handler(h.PublishReleaseCert))
 	h.rg.POST("/release/bintool", restserver.Handler(h.PublishReleaseBinTool))
+	h.rg.POST("/release/v2/plugin", restserver.Handler(h.PublishReleasePluginV2))
+	h.rg.POST("/release/v2/external_plugin", restserver.Handler(h.PublishReleaseExternalPluginV2))
 }
 
 // PublishReleaseAgent publish release agent.
@@ -131,6 +133,50 @@ func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, 
 	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release bintool")
 
 	resp := new(protoApplication.PackagePublishReleaseBinToolResp)
+
+	return resp.GetData(), nil
+}
+
+// PublishReleasePluginV2 publish release plugin v2.
+func (h *handler) PublishReleasePluginV2(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackagePublishReleasePluginV2Req)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin v2, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	uploadID := req.GetUploadId()
+	if err := h.fileHandler.PublishReleasePluginV2(rCtx, uploadID); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin v2. upload-id(%s): %v", uploadID, err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release plugin v2")
+
+	resp := new(protoApplication.PackagePublishReleasePluginV2Resp)
+
+	return resp.GetData(), nil
+}
+
+// PublishReleaseExternalPluginV2 publish release external plugin v2.
+func (h *handler) PublishReleaseExternalPluginV2(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackagePublishReleaseExternalPluginV2Req)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release external plugin v2, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	uploadID := req.GetUploadId()
+	if err := h.fileHandler.PublishReleaseExternalPluginV2(rCtx, uploadID); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release external plugin v2. upload-id(%s): %v", uploadID, err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release external plugin v2")
+
+	resp := new(protoApplication.PackagePublishReleaseExternalPluginV2Resp)
 
 	return resp.GetData(), nil
 }

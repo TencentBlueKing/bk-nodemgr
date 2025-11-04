@@ -111,6 +111,96 @@ message PackageUploadOriginBinToolResp {
   Data data = 5;
 }
 
+// PackageUploadOriginPluginV2Req is the request for upload origin plugin v2.
+message PackageUploadOriginPluginV2Req { bool overwrite = 1; }
+
+// PackageUploadOriginPluginV2Resp is the response for upload origin plugin v2.
+message PackageUploadOriginPluginV2Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    optional string version = 7;
+    optional string description = 8;
+    optional string scenario = 9;
+    optional string config_file = 10;
+    optional string config_format = 11;
+    optional string launch_node = 12;
+    repeated Platform platforms = 13;
+  }
+  Data data = 5;
+}
+
+// PackageUploadOriginExternalPluginV2Req is the request for upload origin
+// external plugin v2.
+message PackageUploadOriginExternalPluginV2Req { bool overwrite = 1; }
+
+// PackageUploadOriginExternalPluginV2Resp is the response for upload origin
+// external plugin v2.
+message PackageUploadOriginExternalPluginV2Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    optional string version = 7;
+    optional string description = 8;
+    optional string scenario = 9;
+    optional string config_file = 10;
+    optional string config_format = 11;
+    optional string launch_node = 12;
+    repeated Platform platforms = 13;
+  }
+  Data data = 5;
+}
+
+// PackagePublishReleasePluginV2Req is the request for publish release plugin v2
+// pkg.
+message PackagePublishReleasePluginV2Req { string upload_id = 1; }
+
+// PackagePublishReleasePluginV2Resp is the response for publish release plugin
+// v2 pkg.
+message PackagePublishReleasePluginV2Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackagePublishReleaseExternalPluginV2Req is the request for publish release
+// external plugin v2 pkg.
+message PackagePublishReleaseExternalPluginV2Req { string upload_id = 1; }
+
+// PackagePublishReleaseExternalPluginV2Resp is the response for publish release
+// external plugin v2 pkg.
+message PackagePublishReleaseExternalPluginV2Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
 // PackagePublishReleaseAgentReq is the request for upload release agent pkg.
 message PackagePublishReleaseAgentReq { string upload_id = 1; }
 
@@ -735,6 +825,42 @@ service Package {
       returns (PackageReleaseProxyListResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/proxy/list"
+      body : "*"
+    };
+  }
+
+  // UploadOriginPluginV2 provides origin plugin v2 upload.
+  rpc UploadOriginPluginV2(PackageUploadOriginPluginV2Req)
+      returns (PackageUploadOriginPluginV2Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/upload/origin/v2/plugin"
+      body : "*"
+    };
+  }
+
+  // UploadOriginExternalPluginV2 provides origin external plugin v2 upload.
+  rpc UploadOriginExternalPluginV2(PackageUploadOriginExternalPluginV2Req)
+      returns (PackageUploadOriginExternalPluginV2Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/upload/origin/v2/external_plugin"
+      body : "*"
+    };
+  }
+
+  // PublishReleasePluginV2 provides release plugin v2 publish.
+  rpc PublishReleasePluginV2(PackagePublishReleasePluginV2Req)
+      returns (PackagePublishReleasePluginV2Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/publish/release/v2/plugin"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseExternalPluginV2 provides release external plugin v2 publish.
+  rpc PublishReleaseExternalPluginV2(PackagePublishReleaseExternalPluginV2Req)
+      returns (PackagePublishReleaseExternalPluginV2Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/publish/release/v2/external_plugin"
       body : "*"
     };
   }

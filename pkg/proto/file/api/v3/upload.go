@@ -382,7 +382,7 @@ func (x *UploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generated bool
 	*data.Scenario = detail.Scenario
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
-	*data.LaunchNode = detail.LaunchMode
+	*data.LaunchNode = detail.LaunchNode
 
 	data.Platforms = plats
 

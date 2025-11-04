@@ -65,10 +65,10 @@ func (x *PublishReleasePluginV2Req) AutoConvert() {
 }
 
 // Validate check request body.
-func (x *PublishReleaseExternalPluginReq) Validate() error {
+func (x *PublishReleaseExternalPluginV2Req) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *PublishReleaseExternalPluginReq) AutoConvert() {
+func (x *PublishReleaseExternalPluginV2Req) AutoConvert() {
 }

@@ -188,13 +188,13 @@
     },
     "/publish/release/v2/external_plugin": {
       "post": {
-        "summary": "PublishReleaseExternalPlugin provides release external plugin publish.",
-        "operationId": "Publish_PublishReleaseExternalPlugin",
+        "summary": "PublishReleaseExternalPluginV2 provides release external plugin v2 publish.",
+        "operationId": "Publish_PublishReleaseExternalPluginV2",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PublishReleaseExternalPluginResp"
+              "$ref": "#/definitions/v3PublishReleaseExternalPluginV2Resp"
             }
           },
           "default": {
@@ -207,11 +207,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PublishReleaseExternalPluginReq is the request for upload release external\nplugin pkg.",
+            "description": "PublishReleaseExternalPluginV2Req is the request for upload release external\nplugin v2 pkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PublishReleaseExternalPluginReq"
+              "$ref": "#/definitions/v3PublishReleaseExternalPluginV2Req"
             }
           }
         ],
@@ -377,16 +377,16 @@
     "v3PublishReleaseCertRespData": {
       "type": "object"
     },
-    "v3PublishReleaseExternalPluginReq": {
+    "v3PublishReleaseExternalPluginV2Req": {
       "type": "object",
       "properties": {
         "upload_id": {
           "type": "string"
         }
       },
-      "description": "PublishReleaseExternalPluginReq is the request for upload release external\nplugin pkg."
+      "description": "PublishReleaseExternalPluginV2Req is the request for upload release external\nplugin v2 pkg."
     },
-    "v3PublishReleaseExternalPluginResp": {
+    "v3PublishReleaseExternalPluginV2Resp": {
       "type": "object",
       "properties": {
         "code": {
@@ -400,12 +400,12 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3PublishReleaseExternalPluginRespData"
+          "$ref": "#/definitions/v3PublishReleaseExternalPluginV2RespData"
         }
       },
-      "description": "PublishReleaseExternalPluginResp is the response for upload release external\nplugin pkg."
+      "description": "PublishReleaseExternalPluginV2Resp is the response for upload release\nexternal plugin v2 pkg."
     },
-    "v3PublishReleaseExternalPluginRespData": {
+    "v3PublishReleaseExternalPluginV2RespData": {
       "type": "object"
     },
     "v3PublishReleasePluginBinToolV2Req": {

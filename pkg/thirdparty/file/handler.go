@@ -69,6 +69,13 @@ type ITransfer interface {
 
 // IPkgManager is interface for file pkg manager.
 type IPkgManager interface {
+	IPkgUploadHandler
+	IPkgPublishHandler
+	IPkgDownloadHandler
+}
+
+// IPkgUploadHandler defines the interface of pkg upload.
+type IPkgUploadHandler interface {
 	// UploadOriginAgent upload origin agent.
 	UploadOriginAgent(nCtx contextx.IContext, fileName string, file io.Reader) (
 		*types.OriginPkgDetail, error)
@@ -85,6 +92,15 @@ type IPkgManager interface {
 	UploadOriginBinTool(nCtx contextx.IContext, fileName string, file io.Reader) (
 		*types.OriginBinToolPkgDetail, error)
 
+	// UploadOriginPluginV2 upload origin plugin v2.
+	UploadOriginPluginV2(nCtx contextx.IContext, fileName string, file io.Reader) (*types.OriginPluginV2PkgDetail, error)
+
+	// UploadOriginExternalPluginV2 upload origin external plugin v2.
+	UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName string, file io.Reader) (*types.OriginExternalPluginV2PkgDetail, error)
+}
+
+// IPkgPublishHandler defines the interface of pkg publish.
+type IPkgPublishHandler interface {
 	// PublishReleaseAgent publish release agent.
 	PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error
 
@@ -97,6 +113,15 @@ type IPkgManager interface {
 	// PublishReleaseBinTool publish release bintool.
 	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error
 
+	// PublishReleasePluginV2 publish release plugin v2.
+	PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleaseExternalPluginV2 publish release external plugin v2.
+	PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadID string) error
+}
+
+// IPkgDownloadHandler define the interface of pkg download.
+type IPkgDownloadHandler interface {
 	// DownloadReleaseAgent download release agent.
 	DownloadReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
 
@@ -603,4 +628,122 @@ func (handler *simpleTransferHandler) WaitUntilDone(nCtx contextx.IContext) (*ty
 			}
 		}
 	}
+}
+
+// UploadOriginPluginV2 upload origin plugin v2.
+func (h *handler) UploadOriginPluginV2(nCtx contextx.IContext, fileName string, file io.Reader) (
+	*types.OriginPluginV2PkgDetail, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	data, err := h.cli.uploadOriginPluginV2(nCtx, tenantID, &protoFile.UploadOriginPluginV2Req{}, fileName, file)
+	if err != nil {
+		return nil, err
+	}
+
+	plats := make([]platfmt.Platform, 0)
+	for _, plat := range data.GetPlatforms() {
+		plats = append(plats, platfmt.Platform{
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
+		})
+	}
+
+	return &types.OriginPluginV2PkgDetail{
+		FileInfo: fileiface.FileInfo{
+			Name: data.GetName(),
+			Size: data.GetSize(),
+			MD5:  data.GetMd5(),
+		},
+		UploadID:     data.GetUploadId(),
+		Existed:      data.GetExisted(),
+		Version:      data.GetVersion(),
+		Description:  data.GetDescription(),
+		Scenario:     data.GetScenario(),
+		ConfigFile:   data.GetConfigFile(),
+		ConfigFormat: data.GetConfigFormat(),
+		LaunchNode:   data.GetLaunchNode(),
+		Platforms:    plats,
+	}, nil
+}
+
+// UploadOriginExternalPluginV2 upload origin external plugin v2.
+func (h *handler) UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName string, file io.Reader) (
+	*types.OriginExternalPluginV2PkgDetail, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	data, err := h.cli.uploadOriginExternalPluginV2(nCtx, tenantID, &protoFile.UploadOriginExternalPluginV2Req{}, fileName, file)
+	if err != nil {
+		return nil, err
+	}
+
+	plats := make([]platfmt.Platform, 0)
+	for _, plat := range data.GetPlatforms() {
+		plats = append(plats, platfmt.Platform{
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
+		})
+	}
+
+	return &types.OriginExternalPluginV2PkgDetail{
+		FileInfo: fileiface.FileInfo{
+			Name: data.GetName(),
+			Size: data.GetSize(),
+			MD5:  data.GetMd5(),
+		},
+		UploadID:     data.GetUploadId(),
+		Existed:      data.GetExisted(),
+		Version:      data.GetVersion(),
+		Description:  data.GetDescription(),
+		Scenario:     data.GetScenario(),
+		ConfigFile:   data.GetConfigFile(),
+		ConfigFormat: data.GetConfigFormat(),
+		LaunchNode:   data.GetLaunchNode(),
+		Platforms:    plats,
+	}, nil
+}
+
+// PublishReleasePluginV2 publish release plugin v2.
+func (h *handler) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	_, err := h.cli.publishReleasePluginV2(nCtx, tenantID, &protoFile.PublishReleasePluginV2Req{
+		UploadId: uploadID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PublishReleaseExternalPluginV2 publish release external plugin v2.
+func (h *handler) PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadID string) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	_, err := h.cli.publishReleaseExternalPluginV2(nCtx, tenantID, &protoFile.PublishReleaseExternalPluginV2Req{
+		UploadId: uploadID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

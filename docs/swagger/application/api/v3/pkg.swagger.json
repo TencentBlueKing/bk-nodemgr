@@ -220,6 +220,74 @@
         ]
       }
     },
+    "/api/v3/package/publish/release/v2/external_plugin": {
+      "post": {
+        "summary": "PublishReleaseExternalPluginV2 provides release external plugin v2 publish.",
+        "operationId": "Package_PublishReleaseExternalPluginV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseExternalPluginV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackagePublishReleaseExternalPluginV2Req is the request for publish release\nexternal plugin v2 pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleaseExternalPluginV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/publish/release/v2/plugin": {
+      "post": {
+        "summary": "PublishReleasePluginV2 provides release plugin v2 publish.",
+        "operationId": "Package_PublishReleasePluginV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleasePluginV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackagePublishReleasePluginV2Req is the request for publish release plugin v2\npkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleasePluginV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/agent/download": {
       "post": {
         "summary": "DownloadAgent download release agent package.",
@@ -831,6 +899,74 @@
           "Package"
         ]
       }
+    },
+    "/api/v3/package/upload/origin/v2/external_plugin": {
+      "post": {
+        "summary": "UploadOriginExternalPluginV2 provides origin external plugin v2 upload.",
+        "operationId": "Package_UploadOriginExternalPluginV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginExternalPluginV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageUploadOriginExternalPluginV2Req is the request for upload origin\nexternal plugin v2.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginExternalPluginV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/upload/origin/v2/plugin": {
+      "post": {
+        "summary": "UploadOriginPluginV2 provides origin plugin v2 upload.",
+        "operationId": "Package_UploadOriginPluginV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginPluginV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageUploadOriginPluginV2Req is the request for upload origin plugin v2.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginPluginV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
     }
   },
   "definitions": {
@@ -1242,6 +1378,74 @@
       "description": "PackagePublishReleaseCertResp is the response for upload release cert pkg."
     },
     "v3PackagePublishReleaseCertRespData": {
+      "type": "object"
+    },
+    "v3PackagePublishReleaseExternalPluginV2Req": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackagePublishReleaseExternalPluginV2Req is the request for publish release\nexternal plugin v2 pkg."
+    },
+    "v3PackagePublishReleaseExternalPluginV2Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackagePublishReleaseExternalPluginV2RespData"
+        }
+      },
+      "description": "PackagePublishReleaseExternalPluginV2Resp is the response for publish release\nexternal plugin v2 pkg."
+    },
+    "v3PackagePublishReleaseExternalPluginV2RespData": {
+      "type": "object"
+    },
+    "v3PackagePublishReleasePluginV2Req": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackagePublishReleasePluginV2Req is the request for publish release plugin v2\npkg."
+    },
+    "v3PackagePublishReleasePluginV2Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackagePublishReleasePluginV2RespData"
+        }
+      },
+      "description": "PackagePublishReleasePluginV2Resp is the response for publish release plugin\nv2 pkg."
+    },
+    "v3PackagePublishReleasePluginV2RespData": {
       "type": "object"
     },
     "v3PackagePublishReleaseProxyReq": {
@@ -2132,6 +2336,166 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "v3PackageUploadOriginExternalPluginV2Req": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "PackageUploadOriginExternalPluginV2Req is the request for upload origin\nexternal plugin v2."
+    },
+    "v3PackageUploadOriginExternalPluginV2Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageUploadOriginExternalPluginV2RespData"
+        }
+      },
+      "description": "PackageUploadOriginExternalPluginV2Resp is the response for upload origin\nexternal plugin v2."
+    },
+    "v3PackageUploadOriginExternalPluginV2RespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "config_file": {
+          "type": "string"
+        },
+        "config_format": {
+          "type": "string"
+        },
+        "launch_node": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3PackageUploadOriginPluginV2Req": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "PackageUploadOriginPluginV2Req is the request for upload origin plugin v2."
+    },
+    "v3PackageUploadOriginPluginV2Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageUploadOriginPluginV2RespData"
+        }
+      },
+      "description": "PackageUploadOriginPluginV2Resp is the response for upload origin plugin v2."
+    },
+    "v3PackageUploadOriginPluginV2RespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "config_file": {
+          "type": "string"
+        },
+        "config_format": {
+          "type": "string"
+        },
+        "launch_node": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
           }
         }
       }
