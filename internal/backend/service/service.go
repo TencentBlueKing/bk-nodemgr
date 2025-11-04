@@ -624,10 +624,11 @@ func newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
 }
 
 func (svc *Service) registerAdminServer() error {
-	_, valid := svc.authIdentityValidMap[svc.conf.AdminServer.AuthIdentity]
-	if !valid {
-		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	if svc.conf.AdminServer.AuthIdentity != config.AuthIdentityNone &&
+		svc.conf.AdminServer.AuthIdentity != config.AuthIdentityRestServer {
+
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), support auth-identity(%v, %v)",
+			svc.conf.AdminServer.AuthIdentity, config.AuthIdentityNone, config.AuthIdentityRestServer)
 	}
 
 	authIdentity, err := newAuthIdentity(svc.conf.AdminServer)

@@ -30,7 +30,7 @@ adminServer:
     # JWT encryption type: symmetric or asymmetric
     cryptoType: symmetric
     # symmetric key for JWT HMAC algorithms (HS256, HS384, HS512)
-    symmetricKey: "__BK_NODEMGR_FILE_ADMINSERVERJWT_SYMMETRIC_KEY__"
+    symmetricKey: "__BK_NODEMGR_FILE_ADMINSERVER_JWT_SYMMETRIC_KEY__"
     # private key in PEM format for JWT RSA/ECDSA algorithms (RS256, ES256, etc.)
     privateKeyPem: ""
     # token expiration duration (e.g., 1h, 24h)

@@ -19,6 +19,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/admin"
 	applicationapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/web"
@@ -301,13 +302,14 @@ func (svc *Service) registerInfoServer() error {
 }
 
 func (svc *Service) registerAdminServer() error {
-	_, valid := svc.authIdentityValidMap[svc.conf.AdminServer.AuthIdentity]
-	if !valid {
-		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	if svc.conf.AdminServer.AuthIdentity != config.AuthIdentityNone &&
+		svc.conf.AdminServer.AuthIdentity != config.AuthIdentityRestServer {
+
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), support auth-identity(%v, %v)",
+			svc.conf.AdminServer.AuthIdentity, config.AuthIdentityNone, config.AuthIdentityRestServer)
 	}
 
-	_, err := svc.newAuthIdentity(svc.conf.AdminServer)
+	authIdentity, err := svc.newAuthIdentity(svc.conf.AdminServer)
 	if err != nil {
 		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
@@ -321,6 +323,9 @@ func (svc *Service) registerAdminServer() error {
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 		},
 		restserver.WithPing(),
+		withAdmin(svc.Cap,
+			restserver.MiddlewareAuth(authIdentity),
+		),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -401,6 +406,13 @@ func withWeb(capability *options.Capability, middleware ...gin.HandlerFunc) rest
 func withAPIV3(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		applicationapiv3.Load(rg, capability, middleware...)
+	}
+}
+
+// withAdmin load admin.
+func withAdmin(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		admin.Load(rg, capability, middleware...)
 	}
 }
 

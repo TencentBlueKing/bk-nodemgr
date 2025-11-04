@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/admin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/download"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/healthz"
@@ -29,7 +30,6 @@ import (
 	protoRelay "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/relay"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/gin-gonic/gin"
@@ -63,9 +63,6 @@ type Service struct {
 
 	// router is the entry point of the service, routing requests to different capabilities.
 	servers []*restserver.Server
-
-	// authIdentityMap is the map of auth identities.
-	authIdentityMap map[config.AuthIdentity]restserver.IAuthIdentity
 }
 
 // NewService creates a new relay service.
@@ -77,10 +74,6 @@ func NewService(conf *config.RelayService) (*Service, error) {
 	}
 
 	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(context.Background()))
-
-	if err := svc.initialStaticsConfigs(); err != nil {
-		return nil, fmt.Errorf("failed to initialize static configs: %w", err)
-	}
 
 	if err := svc.initialCapability(); err != nil {
 		return nil, fmt.Errorf("failed to initialize capability: %w", err)
@@ -132,15 +125,6 @@ func (svc *Service) initialCapability() error {
 	return nil
 }
 
-// nolint: unparam
-func (svc *Service) initialStaticsConfigs() error {
-	svc.authIdentityMap = map[config.AuthIdentity]restserver.IAuthIdentity{
-		config.AuthIdentityNone: restserver.NewNoneAuthIdentity(),
-	}
-
-	return nil
-}
-
 func (svc *Service) registerRestServer() error {
 	if err := svc.registerInfoServer(); err != nil {
 		return fmt.Errorf("failed to register info server: %w", err)
@@ -161,17 +145,26 @@ func (svc *Service) registerRestServer() error {
 	return nil
 }
 
+func (svc *Service) newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
+	switch conf.AuthIdentity {
+	case config.AuthIdentityNone:
+		return restserver.NewNoneAuthIdentity(), nil
+	case config.AuthIdentityRestServer:
+		return restserver.NewRestServerAuthIdentity(conf.JWTServerConfig.SymmetricKey), nil
+	default:
+		return nil, fmt.Errorf("no support this auth identity, auth-identity(%s)", conf.AuthIdentity)
+	}
+}
+
 // nolint: unparam
 func (svc *Service) registerInfoServer() error {
-	requestIDSetter := restserver.NewRequestIDSetter()
-
 	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(relayInfoSvcName),
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
-			RequestIDSetter: requestIDSetter,
+			RequestIDSetter: restserver.NewRequestIDSetter(),
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
@@ -185,10 +178,16 @@ func (svc *Service) registerInfoServer() error {
 
 // nolint: unparam
 func (svc *Service) registerAdminServer() error {
-	authIdentity := svc.authIdentityMap[svc.conf.AdminServer.AuthIdentity]
-	if authIdentity == nil {
-		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	if svc.conf.AdminServer.AuthIdentity != config.AuthIdentityNone &&
+		svc.conf.AdminServer.AuthIdentity != config.AuthIdentityRestServer {
+
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), support auth-identity(%v, %v)",
+			svc.conf.AdminServer.AuthIdentity, config.AuthIdentityNone, config.AuthIdentityRestServer)
+	}
+
+	authIdentity, err := svc.newAuthIdentity(svc.conf.AdminServer)
+	if err != nil {
+		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
 
 	requestIDSetter := restserver.NewRequestIDSetter()
@@ -202,6 +201,9 @@ func (svc *Service) registerAdminServer() error {
 			RequestIDSetter: requestIDSetter,
 		},
 		restserver.WithPing(),
+		withAdmin(svc.Cap,
+			restserver.MiddlewareAuth(authIdentity),
+		),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -211,21 +213,13 @@ func (svc *Service) registerAdminServer() error {
 
 // nolint: unparam
 func (svc *Service) registerCallbackServer() error {
-	authIdentity := svc.authIdentityMap[svc.conf.CallbackServer.AuthIdentity]
-	if authIdentity == nil {
-		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.CallbackServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
-	}
-
-	requestIDSetter := restserver.NewRequestIDSetter()
-
 	server := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(relayCallbackSvcName),
 			IP:              svc.conf.CallbackServer.BindIP,
 			Port:            svc.conf.CallbackServer.Port,
-			RequestIDSetter: requestIDSetter,
+			RequestIDSetter: restserver.NewRequestIDSetter(),
 		},
 		restserver.WithPing(),
 		withCallbackServer(svc.Cap),
@@ -238,13 +232,10 @@ func (svc *Service) registerCallbackServer() error {
 
 // nolint: unparam
 func (svc *Service) registerDownloadServer() error {
-	authIdentity := svc.authIdentityMap[svc.conf.DownloadServer.AuthIdentity]
-	if authIdentity == nil {
-		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.DownloadServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityMap))
+	if svc.conf.DownloadServer.AuthIdentity != config.AuthIdentityNone {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), support auth-identity(%v)",
+			svc.conf.DownloadServer.AuthIdentity, config.AuthIdentityNone)
 	}
-
-	requestIDSetter := restserver.NewRequestIDSetter()
 
 	server := restserver.NewServer(
 		svc.ctx,
@@ -252,7 +243,7 @@ func (svc *Service) registerDownloadServer() error {
 			Name:            string(relayDownloadSvcName),
 			IP:              svc.conf.DownloadServer.BindIP,
 			Port:            svc.conf.DownloadServer.Port,
-			RequestIDSetter: requestIDSetter,
+			RequestIDSetter: restserver.NewRequestIDSetter(),
 		},
 		restserver.WithPing(),
 		withDownload(svc.Cap),
@@ -266,6 +257,13 @@ func (svc *Service) registerDownloadServer() error {
 func withHealthz(capability *options.Capability) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		healthz.Load(rg, capability)
+	}
+}
+
+// withAdmin load admin.
+func withAdmin(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		admin.Load(rg, capability, middleware...)
 	}
 }
 

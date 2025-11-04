@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/admin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/download"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/publish"
@@ -415,13 +416,14 @@ func (svc *Service) registerInfoServer() error {
 }
 
 func (svc *Service) registerAdminServer() error {
-	_, valid := svc.authIdentityValidMap[svc.conf.AdminServer.AuthIdentity]
-	if !valid {
-		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.AdminServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	if svc.conf.AdminServer.AuthIdentity != config.AuthIdentityNone &&
+		svc.conf.AdminServer.AuthIdentity != config.AuthIdentityRestServer {
+
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), support auth-identity(%v, %v)",
+			svc.conf.AdminServer.AuthIdentity, config.AuthIdentityNone, config.AuthIdentityRestServer)
 	}
 
-	_, err := newAuthIdentity(svc.conf.AdminServer)
+	authIdentity, err := newAuthIdentity(svc.conf.AdminServer)
 	if err != nil {
 		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
@@ -435,6 +437,9 @@ func (svc *Service) registerAdminServer() error {
 			RequestIDSetter: restserver.NewRequestIDSetter(),
 		},
 		restserver.WithPing(),
+		withAdmin(svc.Cap,
+			restserver.MiddlewareAuth(authIdentity),
+		),
 	)
 
 	svc.servers = append(svc.servers, server)
@@ -493,10 +498,9 @@ func (svc *Service) registerBasicServer() error {
 }
 
 func (svc *Service) registerDownloadServer() error {
-	_, valid := svc.authIdentityValidMap[svc.conf.DownloadServer.AuthIdentity]
-	if !valid {
-		return fmt.Errorf("no support this auth identity, auth-identity(%s), use-one-of(%v)",
-			svc.conf.DownloadServer.AuthIdentity, conv.MapKeyToSlice(svc.authIdentityValidMap))
+	if svc.conf.AdminServer.AuthIdentity != config.AuthIdentityNone {
+		return fmt.Errorf("no support this auth identity, auth-identity(%s), support auth-identity(%v)",
+			svc.conf.AdminServer.AuthIdentity, config.AuthIdentityNone)
 	}
 
 	authIdentity, err := newAuthIdentity(svc.conf.DownloadServer)
@@ -558,6 +562,13 @@ func newAPIGWUserConfig(conf *config.APIGatewayClient) apigwclient.UserConfig {
 		AuthMode:    apigwclient.AuthMode(conf.AuthMode),
 		BKUsername:  conf.User,
 		AccessToken: conf.AccessToken,
+	}
+}
+
+// withAdmin load admin.
+func withAdmin(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		admin.Load(rg, capability, middleware...)
 	}
 }
 
