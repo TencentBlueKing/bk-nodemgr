@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -49,7 +50,7 @@ func NewActionReconfigNode(capability *Capability) action.Definition {
 
 // ActionParamReconfigNode defines the action param.
 type ActionParamReconfigNode struct {
-	Token string `json:"token"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 // ReconfigParams this struct defines the parameters for reconfiging node through command.
@@ -113,33 +114,29 @@ func (act *actionReconfigNode) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionReconfigNode) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamReconfigNode)
-	err = conv.MapToStruct(ctx.Data.Content, param)
-	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
-		return err
-	}
-
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
-	// let the callback server known which action to mark and log.
-	info.BlockingActionName = ActionNameWaitInstallerComplete
 
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
+		return err
+	}
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
+	// let the callback server known which action to mark and log.
+	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
 	// select matching tools.
-	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
+	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		err = fmt.Errorf("failed to format tools name: %w", err)
-
 		return err
 	}
 
@@ -152,34 +149,34 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to get backend callback endpoint: %w", err)
 	}
 
-	deployConstant, err := deployconstant.GetNodeDeployConf(info.Host.Dynamic.NodeGeneration, info.Host.Dynamic.NodeOsType)
+	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
 	if err != nil {
 		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	reconfigParams := &ReconfigParams{
-		AgentID:          info.Host.Dynamic.AgentID,
+		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
 		InstallerName:    toolName,
-		InstallerWorkDir: info.InstallerWorkDir,
-		Generation:       info.Host.Dynamic.NodeGeneration,
-		NodeRole:         info.Host.Dynamic.NodeRole,
+		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
+		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
+		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
 		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
 		DeployToken:      param.Token,
-		OperInstID:       ctx.Data.OperationInstanceID,
+		OperInstID:       std.InstanceData().OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
 		BaseDeployDir:    deployConstant.BaseDeployDir,
 	}
 
 	// exec reconfig command
-	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.doReconfigWindows(ctx, reconfigParams)
+	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
+		return act.doReconfigWindows(std, reconfigParams)
 	}
 
-	return act.doReconfigUnix(ctx, reconfigParams)
+	return act.doReconfigUnix(std, reconfigParams)
 }
 
 // nolint: perfsprint
-func (act *actionReconfigNode) doReconfigUnix(ctx *action.InstanceContext, param *ReconfigParams) error {
+func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarder, param *ReconfigParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -199,9 +196,9 @@ func (act *actionReconfigNode) doReconfigUnix(ctx *action.InstanceContext, param
 	reconfigLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	reconfigCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdFullReconfig, strings.Join(args, " "), reconfigLogPath)
-	ctx.Data.LogI("reconfig node cmd: " + reconfigCmd)
+	std.InstanceData().LogI("reconfig node cmd: " + reconfigCmd)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
+	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > reconfig.sh && sh reconfig.sh`,
@@ -217,13 +214,13 @@ func (act *actionReconfigNode) doReconfigUnix(ctx *action.InstanceContext, param
 	if err != nil {
 		return fmt.Errorf("failed to execute reconfig script: %w", err)
 	}
-	ctx.Data.LogI("reconfig node task-id: " + taskID)
+	std.InstanceData().LogI("reconfig node task-id: " + taskID)
 
 	return nil
 }
 
 // nolint: perfsprint
-func (act *actionReconfigNode) doReconfigWindows(ctx *action.InstanceContext, param *ReconfigParams) error {
+func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStandarder, param *ReconfigParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -243,9 +240,9 @@ func (act *actionReconfigNode) doReconfigWindows(ctx *action.InstanceContext, pa
 	reconfigLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	reconfigCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdFullReconfig, strings.Join(args, " "), reconfigLogPath)
-	ctx.Data.LogI("reconfig node cmd: " + reconfigCmd)
+	std.InstanceData().LogI("reconfig node cmd: " + reconfigCmd)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
+	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
@@ -260,7 +257,7 @@ func (act *actionReconfigNode) doReconfigWindows(ctx *action.InstanceContext, pa
 	if err != nil {
 		return fmt.Errorf("failed to execute reconfig script: %w", err)
 	}
-	ctx.Data.LogI("reconfig node task-id: " + taskID)
+	std.InstanceData().LogI("reconfig node task-id: " + taskID)
 
 	return nil
 }

@@ -11,6 +11,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -101,6 +102,11 @@ func (act *actionBindAgentHostRel) Do(ctx *action.InstanceContext) error {
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
 	if err := act.checkHostExist(std.Context(), std.DeployInfo()); err != nil {

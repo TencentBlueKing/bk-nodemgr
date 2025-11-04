@@ -117,7 +117,7 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 		}
 	}()
 
-	ctx.Data.LogI("transfer plugin pkg to node start.")
+	std.InstanceData().LogI("transfer plugin pkg to node start.")
 
 	nCtx := std.Context()
 	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)
@@ -138,8 +138,8 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	gp := gopool.NewPool()
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		gp.Go(func() error {
-			ctx.Data.LogI("transfer release start.")
-			defer ctx.Data.LogI("transfer release done.")
+			std.InstanceData().LogI("transfer release start.")
+			defer std.InstanceData().LogI("transfer release done.")
 
 			if err := act.transferRelease(nCtx, std.DeployInfo(), targetHost); err != nil {
 				return fmt.Errorf("failed to transfer release. host-id(%d), err: %w", targetHost.HostID, err)
@@ -160,7 +160,7 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	}
 
 	logger.G.Biz(nCtx).With("host-id", targetHost.HostID).Info("transfer plugin pkg to node all done.")
-	ctx.Data.LogI("transfer plugin pkg to node all done.")
+	std.InstanceData().LogI("transfer plugin pkg to node all done.")
 
 	return nil
 }
@@ -210,8 +210,8 @@ func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext
 	return nil
 }
 
-func (act *actionTransferPluginPkgToNode) transferInstaller(ctx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
-	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
+func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IContext, info *types.PluginDeploymentInfo, targetHost *types.Host) error {
+	transferHandler, err := act.fileHandler.LaunchTransferInstaller(nCtx,
 		types.Generation2,
 		platfmt.Platform{
 			OS:   targetHost.Dynamic.NodeOsType,
@@ -223,10 +223,10 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(ctx contextx.IContex
 		return fmt.Errorf("failed to launch transfer installer. host-id(%d), err: %w", targetHost.HostID, err)
 	}
 
-	logger.G.Biz(ctx).Info("launched transfer installer. task-id(%s), host-id(%d)",
+	logger.G.Biz(nCtx).Info("launched transfer installer. task-id(%s), host-id(%d)",
 		transferHandler.GetTaskID(), targetHost.HostID)
 
-	result, err := transferHandler.WaitUntilDone(ctx)
+	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
 		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d), err: %w",
 			transferHandler.GetTaskID(), targetHost.HostID, err)
@@ -242,7 +242,7 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(ctx contextx.IContex
 			transferHandler.GetTaskID(), targetHost.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	logger.G.Biz(ctx).Info("transfer installer done. task-id(%s), host-id(%d)",
+	logger.G.Biz(nCtx).Info("transfer installer done. task-id(%s), host-id(%d)",
 		transferHandler.GetTaskID(), targetHost.HostID)
 
 	return nil

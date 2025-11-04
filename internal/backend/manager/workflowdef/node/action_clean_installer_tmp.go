@@ -11,6 +11,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -107,12 +108,10 @@ func (act *actionCleanInstaller) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamCleanInstaller)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 
@@ -121,12 +120,15 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		err = fmt.Errorf("failed to format tools name: %w", err)
-
 		return err
 	}
 
@@ -147,14 +149,14 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) (err error) {
 
 	// exec upgrade command
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.doCleanWindows(ctx, cleanParams)
+		return act.doCleanWindows(std, cleanParams)
 	}
 
-	return act.doCleanUnix(ctx, cleanParams)
+	return act.doCleanUnix(std, cleanParams)
 }
 
 // nolint: perfsprint
-func (act *actionCleanInstaller) doCleanUnix(ctx *action.InstanceContext, param *CleanParams) error {
+func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder, param *CleanParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -171,9 +173,9 @@ func (act *actionCleanInstaller) doCleanUnix(ctx *action.InstanceContext, param 
 	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	cleanCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdStepCleanTmp, strings.Join(args, " "), cleanLogPath)
-	ctx.Data.LogI("clean installer cmd: " + cleanCmd)
+	std.InstanceData().LogI("clean installer cmd: " + cleanCmd)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
+	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > clean.sh && sh clean.sh`,
@@ -189,13 +191,13 @@ func (act *actionCleanInstaller) doCleanUnix(ctx *action.InstanceContext, param 
 	if err != nil {
 		return fmt.Errorf("failed to execute clean installer script: %w", err)
 	}
-	ctx.Data.LogI("clean installer task-id: " + taskID)
+	std.InstanceData().LogI("clean installer task-id: " + taskID)
 
 	return nil
 }
 
 // nolint: perfsprint
-func (act *actionCleanInstaller) doCleanWindows(ctx *action.InstanceContext, param *CleanParams) error {
+func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandarder, param *CleanParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 
 	args := []string{
@@ -212,9 +214,9 @@ func (act *actionCleanInstaller) doCleanWindows(ctx *action.InstanceContext, par
 	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	cleanCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdStepCleanTmp, strings.Join(args, " "), cleanLogPath)
-	ctx.Data.LogI("clean installer cmd: " + cleanCmd)
+	std.InstanceData().LogI("clean installer cmd: " + cleanCmd)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
+	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
@@ -229,7 +231,7 @@ func (act *actionCleanInstaller) doCleanWindows(ctx *action.InstanceContext, par
 	if err != nil {
 		return fmt.Errorf("failed to execute clean installer script: %w", err)
 	}
-	ctx.Data.LogI("clean installer task-id: " + taskID)
+	std.InstanceData().LogI("clean installer task-id: " + taskID)
 
 	return nil
 }

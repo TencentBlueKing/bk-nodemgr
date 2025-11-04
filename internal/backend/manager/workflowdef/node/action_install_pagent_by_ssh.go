@@ -112,12 +112,10 @@ func (act *actionInstallPagentBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamInstallPagentBySSH)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 

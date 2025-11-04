@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -45,7 +46,7 @@ func NewActionRestartNode(capability *Capability) action.Definition {
 
 // ActionParamRestartNode defines the action param.
 type ActionParamRestartNode struct {
-	Token string `json:"token"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 // RestartParams this struct defines the parameters for restarting node through command.
@@ -105,41 +106,45 @@ func (act *actionRestartNode) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionRestartNode) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamRestartNode)
-	err = conv.MapToStruct(ctx.Data.Content, param)
-	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
-		return err
-	}
-
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
+
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
+		return err
+	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
 	// check if this node version is >= lowest version which supports the soft restart through cluster.
 	// proxy node do not support soft restart.
-	if info.CurrentVersionSupports.OperateAgentRestart && info.Host.Dynamic.NodeRole == types.NodeRoleAgent {
-		return act.restartThroughCluster(ctx, info)
+	if std.DeployInfo().CurrentVersionSupports.OperateAgentRestart && std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleAgent {
+		return act.restartThroughCluster(std, std.DeployInfo())
 	}
 
-	if !info.RestartOptions.ForceRestart {
+	if !std.DeployInfo().RestartOptions.ForceRestart {
 		return errors.New("current node version do not support soft restart")
 	}
 
-	return act.restartThroughCommand(ctx, info)
+	return act.restartThroughCommand(std, std.DeployInfo())
 }
 
-func (act *actionRestartNode) restartThroughCluster(ctx *action.InstanceContext, info *types.DeploymentInfo) error {
-	result, err := act.gseHandler.OperateAgent(ctx.Ctx, types.OperateAgent{
+func (act *actionRestartNode) restartThroughCluster(std *nodeUtils.NodeActionStandarder, info *types.DeploymentInfo) error {
+	result, err := act.gseHandler.OperateAgent(std.Context(), types.OperateAgent{
 		Type:                   types.OperateAgentTypeRestart,
 		CurrentAgentVersion:    "",
 		TargetAgentVersionSign: "",
 		Timeout:                info.RestartOptions.GracefulRestartTimeout,
 		Force:                  info.RestartOptions.ForceRestart,
-		Remark:                 "restart by nodemgr: " + ctx.Data.OperationInstanceID,
+		Remark:                 "restart by nodemgr: " + std.InstanceData().OperationInstanceID,
 	}, info.Host.Dynamic.AgentID)
 	if err != nil {
 		return fmt.Errorf("failed to operate agent for restarting: %w", err)
@@ -148,18 +153,16 @@ func (act *actionRestartNode) restartThroughCluster(ctx *action.InstanceContext,
 	if len(result.MissingAgentIDs) > 0 {
 		return fmt.Errorf("failed to operate agent for restarting. not-available-agent-ids(%v)", result.MissingAgentIDs)
 	}
-	ctx.Data.LogI(fmt.Sprintf("restart node through operating agent with cluster. agent-id(%s), force(%t), timeout(%.2fs)",
+	std.InstanceData().LogI(fmt.Sprintf("restart node through operating agent with cluster. agent-id(%s), force(%t), timeout(%.2fs)",
 		info.Host.Dynamic.AgentID, info.RestartOptions.ForceRestart, info.RestartOptions.GracefulRestartTimeout.Seconds()))
 
 	return nil
 }
 
-func (act *actionRestartNode) restartThroughCommand(ctx *action.InstanceContext, info *types.DeploymentInfo) error {
+func (act *actionRestartNode) restartThroughCommand(std *nodeUtils.NodeActionStandarder, info *types.DeploymentInfo) error {
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(info.Host.Dynamic.NodeOsType, info.Host.Dynamic.NodeCPUArch)
 	if err != nil {
-		err = fmt.Errorf("failed to format tools name: %w", err)
-
 		return err
 	}
 
@@ -180,14 +183,14 @@ func (act *actionRestartNode) restartThroughCommand(ctx *action.InstanceContext,
 
 	// exec upgrade command
 	if info.Host.Dynamic.NodeOsType == criteria.OSWindows {
-		return act.restartThroughCommandWindows(ctx, restartParams)
+		return act.restartThroughCommandWindows(std, restartParams)
 	}
 
-	return act.restartThroughCommandUnix(ctx, restartParams)
+	return act.restartThroughCommandUnix(std, restartParams)
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandUnix(ctx *action.InstanceContext, param *RestartParams) error {
+func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActionStandarder, param *RestartParams) error {
 	installerPath := path.Clean(path.Join(param.InstallerWorkDir, param.InstallerName))
 	args := []string{
 		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
@@ -204,9 +207,9 @@ func (act *actionRestartNode) restartThroughCommandUnix(ctx *action.InstanceCont
 	restartLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	restartCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdStepRestart, strings.Join(args, " "), restartLogPath)
-	ctx.Data.LogI("restart cmd: " + restartCmd)
+	std.InstanceData().LogI("restart cmd: " + restartCmd)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
+	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
 		fmt.Sprintf(
 			`mkdir -p %s && cd %s && echo "%s" > restart.sh && sh restart.sh`,
@@ -222,13 +225,13 @@ func (act *actionRestartNode) restartThroughCommandUnix(ctx *action.InstanceCont
 	if err != nil {
 		return fmt.Errorf("failed to execute restart node script: %w", err)
 	}
-	ctx.Data.LogI("restart node task-id: " + taskID)
+	std.InstanceData().LogI("restart node task-id: " + taskID)
 
 	return nil
 }
 
 // nolint: perfsprint
-func (act *actionRestartNode) restartThroughCommandWindows(ctx *action.InstanceContext, param *RestartParams) error {
+func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeActionStandarder, param *RestartParams) error {
 	installerPath := winpath.Clean(winpath.Join(param.InstallerWorkDir, param.InstallerName))
 	args := []string{
 		fmt.Sprintf("--deploy_env %s", system.GetEnv()),
@@ -245,9 +248,9 @@ func (act *actionRestartNode) restartThroughCommandWindows(ctx *action.InstanceC
 	restartLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	restartCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdStepRestart, strings.Join(args, " "), restartLogPath)
-	ctx.Data.LogI("restart cmd: " + restartCmd)
+	std.InstanceData().LogI("restart cmd: " + restartCmd)
 
-	taskID, err := act.gseHandler.ExecuteScript(ctx.Ctx,
+	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
 		fmt.Sprintf(
 			`cd %s && %s`,
@@ -262,7 +265,7 @@ func (act *actionRestartNode) restartThroughCommandWindows(ctx *action.InstanceC
 	if err != nil {
 		return fmt.Errorf("failed to execute restart node script: %w", err)
 	}
-	ctx.Data.LogI("restart node task-id: " + taskID)
+	std.InstanceData().LogI("restart node task-id: " + taskID)
 
 	return nil
 }

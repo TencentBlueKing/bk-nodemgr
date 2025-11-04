@@ -119,12 +119,10 @@ func (act *actionEnsurePkgToRelay) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamInstallPagentBywmi)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 

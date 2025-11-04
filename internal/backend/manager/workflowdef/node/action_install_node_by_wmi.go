@@ -123,12 +123,10 @@ const installBatName = "install.bat"
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamInstallAgentByWMI)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 
@@ -193,10 +191,8 @@ func (act *actionInstallNodeByWMI) Do(ctx *action.InstanceContext) (err error) {
 func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStandarder, client *wmix.Client) error {
 	stdout, stderr, err := client.RunCommand(std.Context(), "mkdir "+std.DeployInfo().InstallerWorkDir)
 	if err != nil {
-		err = fmt.Errorf("failed to run command. command(mkdir %s), stdout(%s), stderr(%s): %w",
+		return fmt.Errorf("failed to run command. command(mkdir %s), stdout(%s), stderr(%s): %w",
 			std.DeployInfo().InstallerWorkDir, stdout, stderr, err)
-
-		return err
 	}
 
 	std.InstanceData().LogI(fmt.Sprintf("make sure the installer workspace exists, stdout(%s), stderr(%s)",
@@ -292,9 +288,7 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 	installCMD := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, installBatName))
 	stdout, stderr, err := client.RunSilentCommand(std.Context(), installCMD)
 	if err != nil {
-		err = fmt.Errorf("failed to run install node: %w", err)
-
-		return err
+		return fmt.Errorf("failed to run install node: %w", err)
 	}
 
 	std.InstanceData().LogI(fmt.Sprintf("install node stdout: %s", strings.Split(strings.TrimSpace(stdout), "\n")))

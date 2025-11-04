@@ -99,12 +99,10 @@ func (act *actionDetectInfoBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,gocognit
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamDetectInfoBySSH)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 
@@ -152,7 +150,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to generate new ssh client: %w", err)
 	}
 
-	osType, cpuArch, connectedDir, err := act.detectInfo(ctx, client)
+	osType, cpuArch, connectedDir, err := act.detectInfo(std.InstanceData(), client)
 	if err != nil {
 		return err
 	}
@@ -177,7 +175,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("failed to convert node role to release type. err: %v", err))
+		std.InstanceData().LogE(fmt.Sprintf("failed to convert node role to release type. err: %v", err))
 		return err
 	}
 
@@ -186,7 +184,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
-				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+				std.InstanceData().LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 
 				break
 			}
@@ -194,7 +192,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -204,11 +202,11 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 		if err != nil {
 			return err
 		}
-		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.InstanceData().LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 	}
 
 	err = checkVersionAvailability(
-		ctx.Ctx, CheckAndSelectVersionParam{
+		std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -224,7 +222,7 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
 }
 
 // nolint: nonamedreturns,perfsprint
-func (act *actionDetectInfoBySSH) detectInfo(ctx *action.InstanceContext, client *sshx.Client) (
+func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *sshx.Client) (
 	osType criteria.OSType, cpuArch criteria.CPUArch, connectedDir string, err error) {
 
 	// 1. detect target system
@@ -249,7 +247,7 @@ func (act *actionDetectInfoBySSH) detectInfo(ctx *action.InstanceContext, client
 
 		return "", "", "", err
 	}
-	ctx.Data.LogI(fmt.Sprintf("host-os-type(%s)", osType))
+	data.LogI(fmt.Sprintf("host-os-type(%s)", osType))
 
 	// 2. detect target cpu arch
 	cpuArchStr, err := client.RunCommand("uname -m")
@@ -264,7 +262,7 @@ func (act *actionDetectInfoBySSH) detectInfo(ctx *action.InstanceContext, client
 		return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
+	data.LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
 
 	// 3. detect target dir
 	connectedDir, err = client.RunCommand("pwd")
@@ -276,7 +274,7 @@ func (act *actionDetectInfoBySSH) detectInfo(ctx *action.InstanceContext, client
 	connectedDir = strings.TrimFunc(connectedDir, func(r rune) bool {
 		return r == '\n'
 	})
-	ctx.Data.LogI(fmt.Sprintf("connected-dir(%s)", connectedDir))
+	data.LogI(fmt.Sprintf("connected-dir(%s)", connectedDir))
 
 	return osType, cpuArch, connectedDir, nil
 }

@@ -12,9 +12,9 @@ package node
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -40,7 +40,7 @@ func NewActionVersionCompatCheck(capability *Capability) action.Definition {
 
 // ActionParamVersionCompatCheck defines the action param.
 type ActionParamVersionCompatCheck struct {
-	Token string `json:"token"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionVersionCompatCheck struct {
@@ -89,32 +89,30 @@ func (act *actionVersionCompatCheck) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionVersionCompatCheck) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionVersionCompatCheck) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamVersionCompatCheck)
-	err = conv.MapToStruct(ctx.Data.Content, param)
-	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
-		return err
-	}
-
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
 	}
 
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
+		return err
+	}
 	defer func() {
-		if storeErr := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); storeErr != nil {
+		if storeErr := std.Save(); storeErr != nil {
 			err = errors.Join(storeErr, err)
 		}
 	}()
 
 	// check if this node version is >= lowest version which supports the soft restart through cluster.
-	versionFormatter := types.NewGSEVersionFormatter(info.Host.Dynamic.NodeVersion)
+	versionFormatter := types.NewGSEVersionFormatter(std.DeployInfo().Host.Dynamic.NodeVersion)
 	if versionFormatter.Valid() && act.operateAgentSupportedLowestVersionFmt.Valid() &&
 		versionFormatter.GreaterEqualThan(act.operateAgentSupportedLowestVersionFmt) {
 
-		info.CurrentVersionSupports.OperateAgentRestart = true
+		std.DeployInfo().CurrentVersionSupports.OperateAgentRestart = true
 
 		return nil
 	}

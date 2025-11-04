@@ -99,12 +99,10 @@ func (act *actionUpgradePagent) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamInstallAgentBySSH)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 

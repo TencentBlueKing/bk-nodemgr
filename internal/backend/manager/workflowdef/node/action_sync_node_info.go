@@ -11,9 +11,11 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
@@ -30,19 +32,19 @@ const (
 // NewActionSyncNodeInfo get a new action.
 func NewActionSyncNodeInfo(capability *Capability) action.Definition {
 	return &actionSyncNodeInfo{
-		gseClient: capability.GSEHandler,
-		storage:   capability.StorageNode,
+		gseClient:             capability.GSEHandler,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 
 // ActParamSyncNodeInfo ...
 type ActParamSyncNodeInfo struct {
-	Token string `json:"token"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionSyncNodeInfo struct {
-	gseClient gse.IHandler
-	storage   nodeStg.IStorage
+	gseClient             gse.IHandler
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 
 // Name returns the name of the action.
@@ -90,35 +92,41 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storage.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
-	agentInfos, err := act.gseClient.ListAgentInfo(ctx.Ctx, info.Host.Dynamic.AgentID)
+	agentInfos, err := act.gseClient.ListAgentInfo(std.Context(), std.DeployInfo().Host.Dynamic.AgentID)
 	if err != nil {
 		return err
 	}
 
 	if len(agentInfos) != 1 {
-		return fmt.Errorf("get agent info error, agent-id(%s), aget-infos(%v)", info.Host.Dynamic.AgentID, agentInfos)
+		return fmt.Errorf("get agent info error, agent-id(%s), aget-infos(%v)", std.DeployInfo().Host.Dynamic.AgentID, agentInfos)
 	}
 
 	agentInfo := agentInfos[0]
-	info.Host.Dynamic.NodeCPUArch, err = platfmt.NormalizeArch(string(agentInfo.Arch))
+	std.DeployInfo().Host.Dynamic.NodeCPUArch, err = platfmt.NormalizeArch(string(agentInfo.Arch))
 	if err != nil {
 		return fmt.Errorf("normalize arch error, agent-id(%s), arch(%s), err(%v)",
-			info.Host.Dynamic.AgentID, agentInfo.Arch, err)
+			std.DeployInfo().Host.Dynamic.AgentID, agentInfo.Arch, err)
 	}
 
-	info.Host.Dynamic.NodeOsType, err = platfmt.NormalizeOS(string(agentInfo.OSType))
+	std.DeployInfo().Host.Dynamic.NodeOsType, err = platfmt.NormalizeOS(string(agentInfo.OSType))
 	if err != nil {
 		return fmt.Errorf("normalize os error, agent-id(%s), os-type(%s), err(%v)",
-			info.Host.Dynamic.AgentID, agentInfo.OSType, err)
+			std.DeployInfo().Host.Dynamic.AgentID, agentInfo.OSType, err)
 	}
 
-	if err := act.storage.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
-		return fmt.Errorf("update info error, agent-id(%s), info(%v)", info.Host.Dynamic.AgentID, err)
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), param.Token, std.DeployInfo()); err != nil {
+		return fmt.Errorf("update info error, agent-id(%s), info(%v)", std.DeployInfo().Host.Dynamic.AgentID, err)
 	}
 
 	return nil

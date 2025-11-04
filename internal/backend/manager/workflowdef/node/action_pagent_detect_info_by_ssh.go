@@ -115,12 +115,10 @@ func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,gocognit,nestif
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamPagentDetectInfoBySSH)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 
@@ -174,7 +172,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
-		ctx.Data.LogE(fmt.Sprintf("failed to convert node role to release type: %v", err))
+		std.InstanceData().LogE(fmt.Sprintf("failed to convert node role to release type: %v", err))
 		return err
 	}
 
@@ -183,7 +181,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
-				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+				std.InstanceData().LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 
 				break
 			}
@@ -191,7 +189,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -201,11 +199,11 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) (err err
 		if err != nil {
 			return err
 		}
-		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.InstanceData().LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 	}
 
 	err = checkVersionAvailability(
-		ctx.Ctx, CheckAndSelectVersionParam{
+		std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,

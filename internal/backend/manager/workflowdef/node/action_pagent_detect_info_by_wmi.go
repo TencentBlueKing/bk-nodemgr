@@ -112,12 +112,10 @@ func (act *actionPagentDetectInfoByWMI) DelayFn() func() {
 // To ensure readability, this action uses fmt.Sprintf to concatenate characters.
 // nolint: perfsprint,funlen,gocognit,nestif
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamPagentDetectInfoByWMI)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 
@@ -176,7 +174,7 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
-				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+				std.InstanceData().LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 
 				break
 			}
@@ -194,11 +192,11 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) (err err
 		if err != nil {
 			return err
 		}
-		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.InstanceData().LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 	}
 
 	err = checkVersionAvailability(
-		ctx.Ctx, CheckAndSelectVersionParam{
+		std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,

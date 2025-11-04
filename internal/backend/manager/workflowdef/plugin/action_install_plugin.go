@@ -148,7 +148,7 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("build script failed: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("install script: \n%s\n", installScriptContext))
+	std.InstanceData().LogI(fmt.Sprintf("install script: \n%s\n", installScriptContext))
 
 	taskID, err := act.gseHandler.ExecuteScript(nCtx,
 		installScriptType,
@@ -163,7 +163,7 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	ctx.Data.LogI("install plugin task-id: " + taskID)
+	std.InstanceData().LogI("install plugin task-id: " + taskID)
 
 	return nil
 }

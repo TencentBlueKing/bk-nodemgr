@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
@@ -32,21 +32,20 @@ const (
 // NewActionPushHostIdentifier get a new action.
 func NewActionPushHostIdentifier(capability *Capability) action.Definition {
 	return &actionPushHostIdentifier{
-		cmdbClient: capability.CMDBHandler,
-		storage:    capability.StorageNode,
+		cmdbClient:            capability.CMDBHandler,
+		storageNodeDeployment: capability.StorageNode,
 	}
 }
 
 // ActParamPushHostIdentifier ...
 type ActParamPushHostIdentifier struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 // PushHostIdentifier ...
 type actionPushHostIdentifier struct {
-	cmdbClient cmdb.IHandler
-	storage    nodeStg.IStorage
+	cmdbClient            cmdb.IHandler
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 }
 
 // Name returns the name of the action.
@@ -94,26 +93,31 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storage.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
-	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(info.Host.TenantID), contextx.WithBKUsername(param.Operator))
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
 	})
 
-	taskID, err := act.cmdbClient.PushHostIdentifier(newCtx, info.Host.HostID)
+	taskID, err := act.cmdbClient.PushHostIdentifier(std.Context(), std.DeployInfo().Host.HostID)
 	if err != nil {
 		return err
 	}
-	ctx.Data.LogI(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
+	std.InstanceData().LogI(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
 
 	var success bool
-	err = polling.Do(newCtx, func(_ int) error {
-		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(newCtx, taskID)
+	err = polling.Do(std.Context(), func(_ int) error {
+		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(std.Context(), taskID)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to find host identifier push result")
 
@@ -135,18 +139,18 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 	if err != nil {
-		ctx.Data.LogE("failed to push host identifier: " + err.Error())
+		std.InstanceData().LogE("failed to push host identifier: " + err.Error())
 
 		return err
 	}
 
 	if !success {
-		ctx.Data.LogE("failed to push host identifier, no success result")
+		std.InstanceData().LogE("failed to push host identifier, no success result")
 
 		return errors.New("failed to push host identifier")
 	}
 
-	ctx.Data.LogI("pushed host identifier")
+	std.InstanceData().LogI("pushed host identifier")
 
 	return nil
 }

@@ -11,9 +11,11 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -38,7 +40,7 @@ func NewActionWaitGseReady(capability *Capability) action.Definition {
 
 // ActParamWaitGseReady ...
 type ActParamWaitGseReady struct {
-	Token string `json:"token"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionWaitGseReady struct {
@@ -94,17 +96,23 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
 	})
-	err = polling.Do(ctx.Ctx, func(_ int) error {
-		states, err := act.gseClient.ListAgentState(ctx.Ctx, info.Host.Dynamic.AgentID)
+	err = polling.Do(std.Context(), func(_ int) error {
+		states, err := act.gseClient.ListAgentState(std.Context(), std.DeployInfo().Host.Dynamic.AgentID)
 		if err != nil {
 			return err
 		}
@@ -114,25 +122,21 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		}
 
 		state := states[0]
-		info.Host.Dynamic.NodeStatus = state.NodeStatus
+		std.DeployInfo().Host.Dynamic.NodeStatus = state.NodeStatus
 		if state.NodeStatus != types.NodeStatusRunning {
 			return fmt.Errorf("agent state is not running, status(%s)", state.NodeStatus)
 		}
 
-		if state.Version != info.Host.Dynamic.NodeVersion {
+		if state.Version != std.DeployInfo().Host.Dynamic.NodeVersion {
 			return fmt.Errorf("agent version is not match, version(%s)", state.Version)
 		}
 
 		return nil
 	})
 	if err != nil {
-		ctx.Data.LogE("failed to query agent state: " + err.Error())
+		std.InstanceData().LogE("failed to query agent state: " + err.Error())
 
 		return err
-	}
-
-	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
-		return fmt.Errorf("update node deployment info failed: %w", err)
 	}
 
 	return nil

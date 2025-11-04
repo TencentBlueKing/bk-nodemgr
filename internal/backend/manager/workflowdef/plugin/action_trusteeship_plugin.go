@@ -112,9 +112,9 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to trusteeship plugin: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("successfully execute trusteeship plugin operate, result(%s)", result))
+	std.InstanceData().LogI(fmt.Sprintf("successfully execute trusteeship plugin operate, result(%s)", result))
 
-	ctx.Data.LogI("wait process running")
+	std.InstanceData().LogI("wait process running")
 	expoBackoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 
 	var processInfo *types.ProcessInfo
@@ -125,7 +125,7 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 		}
 
 		if processInfo.Status != types.ProcessStatusRunning {
-			ctx.Data.LogI(fmt.Sprintf("process status is not running, status(%s)", processInfo.Status))
+			std.InstanceData().LogI(fmt.Sprintf("process status is not running, status(%s)", processInfo.Status))
 
 			return fmt.Errorf("process status is not running, status(%s)", processInfo.Status)
 		}
@@ -139,7 +139,7 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process running: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("process running, info(%+v)", processInfo))
+	std.InstanceData().LogI(fmt.Sprintf("process running, info(%+v)", processInfo))
 
 	return nil
 }

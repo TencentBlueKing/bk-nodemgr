@@ -86,12 +86,10 @@ func (act *actionSelectRelayHost) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
-func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamSelectRelayHost)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 

@@ -11,6 +11,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -98,6 +99,11 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
 	// To reduce the frequency of cache invalidation in downstream systems, reuse the AgentID as much as possible.
 	// Notice: Since there will be a large number of if judgments here,
@@ -106,7 +112,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 
 	// force re-register the agentID.
 	if std.DeployInfo().InstallOptions.ReRegister {
-		ctx.Data.LogI("force re-register, will not reuse agent id")
+		std.InstanceData().LogI("force re-register, will not reuse agent id")
 		logger.G.Sys().Info("force re-register, will not reuse agent id")
 
 		return nil
@@ -130,7 +136,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// not match host, can't reuse.
 	// maybe: host don't exist, or host 's network area changed.
 	if count == 0 {
-		ctx.Data.LogE("not match host, can't reuse agent id")
+		std.InstanceData().LogE("not match host, can't reuse agent id")
 		logger.G.Sys().Info("not match host, can't reuse agent id")
 
 		return nil
@@ -138,11 +144,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 
 	std.DeployInfo().Host.Dynamic.AgentID = hosts[0].Dynamic.AgentID
 
-	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, std.DeployInfo()); err != nil {
-		return fmt.Errorf("update node deployment info failed: %w", err)
-	}
-
-	ctx.Data.LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", std.DeployInfo().Host.Dynamic.AgentID))
+	std.InstanceData().LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", std.DeployInfo().Host.Dynamic.AgentID))
 	logger.G.Sys().With("agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("find agent id, try reuse it")
 
 	return nil

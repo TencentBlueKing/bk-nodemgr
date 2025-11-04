@@ -15,12 +15,12 @@ import (
 	"fmt"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -42,8 +42,7 @@ func NewActionUpsertHostToCMDB(capability *Capability) action.Definition {
 
 // ActParamUpsertHostToCMDB ...
 type ActParamUpsertHostToCMDB struct {
-	Token    string `json:"token"`
-	Operator string `json:"operator"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 type actionUpsertHostToCMDB struct {
@@ -99,37 +98,29 @@ func (act *actionUpsertHostToCMDB) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}
-
-	newCtx := contextx.From(ctx.Ctx, contextx.WithTenantID(info.Host.TenantID), contextx.WithBKUsername(param.Operator))
-	if err := act.checkHost(newCtx, info); err != nil {
-		return err
-	}
-
-	gp := gopool.NewPool()
-	gp.Go(func() error {
-		if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(ctx.Ctx, param.Token, info); err != nil {
-			return fmt.Errorf("update node deployment info failed: %w", err)
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
 		}
+	}()
 
-		return nil
-	})
-
-	if err := gp.Wait(); err != nil {
-		return fmt.Errorf("wait group failed: %w", err)
+	if err := act.checkHost(std.Context(), std.DeployInfo()); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.IContext, info *types.DeploymentInfo) error {
+func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types.DeploymentInfo) error {
 	// nolint: nestif
 	// host-id not specified.
 	if info.Host.HostID < 0 {
-		hosts, count, err := act.storageHost.ListHost(ctx, types.Page{
+		hosts, count, err := act.storageHost.ListHost(nCtx, types.Page{
 			Offset: 0,
 			Limit:  1,
 		}, &types.HostCondition{
@@ -150,11 +141,11 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.IContext, info *types.
 		}
 
 		if len(hosts) == 0 {
-			info.Host.HostID, err = act.insertHost(ctx, info)
+			info.Host.HostID, err = act.insertHost(nCtx, info)
 			if err != nil {
 				return err
 			}
-			if err := act.storageHost.UpsertManyHost(ctx, &info.Host); err != nil {
+			if err := act.storageHost.UpsertManyHost(nCtx, &info.Host); err != nil {
 				return fmt.Errorf("upsert host to db failed: %w", err)
 			}
 		} else {
@@ -165,7 +156,7 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.IContext, info *types.
 	}
 
 	// host-id specified.
-	count, err := act.storageHost.CountHost(ctx, &types.HostCondition{
+	count, err := act.storageHost.CountHost(nCtx, &types.HostCondition{
 		ExactInclude: &types.HostExactFields{
 			HostID:        []int64{info.Host.HostID},
 			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
@@ -186,7 +177,7 @@ func (act *actionUpsertHostToCMDB) checkHost(ctx contextx.IContext, info *types.
 	return nil
 }
 
-func (act *actionUpsertHostToCMDB) insertHost(ctx contextx.IContext, info *types.DeploymentInfo) (int64, error) {
+func (act *actionUpsertHostToCMDB) insertHost(nCtx contextx.IContext, info *types.DeploymentInfo) (int64, error) {
 	host := &info.Host
 
 	// inorder to check the interface of cc, and set the default architecture at the beginning
@@ -200,7 +191,7 @@ func (act *actionUpsertHostToCMDB) insertHost(ctx contextx.IContext, info *types
 		host.Static.Arch = string(criteria.CPUArch386)
 	}
 
-	hostIDs, err := act.cmdbHandler.AddHostToBusinessIdle(ctx, info.Host.Static.BizID, host)
+	hostIDs, err := act.cmdbHandler.AddHostToBusinessIdle(nCtx, info.Host.Static.BizID, host)
 	if err != nil {
 		return 0, err
 	}

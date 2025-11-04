@@ -94,12 +94,10 @@ func (act *actionTransferPkgToNode) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) {
+func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamTransferPkgToNode)
-	err = conv.MapToStruct(ctx.Data.Content, param)
+	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param: %w", err)
-
 		return err
 	}
 
@@ -127,12 +125,12 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 	gp := gopool.NewPool()
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		gp.Go(func() error {
-			return act.transferRelease(ctx.Ctx, std.DeployInfo())
+			return act.transferRelease(std.Context(), std.DeployInfo())
 		})
 	}
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableInstaller {
 		gp.Go(func() error {
-			return act.transferInstaller(ctx.Ctx, std.DeployInfo())
+			return act.transferInstaller(std.Context(), std.DeployInfo())
 		})
 	}
 	if err := gp.Wait(); err != nil {
@@ -142,12 +140,12 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) (err error) 
 	}
 
 	logger.G.Sys().With("host-id", std.DeployInfo().Host.HostID).Info("transfer pkg to node all done")
-	ctx.Data.LogI("transfer pkg to node all done")
+	std.InstanceData().LogI("transfer pkg to node all done")
 
 	return nil
 }
 
-func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info *types.DeploymentInfo) error {
+func (act *actionTransferPkgToNode) transferRelease(nCtx contextx.IContext, info *types.DeploymentInfo) error {
 	var rt types.ReleaseType
 	switch info.Host.Dynamic.NodeRole {
 	case types.NodeRoleProxy:
@@ -167,7 +165,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 		dataDir = filepath.Join(info.InstallerWorkDir, "data")
 	}
 
-	transferHandler, err := act.fileHandler.LaunchTransferNode(ctx,
+	transferHandler, err := act.fileHandler.LaunchTransferNode(nCtx,
 		info.Host.Dynamic.NodeGeneration,
 		rt,
 		platfmt.Platform{
@@ -183,7 +181,7 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 
 	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer release")
 
-	result, err := transferHandler.WaitUntilDone(ctx)
+	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
 		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), info.Host.HostID, err)
@@ -204,8 +202,8 @@ func (act *actionTransferPkgToNode) transferRelease(ctx contextx.IContext, info 
 	return nil
 }
 
-func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, info *types.DeploymentInfo) error {
-	transferHandler, err := act.fileHandler.LaunchTransferInstaller(ctx,
+func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, info *types.DeploymentInfo) error {
+	transferHandler, err := act.fileHandler.LaunchTransferInstaller(nCtx,
 		types.Generation2,
 		platfmt.Platform{
 			OS:   info.Host.Dynamic.NodeOsType,
@@ -219,7 +217,7 @@ func (act *actionTransferPkgToNode) transferInstaller(ctx contextx.IContext, inf
 
 	logger.G.Sys().With("task-id", transferHandler.GetTaskID(), "host-id", info.Host.HostID).Info("launched transfer installer")
 
-	result, err := transferHandler.WaitUntilDone(ctx)
+	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
 		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), info.Host.HostID, err)

@@ -146,7 +146,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		return fmt.Errorf("failed to generate new wmi client: %w", err)
 	}
 
-	osType, cpuArch, err := act.detectInfo(ctx, client)
+	osType, cpuArch, err := act.detectInfo(std, client)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
-				ctx.Data.LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+				std.InstanceData().LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 
 				break
 			}
@@ -185,7 +185,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	} else if std.DeployInfo().Host.Dynamic.NodeVersion == "" {
 		// we'll automatically use the system information to select the default version,
 		// when NodeVersion is empty.
-		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(ctx.Ctx, CheckAndSelectVersionParam{
+		std.DeployInfo().Host.Dynamic.NodeVersion, err = autoSelectVersion(std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -195,11 +195,11 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		if err != nil {
 			return err
 		}
-		ctx.Data.LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.InstanceData().LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
 	}
 
 	err = checkVersionAvailability(
-		ctx.Ctx, CheckAndSelectVersionParam{
+		std.Context(), CheckAndSelectVersionParam{
 			daoRelease:  act.storageRelease,
 			ReleaseType: releaseType,
 			Generation:  std.DeployInfo().Host.Dynamic.NodeGeneration,
@@ -216,11 +216,11 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 
 // inorder to improve readability, use fmt.Sprintf to construct command line, and use named return.
 // nolint: nonamedreturns,perfsprint
-func (act *actionDetectInfoByWMI) detectInfo(ctx *action.InstanceContext, client *wmix.Client) (
+func (act *actionDetectInfoByWMI) detectInfo(std *nodeUtils.NodeActionStandarder, client *wmix.Client) (
 	osType criteria.OSType, cpuArch criteria.CPUArch, err error) {
 
 	// 1. detect target system
-	osTypeStr, _, err := client.RunCommand(ctx.Ctx, "ver")
+	osTypeStr, _, err := client.RunCommand(std.Context(), "ver")
 	if err != nil {
 		err = fmt.Errorf("failed to run ver: %w", err)
 
@@ -241,10 +241,10 @@ func (act *actionDetectInfoByWMI) detectInfo(ctx *action.InstanceContext, client
 
 		return "", "", err
 	}
-	ctx.Data.LogI(fmt.Sprintf("host-os-type(%s)", osType))
+	std.InstanceData().LogI(fmt.Sprintf("host-os-type(%s)", osType))
 
 	// 2. detect target cpu arch
-	cpuArchStr, _, err := client.RunCommand(ctx.Ctx, "echo %PROCESSOR_ARCHITECTURE%")
+	cpuArchStr, _, err := client.RunCommand(std.Context(), "echo %PROCESSOR_ARCHITECTURE%")
 	if err != nil {
 		return "", "", fmt.Errorf("failed to run uname -m: %w", err)
 	}
@@ -256,7 +256,7 @@ func (act *actionDetectInfoByWMI) detectInfo(ctx *action.InstanceContext, client
 		return "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
+	std.InstanceData().LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
 
 	return osType, cpuArch, nil
 }
