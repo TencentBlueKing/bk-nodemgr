@@ -20,7 +20,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	daoBase "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	daoNodeWorkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
@@ -148,7 +147,7 @@ func (s *Storage) obtainMonitoredWorkflows(nCtx contextx.IContext) error {
 				tenantCtx,
 				types.UnlimitedPage(),
 				daoNodeWorkflow.WithStatus(types.GetFinishedNodeWorkflowStatus()...),
-				daoBase.WithUpdateAtTimeRange(types.RecentTimeRange(recentMonitoredTime)),
+				daoNodeWorkflow.WithOperateTimeRange(types.RecentTimeRange(recentMonitoredTime)),
 			)
 			if err != nil {
 				return fmt.Errorf("query recent finished workflows failed: %w", err)
