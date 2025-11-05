@@ -827,6 +827,7 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 			InnerIPV6:     hostInfo.BKHostInnerIPV6,
 			OuterIP:       hostInfo.BKHostOuterIPV4,
 			OuterIPV6:     hostInfo.BKHostOuterIPV6,
+			Operator:      hostInfo.Operator,
 			Mac:           hostInfo.BKMac,
 			CPUNum:        hostInfo.BKCpu,
 			MemCap:        hostInfo.BKMem,

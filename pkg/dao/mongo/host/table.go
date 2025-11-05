@@ -35,6 +35,7 @@ type HostStatic struct {
 	OuterIP       string  `json:"outer_ip" bson:"outer_ip"`
 	OuterIPV6     string  `json:"outer_ipv6" bson:"outer_ipv6"`
 	Mac           string  `json:"mac" bson:"mac"`
+	Operator      string  `json:"operator" bson:"operator"`
 	OSType        string  `json:"os_type" bson:"os_type"`
 	OSTypeCCID    string  `json:"os_type_ccid" bson:"os_type_ccid"`
 	Arch          string  `json:"arch" bson:"arch"`

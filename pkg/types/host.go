@@ -303,6 +303,7 @@ type HostStatic struct {
 	InnerIPV6  string
 	OuterIP    string
 	OuterIPV6  string
+	Operator   string
 	Mac        string
 	OSTypeCCID string
 	OSType     string
