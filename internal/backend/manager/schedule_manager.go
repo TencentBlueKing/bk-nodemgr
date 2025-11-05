@@ -307,7 +307,7 @@ func (mgr *Manager) syncSWSyncBizAndHost(nCtx contextx.IContext, sw *types.Sched
 }
 
 func (mgr *Manager) initSWSyncNetworkArea(nCtx contextx.IContext, tenantID string) error {
-	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncNetworkArea, scheduler.Every+"10s")
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowSyncNetworkArea, scheduler.Every+"10m")
 }
 
 func (mgr *Manager) syncSWSyncNetworkArea(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
