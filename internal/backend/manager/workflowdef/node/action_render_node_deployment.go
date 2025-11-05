@@ -120,6 +120,8 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("set node conf failed: %w", err)
 	}
 
+	nCtx := std.Context()
+
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
 	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(std.Context(), param.Token)
 	if err != nil {
@@ -134,7 +136,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 	switch releaseType {
 	case types.ReleaseTypeAgent:
-		rlsAgent, err := act.storageRelease.GetReleaseAgent(ctx.Ctx,
+		rlsAgent, err := act.storageRelease.GetReleaseAgent(nCtx,
 			std.DeployInfo().Host.Dynamic.NodeGeneration,
 			platfmt.Platform{
 				OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -149,7 +151,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		nodeConf.PreSetting = rlsAgent.ReleaseAdditionInfoAgent.ConfigEnviron
 		nodeConf.ConfigTemplate = rlsAgent.ReleaseAdditionInfoAgent.ConfigTemplate
 	case types.ReleaseTypeProxy:
-		rlsProxy, err := act.storageRelease.GetReleaseProxy(ctx.Ctx,
+		rlsProxy, err := act.storageRelease.GetReleaseProxy(nCtx,
 			std.DeployInfo().Host.Dynamic.NodeGeneration,
 			platfmt.Platform{
 				OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
@@ -169,7 +171,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		if err := act.renderLogicSetting(ctx, nodeConf, &std.DeployInfo().Host); err != nil {
+		if err := act.renderLogicSetting(nCtx, nodeConf, &std.DeployInfo().Host); err != nil {
 			return fmt.Errorf("render logic setting failed: %w", err)
 		}
 
@@ -179,7 +181,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	})
 
 	gp.Go(func() error {
-		if err := act.renderCustomSetting(ctx, nodeConf, std.DeployInfo()); err != nil {
+		if err := act.renderCustomSetting(nCtx, ctx, nodeConf, std.DeployInfo()); err != nil {
 			return fmt.Errorf("render custom setting failed: %w", err)
 		}
 
@@ -356,11 +358,10 @@ const (
 // renderLogicSetting load logic setting to the config presetting and custom setting .
 // nolint: nonamedreturns,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceContext, nodeConf *types.NodeConf,
-	host *types.Host) (err error) {
+func (act *actionRenderNodeDeployment) renderLogicSetting(nCtx contextx.IContext, nodeConf *types.NodeConf, host *types.Host) (err error) {
 
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
-	if err := act.checkHostExist(ctx.Ctx, host.HostID); err != nil {
+	if err := act.checkHostExist(nCtx, host.HostID); err != nil {
 		return err
 	}
 
@@ -444,7 +445,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.AgentPluginIPCPath
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.AgentDataIPCPath
 	nodeConf.PreSetting[GseTemplateKeyEnableStaticAccess], err = act.storageDomainGse.NeedStaticAccess(
-		ctx.Ctx, host.Dynamic.NetworkUnitID)
+		nCtx, host.Dynamic.NetworkUnitID)
 
 	if err != nil {
 		return fmt.Errorf("check static access failed: %w", err)
@@ -454,7 +455,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 	switch host.Dynamic.NodeRole {
 	case types.NodeRoleAgent:
 		{
-			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(ctx.Ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(nCtx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get agent access endpoints failed: %w", err)
 			}
@@ -478,7 +479,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(ctx *action.InstanceCo
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV4] = advertiseIPV4
 			nodeConf.PreSetting[GseTemplateKeyFileAgentAdvertiseIPV6] = advertiseIPV6
 			nodeConf.PreSetting[GseTemplateKeyFileTopologyAdvertiseIP] = advertiseIP
-			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(ctx.Ctx, host.Dynamic.NetworkUnitID)
+			clusters, files, datas, err := act.storageDomainGse.GetProxyUpstreamAccessEndpoints(nCtx, host.Dynamic.NetworkUnitID)
 			if err != nil {
 				return fmt.Errorf("get proxy upstream endpoints failed: %w", err)
 			}
@@ -538,10 +539,10 @@ func forbiddenKeys() []string {
 }
 
 // renderCustomSetting load custom setting to the config presetting.
-func (act *actionRenderNodeDeployment) renderCustomSetting(
-	ctx *action.InstanceContext, conf *types.NodeConf, info *types.DeploymentInfo) error {
+func (act *actionRenderNodeDeployment) renderCustomSetting(nCtx contextx.IContext, ctx *action.InstanceContext, conf *types.NodeConf,
+	info *types.DeploymentInfo) error {
 
-	configPolicy, matched, err := act.storageConfigPolicy.MatchConfigPolicyNode(ctx.Ctx,
+	configPolicy, matched, err := act.storageConfigPolicy.MatchConfigPolicyNode(nCtx,
 		info.Host.Static.BizID,
 		info.Host.Static.NetworkAreaID,
 		info.Host.Dynamic.NetworkUnitID,
