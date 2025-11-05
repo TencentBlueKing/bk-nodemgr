@@ -914,16 +914,9 @@ backend:
         custom:
           logDir: ""
           hostIDPath: ""
-          agentDataIPCPath: ""
-          agentPluginIPCPath: ""
-          environDir: ""
         pluginCustom:
           logDir: ""
-          dataDir: ""
-          runDir: ""
           hostIDPath: ""
-          agentDataIPCPath: ""
-          agentPluginIPCPath: ""
           commonConstants: {}
       - # defines the gse deploy related settings.
         generation: 2
@@ -933,16 +926,9 @@ backend:
         custom:
           logDir: ""
           hostIDPath: ""
-          agentDataIPCPath: ""
-          agentPluginIPCPath: ""
-          environDir: ""
         pluginCustom:
           logDir: ""
-          dataDir: ""
-          runDir: ""
           hostIDPath: ""
-          agentDataIPCPath: ""
-          agentPluginIPCPath: ""
           commonConstants: {}
 
     # defines the access settings.

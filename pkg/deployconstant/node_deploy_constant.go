@@ -11,14 +11,22 @@
 package deployconstant
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	nodeConfigDirName        = "etc"
+	nodeLibDirName           = "lib"
+	nodeUnixDataIPCName      = "ipc.state.report"
+	nodeUnixPluginIPCName    = "ipc.state.message"
+	nodeWindowsDataIPCPort   = "27000"
+	nodeWindowsPluginIPCPort = "26000"
 )
 
 // NodeDeployConf defines the deployment configuration for agent.
@@ -26,37 +34,14 @@ type NodeDeployConf struct {
 	DeployConf
 
 	// custom.
-	LogDir             string
-	HostIDPath         string
-	AgentDataIPCPath   string
-	AgentPluginIPCPath string
-	EnvironDir         string
+	LogDir     string
+	HostIDPath string
 }
 
 // Validate checks if the deployment configuration is valid.
 func (conf NodeDeployConf) Validate() error {
 	if err := conf.DeployConf.Validate(); err != nil {
 		return fmt.Errorf("invalid deploy conf: %w", err)
-	}
-
-	if conf.LogDir == "" {
-		return errors.New("logDir is empty")
-	}
-
-	if conf.HostIDPath == "" {
-		return errors.New("hostIDPath is empty")
-	}
-
-	if conf.AgentDataIPCPath == "" {
-		return errors.New("agentDataIPCPath is empty")
-	}
-
-	if conf.AgentPluginIPCPath == "" {
-		return errors.New("agentPluginIPCPath is empty")
-	}
-
-	if conf.EnvironDir == "" {
-		return errors.New("environDir is empty")
 	}
 
 	return nil
@@ -102,17 +87,23 @@ func SetNodeDeployConf(conf NodeDeployConf) error {
 }
 
 func populateNodeDefaultValues(conf *NodeDeployConf) {
+	env := system.GetEnv()
+
+	conf.DeployDir = tool.JoinPath(conf.OsType, conf.BaseDeployDir, env)
+	conf.WorkDir = tool.JoinPath(conf.OsType, conf.BaseWorkDir, env)
+
+	// HostIDPath is a special logic of CMDB that cannot be modified
 	if conf.OsType == criteria.OSWindows {
-		populateNodeDefaultValuesWindows(conf)
+		if conf.LogDir == "" {
+			conf.LogDir = fmt.Sprintf("C:\\%s\\logs\\", env)
+		}
+
+		if conf.HostIDPath == "" {
+			conf.HostIDPath = fmt.Sprintf("C:\\%s\\data\\host\\hostid", env)
+		}
 
 		return
 	}
-
-	populateNodeDefaultValuesUnix(conf)
-}
-
-func populateNodeDefaultValuesUnix(conf *NodeDeployConf) {
-	env := system.GetEnv()
 
 	if conf.LogDir == "" {
 		conf.LogDir = fmt.Sprintf("/var/log/%s/", env)
@@ -121,45 +112,32 @@ func populateNodeDefaultValuesUnix(conf *NodeDeployConf) {
 	if conf.HostIDPath == "" {
 		conf.HostIDPath = fmt.Sprintf("/var/lib/%s/host/hostid", env)
 	}
-
-	if conf.AgentDataIPCPath == "" {
-		conf.AgentDataIPCPath = fmt.Sprintf("/var/run/%s/ipc.state.report", env)
-	}
-
-	if conf.AgentPluginIPCPath == "" {
-		conf.AgentPluginIPCPath = fmt.Sprintf("/var/run/%s/ipc.state.message", env)
-	}
-
-	if conf.EnvironDir == "" {
-		conf.EnvironDir = fmt.Sprintf("/etc/sysconfig/%s/", env)
-	}
-
-	conf.WorkDir = filepath.Join(conf.BaseWorkDir, env)
-	conf.DeployDir = filepath.Join(conf.BaseDeployDir, env)
 }
 
-func populateNodeDefaultValuesWindows(conf *NodeDeployConf) {
-	env := system.GetEnv()
+// GenerateNodeHomeDir generates the home directory path for the given node role.
+func (conf NodeDeployConf) GenerateNodeHomeDir(role types.NodeRole) string {
+	return tool.JoinPath(conf.OsType, conf.DeployDir, string(role))
+}
 
-	if conf.LogDir == "" {
-		conf.LogDir = fmt.Sprintf("C:\\%s\\logs\\", env)
+// GenerateDefaultNodeConfigDir generates the default configuration directory path for the given node role.
+func (conf NodeDeployConf) GenerateDefaultNodeConfigDir(role types.NodeRole) string {
+	return tool.JoinPath(conf.OsType, conf.DeployDir, string(role), nodeConfigDirName)
+}
+
+// GenerateDefaultDataIPCPath generates the default data IPC path based on the OS type.
+func (conf NodeDeployConf) GenerateDefaultDataIPCPath(role types.NodeRole) string {
+	if conf.OsType == criteria.OSWindows {
+		return nodeWindowsDataIPCPort
 	}
 
-	if conf.HostIDPath == "" {
-		conf.HostIDPath = fmt.Sprintf("C:\\%s\\data\\host\\hostid", env)
+	return filepath.Join(conf.DeployDir, string(role), nodeLibDirName, nodeUnixDataIPCName)
+}
+
+// GenerateDefaultPluginIPCPath generates the default plugin IPC path based on the OS type.
+func (conf NodeDeployConf) GenerateDefaultPluginIPCPath(role types.NodeRole) string {
+	if conf.OsType == criteria.OSWindows {
+		return nodeWindowsPluginIPCPort
 	}
 
-	if conf.AgentDataIPCPath == "" {
-		conf.AgentDataIPCPath = "27000"
-	}
-	if conf.AgentPluginIPCPath == "" {
-		conf.AgentPluginIPCPath = "26000"
-	}
-
-	if conf.EnvironDir == "" {
-		conf.EnvironDir = fmt.Sprintf("C:\\Windows\\System32\\config\\gse\\%s\\", env)
-	}
-
-	conf.WorkDir = winpath.Join(conf.BaseWorkDir, env)
-	conf.DeployDir = winpath.Join(conf.BaseDeployDir, env)
+	return filepath.Join(conf.DeployDir, string(role), nodeLibDirName, nodeUnixPluginIPCName)
 }

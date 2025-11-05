@@ -11,9 +11,11 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 
@@ -36,7 +38,7 @@ func NewActionUpdateHost(capability *Capability) action.Definition {
 
 // ActParamUpdateHost ...
 type ActParamUpdateHost struct {
-	Token string `json:"token"`
+	nodeUtils.NodeActionStandardParam `json:",inline"`
 }
 
 // UpdateHost ...
@@ -90,12 +92,18 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	info, err := act.storageNodeDeployment.GetNodeDeploymentInfo(ctx.Ctx, param.Token)
-	if err != nil {
-		return fmt.Errorf("get node deployment info failed: %w", err)
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
+		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
-	err = act.storageHost.UpdateManyHostDynamic(ctx.Ctx, &info.Host)
+	err = act.storageHost.UpdateManyHostDynamic(std.Context(), &std.DeployInfo().Host)
 	if err != nil {
 		return fmt.Errorf("update host dynamic failed: %w", err)
 	}

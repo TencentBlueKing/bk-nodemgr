@@ -8,21 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
-/*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
- * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at https://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
 package plugin
 
 import (
+	"errors"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
@@ -33,9 +23,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/templaterender"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -48,6 +37,7 @@ const (
 	keyNodeMan      = "nodeman"
 	keyCmdbInstance = "cmdb_instance"
 	keyTarget       = "target"
+	keyControlInfo  = "control_info"
 
 	keyLogPath       = "log_path"
 	keyDataPath      = "data_path"
@@ -59,14 +49,15 @@ const (
 
 	keyHost = "host"
 
-	keyConstants = "constants"
-	keyBkHostID  = "bk_host_id"
-	keyOsType    = "os_type"
-	keyCPUArch   = "cpu_arch"
-	keyInnerIP   = "inner_ip"
-	keyOuterIP   = "outer_ip"
-	keyLoginIP   = "login_ip"
-	keyGlobal    = "global"
+	keyIsMultiTenant = "is_multi_tenant"
+	keyConstants     = "constants"
+	keyBkHostID      = "bk_host_id"
+	keyOsType        = "os_type"
+	keyCPUArch       = "cpu_arch"
+	keyInnerIP       = "inner_ip"
+	keyOuterIP       = "outer_ip"
+	keyLoginIP       = "login_ip"
+	keyGlobal        = "global"
 
 	keyBkBizID           = "bk_biz_id"
 	keyBkHostName        = "bk_host_name"
@@ -80,6 +71,15 @@ const (
 	keyBkOSType          = "bk_os_type"
 	keyBkAgentID         = "bk_agent_id"
 	keyBkCPUArchitecture = "bk_cpu_architecture"
+	keyBkCPU             = "bk_cpu"
+	keyBkMem             = "bk_mem"
+
+	keyPluginIPC    = "pluginipc"
+	keyDataIPC      = "dataipc"
+	keyGSEAgentHome = "gse_agent_home"
+	keyListenIP     = "listen_ip"
+	keyListenPort   = "listen_port"
+	keyGroupID      = "group_id"
 )
 
 // NewActionRenderPluginMainConfig ...
@@ -150,10 +150,16 @@ func (act *RenderPluginMainConfig) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	// initialize standard data.
 	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
 	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
 		return err
 	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
 
 	host, err := act.daoHost.GetHostByID(std.Context(), std.DeployInfo().Process.HostID)
 	if err != nil {
@@ -184,7 +190,7 @@ func (act *RenderPluginMainConfig) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to render template: %w", err)
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("rendered plugin(%s-%s-%s) main config success",
+	std.InstanceData().LogI(fmt.Sprintf("rendered plugin(%s-%s-%s) main config success",
 		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
 		std.DeployInfo().Process.Info.Version))
 
@@ -198,7 +204,7 @@ func (act *RenderPluginMainConfig) Do(ctx *action.InstanceContext) error {
 func (act *RenderPluginMainConfig) getRenderContext(
 	nCtx contextx.IContext, info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
 
-	pluginPath, err := act.getPluginPath(info)
+	pluginPath, err := act.getPluginPath(info, hostInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugin path: %w", err)
 	}
@@ -213,34 +219,41 @@ func (act *RenderPluginMainConfig) getRenderContext(
 		return nil, fmt.Errorf("failed to get cmdb instance: %w", err)
 	}
 
+	controlInfo, err := act.getControlInfo(info, hostInfo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get control info: %w", err)
+	}
+
 	return map[string]any{
 		keyPluginPath:   pluginPath,
 		keyNodeMan:      nodeManContext,
 		keyCmdbInstance: cmdbInstance,
 		keyTarget:       cmdbInstance,
+		keyControlInfo:  controlInfo,
 	}, nil
 }
 
-func (act *RenderPluginMainConfig) getPluginPath(info *types.PluginDeploymentInfo) (map[string]any, error) {
+func (act *RenderPluginMainConfig) getPluginPath(info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
 	pluginDeployConf, err := deployconstant.GetPluginDeployConf(
 		info.Process.Generation, info.Process.Platform.OS)
 	if err != nil {
 		return nil, err
 	}
 
-	paths := map[string]any{
-		keyLogPath:   pluginDeployConf.LogDir,
-		keyDataPath:  pluginDeployConf.DataDir,
-		keyPidPath:   info.Process.Identity.PidPath,
-		keySetupPath: info.Process.Identity.SetupPath,
-		keyEndpoint:  pluginDeployConf.AgentDataIPCPath,
-		keyHostID:    pluginDeployConf.HostIDPath,
+	nodeDeployConf, err := deployconstant.GetNodeDeployConf(
+		info.Process.Generation, info.Process.Platform.OS)
+	if err != nil {
+		return nil, err
 	}
 
-	if info.Process.Platform.OS == criteria.OSWindows {
-		paths[keySubConfigPath] = winpath.Join(info.Process.PluginName, pluginDeployConf.SubConfigBaseDir)
-	} else {
-		paths[keySubConfigPath] = filepath.Join(info.Process.PluginName, pluginDeployConf.SubConfigBaseDir)
+	paths := map[string]any{
+		keyLogPath:       pluginDeployConf.LogDir,
+		keyDataPath:      pluginDeployConf.GenerateDefaultDataDir(info.Process.PluginGroup, info.Process.PluginName),
+		keyPidPath:       pluginDeployConf.GenerateDefaultRunDir(info.Process.PluginGroup, info.Process.PluginName),
+		keySetupPath:     pluginDeployConf.GenerateDefaultSetupPath(info.Process.PluginGroup, info.Process.PluginName),
+		keyEndpoint:      nodeDeployConf.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
+		keyHostID:        pluginDeployConf.HostIDPath,
+		keySubConfigPath: pluginDeployConf.GenerateDefaultSubConfigDir(info.Process.PluginGroup, info.Process.PluginName),
 	}
 
 	return paths, nil
@@ -264,7 +277,8 @@ func (act *RenderPluginMainConfig) getNodeContext(info *types.PluginDeploymentIn
 			keyOuterIP:  hostInfo.Static.OuterIP,
 			keyLoginIP:  hostInfo.Dynamic.LoginIP,
 		},
-		keyConstants: map[string]any{},
+		keyIsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
+		keyConstants:     map[string]any{},
 	}
 
 	if commonConstants, ok := pluginDeployConf.CommonConstants[info.Process.PluginPkgName]; ok {
@@ -305,6 +319,35 @@ func (act *RenderPluginMainConfig) getCMDBInstance(nCtx contextx.IContext, hostI
 			keyBkHostInnerIPv6:   hostInfo.Static.InnerIPV6,
 			keyBkHostOuterIPv6:   hostInfo.Static.OuterIPV6,
 			keyBkCPUArchitecture: hostInfo.Static.Arch,
+			keyBkCPU:             hostInfo.Static.CPUNum,
+			keyBkMem:             hostInfo.Static.MemCap,
 		},
+	}, nil
+}
+
+func (act *RenderPluginMainConfig) getControlInfo(info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
+	pluginDeployConf, err := deployconstant.GetPluginDeployConf(info.Process.Generation, info.Process.Platform.OS)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeDeployConf, err := deployconstant.GetNodeDeployConf(info.Process.Generation, info.Process.Platform.OS)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]any{
+		keyPluginIPC:    nodeDeployConf.GenerateDefaultPluginIPCPath(hostInfo.Dynamic.NodeRole),
+		keyDataIPC:      nodeDeployConf.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
+		keyGSEAgentHome: nodeDeployConf.GenerateNodeHomeDir(hostInfo.Dynamic.NodeRole),
+		keyGroupID:      info.Process.PluginGroup,
+		keyLogPath:      pluginDeployConf.LogDir,
+		keyDataPath:     pluginDeployConf.GenerateDefaultDataDir(info.Process.PluginGroup, info.Process.PluginName),
+		keyPidPath:      pluginDeployConf.GenerateDefaultRunDir(info.Process.PluginGroup, info.Process.PluginName),
+		keySetupPath:    pluginDeployConf.GenerateDefaultSetupPath(info.Process.PluginGroup, info.Process.PluginName),
+
+		// TODO: implement a plugin to obtain listen ip and port
+		keyListenIP:   "",
+		keyListenPort: 0,
 	}, nil
 }

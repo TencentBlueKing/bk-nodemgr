@@ -337,11 +337,8 @@ func (conf GSEDeployConf) Validate() error {
 
 // GSEDeployCustom defines the custom deployment configuration for gse node.
 type GSEDeployCustom struct {
-	LogDir             string `yaml:"logDir" usage:"log dir"`
-	HostIDPath         string `yaml:"hostIDPath" usage:"host id path"`
-	AgentDataIPCPath   string `yaml:"agentDataIPCPath" usage:"data ipc path"`
-	AgentPluginIPCPath string `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
-	EnvironDir         string `yaml:"environDir" usage:"environ dir"`
+	LogDir     string `yaml:"logDir" usage:"log dir"`
+	HostIDPath string `yaml:"hostIDPath" usage:"host id path"`
 }
 
 // Validate validates the config.
@@ -352,11 +349,7 @@ func (conf *GSEDeployCustom) Validate() error {
 // GSEDeployPluginCustom defines the custom deployment configuration for plugin.
 type GSEDeployPluginCustom struct {
 	LogDir             string         `yaml:"logDir" usage:"log dir"`
-	DataDir            string         `yaml:"dataDir" usage:"data dir"`
-	RunDir             string         `yaml:"runDir" usage:"run dir"`
 	HostIDPath         string         `yaml:"hostIDPath" usage:"host id path"`
-	AgentDataIPCPath   string         `yaml:"agentDataIPCPath" usage:"data ipc path"`
-	AgentPluginIPCPath string         `yaml:"agentPluginIPCPath" usage:"plugin ipc path"`
 	CommonConstants    map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
 }
 

@@ -156,26 +156,19 @@ func (svc *Service) initialStaticsConfigs() error {
 		}
 
 		nodeDeployConf := deployconstant.NodeDeployConf{
-			DeployConf:         deployConf,
-			LogDir:             svc.conf.GSEDeployConfs[idx].Custom.LogDir,
-			HostIDPath:         svc.conf.GSEDeployConfs[idx].Custom.HostIDPath,
-			AgentDataIPCPath:   svc.conf.GSEDeployConfs[idx].Custom.AgentDataIPCPath,
-			AgentPluginIPCPath: svc.conf.GSEDeployConfs[idx].Custom.AgentPluginIPCPath,
-			EnvironDir:         svc.conf.GSEDeployConfs[idx].Custom.EnvironDir,
+			DeployConf: deployConf,
+			LogDir:     svc.conf.GSEDeployConfs[idx].Custom.LogDir,
+			HostIDPath: svc.conf.GSEDeployConfs[idx].Custom.HostIDPath,
 		}
 		if err := deployconstant.SetNodeDeployConf(nodeDeployConf); err != nil {
 			return fmt.Errorf("failed to set node deploy conf: %w", err)
 		}
 
 		pluginDeployConf := deployconstant.PluginDeployConf{
-			DeployConf:         deployConf,
-			LogDir:             svc.conf.GSEDeployConfs[idx].PluginCustom.LogDir,
-			DataDir:            svc.conf.GSEDeployConfs[idx].PluginCustom.DataDir,
-			RunDir:             svc.conf.GSEDeployConfs[idx].PluginCustom.RunDir,
-			HostIDPath:         svc.conf.GSEDeployConfs[idx].PluginCustom.HostIDPath,
-			AgentDataIPCPath:   svc.conf.GSEDeployConfs[idx].PluginCustom.AgentDataIPCPath,
-			AgentPluginIPCPath: svc.conf.GSEDeployConfs[idx].PluginCustom.AgentPluginIPCPath,
-			CommonConstants:    svc.conf.GSEDeployConfs[idx].PluginCustom.CommonConstants,
+			DeployConf:      deployConf,
+			LogDir:          svc.conf.GSEDeployConfs[idx].PluginCustom.LogDir,
+			HostIDPath:      svc.conf.GSEDeployConfs[idx].PluginCustom.HostIDPath,
+			CommonConstants: svc.conf.GSEDeployConfs[idx].PluginCustom.CommonConstants,
 		}
 		if err := deployconstant.SetPluginDeployConf(pluginDeployConf); err != nil {
 			return fmt.Errorf("failed to set pluginStg deploy conf: %w", err)

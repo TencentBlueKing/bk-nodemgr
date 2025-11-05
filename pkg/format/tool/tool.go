@@ -13,8 +13,10 @@ package tool
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 )
 
 const (
@@ -31,4 +33,17 @@ func FormatInstallerName(osType criteria.OSType, cpuArch criteria.CPUArch) (stri
 	}
 
 	return toolName, nil
+}
+
+// JoinPath joins the path parts based on the OS type.
+func JoinPath(osType criteria.OSType, parts ...string) string {
+	if len(parts) == 0 {
+		return ""
+	}
+
+	if osType == criteria.OSWindows {
+		return winpath.Join(parts...)
+	}
+
+	return filepath.Join(parts...)
 }

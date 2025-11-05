@@ -8,22 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
-/*
- * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
- * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
- * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at https://opensource.org/licenses/MIT
- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
- */
-
 package plugin
 
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
@@ -32,9 +21,9 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -189,20 +178,14 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		programName += ".exe"
 	}
 
-	var pidFilePath string
 	pidFileName := fmt.Sprintf("%s.pid", pluginPkgName)
-	if nodePlatform.OS == criteria.OSWindows {
-		pidFilePath = winpath.Join(pluginDeployConf.RunDir, pidFileName)
-	} else {
-		pidFilePath = filepath.Join(pluginDeployConf.RunDir, pidFileName)
-	}
+	pidFilePath := tool.JoinPath(
+		nodePlatform.OS,
+		pluginDeployConf.GenerateDefaultRunDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
+		pidFileName,
+	)
 
-	var setupPath string
-	if nodePlatform.OS == criteria.OSWindows {
-		setupPath = winpath.Join(pluginDeployConf.DeployDir, pluginName)
-	} else {
-		setupPath = filepath.Join(pluginDeployConf.DeployDir, pluginName)
-	}
+	setupPath := pluginDeployConf.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName)
 
 	var mainConfigPath string
 	for _, configTemplate := range pluginPkg.ConfigTemplates {
@@ -210,11 +193,12 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 			continue
 		}
 
-		if nodePlatform.OS == criteria.OSWindows {
-			mainConfigPath = winpath.Join(pluginDeployConf.DeployDir, configTemplate.SourcePath)
-		} else {
-			mainConfigPath = filepath.Join(pluginDeployConf.DeployDir, configTemplate.SourcePath)
-		}
+		mainConfigPath = tool.JoinPath(
+			nodePlatform.OS,
+			pluginDeployConf.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
+			configTemplate.FilePath,
+			configTemplate.Name,
+		)
 
 		break
 	}
@@ -222,11 +206,8 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	logDirPath := pluginDeployConf.LogDir
 
 	// TODO: 接入配置管理
-	var user string
-	if nodePlatform.OS == criteria.OSWindows {
-		user = "administrator"
-	} else {
-		user = "root"
+	if host.Dynamic.LoginUser == "" {
+		return fmt.Errorf("host login user is empty, host-id(%d)", host.HostID)
 	}
 
 	std.DeployInfo().Process.Identity = types.ProcessIdentity{
@@ -235,7 +216,7 @@ func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		PidPath:    pidFilePath,
 		ConfigPath: mainConfigPath,
 		LogPath:    logDirPath,
-		User:       user,
+		User:       host.Dynamic.LoginUser,
 	}
 
 	// TODO: 接入配置管理

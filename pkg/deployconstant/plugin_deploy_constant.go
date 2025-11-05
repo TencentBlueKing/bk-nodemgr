@@ -13,12 +13,18 @@ package deployconstant
 
 import (
 	"fmt"
-	"path/filepath"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	pluginBaseDirName   = "plugin"
+	pluginConfigDirName = "etc"
+	pluginRunDirName    = "run"
+	pluginDataDirName   = "data"
 )
 
 // PluginDeployConf defines the deployment configuration for agent.
@@ -26,14 +32,9 @@ type PluginDeployConf struct {
 	DeployConf
 
 	// custom.
-	LogDir             string
-	RunDir             string
-	DataDir            string
-	HostIDPath         string
-	AgentDataIPCPath   string
-	AgentPluginIPCPath string
-	SubConfigBaseDir   string
-	CommonConstants    map[string]any
+	LogDir          string
+	HostIDPath      string
+	CommonConstants map[string]any
 }
 
 // Validate checks if the deployment configuration is valid.
@@ -66,13 +67,8 @@ func GetPluginDeployConf(generation types.Generation, osType criteria.OSType) (P
 // SetPluginDeployConf sets the deployment configuration for the specified OS type.
 // this map only set once, if the osType already exists, it will not be set again.
 func SetPluginDeployConf(conf PluginDeployConf) error {
-	nodeDeployConf, err := GetNodeDeployConf(conf.Generation, conf.OsType)
-	if err != nil {
-		return fmt.Errorf("failed to get node deploy conf: %w", err)
-	}
-
 	// Populate default values if not set
-	populatePluginDefaultValues(&conf, nodeDeployConf)
+	populatePluginDefaultValues(&conf)
 
 	if err := conf.Validate(); err != nil {
 		return fmt.Errorf("set deploy conf failed: %w", err)
@@ -89,99 +85,50 @@ func SetPluginDeployConf(conf PluginDeployConf) error {
 	return nil
 }
 
-func populatePluginDefaultValues(conf *PluginDeployConf, nodeConf NodeDeployConf) {
+func populatePluginDefaultValues(conf *PluginDeployConf) {
+	env := system.GetEnv()
+
+	conf.DeployDir = tool.JoinPath(conf.OsType, conf.BaseDeployDir, env, pluginBaseDirName)
+	conf.WorkDir = tool.JoinPath(conf.OsType, conf.BaseWorkDir, env, pluginBaseDirName)
+
+	// HostIDPath is a special logic of CMDB that cannot be modified
 	if conf.OsType == criteria.OSWindows {
-		populatePluginDefaultValuesWindows(conf, nodeConf)
+		if conf.LogDir == "" {
+			conf.LogDir = fmt.Sprintf("C:\\%s\\logs\\", env)
+		}
+
+		if conf.HostIDPath == "" {
+			conf.HostIDPath = fmt.Sprintf("C:\\%s\\data\\host\\hostid", env)
+		}
 
 		return
 	}
-
-	populatePluginDefaultValuesUnix(conf, nodeConf)
-}
-
-func populatePluginDefaultValuesUnix(conf *PluginDeployConf, nodeConf NodeDeployConf) {
-	env := system.GetEnv()
 
 	if conf.LogDir == "" {
 		conf.LogDir = fmt.Sprintf("/var/log/%s/", env)
 	}
 
-	if conf.DataDir == "" {
-		conf.DataDir = fmt.Sprintf("/var/lib/%s/", env)
-	}
-
-	if conf.RunDir == "" {
-		conf.RunDir = fmt.Sprintf("/var/run/%s/", env)
-	}
-
 	if conf.HostIDPath == "" {
-		if nodeConf.HostIDPath != "" {
-			conf.HostIDPath = nodeConf.HostIDPath
-		} else {
-			conf.HostIDPath = fmt.Sprintf("/var/lib/%s/host/hostid", env)
-		}
+		conf.HostIDPath = fmt.Sprintf("/var/lib/%s/host/hostid", env)
 	}
-
-	if conf.AgentDataIPCPath == "" {
-		if nodeConf.AgentDataIPCPath != "" {
-			conf.AgentDataIPCPath = nodeConf.AgentDataIPCPath
-		} else {
-			conf.AgentDataIPCPath = fmt.Sprintf("/var/run/%s/ipc.state.report", env)
-		}
-	}
-
-	if conf.AgentPluginIPCPath == "" {
-		if nodeConf.AgentPluginIPCPath != "" {
-			conf.AgentPluginIPCPath = nodeConf.AgentPluginIPCPath
-		} else {
-			conf.AgentPluginIPCPath = fmt.Sprintf("/var/run/%s/ipc.state.message", env)
-		}
-	}
-
-	conf.DeployDir = filepath.Join(conf.BaseDeployDir, env)
-	conf.WorkDir = filepath.Join(conf.BaseWorkDir, env)
-	conf.SubConfigBaseDir = filepath.Join(conf.DeployDir, "plugins", "etc")
 }
 
-func populatePluginDefaultValuesWindows(conf *PluginDeployConf, nodeConf NodeDeployConf) {
-	env := system.GetEnv()
+// GenerateDefaultRunDir generates the default run directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GenerateDefaultRunDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName, pluginRunDirName)
+}
 
-	if conf.LogDir == "" {
-		conf.LogDir = fmt.Sprintf("C:\\%s\\logs\\", env)
-	}
+// GenerateDefaultDataDir generates the default data directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GenerateDefaultDataDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName, pluginDataDirName)
+}
 
-	if conf.DataDir == "" {
-		conf.DataDir = fmt.Sprintf("C:\\%s\\data\\", env)
-	}
+// GenerateDefaultSetupPath generates the default setup path based on plugin group and plugin name.
+func (conf PluginDeployConf) GenerateDefaultSetupPath(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName)
+}
 
-	if conf.RunDir == "" {
-		conf.RunDir = fmt.Sprintf("C:\\%s\\run\\", env)
-	}
-
-	if conf.HostIDPath == "" {
-		if nodeConf.HostIDPath != "" {
-			conf.HostIDPath = nodeConf.HostIDPath
-		} else {
-			conf.HostIDPath = fmt.Sprintf("C:\\%s\\data\\host\\hostid", env)
-		}
-	}
-
-	if conf.AgentDataIPCPath == "" {
-		if nodeConf.AgentDataIPCPath != "" {
-			conf.AgentDataIPCPath = nodeConf.AgentDataIPCPath
-		} else {
-			conf.AgentDataIPCPath = "27000"
-		}
-	}
-	if conf.AgentPluginIPCPath == "" {
-		if nodeConf.AgentPluginIPCPath != "" {
-			conf.AgentPluginIPCPath = nodeConf.AgentPluginIPCPath
-		} else {
-			conf.AgentPluginIPCPath = "26000"
-		}
-	}
-
-	conf.DeployDir = winpath.Join(conf.BaseDeployDir, env)
-	conf.WorkDir = winpath.Join(conf.BaseWorkDir, env)
-	conf.SubConfigBaseDir = winpath.Join(conf.DeployDir, "plugins", "etc")
+// GenerateDefaultSubConfigDir generates the default sub-configuration directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GenerateDefaultSubConfigDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName, pluginConfigDirName, pluginName)
 }

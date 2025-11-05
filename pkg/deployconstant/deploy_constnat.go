@@ -14,10 +14,9 @@ package deployconstant
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -94,25 +93,8 @@ func SetDeployConf(conf DeployConf) error {
 }
 
 func populateDefaultValues(conf *DeployConf) {
-	if conf.OsType == criteria.OSWindows {
-		populateDefaultValuesWindows(conf)
-
-		return
-	}
-
-	populateDefaultValuesUnix(conf)
-}
-
-func populateDefaultValuesUnix(conf *DeployConf) {
 	env := system.GetEnv()
 
-	conf.DeployDir = filepath.Join(conf.BaseDeployDir, env)
-	conf.WorkDir = filepath.Join(conf.BaseWorkDir, env)
-}
-
-func populateDefaultValuesWindows(conf *DeployConf) {
-	env := system.GetEnv()
-
-	conf.DeployDir = winpath.Join(conf.BaseDeployDir, env)
-	conf.WorkDir = winpath.Join(conf.BaseWorkDir, env)
+	conf.DeployDir = tool.JoinPath(conf.OsType, conf.BaseDeployDir, env)
+	conf.WorkDir = tool.JoinPath(conf.OsType, conf.BaseWorkDir, env)
 }
