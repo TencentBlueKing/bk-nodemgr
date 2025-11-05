@@ -19,6 +19,7 @@ const (
 	CCPageSizeLimit = 500
 )
 
+// nolint: gochecknoglobals
 var ccHostFieldsInstance = struct {
 	fields []string
 	once   sync.Once
