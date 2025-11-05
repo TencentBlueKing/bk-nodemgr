@@ -58,8 +58,8 @@ const (
 	// FieldKeyStaticCPUNum the static cpu num field key.
 	FieldKeyStaticCPUNum = "data.static.cpu_num"
 
-	// FieldKeyStaticMEMCap the static mem cap field key.
-	FieldKeyStaticMEMCap = "data.static.mem_cap"
+	// FieldKeyStaticMemCap the static mem cap field key.
+	FieldKeyStaticMemCap = "data.static.mem_cap"
 
 	// Dynamic fields.
 

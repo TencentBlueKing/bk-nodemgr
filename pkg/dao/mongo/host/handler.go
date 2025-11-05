@@ -410,7 +410,7 @@ func convertHostFromTypes(host *types.Host) *Host {
 			CityID:        host.Static.CityID,
 			SyncedAgentID: host.Static.SyncedAgentID,
 			CPUNum:        host.Static.CPUNum,
-			MEMCap:        host.Static.MEMCap,
+			MemCap:        host.Static.MemCap,
 		}
 	}
 
@@ -479,7 +479,7 @@ func convertHostToTypes(host *Host) *types.Host {
 			Addressing:    types.Addressing(host.Static.Addressing),
 			SyncedAgentID: host.Static.SyncedAgentID,
 			CPUNum:        host.Static.CPUNum,
-			MEMCap:        host.Static.MEMCap,
+			MemCap:        host.Static.MemCap,
 		}
 	}
 

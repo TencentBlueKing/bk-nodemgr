@@ -43,7 +43,7 @@ type HostStatic struct {
 	CityID        string  `json:"city_id" bson:"city_id"`
 	SyncedAgentID string  `json:"synced_agent_id" bson:"synced_agent_id"`
 	CPUNum        float64 `json:"cpu_num" bson:"cpu_num"`
-	MEMCap        float64 `json:"mem_cap" bson:"mem_cap"`
+	MemCap        float64 `json:"mem_cap" bson:"mem_cap"`
 }
 
 // HostDynamic represents a host dynamic information.

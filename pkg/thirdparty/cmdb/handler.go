@@ -829,7 +829,7 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 			OuterIPV6:     hostInfo.BKHostOuterIPV6,
 			Mac:           hostInfo.BKMac,
 			CPUNum:        hostInfo.BKCpu,
-			MEMCap:        hostInfo.BKMem,
+			MemCap:        hostInfo.BKMem,
 			OSTypeCCID:    hostInfo.BKOSType,
 			OSType:        h.osTypeKeeper.getValue(hostInfo.BKOSType),
 			Arch:          h.cpuArchKeeper.getValue(hostInfo.BKCpuArchitecture),

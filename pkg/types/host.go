@@ -310,7 +310,7 @@ type HostStatic struct {
 	Addressing Addressing
 
 	CPUNum float64
-	MEMCap float64
+	MemCap float64
 
 	// synced types, do not use this for processing.
 	// just use it for comparing and checking.
