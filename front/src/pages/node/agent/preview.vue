@@ -21,7 +21,7 @@
         <div class="flex justify-between mt-[16px]">
           <div class="w-[50%] flex gap-[8px]">
             <SearchSelect
-              class="ml-[16px] flex-1"
+              class="flex-1"
               ref="searchSelect"
               :data="searchSelectData"
               v-model.trim="searchSelectValue"

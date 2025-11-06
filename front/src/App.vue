@@ -478,7 +478,7 @@ onMounted(async () => {
   }
 }
 </style>
-<style>
+<style lang="postcss">
 body {
   min-width: 1280px;
   overflow-y: auto;
@@ -486,12 +486,13 @@ body {
 .bk-navigation .navigation-container {
   max-width: none !important;
 }
-.vxe-table--empty-content {
-  height: 200px;
-  line-height: 200px;
-}
+
 .filterTable {
   min-height: 300px;
+  .vxe-table--empty-content {
+    height: 200px;
+    line-height: 200px;
+  }
 }
 .bk-vxe-table .vxe-table--filter-body {
   min-height: 80px;

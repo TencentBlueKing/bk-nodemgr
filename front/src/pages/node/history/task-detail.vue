@@ -525,6 +525,7 @@ const updataCurrentTaskInfo = async () => {
   const res = await NodeWorkflowService.NodeWorkflowList({
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
+      workflow_id: [route.params.taskId],
     },
   }).catch((err) => {
     console.log(err);
@@ -584,16 +585,14 @@ const getOperateList = async () => {
       reTryCount: item.instance_ids.length - 1,
     };
   });
-  let equal = false;
-  for (let index = 0; index < tableData.value.length; index++) {
-    if (tableData.value[index].state === mapList[index]?.state) {
-      equal = true;
-      break;
-    }
-  }
-  if (!equal) {
+  const isEqual =
+    tableData.value.length === mapList.length &&
+    tableData.value.every((item, index) => item.state === mapList[index]?.state);
+
+  if (!isEqual) {
     tableData.value = mapList;
   }
+
 };
 const logRef = ref<InstanceType<typeof Log>>();
 const curRow = ref(null);

@@ -1,122 +1,137 @@
 <template>
   <div class="text-[12px]">
-    <div class="mb-[14px] flex items-start" v-if="!is_direct">
+    <div class="mb-[14px] flex items-start">
       <div class="text-[#4D4F56] w-[72px] mr-[3px]">{{ $t('topoManager.workUnit.accessPoints.upstream') }} :</div>
-      <Popover
-        theme="light"
-        trigger="hover"
-        :is-show="true"
-      >
+      <template v-if="is_direct">
+        <Popover
+          theme="light"
+          trigger="hover"
+          placement="right"
+        >
+          <div>
+            <Tag theme="info">直连</Tag>
+          </div>
+          <template #content>
+            <Table :data="upstreamTableData" :min-width="600" :maxHeight="800">
+              <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+                <template #default>
+                  <Tag theme="info">直连</Tag>
+                </template>
+              </TableColumn>
+              <TableColumn field="cluster" title="cluster" :min-width="200">
+                <template #default>
+                  <span>{{ directEndpoints.cluster.join('/n') }}</span>
+                </template>
+              </TableColumn>
+              <TableColumn field="file" title="file" :min-width="200">
+                <template #default>
+                  <span>{{ directEndpoints.cluster.join('/n') }}</span>
+                </template>
+              </TableColumn>
+              <TableColumn field="data" title="data" :min-width="200">
+                <template #default>
+                  <span>{{ directEndpoints.cluster.join('/n') }}</span>
+                </template>
+              </TableColumn>
+            </Table>
+          </template>
+        </Popover>
+      </template>
+      <div v-else class="flex cursor-pointer">
         <div>
-          <div class="flex cursor-pointer text-[#3a84ff]">
-            <span>{{ clusterData.workarea_name }}</span>
-            <span
-              v-show="clusterData.workunit_name"
-              class="nodeman-icon nc-arrows-right mx-[5px] mt-[-3px] text-[24px]">
-            </span>
-            <span>{{ clusterData.workunit_name }}</span>
-            <span
-              v-show="clusterData.accesspoint_name"
-              class="nodeman-icon nc-arrows-right mx-[5px] mt-[-3px] text-[24px]">
-            </span>
-            <span>{{ clusterData.accesspoint_name }}</span>
-          </div>
-        </div>
-        <template #content>
-          <!-- <Table :data="upstreamTableData" :min-width="600">
-            <TableColumn field="cluster" title="cluster" :min-width="200">
-              <template #default>
-                <div class="flex items-center">
-                  <span>{{ clusterData.workarea_name }}</span>
-                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                  <span>{{ clusterData.workunit_name }}</span>
-                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                  <span>{{ clusterData.accesspoint_name }}</span>
-                </div>
-              </template>
-            </TableColumn>
-            <TableColumn field="file" title="file" :min-width="200">
-              <template #default>
-                <div class="flex items-center">
-                  <span>{{ fileData.workarea_name }}</span>
-                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                  <span>{{ fileData.workunit_name }}</span>
-                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                  <span>{{ fileData.accesspoint_name }}</span>
-                </div>
-              </template>
-            </TableColumn>
-            <TableColumn field="data" title="data" :min-width="200">
-              <template #default>
-                <div class="flex items-center">
-                  <span>{{ dataData.workarea_name }}</span>
-                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                  <span>{{ dataData.workunit_name }}</span>
-                  <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                  <span>{{ dataData.accesspoint_name }}</span>
-                </div>
-              </template>
-            </TableColumn>
-          </Table> -->
-          <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]  max-w-[800] overflow-auto">
+          <Popover
+            theme="light"
+            trigger="hover"
+            placement="right"
+          >
             <div class="flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">cluster :</div>
+              <div class="w-[45px] text-right mr-[8px]">Cluster :</div>
               <div class="flex items-center">
-                <span>{{ clusterData.workarea_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ clusterData.workunit_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ clusterData.accesspoint_name }}</span>
+                <span class="text-[#3a84ff]">{{ clusterData.workarea_name }}</span>
+                <span v-show="clusterData.workunit_name" class="mx-[3px]">/</span>
+                <span class="text-[#3a84ff]">{{ clusterData.workunit_name }}</span>
+                <span v-show="clusterData.accesspoint_name" class="mx-[3px]">/</span>
+                <span class="text-[#3a84ff]">{{ clusterData.accesspoint_name }}</span>
               </div>
             </div>
+            <template #content>
+              <Table :data="clusterData.accesspoint_name ? upstreamTableData : []" :min-width="600" :maxHeight="800">
+                <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+                  <template #default>
+                    {{ clusterData.accesspoint_name }}
+                  </template>
+                </TableColumn>
+                <TableColumn field="cluster" title="cluster" :min-width="200">
+                  <template #default>
+                    <span>{{ clusterData.cluster?.join('/n') }}</span>
+                  </template>
+                </TableColumn>
+              </Table>
+            </template>
+          </Popover>
+          <Popover
+            theme="light"
+            trigger="hover"
+            placement="right"
+          >
             <div class="mt-[12px] flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">file :</div>
+              <div class="w-[45px] text-right mr-[8px]">File :</div>
               <div class="flex items-center">
-                <span>{{ fileData.workarea_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ fileData.workunit_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ fileData.accesspoint_name }}</span>
+                <span class="text-[#3a84ff]">{{ fileData.workarea_name }}</span>
+                <span v-show="fileData.workunit_name" class="mx-[3px]">/</span>
+                <span class="text-[#3a84ff]">{{ fileData.workunit_name }}</span>
+                <span v-show="fileData.accesspoint_name" class="mx-[3px]">/</span>
+                <span class="text-[#3a84ff]">{{ fileData.accesspoint_name }}</span>
               </div>
             </div>
+            <template #content>
+              <Table :data="fileData.accesspoint_name ? upstreamTableData : []" :min-width="600" :maxHeight="800">
+                <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+                  <template #default>
+                    {{ fileData.accesspoint_name }}
+                  </template>
+                </TableColumn>
+                <TableColumn field="file" title="file" :min-width="200">
+                  <template #default>
+                    <span>{{ fileData.file?.join('/n') }}</span>
+                  </template>
+                </TableColumn>
+              </Table>
+            </template>
+          </Popover>
+          <Popover
+            theme="light"
+            trigger="hover"
+            placement="right"
+          >
             <div class="mt-[12px] flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">data :</div>
+              <div class="w-[45px] text-right mr-[8px]">Data :</div>
               <div class="flex items-center">
-                <span>{{ dataData.workarea_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ dataData.workunit_name }}</span>
-                <i class="nodeman-icon nc-arrows-right text-[#C4C6CC] mx-[5px] text-[24px]"></i>
-                <span>{{ dataData.accesspoint_name }}</span>
+                <span class="text-[#3a84ff]">{{ dataData.workarea_name }}</span>
+                <span v-show="dataData.workunit_name" class="mx-[3px]">/</span>
+                <span class="text-[#3a84ff]">{{ dataData.workunit_name }}</span>
+                <span v-show="dataData.accesspoint_name" class="mx-[3px]">/</span>
+                <span class="text-[#3a84ff]">{{ dataData.accesspoint_name }}</span>
               </div>
             </div>
-          </div>
-        </template>
-      </Popover>
-    </div>
-    <template v-else>
-      <div class="mb-[14px] flex">
-        <div class="text-[#4D4F56] w-[72px] mr-[3px]">
-          {{ $t('topoManager.workUnit.accessPoints.directConfig') }}
+            <template #content>
+              <Table :data="dataData.accesspoint_name ? upstreamTableData : []" :min-width="600" :maxHeight="800">
+                <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+                  <template #default>
+                    {{ dataData.accesspoint_name }}
+                  </template>
+                </TableColumn>
+                <TableColumn field="data" title="data" :min-width="200">
+                  <template #default>
+                    <span>{{ dataData.data?.join('/n') }}</span>
+                  </template>
+                </TableColumn>
+              </Table>
+            </template>
+          </Popover>
         </div>
-        <div v-if="directEndpoints">
-          <div class="min-w-[295px] h-[112px] bg-[#F5F7FA] p-[14px] text-[#4D4F56]">
-            <div class="flex items-center h-[20px]">
-              <div class="w-[45px] text-right mr-[8px]">cluster :</div>
-              <span>{{ directEndpoints.cluster.join(' ;') }}</span>
-            </div>
-            <div class="flex items-center h-[20px] mt-[12px]">
-              <div class="w-[45px] text-right mr-[8px]">file :</div>
-              <span>{{ directEndpoints.file.join(' ;') }}</span>
-            </div>
-            <div class="flex items-center h-[20px] mt-[12px]">
-              <div class="w-[45px] text-right mr-[8px]">data :</div>
-              <span>{{ directEndpoints.data.join(' ;') }}</span>
-            </div>
-          </div>
-        </div>
-        <div v-else>--</div>
       </div>
-    </template>
+    </div>
     <div class="flex items-center">
       <div class="text-[#4D4F56] w-[72px] mr-[3px] shrink-0">
         {{ $t('topoManager.workUnit.accessPoints.downstream') }} :
@@ -125,31 +140,31 @@
         <Popover
           theme="light"
           trigger="hover"
-          :is-show="true"
+          placement="right"
         >
           <div>
             {{ downstreamData?.map(item => item.accesspoint_name).join(', ') }}
           </div>
           <template #content>
             <Table :data="downstreamData" :min-width="600" :maxHeight="800">
-              <TableColumn field="accesspoint_name" title="接入点名称" :min-width="100">
+              <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
                 <template #default="{ row }">
                   {{ row.accesspoint_name }}
                 </template>
               </TableColumn>
               <TableColumn field="cluster" title="cluster" :min-width="200">
                 <template #default="{ row }">
-                  {{ row.endpoints.cluster.join('') }}
+                  {{ row.endpoints.cluster.join('/n') }}
                 </template>
               </TableColumn>
               <TableColumn field="file" title="file" :min-width="200">
                 <template #default="{ row }">
-                  {{ row.endpoints.file.join('') }}
+                  {{ row.endpoints.file.join('/n') }}
                 </template>
               </TableColumn>
               <TableColumn field="data" title="data" :min-width="200">
                 <template #default="{ row }">
-                  {{ row.endpoints.data.join('') }}
+                  {{ row.endpoints.data.join('/n') }}
                 </template>
               </TableColumn>
             </Table>
@@ -162,7 +177,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Popover } from 'bkui-vue';
+import { Button, Tag, Popover } from 'bkui-vue';
 import { isEqual } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, ref } from 'vue';
@@ -191,10 +206,7 @@ const props = defineProps({
 });
 const workareaStore = useWorkareaStore();
 const isDownStreamDataExist = computed(() => props.downstreamData.length !== 0);
-const isExpand = ref(props.is_direct);
-const toggleExpand = () => {
-  isExpand.value = !isExpand.value;
-};
+
 // 上游接入点的cluster/file/data是否一致
 // 如一致简化展示
 // 如不一致单独展开上游接入点,不再展示简化信息(不影响isExpand)
@@ -204,17 +216,26 @@ const isShowUpstreamDefaultInfo = computed(() => {
   return equal;
 });
 
-const clusterData = computed(() => ({
-  workarea_name: getWorkareaName(props.upstreamData.cluster?.bk_networkarea_id),
-  workunit_name: getWorkUnitName(
-    props.upstreamData.cluster?.bk_networkarea_id,
-    props.upstreamData.cluster?.bk_networkunit_id,
-  ),
-  accesspoint_name: getAccessPointName(
-    props.upstreamData.cluster?.bk_networkunit_id,
-    props.upstreamData.cluster?.accesspoint_id,
-  ),
-}));
+const clusterData = computed(() => {
+  const endpoints = workareaStore.allAccessPointList.get(props.upstreamData.cluster?.bk_networkunit_id)
+    ?.find(item => item.accesspoint_id === props.upstreamData.cluster?.accesspoint_id)
+    ?.endpoints;
+  const { cluster = [''], file = [''], data = [''] } = endpoints as Endpoints;
+  return {
+    workarea_name: getWorkareaName(props.upstreamData.cluster?.bk_networkarea_id),
+    workunit_name: getWorkUnitName(
+      props.upstreamData.cluster?.bk_networkarea_id,
+      props.upstreamData.cluster?.bk_networkunit_id,
+    ),
+    accesspoint_name: getAccessPointName(
+      props.upstreamData.cluster?.bk_networkunit_id,
+      props.upstreamData.cluster?.accesspoint_id,
+    ),
+    cluster,
+    file,
+    data,
+  };
+});
 
 const fileData = computed(() => {
   if (isShowUpstreamDefaultInfo.value) return clusterData.value;
@@ -228,6 +249,9 @@ const fileData = computed(() => {
       props.upstreamData.file.bk_networkunit_id,
       props.upstreamData.file.accesspoint_id,
     ),
+    file: workareaStore.allAccessPointList.get(props.upstreamData.file?.bk_networkunit_id)
+      ?.find(item => item.accesspoint_id === props.upstreamData.file?.accesspoint_id)
+      ?.endpoints.file,
   };
 });
 
@@ -243,6 +267,9 @@ const dataData = computed(() => {
       props.upstreamData.data.bk_networkunit_id,
       props.upstreamData.data.accesspoint_id,
     ),
+    data: workareaStore.allAccessPointList.get(props.upstreamData.data?.bk_networkunit_id)
+      ?.find(item => item.accesspoint_id === props.upstreamData.data?.accesspoint_id)
+      ?.endpoints.data,
   };
 });
 

@@ -61,7 +61,8 @@
           required>
           <SelectGroup
             v-model:link="generalLink"
-            :disabled="isExpand">
+            :disabled="isExpand"
+            :workUnitId="workUnitId">
           </SelectGroup>
         </Form.FormItem>
         <template v-if="isExpand">
@@ -69,14 +70,14 @@
             label="cluster"
             property="cluster"
             label-width="130">
-            <SelectGroup v-model:link="form.links.cluster">
+            <SelectGroup v-model:link="form.links.cluster" :workUnitId="workUnitId">
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
             label="file"
             property="file"
             label-width="130">
-            <SelectGroup v-model:link="form.links.file">
+            <SelectGroup v-model:link="form.links.file" :workUnitId="workUnitId">
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
@@ -85,7 +86,8 @@
             label-width="130">
             <SelectGroup
               v-model:link="form.links.data"
-              :work-area-list="workAreaList">
+              :work-area-list="workAreaList"
+              :workUnitId="workUnitId">
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
@@ -302,7 +304,7 @@ const handleConfirm = async () => {
       })),
       direct_endpoints: form.direct_endpoints,
       links,
-      is_direct: type.value === 'direct',
+      is_direct: props.isCreate ? type.value === 'direct' : isDirect.value,
     };
 
     if (!props.isCreate) (params as TopoNetworkUnitUpdateReq).bk_networkunit_id = props.workUnitId;

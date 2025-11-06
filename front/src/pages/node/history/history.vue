@@ -135,17 +135,17 @@
               <span class="pr-[4px]">{{ row.statistics.total_count || 0 }}</span
               >/
               <a
-                class="text-[#2dcb56] pr-[4px]"
+                class="text-[#2dcb56] pr-[4px] cursor-pointer"
                 @click.stop="detailHandle(row, 'success')"
               >{{ row.statistics.success_count || 0 }}</a
               >/
               <a
-                class="text-[#ea3636] pr-[4px]"
+                class="text-[#ea3636] pr-[4px] cursor-pointer"
                 @click.stop="detailHandle(row, 'failed')"
               >{{ row.statistics.failed_count || 0 }}</a
               >/
               <a
-                class="text-[#ff9c01] pr-[4px]"
+                class="text-[#ff9c01] pr-[4px] cursor-pointer"
                 @click.stop="detailHandle(row, 'ignored')"
               >{{ row.statistics.ignored_count || 0 }}</a
               >

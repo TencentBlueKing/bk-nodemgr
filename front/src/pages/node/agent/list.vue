@@ -122,6 +122,11 @@
           :min-width="320"
         ></TableColumn>
         <TableColumn
+          field="bk_host_id"
+          title="Host ID"
+          :min-width="100"
+        ></TableColumn>
+        <TableColumn
           field="bk_networkarea_id"
           :title="t('platform.nodeMan.bk_cloud_name')"
           :filter="filterOptionSource.bk_networkarea_id"
