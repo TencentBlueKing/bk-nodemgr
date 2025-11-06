@@ -11,6 +11,8 @@
 package templaterender
 
 import (
+	"encoding/json"
+	"fmt"
 	"text/template"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -19,6 +21,8 @@ import (
 // registerConversionFunctions register conversion related functions.
 func registerConversionFunctions(fnMap template.FuncMap) {
 	addFunction(fnMap, customInt, toInt)
+	addFunction(fnMap, customToString, toString)
+	addFunction(fnMap, customToJSON, toJSON)
 }
 
 func toInt(value any) (int, error) {
@@ -28,4 +32,24 @@ func toInt(value any) (int, error) {
 	}
 
 	return int(res), nil
+}
+
+func toString(v interface{}) string {
+	switch v := v.(type) {
+	case error:
+		return v.Error()
+	case fmt.Stringer:
+		return v.String()
+	default:
+		return conv.ToStringDefault(v, "")
+	}
+}
+
+func toJSON(v interface{}) (string, error) {
+	output, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	return string(output), nil
 }

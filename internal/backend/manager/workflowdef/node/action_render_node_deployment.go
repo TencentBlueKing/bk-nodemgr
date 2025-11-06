@@ -524,7 +524,6 @@ func forbiddenKeys() []string {
 
 // renderCustomSetting load custom setting to the config presetting.
 func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeActionStandarder, conf *types.NodeConf) error {
-
 	configPolicy, matched, err := act.storageConfigPolicy.MatchConfigPolicyNode(std.Context(),
 		std.DeployInfo().Host.Static.BizID,
 		std.DeployInfo().Host.Static.NetworkAreaID,

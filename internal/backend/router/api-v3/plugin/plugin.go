@@ -43,4 +43,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/install", restserver.Handler(h.Install))
 	h.rg.POST("/list", restserver.Handler(h.List))
+	h.rg.POST("/apply_subconfig", restserver.Handler(h.ApplySubConfig))
 }

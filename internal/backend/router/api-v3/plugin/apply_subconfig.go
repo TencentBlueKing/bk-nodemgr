@@ -22,41 +22,40 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// Install defines the handler to install plugin.
-func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.PluginInstallReq)
+// ApplySubConfig apply plugin sub config.
+func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginApplySubConfigReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to decode request body.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin sub config, failed to decode request body.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginDeployments, hostIDs, err := h.generateInstallPluginDeployments(rCtx, req)
+	pluginDeployments, hostIDs, err := h.generateApplyPluginSubConfigDeployments(rCtx, req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-
-	workflowID, err := h.manager.LaunchInstallPlugin(rCtx, manager.InstallPluginParam{
-		Type:              types.PluginWorkflowTypeInstall,
+	workflowID, err := h.manager.LaunchApplyPluginSubConfig(rCtx, manager.ApplyPluginSubConfigParam{
+		Type:              types.PluginWorkflowTypeApplyPluginSubConfig,
 		HostIDs:           hostIDs,
 		Operator:          rCtx.BKUsername(),
 		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin.")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to apply plugin sub config.")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	respData := &protoBackend.PluginInstallResp_Data{
+	respData := &protoBackend.PluginApplySubConfigResp_Data{
 		WorkflowId: workflowID,
 	}
 
-	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched install plugin workflow")
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched apply plugin subconfig workflow")
 
 	return respData, nil
 }
 
-func (h *handler) generateInstallPluginDeployments(nCtx contextx.IContext, req *protoBackend.PluginInstallReq) (
+func (h *handler) generateApplyPluginSubConfigDeployments(nCtx contextx.IContext, req *protoBackend.PluginApplySubConfigReq) (
 	[]*types.PluginDeployment, []int64, error) {
 
 	gp := gopool.NewPool()

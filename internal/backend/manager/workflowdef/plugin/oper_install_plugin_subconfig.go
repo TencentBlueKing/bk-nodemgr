@@ -19,60 +19,56 @@ import (
 )
 
 const (
-	// OperDefNameInstallPlugin the name of the operation definition.
-	OperDefNameInstallPlugin = "install_plugin"
+	// OperDefNameApplyPluginSubConfig the name of the operation definition.
+	OperDefNameApplyPluginSubConfig = "apply_plugin_subconfig"
 )
 
-// NewOperInstallPlugin new an operation.
-func NewOperInstallPlugin(param OperParamInstallPlugin) operation.Definition {
-	return &operInstallPlugin{param: param}
+// NewOperApplyPluginSubConfig new an operation.
+func NewOperApplyPluginSubConfig(param OperParamApplyPluginSubConfig) operation.Definition {
+	return &operApplyPluginSubConfig{param: param}
 }
 
-type operInstallPlugin struct {
-	param OperParamInstallPlugin
+type operApplyPluginSubConfig struct {
+	param OperParamApplyPluginSubConfig
 }
 
-// OperParamInstallPlugin defines the parameters for operInstallPlugin.
-type OperParamInstallPlugin struct {
+// OperParamApplyPluginSubConfig defines the parameters for operApplyPluginSubConfig.
+type OperParamApplyPluginSubConfig struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
 // Name returns the name.
-func (oper *operInstallPlugin) Name() string {
-	return OperDefNameInstallPlugin
+func (oper *operApplyPluginSubConfig) Name() string {
+	return OperDefNameApplyPluginSubConfig
 }
 
 // ActionDefNames returns the action def names.
-func (oper *operInstallPlugin) ActionDefNames() []string {
+func (oper *operApplyPluginSubConfig) ActionDefNames() []string {
 	return []string{
-		ActionNameUpsertProcess,
+		ActionNameCheckPluginProcessAlive,
 		ActionNameRenderPluginDeployment,
 		ActionNameEnsureAndUpdatePluginConfigDetails,
 		ActionNameRenderPluginConfig,
-		ActionNameTransferPluginPkgToNode,
-		ActionNameInstallPlugin,
-		ActionNameWaitInstallerComplete,
-		ActionNameTrusteeshipPlugin,
+		ActionNamePushPluginConfig,
+		ActionNameRestartPluginProcess,
 		ActionNameUpdateProcess,
 	}
 }
 
 // DefaultParameters returns the default parameters.
-func (oper *operInstallPlugin) DefaultParameters() operation.Param {
+func (oper *operApplyPluginSubConfig) DefaultParameters() operation.Param {
 	return operation.Param{
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameRenderPluginDeployment:  true,
-			ActionNameTransferPluginPkgToNode: true,
-			ActionNameInstallPlugin:           true,
-			ActionNameWaitInstallerComplete:   false,
-			ActionNameTrusteeshipPlugin:       true,
+			ActionNameRenderPluginDeployment:             true,
+			ActionNamePushPluginConfig:                   true,
+			ActionNameRestartPluginProcess:               true,
 		},
 	}
 }
 
 // ExtraExecutionName returns the extra execution definition name.
-func (oper *operInstallPlugin) ExtraExecutionName() string {
+func (oper *operApplyPluginSubConfig) ExtraExecutionName() string {
 	return ""
 }

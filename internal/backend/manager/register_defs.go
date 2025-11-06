@@ -165,11 +165,16 @@ func (mgr *Manager) registerDefPlugin() error {
 	if err := mgr.workflowMgr.RegisterActions(
 		plugin.NewActionTransferPluginPkgToNode(pluginCap),
 		plugin.NewActionRenderPluginDeployment(pluginCap),
-		plugin.NewActionRenderPluginMainConfig(pluginCap),
+		plugin.NewActionRenderPluginConfig(pluginCap),
 		plugin.NewActionWaitInstallerComplete(pluginCap),
 		plugin.NewActionTrusteeshipPlugin(pluginCap),
 		plugin.NewActionInstallPlugin(pluginCap),
 		plugin.NewActionUpsertProcess(pluginCap),
+		plugin.NewActionPushPluginConfig(pluginCap),
+		plugin.NewActionRestartPluginProcess(pluginCap),
+		plugin.NewActionCheckPluginProcessAlive(pluginCap),
+		plugin.NewActionEnsureAndUpdatePluginConfigDetails(pluginCap),
+		plugin.NewActionUpdateProcess(pluginCap),
 	); err != nil {
 		return err
 	}

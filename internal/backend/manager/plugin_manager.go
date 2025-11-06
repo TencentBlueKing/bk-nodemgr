@@ -30,6 +30,9 @@ import (
 type IPluginManager interface {
 	// LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
 	LaunchInstallPlugin(ctx contextx.IContext, param InstallPluginParam) (string, error)
+
+	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
+	LaunchApplyPluginSubConfig(ctx contextx.IContext, param ApplyPluginSubConfigParam) (string, error)
 }
 
 // InstallPluginParam define the param of LaunchInstallPlugin.
@@ -122,4 +125,85 @@ func (mgr *Manager) getPluginInstallOperationDef(deploy *types.PluginDeployment,
 			Operator: operator,
 		},
 	})
+}
+
+// ApplyPluginSubConfigParam define the param of LaunchApplyPluginSubConfig.
+type ApplyPluginSubConfigParam struct {
+	Type              types.PluginWorkflowType
+	HostIDs           []int64
+	Operator          string
+	PluginDeployments []*types.PluginDeployment
+}
+
+// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
+func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param ApplyPluginSubConfigParam) (string, error) {
+	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
+	if err != nil {
+		return "", err
+	}
+
+	workflowID := identifier.GenWorkflowID()
+	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		WorkflowID:  workflowID,
+		TriggerID:   triggerCtl.GetTriggerID(),
+		Type:        param.Type,
+		HostIDs:     param.HostIDs,
+		Operator:    param.Operator,
+		OperateTime: time.Now(),
+		Status:      types.PluginWorkflowStatusRunning,
+	}); err != nil {
+		return "", err
+	}
+
+	gp := gopool.NewPool()
+	for _, pluginDeploy := range param.PluginDeployments {
+		deploy := pluginDeploy
+		gp.Go(func() error {
+			if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
+				logger.G.Biz(nCtx).Error("failed to create plugin deployment. trigger-id(%s), plugin-token(%s), err(%v)",
+					triggerCtl.GetTriggerID(), deploy.Token, err)
+
+				return err
+			}
+
+			operationDef := plugin.NewOperApplyPluginSubConfig(plugin.OperParamApplyPluginSubConfig{
+				PluginActionStandardParam: pluginUtils.PluginActionStandardParam{
+					Token:    deploy.Token,
+					TenantID: deploy.Info.Process.TenantID,
+					Operator: param.Operator,
+				},
+			})
+
+			operationParam := operationDef.DefaultParameters()
+
+			operCtl, err := triggerCtl.CreateOperation(nCtx, operationDef, operationParam)
+			if err != nil {
+				logger.G.Biz(nCtx).WithErr(err).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("operation-id", operCtl.GetOperationID()).
+					With("plugin-token", deploy.Token).
+					Error("failed to launch install plugin task.")
+
+				return err
+			}
+
+			logger.G.Biz(nCtx).
+				With("trigger-id", triggerCtl.GetTriggerID()).
+				With("operation-id", operCtl.GetOperationID()).
+				With("plugin-token", deploy.Token).
+				Error("launched install plugin task.")
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return "", fmt.Errorf("failed to launch apply plugin subconfig task. err: %w", err)
+	}
+
+	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+		return "", err
+	}
+
+	return workflowID, nil
 }

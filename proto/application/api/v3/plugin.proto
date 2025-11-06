@@ -5,20 +5,49 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/applicat
 import "common.proto";
 
 import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
 
 // PluginInstallReq describes the plugin install request.
 message PluginInstallReq {
-  message Process {
+  message Plugin {
     optional int64 bk_host_id = 1;
     string plugin_name = 2;
     string version = 3;
+    repeated string config_name = 4;
+    optional google.protobuf.Struct custom_config_context = 5;
   }
 
-  repeated Process process = 1;
+  repeated Plugin plugin = 1;
 }
 
 // PluginInstallResp describes the plugin install response.
 message PluginInstallResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
+// PluginApplySubConfigReq describes the plugin apply sub-configuration
+// request.
+message PluginApplySubConfigReq {
+  message Plugin {
+    optional int64 bk_host_id = 1;
+    string plugin_name = 2;
+    string version = 3;
+    repeated string config_name = 4;
+    optional google.protobuf.Struct custom_config_context = 5;
+  }
+
+  repeated Plugin plugin = 1;
+}
+
+// PluginApplySubConfigResp describes the plugin apply sub-configuration
+// response.
+message PluginApplySubConfigResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -34,14 +63,14 @@ message PluginListReq {
   bool only_count = 2;
 
   message ExactConditions {
-    repeated string plugin_name = 1;
-    repeated string plugin_group = 2;
+    repeated string name = 1;
+    repeated string group = 2;
   }
   ExactConditions exact_include_conditions = 3;
 
   message FuzzyConditions {
-    repeated string plugin_name = 1;
-    repeated string plugin_pkg_name = 2;
+    repeated string name = 1;
+    repeated string pkg_name = 2;
   }
   FuzzyConditions fuzzy_include_conditions = 4;
 }
@@ -73,6 +102,16 @@ service Package {
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/install"
+      body : "*"
+    };
+  }
+
+  // ApplyPluginSubConfig apply sub-configuration for a plugin on specified
+  // hosts.
+  rpc ApplyPluginSubConfig(PluginApplySubConfigReq)
+      returns (PluginApplySubConfigResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/apply_subconfig"
       body : "*"
     };
   }

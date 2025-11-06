@@ -43,6 +43,9 @@ const (
 
 	// PluginWorkflowTypeRestart is the operation type for restart plugin.
 	PluginWorkflowTypeRestart PluginWorkflowType = "restart_plugin"
+
+	// PluginWorkflowTypeApplyPluginSubConfig is the operation type for apply plugin sub config.
+	PluginWorkflowTypeApplyPluginSubConfig = "apply_plugin_subconfig"
 )
 
 // Validate validates the plugin workflow type.

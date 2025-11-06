@@ -2061,6 +2061,40 @@ func (c *cli) listPlugins(ctx contextx.IContext, req *protoBackend.PluginListReq
 	return resp, nil
 }
 
+func (c *cli) applyPluginSubConfig(ctx contextx.IContext, req *protoBackend.PluginApplySubConfigReq) (
+	*protoBackend.PluginApplySubConfigResp, error) {
+
+	resp := new(protoBackend.PluginApplySubConfigResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/plugin/apply_subconfig").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("apply plugin sub config failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("apply plugin sub config failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listProcesses(ctx contextx.IContext, req *protoBackend.ProcessListReq) (
 	*protoBackend.ProcessListResp, error) {
 

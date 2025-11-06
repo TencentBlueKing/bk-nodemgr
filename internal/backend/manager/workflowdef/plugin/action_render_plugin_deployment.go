@@ -35,7 +35,7 @@ const (
 
 // NewActionRenderPluginDeployment ...
 func NewActionRenderPluginDeployment(capability *Capability) action.Definition {
-	return &RenderPluginDeployment{
+	return &actionRenderPluginDeployment{
 		daoHost:             capability.StorageTopo,
 		daoPluginPkg:        capability.StorageRelease,
 		daoPlugin:           capability.StoragePlugin,
@@ -48,8 +48,8 @@ type ActParamRenderPluginDeployment struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
-// RenderPluginDeployment ...
-type RenderPluginDeployment struct {
+// actionRenderPluginDeployment ...
+type actionRenderPluginDeployment struct {
 	daoHost             topoStg.IStorageHost
 	daoPluginPkg        releaseStg.IPlugin
 	daoPlugin           pluginStg.IDaoPlugin
@@ -57,37 +57,37 @@ type RenderPluginDeployment struct {
 }
 
 // Name returns the name of the action.
-func (act *RenderPluginDeployment) Name() string {
+func (act *actionRenderPluginDeployment) Name() string {
 	return ActionNameRenderPluginDeployment
 }
 
 // Version returns the version of the action.
-func (act *RenderPluginDeployment) Version() string {
+func (act *actionRenderPluginDeployment) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *RenderPluginDeployment) Description() string {
+func (act *actionRenderPluginDeployment) Description() string {
 	return "render plugin deployment"
 }
 
 // Timeout returns the timeout of the action.
-func (act *RenderPluginDeployment) Timeout() time.Duration {
+func (act *actionRenderPluginDeployment) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *RenderPluginDeployment) Tags() []action.Tag {
+func (act *actionRenderPluginDeployment) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *RenderPluginDeployment) MaxRetryCount() uint {
+func (act *actionRenderPluginDeployment) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *RenderPluginDeployment) DelayFn() func() {
+func (act *actionRenderPluginDeployment) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
@@ -95,7 +95,7 @@ func (act *RenderPluginDeployment) DelayFn() func() {
 
 // Do this func define what the action will do.
 // nolint: funlen,gocognit
-func (act *RenderPluginDeployment) Do(ctx *action.InstanceContext) error {
+func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	param := new(ActParamRenderPluginDeployment)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {

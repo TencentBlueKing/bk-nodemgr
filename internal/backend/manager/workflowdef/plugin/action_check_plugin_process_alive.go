@@ -1,0 +1,138 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package plugin
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+)
+
+const (
+	// ActionNameCheckPluginProcessAlive the name of action check plugin process alive.
+	ActionNameCheckPluginProcessAlive = "check_plugin_process_alive"
+)
+
+// NewActionCheckPluginProcessAlive new an action to check plugin process alive.
+func NewActionCheckPluginProcessAlive(capability *Capability) action.Definition {
+	return &actionCheckPluginProcessAlive{
+		daoPluginDeployment: capability.StoragePlugin,
+		daoProcess:          capability.StoragePlugin,
+	}
+}
+
+// ActParamCheckPluginProcessAlive defines the parameters for actionCheckPluginProcessAlive.
+type ActParamCheckPluginProcessAlive struct {
+	pluginUtils.PluginActionStandardParam `json:",inline"`
+}
+
+type actionCheckPluginProcessAlive struct {
+	daoPluginDeployment pluginStg.IDaoPluginDeployment
+	daoProcess          pluginStg.IDaoProcess
+}
+
+// Name returns the name of the action.
+func (act *actionCheckPluginProcessAlive) Name() string {
+	return ActionNameCheckPluginProcessAlive
+}
+
+// Version returns the version of the action.
+func (act *actionCheckPluginProcessAlive) Version() string {
+	return "1.0.0" // nolint: goconst
+}
+
+// Description returns the description of the action.
+func (act *actionCheckPluginProcessAlive) Description() string {
+	return "check plugin process alive"
+}
+
+// Timeout returns the timeout of the action.
+func (act *actionCheckPluginProcessAlive) Timeout() time.Duration {
+	return 1 * time.Minute
+}
+
+// Tags returns the tags of the action.
+func (act *actionCheckPluginProcessAlive) Tags() []action.Tag {
+	return []action.Tag{}
+}
+
+// MaxRetryCount returns the max retry count of the action.
+func (act *actionCheckPluginProcessAlive) MaxRetryCount() uint {
+	return 3 // nolint: mnd
+}
+
+// DelayFn this func define when this action fails, how long to wait before retrying.
+func (act *actionCheckPluginProcessAlive) DelayFn() func() {
+	return func() {
+		time.Sleep(1 * time.Second)
+	}
+}
+
+// Do this func define what the action will do.
+func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error {
+	param := new(ActParamCheckPluginProcessAlive)
+	err := conv.MapToStruct(ctx.Data.Content, param)
+	if err != nil {
+		return err
+	}
+
+	// initialize standard data.
+	std := pluginUtils.NewPluginActionStandarder(act.daoPluginDeployment)
+	if err = std.Initialize(ctx, param.PluginActionStandardParam); err != nil {
+		return err
+	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
+
+	process, err := act.daoProcess.GetProcess(std.Context(), std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName)
+	if err != nil {
+		return err
+	}
+
+	if process.Info.Status != types.ProcessStatusRunning {
+		std.InstanceData().LogE(fmt.Sprintf("plugin(%s) of host-id(%d) is not running",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID))
+
+		return fmt.Errorf("plugin(%s) of host-id(%d) is not running", std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID)
+	}
+
+	if process.Info.Version != std.DeployInfo().InstallOptions.Version {
+		std.InstanceData().LogE(fmt.Sprintf("plugin(%s) of host-id(%d) version mismatch, expect(%s), actual(%s)",
+			std.DeployInfo().Process.PluginName,
+			std.DeployInfo().Process.HostID,
+			std.DeployInfo().InstallOptions.Version,
+			process.Info.Version,
+		))
+
+		return fmt.Errorf("plugin(%s) of host-id(%d) version mismatch, expect(%s), actual(%s)",
+			std.DeployInfo().Process.PluginName,
+			std.DeployInfo().Process.HostID,
+			std.DeployInfo().InstallOptions.Version,
+			process.Info.Version,
+		)
+	}
+
+	std.InstanceData().LogI(fmt.Sprintf("plugin(%s) of host-id(%d) is running normally",
+		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID))
+
+	std.DeployInfo().Process = *process
+
+	return nil
+}

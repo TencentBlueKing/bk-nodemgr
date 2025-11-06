@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/plugin/apply_subconfig": {
+      "post": {
+        "summary": "ApplyPluginSubConfig apply sub-configuration for a plugin on specified\nhosts.",
+        "operationId": "Package_ApplyPluginSubConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginApplySubConfigResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginApplySubConfigReq describes the plugin apply sub-configuration\nrequest.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginApplySubConfigReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/plugin/install": {
       "post": {
         "summary": "InstallPlugin installs a plugin on specified hosts.",
@@ -140,6 +174,14 @@
       },
       "additionalProperties": {}
     },
+    "protobufNullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
     "rpcStatus": {
       "type": "object",
       "properties": {
@@ -209,6 +251,73 @@
       },
       "description": "Plugin describes a plugin."
     },
+    "v3PluginApplySubConfigReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginApplySubConfigReqPlugin"
+          }
+        }
+      },
+      "description": "PluginApplySubConfigReq describes the plugin apply sub-configuration\nrequest."
+    },
+    "v3PluginApplySubConfigReqPlugin": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "config_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom_config_context": {
+          "type": "object"
+        }
+      }
+    },
+    "v3PluginApplySubConfigResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginApplySubConfigRespData"
+        }
+      },
+      "description": "PluginApplySubConfigResp describes the plugin apply sub-configuration\nresponse."
+    },
+    "v3PluginApplySubConfigRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
+    },
     "v3PluginInstallReq": {
       "type": "object",
       "properties": {
@@ -234,6 +343,15 @@
         },
         "version": {
           "type": "string"
+        },
+        "config_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom_config_context": {
+          "type": "object"
         }
       }
     },

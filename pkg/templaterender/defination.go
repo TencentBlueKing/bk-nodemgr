@@ -15,7 +15,9 @@ const (
 	customDefault = "default"
 
 	// conversion function names.
-	customInt = "int"
+	customInt      = "int"
+	customToString = "toString"
+	customToJSON   = "toJson"
 
 	// list function names.
 	customList = "list"
@@ -28,11 +30,11 @@ const (
 	customKindIs = "kindIs"
 
 	// string function names.
-	customUpper    = "upper"
-	customLower    = "lower"
-	customJoin     = "join"
-	customReplace  = "replace"
-	customIndent   = "indent"
-	customNindent  = "nindent"
-	customToString = "toString"
+	customUpper   = "upper"
+	customLower   = "lower"
+	customJoin    = "join"
+	customReplace = "replace"
+	customIndent  = "indent"
+	customNindent = "nindent"
+	customQuote   = "quote"
 )

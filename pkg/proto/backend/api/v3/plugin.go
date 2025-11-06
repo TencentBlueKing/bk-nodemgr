@@ -14,6 +14,7 @@ import (
 	"errors"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // Validate check body.
@@ -208,4 +209,96 @@ func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
 	}
 
 	return plugins, total
+}
+
+// Validate check body.
+func (x *PluginApplySubConfigReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *PluginApplySubConfigReq_Plugin) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id can not be zero")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginApplySubConfigReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// AutoConvert auto convert.
+func (x *PluginApplySubConfigReq_Plugin) AutoConvert() {
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.PluginApplySubConfigParam) error {
+	plugin := make([]*PluginApplySubConfigReq_Plugin, len(installParam))
+	for idx, param := range installParam {
+		item := &PluginApplySubConfigReq_Plugin{}
+		item.BkHostId = &param.HostID
+		item.PluginName = param.PluginName
+		item.Version = param.Version
+		item.ConfigName = param.ConfigName
+		customContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return err
+		}
+		item.CustomConfigContext = customContext
+
+		plugin[idx] = item
+	}
+
+	x.Plugin = plugin
+
+	return nil
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginApplySubConfigParam {
+	plugin := x.GetPlugin()
+	installParam := make([]*types.PluginApplySubConfigParam, len(plugin))
+	for idx, proc := range plugin {
+		item := &types.PluginApplySubConfigParam{
+			HostID:              proc.GetBkHostId(),
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+			ConfigName:          proc.GetConfigName(),
+		}
+
+		installParam[idx] = item
+	}
+
+	return installParam
 }

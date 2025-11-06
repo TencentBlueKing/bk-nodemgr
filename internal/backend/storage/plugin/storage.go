@@ -138,7 +138,7 @@ func (s *Storage) UpdatePluginDeploymentInfo(nCtx contextx.IContext, token strin
 	return err
 }
 
-// GetPluginDeploymentMainConfig
+// GetPluginDeploymentPluginConfConfigFilesDetail
 
 // GetPluginWorkflow get plugin workflow.
 func (s *Storage) GetPluginWorkflow(nCtx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
@@ -186,26 +186,41 @@ func (s *Storage) UpdatePluginWorkflowStatus(nCtx contextx.IContext, workflowID 
 	return err
 }
 
-// GetPluginDeploymentMainConfig get plugin deployment main config.
-func (s *Storage) GetPluginDeploymentMainConfig(ctx contextx.IContext, token string) (mainConfig []byte, err error) {
+// GetPluginDeploymentPluginConfConfigFilesDetail get plugin deployment plugin conf config files detail.
+func (s *Storage) GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string) (
+	config []*types.PluginConfigDetail, err error) {
+
 	// record metric.
-	metric := s.metric().Start("get_plugin_deployment_main_config")
+	metric := s.metric().Start("get_plugin_deployment_plugin_conf_config_files_detail")
 	defer metric.End(err)
 
-	mainConfig, err = s.getPluginDeploymentMainConfig(ctx, token)
+	config, err = s.getPluginDeploymentPluginConfConfigFilesDetail(ctx, token)
 
-	return mainConfig, err
+	return config, err
 }
 
-// UpdatePluginDeploymentMainConfig set plugin deployment main config.
-func (s *Storage) UpdatePluginDeploymentMainConfig(ctx contextx.IContext, token string, mainConfig []byte) (err error) {
+// UpdatePluginDeploymentPluginConfConfigFilesDetail set plugin deployment plugin conf config files detail.
+func (s *Storage) UpdatePluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string, configs ...*types.PluginConfigDetail) (
+	err error) {
+
 	// record metric.
-	metric := s.metric().Start("update_plugin_deployment_main_config")
+	metric := s.metric().Start("update_plugin_deployment_plugin_conf_config_files_detail")
 	defer metric.End(err)
 
-	err = s.updatePluginDeploymentMainConfig(ctx, token, mainConfig)
+	err = s.updatePluginDeploymentPluginConfConfigFilesDetail(ctx, token, configs...)
 
 	return err
+}
+
+// GetPluginDeploymentPluginConfCustomConfigContext get plugin deployment plugin conf custom config context.
+func (s *Storage) GetPluginDeploymentPluginConfCustomConfigContext(ctx contextx.IContext, token string) (config map[string]any, err error) {
+	// record metric.
+	metric := s.metric().Start("get_plugin_deployment_plugin_conf_custom_config_context")
+	defer metric.End(err)
+
+	config, err = s.getPluginDeploymentPluginConfCustomConfigContext(ctx, token)
+
+	return config, err
 }
 
 // CountProcesses count processes.
@@ -363,4 +378,15 @@ func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDelta
 	err = s.updateManyProcessInfo(nCtx, processInfoDeltas)
 
 	return err
+}
+
+// GetProcess get process.
+func (s *Storage) GetProcess(nCtx contextx.IContext, hostID int64, pluginName string) (process *types.Process, err error) {
+	// record metric.
+	metric := s.metric().Start("get_process")
+	defer metric.End(err)
+
+	process, err = s.getProcess(nCtx, hostID, pluginName)
+
+	return process, err
 }

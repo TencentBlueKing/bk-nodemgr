@@ -59,3 +59,18 @@ func (h *Handler) ListPlugins(ctx contextx.IContext, page types.Page, condition 
 
 	return plugins, total, nil
 }
+
+// ApplyPluginSubConfig apply plugin sub config.
+func (h *Handler) ApplyPluginSubConfig(ctx contextx.IContext, applyParam ...*types.PluginApplySubConfigParam) (string, error) {
+	req := new(protoBackend.PluginApplySubConfigReq)
+	if err := req.ConvertParamFromTypes(applyParam...); err != nil {
+		return "", err
+	}
+
+	resp, err := h.cli.applyPluginSubConfig(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetData().GetWorkflowId(), nil
+}

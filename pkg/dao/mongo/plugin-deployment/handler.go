@@ -27,17 +27,20 @@ type IHandler interface {
 	// Create create a node deployment.
 	Create(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error
 
-	// GetInfo get a node deployment info.
+	// GetInfo get a plugin deployment info.
 	GetInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
 
 	// UpdateInfo update plugin deployment info.
 	UpdateInfo(nCtx contextx.IContext, token string, info *types.PluginDeploymentInfo) error
 
-	// GetMainConfig get main config.
-	GetMainConfig(nCtx contextx.IContext, token string) ([]byte, error)
+	// GetPluginConfConfigFilesDetail get plugin conf config files detail.
+	GetPluginConfConfigFilesDetail(nCtx contextx.IContext, token string) ([]*types.PluginConfigDetail, error)
 
-	// UpdateMainConfig set main config.
-	UpdateMainConfig(nCtx contextx.IContext, token string, mainConfig []byte) error
+	// UpdatePluginConfConfigFilesDetail set config files detail.
+	UpdatePluginConfConfigFilesDetail(nCtx contextx.IContext, token string, detail ...*types.PluginConfigDetail) error
+
+	// GetPluginConfCustomConfigContext get plugin conf custom config context.
+	GetPluginConfCustomConfigContext(nCtx contextx.IContext, token string) (map[string]any, error)
 }
 
 // Handler this is a Handler to operate node deployment table.
@@ -58,7 +61,25 @@ func New(client *mongo.Database) *Handler {
 	return h
 }
 
-// GetInfo get a node deployment info.
+// Create create a new node deployment.
+func (h *Handler) Create(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if pluginDeployment == nil {
+		return base.ErrEmptyParamData()
+	}
+
+	data, err := convertPluginDeploymentFromTypes(pluginDeployment)
+	if err != nil {
+		return err
+	}
+
+	return h.dao.Create(nCtx, data)
+}
+
+// GetInfo get a plugin deployment info.
 func (h *Handler) GetInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
@@ -78,8 +99,35 @@ func (h *Handler) GetInfo(nCtx contextx.IContext, token string) (*types.PluginDe
 	return convertPluginDeploymentInfoToTypes(data.Info)
 }
 
-// GetMainConfig get main config.
-func (h *Handler) GetMainConfig(nCtx contextx.IContext, token string) ([]byte, error) {
+// UpdateInfo update a node deployment info.
+func (h *Handler) UpdateInfo(nCtx contextx.IContext, token string, info *types.PluginDeploymentInfo) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return ErrInvalidToken()
+	}
+
+	if info == nil {
+		return base.ErrEmptyParamData()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+	data, err := convertPluginDeploymentInfoFromTypes(info)
+	if err != nil {
+		return err
+	}
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyInfo, data); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetPluginConfConfigFilesDetail get plugin conf config files detail.
+func (h *Handler) GetPluginConfConfigFilesDetail(nCtx contextx.IContext, token string) ([]*types.PluginConfigDetail, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -90,12 +138,71 @@ func (h *Handler) GetMainConfig(nCtx contextx.IContext, token string) ([]byte, e
 
 	filter := base.AliveFilter()
 	filter = WithToken(token)(filter)
-	data, err := h.dao.Get(nCtx, filter, FieldKeyMainConfig)
+	data, err := h.dao.Get(nCtx, filter, FieldKeyPluginConfConfigFilesDetail)
 	if err != nil {
 		return nil, base.ErrRecordNoFound()
 	}
 
-	return data.MainConfig, nil
+	return convertPluginConfigDetailsToTypes(data.PluginConf.ConfigFilesDetail...), nil
+}
+
+// UpdatePluginConfConfigFilesDetail set plugin config details.
+func (h *Handler) UpdatePluginConfConfigFilesDetail(nCtx contextx.IContext, token string, detail ...*types.PluginConfigDetail) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return ErrInvalidToken()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyPluginConfConfigFilesDetail, convertPluginConfigDetailsFromTypes(detail...)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetPluginConfCustomConfigContext get plugin conf custom config context.
+func (h *Handler) GetPluginConfCustomConfigContext(nCtx contextx.IContext, token string) (map[string]any, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return nil, ErrInvalidToken()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+	data, err := h.dao.Get(nCtx, filter, FieldKeyPluginConfCustomConfigContext)
+	if err != nil {
+		return nil, base.ErrRecordNoFound()
+	}
+
+	return data.PluginConf.CustomConfigContext, nil
+}
+
+func convertPluginDeploymentFromTypes(data *types.PluginDeployment) (*Data, error) {
+	pluginDeployment := &Data{
+		Token:      data.Token,
+		Info:       new(Info),
+		PluginConf: new(PluginConf),
+	}
+
+	var err error
+
+	pluginDeployment.Info, err = convertPluginDeploymentInfoFromTypes(data.Info)
+	if err != nil {
+		return nil, err
+	}
+
+	pluginDeployment.PluginConf = convertPluginDeploymentPluginConfFromTypes(data.PluginConf)
+
+	return pluginDeployment, nil
 }
 
 // nolint: funlen
@@ -107,9 +214,11 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 	typesInfo := &types.PluginDeploymentInfo{
 		BlockingActionName: info.ActionName,
 		Process: types.Process{
-			TenantID:   info.Process.TenantID,
-			HostID:     info.Process.HostID,
-			PluginName: info.Process.Name,
+			TenantID:      info.Process.TenantID,
+			HostID:        info.Process.HostID,
+			PluginName:    info.Process.Name,
+			PluginGroup:   info.Process.Group,
+			PluginPkgName: info.Process.PkgName,
 			Platform: platfmt.Platform{
 				OS:   criteria.OSType(info.Process.Platform.OS),
 				Arch: criteria.CPUArch(info.Process.Platform.Arch),
@@ -164,67 +273,6 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 	return typesInfo, nil
 }
 
-// Create create a new node deployment.
-func (h *Handler) Create(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error {
-	if nCtx == nil {
-		return base.ErrInvalidContext()
-	}
-
-	if pluginDeployment == nil {
-		return base.ErrEmptyParamData()
-	}
-
-	data, err := convertPluginDeploymentFromTypes(pluginDeployment)
-	if err != nil {
-		return err
-	}
-
-	return h.dao.Create(nCtx, data)
-}
-
-func convertPluginDeploymentFromTypes(data *types.PluginDeployment) (*Data, error) {
-	pluginDeployment := &Data{
-		Token: data.Token,
-		Info:  new(Info),
-	}
-
-	var err error
-
-	pluginDeployment.Info, err = convertPluginDeploymentInfoFromTypes(data.Info)
-	if err != nil {
-		return nil, err
-	}
-
-	return pluginDeployment, nil
-}
-
-// UpdateInfo update a node deployment info.
-func (h *Handler) UpdateInfo(nCtx contextx.IContext, token string, info *types.PluginDeploymentInfo) error {
-	if nCtx == nil {
-		return base.ErrInvalidContext()
-	}
-
-	if token == "" {
-		return ErrInvalidToken()
-	}
-
-	if info == nil {
-		return base.ErrEmptyParamData()
-	}
-
-	filter := base.AliveFilter()
-	filter = WithToken(token)(filter)
-	data, err := convertPluginDeploymentInfoFromTypes(info)
-	if err != nil {
-		return err
-	}
-	if err := h.dao.UpdateField(nCtx, filter, FieldKeyInfo, data); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // nolint: funlen
 func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*Info, error) {
 	if info == nil {
@@ -238,6 +286,8 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			TenantID: info.Process.TenantID,
 			HostID:   info.Process.HostID,
 			Name:     info.Process.PluginName,
+			Group:    info.Process.PluginGroup,
+			PkgName:  info.Process.PluginPkgName,
 			Platform: platform{
 				OS:   string(info.Process.Platform.OS),
 				Arch: string(info.Process.Platform.Arch),
@@ -291,21 +341,45 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 	return data, nil
 }
 
-// UpdateMainConfig set main config.
-func (h *Handler) UpdateMainConfig(nCtx contextx.IContext, token string, mainConfig []byte) error {
-	if nCtx == nil {
-		return base.ErrInvalidContext()
+func convertPluginDeploymentPluginConfFromTypes(conf *types.PluginDeploymentPluginConf) *PluginConf {
+	if conf == nil {
+		return nil
 	}
 
-	if token == "" {
-		return ErrInvalidToken()
+	pluginConf := &PluginConf{
+		ConfigFilesDetail:   convertPluginConfigDetailsFromTypes(conf.ConfigFilesDetail...),
+		CustomConfigContext: conf.CustomConfigContext,
 	}
 
-	filter := base.AliveFilter()
-	filter = WithToken(token)(filter)
-	if err := h.dao.UpdateField(nCtx, filter, FieldKeyMainConfig, mainConfig); err != nil {
-		return err
+	return pluginConf
+}
+
+func convertPluginConfigDetailsFromTypes(details ...*types.PluginConfigDetail) []configDetail {
+	configDetails := make([]configDetail, 0, len(details))
+	for _, detail := range details {
+		if detail == nil {
+			continue
+		}
+
+		configDetails = append(configDetails, configDetail{
+			Name:         detail.Name,
+			Content:      detail.Content,
+			IsMainConfig: detail.IsMainConfig,
+		})
 	}
 
-	return nil
+	return configDetails
+}
+
+func convertPluginConfigDetailsToTypes(details ...configDetail) []*types.PluginConfigDetail {
+	configDetails := make([]*types.PluginConfigDetail, 0, len(details))
+	for _, detail := range details {
+		configDetails = append(configDetails, &types.PluginConfigDetail{
+			Name:         detail.Name,
+			Content:      detail.Content,
+			IsMainConfig: detail.IsMainConfig,
+		})
+	}
+
+	return configDetails
 }

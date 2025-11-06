@@ -11,9 +11,8 @@
 package plugin
 
 import (
-	"bytes"
-	"fmt"
 	"io"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
@@ -31,24 +30,27 @@ func (h *handler) GetMainConfig(rCtx restserver.IContext) (*restserver.FileRespo
 	}
 
 	token := req.GetToken()
-
-	info, err := h.daoPluginDeployment.GetPluginDeploymentInfo(rCtx, token)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get main config, failed to get plugin deployment info")
-
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
-	}
-
-	mainConfigBytes, err := h.daoPluginDeployment.GetPluginDeploymentMainConfig(rCtx, token)
+	configDetails, err := h.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(rCtx, token)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get main config, failed to get plugin deployment main config")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	fileName := fmt.Sprintf("%s.conf", info.Process.PluginPkgName)
-	data := io.NopCloser(bytes.NewReader(mainConfigBytes))
-	size := int64(len(mainConfigBytes))
+	var data io.ReadCloser
+	var size int64
+	var fileName string
+	for _, config := range configDetails {
+		if !config.IsMainConfig {
+			continue
+		}
+
+		data = io.NopCloser(strings.NewReader(config.Content))
+		size = int64(len(config.Content))
+		logger.G.Biz(rCtx).With("file", config.Name, "size", size).Info("got main config")
+
+		break
+	}
 
 	resp := &restserver.FileResponse{
 		Data:        data,

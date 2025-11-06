@@ -173,6 +173,14 @@ type TransferDetail struct {
 	Target TransferTarget
 }
 
+const (
+	// TransferErrorCodeOK means no error.
+	TransferErrorCodeOK = 0
+
+	// TransferErrorCodeRunning means transfer is running.
+	TransferErrorCodeRunning = 115
+)
+
 // TransferMode represents the gse transfer mode.
 type TransferMode int
 

@@ -711,7 +711,8 @@ func (h *Handler) QueryProcessInfo(nCtx contextx.IContext, pluginName string, pr
 	info := &types.ProcessInfo{
 		Trusteeship: procInfoMap[agentID].IsAuto,
 		Pid:         procInfoMap[agentID].Pid,
-		Version:     procInfoMap[agentID].Version,
+		AgentID:     agentID,
+		Version:     strings.TrimSpace(procInfoMap[agentID].Version),
 		Status:      convPidToProcStatus(procInfoMap[agentID].Pid),
 	}
 
@@ -794,7 +795,7 @@ func (h *Handler) QueryMultiProcessInfoMany(
 				Trusteeship: info.IsAuto,
 				AgentID:     agentID,
 				Pid:         info.Pid,
-				Version:     info.Version,
+				Version:     strings.TrimSpace(info.Version),
 				Status:      convPidToProcStatus(info.Pid),
 			})
 		}

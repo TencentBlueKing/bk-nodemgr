@@ -22,9 +22,9 @@ var _ base.IData = &Data{}
 // Data represents the table of plugin deployment.
 // Token should be the unique key.
 type Data struct {
-	Token      string `json:"token" bson:"token"`
-	Info       *Info  `json:"info" bson:"info"`
-	MainConfig []byte `json:"main_config" bson:"main_config"`
+	Token      string      `json:"token" bson:"token"`
+	Info       *Info       `json:"info" bson:"info"`
+	PluginConf *PluginConf `json:"plugin_config" bson:"plugin_config"`
 }
 
 // Info this is the info of this plugin deployment.
@@ -40,7 +40,10 @@ type process struct {
 	TenantID string `json:"tenant_id" bson:"tenant_id"`
 	HostID   int64  `json:"host_id" bson:"host_id"`
 
-	Name       string   `json:"name" bson:"name"`
+	Name    string `json:"name" bson:"name"`
+	Group   string `json:"group" bson:"group"`
+	PkgName string `json:"pkg_name" bson:"pkg_name"`
+
 	Platform   platform `json:"platform" bson:"platform"`
 	Generation int64    `json:"generation" bson:"generation"`
 
@@ -108,6 +111,19 @@ type transferOptions struct {
 	SelectDownloads      bool `json:"select_downloads" bson:"select_downloads"`
 	EnableReleasePackage bool `json:"enable_release_package" bson:"enable_release_package"`
 	EnableInstaller      bool `json:"enable_installer" bson:"enable_installer"`
+}
+
+// PluginConf defines the plugin config.
+type PluginConf struct {
+	ConfigFilesDetail   []configDetail `json:"config_files_detail" bson:"config_files_detail"`
+	CustomConfigContext map[string]any `json:"custom_config_context" bson:"custom_config_context"`
+}
+
+// configDetail defines the plugin config detail.
+type configDetail struct {
+	Name         string `json:"name" bson:"name"`
+	Content      string `json:"content" bson:"content"`
+	IsMainConfig bool   `json:"is_main_config" bson:"is_main_config"`
 }
 
 // UniqueFields unique fields of the table.

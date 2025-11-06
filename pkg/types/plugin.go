@@ -32,3 +32,12 @@ type PluginInstallParam struct {
 // PluginListParam describe the plugin list param.
 type PluginListParam struct {
 }
+
+// PluginApplySubConfigParam defines the plugin apply sub config param.
+type PluginApplySubConfigParam struct {
+	HostID              int64
+	PluginName          string
+	Version             string
+	ConfigName          []string
+	CustomConfigContext map[string]any
+}

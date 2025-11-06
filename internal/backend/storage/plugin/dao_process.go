@@ -178,3 +178,16 @@ func (s *Storage) updateManyProcessInfo(nCtx contextx.IContext, processInfoDelta
 
 	return nil
 }
+
+func (s *Storage) getProcess(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	process, err := s.daoProcess.Get(nCtx, daoProcess.WithHostID(hostID), daoProcess.WithPluginName(pluginName))
+	if err != nil {
+		return nil, fmt.Errorf("failed to get process: %w", err)
+	}
+
+	return process, nil
+}

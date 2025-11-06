@@ -14,8 +14,6 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
 // registerStringsFunctions register string related template functions.
@@ -26,7 +24,7 @@ func registerStringsFunctions(fnMap template.FuncMap) {
 	addFunction(fnMap, customJoin, join)
 	addFunction(fnMap, customIndent, indent)
 	addFunction(fnMap, customNindent, nindent)
-	addFunction(fnMap, customToString, toString)
+	addFunction(fnMap, customQuote, quote)
 }
 
 // replace is a wrapper of strings.ReplaceAll to be used in template functions.
@@ -50,14 +48,13 @@ func nindent(spaces int, v string) string {
 	return "\n" + indent(spaces, v)
 }
 
-// toString converts the given value to a string.
-func toString(v interface{}) string {
-	switch v := v.(type) {
-	case error:
-		return v.Error()
-	case fmt.Stringer:
-		return v.String()
-	default:
-		return conv.ToStringDefault(v, "")
+func quote(str ...interface{}) string {
+	out := make([]string, 0, len(str))
+	for _, s := range str {
+		if s != nil {
+			out = append(out, fmt.Sprintf("%q", toString(s)))
+		}
 	}
+
+	return strings.Join(out, " ")
 }

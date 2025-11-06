@@ -18,16 +18,39 @@ import (
 
 // PluginDeployment this is the info for plugin deployment.
 type PluginDeployment struct {
-	Token string
-	Info  *PluginDeploymentInfo
+	Token      string
+	Info       *PluginDeploymentInfo
+	PluginConf *PluginDeploymentPluginConf
 }
 
 // NewPluginDeployment new a plugin deployment.
-func NewPluginDeployment(info *PluginDeploymentInfo) *PluginDeployment {
+func NewPluginDeployment(info *PluginDeploymentInfo, conf *PluginDeploymentPluginConf) *PluginDeployment {
 	return &PluginDeployment{
-		Token: strings.ReplaceAll(uuid.New().String(), "-", ""),
-		Info:  info,
+		Token:      strings.ReplaceAll(uuid.New().String(), "-", ""),
+		Info:       info,
+		PluginConf: conf,
 	}
+}
+
+// PluginDeploymentPluginConf defines the plugin config.
+type PluginDeploymentPluginConf struct {
+	// ConfigFilesDetail is the config file detail for plugin process.
+	ConfigFilesDetail []*PluginConfigDetail
+
+	// CustomConfigContext is the custom config context for plugin process.
+	CustomConfigContext map[string]any
+}
+
+// PluginConfigDetail defines the plugin config detail.
+type PluginConfigDetail struct {
+	// Name is the config file name.
+	Name string
+
+	// Content is the config file content.
+	Content string
+
+	// IsMainConfig indicates whether it is the main configuration file.
+	IsMainConfig bool
 }
 
 // PluginDeploymentInfo defines the plugin deployment info.

@@ -30,8 +30,8 @@ import (
 )
 
 const (
-	// ActionNameRenderPluginMainConfig defines the action name.
-	ActionNameRenderPluginMainConfig = "render_plugin_main_config"
+	// ActionNameRenderPluginConfig defines the action name.
+	ActionNameRenderPluginConfig = "render_plugin_config"
 
 	keyPluginPath   = "plugin_path"
 	keyNodeMan      = "nodeman"
@@ -82,9 +82,9 @@ const (
 	keyGroupID      = "group_id"
 )
 
-// NewActionRenderPluginMainConfig ...
-func NewActionRenderPluginMainConfig(capability *Capability) action.Definition {
-	return &RenderPluginMainConfig{
+// NewActionRenderPluginConfig ...
+func NewActionRenderPluginConfig(capability *Capability) action.Definition {
+	return &actionRenderPluginConfig{
 		daoHost:             capability.StorageTopo,
 		daoNetworkArea:      capability.StorageTopo,
 		daoPluginDeployment: capability.StoragePlugin,
@@ -92,13 +92,13 @@ func NewActionRenderPluginMainConfig(capability *Capability) action.Definition {
 	}
 }
 
-// ActParamRenderPluginMainConfig ...
-type ActParamRenderPluginMainConfig struct {
+// ActParamRenderPluginConfig ...
+type ActParamRenderPluginConfig struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
-// RenderPluginMainConfig ...
-type RenderPluginMainConfig struct {
+// actionRenderPluginConfig ...
+type actionRenderPluginConfig struct {
 	daoHost             topoStg.IStorageHost
 	daoNetworkArea      topoStg.IStorageNetworkArea
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
@@ -106,45 +106,45 @@ type RenderPluginMainConfig struct {
 }
 
 // Name returns the name of the action.
-func (act *RenderPluginMainConfig) Name() string {
-	return ActionNameRenderPluginMainConfig
+func (act *actionRenderPluginConfig) Name() string {
+	return ActionNameRenderPluginConfig
 }
 
 // Version returns the version of the action.
-func (act *RenderPluginMainConfig) Version() string {
+func (act *actionRenderPluginConfig) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *RenderPluginMainConfig) Description() string {
-	return "render plugin main config"
+func (act *actionRenderPluginConfig) Description() string {
+	return "render plugin config"
 }
 
 // Timeout returns the timeout of the action.
-func (act *RenderPluginMainConfig) Timeout() time.Duration {
+func (act *actionRenderPluginConfig) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *RenderPluginMainConfig) Tags() []action.Tag {
+func (act *actionRenderPluginConfig) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *RenderPluginMainConfig) MaxRetryCount() uint {
+func (act *actionRenderPluginConfig) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *RenderPluginMainConfig) DelayFn() func() {
+func (act *actionRenderPluginConfig) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *RenderPluginMainConfig) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamRenderPluginMainConfig)
+func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) error {
+	param := new(ActParamRenderPluginConfig)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -172,68 +172,84 @@ func (act *RenderPluginMainConfig) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get plugin release info: %w", err)
 	}
 
-	renderContext, err := act.getRenderContext(std.Context(), std.DeployInfo(), host)
+	renderContext, err := act.getRenderContext(std, host)
 	if err != nil {
 		return fmt.Errorf("failed to get render context: %w", err)
 	}
 
-	var templateContent string
-	for _, tmpl := range pluginRelease.ConfigTemplates {
-		if tmpl.IsMainConfig {
-			templateContent = tmpl.SourceContent
-		}
-	}
-
-	result, err := templaterender.New().Render(templateContent, renderContext)
+	configFiles, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token())
 	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to render template")
-		return fmt.Errorf("failed to render template: %w", err)
+		return fmt.Errorf("failed to get plugin config files detail: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("rendered plugin(%s-%s-%s) main config success",
-		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
-		std.DeployInfo().Process.Info.Version))
+	configNameContentMap := make(map[string]string)
+	for _, template := range pluginRelease.ConfigTemplates {
+		configNameContentMap[template.Name] = template.SourceContent
+	}
 
-	if err := std.UpdateMainConfig([]byte(result)); err != nil {
+	for idx := range configFiles {
+		templateContent, ok := configNameContentMap[configFiles[idx].Name]
+		if !ok {
+			std.InstanceData().LogE(fmt.Sprintf("template(%s) not found in plugin release", configFiles[idx].Name))
+			return fmt.Errorf("template(%s) not found in plugin release", configFiles[idx].Name)
+		}
+
+		result, err := templaterender.New().Render(templateContent, renderContext)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to render template")
+			return fmt.Errorf("failed to render template: %w", err)
+		}
+
+		std.InstanceData().LogI(fmt.Sprintf("rendered plugin(%s-%s-%s) config(%s) success",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
+			std.DeployInfo().Process.Info.Version, configFiles[idx].Name))
+
+		configFiles[idx].Content = result
+	}
+
+	if err := std.UpdatePluginConfConfigFilesDetail(configFiles...); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (act *RenderPluginMainConfig) getRenderContext(
-	nCtx contextx.IContext, info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
-
-	pluginPath, err := act.getPluginPath(info, hostInfo)
+func (act *actionRenderPluginConfig) getRenderContext(std *pluginUtils.PluginActionStandarder, hostInfo *types.Host) (map[string]any, error) {
+	pluginPath, err := act.getPluginPath(std.DeployInfo(), hostInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get plugin path: %w", err)
 	}
 
-	nodeManContext, err := act.getNodeContext(info, hostInfo)
+	nodeManContext, err := act.getNodeContext(std.DeployInfo(), hostInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get node context: %w", err)
 	}
 
-	cmdbInstance, err := act.getCMDBInstance(nCtx, hostInfo)
+	cmdbInstance, err := act.getCMDBInstance(std.Context(), hostInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cmdb instance: %w", err)
 	}
 
-	controlInfo, err := act.getControlInfo(info, hostInfo)
+	controlInfo, err := act.getControlInfo(std.DeployInfo(), hostInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get control info: %w", err)
 	}
 
-	return map[string]any{
-		keyPluginPath:   pluginPath,
-		keyNodeMan:      nodeManContext,
-		keyCmdbInstance: cmdbInstance,
-		keyTarget:       cmdbInstance,
-		keyControlInfo:  controlInfo,
-	}, nil
+	customContext, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfCustomConfigContext(std.Context(), std.Token())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get custom config context: %w", err)
+	}
+
+	customContext[keyPluginPath] = pluginPath
+	customContext[keyNodeMan] = nodeManContext
+	customContext[keyCmdbInstance] = cmdbInstance
+	customContext[keyTarget] = cmdbInstance
+	customContext[keyControlInfo] = controlInfo
+
+	return customContext, nil
 }
 
-func (act *RenderPluginMainConfig) getPluginPath(info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
+func (act *actionRenderPluginConfig) getPluginPath(info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
 	pluginDeployConf, err := deployconstant.GetPluginDeployConf(
 		info.Process.Generation, info.Process.Platform.OS)
 	if err != nil {
@@ -259,7 +275,7 @@ func (act *RenderPluginMainConfig) getPluginPath(info *types.PluginDeploymentInf
 	return paths, nil
 }
 
-func (act *RenderPluginMainConfig) getNodeContext(info *types.PluginDeploymentInfo, hostInfo *types.Host) (
+func (act *actionRenderPluginConfig) getNodeContext(info *types.PluginDeploymentInfo, hostInfo *types.Host) (
 	map[string]any, error) {
 
 	pluginDeployConf, err := deployconstant.GetPluginDeployConf(
@@ -296,7 +312,7 @@ func (act *RenderPluginMainConfig) getNodeContext(info *types.PluginDeploymentIn
 	return nodeContext, nil
 }
 
-func (act *RenderPluginMainConfig) getCMDBInstance(nCtx contextx.IContext, hostInfo *types.Host) (
+func (act *actionRenderPluginConfig) getCMDBInstance(nCtx contextx.IContext, hostInfo *types.Host) (
 	map[string]any, error) {
 
 	networkArea, err := act.daoNetworkArea.GetNetworkArea(nCtx, hostInfo.Static.NetworkAreaID)
@@ -325,7 +341,7 @@ func (act *RenderPluginMainConfig) getCMDBInstance(nCtx contextx.IContext, hostI
 	}, nil
 }
 
-func (act *RenderPluginMainConfig) getControlInfo(info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
+func (act *actionRenderPluginConfig) getControlInfo(info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
 	pluginDeployConf, err := deployconstant.GetPluginDeployConf(info.Process.Generation, info.Process.Platform.OS)
 	if err != nil {
 		return nil, err

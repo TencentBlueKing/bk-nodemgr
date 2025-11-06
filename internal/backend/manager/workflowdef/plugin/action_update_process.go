@@ -23,71 +23,71 @@ import (
 )
 
 const (
-	// ActionNameUpdatePluginProcess defines the action name.
-	ActionNameUpdatePluginProcess = "trusteeship_plugin"
+	// ActionNameUpdateProcess defines the action name.
+	ActionNameUpdateProcess = "update_process"
 )
 
-// NewActionUpdatePluginProcess ...
-func NewActionUpdatePluginProcess(capability *Capability) action.Definition {
-	return &actUpdatePluginProcess{
+// NewActionUpdateProcess ...
+func NewActionUpdateProcess(capability *Capability) action.Definition {
+	return &actUpdateProcess{
 		daoPluginDeployment: capability.StoragePlugin,
 		daoProcess:          capability.StoragePlugin,
 		gseHandlerProc:      capability.GSEHandler,
 	}
 }
 
-// ActionParamUpdatePluginProcess ...
-type ActionParamUpdatePluginProcess struct {
+// ActionParamUpdateProcess ...
+type ActionParamUpdateProcess struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
-// actUpdatePluginProcess ...
-type actUpdatePluginProcess struct {
+// actUpdateProcess ...
+type actUpdateProcess struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	daoProcess          pluginStg.IDaoProcess
 	gseHandlerProc      gse.IHandlerProc
 }
 
 // Name returns the name of the action.
-func (act *actUpdatePluginProcess) Name() string {
-	return ActionNameUpdatePluginProcess
+func (act *actUpdateProcess) Name() string {
+	return ActionNameUpdateProcess
 }
 
 // Version returns the version of the action.
-func (act *actUpdatePluginProcess) Version() string {
+func (act *actUpdateProcess) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *actUpdatePluginProcess) Description() string {
+func (act *actUpdateProcess) Description() string {
 	return "trusteeship plugin to gse."
 }
 
 // Timeout returns the timeout of the action.
-func (act *actUpdatePluginProcess) Timeout() time.Duration {
+func (act *actUpdateProcess) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actUpdatePluginProcess) Tags() []action.Tag {
+func (act *actUpdateProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actUpdatePluginProcess) MaxRetryCount() uint {
+func (act *actUpdateProcess) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actUpdatePluginProcess) DelayFn() func() {
+func (act *actUpdateProcess) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *actUpdatePluginProcess) Do(ctx *action.InstanceContext) error {
-	param := new(ActionParamUpdatePluginProcess)
+func (act *actUpdateProcess) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamUpdateProcess)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -109,6 +109,11 @@ func (act *actUpdatePluginProcess) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return fmt.Errorf("update process err:%v", err)
 	}
+
+	std.InstanceData().LogI(fmt.Sprintf("succeed to update process info for plugin(%s) on host(%d), now process status(%s)",
+		std.DeployInfo().Process.PluginName,
+		std.DeployInfo().Process.HostID,
+		std.DeployInfo().Process.Info.Status))
 
 	return nil
 }
