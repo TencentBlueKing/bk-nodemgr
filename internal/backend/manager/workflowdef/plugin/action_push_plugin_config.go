@@ -18,10 +18,8 @@ import (
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -148,48 +146,20 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	if err = act.waitPushComplete(std.Context(), taskID); err != nil {
+	result, err := act.gseHandler.QueryPushFileFinalResult(std.Context(), taskID)
+	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (act *actionPushPluginConfig) waitPushComplete(nCtx contextx.IContext, taskID string) error {
-	var (
-		pushFileResultResp []*types.TransferResult
-		err                error
-	)
-	// nolint: mnd
-	expoBackoffOpts := retrier.ExpoBackoffOpts{
-		MaxRetries:    5,
-		BaseDelay:     time.Second,
-		MaxDelay:      5 * time.Second,
-		JitterPercent: 0.2,
+	if !result.Terminated {
+		return fmt.Errorf("push config not terminated. task-id(%s)", taskID)
 	}
-	expoBackoff := retrier.NewExpoBackoff(expoBackoffOpts)
-	err = expoBackoff.Do(nCtx, func(_ int) error {
-		pushFileResultResp, err = act.gseHandler.QueryFileTransmissionResult(nCtx, taskID)
-		if err != nil {
-			return fmt.Errorf("failed to get operate proc result: %w", err)
-		}
 
-		for _, item := range pushFileResultResp {
-			switch item.ErrorCode {
-			case types.TransferErrorCodeOK:
-				continue
-			case types.TransferErrorCodeRunning:
-				return fmt.Errorf("file push is still running")
-			default:
-				return fmt.Errorf("file push failed, error code: %d, error message: %s", item.ErrorCode, item.ErrorMessage)
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("failed to get operate proc result: %w", err)
+	if result.ErrorCode != 0 {
+		return fmt.Errorf("push config failed. task-id(%s), err-code(%d), err-msg(%s)", taskID, result.ErrorCode, result.ErrorMessage)
 	}
+
+	std.InstanceData().LogI(fmt.Sprintf("push plugin config all done, task-id(%s).", taskID))
 
 	return nil
 }

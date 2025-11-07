@@ -33,6 +33,7 @@ type IHandler interface {
 }
 
 // IHandlerNode define the gse handler for node.
+// nolint: interfacebloat
 type IHandlerNode interface {
 	// ListAgentInfo list agent detail information.
 	// @param agentIDList given agent id list.
@@ -84,6 +85,11 @@ type IHandlerNode interface {
 	// @return file transmission result list.
 	QueryFileTransmissionResult(nCtx contextx.IContext, taskID string, endpoints ...*types.Endpoint) (
 		[]*types.TransferResult, error)
+
+	// QueryPushFileFinalResult query push file final result.
+	// @param taskID given task id.
+	// @return  file transmission simple transfer result.
+	QueryPushFileFinalResult(nCtx contextx.IContext, taskID string) (*types.SimpleTransferResult, error)
 
 	// TerminateFileTransmission terminate file transmission.
 	// @param taskID given task id.
@@ -594,6 +600,46 @@ func (h *Handler) QueryFileTransmissionResult(nCtx contextx.IContext, taskID str
 	}
 
 	return result, nil
+}
+
+// QueryPushFileFinalResult query push file final result.
+// nolint:mnd
+func (h *Handler) QueryPushFileFinalResult(nCtx contextx.IContext, taskID string) (*types.SimpleTransferResult, error) {
+	var (
+		err         error
+		queryResult []*types.TransferResult
+		dst         *types.SimpleTransferResult
+	)
+
+	expoBackoffOpts := retrier.ExpoBackoffOpts{
+		MaxRetries:    5,
+		BaseDelay:     time.Second,
+		MaxDelay:      5 * time.Second,
+		JitterPercent: 0.2,
+	}
+	expoBackoff := retrier.NewExpoBackoff(expoBackoffOpts)
+	err = expoBackoff.Do(nCtx, func(_ int) error {
+		queryResult, err = h.QueryFileTransmissionResult(nCtx, taskID)
+		if err != nil {
+			return fmt.Errorf("failed to get operate proc result: %w", err)
+		}
+
+		if len(queryResult) != 1 {
+			return fmt.Errorf("unexpected task(%s) transfer result count(%d), results(%+v)", taskID, len(queryResult), queryResult)
+		}
+
+		dst = types.ConvertTransferResultToSimple(queryResult[0])
+		if !dst.Terminated {
+			return fmt.Errorf("task(%s) is not terminated yet", taskID)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to query transfer results: %w", err)
+	}
+
+	return dst, nil
 }
 
 // TerminateFileTransmission terminate file transmission.
