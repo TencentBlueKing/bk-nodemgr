@@ -105,7 +105,7 @@ func (x *UploadOriginAgentResp) ConvertResultFromTypes(generated bool, detail *t
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
@@ -153,7 +153,7 @@ func (x *UploadOriginServerResp) ConvertResultFromTypes(generated bool, detail *
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
@@ -189,7 +189,7 @@ func (x *UploadOriginCertResp) ConvertResultFromTypes(generated bool, detail *ty
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	data.CertFiles = detail.CertFiles
@@ -235,7 +235,7 @@ func (x *UploadOriginBinToolResp) ConvertResultFromTypes(generated bool, detail 
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	data.AgentPlatforms = agentPlats
@@ -277,7 +277,7 @@ func (x *UploadOriginPluginBinToolV2Resp) ConvertResultFromTypes(generated bool,
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	data.Platforms = plats
@@ -322,7 +322,7 @@ func (x *UploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool, detail
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
@@ -374,7 +374,7 @@ func (x *UploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generated bool
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version

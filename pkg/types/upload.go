@@ -109,13 +109,13 @@ type OriginPluginV2PkgDetail struct {
 	UploadID string
 	Existed  bool
 
-	Name         string
-	Version      string
-	Description  string
-	Scenario     string
-	ConfigFile   string
-	ConfigFormat string
-	LaunchNode   string
+	PluginPkgName string
+	Version       string
+	Description   string
+	Scenario      string
+	ConfigFile    string
+	ConfigFormat  string
+	LaunchNode    string
 
 	// key: platform.String()
 	ConfigTemplates map[string][]PluginPkgConfigTemplate
@@ -139,14 +139,14 @@ type OriginExternalPluginV2PkgDetail struct {
 	UploadID string
 	Existed  bool
 
-	Name         string
-	Version      string
-	Description  string
-	Scenario     string
-	ConfigFile   string
-	ConfigFormat string
-	LaunchNode   string
-	SubDirPaths  map[string]map[string]struct{}
+	PluginPkgName string
+	Version       string
+	Description   string
+	Scenario      string
+	ConfigFile    string
+	ConfigFormat  string
+	LaunchNode    string
+	SubDirPaths   map[string]map[string]struct{}
 
 	// key: platform.String()
 	ConfigTemplates map[string][]PluginPkgConfigTemplate

@@ -30,7 +30,7 @@ func (s *Storage) existReleasePlugin(
 
 	fileNames := make([]string, 0, len(plats))
 	for _, plat := range plats {
-		pluginFileName, err := pluginpkg.FormatPkgName(pluginName, types.ReleaseTypePlugin, types.Generation2, plat, version)
+		pluginFileName, err := pluginpkg.FormatPkgFileName(pluginName, types.ReleaseTypePlugin, types.Generation2, plat, version)
 		if err != nil {
 			return false, err
 		}

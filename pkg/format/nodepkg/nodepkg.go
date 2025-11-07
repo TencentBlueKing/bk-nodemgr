@@ -22,8 +22,8 @@ import (
 // PkgExtension defines the package file extension.
 const PkgExtension = "tgz"
 
-// FormatPkgName formats the package name based on the node role, generation, and version.
-func FormatPkgName(
+// FormatPkgFileName formats the package name based on the node role, generation, and version.
+func FormatPkgFileName(
 	generation types.Generation,
 	releaseType types.ReleaseType,
 	plat platfmt.Platform,

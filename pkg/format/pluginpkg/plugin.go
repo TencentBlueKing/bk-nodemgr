@@ -22,8 +22,8 @@ import (
 // PkgExtension defines the package file extension.
 const PkgExtension = "tgz"
 
-// FormatPkgName formats the package name based on the node role, generation, and version.
-func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string) (string, error) {
+// FormatPkgFileName formats the package name based on the node role, generation, and version.
+func FormatPkgFileName(pluginPkgName string, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string) (string, error) {
 	if err := releaseType.Validate(); err != nil {
 		return "", fmt.Errorf("format plugin pkg name failed: %w", err)
 	}
@@ -40,7 +40,7 @@ func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.G
 			"bk-nodemgr_%s_%d_%s-%s-all.%s",
 			releaseType,
 			gen,
-			pluginName,
+			pluginPkgName,
 			version,
 			PkgExtension)
 
@@ -54,7 +54,7 @@ func FormatPkgName(pluginName string, releaseType types.ReleaseType, gen types.G
 			"bk-nodemgr_%s_%d_%s-%s-%s_%s.%s",
 			releaseType,
 			gen,
-			pluginName,
+			pluginPkgName,
 			version,
 			plat.OS,
 			plat.Arch,

@@ -49,7 +49,7 @@ func (h *handler) Agent(rCtx restserver.IContext) (*restserver.FileResponse, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("invalid platform(%s)", req.GetOsType()))
 	}
 
-	pkgName, err := nodepkg.FormatPkgName(
+	pkgName, err := nodepkg.FormatPkgFileName(
 		types.Generation2,
 		types.ReleaseTypeAgent,
 		platform,
@@ -99,7 +99,7 @@ func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("invalid platform(%s)", req.GetOsType()))
 	}
 
-	pkgName, err := nodepkg.FormatPkgName(
+	pkgName, err := nodepkg.FormatPkgFileName(
 		types.Generation2,
 		types.ReleaseTypeProxy,
 		platform,

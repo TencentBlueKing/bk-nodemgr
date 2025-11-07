@@ -80,7 +80,7 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 	}
 	gen := types.Generation2
 
-	pkgName, err := nodepkg.FormatPkgName(
+	pkgFileName, err := nodepkg.FormatPkgFileName(
 		gen,
 		types.ReleaseTypeOriginAgent,
 		platfmt.EmptyPlatform(),
@@ -91,17 +91,17 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 
 		return nil, err
 	}
-	pkgName = m.wrapOriginPackageName(pkgName)
+	pkgFileName = m.wrapOriginPackageName(pkgFileName)
 
 	// upload to upstream.
-	if err := m.upstreamOriginAgent.Store(nCtx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginAgent.Store(nCtx, fileiface.FileInfo{Name: pkgFileName}, uploadingFile, true); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin agent package, failed to upload to upstream")
 
 		return nil, err
 	}
 
 	// get file.
-	file, err := m.upstreamOriginAgent.GetFile(nCtx, pkgName)
+	file, err := m.upstreamOriginAgent.GetFile(nCtx, pkgFileName)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin agent package. failed to get file from upstream")
 
@@ -123,7 +123,7 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 	// create the upload record.
 	uploadID, err := m.storageUpload.CreateAgentUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginAgent,
-		SavedName: pkgName,
+		SavedName: pkgFileName,
 	})
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin agent package, failed to create upload")
@@ -132,7 +132,7 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 	}
 	detail.UploadID = uploadID
 
-	logger.G.Biz(nCtx).With("version", detail.Version, "filename", pkgName).Info("uploaded origin agent package to upstream")
+	logger.G.Biz(nCtx).With("version", detail.Version, "filename", pkgFileName).Info("uploaded origin agent package to upstream")
 
 	return detail, nil
 }
@@ -316,7 +316,7 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 		pkg := releasePkgs[idx]
 		gp.Go(func() error {
 			// generate package name.
-			pkgName, err := nodepkg.FormatPkgName(
+			pkgName, err := nodepkg.FormatPkgFileName(
 				gen,
 				types.ReleaseTypeAgent,
 				pkg.platform,

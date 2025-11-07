@@ -102,7 +102,7 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 		pkg := releasePkgs[idx]
 		gp.Go(func() error {
 			// generate package name.
-			pkgName, err := nodepkg.FormatPkgName(
+			pkgFileName, err := nodepkg.FormatPkgFileName(
 				types.Generation2,
 				types.ReleaseTypeProxy,
 				pkg.platform,
@@ -121,13 +121,13 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 				return err
 			}
 
-			if err = m.upstreamReleaseProxy.Store(nCtx, fileiface.FileInfo{Name: pkgName}, generatedFile, true); err != nil {
+			if err = m.upstreamReleaseProxy.Store(nCtx, fileiface.FileInfo{Name: pkgFileName}, generatedFile, true); err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to upload to upstream")
 
 				return err
 			}
 
-			file, err := m.upstreamReleaseProxy.GetFile(nCtx, pkgName)
+			file, err := m.upstreamReleaseProxy.GetFile(nCtx, pkgFileName)
 			if err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to get temp file")
 

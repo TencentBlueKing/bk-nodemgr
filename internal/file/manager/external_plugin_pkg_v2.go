@@ -82,27 +82,27 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 	}
 
 	gen := types.Generation2
-	originalPkgName, err := pluginpkg.FormatPkgName(
-		detail.Name, types.ReleaseTypeOriginExternalPluginV2, gen, platfmt.EmptyPlatform(), detail.Version)
+	pkgFileName, err := pluginpkg.FormatPkgFileName(
+		detail.PluginPkgName, types.ReleaseTypeOriginExternalPluginV2, gen, platfmt.EmptyPlatform(), detail.Version)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to format package")
 
 		return nil, fmt.Errorf("failed to upload origin external plugin package: %w", err)
 	}
 
-	logger.G.Biz(nCtx).With("filename", originalPkgName).Info("formatting origin external plugin package")
+	logger.G.Biz(nCtx).With("filename", pkgFileName).Info("formatting origin external plugin package")
 
-	originalPkgName = m.wrapOriginPackageName(originalPkgName)
+	pkgFileName = m.wrapOriginPackageName(pkgFileName)
 
 	// upload to upstream.
-	if err := m.upstreamOriginExternalPluginV2.Store(nCtx, fileiface.FileInfo{Name: originalPkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginExternalPluginV2.Store(nCtx, fileiface.FileInfo{Name: pkgFileName}, uploadingFile, true); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to store to upstream")
 
 		return nil, err
 	}
 
 	// get file.
-	file, err := m.upstreamOriginExternalPluginV2.GetFile(nCtx, originalPkgName)
+	file, err := m.upstreamOriginExternalPluginV2.GetFile(nCtx, pkgFileName)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to get file from upstream")
 
@@ -113,7 +113,7 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existed, err := m.storageRelease.ExistReleasePlugin(nCtx, detail.Name, detail.Version, detail.Platforms...)
+	existed, err := m.storageRelease.ExistReleasePlugin(nCtx, detail.PluginPkgName, detail.Version, detail.Platforms...)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package. failed to check if release existed")
 
@@ -124,7 +124,7 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 	// create the upload record.
 	uploadID, err := m.storageUpload.CreateExternalPluginV2Upload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginExternalPluginV2,
-		SavedName: originalPkgName,
+		SavedName: pkgFileName,
 	})
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to create upload")
@@ -133,7 +133,7 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 	}
 	detail.UploadID = uploadID
 
-	logger.G.Biz(nCtx).With("filename", originalPkgName).Info("uploaded origin external plugin package to upstream")
+	logger.G.Biz(nCtx).With("filename", pkgFileName).Info("uploaded origin external plugin package to upstream")
 
 	return detail, nil
 }
@@ -191,7 +191,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 					return fmt.Errorf("failed to decode project.yaml")
 				}
 
-				detail.Name = pluginProject.Name
+				detail.PluginPkgName = pluginProject.Name
 				detail.Version = pluginProject.Version
 				detail.Description = pluginProject.Description
 				detail.Scenario = pluginProject.Scenario
@@ -342,7 +342,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 
 	gp := gopool.NewPool()
 	gen := types.Generation2
-	pluginPkgName := detail.Name
+	pluginPkgName := detail.PluginPkgName
 	pluginPkgVersion := detail.Version
 
 	releasesMap := make(map[string]*types.ReleasePlugin)
@@ -350,7 +350,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 		pkg := releasePkgs[idx]
 		gp.Go(func() error {
 			// generate package name.
-			pkgName, err := pluginpkg.FormatPkgName(pluginPkgName, types.ReleaseTypePlugin, gen, pkg.platform, pluginPkgVersion)
+			pkgName, err := pluginpkg.FormatPkgFileName(pluginPkgName, types.ReleaseTypePlugin, gen, pkg.platform, pluginPkgVersion)
 			if err != nil {
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release external plugin package, failed to format package")
 
@@ -448,7 +448,7 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 		return nil, err
 	}
 
-	pluginName := originDetail.Name
+	pluginPkgName := originDetail.PluginPkgName
 
 	gp := gopool.NewPool()
 
@@ -502,7 +502,7 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 				}
 
 				files = append(files, tgzWriteRuleFile{
-					sourceFilePath: append([]string{convPlatToExternalPluginDirName(plat), pluginName}, subFilePaths...),
+					sourceFilePath: append([]string{convPlatToExternalPluginDirName(plat), pluginPkgName}, subFilePaths...),
 					targetFilePath: subFilePaths,
 					targetFileMode: subFileMode,
 				})

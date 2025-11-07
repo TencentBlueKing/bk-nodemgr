@@ -72,7 +72,7 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 	}
 	plat := detail.Platforms[0]
 
-	pkgName, err := nodepkg.FormatPkgName(
+	pkgFileName, err := nodepkg.FormatPkgFileName(
 		types.Generation2,
 		types.ReleaseTypeOriginServer,
 		plat,
@@ -83,7 +83,7 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 
 		return nil, err
 	}
-	pkgName = m.wrapOriginPackageName(pkgName)
+	pkgFileName = m.wrapOriginPackageName(pkgFileName)
 
 	uploadingFile, err := m.getTempFile(nCtx, tempFileName)
 	if err != nil {
@@ -93,14 +93,14 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 	}
 
 	// upload to upstream.
-	if err := m.upstreamOriginServer.Store(nCtx, fileiface.FileInfo{Name: pkgName}, uploadingFile, true); err != nil {
+	if err := m.upstreamOriginServer.Store(nCtx, fileiface.FileInfo{Name: pkgFileName}, uploadingFile, true); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin server package, failed to upload to upstream")
 
 		return nil, err
 	}
 
 	// get file.
-	file, err := m.upstreamOriginServer.GetFile(nCtx, pkgName)
+	file, err := m.upstreamOriginServer.GetFile(nCtx, pkgFileName)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin server package. failed to get file from upstream")
 
@@ -112,7 +112,7 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 
 	uploadID, err := m.storageUpload.CreateServerUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginServer,
-		SavedName: pkgName,
+		SavedName: pkgFileName,
 	})
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin server package, failed to create upload")
@@ -121,7 +121,7 @@ func (m *Manager) UploadOriginServer(nCtx contextx.IContext, pkgFile io.ReadClos
 	}
 	detail.UploadID = uploadID
 
-	logger.G.Biz(nCtx).With("platform", plat, "version", detail.Version, "filename", pkgName).Info("uploaded origin server package to upstream")
+	logger.G.Biz(nCtx).With("platform", plat, "version", detail.Version, "filename", pkgFileName).Info("uploaded origin server package to upstream")
 
 	return detail, nil
 }

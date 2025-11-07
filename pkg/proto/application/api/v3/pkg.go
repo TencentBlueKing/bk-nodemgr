@@ -56,7 +56,7 @@ func (x *PackageUploadOriginAgentResp) ConvertResultFromTypes(generated bool, de
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
@@ -106,7 +106,7 @@ func (x *PackageUploadOriginServerResp) ConvertResultFromTypes(generated bool, d
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
@@ -144,7 +144,7 @@ func (x *PackageUploadOriginCertResp) ConvertResultFromTypes(generated bool, det
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	data.CertFiles = detail.CertFiles
@@ -190,7 +190,7 @@ func (x *PackageUploadOriginBinToolResp) ConvertResultFromTypes(generated bool, 
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	data.AgentPlatforms = agentPlats
@@ -404,7 +404,7 @@ func (x *PackageUploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool,
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
@@ -449,7 +449,7 @@ func (x *PackageUploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generat
 	*data.UploadId = detail.UploadID
 	*data.Existed = detail.Existed
 	*data.Generated = generated
-	*data.Name = detail.Name
+	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version

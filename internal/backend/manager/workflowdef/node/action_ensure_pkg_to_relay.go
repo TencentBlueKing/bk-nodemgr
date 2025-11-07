@@ -333,7 +333,7 @@ func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
 
 	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
 
-	filename, err := nodepkg.FormatPkgName(
+	filename, err := nodepkg.FormatPkgFileName(
 		gen,
 		releaseType,
 		platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
