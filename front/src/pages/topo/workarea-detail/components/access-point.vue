@@ -12,7 +12,13 @@
             <Tag theme="info">直连</Tag>
           </div>
           <template #content>
-            <Table :data="upstreamTableData" :min-width="600" :maxHeight="800">
+            <Table
+              :data="upstreamTableData"
+              :min-width="600"
+              :maxHeight="800"
+              auto-resize
+              :show-overflow="false"
+              :row-config="{ isHover: true, height: 'auto' }">
               <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
                 <template #default>
                   <Tag theme="info">直连</Tag>
@@ -20,17 +26,17 @@
               </TableColumn>
               <TableColumn field="cluster" title="cluster" :min-width="200">
                 <template #default>
-                  <span>{{ directEndpoints.cluster.join('/n') }}</span>
+                  <span>{{ directEndpoints.cluster.join('\n') }}</span>
                 </template>
               </TableColumn>
               <TableColumn field="file" title="file" :min-width="200">
                 <template #default>
-                  <span>{{ directEndpoints.cluster.join('/n') }}</span>
+                  <span>{{ directEndpoints.cluster.join('\n') }}</span>
                 </template>
               </TableColumn>
               <TableColumn field="data" title="data" :min-width="200">
                 <template #default>
-                  <span>{{ directEndpoints.cluster.join('/n') }}</span>
+                  <span>{{ directEndpoints.cluster.join('\n') }}</span>
                 </template>
               </TableColumn>
             </Table>
@@ -55,7 +61,13 @@
               </div>
             </div>
             <template #content>
-              <Table :data="clusterData.accesspoint_name ? upstreamTableData : []" :min-width="600" :maxHeight="800">
+              <Table
+                :data="clusterData.accesspoint_name ? upstreamTableData : []"
+                :min-width="600"
+                :maxHeight="800"
+                auto-resize
+                :show-overflow="false"
+                :row-config="{ isHover: true, height: 'auto' }">
                 <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
                   <template #default>
                     {{ clusterData.accesspoint_name }}
@@ -63,7 +75,7 @@
                 </TableColumn>
                 <TableColumn field="cluster" title="cluster" :min-width="200">
                   <template #default>
-                    <span>{{ clusterData.cluster?.join('/n') }}</span>
+                    <span style="white-space: pre-line;">{{ clusterData.cluster?.join('\n') }}</span>
                   </template>
                 </TableColumn>
               </Table>
@@ -85,7 +97,13 @@
               </div>
             </div>
             <template #content>
-              <Table :data="fileData.accesspoint_name ? upstreamTableData : []" :min-width="600" :maxHeight="800">
+              <Table
+                :data="fileData.accesspoint_name ? upstreamTableData : []"
+                :min-width="600"
+                :maxHeight="800"
+                auto-resize
+                :show-overflow="false"
+                :row-config="{ isHover: true, height: 'auto' }">
                 <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
                   <template #default>
                     {{ fileData.accesspoint_name }}
@@ -93,7 +111,7 @@
                 </TableColumn>
                 <TableColumn field="file" title="file" :min-width="200">
                   <template #default>
-                    <span>{{ fileData.file?.join('/n') }}</span>
+                    <span>{{ fileData.file?.join('\n') }}</span>
                   </template>
                 </TableColumn>
               </Table>
@@ -115,7 +133,13 @@
               </div>
             </div>
             <template #content>
-              <Table :data="dataData.accesspoint_name ? upstreamTableData : []" :min-width="600" :maxHeight="800">
+              <Table
+                :data="dataData.accesspoint_name ? upstreamTableData : []"
+                :min-width="600"
+                :maxHeight="800"
+                auto-resize
+                :show-overflow="false"
+                :row-config="{ isHover: true, height: 'auto' }">
                 <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
                   <template #default>
                     {{ dataData.accesspoint_name }}
@@ -123,7 +147,7 @@
                 </TableColumn>
                 <TableColumn field="data" title="data" :min-width="200">
                   <template #default>
-                    <span>{{ dataData.data?.join('/n') }}</span>
+                    <span>{{ dataData.data?.join('\n') }}</span>
                   </template>
                 </TableColumn>
               </Table>
@@ -146,7 +170,14 @@
             {{ downstreamData?.map(item => item.accesspoint_name).join(', ') }}
           </div>
           <template #content>
-            <Table :data="downstreamData" :min-width="600" :maxHeight="800">
+            <Table
+              :data="downstreamData"
+              :min-width="600"
+              :maxHeight="800"
+              auto-resize
+              :show-overflow="false"
+              :row-config="{ isHover: true, height: 'auto' }"
+            >
               <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
                 <template #default="{ row }">
                   {{ row.accesspoint_name }}
@@ -154,17 +185,17 @@
               </TableColumn>
               <TableColumn field="cluster" title="cluster" :min-width="200">
                 <template #default="{ row }">
-                  {{ row.endpoints.cluster.join('/n') }}
+                  <span style="white-space: pre-line;">{{ row.endpoints.cluster.join('\n') }}</span>
                 </template>
               </TableColumn>
               <TableColumn field="file" title="file" :min-width="200">
                 <template #default="{ row }">
-                  {{ row.endpoints.file.join('/n') }}
+                  {{ row.endpoints.file.join('\n') }}
                 </template>
               </TableColumn>
               <TableColumn field="data" title="data" :min-width="200">
                 <template #default="{ row }">
-                  {{ row.endpoints.data.join('/n') }}
+                  {{ row.endpoints.data.join('\n') }}
                 </template>
               </TableColumn>
             </Table>

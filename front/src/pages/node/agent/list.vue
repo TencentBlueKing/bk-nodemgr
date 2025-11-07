@@ -106,6 +106,12 @@
       >
         <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
         <TableColumn
+          field="bk_host_id"
+          title="Host ID"
+          :min-width="100"
+          fixed="left"
+        ></TableColumn>
+        <TableColumn
           field="bk_host_innerip"
           :title="t('platform.nodeMan.inner_ip')"
           :min-width="150"
@@ -120,11 +126,6 @@
           field="bk_agent_id"
           :title="t('platform.nodeMan.agentId')"
           :min-width="320"
-        ></TableColumn>
-        <TableColumn
-          field="bk_host_id"
-          title="Host ID"
-          :min-width="100"
         ></TableColumn>
         <TableColumn
           field="bk_networkarea_id"
