@@ -40,8 +40,14 @@
           <div class="flex gap-[8px]">
             <Button
               @click="handleBatchInstall"
-              :disabled="!selection.length
-                || !selection.find(item => ['conflict_ip', 'duplicate_dynamic_ip'].includes(item.elig_status))"
+              :disabled="
+                !selection.length ||
+                  !selection.find((item) =>
+                    ['conflict_ip', 'duplicate_dynamic_ip'].includes(
+                      item.elig_status
+                    )
+                  )
+              "
               v-bk-tooltips="{
                 content: '处理待确认为全新安装',
               }"
@@ -50,13 +56,25 @@
             </Button>
             <Button
               @click="handleBatchRemove"
-              :disabled="!selection.length
-                || !selection.find(item => ['exist_proxy', 'exist_agent'].includes(item.elig_status))">
+              :disabled="
+                !selection.length ||
+                  !selection.find((item) =>
+                    ['exist_proxy', 'exist_agent', 'not_exist_relay'].includes(
+                      item.elig_status
+                    )
+                  )
+              "
+            >
               {{ $t("platform.nodeMan.preview.button.batchRemove") }}
             </Button>
           </div>
         </div>
-        <Tab class="mt-[16px]" v-model:active="active" type="card" :key="tabKey">
+        <Tab
+          class="mt-[16px]"
+          v-model:active="active"
+          type="card"
+          :key="tabKey"
+        >
           <Tab.TabPanel
             v-for="item in tabs"
             :key="item.name"
@@ -79,11 +97,7 @@
                 <span class="text-[14px] text-[#313238]">{{ item.label }}</span>
                 <div
                   :class="`rounded-[8px] w-[23px] h-[16px] border text-[12px] leading-[16px] text-center
-                    bg-[${
-                    item.name === active
-                      ? '#E1ECFF'
-                      : '#DCDEE5'
-                  }]`"
+                    bg-[${item.name === active ? '#E1ECFF' : '#DCDEE5'}]`"
                 >
                   {{ item.count }}
                 </div>
@@ -148,8 +162,12 @@
                       />
                       <i
                         v-else
-                        :class="`nodeman-icon nc-${statusMap[row.elig_status]?.icon} text-[14px]`"
-                        :style="{ color: statusMap[row.elig_status]?.iconColor }"
+                        :class="`nodeman-icon nc-${
+                          statusMap[row.elig_status]?.icon
+                        } text-[14px]`"
+                        :style="{
+                          color: statusMap[row.elig_status]?.iconColor,
+                        }"
                       ></i>
                       <p>{{ statusMap[row.elig_status]?.text }}</p>
                       <PopConfirm
@@ -159,13 +177,18 @@
                         @confirm="ensure(row)"
                       >
                         <Button
-                          v-show="['conflict_ip', 'duplicate_dynamic_ip'].includes(row.elig_status)"
+                          v-show="
+                            ['conflict_ip', 'duplicate_dynamic_ip'].includes(
+                              row.elig_status
+                            )
+                          "
                           theme="primary"
                           text
                           @click="getAgentList(row)"
                         >{{
                           t("platform.nodeMan.preview.button.deel")
-                        }}</Button>
+                        }}</Button
+                        >
                         <template #content>
                           <div class="mt-[6px] mb-[8px] text-[12px]">
                             {{ t("platform.nodeMan.preview.popConfirm.tip") }}
@@ -198,7 +221,10 @@
                               min-width="200"
                             >
                               <template #default="{ row }">
-                                <Radio v-model="radioValue" :label="row.bk_host_innerip">
+                                <Radio
+                                  v-model="radioValue"
+                                  :label="row.bk_host_innerip"
+                                >
                                   <span>{{
                                     t(
                                       "platform.nodeMan.preview.popConfirm.install"
@@ -259,8 +285,10 @@
           @click="handleSetup"
           :disabled="disabledDataNum > 0 || checkFailed"
           v-bk-tooltips="{
-            content: disabledDataNum ? '有Agent 状态错误数据，不可安装' : '校验失败，不可安装',
-            disabled: !checkFailed && disabledDataNum === 0
+            content: disabledDataNum
+              ? '有Agent 状态错误数据，不可安装'
+              : '校验失败，不可安装',
+            disabled: !checkFailed && disabledDataNum === 0,
           }"
         >{{
           t("platform.nodeMan.preview.button.performInstallation")
@@ -340,30 +368,33 @@ const searchSelectData = computed(() => [
   },
 ]);
 const tabs = computed(() => {
-  const countResult = originData.value.reduce((acc: any, item: any) => {
-    acc.all += 1;
+  const countResult = originData.value.reduce(
+    (acc: any, item: any) => {
+      acc.all += 1;
 
-    if (['conflict_ip', 'duplicate_dynamic_ip'].includes(item.elig_status)) {
-      acc.confirm += 1;
-    }
-    if (['exist_proxy', 'exist_agent'].includes(item.elig_status)) {
-      acc.error += 1;
-    }
-    if (item.elig_status === 'clean_install') {
-      acc.cleanInstallation += 1;
-    }
-    if (item.elig_status === 'normal_install') {
-      acc.normalInstallation += 1;
-    }
+      if (['conflict_ip', 'duplicate_dynamic_ip'].includes(item.elig_status)) {
+        acc.confirm += 1;
+      }
+      if (['exist_proxy', 'exist_agent', 'not_exist_relay'].includes(item.elig_status)) {
+        acc.error += 1;
+      }
+      if (item.elig_status === 'import_cmdb_and_normal_install') {
+        acc.cleanInstallation += 1;
+      }
+      if (item.elig_status === 'normal_install') {
+        acc.normalInstallation += 1;
+      }
 
-    return acc;
-  }, {
-    all: 0,
-    confirm: 0,
-    error: 0,
-    cleanInstallation: 0,
-    normalInstallation: 0,
-  });
+      return acc;
+    },
+    {
+      all: 0,
+      confirm: 0,
+      error: 0,
+      cleanInstallation: 0,
+      normalInstallation: 0,
+    },
+  );
   disabledDataNum.value = countResult.confirm + countResult.error;
   return [
     {
@@ -385,7 +416,7 @@ const tabs = computed(() => {
       count: countResult.error,
       icon: 'wrong',
       iconColor: '#EA3636',
-      includeSatatus: ['exist_proxy', 'exist_agent'],
+      includeSatatus: ['exist_proxy', 'exist_agent', 'not_exist_relay'],
     },
     {
       label: t('platform.nodeMan.preview.label.cleanInstallation'),
@@ -393,7 +424,7 @@ const tabs = computed(() => {
       count: countResult.cleanInstallation,
       icon: 'check-circle-fill',
       iconColor: '#1CAB88',
-      includeSatatus: ['clean_install'],
+      includeSatatus: ['import_cmdb_and_normal_install'],
     },
     {
       label: t('platform.nodeMan.preview.label.normalInstallation'),
@@ -407,24 +438,27 @@ const tabs = computed(() => {
 });
 
 const active = ref('all');
-const { isShowSetting, settings, handleSettingChange } = useTableSetting({
-  checked: [
-    'bk_host_innerip',
-    'bk_host_innerip_v6',
-    'bk_agent_id',
-    'bk_host_name',
-    'bk_networkarea_name',
-    'bk_networkarea_id',
-    'bk_networkunit_id',
-    'os_type',
-    'node_version',
-    'elig_status',
-    'action',
-  ],
-  disabled: ['action'],
-}, 'nodeMng-preview');
+const { isShowSetting, settings, handleSettingChange } = useTableSetting(
+  {
+    checked: [
+      'bk_host_innerip',
+      'bk_host_innerip_v6',
+      'bk_agent_id',
+      'bk_host_name',
+      'bk_networkarea_name',
+      'bk_networkarea_id',
+      'bk_networkunit_id',
+      'os_type',
+      'node_version',
+      'elig_status',
+      'action',
+    ],
+    disabled: ['action'],
+  },
+  'nodeMng-preview',
+);
 const statusMap = {
-  clean_install: {
+  import_cmdb_and_normal_install: {
     text: '可执行：全新安装并导入 CMDB',
     icon: 'check-circle-fill',
     iconColor: '#1CAB88',
@@ -441,6 +475,11 @@ const statusMap = {
   },
   exist_agent: {
     text: '该 IP 主机在当前管控区域已安装 Agent，无法重复安装',
+    icon: 'wrong',
+    iconColor: '#EA3636',
+  },
+  not_exist_relay: {
+    text: '不存在可用于安装agent的中继节点',
     icon: 'wrong',
     iconColor: '#EA3636',
   },
@@ -476,13 +515,21 @@ const handleBeforeClose = () => {
   isShow.value = false;
 };
 const ensure = (row: AgentInstallInfo) => {
-  if (row.elig_status === 'conflict_ip' || row.elig_status === 'duplicate_dynamic_ip') {
-    row.elig_status = radioValue.value === 'cmdb' ? 'clean_install' : 'normal_install';
+  if (
+    row.elig_status === 'conflict_ip'
+    || row.elig_status === 'duplicate_dynamic_ip'
+  ) {
+    row.elig_status =      radioValue.value === 'cmdb'
+      ? 'import_cmdb_and_normal_install'
+      : 'normal_install';
   }
   tabKey.value = Date.now();
   Message({
     theme: 'success',
-    message: radioValue.value === 'cmdb' ? '该 Agent 已被手动确认为“全新安装并导入 CMDB' : '该 Agent 已被手动确认为“正常安装',
+    message:
+      radioValue.value === 'cmdb'
+        ? '该 Agent 已被手动确认为“全新安装并导入 CMDB'
+        : '该 Agent 已被手动确认为“正常安装',
   });
 };
 const handleRemove = (row: AgentInstallInfo) => {
@@ -512,8 +559,12 @@ const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
 };
 const handleBatchInstall = () => {
   tableData.value.forEach((item: any) => {
-    if ((item.elig_status === 'conflict_ip' || item.elig_status === 'duplicate_dynamic_ip') && item.checked) {
-      item.elig_status = 'clean_install';
+    if (
+      (item.elig_status === 'conflict_ip'
+        || item.elig_status === 'duplicate_dynamic_ip')
+      && item.checked
+    ) {
+      item.elig_status = 'import_cmdb_and_normal_install';
     }
   });
   tabKey.value = Date.now();
@@ -523,13 +574,13 @@ const handleBatchInstall = () => {
   });
 };
 const handleBatchRemove = () => {
-  originData.value = originData.value.filter((item: any) => !['exist_proxy', 'exist_agent'].includes(item.elig_status) || !item.checked);
+  originData.value = originData.value.filter((item: any) => !['exist_proxy', 'exist_agent', 'not_exist_relay'].includes(item.elig_status) || !item.checked);
   tabKey.value = Date.now();
 };
 const handleSetup = async () => {
   // 过滤掉每条数据中的duplicate_host_ids和elig_status字段
   const filteredData = tableData.value.map((item: any) => {
-    const { duplicate_host_ids, elig_status, ...rest } = item;
+    const { pending_host_ids, elig_status, ...rest } = item;
     return rest;
   });
   const res = await NodeAgentService.NodeAgentInstall({
@@ -553,7 +604,8 @@ const priority = {
   duplicate_dynamic_ip: 0,
   exist_proxy: 1,
   exist_agent: 1,
-  clean_install: 2,
+  not_exist_relay: 1,
+  import_cmdb_and_normal_install: 2,
   normal_install: 3,
 };
 
@@ -586,8 +638,8 @@ const installCheck = async () => {
       const target = res.install_eligs.find((elig: any) => elig.inner_ip === item.bk_host_innerip);
       return {
         ...item,
-        duplicate_host_ids: target?.duplicate_host_ids || [],
-        elig_status: target?.elig_status || '',
+        pending_host_ids: target?.pending_host_ids || [],
+        elig_status: target?.pending_host_ids?.[0] === item.bk_host_id ? 'normal_install' : (target?.elig_status || ''),
       };
     }));
   }
@@ -598,7 +650,7 @@ const deelTabelData = ref<any[]>([]);
 const getAgentList = async (row: any) => {
   const res = await TopoService.HostList({
     exact_include_conditions: {
-      bk_host_id: [...row.duplicate_host_ids],
+      bk_host_id: [...row.pending_host_ids],
     },
   }).catch(err => ({
     total: 0,
@@ -615,30 +667,38 @@ function isEmpty(str: string | number | undefined | null) {
 }
 // 前端过滤数据
 watch(
-  [
-    searchSelectValue,
-  ],
+  [searchSelectValue],
   () => {
     tableData.value = originData.value.filter((row: any) => searchSelectValue.value.every((searchItem: any) => {
       const { id: searchField, values } = searchItem;
-      const searchIds = values?.map((value: {id: string}) => value.id);
+      const searchIds = values?.map((value: { id: string }) => value.id);
       return searchIds.includes(row[searchField]);
     }));
   },
   { immediate: true, deep: true },
 );
-watch(() => tableData.value, () => {
-  // 每次tableData变化时，重新生成一个key，以强制刷新tab
-  tabKey.value = Date.now();
-}, { immediate: true });
-watch([active, originData], () => {
-  tableData.value = originData.value.filter((item: any) => {
-    if (active.value === 'all') {
-      return true;
-    }
-    return tabs.value.find((tab: any) => tab.name === active.value)?.includeSatatus?.includes(item.elig_status);
-  });
-}, { immediate: true });
+watch(
+  () => tableData.value,
+  () => {
+    // 每次tableData变化时，重新生成一个key，以强制刷新tab
+    tabKey.value = Date.now();
+  },
+  { immediate: true },
+);
+watch(
+  [active, originData],
+  () => {
+    tableData.value = originData.value.filter((item: any) => {
+      if (active.value === 'all') {
+        return true;
+      }
+      return tabs.value
+        .find((tab: any) => tab.name === active.value)
+        ?.includeSatatus?.includes(item.elig_status);
+    });
+  },
+  { immediate: true },
+);
 watch(
   () => isShow,
   async () => {
@@ -646,11 +706,15 @@ watch(
       originData.value = props.data.info.map(item => ({
         ...item,
         login_port: Number(item.login_port),
-        bk_biz_id: isEmpty(item.bk_biz_id) ? Number(props.data.bk_biz_id) : item.bk_biz_id,
+        bk_biz_id: isEmpty(item.bk_biz_id)
+          ? Number(props.data.bk_biz_id)
+          : item.bk_biz_id,
         bk_networkunit_id: isEmpty(item.bk_networkunit_id)
-          ? Number(props.data.bk_networkunit_id) : item.bk_networkunit_id,
+          ? Number(props.data.bk_networkunit_id)
+          : item.bk_networkunit_id,
         bk_host_id: Number(item.bk_host_id),
-        bk_networkarea_name: item.bk_networkarea_name ||  props.data.bk_networkarea_name,
+        bk_networkarea_name:
+          item.bk_networkarea_name || props.data.bk_networkarea_name,
         bk_addressing: 'static',
       }));
       await installCheck();

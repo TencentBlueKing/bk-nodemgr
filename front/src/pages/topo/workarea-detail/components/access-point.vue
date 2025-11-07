@@ -15,7 +15,7 @@
             <Table
               :data="upstreamTableData"
               :min-width="600"
-              :maxHeight="800"
+              :max-height="800"
               auto-resize
               :show-overflow="false"
               :row-config="{ isHover: true, height: 'auto' }">
@@ -64,7 +64,7 @@
               <Table
                 :data="clusterData.accesspoint_name ? upstreamTableData : []"
                 :min-width="600"
-                :maxHeight="800"
+                :max-height="800"
                 auto-resize
                 :show-overflow="false"
                 :row-config="{ isHover: true, height: 'auto' }">
@@ -100,7 +100,7 @@
               <Table
                 :data="fileData.accesspoint_name ? upstreamTableData : []"
                 :min-width="600"
-                :maxHeight="800"
+                :max-height="800"
                 auto-resize
                 :show-overflow="false"
                 :row-config="{ isHover: true, height: 'auto' }">
@@ -136,7 +136,7 @@
               <Table
                 :data="dataData.accesspoint_name ? upstreamTableData : []"
                 :min-width="600"
-                :maxHeight="800"
+                :max-height="800"
                 auto-resize
                 :show-overflow="false"
                 :row-config="{ isHover: true, height: 'auto' }">
@@ -173,7 +173,7 @@
             <Table
               :data="downstreamData"
               :min-width="600"
-              :maxHeight="800"
+              :max-height="800"
               auto-resize
               :show-overflow="false"
               :row-config="{ isHover: true, height: 'auto' }"
@@ -208,7 +208,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Tag, Popover } from 'bkui-vue';
+import { Button, Popover, Tag } from 'bkui-vue';
 import { isEqual } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, ref } from 'vue';
@@ -251,7 +251,10 @@ const clusterData = computed(() => {
   const endpoints = workareaStore.allAccessPointList.get(props.upstreamData.cluster?.bk_networkunit_id)
     ?.find(item => item.accesspoint_id === props.upstreamData.cluster?.accesspoint_id)
     ?.endpoints;
-  const { cluster = [''], file = [''], data = [''] } = endpoints as Endpoints;
+
+  const safeEndpoints = endpoints || {};
+  const { cluster = [''], file = [''], data = [''] } = safeEndpoints as Endpoints;
+
   return {
     workarea_name: getWorkareaName(props.upstreamData.cluster?.bk_networkarea_id),
     workunit_name: getWorkUnitName(

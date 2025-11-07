@@ -165,7 +165,7 @@ export interface NodeAgentInstallCheckRespData {
 export interface NodeAgentInstallElig {
   inner_ip: string;
   elig_status: string;
-  duplicate_host_ids: number[];
+  pending_host_ids: number[];
 }
 
 // UploadAgentTemplateReq is the request for upload agent tempalte file.
