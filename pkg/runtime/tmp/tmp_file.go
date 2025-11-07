@@ -15,8 +15,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-
-	"github.com/google/uuid"
 )
 
 // File represents a temporary file with its path and a cleanup function.
@@ -118,7 +116,6 @@ func NewTempFileWithSpecialName(data io.ReadCloser, name string) (file *File, er
 		return nil, fmt.Errorf("failed to create temporary file with special name: %w", err)
 	}
 
-	tmpDir = filepath.Join(tmpDir, uuid.NewString())
 	if err = os.MkdirAll(tmpDir, 0700); err != nil {
 		return nil, fmt.Errorf("failed to create temporary dir: %w", err)
 	}
