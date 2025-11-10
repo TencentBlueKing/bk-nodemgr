@@ -200,17 +200,40 @@ type ReleaseAdditionInfoPlugin struct {
 	PluginController ProcessController
 }
 
+// TemplateRendererType defines the type of template renderer.
+type TemplateRendererType string
+
+const (
+	// TemplateRendererTypeJinja2 defines the jinja2 template renderer.
+	// In v2 plugin, we only support jinja2 template renderer.
+	TemplateRendererTypeJinja2 TemplateRendererType = "jinja2"
+
+	// TemplateRendererTypeGoTemplate defines the go-template template renderer.
+	TemplateRendererTypeGoTemplate TemplateRendererType = "go-template"
+)
+
+// Validate validates the template renderer type.
+func (t TemplateRendererType) Validate() error {
+	switch t {
+	case TemplateRendererTypeJinja2, TemplateRendererTypeGoTemplate:
+		return nil
+	default:
+		return fmt.Errorf("invalid template renderer type, type(%s)", t)
+	}
+}
+
 // PluginPkgConfigTemplate defines the template of plugin package.
 type PluginPkgConfigTemplate struct {
-	PluginVersion string
-	Name          string
-	Version       string
-	FilePath      string
-	Format        string
-	IsMainConfig  bool
-	SourcePath    string
-	SourceContent string
-	Variables     *PluginPkgConfigTemplateProperty
+	PluginVersion    string
+	Name             string
+	Version          string
+	FilePath         string
+	Format           string
+	IsMainConfig     bool
+	SourcePath       string
+	SourceContent    string
+	TemplateRenderer TemplateRendererType
+	Variables        *PluginPkgConfigTemplateProperty
 }
 
 // PluginPkgConfigTemplateProperty defines the template of plugin package.

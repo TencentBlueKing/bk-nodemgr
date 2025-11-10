@@ -293,14 +293,15 @@ func parsePluginV2PkgConfigTemplateFromProject(pluginProject *PluginV2Project) (
 		}
 
 		pkgConfigTemplates[idx] = types.PluginPkgConfigTemplate{
-			PluginVersion: configTemplate.PluginVersion,
-			Name:          configTemplate.Name,
-			Version:       configTemplate.Version,
-			FilePath:      configTemplate.FilePath,
-			Format:        configTemplate.Format,
-			IsMainConfig:  isMainConfig,
-			SourcePath:    configTemplate.SourcePath,
-			Variables:     convPropertyToTypes(configTemplate.Variables),
+			PluginVersion:    configTemplate.PluginVersion,
+			Name:             configTemplate.Name,
+			Version:          configTemplate.Version,
+			FilePath:         configTemplate.FilePath,
+			Format:           configTemplate.Format,
+			IsMainConfig:     isMainConfig,
+			SourcePath:       configTemplate.SourcePath,
+			Variables:        convPropertyToTypes(configTemplate.Variables),
+			TemplateRenderer: types.TemplateRendererTypeJinja2,
 		}
 	}
 
