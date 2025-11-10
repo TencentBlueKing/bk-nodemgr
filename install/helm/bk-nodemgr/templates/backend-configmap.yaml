@@ -80,6 +80,7 @@ data:
       db: 0
 
     mongodb:
+      appName: {{ template "bk-nodemgr.fullname" . }}-backend
       {{- if .Values.mongodb.enabled }}
       hosts:
         - {{ template "bk-nodemgr.fullname" . }}-mongodb-headless

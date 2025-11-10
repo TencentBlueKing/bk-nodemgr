@@ -161,6 +161,7 @@ etcd:
 
 # mongodb settings.
 mongodb:
+  appName: __BK_NODEMGR_MONGODB_APPNAME__-backend
   hosts:
     - __BK_NODEMGR_ADVERTISE_IPV4__:__BK_NODEMGR_MONGODB_PORT__
   username: root

@@ -52,6 +52,7 @@ data:
       {{- end}}
 
     mongodb:
+      appName: {{ template "bk-nodemgr.fullname" . }}-application
       {{- if .Values.mongodb.enabled }}
       hosts:
         - {{ template "bk-nodemgr.fullname" . }}-mongodb-headless
