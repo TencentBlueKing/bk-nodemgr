@@ -85,7 +85,13 @@ func (d *dao) upsert(nCtx contextx.IContext, credit *Credit) error {
 // buildUpsertParams build update params.
 func buildUpsertParams(credit *Credit) (bson.D, bson.D, *mongoOptions.UpdateOptions) {
 	// update business by credit_id.
-	filter := bson.D{{Key: FieldKeyCreditID, Value: credit.CreditID}}
+	filter := bson.D{{
+		Key: FieldKeyCreditID, Value: credit.CreditID},
+		{
+			Key:   FieldKeyTenantID,
+			Value: credit.TenantID,
+		},
+	}
 
 	// insert as creation or update data only.
 	update := base.BuildUpsertParam(credit)

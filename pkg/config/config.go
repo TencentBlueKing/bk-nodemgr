@@ -70,6 +70,7 @@ func (conf Redis) Validate() error {
 
 // MongoDB the config of mongodb.
 type MongoDB struct {
+	AppName       string   `yaml:"appName" usage:"app name of mongodb"`
 	Hosts         []string `yaml:"hosts" usage:"hosts list of mongodb"`
 	Username      string   `yaml:"username" usage:"user of mongodb"`
 	Password      string   `yaml:"password" usage:"password of mongodb"`

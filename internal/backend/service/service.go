@@ -72,6 +72,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 const (
@@ -410,16 +411,19 @@ func (svc *Service) newRedisClient() (*redis.Client, error) {
 }
 
 func (svc *Service) newMongoClient() (*mongo.Client, error) {
-	mongoClient, err := mongo.Connect(
+	var mongoClient, err = mongo.Connect(
 		context.Background(),
 		&mongoOptions.ClientOptions{
-			Hosts: svc.conf.MongoDB.Hosts,
+			AppName: &svc.conf.MongoDB.AppName,
 			Auth: &mongoOptions.Credential{
+				AuthMechanism: svc.conf.MongoDB.AuthMechanism,
+				AuthSource:    svc.conf.MongoDB.AuthSource,
 				Username:      svc.conf.MongoDB.Username,
 				Password:      svc.conf.MongoDB.Password,
-				AuthSource:    svc.conf.MongoDB.AuthSource,
-				AuthMechanism: svc.conf.MongoDB.AuthMechanism,
+				PasswordSet:   true,
 			},
+			Hosts:          svc.conf.MongoDB.Hosts,
+			ReadPreference: readpref.SecondaryPreferred(),
 		},
 	)
 	if err != nil {
