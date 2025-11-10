@@ -27,6 +27,7 @@ type IStorage interface {
 	IDaoBinTool
 	IDaoCert
 	IDaoPluginBinToolV2
+	IDaoPluginBinToolV3
 	IDaoPlugin
 }
 
@@ -94,6 +95,21 @@ type IDaoPluginBinToolV2 interface {
 
 	// DeleteReleasePluginBinToolV2 deletes release plugin bintool v2.
 	DeleteReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation, fileName string) error
+}
+
+// IDaoPluginBinToolV3 defines the plugin bin tool v3 interface.
+type IDaoPluginBinToolV3 interface {
+	// GetReleasePluginBinToolV3 gets release plugin bintool v3.
+	GetReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinToolV3, error)
+
+	// ExistReleasePluginBinToolV3 checks if release plugin bintool v3 exists.
+	ExistReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation) (bool, error)
+
+	// UpsertReleasePluginBinToolV3 upserts release plugin bintool v3.
+	UpsertReleasePluginBinToolV3(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinToolV3) error
+
+	// DeleteReleasePluginBinToolV3 deletes release plugin bintool v3.
+	DeleteReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation, fileName string) error
 }
 
 // IDaoPlugin defines the interface of plugin.

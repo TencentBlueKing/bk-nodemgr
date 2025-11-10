@@ -245,33 +245,39 @@ func (x *UploadOriginBinToolResp) ConvertResultFromTypes(generated bool, detail 
 }
 
 // Validate check request body.
-func (x *UploadOriginPluginBinToolV2Req) Validate() error {
+func (x *UploadOriginPluginBinToolReq) Validate() error {
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *UploadOriginPluginBinToolV2Req) AutoConvert() {
+func (x *UploadOriginPluginBinToolReq) AutoConvert() {
 }
 
 // ConvertResultFromTypes convert result from types.
-func (x *UploadOriginPluginBinToolV2Resp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginBinToolV2PkgDetail) {
+func (x *UploadOriginPluginBinToolResp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginBinToolPkgDetail) {
 	if detail == nil {
 		return
 	}
 
-	plats := make([]*Platform, 0)
-	for _, plat := range detail.Platforms {
-		plats = append(plats, ConvertPlatformFromTypes(plat))
+	platsV2 := make([]*Platform, 0)
+	for _, plat := range detail.V2.Platforms {
+		platsV2 = append(platsV2, ConvertPlatformFromTypes(plat))
 	}
 
-	data := &UploadOriginPluginBinToolV2Resp_Data{
+	platsV3 := make([]*Platform, 0)
+	for _, plat := range detail.V3.Platforms {
+		platsV3 = append(platsV3, ConvertPlatformFromTypes(plat))
+	}
+
+	data := &UploadOriginPluginBinToolResp_Data{
 		UploadId:  new(string),
 		Existed:   new(bool),
 		Generated: new(bool),
 		Name:      new(string),
 		Size:      new(int64),
 		Md5:       new(string),
-		Platforms: plats,
+		V2:        new(UploadOriginPluginBinToolResp_Data_V2Info),
+		V3:        new(UploadOriginPluginBinToolResp_Data_V3Info),
 	}
 
 	*data.UploadId = detail.UploadID
@@ -280,7 +286,8 @@ func (x *UploadOriginPluginBinToolV2Resp) ConvertResultFromTypes(generated bool,
 	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
-	data.Platforms = plats
+	data.V2.Platforms = platsV2
+	data.V3.Platforms = platsV3
 
 	x.Data = data
 }

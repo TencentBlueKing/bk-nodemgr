@@ -33,8 +33,8 @@ const (
 	// UploadCategoryOriginBinTool represents the origin bin tool.
 	UploadCategoryOriginBinTool UploadCategory = "origin_bin_tool"
 
-	// UploadCategoryOriginPluginBinToolV2 represents the origin plugin bin tool v2.
-	UploadCategoryOriginPluginBinToolV2 UploadCategory = "origin_plugin_bin_tool_v2"
+	// UploadCategoryOriginPluginBinTool represents the origin plugin bin tool.
+	UploadCategoryOriginPluginBinTool UploadCategory = "origin_plugin_bin_tool"
 
 	// UploadCategoryOriginPluginV2 represents the origin plugin v2.
 	UploadCategoryOriginPluginV2 UploadCategory = "origin_plugin_v2"
@@ -93,12 +93,23 @@ type OriginBinToolPkgDetail struct {
 	ProxyPlatforms []platfmt.Platform
 }
 
-// OriginPluginBinToolV2PkgDetail defines the detail of plugin bin tool package.
-type OriginPluginBinToolV2PkgDetail struct {
+// OriginPluginBinToolPkgDetail defines the detail of plugin bin tool package.
+type OriginPluginBinToolPkgDetail struct {
 	fileiface.FileInfo
 
-	UploadID  string
-	Existed   bool
+	UploadID string
+	Existed  bool
+	V2       OriginPluginBinToolPkgV2Info
+	V3       OriginPluginBinToolPkgV3Info
+}
+
+// OriginPluginBinToolPkgV2Info defines the v2 info of plugin bin tool package.
+type OriginPluginBinToolPkgV2Info struct {
+	Platforms []platfmt.Platform
+}
+
+// OriginPluginBinToolPkgV3Info defines the v3 info of plugin bin tool package.
+type OriginPluginBinToolPkgV3Info struct {
 	Platforms []platfmt.Platform
 }
 

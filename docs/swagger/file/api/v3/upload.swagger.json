@@ -126,7 +126,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginBinToolV2Resp"
+              "$ref": "#/definitions/v3UploadOriginPluginBinToolResp"
             }
           },
           "default": {
@@ -139,11 +139,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "UploadOriginPluginBinToolV2Req is the request for upload origin bin tool pkg.",
+            "description": "UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool\npkg.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3UploadOriginPluginBinToolV2Req"
+              "$ref": "#/definitions/v3UploadOriginPluginBinToolReq"
             }
           }
         ],
@@ -256,6 +256,30 @@
     }
   },
   "definitions": {
+    "DataV2Info": {
+      "type": "object",
+      "properties": {
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "DataV3Info": {
+      "type": "object",
+      "properties": {
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -573,7 +597,7 @@
         }
       }
     },
-    "v3UploadOriginPluginBinToolV2Req": {
+    "v3UploadOriginPluginBinToolReq": {
       "type": "object",
       "properties": {
         "generation": {
@@ -584,9 +608,9 @@
           "type": "boolean"
         }
       },
-      "description": "UploadOriginPluginBinToolV2Req is the request for upload origin bin tool pkg."
+      "description": "UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool\npkg."
     },
-    "v3UploadOriginPluginBinToolV2Resp": {
+    "v3UploadOriginPluginBinToolResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -600,12 +624,12 @@
           "type": "string"
         },
         "data": {
-          "$ref": "#/definitions/v3UploadOriginPluginBinToolV2RespData"
+          "$ref": "#/definitions/v3UploadOriginPluginBinToolRespData"
         }
       },
-      "description": "UploadOriginPluginBinToolV2Resp is the response for upload origin bin tool\npkg."
+      "description": "UploadOriginPluginBinToolResp is the response for upload origin plugin bin\ntool pkg."
     },
-    "v3UploadOriginPluginBinToolV2RespData": {
+    "v3UploadOriginPluginBinToolRespData": {
       "type": "object",
       "properties": {
         "upload_id": {
@@ -627,12 +651,11 @@
         "md5": {
           "type": "string"
         },
-        "platforms": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3Platform"
-          }
+        "v2": {
+          "$ref": "#/definitions/DataV2Info"
+        },
+        "v3": {
+          "$ref": "#/definitions/DataV3Info"
         }
       }
     },

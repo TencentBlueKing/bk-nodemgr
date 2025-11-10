@@ -49,6 +49,9 @@ const (
 	// ReleaseTypePluginBinToolV2 defines the release of nodemgr plugin bin tool v2 package.
 	ReleaseTypePluginBinToolV2 ReleaseType = "plugin_bintool_v2"
 
+	// ReleaseTypePluginBinToolV3 defines the release of nodemgr plugin bin tool v3 package.
+	ReleaseTypePluginBinToolV3 ReleaseType = "plugin_bintool_v3"
+
 	// ReleaseTypePlugin defines the release of nodemgr plugin package.
 	ReleaseTypePlugin ReleaseType = "plugin"
 )
@@ -185,6 +188,11 @@ type ReleaseBinTool struct {
 
 // ReleasePluginBinToolV2 defines the plugin bin tool, it is kind of Release.
 type ReleasePluginBinToolV2 struct {
+	Release
+}
+
+// ReleasePluginBinToolV3 defines the plugin bin tool, it is kind of Release.
+type ReleasePluginBinToolV3 struct {
 	Release
 }
 

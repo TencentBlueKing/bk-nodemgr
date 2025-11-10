@@ -78,6 +78,7 @@ tools: pre
 script_tools: pre
 	@$(ECHO) "Building script tools..."
 
+	@$(ECHO) "Building bin tool..."
 	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool
 
 	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_linux_amd64
@@ -104,18 +105,46 @@ script_tools: pre
 	@$(ECHO) "Built successfully script tools"
 
 	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3
 
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/linux_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/linux_amd64
+	@$(ECHO) "Building v2 plugin bin tool..."
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/linux_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/linux_amd64
 
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/linux_arm64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/linux_arm64
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/linux_arm64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/linux_arm64
 
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/darwin_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/darwin/* $(OUTPUT_DIR)/script_tools/plugin_bintool/darwin_amd64
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/darwin_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/darwin/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/darwin_amd64
 
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/windows_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/windows/* $(OUTPUT_DIR)/script_tools/plugin_bintool/windows_amd64
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/windows_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/windows/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/windows_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/aix6_ppc64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/aix/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/aix6_ppc64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/aix7_ppc64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/aix/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/aix7_ppc64
+
+	@$(ECHO) "Building v3 plugin bin tool..."
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/linux_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/linux_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/linux_arm64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/linux_arm64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/darwin_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/darwin/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/darwin_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/windows_amd64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/windows/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/windows_amd64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/aix6_ppc64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/aix/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/aix6_ppc64
+
+	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/aix7_ppc64
+	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/aix/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/aix7_ppc64
 
 	@$(CD) $(OUTPUT_DIR)/script_tools/ && $(TAR) plugin_bintool.tgz plugin_bintool/
 

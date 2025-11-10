@@ -301,11 +301,11 @@ func (svc *Service) initialManager() error {
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
-	upstreamOriginPluginBinToolV2FG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/v2/plugin_bintool")
+	upstreamOriginPluginBinToolV2FG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/plugin_bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin plugin bin tool file group: %w", err)
 	}
-	upstreamReleasePluginBinToolV2FG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/v2/plugin_bintool")
+	upstreamReleasePluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/plugin_bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
@@ -338,7 +338,7 @@ func (svc *Service) initialManager() error {
 		manager.WithUpstreamReleaseProxyFileGroup(upstreamReleaseProxyFg),
 		manager.WithUpstreamReleaseCertFileGroup(upstreamRealseCertFG),
 		manager.WithUpstreamReleaseBinToolFileGroup(upstreamReleaseBintoolFG),
-		manager.WithUpstreamReleasePluginBinToolV2FileGroup(upstreamReleasePluginBinToolV2FG),
+		manager.WithUpstreamReleasePluginBinToolFileGroup(upstreamReleasePluginBinToolFG),
 		manager.WithTempFileGroup(tempFG),
 		manager.WithInstallerFileGroup(installerFG),
 		manager.WithCacheFileGroup(cacheFG),

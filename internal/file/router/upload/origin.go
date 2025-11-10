@@ -157,9 +157,9 @@ func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (interface{}, er
 	return resp.GetData(), nil
 }
 
-// UploadOriginPluginBinToolV2 upload origin plugin bin tool.
-func (h *handler) UploadOriginPluginBinToolV2(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoFile.UploadOriginPluginBinToolV2Req)
+// UploadOriginPluginBinTool upload origin plugin bin tool.
+func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoFile.UploadOriginPluginBinToolReq)
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin plugin bintool, failed to parse file form")
@@ -177,7 +177,7 @@ func (h *handler) UploadOriginPluginBinToolV2(rCtx restserver.IContext) (interfa
 		_ = file.Close()
 	}()
 
-	detail, err := h.manager.UploadOriginPluginBinToolV2(rCtx, file)
+	detail, err := h.manager.UploadOriginPluginBinTool(rCtx, file)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin plugin bintool")
 
@@ -186,7 +186,7 @@ func (h *handler) UploadOriginPluginBinToolV2(rCtx restserver.IContext) (interfa
 
 	logger.G.Biz(rCtx).With("detail", detail).Info("uploaded origin plugin bintool")
 
-	resp := new(protoFile.UploadOriginPluginBinToolV2Resp)
+	resp := new(protoFile.UploadOriginPluginBinToolResp)
 	resp.ConvertResultFromTypes(false, detail)
 
 	return resp.GetData(), nil

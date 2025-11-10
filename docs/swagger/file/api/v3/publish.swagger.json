@@ -118,40 +118,6 @@
         ]
       }
     },
-    "/publish/release/plugin_bintool": {
-      "post": {
-        "summary": "PublishReleasePluginBinToolV2 provides release plugin bintool publish.",
-        "operationId": "Publish_PublishReleasePluginBinToolV2",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3PublishReleasePluginBinToolV2Resp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "PublishReleasePluginBinToolV2Req is the request for upload release plugin\nbintool pkg.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3PublishReleasePluginBinToolV2Req"
-            }
-          }
-        ],
-        "tags": [
-          "Publish"
-        ]
-      }
-    },
     "/publish/release/server": {
       "post": {
         "summary": "PublishReleaseServer provides release server publish.",
@@ -246,6 +212,74 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PublishReleasePluginV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/v2/plugin_bintool": {
+      "post": {
+        "summary": "PublishReleasePluginBinToolV2 provides release plugin bintool publish.",
+        "operationId": "Publish_PublishReleasePluginBinToolV2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginBinToolV2Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleasePluginBinToolV2Req is the request for upload release plugin\nbintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginBinToolV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/v3/plugin_bintool": {
+      "post": {
+        "summary": "PublishReleasePluginBinToolV3 provides release plugin bintool publish.",
+        "operationId": "Publish_PublishReleasePluginBinToolV3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginBinToolV3Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleasePluginBinToolV3Req is the request for upload release plugin\nbintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginBinToolV3Req"
             }
           }
         ],
@@ -437,6 +471,37 @@
       "description": "PublishReleasePluginBinToolV2Resp is the response for upload release plugin\nbintool pkg."
     },
     "v3PublishReleasePluginBinToolV2RespData": {
+      "type": "object"
+    },
+    "v3PublishReleasePluginBinToolV3Req": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleasePluginBinToolV3Req is the request for upload release plugin\nbintool pkg."
+    },
+    "v3PublishReleasePluginBinToolV3Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleasePluginBinToolV3RespData"
+        }
+      },
+      "description": "PublishReleasePluginBinToolV3Resp is the response for upload release plugin\nbintool pkg."
+    },
+    "v3PublishReleasePluginBinToolV3RespData": {
       "type": "object"
     },
     "v3PublishReleasePluginV2Req": {

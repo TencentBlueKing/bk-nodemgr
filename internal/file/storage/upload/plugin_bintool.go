@@ -36,7 +36,7 @@ func (s *Storage) GetPluginBinToolUpload(nCtx contextx.IContext, uploadID string
 	metric := s.metric().Start("get_plugin_bintool")
 	defer metric.End(err)
 
-	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginPluginBinToolV2, uploadID)
+	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginPluginBinTool, uploadID)
 }
 
 // CreatePluginBinToolV2Upload creates a upload.
@@ -46,7 +46,7 @@ func (s *Storage) CreatePluginBinToolV2Upload(nCtx contextx.IContext, up *types.
 	defer metric.End(err)
 
 	up.UploadID = identifier.GenUploadID()
-	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginPluginBinToolV2, up); err != nil {
+	if err = s.daoUpload.Create(nCtx, types.UploadCategoryOriginPluginBinTool, up); err != nil {
 		return "", err
 	}
 
@@ -59,5 +59,5 @@ func (s *Storage) DeletePluginBinToolUpload(nCtx contextx.IContext, uploadID str
 	metric := s.metric().Start("delete_plugin_bintool")
 	defer metric.End(err)
 
-	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginPluginBinToolV2, uploadID)
+	return s.daoUpload.DeleteMany(nCtx, types.UploadCategoryOriginPluginBinTool, uploadID)
 }

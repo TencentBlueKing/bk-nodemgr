@@ -153,7 +153,7 @@ func WithUpstreamOriginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn 
 // WithUpstreamOriginPluginBinToolV2FileGroup sets the upstream file group.
 func WithUpstreamOriginPluginBinToolV2FileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.upstreamOriginPluginBinToolV2 = fileGroup
+		manager.upstreamOriginPluginBinTool = fileGroup
 	}
 }
 
@@ -192,10 +192,10 @@ func WithUpstreamReleaseBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn
 	}
 }
 
-// WithUpstreamReleasePluginBinToolV2FileGroup sets the upstream file group.
-func WithUpstreamReleasePluginBinToolV2FileGroup(fileGroup fileiface.FileGroup) OptionFn {
+// WithUpstreamReleasePluginBinToolFileGroup sets the upstream file group.
+func WithUpstreamReleasePluginBinToolFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
-		manager.upstreamReleasePluginBinToolV2 = fileGroup
+		manager.upstreamReleasePluginBinTool = fileGroup
 	}
 }
 
@@ -286,14 +286,14 @@ type Manager struct {
 	upstreamOriginServer           fileiface.FileGroup
 	upstreamOriginCert             fileiface.FileGroup
 	upstreamOriginBinTool          fileiface.FileGroup
-	upstreamOriginPluginBinToolV2  fileiface.FileGroup
+	upstreamOriginPluginBinTool    fileiface.FileGroup
 	upstreamOriginPluginV2         fileiface.FileGroup
 	upstreamOriginExternalPluginV2 fileiface.FileGroup
 	upstreamReleaseAgent           fileiface.FileGroup
 	upstreamReleaseProxy           fileiface.FileGroup
 	upstreamReleaseCert            fileiface.FileGroup
 	upstreamReleaseBinTool         fileiface.FileGroup
-	upstreamReleasePluginBinToolV2 fileiface.FileGroup
+	upstreamReleasePluginBinTool   fileiface.FileGroup
 	upstreamReleasePlugin          fileiface.FileGroup
 
 	// cache file group.
@@ -345,7 +345,7 @@ func (m *Manager) Start(_ context.Context) error {
 		return errors.New("invalid upstream origin bintool")
 	}
 
-	if m.upstreamOriginPluginBinToolV2 == nil {
+	if m.upstreamOriginPluginBinTool == nil {
 		return errors.New("invalid upstream origin bin tool v2")
 	}
 
@@ -377,7 +377,7 @@ func (m *Manager) Start(_ context.Context) error {
 		return errors.New("invalid upstream release plugin")
 	}
 
-	if m.upstreamReleasePluginBinToolV2 == nil {
+	if m.upstreamReleasePluginBinTool == nil {
 		return errors.New("invalid upstream release plugin bin tool v2")
 	}
 
@@ -514,7 +514,33 @@ func (m *Manager) fetchReleasePluginBinToolV2ToLocal(ctx contextx.IContext) (fil
 		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
 	}
 
-	file, err := m.upstreamReleasePluginBinToolV2.GetFile(ctx, pluginBinTool.FileName)
+	file, err := m.upstreamReleasePluginBinTool.GetFile(ctx, pluginBinTool.FileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release plugin bintool file: %w", err)
+	}
+
+	content, err := file.Content(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upstream release plugin bintool content: %w", err)
+	}
+
+	localFileName, err := m.saveTempFile(ctx, content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save release plugin bintool to temp file: %w", err)
+	}
+
+	return m.tempFileGroup.GetFile(ctx, localFileName)
+}
+
+// nolint: unused
+func (m *Manager) fetchReleasePluginBinToolV3ToLocal(ctx contextx.IContext) (fileiface.File, error) {
+	// get plugin bintool.
+	pluginBinTool, err := m.storageRelease.GetReleasePluginBinToolV3(ctx, types.Generation2)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
+	}
+
+	file, err := m.upstreamReleasePluginBinTool.GetFile(ctx, pluginBinTool.FileName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upstream release plugin bintool file: %w", err)
 	}
