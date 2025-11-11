@@ -502,9 +502,9 @@ func (svc *Service) registerBasicServer() error {
 }
 
 func (svc *Service) registerDownloadServer() error {
-	if svc.conf.AdminServer.AuthIdentity != config.AuthIdentityNone {
+	if svc.conf.DownloadServer.AuthIdentity != config.AuthIdentityNone {
 		return fmt.Errorf("no support this auth identity, auth-identity(%s), support auth-identity(%v)",
-			svc.conf.AdminServer.AuthIdentity, config.AuthIdentityNone)
+			svc.conf.DownloadServer.AuthIdentity, config.AuthIdentityNone)
 	}
 
 	authIdentity, err := newAuthIdentity(svc.conf.DownloadServer)
