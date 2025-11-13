@@ -26,8 +26,7 @@ type IStorage interface {
 	IDaoProxy
 	IDaoBinTool
 	IDaoCert
-	IDaoPluginBinToolV2
-	IDaoPluginBinToolV3
+	IDaoPluginBinTool
 	IDaoPlugin
 }
 
@@ -82,34 +81,19 @@ type IDaoBinTool interface {
 	DeleteReleaseBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error
 }
 
-// IDaoPluginBinToolV2 defines the plugin bin tool v2 interface.
-type IDaoPluginBinToolV2 interface {
-	// GetReleasePluginBinToolV2 gets release plugin bintool v2.
-	GetReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinToolV2, error)
+// IDaoPluginBinTool defines the plugin bin tool interface.
+type IDaoPluginBinTool interface {
+	// GetReleasePluginBinTool gets release plugin bintool.
+	GetReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, name string) (*types.ReleasePluginBinTool, error)
 
-	// ExistReleasePluginBinToolV2 checks if release plugin bintool v2 exists.
-	ExistReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation) (bool, error)
+	// ExistReleasePluginBinTool checks if release plugin bintool exists.
+	ExistReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (bool, error)
 
-	// UpsertReleasePluginBinToolV2 upserts release plugin bintool v2.
-	UpsertReleasePluginBinToolV2(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinToolV2) error
+	// UpsertReleasePluginBinTool upserts release plugin bintool.
+	UpsertReleasePluginBinTool(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error
 
-	// DeleteReleasePluginBinToolV2 deletes release plugin bintool v2.
-	DeleteReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation, fileName string) error
-}
-
-// IDaoPluginBinToolV3 defines the plugin bin tool v3 interface.
-type IDaoPluginBinToolV3 interface {
-	// GetReleasePluginBinToolV3 gets release plugin bintool v3.
-	GetReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinToolV3, error)
-
-	// ExistReleasePluginBinToolV3 checks if release plugin bintool v3 exists.
-	ExistReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation) (bool, error)
-
-	// UpsertReleasePluginBinToolV3 upserts release plugin bintool v3.
-	UpsertReleasePluginBinToolV3(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinToolV3) error
-
-	// DeleteReleasePluginBinToolV3 deletes release plugin bintool v3.
-	DeleteReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation, fileName string) error
+	// DeleteReleasePluginBinTool deletes release plugin bintool.
+	DeleteReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error
 }
 
 // IDaoPlugin defines the interface of plugin.

@@ -280,126 +280,64 @@ func (s *Storage) UpsertManyReleaseProxy(ctx contextx.IContext, releaseProxys []
 	return err
 }
 
-// UpsertReleasePluginBinToolV2 upserts release plugin bintool.
-func (s *Storage) UpsertReleasePluginBinToolV2(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinToolV2) error {
+// UpsertReleasePluginBinTool upserts release plugin bintool.
+func (s *Storage) UpsertReleasePluginBinTool(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error {
 	var (
 		err error
 	)
 
 	// record metric.
-	metric := s.metric().Start("upsert_release_plugin_bintool_v2")
+	metric := s.metric().Start("upsert_release_plugin_bintool")
 	defer metric.End(err)
 
-	err = s.upsertReleasePluginBinToolV2(ctx, pluginBinTool)
+	err = s.upsertReleasePluginBinTool(ctx, pluginBinTool)
 
 	return err
 }
 
-// DeleteReleasePluginBinToolV2 deletes release plugin bintool.
-func (s *Storage) DeleteReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation, fileName string) error {
+// DeleteReleasePluginBinTool deletes release plugin bintool.
+func (s *Storage) DeleteReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error {
 	var (
 		err error
 	)
 
 	// record metric.
-	metric := s.metric().Start("delete_release_plugin_bintool_v2")
+	metric := s.metric().Start("delete_release_plugin_bintool")
 	defer metric.End(err)
 
-	err = s.deleteReleasePluginBinToolV2(ctx, gen, fileName)
+	err = s.deleteReleasePluginBinTool(ctx, gen, fileName)
 
 	return err
 }
 
-// GetReleasePluginBinToolV2 gets release plugin bintool.
-func (s *Storage) GetReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinToolV2, error) {
+// GetReleasePluginBinTool gets release plugin bintool.
+func (s *Storage) GetReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, name string) (*types.ReleasePluginBinTool, error) {
 	var (
-		data *types.ReleasePluginBinToolV2
+		data *types.ReleasePluginBinTool
 		err  error
 	)
 
 	// record metric.
-	metric := s.metric().Start("get_release_plugin_bintool_v2")
+	metric := s.metric().Start("get_release_plugin_bintool")
 	defer metric.End(err)
 
-	data, err = s.getReleasePluginBinToolV2(ctx, gen)
+	data, err = s.getReleasePluginBinTool(ctx, gen, name)
 
 	return data, err
 }
 
-// ExistReleasePluginBinToolV2 checks if release plugin bintool exists.
-func (s *Storage) ExistReleasePluginBinToolV2(ctx contextx.IContext, gen types.Generation) (bool, error) {
+// ExistReleasePluginBinTool checks if release plugin bintool exists.
+func (s *Storage) ExistReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (bool, error) {
 	var (
 		result bool
 		err    error
 	)
 
 	// record metric.
-	metric := s.metric().Start("exist_release_plugin_bintool_v2")
+	metric := s.metric().Start("exist_release_plugin_bintool")
 	defer metric.End(err)
 
-	result, err = s.existReleasePluginBinToolV2(ctx, gen)
-
-	return result, err
-}
-
-// UpsertReleasePluginBinToolV3 upserts release plugin bintool.
-func (s *Storage) UpsertReleasePluginBinToolV3(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinToolV3) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("upsert_release_plugin_bintool_v3")
-	defer metric.End(err)
-
-	err = s.upsertReleasePluginBinToolV3(ctx, pluginBinTool)
-
-	return err
-}
-
-// DeleteReleasePluginBinToolV3 deletes release plugin bintool.
-func (s *Storage) DeleteReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation, fileName string) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("delete_release_plugin_bintool_v3")
-	defer metric.End(err)
-
-	err = s.deleteReleasePluginBinToolV3(ctx, gen, fileName)
-
-	return err
-}
-
-// GetReleasePluginBinToolV3 gets release plugin bintool.
-func (s *Storage) GetReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation) (*types.ReleasePluginBinToolV3, error) {
-	var (
-		data *types.ReleasePluginBinToolV3
-		err  error
-	)
-
-	// record metric.
-	metric := s.metric().Start("get_release_plugin_bintool_v3")
-	defer metric.End(err)
-
-	data, err = s.getReleasePluginBinToolV3(ctx, gen)
-
-	return data, err
-}
-
-// ExistReleasePluginBinToolV3 checks if release plugin bintool exists.
-func (s *Storage) ExistReleasePluginBinToolV3(ctx contextx.IContext, gen types.Generation) (bool, error) {
-	var (
-		result bool
-		err    error
-	)
-
-	// record metric.
-	metric := s.metric().Start("exist_release_plugin_bintool_v3")
-	defer metric.End(err)
-
-	result, err = s.existReleasePluginBinToolV3(ctx, gen)
+	result, err = s.existReleasePluginBinTool(ctx, gen)
 
 	return result, err
 }

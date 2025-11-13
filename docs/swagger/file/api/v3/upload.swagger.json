@@ -600,10 +600,6 @@
     "v3UploadOriginPluginBinToolReq": {
       "type": "object",
       "properties": {
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
         "overwrite": {
           "type": "boolean"
         }

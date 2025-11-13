@@ -105,46 +105,24 @@ func (h *handler) PublishReleaseBinTool(rCtx restserver.IContext) (interface{}, 
 	return resp.GetData(), nil
 }
 
-// PublishReleasePluginBinToolV2 publish release plugin bintool v2.
-func (h *handler) PublishReleasePluginBinToolV2(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoFile.PublishReleasePluginBinToolV2Req)
+// PublishReleasePluginBinTool publish release plugin bintool .
+func (h *handler) PublishReleasePluginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoFile.PublishReleasePluginBinToolReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin bintool v2, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleasePluginBinToolV2(rCtx, uploadID); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool v2")
+	if err := h.manager.PublishReleasePluginBinTool(rCtx, uploadID); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
-	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release plugin bintool v2")
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release plugin bintool")
 
-	resp := new(protoFile.PublishReleasePluginBinToolV2Resp)
-
-	return resp.GetData(), nil
-}
-
-// PublishReleasePluginBinToolV3 publish release plugin bintool v3.
-func (h *handler) PublishReleasePluginBinToolV3(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoFile.PublishReleasePluginBinToolV3Req)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin bintool v3, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleasePluginBinToolV3(rCtx, uploadID); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool v3")
-
-		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
-	}
-
-	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release plugin bintool v3")
-
-	resp := new(protoFile.PublishReleasePluginBinToolV3Resp)
+	resp := new(protoFile.PublishReleasePluginBinToolResp)
 
 	return resp.GetData(), nil
 }

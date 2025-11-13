@@ -41,8 +41,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 	h.rg.POST("/release/proxy", restserver.Handler(h.PublishReleaseProxy))
 	h.rg.POST("/release/cert", restserver.Handler(h.PublishReleaseCert))
 	h.rg.POST("/release/bintool", restserver.Handler(h.PublishReleaseBinTool))
-	h.rg.POST("/release/v2/plugin_bintool", restserver.Handler(h.PublishReleasePluginBinToolV2))
-	h.rg.POST("/release/v3/plugin_bintool", restserver.Handler(h.PublishReleasePluginBinToolV3))
+	h.rg.POST("/release/plugin_bintool", restserver.Handler(h.PublishReleasePluginBinTool))
 	h.rg.POST("/release/v2/plugin", restserver.Handler(h.PublishReleasePluginV2))
 	h.rg.POST("/release/v2/external_plugin", restserver.Handler(h.PublishReleaseExternalPluginV2))
 }

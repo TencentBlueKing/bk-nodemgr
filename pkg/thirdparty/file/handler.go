@@ -77,26 +77,28 @@ type IPkgManager interface {
 // IPkgUploadHandler defines the interface of pkg upload.
 type IPkgUploadHandler interface {
 	// UploadOriginAgent upload origin agent.
-	UploadOriginAgent(nCtx contextx.IContext, fileName string, file io.Reader) (
-		*types.OriginPkgDetail, error)
+	UploadOriginAgent(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (*types.OriginPkgDetail, error)
 
 	// UploadOriginServer upload origin server.
-	UploadOriginServer(nCtx contextx.IContext, fileName string, file io.Reader) (
-		*types.OriginPkgDetail, error)
+	UploadOriginServer(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (*types.OriginPkgDetail, error)
 
 	// UploadOriginCert upload origin cert.
-	UploadOriginCert(nCtx contextx.IContext, fileName string, file io.Reader) (
-		*types.OriginCertPkgDetail, error)
+	UploadOriginCert(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (*types.OriginCertPkgDetail, error)
 
 	// UploadOriginBinTool upload origin bintool.
-	UploadOriginBinTool(nCtx contextx.IContext, fileName string, file io.Reader) (
+	UploadOriginBinTool(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (
 		*types.OriginBinToolPkgDetail, error)
 
 	// UploadOriginPluginV2 upload origin plugin v2.
-	UploadOriginPluginV2(nCtx contextx.IContext, fileName string, file io.Reader) (*types.OriginPluginV2PkgDetail, error)
+	UploadOriginPluginV2(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (*types.OriginPluginV2PkgDetail, error)
 
 	// UploadOriginExternalPluginV2 upload origin external plugin v2.
-	UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName string, file io.Reader) (*types.OriginExternalPluginV2PkgDetail, error)
+	UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (
+		*types.OriginExternalPluginV2PkgDetail, error)
+
+	// UploadOriginPluginBinTool upload origin plugin bin tool.
+	UploadOriginPluginBinTool(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (
+		*types.OriginPluginBinToolPkgDetail, error)
 }
 
 // IPkgPublishHandler defines the interface of pkg publish.
@@ -118,6 +120,9 @@ type IPkgPublishHandler interface {
 
 	// PublishReleaseExternalPluginV2 publish release external plugin v2.
 	PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleasePluginBinTool publish release plugin bin tool.
+	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error
 }
 
 // IPkgDownloadHandler define the interface of pkg download.
@@ -152,27 +157,26 @@ func New(c *restclient.Capability, conf *Config) (IHandler, error) {
 }
 
 // UploadOriginAgent upload origin agent.
-func (h *handler) UploadOriginAgent(nCtx contextx.IContext, fileName string, file io.Reader) (
+func (h *handler) UploadOriginAgent(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (
 	*types.OriginPkgDetail, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
 
-	tenantID := nCtx.TenantID()
-
-	resp, err := h.cli.uploadOriginAgent(
-		nCtx, tenantID, &protoFile.UploadOriginAgentReq{Generation: int64(types.Generation2)}, fileName, file)
-	if err != nil {
-		return nil, err
+	if gen != types.Generation2 {
+		return nil, fmt.Errorf("param generateion(%d) invalid, only generation2 is supported for origin agent upload", gen)
 	}
 
-	plats := make([]platfmt.Platform, 0)
-	for _, plat := range resp.GetPlatforms() {
-		plats = append(plats, platfmt.Platform{
-			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: criteria.CPUArch(plat.GetCpuArch()),
-		})
+	tenantID := nCtx.TenantID()
+
+	params := &protoFile.UploadOriginAgentReq{
+		Generation: int64(gen),
+		Overwrite:  overwrite,
+	}
+	resp, err := h.cli.uploadOriginAgent(nCtx, tenantID, params, fileName, file)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.OriginPkgDetail{
@@ -184,34 +188,32 @@ func (h *handler) UploadOriginAgent(nCtx contextx.IContext, fileName string, fil
 		UploadID:    resp.GetUploadId(),
 		Existed:     resp.GetExisted(),
 		Version:     resp.GetVersion(),
-		Platforms:   plats,
+		Platforms:   resp.ConvertPlatformsToTypes(),
 		ChangeLogEN: resp.GetChangelogEn(),
 		ChangeLogZH: resp.GetChangelogZh(),
 	}, nil
 }
 
 // UploadOriginServer upload origin server.
-func (h *handler) UploadOriginServer(nCtx contextx.IContext, fileName string, file io.Reader) (
+func (h *handler) UploadOriginServer(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (
 	*types.OriginPkgDetail, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
 
-	tenantID := nCtx.TenantID()
-
-	resp, err := h.cli.uploadOriginServer(
-		nCtx, tenantID, &protoFile.UploadOriginServerReq{Generation: int64(types.Generation2)}, fileName, file)
-	if err != nil {
-		return nil, err
+	if gen != types.Generation2 {
+		return nil, fmt.Errorf("param generateion(%d) invalid, only generation2 is supported for origin server upload", gen)
 	}
 
-	plats := make([]platfmt.Platform, 0)
-	for _, plat := range resp.GetPlatforms() {
-		plats = append(plats, platfmt.Platform{
-			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: criteria.CPUArch(plat.GetCpuArch()),
-		})
+	tenantID := nCtx.TenantID()
+	params := &protoFile.UploadOriginServerReq{
+		Generation: int64(gen),
+		Overwrite:  overwrite,
+	}
+	resp, err := h.cli.uploadOriginServer(nCtx, tenantID, params, fileName, file)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.OriginPkgDetail{
@@ -223,21 +225,19 @@ func (h *handler) UploadOriginServer(nCtx contextx.IContext, fileName string, fi
 		UploadID:  resp.GetUploadId(),
 		Existed:   resp.GetExisted(),
 		Version:   resp.GetVersion(),
-		Platforms: plats,
+		Platforms: resp.ConvertPlatformsToTypes(),
 	}, nil
 }
 
 // UploadOriginCert upload origin cert.
-func (h *handler) UploadOriginCert(nCtx contextx.IContext, fileName string, file io.Reader) (
-	*types.OriginCertPkgDetail, error) {
-
+func (h *handler) UploadOriginCert(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (*types.OriginCertPkgDetail, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
 
 	tenantID := nCtx.TenantID()
-
-	resp, err := h.cli.uploadOriginCert(nCtx, tenantID, &protoFile.UploadOriginCertReq{}, fileName, file)
+	params := &protoFile.UploadOriginCertReq{Overwrite: overwrite}
+	resp, err := h.cli.uploadOriginCert(nCtx, tenantID, params, fileName, file)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +255,7 @@ func (h *handler) UploadOriginCert(nCtx contextx.IContext, fileName string, file
 }
 
 // UploadOriginBinTool upload origin bintool.
-func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, file io.Reader) (
+func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (
 	*types.OriginBinToolPkgDetail, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -263,25 +263,13 @@ func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, f
 	}
 
 	tenantID := nCtx.TenantID()
-
-	resp, err := h.cli.uploadOriginBinTool(nCtx, tenantID, &protoFile.UploadOriginBinToolReq{}, fileName, file)
+	params := &protoFile.UploadOriginBinToolReq{
+		Generation: int64(gen),
+		Overwrite:  overwrite,
+	}
+	resp, err := h.cli.uploadOriginBinTool(nCtx, tenantID, params, fileName, file)
 	if err != nil {
 		return nil, err
-	}
-
-	agentPlats := make([]platfmt.Platform, 0)
-	for _, plat := range resp.GetAgentPlatforms() {
-		agentPlats = append(agentPlats, platfmt.Platform{
-			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: criteria.CPUArch(plat.GetCpuArch()),
-		})
-	}
-	proxyPlats := make([]platfmt.Platform, 0)
-	for _, plat := range resp.GetProxyPlatforms() {
-		proxyPlats = append(proxyPlats, platfmt.Platform{
-			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: criteria.CPUArch(plat.GetCpuArch()),
-		})
 	}
 
 	return &types.OriginBinToolPkgDetail{
@@ -292,8 +280,8 @@ func (h *handler) UploadOriginBinTool(nCtx contextx.IContext, fileName string, f
 		},
 		UploadID:       resp.GetUploadId(),
 		Existed:        resp.GetExisted(),
-		AgentPlatforms: agentPlats,
-		ProxyPlatforms: proxyPlats,
+		AgentPlatforms: resp.ConvertAgentPlatformsToTypes(),
+		ProxyPlatforms: resp.ConvertProxyPlatformsToTypes(),
 	}, nil
 }
 
@@ -304,11 +292,8 @@ func (h *handler) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 	}
 
 	tenantID := nCtx.TenantID()
-
-	_, err := h.cli.publishReleaseAgent(nCtx, tenantID, &protoFile.PublishReleaseAgentReq{
-		UploadId: uploadID,
-	})
-	if err != nil {
+	params := &protoFile.PublishReleaseAgentReq{UploadId: uploadID}
+	if _, err := h.cli.publishReleaseAgent(nCtx, tenantID, params); err != nil {
 		return err
 	}
 
@@ -324,13 +309,13 @@ func (h *handler) DownloadReleaseAgent(nCtx contextx.IContext,
 	}
 
 	tenantID := nCtx.TenantID()
-
-	resp, err := h.cli.downloadReleaseAgent(nCtx, tenantID, &protoFile.DownloadAgentReq{
+	params := &protoFile.DownloadAgentReq{
 		OsType:     string(plat.OS),
 		CpuArch:    string(plat.Arch),
 		Version:    version,
 		Generation: int64(gen),
-	})
+	}
+	resp, err := h.cli.downloadReleaseAgent(nCtx, tenantID, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download release agent: %w", err)
 	}
@@ -347,13 +332,13 @@ func (h *handler) DownloadReleaseProxy(nCtx contextx.IContext,
 	}
 
 	tenantID := nCtx.TenantID()
-
-	resp, err := h.cli.downloadReleaseProxy(nCtx, tenantID, &protoFile.DownloadProxyReq{
+	params := &protoFile.DownloadProxyReq{
 		OsType:     string(plat.OS),
 		CpuArch:    string(plat.Arch),
 		Version:    version,
 		Generation: int64(gen),
-	})
+	}
+	resp, err := h.cli.downloadReleaseProxy(nCtx, tenantID, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download release proxy: %w", err)
 	}
@@ -370,13 +355,13 @@ func (h *handler) DownloadReleasePlugin(nCtx contextx.IContext,
 	}
 
 	tenantID := nCtx.TenantID()
-
-	resp, err := h.cli.downloadReleasePlugin(nCtx, tenantID, &protoFile.DownloadPluginReq{
+	params := &protoFile.DownloadPluginReq{
 		OsType:     string(plat.OS),
 		CpuArch:    string(plat.Arch),
 		Version:    version,
 		PluginName: pluginName,
-	})
+	}
+	resp, err := h.cli.downloadReleasePlugin(nCtx, tenantID, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download release plugin: %w", err)
 	}
@@ -391,11 +376,8 @@ func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 	}
 
 	tenantID := nCtx.TenantID()
-
-	_, err := h.cli.publishReleaseProxy(nCtx, tenantID, &protoFile.PublishReleaseProxyReq{
-		UploadId: uploadID,
-	})
-	if err != nil {
+	params := &protoFile.PublishReleaseProxyReq{UploadId: uploadID}
+	if _, err := h.cli.publishReleaseProxy(nCtx, tenantID, params); err != nil {
 		return err
 	}
 
@@ -409,11 +391,8 @@ func (h *handler) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 	}
 
 	tenantID := nCtx.TenantID()
-
-	_, err := h.cli.publishReleaseCert(nCtx, tenantID, &protoFile.PublishReleaseCertReq{
-		UploadId: uploadID,
-	})
-	if err != nil {
+	params := &protoFile.PublishReleaseCertReq{UploadId: uploadID}
+	if _, err := h.cli.publishReleaseCert(nCtx, tenantID, params); err != nil {
 		return err
 	}
 
@@ -427,11 +406,8 @@ func (h *handler) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 	}
 
 	tenantID := nCtx.TenantID()
-
-	_, err := h.cli.publishReleaseBinTool(nCtx, tenantID, &protoFile.PublishReleaseBinToolReq{
-		UploadId: uploadID,
-	})
-	if err != nil {
+	params := &protoFile.PublishReleaseBinToolReq{UploadId: uploadID}
+	if _, err := h.cli.publishReleaseBinTool(nCtx, tenantID, params); err != nil {
 		return err
 	}
 
@@ -631,7 +607,7 @@ func (handler *simpleTransferHandler) WaitUntilDone(nCtx contextx.IContext) (*ty
 }
 
 // UploadOriginPluginV2 upload origin plugin v2.
-func (h *handler) UploadOriginPluginV2(nCtx contextx.IContext, fileName string, file io.Reader) (
+func (h *handler) UploadOriginPluginV2(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (
 	*types.OriginPluginV2PkgDetail, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -639,18 +615,10 @@ func (h *handler) UploadOriginPluginV2(nCtx contextx.IContext, fileName string, 
 	}
 
 	tenantID := nCtx.TenantID()
-
-	data, err := h.cli.uploadOriginPluginV2(nCtx, tenantID, &protoFile.UploadOriginPluginV2Req{}, fileName, file)
+	params := &protoFile.UploadOriginPluginV2Req{Overwrite: overwrite}
+	data, err := h.cli.uploadOriginPluginV2(nCtx, tenantID, params, fileName, file)
 	if err != nil {
 		return nil, err
-	}
-
-	plats := make([]platfmt.Platform, 0)
-	for _, plat := range data.GetPlatforms() {
-		plats = append(plats, platfmt.Platform{
-			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: criteria.CPUArch(plat.GetCpuArch()),
-		})
 	}
 
 	return &types.OriginPluginV2PkgDetail{
@@ -667,12 +635,12 @@ func (h *handler) UploadOriginPluginV2(nCtx contextx.IContext, fileName string, 
 		ConfigFile:   data.GetConfigFile(),
 		ConfigFormat: data.GetConfigFormat(),
 		LaunchNode:   data.GetLaunchNode(),
-		Platforms:    plats,
+		Platforms:    data.ConvertPlatformsToTypes(),
 	}, nil
 }
 
 // UploadOriginExternalPluginV2 upload origin external plugin v2.
-func (h *handler) UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName string, file io.Reader) (
+func (h *handler) UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (
 	*types.OriginExternalPluginV2PkgDetail, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -680,18 +648,10 @@ func (h *handler) UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName 
 	}
 
 	tenantID := nCtx.TenantID()
-
-	data, err := h.cli.uploadOriginExternalPluginV2(nCtx, tenantID, &protoFile.UploadOriginExternalPluginV2Req{}, fileName, file)
+	params := &protoFile.UploadOriginExternalPluginV2Req{Overwrite: overwrite}
+	data, err := h.cli.uploadOriginExternalPluginV2(nCtx, tenantID, params, fileName, file)
 	if err != nil {
 		return nil, err
-	}
-
-	plats := make([]platfmt.Platform, 0)
-	for _, plat := range data.GetPlatforms() {
-		plats = append(plats, platfmt.Platform{
-			OS:   criteria.OSType(plat.GetOsType()),
-			Arch: criteria.CPUArch(plat.GetCpuArch()),
-		})
 	}
 
 	return &types.OriginExternalPluginV2PkgDetail{
@@ -708,7 +668,7 @@ func (h *handler) UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName 
 		ConfigFile:   data.GetConfigFile(),
 		ConfigFormat: data.GetConfigFormat(),
 		LaunchNode:   data.GetLaunchNode(),
-		Platforms:    plats,
+		Platforms:    data.ConvertPlatformsToTypes(),
 	}, nil
 }
 
@@ -719,11 +679,8 @@ func (h *handler) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 	}
 
 	tenantID := nCtx.TenantID()
-
-	_, err := h.cli.publishReleasePluginV2(nCtx, tenantID, &protoFile.PublishReleasePluginV2Req{
-		UploadId: uploadID,
-	})
-	if err != nil {
+	params := &protoFile.PublishReleasePluginV2Req{UploadId: uploadID}
+	if _, err := h.cli.publishReleasePluginV2(nCtx, tenantID, params); err != nil {
 		return err
 	}
 
@@ -737,11 +694,73 @@ func (h *handler) PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadI
 	}
 
 	tenantID := nCtx.TenantID()
+	params := &protoFile.PublishReleaseExternalPluginV2Req{UploadId: uploadID}
+	if _, err := h.cli.publishReleaseExternalPluginV2(nCtx, tenantID, params); err != nil {
+		return err
+	}
 
-	_, err := h.cli.publishReleaseExternalPluginV2(nCtx, tenantID, &protoFile.PublishReleaseExternalPluginV2Req{
-		UploadId: uploadID,
-	})
+	return nil
+}
+
+// UploadOriginPluginBinTool upload origin plugin bin tool.
+func (h *handler) UploadOriginPluginBinTool(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (
+	*types.OriginPluginBinToolPkgDetail, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.UploadOriginPluginBinToolReq{
+		Overwrite: overwrite,
+	}
+	data, err := h.cli.uploadOriginPluginBinTool(nCtx, tenantID, params, fileName, file)
 	if err != nil {
+		return nil, err
+	}
+
+	platsV2 := make([]platfmt.Platform, 0)
+	for _, plat := range data.GetV2().GetPlatforms() {
+		platsV2 = append(platsV2, platfmt.Platform{
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
+		})
+	}
+
+	platsV3 := make([]platfmt.Platform, 0)
+	for _, plat := range data.GetV3().GetPlatforms() {
+		platsV3 = append(platsV3, platfmt.Platform{
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
+		})
+	}
+
+	return &types.OriginPluginBinToolPkgDetail{
+		FileInfo: fileiface.FileInfo{
+			Name: data.GetName(),
+			Size: data.GetSize(),
+			MD5:  data.GetMd5(),
+		},
+		UploadID: data.GetUploadId(),
+		Existed:  data.GetExisted(),
+		V2: types.OriginPluginBinToolPkgV2Info{
+			Platforms: platsV2,
+		},
+		V3: types.OriginPluginBinToolPkgV3Info{
+			Platforms: platsV3,
+		},
+	}, nil
+}
+
+// PublishReleasePluginBinTool publish release plugin bin tool.
+func (h *handler) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.PublishReleasePluginBinToolReq{UploadId: uploadID}
+	if _, err := h.cli.publishReleasePluginBinTool(nCtx, tenantID, params); err != nil {
 		return err
 	}
 

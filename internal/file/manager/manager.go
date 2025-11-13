@@ -46,7 +46,7 @@ type IManager interface {
 	IServer
 	ICert
 	IBinTool
-	IPluginBinToolV2
+	IPluginBinTool
 	IPluginV2
 	IExternalPluginV2
 
@@ -507,35 +507,9 @@ func (m *Manager) fetchReleaseBinToolToLocal(ctx contextx.IContext) (fileiface.F
 	return m.tempFileGroup.GetFile(ctx, localFileName)
 }
 
-func (m *Manager) fetchReleasePluginBinToolV2ToLocal(ctx contextx.IContext) (fileiface.File, error) {
+func (m *Manager) fetchReleasePluginBinToolToLocal(ctx contextx.IContext, name string) (fileiface.File, error) {
 	// get plugin bintool.
-	pluginBinTool, err := m.storageRelease.GetReleasePluginBinToolV2(ctx, types.Generation2)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
-	}
-
-	file, err := m.upstreamReleasePluginBinTool.GetFile(ctx, pluginBinTool.FileName)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get upstream release plugin bintool file: %w", err)
-	}
-
-	content, err := file.Content(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get upstream release plugin bintool content: %w", err)
-	}
-
-	localFileName, err := m.saveTempFile(ctx, content)
-	if err != nil {
-		return nil, fmt.Errorf("failed to save release plugin bintool to temp file: %w", err)
-	}
-
-	return m.tempFileGroup.GetFile(ctx, localFileName)
-}
-
-// nolint: unused
-func (m *Manager) fetchReleasePluginBinToolV3ToLocal(ctx contextx.IContext) (fileiface.File, error) {
-	// get plugin bintool.
-	pluginBinTool, err := m.storageRelease.GetReleasePluginBinToolV3(ctx, types.Generation2)
+	pluginBinTool, err := m.storageRelease.GetReleasePluginBinTool(ctx, types.Generation2, name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release plugin bintool: %w", err)
 	}

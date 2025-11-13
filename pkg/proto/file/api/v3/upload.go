@@ -13,6 +13,8 @@ package v3
 import (
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -116,6 +118,16 @@ func (x *UploadOriginAgentResp) ConvertResultFromTypes(generated bool, detail *t
 	x.Data = data
 }
 
+// ConvertPlatformsToTypes convert platforms to types.
+func (x *UploadOriginAgentResp_Data) ConvertPlatformsToTypes() []platform.Platform {
+	plats := make([]platform.Platform, 0)
+	for _, plat := range x.GetPlatforms() {
+		plats = append(plats, ConvertPlatformToTypes(plat))
+	}
+
+	return plats
+}
+
 // Validate check request body.
 func (x *UploadOriginServerReq) Validate() error {
 	if x.GetGeneration() == 0 {
@@ -160,6 +172,16 @@ func (x *UploadOriginServerResp) ConvertResultFromTypes(generated bool, detail *
 	data.Platforms = plats
 
 	x.Data = data
+}
+
+// ConvertPlatformsToTypes convert platforms to types.
+func (x *UploadOriginServerResp_Data) ConvertPlatformsToTypes() []platform.Platform {
+	plats := make([]platform.Platform, 0)
+	for _, plat := range x.GetPlatforms() {
+		plats = append(plats, ConvertPlatformToTypes(plat))
+	}
+
+	return plats
 }
 
 // Validate check request body.
@@ -242,6 +264,26 @@ func (x *UploadOriginBinToolResp) ConvertResultFromTypes(generated bool, detail 
 	data.ProxyPlatforms = proxyPlats
 
 	x.Data = data
+}
+
+// ConvertAgentPlatformsToTypes convert agent platforms to types.
+func (x *UploadOriginBinToolResp_Data) ConvertAgentPlatformsToTypes() []platform.Platform {
+	plats := make([]platform.Platform, 0)
+	for _, plat := range x.GetAgentPlatforms() {
+		plats = append(plats, ConvertPlatformToTypes(plat))
+	}
+
+	return plats
+}
+
+// ConvertProxyPlatformsToTypes convert proxy platforms to types.
+func (x *UploadOriginBinToolResp_Data) ConvertProxyPlatformsToTypes() []platform.Platform {
+	plats := make([]platform.Platform, 0)
+	for _, plat := range x.GetProxyPlatforms() {
+		plats = append(plats, ConvertPlatformToTypes(plat))
+	}
+
+	return plats
 }
 
 // Validate check request body.
@@ -344,6 +386,19 @@ func (x *UploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool, detail
 	x.Data = data
 }
 
+// ConvertPlatformsToTypes convert platforms to types.
+func (x *UploadOriginPluginV2Resp_Data) ConvertPlatformsToTypes() []platform.Platform {
+	plats := make([]platform.Platform, 0)
+	for _, plat := range x.GetPlatforms() {
+		plats = append(plats, platform.Platform{
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
+		})
+	}
+
+	return plats
+}
+
 // Validate check request body.
 func (x *UploadOriginExternalPluginV2Req) Validate() error {
 	return nil
@@ -394,4 +449,17 @@ func (x *UploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generated bool
 	data.Platforms = plats
 
 	x.Data = data
+}
+
+// ConvertPlatformsToTypes convert platforms to types.
+func (x *UploadOriginExternalPluginV2Resp_Data) ConvertPlatformsToTypes() []platform.Platform {
+	plats := make([]platform.Platform, 0)
+	for _, plat := range x.GetPlatforms() {
+		plats = append(plats, platform.Platform{
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
+		})
+	}
+
+	return plats
 }

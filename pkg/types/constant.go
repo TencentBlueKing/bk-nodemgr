@@ -31,8 +31,11 @@ const (
 	// ReleaseNameBinTool defines the name of bintool.
 	ReleaseNameBinTool = "bintool"
 
-	// ReleaseNamePluginBinTool defines the name of plugin bintool.
-	ReleaseNamePluginBinTool = "plugin_bintool"
+	// ReleaseNamePluginBinToolV2 defines the name of plugin bintool v2.
+	ReleaseNamePluginBinToolV2 = "plugin_bintool_v2"
+
+	// ReleaseNamePluginBinToolV3 defines the name of plugin bintool v3.
+	ReleaseNamePluginBinToolV3 = "plugin_bintool_v3"
 
 	// ReleaseNameCert defines the name of cert.
 	ReleaseNameCert = "cert"

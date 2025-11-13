@@ -169,6 +169,34 @@ message PackageUploadOriginExternalPluginV2Resp {
   Data data = 5;
 }
 
+// UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool
+// pkg.
+message PackageUploadOriginPluginBinToolReq { bool overwrite = 1; }
+
+// UploadOriginPluginBinToolResp is the response for upload origin plugin bin
+// tool pkg.
+message PackageUploadOriginPluginBinToolResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+
+    message V2Info { repeated Platform platforms = 1; }
+    optional V2Info v2 = 7;
+
+    message V3Info { repeated Platform platforms = 1; }
+    optional V3Info v3 = 8;
+  }
+  Data data = 4;
+}
+
 // PackagePublishReleasePluginV2Req is the request for publish release plugin v2
 // pkg.
 message PackagePublishReleasePluginV2Req { string upload_id = 1; }
@@ -257,6 +285,21 @@ message PackagePublishReleaseBinToolResp {
 
   message Data {}
   Data data = 5;
+}
+
+// PublishReleasePluginBinToolReq is the request for upload release plugin
+// bintool pkg.
+message PackagePublishReleasePluginBinToolReq { string upload_id = 1; }
+
+// PublishReleasePluginBinToolResp is the response for upload release plugin
+// bintool pkg.
+message PackagePublishReleasePluginBinToolResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
 }
 
 // PackageReleaseExactConditions describes release exact conditions.
@@ -654,6 +697,15 @@ service Package {
     };
   }
 
+  // UploadOriginPluginBinTool provides origin plugin bintool upload.
+  rpc UploadOriginPluginBinTool(PackageUploadOriginPluginBinToolReq)
+      returns (PackageUploadOriginPluginBinToolResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/upload/origin/plugin_bintool"
+      body : "*"
+    };
+  }
+
   // PublishReleaseAgent provides release agent publish.
   rpc PublishReleaseAgent(PackagePublishReleaseAgentReq)
       returns (PackagePublishReleaseAgentResp) {
@@ -686,6 +738,15 @@ service Package {
       returns (PackagePublishReleaseBinToolResp) {
     option (google.api.http) = {
       post : "/api/v3/package/publish/release/bintool"
+      body : "*"
+    };
+  }
+
+  // PublishReleaseBinTool provides release bintool publish.
+  rpc PublishReleasePluginBinTool(PackagePublishReleasePluginBinToolReq)
+      returns (PackagePublishReleasePluginBinToolResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/publish/release/plugin_bintool"
       body : "*"
     };
   }

@@ -57,28 +57,13 @@ message PublishReleaseBinToolResp {
   Data data = 4;
 }
 
-// PublishReleasePluginBinToolV2Req is the request for upload release plugin
+// PublishReleasePluginBinToolReq is the request for upload release plugin
 // bintool pkg.
-message PublishReleasePluginBinToolV2Req { string upload_id = 1; }
+message PublishReleasePluginBinToolReq { string upload_id = 1; }
 
-// PublishReleasePluginBinToolV2Resp is the response for upload release plugin
+// PublishReleasePluginBinToolResp is the response for upload release plugin
 // bintool pkg.
-message PublishReleasePluginBinToolV2Resp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-
-  message Data {}
-  Data data = 4;
-}
-
-// PublishReleasePluginBinToolV3Req is the request for upload release plugin
-// bintool pkg.
-message PublishReleasePluginBinToolV3Req { string upload_id = 1; }
-
-// PublishReleasePluginBinToolV3Resp is the response for upload release plugin
-// bintool pkg.
-message PublishReleasePluginBinToolV3Resp {
+message PublishReleasePluginBinToolResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -155,20 +140,11 @@ service Publish {
     };
   }
 
-  // PublishReleasePluginBinToolV2 provides release plugin bintool publish.
-  rpc PublishReleasePluginBinToolV2(PublishReleasePluginBinToolV2Req)
-      returns (PublishReleasePluginBinToolV2Resp) {
+  // PublishReleasePluginBinTool provides release plugin bintool publish.
+  rpc PublishReleasePluginBinTool(PublishReleasePluginBinToolReq)
+      returns (PublishReleasePluginBinToolResp) {
     option (google.api.http) = {
-      post : "/publish/release/v2/plugin_bintool"
-      body : "*"
-    };
-  }
-
-  // PublishReleasePluginBinToolV3 provides release plugin bintool publish.
-  rpc PublishReleasePluginBinToolV3(PublishReleasePluginBinToolV3Req)
-      returns (PublishReleasePluginBinToolV3Resp) {
-    option (google.api.http) = {
-      post : "/publish/release/v3/plugin_bintool"
+      post : "/publish/release/plugin_bintool"
       body : "*"
     };
   }

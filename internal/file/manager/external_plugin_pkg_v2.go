@@ -444,7 +444,7 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 	}
 
 	// local plugin bintool.
-	localPluginBinTool, err := m.fetchReleasePluginBinToolV2ToLocal(nCtx)
+	localPluginBinTool, err := m.fetchReleasePluginBinToolToLocal(nCtx, types.ReleaseNamePluginBinToolV2)
 	if err != nil {
 		return nil, err
 	}

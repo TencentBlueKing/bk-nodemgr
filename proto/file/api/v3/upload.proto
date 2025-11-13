@@ -137,10 +137,7 @@ message UploadOriginBinToolResp {
 
 // UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool
 // pkg.
-message UploadOriginPluginBinToolReq {
-  int64 generation = 1;
-  bool overwrite = 2;
-}
+message UploadOriginPluginBinToolReq { bool overwrite = 1; }
 
 // UploadOriginPluginBinToolResp is the response for upload origin plugin bin
 // tool pkg.

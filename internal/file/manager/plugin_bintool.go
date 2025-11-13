@@ -20,20 +20,18 @@ import (
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IPluginBinToolV2 defines the interface for bin tool.
-type IPluginBinToolV2 interface {
+// IPluginBinTool defines the interface for bin tool.
+type IPluginBinTool interface {
 	// UploadOriginPluginBinTool upload origin plugin bintool package.
 	UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile io.ReadCloser) (
 		*types.OriginPluginBinToolPkgDetail, error)
 
-	// PublishReleasePluginBinToolV2 generate release plugin bintool package v2.
-	PublishReleasePluginBinToolV2(nCtx contextx.IContext, uploadID string) error
-
-	// PublishReleasePluginBinToolV3 generate release plugin bintool package v3.
-	PublishReleasePluginBinToolV3(nCtx contextx.IContext, uploadID string) error
+	// PublishReleasePluginBinTool generate release plugin bintool package.
+	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error
 }
 
 const (
@@ -96,20 +94,13 @@ func (m *Manager) UploadOriginPluginBinTool(nCtx contextx.IContext, binToolFile 
 	detail.FileInfo = file.Info()
 
 	// check if release existed.
-	existedV2, err := m.storageRelease.ExistReleasePluginBinToolV2(nCtx, types.Generation2)
+	detail.Existed, err = m.storageRelease.ExistReleasePluginBinTool(nCtx, types.Generation2)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package v2. failed to check if release existed")
-		return nil, err
-	}
-	existedV3, err := m.storageRelease.ExistReleasePluginBinToolV3(nCtx, types.Generation2)
-	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package v3. failed to check if release existed")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to check if release existed")
 		return nil, err
 	}
 
-	detail.Existed = existedV3 || existedV2
-
-	uploadID, err := m.storageUpload.CreatePluginBinToolV2Upload(nCtx, &types.Upload{
+	uploadID, err := m.storageUpload.CreatePluginBinToolUpload(nCtx, &types.Upload{
 		Category:  types.UploadCategoryOriginPluginBinTool,
 		SavedName: pkgName,
 	})
@@ -177,36 +168,54 @@ func checkOriginPluginBinToolPkg(file io.ReadCloser) (*types.OriginPluginBinTool
 	return detail, nil
 }
 
-// PublishReleasePluginBinToolV2 generates release plugin bintool v2 by upload-id.
+// PublishReleasePluginBinTool generates release plugin bintool by upload-id.
 // nolint: funlen
-func (m *Manager) PublishReleasePluginBinToolV2(nCtx contextx.IContext, uploadID string) error {
+func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetPluginBinToolUpload(nCtx, uploadID)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool v2, failed to get upload")
+		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool, failed to get upload")
 		return err
 	}
 
 	if up.Category != types.UploadCategoryOriginPluginBinTool {
-		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release plugin bintool v2, invalid category")
+		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release plugin bintool, invalid category")
 		return errors.New("invalid category")
 	}
 
 	// get origin file.
 	file, err := m.upstreamOriginPluginBinTool.GetFile(nCtx, up.SavedName)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin bintool v2, failed to get file")
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin bintool, failed to get file")
 		return err
 	}
 
+	gp := gopool.NewPool()
+	gp.Go(func() error {
+		return m.handlerPluginBinToolV2Pkg(nCtx, file)
+	})
+
+	gp.Go(func() error {
+		return m.handlerPluginBinToolV3Pkg(nCtx, file)
+	})
+
+	if err = gp.Wait(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to generate release package")
+		return err
+	}
+
+	return nil
+}
+
+func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile fileiface.File) error {
 	// get origin content.
-	content, err := file.Content(nCtx)
+	content, err := sourceFile.Content(nCtx)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin bintool v2, failed to get content")
+		logger.G.Biz(nCtx).WithErr(err).With("filename", sourceFile.Info().Name).Error("failed to publish release plugin bintool, failed to get content")
 		return err
 	}
 
 	// generate release file.
-	generatedFile, err := m.generatePluginBinToolPkg(nCtx, content, types.ReleaseTypePluginBinToolV2)
+	generatedFile, err := m.generatePluginBinToolV2Pkg(nCtx, content)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool v2, failed to generate plugin bintool v2 pkg")
 		return err
@@ -232,10 +241,11 @@ func (m *Manager) PublishReleasePluginBinToolV2(nCtx contextx.IContext, uploadID
 	// get release info.
 	releaseInfo := releaseFile.Info()
 
-	pluginBinToolInfo := &types.ReleasePluginBinToolV2{
+	pluginBinToolInfo := &types.ReleasePluginBinTool{
 		Release: types.Release{
+			Name:         types.ReleaseNamePluginBinToolV2,
 			Generation:   types.Generation2,
-			Type:         types.ReleaseTypePluginBinToolV2,
+			Type:         types.ReleaseTypePluginBinTool,
 			Platform:     platfmt.EmptyPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
@@ -248,7 +258,7 @@ func (m *Manager) PublishReleasePluginBinToolV2(nCtx contextx.IContext, uploadID
 		},
 	}
 	// upsert release plugin bintool v2.
-	if err = m.storageRelease.UpsertReleasePluginBinToolV2(nCtx, *pluginBinToolInfo); err != nil {
+	if err = m.storageRelease.UpsertReleasePluginBinTool(nCtx, *pluginBinToolInfo); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool v2, failed to upsert release plugin bintool v2")
 		return err
 	}
@@ -260,36 +270,16 @@ func (m *Manager) PublishReleasePluginBinToolV2(nCtx contextx.IContext, uploadID
 	return nil
 }
 
-// PublishReleasePluginBinToolV3 generates release plugin bintool v3 by upload-id.
-// nolint: funlen
-func (m *Manager) PublishReleasePluginBinToolV3(nCtx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetPluginBinToolUpload(nCtx, uploadID)
-	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release plugin bintool v3, failed to get upload")
-		return err
-	}
-
-	if up.Category != types.UploadCategoryOriginPluginBinTool {
-		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release plugin bintool v3, invalid category")
-		return errors.New("invalid category")
-	}
-
-	// get origin file.
-	file, err := m.upstreamOriginPluginBinTool.GetFile(nCtx, up.SavedName)
-	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin bintool v3, failed to get file")
-		return err
-	}
-
+func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile fileiface.File) error {
 	// get origin content.
-	content, err := file.Content(nCtx)
+	content, err := sourceFile.Content(nCtx)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin bintool v3, failed to get content")
+		logger.G.Biz(nCtx).WithErr(err).With("filename", sourceFile.Info().Name).Error("failed to publish release plugin bintool, failed to get content")
 		return err
 	}
 
 	// generate release file.
-	generatedFile, err := m.generatePluginBinToolPkg(nCtx, content, types.ReleaseTypePluginBinToolV3)
+	generatedFile, err := m.generatePluginBinToolV3Pkg(nCtx, content)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool v3, failed to generate plugin bintool v3 pkg")
 		return err
@@ -315,10 +305,11 @@ func (m *Manager) PublishReleasePluginBinToolV3(nCtx contextx.IContext, uploadID
 	// get release info.
 	releaseInfo := releaseFile.Info()
 
-	pluginBinToolInfo := &types.ReleasePluginBinToolV3{
+	pluginBinToolInfo := &types.ReleasePluginBinTool{
 		Release: types.Release{
+			Name:         types.ReleaseNamePluginBinToolV3,
 			Generation:   types.Generation2,
-			Type:         types.ReleaseTypePluginBinToolV3,
+			Type:         types.ReleaseTypePluginBinTool,
 			Platform:     platfmt.EmptyPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
@@ -331,7 +322,7 @@ func (m *Manager) PublishReleasePluginBinToolV3(nCtx contextx.IContext, uploadID
 		},
 	}
 	// upsert release plugin bintool v3.
-	if err = m.storageRelease.UpsertReleasePluginBinToolV3(nCtx, *pluginBinToolInfo); err != nil {
+	if err = m.storageRelease.UpsertReleasePluginBinTool(nCtx, *pluginBinToolInfo); err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool v3, failed to upsert release plugin bintool v3")
 		return err
 	}
@@ -344,7 +335,7 @@ func (m *Manager) PublishReleasePluginBinToolV3(nCtx contextx.IContext, uploadID
 }
 
 // nolint: lll
-func (m *Manager) generatePluginBinToolPkg(nCtx contextx.IContext, sourceFile io.ReadCloser, releaseType types.ReleaseType) (io.ReadCloser, error) {
+func (m *Manager) generatePluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
 	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {
 		return nil, err
@@ -353,11 +344,6 @@ func (m *Manager) generatePluginBinToolPkg(nCtx contextx.IContext, sourceFile io
 	targetFile, err := m.openTempFile(nCtx, tempFileName)
 	if err != nil {
 		return nil, err
-	}
-
-	pkgGeneration := pluginBinToolDirNameGenerationV2
-	if releaseType == types.ReleaseTypePluginBinToolV3 {
-		pkgGeneration = pluginBinToolDirNameGenerationV3
 	}
 
 	if err = generateTgz(targetFile,
@@ -374,32 +360,101 @@ func (m *Manager) generatePluginBinToolPkg(nCtx contextx.IContext, sourceFile io
 			sourceFile: sourceFile,
 			fileRules: []tgzWriteRuleFile{
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pkgGeneration, pluginBinToolDirNamePlatLinuxAmd64, tgzPathMatchingSegment1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV2, pluginBinToolDirNamePlatLinuxAmd64, tgzPathMatchingSegment1},
 					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pkgGeneration, pluginBinToolDirNamePlatLinuxArm64, tgzPathMatchingSegment1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV2, pluginBinToolDirNamePlatLinuxArm64, tgzPathMatchingSegment1},
 					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pkgGeneration, pluginBinToolDirNamePlatDarwinAmd64, tgzPathMatchingSegment1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV2, pluginBinToolDirNamePlatDarwinAmd64, tgzPathMatchingSegment1},
 					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pkgGeneration, pluginBinToolDirNamePlatWindowsAmd64, tgzPathMatchingSegment1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV2, pluginBinToolDirNamePlatWindowsAmd64, tgzPathMatchingSegment1},
 					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pkgGeneration, pluginBinToolDirNamePlatAix6Ppc64, tgzPathMatchingSegment1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV2, pluginBinToolDirNamePlatAix6Ppc64, tgzPathMatchingSegment1},
 					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatAix6Ppc64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{pluginBinToolDirNameRoot, pkgGeneration, pluginBinToolDirNamePlatAix7Ppc64, tgzPathMatchingSegment1},
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV2, pluginBinToolDirNamePlatAix7Ppc64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatAix7Ppc64, tgzPathMatchingSegment1},
+					targetFileMode: tgzModeFile,
+				},
+			},
+		}},
+	); err != nil {
+		return nil, err
+	}
+
+	file, err := m.tempFileGroup.GetFile(nCtx, tempFileName)
+	if err != nil {
+		return nil, err
+	}
+
+	return file.Content(nCtx)
+}
+
+// nolint: lll
+func (m *Manager) generatePluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
+	tempFileName, err := m.createTempFile(nCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	targetFile, err := m.openTempFile(nCtx, tempFileName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = generateTgz(targetFile,
+		[]tgzWriteRuleDir{
+			{targetFilePath: []string{pluginBinToolDirNameRoot}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatAix6Ppc64}, targetFileMode: tgzModeDir},
+			{targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatAix7Ppc64}, targetFileMode: tgzModeDir},
+		},
+		[]*tgzWriteRuleStream{{
+			sourceFile: sourceFile,
+			fileRules: []tgzWriteRuleFile{
+				{
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV3, pluginBinToolDirNamePlatLinuxAmd64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxAmd64, tgzPathMatchingSegment1},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV3, pluginBinToolDirNamePlatLinuxArm64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatLinuxArm64, tgzPathMatchingSegment1},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV3, pluginBinToolDirNamePlatDarwinAmd64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatDarwinAmd64, tgzPathMatchingSegment1},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV3, pluginBinToolDirNamePlatWindowsAmd64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatWindowsAmd64, tgzPathMatchingSegment1},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV3, pluginBinToolDirNamePlatAix6Ppc64, tgzPathMatchingSegment1},
+					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatAix6Ppc64, tgzPathMatchingSegment1},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNameGenerationV3, pluginBinToolDirNamePlatAix7Ppc64, tgzPathMatchingSegment1},
 					targetFilePath: []string{pluginBinToolDirNameRoot, pluginBinToolDirNamePlatAix7Ppc64, tgzPathMatchingSegment1},
 					targetFileMode: tgzModeFile,
 				},

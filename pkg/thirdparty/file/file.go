@@ -272,6 +272,9 @@ func (c *cli) generateUploadFileBody(
 		if err := writer.WriteField("metadata", string(metadataStr)); err != nil {
 			return err
 		}
+		if err := writer.WriteField("filename", fileName); err != nil {
+			return err
+		}
 		fileField, err := writer.CreateFormFile("file", fileName)
 		if err != nil {
 			return fmt.Errorf("failed to create form file: %w", err)
@@ -737,6 +740,76 @@ func (c *cli) publishReleaseExternalPluginV2(nCtx contextx.IContext, tenantID st
 
 	if code := resp.GetCode(); code != CodeOK {
 		return nil, fmt.Errorf("failed to publish release external plugin v2. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) uploadOriginPluginBinTool(
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginPluginBinToolReq, fileName string, file io.Reader) (
+	*protoFile.UploadOriginPluginBinToolResp_Data, error) {
+
+	resp := new(protoFile.UploadOriginPluginBinToolResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.generateUploadFileBody(req, header, fileName, file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate upload file body: %w", err)
+	}
+	defer func() {
+		_ = body.Close()
+	}()
+
+	err = c.client.Post().
+		SubResourcef("/upload/origin/plugin_bintool").
+		WithContext(nCtx).
+		WithHeaders(header).
+		BodyReader(body).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to upload origin plugin bin tool. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to upload origin plugin bin tool, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
+func (c *cli) publishReleasePluginBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleasePluginBinToolReq) (
+	*protoFile.PublishReleasePluginBinToolResp_Data, error) {
+
+	resp := new(protoFile.PublishReleasePluginBinToolResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/publish/release/plugin_bintool").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to publish release plugin bin tool. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 

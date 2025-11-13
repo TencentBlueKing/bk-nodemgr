@@ -122,9 +122,21 @@ func (r *Request) ParseFileForm(body RequestBody) (*multipart.FileHeader, error)
 		return nil, fmt.Errorf("failed to parse metadata(%s), err(%v)", metaData, err)
 	}
 
+	// auto convert some fields in request body.
+	body.AutoConvert()
+
+	if err := body.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid metadata(%s), err(%v)", metaData, err)
+	}
+
 	file, err := r.gCtx.FormFile("file")
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse file, err(%v)", err)
+	}
+
+	fileName := r.gCtx.PostForm("filename")
+	if fileName != file.Filename {
+		return nil, fmt.Errorf("file name mismatch, form filename(%s) != file header filename(%s)", fileName, file.Filename)
 	}
 
 	return file, nil

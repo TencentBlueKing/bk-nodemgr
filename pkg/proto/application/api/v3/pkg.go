@@ -200,6 +200,53 @@ func (x *PackageUploadOriginBinToolResp) ConvertResultFromTypes(generated bool, 
 }
 
 // Validate check request body.
+func (x *PackageUploadOriginPluginBinToolReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageUploadOriginPluginBinToolReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PackageUploadOriginPluginBinToolResp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginBinToolPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	platsV2 := make([]*Platform, 0)
+	for _, plat := range detail.V2.Platforms {
+		platsV2 = append(platsV2, ConvertPlatformFromTypes(plat))
+	}
+	platsV3 := make([]*Platform, 0)
+	for _, plat := range detail.V3.Platforms {
+		platsV3 = append(platsV3, ConvertPlatformFromTypes(plat))
+	}
+
+	data := &PackageUploadOriginPluginBinToolResp_Data{
+		UploadId:  new(string),
+		Existed:   new(bool),
+		Generated: new(bool),
+		Name:      new(string),
+		Size:      new(int64),
+		Md5:       new(string),
+		V2:        new(PackageUploadOriginPluginBinToolResp_Data_V2Info),
+		V3:        new(PackageUploadOriginPluginBinToolResp_Data_V3Info),
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.FileInfo.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	data.V2.Platforms = platsV2
+	data.V3.Platforms = platsV3
+
+	x.Data = data
+}
+
+// Validate check request body.
 func (x *PackagePublishReleaseAgentReq) Validate() error {
 	return nil
 }
@@ -233,6 +280,15 @@ func (x *PackagePublishReleaseBinToolReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *PackagePublishReleaseBinToolReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *PackagePublishReleasePluginBinToolReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackagePublishReleasePluginBinToolReq) AutoConvert() {
 }
 
 // Validate check request body.

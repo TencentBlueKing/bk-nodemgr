@@ -20,17 +20,17 @@ import (
 
 // IPluginBinTool defines the interface of upload storage.
 type IPluginBinTool interface {
-	// GetPluginBinToolUpload gets a upload by upload-id.
+	// GetPluginBinToolUpload gets an upload by upload-id.
 	GetPluginBinToolUpload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
-	// CreatePluginBinToolUpload creates a upload.
-	CreatePluginBinToolV2Upload(nCtx contextx.IContext, up *types.Upload) (string, error)
+	// CreatePluginBinToolUpload creates an upload.
+	CreatePluginBinToolUpload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
-	// DeletePluginBinToolUpload deletes a upload by upload-id.
+	// DeletePluginBinToolUpload deletes an upload by upload-id.
 	DeletePluginBinToolUpload(nCtx contextx.IContext, uploadID string) error
 }
 
-// GetPluginBinToolUpload gets a upload by upload-id.
+// GetPluginBinToolUpload gets an upload by upload-id.
 func (s *Storage) GetPluginBinToolUpload(nCtx contextx.IContext, uploadID string) (data *types.Upload, err error) {
 	// record metric.
 	metric := s.metric().Start("get_plugin_bintool")
@@ -39,8 +39,8 @@ func (s *Storage) GetPluginBinToolUpload(nCtx contextx.IContext, uploadID string
 	return s.daoUpload.Get(nCtx, types.UploadCategoryOriginPluginBinTool, uploadID)
 }
 
-// CreatePluginBinToolV2Upload creates a upload.
-func (s *Storage) CreatePluginBinToolV2Upload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
+// CreatePluginBinToolUpload creates an upload.
+func (s *Storage) CreatePluginBinToolUpload(nCtx contextx.IContext, up *types.Upload) (uploadID string, err error) {
 	// record metric.
 	metric := s.metric().Start("create_plugin_bintool")
 	defer metric.End(err)
@@ -53,7 +53,7 @@ func (s *Storage) CreatePluginBinToolV2Upload(nCtx contextx.IContext, up *types.
 	return up.UploadID, nil
 }
 
-// DeletePluginBinToolUpload deletes a upload by upload-id.
+// DeletePluginBinToolUpload deletes an upload by upload-id.
 func (s *Storage) DeletePluginBinToolUpload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_plugin_bintool")

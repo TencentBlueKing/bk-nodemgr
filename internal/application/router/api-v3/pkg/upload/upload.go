@@ -19,6 +19,7 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,6 +46,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/origin/server", restserver.Handler(h.UploadOriginServer))
 	h.rg.POST("/origin/cert", restserver.Handler(h.UploadOriginCert))
 	h.rg.POST("/origin/bintool", restserver.Handler(h.UploadOriginBinTool))
+	h.rg.POST("/origin/plugin_bintool", restserver.Handler(h.UploadOriginPluginBinTool))
 	h.rg.POST("/origin/v2/plugin", restserver.Handler(h.UploadOriginPluginV2))
 	h.rg.POST("/origin/v2/external_plugin", restserver.Handler(h.UploadOriginExternalPluginV2))
 }
@@ -55,24 +57,21 @@ func (h *handler) UploadOriginAgent(rCtx restserver.IContext) (interface{}, erro
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin agent, failed to parse file form: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin agent, failed to open file")
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginAgent(rCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginAgent(rCtx, fileHeader.Filename, file, types.Generation(req.GetGeneration()), req.GetOverwrite())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin agent: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -90,24 +89,21 @@ func (h *handler) UploadOriginServer(rCtx restserver.IContext) (interface{}, err
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin server, failed to parse file form: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin server, failed to open file")
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginServer(rCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginServer(rCtx, fileHeader.Filename, file, types.Generation(req.GetGeneration()), req.GetOverwrite())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin server: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -125,24 +121,21 @@ func (h *handler) UploadOriginCert(rCtx restserver.IContext) (interface{}, error
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload cert, failed to parse file form: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload cert, failed to open file")
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginCert(rCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginCert(rCtx, fileHeader.Filename, file, req.GetOverwrite())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload cert: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -160,24 +153,21 @@ func (h *handler) UploadOriginBinTool(rCtx restserver.IContext) (interface{}, er
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin bintool, failed to parse file form: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin bintool, failed to open file")
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginBinTool(rCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginBinTool(rCtx, fileHeader.Filename, file, types.Generation(req.GetGeneration()), req.GetOverwrite())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin bintool: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -195,24 +185,21 @@ func (h *handler) UploadOriginPluginV2(rCtx restserver.IContext) (interface{}, e
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload plugin v2, failed to parse file form: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload plugin v2, failed to open file")
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginPluginV2(rCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginPluginV2(rCtx, fileHeader.Filename, file, req.GetOverwrite())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload plugin v2: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
@@ -230,30 +217,58 @@ func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (interf
 	fileHeader, err := rCtx.ParseFileForm(req)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload external plugin v2, failed to parse file form: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload external plugin v2, failed to open file")
-
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	detail, err := h.fileHandler.UploadOriginExternalPluginV2(rCtx, fileHeader.Filename, file)
+	detail, err := h.fileHandler.UploadOriginExternalPluginV2(rCtx, fileHeader.Filename, file, req.GetOverwrite())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload external plugin v2: %v", err)
-
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	logger.G.Biz(rCtx).With("detail", detail).Info("uploaded origin external plugin v2")
 
 	resp := new(protoApplication.PackageUploadOriginExternalPluginV2Resp)
+	resp.ConvertResultFromTypes(false, detail)
+
+	return resp.GetData(), nil
+}
+
+func (h *handler) UploadOriginPluginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageUploadOriginPluginBinToolReq)
+	fileHeader, err := rCtx.ParseFileForm(req)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin plugin bintool, failed to parse file form: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin plugin bintool, failed to open file")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	detail, err := h.fileHandler.UploadOriginPluginBinTool(rCtx, fileHeader.Filename, file, req.GetOverwrite())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin plugin bintool: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	logger.G.Biz(rCtx).With("detail", detail).Info("uploaded origin plugin bintool")
+
+	resp := new(protoApplication.PackageUploadOriginPluginBinToolResp)
 	resp.ConvertResultFromTypes(false, detail)
 
 	return resp.GetData(), nil

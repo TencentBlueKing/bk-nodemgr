@@ -46,11 +46,8 @@ const (
 	// ReleaseTypeBinTool defines the release of nodemgr bin tool package.
 	ReleaseTypeBinTool ReleaseType = "bintool"
 
-	// ReleaseTypePluginBinToolV2 defines the release of nodemgr plugin bin tool v2 package.
-	ReleaseTypePluginBinToolV2 ReleaseType = "plugin_bintool_v2"
-
-	// ReleaseTypePluginBinToolV3 defines the release of nodemgr plugin bin tool v3 package.
-	ReleaseTypePluginBinToolV3 ReleaseType = "plugin_bintool_v3"
+	// ReleaseTypePluginBinTool defines the release of nodemgr plugin bin tool package.
+	ReleaseTypePluginBinTool ReleaseType = "plugin_bintool"
 
 	// ReleaseTypePlugin defines the release of nodemgr plugin package.
 	ReleaseTypePlugin ReleaseType = "plugin"
@@ -67,7 +64,7 @@ func (rt ReleaseType) Validate() error {
 		ReleaseTypeBinTool,
 		ReleaseTypeOriginPluginV2,
 		ReleaseTypeOriginExternalPluginV2,
-		ReleaseTypePluginBinToolV2,
+		ReleaseTypePluginBinTool,
 		ReleaseTypePlugin:
 		return nil
 	default:
@@ -186,13 +183,8 @@ type ReleaseBinTool struct {
 	Release
 }
 
-// ReleasePluginBinToolV2 defines the plugin bin tool, it is kind of Release.
-type ReleasePluginBinToolV2 struct {
-	Release
-}
-
-// ReleasePluginBinToolV3 defines the plugin bin tool, it is kind of Release.
-type ReleasePluginBinToolV3 struct {
+// ReleasePluginBinTool defines the plugin bin tool, it is kind of Release.
+type ReleasePluginBinTool struct {
 	Release
 }
 
