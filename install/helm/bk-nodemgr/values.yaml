@@ -630,7 +630,7 @@ application:
     ## defines the mongodb related settings.
     mongodb:
       traceName: "bk_nodemgr_mongo"
-      traceSampleRate: 0.001
+      traceSampleRate: 0
 
     ## defines the file related settings.
     file:
@@ -1005,7 +1005,7 @@ backend:
     ## defines the mongodb related settings.
     mongodb:
       traceName: "bk_nodemgr_mongo"
-      traceSampleRate: 0.001
+      traceSampleRate: 0
 
     ## defines the file related settings.
     file:
@@ -1185,7 +1185,7 @@ file:
     ## defines the mongodb related settings.
     mongodb:
       traceName: "bk_nodemgr_mongo"
-      traceSampleRate: 0.001
+      traceSampleRate: 0
 
     ## defines the tracing related settings.
     tracing:

@@ -73,5 +73,7 @@ data:
       authMechanism: {{ .Values.externalMongodb.authMechanism }}
       {{- end}}
 
+    tracing: {{ .Values.file.config.tracing | toYaml | nindent 6 }}
+
     repo: {{ .Values.file.config.repo | toYaml | nindent 6 }}
 {{- end }}

@@ -103,3 +103,5 @@ data:
     gseDeployConfs: {{ .Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}
 
     access: {{ .Values.backend.config.access | toYaml | nindent 6 }}
+
+    tracing: {{ .Values.backend.config.tracing | toYaml | nindent 6 }}

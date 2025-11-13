@@ -38,6 +38,8 @@ data:
 
     bkSaaS: {{ .Values.application.config.bkSaaS | toYaml | nindent 6 }}
 
+    tracing: {{ .Values.application.config.tracing | toYaml | nindent 6 }}
+
     etcd:
       {{- if .Values.etcd.enabled }}
       endpoints:
