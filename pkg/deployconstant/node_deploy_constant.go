@@ -21,7 +21,6 @@ import (
 )
 
 const (
-	nodeConfigDirName        = "etc"
 	nodeLibDirName           = "lib"
 	nodeUnixDataIPCName      = "ipc.state.report"
 	nodeUnixPluginIPCName    = "ipc.state.message"
@@ -34,8 +33,9 @@ type NodeDeployConf struct {
 	DeployConf
 
 	// custom.
-	LogDir     string
-	HostIDPath string
+	LogDir         string
+	HostIDPath     string
+	ExtraConfigDir string
 }
 
 // Validate checks if the deployment configuration is valid.
@@ -102,6 +102,10 @@ func populateNodeDefaultValues(conf *NodeDeployConf) {
 			conf.HostIDPath = fmt.Sprintf("C:\\%s\\data\\host\\hostid", env)
 		}
 
+		if conf.ExtraConfigDir == "" {
+			conf.ExtraConfigDir = fmt.Sprintf("C:\\Windows\\System32\\config\\gse\\%s\\user_conf", env)
+		}
+
 		return
 	}
 
@@ -112,16 +116,15 @@ func populateNodeDefaultValues(conf *NodeDeployConf) {
 	if conf.HostIDPath == "" {
 		conf.HostIDPath = fmt.Sprintf("/var/lib/%s/host/hostid", env)
 	}
+
+	if conf.ExtraConfigDir == "" {
+		conf.ExtraConfigDir = fmt.Sprintf("/etc/sysconfig/gse/%s/user_conf", env)
+	}
 }
 
 // GenerateNodeHomeDir generates the home directory path for the given node role.
 func (conf NodeDeployConf) GenerateNodeHomeDir(role types.NodeRole) string {
 	return tool.JoinPath(conf.OsType, conf.DeployDir, string(role))
-}
-
-// GenerateDefaultNodeConfigDir generates the default configuration directory path for the given node role.
-func (conf NodeDeployConf) GenerateDefaultNodeConfigDir(role types.NodeRole) string {
-	return tool.JoinPath(conf.OsType, conf.DeployDir, string(role), nodeConfigDirName)
 }
 
 // GenerateDefaultDataIPCPath generates the default data IPC path based on the OS type.

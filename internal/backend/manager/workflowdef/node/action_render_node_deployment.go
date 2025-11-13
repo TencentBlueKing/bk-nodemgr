@@ -437,7 +437,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 		nodeConf.PreSetting[GseTemplateKeyFileTopologyTLSCliKeyFile] = gseAPIClientKeyFilePath
 	}
 
-	nodeConf.PreSetting[GseTemplateKeyExtraConfigDirectory] = deploymentConf.GenerateDefaultNodeConfigDir(std.DeployInfo().Host.Dynamic.NodeRole)
+	nodeConf.PreSetting[GseTemplateKeyExtraConfigDirectory] = deploymentConf.ExtraConfigDir
 	nodeConf.PreSetting[GseTemplateKeyLogPath] = deploymentConf.LogDir
 	nodeConf.PreSetting[GseTemplateKeyAgentBasePluginIPC] = deploymentConf.GenerateDefaultPluginIPCPath(std.DeployInfo().Host.Dynamic.NodeRole)
 	nodeConf.PreSetting[GseTemplateKeyDataIPC] = deploymentConf.GenerateDefaultDataIPCPath(std.DeployInfo().Host.Dynamic.NodeRole)

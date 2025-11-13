@@ -157,9 +157,10 @@ func (svc *Service) initialStaticsConfigs() error {
 		}
 
 		nodeDeployConf := deployconstant.NodeDeployConf{
-			DeployConf: deployConf,
-			LogDir:     svc.conf.GSEDeployConfs[idx].Custom.LogDir,
-			HostIDPath: svc.conf.GSEDeployConfs[idx].Custom.HostIDPath,
+			DeployConf:     deployConf,
+			LogDir:         svc.conf.GSEDeployConfs[idx].Custom.LogDir,
+			HostIDPath:     svc.conf.GSEDeployConfs[idx].Custom.HostIDPath,
+			ExtraConfigDir: svc.conf.GSEDeployConfs[idx].Custom.ExtraConfigDir,
 		}
 		if err := deployconstant.SetNodeDeployConf(nodeDeployConf); err != nil {
 			return fmt.Errorf("failed to set node deploy conf: %w", err)

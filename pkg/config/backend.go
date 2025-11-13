@@ -337,8 +337,9 @@ func (conf GSEDeployConf) Validate() error {
 
 // GSEDeployCustom defines the custom deployment configuration for gse node.
 type GSEDeployCustom struct {
-	LogDir     string `yaml:"logDir" usage:"log dir"`
-	HostIDPath string `yaml:"hostIDPath" usage:"host id path"`
+	LogDir         string `yaml:"logDir" usage:"log dir"`
+	HostIDPath     string `yaml:"hostIDPath" usage:"host id path"`
+	ExtraConfigDir string `yaml:"extraConfigDir" usage:"extra config dir"`
 }
 
 // Validate validates the config.
@@ -348,9 +349,9 @@ func (conf *GSEDeployCustom) Validate() error {
 
 // GSEDeployPluginCustom defines the custom deployment configuration for plugin.
 type GSEDeployPluginCustom struct {
-	LogDir             string         `yaml:"logDir" usage:"log dir"`
-	HostIDPath         string         `yaml:"hostIDPath" usage:"host id path"`
-	CommonConstants    map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
+	LogDir          string         `yaml:"logDir" usage:"log dir"`
+	HostIDPath      string         `yaml:"hostIDPath" usage:"host id path"`
+	CommonConstants map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
 }
 
 // Validate validates the config.
