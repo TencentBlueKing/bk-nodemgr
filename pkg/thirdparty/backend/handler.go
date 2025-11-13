@@ -34,6 +34,7 @@ type IHandler interface {
 	IHandlerPlugin
 	IHandlerProcess
 	IHandlerConfigPolicyEvent
+	IHandlerGraph
 
 	// ListBusiness list business within specified tenant in contextx.
 	// @param ctx contextx.IContext, contains tenant-id and username.
@@ -78,6 +79,15 @@ type IHandler interface {
 	// @param fields describes the fields to get.
 	// @return the constant result.
 	GetConstant(ctx contextx.IContext, fields types.TopoConstantFields) (*types.TopoConstant, error)
+}
+
+// IHandlerGraph defines the graph Handler.
+type IHandlerGraph interface {
+	// GetGraphNode get graph node.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param networkUnitIDs the network unit ids.
+	// @return the graph node list.
+	GetGraphNode(ctx contextx.IContext, networkUnitIDs []int64) ([]*types.GraphNodeInfo, error)
 }
 
 // IHandlerHost defines the host Handler.
@@ -1584,4 +1594,20 @@ func (h *Handler) DistinctConfigPolicyEvent(
 	}
 
 	return resp.ConvertResultToTypes()
+}
+
+// GetGraphNode get graph node.
+func (h *Handler) GetGraphNode(ctx contextx.IContext,
+	networkUnitIDs []int64) ([]*types.GraphNodeInfo, error) {
+
+	req := &protoBackend.TopoGraphNodeGetReq{
+		BkNetworkunitId: networkUnitIDs,
+	}
+
+	resp, err := h.cli.getGraphNode(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertResultToTypes(), nil
 }

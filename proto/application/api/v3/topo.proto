@@ -380,6 +380,30 @@ message TopoGraphNodeCountResp {
   Data data = 5;
 }
 
+// TopoGraphNodeGetReq describes the HTTP request body when get node
+message TopoGraphNodeGetReq { repeated int64 bk_networkunit_id = 1; }
+
+// TopoGraphNodeGetResp describes the HTTP response body when get node
+message TopoGraphNodeGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message GraphNodeInfo {
+    int64 bk_networkunit_id = 1;
+    int64 running_proxy = 2;
+    int64 total_proxy = 3;
+    int64 running_agent = 4;
+    int64 total_agent = 5;
+    bool is_healthy = 6;
+    repeated string cycle_times = 7;
+  }
+
+  message Data { repeated GraphNodeInfo graph_node_info = 1; }
+  Data data = 5;
+}
+
 // TopoEventExactConditions describes the conditions when list event
 message TopoEventExactConditions {
   repeated int64 bk_networkarea_id = 1;
@@ -628,6 +652,14 @@ service Topo {
   rpc ConstantGet(TopoConstantGetReq) returns (TopoConstantGetResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/constant/get"
+      body : "*"
+    };
+  }
+
+  // TopoGraphNodeGetReq provides graph node getting.
+  rpc TopoGraphNodeGetReq(TopoGraphNodeGetResp) returns (TopoGraphNodeGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/graph/node/get"
       body : "*"
     };
   }

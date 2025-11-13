@@ -18,6 +18,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,6 +28,7 @@ type handler struct {
 	storage           topoStg.IStorage
 	storageHostCredit credit.IStorageHostCredit
 	cmdbHandler       cmdb.IHandler
+	gseHandler        gse.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -37,6 +39,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		storage:           capability.StorageTopo,
 		storageHostCredit: capability.StorageCredit,
 		cmdbHandler:       capability.CmdbHandler,
+		gseHandler:        capability.GSEHandler,
 	}
 }
 
@@ -76,4 +79,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	// constant apis.
 	h.rg.POST("/constant/get", restserver.Handler(h.GetConstant))
+
+	// topo graph apis.
+	h.rg.POST("/graph_node/get", restserver.Handler(h.GetGraphNode))
 }

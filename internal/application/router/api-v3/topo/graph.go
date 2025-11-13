@@ -52,6 +52,29 @@ func (h *handler) GetGraph(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
+// GetGraphNode gets a graph node.
+func (h *handler) GetGraphNode(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.TopoGraphNodeGetReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get graph node, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	graphNodeInfos, err := h.backendHandler.GetGraphNode(
+		rCtx,
+		req.GetBkNetworkunitId(),
+	)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get graph node, failed to get graph node")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.TopoGraphNodeGetResp)
+	resp.ConvertGrapthNodeInfoFromTypes(graphNodeInfos)
+
+	return resp.GetData(), nil
+}
+
 // CountGraphNode counts graph nodes.
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (h *handler) CountGraphNode(rCtx restserver.IContext) (interface{}, error) {

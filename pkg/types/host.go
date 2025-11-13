@@ -245,6 +245,11 @@ func (tag ProxyTag) Validate() error {
 	}
 }
 
+// AllProxyTag returns all proxy tags.
+func AllProxyTag() []ProxyTag {
+	return []ProxyTag{ProxyTagDedicatedInstaller, ProxyTagClusterTunnel, ProxyTagFileTunnel, ProxyTagDataTunnel}
+}
+
 // ProxyTagListToStringList converts a proxy tag list to a string list.
 func ProxyTagListToStringList(tagList []ProxyTag) []string {
 	stringList := make([]string, 0, len(tagList))

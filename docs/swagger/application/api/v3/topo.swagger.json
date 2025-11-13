@@ -219,6 +219,39 @@
         ]
       }
     },
+    "/api/v3/topo/graph/node/get": {
+      "post": {
+        "summary": "TopoGraphNodeGetReq provides graph node getting.",
+        "operationId": "Topo_TopoGraphNodeGetReq",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoGraphNodeGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoGraphNodeGetResp"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/host/distinct": {
       "post": {
         "summary": "HostDistinct provides host distincting.",
@@ -688,6 +721,40 @@
         "agent": {
           "type": "integer",
           "format": "int64"
+        }
+      }
+    },
+    "TopoGraphNodeGetRespGraphNodeInfo": {
+      "type": "object",
+      "properties": {
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "running_proxy": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_proxy": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "running_agent": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total_agent": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "is_healthy": {
+          "type": "boolean"
+        },
+        "cycle_times": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -1581,6 +1648,40 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/TopoGraphNodeCountRespNodeInfo"
+          }
+        }
+      }
+    },
+    "v3TopoGraphNodeGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoGraphNodeGetRespData"
+        }
+      },
+      "title": "TopoGraphNodeGetResp describes the HTTP response body when get node"
+    },
+    "v3TopoGraphNodeGetRespData": {
+      "type": "object",
+      "properties": {
+        "graph_node_info": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/TopoGraphNodeGetRespGraphNodeInfo"
           }
         }
       }

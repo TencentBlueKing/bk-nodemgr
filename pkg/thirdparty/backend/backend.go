@@ -2128,3 +2128,37 @@ func (c *cli) listProcesses(ctx contextx.IContext, req *protoBackend.ProcessList
 
 	return resp, nil
 }
+
+func (c *cli) getGraphNode(ctx contextx.IContext, req *protoBackend.TopoGraphNodeGetReq) (
+	*protoBackend.TopoGraphNodeGetResp, error) {
+
+	resp := new(protoBackend.TopoGraphNodeGetResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/topo/graph_node/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get graph node failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("get graph node failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

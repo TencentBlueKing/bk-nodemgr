@@ -172,3 +172,43 @@ func newEmptyNetworkUnitGraph() *NetworkUnitGraph {
 		Accesspoints:      make([]int64, 0),
 	}
 }
+
+// Validate check body.
+func (x *TopoGraphNodeGetReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoGraphNodeGetReq) AutoConvert() {
+}
+
+// GraphNodeInfo graph node info.
+type GraphNodeInfo struct {
+	BkNetworkunitID int64
+	RunningProxy    int64
+	TotalProxy      int64
+	RunningAgent    int64
+	TotalAgent      int64
+	IsHealthy       bool
+	CycleTimes      []string
+}
+
+// ConvertGrapthNodeInfoFromTypes convert graph node info.
+func (x *TopoGraphNodeGetResp) ConvertGrapthNodeInfoFromTypes(result []*types.GraphNodeInfo) {
+	items := make([]*TopoGraphNodeGetResp_GraphNodeInfo, len(result))
+	for idx, item := range result {
+		items[idx] = &TopoGraphNodeGetResp_GraphNodeInfo{
+			BkNetworkunitId: item.NetworkUnitID,
+			RunningProxy:    item.RunningProxy,
+			TotalProxy:      item.TotalProxy,
+			RunningAgent:    item.RunningAgent,
+			TotalAgent:      item.TotalAgent,
+			IsHealthy:       item.IsHealthy,
+			CycleTimes:      item.CycleTimes,
+		}
+	}
+
+	x.Data = &TopoGraphNodeGetResp_Data{
+		GraphNodeInfo: items,
+	}
+}
