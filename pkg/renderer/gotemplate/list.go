@@ -8,33 +8,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package main is an example
-package main
+package gotemplate
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/templaterender"
+	"text/template"
 )
 
-// nolint: mnd
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("用法: example <文件路径>")
-		os.Exit(1)
-	}
-	filename := os.Args[1]
-	templateContent, err := os.ReadFile(filename) // nolint: gosec
-	if err != nil {
-		fmt.Printf("读取文件失败: %v\n", err)
-		os.Exit(1)
-	}
-	template, err := templaterender.New().ReadTemplate(string(templateContent))
-	if err != nil {
-		fmt.Printf("渲染模板失败: %v\n", err)
-		os.Exit(1)
-	}
-	fmt.Println("渲染结果:")
-	fmt.Println(template)
+// registerListFunctions register the list functions.
+func registerListFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, customList, list)
+}
+
+// list creates a list from the given items.
+func list(items ...interface{}) []interface{} {
+	return items
 }

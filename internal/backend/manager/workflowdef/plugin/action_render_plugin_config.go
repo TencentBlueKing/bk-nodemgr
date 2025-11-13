@@ -22,8 +22,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/templaterender"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -182,19 +182,27 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to get plugin config files detail: %w", err)
 	}
 
-	configNameContentMap := make(map[string]string)
+	configNameMap := make(map[string]types.PluginPkgConfigTemplate)
 	for _, template := range pluginRelease.ConfigTemplates {
-		configNameContentMap[template.Name] = template.SourceContent
+		configNameMap[template.Name] = template
 	}
 
 	for idx := range configFiles {
-		templateContent, ok := configNameContentMap[configFiles[idx].Name]
+		template, ok := configNameMap[configFiles[idx].Name]
 		if !ok {
 			std.InstanceData().LogE(fmt.Sprintf("template(%s) not found in plugin release", configFiles[idx].Name))
 			return fmt.Errorf("template(%s) not found in plugin release", configFiles[idx].Name)
 		}
 
-		result, err := templaterender.New().Render(templateContent, renderContext)
+		renderer, err := renderer.NewRenderer(template.TemplateRenderer)
+		if err != nil {
+			return fmt.Errorf("failed to create template renderer: %w", err)
+		}
+
+		std.InstanceData().LogI(fmt.Sprintf("using template renderer(%s) to render template(%s)",
+			template.TemplateRenderer, configFiles[idx].Name))
+
+		result, err := renderer.Render(template.SourceContent, renderContext)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to render template")
 			return fmt.Errorf("failed to render template: %w", err)

@@ -8,33 +8,26 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package templaterender
+package gotemplate
 
-const (
-	// default function names.
-	customDefault = "default"
+import "text/template"
 
-	// conversion function names.
-	customInt      = "int"
-	customToString = "toString"
-	customToJSON   = "toJson"
+// registerDictFunctions register dict related template functions.
+func registerDictFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, customDict, dict)
+}
 
-	// list function names.
-	customList = "list"
+func dict(v ...interface{}) map[string]interface{} {
+	dict := map[string]interface{}{}
+	lenv := len(v)
+	for i := 0; i < lenv; i += 2 {
+		key := toString(v[i])
+		if i+1 >= lenv {
+			dict[key] = ""
+			continue
+		}
+		dict[key] = v[i+1]
+	}
 
-	// dict function names.
-	customDict = "dict"
-
-	// reflect function names.
-	customKindOf = "kindOf"
-	customKindIs = "kindIs"
-
-	// string function names.
-	customUpper   = "upper"
-	customLower   = "lower"
-	customJoin    = "join"
-	customReplace = "replace"
-	customIndent  = "indent"
-	customNindent = "nindent"
-	customQuote   = "quote"
-)
+	return dict
+}

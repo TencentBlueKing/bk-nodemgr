@@ -8,9 +8,30 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package jinja2x
+// Package renderer provides template rendering capabilities.
+package renderer
+
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer/gotemplate"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer/jinja2x"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
 
 // IHandler defines the interface for jinja2 template rendering handlers.
 type IHandler interface {
 	Render(tmpl string, context map[string]any) (string, error)
+}
+
+// NewRenderer create a new template renderer based on the specified type.
+func NewRenderer(renderType types.TemplateRendererType) (IHandler, error) {
+	switch renderType {
+	case types.TemplateRendererTypeJinja2:
+		return jinja2x.New(), nil
+	case types.TemplateRendererTypeGoTemplate:
+		return gotemplate.New(), nil
+	default:
+		return nil, fmt.Errorf("unknown template renderer: %s", renderType)
+	}
 }

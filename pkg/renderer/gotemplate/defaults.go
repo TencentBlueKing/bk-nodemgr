@@ -8,16 +8,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package templaterender defines a lightweight template rendering engine with common functions.
-package templaterender
+package gotemplate
 
-import "text/template"
+import (
+	"text/template"
 
-// IHandler defines the interface for template rendering handlers.
-type IHandler interface {
-	// Render render template with data.
-	Render(tmpl string, data map[string]any) (string, error)
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+)
 
-	// ReadTemplate reads and parses the template to check for syntax errors.
-	ReadTemplate(tmpl string) (*template.Template, error)
+// registerDefaultFunctions register default related functions.
+func registerDefaultFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, customDefault, defaultFn)
+}
+
+// defaultFn returns the first value if it's non-empty; otherwise, it returns the defaultValue.
+func defaultFn(defaultValue any, value ...any) any {
+	if len(value) == 0 || conv.IsEmpty(value[0]) {
+		return defaultValue
+	}
+
+	return value[0]
 }

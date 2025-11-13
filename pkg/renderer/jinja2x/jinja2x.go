@@ -24,8 +24,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 )
 
-var _ IHandler = &Handler{}
-
 // Handler the handler for jinja2x.
 type Handler struct {
 }

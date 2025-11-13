@@ -8,18 +8,25 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package templaterender
+package gotemplate
 
 import (
+	"reflect"
 	"text/template"
 )
 
-// registerListFunctions register the list functions.
-func registerListFunctions(fnMap template.FuncMap) {
-	addFunction(fnMap, customList, list)
+// registerReflectFunctions register the reflect functions.
+func registerReflectFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, customKindIs, kindIs)
+	addFunction(fnMap, customKindOf, kindOf)
 }
 
-// list creates a list from the given items.
-func list(items ...interface{}) []interface{} {
-	return items
+// kindIs checks if the kind of src is the same as target.
+func kindIs(target string, src interface{}) bool {
+	return target == kindOf(src)
+}
+
+// kindOf returns the kind of src.
+func kindOf(src interface{}) string {
+	return reflect.ValueOf(src).Kind().String()
 }

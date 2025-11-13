@@ -19,7 +19,7 @@ import (
 	"os/exec"
 	"sync"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/jinja2x/jinja2"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer/jinja2x/jinja2"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/tmp"
 )
 

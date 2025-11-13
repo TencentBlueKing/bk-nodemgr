@@ -6,6 +6,13 @@ RUN apt-get update && apt-get install -y wget && apt-get clean
 # 更新apt源
 RUN wget -O /etc/apt/sources.list https://mirrors.tencent.com/repo/ubuntu20_sources.list
 
+# 提供ARG用于检测当前架构
+ARG TARGETARCH
+
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      sed -i 's#/ubuntu/#/ubuntu-ports/#' /etc/apt/sources.list; \
+    fi
+
 # 安装基本依赖
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -42,16 +49,18 @@ COPY jinja2_exec.py /app/
 # 使用PyInstaller构建可执行文件
 RUN pyinstaller --onefile --clean --strip --noupx jinja2_exec.py
 
-# 提供ARG用于检测当前架构
-ARG TARGETARCH
-
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
-        staticx --strip dist/jinja2_exec dist/jinja2_exec-static \
+        staticx --strip dist/jinja2_exec dist/jinja2_exec_static \
             -l /lib/x86_64-linux-gnu/libnss_dns.so.2 \
             -l /lib/x86_64-linux-gnu/libresolv.so.2 \
             -l /lib/x86_64-linux-gnu/libgcc_s.so.1; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+        staticx --strip dist/jinja2_exec dist/jinja2_exec_static \
+            -l /lib/aarch64-linux-gnu/libnss_dns.so.2 \
+            -l /lib/aarch64-linux-gnu/libresolv.so.2 \
+            -l /lib/aarch64-linux-gnu/libgcc_s.so.1; \
     else \
-        staticx --strip dist/jinja2_exec dist/jinja2_exec-static \
+        staticx --strip dist/jinja2_exec dist/jinja2_exec_static \
             -l /lib/x86_64-linux-gnu/libnss_dns.so.2 \
             -l /lib/x86_64-linux-gnu/libresolv.so.2 \
             -l /lib/x86_64-linux-gnu/libgcc_s.so.1; \

@@ -8,24 +8,48 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package templaterender
+package gotemplate
 
 import (
+	"encoding/json"
+	"fmt"
 	"text/template"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
-// registerDefaultFunctions register default related functions.
-func registerDefaultFunctions(fnMap template.FuncMap) {
-	addFunction(fnMap, customDefault, defaultFn)
+// registerConversionFunctions register conversion related functions.
+func registerConversionFunctions(fnMap template.FuncMap) {
+	addFunction(fnMap, customInt, toInt)
+	addFunction(fnMap, customToString, toString)
+	addFunction(fnMap, customToJSON, toJSON)
 }
 
-// defaultFn returns the first value if it's non-empty; otherwise, it returns the defaultValue.
-func defaultFn(defaultValue any, value ...any) any {
-	if len(value) == 0 || conv.IsEmpty(value[0]) {
-		return defaultValue
+func toInt(value any) (int, error) {
+	res, err := conv.ToInt64(value)
+	if err != nil {
+		return 0, err
 	}
 
-	return value[0]
+	return int(res), nil
+}
+
+func toString(v interface{}) string {
+	switch v := v.(type) {
+	case error:
+		return v.Error()
+	case fmt.Stringer:
+		return v.String()
+	default:
+		return conv.ToStringDefault(v, "")
+	}
+}
+
+func toJSON(v interface{}) (string, error) {
+	output, err := json.Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	return string(output), nil
 }
