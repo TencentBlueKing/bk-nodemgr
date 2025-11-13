@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,6 +34,9 @@ type Server struct {
 	opts Options
 
 	metrics *restmetrics.Monitor
+
+	// tracerSvc is the OpenTelemetry tracerSvc for distributed tracing
+	tracerSvc tracing.IService
 }
 
 // OptionFunc defines a function that can be used to modify the router.
@@ -116,25 +120,38 @@ type Options struct {
 	Port            int
 	RequestIDSetter IRequestIDSetter
 	StaticOptions   *StaticOptions
+	TraceName       string
+	TraceSampleRate float64
 }
 
 // NewServer creates a new restful API server.
-func NewServer(ctx context.Context,
-	opts Options,
-	apiOptFns ...OptionFunc) *Server {
-
+func NewServer(ctx context.Context, opts Options, apiOptFns ...OptionFunc) (*Server, error) {
 	svr := &Server{
 		ctx:  ctx,
 		opts: opts,
 		engine: gin.New(func(engine *gin.Engine) {
 			engine.RedirectTrailingSlash = false
 			engine.RedirectFixedPath = false
+			// link tracing must open this option.
+			engine.ContextWithFallback = true
 		}),
 	}
 	gin.DebugPrintFunc = logger.G.Sys().Debug
 
+	var err error
+	svr.tracerSvc, err = tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName: svr.opts.TraceName,
+		SampleRate:  svr.opts.TraceSampleRate,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create tracer service: %w", err)
+	}
+
 	// Recover from panic
 	svr.engine.Use(gin.RecoveryWithWriter(logger.G.Biz(nil).ErrorWriter()))
+
+	// nolint: contextcheck
+	svr.engine.Use(MiddlewareTracing(svr.tracerSvc))
 
 	// Set authentication middleware.
 	svr.engine.Use(MiddlewareContext())
@@ -176,7 +193,7 @@ func NewServer(ctx context.Context,
 		fn(svr.rg)
 	}
 
-	return svr
+	return svr, nil
 }
 
 // Start starts the router.

@@ -573,6 +573,9 @@ application:
       bkToken: ""
       # accessToken is the BlueKing access token of bk_nodemgr to request api gateway.
       accessToken: ""
+      # trace service name for API gateway client
+      traceServiceName: "application-client-backend"
+      traceSampleRate: 0
       # defines tls related options.
       tls:
         # server should be accessed without verifying the TLS certificate.
@@ -590,12 +593,16 @@ application:
     infoServer:
       bindIP: "0.0.0.0"
       port: 28000
+      traceName: "application-server-info"
+      traceSampleRate: 0
 
     ## defines the application admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
       port: 28001
       authIdentity: rest-server
+      traceName: "application-server-admin"
+      traceSampleRate: 0
       # defines the JWT server configuration for authentication
       jwtServerConfig:
         # JWT encryption type: symmetric or asymmetric
@@ -608,6 +615,8 @@ application:
       bindIP: "0.0.0.0"
       port: 28002
       authIdentity: bk-login
+      traceName: "application-server-basic"
+      traceSampleRate: 0
 
     ## defines the log related settings.
     log:
@@ -618,8 +627,16 @@ application:
       toStderr: false
       alsoToStderr: false
 
+    ## defines the mongodb related settings.
+    mongodb:
+      traceName: "bk_nodemgr_mongo"
+      traceSampleRate: 0.001
+
     ## defines the file related settings.
     file:
+      # trace name for file service client
+      traceName: "application-client-file"
+      traceSampleRate: 0
       # defines the JWT client configuration for file service
       jwtClientConfig:
         # JWT encryption type: symmetric or asymmetric
@@ -633,6 +650,10 @@ application:
       bkLogin:
         loginURL: ""
         authType: "bk_token"
+        # trace service name for BK login client
+        traceServiceName: "application-client-bklogin"
+        # trace sample rate for BK login client
+        traceSampleRate: 0
         # defines tls related options.
         tls:
           # server should be accessed without verifying the TLS certificate.
@@ -645,6 +666,17 @@ application:
           caFile: ""
           # the password to decrypt the certificate.
           password: ""
+
+    ## defines the tracing related settings.
+    tracing:
+      # exporter type: stdout or otlp
+      exporterType: "stdout"
+      # otlp endpoint configuration
+      otlpEndpoint: ""
+      # otlp insecure skip verify
+      otlpInsecure: false
+      # otlp headers
+      otlpHeaders: {}
 
 ## Nodeman backend.
 ##
@@ -711,12 +743,16 @@ backend:
     infoServer:
       bindIP: "0.0.0.0"
       port: 28100
+      traceName: "backend-server-info"
+      traceSampleRate: 0
 
     ## defines the backend admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
       port: 28101
       authIdentity: rest-server
+      traceName: "backend-server-admin"
+      traceSampleRate: 0
       # defines the JWT server configuration for authentication
       jwtServerConfig:
         # JWT encryption type: symmetric or asymmetric
@@ -729,6 +765,8 @@ backend:
       bindIP: "0.0.0.0"
       port: 28102
       authIdentity: api-gateway
+      traceName: "backend-server-basic"
+      traceSampleRate: 0
       # defines the JWT server configuration for authentication
       jwtServerConfig:
         # JWT encryption type: symmetric or asymmetric
@@ -740,16 +778,22 @@ backend:
     callbackServer:
       bindIP: "0.0.0.0"
       port: 28103
+      traceName: "backend-server-callback"
+      traceSampleRate: 0
 
     ## defines the backend proxy server related settings.
     proxyServer:
       bindIP: "0.0.0.0"
       port: 28104
+      traceName: "backend-server-proxy"
+      traceSampleRate: 0
 
     ## defines the workflow related settings.
     workflow:
       # workerNum is the number of workers.
       workerNum: 1
+      traceName: "workflow"
+      traceSampleRate: 0
 
     # defines the CMDB (BK API gateway) related settings.
     cmdb:
@@ -777,6 +821,9 @@ backend:
       bkToken: ""
       # accessToken is the BlueKing access token of bk_nodemgr to request api gateway.
       accessToken: ""
+      # trace service name for CMDB client
+      traceServiceName: "backend-client-cmdb"
+      traceSampleRate: 0
       # defines tls related options.
       tls:
         # server should be accessed without verifying the TLS certificate.
@@ -817,6 +864,9 @@ backend:
       # plugin SlotID and SlotToken
       pluginSlotID: 0
       pluginSlotToken: ""
+      # trace service name for GSE client
+      traceServiceName: "backend-client-gse"
+      traceSampleRate: 0
       # defines tls related options.
       tls:
         # server should be accessed without verifying the TLS certificate.
@@ -849,6 +899,9 @@ backend:
       authMode: "un"
       # accessToken is the BlueKing access token of costops to request api gateway.
       accessToken: ""
+      # trace service name for UserManager client
+      traceServiceName: "backend-client-usermanager"
+      traceSampleRate: 0
       # defines tls related options.
       tls:
         # server should be accessed without verifying the TLS certificate.
@@ -892,6 +945,9 @@ backend:
           # plugin SlotID and SlotToken
           pluginSlotID: 0
           pluginSlotToken: ""
+          # trace service name for IEGTJJ client
+          traceServiceName: "backend-client-iegtjj"
+          traceSampleRate: 0
           # defines tls related options.
           tls:
             # server should be accessed without verifying the TLS certificate.
@@ -944,8 +1000,16 @@ backend:
       toStderr: false
       alsoToStderr: false
 
+    ## defines the mongodb related settings.
+    mongodb:
+      traceName: "bk_nodemgr_mongo"
+      traceSampleRate: 0.001
+
     ## defines the file related settings.
     file:
+      # trace name for file service client
+      traceName: "backend-client-file"
+      traceSampleRate: 0
       # defines the JWT client configuration for file service
       jwtClientConfig:
         # JWT encryption type: symmetric or asymmetric
@@ -954,6 +1018,17 @@ backend:
         symmetricKey: ""
         # token expiration duration (e.g., 1h, 24h)
         tokenExpirationHour: 24
+
+    ## defines the tracing related settings.
+    tracing:
+      # exporter type: stdout or otlp
+      exporterType: "stdout"
+      # otlp endpoint configuration
+      otlpEndpoint: ""
+      # otlp insecure skip verify
+      otlpInsecure: false
+      # otlp headers
+      otlpHeaders: {}
 
 ## Nodeman file
 ##
@@ -1008,12 +1083,16 @@ file:
     infoServer:
       bindIP: "0.0.0.0"
       port: 28200
+      traceName: "file-server-info"
+      traceSampleRate: 0
 
     ## defines the file admin server related settings.
     adminServer:
       bindIP: "0.0.0.0"
       port: 28201
       authIdentity: rest-server
+      traceName: "file-server-admin"
+      traceSampleRate: 0
       # defines the JWT server configuration for authentication
       jwtServerConfig:
         # JWT encryption type: symmetric or asymmetric
@@ -1026,11 +1105,15 @@ file:
       bindIP: "0.0.0.0"
       port: 28202
       authIdentity: none
+      traceName: "file-server-basic"
+      traceSampleRate: 0
 
     ## defines the file download server related settings.
     downloadServer:
       bindIP: "0.0.0.0"
       port: 28203
+      traceName: "file-server-download"
+      traceSampleRate: 0
 
     ## defines the bkrepo related settings.
     repo:
@@ -1039,6 +1122,9 @@ file:
       repoName: ""
       accessKey: ""
       secretKey: ""
+      # trace service name for repo client
+      traceServiceName: "file-client-repo"
+      traceSampleRate: 0
 
     workspaceFileGroup:
       fullPath: "/bk-nodemgr/workspace/"
@@ -1093,6 +1179,22 @@ file:
       maxSizeMB: 200
       toStderr: false
       alsoToStderr: false
+
+    ## defines the mongodb related settings.
+    mongodb:
+      traceName: "bk_nodemgr_mongo"
+      traceSampleRate: 0.001
+
+    ## defines the tracing related settings.
+    tracing:
+      # exporter type: stdout or otlp
+      exporterType: "stdout"
+      # otlp endpoint configuration
+      otlpEndpoint: ""
+      # otlp insecure skip verify
+      otlpInsecure: false
+      # otlp headers
+      otlpHeaders: {}
 
 ## Nodeman apigw-sync
 apigwSync:

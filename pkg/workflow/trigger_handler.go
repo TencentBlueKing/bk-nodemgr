@@ -284,14 +284,14 @@ func (handler *triggerHandler) tryLockTrigger(ctx contextx.IContext, trig *trigg
 	mutex := handler.globalLocker.NewMutex(trig.TriggerID)
 	err := mutex.TryLock()
 	if err != nil {
-		logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to to lock trigger")
+		logger.G.Sys().With("trigger-id", trig.TriggerID).WithErr(err).Error("failed to lock trigger")
 
 		return nil
 	}
 
-	if handler.checkFeasibility(ctx, trig) != nil {
+	if err := handler.checkFeasibility(ctx, trig); err != nil {
 		_ = mutex.Unlock()
-		logger.G.Sys().With("trigger-id", trig.TriggerID, "state", trig.State).Debug("trigger is not feasible")
+		logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID, "state", trig.State).Debug("trigger is not feasible")
 
 		return nil
 	}
@@ -324,6 +324,9 @@ func (handler *triggerHandler) checkFeasibility(_ contextx.IContext, trig *trigg
 		}
 
 		if nextTime.After(time.Now()) {
+			sleepTime := nextTime.Sub(time.Now())
+			time.Sleep(sleepTime)
+
 			return common.ErrTriggerNotReady()
 		}
 

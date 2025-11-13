@@ -24,35 +24,54 @@ import (
 
 const (
 	// backend service config default values.
-	defaultBackendRunMode              = RunModeRelease
-	defaultBackendTenantMode           = tenant.ModeSingle
-	defaultBackendInfoBindIP           = "127.0.0.1"
-	defaultBackendInfoBindPort         = 28100
-	defaultBackendInfoAuthIdentity     = AuthIdentityNone
-	defaultBackendAdminBindIP          = "127.0.0.1"
-	defaultBackendAdminPort            = 28101
-	defaultBackendAdminAuthIdentity    = AuthIdentityRestServer
-	defaultBackendAdminJWTCryptoType   = JWTCryptoTypeSymmetric
-	defaultBackendBasicBindIP          = "127.0.0.1"
-	defaultBackendBasicPort            = 28102
-	defaultBackendBasicAuthIdentity    = AuthIdentityAPIGW
-	defaultBackendBasicJWTCryptoType   = JWTCryptoTypeAsymmetric
+	defaultBackendRunMode          = RunModeRelease
+	defaultBackendTenantMode       = tenant.ModeSingle
+	defaultBackendInfoBindIP       = "127.0.0.1"
+	defaultBackendInfoPort         = 28100
+	defaultBackendInfoTraceName    = "backend-server-info"
+	defaultBackendInfoAuthIdentity = AuthIdentityNone
+
+	defaultBackendAdminBindIP        = "127.0.0.1"
+	defaultBackendAdminPort          = 28101
+	defaultBackendAdminTraceName     = "backend-server-admin"
+	defaultBackendAdminAuthIdentity  = AuthIdentityRestServer
+	defaultBackendAdminJWTCryptoType = JWTCryptoTypeSymmetric
+
+	defaultBackendBasicBindIP        = "127.0.0.1"
+	defaultBackendBasicPort          = 28102
+	defaultBackendBasicTraceName     = "backend-server-basic"
+	defaultBackendBasicAuthIdentity  = AuthIdentityAPIGW
+	defaultBackendBasicJWTCryptoType = JWTCryptoTypeAsymmetric
+
 	defaultBackendCallbackBindIP       = "127.0.0.1"
 	defaultBackendCallbackPort         = 28103
+	defaultBackendCallbackTraceName    = "backend-server-callback"
 	defaultBackendCallbackAuthIdentity = AuthIdentityNone
-	defaultBackendProxyBindIP          = "127.0.0.1"
-	defaultBackendProxyPort            = 28104
-	defaultBackendProxyAuthIdentity    = AuthIdentityNone
-	defaultBackendLogDir               = "/bk-nodemgr/log/"
-	defaultBackendLogMaxNum            = 10
-	defaultBackendLogMaxSizeMB         = 200
-	defaultBackendLogLevel             = "INFO"
-	defaultBackendEncryptKey           = "1234567890abcdef"
-	defaultBackendSystemEnv            = "dev"
-	defaultBackendSystemEdition        = "ce"
-	defaultBackendAdvertiseIPv4        = "127.0.0.1"
-	defaultBackendAdvertiseIPv6        = "::1"
 
+	defaultBackendProxyBindIP       = "127.0.0.1"
+	defaultBackendProxyPort         = 28104
+	defaultBackendProxyTraceName    = "backend-server-proxy"
+	defaultBackendProxyAuthIdentity = AuthIdentityNone
+
+	defaultBackendLogDir       = "/bk-nodemgr/log/"
+	defaultBackendLogMaxNum    = 10
+	defaultBackendLogMaxSizeMB = 200
+	defaultBackendLogLevel     = "INFO"
+
+	defaultBackendEncryptKey = "1234567890abcdef"
+
+	defaultBackendSystemEnv     = "dev"
+	defaultBackendSystemEdition = "ce"
+
+	defaultBackendAdvertiseIPv4 = "127.0.0.1"
+	defaultBackendAdvertiseIPv6 = "::1"
+
+	defaultBackendTracingExporterType = "stdout"
+
+	defaultBackendMongoDBAppName   = "bk_nodemgr_backend"
+	defaultBackendMongoDBTraceName = "bk_nodemgr_mongo"
+
+	defaultBackendWorkflowTraceName = "workflow"
 	defaultBackendWorkflowWorkerNum = 10
 
 	defaultInstallerFileGroup = "/bk-nodemgr/file/tools"
@@ -68,6 +87,12 @@ const (
 	defaultGseDeployConfWindowsBaseWorkDir   = `c:\tmp\bknm\`
 
 	defaultAccessVirtualUser = "bk-nodemgr"
+
+	defaultBackendFileTraceServiceName        = "backend-client-file"
+	defaultBackendCMDBTraceServiceName        = "backend-client-cmdb"
+	defaultBackendGSETraceServiceName         = "backend-client-gse"
+	defaultBackendUserManagerTraceServiceName = "backend-client-usermanager"
+	defaultBackendIEGTJJTraceServiceName      = "backend-client-iegtjj"
 )
 
 // BackendService the config of backend service.
@@ -94,6 +119,7 @@ type BackendService struct {
 	InstallerFileGroup FileGroup       `yaml:"installerFileGroup" usage:"tools file group config of backend service"`
 	CreditVault        CreditVault     `yaml:"creditVault" usage:"credit vault config of backend service"`
 	Access             Access          `yaml:"access" usage:"access config of backend service"`
+	Tracing            Tracing         `yaml:"tracing" usage:"tracing config of backend service"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -102,12 +128,32 @@ func NewBackendService() *BackendService {
 	return &BackendService{
 		RunMode:    defaultBackendRunMode,
 		TenantMode: defaultBackendTenantMode,
+		CMDB: CMDB{
+			APIGatewayClient: APIGatewayClient{
+				TraceServiceName: defaultBackendCMDBTraceServiceName,
+			},
+		},
+		File: File{
+			TraceName: defaultBackendFileTraceServiceName,
+		},
+		GSE: GSE{
+			APIGatewayClient: APIGatewayClient{
+				TraceServiceName: defaultBackendGSETraceServiceName,
+			},
+		},
+		UserManager: UserManager{
+			APIGatewayClient: APIGatewayClient{
+				TraceServiceName: defaultBackendUserManagerTraceServiceName,
+			},
+		},
 		Workflow: Workflow{
+			TraceName: defaultBackendWorkflowTraceName,
 			WorkerNum: defaultBackendWorkflowWorkerNum,
 		},
 		InfoServer: HTTPServer{
 			BindIP:        defaultBackendInfoBindIP,
-			Port:          defaultBackendInfoBindPort,
+			Port:          defaultBackendInfoPort,
+			TraceName:     defaultBackendInfoTraceName,
 			AuthIdentity:  defaultBackendInfoAuthIdentity,
 			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
@@ -115,6 +161,7 @@ func NewBackendService() *BackendService {
 		AdminServer: HTTPServer{
 			BindIP:          defaultBackendAdminBindIP,
 			Port:            defaultBackendAdminPort,
+			TraceName:       defaultBackendAdminTraceName,
 			AuthIdentity:    defaultBackendAdminAuthIdentity,
 			AdvertiseIPV4:   defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6:   defaultBackendAdvertiseIPv6,
@@ -123,6 +170,7 @@ func NewBackendService() *BackendService {
 		BasicServer: HTTPServer{
 			BindIP:          defaultBackendBasicBindIP,
 			Port:            defaultBackendBasicPort,
+			TraceName:       defaultBackendBasicTraceName,
 			AuthIdentity:    defaultBackendBasicAuthIdentity,
 			AdvertiseIPV4:   defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6:   defaultBackendAdvertiseIPv6,
@@ -132,6 +180,7 @@ func NewBackendService() *BackendService {
 			HTTPServer: HTTPServer{
 				BindIP:        defaultBackendCallbackBindIP,
 				Port:          defaultBackendCallbackPort,
+				TraceName:     defaultBackendCallbackTraceName,
 				AuthIdentity:  defaultBackendCallbackAuthIdentity,
 				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
@@ -141,14 +190,18 @@ func NewBackendService() *BackendService {
 			HTTPServer: HTTPServer{
 				BindIP:        defaultBackendProxyBindIP,
 				Port:          defaultBackendProxyPort,
+				TraceName:     defaultBackendProxyTraceName,
 				AuthIdentity:  defaultBackendProxyAuthIdentity,
 				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 			},
 		},
-		Etcd:    Etcd{},
-		Redis:   Redis{},
-		MongoDB: MongoDB{},
+		Etcd:  Etcd{},
+		Redis: Redis{},
+		MongoDB: MongoDB{
+			AppName:   defaultBackendMongoDBAppName,
+			TraceName: defaultBackendMongoDBTraceName,
+		},
 		Log: Log{
 			Dir:       defaultBackendLogDir,
 			MaxSizeMB: defaultBackendLogMaxSizeMB,
@@ -177,9 +230,20 @@ func NewBackendService() *BackendService {
 		InstallerFileGroup: FileGroup{
 			FullPath: defaultInstallerFileGroup,
 		},
-		CreditVault: CreditVault{},
+		CreditVault: CreditVault{
+			HostCreditVault: HostCreditVault{
+				IEGTJJ: IEGTJJ{
+					APIGatewayClient: APIGatewayClient{
+						TraceServiceName: defaultBackendIEGTJJTraceServiceName,
+					},
+				},
+			},
+		},
 		Access: Access{
 			VirtualUser: defaultAccessVirtualUser,
+		},
+		Tracing: Tracing{
+			ExporterType: defaultBackendTracingExporterType,
 		},
 	}
 }
@@ -297,6 +361,10 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate installer file group config: %w", err)
 	}
 
+	if err := svc.Tracing.Validate(); err != nil {
+		return fmt.Errorf("failed to validate tracing config: %w", err)
+	}
+
 	return nil
 }
 
@@ -348,9 +416,9 @@ func (conf *GSEDeployCustom) Validate() error {
 
 // GSEDeployPluginCustom defines the custom deployment configuration for plugin.
 type GSEDeployPluginCustom struct {
-	LogDir             string         `yaml:"logDir" usage:"log dir"`
-	HostIDPath         string         `yaml:"hostIDPath" usage:"host id path"`
-	CommonConstants    map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
+	LogDir          string         `yaml:"logDir" usage:"log dir"`
+	HostIDPath      string         `yaml:"hostIDPath" usage:"host id path"`
+	CommonConstants map[string]any `yaml:"commonConstants" usage:"common constants for plugin"`
 }
 
 // Validate validates the config.
@@ -367,6 +435,23 @@ type Access struct {
 func (access *Access) Validate() error {
 	if access.VirtualUser == "" {
 		return fmt.Errorf("virtual user is empty")
+	}
+
+	return nil
+}
+
+// Tracing defines the tracing configuration for nodemgr system.
+type Tracing struct {
+	ExporterType string            `yaml:"exporterType" usage:"exporter type of tracing system"`
+	OTLPEndpoint string            `yaml:"otlpEndpoint" usage:"otlp endpoint of tracing system"`
+	OTLPInsecure bool              `yaml:"otlpInsecure" usage:"otlp insecure of tracing system"`
+	OTLPHeaders  map[string]string `yaml:"otlpHeaders" usage:"otlp headers of tracing system"`
+}
+
+// Validate validates the config.
+func (conf Tracing) Validate() error {
+	if conf.ExporterType == "" {
+		return fmt.Errorf("exporter type is empty")
 	}
 
 	return nil

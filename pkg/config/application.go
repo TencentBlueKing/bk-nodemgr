@@ -33,21 +33,27 @@ const (
 	defaultApplicationFrontPasswordVaultSwitch = false
 	defaultApplicationFrontPasswordVaultName   = "password_vault"
 
+	defaultApplicationBackendTraceServiceName = "application-client-backend"
+	defaultApplicationFileTraceServiceName    = "application-client-file"
+
 	// info server config default values.
-	defaultApplicationInfoBindIP   = "127.0.0.1"
-	defaultApplicationInfoPort     = 28000
-	defaultApplicationInfoIdentity = AuthIdentityNone
+	defaultApplicationInfoBindIP    = "127.0.0.1"
+	defaultApplicationInfoPort      = 28000
+	defaultApplicationInfoIdentity  = AuthIdentityNone
+	defaultApplicationInfoTraceName = "application-server-info"
 
 	// admin server config default values.
-	defaultApplicationAdminBindIP   = "127.0.0.1"
-	defaultApplicationAdminPort     = 28001
-	defaultApplicationAdminIdentity = AuthIdentityRestServer
+	defaultApplicationAdminBindIP    = "127.0.0.1"
+	defaultApplicationAdminPort      = 28001
+	defaultApplicationAdminIdentity  = AuthIdentityRestServer
+	defaultApplicationAdminTraceName = "application-server-admin"
 
 	// basic server config default values.
 	defaultApplicationBasicBindIP    = "127.0.0.1"
 	defaultApplicationBasicPort      = 28002
 	defaultApplicationBasicStaticDir = "/bk-nodemgr/static/"
 	defaultApplicationBasicIdentity  = AuthIdentityBKLogin
+	defaultApplicationBasicTraceName = "application-server-basic"
 
 	// log config default values.
 	defaultApplicationLogDir       = "/bk-nodemgr/log/"
@@ -55,9 +61,16 @@ const (
 	defaultApplicationLogMaxSizeMB = 200
 	defaultApplicationLogLevel     = "INFO"
 
+	defaultApplicationMongoDBAppName   = "bk_nodemgr_application"
+	defaultApplicationMongoDBTraceName = "bk_nodemgr_mongo"
+
 	// advertise config default values.
 	defaultApplicationAdvertiseIPv4 = "127.0.0.1"
 	defaultApplicationAdvertiseIPv6 = "::1"
+
+	defaultApplicationTracingExporterType = "stdout"
+
+	defaultApplicationBKLoginTraceServiceName = "application-client-bklogin"
 )
 
 // Backend the config of backend gateway config.
@@ -80,6 +93,7 @@ type ApplicationService struct {
 	AdminServer HTTPServer  `yaml:"adminServer" usage:"admin server config of application service"`
 	BasicServer HTTPServer  `yaml:"basicServer" usage:"basic server config of application service"`
 	Log         Log         `yaml:"log" usage:"log config of application service"`
+	Tracing     Tracing     `yaml:"tracing" usage:"tracing config of file service"`
 }
 
 // NewApplicationService generatea a new ApplicationService with default values.
@@ -87,9 +101,27 @@ func NewApplicationService() *ApplicationService {
 	return &ApplicationService{
 		RunMode:    defaultApplicationRunMode,
 		TenantMode: defaultApplicationTenantMode,
+		BKSaas: BKSaas{
+			BKLogin: BKLogin{
+				TraceServiceName: defaultApplicationBKLoginTraceServiceName,
+			},
+		},
 		Front: Front{
 			PasswordVaultSwitch: defaultApplicationFrontPasswordVaultSwitch,
 			PasswordVaultName:   defaultApplicationFrontPasswordVaultName,
+		},
+		Backend: Backend{
+			APIGatewayClient: APIGatewayClient{
+				TraceServiceName: defaultApplicationBackendTraceServiceName,
+			},
+		},
+		File: File{
+			TraceName: defaultApplicationFileTraceServiceName,
+		},
+		Etcd: Etcd{},
+		MongoDB: MongoDB{
+			AppName:   defaultApplicationMongoDBAppName,
+			TraceName: defaultApplicationMongoDBTraceName,
 		},
 		InfoServer: HTTPServer{
 			BindIP:        defaultApplicationInfoBindIP,
@@ -97,6 +129,7 @@ func NewApplicationService() *ApplicationService {
 			AuthIdentity:  defaultApplicationInfoIdentity,
 			AdvertiseIPV4: defaultApplicationAdvertiseIPv4,
 			AdvertiseIPV6: defaultApplicationAdvertiseIPv6,
+			TraceName:     defaultApplicationInfoTraceName,
 		},
 		AdminServer: HTTPServer{
 			BindIP:          defaultApplicationAdminBindIP,
@@ -105,18 +138,23 @@ func NewApplicationService() *ApplicationService {
 			AdvertiseIPV4:   defaultApplicationAdvertiseIPv4,
 			AdvertiseIPV6:   defaultApplicationAdvertiseIPv6,
 			JWTServerConfig: JWTServerConfig{CryptoType: JWTCryptoTypeSymmetric},
+			TraceName:       defaultApplicationAdminTraceName,
 		},
 		BasicServer: HTTPServer{
 			BindIP:       defaultApplicationBasicBindIP,
 			Port:         defaultApplicationBasicPort,
 			StaticDir:    defaultApplicationBasicStaticDir,
 			AuthIdentity: defaultApplicationBasicIdentity,
+			TraceName:    defaultApplicationBasicTraceName,
 		},
 		Log: Log{
 			Dir:       defaultApplicationLogDir,
 			MaxSizeMB: defaultApplicationLogMaxSizeMB,
 			MaxNum:    defaultApplicationLogMaxNum,
 			Level:     defaultApplicationLogLevel,
+		},
+		Tracing: Tracing{
+			ExporterType: defaultApplicationTracingExporterType,
 		},
 	}
 }
@@ -316,6 +354,10 @@ func (svc *ApplicationService) Validate() error {
 
 	if err := svc.Front.Validate(); err != nil {
 		return fmt.Errorf("failed to validate front config: %w", err)
+	}
+
+	if err := svc.Tracing.Validate(); err != nil {
+		return fmt.Errorf("failed to validate tracing config: %w", err)
 	}
 
 	return nil

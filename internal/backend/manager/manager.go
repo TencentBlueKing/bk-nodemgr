@@ -59,6 +59,7 @@ func NewManager(conf Config) (*Manager, error) {
 			mgr.conf.WorkflowConfig.Redis.Addr,
 			mgr.conf.WorkflowConfig.Redis.Password,
 			mgr.conf.WorkflowConfig.Redis.DB),
+		workflow.WithTraceService(mgr.conf.TraceService),
 	)
 
 	return mgr, nil

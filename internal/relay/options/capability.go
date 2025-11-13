@@ -15,6 +15,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/relayhandler"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 )
 
 // Capability encapsulates the various capabilities the service supports.
@@ -29,6 +30,15 @@ type Capability struct {
 // Start start the capability.
 func (c *Capability) Start(nCtx contextx.IContext) error {
 	if err := c.Messager.Start(nCtx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GracefulShutdown graceful shutdown all services in capability.
+func (c *Capability) GracefulShutdown() error {
+	if err := tracing.G().ShutdownAll(contextx.Background()); err != nil {
 		return err
 	}
 

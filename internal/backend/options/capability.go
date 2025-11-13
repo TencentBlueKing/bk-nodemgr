@@ -35,6 +35,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -178,6 +179,10 @@ func (capability *Capability) Start(ctx contextx.IContext) error {
 // GracefulShutdown ...
 func (capability *Capability) GracefulShutdown() error {
 	if err := capability.Manager.GracefulShutdown(); err != nil {
+		return err
+	}
+
+	if err := tracing.G().ShutdownAll(contextx.Background()); err != nil {
 		return err
 	}
 

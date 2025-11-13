@@ -42,9 +42,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -53,8 +55,8 @@ import (
 )
 
 const (
-	// DiscoveryNameApigw defines the name of apigateway discovery.
-	DiscoveryNameApigw = "apigateway"
+	clientNameRepo = "bkrepo"
+	clientNameGse  = "gse"
 )
 
 // Service defines a server that provides file services.
@@ -94,13 +96,17 @@ func NewService(conf *config.FileService) (*Service, error) {
 		instance: discover.NewInstance(string(discover.ServiceNameFile), nil),
 	}
 
-	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(context.Background()))
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(contextx.Background()))
 
 	if err := svc.initialStaticsConfigs(); err != nil {
 		return nil, fmt.Errorf("failed to initialize static configs: %w", err)
 	}
 
-	if err := svc.initialCapability(); err != nil {
+	if err := svc.initTracing(); err != nil {
+		return nil, fmt.Errorf("failed to init tracing: %w", err)
+	}
+
+	if err := svc.initialCapability(svc.ctx); err != nil {
 		return nil, fmt.Errorf("failed to initialize capability: %w", err)
 	}
 
@@ -122,7 +128,7 @@ func (svc *Service) initialStaticsConfigs() error {
 }
 
 // nolint: funlen
-func (svc *Service) initialCapability() error {
+func (svc *Service) initialCapability(nCtx contextx.IContext) error {
 	var err error
 
 	// discover provider.
@@ -152,7 +158,7 @@ func (svc *Service) initialCapability() error {
 	}
 
 	// initial manager.
-	if err = svc.initialManager(); err != nil {
+	if err = svc.initialManager(nCtx); err != nil {
 		return fmt.Errorf("failed to initial manager: %w", err)
 	}
 
@@ -161,12 +167,11 @@ func (svc *Service) initialCapability() error {
 
 func (svc *Service) newGSEHandler() (gse.IHandler, error) {
 	apiGWUserConfig := newAPIGWUserConfig(&svc.conf.GSE.APIGatewayClient)
-	apiGwClientCapability, err := newAPIGwClientCapability(&svc.conf.GSE.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(clientNameGse, &svc.conf.GSE.APIGatewayClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client for gse: %w", err)
 	}
 
-	apiGwClientCapability.Name = "gse"
 	gseHandler, err := gse.New(
 		apiGwClientCapability,
 		&gse.Config{
@@ -186,12 +191,21 @@ func (svc *Service) newBKRepoHandler() (bkrepo.IHandler, error) {
 		return nil, fmt.Errorf("failed to create http client for bkrepo handler: %w", err)
 	}
 
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName: svc.conf.Repo.TraceServiceName,
+		SampleRate:  svc.conf.Repo.TraceSampleRate,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to new trace service: %w", err)
+	}
+
 	clientCap := &restclient.Capability{
-		Name:                 "bkrepo",
+		Name:                 clientNameRepo,
 		HTTPClient:           httpClient,
-		Discover:             restdiscovery.NewDiscovery("bkrepo", []string{svc.conf.Repo.Endpoint}),
+		Discover:             restdiscovery.NewDiscovery(clientNameRepo, []string{svc.conf.Repo.Endpoint}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
+		TraceSvc:             traceSvc,
 	}
 
 	return bkrepo.New(clientCap, &bkrepo.Config{
@@ -204,7 +218,7 @@ func (svc *Service) newBKRepoHandler() (bkrepo.IHandler, error) {
 
 func (svc *Service) newMongoClient() (*mongo.Client, error) {
 	mongoClient, err := mongo.Connect(
-		context.Background(),
+		contextx.Background(),
 		&mongoOptions.ClientOptions{
 			AppName: &svc.conf.MongoDB.AppName,
 			Auth: &mongoOptions.Credential{
@@ -261,59 +275,59 @@ func (svc *Service) initialStorages() error {
 }
 
 // nolint: funlen
-func (svc *Service) initialManager() error {
+func (svc *Service) initialManager(nCtx contextx.IContext) error {
 	// init upstream origin file groups from bkrepo.
-	upstreamOriginAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/agent")
+	upstreamOriginAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/agent")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin agent file group: %w", err)
 	}
-	upstreamOriginServerFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/server")
+	upstreamOriginServerFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/server")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin server file group: %w", err)
 	}
-	upstreamOriginCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/cert")
+	upstreamOriginCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/cert")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin cert file group: %w", err)
 	}
-	upstreamOriginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/bintool")
+	upstreamOriginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin bin tool file group: %w", err)
 	}
-	upstreamOriginPluginV2, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/v2/plugin")
+	upstreamOriginPluginV2, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/v2/plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin plugin file group: %w", err)
 	}
-	upstreamOriginExternalPluginV2, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/v2/external_plugin")
+	upstreamOriginExternalPluginV2, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/v2/external_plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin external plugin file group: %w", err)
 	}
 
 	// init upstream release file groups from bkrepo.
-	upstreamReleaseAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/agent")
+	upstreamReleaseAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/agent")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release agent file group: %w", err)
 	}
-	upstreamReleaseProxyFg, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/proxy")
+	upstreamReleaseProxyFg, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/proxy")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release proxy file group: %w", err)
 	}
-	upstreamRealseCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/cert")
+	upstreamRealseCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/cert")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release cert file group: %w", err)
 	}
-	upstreamReleaseBintoolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/bintool")
+	upstreamReleaseBintoolFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
-	upstreamOriginPluginBinToolV2FG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "origin/plugin_bintool")
+	upstreamOriginPluginBinToolV2FG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/plugin_bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin plugin bin tool file group: %w", err)
 	}
-	upstreamReleasePluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/plugin_bintool")
+	upstreamReleasePluginBinToolFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/plugin_bintool")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release bin tool file group: %w", err)
 	}
-	upstreamReleasePlugin, err := svc.Cap.BKRepo.EnsureFileGroup(contextx.New(context.Background()), "release/plugin")
+	upstreamReleasePlugin, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/plugin")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream release plugin file group: %w", err)
 	}
@@ -396,18 +410,23 @@ func newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
 
 // nolint: unparam
 func (svc *Service) registerInfoServer() error {
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameFileInfo),
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.InfoServer.TraceName,
+			TraceSampleRate: svc.conf.InfoServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register info server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 	svc.instance.Update(discover.EndpointNameFileInfo, discover.Endpoint{
@@ -432,19 +451,24 @@ func (svc *Service) registerAdminServer() error {
 		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
 
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameFileAdmin),
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.AdminServer.TraceName,
+			TraceSampleRate: svc.conf.AdminServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withAdmin(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register admin server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 	svc.instance.Update(discover.EndpointNameFileAdmin, discover.Endpoint{
@@ -468,13 +492,15 @@ func (svc *Service) registerBasicServer() error {
 		return err
 	}
 
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameFileBasic),
 			IP:              svc.conf.BasicServer.BindIP,
 			Port:            svc.conf.BasicServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.BasicServer.TraceName,
+			TraceSampleRate: svc.conf.BasicServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withUpload(svc.Cap,
@@ -490,6 +516,9 @@ func (svc *Service) registerBasicServer() error {
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register basic server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 	svc.instance.Update(discover.EndpointNameFileBasic, discover.Endpoint{
@@ -512,19 +541,24 @@ func (svc *Service) registerDownloadServer() error {
 		return err
 	}
 
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameFileDownload),
 			IP:              svc.conf.DownloadServer.BindIP,
 			Port:            svc.conf.DownloadServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.DownloadServer.TraceName,
+			TraceSampleRate: svc.conf.DownloadServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withDownload(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register download server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 	svc.instance.Update(discover.EndpointNameFileDownload, discover.Endpoint{
@@ -537,7 +571,7 @@ func (svc *Service) registerDownloadServer() error {
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
-func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capability, error) {
+func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*restclient.Capability, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
@@ -549,11 +583,21 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 		return nil, err
 	}
 
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName: conf.TraceServiceName,
+		SampleRate:  conf.TraceSampleRate,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to new trace service: %w", err)
+	}
+
 	clientCap := &restclient.Capability{
+		Name:                 name,
 		HTTPClient:           httpClient,
-		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
+		Discover:             restdiscovery.NewDiscovery(name, conf.Endpoints),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
+		TraceSvc:             traceSvc,
 	}
 
 	return clientCap, nil
@@ -668,6 +712,38 @@ func (svc *Service) GracefulShutdown() error {
 	}
 
 	defer svc.cancelFunc()
+
+	err := svc.Cap.GracefulShutdown()
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to gracefully shutdown capability")
+
+		return err
+	}
+
+	logger.G.Sys().Info("file service gracefully shutdown")
+
+	return nil
+}
+
+func (svc *Service) initTracing() error {
+	tracingConf := tracing.Config{
+		Exporter: tracing.ExporterConfig{
+			ExporterType: tracing.ExporterType(svc.conf.Tracing.ExporterType),
+		},
+		Environment: system.GetEnv(),
+	}
+
+	if tracingConf.Exporter.ExporterType == tracing.ExporterTypeOTLP {
+		tracingConf.Exporter.OTLPConfig = &tracing.OTLPConfig{
+			Endpoint: svc.conf.Tracing.OTLPEndpoint,
+			Insecure: svc.conf.Tracing.OTLPInsecure,
+			Headers:  svc.conf.Tracing.OTLPHeaders,
+		}
+	}
+
+	if err := tracing.Init(tracingConf); err != nil {
+		return fmt.Errorf("failed to init tracing: %w", err)
+	}
 
 	return nil
 }

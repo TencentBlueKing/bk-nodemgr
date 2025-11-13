@@ -32,6 +32,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 )
 
 // Config defines the config of Manager.
@@ -69,6 +70,9 @@ type Config struct {
 
 	// distributed cache.
 	Cache cache.ICache
+
+	//  distributed tracing
+	TraceService tracing.IService
 
 	WorkflowConfig
 }

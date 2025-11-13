@@ -25,6 +25,7 @@ import (
 	machineryLog "github.com/RichardKnop/machinery/v2/log"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -139,6 +140,13 @@ func WithStorageActionInstance(storageActionInst IStorageActionInstance) Options
 	}
 }
 
+// WithTraceService sets the trace service for the manager.
+func WithTraceService(traceSvc tracing.IService) OptionsFunc {
+	return func(mgr *manager) {
+		mgr.traceSvc = traceSvc
+	}
+}
+
 // WithLocker sets the locker for the manager.
 func WithLocker(lock locker.MutexFactory) OptionsFunc {
 	return func(mgr *manager) {
@@ -183,6 +191,9 @@ type manager struct {
 
 	// trigger handler.
 	triggerHandler *triggerHandler
+
+	// tracing service
+	traceSvc tracing.IService
 }
 
 // Start starts the manager.

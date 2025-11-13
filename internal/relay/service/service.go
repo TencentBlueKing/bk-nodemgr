@@ -13,6 +13,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"runtime"
@@ -73,7 +74,7 @@ func NewService(conf *config.RelayService) (*Service, error) {
 		Cap:  &options.Capability{},
 	}
 
-	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(context.Background()))
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(contextx.Background()))
 
 	if err := svc.initialCapability(); err != nil {
 		return nil, fmt.Errorf("failed to initialize capability: %w", err)
@@ -158,18 +159,23 @@ func (svc *Service) newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIde
 
 // nolint: unparam
 func (svc *Service) registerInfoServer() error {
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(relayInfoSvcName),
+			Name:            relayInfoSvcName,
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.InfoServer.TraceName,
+			TraceSampleRate: svc.conf.InfoServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register info server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 
@@ -192,19 +198,24 @@ func (svc *Service) registerAdminServer() error {
 
 	requestIDSetter := restserver.NewRequestIDSetter()
 
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(relayAdminSvcName),
+			Name:            relayAdminSvcName,
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
 			RequestIDSetter: requestIDSetter,
+			TraceName:       svc.conf.AdminServer.TraceName,
+			TraceSampleRate: svc.conf.AdminServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withAdmin(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register admin server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 
@@ -213,17 +224,22 @@ func (svc *Service) registerAdminServer() error {
 
 // nolint: unparam
 func (svc *Service) registerCallbackServer() error {
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(relayCallbackSvcName),
+			Name:            relayCallbackSvcName,
 			IP:              svc.conf.CallbackServer.BindIP,
 			Port:            svc.conf.CallbackServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.CallbackServer.TraceName,
+			TraceSampleRate: svc.conf.CallbackServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withCallbackServer(svc.Cap),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register callback server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 
@@ -237,17 +253,22 @@ func (svc *Service) registerDownloadServer() error {
 			svc.conf.DownloadServer.AuthIdentity, config.AuthIdentityNone)
 	}
 
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(relayDownloadSvcName),
+			Name:            relayDownloadSvcName,
 			IP:              svc.conf.DownloadServer.BindIP,
 			Port:            svc.conf.DownloadServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.DownloadServer.TraceName,
+			TraceSampleRate: svc.conf.DownloadServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withDownload(svc.Cap),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register download server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 
@@ -320,6 +341,28 @@ func (svc *Service) Start() error {
 
 		return err
 	}
+
+	return nil
+}
+
+// GracefulShutdown gracefully shuts down the application service.
+func (svc *Service) GracefulShutdown() error {
+	logger.G.Sys().Info("try to gracefully shutdown relay service")
+
+	if svc.ctx == nil || svc.cancelFunc == nil {
+		return errors.New("service is not running")
+	}
+
+	defer svc.cancelFunc()
+
+	err := svc.Cap.GracefulShutdown()
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to gracefully shutdown capability")
+
+		return err
+	}
+
+	logger.G.Sys().Info("relay service gracefully shutdown")
 
 	return nil
 }

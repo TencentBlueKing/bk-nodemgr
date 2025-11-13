@@ -54,6 +54,7 @@ type IRequest interface {
 	Data() IRequestData
 }
 
+// IRequestData request data.
 type IRequestData interface {
 	// GetLoginName get login name.
 	GetLoginName() string
@@ -87,6 +88,8 @@ func NewRequest(gCtx *gin.Context) *Request {
 		data: &RequestData{},
 	}
 }
+
+var _ IRequest = &Request{}
 
 // Request implements the rest request.
 type Request struct {
@@ -214,6 +217,9 @@ func (r *Request) Data() IRequestData {
 	return r.data
 }
 
+var _ IRequestData = &RequestData{}
+
+// RequestData request data.
 type RequestData struct {
 	loginName  string
 	bkUsername string

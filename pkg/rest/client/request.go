@@ -27,6 +27,9 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // VerbType http request verb type.
@@ -406,7 +409,8 @@ func (r *Request) tryThrottle(url string) {
 }
 
 // Do http request do.
-func (r *Request) Do() *Result {
+// nolint: nonamedreturns
+func (r *Request) Do() (result *Result) {
 	if r.err != nil {
 		return &Result{
 			Err: r.err,
@@ -425,9 +429,36 @@ func (r *Request) Do() *Result {
 		}
 	}
 
+	// tracing
+	tracer := r.capability.TraceSvc.TracerProvider().Tracer(r.capability.Name)
+	traceCtx, span := tracer.Start(r.nCtx, fmt.Sprintf("%s %s", r.verb, r.baseURL),
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.String("http.request.method", string(r.verb)),
+		),
+	)
+	defer func() {
+		span.SetAttributes(
+			attribute.Int("http.response.status_code", result.StatusCode),
+		)
+
+		span.End()
+	}()
+
 	for try := 0; try < r.client.maxRetryCycle; try++ {
 		for index, endpoint := range endpoints {
-			result, isComplete := r.doWithEndpoint(httpClient, endpoint, try+index)
+			fullURL := r.fullURL(endpoint).String()
+			req, err := r.getRequest(fullURL)
+			if err != nil {
+				return &Result{Err: err}
+			}
+
+			// inject trace context.
+			req = req.WithContext(traceCtx)
+			r.capability.TraceSvc.TracerPropagator().Inject(traceCtx, propagation.HeaderCarrier(req.Header))
+
+			var isComplete bool
+			result, isComplete = r.doWithEndpoint(httpClient, req, try+index)
 			if isComplete {
 				return result
 			}
@@ -443,19 +474,13 @@ func (r *Request) Do() *Result {
 const retryDelay = 20 * time.Millisecond
 
 // doWithEndpoint http request do with specific host.
-func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int) (*Result, bool) {
-	fullURL := r.fullURL(endpoint).String()
-	req, err := r.getRequest(fullURL)
-	if err != nil {
-		return &Result{Err: err}, true
-	}
-
+func (r *Request) doWithEndpoint(client HTTPClient, req *http.Request, retries int) (*Result, bool) {
 	if retries > 0 {
-		r.tryThrottle(fullURL)
+		r.tryThrottle(req.URL.String())
 	}
 
 	logger.G.Biz(r.nCtx).
-		With("method", r.verb, "url", fullURL, "header", r.maskHeader(r.headers), "body", r.maskRequestBody()).
+		With("method", req.Method, "url", req.URL, "header", r.maskHeader(req.Header), "body", r.maskRequestBody()).
 		Info("do request")
 
 	start := time.Now()
@@ -464,7 +489,7 @@ func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int
 		// "Connection reset by peer" is a special err which in most scenario is a transient error.
 		// Which means that we can retry it. And so does the VerbTypeGET operation.
 		// While the other "write" operation can not simply retry it again, because they are not idempotent.
-		r.checkToleranceLatency(&start, fullURL)
+		r.checkToleranceLatency(&start, req.URL.String())
 		if !isConnectionReset(err) || r.verb != VerbTypeGET {
 			return &Result{Err: err}, true
 		}
@@ -479,10 +504,10 @@ func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int
 	r.client.metrics.HandleClientMetrics(req, resp, r.subPath, start)
 
 	// record latency if needed
-	r.checkToleranceLatency(&start, fullURL)
+	r.checkToleranceLatency(&start, req.URL.String())
 
 	result := &Result{
-		FullURL:           fullURL,
+		FullURL:           req.URL.String(),
 		Body:              resp.Body,
 		StatusCode:        resp.StatusCode,
 		Status:            resp.Status,
@@ -490,9 +515,12 @@ func (r *Request) doWithEndpoint(client HTTPClient, endpoint string, retries int
 		enableLogResponse: r.enableLogResponse,
 	}
 
-	logger.G.Biz(r.nCtx).
-		With("code", result.StatusCode, "method", r.verb, "url", fullURL, "header",
-			r.maskHeader(r.headers)).
+	logger.G.Biz(r.nCtx).With(
+		"code", result.StatusCode,
+		"method", req.Method,
+		"url", req.URL.String(),
+		"header",
+		r.maskHeader(req.Header)).
 		Info("receive response")
 
 	return result, true

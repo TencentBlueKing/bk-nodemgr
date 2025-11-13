@@ -20,7 +20,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // MiddlewareContext verify auth info.
@@ -219,5 +222,27 @@ func MiddlewareReturnedLog(skipPaths ...string) gin.HandlerFunc {
 				With("code", gCtx.Writer.Status()).
 				Info("[request done] %s", path)
 		}
+	}
+}
+
+// MiddlewareTracing tracing.
+func MiddlewareTracing(tracerSvc tracing.IService) gin.HandlerFunc {
+	return func(gCtx *gin.Context) {
+		fn := otelgin.Middleware(tracerSvc.ServiceName(),
+			otelgin.WithTracerProvider(tracerSvc.TracerProvider()),
+			otelgin.WithPropagators(tracerSvc.TracerPropagator()),
+		)
+		fn(gCtx)
+
+		span := trace.SpanFromContext(gCtx.Request.Context())
+		if !span.SpanContext().IsValid() {
+			traceID := identifier.GenTraceID()
+			spanID := identifier.GenSpanID()
+
+			span.SpanContext().WithTraceID(traceID)
+			span.SpanContext().WithSpanID(spanID)
+		}
+
+		gCtx.Next()
 	}
 }

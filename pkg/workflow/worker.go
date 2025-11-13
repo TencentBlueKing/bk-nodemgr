@@ -25,6 +25,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // IWorker describes the workflow worker.
@@ -64,11 +66,28 @@ func (mgr *manager) launchWorker() error {
 	return nil
 }
 
+const (
+	scopeNameAction = "action"
+
+	attributeKeyActionName       = "action_name"
+	attributeKeyActionInstanceID = "operation_instance_id"
+)
+
 // doAction executes the action defined by actionName for the operation instance with operationInstanceID.
 // nolint: funlen,gocognit,cyclop,gocyclo
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 // notice: this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
+	tracer := mgr.traceSvc.TracerProvider().Tracer(scopeNameAction)
+	ctx, span := tracer.Start(ctx, actionName,
+		trace.WithAttributes(
+			attribute.String(attributeKeyActionName, actionName),
+			attribute.String(attributeKeyActionInstanceID, operationInstanceID),
+		),
+		trace.WithSpanKind(trace.SpanKindConsumer),
+	)
+	defer span.End()
+
 	var nCtx contextx.IContext
 	nCtx = contextx.New(ctx, contextx.WithMessageID(actionMessageID(operationInstanceID, actionName)))
 

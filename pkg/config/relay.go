@@ -21,20 +21,28 @@ import (
 const (
 	defaultRelayPluginName = "bk-nodemgr-relay"
 
-	defaultRelayInfoBindIP       = "127.0.0.1"
-	defaultRelayInfoPort         = 28300
-	defaultRelayInfoIdentity     = AuthIdentityNone
-	defaultRelayAdminBindIP      = "127.0.0.1"
-	defaultRelayAdminPort        = 28301
-	defaultRelayAdminIdentity    = AuthIdentityNone
-	defaultRelayCallbackBindIP   = "127.0.0.1"
-	defaultRelayCallbackPort     = 28302
-	defaultRelayCallbackIdentity = AuthIdentityNone
-	defaultRelayDownloadBindIP   = "127.0.0.1"
-	defaultRelayDownloadPort     = 28303
-	defaultRelayDownloadIdentity = AuthIdentityNone
-	defaultRelayAdvertiseIPv4    = "127.0.0.1"
-	defaultRelayAdvertiseIPv6    = "::1"
+	defaultRelayInfoBindIP    = "127.0.0.1"
+	defaultRelayInfoPort      = 28300
+	defaultRelayInfoTraceName = "relay-server-info"
+	defaultRelayInfoIdentity  = AuthIdentityNone
+
+	defaultRelayAdminBindIP    = "127.0.0.1"
+	defaultRelayAdminPort      = 28301
+	defaultRelayAdminTraceName = "relay-server-admin"
+	defaultRelayAdminIdentity  = AuthIdentityNone
+
+	defaultRelayCallbackBindIP    = "127.0.0.1"
+	defaultRelayCallbackPort      = 28302
+	defaultRelayCallbackTraceName = "relay-server-callback"
+	defaultRelayCallbackIdentity  = AuthIdentityNone
+
+	defaultRelayDownloadBindIP    = "127.0.0.1"
+	defaultRelayDownloadPort      = 28303
+	defaultRelayDownloadTraceName = "relay-server-download"
+	defaultRelayDownloadIdentity  = AuthIdentityNone
+
+	defaultRelayAdvertiseIPv4 = "127.0.0.1"
+	defaultRelayAdvertiseIPv6 = "::1"
 
 	defaultRelayLogDir       = "/data/plugin-relay/log"
 	defaultRelayLogMaxNum    = 10
@@ -42,6 +50,8 @@ const (
 	defaultRelayLogLevel     = "INFO"
 
 	defaultRelayWorkspaceGroupFullPath = "/data/plugin-relay"
+
+	defaultRelayTracingExporterType = "stdout"
 )
 
 // RelayService the config of relay service.
@@ -56,7 +66,8 @@ type RelayService struct {
 
 	RelayWorkspaceFileGroup FileGroup `yaml:"relayWorkspaceFileGroup" usage:"relay workspace file group config of relay service"`
 
-	Log Log `yaml:"log" usage:"log config of relay service"`
+	Tracing Tracing `yaml:"tracing" usage:"tracing config of relay service"`
+	Log     Log     `yaml:"log" usage:"log config of relay service"`
 }
 
 // NewRelayService generates a new RelayService with default value.
@@ -71,6 +82,7 @@ func NewRelayService() *RelayService {
 		InfoServer: HTTPServer{
 			BindIP:        defaultRelayInfoBindIP,
 			Port:          defaultRelayInfoPort,
+			TraceName:     defaultRelayInfoTraceName,
 			AuthIdentity:  defaultRelayInfoIdentity,
 			AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 			AdvertiseIPV6: defaultRelayAdvertiseIPv6,
@@ -78,6 +90,7 @@ func NewRelayService() *RelayService {
 		AdminServer: HTTPServer{
 			BindIP:        defaultRelayAdminBindIP,
 			Port:          defaultRelayAdminPort,
+			TraceName:     defaultRelayAdminTraceName,
 			AuthIdentity:  defaultRelayAdminIdentity,
 			AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 			AdvertiseIPV6: defaultRelayAdvertiseIPv6,
@@ -86,6 +99,7 @@ func NewRelayService() *RelayService {
 			HTTPServer{
 				BindIP:        defaultRelayCallbackBindIP,
 				Port:          defaultRelayCallbackPort,
+				TraceName:     defaultRelayCallbackTraceName,
 				AuthIdentity:  defaultRelayCallbackIdentity,
 				AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 				AdvertiseIPV6: defaultRelayAdvertiseIPv6,
@@ -93,6 +107,7 @@ func NewRelayService() *RelayService {
 		DownloadServer: HTTPServer{
 			BindIP:        defaultRelayDownloadBindIP,
 			Port:          defaultRelayDownloadPort,
+			TraceName:     defaultRelayDownloadTraceName,
 			AuthIdentity:  defaultRelayDownloadIdentity,
 			AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 			AdvertiseIPV6: defaultRelayAdvertiseIPv6,
@@ -105,6 +120,9 @@ func NewRelayService() *RelayService {
 		},
 		RelayWorkspaceFileGroup: FileGroup{
 			FullPath: defaultRelayWorkspaceGroupFullPath,
+		},
+		Tracing: Tracing{
+			ExporterType: defaultRelayTracingExporterType,
 		},
 	}
 }
@@ -154,6 +172,10 @@ func (svc *RelayService) Validate() error {
 
 	if err := svc.Log.Validate(); err != nil {
 		return fmt.Errorf("failed to validate log config: %w", err)
+	}
+
+	if err := svc.Tracing.Validate(); err != nil {
+		return fmt.Errorf("failed to validate tracing config: %w", err)
 	}
 
 	return nil

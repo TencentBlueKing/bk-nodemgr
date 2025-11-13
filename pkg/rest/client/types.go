@@ -14,6 +14,7 @@ import (
 	"time"
 
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 )
 
 const (
@@ -38,6 +39,9 @@ type Capability struct {
 
 	// MetricOpts metric option.
 	MetricOpts MetricOption
+
+	// TraceSvc trace service.
+	TraceSvc tracing.IService
 }
 
 // MetricOption metrics options.

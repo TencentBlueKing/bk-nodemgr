@@ -12,6 +12,8 @@ infoServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+  traceName: "application-server-info"
+  traceSampleRate: 0
 
 # adminServer defines self admin http server settings.
 adminServer:
@@ -21,6 +23,8 @@ adminServer:
 
   # defines the authentication mode, currently only rest-server and none is supported.
   authIdentity: rest-server
+  traceName: "application-server-admin"
+  traceSampleRate: 0
 
   # defines the JWT server configuration for authentication
   jwtServerConfig:
@@ -37,6 +41,8 @@ basicServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+  traceName: "application-server-basic"
+  traceSampleRate: 0
 
 # backend settings.
 backend:
@@ -48,6 +54,8 @@ backend:
   appCode: __BK_NODEMGR_APPCODE__
   appSecret: __BK_NODEMGR_APPSECRET__
   authMode: "un"
+  traceServiceName: "application-client-backend"
+  traceSampleRate: 0
 
 # log settings.
 log:
@@ -73,6 +81,8 @@ mongodb:
   authSource: admin
   authMechanism: SCRAM-SHA-256
   database: bk_nodemgr
+  traceName: "bk_nodemgr_mongo"
+  traceSampleRate: 0
 
 # file settings.
 file:
@@ -84,13 +94,26 @@ file:
     symmetricKey: "__BK_NODEMGR_FILE_BASICSERVER_JWT_SYMMETRIC_KEY__"
     # token expiration duration (e.g., 1h, 24h)
     tokenExpirationHour: 24
+  traceName: "application-client-file"
+  traceSampleRate: 0
 
 # bkSaaS saas settings.
 bkSaaS:
   bkLogin:
     loginURL: __BK_NODEMGR_APPLICATION_LOGIN_URL__
     authType: __BK_NODEMGR_APPLICATION_AUTH_TYPE__
+    # trace service name for BK login client
+    traceServiceName: "application-client-bklogin"
+    # trace sample rate for BK login client
+    traceSampleRate: 0
     # defines tls related options.
     tls:
       # server should be accessed without verifying the TLS certificate.
       insecureSkipVerify: true
+
+# tracing settings.
+tracing:
+  exporterType: "stdout"
+  otlpEndpoint: ""
+  otlpInsecure: false
+  otlpHeaders: {}

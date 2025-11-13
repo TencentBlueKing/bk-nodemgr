@@ -781,3 +781,9 @@ linters-settings:
         alias: releaseStg
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/configpolicy-event
         alias: daoConfigPolicyEvent
+      - pkg: go.opentelemetry.io/contrib/instrumentation/go.mongodb.org/mongo-driver/mongo/otelmongo
+        alias: otelmongo
+      - pkg: go.opentelemetry.io/otel/sdk/trace
+        alias: sdkTrace
+      - pkg: go.opentelemetry.io/otel/semconv/v1.17.0
+        alias: semconv

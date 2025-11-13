@@ -35,12 +35,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 	apigwserver "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -49,8 +51,9 @@ import (
 )
 
 const (
-	// DiscoveryNameApigw defines the name of apigateway discovery.
-	DiscoveryNameApigw = "apigateway"
+	clientNameBackend = "backend"
+	clientNameBKLogin = "bklogin"
+	clientNameFile    = "file"
 )
 
 // Service defines a apigwserver that provides application services.
@@ -90,10 +93,14 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 		instance: discover.NewInstance(string(discover.ServiceNameApplication), nil),
 	}
 
-	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(context.Background()))
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(contextx.Background()))
 
 	if err := svc.initialStaticsConfigs(); err != nil {
 		return nil, fmt.Errorf("failed to initialize static configs: %w", err)
+	}
+
+	if err := svc.initTracing(); err != nil {
+		return nil, fmt.Errorf("failed to init tracing: %w", err)
 	}
 
 	if err := svc.initialCapability(); err != nil {
@@ -107,15 +114,8 @@ func NewService(conf *config.ApplicationService) (*Service, error) {
 	return svc, nil
 }
 
+// nolint: unparam
 func (svc *Service) initialStaticsConfigs() error {
-	var err error
-
-	// initial bklogin handler.
-	svc.bkloginHandler, err = newBKLoginHandler(svc.conf.BKSaas.BKLogin)
-	if err != nil {
-		return fmt.Errorf("failed to create bklogin handler: %w", err)
-	}
-
 	// initial idenity map.
 	svc.authIdentityValidMap = map[config.AuthIdentity]struct{}{
 		config.AuthIdentityNone:    {},
@@ -133,6 +133,12 @@ func (svc *Service) initialCapability() error {
 	svc.Cap.DiscoverProvider = etcddiscover.NewProviderEtcd(&svc.conf.Etcd,
 		etcddiscover.WithWatch(discover.ServiceNameBackend, discover.ServiceNameFile),
 	)
+
+	// initial bklogin handler.
+	svc.bkloginHandler, err = newBKLoginHandler(svc.conf.BKSaas.BKLogin)
+	if err != nil {
+		return fmt.Errorf("failed to create bklogin handler: %w", err)
+	}
 
 	// initial backend handler.
 	svc.Cap.BackendHandler, err = svc.newBackendHandler()
@@ -177,12 +183,11 @@ func (svc *Service) initialCapability() error {
 func (svc *Service) newBackendHandler() (backend.IHandler, error) {
 	apiGwClientConfig := newAPIGWAppConfig(&svc.conf.Backend.APIGatewayClient)
 
-	apiGwClientCapability, err := newAPIGwClientCapability(&svc.conf.Backend.APIGatewayClient)
+	apiGwClientCapability, err := newAPIGwClientCapability(clientNameBackend, &svc.conf.Backend.APIGatewayClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new apigw client for backend: %w", err)
 	}
 
-	apiGwClientCapability.Name = "backend"
 	backendHandler, err := backend.New(apiGwClientCapability, backend.Config{
 		APIGWAppConfig: apiGwClientConfig,
 	})
@@ -199,8 +204,16 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 		return nil, fmt.Errorf("failed to create http client for file service: %w", err)
 	}
 
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName: svc.conf.File.TraceName,
+		SampleRate:  svc.conf.File.TraceSampleRate,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to new trace service: %w", err)
+	}
+
 	clientCap := &restclient.Capability{
-		Name:       "file",
+		Name:       clientNameFile,
 		HTTPClient: httpClient,
 		Discover: restdiscovery.NewServiceDiscovery(
 			svc.Cap.DiscoverProvider,
@@ -209,6 +222,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 		),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
+		TraceSvc:             traceSvc,
 	}
 
 	return file.New(clientCap, &file.Config{
@@ -218,7 +232,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 
 func (svc *Service) newMongoClient() (*mongo.Client, error) {
 	mongoClient, err := mongo.Connect(
-		context.Background(),
+		contextx.Background(),
 		&mongoOptions.ClientOptions{
 			AppName: &svc.conf.MongoDB.AppName,
 			Auth: &mongoOptions.Credential{
@@ -282,18 +296,23 @@ func (svc *Service) newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIde
 
 // nolint: unparam
 func (svc *Service) registerInfoServer() error {
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameApplicationInfo),
 			IP:              svc.conf.InfoServer.BindIP,
 			Port:            svc.conf.InfoServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.InfoServer.TraceName,
+			TraceSampleRate: svc.conf.InfoServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
 		withMetrics(svc.Cap),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register info server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 	svc.instance.Update(discover.EndpointNameApplicationInfo, discover.Endpoint{
@@ -318,19 +337,24 @@ func (svc *Service) registerAdminServer() error {
 		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
 
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameApplicationAdmin),
 			IP:              svc.conf.AdminServer.BindIP,
 			Port:            svc.conf.AdminServer.Port,
 			RequestIDSetter: restserver.NewRequestIDSetter(),
+			TraceName:       svc.conf.AdminServer.TraceName,
+			TraceSampleRate: svc.conf.AdminServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withAdmin(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register admin server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 	svc.instance.Update(discover.EndpointNameApplicationAdmin, discover.Endpoint{
@@ -354,12 +378,14 @@ func (svc *Service) registerBasicServer() error {
 		return fmt.Errorf("failed to new auth identity: %w", err)
 	}
 
-	server := restserver.NewServer(
+	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
 			Name:            string(discover.EndpointNameApplicationBasic),
 			IP:              svc.conf.BasicServer.BindIP,
 			Port:            svc.conf.BasicServer.Port,
+			TraceName:       svc.conf.BasicServer.TraceName,
+			TraceSampleRate: svc.conf.BasicServer.TraceSampleRate,
 			RequestIDSetter: apigwserver.NewBKAPIRequestIDSetter(),
 			StaticOptions: restserver.NewStaticOptions(svc.conf.BasicServer.StaticDir).
 				WithHTMLs("index.html").
@@ -374,6 +400,9 @@ func (svc *Service) registerBasicServer() error {
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
+	if err != nil {
+		return fmt.Errorf("failed to register basic server: %w", err)
+	}
 
 	svc.servers = append(svc.servers, server)
 	svc.instance.Update(discover.EndpointNameApplicationBasic, discover.Endpoint{
@@ -421,7 +450,7 @@ func withAdmin(capability *options.Capability, middleware ...gin.HandlerFunc) re
 }
 
 // newAPIGwClientCapability creates a new api-gateway client capability.
-func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capability, error) {
+func newAPIGwClientCapability(name string, conf *config.APIGatewayClient) (*restclient.Capability, error) {
 	httpClient, err := restclient.NewHTTPClient(&ssl.TLSConfig{
 		InsecureSkipVerify: conf.TLS.InsecureSkipVerify,
 		CertFile:           conf.TLS.CertFile,
@@ -433,11 +462,21 @@ func newAPIGwClientCapability(conf *config.APIGatewayClient) (*restclient.Capabi
 		return nil, err
 	}
 
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName: conf.TraceServiceName,
+		SampleRate:  conf.TraceSampleRate,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to new trace service: %w", err)
+	}
+
 	clientCap := &restclient.Capability{
+		Name:                 name,
 		HTTPClient:           httpClient,
-		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, conf.Endpoints),
+		Discover:             restdiscovery.NewDiscovery(name, conf.Endpoints),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
+		TraceSvc:             traceSvc,
 	}
 
 	return clientCap, nil
@@ -463,12 +502,21 @@ func newBKLoginHandler(conf config.BKLogin) (bksaasbklogin.IHandler, error) {
 		return nil, fmt.Errorf("failed to create http client for bklogin handler: %w", err)
 	}
 
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName: conf.TraceServiceName,
+		SampleRate:  conf.TraceSampleRate,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to new trace service: %w", err)
+	}
+
 	clientCap := &restclient.Capability{
-		Name:                 "bklogin",
+		Name:                 clientNameBKLogin,
 		HTTPClient:           httpClient,
-		Discover:             restdiscovery.NewDiscovery(DiscoveryNameApigw, []string{conf.LoginURL}),
+		Discover:             restdiscovery.NewDiscovery(clientNameBKLogin, []string{conf.LoginURL}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
+		TraceSvc:             traceSvc,
 	}
 
 	bkloginHandler, err := bksaasbklogin.New(
@@ -539,6 +587,29 @@ func (svc *Service) GracefulShutdown() error {
 	}
 
 	logger.G.Sys().Info("application service gracefully shutdown")
+
+	return nil
+}
+
+func (svc *Service) initTracing() error {
+	tracingConf := tracing.Config{
+		Exporter: tracing.ExporterConfig{
+			ExporterType: tracing.ExporterType(svc.conf.Tracing.ExporterType),
+		},
+		Environment: system.GetEnv(),
+	}
+
+	if tracingConf.Exporter.ExporterType == tracing.ExporterTypeOTLP {
+		tracingConf.Exporter.OTLPConfig = &tracing.OTLPConfig{
+			Endpoint: svc.conf.Tracing.OTLPEndpoint,
+			Insecure: svc.conf.Tracing.OTLPInsecure,
+			Headers:  svc.conf.Tracing.OTLPHeaders,
+		}
+	}
+
+	if err := tracing.Init(tracingConf); err != nil {
+		return fmt.Errorf("failed to init tracing: %w", err)
+	}
 
 	return nil
 }

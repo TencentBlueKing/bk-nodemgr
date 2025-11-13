@@ -15,6 +15,9 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var _ IContext = &Context{}
@@ -130,12 +133,19 @@ func New(ctx context.Context, opts ...Opts) *Context {
 		opt(r)
 	}
 
+	span := trace.SpanFromContext(ctx)
+	span.SetAttributes(
+		attribute.String("bk_nodemgr.tenant_id", r.tenantID),
+		attribute.String("bk_nodemgr.bk_username", r.bkUsername),
+		attribute.String("bk_nodemgr.login_name", r.loginName),
+		attribute.String("bk_nodemgr.message_id", r.messageID),
+	)
+
 	return r
 }
 
 // From with context.
 func From(nCtx IContext, opts ...Opts) *Context {
-
 	newOpts := []Opts{
 		WithTenantID(nCtx.TenantID()),
 		WithBKUsername(nCtx.BKUsername()),
@@ -204,4 +214,9 @@ func WithValues(values map[string]any) Opts {
 			c.values[k] = v
 		}
 	}
+}
+
+// Background this is the same as context.Background.
+func Background() IContext {
+	return New(context.Background())
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -78,6 +79,15 @@ func (c *Capability) Start(nCtx contextx.IContext) error {
 	}
 
 	if err := c.Manager.Start(nCtx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GracefulShutdown graceful shutdown all services in capability.
+func (c *Capability) GracefulShutdown() error {
+	if err := tracing.G().ShutdownAll(contextx.Background()); err != nil {
 		return err
 	}
 

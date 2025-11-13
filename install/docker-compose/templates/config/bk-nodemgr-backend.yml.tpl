@@ -12,6 +12,8 @@ infoServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+  traceName: "backend-server-info"
+  traceSampleRate: 0
 
 # adminServer defines self admin http server settings.
 adminServer:
@@ -24,6 +26,8 @@ adminServer:
 
   # defines the authentication mode, currently only rest-server and none is supported.
   authIdentity: rest-server
+  traceName: "backend-server-admin"
+  traceSampleRate: 0
 
   # defines the JWT server configuration for authentication
   jwtServerConfig:
@@ -37,12 +41,14 @@ basicServer:
   # listening IP and Port.
   bindIP: 0.0.0.0
   port: __BK_NODEMGR_BACKEND_BASIC_PORT__
-  
+
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
 
   # defines the authentication mode, currently only api-gateway and none is supported.
   authIdentity: api-gateway
+  traceName: "backend-server-basic"
+  traceSampleRate: 0
 
   # defines the JWT server configuration for authentication
   jwtServerConfig:
@@ -59,6 +65,8 @@ callbackServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+  traceName: "backend-server-callback"
+  traceSampleRate: 0
 
 # proxyServer defines self proxy http server settings.
 proxyServer:
@@ -68,10 +76,14 @@ proxyServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
+  traceName: "backend-server-proxy"
+  traceSampleRate: 0
 
 # workflow defines the backend workflow settings.
 workflow:
   workerNum: 8
+  traceName: "workflow"
+  traceSampleRate: 0
 
 # system defines the gse environs and edition.
 system:
@@ -113,6 +125,8 @@ cmdb:
   appSecret: __BK_NODEMGR_APPSECRET__
   user: admin
   authMode: "un"
+  traceServiceName: "backend-client-cmdb"
+  traceSampleRate: 0
 
 # defines the UserManager (bk-apigw) related settings.
 userManager:
@@ -123,6 +137,8 @@ userManager:
   appSecret: __BK_NODEMGR_APPSECRET__
   user: admin
   authMode: "un"
+  traceServiceName: "backend-client-usermanager"
+  traceSampleRate: 0
 
 # defines the GSE (bk-apigw) related settings.
 gse:
@@ -133,6 +149,8 @@ gse:
   appSecret: __BK_NODEMGR_APPSECRET__
   user: admin
   authMode: "un"
+  traceServiceName: "backend-client-gse"
+  traceSampleRate: 0
 
 # log settings.
 log:
@@ -143,6 +161,8 @@ log:
 
 # file settings.
 file:
+  traceName: "backend-client-file"
+  traceSampleRate: 0
   # defines the JWT client configuration for file service
   jwtClientConfig:
     # JWT encryption type: symmetric or asymmetric
@@ -169,6 +189,8 @@ mongodb:
   authSource: admin
   authMechanism: SCRAM-SHA-256
   database: bk_nodemgr
+  traceName: "bk_nodemgr_mongo"
+  traceSampleRate: 0
 
 # redis settings.
 redis:
@@ -176,3 +198,10 @@ redis:
   port: __BK_NODEMGR_REDIS_PORT__
   password: __BK_NODEMGR_REDIS_PASSWORD__
   db: 0
+
+# tracing settings.
+tracing:
+  exporterType: "stdout"
+  otlpEndpoint: ""
+  otlpInsecure: false
+  otlpHeaders: {}
