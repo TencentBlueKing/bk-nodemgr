@@ -66,23 +66,34 @@ func (mgr *manager) launchWorker() error {
 	return nil
 }
 
-const (
-	scopeNameAction = "action"
-
-	attributeKeyActionName       = "action_name"
-	attributeKeyActionInstanceID = "operation_instance_id"
-)
-
 // doAction executes the action defined by actionName for the operation instance with operationInstanceID.
 // nolint: funlen,gocognit,cyclop,gocyclo
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 // notice: this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
-func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string) error {
+func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string, traceID string, spanID string) error {
+	tid, err := trace.TraceIDFromHex(traceID)
+	if err != nil {
+		logger.G.Sys().With("trace-id", traceID).WithErr(err).Error("get invalid trace id")
+	}
+
+	sid, err := trace.SpanIDFromHex(spanID)
+	if err != nil {
+		logger.G.Sys().With("trace-id", traceID).WithErr(err).Error("get invalid span id")
+	}
+
+	spanCtx := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID:    tid,
+		SpanID:     sid,
+		TraceFlags: trace.FlagsSampled,
+		Remote:     true,
+	})
+	ctx = trace.ContextWithSpanContext(ctx, spanCtx)
+
 	tracer := mgr.traceSvc.TracerProvider().Tracer(scopeNameAction)
-	ctx, span := tracer.Start(ctx, actionName,
+	ctx, span := tracer.Start(ctx, fmt.Sprintf("action %s", actionName),
 		trace.WithAttributes(
 			attribute.String(attributeKeyActionName, actionName),
-			attribute.String(attributeKeyActionInstanceID, operationInstanceID),
+			attribute.String(attributeKeyOperationInstanceID, operationInstanceID),
 		),
 		trace.WithSpanKind(trace.SpanKindConsumer),
 	)

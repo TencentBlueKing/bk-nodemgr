@@ -26,6 +26,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/metric"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // IController describes the workflow controller.
@@ -406,6 +408,18 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 				ctl.operInstanceBriefData.Metadata.OperationInstanceID))
 	}
 
+	tracer := ctl.mgr.traceSvc.TracerProvider().Tracer(scopeNameOperationInstance)
+	traceCtx, span := tracer.Start(nCtx, fmt.Sprintf("operation_instance %s", ctl.operInstanceBriefData.Metadata.OperationDefName),
+		trace.WithSpanKind(trace.SpanKindProducer),
+		trace.WithAttributes(
+			attribute.String(attributeKeyTriggerID, ctl.operInstanceBriefData.Metadata.TriggerID),
+			attribute.String(attributeKeyOperationID, ctl.operInstanceBriefData.Metadata.OperationID),
+			attribute.String(attributeKeyOperationDefName, ctl.operInstanceBriefData.Metadata.OperationDefName),
+			attribute.String(attributeKeyOperationInstanceID, ctl.operInstanceBriefData.Metadata.OperationInstanceID),
+		),
+	)
+	defer span.End()
+
 	signatures := make([]*tasks.Signature, len(actionNames))
 	for idx, actionName := range actionNames {
 		signatures[idx] = &tasks.Signature{
@@ -422,6 +436,16 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 					Type:  "string",
 					Value: ctl.operInstanceBriefData.Metadata.OperationInstanceID,
 				},
+				{
+					Name:  "trace-id",
+					Type:  "string",
+					Value: span.SpanContext().TraceID().String(),
+				},
+				{
+					Name:  "span-id",
+					Type:  "string",
+					Value: span.SpanContext().SpanID().String(),
+				},
 			},
 		}
 	}
@@ -433,7 +457,7 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 
 	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).Info("send chain to machinery")
 
-	_, err = ctl.mgr.server.SendChainWithContext(nCtx, chain)
+	_, err = ctl.mgr.server.SendChainWithContext(traceCtx, chain)
 	if err != nil {
 		return fmt.Errorf("send chain to machinery failed: %v", err)
 	}
