@@ -86,6 +86,11 @@ func (h *Handler) NewService(config ServiceConfig) (IService, error) {
 		return nil, fmt.Errorf("failed to create resource: %w", err)
 	}
 
+	res, err = resource.Merge(resource.Default(), res)
+	if err != nil {
+		return nil, fmt.Errorf("failed to merge resource: %w", err)
+	}
+
 	// Create tracer tracerProvider with sampling
 	tracerProvider := sdkTrace.NewTracerProvider(
 		sdkTrace.WithBatcher(h.exporter),
