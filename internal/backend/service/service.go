@@ -70,6 +70,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	mongoOptions "go.mongodb.org/mongo-driver/mongo/options"
@@ -417,7 +418,22 @@ func (svc *Service) newRedisClient() (*redis.Client, error) {
 		DB:       svc.conf.Redis.DB,
 	})
 
-	_, err := redisClient.Ping(contextx.Background()).Result()
+	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+		ServiceName: svc.conf.Redis.TraceName,
+		SampleRate:  svc.conf.Redis.TraceSampleRate,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create tracing service: %w", err)
+	}
+
+	err = redisotel.InstrumentTracing(redisClient,
+		redisotel.WithTracerProvider(traceSvc.TracerProvider()),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to instrument tracing for redis client: %w", err)
+	}
+
+	_, err = redisClient.Ping(contextx.Background()).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping redis after creating redis client: %w", err)
 	}

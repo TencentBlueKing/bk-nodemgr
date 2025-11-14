@@ -1007,6 +1007,11 @@ backend:
       traceName: "bk_nodemgr_mongo"
       traceSampleRate: 0
 
+    ## defines the redis related settings.
+    redis:
+      traceName: "bk_nodemgr_redis"
+      traceSampleRate: 0
+
     ## defines the file related settings.
     file:
       # trace name for file service client

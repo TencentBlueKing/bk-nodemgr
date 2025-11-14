@@ -72,6 +72,8 @@ data:
       authSource: {{ .Values.externalMongodb.authSource }}
       authMechanism: {{ .Values.externalMongodb.authMechanism }}
       {{- end}}
+      traceName: {{ .Values.file.config.mongodb.traceName }}
+      traceSampleRate: {{ .Values.file.config.mongodb.traceSampleRate }}
 
     tracing: {{ .Values.file.config.tracing | toYaml | nindent 6 }}
 

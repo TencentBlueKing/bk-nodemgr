@@ -68,6 +68,8 @@ const (
 
 	defaultBackendTracingExporterType = "stdout"
 
+	defaultBackendRedisTraceName = "bk-nodemgr_redis"
+
 	defaultBackendMongoDBAppName   = "bk_nodemgr_backend"
 	defaultBackendMongoDBTraceName = "bk_nodemgr_mongo"
 
@@ -196,8 +198,10 @@ func NewBackendService() *BackendService {
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 			},
 		},
-		Etcd:  Etcd{},
-		Redis: Redis{},
+		Etcd: Etcd{},
+		Redis: Redis{
+			TraceName: defaultBackendRedisTraceName,
+		},
 		MongoDB: MongoDB{
 			AppName:   defaultBackendMongoDBAppName,
 			TraceName: defaultBackendMongoDBTraceName,

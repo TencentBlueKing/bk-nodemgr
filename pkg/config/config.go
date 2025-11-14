@@ -41,10 +41,12 @@ func (conf Etcd) Validate() error {
 
 // Redis the config of redis.
 type Redis struct {
-	Host     string `yaml:"host" usage:"host of redis"`
-	Port     int    `yaml:"port" usage:"port of redis"`
-	Password string `yaml:"password" usage:"password of redis"`
-	DB       int    `yaml:"db" usage:"db of redis"`
+	Host            string  `yaml:"host" usage:"host of redis"`
+	Port            int     `yaml:"port" usage:"port of redis"`
+	Password        string  `yaml:"password" usage:"password of redis"`
+	DB              int     `yaml:"db" usage:"db of redis"`
+	TraceName       string  `yaml:"traceName" usage:"trace name of redis"`
+	TraceSampleRate float64 `yaml:"traceSampleRate" usage:"trace sample rate of redis"`
 }
 
 // Validate configures the config.

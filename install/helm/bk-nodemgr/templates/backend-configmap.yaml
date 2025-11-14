@@ -78,6 +78,8 @@ data:
       password: {{ .Values.externalRedis.password }}
       {{- end}}
       db: 0
+      traceName: {{ .Values.backend.config.redis.traceName }}
+      traceSampleRate: {{ .Values.backend.config.redis.traceSampleRate }}
 
     mongodb:
       appName: {{ template "bk-nodemgr.fullname" . }}-backend
@@ -99,6 +101,8 @@ data:
       authMechanism: {{ .Values.externalMongodb.authMechanism }}
       {{- end}}
       {{- end }}
+      traceName: {{ .Values.backend.config.mongodb.traceName }}
+      traceSampleRate: {{ .Values.backend.config.mongodb.traceSampleRate }}
 
     gseDeployConfs: {{ .Values.backend.config.gseDeployConfs | toYaml | nindent 6 }}
 
