@@ -89,6 +89,7 @@ type NodeAgentUninstallParam struct {
 // NodeAgentInstallCheckInfo describes the node agent install check info.
 type NodeAgentInstallCheckInfo struct {
 	BizID         int64
+	HostID        int64
 	NetworkUnitID int64
 	InnerIP       string
 }

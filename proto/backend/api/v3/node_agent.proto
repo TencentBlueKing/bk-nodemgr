@@ -50,8 +50,8 @@ message NodeAgentInstallResp {
 message NodeAgentInstallCheckReq {
   message Host {
     int64 bk_biz_id = 1;
-    string bk_host_innerip = 2;
-    string bk_host_innerip_v6 = 3;
+    int64 bk_host_id = 2;
+    string bk_host_innerip = 3;
     int64 bk_networkunit_id = 4;
   }
   repeated Host host = 1;

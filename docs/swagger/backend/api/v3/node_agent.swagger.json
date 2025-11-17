@@ -299,10 +299,11 @@
           "type": "integer",
           "format": "int64"
         },
-        "bk_host_innerip": {
-          "type": "string"
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
         },
-        "bk_host_innerip_v6": {
+        "bk_host_innerip": {
           "type": "string"
         },
         "bk_networkunit_id": {

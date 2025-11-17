@@ -125,17 +125,17 @@ func (s *Storage) GetHostsByAreaAndInnerIP(nCtx contextx.IContext, networkAreaID
 	return results, err
 }
 
-// CountDedicatedInstallerProxyHost counts dedicated installer proxy host by network unit id.
-func (s *Storage) CountDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (
-	num int64, err error) {
+// ExistDedicatedInstallerProxyHost exists dedicated installer proxy host by network unit id.
+func (s *Storage) ExistDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (
+	exist bool, err error) {
 
 	// record metric.
-	metric := s.metric().Start("count_dedicated_installer_proxy_host")
+	metric := s.metric().Start("exist_dedicated_installer_proxy_host")
 	defer metric.End(err)
 
-	num, err = s.countDedicatedInstallerProxyHost(nCtx, networkUnitID)
+	exist, err = s.existDedicatedInstallerProxyHost(nCtx, networkUnitID)
 
-	return num, err
+	return exist, err
 }
 
 // GetNetworkUnitByIDs list network unit by unit ids.

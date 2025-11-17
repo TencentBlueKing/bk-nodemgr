@@ -383,6 +383,7 @@ func (x *NodeAgentInstallCheckReq) ConvertAgentParamToTypes() []*types.NodeAgent
 	for idx, info := range infos {
 		infoParam[idx] = &types.NodeAgentInstallCheckInfo{
 			BizID:         info.GetBkBizId(),
+			HostID:        info.GetBkHostId(),
 			InnerIP:       info.GetBkHostInnerip(),
 			NetworkUnitID: info.GetBkNetworkunitId(),
 		}

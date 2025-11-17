@@ -404,6 +404,7 @@ func (x *NodeAgentInstallCheckReq) ConvertHostParamFromTypes(checkParam []*types
 	hostsParam := make([]*NodeAgentInstallCheckReq_Host, len(checkParam))
 	for idx, host := range checkParam {
 		hostsParam[idx] = &NodeAgentInstallCheckReq_Host{
+			BkHostId:        host.HostID,
 			BkBizId:         host.BizID,
 			BkHostInnerip:   host.InnerIP,
 			BkNetworkunitId: host.NetworkUnitID,

@@ -33,6 +33,9 @@ type IHandler interface {
 	// Count count hosts by conditions.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
+	// Exist check a host exist by conditions.
+	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
+
 	// List lists hosts by page and conditions.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, int64, error)
 
@@ -163,6 +166,22 @@ func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 	}
 
 	return h.tenantDao(tenantID).Count(nCtx, filter)
+}
+
+// Exist count host by conditions.
+func (h *handler) Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return false, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).Exist(nCtx, filter)
 }
 
 // List list host by page and conditions.

@@ -34,11 +34,8 @@ type IStorage interface {
 
 // IDomainNodeInstall defines the Storage interface for domain node install.
 type IDomainNodeInstall interface {
-	// GetHostsByAreaAndInnerIP get hosts by area and inner ip.
-	GetHostsByAreaAndInnerIP(nCtx contextx.IContext, networkAreaID int64, ip string) ([]*types.Host, error)
-
-	// CountDedicatedInstallerProxyHost counts dedicated installer proxy host by network unit id.
-	CountDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (int64, error)
+	// ExistDedicatedInstallerProxyHost exists dedicated installer proxy host by network unit id.
+	ExistDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (bool, error)
 
 	// GetNetworkUnitByIDs list network unit by unit ids.
 	GetNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []int64) ([]*types.NetworkUnit, error)

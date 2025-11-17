@@ -121,8 +121,9 @@ message NodeAgentUninstallResp {
 // AgentInstallCheckInfo describes the node agent install check parameter.
 message AgentInstallCheckInfo {
   int64 bk_biz_id = 1;
-  string bk_host_innerip = 2;
-  int64 bk_networkunit_id = 3;
+  int64 bk_host_id = 2;
+  string bk_host_innerip = 3;
+  int64 bk_networkunit_id = 4;
 }
 
 // NodeAgentInstallCheckReq describes the node agent install check request.

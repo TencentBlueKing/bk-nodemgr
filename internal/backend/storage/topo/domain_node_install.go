@@ -36,7 +36,7 @@ func (s *Storage) getHostsByAreaAndInnerIP(nCtx contextx.IContext,
 	return results, nil
 }
 
-func (s *Storage) countDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (int64, error) {
+func (s *Storage) existDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (bool, error) {
 	opts := make([]host.OptFn, 0)
 	opts = append(opts,
 		host.WithNetworkUnitID(networkUnitID),
@@ -45,12 +45,12 @@ func (s *Storage) countDedicatedInstallerProxyHost(nCtx contextx.IContext, netwo
 		host.WithDynamicProxyTags(types.ProxyTagDedicatedInstaller),
 	)
 
-	num, err := s.daoHost.Count(nCtx, opts...)
+	exist, err := s.daoHost.Exist(nCtx, opts...)
 	if err != nil {
-		return 0, fmt.Errorf("count dedicated installer proxy host failed. unit-id(%d): %w", networkUnitID, err)
+		return false, fmt.Errorf("exist dedicated installer proxy host failed. unit-id(%d): %w", networkUnitID, err)
 	}
 
-	return num, nil
+	return exist, nil
 }
 
 func (s *Storage) getNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []int64) ([]*types.NetworkUnit, error) {
