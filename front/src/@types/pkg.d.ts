@@ -168,6 +168,40 @@ export interface PackageUploadOriginExternalPluginV2RespData {
   platforms: Platform[];
 }
 
+// UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool
+// pkg.
+export interface PackageUploadOriginPluginBinToolReq {
+  overwrite: boolean;
+}
+
+// UploadOriginPluginBinToolResp is the response for upload origin plugin bin
+// tool pkg.
+export interface PackageUploadOriginPluginBinToolResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: PackageUploadOriginPluginBinToolRespData;
+}
+
+export interface PackageUploadOriginPluginBinToolRespData {
+  upload_id: string;
+  existed: boolean;
+  generated: boolean;
+  name: string;
+  size: number;
+  md5: string;
+  v2: DataV2Info;
+  v3: DataV3Info;
+}
+
+export interface DataV2Info {
+  platforms: Platform[];
+}
+
+export interface DataV3Info {
+  platforms: Platform[];
+}
+
 // PackagePublishReleasePluginV2Req is the request for publish release plugin v2
 // pkg.
 export interface PackagePublishReleasePluginV2Req {
@@ -274,6 +308,24 @@ export interface PackagePublishReleaseBinToolResp {
 }
 
 export interface PackagePublishReleaseBinToolRespData {
+}
+
+// PublishReleasePluginBinToolReq is the request for upload release plugin
+// bintool pkg.
+export interface PackagePublishReleasePluginBinToolReq {
+  upload_id: string;
+}
+
+// PublishReleasePluginBinToolResp is the response for upload release plugin
+// bintool pkg.
+export interface PackagePublishReleasePluginBinToolResp {
+  code: number;
+  message: string;
+  request_id: string;
+  data: PackagePublishReleasePluginBinToolRespData;
+}
+
+export interface PackagePublishReleasePluginBinToolRespData {
 }
 
 // PackageReleaseExactConditions describes release exact conditions.

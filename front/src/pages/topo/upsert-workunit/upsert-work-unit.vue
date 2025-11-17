@@ -62,7 +62,8 @@
           <SelectGroup
             v-model:link="generalLink"
             :disabled="isExpand"
-            :workUnitId="workUnitId">
+            :is-create="isCreate"
+            :work-unit-id="workUnitId">
           </SelectGroup>
         </Form.FormItem>
         <template v-if="isExpand">
@@ -70,14 +71,20 @@
             label="cluster"
             property="cluster"
             label-width="130">
-            <SelectGroup v-model:link="form.links.cluster" :workUnitId="workUnitId">
+            <SelectGroup
+              v-model:link="form.links.cluster"
+              :work-unit-id="workUnitId"
+              :is-create="isCreate">
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
             label="file"
             property="file"
             label-width="130">
-            <SelectGroup v-model:link="form.links.file" :workUnitId="workUnitId">
+            <SelectGroup
+              v-model:link="form.links.file"
+              :work-unit-id="workUnitId"
+              :is-create="isCreate">
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
@@ -87,7 +94,8 @@
             <SelectGroup
               v-model:link="form.links.data"
               :work-area-list="workAreaList"
-              :workUnitId="workUnitId">
+              :work-unit-id="workUnitId"
+              :is-create="isCreate">
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem

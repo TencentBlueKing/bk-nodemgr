@@ -17,6 +17,7 @@
             ref="installTableRef"
             v-model:data="formData.info"
             :is-reinstall="true"
+            :max-height="640"
           ></install-table>
         </Form.FormItem>
       </Form>

@@ -409,6 +409,34 @@ export interface TopoGraphNodeCountRespData {
   networkunits: NodeInfo[];
 }
 
+// TopoGraphNodeGetReq describes the HTTP request body when get node
+export interface TopoGraphNodeGetReq {
+  bk_networkunit_id: number[];
+}
+
+// TopoGraphNodeGetResp describes the HTTP response body when get node
+export interface TopoGraphNodeGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: TopoGraphNodeGetRespData;
+}
+
+export interface TopoGraphNodeGetRespGraphNodeInfo {
+  bk_networkunit_id: number;
+  running_proxy: number;
+  total_proxy: number;
+  running_agent: number;
+  total_agent: number;
+  is_healthy: boolean;
+  cycle_times: string[];
+}
+
+export interface TopoGraphNodeGetRespData {
+  graph_node_info: GraphNodeInfo[];
+}
+
 // TopoEventExactConditions describes the conditions when list event
 export interface TopoEventExactConditions {
   bk_networkarea_id: number[];

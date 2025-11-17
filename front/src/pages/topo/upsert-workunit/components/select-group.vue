@@ -24,12 +24,12 @@
         :key="item.bk_networkunit_id"
         :id="item.bk_networkunit_id"
         :name="`[${item.bk_networkunit_id}] ${item.bk_networkunit_name}`"
-        :disabled="workUnitId === item.bk_networkunit_id">
+        :disabled="!isCreate && (workUnitId === item.bk_networkunit_id)">
         <template #default>
           <span
             v-bk-tooltips="{
               content: '不可选择当前管控单元作为上游接入点管控单元',
-              disabled: workUnitId !== item.bk_networkunit_id,
+              disabled: isCreate || (workUnitId !== item.bk_networkunit_id),
               placement: 'left',
             }">
             {{ `[${item.bk_networkunit_id}] ${item.bk_networkunit_name}` }}
@@ -61,6 +61,10 @@ import { useWorkareaStore } from '@/stores/workarea';
 const link = defineModel<Partial<Link>>('link', { required: true });
 
 const props = defineProps({
+  isCreate: {
+    type: Boolean,
+    default: false,
+  },
   workUnitId: {
     type: Number,
     default: null,

@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { TopoBusinessListReq, TopoBusinessListResp, TopoNetworkAreaListReq, TopoNetworkAreaListResp, TopoNetworkAreaStatisticsReq, TopoNetworkAreaStatisticsResp, TopoNetworkAreaCreateReq, TopoNetworkAreaCreateResp, TopoNetworkAreaGetReq, TopoNetworkAreaGetResp, TopoNetworkAreaUpdateReq, TopoNetworkAreaUpdateResp, TopoNetworkAreaDeleteReq, TopoNetworkAreaDeleteResp, TopoNetworkUnitListReq, TopoNetworkUnitListResp, TopoNetworkUnitCreateReq, TopoNetworkUnitCreateResp, TopoNetworkUnitGetReq, TopoNetworkUnitGetResp, TopoNetworkUnitUpdateReq, TopoNetworkUnitUpdateResp, TopoNetworkUnitDeleteReq, TopoNetworkUnitDeleteResp, TopoHostListReq, TopoHostListResp, TopoHostDistinctReq, TopoHostDistinctResp, TopoGraphGetReq, TopoGraphGetResp, TopoGraphNodeCountReq, TopoGraphNodeCountResp, TopoEventListReq, TopoEventListResp, TopoEventDistinctReq, TopoEventDistinctResp, TopoConstantGetReq, TopoConstantGetResp } from '@/@types/topo';
+import type { TopoBusinessListReq, TopoBusinessListResp, TopoNetworkAreaListReq, TopoNetworkAreaListResp, TopoNetworkAreaStatisticsReq, TopoNetworkAreaStatisticsResp, TopoNetworkAreaCreateReq, TopoNetworkAreaCreateResp, TopoNetworkAreaGetReq, TopoNetworkAreaGetResp, TopoNetworkAreaUpdateReq, TopoNetworkAreaUpdateResp, TopoNetworkAreaDeleteReq, TopoNetworkAreaDeleteResp, TopoNetworkUnitListReq, TopoNetworkUnitListResp, TopoNetworkUnitCreateReq, TopoNetworkUnitCreateResp, TopoNetworkUnitGetReq, TopoNetworkUnitGetResp, TopoNetworkUnitUpdateReq, TopoNetworkUnitUpdateResp, TopoNetworkUnitDeleteReq, TopoNetworkUnitDeleteResp, TopoHostListReq, TopoHostListResp, TopoHostDistinctReq, TopoHostDistinctResp, TopoGraphGetReq, TopoGraphGetResp, TopoGraphNodeCountReq, TopoGraphNodeCountResp, TopoEventListReq, TopoEventListResp, TopoEventDistinctReq, TopoEventDistinctResp, TopoConstantGetReq, TopoConstantGetResp, TopoGraphNodeGetResp } from '@/@types/topo';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -47,5 +47,7 @@ export const TopoService = {
   EventDistinct: async <Request = TopoEventDistinctReq, ResponseData = TopoEventDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/event/distinct')(params, config),
   // ConstantGet provides getting a constant.
   ConstantGet: async <Request = TopoConstantGetReq, ResponseData = TopoConstantGetResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/constant/get')(params, config),
+  // TopoGraphNodeGetReq provides graph node getting.
+  TopoGraphNodeGetReq: async <Request = TopoGraphNodeGetResp, ResponseData = TopoGraphNodeGetResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/graph/node/get')(params, config),
 };
 

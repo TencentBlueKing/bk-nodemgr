@@ -31,6 +31,7 @@
             :is-reinstall="true"
             :method="form.method"
             :current-settings="settings"
+            :max-height="520"
           ></install-table>
         </Form.FormItem>
         <Form.FormItem
@@ -266,7 +267,7 @@ const getNetworkUnitList = async () => {
   });
   networkUnitList.value = res.items;
   res.items.forEach((item) => {
-    networkUnitListMap.set(item.bk_networkunit_id, item.links.cluster.bk_networkunit_id);
+    networkUnitListMap.set(item.bk_networkunit_id, item.links?.cluster?.bk_networkunit_id);
   });
 };
 

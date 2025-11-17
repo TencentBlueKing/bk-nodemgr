@@ -20,6 +20,8 @@ export interface NodeProxyInstallHost {
   re_register: boolean;
   proxy_tags: string[];
   proxy_install_origin_unit_id: number;
+  // credit expired interval in seconds, default is 86400 (24 hours)
+  credit_expired_interval_sec: number;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.

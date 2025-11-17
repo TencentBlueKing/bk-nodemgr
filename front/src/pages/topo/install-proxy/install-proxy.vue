@@ -29,6 +29,7 @@
             v-model:data="form.info"
             realease-type="proxy"
             :current-settings="settings"
+            :max-height="520"
           >
             <UploadExcel @upload="handleUpload" v-if="form.method === '1'"></UploadExcel>
           </install-table>
@@ -41,14 +42,19 @@
         >
           <Radio.Group v-model="form.saveTime">
             <Radio.Button
-              :label="
-                $t('topoManager.installProxy.form.saveTime.oneDay', { x: 1 })
-              "
+              :label="1"
             >
+              {{ $t('topoManager.installProxy.form.saveTime.oneDay', { x: 1 }) }}
             </Radio.Button>
             <Radio.Button
-              :label="$t('topoManager.installProxy.form.saveTime.longTermSave')"
+              :label="7"
             >
+              {{ $t('topoManager.installProxy.form.saveTime.oneDay', { x: 7 }) }}
+            </Radio.Button>
+            <Radio.Button
+              :label="365"
+            >
+              {{ $t('topoManager.installProxy.form.saveTime.oneDay', { x: 365 }) }}
             </Radio.Button>
           </Radio.Group>
         </Form.FormItem>
@@ -212,10 +218,10 @@
           <Button
             theme="primary"
             class="w-[120px]"
-            :disabled="systemData.length === 0 && isTargetShow"
+            :disabled="systemData.length === 0"
             v-bk-tooltips="{
               content: '当前无可用版本, 不可安装',
-              disabled: systemData.length > 0 || !isTargetShow
+              disabled: systemData.length > 0
             }"
             @click="handleConfirm"
           >
@@ -304,7 +310,7 @@ const initData = {
 const form = reactive({
   method: '0', // 安装方式
   info: [cloneDeep(initData)], // 安装信息
-  saveTime: '保存 1 天', // 密钥/密码
+  saveTime: 1, // 密钥/密码保存时间
   os_type: 'linux', // 操作系统
   login_port: '36000', // 登录端口
   login_user: 'root', // 登录账号
@@ -415,17 +421,19 @@ const getNetworkUnitList = async () => {
 const handleSelect = (newValue: string) => {
   form.bk_networkarea_name = networkAreaList.value?.find((item: any) => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
 };
+// eslint-disable-next-line max-len
 const areaUnitlist = computed(() => networkUnitList.value.filter((item: NetworkUnit) => [Number(route.params.workarea), Number(form.bk_networkarea_id)].includes(item.bk_networkarea_id)));
 // 安装源
 const installOriginList = computed(() => {
+  // eslint-disable-next-line max-len
   const unit = areaUnitlist.value.find((item: NetworkUnit) => [props.bk_networkunit_id, Number(form.bk_networkunit_id)].includes(item.bk_networkunit_id));
   let list;
-  if (unit?.links.cluster.bk_networkunit_id !== null) {
+  if (unit?.links?.cluster?.bk_networkunit_id !== null) {
     list = [
       {
         id: 'upstream',
         name: '上级管控单元',
-        bk_networkunit_id: unit?.links.cluster.bk_networkunit_id,
+        bk_networkunit_id: unit?.links?.cluster?.bk_networkunit_id,
       },
       {
         id: 'current',
@@ -535,8 +543,8 @@ const handleConfirm = async () => {
     form.info.forEach((item: any) => {
       item[modeMap[item.login_mode]] = item.credit;
       Object.keys(item).forEach((key: string) => {
-        if (proxy_tags.includes(key) && item[key] && !item.proxy_tags.includes(key)) {
-          item.proxy_tags.push(key);
+        if (proxy_tags.includes(key) && item[key] && !item.proxy_tags?.includes(key)) {
+          item.proxy_tags?.push(key);
         }
       });
     });
@@ -568,6 +576,7 @@ const handleConfirm = async () => {
           bk_biz_id: form.bk_biz_id,
           login_user: form.login_user,
           proxy_install_origin_unit_id,
+          credit_expired_interval_sec: form.saveTime * 24 * 3600,
           login_port: Number(form.login_port),
           bk_networkunit_id: props.bk_networkunit_id || Number(form.bk_networkunit_id),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
@@ -650,7 +659,7 @@ watch(() => isShow.value, async () => {
     Object.assign(form, {
       method: '0', // 安装方式
       info: [cloneDeep(initData)], // 安装信息
-      saveTime: '保存 1 天', // 密钥/密码
+      saveTime: 1, // 密钥/密码保存时间
       os_type: 'linux', // 操作系统
       login_port: '36000', // 登录端口
       login_user: 'root', // 登录账号

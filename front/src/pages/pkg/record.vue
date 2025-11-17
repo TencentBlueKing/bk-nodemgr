@@ -235,7 +235,7 @@ const eventMap = {
   disable: '禁用',
   delete: '删除',
   set_as_default: '设置为默认版本',
-  unset_as_default: '取消默认版本',
+  cancel_as_default: '取消设置默认版本',
 };
 
 const getUniqueChildrenFrom = <K extends keyof PackageEventDistinctRespData>(

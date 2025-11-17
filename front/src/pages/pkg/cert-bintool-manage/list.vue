@@ -17,7 +17,7 @@
     <Loading
       title="数据加载中"
       :loading="loading"
-      class="flex-1 overflow-auto"
+      class="flex-1"
     >
       <Table
         class="w-full filterTable"
@@ -64,33 +64,26 @@
         >
           <template #default="{ row }">
             <div class="flex items-center">
-              <Popover
-                width="360"
+              <PopConfirm
                 theme="light"
                 trigger="click"
-                placement="top-start"
-                :is-show="row.isDeletePopShow"
+                confirm-text="删除"
+                @confirm="handleDelete(row)"
               >
                 <Button
                   theme="primary"
                   text
-                  v-show="!row.enabled"
-                  @click="row.isDeletePopShow = true"
                 >删除</Button>
                 <template #content>
-                  <div class="px-[4px] pt-[8px] pb-[4px]">
+                  <div class="px-[4px] pt-[8px] pb-[16px]">
                     <div class="text-[16px] text-[#313238] mb-[6px]">
-                      确认删除该{{ route.name === "certMng" ? "证书" : "工具" }}？
+                      确认删除该{{ route.name === "certPackageMng" ? "证书" : "工具" }}？
                     </div>
                     <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
                     <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
-                    <div class="mt-[20px] flex gap-[8px] justify-end">
-                      <Button theme="primary" @click="handleDelete(row)">删除</Button>
-                      <Button @click="row.isDeletePopShow = false">取消</Button>
-                    </div>
                   </div>
                 </template>
-              </Popover>
+              </PopConfirm>
             </div>
           </template>
         </TableColumn>
@@ -101,7 +94,7 @@
 </template>
 <script lang="ts" setup>
 // 排序类型
-import { Button, Loading, Popover, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
+import { Button, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
 import { AngleDown, AngleRight,EditLine } from 'bkui-vue/lib/icon';
 import { isArray } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
@@ -280,7 +273,7 @@ const handleUpload = () => {
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListRelease({
-    release_type: currentType.value === 'plugin_bintool' ? 'plugin_bintool_v2' : currentType.value,
+    release_type: currentType.value,
     generation: 2,
   }).catch(() => ({
     items: [],
@@ -288,10 +281,6 @@ const getPackages = async () => {
   const items = res.items.map((item, index) => ({
     ...item,
     labels: item.labels || [],
-    isDisabledPopShow: false,
-    isDeletePopShow: false,
-    isShowTagInput: false,
-    createPopShow: false,
   }));
   originPackageList.value = items;
   packageList.value = items;

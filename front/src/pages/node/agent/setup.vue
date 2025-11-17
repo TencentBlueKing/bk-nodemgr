@@ -77,12 +77,11 @@
         </Form.FormItem>
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.info')"
-          :max-height="700"
           required
         >
           <install-table
             ref="installTableRef"
-            class="max-h-[700px]"
+            :max-height="520"
             v-model:data="formData.info"
           >
             <UploadExcel @upload="handleUpload" v-if="activeInstallType === 'import'"></UploadExcel>
@@ -155,10 +154,10 @@
       <Button
         class="w-[100px]"
         theme="primary"
-        :disabled="systemData.length === 0 && isShow"
+        :disabled="systemData.length === 0"
         v-bk-tooltips="{
           content: '当前无可用版本, 不可安装',
-          disabled: systemData.length > 0 || !isShow
+          disabled: systemData.length > 0
         }"
         @click="handlePreview"
       >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button

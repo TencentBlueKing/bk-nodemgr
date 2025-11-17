@@ -1,6 +1,12 @@
 <template>
   <div ref="contentRef">
-    <VxeTable :data="tableData" :size="settings.size" :border="true" round>
+    <VxeTable
+      :data="tableData"
+      :size="settings.size"
+      :border="true"
+      :max-height="maxHeight"
+      round
+    >
       <!-- 业务属性 -->
       <VxeColgroup title="业务属性" align="center" v-if="isReinstall">
         <VxeColumn
@@ -448,6 +454,10 @@ const props = defineProps({
     type: Array,
     default: () => [] as any[],
   },
+  maxHeight: {
+    type: Number,
+    default: 300,
+  },
   realeaseType: {
     type: String,
     default: 'agent',
@@ -506,6 +516,7 @@ const initData = {
   cluster_tunnel: true,
   file_tunnel: true,
   data_tunnel: true,
+  proxy_tags: [],
 };
 const rules: ValidationRules = {
   bk_host_innerip: [
