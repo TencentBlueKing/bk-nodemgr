@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // Level logger level.
@@ -293,6 +294,12 @@ func (o *Option) parseArgs() {
 
 	if o.err != nil {
 		o.kvs = append(o.kvs, "err", o.err)
+	}
+
+	spanContext := trace.SpanContextFromContext(o.ctx)
+	if spanContext.IsValid() {
+		o.kvs = append(o.kvs, "trace-id", spanContext.TraceID().String())
+		o.kvs = append(o.kvs, "span-id", spanContext.SpanID().String())
 	}
 }
 
