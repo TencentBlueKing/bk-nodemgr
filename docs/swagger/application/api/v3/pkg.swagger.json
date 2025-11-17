@@ -186,6 +186,40 @@
         ]
       }
     },
+    "/api/v3/package/publish/release/plugin_bintool": {
+      "post": {
+        "summary": "PublishReleaseBinTool provides release bintool publish.",
+        "operationId": "Package_PublishReleasePluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleasePluginBinToolResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleasePluginBinToolReq is the request for upload release plugin\nbintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleasePluginBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/publish/release/proxy": {
       "post": {
         "summary": "PublishReleaseServer provides release server publish.",
@@ -866,6 +900,40 @@
         ]
       }
     },
+    "/api/v3/package/upload/origin/plugin_bintool": {
+      "post": {
+        "summary": "UploadOriginPluginBinTool provides origin plugin bintool upload.",
+        "operationId": "Package_UploadOriginPluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginPluginBinToolResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool\npkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginPluginBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/upload/origin/server": {
       "post": {
         "summary": "UploadOriginServer provides origin server upload.",
@@ -970,6 +1038,30 @@
     }
   },
   "definitions": {
+    "DataV2Info": {
+      "type": "object",
+      "properties": {
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "DataV3Info": {
+      "type": "object",
+      "properties": {
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
     "ErrorDetails": {
       "type": "object",
       "properties": {
@@ -1412,6 +1504,37 @@
       "description": "PackagePublishReleaseExternalPluginV2Resp is the response for publish release\nexternal plugin v2 pkg."
     },
     "v3PackagePublishReleaseExternalPluginV2RespData": {
+      "type": "object"
+    },
+    "v3PackagePublishReleasePluginBinToolReq": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleasePluginBinToolReq is the request for upload release plugin\nbintool pkg."
+    },
+    "v3PackagePublishReleasePluginBinToolResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackagePublishReleasePluginBinToolRespData"
+        }
+      },
+      "description": "PublishReleasePluginBinToolResp is the response for upload release plugin\nbintool pkg."
+    },
+    "v3PackagePublishReleasePluginBinToolRespData": {
       "type": "object"
     },
     "v3PackagePublishReleasePluginV2Req": {
@@ -2417,6 +2540,64 @@
             "type": "object",
             "$ref": "#/definitions/v3Platform"
           }
+        }
+      }
+    },
+    "v3PackageUploadOriginPluginBinToolReq": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool\npkg."
+    },
+    "v3PackageUploadOriginPluginBinToolResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageUploadOriginPluginBinToolRespData"
+        }
+      },
+      "description": "UploadOriginPluginBinToolResp is the response for upload origin plugin bin\ntool pkg."
+    },
+    "v3PackageUploadOriginPluginBinToolRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "v2": {
+          "$ref": "#/definitions/DataV2Info"
+        },
+        "v3": {
+          "$ref": "#/definitions/DataV3Info"
         }
       }
     },

@@ -344,6 +344,11 @@
         "proxy_install_origin_unit_id": {
           "type": "integer",
           "format": "int64"
+        },
+        "credit_expired_interval_sec": {
+          "type": "integer",
+          "format": "int64",
+          "title": "credit expired interval in seconds, default is 86400 (24 hours)"
         }
       },
       "description": "NodeProxyInstallHost describes the node proxy install host."

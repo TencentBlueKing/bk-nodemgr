@@ -19,18 +19,12 @@ import (
 	"github.com/google/uuid"
 )
 
-const hostCreditExpiredInterval = time.Hour * 24
-
-func generateHostCreditExpiredAt() time.Time {
-	return time.Now().Add(hostCreditExpiredInterval)
-}
-
 func generateHostCreditID() string {
 	return fmt.Sprintf("host_%d_%s", time.Now().Unix(), uuid.New().String())
 }
 
 // CreateHostCredit create host credit.
-func (s *Storage) CreateHostCredit(nCtx contextx.IContext, creditData []byte) (string, error) {
+func (s *Storage) CreateHostCredit(nCtx contextx.IContext, creditData []byte, expiredAt time.Time) (string, error) {
 	var encryptedCreditData []byte
 	var err error
 
@@ -43,7 +37,7 @@ func (s *Storage) CreateHostCredit(nCtx contextx.IContext, creditData []byte) (s
 	}
 
 	creditID := generateHostCreditID()
-	if err = s.daoCredit.Upsert(nCtx, creditID, encryptedCreditData, generateHostCreditExpiredAt()); err != nil {
+	if err = s.daoCredit.Upsert(nCtx, creditID, encryptedCreditData, expiredAt); err != nil {
 		return "", err
 	}
 

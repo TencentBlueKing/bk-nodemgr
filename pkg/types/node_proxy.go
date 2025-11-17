@@ -32,6 +32,7 @@ type NodeProxyInstallHost struct {
 	ReRegister               bool
 	ProxyTags                []ProxyTag
 	ProxyInstallOriginUnitID int64
+	CreditExpiredIntervalSec int64
 }
 
 // NodeProxyInstallParam describes the node proxy install parameter.

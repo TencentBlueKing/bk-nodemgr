@@ -11,6 +11,8 @@
 package credit
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 )
@@ -26,10 +28,11 @@ type IStorage interface {
 type IStorageHostCredit interface {
 	basestorage.Interface
 
-	// CreateHostCredit create host credit data.
+	// CreateHostCreditWithExpiredAt create host credit data with custom expired time.
 	CreateHostCredit(
 		nCtx contextx.IContext,
 		creditData []byte,
+		expiredAt time.Time,
 	) (string, error)
 
 	// LoadHostCredit load host credit data.

@@ -13,6 +13,7 @@ package proxy
 import (
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -28,6 +29,18 @@ import (
 
 // DefaultNodeGeneration default node generation.
 const DefaultNodeGeneration = 2
+
+// creditExpiredInterval is the expiration interval for proxy host credit.
+const creditExpiredInterval = time.Hour * 24
+
+// genCreditExpiredAt generates the expiration time for proxy host credit.
+func genCreditExpiredAt(expiredIntervalSec int64) time.Time {
+	if expiredIntervalSec > 0 {
+		return time.Now().Add(time.Duration(expiredIntervalSec) * time.Second)
+	}
+
+	return time.Now().Add(creditExpiredInterval)
+}
 
 // Install install proxy.
 func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
@@ -156,7 +169,11 @@ func (h *handler) generateInstallNodeDeployments(
 					TargetVersion:   targetVersions,
 				})
 
-			if err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile()); err != nil {
+			err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host,
+				reqHost.GetLoginPassword(),
+				reqHost.GetLoginKeyFile(),
+				reqHost.GetCreditExpiredIntervalSec())
+			if err != nil {
 				return fmt.Errorf("failed to process host credit: %w", err)
 			}
 
@@ -224,7 +241,7 @@ func (h *handler) fetchExistedHosts(ctx contextx.IContext, hosts []*protoBackend
 	return existedHostMap, nil
 }
 
-func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, password, keyfile string) error {
+func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, password, keyfile string, creditExpiredIntervalSec int64) error {
 	var err error
 	switch host.Dynamic.LoginMode {
 	case types.LoginModeKeyFile:
@@ -250,6 +267,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
 			nCtx,
 			loginKeyFile,
+			genCreditExpiredAt(creditExpiredIntervalSec),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to gen node deployment: %w", err)
@@ -273,6 +291,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
 			nCtx,
 			[]byte(password),
+			genCreditExpiredAt(creditExpiredIntervalSec),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to gen node deployment: %w", err)

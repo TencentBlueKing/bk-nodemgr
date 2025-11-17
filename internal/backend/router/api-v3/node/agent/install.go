@@ -14,6 +14,7 @@ package agent
 import (
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -29,6 +30,14 @@ import (
 
 // DefaultNodeGeneration default node generation.
 const DefaultNodeGeneration = 2
+
+// agentHostCreditExpiredInterval is the expiration interval for agent host credit.
+const agentHostCreditExpiredInterval = time.Hour * 24
+
+// generateHostCreditExpiredAt generates the expiration time for agent host credit.
+func generateHostCreditExpiredAt() time.Time {
+	return time.Now().Add(agentHostCreditExpiredInterval)
+}
 
 // AgentInstall install agent.
 func (h *handler) AgentInstall(rCtx restserver.IContext) (interface{}, error) {
@@ -234,10 +243,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 			return fmt.Errorf("failed to decode key file: %w", err)
 		}
 
-		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
-			nCtx,
-			loginKeyFile,
-		)
+		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(nCtx, loginKeyFile, generateHostCreditExpiredAt())
 		if err != nil {
 			return fmt.Errorf("failed to gen node deployment: %w", err)
 		}
@@ -257,10 +263,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 			return nil
 		}
 
-		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(
-			nCtx,
-			[]byte(password),
-		)
+		host.Dynamic.LoginCreditID, err = h.storageHostCredit.CreateHostCredit(nCtx, []byte(password), generateHostCreditExpiredAt())
 		if err != nil {
 			return fmt.Errorf("failed to gen node deployment: %w", err)
 		}

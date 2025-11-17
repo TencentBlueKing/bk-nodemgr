@@ -121,6 +121,7 @@ func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstall
 			ReRegister:               host.GetReRegister(),
 			ProxyTags:                types.StringListToProxyTagList(host.GetProxyTags()),
 			ProxyInstallOriginUnitID: host.GetProxyInstallOriginUnitId(),
+			CreditExpiredIntervalSec: host.GetCreditExpiredIntervalSec(),
 		}
 	}
 

@@ -27,6 +27,8 @@ message NodeProxyInstallHost {
   bool re_register = 16;
   repeated string proxy_tags = 17;
   int64 proxy_install_origin_unit_id = 18;
+  // credit expired interval in seconds, default is 86400 (24 hours)
+  int64 credit_expired_interval_sec = 19;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.

@@ -40,7 +40,7 @@ func (x *NodeProxyInstallReq) AutoConvert() {
 	}
 }
 
-// ConvertHostParamFromTypes convert param from types.
+// ConvertParamFromTypes convert param from types.
 func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProxyInstallParam) {
 	hostsParam := make([]*NodeProxyInstallHost, len(installParam.Hosts))
 	for idx, host := range installParam.Hosts {
@@ -63,6 +63,7 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 			ReRegister:               host.ReRegister,
 			ProxyTags:                types.ProxyTagListToStringList(host.ProxyTags),
 			ProxyInstallOriginUnitId: host.ProxyInstallOriginUnitID,
+			CreditExpiredIntervalSec: host.CreditExpiredIntervalSec,
 		}
 	}
 
