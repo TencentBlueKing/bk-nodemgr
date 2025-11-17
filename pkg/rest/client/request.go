@@ -431,10 +431,12 @@ func (r *Request) Do() (result *Result) {
 
 	// tracing
 	tracer := r.capability.TraceSvc.TracerProvider().Tracer(r.capability.Name)
-	traceCtx, span := tracer.Start(r.nCtx, fmt.Sprintf("%s %s", r.verb, r.baseURL),
+	traceCtx, span := tracer.Start(r.nCtx, fmt.Sprintf("%s %s", r.verb, fmt.Sprintf(r.subPath, r.subPathArgs...)),
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
-			attribute.String("http.request.method", string(r.verb)),
+			attribute.String(attributeHttpRequestBaseURL, r.baseURL),
+			attribute.String(attributeHttpRequestBoby, r.maskRequestBody()),
+			attribute.String(attributeHttpRequestHeader, r.maskHeader(r.headers)),
 		),
 	)
 	defer func() {
