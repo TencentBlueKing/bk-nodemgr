@@ -17,6 +17,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
@@ -59,7 +60,7 @@ var globalTrigger *trigger.Trigger
 // Test_handler_Create tests handler Create.
 func Test_handler_Create(t *testing.T) {
 	type args struct {
-		nCtx context.Context
+		nCtx contextx.IContext
 		trig *trigger.Trigger
 	}
 
@@ -67,7 +68,7 @@ func Test_handler_Create(t *testing.T) {
 		TriggerID: identifier.GenTriggerID(),
 		Category:  trigger.CategoryOnce,
 		Metadata:  &trigger.MetadataOnce{},
-		State:     trigger.StateInit,
+		Active:    true,
 	}
 
 	tests := []struct {
@@ -78,7 +79,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 				trig: globalTrigger,
 			},
 			wantErr: false,
@@ -91,7 +92,7 @@ func Test_handler_Create(t *testing.T) {
 					TriggerID: "trigger-nil-nCtx",
 					Category:  trigger.CategoryOnce,
 					Metadata:  &trigger.MetadataOnce{},
-					State:     trigger.StateInit,
+					Active:    false,
 				},
 			},
 			wantErr: true,
@@ -99,7 +100,7 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "nil trigger",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 				trig: nil,
 			},
 			wantErr: true,
@@ -107,12 +108,12 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "invalid category",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 				trig: &trigger.Trigger{
 					TriggerID: "trigger-invalid-category",
 					Category:  "test",
 					Metadata:  &trigger.MetadataOnce{},
-					State:     trigger.StateInit,
+					Active:    true,
 				},
 			},
 			wantErr: true,
@@ -120,25 +121,12 @@ func Test_handler_Create(t *testing.T) {
 		{
 			name: "mismatch metadata",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 				trig: &trigger.Trigger{
 					TriggerID: "trigger-invalid-state",
 					Category:  trigger.CategoryOnce,
 					Metadata:  &trigger.MetadataOrdered{},
-					State:     trigger.StateInit,
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid state",
-			args: args{
-				nCtx: context.Background(),
-				trig: &trigger.Trigger{
-					TriggerID: "trigger-invalid-state",
-					Category:  trigger.CategoryOnce,
-					Metadata:  &trigger.MetadataOnce{},
-					State:     "test",
+					Active:    true,
 				},
 			},
 			wantErr: true,
@@ -158,7 +146,7 @@ func Test_handler_Create(t *testing.T) {
 // Test_handler_Get tests handler Get.
 func Test_handler_Get(t *testing.T) {
 	type args struct {
-		nCtx        context.Context
+		nCtx        contextx.IContext
 		wantTrigger *trigger.Trigger
 	}
 
@@ -170,7 +158,7 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				nCtx:        context.Background(),
+				nCtx:        contextx.Background(),
 				wantTrigger: globalTrigger,
 			},
 			wantErr: false,
@@ -178,7 +166,7 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "not found",
 			args: args{
-				nCtx:        context.Background(),
+				nCtx:        contextx.Background(),
 				wantTrigger: &trigger.Trigger{TriggerID: "not-found"},
 			},
 			wantErr: true,
@@ -215,7 +203,7 @@ func Test_handler_Get(t *testing.T) {
 // Test_handler_Update tests handler Update.
 func Test_handler_Update(t *testing.T) {
 	type args struct {
-		nCtx    context.Context
+		nCtx    contextx.IContext
 		trigger *trigger.Trigger
 	}
 
@@ -227,14 +215,14 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOrdered,
 					Metadata: &trigger.MetadataOrdered{
 						MaxConcurrencyNum: 10,
 					},
-					State: trigger.StateRunning,
+					Active: true,
 				},
 			},
 			wantErr: false,
@@ -250,7 +238,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "not exist trigger",
 			args: args{
-				nCtx:    context.Background(),
+				nCtx:    contextx.Background(),
 				trigger: &trigger.Trigger{TriggerID: "not-exist"},
 			},
 			wantErr: true,
@@ -258,7 +246,7 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "nil trigger",
 			args: args{
-				nCtx:    context.Background(),
+				nCtx:    contextx.Background(),
 				trigger: nil,
 			},
 			wantErr: true,
@@ -266,12 +254,12 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "invalid category",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  "test",
 					Metadata:  &trigger.MetadataOnce{},
-					State:     trigger.StateInit,
+					Active:    true,
 				},
 			},
 			wantErr: true,
@@ -279,12 +267,12 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "mismatch metadata",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOnce,
 					Metadata:  &trigger.MetadataOrdered{},
-					State:     trigger.StateInit,
+					Active:    true,
 				},
 			},
 			wantErr: true,
@@ -292,12 +280,12 @@ func Test_handler_Update(t *testing.T) {
 		{
 			name: "invalid state",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 				trigger: &trigger.Trigger{
 					TriggerID: globalTrigger.TriggerID,
 					Category:  trigger.CategoryOnce,
 					Metadata:  &trigger.MetadataOnce{},
-					State:     "test",
+					Active:    true,
 				},
 			},
 			wantErr: true,
@@ -332,7 +320,7 @@ func Test_handler_Update(t *testing.T) {
 // Test_handler_List tests handler List.
 func Test_handler_List(t *testing.T) {
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		page  types.Page
 		optFn []OptFn
 	}
@@ -358,9 +346,9 @@ func Test_handler_List(t *testing.T) {
 		{
 			name: "base",
 			args: args{
-				nCtx:  context.Background(),
+				nCtx:  contextx.Background(),
 				page:  types.Page{Limit: 1},
-				optFn: []OptFn{WithCategory(trigger.CategoryOrdered), WithState(trigger.StateRunning)},
+				optFn: []OptFn{WithCategory(trigger.CategoryOrdered), WithActive(true)},
 			},
 			wantTotal: -1,
 			wantNum:   1,

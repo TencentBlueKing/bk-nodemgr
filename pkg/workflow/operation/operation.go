@@ -20,6 +20,23 @@ const (
 	maxInstanceNum = 100
 )
 
+// RetryMode defines the retry mode.
+type RetryMode string
+
+const (
+	// RetryModeAll means retry all failed actions.
+	RetryModeAll RetryMode = "ALL"
+	// RetryModePartial means retry partial actions.
+	RetryModePartial RetryMode = "PARTIAL"
+)
+
+// RetryFlag defines the retry flag.
+type RetryFlag struct {
+	Mode             RetryMode
+	SourceInstanceID string
+	RetryInstanceID  string
+}
+
 // Operation defines the operation in workflow.
 type Operation struct {
 	TriggerID   string
@@ -27,6 +44,7 @@ type Operation struct {
 	Definition  Definition
 	InstanceIDs []string
 	Param       Param
+	RetryFlags  []RetryFlag
 }
 
 // CheckEnforceability checks the enforceability of operation.
@@ -54,6 +72,15 @@ func (o *Operation) GetNonLastInstanceIDs() []string {
 	}
 
 	return o.InstanceIDs[:len(o.InstanceIDs)-1]
+}
+
+// GetLastRetryFlag gets the last retry flag.
+func (o *Operation) GetLastRetryFlag() *RetryFlag {
+	if len(o.RetryFlags) == 0 {
+		return nil
+	}
+
+	return &o.RetryFlags[len(o.RetryFlags)-1]
 }
 
 // Param defines the operation param.

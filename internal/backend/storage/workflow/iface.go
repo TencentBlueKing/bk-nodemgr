@@ -52,6 +52,9 @@ type IStorageScheduledWorkflow interface {
 
 	// UpdateScheduledWorkflowPrivateData updates a scheduled workflow's private data.
 	UpdateScheduledWorkflowPrivateData(nCtx contextx.IContext, workflowID string, privateData map[string]any) error
+
+	// SwitchScheduleWorkflow enables or disables a scheduled workflow.
+	SwitchScheduleWorkflow(nCtx contextx.IContext, workflowID string, enable bool) error
 }
 
 // IDomainNodeInstall defines the interface for domain node installation related operations.

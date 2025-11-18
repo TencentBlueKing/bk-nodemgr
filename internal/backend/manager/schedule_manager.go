@@ -187,15 +187,11 @@ func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.Sc
 	}
 
 	// check if the trigger state is changed.
-	state := trigCtl.GetTriggerState()
-	if state == trigger.StateRunning && !sw.Enabled {
-		return trigCtl.TerminateTrigger(nCtx)
-	}
-	if state == trigger.StateTerminated && sw.Enabled {
-		return trigCtl.RunTrigger(nCtx)
+	if !sw.Enabled {
+		return trigCtl.InactivateTrigger(nCtx)
 	}
 
-	return nil
+	return trigCtl.ActivateTrigger(nCtx)
 }
 
 func (mgr *Manager) trySyncingScheduledWorkflow(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
@@ -272,7 +268,7 @@ func (mgr *Manager) syncScheduledWorkflow(nCtx contextx.IContext, sw *types.Sche
 		Info("scheduled workflow with new trigger")
 
 	if sw.Enabled {
-		return trigCtl.RunTrigger(nCtx)
+		return trigCtl.ActivateTrigger(nCtx)
 	}
 
 	return nil

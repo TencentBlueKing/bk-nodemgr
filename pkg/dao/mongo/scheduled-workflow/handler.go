@@ -41,6 +41,9 @@ type IHandler interface {
 	// UpdatePrivateData updates schedule workflow's private data.
 	UpdatePrivateData(nCtx contextx.IContext, workflowID string, privateData map[string]any) error
 
+	// Switch enables or disables a scheduled workflow.
+	Switch(nCtx contextx.IContext, workflowID string, enable bool) error
+
 	// IDistinctor distincts schedule workflow fields.
 	IDistinctor
 }
@@ -176,6 +179,22 @@ func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.Schedul
 	}
 
 	return convertScheduledWorkflowToTypes(data), nil
+}
+
+// Switch enables or disables a scheduled workflow.
+func (h *Handler) Switch(nCtx contextx.IContext, workflowID string, enable bool) error {
+	if workflowID == "" {
+		return errors.New("workflow id should not be empty")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithWorkflowID(workflowID)(filter)
+
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyEnabled, enable); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DistinctScheduledWorkflowName distincts with field type.

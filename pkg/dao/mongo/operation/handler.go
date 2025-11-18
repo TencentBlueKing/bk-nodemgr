@@ -136,6 +136,7 @@ func convertOperationFromDB(dbOp *Operation) *operation.Operation {
 
 	defSnapshot := convertDefFromDB(dbOp.DefSnapshot)
 	param := convertParamFromDB(dbOp.Parameters)
+	retryFlags := convertRetryFlagsFromDB(dbOp.RetryFlags)
 
 	return &operation.Operation{
 		TriggerID:   dbOp.TriggerID,
@@ -143,30 +144,33 @@ func convertOperationFromDB(dbOp *Operation) *operation.Operation {
 		Definition:  defSnapshot,
 		InstanceIDs: dbOp.OperInstIDs,
 		Param:       param,
+		RetryFlags:  retryFlags,
 	}
 }
 
-func convertOperationToDB(bizOp *operation.Operation) *Operation {
-	if bizOp == nil {
+func convertOperationToDB(oper *operation.Operation) *Operation {
+	if oper == nil {
 		return nil
 	}
 	var defSnapshot DefSnapshot
-	if bizOp.Definition != nil {
-		defSnapshot = convertDefToDB(bizOp.Definition)
+	if oper.Definition != nil {
+		defSnapshot = convertDefToDB(oper.Definition)
 	}
 
-	opera := &Operation{
-		OperationID: bizOp.OperationID,
-		TriggerID:   bizOp.TriggerID,
-		OperInstIDs: bizOp.InstanceIDs,
+	operation := &Operation{
+		OperationID: oper.OperationID,
+		TriggerID:   oper.TriggerID,
+		OperInstIDs: oper.InstanceIDs,
 		DefSnapshot: defSnapshot,
-		Parameters:  convertParamToDB(bizOp.Param),
-	}
-	if bizOp.InstanceIDs == nil || len(bizOp.InstanceIDs) == 0 {
-		opera.OperInstEmpty = true
+		Parameters:  convertParamToDB(oper.Param),
+		RetryFlags:  convertRetryFlagsToDB(oper.RetryFlags),
 	}
 
-	return opera
+	if len(oper.InstanceIDs) == 0 || (len(oper.RetryFlags) > 0 && oper.RetryFlags[len(oper.RetryFlags)-1].RetryInstanceID == "") {
+		operation.Instantiated = true
+	}
+
+	return operation
 }
 
 func convertParamFromDB(param Parameters) operation.Param {
@@ -204,4 +208,30 @@ func convertDefToDB(defoper operation.Definition) DefSnapshot {
 		DefaultParameters:  convertParamToDB(defoper.DefaultParameters()),
 		ExtraExecutionName: defoper.ExtraExecutionName(),
 	}
+}
+
+func convertRetryFlagsFromDB(retryFlags []RetryFlag) []operation.RetryFlag {
+	flags := make([]operation.RetryFlag, 0, len(retryFlags))
+	for _, flag := range retryFlags {
+		flags = append(flags, operation.RetryFlag{
+			Mode:             operation.RetryMode(flag.Mode),
+			SourceInstanceID: flag.SourceInstanceID,
+			RetryInstanceID:  flag.RetryInstanceID,
+		})
+	}
+
+	return flags
+}
+
+func convertRetryFlagsToDB(retryFlags []operation.RetryFlag) []RetryFlag {
+	flags := make([]RetryFlag, 0, len(retryFlags))
+	for _, flag := range retryFlags {
+		flags = append(flags, RetryFlag{
+			Mode:             string(flag.Mode),
+			SourceInstanceID: flag.SourceInstanceID,
+			RetryInstanceID:  flag.RetryInstanceID,
+		})
+	}
+
+	return flags
 }

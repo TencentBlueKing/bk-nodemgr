@@ -240,8 +240,8 @@ type IHandlerNodeAgent interface {
 	// OperationRetry node agent.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param retryParam the retry param.
-	// @return the retry operation-ids and error.
-	OperationRetry(ctx contextx.IContext, retryParam *types.NodeOperationRetryParam) ([]string, error)
+	// @return the error.
+	OperationRetry(ctx contextx.IContext, retryParam *types.NodeOperationRetryParam) error
 }
 
 // IHandlerNodeProxy defines the node proxy Handler.
@@ -1092,19 +1092,17 @@ func (h *Handler) ListNodeWorkflowOperationInstanceStatus(ctx contextx.IContext,
 }
 
 // OperationRetry operation retry.
-func (h *Handler) OperationRetry(ctx contextx.IContext, retryParam *types.NodeOperationRetryParam) ([]string, error) {
+func (h *Handler) OperationRetry(ctx contextx.IContext, retryParam *types.NodeOperationRetryParam) error {
 	req := &protoBackend.NodeWorkflowOperationRetryReq{}
 
 	req.ConvertOperationRetryParamFromTypes(*retryParam)
 
-	resp, err := h.cli.retryOperation(ctx, req)
+	_, err := h.cli.retryOperation(ctx, req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	result := resp.ConvertResultToComm()
-
-	return result, nil
+	return nil
 }
 
 // ListRelease lists release by page and conditions.

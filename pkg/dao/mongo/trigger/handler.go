@@ -39,8 +39,8 @@ type IHandler interface {
 	// Update updates trigger.
 	Update(nCtx contextx.IContext, trig *trigger.Trigger) error
 
-	// UpdateState updates trigger state.
-	UpdateState(nCtx contextx.IContext, triggerID string, state trigger.State) error
+	// SwitchActive switches trigger active status.
+	SwitchActive(nCtx contextx.IContext, triggerID string, active bool) error
 
 	// Delete deletes triggers.
 	Delete(nCtx contextx.IContext, triggerIDs ...string) error
@@ -169,8 +169,8 @@ func (h *handler) Update(nCtx contextx.IContext, trig *trigger.Trigger) error {
 	return h.dao.update(nCtx, convertTriggerFromTypes(trig))
 }
 
-// UpdateState updates a trigger's state.
-func (h *handler) UpdateState(nCtx contextx.IContext, triggerID string, state trigger.State) error {
+// SwitchActive switches trigger active status.
+func (h *handler) SwitchActive(nCtx contextx.IContext, triggerID string, active bool) error {
 	if nCtx == nil {
 		return errors.New("nCtx is nil")
 	}
@@ -182,7 +182,7 @@ func (h *handler) UpdateState(nCtx contextx.IContext, triggerID string, state tr
 	filter := base.AliveFilter()
 	filter = WithTriggerID(triggerID)(filter)
 
-	return h.dao.UpdateField(nCtx, filter, FieldKeyState, string(state))
+	return h.dao.UpdateField(nCtx, filter, FieldKeyActive, active)
 }
 
 // Delete deletes triggers.
@@ -202,7 +202,7 @@ func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {
 	t := &Trigger{
 		TriggerID:       trig.TriggerID,
 		Category:        string(trig.Category),
-		State:           string(trig.State),
+		Active:          trig.Active,
 		CreatedAt:       trig.CreatedAt,
 		UpdatedAt:       trig.UpdatedAt,
 		LastTriggeredAt: trig.LastTriggeredAt,
@@ -254,7 +254,7 @@ func convertTriggerToTypes(trig *Trigger) *trigger.Trigger {
 	typeTrigger := &trigger.Trigger{
 		TriggerID:       trig.TriggerID,
 		Category:        trigger.Category(trig.Category),
-		State:           trigger.State(trig.State),
+		Active:          trig.Active,
 		CreatedAt:       trig.CreatedAt,
 		UpdatedAt:       trig.UpdatedAt,
 		LastTriggeredAt: trig.LastTriggeredAt,

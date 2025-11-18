@@ -153,7 +153,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 	}
 
 	if trigCtl != nil {
-		if err = trigCtl.RunTrigger(std.Context()); err != nil {
+		if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
 			logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync alive plugin process info operations")
 			return err
 		}

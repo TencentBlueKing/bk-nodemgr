@@ -101,6 +101,27 @@ type InstanceStatus struct {
 	OperationID         string
 }
 
+// IsRunning checks if the lifecycle is running.
+func (life *Lifecycle) IsRunning() bool {
+	return life.State == StateRunning
+}
+
+// IsTerminated checks if the lifecycle is terminated.
+func (life *Lifecycle) IsTerminated() bool {
+	return life.State == StateTerminated
+}
+
+// Launch lauch the action instance lifecycle.
+func (life *Lifecycle) Launch() {
+	life.State = StateLaunched
+	life.StartedAt = time.Now()
+}
+
+// Start starts the action instance lifecycle.
+func (life *Lifecycle) Start() {
+	life.State = StateRunning
+}
+
 // End ends the action instance lifecycle.
 func (life *Lifecycle) End(lastActionInstState action.State) {
 	life.EndedAt = time.Now()

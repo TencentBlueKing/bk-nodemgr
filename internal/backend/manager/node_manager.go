@@ -43,8 +43,8 @@ type INodeManager interface {
 	// LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
 	LaunchUninstallNode(ctx contextx.IContext, param UninstallNodeParam) (string, error)
 
-	// RetryOperationNode launch a task to retry operation instance
-	RetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) ([]string, error)
+	// LaunchRetryOperationNode launch a task to retry operation instance
+	LaunchRetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) error
 }
 
 // InstallNodeParam install node param.
@@ -91,7 +91,7 @@ type UninstallNodeParam struct {
 type RetryOperationNodeParam struct {
 	WorkflowID string
 
-	RetryMod     types.NodeOperationRetryMode
+	RetryMod     operation.RetryMode
 	OperationIDs []string
 }
 
@@ -129,51 +129,34 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param InstallNodeP
 		return "", fmt.Errorf("failed to launch install node task. err: %w", err)
 	}
 
-	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
 
 	return workflowID, nil
 }
 
-// RetryOperationNode launch a task to retry operation instance.
-func (mgr *Manager) RetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) ([]string, error) {
-	instanceIDs := make([]string, 0)
-
+// LaunchRetryOperationNode launch a task to retry operation instance.
+func (mgr *Manager) LaunchRetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) error {
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(ctx, param.WorkflowID)
 	if err != nil {
-		return nil, fmt.Errorf("get trigger failed: %w", err)
+		return fmt.Errorf("get trigger failed: %w", err)
 	}
 
 	triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, nodeWorkflow.TriggerID)
 	if err != nil {
-		return nil, fmt.Errorf("get trigger failed: %w", err)
+		return fmt.Errorf("get trigger failed: %w", err)
 	}
 
-	operCtls, err := triggerCtl.ListOperation(ctx, param.OperationIDs...)
-	if err != nil {
-		return nil, fmt.Errorf("get operation failed: %w", err)
+	if err := triggerCtl.UpdateOperationRetryFlag(ctx, param.RetryMod, param.OperationIDs...); err != nil {
+		return fmt.Errorf("update operation retry flag failed: %w", err)
 	}
 
-	err = mgr.conf.StorageNode.UpdateNodeWorkflowStatus(ctx, param.WorkflowID, types.NodeWorkflowStatusRunning)
-	if err != nil {
-		return nil, fmt.Errorf("update node workflow status failed: %w", err)
+	if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(ctx, param.WorkflowID, types.NodeWorkflowStatusRunning); err != nil {
+		return fmt.Errorf("update node workflow status failed: %w", err)
 	}
 
-	for _, operCtl := range operCtls {
-		instanceCtl, err := operCtl.CreateRetryOperationInstance(ctx, param.RetryMod)
-		if err != nil {
-			return nil, fmt.Errorf("create operation instance failed: %w", err)
-		}
-
-		if err := instanceCtl.LaunchOperationInstance(ctx); err != nil {
-			return nil, fmt.Errorf("launch operation instance failed: %w", err)
-		}
-
-		instanceIDs = append(instanceIDs, instanceCtl.GetOperationInstanceID())
-	}
-
-	return instanceIDs, nil
+	return triggerCtl.ActivateTrigger(ctx)
 }
 
 func (mgr *Manager) createInstallNodeOper(
@@ -351,7 +334,7 @@ func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param UpgradeNodeP
 		return "", fmt.Errorf("failed to launch upgrade node task. err: %w", err)
 	}
 
-	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
 
@@ -465,7 +448,7 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param ReconfigNod
 		return "", fmt.Errorf("failed to launch reconfig node task. err: %w", err)
 	}
 
-	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
 
@@ -541,7 +524,7 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param RestartNodeP
 		return "", fmt.Errorf("failed to launch restart node task. err: %w", err)
 	}
 
-	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
 
@@ -617,7 +600,7 @@ func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param UninstallN
 		return "", fmt.Errorf("failed to launch uninstall node task: %w", err)
 	}
 
-	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
 

@@ -576,16 +576,6 @@ func (x *NodeWorkflowOperationRetryReq) ConvertOperationRetryParamFromTypes(retr
 	x.RetryMod = string(retryParm.RetryMode)
 }
 
-// ConvertOperInstanceID convert OperationInstance id.
-func (x *NodeWorkflowOperationRetryResp) ConvertOperInstanceID(operInstance []string) {
-	x.Data = &NodeWorkflowOperationRetryResp_Data{InstanceIds: operInstance}
-}
-
-// ConvertResultToComm convert result from types.
-func (x *NodeWorkflowOperationRetryResp) ConvertResultToComm() []string {
-	return x.GetData().GetInstanceIds()
-}
-
 func convertNodeWorkflowConditionsToTypes(
 	exactCond *NodeWorkflowExactConditions,
 	_ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) *types.NodeWorkflowCondition {

@@ -28,7 +28,7 @@ type Trigger struct {
 	MetadataOnce     MetadataOnce     `json:"metadata_once" bson:"metadata_once"`
 	MetadataPeriodic MetadataPeriodic `json:"metadata_periodic" bson:"metadata_periodic"`
 	MetadataOrdered  MetadataOrdered  `json:"metadata_ordered" bson:"metadata_ordered"`
-	State            string           `json:"state" bson:"state"`
+	Active           bool             `json:"active" bson:"active"`
 	CreatedAt        time.Time        `json:"created_at" bson:"created_at"`
 	UpdatedAt        time.Time        `json:"updated_at" bson:"updated_at"`
 	LastTriggeredAt  time.Time        `json:"last_triggered_at" bson:"last_triggered_at"`

@@ -25,13 +25,13 @@ var _ base.IData = &Operation{}
 // Operation represents an operation.
 // OperationID should be the unique key.
 type Operation struct {
-	OperationID   string      `json:"operation_id" bson:"operation_id"`
-	TriggerID     string      `json:"trigger_id" bson:"trigger_id"`
-	OperInstIDs   []string    `json:"oper_inst_ids" bson:"oper_inst_ids"`
-	OperInstEmpty bool        `json:"oper_inst_empty" bson:"oper_inst_empty"`
-	DefSnapshot   DefSnapshot `json:"def_snapshot" bson:"def_snapshot"`
-
-	Parameters Parameters `json:"parameters" bson:"parameters"`
+	OperationID  string      `json:"operation_id" bson:"operation_id"`
+	TriggerID    string      `json:"trigger_id" bson:"trigger_id"`
+	OperInstIDs  []string    `json:"oper_inst_ids" bson:"oper_inst_ids"`
+	DefSnapshot  DefSnapshot `json:"def_snapshot" bson:"def_snapshot"`
+	Parameters   Parameters  `json:"parameters" bson:"parameters"`
+	RetryFlags   []RetryFlag `json:"retry_flags" bson:"retry_flags"`
+	Instantiated bool        `json:"instantiated" bson:"instantiated"`
 }
 
 // DefSnapshot represents the snapshot of the operation definition.
@@ -48,6 +48,13 @@ type Parameters struct {
 	Timeout           time.Duration   `json:"timeout" bson:"timeout"`
 	InitContent       map[string]any  `json:"init_content" bson:"init_content"`
 	RetryStartPoint   map[string]bool `json:"retry_start_point" bson:"retry_start_point" `
+}
+
+// RetryFlag represents the retry flag of the operation.
+type RetryFlag struct {
+	Mode             string `json:"mode" bson:"mode"`
+	SourceInstanceID string `json:"source_instance_id" bson:"source_instance_id"`
+	RetryInstanceID  string `json:"retry_instance_id" bson:"retry_instance_id"`
 }
 
 // UniqueFields unique fields of the table.

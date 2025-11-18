@@ -17,7 +17,7 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // WorkflowOperationRetry retry the operation of node workflow.
@@ -33,9 +33,9 @@ func (h *handler) WorkflowOperationRetry(rCtx restserver.IContext) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	instanceIDs, err := h.manager.RetryOperationNode(rCtx, manager.RetryOperationNodeParam{
+	err := h.manager.LaunchRetryOperationNode(rCtx, manager.RetryOperationNodeParam{
 		WorkflowID:   req.GetWorkflowId(),
-		RetryMod:     types.NodeOperationRetryMode(req.GetRetryMod()),
+		RetryMod:     operation.RetryMode(req.GetRetryMod()),
 		OperationIDs: req.GetOperationId(),
 	})
 	if err != nil {
@@ -44,9 +44,6 @@ func (h *handler) WorkflowOperationRetry(rCtx restserver.IContext) (interface{},
 	}
 
 	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
-	resp.ConvertOperInstanceID(instanceIDs)
-
-	logger.G.Biz(rCtx).With("operation-instance-ids", instanceIDs).Info("launched to retry operation")
 
 	return resp.GetData(), nil
 }

@@ -273,7 +273,7 @@ message NodeWorkflowOperationRetryResp {
   string request_id = 3;
   Error error = 4;
 
-  message Data { repeated string instance_ids = 1; }
+  message Data {}
   Data data = 5;
 }
 

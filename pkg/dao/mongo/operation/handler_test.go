@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/joho/godotenv"
@@ -92,15 +93,15 @@ func Test_handler_List(t *testing.T) {
 		},
 	}
 
-	if err := h.Upsert(context.Background(), baseOp1); err != nil {
+	if err := h.Upsert(contextx.Background(), baseOp1); err != nil {
 		t.Fatalf("prepare data failed: %v", err)
 	}
 
-	if err := h.Upsert(context.Background(), baseOp2); err != nil {
+	if err := h.Upsert(contextx.Background(), baseOp2); err != nil {
 		t.Fatalf("prepare data failed: %v", err)
 	}
 	tests := []struct {
-		nCtx      context.Context
+		nCtx      contextx.IContext
 		name      string
 		page      types.Page
 		opts      []OptFn
@@ -113,7 +114,7 @@ func Test_handler_List(t *testing.T) {
 			opts:      nil,
 			wantCount: 2,
 			wantErr:   false,
-			nCtx:      context.Background(),
+			nCtx:      contextx.Background(),
 		},
 		{
 			name:      "filter by non-existent trigger",
@@ -121,14 +122,14 @@ func Test_handler_List(t *testing.T) {
 			opts:      []OptFn{WithTriggerID("invalid_trigger")},
 			wantCount: 0,
 			wantErr:   false,
-			nCtx:      context.Background(),
+			nCtx:      contextx.Background(),
 		},
 		{
 			name:      "invalid page params",
 			page:      types.Page{Offset: -1, Limit: 0},
 			wantCount: 0,
 			wantErr:   true,
-			nCtx:      context.Background(),
+			nCtx:      contextx.Background(),
 		},
 		{
 			name:      "nil nCtx",

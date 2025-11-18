@@ -70,7 +70,7 @@ func (mgr *Manager) LaunchSyncAllAgentState(nCtx contextx.IContext) (string, err
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
 
@@ -122,7 +122,7 @@ func (mgr *Manager) LaunchSyncAgentState(ctx contextx.IContext, hostIDs ...int64
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
 
@@ -152,7 +152,7 @@ func (mgr *Manager) LaunchSyncBizAndHost(ctx contextx.IContext) (string, error) 
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
 
@@ -183,7 +183,7 @@ func (mgr *Manager) LaunchSyncHostByBizID(ctx contextx.IContext, bizID int64) (s
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
 
@@ -213,7 +213,7 @@ func (mgr *Manager) LaunchSyncNetworkArea(ctx contextx.IContext) (string, error)
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
 
@@ -243,7 +243,7 @@ func (mgr *Manager) LaunchSyncAliveHostAgentInfo(ctx contextx.IContext) (string,
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
 
@@ -295,7 +295,7 @@ func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64)
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
 
@@ -330,7 +330,7 @@ func (mgr *Manager) LaunchSyncAlivePluginProcessInfo(ctx contextx.IContext, host
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
 
@@ -360,7 +360,7 @@ func (mgr *Manager) LaunchSyncAllAlivePluginProcessInfo(ctx contextx.IContext) (
 		return "", err
 	}
 
-	if err = triggerCtl.RunTrigger(ctx); err != nil {
+	if err = triggerCtl.ActivateTrigger(ctx); err != nil {
 		return "", err
 	}
 

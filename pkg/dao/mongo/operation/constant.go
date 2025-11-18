@@ -33,6 +33,6 @@ const (
 	// FieldKeyIPV6 the ipv6 field key.
 	FieldKeyIPV6 = "data.extras.inner_ipv6"
 
-	// FieldKeyOperationInstanceEmpty the oper_inst_empty field key.
-	FieldKeyOperationInstanceEmpty = "data.oper_inst_empty"
+	// FieldKeyOperationInstantiated the instantiated field key.
+	FieldKeyOperationInstantiated = "data.instantiated"
 )

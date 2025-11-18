@@ -16,7 +16,6 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
 // EnableScheduleWorkflow enable schedule workflow.
@@ -28,18 +27,8 @@ func (h *handler) EnableScheduleWorkflow(rCtx restserver.IContext) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	schedule, err := h.storageWorkflow.GetScheduledWorkflow(rCtx, req.GetWorkflowId())
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).With("workflow-id", req.GetWorkflowId()).Error("failed to get schedule workflow")
-		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
-	}
-
-	err = h.storageWorkflow.UpdateTriggerState(rCtx, schedule.TriggerID, trigger.StateRunning)
-	if err != nil {
-		logger.G.Biz(rCtx).
-			WithErr(err).
-			With("workflow-id", schedule.WorkflowID, "trigger-id", schedule.TriggerID).
-			Error("failed to enable schedule workflow")
+	if err := h.storageWorkflow.SwitchScheduleWorkflow(rCtx, req.GetWorkflowId(), true); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("workflow-id", req.GetWorkflowId()).Error("failed to enable schedule workflow")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
@@ -56,18 +45,8 @@ func (h *handler) DisableScheduleWorkflow(rCtx restserver.IContext) (interface{}
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	schedule, err := h.storageWorkflow.GetScheduledWorkflow(rCtx, req.GetWorkflowId())
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).With("workflow-id", req.GetWorkflowId()).Error("failed to get schedule workflow")
-		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
-	}
-
-	err = h.storageWorkflow.UpdateTriggerState(rCtx, schedule.TriggerID, trigger.StateTerminated)
-	if err != nil {
-		logger.G.Biz(rCtx).
-			WithErr(err).
-			With("workflow-id", schedule.WorkflowID, "trigger-id", schedule.TriggerID).
-			Error("failed to disable schedule workflow")
+	if err := h.storageWorkflow.SwitchScheduleWorkflow(rCtx, req.GetWorkflowId(), false); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("workflow-id", req.GetWorkflowId()).Error("failed to disable schedule workflow")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}

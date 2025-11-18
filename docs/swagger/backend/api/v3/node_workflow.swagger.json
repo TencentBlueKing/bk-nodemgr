@@ -967,15 +967,7 @@
       "title": "NodeWorkflowOperationRetryResp"
     },
     "v3NodeWorkflowOperationRetryRespData": {
-      "type": "object",
-      "properties": {
-        "instance_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
+      "type": "object"
     },
     "v3Page": {
       "type": "object",

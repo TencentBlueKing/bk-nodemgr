@@ -22,7 +22,7 @@ type Trigger struct {
 	TriggerID       string
 	Category        Category
 	Metadata        Metadata
-	State           State
+	Active          bool
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	LastTriggeredAt time.Time
@@ -56,13 +56,6 @@ func (t *Trigger) Validate() error {
 	default:
 		return fmt.Errorf("category should be one of %s, %s, %s",
 			CategoryOnce, CategoryPeriodic, CategoryOrdered)
-	}
-
-	switch t.State {
-	case StateInit, StateRunning, StateTerminated:
-	default:
-		return fmt.Errorf("state should be one of %s, %s, %s",
-			StateInit, StateRunning, StateTerminated)
 	}
 
 	if err := t.Metadata.Validate(); err != nil {
@@ -101,40 +94,6 @@ func StringListToCategoryList(categories []string) []Category {
 	data := make([]Category, len(categories))
 	for idx, category := range categories {
 		data[idx] = Category(category)
-	}
-
-	return data
-}
-
-// State represents the state of a trigger.
-type State string
-
-const (
-	// StateInit represents the initial state of a trigger.
-	StateInit State = "init"
-
-	// StateRunning represents a trigger that is currently running.
-	StateRunning State = "running"
-
-	// StateTerminated represents a trigger that has been terminated.
-	StateTerminated State = "terminated"
-)
-
-// StateListToStringList converts a state list to a string list.
-func StateListToStringList(states []State) []string {
-	data := make([]string, len(states))
-	for idx, state := range states {
-		data[idx] = string(state)
-	}
-
-	return data
-}
-
-// StringListToStateList converts a string list to a state list.
-func StringListToStateList(states []string) []State {
-	data := make([]State, len(states))
-	for idx, state := range states {
-		data[idx] = State(state)
 	}
 
 	return data

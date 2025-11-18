@@ -325,14 +325,12 @@ func (h *handler) OperationRetry(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	InstanceIDs, err := h.backendHandler.OperationRetry(rCtx, req.ConvertRetryParamToTypes())
+	err := h.backendHandler.OperationRetry(rCtx, req.ConvertRetryParamToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation: %v", err)
 		return nil, err
 	}
 	resp := new(protoApplication.NodeWorkflowOperationRetryResp)
-
-	resp.ConvertOperInstanceID(InstanceIDs)
 
 	return resp.GetData(), nil
 }

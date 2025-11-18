@@ -37,9 +37,9 @@ func (s *Storage) updateTrigger(nCtx contextx.IContext, trig *trigger.Trigger) e
 	return s.daoTrigger.Update(nCtx, trig)
 }
 
-// updateTriggerState updates a trigger's state.
-func (s *Storage) updateTriggerState(nCtx contextx.IContext, triggerID string, state trigger.State) error {
-	return s.daoTrigger.UpdateState(nCtx, triggerID, state)
+// switchTriggerActive switches a trigger active status.
+func (s *Storage) switchTriggerActive(nCtx contextx.IContext, triggerID string, active bool) error {
+	return s.daoTrigger.SwitchActive(nCtx, triggerID, active)
 }
 
 // getTrigger gets a trigger by triggerID.
@@ -47,10 +47,10 @@ func (s *Storage) getTrigger(nCtx contextx.IContext, triggerID string) (*trigger
 	return s.daoTrigger.Get(nCtx, triggerID)
 }
 
-// listAliveTrigger lists alive triggers by category.
-func (s *Storage) listAliveTrigger(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
+// listActiveTrigger lists active triggers by category.
+func (s *Storage) listActiveTrigger(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
 	results, _, err := s.daoTrigger.List(nCtx, types.UnlimitedPage(),
-		daoTrigger.WithState(trigger.StateInit, trigger.StateRunning),
+		daoTrigger.WithActive(true),
 		daoTrigger.WithCategory(category))
 	if err != nil {
 		return nil, err

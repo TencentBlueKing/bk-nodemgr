@@ -185,18 +185,18 @@ func (s *Storage) UpdateTrigger(nCtx contextx.IContext, trig *trigger.Trigger) e
 	return nil
 }
 
-// UpdateTriggerState updates a trigger's state.
-func (s *Storage) UpdateTriggerState(nCtx contextx.IContext, triggerID string, state trigger.State) error {
+// SwitchTriggerActive switches a trigger active status.
+func (s *Storage) SwitchTriggerActive(nCtx contextx.IContext, triggerID string, active bool) error {
 	var err error
 
 	// record metric.
-	metric := s.metric().Start("update_trigger_state")
+	metric := s.metric().Start("switch_trigger_alive")
 	defer metric.End(err)
 
-	if err = s.updateTriggerState(nCtx, triggerID, state); err != nil {
-		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to update trigger state")
+	if err = s.switchTriggerActive(nCtx, triggerID, active); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to switch trigger active state")
 
-		return fmt.Errorf("failed to update trigger state, trigger-id(%s): %w", triggerID, err)
+		return fmt.Errorf("failed to switch trigger active state, trigger-id(%s): %w", triggerID, err)
 	}
 
 	return nil
@@ -222,8 +222,8 @@ func (s *Storage) GetTrigger(nCtx contextx.IContext, triggerID string) (*trigger
 	return data, nil
 }
 
-// ListAliveTrigger lists alive triggers by category.
-func (s *Storage) ListAliveTrigger(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
+// ListActiveTrigger lists active triggers by given category.
+func (s *Storage) ListActiveTrigger(nCtx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error) {
 	var (
 		err     error
 		results []*trigger.Trigger
@@ -233,10 +233,10 @@ func (s *Storage) ListAliveTrigger(nCtx contextx.IContext, category trigger.Cate
 	metric := s.metric().Start("list_alive_trigger")
 	defer metric.End(err)
 
-	if results, err = s.listAliveTrigger(nCtx, category); err != nil {
-		logger.G.Sys().WithErr(err).With("category", category).Error("failed to list alive triggers")
+	if results, err = s.listActiveTrigger(nCtx, category); err != nil {
+		logger.G.Sys().WithErr(err).With("category", category).Error("failed to list active triggers")
 
-		return nil, fmt.Errorf("failed to list alive triggers, category(%s): %w", category, err)
+		return nil, fmt.Errorf("failed to list active triggers, category(%s): %w", category, err)
 	}
 
 	return results, nil
@@ -418,6 +418,23 @@ func (s *Storage) UpdateScheduledWorkflowPrivateData(nCtx contextx.IContext, wor
 	return nil
 }
 
+// SwitchScheduleWorkflow enables or disables a scheduled workflow.
+func (s *Storage) SwitchScheduleWorkflow(nCtx contextx.IContext, workflowID string, enable bool) error {
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("switch_scheduled_workflow")
+	defer metric.End(err)
+
+	if err := s.switchScheduleWorkflow(nCtx, workflowID, enable); err != nil {
+		logger.G.Sys().WithErr(err).With("workflow-id", workflowID).Error("failed to switch scheduled workflow")
+
+		return err
+	}
+
+	return nil
+}
+
 // GetOperation get operation by operationID.
 func (s *Storage) GetOperation(nCtx contextx.IContext, operationID string) (*workoper.Operation, error) {
 	var (
@@ -549,9 +566,8 @@ func (s *Storage) ListOperationByNodeWorkflowOperationCondition(
 	return opers, num, nil
 }
 
-// ListEmptyOperationByTriggerID lists empty operation by trigger id.
-func (s *Storage) ListEmptyOperationByTriggerID(
-	nCtx contextx.IContext, page types.Page, triggerID string) (
+// ListNeedInstantiateOperationByTriggerID lists operations need to be instantiated by trigger id.
+func (s *Storage) ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, page types.Page, triggerID string) (
 	[]*workoper.Operation, int64, error) {
 
 	var (
@@ -561,33 +577,16 @@ func (s *Storage) ListEmptyOperationByTriggerID(
 	)
 
 	// record metric.
-	metric := s.metric().Start("list_empty_operation_by_trigger_id")
+	metric := s.metric().Start("list_need_instantiate_operation_by_trigger_id")
 	defer metric.End(err)
 
-	if opers, num, err = s.listEmptyOperationByTriggerID(nCtx, page, triggerID); err != nil {
-		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to list empty operations")
+	if opers, num, err = s.listNeedInstantiateOperationByTriggerID(nCtx, page, triggerID); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to list need instantiate operations")
 
-		return nil, 0, fmt.Errorf("failed to list empty operations, trigger-id(%s): %w", triggerID, err)
+		return nil, 0, fmt.Errorf("failed to list need instantiate operations, trigger-id(%s): %w", triggerID, err)
 	}
 
 	return opers, num, nil
-}
-
-// DeleteOperations deletes operations by operation ids.
-func (s *Storage) DeleteOperations(nCtx contextx.IContext, operationID ...string) error {
-	var err error
-
-	// record metric.
-	metric := s.metric().Start("delete_operations")
-	defer metric.End(err)
-
-	if err = s.deleteOperations(nCtx, operationID...); err != nil {
-		logger.G.Sys().WithErr(err).With("operation-ids", operationID).Error("failed to delete operations")
-
-		return fmt.Errorf("failed to delete operations, operation-ids(%v): %w", operationID, err)
-	}
-
-	return nil
 }
 
 // DeleteOperationsByTriggerID deletes operations by trigger ID.

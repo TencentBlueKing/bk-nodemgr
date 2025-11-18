@@ -372,31 +372,6 @@ type NodeWorkflowOperationCondition struct {
 	FuzzyExclude *NodeWorkflowOperationFuzzyFields
 }
 
-// OperationExactFields defines the workflow condition exact fields.
-type OperationExactFields struct {
-	TriggerID     []string
-	OperationID   []string
-	OperInstEmpty []bool
-}
-
-// OperationFuzzyFields defines the workflow operation fuzzy fields.
-type OperationFuzzyFields struct{}
-
-// OperationCondition defines the workflow operation condition.
-type OperationCondition struct {
-	// will be used when condition type is included in exact mode.
-	ExactInclude *OperationExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *OperationFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *OperationExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *OperationFuzzyFields
-}
-
 // OperInstDataExactFields defines the workflow operation instance data condition exact fields.
 type OperInstDataExactFields struct {
 	TriggerID   []string

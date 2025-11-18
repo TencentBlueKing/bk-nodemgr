@@ -144,6 +144,16 @@ func (life *Lifecycle) Start() {
 	life.StartedAt = time.Now()
 }
 
+// IsFailed checks if the lifecycle is failed.
+func (life *Lifecycle) IsFailed() bool {
+	switch life.State {
+	case StateFailed, StateTimeout:
+		return true
+	default:
+		return false
+	}
+}
+
 // EndWithErr ends the action instance with error.
 func (life *Lifecycle) EndWithErr(err error) {
 	life.EndedAt = time.Now()

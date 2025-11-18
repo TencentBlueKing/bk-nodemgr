@@ -154,9 +154,8 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	}
 
 	// handle operation instance lifecycle.
-	if actionInstData.IsFirst() {
-		// first action be executed, means operation instance is started.
-		operInstBriefData.Lifecycle.State = operation.StateRunning
+	if !operInstBriefData.Lifecycle.IsRunning() {
+		operInstBriefData.Lifecycle.Start()
 		if err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
 			return err
 		}

@@ -28,23 +28,19 @@ type IStorageActionInstance interface {
 	GetActionInstanceLifecycle(ctx contextx.IContext, operationInstanceID, actionName string) (*action.Lifecycle, error)
 
 	// UpdateActionInstanceLifecycle updates action instance lifecycle.
-	UpdateActionInstanceLifecycle(
-		ctx contextx.IContext, operationInstanceID, actionName string, lifecycle *action.Lifecycle) error
+	UpdateActionInstanceLifecycle(ctx contextx.IContext, operationInstanceID, actionName string, lifecycle *action.Lifecycle) error
 
 	// UpdateActionInstanceContent updates action instance content.
-	UpdateActionInstanceContent(
-		ctx contextx.IContext, operationInstanceID, actionName string, content map[string]any) error
+	UpdateActionInstanceContent(ctx contextx.IContext, operationInstanceID, actionName string, content map[string]any) error
 
 	// UpdateOperInstActionStatus will update the oper inst action status.
 	UpdateOperInstActionStatus(ctx contextx.IContext, operInstID string, actionName string, status action.State) error
 
 	// UpsertActionInstancePrivateData upserts action instance private data.
-	UpsertActionInstancePrivateData(
-		ctx contextx.IContext, operInstID string, actionName string, privateData map[string]any) error
+	UpsertActionInstancePrivateData(ctx contextx.IContext, operInstID string, actionName string, privateData map[string]any) error
 
 	// PushActionInstanceMessage pushes action instance message.
-	PushActionInstanceMessage(
-		ctx contextx.IContext, operationInstanceID, actionName string, messages ...common.Message) error
+	PushActionInstanceMessage(ctx contextx.IContext, operationInstanceID, actionName string, messages ...common.Message) error
 
 	// GetActionInstancePrivateData gets action instance private data.
 	GetActionInstancePrivateData(ctx contextx.IContext, operationInstanceID, actionName string) (map[string]any, error)
@@ -59,8 +55,7 @@ type IStorageOperation interface {
 	GetOperation(ctx contextx.IContext, operationID string) (*operation.Operation, error)
 
 	// ListOperationByTriggerID lists operation.
-	ListOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID ...string) (
-		[]*operation.Operation, int64, error)
+	ListOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID ...string) ([]*operation.Operation, int64, error)
 
 	// ListOperationByOperationID lists operation by operation ID.
 	ListOperationByOperationID(ctx contextx.IContext, operationID ...string) ([]*operation.Operation, int64, error)
@@ -69,10 +64,7 @@ type IStorageOperation interface {
 	ListOperationByParentOperationID(ctx contextx.IContext, page types.Page, parentID ...string) ([]*operation.Operation, int64, error)
 
 	// ListEmptyOperationByTriggerID lists empty operation.
-	ListEmptyOperationByTriggerID(ctx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
-
-	// DeleteOperations deletes operations.
-	DeleteOperations(ctx contextx.IContext, operationID ...string) error
+	ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
 
 	// DeleteOperationsByTriggerID deletes operations by trigger ID.
 	DeleteOperationsByTriggerID(ctx contextx.IContext, triggerID ...string) error
@@ -91,8 +83,7 @@ type IStorageOperationInstance interface {
 	GetOperationInstanceBriefData(ctx contextx.IContext, operationInstanceID string) (*operation.InstanceBriefData, error)
 
 	// ListOperationInstanceBriefDataWithoutActionInst lists operation instance brief data. without action instance data.
-	ListOperationInstanceBriefDataWithoutActionInst(
-		ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
+	ListOperationInstanceBriefDataWithoutActionInst(ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
 		[]*operation.InstanceBriefData, int64, error)
 
 	// ListOperInstanceBriefWithoutActionInstByOperationID lists operation instance brief data.
@@ -113,8 +104,7 @@ type IStorageOperationInstance interface {
 	UpdateOperationInstanceLifecycle(ctx contextx.IContext, operationInstanceID string, lifecycle *operation.Lifecycle) error
 
 	// UpdateOperationInstanceExtraExecutionMessages updates operation instance extra execution messages.
-	UpdateOperationInstanceExtraExecutionMessages(
-		ctx contextx.IContext, operationInstanceID string, messages ...common.Message) error
+	UpdateOperationInstanceExtraExecutionMessages(ctx contextx.IContext, operationInstanceID string, messages ...common.Message) error
 
 	// WatchOperInstStopping watches operation instance stopping.
 	WatchOperInstStopping(ctx contextx.IContext, operationInstanceID string) <-chan struct{}
@@ -137,11 +127,11 @@ type IStorageTrigger interface {
 	// UpdateTrigger updates trigger.
 	UpdateTrigger(ctx contextx.IContext, trig *trigger.Trigger) error
 
-	// UpdateTriggerState updates trigger state.
-	UpdateTriggerState(ctx contextx.IContext, triggerID string, state trigger.State) error
+	// SwitchTriggerActive switches trigger active status.
+	SwitchTriggerActive(ctx contextx.IContext, triggerID string, active bool) error
 
-	// ListAliveTrigger lists alive triggers by given category.
-	ListAliveTrigger(ctx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error)
+	// ListActiveTrigger lists active triggers by given category.
+	ListActiveTrigger(ctx contextx.IContext, category trigger.Category) ([]*trigger.Trigger, error)
 
 	// ListTrigger lists triggers by given category.
 	ListTrigger(ctx contextx.IContext, page types.Page, category trigger.Category) ([]*trigger.Trigger, int64, error)

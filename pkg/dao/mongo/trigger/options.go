@@ -19,17 +19,17 @@ import (
 // OptFn provides filtering options.
 type OptFn = base.OptFn
 
-// WithState filters by state.
-func WithState(states ...trigger.State) OptFn {
-	return base.WithStringValues(FieldKeyState, trigger.StateListToStringList(states)...)
+// WithActive filters by active.
+func WithActive(active bool) OptFn {
+	return base.WithValues(FieldKeyActive, active)
 }
 
 // WithCategory filter by category.
 func WithCategory(category ...trigger.Category) OptFn {
-	return base.WithStringValues(FieldKeyCategory, trigger.CategoryListToStringList(category)...)
+	return base.WithValues(FieldKeyCategory, trigger.CategoryListToStringList(category)...)
 }
 
 // WithTriggerID filter by trigger id.
 func WithTriggerID(triggerID ...string) OptFn {
-	return base.WithStringValues(FieldKeyTriggerID, triggerID...)
+	return base.WithValues(FieldKeyTriggerID, triggerID...)
 }

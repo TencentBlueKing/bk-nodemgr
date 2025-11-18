@@ -29,4 +29,7 @@ const (
 
 	// FieldKeyOperateTime the operate time field key.
 	FieldKeyOperateTime = "data.operate_time"
+
+	// FieldKeyEnabled is the key for enabled.
+	FieldKeyEnabled = "data.enabled"
 )

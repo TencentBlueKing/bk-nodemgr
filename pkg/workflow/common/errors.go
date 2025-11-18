@@ -22,8 +22,8 @@ var (
 	errUnknownTriggerCategory      = errors.New("unknown trigger category")
 	errInvalidTriggerMetadata      = errors.New("invalid trigger metadata")
 	errInvalidPeriodicOperationNum = errors.New("invalid periodic operation num")
-	errTriggerNotRunning           = errors.New("trigger not running")
-	errTriggerNotReady             = errors.New("trigger not ready")
+	errTriggerInactive             = errors.New("trigger is inactive")
+	errPeriodicTriggerNotReady     = errors.New("periodic trigger not ready")
 )
 
 // ErrActionSkipped gets action skipped error.
@@ -66,12 +66,12 @@ func ErrInvalidPeriodicOperationNum() error {
 	return errInvalidPeriodicOperationNum
 }
 
-// ErrTriggerNotRunning gets trigger not running error.
-func ErrTriggerNotRunning() error {
-	return errTriggerNotRunning
+// ErrTriggerInactive gets trigger inactive error.
+func ErrTriggerInactive() error {
+	return errTriggerInactive
 }
 
-// ErrTriggerNotReady gets trigger not ready error.
-func ErrTriggerNotReady() error {
-	return errTriggerNotReady
+// ErrPeriodicTriggerNotReady gets periodic trigger not ready error.
+func ErrPeriodicTriggerNotReady() error {
+	return errPeriodicTriggerNotReady
 }

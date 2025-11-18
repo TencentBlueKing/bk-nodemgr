@@ -33,9 +33,9 @@ func WithParentOperationID(parentID ...string) OptFn {
 	return base.WithValues(FieldKeyParentOperationID, parentID...)
 }
 
-// WithEmptyOperation filter by operation_instance.
-func WithEmptyOperation(isEmpty ...bool) OptFn {
-	return base.WithValues(FieldKeyOperationInstanceEmpty, isEmpty...)
+// WithInstantiated filter by isInitantiated.
+func WithInstantiated(isInitantiated ...bool) OptFn {
+	return base.WithValues(FieldKeyOperationInstantiated, isInitantiated...)
 }
 
 // WithBizID filter by biz id.

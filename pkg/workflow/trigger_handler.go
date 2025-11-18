@@ -121,12 +121,12 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			taskIDSyncAndCheckOnceTrigger,
 			onceTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
-			func(ctx contextx.IContext) error {
-				if err := handler.syncOnceTrigger(ctx); err != nil {
+			func(nCtx contextx.IContext) error {
+				if err := handler.syncOnceTrigger(nCtx); err != nil {
 					return err
 				}
 
-				if err := handler.checkTriggerList(ctx, handler.onceTriggers.get()); err != nil {
+				if err := handler.executeTriggerList(nCtx, handler.onceTriggers.get()); err != nil {
 					return err
 				}
 
@@ -137,12 +137,12 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			taskIDSyncAndCheckOrderedTrigger,
 			orderedTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
-			func(ctx contextx.IContext) error {
-				if err := handler.syncOrderedTrigger(ctx); err != nil {
+			func(nCtx contextx.IContext) error {
+				if err := handler.syncOrderedTrigger(nCtx); err != nil {
 					return err
 				}
 
-				if err := handler.checkTriggerList(ctx, handler.orderedTriggers.get()); err != nil {
+				if err := handler.executeTriggerList(nCtx, handler.orderedTriggers.get()); err != nil {
 					return err
 				}
 
@@ -153,12 +153,12 @@ func (handler *triggerHandler) initSchedulerTasks() {
 			taskIDSyncAndCheckPeriodicTrigger,
 			periodicTriggersSyncAndCheckIntervalDefault,
 			defaultTimeout,
-			func(ctx contextx.IContext) error {
-				if err := handler.syncPeriodicTrigger(ctx); err != nil {
+			func(nCtx contextx.IContext) error {
+				if err := handler.syncPeriodicTrigger(nCtx); err != nil {
 					return err
 				}
 
-				if err := handler.checkTriggerList(ctx, handler.periodicTriggers.get()); err != nil {
+				if err := handler.executeTriggerList(nCtx, handler.periodicTriggers.get()); err != nil {
 					return err
 				}
 
@@ -177,8 +177,8 @@ func (handler *triggerHandler) initSchedulerTasks() {
 }
 
 // syncOnceTrigger syncs once triggers from storage.
-func (handler *triggerHandler) syncOnceTrigger(ctx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryOnce)
+func (handler *triggerHandler) syncOnceTrigger(nCtx contextx.IContext) error {
+	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, trigger.CategoryOnce)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.onceTriggers.set([]*trigger.Trigger{})
@@ -194,8 +194,8 @@ func (handler *triggerHandler) syncOnceTrigger(ctx contextx.IContext) error {
 }
 
 // syncOrderedTrigger syncs ordered triggers from storage.
-func (handler *triggerHandler) syncOrderedTrigger(ctx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryOrdered)
+func (handler *triggerHandler) syncOrderedTrigger(nCtx contextx.IContext) error {
+	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, trigger.CategoryOrdered)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.orderedTriggers.set([]*trigger.Trigger{})
@@ -211,8 +211,8 @@ func (handler *triggerHandler) syncOrderedTrigger(ctx contextx.IContext) error {
 }
 
 // syncPeriodicTrigger syncs periodic triggers from storage.
-func (handler *triggerHandler) syncPeriodicTrigger(ctx contextx.IContext) error {
-	list, err := handler.mgr.stgTrigger.ListAliveTrigger(ctx, trigger.CategoryPeriodic)
+func (handler *triggerHandler) syncPeriodicTrigger(nCtx contextx.IContext) error {
+	list, err := handler.mgr.stgTrigger.ListActiveTrigger(nCtx, trigger.CategoryPeriodic)
 	if err != nil {
 		// set cached triggers to empty cause the cache is no longer valid.
 		handler.periodicTriggers.set([]*trigger.Trigger{})
@@ -230,8 +230,8 @@ func (handler *triggerHandler) syncPeriodicTrigger(ctx contextx.IContext) error 
 // defaultCheckConcurrency defines the default check concurrency.
 const defaultCheckConcurrency = 100
 
-// checkTriggerList checks trigger list and executes triggers.
-func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*trigger.Trigger) error {
+// executeTriggerList executes the trigger list.
+func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list []*trigger.Trigger) error {
 	logger.G.Sys().With("count", len(list)).Debug("check trigger list")
 
 	gp := gopool.NewPool()
@@ -240,8 +240,10 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 	for idx := range list {
 		trig := list[idx]
 		fn := func() error {
-			mutex := handler.tryLockTrigger(ctx, trig)
-			if mutex == nil {
+			mutex := handler.globalLocker.NewMutex(trig.TriggerID)
+			if err := mutex.TryLock(); err != nil {
+				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to lock trigger")
+
 				return nil
 			}
 			defer func() {
@@ -250,14 +252,14 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 
 			// get trigger from storage after get lock.
 			// make sure the trigger data is fresh.
-			trigCtl, err := handler.mgr.GetTrigger(ctx, trig.TriggerID)
+			trigCtl, err := handler.mgr.GetTrigger(nCtx, trig.TriggerID)
 			if err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to get trigger")
 
 				return nil
 			}
 
-			if err := handler.doTrigger(ctx, trigCtl); err != nil {
+			if err := handler.doTrigger(nCtx, trigCtl); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to do trigger")
 
 				return nil
@@ -278,97 +280,207 @@ func (handler *triggerHandler) checkTriggerList(ctx contextx.IContext, list []*t
 	return nil
 }
 
-func (handler *triggerHandler) tryLockTrigger(ctx contextx.IContext, trig *trigger.Trigger) locker.Mutex {
-	logger.G.Sys().With("trigger-id", trig.TriggerID).Debug("try to lock trigger")
-
-	mutex := handler.globalLocker.NewMutex(trig.TriggerID)
-	err := mutex.TryLock()
-	if err != nil {
-		logger.G.Sys().With("trigger-id", trig.TriggerID).WithErr(err).Error("failed to lock trigger")
-
-		return nil
-	}
-
-	if err := handler.checkFeasibility(ctx, trig); err != nil {
-		_ = mutex.Unlock()
-		logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID, "state", trig.State).Debug("trigger is not feasible")
-
-		return nil
-	}
-
-	return mutex
-}
-
-func (handler *triggerHandler) checkFeasibility(_ contextx.IContext, trig *trigger.Trigger) error {
-	if trig.State != trigger.StateRunning {
-		return common.ErrTriggerNotRunning()
-	}
-
-	switch trig.Category {
-	case trigger.CategoryOnce:
-		return nil
-	case trigger.CategoryOrdered:
-		return nil
-
-	case trigger.CategoryPeriodic:
-		metadata, ok := trig.Metadata.(*trigger.MetadataPeriodic)
-		if !ok {
-			return errors.Join(common.ErrInvalidTriggerMetadata(),
-				fmt.Errorf("trigger metadata is not periodic type. trigger-id(%s)", trig.TriggerID))
-		}
-
-		// not enough interval yet.
-		nextTime, err := scheduler.NextActiveTime(metadata.Interval, trig.LastTriggeredAt)
-		if err != nil {
-			return err
-		}
-
-		if nextTime.After(time.Now()) {
-			sleepTime := nextTime.Sub(time.Now())
-			time.Sleep(sleepTime)
-
-			return common.ErrTriggerNotReady()
-		}
-
-		return nil
-
-	default:
-		return nil
-	}
-}
-
-func (handler *triggerHandler) doTrigger(ctx contextx.IContext, trigCtl ITriggerCtl) error {
-	var instanceCtls []IOperationInstanceCtl
-	var err error
-
+func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) error {
 	switch trigCtl.GetTriggerCategory() {
 	case trigger.CategoryOnce:
-		instanceCtls, err = handler.doOnceTrigger(ctx, trigCtl)
+		instanceCtls, err := handler.doOnceTrigger(nCtx, trigCtl)
 		if err != nil {
 			return err
 		}
+
+		if err := handler.launchOperationInstance(nCtx, trigCtl, instanceCtls); err != nil {
+			return err
+		}
+
+		// inactivate once trigger after processing
+		if err := trigCtl.InactivateTrigger(nCtx); err != nil {
+			return err
+		}
+
+		return nil
 
 	case trigger.CategoryOrdered:
-		instanceCtls, err = handler.doOrderedTrigger(ctx, trigCtl)
+		instanceCtls, err := handler.doOrderedTrigger(nCtx, trigCtl)
 		if err != nil {
 			return err
 		}
 
+		if err := handler.launchOperationInstance(nCtx, trigCtl, instanceCtls); err != nil {
+			return err
+		}
+
+		// inactivate once trigger after processing
+		if err := trigCtl.InactivateTrigger(nCtx); err != nil {
+			return err
+		}
+
+		return nil
+
 	case trigger.CategoryPeriodic:
-		instanceCtls, err = handler.doPeriodicTrigger(ctx, trigCtl)
+		instanceCtls, err := handler.doPeriodicTrigger(nCtx, trigCtl)
 		if err != nil {
 			return err
 		}
+
+		if err := handler.launchOperationInstance(nCtx, trigCtl, instanceCtls); err != nil {
+			return err
+		}
+
+		return nil
 
 	default:
 		return common.ErrUnknownTriggerCategory()
 	}
+}
 
+func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trigCtl ITriggerCtl, limit int) error {
+	operList, err := trigCtl.ListNeedInstantiateOperation(nCtx, types.Page{Limit: limit})
+	if err != nil {
+		return err
+	}
+
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "operation-count", len(operList)).Debug("init empty operation")
+
+	gp := gopool.NewPool()
+	for _, operCtl := range operList {
+		ctl := operCtl
+		gp.Go(func() error {
+			if _, err := ctl.CreateOperationInstance(nCtx); err != nil {
+				logger.G.Sys().
+					WithErr(err).
+					With("trigger-id", trigCtl.GetTriggerID(), "operation-id", ctl.GetOperationID()).
+					Error("failed to create operation instance")
+
+				return err
+			}
+
+			return nil
+		})
+	}
+
+	return gp.Wait()
+}
+
+func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
+	if err := handler.instantiateOperation(nCtx, trigCtl, maxOnceTriggerProcessLimit); err != nil {
+		logger.G.Sys().
+			WithErr(err).
+			With("trigger-id", trigCtl.GetTriggerID()).
+			Warn("failed to init once empty operation")
+	}
+
+	instanceList, err := trigCtl.ListOperationInstances(nCtx, types.Page{Limit: maxOnceTriggerProcessLimit}, operation.StateInit)
+	if err != nil {
+		return nil, err
+	}
+
+	return instanceList, nil
+}
+
+func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
+	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataOrdered)
+	if !ok {
+		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
+			fmt.Errorf("trigger metadata is not ordered type. trigger-id(%s)", trigCtl.GetTriggerID()))
+	}
+
+	if metadata.MaxConcurrencyNum <= 0 {
+		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
+			fmt.Errorf("max concurrency num is invalid. trigger-id(%s), max-concurrency-num(%d)",
+				trigCtl.GetTriggerID(), metadata.MaxConcurrencyNum))
+	}
+
+	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstance(nCtx, trigCtl.GetTriggerID(),
+		operation.StateLaunched, operation.StateRunning)
+	if err != nil {
+		return nil, err
+	}
+
+	// not idle concurrent num.
+	idleNum := metadata.MaxConcurrencyNum - int(workingCount)
+	if idleNum <= 0 {
+		return nil, nil
+	}
+
+	if err := handler.instantiateOperation(nCtx, trigCtl, idleNum); err != nil {
+		logger.G.Sys().
+			WithErr(err).
+			With("trigger-id", trigCtl.GetTriggerID()).
+			Warn("failed to init ordered empty operation")
+	}
+
+	instanceList, err := trigCtl.ListOperationInstances(nCtx, types.Page{Limit: idleNum}, operation.StateInit)
+	if err != nil {
+		return nil, err
+	}
+
+	return instanceList, nil
+}
+
+func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
+	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataPeriodic)
+	if !ok {
+		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
+			fmt.Errorf("trigger metadata is not periodic type. trigger-id(%s)", trigCtl.GetTriggerID()))
+	}
+
+	// not enough interval yet.
+	nextTime, err := scheduler.NextActiveTime(metadata.Interval, trigCtl.GetLastTriggeredAt())
+	if err != nil {
+		return nil, err
+	}
+
+	if nextTime.After(time.Now()) {
+		sleepTime := time.Until(nextTime)
+		time.Sleep(sleepTime)
+
+		return nil, nil
+	}
+
+	if !metadata.AllowedConcurrency {
+		workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstance(nCtx, trigCtl.GetTriggerID(),
+			operation.StateLaunched, operation.StateRunning)
+		if err != nil {
+			return nil, err
+		}
+
+		// do not allow concurrency.
+		if workingCount > 0 {
+			return nil, nil
+		}
+	}
+
+	operList, count, err := handler.mgr.stgOperation.ListOperationByTriggerID(nCtx, types.UnlimitedPage(), trigCtl.GetTriggerID())
+	if err != nil {
+		return nil, err
+	}
+
+	if count != 1 || len(operList) != 1 {
+		return nil, errors.Join(common.ErrInvalidPeriodicOperationNum(),
+			fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
+				trigCtl.GetTriggerID(), count))
+	}
+
+	oper := operList[0]
+	operCtl, err := trigCtl.GetOperation(nCtx, oper.OperationID)
+	if err != nil {
+		return nil, err
+	}
+
+	operInstCtl, err := operCtl.CreateOperationInstance(nCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	return []IOperationInstanceCtl{operInstCtl}, nil
+}
+
+func (handler *triggerHandler) launchOperationInstance(nCtx contextx.IContext, trigCtl ITriggerCtl, instanceCtls []IOperationInstanceCtl) error {
 	gp := gopool.NewPool()
 	for _, instanceCtl := range instanceCtls {
 		ctl := instanceCtl
 		gp.Go(func() error {
-			if err := ctl.LaunchOperationInstance(ctx); err != nil {
+			if err := ctl.LaunchOperationInstance(nCtx); err != nil {
 				logger.G.Sys().
 					WithErr(err).
 					With("trigger-id", trigCtl.GetTriggerID(), "oper-inst-id", ctl.GetOperationInstanceID()).
@@ -387,157 +499,10 @@ func (handler *triggerHandler) doTrigger(ctx contextx.IContext, trigCtl ITrigger
 
 	// update triggered time if there is any instance launched.
 	if len(instanceCtls) > 0 {
-		if err = trigCtl.UpdateLastTriggeredTime(ctx); err != nil {
+		if err := trigCtl.UpdateLastTriggeredTime(nCtx); err != nil {
 			logger.G.Sys().WithErr(err).With("trigger-id", trigCtl.GetTriggerID()).Error("failed to update last triggered time")
 		}
 	}
 
 	return gp.Wait()
-}
-
-func (handler *triggerHandler) initEmptyOperation(ctx contextx.IContext, trigCtl ITriggerCtl, limit int) error {
-	operList, err := trigCtl.ListEmptyOperation(ctx, types.Page{Limit: limit})
-	if err != nil {
-		return err
-	}
-
-	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "operation-count", len(operList)).Debug("init empty operation")
-
-	gp := gopool.NewPool()
-	for _, operCtl := range operList {
-		ctl := operCtl
-		gp.Go(func() error {
-			if _, err := ctl.CreateOperationInstance(ctx); err != nil {
-				logger.G.Sys().
-					WithErr(err).
-					With("trigger-id", trigCtl.GetTriggerID(), "operation-id", ctl.GetOperationID()).
-					Error("failed to create operation instance")
-
-				return err
-			}
-
-			return nil
-		})
-	}
-
-	return gp.Wait()
-}
-
-func (handler *triggerHandler) doOnceTrigger(
-	ctx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
-
-	if err := handler.initEmptyOperation(ctx, trigCtl, maxOnceTriggerProcessLimit); err != nil {
-		logger.G.Sys().
-			WithErr(err).
-			With("trigger-id", trigCtl.GetTriggerID()).
-			Warn("failed to init once empty operation")
-	}
-
-	instanceList, err := trigCtl.ListOperationInstances(
-		ctx, types.Page{Limit: maxOnceTriggerProcessLimit}, operation.StateInit)
-	if err != nil {
-		return nil, err
-	}
-
-	return instanceList, nil
-}
-
-func (handler *triggerHandler) doOrderedTrigger(
-	ctx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
-
-	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataOrdered)
-	if !ok {
-		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
-			fmt.Errorf("trigger metadata is not ordered type. trigger-id(%s)", trigCtl.GetTriggerID()))
-	}
-
-	if metadata.MaxConcurrencyNum <= 0 {
-		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
-			fmt.Errorf("max concurrency num is invalid. trigger-id(%s), max-concurrency-num(%d)",
-				trigCtl.GetTriggerID(), metadata.MaxConcurrencyNum))
-	}
-
-	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstance(ctx, trigCtl.GetTriggerID(),
-		operation.StateLaunched, operation.StateRunning)
-	if err != nil {
-		return nil, err
-	}
-
-	// not idle concurrent num.
-	idleNum := metadata.MaxConcurrencyNum - int(workingCount)
-	if idleNum <= 0 {
-		return nil, nil
-	}
-
-	if err := handler.initEmptyOperation(ctx, trigCtl, idleNum); err != nil {
-		logger.G.Sys().
-			WithErr(err).
-			With("trigger-id", trigCtl.GetTriggerID()).
-			Warn("failed to init ordered empty operation")
-	}
-
-	instanceList, err := trigCtl.ListOperationInstances(ctx, types.Page{Limit: idleNum}, operation.StateInit)
-	if err != nil {
-		return nil, err
-	}
-
-	return instanceList, nil
-}
-
-func (handler *triggerHandler) doPeriodicTrigger(
-	ctx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
-
-	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataPeriodic)
-	if !ok {
-		return nil, errors.Join(common.ErrInvalidTriggerMetadata(),
-			fmt.Errorf("trigger metadata is not periodic type. trigger-id(%s)", trigCtl.GetTriggerID()))
-	}
-
-	// not enough interval yet.
-	nextTime, err := scheduler.NextActiveTime(metadata.Interval, trigCtl.GetLastTriggeredAt())
-	if err != nil {
-		return nil, err
-	}
-
-	if nextTime.After(time.Now()) {
-		return nil, nil
-	}
-
-	if !metadata.AllowedConcurrency {
-		workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstance(ctx, trigCtl.GetTriggerID(),
-			operation.StateLaunched, operation.StateRunning)
-		if err != nil {
-			return nil, err
-		}
-
-		// do not allow concurrency.
-		if workingCount > 0 {
-			return nil, nil
-		}
-	}
-
-	operList, count, err := handler.mgr.stgOperation.ListOperationByTriggerID(
-		ctx, types.UnlimitedPage(), trigCtl.GetTriggerID())
-	if err != nil {
-		return nil, err
-	}
-
-	if count != 1 || len(operList) != 1 {
-		return nil, errors.Join(common.ErrInvalidPeriodicOperationNum(),
-			fmt.Errorf("periodic trigger should only have one operation. trigger-id(%s), operation-count(%d)",
-				trigCtl.GetTriggerID(), count))
-	}
-
-	oper := operList[0]
-	operCtl, err := trigCtl.GetOperation(ctx, oper.OperationID)
-	if err != nil {
-		return nil, err
-	}
-
-	operInstCtl, err := operCtl.CreateOperationInstance(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return []IOperationInstanceCtl{operInstCtl}, nil
 }

@@ -14,12 +14,14 @@ package workflow
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/RichardKnop/machinery/v2/tasks"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
@@ -54,18 +56,17 @@ type ITriggerCtl interface {
 	// GetLastTriggeredAt returns the last triggered at.
 	GetLastTriggeredAt() time.Time
 
-	// GetTriggerState returns the trigger state.
-	GetTriggerState() trigger.State
+	// IsActive returns whether the trigger is active.
+	IsActive() bool
 
-	// RunTrigger runs the trigger.
-	RunTrigger(nCtx contextx.IContext) error
+	// ActivateTrigger activates the trigger.
+	ActivateTrigger(nCtx contextx.IContext) error
 
-	// TerminateTrigger terminates the trigger.
-	TerminateTrigger(nCtx contextx.IContext) error
+	// InactivateTrigger inactivates the trigger.
+	InactivateTrigger(nCtx contextx.IContext) error
 
 	// CreateOperation creates a new operation under trigger.
-	CreateOperation(
-		nCtx contextx.IContext, operationDef operation.Definition, param operation.Param) (IOperationCtl, error)
+	CreateOperation(nCtx contextx.IContext, operationDef operation.Definition, param operation.Param) (IOperationCtl, error)
 
 	// GetOperation returns the operation.
 	GetOperation(nCtx contextx.IContext, operationID string) (IOperationCtl, error)
@@ -76,12 +77,14 @@ type ITriggerCtl interface {
 	// UpdateLastTriggeredTime updates the last triggered time.
 	UpdateLastTriggeredTime(nCtx contextx.IContext) error
 
-	// ListEmptyOperation returns the operations without instances.
-	ListEmptyOperation(nCtx contextx.IContext, page types.Page) ([]IOperationCtl, error)
+	// UpdateOperationRetryFlag updates the operation retry flag.
+	UpdateOperationRetryFlag(nCtx contextx.IContext, mode operation.RetryMode, operationID ...string) error
+
+	// ListNeedInstantiateOperation returns the operations need to be instantiated.
+	ListNeedInstantiateOperation(nCtx contextx.IContext, page types.Page) ([]IOperationCtl, error)
 
 	// ListOperationInstances returns the operation instances with states.
-	ListOperationInstances(
-		nCtx contextx.IContext, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error)
+	ListOperationInstances(nCtx contextx.IContext, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error)
 }
 
 // IOperationCtl describes the workflow operation handler.
@@ -91,9 +94,6 @@ type IOperationCtl interface {
 
 	// CreateOperationInstance creates a new operation instance.
 	CreateOperationInstance(nCtx contextx.IContext) (IOperationInstanceCtl, error)
-
-	// CreateRetryOperationInstance creates a new retry operation instance.
-	CreateRetryOperationInstance(nCtx contextx.IContext, retryMod types.NodeOperationRetryMode) (IOperationInstanceCtl, error)
 
 	// GetOperationInstance returns the operation instance.
 	GetOperationInstance(nCtx contextx.IContext, operationInstanceID string) (IOperationInstanceCtl, error)
@@ -119,7 +119,7 @@ func (mgr *manager) CreateTrigger(nCtx contextx.IContext, category trigger.Categ
 		TriggerID: identifier.GenTriggerID(),
 		Category:  category,
 		Metadata:  metadata,
-		State:     trigger.StateInit,
+		Active:    false,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -177,25 +177,23 @@ func (ctl *controller) GetLastTriggeredAt() time.Time {
 	return ctl.trig.LastTriggeredAt
 }
 
-// GetTriggerState returns the trigger state.
-func (ctl *controller) GetTriggerState() trigger.State {
-	return ctl.trig.State
+// IsActive returns whether the trigger is active.
+func (ctl *controller) IsActive() bool {
+	return ctl.trig.Active
 }
 
-// Run runs the trigger.
-func (ctl *controller) RunTrigger(nCtx contextx.IContext) error {
-	return ctl.mgr.stgTrigger.UpdateTriggerState(nCtx, ctl.trig.TriggerID, trigger.StateRunning)
+// Activate activates the trigger.
+func (ctl *controller) ActivateTrigger(nCtx contextx.IContext) error {
+	return ctl.mgr.stgTrigger.SwitchTriggerActive(nCtx, ctl.trig.TriggerID, true)
 }
 
-// Terminate terminates the trigger.
-func (ctl *controller) TerminateTrigger(nCtx contextx.IContext) error {
-	return ctl.mgr.stgTrigger.UpdateTriggerState(nCtx, ctl.trig.TriggerID, trigger.StateTerminated)
+// Inactivate inactivates the trigger.
+func (ctl *controller) InactivateTrigger(nCtx contextx.IContext) error {
+	return ctl.mgr.stgTrigger.SwitchTriggerActive(nCtx, ctl.trig.TriggerID, false)
 }
 
 // CreateOperation creates a new operation under trigger.
-func (ctl *controller) CreateOperation(
-	nCtx contextx.IContext, operationDef operation.Definition, param operation.Param) (IOperationCtl, error) {
-
+func (ctl *controller) CreateOperation(nCtx contextx.IContext, operationDef operation.Definition, param operation.Param) (IOperationCtl, error) {
 	logger.G.Sys().With("trigger-id", ctl.trig.TriggerID, "operation", operationDef.Name(), "param", param).Info("try to create operation")
 
 	oper := &operation.Operation{
@@ -275,9 +273,63 @@ func (ctl *controller) UpdateLastTriggeredTime(nCtx contextx.IContext) error {
 	return nil
 }
 
-// ListEmptyOperation returns the empty operation.
-func (ctl *controller) ListEmptyOperation(nCtx contextx.IContext, page types.Page) ([]IOperationCtl, error) {
-	opers, _, err := ctl.mgr.stgOperation.ListEmptyOperationByTriggerID(nCtx, page, ctl.trig.TriggerID)
+// UpdateOperationRetryFlag updates the operation retry flag.
+func (ctl *controller) UpdateOperationRetryFlag(nCtx contextx.IContext, mode operation.RetryMode, operationID ...string) error {
+	operations, _, err := ctl.mgr.stgOperation.ListOperationByOperationID(nCtx, operationID...)
+	if err != nil {
+		return err
+	}
+
+	gp := gopool.NewPool()
+	for _, oper := range operations {
+		tempOper := oper
+		fn := func() error {
+			lastInstID := tempOper.GetLastInstanceID()
+			if lastInstID == "" {
+				return fmt.Errorf("operation has no instance, can not retry, operation-id(%s)", tempOper.OperationID)
+			}
+
+			lastInst, err := ctl.mgr.stgOperationInstance.GetOperationInstanceBriefData(nCtx, lastInstID)
+			if err != nil {
+				return err
+			}
+
+			if mode == operation.RetryModePartial && lastInst.Lifecycle.IsTerminated() {
+				return fmt.Errorf("failed to partial retry operation-id(%s), last operation instance is terminated", tempOper.OperationID)
+			}
+
+			if tempOper.GetLastRetryFlag() != nil && tempOper.GetLastRetryFlag().RetryInstanceID == "" {
+				logger.G.Biz(nCtx).With("operation-id", tempOper.OperationID).With("last retry has not been processed, activate trigger directly")
+
+				return nil
+			}
+
+			tempOper.RetryFlags = append(tempOper.RetryFlags, operation.RetryFlag{
+				Mode:             mode,
+				SourceInstanceID: tempOper.GetLastInstanceID(),
+				RetryInstanceID:  "",
+			})
+
+			if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, tempOper); err != nil {
+				return err
+			}
+
+			return nil
+		}
+
+		gp.Go(fn)
+	}
+
+	if err := gp.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ListNeedInstantiateOperation returns the operations need to be instantiated.
+func (ctl *controller) ListNeedInstantiateOperation(nCtx contextx.IContext, page types.Page) ([]IOperationCtl, error) {
+	opers, _, err := ctl.mgr.stgOperation.ListNeedInstantiateOperationByTriggerID(nCtx, page, ctl.trig.TriggerID)
 	if err != nil {
 		return nil, err
 	}
@@ -295,9 +347,7 @@ func (ctl *controller) ListEmptyOperation(nCtx contextx.IContext, page types.Pag
 }
 
 // ListOperationInstances returns the operation instances with states.
-func (ctl *controller) ListOperationInstances(
-	nCtx contextx.IContext, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error) {
-
+func (ctl *controller) ListOperationInstances(nCtx contextx.IContext, page types.Page, states ...operation.State) ([]IOperationInstanceCtl, error) {
 	condition := &types.OperInstDataCondition{
 		ExactInclude: &types.OperInstDataExactFields{
 			TriggerID: []string{ctl.trig.TriggerID},
@@ -330,9 +380,24 @@ func (ctl *controller) GetOperationID() string {
 
 // CreateOperationInstance creates a new operation instance.
 func (ctl *controller) CreateOperationInstance(nCtx contextx.IContext) (IOperationInstanceCtl, error) {
-	instanceData, err := ctl.createOperationInstanceBase(nCtx, nil)
-	if err != nil {
-		return nil, err
+	if ctl.oper == nil {
+		return nil, errors.New("operation is nil")
+	}
+
+	var (
+		instanceData *operation.InstanceData
+		err          error
+	)
+	if ctl.oper.GetLastRetryFlag() != nil {
+		instanceData, err = ctl.generateRetryOperationInstance(nCtx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate retry operation instance: %w", err)
+		}
+	} else {
+		instanceData, err = ctl.generateOperationInstance(nCtx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate operation instance: %w", err)
+		}
 	}
 
 	return &controller{
@@ -344,9 +409,7 @@ func (ctl *controller) CreateOperationInstance(nCtx contextx.IContext) (IOperati
 }
 
 // GetOperationInstance returns the operation instance.
-func (ctl *controller) GetOperationInstance(
-	nCtx contextx.IContext, operationInstanceID string) (IOperationInstanceCtl, error) {
-
+func (ctl *controller) GetOperationInstance(nCtx contextx.IContext, operationInstanceID string) (IOperationInstanceCtl, error) {
 	instanceBriefData, err := ctl.mgr.stgOperationInstance.GetOperationInstanceBriefData(nCtx, operationInstanceID)
 	if err != nil {
 		return nil, err
@@ -366,8 +429,9 @@ func (ctl *controller) GetOperationInstanceID() string {
 }
 
 // LaunchOperationInstance launches the operation instance.
-// nolint: nonamedreturns
-func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err error) {
+// nolint: funlen
+func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
+	var err error
 	// record metric.
 	m := metric.NewOperationInstanceLaunch(ctl.operInstanceBriefData).Start()
 	defer m.End(err)
@@ -375,22 +439,18 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).Info("try to launch operation instance")
 
 	if ctl.operInstanceBriefData.Lifecycle.State != operation.StateInit {
-		return errors.Join(common.ErrInvalidState(),
-			fmt.Errorf("operation instance is not in init state: %s", ctl.operInstanceBriefData.Lifecycle.State))
+		return fmt.Errorf("operation instance state(%s) is not init", ctl.operInstanceBriefData.Lifecycle.State)
 	}
 
 	// ensure operation is not nil
 	if ctl.oper == nil {
-		var err error
-		ctl.oper, err = ctl.mgr.stgOperation.GetOperation(nCtx, ctl.operInstanceBriefData.Metadata.OperationID)
-		if err != nil {
+		if ctl.oper, err = ctl.mgr.stgOperation.GetOperation(nCtx, ctl.operInstanceBriefData.Metadata.OperationID); err != nil {
 			return err
 		}
 	}
 
 	// update state.
-	ctl.operInstanceBriefData.Lifecycle.StartedAt = time.Now()
-	ctl.operInstanceBriefData.Lifecycle.State = operation.StateLaunched
+	ctl.operInstanceBriefData.Lifecycle.Launch()
 	if err := ctl.mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(
 		nCtx, ctl.operInstanceBriefData.Metadata.OperationInstanceID, ctl.operInstanceBriefData.Lifecycle); err != nil {
 		logger.G.Sys().
@@ -403,9 +463,7 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 
 	actionNames := ctl.oper.Definition.ActionDefNames()
 	if len(actionNames) == 0 {
-		return errors.Join(common.ErrNoActionTodo(),
-			fmt.Errorf("operation instance has no action. oper-inst-id(%s)",
-				ctl.operInstanceBriefData.Metadata.OperationInstanceID))
+		return fmt.Errorf("operation-instance-id(%s) has no action", ctl.operInstanceBriefData.Metadata.OperationInstanceID)
 	}
 
 	tracer := ctl.mgr.traceSvc.TracerProvider().Tracer(scopeNameOperationInstance)
@@ -457,9 +515,8 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) (err erro
 
 	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).Info("send chain to machinery")
 
-	_, err = ctl.mgr.server.SendChainWithContext(traceCtx, chain)
-	if err != nil {
-		return fmt.Errorf("send chain to machinery failed: %v", err)
+	if _, err = ctl.mgr.server.SendChainWithContext(traceCtx, chain); err != nil {
+		return fmt.Errorf("failed to send chain to machinery: %w", err)
 	}
 
 	return nil
@@ -470,110 +527,136 @@ func (ctl *controller) TerminateOperationInstance(_ contextx.IContext) error {
 	return errors.New("not implemented")
 }
 
-// CreateRetryOperationInstance creates a retry operation instance.
-func (ctl *controller) CreateRetryOperationInstance(nCtx contextx.IContext, retryMod types.NodeOperationRetryMode) (
-	IOperationInstanceCtl, error) {
-
-	if len(ctl.oper.InstanceIDs) == 0 {
-		return nil, errors.New("operation has no instance")
-	}
-
-	lastInstanceID := ctl.oper.InstanceIDs[len(ctl.oper.InstanceIDs)-1]
-	prevInstance, err := ctl.mgr.stgOperationInstance.GetOperationInstanceFullData(nCtx, lastInstanceID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get last operation instance: %v", err)
-	}
-
-	switch retryMod {
-	case types.OperationRetryModeFull:
-		return ctl.handleFullRetry(nCtx)
-	case types.OperationRetryModePartial:
-		return ctl.handlePartialRetry(nCtx, prevInstance)
-	default:
-		return nil, fmt.Errorf("unknown retry mode: %v", retryMod)
-	}
-}
-
-func (ctl *controller) handlePartialRetry(nCtx contextx.IContext, prevInstance *operation.InstanceData) (
-	IOperationInstanceCtl, error) {
-
-	if len(ctl.oper.Param.RetryStartPoint) == 0 {
-		return nil, errors.New("retry start point is empty")
-	}
-
-	actionNames := ctl.oper.Definition.ActionDefNames()
-	if len(actionNames) == 0 {
-		return nil, errors.New("operation has no actions")
-	}
-
-	actionIndexMap := make(map[string]int, len(actionNames))
-	for i, name := range actionNames {
-		actionIndexMap[name] = i
-	}
-
-	failedAction, retryStartAction, startIndex, err := ctl.findRetryStartInfo(
-		prevInstance, actionNames, actionIndexMap)
+func (ctl *controller) generateOperationInstance(nCtx contextx.IContext) (*operation.InstanceData, error) {
+	inst, err := ctl.createOperationInstanceBase(nCtx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	logger.G.Sys().With("retry-action", retryStartAction, "failed-action", failedAction).Info("retry action")
+	if err := ctl.mgr.stgOperationInstance.UpsertOperationInstanceData(nCtx, inst); err != nil {
+		return nil, err
+	}
 
-	return ctl.createPartialRetryInstance(nCtx, prevInstance, actionNames, actionIndexMap, startIndex)
+	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, inst.InstanceBriefData.Metadata.OperationInstanceID)
+	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, ctl.oper); err != nil {
+		return nil, err
+	}
+
+	return inst, nil
 }
 
-func (ctl *controller) findRetryStartInfo(
-	prevInstance *operation.InstanceData,
-	actionNames []string,
-	actionIndexMap map[string]int,
-) (string, string, int, error) {
+func (ctl *controller) generateRetryOperationInstance(nCtx contextx.IContext) (*operation.InstanceData, error) {
+	lastRetryFlag := ctl.oper.GetLastRetryFlag()
+	if lastRetryFlag == nil {
+		return nil, errors.New("no retry flag found for operation")
+	}
 
-	var failedAction string
-	failedIndex := -1
-	for _, name := range actionNames {
-		inst, exists := prevInstance.ActionInstanceDataMap[name]
-		if !exists {
-			continue
+	var (
+		retryInstance *operation.InstanceData
+		err           error
+	)
+
+	switch lastRetryFlag.Mode {
+	case operation.RetryModeAll:
+		retryInstance, err = ctl.handleFullRetry(nCtx)
+		if err != nil {
+			return nil, err
 		}
-		if inst.Lifecycle.State != action.StateSuccess {
-			failedAction = name
-			failedIndex = actionIndexMap[name]
 
+	case operation.RetryModePartial:
+		retryInstance, err = ctl.handlePartialRetry(nCtx)
+		if err != nil {
+			return nil, err
+		}
+
+	default:
+		return nil, fmt.Errorf("unknown retry mode: %v", lastRetryFlag.Mode)
+	}
+
+	if err := ctl.mgr.stgOperationInstance.UpsertOperationInstanceData(nCtx, retryInstance); err != nil {
+		return nil, err
+	}
+
+	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, retryInstance.InstanceBriefData.Metadata.OperationInstanceID)
+	ctl.oper.RetryFlags[len(ctl.oper.RetryFlags)-1].RetryInstanceID = retryInstance.Metadata.OperationInstanceID
+	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, ctl.oper); err != nil {
+		return nil, err
+	}
+
+	return retryInstance, nil
+}
+
+func (ctl *controller) handlePartialRetry(nCtx contextx.IContext) (*operation.InstanceData, error) {
+	if len(ctl.oper.Param.RetryStartPoint) == 0 {
+		return nil, errors.New("retry start point is empty")
+	}
+
+	if len(ctl.oper.Definition.ActionDefNames()) == 0 {
+		return nil, errors.New("operation has no actions")
+	}
+
+	prevInstanceID := ctl.oper.RetryFlags[len(ctl.oper.RetryFlags)-1].SourceInstanceID
+	prevInstance, err := ctl.mgr.stgOperationInstance.GetOperationInstanceFullData(nCtx, prevInstanceID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get previous instance(%s): %w", prevInstanceID, err)
+	}
+
+	startIndex, err := ctl.findPartialRetryStartIndex(prevInstance)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctl.createPartialRetryInstance(nCtx, prevInstance, startIndex)
+}
+
+func (ctl *controller) findPartialRetryStartIndex(prevInstance *operation.InstanceData) (int, error) {
+	if len(ctl.oper.InstanceIDs) == 0 {
+		return -1, errors.New("operation has no instance")
+	}
+
+	actionNames := ctl.oper.Definition.ActionDefNames()
+	var failed *action.InstanceData
+	for _, name := range actionNames {
+		inst, ok := prevInstance.ActionInstanceDataMap[name]
+		if !ok {
+			return -1, fmt.Errorf("previous instance missing action(%s)", name)
+		}
+
+		if inst.Lifecycle.State == action.StateTerminated {
+			return -1, fmt.Errorf("previous instance action(%s) is terminated, can not partial retry", name)
+		}
+
+		if inst.Lifecycle.IsFailed() {
+			failed = inst
 			break
 		}
 	}
-	if failedAction == "" {
-		return "", "", -1, errors.New("no failed actions found for partial retry")
+	if failed == nil {
+		return -1, errors.New("all actions succeeded, nothing to retry")
 	}
 
 	retryStartPoints := ctl.oper.Param.RetryStartPoint
-	retryStartAction := ""
-	startIndex := failedIndex
-	for ; startIndex >= 0; startIndex-- {
-		actionName := actionNames[startIndex]
-		if retryStartPoints[actionName] {
-			retryStartAction = actionName
-			break
+	for idx := failed.Index; idx >= 0; idx-- {
+		name := actionNames[idx]
+		if retryStartPoints[name] {
+			logger.G.Sys().With("retry-action", name, "failed-action", failed.Name).Info("partial retry start action decided")
+			return idx, nil
 		}
 	}
-	if retryStartAction == "" {
-		return "", "", -1, fmt.Errorf("no valid retry start point found for failed action (%s)", failedAction)
-	}
 
-	return failedAction, retryStartAction, startIndex, nil
+	return -1, fmt.Errorf("no valid retry start point found for failed action(%s)", failed.Name)
 }
 
 func (ctl *controller) createPartialRetryInstance(
-	nCtx contextx.IContext,
-	prevInstance *operation.InstanceData,
-	actionNames []string,
-	actionIndexMap map[string]int,
-	startIndex int,
-) (IOperationInstanceCtl, error) {
+	nCtx contextx.IContext, prevInstance *operation.InstanceData, startIndex int) (*operation.InstanceData, error) {
+
+	if startIndex < 0 {
+		return nil, errors.New("invalid start index for partial retry")
+	}
 
 	stateDecider := func(actionName string) action.State {
-		currentIndex, exists := actionIndexMap[actionName]
-		if !exists || currentIndex < startIndex {
+		actionInst, ok := prevInstance.ActionInstanceDataMap[actionName]
+		if !ok || actionInst.Index < startIndex {
 			return action.StateSkipped
 		}
 
@@ -586,51 +669,25 @@ func (ctl *controller) createPartialRetryInstance(
 	}
 
 	if startIndex > 0 {
+		actionNames := ctl.oper.Definition.ActionDefNames()
 		lastActionBeforeStart := actionNames[startIndex-1]
 
-		prevActionInst, exists := prevInstance.ActionInstanceDataMap[lastActionBeforeStart]
-		if exists && prevActionInst.Content != nil {
-			newActionInst, exists := instanceData.ActionInstanceDataMap[lastActionBeforeStart]
-			if exists {
-				newContent := make(map[string]any, len(prevActionInst.Content))
-				for k, v := range prevActionInst.Content {
-					newContent[k] = v
-				}
-				newActionInst.Content = newContent
-			}
+		// in the same operation, last operation instance's action should be exist in new instance
+		prevActInst, okPrev := prevInstance.ActionInstanceDataMap[lastActionBeforeStart]
+		newActInst, okNew := instanceData.ActionInstanceDataMap[lastActionBeforeStart]
+		if okPrev && okNew {
+			newActInst.Content = maps.Clone(prevActInst.Content)
 		}
 	}
 
-	if err := ctl.mgr.stgOperationInstance.UpsertOperationInstanceData(nCtx, instanceData); err != nil {
-		return nil, fmt.Errorf("failed to update instance with copied content: %w", err)
-	}
-
-	return &controller{
-		mgr:                   ctl.mgr,
-		trig:                  ctl.trig,
-		oper:                  ctl.oper,
-		operInstanceBriefData: &instanceData.InstanceBriefData,
-	}, nil
+	return instanceData, nil
 }
 
-func (ctl *controller) handleFullRetry(nCtx contextx.IContext) (IOperationInstanceCtl, error) {
-	instanceData, err := ctl.createOperationInstanceBase(nCtx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &controller{
-		mgr:                   ctl.mgr,
-		trig:                  ctl.trig,
-		oper:                  ctl.oper,
-		operInstanceBriefData: &instanceData.InstanceBriefData,
-	}, nil
+func (ctl *controller) handleFullRetry(nCtx contextx.IContext) (*operation.InstanceData, error) {
+	return ctl.createOperationInstanceBase(nCtx, nil)
 }
 
-func (ctl *controller) createOperationInstanceBase(nCtx contextx.IContext,
-	stateDecider func(string) action.State,
-) (*operation.InstanceData, error) {
-
+func (ctl *controller) createOperationInstanceBase(_ contextx.IContext, stateDecider func(string) action.State) (*operation.InstanceData, error) {
 	operationInstanceID := identifier.GenOperationInstanceID()
 	actionNames := ctl.oper.Definition.ActionDefNames()
 
@@ -659,7 +716,7 @@ func (ctl *controller) createOperationInstanceBase(nCtx contextx.IContext,
 		}
 	}
 
-	instanceData := &operation.InstanceData{
+	return &operation.InstanceData{
 		InstanceBriefData: operation.InstanceBriefData{
 			Metadata: &operation.InstanceMetadata{
 				TriggerID:              ctl.trig.TriggerID,
@@ -680,16 +737,5 @@ func (ctl *controller) createOperationInstanceBase(nCtx contextx.IContext,
 			},
 		},
 		ActionInstanceDataMap: actionInstanceDataMap,
-	}
-
-	if err := ctl.mgr.stgOperationInstance.UpsertOperationInstanceData(nCtx, instanceData); err != nil {
-		return nil, err
-	}
-
-	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, operationInstanceID)
-	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, ctl.oper); err != nil {
-		return nil, err
-	}
-
-	return instanceData, nil
+	}, nil
 }

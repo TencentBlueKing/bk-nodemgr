@@ -76,7 +76,7 @@ func (mgr *Manager) LaunchInstallPlugin(nCtx contextx.IContext, param InstallPlu
 		return "", fmt.Errorf("failed to launch install plugin task. err: %w", err)
 	}
 
-	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
 
@@ -201,7 +201,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param App
 		return "", fmt.Errorf("failed to launch apply plugin subconfig task. err: %w", err)
 	}
 
-	if err = triggerCtl.RunTrigger(nCtx); err != nil {
+	if err = triggerCtl.ActivateTrigger(nCtx); err != nil {
 		return "", err
 	}
 

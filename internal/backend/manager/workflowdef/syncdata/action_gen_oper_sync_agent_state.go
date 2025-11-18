@@ -149,7 +149,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 	}
 
 	if trigCtl != nil {
-		if err = trigCtl.RunTrigger(std.Context()); err != nil {
+		if err = trigCtl.ActivateTrigger(std.Context()); err != nil {
 			logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to run trigger for handling sync agent state operations")
 
 			return err
