@@ -23,27 +23,27 @@ import (
 
 const (
 	// file service config default values.
-	defaultFileRunMode       = RunModeRelease
-	defaultFileTenantMode    = tenant.ModeSingle
-	defaultFileInfoBindIP    = "127.0.0.1"
-	defaultFileInfoPort      = 28200
-	defaultFileInfoTraceName = "file-server-info"
-	defaultFileInfoIdentity  = AuthIdentityNone
+	defaultFileRunMode              = RunModeRelease
+	defaultFileTenantMode           = tenant.ModeSingle
+	defaultFileInfoBindIP           = "127.0.0.1"
+	defaultFileInfoPort             = 28200
+	defaultFileInfoTraceServiceName = "file-server-info"
+	defaultFileInfoIdentity         = AuthIdentityNone
 
-	defaultFileAdminBindIP    = "127.0.0.1"
-	defaultFileAdminPort      = 28201
-	defaultFileAdminTraceName = "file-server-admin"
-	defaultFileAdminIdentity  = AuthIdentityRestServer
+	defaultFileAdminBindIP           = "127.0.0.1"
+	defaultFileAdminPort             = 28201
+	defaultFileAdminTraceServiceName = "file-server-admin"
+	defaultFileAdminIdentity         = AuthIdentityRestServer
 
-	defaultFileBasicBindIP    = "127.0.0.1"
-	defaultFileBasicPort      = 28202
-	defaultFileBasicTraceName = "file-server-basic"
-	defaultFileBasicIdentity  = AuthIdentityNone
+	defaultFileBasicBindIP           = "127.0.0.1"
+	defaultFileBasicPort             = 28202
+	defaultFileBasicTraceServiceName = "file-server-basic"
+	defaultFileBasicIdentity         = AuthIdentityNone
 
-	defaultFileDownloadBindIP    = "127.0.0.1"
-	defaultFileDownloadPort      = 28203
-	defaultFileDownloadTraceName = "file-server-download"
-	defaultFileDownloadIdentity  = AuthIdentityNone
+	defaultFileDownloadBindIP           = "127.0.0.1"
+	defaultFileDownloadPort             = 28203
+	defaultFileDownloadTraceServiceName = "file-server-download"
+	defaultFileDownloadIdentity         = AuthIdentityNone
 
 	defaultFileLogDir        = "/bk-nodeman/log/"
 	defaultFileLogMaxNum     = 10
@@ -52,8 +52,8 @@ const (
 	defaultFileAdvertiseIPv4 = "127.0.0.1"
 	defaultFileAdvertiseIPv6 = "::1"
 
-	defaultFileMongoDBAppName   = "bk_nodemgr_file"
-	defaultFileMongoDBTraceName = "bk_nodemgr_mongo"
+	defaultFileMongoDBAppName          = "bk_nodemgr_file"
+	defaultFileMongoDBTraceServiceName = "bk_nodemgr_mongo"
 
 	defaultFileEtcdUsername = "root"
 	defaultFileEtcdPassword = ""
@@ -82,11 +82,15 @@ func NewFileService() *FileService {
 		},
 		GSE: GSE{
 			APIGatewayClient: APIGatewayClient{
-				TraceServiceName: defaultFileGSETraceServiceName,
+				TraceService: TraceService{
+					TraceServiceName: defaultFileGSETraceServiceName,
+				},
 			},
 		},
 		Repo: Repo{
-			TraceServiceName: defaultFileRepoTraceServiceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultFileRepoTraceServiceName,
+			},
 		},
 		InfoServer: HTTPServer{
 			BindIP:        defaultFileInfoBindIP,
@@ -94,7 +98,9 @@ func NewFileService() *FileService {
 			AuthIdentity:  defaultFileInfoIdentity,
 			AdvertiseIPV4: defaultFileAdvertiseIPv4,
 			AdvertiseIPV6: defaultFileAdvertiseIPv6,
-			TraceName:     defaultFileInfoTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultFileInfoTraceServiceName,
+			},
 		},
 		AdminServer: HTTPServer{
 			BindIP:        defaultFileAdminBindIP,
@@ -102,7 +108,9 @@ func NewFileService() *FileService {
 			AuthIdentity:  defaultFileAdminIdentity,
 			AdvertiseIPV4: defaultFileAdvertiseIPv4,
 			AdvertiseIPV6: defaultFileAdvertiseIPv6,
-			TraceName:     defaultFileAdminTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultFileAdminTraceServiceName,
+			},
 		},
 		BasicServer: HTTPServer{
 			BindIP:        defaultFileBasicBindIP,
@@ -110,7 +118,9 @@ func NewFileService() *FileService {
 			AuthIdentity:  defaultFileBasicIdentity,
 			AdvertiseIPV4: defaultFileAdvertiseIPv4,
 			AdvertiseIPV6: defaultFileAdvertiseIPv6,
-			TraceName:     defaultFileBasicTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultFileBasicTraceServiceName,
+			},
 		},
 		DownloadServer: HTTPServer{
 			BindIP:        defaultFileDownloadBindIP,
@@ -118,7 +128,9 @@ func NewFileService() *FileService {
 			AuthIdentity:  defaultFileDownloadIdentity,
 			AdvertiseIPV4: defaultFileAdvertiseIPv4,
 			AdvertiseIPV6: defaultFileAdvertiseIPv6,
-			TraceName:     defaultFileDownloadTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultFileDownloadTraceServiceName,
+			},
 		},
 		WorkspaceFileGroup: FileGroup{
 			FullPath: defaultFileWorkspaceGroupFullPath,
@@ -133,8 +145,10 @@ func NewFileService() *FileService {
 			ExporterType: defaultFileTracingExporterType,
 		},
 		MongoDB: MongoDB{
-			AppName:   defaultFileMongoDBAppName,
-			TraceName: defaultFileMongoDBTraceName,
+			AppName: defaultFileMongoDBAppName,
+			TraceService: TraceService{
+				TraceServiceName: defaultFileMongoDBTraceServiceName,
+			},
 		},
 	}
 }

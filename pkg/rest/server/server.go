@@ -115,13 +115,13 @@ func (opt *StaticOptions) WithHTMLs(relatives ...string) *StaticOptions {
 
 // Options describes the server options.
 type Options struct {
-	Name            string
-	IP              string
-	Port            int
-	RequestIDSetter IRequestIDSetter
-	StaticOptions   *StaticOptions
-	TraceName       string
-	TraceSampleRate float64
+	Name             string
+	IP               string
+	Port             int
+	RequestIDSetter  IRequestIDSetter
+	StaticOptions    *StaticOptions
+	TraceServiceName string
+	TraceSampleRate  float64
 }
 
 // NewServer creates a new restful API server.
@@ -140,7 +140,7 @@ func NewServer(ctx context.Context, opts Options, apiOptFns ...OptionFunc) (*Ser
 
 	var err error
 	svr.tracerSvc, err = tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: svr.opts.TraceName,
+		ServiceName: svr.opts.TraceServiceName,
 		SampleRate:  svr.opts.TraceSampleRate,
 	})
 	if err != nil {

@@ -593,7 +593,7 @@ application:
     infoServer:
       bindIP: "0.0.0.0"
       port: 28000
-      traceName: "application-server-info"
+      traceServiceName: "application-server-info"
       traceSampleRate: 0
 
     ## defines the application admin server related settings.
@@ -601,7 +601,7 @@ application:
       bindIP: "0.0.0.0"
       port: 28001
       authIdentity: rest-server
-      traceName: "application-server-admin"
+      traceServiceName: "application-server-admin"
       traceSampleRate: 0
       # defines the JWT server configuration for authentication
       jwtServerConfig:
@@ -615,7 +615,7 @@ application:
       bindIP: "0.0.0.0"
       port: 28002
       authIdentity: bk-login
-      traceName: "application-server-basic"
+      traceServiceName: "application-server-basic"
       traceSampleRate: 0
 
     ## defines the log related settings.
@@ -629,13 +629,13 @@ application:
 
     ## defines the mongodb related settings.
     mongodb:
-      traceName: "bk_nodemgr_mongo"
+      traceServiceName: "bk_nodemgr_mongo"
       traceSampleRate: 0
 
     ## defines the file related settings.
     file:
       # trace name for file service client
-      traceName: "application-client-file"
+      traceServiceName: "application-client-file"
       traceSampleRate: 0
       # defines the JWT client configuration for file service
       jwtClientConfig:
@@ -743,7 +743,7 @@ backend:
     infoServer:
       bindIP: "0.0.0.0"
       port: 28100
-      traceName: "backend-server-info"
+      traceServiceName: "backend-server-info"
       traceSampleRate: 0
 
     ## defines the backend admin server related settings.
@@ -751,7 +751,7 @@ backend:
       bindIP: "0.0.0.0"
       port: 28101
       authIdentity: rest-server
-      traceName: "backend-server-admin"
+      traceServiceName: "backend-server-admin"
       traceSampleRate: 0
       # defines the JWT server configuration for authentication
       jwtServerConfig:
@@ -765,7 +765,7 @@ backend:
       bindIP: "0.0.0.0"
       port: 28102
       authIdentity: api-gateway
-      traceName: "backend-server-basic"
+      traceServiceName: "backend-server-basic"
       traceSampleRate: 0
       # defines the JWT server configuration for authentication
       jwtServerConfig:
@@ -778,21 +778,21 @@ backend:
     callbackServer:
       bindIP: "0.0.0.0"
       port: 28103
-      traceName: "backend-server-callback"
+      traceServiceName: "backend-server-callback"
       traceSampleRate: 0
 
     ## defines the backend proxy server related settings.
     proxyServer:
       bindIP: "0.0.0.0"
       port: 28104
-      traceName: "backend-server-proxy"
+      traceServiceName: "backend-server-proxy"
       traceSampleRate: 0
 
     ## defines the workflow related settings.
     workflow:
       # workerNum is the number of workers.
       workerNum: 1
-      traceName: "workflow"
+      traceServiceName: "workflow"
       traceSampleRate: 0
 
     # defines the CMDB (BK API gateway) related settings.
@@ -1004,18 +1004,18 @@ backend:
 
     ## defines the mongodb related settings.
     mongodb:
-      traceName: "bk_nodemgr_mongo"
+      traceServiceName: "bk_nodemgr_mongo"
       traceSampleRate: 0
 
     ## defines the redis related settings.
     redis:
-      traceName: "bk_nodemgr_redis"
+      traceServiceName: "bk_nodemgr_redis"
       traceSampleRate: 0
 
     ## defines the file related settings.
     file:
       # trace name for file service client
-      traceName: "backend-client-file"
+      traceServiceName: "backend-client-file"
       traceSampleRate: 0
       # defines the JWT client configuration for file service
       jwtClientConfig:
@@ -1090,7 +1090,7 @@ file:
     infoServer:
       bindIP: "0.0.0.0"
       port: 28200
-      traceName: "file-server-info"
+      traceServiceName: "file-server-info"
       traceSampleRate: 0
 
     ## defines the file admin server related settings.
@@ -1098,7 +1098,7 @@ file:
       bindIP: "0.0.0.0"
       port: 28201
       authIdentity: rest-server
-      traceName: "file-server-admin"
+      traceServiceName: "file-server-admin"
       traceSampleRate: 0
       # defines the JWT server configuration for authentication
       jwtServerConfig:
@@ -1112,14 +1112,14 @@ file:
       bindIP: "0.0.0.0"
       port: 28202
       authIdentity: none
-      traceName: "file-server-basic"
+      traceServiceName: "file-server-basic"
       traceSampleRate: 0
 
     ## defines the file download server related settings.
     downloadServer:
       bindIP: "0.0.0.0"
       port: 28203
-      traceName: "file-server-download"
+      traceServiceName: "file-server-download"
       traceSampleRate: 0
 
     ## defines the bkrepo related settings.
@@ -1189,7 +1189,7 @@ file:
 
     ## defines the mongodb related settings.
     mongodb:
-      traceName: "bk_nodemgr_mongo"
+      traceServiceName: "bk_nodemgr_mongo"
       traceSampleRate: 0
 
     ## defines the tracing related settings.

@@ -37,23 +37,23 @@ const (
 	defaultApplicationFileTraceServiceName    = "application-client-file"
 
 	// info server config default values.
-	defaultApplicationInfoBindIP    = "127.0.0.1"
-	defaultApplicationInfoPort      = 28000
-	defaultApplicationInfoIdentity  = AuthIdentityNone
-	defaultApplicationInfoTraceName = "application-server-info"
+	defaultApplicationInfoBindIP           = "127.0.0.1"
+	defaultApplicationInfoPort             = 28000
+	defaultApplicationInfoIdentity         = AuthIdentityNone
+	defaultApplicationInfoTraceServiceName = "application-server-info"
 
 	// admin server config default values.
-	defaultApplicationAdminBindIP    = "127.0.0.1"
-	defaultApplicationAdminPort      = 28001
-	defaultApplicationAdminIdentity  = AuthIdentityRestServer
-	defaultApplicationAdminTraceName = "application-server-admin"
+	defaultApplicationAdminBindIP           = "127.0.0.1"
+	defaultApplicationAdminPort             = 28001
+	defaultApplicationAdminIdentity         = AuthIdentityRestServer
+	defaultApplicationAdminTraceServiceName = "application-server-admin"
 
 	// basic server config default values.
-	defaultApplicationBasicBindIP    = "127.0.0.1"
-	defaultApplicationBasicPort      = 28002
-	defaultApplicationBasicStaticDir = "/bk-nodemgr/static/"
-	defaultApplicationBasicIdentity  = AuthIdentityBKLogin
-	defaultApplicationBasicTraceName = "application-server-basic"
+	defaultApplicationBasicBindIP           = "127.0.0.1"
+	defaultApplicationBasicPort             = 28002
+	defaultApplicationBasicStaticDir        = "/bk-nodemgr/static/"
+	defaultApplicationBasicIdentity         = AuthIdentityBKLogin
+	defaultApplicationBasicTraceServiceName = "application-server-basic"
 
 	// log config default values.
 	defaultApplicationLogDir       = "/bk-nodemgr/log/"
@@ -61,8 +61,8 @@ const (
 	defaultApplicationLogMaxSizeMB = 200
 	defaultApplicationLogLevel     = "INFO"
 
-	defaultApplicationMongoDBAppName   = "bk_nodemgr_application"
-	defaultApplicationMongoDBTraceName = "bk_nodemgr_mongo"
+	defaultApplicationMongoDBAppName          = "bk_nodemgr_application"
+	defaultApplicationMongoDBTraceServiceName = "bk_nodemgr_mongo"
 
 	// advertise config default values.
 	defaultApplicationAdvertiseIPv4 = "127.0.0.1"
@@ -103,7 +103,9 @@ func NewApplicationService() *ApplicationService {
 		TenantMode: defaultApplicationTenantMode,
 		BKSaas: BKSaas{
 			BKLogin: BKLogin{
-				TraceServiceName: defaultApplicationBKLoginTraceServiceName,
+				TraceService: TraceService{
+					TraceServiceName: defaultApplicationBKLoginTraceServiceName,
+				},
 			},
 		},
 		Front: Front{
@@ -112,16 +114,22 @@ func NewApplicationService() *ApplicationService {
 		},
 		Backend: Backend{
 			APIGatewayClient: APIGatewayClient{
-				TraceServiceName: defaultApplicationBackendTraceServiceName,
+				TraceService: TraceService{
+					TraceServiceName: defaultApplicationBackendTraceServiceName,
+				},
 			},
 		},
 		File: File{
-			TraceName: defaultApplicationFileTraceServiceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultApplicationFileTraceServiceName,
+			},
 		},
 		Etcd: Etcd{},
 		MongoDB: MongoDB{
-			AppName:   defaultApplicationMongoDBAppName,
-			TraceName: defaultApplicationMongoDBTraceName,
+			AppName: defaultApplicationMongoDBAppName,
+			TraceService: TraceService{
+				TraceServiceName: defaultApplicationMongoDBTraceServiceName,
+			},
 		},
 		InfoServer: HTTPServer{
 			BindIP:        defaultApplicationInfoBindIP,
@@ -129,7 +137,9 @@ func NewApplicationService() *ApplicationService {
 			AuthIdentity:  defaultApplicationInfoIdentity,
 			AdvertiseIPV4: defaultApplicationAdvertiseIPv4,
 			AdvertiseIPV6: defaultApplicationAdvertiseIPv6,
-			TraceName:     defaultApplicationInfoTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultApplicationInfoTraceServiceName,
+			},
 		},
 		AdminServer: HTTPServer{
 			BindIP:          defaultApplicationAdminBindIP,
@@ -138,14 +148,18 @@ func NewApplicationService() *ApplicationService {
 			AdvertiseIPV4:   defaultApplicationAdvertiseIPv4,
 			AdvertiseIPV6:   defaultApplicationAdvertiseIPv6,
 			JWTServerConfig: JWTServerConfig{CryptoType: JWTCryptoTypeSymmetric},
-			TraceName:       defaultApplicationAdminTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultApplicationAdminTraceServiceName,
+			},
 		},
 		BasicServer: HTTPServer{
 			BindIP:       defaultApplicationBasicBindIP,
 			Port:         defaultApplicationBasicPort,
 			StaticDir:    defaultApplicationBasicStaticDir,
 			AuthIdentity: defaultApplicationBasicIdentity,
-			TraceName:    defaultApplicationBasicTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultApplicationBasicTraceServiceName,
+			},
 		},
 		Log: Log{
 			Dir:       defaultApplicationLogDir,

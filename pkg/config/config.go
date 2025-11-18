@@ -41,12 +41,11 @@ func (conf Etcd) Validate() error {
 
 // Redis the config of redis.
 type Redis struct {
-	Host            string  `yaml:"host" usage:"host of redis"`
-	Port            int     `yaml:"port" usage:"port of redis"`
-	Password        string  `yaml:"password" usage:"password of redis"`
-	DB              int     `yaml:"db" usage:"db of redis"`
-	TraceName       string  `yaml:"traceName" usage:"trace name of redis"`
-	TraceSampleRate float64 `yaml:"traceSampleRate" usage:"trace sample rate of redis"`
+	Host         string `yaml:"host" usage:"host of redis"`
+	Port         int    `yaml:"port" usage:"port of redis"`
+	Password     string `yaml:"password" usage:"password of redis"`
+	DB           int    `yaml:"db" usage:"db of redis"`
+	TraceService `yaml:",inline"`
 }
 
 // Validate configures the config.
@@ -72,15 +71,14 @@ func (conf Redis) Validate() error {
 
 // MongoDB the config of mongodb.
 type MongoDB struct {
-	AppName         string   `yaml:"appName" usage:"app name of mongodb"`
-	Hosts           []string `yaml:"hosts" usage:"hosts list of mongodb"`
-	Username        string   `yaml:"username" usage:"user of mongodb"`
-	Password        string   `yaml:"password" usage:"password of mongodb"`
-	Database        string   `yaml:"database" usage:"database of mongodb"`
-	AuthSource      string   `yaml:"authSource" usage:"auth source of mongodb"`
-	AuthMechanism   string   `yaml:"authMechanism" usage:"auth mechanism of mongodb"`
-	TraceName       string   `yaml:"traceName" usage:"trace name of mongodb"`
-	TraceSampleRate float64  `yaml:"traceSampleRate" usage:"trace sample rate of mongodb"`
+	AppName       string   `yaml:"appName" usage:"app name of mongodb"`
+	Hosts         []string `yaml:"hosts" usage:"hosts list of mongodb"`
+	Username      string   `yaml:"username" usage:"user of mongodb"`
+	Password      string   `yaml:"password" usage:"password of mongodb"`
+	Database      string   `yaml:"database" usage:"database of mongodb"`
+	AuthSource    string   `yaml:"authSource" usage:"auth source of mongodb"`
+	AuthMechanism string   `yaml:"authMechanism" usage:"auth mechanism of mongodb"`
+	TraceService  `yaml:",inline"`
 }
 
 // Validate configures the config.
@@ -192,11 +190,10 @@ type HTTPServer struct {
 	AdvertiseIPV4   string          `yaml:"advertiseIPV4"`
 	AdvertiseIPV6   string          `yaml:"advertiseIPV6"`
 	Port            int             `yaml:"port"`
-	TraceName       string          `yaml:"traceName"`
-	TraceSampleRate float64         `yaml:"traceSampleRate"`
 	AuthIdentity    AuthIdentity    `yaml:"authIdentity" usage:"identity of auth"`
 	JWTServerConfig JWTServerConfig `yaml:"jwtServerConfig" usage:"JWT configuration for authentication"`
 	StaticDir       string          `yaml:"staticDir"`
+	TraceService    `yaml:",inline"`
 }
 
 // Validate validates the config.
@@ -249,11 +246,7 @@ type ProxyServer struct {
 
 // APIGatewayClient the config of api-gateway.
 type APIGatewayClient struct {
-	// TraceServiceName is the trace service name of api gateway.
-	TraceServiceName string `yaml:"traceServiceName" usage:"trace service name of api gateway"`
-
-	// TraceSampleRate is the trace sample rate of api gateway.
-	TraceSampleRate float64 `yaml:"traceSampleRate" usage:"trace sample rate of api gateway"`
+	TraceService `yaml:",inline"`
 
 	// Endpoints is a seed list of host:port addresses of api gateway nodes.
 	Endpoints []string `yaml:"endpoints"`
@@ -298,8 +291,7 @@ func (conf APIGatewayClient) Validate() error {
 
 // File the config of file.
 type File struct {
-	TraceName       string          `yaml:"traceName" usage:"trace service name of file"`
-	TraceSampleRate float64         `yaml:"traceSampleRate" usage:"trace sample rate of file"`
+	TraceService    `yaml:",inline"`
 	JWTClientConfig JWTClientConfig `yaml:"jwtClientConfig" usage:"jwt config of api-gateway"`
 }
 
@@ -427,13 +419,12 @@ func (iegtjj IEGTJJ) Validate() error {
 
 // Repo the config of repo.
 type Repo struct {
-	Endpoint         string  `yaml:"endpoint" usage:"endpoint of repo"`
-	ProjectID        string  `yaml:"projectID" usage:"projectID of repo"`
-	RepoName         string  `yaml:"repoName" usage:"name of repo"`
-	AccessKey        string  `yaml:"accessKey" usage:"access key of repo"`
-	SecretKey        string  `yaml:"secretKey" usage:"secret key of repo"`
-	TraceServiceName string  `yaml:"traceServiceName" usage:"trace service name of repo client"`
-	TraceSampleRate  float64 `yaml:"traceSampleRate" usage:"trace sample rate of repo client"`
+	Endpoint     string `yaml:"endpoint" usage:"endpoint of repo"`
+	ProjectID    string `yaml:"projectID" usage:"projectID of repo"`
+	RepoName     string `yaml:"repoName" usage:"name of repo"`
+	AccessKey    string `yaml:"accessKey" usage:"access key of repo"`
+	SecretKey    string `yaml:"secretKey" usage:"secret key of repo"`
+	TraceService `yaml:",inline"`
 }
 
 // Validate validates the config.
@@ -508,9 +499,8 @@ func (conf TLSConfig) Validate() error {
 
 // Workflow the config of workflow.
 type Workflow struct {
-	TraceName       string  `yaml:"traceName" usage:"trace name of workflow"`
-	TraceSampleRate float64 `yaml:"traceSampleRate" usage:"trace sample rate of workflow"`
-	WorkerNum       int     `yaml:"workerNum" usage:"worker num of workflow"`
+	TraceService `yaml:",inline"`
+	WorkerNum    int `yaml:"workerNum" usage:"worker num of workflow"`
 }
 
 // Validate validates the config.
@@ -642,11 +632,7 @@ type BKLogin struct {
 	// TLS defines the tls config of bklogin.
 	TLS TLSConfig `yaml:"tls" usage:"tls config of bklogin"`
 
-	// TraceServiceName defines the trace service name of bklogin client.
-	TraceServiceName string `yaml:"traceServiceName" usage:"trace service name of bklogin client"`
-
-	// TraceSampleRate defines the trace sample rate of bklogin client.
-	TraceSampleRate float64 `yaml:"traceSampleRate" usage:"trace sample rate of bklogin client"`
+	TraceService `yaml:",inline"`
 }
 
 // Validate validates the config.
@@ -771,4 +757,13 @@ func (name PluginName) Validate() error {
 	default:
 		return fmt.Errorf("invalid plugin name, plugin-name(%s)", name)
 	}
+}
+
+// TraceService defines the trace service.
+type TraceService struct {
+	// TraceServiceName is the trace service name.
+	TraceServiceName string `yaml:"traceServiceName" usage:"trace service name"`
+
+	// TraceSampleRate is the trace sample rate.
+	TraceSampleRate float64 `yaml:"traceSampleRate" usage:"trace sample rate"`
 }

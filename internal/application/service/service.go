@@ -205,7 +205,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 	}
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: svc.conf.File.TraceName,
+		ServiceName: svc.conf.File.TraceServiceName,
 		SampleRate:  svc.conf.File.TraceSampleRate,
 	})
 	if err != nil {
@@ -299,12 +299,12 @@ func (svc *Service) registerInfoServer() error {
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameApplicationInfo),
-			IP:              svc.conf.InfoServer.BindIP,
-			Port:            svc.conf.InfoServer.Port,
-			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TraceName:       svc.conf.InfoServer.TraceName,
-			TraceSampleRate: svc.conf.InfoServer.TraceSampleRate,
+			Name:             string(discover.EndpointNameApplicationInfo),
+			IP:               svc.conf.InfoServer.BindIP,
+			Port:             svc.conf.InfoServer.Port,
+			RequestIDSetter:  restserver.NewRequestIDSetter(),
+			TraceServiceName: svc.conf.InfoServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.InfoServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
@@ -340,12 +340,12 @@ func (svc *Service) registerAdminServer() error {
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameApplicationAdmin),
-			IP:              svc.conf.AdminServer.BindIP,
-			Port:            svc.conf.AdminServer.Port,
-			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TraceName:       svc.conf.AdminServer.TraceName,
-			TraceSampleRate: svc.conf.AdminServer.TraceSampleRate,
+			Name:             string(discover.EndpointNameApplicationAdmin),
+			IP:               svc.conf.AdminServer.BindIP,
+			Port:             svc.conf.AdminServer.Port,
+			RequestIDSetter:  restserver.NewRequestIDSetter(),
+			TraceServiceName: svc.conf.AdminServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.AdminServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withAdmin(svc.Cap,
@@ -381,12 +381,12 @@ func (svc *Service) registerBasicServer() error {
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameApplicationBasic),
-			IP:              svc.conf.BasicServer.BindIP,
-			Port:            svc.conf.BasicServer.Port,
-			TraceName:       svc.conf.BasicServer.TraceName,
-			TraceSampleRate: svc.conf.BasicServer.TraceSampleRate,
-			RequestIDSetter: apigwserver.NewBKAPIRequestIDSetter(),
+			Name:             string(discover.EndpointNameApplicationBasic),
+			IP:               svc.conf.BasicServer.BindIP,
+			Port:             svc.conf.BasicServer.Port,
+			TraceServiceName: svc.conf.BasicServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
+			RequestIDSetter:  apigwserver.NewBKAPIRequestIDSetter(),
 			StaticOptions: restserver.NewStaticOptions(svc.conf.BasicServer.StaticDir).
 				WithHTMLs("index.html").
 				WithDirs("assets").

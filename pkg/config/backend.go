@@ -24,34 +24,34 @@ import (
 
 const (
 	// backend service config default values.
-	defaultBackendRunMode          = RunModeRelease
-	defaultBackendTenantMode       = tenant.ModeSingle
-	defaultBackendInfoBindIP       = "127.0.0.1"
-	defaultBackendInfoPort         = 28100
-	defaultBackendInfoTraceName    = "backend-server-info"
-	defaultBackendInfoAuthIdentity = AuthIdentityNone
+	defaultBackendRunMode              = RunModeRelease
+	defaultBackendTenantMode           = tenant.ModeSingle
+	defaultBackendInfoBindIP           = "127.0.0.1"
+	defaultBackendInfoPort             = 28100
+	defaultBackendInfoTraceServiceName = "backend-server-info"
+	defaultBackendInfoAuthIdentity     = AuthIdentityNone
 
-	defaultBackendAdminBindIP        = "127.0.0.1"
-	defaultBackendAdminPort          = 28101
-	defaultBackendAdminTraceName     = "backend-server-admin"
-	defaultBackendAdminAuthIdentity  = AuthIdentityRestServer
-	defaultBackendAdminJWTCryptoType = JWTCryptoTypeSymmetric
+	defaultBackendAdminBindIP           = "127.0.0.1"
+	defaultBackendAdminPort             = 28101
+	defaultBackendAdminTraceServiceName = "backend-server-admin"
+	defaultBackendAdminAuthIdentity     = AuthIdentityRestServer
+	defaultBackendAdminJWTCryptoType    = JWTCryptoTypeSymmetric
 
-	defaultBackendBasicBindIP        = "127.0.0.1"
-	defaultBackendBasicPort          = 28102
-	defaultBackendBasicTraceName     = "backend-server-basic"
-	defaultBackendBasicAuthIdentity  = AuthIdentityAPIGW
-	defaultBackendBasicJWTCryptoType = JWTCryptoTypeAsymmetric
+	defaultBackendBasicBindIP           = "127.0.0.1"
+	defaultBackendBasicPort             = 28102
+	defaultBackendBasicTraceServiceName = "backend-server-basic"
+	defaultBackendBasicAuthIdentity     = AuthIdentityAPIGW
+	defaultBackendBasicJWTCryptoType    = JWTCryptoTypeAsymmetric
 
-	defaultBackendCallbackBindIP       = "127.0.0.1"
-	defaultBackendCallbackPort         = 28103
-	defaultBackendCallbackTraceName    = "backend-server-callback"
-	defaultBackendCallbackAuthIdentity = AuthIdentityNone
+	defaultBackendCallbackBindIP           = "127.0.0.1"
+	defaultBackendCallbackPort             = 28103
+	defaultBackendCallbackTraceServiceName = "backend-server-callback"
+	defaultBackendCallbackAuthIdentity     = AuthIdentityNone
 
-	defaultBackendProxyBindIP       = "127.0.0.1"
-	defaultBackendProxyPort         = 28104
-	defaultBackendProxyTraceName    = "backend-server-proxy"
-	defaultBackendProxyAuthIdentity = AuthIdentityNone
+	defaultBackendProxyBindIP           = "127.0.0.1"
+	defaultBackendProxyPort             = 28104
+	defaultBackendProxyTraceServiceName = "backend-server-proxy"
+	defaultBackendProxyAuthIdentity     = AuthIdentityNone
 
 	defaultBackendLogDir       = "/bk-nodemgr/log/"
 	defaultBackendLogMaxNum    = 10
@@ -68,13 +68,13 @@ const (
 
 	defaultBackendTracingExporterType = "stdout"
 
-	defaultBackendRedisTraceName = "bk-nodemgr_redis"
+	defaultBackendRedisTraceServiceName = "bk-nodemgr_redis"
 
-	defaultBackendMongoDBAppName   = "bk_nodemgr_backend"
-	defaultBackendMongoDBTraceName = "bk_nodemgr_mongo"
+	defaultBackendMongoDBAppName          = "bk_nodemgr_backend"
+	defaultBackendMongoDBTraceServiceName = "bk_nodemgr_mongo"
 
-	defaultBackendWorkflowTraceName = "workflow"
-	defaultBackendWorkflowWorkerNum = 10
+	defaultBackendWorkflowTraceServiceName = "workflow"
+	defaultBackendWorkflowWorkerNum        = 10
 
 	defaultInstallerFileGroup = "/bk-nodemgr/file/tools"
 
@@ -132,47 +132,63 @@ func NewBackendService() *BackendService {
 		TenantMode: defaultBackendTenantMode,
 		CMDB: CMDB{
 			APIGatewayClient: APIGatewayClient{
-				TraceServiceName: defaultBackendCMDBTraceServiceName,
+				TraceService: TraceService{
+					TraceServiceName: defaultBackendCMDBTraceServiceName,
+				},
 			},
 		},
 		File: File{
-			TraceName: defaultBackendFileTraceServiceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultBackendFileTraceServiceName,
+			},
 		},
 		GSE: GSE{
 			APIGatewayClient: APIGatewayClient{
-				TraceServiceName: defaultBackendGSETraceServiceName,
+				TraceService: TraceService{
+					TraceServiceName: defaultBackendGSETraceServiceName,
+				},
 			},
 		},
 		UserManager: UserManager{
 			APIGatewayClient: APIGatewayClient{
-				TraceServiceName: defaultBackendUserManagerTraceServiceName,
+				TraceService: TraceService{
+					TraceServiceName: defaultBackendUserManagerTraceServiceName,
+				},
 			},
 		},
 		Workflow: Workflow{
-			TraceName: defaultBackendWorkflowTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultBackendWorkflowTraceServiceName,
+			},
 			WorkerNum: defaultBackendWorkflowWorkerNum,
 		},
 		InfoServer: HTTPServer{
-			BindIP:        defaultBackendInfoBindIP,
-			Port:          defaultBackendInfoPort,
-			TraceName:     defaultBackendInfoTraceName,
+			BindIP: defaultBackendInfoBindIP,
+			Port:   defaultBackendInfoPort,
+			TraceService: TraceService{
+				TraceServiceName: defaultBackendInfoTraceServiceName,
+			},
 			AuthIdentity:  defaultBackendInfoAuthIdentity,
 			AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6: defaultBackendAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP:          defaultBackendAdminBindIP,
-			Port:            defaultBackendAdminPort,
-			TraceName:       defaultBackendAdminTraceName,
+			BindIP: defaultBackendAdminBindIP,
+			Port:   defaultBackendAdminPort,
+			TraceService: TraceService{
+				TraceServiceName: defaultBackendAdminTraceServiceName,
+			},
 			AuthIdentity:    defaultBackendAdminAuthIdentity,
 			AdvertiseIPV4:   defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6:   defaultBackendAdvertiseIPv6,
 			JWTServerConfig: JWTServerConfig{CryptoType: defaultBackendAdminJWTCryptoType},
 		},
 		BasicServer: HTTPServer{
-			BindIP:          defaultBackendBasicBindIP,
-			Port:            defaultBackendBasicPort,
-			TraceName:       defaultBackendBasicTraceName,
+			BindIP: defaultBackendBasicBindIP,
+			Port:   defaultBackendBasicPort,
+			TraceService: TraceService{
+				TraceServiceName: defaultBackendBasicTraceServiceName,
+			},
 			AuthIdentity:    defaultBackendBasicAuthIdentity,
 			AdvertiseIPV4:   defaultBackendAdvertiseIPv4,
 			AdvertiseIPV6:   defaultBackendAdvertiseIPv6,
@@ -180,9 +196,11 @@ func NewBackendService() *BackendService {
 		},
 		CallbackServer: CallbackServer{
 			HTTPServer: HTTPServer{
-				BindIP:        defaultBackendCallbackBindIP,
-				Port:          defaultBackendCallbackPort,
-				TraceName:     defaultBackendCallbackTraceName,
+				BindIP: defaultBackendCallbackBindIP,
+				Port:   defaultBackendCallbackPort,
+				TraceService: TraceService{
+					TraceServiceName: defaultBackendCallbackTraceServiceName,
+				},
 				AuthIdentity:  defaultBackendCallbackAuthIdentity,
 				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
@@ -190,9 +208,11 @@ func NewBackendService() *BackendService {
 		},
 		ProxyServer: ProxyServer{
 			HTTPServer: HTTPServer{
-				BindIP:        defaultBackendProxyBindIP,
-				Port:          defaultBackendProxyPort,
-				TraceName:     defaultBackendProxyTraceName,
+				BindIP: defaultBackendProxyBindIP,
+				Port:   defaultBackendProxyPort,
+				TraceService: TraceService{
+					TraceServiceName: defaultBackendProxyTraceServiceName,
+				},
 				AuthIdentity:  defaultBackendProxyAuthIdentity,
 				AdvertiseIPV4: defaultBackendAdvertiseIPv4,
 				AdvertiseIPV6: defaultBackendAdvertiseIPv6,
@@ -200,11 +220,15 @@ func NewBackendService() *BackendService {
 		},
 		Etcd: Etcd{},
 		Redis: Redis{
-			TraceName: defaultBackendRedisTraceName,
+			TraceService: TraceService{
+				TraceServiceName: defaultBackendRedisTraceServiceName,
+			},
 		},
 		MongoDB: MongoDB{
-			AppName:   defaultBackendMongoDBAppName,
-			TraceName: defaultBackendMongoDBTraceName,
+			AppName: defaultBackendMongoDBAppName,
+			TraceService: TraceService{
+				TraceServiceName: defaultBackendMongoDBTraceServiceName,
+			},
 		},
 		Log: Log{
 			Dir:       defaultBackendLogDir,
@@ -238,7 +262,9 @@ func NewBackendService() *BackendService {
 			HostCreditVault: HostCreditVault{
 				IEGTJJ: IEGTJJ{
 					APIGatewayClient: APIGatewayClient{
-						TraceServiceName: defaultBackendIEGTJJTraceServiceName,
+						TraceService: TraceService{
+							TraceServiceName: defaultBackendIEGTJJTraceServiceName,
+						},
 					},
 				},
 			},

@@ -330,7 +330,7 @@ func (svc *Service) newFileHandler() (file.IHandler, error) {
 	}
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: svc.conf.File.TraceName,
+		ServiceName: svc.conf.File.TraceServiceName,
 		SampleRate:  svc.conf.File.TraceSampleRate,
 	})
 	if err != nil {
@@ -419,7 +419,7 @@ func (svc *Service) newRedisClient() (*redis.Client, error) {
 	})
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: svc.conf.Redis.TraceName,
+		ServiceName: svc.conf.Redis.TraceServiceName,
 		SampleRate:  svc.conf.Redis.TraceSampleRate,
 	})
 	if err != nil {
@@ -443,7 +443,7 @@ func (svc *Service) newRedisClient() (*redis.Client, error) {
 
 func (svc *Service) newMongoClient() (*mongo.Client, error) {
 	mongoSvc, err := tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: svc.conf.MongoDB.TraceName,
+		ServiceName: svc.conf.MongoDB.TraceServiceName,
 		SampleRate:  svc.conf.MongoDB.TraceSampleRate,
 	})
 	if err != nil {
@@ -563,7 +563,7 @@ func (svc *Service) initialManager() error {
 	})
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
-		ServiceName: svc.conf.Workflow.TraceName,
+		ServiceName: svc.conf.Workflow.TraceServiceName,
 		SampleRate:  svc.conf.Workflow.TraceSampleRate,
 	})
 	if err != nil {
@@ -635,12 +635,12 @@ func (svc *Service) registerInfoServer() error {
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameBackendInfo),
-			IP:              svc.conf.InfoServer.BindIP,
-			Port:            svc.conf.InfoServer.Port,
-			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TraceName:       svc.conf.InfoServer.TraceName,
-			TraceSampleRate: svc.conf.InfoServer.TraceSampleRate,
+			Name:             string(discover.EndpointNameBackendInfo),
+			IP:               svc.conf.InfoServer.BindIP,
+			Port:             svc.conf.InfoServer.Port,
+			RequestIDSetter:  restserver.NewRequestIDSetter(),
+			TraceServiceName: svc.conf.InfoServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.InfoServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withHealthz(svc.Cap),
@@ -696,12 +696,12 @@ func (svc *Service) registerAdminServer() error {
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameBackendAdmin),
-			IP:              svc.conf.AdminServer.BindIP,
-			Port:            svc.conf.AdminServer.Port,
-			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TraceName:       svc.conf.AdminServer.TraceName,
-			TraceSampleRate: svc.conf.AdminServer.TraceSampleRate,
+			Name:             string(discover.EndpointNameBackendAdmin),
+			IP:               svc.conf.AdminServer.BindIP,
+			Port:             svc.conf.AdminServer.Port,
+			RequestIDSetter:  restserver.NewRequestIDSetter(),
+			TraceServiceName: svc.conf.AdminServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.AdminServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withAdmin(svc.Cap,
@@ -737,12 +737,12 @@ func (svc *Service) registerBasicServer() error {
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameBackendBasic),
-			IP:              svc.conf.BasicServer.BindIP,
-			Port:            svc.conf.BasicServer.Port,
-			RequestIDSetter: apigwserver.NewBKAPIRequestIDSetter(),
-			TraceName:       svc.conf.BasicServer.TraceName,
-			TraceSampleRate: svc.conf.BasicServer.TraceSampleRate,
+			Name:             string(discover.EndpointNameBackendBasic),
+			IP:               svc.conf.BasicServer.BindIP,
+			Port:             svc.conf.BasicServer.Port,
+			RequestIDSetter:  apigwserver.NewBKAPIRequestIDSetter(),
+			TraceServiceName: svc.conf.BasicServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withAPIV3(svc.Cap,
@@ -767,12 +767,12 @@ func (svc *Service) registerCallbackServer() error {
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameBackendCallback),
-			IP:              svc.conf.CallbackServer.BindIP,
-			Port:            svc.conf.CallbackServer.Port,
-			RequestIDSetter: restserver.NewRequestIDSetter(),
-			TraceName:       svc.conf.CallbackServer.TraceName,
-			TraceSampleRate: svc.conf.CallbackServer.TraceSampleRate,
+			Name:             string(discover.EndpointNameBackendCallback),
+			IP:               svc.conf.CallbackServer.BindIP,
+			Port:             svc.conf.CallbackServer.Port,
+			RequestIDSetter:  restserver.NewRequestIDSetter(),
+			TraceServiceName: svc.conf.CallbackServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.CallbackServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
 		withCallback(svc.Cap),
@@ -796,12 +796,12 @@ func (svc *Service) registerProxyServer() error {
 	server, err := restserver.NewServer(
 		svc.ctx,
 		restserver.Options{
-			Name:            string(discover.EndpointNameBackendPorxy),
-			IP:              svc.conf.ProxyServer.BindIP,
-			Port:            svc.conf.ProxyServer.Port,
-			TraceName:       svc.conf.ProxyServer.TraceName,
-			TraceSampleRate: svc.conf.ProxyServer.TraceSampleRate,
-			RequestIDSetter: restserver.NewRequestIDSetter(),
+			Name:             string(discover.EndpointNameBackendPorxy),
+			IP:               svc.conf.ProxyServer.BindIP,
+			Port:             svc.conf.ProxyServer.Port,
+			TraceServiceName: svc.conf.ProxyServer.TraceServiceName,
+			TraceSampleRate:  svc.conf.ProxyServer.TraceSampleRate,
+			RequestIDSetter:  restserver.NewRequestIDSetter(),
 		},
 		restserver.WithPing(),
 		withProxy(svc.Cap),

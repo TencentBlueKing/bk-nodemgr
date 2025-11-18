@@ -12,7 +12,7 @@ infoServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "backend-server-info"
+  traceServiceName: "backend-server-info"
   traceSampleRate: 0
 
 # adminServer defines self admin http server settings.
@@ -26,7 +26,7 @@ adminServer:
 
   # defines the authentication mode, currently only rest-server and none is supported.
   authIdentity: rest-server
-  traceName: "backend-server-admin"
+  traceServiceName: "backend-server-admin"
   traceSampleRate: 0
 
   # defines the JWT server configuration for authentication
@@ -47,7 +47,7 @@ basicServer:
 
   # defines the authentication mode, currently only api-gateway and none is supported.
   authIdentity: api-gateway
-  traceName: "backend-server-basic"
+  traceServiceName: "backend-server-basic"
   traceSampleRate: 0
 
   # defines the JWT server configuration for authentication
@@ -65,7 +65,7 @@ callbackServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "backend-server-callback"
+  traceServiceName: "backend-server-callback"
   traceSampleRate: 0
 
 # proxyServer defines self proxy http server settings.
@@ -76,13 +76,13 @@ proxyServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "backend-server-proxy"
+  traceServiceName: "backend-server-proxy"
   traceSampleRate: 0
 
 # workflow defines the backend workflow settings.
 workflow:
   workerNum: 8
-  traceName: "workflow"
+  traceServiceName: "workflow"
   traceSampleRate: 0
 
 # system defines the gse environs and edition.
@@ -161,7 +161,7 @@ log:
 
 # file settings.
 file:
-  traceName: "backend-client-file"
+  traceServiceName: "backend-client-file"
   traceSampleRate: 0
   # defines the JWT client configuration for file service
   jwtClientConfig:
@@ -189,7 +189,7 @@ mongodb:
   authSource: admin
   authMechanism: SCRAM-SHA-256
   database: bk_nodemgr
-  traceName: "bk_nodemgr_mongo"
+  traceServiceName: "bk_nodemgr_mongo"
   traceSampleRate: 0
 
 # redis settings.

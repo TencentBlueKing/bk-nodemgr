@@ -11,6 +11,7 @@ require (
 	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/google/uuid v1.6.0
+	github.com/grafana/otel-profiling-go v0.5.1
 	github.com/joho/godotenv v1.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.7

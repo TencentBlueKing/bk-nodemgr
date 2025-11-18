@@ -45,7 +45,9 @@ func DefaultConfig() Config {
 type ServiceConfig struct {
 	// service name
 	ServiceName string
-	SampleRate  float64
+
+	// sampling rate
+	SampleRate float64
 }
 
 // Validate validates ServiceConfig.

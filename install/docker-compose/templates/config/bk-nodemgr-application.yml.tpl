@@ -12,7 +12,7 @@ infoServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "application-server-info"
+  traceServiceName: "application-server-info"
   traceSampleRate: 0
 
 # adminServer defines self admin http server settings.
@@ -23,7 +23,7 @@ adminServer:
 
   # defines the authentication mode, currently only rest-server and none is supported.
   authIdentity: rest-server
-  traceName: "application-server-admin"
+  traceServiceName: "application-server-admin"
   traceSampleRate: 0
 
   # defines the JWT server configuration for authentication
@@ -41,7 +41,7 @@ basicServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "application-server-basic"
+  traceServiceName: "application-server-basic"
   traceSampleRate: 0
 
 # backend settings.
@@ -81,7 +81,7 @@ mongodb:
   authSource: admin
   authMechanism: SCRAM-SHA-256
   database: bk_nodemgr
-  traceName: "bk_nodemgr_mongo"
+  traceServiceName: "bk_nodemgr_mongo"
   traceSampleRate: 0
 
 # file settings.
@@ -94,7 +94,7 @@ file:
     symmetricKey: "__BK_NODEMGR_FILE_BASICSERVER_JWT_SYMMETRIC_KEY__"
     # token expiration duration (e.g., 1h, 24h)
     tokenExpirationHour: 24
-  traceName: "application-client-file"
+  traceServiceName: "application-client-file"
   traceSampleRate: 0
 
 # bkSaaS saas settings.

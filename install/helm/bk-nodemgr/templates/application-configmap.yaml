@@ -72,6 +72,6 @@ data:
       authSource: {{ .Values.externalMongodb.authSource }}
       authMechanism: {{ .Values.externalMongodb.authMechanism }}
       {{- end}}
-      traceName: {{ .Values.application.config.mongodb.traceName }}
+      traceServiceName: {{ .Values.application.config.mongodb.traceServiceName }}
       traceSampleRate: {{ .Values.application.config.mongodb.traceSampleRate }}
 {{- end }}

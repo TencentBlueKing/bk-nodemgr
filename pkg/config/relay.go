@@ -21,25 +21,25 @@ import (
 const (
 	defaultRelayPluginName = "bk-nodemgr-relay"
 
-	defaultRelayInfoBindIP    = "127.0.0.1"
-	defaultRelayInfoPort      = 28300
-	defaultRelayInfoTraceName = "relay-server-info"
-	defaultRelayInfoIdentity  = AuthIdentityNone
+	defaultRelayInfoBindIP           = "127.0.0.1"
+	defaultRelayInfoPort             = 28300
+	defaultRelayInfoTraceServiceName = "relay-server-info"
+	defaultRelayInfoIdentity         = AuthIdentityNone
 
-	defaultRelayAdminBindIP    = "127.0.0.1"
-	defaultRelayAdminPort      = 28301
-	defaultRelayAdminTraceName = "relay-server-admin"
-	defaultRelayAdminIdentity  = AuthIdentityNone
+	defaultRelayAdminBindIP           = "127.0.0.1"
+	defaultRelayAdminPort             = 28301
+	defaultRelayAdminTraceServiceName = "relay-server-admin"
+	defaultRelayAdminIdentity         = AuthIdentityNone
 
-	defaultRelayCallbackBindIP    = "127.0.0.1"
-	defaultRelayCallbackPort      = 28302
-	defaultRelayCallbackTraceName = "relay-server-callback"
-	defaultRelayCallbackIdentity  = AuthIdentityNone
+	defaultRelayCallbackBindIP           = "127.0.0.1"
+	defaultRelayCallbackPort             = 28302
+	defaultRelayCallbackTraceServiceName = "relay-server-callback"
+	defaultRelayCallbackIdentity         = AuthIdentityNone
 
-	defaultRelayDownloadBindIP    = "127.0.0.1"
-	defaultRelayDownloadPort      = 28303
-	defaultRelayDownloadTraceName = "relay-server-download"
-	defaultRelayDownloadIdentity  = AuthIdentityNone
+	defaultRelayDownloadBindIP           = "127.0.0.1"
+	defaultRelayDownloadPort             = 28303
+	defaultRelayDownloadTraceServiceName = "relay-server-download"
+	defaultRelayDownloadIdentity         = AuthIdentityNone
 
 	defaultRelayAdvertiseIPv4 = "127.0.0.1"
 	defaultRelayAdvertiseIPv6 = "::1"
@@ -80,34 +80,42 @@ func NewRelayService() *RelayService {
 			MessageLocalSocketPort:  0,
 		},
 		InfoServer: HTTPServer{
-			BindIP:        defaultRelayInfoBindIP,
-			Port:          defaultRelayInfoPort,
-			TraceName:     defaultRelayInfoTraceName,
+			BindIP: defaultRelayInfoBindIP,
+			Port:   defaultRelayInfoPort,
+			TraceService: TraceService{
+				TraceServiceName: defaultRelayInfoTraceServiceName,
+			},
 			AuthIdentity:  defaultRelayInfoIdentity,
 			AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 			AdvertiseIPV6: defaultRelayAdvertiseIPv6,
 		},
 		AdminServer: HTTPServer{
-			BindIP:        defaultRelayAdminBindIP,
-			Port:          defaultRelayAdminPort,
-			TraceName:     defaultRelayAdminTraceName,
+			BindIP: defaultRelayAdminBindIP,
+			Port:   defaultRelayAdminPort,
+			TraceService: TraceService{
+				TraceServiceName: defaultRelayAdminTraceServiceName,
+			},
 			AuthIdentity:  defaultRelayAdminIdentity,
 			AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 			AdvertiseIPV6: defaultRelayAdvertiseIPv6,
 		},
 		CallbackServer: CallbackServer{
 			HTTPServer{
-				BindIP:        defaultRelayCallbackBindIP,
-				Port:          defaultRelayCallbackPort,
-				TraceName:     defaultRelayCallbackTraceName,
+				BindIP: defaultRelayCallbackBindIP,
+				Port:   defaultRelayCallbackPort,
+				TraceService: TraceService{
+					TraceServiceName: defaultRelayCallbackTraceServiceName,
+				},
 				AuthIdentity:  defaultRelayCallbackIdentity,
 				AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 				AdvertiseIPV6: defaultRelayAdvertiseIPv6,
 			}},
 		DownloadServer: HTTPServer{
-			BindIP:        defaultRelayDownloadBindIP,
-			Port:          defaultRelayDownloadPort,
-			TraceName:     defaultRelayDownloadTraceName,
+			BindIP: defaultRelayDownloadBindIP,
+			Port:   defaultRelayDownloadPort,
+			TraceService: TraceService{
+				TraceServiceName: defaultRelayDownloadTraceServiceName,
+			},
 			AuthIdentity:  defaultRelayDownloadIdentity,
 			AdvertiseIPV4: defaultRelayAdvertiseIPv4,
 			AdvertiseIPV6: defaultRelayAdvertiseIPv6,

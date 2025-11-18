@@ -12,7 +12,7 @@ infoServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "file-server-info"
+  traceServiceName: "file-server-info"
   traceSampleRate: 0
 
 # adminServer defines self admin http server settings.
@@ -23,7 +23,7 @@ adminServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "file-server-admin"
+  traceServiceName: "file-server-admin"
   traceSampleRate: 0
 
   # defines the authentication mode, currently only rest-server and none is supported.
@@ -48,7 +48,7 @@ basicServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "file-server-basic"
+  traceServiceName: "file-server-basic"
   traceSampleRate: 0
 
   # defines the authentication mode, currently only rest-server and none is supported.
@@ -69,7 +69,7 @@ downloadServer:
 
   # advertiseIP advertise ip for external access.
   advertiseIPV4: __BK_NODEMGR_ADVERTISE_IPV4__
-  traceName: "file-server-download"
+  traceServiceName: "file-server-download"
   traceSampleRate: 0
 
 # repo defines the bkrepo related settings.
@@ -126,7 +126,7 @@ mongodb:
   authSource: admin
   authMechanism: SCRAM-SHA-256
   database: bk_nodemgr
-  traceName: "bk_nodemgr_mongo"
+  traceServiceName: "bk_nodemgr_mongo"
   traceSampleRate: 0
 
 # redis settings.
