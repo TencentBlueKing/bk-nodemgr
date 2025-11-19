@@ -239,6 +239,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 			Param: &NodeWorkflowOperationParam{
 				Operator:        op.Operator,
 				BkNetworkareaId: op.NetworkAreaID,
+				BkNetworkunitId: op.NetworkUnitID,
 				BkBizId:         op.BizID,
 				BkHostInner:     op.InnerIP,
 				BkHostInneripV6: op.InnerIPV6,

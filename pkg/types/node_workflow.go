@@ -216,6 +216,7 @@ func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 type NodeWorkflowListOperationResult struct {
 	NodeVersion     string
 	NetworkAreaID   int64
+	NetworkUnitID   int64
 	InnerIP         string
 	InnerIPV6       string
 	BizID           int64

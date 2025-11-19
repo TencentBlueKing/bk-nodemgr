@@ -635,6 +635,10 @@
           "type": "integer",
           "format": "int64"
         },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
         "bk_host_innerip": {
           "type": "string"
         },

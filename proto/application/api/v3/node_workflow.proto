@@ -106,11 +106,12 @@ message NodeWorkflowDistinctResp {
 
 message NodeWorkflowOperationParam {
   int64 bk_networkarea_id = 1;
-  string bk_host_inner = 2;
-  string bk_host_innerip_v6 = 3;
-  string node_version = 4;
-  int64 bk_biz_id = 5;
-  string operator = 6;
+  int64 bk_networkunit_id = 2;
+  string bk_host_inner = 3;
+  string bk_host_innerip_v6 = 4;
+  string node_version = 5;
+  int64 bk_biz_id = 6;
+  string operator = 7;
 }
 
 message NodeWorkflowOperation {

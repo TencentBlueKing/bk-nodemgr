@@ -122,11 +122,12 @@ message NodeWorkflowOperation {
   string operation_id = 1;
   repeated string instance_ids = 2;
   int64 bk_networkarea_id = 3;
-  string bk_host_innerip = 4;
-  string bk_host_innerip_v6 = 5;
-  string node_version = 6;
-  int64 bk_biz_id = 7;
-  string operator = 8;
+  int64 bk_networkunit_id = 4;
+  string bk_host_innerip = 5;
+  string bk_host_innerip_v6 = 6;
+  string node_version = 7;
+  int64 bk_biz_id = 8;
+  string operator = 9;
 }
 
 // NodeWorflowOperationInstance describes the node operation instance.

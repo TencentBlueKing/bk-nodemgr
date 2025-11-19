@@ -167,6 +167,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		result[idx] = &types.NodeWorkflowListOperationResult{
 			Operator:        param.Operator,
 			NetworkAreaID:   deployment.Host.Static.NetworkAreaID,
+			NetworkUnitID:   deployment.Host.Dynamic.NetworkUnitID,
 			InnerIP:         deployment.Host.Static.InnerIP,
 			InnerIPV6:       deployment.Host.Static.InnerIPV6,
 			BizID:           deployment.Host.Static.BizID,
