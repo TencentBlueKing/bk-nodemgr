@@ -6,7 +6,7 @@
       :before-close="handleBeforeClose"
       width="640"
     >
-      <div class="flex items-center w-full text-[14px] text-[#63656e] pt-[28px]" v-if="workareaId === 0 && isCreate">
+      <div class="flex items-center w-full text-[14px] text-[#63656e] pt-[28px]" v-if="isCreate">
         <div class="w-[130px] pr-[22px] text-right">管控单元类型</div>
         <Radio.Group v-model="type">
           <Radio label="not_direct">非直连</Radio>

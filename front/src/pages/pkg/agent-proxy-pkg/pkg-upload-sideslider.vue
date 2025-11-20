@@ -117,7 +117,7 @@ const submit = async () => {
     }
     Message({
       theme: 'success',
-      message: '发布成功！',
+      message: '发布成功',
     });
     isShow.value = false;
     emit('confirm');

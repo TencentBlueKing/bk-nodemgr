@@ -10,7 +10,8 @@ export const useMainStore = defineStore('mainStore', {
     agentSetupType: string;
     configEditData: ConfigPolicy | null;
     curLanguage: string;
-    routeState: Object
+    routeState: Object,
+    isLogRetry: Boolean,
   } => ({
     globalPageSize: 50, // 全局分页
     windowInnerHeight: 0,
@@ -21,6 +22,7 @@ export const useMainStore = defineStore('mainStore', {
     configEditData: null,
     curLanguage: 'zh-CN',
     routeState: {},
+    isLogRetry: false,
   }),
   actions: {
     // 更新全局分页
@@ -51,6 +53,9 @@ export const useMainStore = defineStore('mainStore', {
     },
     updateRouteState(routeState: {}) {
       this.routeState = routeState;
+    },
+    updateLogRetry(isRetry: Boolean) {
+      this.isLogRetry = isRetry;
     },
   },
 });

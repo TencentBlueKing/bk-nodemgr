@@ -214,11 +214,17 @@
                                   )
                                 }}</Radio>
                               </div>
+                              <div
+                                class="bg-[#F0F5FF] h-[32px] flex items-center pl-[16px]"
+                              >
+                                <Radio v-model="radioValue" label="normal">{{ t('正常安装') }}</Radio>
+                              </div>
                             </template>
                             <TableColumn
                               field="bk_host_innerip"
+                              fixed="left"
                               :title="t('platform.nodeMan.inner_ip')"
-                              min-width="200"
+                              min-width="220"
                             >
                               <template #default="{ row }">
                                 <Radio
@@ -519,7 +525,7 @@ const ensure = (row: AgentInstallInfo) => {
     row.elig_status === 'conflict_ip'
     || row.elig_status === 'duplicate_dynamic_ip'
   ) {
-    row.elig_status =      radioValue.value === 'cmdb'
+    row.elig_status = radioValue.value === 'cmdb'
       ? 'import_cmdb_and_normal_install'
       : 'normal_install';
   }
@@ -528,8 +534,8 @@ const ensure = (row: AgentInstallInfo) => {
     theme: 'success',
     message:
       radioValue.value === 'cmdb'
-        ? '该 Agent 已被手动确认为“全新安装并导入 CMDB'
-        : '该 Agent 已被手动确认为“正常安装',
+        ? '该 Agent 已被手动确认为“全新安装并导入 CMDB”'
+        : '该 Agent 已被手动确认为“正常安装”',
   });
 };
 const handleRemove = (row: AgentInstallInfo) => {
@@ -703,6 +709,7 @@ watch(
   () => isShow,
   async () => {
     if (isShow.value && props.data) {
+      radioValue.value = 'cmdb';
       originData.value = props.data.info.map(item => ({
         ...item,
         login_port: Number(item.login_port),

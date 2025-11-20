@@ -145,13 +145,15 @@
       ref="footerRef"
     >
       <Button
-        v-if="excelImportData.length && formData.info.length === 0"
+        v-if="activeInstallType === 'import'"
         class="w-[100px]"
         theme="primary"
+        :disabled="!excelImportData.length"
         @click="handleImport">
         {{ '导入' }}
       </Button>
       <Button
+        v-show="activeInstallType !== 'import' || excelImportData.length > 0"
         class="w-[100px]"
         theme="primary"
         :disabled="systemData.length === 0"

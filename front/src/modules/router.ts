@@ -7,6 +7,7 @@ import AgentImport from '@/pages/node/agent/import.vue';
 import AgentManager from '@/pages/node/agent/list.vue';
 import AgentSetup from '@/pages/node/agent/setup.vue';
 import TaskHistory from '@/pages/node/history/history.vue';
+import Log from '@/pages/node/history/log.vue';
 import TaskDetail from '@/pages/node/history/task-detail.vue';
 import NodeManager from '@/pages/node/index.vue';
 import PluginManager from '@/pages/node/plugin.vue';
@@ -102,6 +103,15 @@ const routes = setupLayouts([
             name: 'taskDetail',
             path: 'history/detail/:taskId',
             component: TaskDetail,
+            meta: {
+              mainMenu: 'nodeManager',
+              parentName: 'history',
+            },
+          },
+          {
+            name: 'log',
+            path: 'history/detail/:taskId/log/:ip',
+            component: Log,
             meta: {
               mainMenu: 'nodeManager',
               parentName: 'history',

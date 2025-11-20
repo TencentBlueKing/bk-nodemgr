@@ -25,19 +25,26 @@
           :popover-options="{
             clickContentAutoHide: true,
           }">
-          <Button :disabled="!failedSelection.length">全部失败重试</Button>
+          <Button :disabled="!failedSelection.length">
+            <span>批量重试</span>
+            <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
+          </Button>
           <template #content>
             <Dropdown.DropdownMenu ext-cls="dropDown-menu">
               <Dropdown.DropdownItem
                 class="text-14px"
                 v-for="item in reTryType"
                 :key="item.id"
+                v-bk-tooltips="{
+                  content: item.tooltip
+                }"
                 @click="handleFullRetry(item.id)">
                 {{ item.name }}
               </Dropdown.DropdownItem>
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown>
+        <Button :disabled="!runningSelection.length">批量终止</Button>
         <copy-ip-dropdown
           type="agent"
           :list="list"
@@ -127,11 +134,12 @@
           <TableColumn
             :title="'操作'"
             fixed="right"
-            width="150"
+            width="200"
           >
             <template #default="{ row }">
-              <div class="flex items-center">
-                <Button text theme="primary" class="mr-[11px]" @click="handleViewLog(row)">查看日志</Button>
+              <div class="flex items-center gap-[11px]">
+                <Button text theme="primary" @click="handleViewLog(row)">查看日志</Button>
+                <Button text theme="primary" :disabled="row.state !== 'running'">终止</Button>
                 <Dropdown
                   theme="light"
                   trigger="click"
@@ -139,7 +147,11 @@
                   :popover-options="{
                     clickContentAutoHide: true,
                   }">
-                  <Button text theme="primary" v-if="!['success', 'running'].includes(row.state)">
+                  <Button
+                    text
+                    theme="primary"
+                    v-if="!['success', 'running'].includes(row.state)"
+                    class="flex items-stretch">
                     <right-turn-line fill="#3A84FF" />
                     <span>重试</span>
                   </Button>
@@ -149,8 +161,14 @@
                         class="text-14px"
                         v-for="item in reTryType"
                         :key="item.id"
+                        v-bk-tooltips="{
+                          content: item.tooltip
+                        }"
                         @click="handleRetry(row, item.id)">
-                        {{ item.name }}
+                        <Button
+                          text
+                          :disabled="row.state === 'terminate' && item.id === 'PARTIAL'"
+                        >{{ item.name }}</Button>
                       </Dropdown.DropdownItem>
                     </Dropdown.DropdownMenu>
                   </template>
@@ -159,7 +177,6 @@
             </template>
           </TableColumn>
         </Table>
-        <Log :data="curRow" v-if="curRow" ref="logRef" @stop="handleStop"></Log>
       </div>
     </bk-loading>
   </div>
@@ -170,11 +187,9 @@ import { AngleUpFill, Close, RightTurnLine, Spinner, Success } from 'bkui-vue/li
 import dayjs from 'dayjs';
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
-
-import Log from './log.vue';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import useInterval from '@/composables/use-interval';
@@ -193,16 +208,19 @@ type filterProp = 'state' | 'node_version';
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const reTryType = [
   {
     id: 'full_node_instance_retry',
-    name: '全部重试',
+    name: '重新开始执行',
+    tooltip: '重新开始执行完整的任务',
   },
   {
     id: 'partial_node_instance_retry',
-    name: '部分重试',
+    name: '最近失败重试',
+    tooltip: '从最近失败的步骤开始重试',
   },
 ];
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
@@ -282,7 +300,7 @@ const formatTimeToMS = (duration = 0) => {
   const seconds = remainingSecondsAfterHours % 60;
 
   // 补零规则：非0且小于10时补零，0则直接显示0
-  const padIfNeeded = (num: number) => num === 0 ? '0' : num < 10 ? `0${num}` : num.toString();
+  const padIfNeeded = (num: number) => (num === 0 ? '0' : num < 10 ? `0${num}` : num.toString());
 
   // 构建结果
   const parts = [];
@@ -455,6 +473,7 @@ const list = [
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout'].includes(item.state)));
+const runningSelection = computed(() => selection.value.filter((item: any) => ['running'].includes(item.state)));
 const handleSelectChange = ({ checked, row }: {checked: boolean, row: any}) => {
   row.checked = checked;
 };
@@ -582,26 +601,31 @@ const getOperateList = async () => {
       ...item.status,
       bk_biz_name: currentRowData?.bk_biz_name || item.bk_biz_id,
       operation_id: item.operation_id,
-      reTryCount: item.instance_ids.length - 1,
+      reTryCount: item.instance_ids?.length ?  item.instance_ids?.length - 1 : 0,
     };
   });
-  const isEqual =
-    tableData.value.length === mapList.length &&
-    tableData.value.every((item, index) => item.state === mapList[index]?.state);
+  const isEqual = tableData.value.length === mapList.length
+    && tableData.value.every((item, index) => item.state === mapList[index]?.state);
 
   if (!isEqual) {
     tableData.value = mapList;
   }
-
 };
 const logRef = ref<InstanceType<typeof Log>>();
 const curRow = ref(null);
 const handleViewLog = async (row: any) => {
-  curOperationId.value = row.operation_id;
-  curRow.value = row;
-  nextTick(() => {
-    logRef.value?.show();
+  router.push({
+    name: 'log',
+    params: {
+      ip: row.bk_host_inner,
+      taskId: route.params.taskId,
+    },
   });
+  // curOperationId.value = row.operation_id;
+  // curRow.value = row;
+  // nextTick(() => {
+  //   logRef.value?.show();
+  // });
 };
 const { start, stop } = useInterval(getOperateList, 1000); // 轮询
 // 日志中执行失败或者任务详情表中都失败则更新详情的信息状态
@@ -624,6 +648,15 @@ watch(() => needInterval.value, async () => {
     start();
   }
 });
+
+// 日志页面点击重试触发此页面的list的数据轮询
+watch(() => mainStore.isLogRetry, (val: Boolean) => {
+  if (val) {
+    start();
+    mainStore.updateLogRetry(false);
+  }
+});
+
 onMounted(async () => {
   await updataCurrentTaskInfo();
   await getOperateList();

@@ -97,7 +97,7 @@ watch(() => props.data, () => {
     tableData.value = props.data?.platforms?.map((item: Platform) => {
       const fileName = props.data.name
         .replace('all', `${item.os_type}_${item.cpu_arch}`)
-        .replace('_origin', '')
+        .replace('origin_server', 'proxy')
         .replace(/\.tgz.*$/, '.tgz');
 
       return {

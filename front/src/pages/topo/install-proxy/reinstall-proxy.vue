@@ -399,7 +399,7 @@ const handleConfirm = async () => {
     if (!res) return;
     Message({
       theme: 'success',
-      message: 'proxy重装成功！',
+      message: '已发起proxy重装',
     });
     isShow.value = false;
     if (res.workflow_id) {

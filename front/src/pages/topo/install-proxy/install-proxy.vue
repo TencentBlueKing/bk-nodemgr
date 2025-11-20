@@ -590,7 +590,7 @@ const handleConfirm = async () => {
     if (!res) return;
     Message({
       theme: 'success',
-      message: 'proxy安装成功！',
+      message: '已发起proxy安装',
     });
     isShow.value = false;
     if (res.workflow_id) {
