@@ -127,7 +127,7 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 			ExactInclude: &types.HostExactFields{
 				NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
 				Addressing:    []types.Addressing{info.Host.Static.Addressing},
-				InnerIP:       []string{info.Host.Static.InnerIP},
+				InnerIP:       info.Host.Static.InnerIPList,
 			},
 		})
 		if err != nil {
@@ -136,8 +136,8 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 
 		if count > 1 {
 			return fmt.Errorf("more than one host found, contact the system administrator to check the host, "+
-				"networkarea_id(%d), addressing(%s), inner_ip(%s)",
-				info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
+				"networkarea_id(%d), addressing(%s), inner_ip(%v)",
+				info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIPList)
 		}
 
 		if len(hosts) == 0 {
@@ -161,7 +161,7 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 			HostID:        []int64{info.Host.HostID},
 			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
 			Addressing:    []types.Addressing{info.Host.Static.Addressing},
-			InnerIP:       []string{info.Host.Static.InnerIP},
+			InnerIP:       info.Host.Static.InnerIPList,
 		},
 	})
 	if err != nil {
@@ -170,8 +170,8 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 
 	if count == 0 {
 		return fmt.Errorf("no host found, contact the system administrator to check the host, "+
-			"host_id(%d), networkarea_id(%d), addressing(%s), inner_ip(%s)",
-			info.Host.HostID, info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIP)
+			"host_id(%d), networkarea_id(%d), addressing(%s), inner_ip(%v)",
+			info.Host.HostID, info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIPList)
 	}
 
 	return nil

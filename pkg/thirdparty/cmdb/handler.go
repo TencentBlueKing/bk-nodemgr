@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
@@ -779,6 +780,9 @@ func (h *Handler) ListServiceTemplate(ctx contextx.IContext, bizID int64, page t
 	return serviceTemplates, nil
 }
 
+// IPSeparator is the separator of inner and outer ip.
+const IPSeparator = ","
+
 // FindHostByServiceTemplate find host by service template.
 func (h *Handler) FindHostByServiceTemplate(ctx contextx.IContext, bizID int64, page types.Page,
 	serviceTemplateIDs ...int64) ([]*types.Host, error) {
@@ -823,10 +827,10 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 			CityID:        hostInfo.IdcCityID,
 			HostName:      hostInfo.BKHostName,
 			DeptName:      hostInfo.DeptName,
-			InnerIP:       hostInfo.BKHostInnerIPV4,
-			InnerIPV6:     hostInfo.BKHostInnerIPV6,
-			OuterIP:       hostInfo.BKHostOuterIPV4,
-			OuterIPV6:     hostInfo.BKHostOuterIPV6,
+			InnerIPList:   strings.Split(hostInfo.BKHostInnerIPV4, IPSeparator),
+			InnerIPV6List: strings.Split(hostInfo.BKHostInnerIPV6, IPSeparator),
+			OuterIPList:   strings.Split(hostInfo.BKHostOuterIPV4, IPSeparator),
+			OuterIPV6List: strings.Split(hostInfo.BKHostOuterIPV6, IPSeparator),
 			Operator:      hostInfo.Operator,
 			Mac:           hostInfo.BKMac,
 			CPUNum:        hostInfo.BKCpu,
@@ -846,10 +850,10 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 func (h *Handler) convCreateHostInfoFromTypes(host *types.Host) *CreateHostInfo {
 	return &CreateHostInfo{
 		BKCloudID:         host.Static.NetworkAreaID,
-		BKHostInnerIP:     host.Static.InnerIP,
-		BKHostInnerIPV6:   host.Static.InnerIPV6,
-		BKHostOuterIP:     host.Static.OuterIP,
-		BKHostOuterIPV6:   host.Static.OuterIPV6,
+		BKHostInnerIP:     strings.Join(host.Static.InnerIPList, IPSeparator),
+		BKHostInnerIPV6:   strings.Join(host.Static.InnerIPV6List, IPSeparator),
+		BKHostOuterIP:     strings.Join(host.Static.OuterIPList, IPSeparator),
+		BKHostOuterIPV6:   strings.Join(host.Static.OuterIPV6List, IPSeparator),
 		BKOSType:          h.osTypeKeeper.getKey(host.Static.OSType),
 		BKCpuArchitecture: h.cpuArchKeeper.getKey(host.Static.Arch),
 		BKAddressing:      string(host.Static.Addressing),

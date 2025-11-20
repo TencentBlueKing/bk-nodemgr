@@ -65,8 +65,16 @@ func (exec *extraExecution) Do(nCtx contextx.IContext, instance *operation.Insta
 		return fmt.Errorf("get node deployment info by token(%s) failed: %w", param.Token, err)
 	}
 
+	innerIP := func() string {
+		if len(info.Host.Static.InnerIPList) == 0 {
+			return ""
+		}
+
+		return info.Host.Static.InnerIPList[0]
+	}()
+
 	lockerName := GenLockerName(
-		info.Host.Static.NetworkAreaID, info.Host.Static.InnerIP, string(info.Host.Static.Addressing),
+		info.Host.Static.NetworkAreaID, innerIP, string(info.Host.Static.Addressing),
 	)
 
 	switch instance.Lifecycle.State {

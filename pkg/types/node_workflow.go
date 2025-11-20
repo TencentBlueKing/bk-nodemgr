@@ -217,8 +217,8 @@ type NodeWorkflowListOperationResult struct {
 	NodeVersion     string
 	NetworkAreaID   int64
 	NetworkUnitID   int64
-	InnerIP         string
-	InnerIPV6       string
+	InnerIPList     []string
+	InnerIPV6List   []string
 	BizID           int64
 	Operator        string
 	OperationID     string

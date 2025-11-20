@@ -12,7 +12,6 @@ package types
 
 import (
 	"errors"
-	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
@@ -302,18 +301,18 @@ type HostStatic struct {
 	CityID        string
 
 	// host information.
-	HostName   string
-	DeptName   string
-	InnerIP    string
-	InnerIPV6  string
-	OuterIP    string
-	OuterIPV6  string
-	Operator   string
-	Mac        string
-	OSTypeCCID string
-	OSType     string
-	Arch       string
-	Addressing Addressing
+	HostName      string
+	DeptName      string
+	InnerIPList   []string
+	InnerIPV6List []string
+	OuterIPList   []string
+	OuterIPV6List []string
+	Operator      string
+	Mac           string
+	OSTypeCCID    string
+	OSType        string
+	Arch          string
+	Addressing    Addressing
 
 	CPUNum float64
 	MemCap float64
@@ -323,25 +322,14 @@ type HostStatic struct {
 	SyncedAgentID string
 }
 
-// IPSeparator is the separator of inner and outer ip.
-const IPSeparator = ","
-
 // GetInnerIPList returns a list of inner ip.
 func (static *HostStatic) GetInnerIPList() []string {
-	if static.InnerIP == "" {
-		return []string{}
-	}
-
-	return strings.Split(static.InnerIP, IPSeparator)
+	return static.InnerIPList
 }
 
 // GetOuterIPList returns a list of outer ip.
 func (static *HostStatic) GetOuterIPList() []string {
-	if static.OuterIP == "" {
-		return []string{}
-	}
-
-	return strings.Split(static.OuterIP, IPSeparator)
+	return static.OuterIPList
 }
 
 // NodeRole represents a node role.

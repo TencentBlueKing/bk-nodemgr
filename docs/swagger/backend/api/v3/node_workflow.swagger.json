@@ -639,11 +639,17 @@
           "type": "integer",
           "format": "int64"
         },
-        "bk_host_innerip": {
-          "type": "string"
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
-        "bk_host_innerip_v6": {
-          "type": "string"
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "node_version": {
           "type": "string"

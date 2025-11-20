@@ -129,8 +129,8 @@ func (h *handler) generateInstallNodeDeployments(
 						Static: &types.HostStatic{
 							BizID:         reqHost.GetBkBizId(),
 							NetworkAreaID: networkUnit.NetworkAreaID,
-							InnerIP:       reqHost.GetBkHostInnerip(),
-							InnerIPV6:     reqHost.GetBkHostInneripV6(),
+							InnerIPList:   []string{reqHost.GetBkHostInnerip()},
+							InnerIPV6List: []string{reqHost.GetBkHostInneripV6()},
 							OSType:        reqHost.GetOsType(),
 							Addressing:    types.Addressing(reqHost.GetBkAddressing()),
 						},
@@ -226,7 +226,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 	case types.LoginModeKeyFile:
 		if keyfile == "" {
 			if host.Dynamic.LoginCreditID == "" {
-				err := fmt.Errorf("keyfile is empty and there is not login credit to use. host-id(%d), inner-ip(%s)", host.HostID, host.Static.InnerIP)
+				err := fmt.Errorf("keyfile is empty and there is not login credit to use. host-id(%d), inner-ip(%v)", host.HostID, host.Static.InnerIPList)
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to process host credit")
 
 				return err
@@ -253,7 +253,7 @@ func (h *handler) processHostCredit(nCtx contextx.IContext, host *types.Host, pa
 	case types.LoginModePassword:
 		if password == "" {
 			if host.Dynamic.LoginCreditID == "" {
-				err := fmt.Errorf("password is empty and there is not login credit to use. host-id(%d), inner-ip(%s)", host.HostID, host.Static.InnerIP)
+				err := fmt.Errorf("password is empty and there is not login credit to use. host-id(%d), inner-ip(%v)", host.HostID, host.Static.InnerIPList)
 				logger.G.Biz(nCtx).WithErr(err).Error("failed to process host credit")
 
 				return err

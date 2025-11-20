@@ -26,25 +26,25 @@ func TableName(tenantID string) string {
 // HostStatic represents a host static information.
 // nolint: revive
 type HostStatic struct {
-	BizID         int64   `json:"biz_id" bson:"biz_id"`
-	NetworkAreaID int64   `json:"networkarea_id" bson:"networkarea_id"`
-	HostName      string  `json:"host_name" bson:"host_name"`
-	DeptName      string  `json:"dept_name" bson:"dept_name"`
-	InnerIP       string  `json:"inner_ip" bson:"inner_ip"`
-	InnerIPV6     string  `json:"inner_ipv6" bson:"inner_ipv6"`
-	OuterIP       string  `json:"outer_ip" bson:"outer_ip"`
-	OuterIPV6     string  `json:"outer_ipv6" bson:"outer_ipv6"`
-	Mac           string  `json:"mac" bson:"mac"`
-	Operator      string  `json:"operator" bson:"operator"`
-	OSType        string  `json:"os_type" bson:"os_type"`
-	OSTypeCCID    string  `json:"os_type_ccid" bson:"os_type_ccid"`
-	Arch          string  `json:"arch" bson:"arch"`
-	Addressing    string  `json:"addressing" bson:"addressing"`
-	RegionID      string  `json:"region_id" bson:"region_id"`
-	CityID        string  `json:"city_id" bson:"city_id"`
-	SyncedAgentID string  `json:"synced_agent_id" bson:"synced_agent_id"`
-	CPUNum        float64 `json:"cpu_num" bson:"cpu_num"`
-	MemCap        float64 `json:"mem_cap" bson:"mem_cap"`
+	BizID         int64    `json:"biz_id" bson:"biz_id"`
+	NetworkAreaID int64    `json:"networkarea_id" bson:"networkarea_id"`
+	HostName      string   `json:"host_name" bson:"host_name"`
+	DeptName      string   `json:"dept_name" bson:"dept_name"`
+	InnerIPList   []string `json:"inner_ip_list" bson:"inner_ip_list"`
+	InnerIPV6List []string `json:"inner_ipv6_list" bson:"inner_ipv6_list"`
+	OuterIPList   []string `json:"outer_ip_list" bson:"outer_ip_list"`
+	OuterIPV6List []string `json:"outer_ipv6_list" bson:"outer_ipv6_list"`
+	Mac           string   `json:"mac" bson:"mac"`
+	Operator      string   `json:"operator" bson:"operator"`
+	OSType        string   `json:"os_type" bson:"os_type"`
+	OSTypeCCID    string   `json:"os_type_ccid" bson:"os_type_ccid"`
+	Arch          string   `json:"arch" bson:"arch"`
+	Addressing    string   `json:"addressing" bson:"addressing"`
+	RegionID      string   `json:"region_id" bson:"region_id"`
+	CityID        string   `json:"city_id" bson:"city_id"`
+	SyncedAgentID string   `json:"synced_agent_id" bson:"synced_agent_id"`
+	CPUNum        float64  `json:"cpu_num" bson:"cpu_num"`
+	MemCap        float64  `json:"mem_cap" bson:"mem_cap"`
 }
 
 // HostDynamic represents a host dynamic information.

@@ -45,7 +45,7 @@ type Info struct {
 	NetworkUnitID          int64           `json:"networkunit_id" bson:"networkunit_id"`
 	NetworkAreaID          int64           `json:"networkarea_id" bson:"networkarea_id"`
 	BizID                  int64           `json:"biz_id" bson:"biz_id"`
-	InnerIP                string          `json:"inner_ip" bson:"inner_ip"`
+	InnerIPList            []string        `json:"inner_ip_list" bson:"inner_ip_list"`
 	Addressing             string          `json:"addressing" bson:"addressing"`
 	ExportIP               string          `json:"export_ip" bson:"export_ip"`
 	AdvertiseIP            string          `json:"advertise_ip" bson:"advertise_ip"`

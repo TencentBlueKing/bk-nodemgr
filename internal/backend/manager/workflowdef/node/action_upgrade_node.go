@@ -173,7 +173,7 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
 		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
 		DownloadSvrAddr:  "http://" + downloadSvrEndpoint.GetIPV4Address(),
-		DeployToken:      param.Token,
+		DeployToken:      std.Token(),
 		OperInstID:       std.InstanceData().OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
 		BaseDeployDir:    deployConstant.BaseDeployDir,

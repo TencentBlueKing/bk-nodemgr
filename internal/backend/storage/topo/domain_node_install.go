@@ -25,7 +25,7 @@ func (s *Storage) getHostsByAreaAndInnerIP(nCtx contextx.IContext,
 	opts := make([]host.OptFn, 0)
 	opts = append(opts,
 		host.WithNetworkAreaID(networkAreaID),
-		host.WithStaticInnerIP(innerip),
+		host.WithStaticInnerIPList(innerip),
 	)
 
 	results, _, err := s.daoHost.List(nCtx, types.UnlimitedPage(), opts...)

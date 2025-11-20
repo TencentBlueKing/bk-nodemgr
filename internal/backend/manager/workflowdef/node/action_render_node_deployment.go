@@ -121,7 +121,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	}()
 
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
-	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(std.Context(), param.Token)
+	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(std.Context(), std.Token())
 	if err != nil {
 		return fmt.Errorf("get node conf failed: %w", err)
 	}
@@ -173,7 +173,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("render logic setting failed: %w", err)
 		}
 
-		logger.G.Sys().With("token", param.Token).Info("rendered logic setting")
+		logger.G.Sys().With("token", std.Token()).Info("rendered logic setting")
 
 		return nil
 	})
@@ -183,7 +183,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("render custom setting failed: %w", err)
 		}
 
-		logger.G.Sys().With("token", param.Token).Info("rendered custom setting")
+		logger.G.Sys().With("token", std.Token()).Info("rendered custom setting")
 
 		return nil
 	})
@@ -192,13 +192,13 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to render node install config: %w", err)
 	}
 
-	if err := act.storageNodeDeployment.SetNodeDeploymentNodeConf(std.Context(), param.Token, nodeConf); err != nil {
+	if err := act.storageNodeDeployment.SetNodeDeploymentNodeConf(std.Context(), std.Token(), nodeConf); err != nil {
 		return fmt.Errorf("set node conf failed: %w", err)
 	}
 
 	act.renderNodeDeploymentInfo(std.Context(), std.DeployInfo(), nodeConf)
 
-	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), param.Token, std.DeployInfo()); err != nil {
+	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), std.Token(), std.DeployInfo()); err != nil {
 		return fmt.Errorf("set node deployment info failed: %w", err)
 	}
 
@@ -354,7 +354,7 @@ const (
 )
 
 // renderLogicSetting load logic setting to the config presetting and custom setting .
-// nolint: nonamedreturns,funlen
+// nolint: nonamedreturns,funlen,gocognit
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeActionStandarder, nodeConf *types.NodeConf) error {
 	// this is a special case, when the deployment is reverted, the host id is not in the host table.
@@ -368,15 +368,18 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 		return fmt.Errorf("get deploy conf failed: %w", err)
 	}
 
-	advertiseIPV4 := strings.Split(std.DeployInfo().Host.Static.InnerIP, ",")[0]
-	advertiseIPV6 := strings.Split(std.DeployInfo().Host.Static.InnerIPV6, ",")[0]
-	advertiseIP := func() string {
-		if advertiseIPV4 != "" {
-			return advertiseIPV4
-		}
+	var advertiseIPV4, advertiseIPV6 string
+	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
+		advertiseIPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
+	}
+	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
+		advertiseIPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
+	}
 
-		return advertiseIPV6
-	}()
+	advertiseIP := advertiseIPV4
+	if advertiseIP == "" {
+		advertiseIP = advertiseIPV6
+	}
 
 	nodeConf.PreSetting[GseTemplateKeyRunMode] = std.DeployInfo().Host.Dynamic.NodeRole
 	nodeConf.PreSetting[GseTemplateKeyCloudID] = std.DeployInfo().Host.Static.NetworkAreaID

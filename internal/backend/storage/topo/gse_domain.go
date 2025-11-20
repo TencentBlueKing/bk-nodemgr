@@ -15,7 +15,6 @@ package topo
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -33,9 +32,7 @@ func (s *Storage) GetV4AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 	metric := s.metric().Start("get_v4_agent_access_endpoints")
 	defer metric.End(err)
 
-	if cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID, func(static *types.HostStatic) string {
-		return static.InnerIP
-	}); err != nil {
+	if cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID); err != nil {
 		return nil, nil, nil, err
 	}
 
@@ -50,9 +47,7 @@ func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 	metric := s.metric().Start("get_v6_agent_access_endpoints")
 	defer metric.End(err)
 
-	if cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID, func(static *types.HostStatic) string {
-		return static.InnerIPV6
-	}); err != nil {
+	if cluster, file, data, err = s.getAgentAccessEndpoints(nCtx, networkUnitID); err != nil {
 		return nil, nil, nil, err
 	}
 
@@ -61,7 +56,7 @@ func (s *Storage) GetV6AgentAccessEndpoints(nCtx contextx.IContext, networkUnitI
 
 // nolint: nonamedreturns
 func (s *Storage) getAgentAccessEndpoints(
-	nCtx contextx.IContext, networkUnitID int64, ipSelector func(static *types.HostStatic) string) (
+	nCtx contextx.IContext, networkUnitID int64) (
 	clusterEndpoints []string, fileEndpoints []string, dataEndpoints []string, err error) {
 
 	if nCtx == nil {
@@ -107,8 +102,7 @@ func (s *Storage) getAgentAccessEndpoints(
 	fileMap := make(map[string]struct{})
 	dataMap := make(map[string]struct{})
 	for _, host := range hosts {
-		ips := strings.Split(ipSelector(host.Static), ",")
-		for _, ip := range ips {
+		for _, ip := range host.Static.InnerIPList {
 			if host.Dynamic.ProxySupportCluster() {
 				clusterMap[fmt.Sprintf("%s:%d", ip, host.Dynamic.ProxyClusterPort)] = struct{}{}
 			}

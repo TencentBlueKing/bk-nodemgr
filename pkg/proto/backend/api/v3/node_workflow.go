@@ -221,15 +221,15 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 	items := make([]*NodeWorkflowOperation, 0, total)
 	for _, op := range result {
 		item := &NodeWorkflowOperation{
-			OperationId:     op.OperationID,
-			InstanceIds:     op.OperInstanceIDs,
-			BkNetworkareaId: op.NetworkAreaID,
-			BkNetworkunitId: op.NetworkUnitID,
-			BkBizId:         op.BizID,
-			BkHostInnerip:   op.InnerIP,
-			BkHostInneripV6: op.InnerIPV6,
-			NodeVersion:     op.NodeVersion,
-			Operator:        op.Operator,
+			OperationId:         op.OperationID,
+			InstanceIds:         op.OperInstanceIDs,
+			BkNetworkareaId:     op.NetworkAreaID,
+			BkNetworkunitId:     op.NetworkUnitID,
+			BkBizId:             op.BizID,
+			BkHostInneripList:   op.InnerIPList,
+			BkHostInneripV6List: op.InnerIPV6List,
+			NodeVersion:         op.NodeVersion,
+			Operator:            op.Operator,
 		}
 		items = append(items, item)
 	}
@@ -258,8 +258,8 @@ func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*ty
 			NetworkAreaID:   item.GetBkNetworkareaId(),
 			NetworkUnitID:   item.GetBkNetworkunitId(),
 			BizID:           item.GetBkBizId(),
-			InnerIP:         item.GetBkHostInnerip(),
-			InnerIPV6:       item.GetBkHostInneripV6(),
+			InnerIPList:     item.GetBkHostInneripList(),
+			InnerIPV6List:   item.GetBkHostInneripV6List(),
 			NodeVersion:     item.GetNodeVersion(),
 		}
 

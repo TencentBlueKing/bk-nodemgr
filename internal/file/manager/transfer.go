@@ -241,7 +241,7 @@ func (m *Manager) transferPkg(nCtx contextx.IContext, srcFilePath, dstDir string
 		return nil, errors.New("destination host is nil")
 	}
 
-	logger.G.Biz(nCtx).With("src-file", srcFilePath, "dest-dir", dstDir, "dest-host", dstHost.Static.InnerIP).Info("try to transfer package")
+	logger.G.Biz(nCtx).With("src-file", srcFilePath, "dest-dir", dstDir, "dest-host", dstHost.Static.InnerIPList).Info("try to transfer package")
 
 	sourceAgentID, err := m.getCurrentGSEEndpoint(nCtx)
 	if err != nil {

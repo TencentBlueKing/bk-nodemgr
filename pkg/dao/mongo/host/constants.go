@@ -28,17 +28,17 @@ const (
 	// FieldKeyStaticNetworkAreaID the static networkarea id field key.
 	FieldKeyStaticNetworkAreaID = "data.static.networkarea_id"
 
-	// FieldKeyStaticInnerIP the static inner ip field key.
-	FieldKeyStaticInnerIP = "data.static.inner_ip"
+	// FieldKeyStaticInnerIPList the static inner ip list field key.
+	FieldKeyStaticInnerIPList = "data.static.inner_ip_list"
 
-	// FieldKeyStaticInnerIPV6 the static inner ipv6 field key.
-	FieldKeyStaticInnerIPV6 = "data.static.inner_ipv6"
+	// FieldKeyStaticInnerIPV6List the static inner ipv6 list field key.
+	FieldKeyStaticInnerIPV6List = "data.static.inner_ipv6_list"
 
-	// FieldKeyStaticOuterIP the static outer ip field key.
-	FieldKeyStaticOuterIP = "data.static.outer_ip"
+	// FieldKeyStaticOuterIPList the static outer ip list field key.
+	FieldKeyStaticOuterIPList = "data.static.outer_ip_list"
 
-	// FieldKeyStaticOuterIpv6 the static outer ipv6 field key.
-	FieldKeyStaticOuterIpv6 = "data.static.outer_ipv6"
+	// FieldKeyStaticOuterIPV6List the static outer ipv6 list field key.
+	FieldKeyStaticOuterIPV6List = "data.static.outer_ipv6_list"
 
 	// FieldKeyStaticAddressing the static addressing field key.
 	FieldKeyStaticAddressing = "data.static.addressing"

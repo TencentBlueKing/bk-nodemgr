@@ -97,10 +97,10 @@ message HostInfo {
   optional int64 bk_networkunit_id = 3;
   optional string bk_host_name = 4;
   optional string dept_name = 5;
-  optional string bk_host_innerip = 6;
-  optional string bk_host_innerip_v6 = 7;
-  optional string bk_host_outerip = 8;
-  optional string bk_host_outerip_v6 = 9;
+  repeated string bk_host_innerip_list = 6;
+  repeated string bk_host_innerip_v6_list = 7;
+  repeated string bk_host_outerip_list = 8;
+  repeated string bk_host_outerip_v6_list = 9;
   optional string bk_mac = 10;
   optional string os_type = 11;
   optional string cpu_arch = 12;

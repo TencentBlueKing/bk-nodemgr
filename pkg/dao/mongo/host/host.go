@@ -52,9 +52,14 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	var indexes []mongo.IndexModel
-
-	return indexes
+	return []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyStaticInnerIPList, Value: 1}},
+		},
+		{
+			Keys: bson.D{{Key: FieldKeyStaticInnerIPV6List, Value: 1}},
+		},
+	}
 }
 
 // upsertMany upsert many hosts.

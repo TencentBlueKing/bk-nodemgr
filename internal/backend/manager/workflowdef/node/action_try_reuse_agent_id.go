@@ -126,7 +126,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		ExactInclude: &types.HostExactFields{
 			NetworkAreaID: []int64{std.DeployInfo().Host.Static.NetworkAreaID},
 			Addressing:    []types.Addressing{std.DeployInfo().Host.Static.Addressing},
-			InnerIP:       []string{std.DeployInfo().Host.Static.InnerIP},
+			InnerIP:       std.DeployInfo().Host.Static.InnerIPList,
 		},
 	})
 	if err != nil {

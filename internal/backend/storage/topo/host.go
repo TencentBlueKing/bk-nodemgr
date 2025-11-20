@@ -286,7 +286,7 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 				host.WithAgentID(condition.ExactInclude.AgentID...),
 				host.WithNodeGeneration(condition.ExactInclude.NodeGeneration...),
 				host.WithStaticAddressing(condition.ExactInclude.Addressing...),
-				host.WithStaticInnerIP(condition.ExactInclude.InnerIP...),
+				host.WithStaticInnerIPList(condition.ExactInclude.InnerIP...),
 			)
 		}
 
@@ -304,7 +304,7 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 				host.WithoutAgentID(condition.ExactExclude.AgentID...),
 				host.WithNodeGeneration(condition.ExactExclude.NodeGeneration...),
 				host.WithStaticAddressing(condition.ExactExclude.Addressing...),
-				host.WithStaticInnerIP(condition.ExactExclude.InnerIP...),
+				host.WithStaticInnerIPList(condition.ExactExclude.InnerIP...),
 			)
 		}
 
@@ -312,10 +312,10 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 			opts = append(opts,
 				host.WithFuzzyHostName(condition.FuzzyInclude.HostName...),
 				host.WithFuzzyDeptName(condition.FuzzyInclude.DeptName...),
-				host.WithFuzzyInnerIP(condition.FuzzyInclude.InnerIP...),
-				host.WithFuzzyInnerIPV6(condition.FuzzyInclude.InnerIPV6...),
-				host.WithFuzzyOuterIP(condition.FuzzyInclude.OuterIP...),
-				host.WithFuzzyOuterIPV6(condition.FuzzyInclude.OuterIPV6...),
+				host.WithFuzzyStaticInnerIPList(condition.FuzzyInclude.InnerIP...),
+				host.WithFuzzyStaticInnerIPV6List(condition.FuzzyInclude.InnerIPV6...),
+				host.WithFuzzyStaticOuterIPList(condition.FuzzyInclude.OuterIP...),
+				host.WithFuzzyStaticOuterIPV6List(condition.FuzzyInclude.OuterIPV6...),
 			)
 		}
 
@@ -323,10 +323,10 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 			opts = append(opts,
 				host.WithoutFuzzyHostName(condition.FuzzyExclude.HostName...),
 				host.WithoutFuzzyDeptName(condition.FuzzyExclude.DeptName...),
-				host.WithoutFuzzyInnerIP(condition.FuzzyExclude.InnerIP...),
-				host.WithoutFuzzyInnerIPV6(condition.FuzzyExclude.InnerIPV6...),
-				host.WithoutFuzzyOuterIP(condition.FuzzyExclude.OuterIP...),
-				host.WithoutFuzzyOuterIPV6(condition.FuzzyExclude.OuterIPV6...),
+				host.WithoutFuzzyStaticInnerIPList(condition.FuzzyExclude.InnerIP...),
+				host.WithoutFuzzyStaticInnerIPV6List(condition.FuzzyExclude.InnerIPV6...),
+				host.WithoutFuzzyStaticOuterIPList(condition.FuzzyExclude.OuterIP...),
+				host.WithoutFuzzyStaticOuterIPV6List(condition.FuzzyExclude.OuterIPV6...),
 			)
 		}
 	}

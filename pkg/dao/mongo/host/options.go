@@ -11,8 +11,6 @@
 package host
 
 import (
-	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -78,46 +76,6 @@ func WithFuzzyDeptName(deptNames ...string) OptFn {
 // WithoutFuzzyDeptName filters by not contains dept name.
 func WithoutFuzzyDeptName(deptNames ...string) OptFn {
 	return base.WithoutFuzzyValues(FieldKeyStaticDeptName, deptNames...)
-}
-
-// WithFuzzyInnerIP filters by inner ip.
-func WithFuzzyInnerIP(innerIPs ...string) OptFn {
-	return base.WithFuzzyValues(FieldKeyStaticInnerIP, innerIPs...)
-}
-
-// WithoutFuzzyInnerIP filters by not contains inner ip.
-func WithoutFuzzyInnerIP(innerIPs ...string) OptFn {
-	return base.WithoutFuzzyValues(FieldKeyStaticInnerIP, innerIPs...)
-}
-
-// WithFuzzyInnerIPV6 filters by inner ipv6.
-func WithFuzzyInnerIPV6(innerIPV6s ...string) OptFn {
-	return base.WithFuzzyValues(FieldKeyStaticInnerIPV6, innerIPV6s...)
-}
-
-// WithoutFuzzyInnerIPV6 filters by not contains inner ip.
-func WithoutFuzzyInnerIPV6(innerIPV6s ...string) OptFn {
-	return base.WithoutFuzzyValues(FieldKeyStaticInnerIPV6, innerIPV6s...)
-}
-
-// WithFuzzyOuterIP filters by outer ip.
-func WithFuzzyOuterIP(outerIps ...string) OptFn {
-	return base.WithFuzzyValues(FieldKeyStaticOuterIP, outerIps...)
-}
-
-// WithoutFuzzyOuterIP filters by not contains outer ip.
-func WithoutFuzzyOuterIP(outerIps ...string) OptFn {
-	return base.WithoutFuzzyValues(FieldKeyStaticOuterIP, outerIps...)
-}
-
-// WithFuzzyOuterIPV6 filters by outer ip.
-func WithFuzzyOuterIPV6(outerIPV6s ...string) OptFn {
-	return base.WithFuzzyValues(FieldKeyStaticOuterIpv6, outerIPV6s...)
-}
-
-// WithoutFuzzyOuterIPV6 filters by not contains outer ip.
-func WithoutFuzzyOuterIPV6(outerIPV6s ...string) OptFn {
-	return base.WithoutFuzzyValues(FieldKeyStaticOuterIpv6, outerIPV6s...)
 }
 
 // WithOSType filters by os type.
@@ -225,24 +183,64 @@ func WithStaticAddressing(addressings ...types.Addressing) OptFn {
 	return base.WithValues(FieldKeyStaticAddressing, strs...)
 }
 
-// WithStaticInnerIP filters by contains inner ip.
-func WithStaticInnerIP(ips ...string) OptFn {
-	regexs := make([]string, len(ips))
-	for idx, ip := range ips {
-		regexs[idx] = fmt.Sprintf("(^|,)%s($|,)", ip)
-	}
-
-	return base.WithRegexMatch(FieldKeyStaticInnerIP, regexs...)
+// WithStaticInnerIPList filters by contains inner ip list.
+func WithStaticInnerIPList(ips ...string) OptFn {
+	return base.WithValues(FieldKeyStaticInnerIPList, ips...)
 }
 
-// WithStaticInnerIPV6 filters by contains inner ipv6.
-func WithStaticInnerIPV6(ips ...string) OptFn {
-	regexs := make([]string, len(ips))
-	for idx, ip := range ips {
-		regexs[idx] = fmt.Sprintf("(^|,)%s($|,)", ip)
-	}
+// WithFuzzyStaticInnerIPList filters by contains inner ip.
+func WithFuzzyStaticInnerIPList(ips ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyStaticInnerIPList, ips...)
+}
 
-	return base.WithRegexMatch(FieldKeyStaticInnerIPV6, regexs...)
+// WithoutFuzzyStaticInnerIPList filters by not contains inner ip list.
+func WithoutFuzzyStaticInnerIPList(ips ...string) OptFn {
+	return base.WithoutFuzzyValues(FieldKeyStaticInnerIPList, ips...)
+}
+
+// WithoutFuzzyStaticInnerIPV6List filters by not contains inner ip v6 list.
+func WithoutFuzzyStaticInnerIPV6List(ips ...string) OptFn {
+	return base.WithoutFuzzyValues(FieldKeyStaticInnerIPV6List, ips...)
+}
+
+// WithStaticInnerIPV6List filters by contains inner ip v6 list.
+func WithStaticInnerIPV6List(ips ...string) OptFn {
+	return base.WithValues(FieldKeyStaticInnerIPV6List, ips...)
+}
+
+// WithFuzzyStaticInnerIPV6List filters by contains inner ip v6 list.
+func WithFuzzyStaticInnerIPV6List(ips ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyStaticInnerIPV6List, ips...)
+}
+
+// WithStaticOuterIPList filters by contains outer ip list.
+func WithStaticOuterIPList(ips ...string) OptFn {
+	return base.WithValues(FieldKeyStaticOuterIPList, ips...)
+}
+
+// WithFuzzyStaticOuterIPList filters by contains outer ip v6 list.
+func WithFuzzyStaticOuterIPList(ips ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyStaticOuterIPList, ips...)
+}
+
+// WithStaticOuterIPV6List filters by contains outer ip v6 list.
+func WithStaticOuterIPV6List(ips ...string) OptFn {
+	return base.WithValues(FieldKeyStaticOuterIPV6List, ips...)
+}
+
+// WithFuzzyStaticOuterIPV6List filters by contains outer ip v6 list.
+func WithFuzzyStaticOuterIPV6List(ips ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyStaticOuterIPV6List, ips...)
+}
+
+// WithoutFuzzyStaticOuterIPList filters by not contains outer ip list.
+func WithoutFuzzyStaticOuterIPList(ips ...string) OptFn {
+	return base.WithoutFuzzyValues(FieldKeyStaticOuterIPList, ips...)
+}
+
+// WithoutFuzzyStaticOuterIPV6List filters by not contains outer ip v6 list.
+func WithoutFuzzyStaticOuterIPV6List(ips ...string) OptFn {
+	return base.WithoutFuzzyValues(FieldKeyStaticOuterIPV6List, ips...)
 }
 
 // WithoutAgentID filters by not contains agent id.

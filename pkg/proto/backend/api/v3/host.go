@@ -62,10 +62,10 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.Info.BkNetworkunitId = host.Dynamic.NetworkUnitID
 		*item.Info.BkHostName = host.Static.HostName
 		*item.Info.DeptName = host.Static.DeptName
-		*item.Info.BkHostInnerip = host.Static.InnerIP
-		*item.Info.BkHostInneripV6 = host.Static.InnerIPV6
-		*item.Info.BkHostOuterip = host.Static.OuterIP
-		*item.Info.BkHostOuteripV6 = host.Static.OuterIPV6
+		item.Info.BkHostInneripList = host.Static.InnerIPList
+		item.Info.BkHostInneripV6List = host.Static.InnerIPV6List
+		item.Info.BkHostOuteripList = host.Static.OuterIPList
+		item.Info.BkHostOuteripV6List = host.Static.OuterIPV6List
 		*item.Info.BkMac = host.Static.Mac
 		*item.Info.OsType = host.Static.OSType
 		if host.Dynamic.NodeOsType.Validate() != nil && host.Dynamic.NodeOsType != criteria.OSUnknown {
@@ -128,10 +128,10 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			NetworkAreaID: info.GetBkNetworkareaId(),
 			HostName:      info.GetBkHostName(),
 			DeptName:      info.GetDeptName(),
-			InnerIP:       info.GetBkHostInnerip(),
-			InnerIPV6:     info.GetBkHostInneripV6(),
-			OuterIP:       info.GetBkHostOuterip(),
-			OuterIPV6:     info.GetBkHostOuteripV6(),
+			InnerIPList:   info.GetBkHostInneripList(),
+			InnerIPV6List: info.GetBkHostInneripV6List(),
+			OuterIPList:   info.GetBkHostOuteripList(),
+			OuterIPV6List: info.GetBkHostOuteripV6List(),
 			Mac:           info.GetBkMac(),
 			OSType:        info.GetOsType(),
 		}
@@ -274,25 +274,25 @@ func newEmptyHost() *Host {
 		TenantId: new(string),
 		BkHostId: new(int64),
 		Info: &HostInfo{
-			BkBizId:          new(int64),
-			BkNetworkareaId:  new(int64),
-			BkNetworkunitId:  new(int64),
-			BkHostName:       new(string),
-			DeptName:         new(string),
-			BkHostInnerip:    new(string),
-			BkHostInneripV6:  new(string),
-			BkHostOuterip:    new(string),
-			BkHostOuteripV6:  new(string),
-			BkMac:            new(string),
-			OsType:           new(string),
-			CpuArch:          new(string),
-			LoginIp:          new(string),
-			LoginPort:        new(int64),
-			LoginUser:        new(string),
-			LoginMode:        new(string),
-			LoginCreditValid: new(bool),
-			ExportIp:         new(string),
-			AdvertiseIp:      new(string),
+			BkBizId:             new(int64),
+			BkNetworkareaId:     new(int64),
+			BkNetworkunitId:     new(int64),
+			BkHostName:          new(string),
+			DeptName:            new(string),
+			BkHostInneripList:   make([]string, 0),
+			BkHostInneripV6List: make([]string, 0),
+			BkHostOuteripList:   make([]string, 0),
+			BkHostOuteripV6List: make([]string, 0),
+			BkMac:               new(string),
+			OsType:              new(string),
+			CpuArch:             new(string),
+			LoginIp:             new(string),
+			LoginPort:           new(int64),
+			LoginUser:           new(string),
+			LoginMode:           new(string),
+			LoginCreditValid:    new(bool),
+			ExportIp:            new(string),
+			AdvertiseIp:         new(string),
 		},
 		State: &HostState{
 			NodeRole:       new(string),

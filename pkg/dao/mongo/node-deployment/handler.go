@@ -82,7 +82,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			Static: &types.HostStatic{
 				BizID:         info.BizID,
 				NetworkAreaID: info.NetworkAreaID,
-				InnerIP:       info.InnerIP,
+				InnerIPList:   info.InnerIPList,
 				OSType:        info.OSType,
 				Addressing:    types.Addressing(info.Addressing),
 			},
@@ -313,7 +313,7 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		NetworkUnitID:  info.Host.Dynamic.NetworkUnitID,
 		NetworkAreaID:  info.Host.Static.NetworkAreaID,
 		BizID:          info.Host.Static.BizID,
-		InnerIP:        info.Host.Static.InnerIP,
+		InnerIPList:    info.Host.Static.InnerIPList,
 		Addressing:     string(info.Host.Static.Addressing),
 		ExportIP:       info.Host.Dynamic.ExportIP,
 		AdvertiseIP:    info.Host.Dynamic.AdvertiseIP,

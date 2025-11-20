@@ -161,7 +161,7 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) error {
 		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
 		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
 		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
-		DeployToken:      param.Token,
+		DeployToken:      std.Token(),
 		OperInstID:       std.InstanceData().OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,
 		BaseDeployDir:    deployConstant.BaseDeployDir,

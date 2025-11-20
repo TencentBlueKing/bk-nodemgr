@@ -100,7 +100,7 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(nCtx contextx.IContext, i
 		hosts, _, err := s.daoHost.List(nCtx,
 			types.UnlimitedPage(),
 			host.WithNetworkAreaID(globalNetworkAreaID),
-			host.WithStaticInnerIP(ipv4))
+			host.WithStaticInnerIPList(ipv4))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list hosts by ipv4(%s), networkarea(%d): %w",
 				ipv4, globalNetworkAreaID, err)
@@ -121,7 +121,7 @@ func (s *Storage) GetDirectNetworkAreaHostByAnyInnerIP(nCtx contextx.IContext, i
 		hosts, _, err := s.daoHost.List(nCtx,
 			types.UnlimitedPage(),
 			host.WithNetworkAreaID(globalNetworkAreaID),
-			host.WithStaticInnerIPV6(ipv6))
+			host.WithStaticInnerIPV6List(ipv6))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list hosts by ipv6(%s), networkarea(%d): %w",
 				ipv6, globalNetworkAreaID, err)

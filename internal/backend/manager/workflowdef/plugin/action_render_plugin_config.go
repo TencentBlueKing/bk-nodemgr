@@ -54,25 +54,25 @@ const (
 	keyBkHostID      = "bk_host_id"
 	keyOsType        = "os_type"
 	keyCPUArch       = "cpu_arch"
-	keyInnerIP       = "inner_ip"
-	keyOuterIP       = "outer_ip"
+	keyInnerIPList   = "inner_ip_list"
+	keyOuterIPList   = "outer_ip_list"
 	keyLoginIP       = "login_ip"
 	keyGlobal        = "global"
 
-	keyBkBizID           = "bk_biz_id"
-	keyBkHostName        = "bk_host_name"
-	keyBkAddressing      = "bk_addressing"
-	keyBkCloudID         = "bk_cloud_id"
-	keyBkCloudName       = "bk_cloud_name"
-	keyBkHostInnerIP     = "bk_host_innerip"
-	keyBkHostOuterIP     = "bk_host_outerip"
-	keyBkHostInnerIPv6   = "bk_host_innerip_v6"
-	keyBkHostOuterIPv6   = "bk_host_outerip_v6"
-	keyBkOSType          = "bk_os_type"
-	keyBkAgentID         = "bk_agent_id"
-	keyBkCPUArchitecture = "bk_cpu_architecture"
-	keyBkCPU             = "bk_cpu"
-	keyBkMem             = "bk_mem"
+	keyBkBizID             = "bk_biz_id"
+	keyBkHostName          = "bk_host_name"
+	keyBkAddressing        = "bk_addressing"
+	keyBkCloudID           = "bk_cloud_id"
+	keyBkCloudName         = "bk_cloud_name"
+	keyBkHostInnerIPList   = "bk_host_innerip_list"
+	keyBkHostOuterIPList   = "bk_host_outerip_list"
+	keyBkHostInnerIPv6List = "bk_host_innerip_v6_list"
+	keyBkHostOuterIPv6List = "bk_host_outerip_v6_list"
+	keyBkOSType            = "bk_os_type"
+	keyBkAgentID           = "bk_agent_id"
+	keyBkCPUArchitecture   = "bk_cpu_architecture"
+	keyBkCPU               = "bk_cpu"
+	keyBkMem               = "bk_mem"
 
 	keyPluginIPC    = "pluginipc"
 	keyDataIPC      = "dataipc"
@@ -294,12 +294,12 @@ func (act *actionRenderPluginConfig) getNodeContext(info *types.PluginDeployment
 
 	nodeContext := map[string]any{
 		keyHost: map[string]any{
-			keyBkHostID: hostInfo.HostID,
-			keyOsType:   hostInfo.Dynamic.NodeOsType,
-			keyCPUArch:  hostInfo.Dynamic.NodeCPUArch,
-			keyInnerIP:  hostInfo.Static.InnerIP,
-			keyOuterIP:  hostInfo.Static.OuterIP,
-			keyLoginIP:  hostInfo.Dynamic.LoginIP,
+			keyBkHostID:    hostInfo.HostID,
+			keyOsType:      hostInfo.Dynamic.NodeOsType,
+			keyCPUArch:     hostInfo.Dynamic.NodeCPUArch,
+			keyInnerIPList: hostInfo.Static.InnerIPList,
+			keyOuterIPList: hostInfo.Static.OuterIPList,
+			keyLoginIP:     hostInfo.Dynamic.LoginIP,
 		},
 		keyIsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
 		keyConstants:     map[string]any{},
@@ -330,21 +330,21 @@ func (act *actionRenderPluginConfig) getCMDBInstance(nCtx contextx.IContext, hos
 
 	return map[string]any{
 		keyHost: map[string]any{
-			keyBkBizID:           hostInfo.Static.BizID,
-			keyBkHostID:          hostInfo.HostID,
-			keyBkOSType:          hostInfo.Static.OSTypeCCID,
-			keyBkAgentID:         hostInfo.Static.SyncedAgentID,
-			keyBkCloudID:         hostInfo.Static.NetworkAreaID,
-			keyBkCloudName:       networkArea.Name,
-			keyBkHostName:        hostInfo.Static.HostName,
-			keyBkAddressing:      hostInfo.Static.Addressing,
-			keyBkHostInnerIP:     hostInfo.Static.InnerIP,
-			keyBkHostOuterIP:     hostInfo.Static.OuterIP,
-			keyBkHostInnerIPv6:   hostInfo.Static.InnerIPV6,
-			keyBkHostOuterIPv6:   hostInfo.Static.OuterIPV6,
-			keyBkCPUArchitecture: hostInfo.Static.Arch,
-			keyBkCPU:             hostInfo.Static.CPUNum,
-			keyBkMem:             hostInfo.Static.MemCap,
+			keyBkBizID:             hostInfo.Static.BizID,
+			keyBkHostID:            hostInfo.HostID,
+			keyBkOSType:            hostInfo.Static.OSTypeCCID,
+			keyBkAgentID:           hostInfo.Static.SyncedAgentID,
+			keyBkCloudID:           hostInfo.Static.NetworkAreaID,
+			keyBkCloudName:         networkArea.Name,
+			keyBkHostName:          hostInfo.Static.HostName,
+			keyBkAddressing:        hostInfo.Static.Addressing,
+			keyBkHostInnerIPList:   hostInfo.Static.InnerIPList,
+			keyBkHostOuterIPList:   hostInfo.Static.OuterIPList,
+			keyBkHostInnerIPv6List: hostInfo.Static.InnerIPV6List,
+			keyBkHostOuterIPv6List: hostInfo.Static.OuterIPV6List,
+			keyBkCPUArchitecture:   hostInfo.Static.Arch,
+			keyBkCPU:               hostInfo.Static.CPUNum,
+			keyBkMem:               hostInfo.Static.MemCap,
 		},
 	}, nil
 }

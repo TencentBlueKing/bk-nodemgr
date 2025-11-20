@@ -163,10 +163,18 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	// nolint: gosec
 	relayHost := dedicatedHosts[rand.Intn(len(dedicatedHosts))]
 
+	innerIP := func() string {
+		if len(relayHost.Static.InnerIPList) == 0 {
+			return ""
+		}
+
+		return relayHost.Static.InnerIPList[0]
+	}()
+
 	return types.RelayInfo{
 		HostID:          relayHost.HostID,
 		AgentID:         relayHost.Dynamic.AgentID,
-		InnerIP:         relayHost.Static.InnerIP,
+		InnerIP:         innerIP,
 		DownloadSvcPort: relayHost.Dynamic.RelayDownloadPort,
 		CallbackSvcPort: relayHost.Dynamic.RelayCallbackPort,
 	}, nil

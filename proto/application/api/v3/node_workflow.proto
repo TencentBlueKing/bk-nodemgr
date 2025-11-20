@@ -107,8 +107,8 @@ message NodeWorkflowDistinctResp {
 message NodeWorkflowOperationParam {
   int64 bk_networkarea_id = 1;
   int64 bk_networkunit_id = 2;
-  string bk_host_inner = 3;
-  string bk_host_innerip_v6 = 4;
+  repeated string bk_host_inner_list = 3;
+  repeated string bk_host_innerip_v6_list = 4;
   string node_version = 5;
   int64 bk_biz_id = 6;
   string operator = 7;
