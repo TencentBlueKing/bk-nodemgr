@@ -1,13 +1,20 @@
 # contextx
 
 ## 设计意图
-
-本包提供全局唯一的通用Context, 任何跨大范围流通的Context都必须用此包内的定义和实现.
+提供全局统一的上下文管理，解决跨服务和模块的上下文传播、身份标识和追踪信息统一管理问题。
 
 ## 功能边界
-1. 若是某个特定场景中有私有流通的Context, 可以自行定义自己的上下文, 如restserver
-2. message_id: 特定业务逻辑内的唯一标识, 如从外部请求进来的数据, 其message_id为request_id, 而在workflow中的数据, 其message_id为operinst_id+action_name
-3. tracing_id: 横跨多个区块的追溯键
+1. 此包负责：统一上下文接口定义、核心业务字段管理、OpenTelemetry 追踪集成
+2. 此包不负责：特定业务逻辑的上下文实现、持久化存储管理
 
-## 概念解释
-1. New和From的都是从一个context生成一个新的context(copy), 区别在于New是从golang原生的Context生成, From是从一个已存在的IContext生成.
+## 设计考量
+基于 Go 标准 context 扩展，通过接口抽象实现统一管理，集成 OpenTelemetry 实现分布式追踪，确保上下文在跨服务调用中的一致性。
+
+## 使用限制
+1. 上下文创建必须通过 New 或 From 方法，避免直接构造
+2. 核心字段（tenant_id、bk_username、message_id）的校验需要显式调用 Check 方法
+3. WithoutCancel 用于异步场景确保上下文不被父级取消影响
+
+## 演进方向
+1. 支持更多业务字段的自动校验和转换
+2. 增强上下文序列化和反序列化能力

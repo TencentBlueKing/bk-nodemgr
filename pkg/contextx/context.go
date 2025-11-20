@@ -13,7 +13,6 @@ package contextx
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -24,129 +23,129 @@ var _ IContext = &Context{}
 
 // Context defines the context of the nodemgr.
 type Context struct {
+	_ struct{}
+
 	ctx context.Context
 
-	values map[string]any
+	info IContextInfo
+}
 
-	tenantID   string
-	bkUsername string
-	loginName  string
-	messageID  string
+// MessageID implement IContext.
+func (c *Context) MessageID() string {
+	return c.info.MessageID()
+}
+
+// CheckMessageID implement IContext.
+func (c *Context) CheckMessageID() error {
+	return c.info.CheckMessageID()
 }
 
 // Deadline implement IContext.
-func (c Context) Deadline() (time.Time, bool) {
+func (c *Context) Deadline() (time.Time, bool) {
 	return c.ctx.Deadline()
 }
 
 // Done implement IContext.
-func (c Context) Done() <-chan struct{} {
+func (c *Context) Done() <-chan struct{} {
 	return c.ctx.Done()
 }
 
 // Err implement IContext.
-func (c Context) Err() error {
+func (c *Context) Err() error {
 	return c.ctx.Err()
 }
 
 // Value implement IContext.
-func (c Context) Value(key any) any {
-	strKey, ok := key.(string)
-	if ok {
-		if val, exists := c.values[strKey]; exists {
-			return val
-		}
+func (c *Context) Value(key any) any {
+	value, ok := c.info.GetValue(key)
+	if !ok {
+		return c.ctx.Value(key)
 	}
 
-	return c.ctx.Value(key)
+	return value
 }
 
 // Values implement IContext.
-func (c Context) Values() map[string]any {
-	return c.values
+func (c *Context) Values() map[string]any {
+	return c.info.Values()
 }
 
-// TenantID get tenant-id from values.
-func (c Context) TenantID() string {
-	return c.tenantID
+// TenantID implement IContext.
+func (c *Context) TenantID() string {
+	return c.info.TenantID()
 }
 
-// CheckTenantID check tenant-id.
-func (c Context) CheckTenantID() error {
-	if c.tenantID == "" {
-		return errors.New("tenant-id not found")
-	}
-
-	return nil
+// CheckTenantID implement IContext.
+func (c *Context) CheckTenantID() error {
+	return c.info.CheckTenantID()
 }
 
-// BKUsername get bk-username from values.
-func (c Context) BKUsername() string {
-	return c.bkUsername
+// BKUsername implement IContext.
+func (c *Context) BKUsername() string {
+	return c.info.BKUsername()
 }
 
-// CheckBKUsername valcheckidate bk-username.
-func (c Context) CheckBKUsername() error {
-	if c.bkUsername == "" {
-		return errors.New("bk-username not found")
-	}
-
-	return nil
+// CheckBKUsername implement IContext.
+func (c *Context) CheckBKUsername() error {
+	return c.info.CheckBKUsername()
 }
 
-// LoginName get login-name from values.
-func (c Context) LoginName() string {
-	return c.loginName
+// LoginName implement IContext.
+func (c *Context) LoginName() string {
+	return c.info.LoginName()
 }
 
-// CheckLoginName valcheckidate login-name.
-func (c Context) CheckLoginName() error {
-	if c.loginName == "" {
-		return errors.New("login-name not found")
-	}
-
-	return nil
-}
-
-// MessageID get message-id from values.
-func (c Context) MessageID() string {
-	return c.messageID
-}
-
-// CheckMessageID check message-id.
-func (c Context) CheckMessageID() error {
-	if c.messageID == "" {
-		return errors.New("message-id not found")
-	}
-
-	return nil
+// CheckLoginName implement IContext.
+func (c *Context) CheckLoginName() error {
+	return c.info.CheckLoginName()
 }
 
 // New new a context.
-func New(ctx context.Context, opts ...Opts) *Context {
-	r := &Context{
-		ctx:    ctx,
-		values: make(map[string]any),
+func New(ctx context.Context, opts ...InfoOpts) *Context {
+	info := Info{}
+	if oldInfo := asInfo(ctx); oldInfo != nil {
+		if cloned, ok := oldInfo.(*Info); ok {
+			info = *cloned
+		} else {
+			info = Info{
+				values:     oldInfo.Values(),
+				tenantID:   oldInfo.TenantID(),
+				bkUsername: oldInfo.BKUsername(),
+				loginName:  oldInfo.LoginName(),
+				messageID:  oldInfo.MessageID(),
+			}
+		}
+	} else {
+		info.values = make(map[string]any)
 	}
 
 	for _, opt := range opts {
-		opt(r)
+		opt(&info)
 	}
 
+	return newWithInfo(ctx, &info)
+}
+
+func newWithInfo(ctx context.Context, info IContextInfo) *Context {
 	span := trace.SpanFromContext(ctx)
 	span.SetAttributes(
-		attribute.String("bk_nodemgr.tenant_id", r.tenantID),
-		attribute.String("bk_nodemgr.bk_username", r.bkUsername),
-		attribute.String("bk_nodemgr.login_name", r.loginName),
-		attribute.String("bk_nodemgr.message_id", r.messageID),
+		attribute.String(attributeKeyTenantID, info.TenantID()),
+		attribute.String(attributeKeyBKUsername, info.BKUsername()),
+		attribute.String(attributeKeyLoginName, info.LoginName()),
+		attribute.String(attributeKeyMessageID, info.MessageID()),
 	)
 
-	return r
+	nCtx := &Context{
+		ctx:  context.WithValue(ctx, nCtxInfoKey, info),
+		info: info,
+	}
+
+	return nCtx
 }
 
 // From with context.
-func From(nCtx IContext, opts ...Opts) *Context {
-	newOpts := []Opts{
+func From(nCtx IContext, opts ...InfoOpts) *Context {
+	newOpts := []InfoOpts{
 		WithTenantID(nCtx.TenantID()),
 		WithBKUsername(nCtx.BKUsername()),
 		WithLoginName(nCtx.LoginName()),
@@ -176,47 +175,97 @@ func WithTimeout(nCtx IContext, timeout time.Duration) (IContext, context.Cancel
 	return New(ctxWithC, WithValues(nCtx.Values())), cancel
 }
 
-// Opts describes the context assignment options.
-type Opts func(*Context)
+// WithoutCancel this is the same as context.WithoutCancel.
+func WithoutCancel(nCtx IContext) IContext {
+	if nCtx == nil {
+		return Background()
+	}
+
+	ctxWithoutC := context.WithoutCancel(nCtx)
+
+	return FromContext(ctxWithoutC)
+}
+
+// InfoOpts describes the context assignment options.
+type InfoOpts func(*Info)
 
 // WithTenantID assign tenant-id.
-func WithTenantID(tenantID string) Opts {
-	return func(c *Context) {
-		c.tenantID = tenantID
+func WithTenantID(tenantID string) InfoOpts {
+	return func(info *Info) {
+		info.tenantID = tenantID
 	}
 }
 
 // WithBKUsername assign bk-username.
-func WithBKUsername(bkUsername string) Opts {
-	return func(c *Context) {
-		c.bkUsername = bkUsername
+func WithBKUsername(bkUsername string) InfoOpts {
+	return func(info *Info) {
+		info.bkUsername = bkUsername
 	}
 }
 
 // WithLoginName assign login-name.
-func WithLoginName(loginName string) Opts {
-	return func(c *Context) {
-		c.loginName = loginName
+func WithLoginName(loginName string) InfoOpts {
+	return func(info *Info) {
+		info.loginName = loginName
 	}
 }
 
 // WithMessageID assign message-id.
-func WithMessageID(messageID string) Opts {
-	return func(c *Context) {
-		c.messageID = messageID
+func WithMessageID(messageID string) InfoOpts {
+	return func(info *Info) {
+		info.messageID = messageID
 	}
 }
 
 // WithValues assign values.
-func WithValues(values map[string]any) Opts {
-	return func(c *Context) {
+func WithValues(values map[string]any) InfoOpts {
+	return func(info *Info) {
+		if len(values) == 0 {
+			return
+		}
+
 		for k, v := range values {
-			c.values[k] = v
+			info.values[k] = v
 		}
 	}
 }
 
 // Background this is the same as context.Background.
-func Background() IContext {
+func Background() *Context {
 	return New(context.Background())
+}
+
+// private type could make sure the security of context.
+type contextKeyType int
+
+const (
+	nCtxInfoKey contextKeyType = iota
+)
+
+// FromContext creates a new context from the given context.
+func FromContext(ctx context.Context) *Context {
+	if ctx == nil {
+		// nolint: contextcheck
+		return Background()
+	}
+
+	if info := asInfo(ctx); info != nil {
+		return newWithInfo(ctx, info.clone())
+	}
+
+	return New(ctx)
+}
+
+func asInfo(ctx context.Context) IContextInfo {
+	if ctx == nil {
+		return nil
+	}
+
+	if v := ctx.Value(nCtxInfoKey); v != nil {
+		if i, ok := v.(IContextInfo); ok {
+			return i
+		}
+	}
+
+	return nil
 }

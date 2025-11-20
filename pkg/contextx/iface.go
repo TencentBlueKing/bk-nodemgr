@@ -18,7 +18,7 @@ type IContext interface {
 	IContextValues
 }
 
-// IContextValues describes the context values.
+// IContextValues defines the context values.
 type IContextValues interface {
 	// Values get all values.
 	Values() map[string]any
@@ -42,4 +42,16 @@ type IContextValues interface {
 	MessageID() string
 	// CheckMessageID validate message-id.
 	CheckMessageID() error
+}
+
+// IContextInfo describes the context values.
+type IContextInfo interface {
+	IContextValues
+
+	// GetValue get value by key.
+	GetValue(key any) (any, bool)
+
+	// clone a new context-info.
+	// this is inner interface, do not use it outside.
+	clone() IContextInfo
 }
