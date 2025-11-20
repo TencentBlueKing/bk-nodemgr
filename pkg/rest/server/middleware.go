@@ -23,7 +23,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
-	"go.opentelemetry.io/otel/trace"
 )
 
 // MiddlewareContext verify auth info.
@@ -233,15 +232,6 @@ func MiddlewareTracing(tracerSvc tracing.IService) gin.HandlerFunc {
 			otelgin.WithPropagators(tracerSvc.TracerPropagator()),
 		)
 		fn(gCtx)
-
-		span := trace.SpanFromContext(gCtx.Request.Context())
-		if !span.SpanContext().IsValid() {
-			traceID := identifier.GenTraceID()
-			spanID := identifier.GenSpanID()
-
-			span.SpanContext().WithTraceID(traceID)
-			span.SpanContext().WithSpanID(spanID)
-		}
 
 		gCtx.Next()
 	}

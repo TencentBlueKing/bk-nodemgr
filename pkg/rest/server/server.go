@@ -150,11 +150,11 @@ func NewServer(ctx context.Context, opts Options, apiOptFns ...OptionFunc) (*Ser
 	// Recover from panic
 	svr.engine.Use(gin.RecoveryWithWriter(logger.G.Biz(nil).ErrorWriter()))
 
-	// nolint: contextcheck
-	svr.engine.Use(MiddlewareTracing(svr.tracerSvc))
-
 	// Set authentication middleware.
 	svr.engine.Use(MiddlewareContext())
+
+	// nolint: contextcheck
+	svr.engine.Use(MiddlewareTracing(svr.tracerSvc))
 
 	// Set request id middleware.
 	svr.engine.Use(MiddlewareSetRequestID(opts.RequestIDSetter))

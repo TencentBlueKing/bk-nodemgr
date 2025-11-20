@@ -12,13 +12,9 @@
 package identifier
 
 import (
-	"crypto/rand"
-	"encoding/binary"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -80,23 +76,4 @@ func GenServiceID() string {
 // GenUploadID generates a upload id.
 func GenUploadID() string {
 	return generateID(tagUploadID)
-}
-
-// GenTraceID generates a trace id.
-func GenTraceID() trace.TraceID {
-	var tid trace.TraceID
-
-	binary.BigEndian.PutUint64(tid[0:8], uint64(time.Now().UnixNano()))
-
-	_, _ = rand.Read(tid[8:])
-
-	return tid
-}
-
-// GenSpanID generates a span id.
-func GenSpanID() trace.SpanID {
-	var sid trace.SpanID
-	_, _ = rand.Read(sid[:])
-
-	return sid
 }
