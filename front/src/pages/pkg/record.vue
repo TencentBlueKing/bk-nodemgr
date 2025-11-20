@@ -38,7 +38,14 @@
         @setting-change="handleSettingChange"
         @column-filter="handleFilter"
         :sort-config="sortConfig"
+        :empty-cell-text="'--'"
       >
+        <TableColumn
+          field="name"
+          :title="t('包名')"
+          min-width="130"
+          fixed="left"
+        ></TableColumn>
         <TableColumn
           field="version"
           :title="t('版本号')"
@@ -46,7 +53,11 @@
           fixed="left"
           sortable
           :filter="filterOptionSource.version"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ row.version || '--' }}
+          </template>
+        </TableColumn>
         <TableColumn
           field="release_type"
           :title="t('包类型')"
@@ -58,13 +69,21 @@
           :title="t('操作系统')"
           min-width="130"
           :filter="filterOptionSource.os_type"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ row.os_type || '--' }}
+          </template>
+        </TableColumn>
         <TableColumn
           field="cpu_arch"
           :title="t('架构')"
           min-width="130"
           :filter="filterOptionSource.cpu_arch"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ row.cpu_arch || '--' }}
+          </template>
+        </TableColumn>
         <TableColumn
           field="event_type"
           :title="t('操作类型')"
@@ -72,7 +91,7 @@
           :filter="filterOptionSource.event_type"
         >
           <template #default="{ row }">
-            {{ eventMap[row.event_type]}}
+            {{ eventMap[row.event_type] }}
           </template>
         </TableColumn>
         <TableColumn
@@ -236,6 +255,7 @@ const eventMap = {
   delete: '删除',
   set_as_default: '设置为默认版本',
   cancel_as_default: '取消设置默认版本',
+  upload: '上传',
 };
 
 const getUniqueChildrenFrom = <K extends keyof PackageEventDistinctRespData>(
@@ -333,7 +353,11 @@ const getTaskList = async () => {
     total: 0,
     items: [],
   }));
-  tableData.value = res.items;
+  tableData.value = res.items.map(item => ({
+    ...item,
+    os_type: item.os_type === 'unknown' ? '' : item.os_type,
+    cpu_arch: item.cpu_arch === 'unknown' ? '' : item.cpu_arch,
+  }));
   loading.value = false;
 };
 
@@ -385,7 +409,7 @@ const getHostDistinct = async () => {
       const curUniqueValues = res[key] || [];
       if (filterOptionSource[key]) {
         filterOptionSource[key].list = curUniqueValues
-          .filter((item: any) => item !== '')
+          .filter((item: any) => item !== '' && item !== 'unknown')
           .map((value: string | number) => {
             let text;
             switch (key) {
