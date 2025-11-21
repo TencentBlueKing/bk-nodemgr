@@ -153,7 +153,8 @@
         {{ '导入' }}
       </Button>
       <Button
-        v-show="activeInstallType !== 'import' || excelImportData.length > 0"
+        v-show="activeInstallType !== 'import'
+          || (excelImportData.length > 0 && isEqual(formData.info, excelImportData))"
         class="w-[100px]"
         theme="primary"
         :disabled="systemData.length === 0"
@@ -187,7 +188,7 @@
 <script lang="ts" setup>
 import { Button, Form, Input, Message, Select, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
-import { cloneDeep, debounce  } from 'lodash';
+import { cloneDeep, debounce, isEqual  } from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';

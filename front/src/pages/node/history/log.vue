@@ -7,7 +7,7 @@
       <div
         v-for="operate in operateList" :key="operate.operation_id"
         class="px-[20px] h-[40px] leading-[40px] overflow-y-auto"
-        :class="{ 'bg-[#e1ecff]': route.params.ip === operate.bk_host_inner }"
+        :class="{ 'bg-[#e1ecff]': route.params.ip === operate.bk_host_inner_list }"
       >
         <span class="mr-[5px]">
           <i
@@ -23,7 +23,7 @@
           ></Spinner>
           <i class="nodeman-icon nc-unknown status-icon" v-else></i>
         </span>
-        <span class="text-[#63656e]">{{ operate.bk_host_inner }}</span>
+        <span class="text-[#63656e]">{{ operate.bk_host_inner_list }}</span>
       </div>
     </div>
     <div class="bg-[#fff] px-[24px] py-[20px] h-full flex-1">
@@ -141,7 +141,7 @@
                   <angle-up-fill class="text-[16px] text-[#C4C6CC]" />
                 </Button>
                 <template #content>
-                  <ul class="w-[80px] py-[4px] h-[300px] overflow-auto">
+                  <ul class="w-[80px] py-[4px] max-h-[300px] overflow-auto">
                     <li
                       v-for="item in operInstList"
                       :key="item.name"
@@ -239,7 +239,7 @@ const activeKey = ref('');
 const operateList = ref<any[]>([]);
 const searchValue = ref();
 const title = computed(() => `${route.params.ip} ${typeMap[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
-const currentOperate = computed(() => operateList.value.find(item => item.bk_host_inner === route.params.ip));
+const currentOperate = computed(() => operateList.value.find(item => item.bk_host_inner_list === route.params.ip));
 const curOperInstId = ref('');
 const curOperInstVal = ref('latest');
 const curSortNames = ref<string[]>([]);
@@ -308,12 +308,12 @@ const timeFormatter = (
 // 重试
 const reTryType = [
   {
-    id: 'full_node_instance_retry',
+    id: 'ALL',
     name: '重新开始执行',
     tooltip: '重新开始执行完整的任务',
   },
   {
-    id: 'partial_node_instance_retry',
+    id: 'PARTIAL',
     name: '最近失败重试',
     tooltip: '从最近失败的步骤开始重试',
   },
@@ -325,7 +325,8 @@ const handleRetry = async (row: any, type: string) => {
     operation_id: [row.operation_id],
     retry_mod: type,
   }).catch(() => false);
-  if (res) {
+  if (res !== false) {
+    isInterval.value = true;
     await getOperateList();
     await getInstance();
     start();
@@ -407,6 +408,8 @@ const getOperateList = async () => {
   operateList.value = res.operations.map(item => ({
     ...item.param,
     ...item.status,
+    bk_host_inner_list: item.param.bk_host_inner_list?.join(','),
+    bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(','),
     operation_id: item.operation_id,
   }));
 };

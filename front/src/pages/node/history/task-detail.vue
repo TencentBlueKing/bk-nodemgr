@@ -95,8 +95,8 @@
           @column-filter="handleFilter"
         >
           <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
-          <TableColumn field="bk_host_inner" :title="'IPv4'" width="150" fixed="left"></TableColumn>
-          <TableColumn field="bk_host_innerip_v6" :title="'IPv6'" width="150"></TableColumn>
+          <TableColumn field="bk_host_inner_list" :title="'IPv4'" width="150" fixed="left"></TableColumn>
+          <TableColumn field="bk_host_innerip_v6_list" :title="'IPv6'" width="150"></TableColumn>
           <TableColumn field="bk_networkarea_id" :title="'管控区域'" min-width="150"></TableColumn>
           <TableColumn field="bk_biz_name" :title="'业务'" min-width="150"></TableColumn>
           <TableColumn
@@ -213,12 +213,12 @@ const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const reTryType = [
   {
-    id: 'full_node_instance_retry',
+    id: 'ALL',
     name: '重新开始执行',
     tooltip: '重新开始执行完整的任务',
   },
   {
-    id: 'partial_node_instance_retry',
+    id: 'PARTIAL',
     name: '最近失败重试',
     tooltip: '从最近失败的步骤开始重试',
   },
@@ -485,8 +485,8 @@ const handleSelectAllChange = ({ checked }: { checked: boolean}) => {
 // 表格设置
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
-    'bk_host_inner',
-    'bk_host_innerip_v6',
+    'bk_host_inner_list',
+    'bk_host_innerip_v6_list',
     'bk_networkarea_id',
     'bk_biz_name',
     'node_version',
@@ -518,7 +518,7 @@ const handleRetry = async (row: any, type: string) => {
     operation_id: [row.operation_id],
     retry_mod: type,
   }).catch(() => false);
-  if (res) {
+  if (res !== false) {
     await getOperateList();
     if (currentTaskStatus.value === 'running' && needInterval.value) {
       start();
@@ -599,7 +599,9 @@ const getOperateList = async () => {
     return {
       ...item.param,
       ...item.status,
-      bk_biz_name: currentRowData?.bk_biz_name || item.bk_biz_id,
+      bk_host_inner_list: item.param.bk_host_inner_list?.join(','),
+      bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(','),
+      bk_biz_name: currentRowData?.bk_biz_name || item.param.bk_biz_id,
       operation_id: item.operation_id,
       reTryCount: item.instance_ids?.length ?  item.instance_ids?.length - 1 : 0,
     };
@@ -617,7 +619,7 @@ const handleViewLog = async (row: any) => {
   router.push({
     name: 'log',
     params: {
-      ip: row.bk_host_inner,
+      ip: row.bk_host_inner_list,
       taskId: route.params.taskId,
     },
   });

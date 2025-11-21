@@ -104,8 +104,9 @@ export interface NodeWorkflowDistinctRespData {
 
 export interface NodeWorkflowOperationParam {
   bk_networkarea_id: number;
-  bk_host_inner: string;
-  bk_host_innerip_v6: string;
+  bk_networkunit_id: number;
+  bk_host_inner_list: string[];
+  bk_host_innerip_v6_list: string[];
   node_version: string;
   bk_biz_id: number;
   operator: string;
@@ -313,6 +314,5 @@ export interface NodeWorkflowOperationRetryResp {
 }
 
 export interface NodeWorkflowOperationRetryRespData {
-  instance_ids: string[];
 }
 

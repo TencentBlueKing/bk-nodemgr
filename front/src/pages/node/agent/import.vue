@@ -166,6 +166,8 @@ onMounted(async () => {
   formData.info = nodeManageStore.agentEditParams.tableData.map(({ info, state, ...rest }) => ({
     target_version: state.node_version,
     ...rest,
+    bk_host_innerip: info.bk_host_innerip_list?.[0],
+    bk_host_innerip_v6: info.bk_host_innerip_v6_list?.[0],
   }));
 });
 onUnmounted(() => {

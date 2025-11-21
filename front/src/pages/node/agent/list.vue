@@ -112,16 +112,24 @@
           fixed="left"
         ></TableColumn>
         <TableColumn
-          field="bk_host_innerip"
+          field="bk_host_innerip_list"
           :title="t('platform.nodeMan.inner_ip')"
           :min-width="150"
           fixed="left"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ row.bk_host_innerip_list?.join(',') }}
+          </template>
+        </TableColumn>
         <TableColumn
-          field="bk_host_innerip_v6"
+          field="bk_host_innerip_v6_list"
           :title="t('platform.nodeMan.inner_ipv6')"
           :min-width="150"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ row.bk_host_innerip_v6_list?.join(',') }}
+          </template>
+        </TableColumn>
         <TableColumn
           field="bk_agent_id"
           :title="t('platform.nodeMan.agentId')"
@@ -739,7 +747,7 @@ const handleOperatetHost = async (
   operateType: string,
 ) => {
   const titleObj = {
-    firstIp: data[0].info.bk_host_innerip,
+    firstIp: data[0].info.bk_host_innerip_list.join(','),
     num: data.length,
   };
   let type = '';

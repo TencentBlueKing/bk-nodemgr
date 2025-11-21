@@ -94,10 +94,10 @@ interface HostInfo {
   bk_networkunit_id: number;
   bk_host_name: string;
   dept_name: string;
-  bk_host_innerip: string;
-  bk_host_innerip_v6: string;
-  bk_host_outerip: string;
-  bk_host_outerip_v6: string;
+  bk_host_innerip_list: string[];
+  bk_host_innerip_v6_list: string[];
+  bk_host_outerip_list: string[];
+  bk_host_outerip_v6_list: string[];
   bk_mac: string;
   os_type: string;
   cpu_arch: string;
@@ -202,6 +202,7 @@ interface TargetVersion {
 
 // PackageEvent describes the package event.
 interface PackageEvent {
+  name: string;
   event_type: string;
   generation: number;
   release_type: string;
