@@ -1,0 +1,26 @@
+plugin:
+  pidFile: "{{ .PluginInfo.PidPath }}"
+  {{- if eq .NodeInfo.OSType "windows" }}
+  messageLocalSocketPort: {{ .PluginInfo.PluginIPC ｜toInt }}
+  {{- else }}
+  messageDomainSocketPath: "{{ .PluginInfo.PluginIPC }}"
+  {{- end }}
+
+callbackServer:
+  bindIP: "{{ .CustomContext.CallbackServer.BindIP }}"
+  port: {{ .CustomContext.CallbackServer.Port }}
+  advertiseIPV4: "{{ .CustomContext.CallbackServer.AdvertiseIPV4 }}"
+
+downloadServer:
+  bindIP: "{{ .CustomContext.DownloadServer.BindIP }}"
+  port: {{ .CustomContext.DownloadServer.Port }}
+  advertiseIPV4: "{{ .CustomContext.DownloadServer.AdvertiseIPV4 }}"
+
+relayWorkspaceFileGroup:
+  fullPath: "{{ .CustomContext.WorkspaceFileGroupFullPath }}"
+
+log:
+  dir: "{{ .PluginInfo.LogPath }}"
+  maxSizeMB: "{{ .CustomContext.LogMaxSizeMB }}"
+  maxNum: "{{ .CustomContext.LogMaxNum }}"
+  level: "{{ .CustomContext.LogLevel }}"

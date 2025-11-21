@@ -156,9 +156,10 @@ OSES := linux
 # 支持的架构
 ARCHES := amd64 arm64
 
+plugin-pkg-relay: APP_NAME ?= bk-nodemgr-relay
 plugin-pkg-relay: pre
 	@$(ECHO) "Building plugin-pkg-relay..."
-	@$(MKDIR) $(OUTPUT_DIR)/bk-nodemgr-relay
+	@$(MKDIR) $(OUTPUT_DIR)/$(APP_NAME)
 	@$(ECHO) "Building $(APP_NAME) $(VERSION) for all platforms..."
 	@$(foreach os,$(OSES),\
 		$(foreach arch,$(ARCHES),\
@@ -167,14 +168,14 @@ plugin-pkg-relay: pre
 			else \
 				$(ECHO) "Building for $(os)/$(arch)..." && \
 				ext=$(if $(filter windows,$(os)),.exe,) && \
-				plugin_path=$(OUTPUT_DIR)/bk-nodemgr-relay/plugins_$(os)_$(arch); \
+				plugin_path=$(OUTPUT_DIR)/$(APP_NAME)/plugins_$(os)_$(arch); \
                 if [ "$(os)" = "linux" ] && [ "$(arch)" = "amd64" ]; then \
-                    plugin_path=$(OUTPUT_DIR)/bk-nodemgr-relay/plugins_linux_x86_64; \
+                    plugin_path=$(OUTPUT_DIR)/$(APP_NAME)/plugins_linux_x86_64; \
                 else \
-                    plugin_path=$(OUTPUT_DIR)/bk-nodemgr-relay/plugins_linux_aarch64; \
+                    plugin_path=$(OUTPUT_DIR)/$(APP_NAME)/plugins_linux_aarch64; \
                 fi; \
 				$(MKDIR) $$plugin_path && \
-				binary="$$plugin_path/bk-nodemgr-relay$$ext" && \
+				binary="$$plugin_path/$(APP_NAME)$$ext" && \
 				GOOS=$(os) GOARCH=$(arch) $(GO) build $(GO_FLAGS) $(LD_FLAGS) \
 					-o $$binary $(ROOT_DIR)/cmd/relay/*.go && \
 				$(ECHO) "Built: $$binary" && \
@@ -182,14 +183,16 @@ plugin-pkg-relay: pre
 					$(MAKE) compress-binary BINARY=$$binary; \
 				fi; \
 				$(MKDIR) "$$plugin_path/etc"; \
-				$(CP) $(ROOT_DIR)/plugin/relay/etc/* "$$plugin_path/etc"; \
+				$(MKDIR) "$$plugin_path/templates"; \
+				$(CP) $(ROOT_DIR)/plugin/relay/definition.yaml "$$plugin_path/definition.yaml"; \
+				$(CP) $(ROOT_DIR)/plugin/relay/templates/* "$$plugin_path/templates"; \
 			fi; \
 		)\
 	)
 
-	@$(CP) "./plugin/relay/project.yaml" "$(OUTPUT_DIR)/bk-nodemgr-relay/project.yaml"
+	@$(CP) "./plugin/relay/project.yaml" "$(OUTPUT_DIR)/$(APP_NAME)/project.yaml"
 	@$(ECHO) "Packaging artifacts..."
-	@$(TAR) "$(OUTPUT_DIR)/bk-nodemgr-relay.tgz" -C "$(OUTPUT_DIR)" bk-nodemgr-relay
+	@$(TAR) "$(OUTPUT_DIR)/$(APP_NAME)-$(VERSION).tgz" -C "$(OUTPUT_DIR)" $(APP_NAME)
 
 # 压缩单个二进制文件
 compress-binary:

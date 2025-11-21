@@ -1,0 +1,95 @@
+configTemplates:
+  - name: bk-nodemgr-relay.template
+    isMainConfig: 1
+    filePath: etc
+    variables:
+      - name: LogLevel
+        type: string
+        default: INFO
+        description: 日志级别
+        descriptionEn: Log Level
+        extraVaribales:
+      - name: LogMaxSizeMB
+        type: int
+        default: 100
+        description: 日志文件最大大小（MB）
+        descriptionEn: Log Max Size (MB)
+        extraVaribales:
+      - name: LogMaxNum
+        type: int
+        default: 7
+        description: 最大日志文件数量
+        descriptionEn: Log Max File Number
+        extraVaribales:
+      - name: CallbackServer
+        type: object
+        default:
+        description: 回调服务器信息
+        descriptionEn: Callback Server Information
+        extraVaribales:
+          - name: BindIP
+            type: string
+            default:
+            description: 绑定IP地址
+            descriptionEn: Bind IP Address
+            extraVaribales:
+          - name: Port
+            type: int
+            default:
+            description: 绑定端口
+            descriptionEn: Bind Port
+            extraVaribales:
+          - name: AdvertiseIPV4
+            type: string
+            default:
+            description: 广播IPv4地址
+            descriptionEn: Advertise IPv4 Address
+            extraVaribales:
+          - name: AdvertiseIPV6
+            type: string
+            default:
+            description: 广播IPv6地址
+            descriptionEn: Advertise IPv6 Address
+            extraVaribales:
+      - name: DownloadServer
+        type: object
+        default:
+        description: 下载服务器信息
+        descriptionEn: Download Server Information
+        extraVaribales:
+          - name: BindIP
+            type: string
+            default:
+            description: 绑定IP地址
+            descriptionEn: Bind IP Address
+            extraVaribales:
+          - name: Port
+            type: int
+            default:
+            description: 绑定端口
+            descriptionEn: Bind Port
+            extraVaribales:
+          - name: AdvertiseIPV4
+            type: string
+            default:
+            description: 广播IPv4地址
+            descriptionEn: Advertise IPv4 Address
+            extraVaribales:
+          - name: AdvertiseIPV6
+            type: string
+            default:
+            description: 广播IPv6地址
+            descriptionEn: Advertise IPv6 Address
+            extraVaribales:
+      - name: WorkspaceFileGroupFullPath
+        type: string
+        default: ../workspace/
+        description: 文件分发工作空间路径
+        descriptionEn: File Distribution Workspace Path
+        extraVaribales:
+control:
+  start: "./start.sh bk-nodemgr-relay"
+  stop: "./stop.sh bk-nodemgr-relay"
+  restart: "./restart.sh bk-nodemgr-relay"
+  reload: "./reload.sh bk-nodemgr-relay"
+  version: "./bk-nodemgr-relay -v"
