@@ -1,4 +1,5 @@
 <template>
+  <page-header :title="'Agent状态'" :back="Object.keys(route.query).length > 0"></page-header>
   <div class="p-[24px]">
     <!-- agnet操作及搜索 -->
     <section class="flex justify-between mb-[15px]">
@@ -250,8 +251,10 @@
   </div>
 </template>
 <script setup lang="ts">
-import { Button, Cascader, Checkbox, Dropdown, InfoBox, Input, SearchSelect } from 'bkui-vue';
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { Button, Dropdown, InfoBox, SearchSelect } from 'bkui-vue';
+// 引入lodash的debounce来处理防抖，解决重复请求问题
+import { debounce } from 'lodash';
+import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -274,48 +277,79 @@ interface FilterOption {
   filterScope: string;
 }
 
+// 类型定义
+type Host = any; // 建议替换为你项目中具体的Host类型定义
+
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
+
+// ---------- 响应式数据 ----------
 const tableData = ref<Host[]>([]);
 const agentList = ref<Host[]>([]);
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
-const chooseVersionData = reactive({
-  title: '',
-  isShow: false,
-  data: null,
-  batch: false,
+const loading = ref(false);
+// 【优化点1】标记基础数据（区域、单元列表）是否加载完成
+const isInitialDataLoaded = ref(false);
+
+// 分页
+const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
+
+// 搜索和筛选
+const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const filterOptionSource: Record<string, FilterOption> = reactive({
+  bk_networkarea_id: { list: [], checked: [], filterScope: 'all' },
+  bk_networkunit_id: { list: [], checked: [], filterScope: 'all' },
+  os_type: { list: [], checked: [], filterScope: 'all' },
+  node_version: { list: [], checked: [], filterScope: 'all' },
+  node_status: { list: [], checked: [], filterScope: 'all' },
 });
+
+// 其他UI相关响应式数据
+const chooseVersionData = reactive({ title: '', isShow: false, data: null, batch: false });
 const operateDialogIsShow = ref(false);
-const operateDialogData = {
-  type: '',
-  title: '',
-  subTitle: '',
-};
+const operateDialogData = { type: '', title: '', subTitle: '' };
+const dropdownShow = ref(false);
+const operateData = ref<Host[]>([]);
+const topo = ref([]);
+
+// ---------- 常量定义 ----------
+const topoBizFilterList = computed(() => mainStore.businessList);
+const operate = [
+  { id: 'reinstall', name: '重装', disabled: false, show: true },
+  { id: 'upgrade', name: '升级/回退', disabled: false, show: true },
+  { id: 'restart', name: '重启', disabled: false, show: true },
+  { id: 'uninstall', name: '卸载', disabled: false, show: true },
+];
+const agentInstallType = [
+  { id: 'setup', name: '普通远程安装' },
+  { id: 'import', name: 'Excel 导入远程安装' },
+  { id: 'manual', name: '手动安装' },
+];
+const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_name', 'dept_name']);
+
+// ---------- 计算属性 ----------
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const selection = computed(() => tableData.value.filter((item: any) => item.checked));
+const networkAreaListMap = ref(new Map<number, string | number>([[-1, -1]]));
+const networkUnitListMap = ref(new Map<number, string | number>([[-1, -1]]));
+const hostDistinct = ref<TopoHostDistinctRespData | null>();
+
 const searchSelectData = computed(() => [
-  {
-    id: 'bk_host_innerip',
-    name: t('platform.nodeMan.inner_ip'),
-    multiple: true,
-  },
-  {
-    id: 'bk_host_innerip_v6',
-    name: t('platform.nodeMan.inner_ipv6'),
-    multiple: true,
-  },
+  { id: 'bk_host_innerip', name: t('platform.nodeMan.inner_ip'), multiple: true },
+  { id: 'bk_host_innerip_v6', name: t('platform.nodeMan.inner_ipv6'), multiple: true },
   { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
   {
     id: 'bk_networkarea_id',
     name: '管控区域',
-    children: getUniqueChildrenFrom('bk_networkarea_id', networkAreaListMap),
+    children: getUniqueChildrenFrom('bk_networkarea_id', networkAreaListMap.value),
     multiple: true,
   },
   {
     id: 'bk_networkunit_id',
     name: '管控单元',
-    children: getUniqueChildrenFrom('bk_networkunit_id', networkUnitListMap),
+    children: getUniqueChildrenFrom('bk_networkunit_id', networkUnitListMap.value),
     multiple: true,
   },
   {
@@ -337,7 +371,8 @@ const searchSelectData = computed(() => [
     multiple: true,
   },
 ]);
-// 表格
+
+// 表格设置
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'bk_host_innerip',
@@ -353,135 +388,66 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   disabled: ['action'],
 }, 'nodeMng-agent');
 
-const filterOptionSource: Record<string, FilterOption> = reactive({
-  bk_networkarea_id: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-  bk_networkunit_id: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-  os_type: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-  node_version: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-  node_status: {
-    list: [],
-    checked: [],
-    filterScope: 'all',
-  },
-});
-// 批量操作
-const operate = [
-  {
-    id: 'reinstall',
-    name: '重装',
-    disabled: false,
-    show: true,
-  },
-  {
-    id: 'upgrade',
-    name: '升级/回退',
-    disabled: false,
-    show: true,
-  },
-  {
-    id: 'restart',
-    name: '重启',
-    disabled: false,
-    show: true,
-  },
-  {
-    id: 'uninstall',
-    name: '卸载',
-    disabled: false,
-    show: true,
-  },
-];
-// 安装方式
-const agentInstallType = [
-  {
-    id: 'setup',
-    name: '普通远程安装',
-  },
-  {
-    id: 'import',
-    name: 'Excel 导入远程安装',
-  },
-  {
-    id: 'manual',
-    name: '手动安装',
-  },
-];
+// ---------- 辅助函数 ----------
+function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
+  prop: K,
+  keyMap?: Map<number, string | number>,
+) {
+  const uniqueValues = hostDistinct.value?.[prop] || [];
+  return uniqueValues
+    .filter((item: any) => item !== '' && item !== -1)
+    .map((value: any) => ({
+      id: value,
+      name: keyMap?.get(Number(value)) || String(value),
+    }));
+}
 
-// 后端分页
-const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
-const loading = ref(false);
-// 拓扑级联选择器的选值
-const topo = ref([]);
-const topoBizFilterList = computed(() => mainStore.businessList);
-const topoRemotehandler = () => {};
-// 搜索
-const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
-const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
-  // 给筛选器添加选中值
-  Object.keys(filterOptionSource).forEach((key) => {
-    filterOptionSource[key].checked = [];
+const getParams = () => {
+  const params = {
+    page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },
+    exact_include_conditions: { bk_biz_id: mainStore.selectedBusinessId, node_role: ['agent', 'blank'] } as TopoHostExactConditions,
+    fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
+  };
+  searchSelectValue.value.forEach((item: any) => {
+    const target = fuzzyKeys.has(item.id)
+      ? params.fuzzy_include_conditions
+      : params.exact_include_conditions;
+    target[item.id] = item.values?.map((value: any) => value.id);
   });
-  data.forEach((item) => {
-    if (filterOptionSource[item.id]) {
-      filterOptionSource[item.id].checked = item.values.map((item: any) => item.id);
-    }
-  });
+  return params;
 };
 
-const networkAreaListMap = new Map<number, string | number>([[-1, -1]]);
-// 管控区域下拉列表获取
+// ---------- API 请求函数 ----------
+
+/**
+ * 获取管控区域列表
+ */
 const getNetworkAreaList = async () => {
-  const res = await TopoService.NetworkAreaList({
-    page: {
-      limit: 0,
-    },
-  }).catch((err: any) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
-    };
+  const res = await TopoService.NetworkAreaList({ page: { limit: 0 } }).catch((err: any) => {
+    console.error('获取管控区域列表失败:', err);
+    return { total: 0, items: [] };
   });
-  res.items.forEach(item => {
-    networkAreaListMap.set(item.bk_networkarea_id, item.bk_networkarea_name);
+  res.items.forEach((item) => {
+    networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
   });
 };
-// 管控单元下拉列表获取
-const networkUnitListMap = new Map<number, string | number>([[-1, -1]]);
+
+/**
+ * 获取管控单元列表
+ */
 const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({
-    exact_include_conditions: {
-      bk_networkarea_id: [],
-    },
-  }).catch((err: any) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
-    };
+  const res = await TopoService.NetworkUnitList({ exact_include_conditions: { bk_networkarea_id: [] } }).catch((err: any) => {
+    console.error('获取管控单元列表失败:', err);
+    return { total: 0, items: [] };
   });
-  res.items.forEach(item => {
-    networkUnitListMap.set(item.bk_networkunit_id, item.bk_networkunit_name);
+  res.items.forEach((item) => {
+    networkUnitListMap.value.set(item.bk_networkunit_id, item.bk_networkunit_name);
   });
 };
-const hostDistinct = ref<TopoHostDistinctRespData | null>();
-// 筛选
+
+/**
+ * 获取主机筛选条件的唯一值
+ */
 const getHostDistinct = async () => {
   const params = {
     exact_include_conditions: {
@@ -489,81 +455,119 @@ const getHostDistinct = async () => {
       bk_biz_id: mainStore.selectedBusinessId,
     },
   };
-  const res = await TopoService.HostDistinct(params).catch(() => null);
+  const res = await TopoService.HostDistinct(params).catch((err: any) => {
+    console.error('获取主机筛选条件唯一值失败:', err);
+    return null;
+  });
   if (res) {
     hostDistinct.value = res;
     Object.keys(res).forEach((key: any) => {
-      const curUniqueValues = res[key] || [];
       if (filterOptionSource[key]) {
-        filterOptionSource[key].list = curUniqueValues
+        filterOptionSource[key].list = res[key]
           .filter((item: any) => item !== '')
           .map((value: string | number) => {
-            let text;
-            switch (key) {
-              case 'bk_networkarea_id':
-                text = networkAreaListMap.get(Number(value));
-                break;
-              case 'bk_networkunit_id':
-                text = networkUnitListMap.get(Number(value));
-                break;
-              default:
-                text = value;
-                break;
-            }
-            return {
-              text,
-              value,
-            };
+            let text = value;
+            if (key === 'bk_networkarea_id') text = networkAreaListMap.value.get(Number(value)) || value;
+            if (key === 'bk_networkunit_id') text = networkUnitListMap.value.get(Number(value)) || value;
+            return { text, value };
           });
       }
     });
   }
 };
-const handleFilter = ({
-  checked,
-  field,
-}: {
-  checked: string[];
-  field: string;
-}) => {
+
+/**
+ * 获取Agent列表
+ */
+const getAgentList = async () => {
+  // 【优化点1】如果基础数据（区域、单元列表）还未加载完成，则不执行
+  if (!isInitialDataLoaded.value) {
+    console.log('基础数据尚未加载完成，暂时不执行 getAgentList');
+    return;
+  }
+
+  loading.value = true;
+  try {
+    const res = await TopoService.HostList(getParams());
+    pagination.count = res.total;
+    tableData.value = res.items.map((item: any) => ({ ...item.state, ...item.info, ...item }));
+    agentList.value = tableData.value;
+  } catch (err) {
+    console.error('获取Agent列表失败:', err);
+    tableData.value = [];
+    pagination.count = 0;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 【优化点2】使用debounce包装getAgentList，延迟300ms执行，防止重复请求
+const debouncedGetAgentList = debounce(getAgentList, 300);
+
+/**
+ * 加载所有初始化数据（区域、单元、筛选条件）
+ */
+const loadInitialData = async () => {
+  if (mainStore.selectedBusinessId) {
+    loading.value = true;
+    try {
+      // 【优化点1】并行执行三个基础请求，确保它们在getAgentList前完成
+      await Promise.all([
+        getNetworkAreaList(),
+        getNetworkUnitList(),
+        getHostDistinct(),
+      ]);
+      isInitialDataLoaded.value = true; // 标记基础数据已加载完成
+    } catch (error) {
+      console.error('加载初始化数据失败:', error);
+    } finally {
+      loading.value = false;
+    }
+  }
+};
+
+// ---------- 事件处理函数 ----------
+const handleSearchSelectChange = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  Object.keys(filterOptionSource).forEach((key) => {
+    filterOptionSource[key].checked = [];
+  });
+  data.forEach((item) => {
+    if (filterOptionSource[item.id]) {
+      filterOptionSource[item.id].checked = item.values.map((value: any) => value.id);
+    }
+  });
+  // 【优化点2】使用防抖后的函数
+  debouncedGetAgentList();
+};
+
+const handleFilter = ({ checked, field }: { checked: string[]; field: string }) => {
   const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
-  index > -1 && searchSelectValue.value.splice(index, 1);
+  if (index > -1) searchSelectValue.value.splice(index, 1);
   if (checked.length) {
     searchSelectValue.value.push({
       id: field,
       name: t(field),
       values: checked.map((item: any) => {
-        let name;
-        switch (field) {
-          case 'bk_networkarea_id':
-            name = networkAreaListMap.get(Number(item));
-            break;
-          case 'bk_networkunit_id':
-            name = networkUnitListMap.get(Number(item));
-            break;
-          default:
-            name = item;
-            break;
-        }
-        return {
-          id: item,
-          name,
-        };
+        let name = item;
+        if (field === 'bk_networkarea_id') name = networkAreaListMap.value.get(Number(item)) || item;
+        if (field === 'bk_networkunit_id') name = networkUnitListMap.value.get(Number(item)) || item;
+        return { id: item, name };
       }),
     });
   }
 };
-// 分页操作
+
 const pageLimitChange = async (limit: number) => {
   pagination.limit = limit;
-  await getAgentList();
-};
-const pageValueChange = async (current: number) => {
-  pagination.current = current;
-  await getAgentList();
+  pagination.current = 1; // 页码重置为1
+  await getAgentList(); // 分页变化不防抖，立即执行
 };
 
-const dropdownShow = ref(false);
+const pageValueChange = async (current: number) => {
+  pagination.current = current;
+  await getAgentList(); // 分页变化不防抖，立即执行
+};
+
 const handleInstall = () => {
   if (selection.value.length) {
     dropdownShow.value = false;
@@ -573,23 +577,8 @@ const handleInstall = () => {
   }
 };
 
-// 搜索
-function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
-  prop: K,
-  keyMap?: Record<string, any>,
-) {
-  const uniqueValues = hostDistinct.value?.[prop] || [];
-  return uniqueValues
-    .filter((item: any) => item !== '')
-    .map((value: any) => ({
-      id: value,
-      name: keyMap && keyMap.get(value) ? keyMap.get(value) : String(value),
-    }));
-};
-
 const triggerHandler = (type: string, setupType = 'setup') => {
   switch (type) {
-    // 重启 重装 重载配置 卸载 升级
     case 'restart':
     case 'reinstall':
     case 'uninstall':
@@ -602,9 +591,7 @@ const triggerHandler = (type: string, setupType = 'setup') => {
       break;
   }
 };
-/**
- * 当前操作项是否显示
- */
+
 const getOperateShow = (row: Host, config: any) => {
   if (config.id === 'reinstall') {
     return false;
@@ -612,24 +599,19 @@ const getOperateShow = (row: Host, config: any) => {
   return config.show;
 };
 
-// 操作
 const handleOperate = (type: string, data: Host[], batch = false) => {
   let jobType = '';
 
   switch (type) {
-    // 重启
     case 'restart':
       handleOperatetHost(data, batch, 'restart');
       break;
-    // 重装
     case 'reinstall':
       jobType = 'reinstall';
       break;
-    // 卸载
     case 'uninstall':
       handleOperatetHost(data, batch, 'uninstall');
       break;
-    // 升级
     case 'upgrade':
       handleOperatetHost(data, batch, 'upgrade');
       break;
@@ -638,32 +620,20 @@ const handleOperate = (type: string, data: Host[], batch = false) => {
 
   router.push({ name: 'agentEdit' });
   const params = {
-    tableData: data.map((item: any) => ({
-      ...item,
-    })),
+    tableData: data.map((item: any) => ({ ...item })),
     type: jobType,
   };
   nodeManageStore.updateAgentEditRowData(params);
 };
-// 表格勾选
-const selection = computed(() => tableData.value.filter((item: any) => item.checked));
-const handleSelectChange = ({
-  checked,
-  row,
-}: {
-  checked: boolean;
-  row: any;
-}) => {
+
+const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
   row.checked = checked;
 };
 
-// 表格全选
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
   tableData.value.forEach((item: any) => (item.checked = checked));
 };
 
-const operateData = ref<Host[]>();
-// 重启
 const operateJob = async (extraData: any = {}) => {
   loading.value = true;
   const params = {
@@ -675,13 +645,9 @@ const operateJob = async (extraData: any = {}) => {
   };
   let result;
   if (extraData.isReconfig) {
-    result = await NodeAgentService.NodeAgentReconfig(params).catch(() => ({
-      workflow_id: '',
-    }));
+    result = await NodeAgentService.NodeAgentReconfig(params).catch(() => ({ workflow_id: '' }));
   } else {
-    result = await NodeAgentService.NodeAgentRestart(params).catch(() => ({
-      workflow_id: '',
-    }));
+    result = await NodeAgentService.NodeAgentRestart(params).catch(() => ({ workflow_id: '' }));
   }
   loading.value = false;
   if (result.workflow_id) {
@@ -691,7 +657,7 @@ const operateJob = async (extraData: any = {}) => {
     });
   }
 };
-// 升级回退
+
 const handleUpgrade = async (osVersion: any[]) => {
   loading.value = true;
   const params = {
@@ -700,9 +666,7 @@ const handleUpgrade = async (osVersion: any[]) => {
       target_version: osVersion[0].version,
     })),
   };
-  const result = await NodeAgentService.NodeAgentUpgrade(params).catch(() => ({
-    workflow_id: '',
-  }));
+  const result = await NodeAgentService.NodeAgentUpgrade(params).catch(() => ({ workflow_id: '' }));
   loading.value = false;
   if (result.workflow_id) {
     router.push({
@@ -712,16 +676,11 @@ const handleUpgrade = async (osVersion: any[]) => {
   }
 };
 
-// 卸载
 const handleUninstall = async () => {
   loading.value = true;
   const result = await NodeAgentService.NodeAgentUninstall({
-    host: operateData.value?.map((item: any) => ({
-      bk_host_id: item.bk_host_id,
-    })),
-  }).catch(() => ({
-    workflow_id: '',
-  }));
+    host: operateData.value?.map((item: any) => ({ bk_host_id: item.bk_host_id })),
+  }).catch(() => ({ workflow_id: '' }));
   loading.value = false;
   if (result.workflow_id) {
     router.push({
@@ -731,38 +690,16 @@ const handleUninstall = async () => {
   }
 };
 
-/**
- * Agent操作
- * @param {String} type 操作类型
- * @param {Array} data agent数据
- * @param {Boolean} batch 是否是批量操作
- */
-
-/**
- * @param {Array} data
- */
-const handleOperatetHost = async (
-  data: Host[],
-  batch: boolean,
-  operateType: string,
-) => {
+const handleOperatetHost = async (data: Host[], batch: boolean, operateType: string) => {
   const titleObj = {
-    firstIp: data[0].info.bk_host_innerip_list.join(','),
+    firstIp: data[0].info.bk_host_innerip_list?.join(','),
     num: data.length,
   };
   let type = '';
   switch (operateType) {
-    // 重启
-    case 'restart':
-      type = '重启';
-      break;
-    // 升级
-    case 'upgrade':
-      type = '升级/回退';
-      break;
-    case 'uninstall':
-      type = '卸载';
-      break;
+    case 'restart': type = '重启'; break;
+    case 'upgrade': type = '升级/回退'; break;
+    case 'uninstall': type = '卸载'; break;
   }
   operateData.value = data;
   if (operateType === 'upgrade') {
@@ -790,96 +727,72 @@ const handleOperatetHost = async (
   }
 };
 
-const fuzzyKeys = new Set([
-  'bk_host_innerip',
-  'bk_host_innerip_v6',
-  'bk_host_name',
-  'dept_name',
-]);
-const getParams = () => {
-  const params = {
-    page: {
-      limit: pagination.limit,
-      offset: (pagination.current - 1) * pagination.limit,
-    },
-    exact_include_conditions: {
-      bk_biz_id: mainStore.selectedBusinessId,
-      node_role: ['agent', 'blank'],
-    } as TopoHostExactConditions,
-    fuzzy_include_conditions: {} as TopoHostFuzzyConditions,
-  };
-  searchSelectValue.value.forEach((item: any) => {
-    const target = fuzzyKeys.has(item.id)
-      ? params.fuzzy_include_conditions
-      : params.exact_include_conditions;
-    target[item.id] = item.values?.map((value: any) => value.id);
-  });
-  return params;
-};
-const getAgentList = async () => {
-  loading.value = true;
-  const res = await TopoService.HostList(getParams()).catch((err) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
-    };
-  });
-  pagination.count = res.total;
-  tableData.value = res.items.map((item: any) => ({
-    ...item.state,
-    ...item.info,
-    ...item,
-  }));
-  agentList.value = tableData.value;
-  loading.value = false;
-};
+
+// ---------- 监听与生命周期 ----------
+
+// 【优化点3】使用 watchEffect 处理路由参数，自动追踪依赖
+watchEffect(() => {
+  const { os_type, cpu_arch, node_version, bk_networkarea_id, bk_networkunit_id } = route.query;
+
+  // 处理操作系统、架构、版本的筛选
+  if (os_type && cpu_arch && node_version) {
+    // 确保数组操作的immutability
+    searchSelectValue.value = [
+      ...searchSelectValue.value.filter(item => !['os_type', 'cpu_arch', 'node_version'].includes(item.id)),
+      { id: 'os_type', name: '操作系统', values: [{ id: os_type, name: os_type }] },
+      { id: 'cpu_arch', name: '架构', values: [{ id: cpu_arch, name: cpu_arch }] },
+      { id: 'node_version', name: 'Agent版本', values: [{ id: node_version, name: node_version }] },
+    ];
+  } else if (bk_networkarea_id !== undefined && bk_networkunit_id !== undefined) { // 处理管控区域和单元的筛选
+    const areaId = Number(bk_networkarea_id);
+    const unitId = Number(bk_networkunit_id);
+    searchSelectValue.value = [
+      ...searchSelectValue.value.filter(item => !['bk_networkarea_id', 'bk_networkunit_id'].includes(item.id)),
+      {
+        id: 'bk_networkarea_id',
+        name: t('platform.nodeMan.bk_cloud_name'),
+        values: [{ id: areaId, name: networkAreaListMap.value.get(areaId) || areaId }],
+      },
+      {
+        id: 'bk_networkunit_id',
+        name: t('platform.nodeMan.bk_cloud_unit'),
+        values: [{ id: unitId, name: networkUnitListMap.value.get(unitId) || unitId }],
+      },
+    ];
+  }
+});
+
+// 【优化点1】监听业务ID变化，重新加载所有数据
+watch(() => mainStore.selectedBusinessId, async (newId) => {
+  if (newId) {
+    // 重置状态
+    isInitialDataLoaded.value = false;
+    tableData.value = [];
+    pagination.count = 0;
+
+    // 重新加载基础数据
+    await loadInitialData();
+
+    // 基础数据加载完成后，加载Agent列表
+    debouncedGetAgentList();
+  }
+}, { immediate: true });
+
+// 【优化点2】监听搜索条件变化，使用防抖函数更新列表
 watch(
   searchSelectValue,
-  async () => {
-    await getAgentList();
+  () => {
+    pagination.current = 1; // 搜索条件变化时，页码重置为1
+    debouncedGetAgentList();
   },
   { deep: true },
 );
-watch(route, async () => {
-  if (route.query.os_type) {
-    searchSelectValue.value.push(...[
-      {
-        id: 'os_type',
-        name: '操作系统',
-        values: [{
-          id: route.query.os_type,
-          name: route.query.os_type,
-        }],
-      },
-      {
-        id: 'cpu_arch',
-        name: '架构',
-        values: [{
-          id: route.query.cpu_arch,
-          name: route.query.cpu_arch,
-        }],
-      },
-      {
-        id: 'node_version',
-        name: 'Agent版本',
-        values: [{
-          id: route.query.node_version,
-          name: route.query.node_version,
-        }],
-      },
-    ]);
-    await getAgentList();
-  }
-}, { immediate: true, deep: true });
-watch(() => mainStore.selectedBusinessId, async () => {
-  await getAgentList();
-}, { immediate: true });
-onMounted(async () => {
-  await getNetworkAreaList();
-  await getNetworkUnitList();
-  await getHostDistinct();
+
+// 清理防抖函数
+onUnmounted(() => {
+  debouncedGetAgentList.cancel();
 });
+
 </script>
 <style lang="postcss" scoped>
 .dropDown-menu {

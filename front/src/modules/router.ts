@@ -43,8 +43,6 @@ const routes = setupLayouts([
             path: 'agent',
             component: AgentManager,
             meta: {
-              title: 'Agent状态',
-              back: false,
               mainMenu: 'nodeManager',
             },
           },
