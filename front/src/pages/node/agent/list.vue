@@ -112,7 +112,7 @@
           fixed="left"
         ></TableColumn>
         <TableColumn
-          field="bk_host_innerip_list"
+          field="bk_host_innerip"
           :title="t('platform.nodeMan.inner_ip')"
           :min-width="150"
           fixed="left"
@@ -122,7 +122,7 @@
           </template>
         </TableColumn>
         <TableColumn
-          field="bk_host_innerip_v6_list"
+          field="bk_host_innerip_v6"
           :title="t('platform.nodeMan.inner_ipv6')"
           :min-width="150"
         >

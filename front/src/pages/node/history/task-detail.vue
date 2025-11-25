@@ -5,14 +5,24 @@
     :back="true"
   >
     <span class="mx-[6px] text-[#979BA5] text-[14px]">-</span>
-    <span class="text-[#979BA5] text-[14px] mr-[14px]" v-if="currentData">{{ currentData?.workflow_id }}</span>
-    <Tag :theme="statusMap[currentTaskStatus]?.tagTheme" type="filled" v-if="currentTaskStatus">
-      {{ statusMap[currentTaskStatus]?.text || '' }}
+    <span class="text-[#979BA5] text-[14px] mr-[14px]" v-if="currentData">{{
+      currentData?.workflow_id
+    }}</span>
+    <Tag
+      :theme="statusMap[currentTaskStatus]?.tagTheme"
+      type="filled"
+      v-if="currentTaskStatus"
+    >
+      {{ statusMap[currentTaskStatus]?.text || "" }}
     </Tag>
   </PageHeader>
   <div class="p-[24px] mt-[52px]">
     <div class="flex">
-      <div v-for="item in taskInfoList" :key="item.name" class="leading-[30px] mr-[52px] text-[12px]">
+      <div
+        v-for="item in taskInfoList"
+        :key="item.name"
+        class="leading-[30px] mr-[52px] text-[12px]"
+      >
         <div class="w-[50px]">{{ item.name }}</div>
         <div>{{ item.value }}</div>
       </div>
@@ -24,10 +34,13 @@
           trigger="click"
           :popover-options="{
             clickContentAutoHide: true,
-          }">
+          }"
+        >
           <Button :disabled="!failedSelection.length">
             <span>批量重试</span>
-            <i class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"></i>
+            <i
+              class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
+            ></i>
           </Button>
           <template #content>
             <Dropdown.DropdownMenu ext-cls="dropDown-menu">
@@ -36,9 +49,10 @@
                 v-for="item in reTryType"
                 :key="item.id"
                 v-bk-tooltips="{
-                  content: item.tooltip
+                  content: item.tooltip,
                 }"
-                @click="handleFullRetry(item.id)">
+                @click="handleFullRetry(item.id)"
+              >
                 {{ item.name }}
               </Dropdown.DropdownItem>
             </Dropdown.DropdownMenu>
@@ -52,11 +66,10 @@
           filter-prop="state"
           :disabled="!selection.length"
         ></copy-ip-dropdown>
-        <div class="h-[32px] bg-[#EAEBF0] rounded-[2px] flex items-center text-[12px] mr-[12px]">
-          <Radio.Group
-            v-model="radioGroupValue"
-            type="capsule"
-          >
+        <div
+          class="h-[32px] bg-[#EAEBF0] rounded-[2px] flex items-center text-[12px] mr-[12px]"
+        >
+          <Radio.Group v-model="radioGroupValue" type="capsule">
             <Radio.Button
               v-for="item in radioGroup"
               :label="item.name"
@@ -75,7 +88,8 @@
         v-model.trim="searchSelectValue"
         :unique-select="true"
         :placeholder="'请输入IP、管控区域、业务、目标版本、执行状态 搜索'"
-        @update:model-value="handleSearchSelectChange">
+        @update:model-value="handleSearchSelectChange"
+      >
       </SearchSelect>
     </div>
     <bk-loading title="数据加载中" :loading="loading">
@@ -95,15 +109,46 @@
           @column-filter="handleFilter"
         >
           <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
-          <TableColumn field="bk_host_inner_list" :title="'IPv4'" width="150" fixed="left"></TableColumn>
-          <TableColumn field="bk_host_innerip_v6_list" :title="'IPv6'" width="150"></TableColumn>
-          <TableColumn field="bk_networkarea_id" :title="'管控区域'" min-width="150"></TableColumn>
-          <TableColumn field="bk_biz_name" :title="'业务'" min-width="150"></TableColumn>
+          <TableColumn
+            field="bk_host_inner_list"
+            :title="'IPv4'"
+            width="150"
+            fixed="left"
+          ></TableColumn>
+          <TableColumn
+            field="bk_host_innerip_v6_list"
+            :title="'IPv6'"
+            width="150"
+          ></TableColumn>
+          <TableColumn
+            field="bk_networkarea_id"
+            :title="'管控区域'"
+            min-width="150"
+          >
+            <template #default="{ row }">
+              {{ networkAreaListMap.get(row.bk_networkarea_id) }}
+            </template>
+          </TableColumn>
+          <TableColumn
+            field="bk_networkunit_id"
+            :title="'管控单元'"
+            min-width="150"
+          >
+            <template #default="{ row }">
+              {{ networkUnitListMap.get(row.bk_networkunit_id) }}
+            </template>
+          </TableColumn>
+          <TableColumn
+            field="bk_biz_name"
+            :title="'业务'"
+            min-width="150"
+          ></TableColumn>
           <TableColumn
             field="node_version"
             :title="'目标版本'"
             min-width="150"
-            :filter="filterOptionSource.node_version">
+            :filter="filterOptionSource.node_version"
+          >
           </TableColumn>
           <TableColumn field="total_time_second" :title="'耗时'">
             <template #default="{ row }">
@@ -117,10 +162,17 @@
             min-width="120"
           >
             <template #default="{ row }">
-              <div class="flex items-center" v-if="row.state && statusMap[row.state]">
+              <div
+                class="flex items-center"
+                v-if="row.state && statusMap[row.state]"
+              >
                 <Spinner v-if="row.state === 'running'" class="mr-[8px]" />
                 <template v-else>
-                  <i :class="`nodeman-icon nc-${statusMap[row.state].icon} status-icon`"></i>
+                  <i
+                    :class="`nodeman-icon nc-${
+                      statusMap[row.state].icon
+                    } status-icon`"
+                  ></i>
                 </template>
                 <span>{{ statusMap[row.state].text }}</span>
               </div>
@@ -130,28 +182,34 @@
               </div>
             </template>
           </TableColumn>
-          <TableColumn field="reTryCount" :title="'重试次数'" min-width="100"></TableColumn>
           <TableColumn
-            :title="'操作'"
-            fixed="right"
-            width="200"
-          >
+            field="reTryCount"
+            :title="'重试次数'"
+            min-width="100"
+          ></TableColumn>
+          <TableColumn :title="'操作'" fixed="right" width="200">
             <template #default="{ row }">
               <div class="flex items-center gap-[11px]">
-                <Button text theme="primary" @click="handleViewLog(row)">查看日志</Button>
-                <Button text theme="primary" :disabled="row.state !== 'running'">终止</Button>
+                <Button text theme="primary" @click="handleViewLog(row)"
+                >查看日志</Button
+                >
+                <Button text theme="primary" :disabled="row.state !== 'running'"
+                >终止</Button
+                >
                 <Dropdown
                   theme="light"
                   trigger="click"
                   ext-cls="dropdownCls"
                   :popover-options="{
                     clickContentAutoHide: true,
-                  }">
+                  }"
+                >
                   <Button
                     text
                     theme="primary"
                     v-if="!['success', 'running'].includes(row.state)"
-                    class="flex items-stretch">
+                    class="flex items-stretch"
+                  >
                     <right-turn-line fill="#3A84FF" />
                     <span>重试</span>
                   </Button>
@@ -162,13 +220,17 @@
                         v-for="item in reTryType"
                         :key="item.id"
                         v-bk-tooltips="{
-                          content: item.tooltip
+                          content: item.tooltip,
                         }"
-                        @click="handleRetry(row, item.id)">
+                        @click="handleRetry(row, item.id)"
+                      >
                         <Button
                           text
-                          :disabled="row.state === 'terminate' && item.id === 'PARTIAL'"
-                        >{{ item.name }}</Button>
+                          :disabled="
+                            row.state === 'terminate' && item.id === 'PARTIAL'
+                          "
+                        >{{ item.name }}</Button
+                        >
                       </Dropdown.DropdownItem>
                     </Dropdown.DropdownMenu>
                   </template>
@@ -182,16 +244,39 @@
   </div>
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, Input, Radio, ResizeLayout, SearchSelect, Tag } from 'bkui-vue';
-import { AngleUpFill, Close, RightTurnLine, Spinner, Success } from 'bkui-vue/lib/icon';
+import {
+  Button,
+  Dropdown,
+  Input,
+  Radio,
+  ResizeLayout,
+  SearchSelect,
+  Tag,
+} from 'bkui-vue';
+import {
+  AngleUpFill,
+  Close,
+  RightTurnLine,
+  Spinner,
+  Success,
+} from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  reactive,
+  ref,
+  watch,
+} from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import { TopoService } from '@/api/modules/topo';
 import useInterval from '@/composables/use-interval';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
@@ -199,11 +284,15 @@ import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
 interface FilterOption {
-  list: { text: string, value: string }[];
+  list: { text: string; value: string }[];
   checked: string[];
   filterScope: string;
 }
-type taskType = 'install_agent' | 'install_plugin' | 'upgrade_agent' | 'upgrade_plugin';
+type taskType =
+  | 'install_agent'
+  | 'install_plugin'
+  | 'upgrade_agent'
+  | 'upgrade_plugin';
 type filterProp = 'state' | 'node_version';
 
 const { t } = useI18n();
@@ -320,23 +409,47 @@ const formatCostTime = (duration: number) => {
   return `${minutes}m ${seconds}s`;
 };
 
-const timeFormatter = (val: number | string | undefined, format = 'YYYY-MM-DD HH:mm:ss') => (val ? dayjs(val).format(format) : '--');
+const timeFormatter = (
+  val: number | string | undefined,
+  format = 'YYYY-MM-DD HH:mm:ss',
+) => (val ? dayjs(val).format(format) : '--');
 
 const sliceWorkflowId = (val: string) => `#${val?.slice(-4)}`;
-const taskInfoList = computed(() => ([
-  { prop: 'type', name: '任务类型', value: typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType] || nodeManageStore.taskHistoryTableRowData?.type },
-  { prop: 'cost_time', name: '总耗时', value: formatCostTime(nodeManageStore.taskHistoryTableRowData?.cost_time) },
-  { prop: 'workflow_id', name: '任务ID', value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id) },
-  { prop: 'operator', name: '执行人', value: nodeManageStore.taskHistoryTableRowData?.operator },
-  { prop: 'operate_time', name: '执行时间', value: timeFormatter(nodeManageStore.taskHistoryTableRowData?.operate_time) },
-]));
+const taskInfoList = computed(() => [
+  {
+    prop: 'type',
+    name: '任务类型',
+    value:
+      typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType]
+      || nodeManageStore.taskHistoryTableRowData?.type,
+  },
+  {
+    prop: 'cost_time',
+    name: '总耗时',
+    value: formatCostTime(nodeManageStore.taskHistoryTableRowData?.cost_time),
+  },
+  {
+    prop: 'workflow_id',
+    name: '任务ID',
+    value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id),
+  },
+  {
+    prop: 'operator',
+    name: '执行人',
+    value: nodeManageStore.taskHistoryTableRowData?.operator,
+  },
+  {
+    prop: 'operate_time',
+    name: '执行时间',
+    value: timeFormatter(nodeManageStore.taskHistoryTableRowData?.operate_time),
+  },
+]);
 
 const tableData = ref<any[]>([]);
-const filterTableData = computed(() => tableData.value.filter((item: any) => radioGroupValue.value === 'all'
-        || item.state === radioGroupValue.value));
+const filterTableData = computed(() => tableData.value.filter((item: any) => radioGroupValue.value === 'all' || item.state === radioGroupValue.value));
 const radioGroupValue = ref('all');
 const curOperationId = ref('');
-const radioGroup = computed(() => ([
+const radioGroup = computed(() => [
   {
     icon: '',
     label: '全部',
@@ -347,30 +460,55 @@ const radioGroup = computed(() => ([
     icon: 'nodeman-icon nc-running status-icon',
     label: '成功',
     name: 'success',
-    count: tableData.value.filter((item: {state: string}) => item.state === 'success').length,
+    count: tableData.value.filter((item: { state: string }) => item.state === 'success').length,
   },
   {
     icon: 'nodeman-icon nc-terminated status-icon',
     label: '失败',
     name: 'failed',
-    count: tableData.value.filter((item: {state: string}) => item.state === 'failed').length,
+    count: tableData.value.filter((item: { state: string }) => item.state === 'failed').length,
   },
-]));
+]);
 const bussinessMap = computed(() => mainStore.businessList.map(item => ({
   id: item.bk_biz_id,
   name: item.bk_biz_name,
 })));
 const getUniqueChildren = (prop: string) => {
-  const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
-  return uniqueValues.map(value => ({
-    id: value,
-    name: prop === 'state' ? statusMap[value as string]?.text : String(value),
-  }));
+  const uniqueValues = Array.from(
+    new Set(tableData.value
+      .map((item: any) => item[prop])
+      .filter((item: any) => item !== null && item !== undefined && item !== '')));
+  return uniqueValues.map(value => {
+    let name;
+    switch (prop) {
+      case 'state':
+        name = statusMap[value as string]?.text || String(value);
+        break;
+      case 'bk_networkarea_id':
+        name = networkAreaListMap.get(value as number) || String(value);
+        break;
+      case 'bk_networkunit_id':
+        name = networkUnitListMap.get(value as number) || String(value);
+        break;
+      default:
+        String(value);
+        break;
+    }
+    return {
+      id: value,
+      name,
+    };
+  });
 };
 const filterOptionConfig = (prop: string, textMap?: Record<string, any>) => {
-  const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop])?.filter((item: any) => item)));
+  const uniqueValues = Array.from(new Set(tableData.value
+    .map((item: any) => item[prop])
+    ?.filter((item: any) => item)));
   return uniqueValues.map(value => ({
-    text: textMap && textMap[value as string] ? textMap[value as string].text : value,
+    text:
+      textMap && textMap[value as string]
+        ? textMap[value as string].text
+        : value,
     value,
   }));
 };
@@ -388,15 +526,42 @@ const filterOptionSource = reactive<Record<string, FilterOption>>({
 });
 const loading = ref(false);
 // 搜索
-const searchSelectValue = ref<{id: string, name: string, values: any[]}[]>([]);
+const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = computed(() => [
-  { id: 'bk_host_innerip', name: 'IP', multiple: true },
-  { id: 'bk_networkarea_id', name: '管控区域', children: getUniqueChildren('bk_networkarea_id'), multiple: true },
-  { id: 'bk_biz_id', name: '业务', children: bussinessMap.value, multiple: true },
-  { id: 'node_version', name: '目标版本', children: getUniqueChildren('node_version'), multiple: true },
-  { id: 'state', name: '执行状态', children: getUniqueChildren('state'), multiple: true },
+  { id: 'bk_host_innerip', name: 'IPv4', multiple: true },
+  { id: 'bk_host_innerip_v6', name: 'IPv6', multiple: true },
+  {
+    id: 'bk_networkarea_id',
+    name: '管控区域',
+    children: getUniqueChildren('bk_networkarea_id'),
+    multiple: true,
+  },
+  {
+    id: 'bk_networkunit_id',
+    name: '管控单元',
+    children: getUniqueChildren('bk_networkunit_id'),
+    multiple: true,
+  },
+  {
+    id: 'bk_biz_id',
+    name: '业务',
+    children: bussinessMap.value,
+    multiple: true,
+  },
+  {
+    id: 'node_version',
+    name: '目标版本',
+    children: getUniqueChildren('node_version'),
+    multiple: true,
+  },
+  {
+    id: 'state',
+    name: '执行状态',
+    children: getUniqueChildren('state'),
+    multiple: true,
+  },
 ]);
-const handleSearchSelectChange = async (data: {id: string, name: string, values: {id: string, name: string}[]}[]) => {
+const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
   });
@@ -408,9 +573,7 @@ const handleSearchSelectChange = async (data: {id: string, name: string, values:
 };
 
 // 分页
-const {
-  pagination,
-} = usePage(tableData);
+const { pagination } = usePage(tableData);
 // 复制
 const list = [
   {
@@ -474,43 +637,101 @@ const list = [
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout'].includes(item.state)));
 const runningSelection = computed(() => selection.value.filter((item: any) => ['running'].includes(item.state)));
-const handleSelectChange = ({ checked, row }: {checked: boolean, row: any}) => {
+const handleSelectChange = ({
+  checked,
+  row,
+}: {
+  checked: boolean;
+  row: any;
+}) => {
   row.checked = checked;
 };
 
 // 表格全选
-const handleSelectAllChange = ({ checked }: { checked: boolean}) => {
-  tableData.value.forEach((item: any) => item.checked = checked);
+const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
+  tableData.value.forEach((item: any) => (item.checked = checked));
 };
 // 表格设置
-const { isShowSetting, settings, handleSettingChange } = useTableSetting({
-  checked: [
-    'bk_host_inner_list',
-    'bk_host_innerip_v6_list',
-    'bk_networkarea_id',
-    'bk_biz_name',
-    'node_version',
-    'total_time_second',
-    'state',
-    'reTryCount',
-  ],
-  disabled: [],
-}, 'nodeMng-task-detail');
+const { isShowSetting, settings, handleSettingChange } = useTableSetting(
+  {
+    checked: [
+      'bk_host_inner_list',
+      'bk_host_innerip_v6_list',
+      'bk_networkarea_id',
+      'bk_networkunit_id',
+      'bk_biz_name',
+      'node_version',
+      'total_time_second',
+      'state',
+      'reTryCount',
+    ],
+    disabled: [],
+  },
+  'nodeMng-task-detail',
+);
 
 // 筛选
-const handleFilter = ({ checked, field }: {checked: string[], field: string}) => {
+const handleFilter = ({
+  checked,
+  field,
+}: {
+  checked: string[];
+  field: string;
+}) => {
   const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (checked.length) {
-    searchSelectValue.value.push({ id: field, name: field, values: checked.map((item: any) => {
-      const name = field === 'state' ? statusMap[item].text : item;
-      return {
-        id: item,
-        name,
-      };
-    }) });
+    searchSelectValue.value.push({
+      id: field,
+      name: field,
+      values: checked.map((item: any) => {
+        const name = field === 'state' ? statusMap[item].text : item;
+        return {
+          id: item,
+          name,
+        };
+      }),
+    });
   }
 };
+
+const networkAreaListMap = new Map<number, string | number>([[-1, -1]]);
+// 管控区域下拉列表获取
+const getNetworkAreaList = async () => {
+  const res = await TopoService.NetworkAreaList({
+    page: {
+      limit: 0,
+    },
+  }).catch((err: any) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    };
+  });
+  res.items.forEach((item) => {
+    networkAreaListMap.set(item.bk_networkarea_id, item.bk_networkarea_name);
+  });
+};
+// 管控单元下拉列表获取
+const networkUnitListMap = new Map<number, string | number>([[-1, -1]]);
+const getNetworkUnitList = async () => {
+  const res = await TopoService.NetworkUnitList({
+    exact_include_conditions: {
+      bk_networkarea_id: [],
+    },
+  }).catch((err: any) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    };
+  });
+  res.items.forEach((item) => {
+    networkUnitListMap.set(item.bk_networkunit_id, item.bk_networkunit_name);
+  });
+};
+
 // 重试
 const handleRetry = async (row: any, type: string) => {
   const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
@@ -556,7 +777,7 @@ const updataCurrentTaskInfo = async () => {
   const list = res.items.map(item => ({
     ...item,
     bk_biz_name: item.bk_biz_name.filter(item => item),
-    cost_time: item.finish_time > 0 ? (item.finish_time - item.operate_time) : 0,
+    cost_time: item.finish_time > 0 ? item.finish_time - item.operate_time : 0,
   }));
   const findItem = list.find((item: any) => item.workflow_id === route.params.taskId);
   if (findItem) {
@@ -585,8 +806,11 @@ const getParams = () => {
 // 所有子任务状态
 const subTasksStatus = ref<string[]>();
 // 如果所有子任务状态包含运行中或者初始状态则需要轮询，即needInterval为true
-const needInterval = computed(() => subTasksStatus.value?.includes('running') || subTasksStatus.value?.includes('empty_instance') || subTasksStatus.value?.includes('init'));
+const needInterval = computed(() => subTasksStatus.value?.includes('running')
+    || subTasksStatus.value?.includes('empty_instance')
+    || subTasksStatus.value?.includes('init'));
 const getOperateList = async () => {
+  loading.value = true;
   subTasksStatus.value = [];
   const currentRowData = nodeManageStore.taskHistoryTableRowData;
   const searchParameters = getParams();
@@ -594,6 +818,7 @@ const getOperateList = async () => {
     operations: [],
     total_count: 0,
   }));
+  loading.value = false ;
   const mapList = res.operations.map((item) => {
     subTasksStatus.value?.push(item.status.state);
     return {
@@ -603,7 +828,7 @@ const getOperateList = async () => {
       bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(','),
       bk_biz_name: currentRowData?.bk_biz_name || item.param.bk_biz_id,
       operation_id: item.operation_id,
-      reTryCount: item.instance_ids?.length ?  item.instance_ids?.length - 1 : 0,
+      reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
     };
   });
   const isEqual = tableData.value.length === mapList.length
@@ -635,33 +860,54 @@ const handleStop = async () => {
   await updataCurrentTaskInfo();
   await getOperateList();
 };
-watch(() => searchSelectValue, async () => {
-  await getOperateList();
-}, { deep: true });
-watch(() => tableData, () => {
-  filterOptionSource.node_version.list = filterOptionConfig('node_version', typeMap);
-  filterOptionSource.state.list = filterOptionConfig('state', statusMap);
-}, { deep: true, immediate: true });
-watch(() => needInterval.value, async () => {
-  if (!needInterval.value) {
-    stop();
-    await updataCurrentTaskInfo();
-  } else {
-    start();
-  }
-});
+watch(
+  () => searchSelectValue,
+  async () => {
+    await getOperateList();
+  },
+  { deep: true },
+);
+watch(
+  () => tableData,
+  () => {
+    filterOptionSource.node_version.list = filterOptionConfig(
+      'node_version',
+      typeMap,
+    );
+    filterOptionSource.state.list = filterOptionConfig('state', statusMap);
+  },
+  { deep: true, immediate: true },
+);
+watch(
+  () => needInterval.value,
+  async () => {
+    if (!needInterval.value) {
+      stop();
+      await updataCurrentTaskInfo();
+    } else {
+      start();
+    }
+  },
+);
 
 // 日志页面点击重试触发此页面的list的数据轮询
-watch(() => mainStore.isLogRetry, (val: Boolean) => {
-  if (val) {
-    start();
-    mainStore.updateLogRetry(false);
-  }
-});
+watch(
+  () => mainStore.isLogRetry,
+  (val: Boolean) => {
+    if (val) {
+      start();
+      mainStore.updateLogRetry(false);
+    }
+  },
+);
 
 onMounted(async () => {
-  await updataCurrentTaskInfo();
-  await getOperateList();
+  Promise.all([
+    getNetworkAreaList(),
+    getNetworkUnitList(),
+    updataCurrentTaskInfo(),
+    getOperateList(),
+  ]);
   if (currentTaskStatus.value === 'running' && needInterval.value) {
     start();
   }
@@ -672,7 +918,7 @@ onBeforeUnmount(() => {
 </script>
 <style lang="postcss" scoped>
 .status-icon::before {
-  content: '';
+  content: "";
   display: inline-block;
   margin-right: 8px;
   width: 8px;
@@ -683,20 +929,20 @@ onBeforeUnmount(() => {
 }
 .nc-running {
   &::before {
-    background: #CBF0DA;
-    border-color: #2CAF5E;
+    background: #cbf0da;
+    border-color: #2caf5e;
   }
 }
 .nc-terminated {
   &::before {
-    border-color: #EA3636;
-    background: #FFDDDD;
+    border-color: #ea3636;
+    background: #ffdddd;
   }
 }
 .dropdownCls {
-    :deep(span) {
-        display: inline-block;
-        vertical-align: middle;
-    }
+  :deep(span) {
+    display: inline-block;
+    vertical-align: middle;
+  }
 }
 </style>

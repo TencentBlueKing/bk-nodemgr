@@ -1,32 +1,39 @@
 <template>
   <div class="flex w-full h-full">
-    <div class="w-[240px] h-full">
-      <div class=" p-[20px]">
+    <div class="w-[240px] h-full flex flex-col">
+      <div class="h-[72px] p-[20px]">
         <Input v-model="searchValue" :placeholder="'请搜索ip'"></Input>
       </div>
-      <div
-        v-for="operate in operateList" :key="operate.operation_id"
-        class="px-[20px] h-[40px] leading-[40px] overflow-y-auto"
-        :class="{ 'bg-[#e1ecff]': route.params.ip === operate.bk_host_inner_list }"
-      >
-        <span class="mr-[5px]">
-          <i
-            v-if="statusMap[operate.state]?.icon"
-            :class="`nodeman-icon nc-${
-              statusMap[operate.state].icon
-            } status-icon`"
-          ></i>
-          <Spinner
-            v-else-if="operate.state === 'running'"
-            width="12.25px"
-            height="12.25px"
-          ></Spinner>
-          <i class="nodeman-icon nc-unknown status-icon" v-else></i>
-        </span>
-        <span class="text-[#63656e]">{{ operate.bk_host_inner_list }}</span>
-      </div>
+      <bk-loading title="数据加载中" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)]">
+        <div class="h-full overflow-y-auto">
+          <div
+            v-for="operate in filterIpOpearateList" :key="operate.operation_id"
+            class="cursor-pointer w-full px-[20px] h-[40px] leading-[40px] flex items-center"
+            :class="{ 'bg-[#e1ecff]': route.params.ip === operate.bk_host_inner_list }"
+            @click="handleChangeIp(operate.bk_host_inner_list)"
+          >
+            <span class="mr-[5px] leading-none">
+              <i
+                v-if="statusMap[operate.state]?.icon"
+                :class="[`nodeman-icon nc-${
+                  statusMap[operate.state].icon
+                } status-icon`, 'align-middle', 'text-[8px]']"
+              ></i>
+              <Spinner
+                v-else-if="operate.state === 'running'"
+                width="12px"
+                height="12px"
+              ></Spinner>
+              <i class="nodeman-icon nc-unknown status-icon align-middle text-[8px]" v-else></i>
+            </span>
+            <bk-overflow-title type="tips" class="text-[#63656e] w-[179px]">
+              {{ operate.bk_host_inner_list }}
+            </bk-overflow-title>
+          </div>
+        </div>
+      </bk-loading>
     </div>
-    <div class="bg-[#fff] px-[24px] py-[20px] h-full flex-1">
+    <div class="bg-[#fff] px-[24px] py-[20px] h-full flex-1 flex flex-col">
       <div class="flex items-center h-[30px]">
         <ArrowsLeft width="24" height="24" class="text-[#3a84ff] cursor-pointer mr-[5px]" @click="router.back()" />
         <span>{{ $t(title) }}</span>
@@ -34,7 +41,7 @@
       <Dropdown
         theme="light"
         trigger="click"
-        ext-cls="dropdownCls"
+        ext-cls="dropdownCls h-[72px]"
         :popover-options="{
           clickContentAutoHide: true,
         }">
@@ -61,12 +68,12 @@
           </Dropdown.DropdownMenu>
         </template>
       </Dropdown>
-      <div class="flex flex-1">
+      <bk-loading title="数据加载中" :loading="instanceLoading" class="flex-1 flex h-[calc(100%-102px)]">
         <Table
           :data="tableData"
           :empty-text="'暂无数据'"
           :min-width="300"
-          class="w-[40%] h-full  mr-[10px]"
+          class="w-[40%] h-full mr-[10px] bg-[#f5f7fa]"
         >
           <TableColumn :title="'步骤'" min-width="200" fixed="left">
             <template #default="{ row }">
@@ -120,7 +127,7 @@
         </Table>
         <div
           ref="contentRef"
-          class="flex-1 flex flex-col min-h-[500px] max-h-[800px] overflow-y-auto"
+          class="flex-1 flex flex-col overflow-y-auto"
           :class="[{ 'text-[12px]': !isFullscreen, 'text-[16px]': isFullscreen }]"
         >
           <div
@@ -205,12 +212,12 @@
             </div>
           </div>
         </div>
-      </div>
+      </bk-loading>
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, Input } from 'bkui-vue';
+import { Button, Dropdown, Input, overflowTitle } from 'bkui-vue';
 import { AngleUpFill, ArrowsLeft, Close, RightShape, Spinner } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
@@ -236,7 +243,12 @@ const nodeManageStore = useNodeManageStore();
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const { start, stop } = useInterval(getLog, 1000); // 轮询
 const activeKey = ref('');
-const operateList = ref<any[]>([]);
+
+const operateList = ref<any[]>([]); // 子任务列表
+// 搜索过滤
+// eslint-disable-next-line max-len
+const filterIpOpearateList = computed(() => operateList.value.filter(item => !searchValue.value || item.bk_host_inner_list.includes(searchValue.value)));
+
 const searchValue = ref();
 const title = computed(() => `${route.params.ip} ${typeMap[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
 const currentOperate = computed(() => operateList.value.find(item => item.bk_host_inner_list === route.params.ip));
@@ -354,6 +366,17 @@ const handleClickStep = (row: any) => {
   scrollToFirstErrorByClassNames(`.${row.stepKey}`);
 };
 
+// 搜索Ip
+const handleChangeIp = async (ip: string) => {
+  router.replace({
+    name: 'log',
+    params: {
+      ip,
+      taskId: route.params.taskId,
+    },
+  });
+};
+
 const handleClick = async (item: {
   name: string;
   id: string;
@@ -396,7 +419,9 @@ function getOrdinalSuffix(number: number) {
 }
 
 // 获取任务列表
+const operateLoading = ref(false);
 const getOperateList = async () => {
+  operateLoading.value = true;
   const res = await NodeWorkflowService.NodeWorkflowOperationList({
     exact_include_conditions: {
       workflow_id: route.params.taskId,
@@ -405,6 +430,7 @@ const getOperateList = async () => {
     operations: [],
     total_count: 0,
   }));
+  operateLoading.value = false;
   operateList.value = res.operations.map(item => ({
     ...item.param,
     ...item.status,
@@ -414,13 +440,16 @@ const getOperateList = async () => {
   }));
 };
 
+const instanceLoading = ref(false);
 const getInstance = async () => {
+  instanceLoading.value = true;
   const res = await NodeWorkflowService.NodeWorkflowOperationInstanceList({
     operation_id: currentOperate.value.operation_id,
   }).catch(() => ({
     oper_inst_data: [],
     total: 0,
   }));
+  instanceLoading.value = false;
   curOperInstId.value = res.total > 0 ? res.oper_inst_data[res.total - 1].oper_inst_id : '';
   curSortNames.value = res.total > 0 ? res.oper_inst_data[res.total - 1].action_names : [];
   operInstList.value = [];
@@ -493,6 +522,15 @@ watch(() => isInterval.value, async (val: boolean) => {
     await getOperateList();
     await getInstance();
     // emit('stop');
+  }
+});
+watch(() => route.path, async () => {
+  await getInstance();
+  await getLog();
+  if (isInterval.value) {
+    start();
+  } else {
+    stop();
   }
 });
 onBeforeUnmount(() => {

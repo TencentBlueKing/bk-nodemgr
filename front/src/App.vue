@@ -500,4 +500,14 @@ body {
 .bk-loading-mask, .bk-loading-indicator {
   z-index: 10 !important;
 }
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 7px;
+  border: 3px solid transparent;
+  -webkit-box-shadow: inset 0 0 8px 8px #c4c6cc;
+  box-shadow: inset 0 0 8px 8px #c4c6cc;
+}
 </style>
