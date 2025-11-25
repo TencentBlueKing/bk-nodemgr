@@ -19,21 +19,31 @@ const (
 	CCPageSizeLimit = 500
 )
 
+type ccField string
+
 // nolint: gochecknoglobals
 var ccHostFieldsInstance = struct {
-	fields []string
+	fields []ccField
 	once   sync.Once
 }{}
 
 // ccHostFields describe the default search host fields.
-func ccHostFields() []string {
+func ccHostFields() []ccField {
 	ccHostFieldsInstance.once.Do(func() {
 		filedMAp, _ := conv.StructToMap(HostInfo{})
-		ccHostFieldsInstance.fields = conv.MapKeyToSlice(filedMAp)
+		fields := conv.MapKeyToSlice(filedMAp)
+		for _, field := range fields {
+			ccHostFieldsInstance.fields = append(ccHostFieldsInstance.fields, ccField(field))
+		}
 	})
 
 	return ccHostFieldsInstance.fields
 }
+
+const (
+	ccFieldBKInnerIP ccField = "bk_host_innerip"
+	ccFieldBKCloudID ccField = "bk_cloud_id"
+)
 
 // Page describe the page data in request.
 type Page struct {
@@ -193,7 +203,7 @@ type ListBizHostsReq struct {
 	BKBizID int64 `json:"bk_biz_id"`
 
 	// expected response fields.
-	Fields []string `json:"fields"`
+	Fields []ccField `json:"fields"`
 
 	// host property filter.
 	HostPropertyFilter *HostPropertyFilter `json:"host_property_filter,omitempty"`
@@ -505,8 +515,8 @@ type AddHostToResourcePoolResp struct {
 
 // ListResourcePoolHostsReq describe the request data of list_resource_pool_hosts.
 type ListResourcePoolHostsReq struct {
-	Fields []string `json:"fields"`
-	Page   Page     `json:"page"`
+	Fields []ccField `json:"fields"`
+	Page   Page      `json:"page"`
 }
 
 // ListResourcePoolHostsResp describe the response data of list_resource_pool_hosts.
@@ -515,11 +525,37 @@ type ListResourcePoolHostsResp struct {
 	Info  []*HostInfo `json:"info"`
 }
 
+type ruleOperator string
+
+const (
+	ruleOperatorEqual          ruleOperator = "euqal"
+	ruleOperatorNotEqual       ruleOperator = "not_equal"
+	ruleOperatorIn             ruleOperator = "in"
+	ruleOperatorNotIn          ruleOperator = "not_in"
+	ruleOperatorLess           ruleOperator = "less"
+	ruleOperatorLessOREqual    ruleOperator = "less_or_equal"
+	ruleOperatorGreater        ruleOperator = "greater"
+	ruleOperatorGreaterOREqual ruleOperator = "greater_or_equal"
+	ruleOperatorBetween        ruleOperator = "between"
+	ruleOperatorNotBetween     ruleOperator = "not_between"
+)
+
+// Validate validate the rule operator.
+func (operator ruleOperator) Validate() error {
+	switch operator {
+	case ruleOperatorEqual, ruleOperatorNotEqual, ruleOperatorIn, ruleOperatorNotIn, ruleOperatorLess, ruleOperatorLessOREqual,
+		ruleOperatorGreater, ruleOperatorGreaterOREqual, ruleOperatorBetween, ruleOperatorNotBetween:
+		return nil
+	default:
+		return fmt.Errorf("unsupported rule operator: %s", operator)
+	}
+}
+
 // FieldCondition describe the general field condition structure defined by cmdb.
 type FieldCondition struct {
-	Field    string `json:"field"`
-	Operator string `json:"operator"`
-	Value    any    `json:"value"`
+	Field    ccField      `json:"field"`
+	Operator ruleOperator `json:"operator"`
+	Value    any          `json:"value"`
 }
 
 // DynamicGroupCondition describe the dynamic group condition define by cmdb.
@@ -552,11 +588,11 @@ type CreateDynamicGroupResp struct {
 
 // ExecuteDynamicGroupReq describe the request data of execute_dynamic_group.
 type ExecuteDynamicGroupReq struct {
-	BKBizID        int64    `json:"bk_biz_id"`
-	ID             string   `json:"id"`
-	Fields         []string `json:"fields"`
-	DisableCounter bool     `json:"disable_counter"`
-	Page           Page     `json:"page"`
+	BKBizID        int64     `json:"bk_biz_id"`
+	ID             string    `json:"id"`
+	Fields         []ccField `json:"fields"`
+	DisableCounter bool      `json:"disable_counter"`
+	Page           Page      `json:"page"`
 }
 
 // ExecuteDynamicGroupResp describe the response data of execute_dynamic_groupwhen dynamic group type is host.
@@ -636,8 +672,8 @@ type UpdateDynamicGroupResp string
 
 // ListHostsWithoutBusinessReq describe the request data of list_host_without_business.
 type ListHostsWithoutBusinessReq struct {
-	Fields []string `json:"fields"`
-	Page   Page     `json:"page"`
+	Fields []ccField `json:"fields"`
+	Page   Page      `json:"page"`
 }
 
 // ListHostsWithoutBusinessResp describe the response data of list_host_without_business.
@@ -968,11 +1004,11 @@ type FindHostBizRelationsResp []*HostTopoRelation
 
 // FindHostByServiceTemplateReq describe the request data of find_host_by_service_template.
 type FindHostByServiceTemplateReq struct {
-	BKBizID              int64    `json:"bk_biz_id"`
-	BKServiceTemplateIDs []int64  `json:"bk_service_template_ids"`
-	BKModuleIDs          []int64  `json:"bk_module_ids"`
-	Fields               []string `json:"fields"`
-	Page                 Page     `json:"page"`
+	BKBizID              int64     `json:"bk_biz_id"`
+	BKServiceTemplateIDs []int64   `json:"bk_service_template_ids"`
+	BKModuleIDs          []int64   `json:"bk_module_ids"`
+	Fields               []ccField `json:"fields"`
+	Page                 Page      `json:"page"`
 }
 
 // FindHostByServiceTemplateResp describe the response data of find_host_by_service_template.
@@ -1218,11 +1254,11 @@ type FindHostServiceTemplateResp []*HostServiceTemplate
 
 // ResourceWatchReq describe the request data of resource_watch.
 type ResourceWatchReq struct {
-	BKResource   string   `json:"bk_resource"`
-	BKEventTypes []string `json:"bk_event_types,omitempty"`
-	BKFields     []string `json:"bk_fields,omitempty"`
-	BKStartFrom  int64    `json:"bk_start_from,omitempty"`
-	BKCursor     string   `json:"bk_cursor,omitempty"`
+	BKResource   string    `json:"bk_resource"`
+	BKEventTypes []string  `json:"bk_event_types,omitempty"`
+	BKFields     []ccField `json:"bk_fields,omitempty"`
+	BKStartFrom  int64     `json:"bk_start_from,omitempty"`
+	BKCursor     string    `json:"bk_cursor,omitempty"`
 }
 
 // ResourceWatchResp describe the response data of resource_watch.

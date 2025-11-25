@@ -317,7 +317,7 @@ func (c *cli) getBizInternalModule(ctx contextx.IContext, req *GetBizInternalMod
 	}
 
 	err = c.client.Get().
-		SubResourcef("/topo/internal/%d/%d", c.config.SupplierAccount, req.BKBizID).
+		SubResourcef("/topo/internal/%s/%d", c.config.SupplierAccount, req.BKBizID).
 		WithContext(ctx).
 		WithHeaders(header).
 		Do().Into(resp)

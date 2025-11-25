@@ -780,8 +780,8 @@ func (h *Handler) ListServiceTemplate(ctx contextx.IContext, bizID int64, page t
 	return serviceTemplates, nil
 }
 
-// IPSeparator is the separator of inner and outer ip.
-const IPSeparator = ","
+// ipSeparator is the separator of inner and outer ip.
+const ipSeparator = ","
 
 // FindHostByServiceTemplate find host by service template.
 func (h *Handler) FindHostByServiceTemplate(ctx contextx.IContext, bizID int64, page types.Page,
@@ -827,10 +827,10 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 			CityID:        hostInfo.IdcCityID,
 			HostName:      hostInfo.BKHostName,
 			DeptName:      hostInfo.DeptName,
-			InnerIPList:   strings.Split(hostInfo.BKHostInnerIPV4, IPSeparator),
-			InnerIPV6List: strings.Split(hostInfo.BKHostInnerIPV6, IPSeparator),
-			OuterIPList:   strings.Split(hostInfo.BKHostOuterIPV4, IPSeparator),
-			OuterIPV6List: strings.Split(hostInfo.BKHostOuterIPV6, IPSeparator),
+			InnerIPList:   strings.Split(hostInfo.BKHostInnerIPV4, ipSeparator),
+			InnerIPV6List: strings.Split(hostInfo.BKHostInnerIPV6, ipSeparator),
+			OuterIPList:   strings.Split(hostInfo.BKHostOuterIPV4, ipSeparator),
+			OuterIPV6List: strings.Split(hostInfo.BKHostOuterIPV6, ipSeparator),
 			Operator:      hostInfo.Operator,
 			Mac:           hostInfo.BKMac,
 			CPUNum:        hostInfo.BKCpu,
@@ -850,10 +850,10 @@ func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID
 func (h *Handler) convCreateHostInfoFromTypes(host *types.Host) *CreateHostInfo {
 	return &CreateHostInfo{
 		BKCloudID:         host.Static.NetworkAreaID,
-		BKHostInnerIP:     strings.Join(host.Static.InnerIPList, IPSeparator),
-		BKHostInnerIPV6:   strings.Join(host.Static.InnerIPV6List, IPSeparator),
-		BKHostOuterIP:     strings.Join(host.Static.OuterIPList, IPSeparator),
-		BKHostOuterIPV6:   strings.Join(host.Static.OuterIPV6List, IPSeparator),
+		BKHostInnerIP:     strings.Join(host.Static.InnerIPList, ipSeparator),
+		BKHostInnerIPV6:   strings.Join(host.Static.InnerIPV6List, ipSeparator),
+		BKHostOuterIP:     strings.Join(host.Static.OuterIPList, ipSeparator),
+		BKHostOuterIPV6:   strings.Join(host.Static.OuterIPV6List, ipSeparator),
 		BKOSType:          h.osTypeKeeper.getKey(host.Static.OSType),
 		BKCpuArchitecture: h.cpuArchKeeper.getKey(host.Static.Arch),
 		BKAddressing:      string(host.Static.Addressing),
@@ -898,13 +898,13 @@ func (h *Handler) CheckBizHostByIP(ctx contextx.IContext, bizID int64, cloudID i
 	req.HostPropertyFilter.Condition = "AND"
 	req.HostPropertyFilter.Rules = make([]*FieldCondition, 0)
 	req.HostPropertyFilter.Rules = append(req.HostPropertyFilter.Rules, &FieldCondition{
-		Field:    "bk_host_innerip",
-		Operator: "equal",
+		Field:    ccFieldBKInnerIP,
+		Operator: ruleOperatorEqual,
 		Value:    ip,
 	})
 	req.HostPropertyFilter.Rules = append(req.HostPropertyFilter.Rules, &FieldCondition{
-		Field:    "bk_cloud_id",
-		Operator: "equal",
+		Field:    ccFieldBKCloudID,
+		Operator: ruleOperatorEqual,
 		Value:    cloudID,
 	})
 
