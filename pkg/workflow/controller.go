@@ -542,6 +542,10 @@ func (ctl *controller) generateOperationInstance(nCtx contextx.IContext) (*opera
 		return nil, err
 	}
 
+	logger.G.Sys().With("oper-id", ctl.oper.OperationID,
+		"oper-inst-id", inst.Metadata.OperationInstanceID).
+		Debug("created operation instance")
+
 	return inst, nil
 }
 
@@ -582,6 +586,12 @@ func (ctl *controller) generateRetryOperationInstance(nCtx contextx.IContext) (*
 	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, ctl.oper); err != nil {
 		return nil, err
 	}
+
+	logger.G.Sys().With("oper-id", ctl.oper.OperationID,
+		"retry-mode", lastRetryFlag.Mode,
+		"source-inst-id", lastRetryFlag.SourceInstanceID,
+		"retry-inst-id", retryInstance.Metadata.OperationInstanceID).
+		Debug("created retry operation instance")
 
 	return retryInstance, nil
 }

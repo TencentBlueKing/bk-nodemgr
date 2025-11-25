@@ -246,6 +246,9 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 
 				return nil
 			}
+
+			logger.G.Sys().With("trigger-id", trig.TriggerID).Debug("got trigger lock")
+
 			defer func() {
 				_ = mutex.Unlock()
 			}()
@@ -281,6 +284,8 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 }
 
 func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) error {
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "category", trigCtl.GetTriggerCategory()).Debug("do trigger")
+
 	switch trigCtl.GetTriggerCategory() {
 	case trigger.CategoryOnce:
 		instanceCtls, err := handler.doOnceTrigger(nCtx, trigCtl)
@@ -296,6 +301,8 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 		if err := trigCtl.InactivateTrigger(nCtx); err != nil {
 			return err
 		}
+
+		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).Debug("launched operation instance list, inactivated once trigger")
 
 		return nil
 
@@ -313,6 +320,8 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 		if err := trigCtl.InactivateTrigger(nCtx); err != nil {
 			return err
 		}
+
+		logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).Debug("launched operation instance list, inactivated ordered trigger")
 
 		return nil
 
@@ -339,13 +348,14 @@ func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trig
 		return err
 	}
 
-	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "operation-count", len(operList)).Debug("init empty operation")
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "operation-count", len(operList)).Debug("instantiate operation")
 
 	gp := gopool.NewPool()
 	for _, operCtl := range operList {
 		ctl := operCtl
 		gp.Go(func() error {
-			if _, err := ctl.CreateOperationInstance(nCtx); err != nil {
+			operInst, err := ctl.CreateOperationInstance(nCtx)
+			if err != nil {
 				logger.G.Sys().
 					WithErr(err).
 					With("trigger-id", trigCtl.GetTriggerID(), "operation-id", ctl.GetOperationID()).
@@ -353,6 +363,10 @@ func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trig
 
 				return err
 			}
+
+			logger.G.Sys().
+				With("trigger-id", trigCtl.GetTriggerID(), "operation-id", ctl.GetOperationID(), "oper-inst-id", operInst.GetOperationInstanceID()).
+				Debug("created operation instance")
 
 			return nil
 		})
@@ -373,6 +387,9 @@ func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITr
 	if err != nil {
 		return nil, err
 	}
+
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "instance-count", len(instanceList)).
+		Debug("once trigger processed")
 
 	return instanceList, nil
 }
@@ -414,6 +431,12 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 		return nil, err
 	}
 
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(),
+		"working-count", workingCount,
+		"idle-num", idleNum,
+		"instantiated-count", len(instanceList)).
+		Debug("ordered trigger processed")
+
 	return instanceList, nil
 }
 
@@ -450,6 +473,9 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 		}
 	}
 
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID()).
+		Debug("periodic trigger next activation time reached, no working instance, proceed to create operation instance")
+
 	operList, count, err := handler.mgr.stgOperation.ListOperationByTriggerID(nCtx, types.UnlimitedPage(), trigCtl.GetTriggerID())
 	if err != nil {
 		return nil, err
@@ -471,6 +497,11 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 	if err != nil {
 		return nil, err
 	}
+
+	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(),
+		"oper-id", operCtl.GetOperationID(),
+		"oper-inst-id", operInstCtl.GetOperationInstanceID()).
+		Debug("created periodic operation instance")
 
 	return []IOperationInstanceCtl{operInstCtl}, nil
 }
