@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	daoNodeDeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/node-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -53,6 +54,27 @@ func (s *Storage) getNodeDeploymentInfo(nCtx contextx.IContext, token string) (*
 	}
 
 	return deployInfo, nil
+}
+
+// listNodeDeployment list node deployments.
+func (s *Storage) listNodeDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeDeploymentCondition) (
+	[]*types.NodeDeployment, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertNodeDeploymentConditionToOptions(conditions)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	nodeDeployments, total, err := s.daoNodeDeployment.ListNodeDeployment(nCtx, page, opts...)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return nodeDeployments, total, nil
 }
 
 // seNodeDeploymenttNodeConf set gse node conf.
@@ -112,4 +134,42 @@ func (s *Storage) createNodeDeployment(nCtx contextx.IContext, nodeDeployment *t
 	}
 
 	return nil
+}
+
+// convertNodeDeploymentConditionToOptions convert node deployment condition to options.
+func convertNodeDeploymentConditionToOptions(conditions []*types.NodeDeploymentCondition) (
+	[]daoNodeDeployment.OptFn, error) {
+
+	opts := make([]daoNodeDeployment.OptFn, 0)
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				daoNodeDeployment.WithToken(condition.ExactInclude.Token...),
+				daoNodeDeployment.WithInfoInnerIP(condition.ExactInclude.InnerIP...),
+				daoNodeDeployment.WithInfoInnerIPV6(condition.ExactInclude.InnerIPv6...),
+				daoNodeDeployment.WithInfoBizID(condition.ExactInclude.BizID...),
+				daoNodeDeployment.WithInfoNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				daoNodeDeployment.WithInfoNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
+				daoNodeDeployment.WithInfoNodeVersion(condition.ExactInclude.NodeVersion...),
+			)
+		}
+
+		if condition.FuzzyInclude != nil {
+			return nil, errors.New("fuzzy include is not supported")
+		}
+
+		if condition.ExactExclude != nil {
+			return nil, errors.New("exact exclude is not supported")
+		}
+
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
+		}
+	}
+
+	return opts, nil
 }

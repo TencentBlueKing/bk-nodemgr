@@ -40,6 +40,10 @@ type IDaoNodeDeployment interface {
 
 	// UpdateNodeDeploymentInfo update node deployment info.
 	UpdateNodeDeploymentInfo(nCtx contextx.IContext, token string, info *types.DeploymentInfo) error
+
+	// ListNodeDeployment lists node deployment by page and conditions.
+	ListNodeDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeDeploymentCondition) (
+		[]*types.NodeDeployment, int64, error)
 }
 
 // IDaoNodeWorkflow define the node workflow dao interface.

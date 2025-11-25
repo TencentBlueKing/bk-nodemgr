@@ -21,3 +21,33 @@ type OptFn = base.OptFn
 func WithToken(token ...string) OptFn {
 	return base.WithStringValues(FieldKeyToken, token...)
 }
+
+// WithInfoInnerIP set info inner ip.
+func WithInfoInnerIP(ips ...string) OptFn {
+	return base.WithStringValues(FieldKeyInfoInnerIPList, ips...)
+}
+
+// WithInfoInnerIPV6 set info inner ipv6.
+func WithInfoInnerIPV6(ips ...string) OptFn {
+	return base.WithStringValues(FieldKeyInfoInnerIPV6List, ips...)
+}
+
+// WithInfoBizID set info biz id.
+func WithInfoBizID(ids ...int64) OptFn {
+	return base.WithInt64Values(FieldKeyInfoBizID, ids...)
+}
+
+// WithInfoNetworkAreaID set info network area id.
+func WithInfoNetworkAreaID(ids ...int64) OptFn {
+	return base.WithInt64Values(FieldKeyInfoNetworkAreaID, ids...)
+}
+
+// WithInfoNetworkUnitID set info network unit id.
+func WithInfoNetworkUnitID(ids ...int64) OptFn {
+	return base.WithInt64Values(FieldKeyInfoNetworkUnitID, ids...)
+}
+
+// WithInfoNodeVersion set info node version.
+func WithInfoNodeVersion(version ...string) OptFn {
+	return base.WithStringValues(FieldKeyInfoNodeVersion, version...)
+}

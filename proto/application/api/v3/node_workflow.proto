@@ -168,7 +168,8 @@ message NodeWorkflowOperationExactConditions {
   repeated string bk_host_innerip_v6 = 4;
   repeated int64 bk_biz_id = 5;
   repeated int64 bk_networkarea_id = 6;
-  repeated string state = 7;
+  repeated int64 bk_networkunit_id = 7;
+  repeated string state = 8;
 }
 
 // NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node

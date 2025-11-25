@@ -699,6 +699,13 @@
             "format": "int64"
           }
         },
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
         "state": {
           "type": "array",
           "items": {

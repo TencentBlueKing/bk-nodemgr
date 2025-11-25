@@ -178,9 +178,41 @@ func (x *NodeWorkflowOperationListReq) Validate() error {
 	return validatePage(x.GetPage())
 }
 
-// ConvertConditionsToComm convert conditions to comm.
-func (x *NodeWorkflowOperationListReq) ConvertConditionsToComm() string {
+// GetWorkflowID get workflow id.
+func (x *NodeWorkflowOperationListReq) GetWorkflowID() string {
 	return x.GetExactIncludeConditions().GetWorkflowId()
+}
+
+// ConvertConditionsToDeploymentTypes convert conditions to deployment types.
+func (x *NodeWorkflowOperationListReq) ConvertConditionsToDeploymentTypes(tokens []string) *types.NodeDeploymentCondition {
+	return convertWorkflowOperationConditionsToDeploymentTypes(tokens,
+		x.GetExactIncludeConditions(),
+	)
+}
+
+func convertWorkflowOperationConditionsToDeploymentTypes(tokens []string,
+	exactCond *NodeWorkflowOperationExactConditions) *types.NodeDeploymentCondition {
+
+	condition := &types.NodeDeploymentCondition{
+		ExactInclude: &types.NodeDeploymentExactFields{},
+	}
+
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.NodeDeploymentExactFields{
+			InnerIP:       exactCond.GetBkHostInnerip(),
+			InnerIPv6:     exactCond.GetBkHostInneripV6(),
+			BizID:         exactCond.GetBkBizId(),
+			NetworkAreaID: exactCond.GetBkNetworkareaId(),
+			NetworkUnitID: exactCond.GetBkNetworkunitId(),
+			NodeVersion:   exactCond.GetNodeVersion(),
+		}
+	}
+
+	// exact conditions token
+	condition.ExactExclude.Token = tokens
+
+	return condition
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -218,8 +250,8 @@ func (x *NodeWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) types.Pa
 
 // ConvertResultFromTypes convert workflow id to types.
 func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, result []*types.NodeWorkflowListOperationResult) {
-	items := make([]*NodeWorkflowOperation, 0, total)
-	for _, op := range result {
+	items := make([]*NodeWorkflowOperation, len(result))
+	for idx, op := range result {
 		item := &NodeWorkflowOperation{
 			OperationId:         op.OperationID,
 			InstanceIds:         op.OperInstanceIDs,
@@ -231,7 +263,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 			NodeVersion:         op.NodeVersion,
 			Operator:            op.Operator,
 		}
-		items = append(items, item)
+		items[idx] = item
 	}
 
 	x.Data = &NodeWorkflowOperationListResp_Data{
@@ -289,7 +321,7 @@ func (x *NodeWorkflowOperationInstanceListReq) AutoConvert() {
 
 // ConvertResultFromTypes ...
 func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
-	total int64, result []*operation.InstanceBriefData) {
+	num int64, result []*operation.InstanceBriefData) {
 
 	items := make([]*NodeWorflowOperationInstanceData, 0, len(result))
 	for _, opinstance := range result {
@@ -312,7 +344,7 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 
 	x.Data = &NodeWorkflowOperationInstanceListResp_Data{
 		OperInstData: items,
-		Total:        total,
+		Total:        num,
 	}
 }
 

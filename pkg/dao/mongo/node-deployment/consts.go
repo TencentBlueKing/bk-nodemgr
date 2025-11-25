@@ -11,12 +11,30 @@
 package nodedeployment
 
 const (
-	// FieldKeyToken the token field key
+	// FieldKeyToken the token field key.
 	FieldKeyToken = "data.token"
 
-	// FieldKeyInfo the info field key
+	// FieldKeyInfo the info field key.
 	FieldKeyInfo = "data.info"
 
-	// FieldKeyNodeConf the node conf field key
+	// FieldKeyNodeConf the node conf field key.
 	FieldKeyNodeConf = "data.node_conf"
+
+	// FieldKeyInfoInnerIPList the info inner ip list field key.
+	FieldKeyInfoInnerIPList = "data.info.inner_ip_list"
+
+	// FieldKeyInfoInnerIPV6List the info inner ip v6 list field key.
+	FieldKeyInfoInnerIPV6List = "data.info.inner_ip_list_v6"
+
+	// FieldKeyInfoBizID the info biz id list field key.
+	FieldKeyInfoBizID = "data.info.biz_id"
+
+	// FieldKeyInfoNodeVersion the info node version field key.
+	FieldKeyInfoNodeVersion = "data.info.node_version"
+
+	// FieldKeyInfoNetworkAreaID the info network area id field key.
+	FieldKeyInfoNetworkAreaID = "data.info.bknetworkarea_id"
+
+	// FieldKeyInfoNetworkUnitID the info network unit id field key.
+	FieldKeyInfoNetworkUnitID = "data.info.bknetworkunit_id"
 )

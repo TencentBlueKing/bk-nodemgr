@@ -9,35 +9,3 @@
  */
 
 package workflow
-
-import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
-)
-
-// listOperationByNodeWorkflowOperationCondition lists operation by node workflow condition.
-func (s *Storage) listOperationByNodeWorkflowOperationCondition(
-	nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowOperationCondition) (
-	[]*workoper.Operation, int64, error) {
-
-	opts := make([]operation.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
-		}
-
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				operation.WithTriggerID(condition.ExactInclude.TriggerID),
-				operation.WithBizID(condition.ExactInclude.BizID...),
-				operation.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-				operation.WithIPv4(condition.ExactInclude.InnerIP...),
-				operation.WithIPv6(condition.ExactInclude.InnerIPv6...),
-			)
-		}
-	}
-
-	return s.daoOperation.List(nCtx, page, opts...)
-}

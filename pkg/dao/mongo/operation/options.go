@@ -37,23 +37,3 @@ func WithParentOperationID(parentID ...string) OptFn {
 func WithInstantiated(isInitantiated ...bool) OptFn {
 	return base.WithValues(FieldKeyOperationInstantiated, isInitantiated...)
 }
-
-// WithBizID filter by biz id.
-func WithBizID(bizID ...int64) OptFn {
-	return base.WithValues(FieldKeyBizID, bizID...)
-}
-
-// WithNetworkAreaID filter by area id.
-func WithNetworkAreaID(areaID ...int64) OptFn {
-	return base.WithValues(FieldKeyAreaID, areaID...)
-}
-
-// WithIPv4 filter by ipv4.
-func WithIPv4(ipv4 ...string) OptFn {
-	return base.WithValues(FieldKeyIPV4, ipv4...)
-}
-
-// WithIPv6 filter by ipv6.
-func WithIPv6(ipv6 ...string) OptFn {
-	return base.WithValues(FieldKeyIPV6, ipv6...)
-}

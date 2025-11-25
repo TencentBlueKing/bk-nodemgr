@@ -193,7 +193,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		targetStates = exactCond.GetState()
 	}
 
-	result, total, err := h.backendHandler.ListNodeWorkflowOperation(
+	result, num, err := h.backendHandler.ListNodeWorkflowOperation(
 		rCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation: %v", err)
@@ -202,7 +202,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 
 	if len(result) == 0 {
 		resp := new(protoApplication.NodeWorkflowOperationListResp)
-		resp.ConvertResultFromTypes(total, nil, nil)
+		resp.ConvertResultFromTypes(num, nil, nil)
 
 		if req.GetOnlyCount() {
 			return resp.GetCountOnly(), nil
@@ -242,7 +242,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	)
 
 	resp := new(protoApplication.NodeWorkflowOperationListResp)
-	resp.ConvertResultFromTypes(int64(len(filteredResults)), filteredResults, filteredSummaries)
+	resp.ConvertResultFromTypes(num, filteredResults, filteredSummaries)
 
 	if req.GetOnlyCount() {
 		return resp.GetCountOnly(), nil

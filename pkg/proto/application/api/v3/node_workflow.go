@@ -227,13 +227,13 @@ func (x *NodeWorkflowOperationListReq) AutoConvert() {
 func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 	total int64, result []*types.NodeWorkflowListOperationResult, operationsSummary []*types.OperationSummary) {
 
-	items := make([]*NodeWorkflowOperation, 0, total)
+	items := make([]*NodeWorkflowOperation, len(result))
 	for idx, op := range result {
 		if op == nil {
 			continue
 		}
 
-		item := &NodeWorkflowOperation{
+		items[idx] = &NodeWorkflowOperation{
 			OperationId: op.OperationID,
 			InstanceIds: op.OperInstanceIDs,
 			Param: &NodeWorkflowOperationParam{
@@ -250,8 +250,6 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 				TotalTimeSecond: operationsSummary[idx].TotalDuration,
 			},
 		}
-
-		items = append(items, item)
 	}
 
 	x.Data = &NodeWorkflowOperationListResp_Data{
@@ -260,6 +258,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 	}
 }
 
+// GetCountOnly get count only.
 func (x *NodeWorkflowOperationListResp) GetCountOnly() interface{} {
 	if x.GetData() == nil {
 		return &NodeWorkflowOperationListResp_Data{

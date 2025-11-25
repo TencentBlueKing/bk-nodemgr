@@ -328,6 +328,25 @@ func (s *Storage) GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*
 	return deployInfo, err
 }
 
+// ListNodeDeployment lists node deployment by page and conditions.
+func (s *Storage) ListNodeDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeDeploymentCondition) (
+	[]*types.NodeDeployment, int64, error) {
+
+	var (
+		nodeDeployments []*types.NodeDeployment
+		num             int64
+		err             error
+	)
+
+	// record metric.
+	metric := s.metric().Start("list_node_deployment")
+	defer metric.End(err)
+
+	nodeDeployments, num, err = s.listNodeDeployment(nCtx, page, conditions...)
+
+	return nodeDeployments, num, err
+}
+
 // SetNodeDeploymentNodeConf set gse node conf.
 func (s *Storage) SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, conf *types.NodeConf) error {
 	var (

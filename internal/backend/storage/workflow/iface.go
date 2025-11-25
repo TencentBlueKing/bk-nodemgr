@@ -15,7 +15,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
-	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // IStorage defines the interface of schedule workflow storage.
@@ -59,10 +58,6 @@ type IStorageScheduledWorkflow interface {
 
 // IDomainNodeInstall defines the interface for domain node installation related operations.
 type IDomainNodeInstall interface {
-	// ListOperationByNodeWorkflowOperationCondition lists operations by condition with pagination support.
-	ListOperationByNodeWorkflowOperationCondition(
-		nCtx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
-		[]*workoper.Operation, int64, error)
 }
 
 // IDomainPlugin defines the interface for domain plugin related operations.

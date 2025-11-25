@@ -605,3 +605,33 @@ type ConfigPolicyEventCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *ConfigPolicyEventFuzzyFields
 }
+
+// NodeDeploymentExactFields defines the node deployment exact fields.
+type NodeDeploymentExactFields struct {
+	Token         []string
+	BizID         []int64
+	NodeVersion   []string
+	InnerIP       []string
+	InnerIPv6     []string
+	NetworkAreaID []int64
+	NetworkUnitID []int64
+}
+
+// NodeDeploymentFuzzyFields defines the node deployment fuzzy fields.
+type NodeDeploymentFuzzyFields struct {
+}
+
+// NodeDeploymentCondition defines the node deployment condition.
+type NodeDeploymentCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *NodeDeploymentExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *NodeDeploymentFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *NodeDeploymentExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *NodeDeploymentFuzzyFields
+}

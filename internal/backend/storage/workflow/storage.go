@@ -542,30 +542,6 @@ func (s *Storage) ListOperationByParentOperationID(
 	return opers, num, nil
 }
 
-// ListOperationByNodeWorkflowOperationCondition lists operation by node workflow operation condition.
-func (s *Storage) ListOperationByNodeWorkflowOperationCondition(
-	nCtx contextx.IContext, page types.Page, condition ...*types.NodeWorkflowOperationCondition) (
-	[]*workoper.Operation, int64, error) {
-
-	var (
-		opers []*workoper.Operation
-		num   int64
-		err   error
-	)
-
-	// record metric.
-	metric := s.metric().Start("list_operation_by_node_workflow_operation_condition")
-	defer metric.End(err)
-
-	if opers, num, err = s.listOperationByNodeWorkflowOperationCondition(nCtx, page, condition...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list operations by node workflow operation condition")
-
-		return nil, 0, fmt.Errorf("failed to list operations by node workflow operation condition: %w", err)
-	}
-
-	return opers, num, nil
-}
-
 // ListNeedInstantiateOperationByTriggerID lists operations need to be instantiated by trigger id.
 func (s *Storage) ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, page types.Page, triggerID string) (
 	[]*workoper.Operation, int64, error) {

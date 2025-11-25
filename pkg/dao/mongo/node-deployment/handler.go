@@ -24,6 +24,7 @@ import (
 // IHandler node deployment Handler interface.
 type IHandler interface {
 	CreateNodeDeployment(nCtx contextx.IContext, nodeDeployment *types.NodeDeployment) error
+	ListNodeDeployment(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.NodeDeployment, int64, error)
 	GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*types.DeploymentInfo, error)
 	GetNodeDeploymentNodeConf(nCtx contextx.IContext, token string) (*types.NodeConf, error)
 	SetNodeDeploymentNodeConf(nCtx contextx.IContext, token string, nodeConf *types.NodeConf) error
@@ -66,6 +67,66 @@ func (h *Handler) GetNodeDeploymentInfo(nCtx contextx.IContext, token string) (*
 	}
 
 	return convertDeploymentInfoToTypes(data.Info)
+}
+
+// ListNodeDeployment list node deployment by page and conditions.
+func (h *Handler) ListNodeDeployment(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
+	[]*types.NodeDeployment, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, base.ErrInvalidContext()
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.dao.Count(nCtx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	findOpt := base.ParsePage(page)
+
+	deployments, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data := make([]*types.NodeDeployment, len(deployments))
+	for idx, deployment := range deployments {
+		depTypes, err := convertDeploymentToTypes(deployment)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		data[idx] = depTypes
+	}
+
+	return data, num, nil
+}
+
+func convertDeploymentToTypes(deployment *Data) (*types.NodeDeployment, error) {
+	if deployment == nil {
+		return nil, errors.New("deployment is nil")
+	}
+
+	Info, err := convertDeploymentInfoToTypes(deployment.Info)
+	if err != nil {
+		return nil, err
+	}
+
+	NodeConf, err := convertNodeConfToTypes(deployment.NodeConf)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.NodeDeployment{
+		Token:    deployment.Token,
+		Info:     Info,
+		NodeConf: NodeConf,
+	}, nil
 }
 
 // nolint: funlen

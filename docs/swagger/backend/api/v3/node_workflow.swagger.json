@@ -701,6 +701,13 @@
             "type": "integer",
             "format": "int64"
           }
+        },
+        "bk_networkunit_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       },
       "description": "NodeWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request."

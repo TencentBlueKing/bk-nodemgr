@@ -126,6 +126,7 @@ func (h *handler) DistinctNodeWorkflow(rCtx restserver.IContext) (interface{}, e
 }
 
 // ListOperation list workflow operation.
+// nolint: funlen
 func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowOperationListReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -133,47 +134,69 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to validate request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
-	}
-
-	workflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, req.ConvertConditionsToComm())
+	workflow, err := h.daoNodeWorkflow.GetNodeWorkflow(rCtx, req.GetWorkflowID())
 	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get node workflow")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	operations, num, err := h.storageWorkflow.ListOperationByNodeWorkflowOperationCondition(
-		rCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes(workflow.TriggerID))
+	// list all operations by trigger id.
+	operations, _, err := h.storageWorkflow.ListOperationByTriggerID(rCtx, types.UnlimitedPage(), workflow.TriggerID)
 	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	result := make([]*types.NodeWorkflowListOperationResult, len(operations))
+	tokens := make([]string, len(operations))
+	operationMaps := make(map[string]*struct {
+		operationID     string
+		operator        string
+		operInstanceIDs []string
+	}, len(operations))
 
 	for idx, op := range operations {
 		param := new(utils.NodeActionStandardParam)
 
-		err := conv.MapToStruct(op.Param.InitContent, param)
-		if err != nil {
+		if err := conv.MapToStruct(op.Param.InitContent, param); err != nil {
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
 
-		deployment, err := h.daoNodeDeployment.GetNodeDeploymentInfo(rCtx, param.Token)
-		if err != nil {
-			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		tokens[idx] = param.Token
+		operationMaps[param.Token] = &struct {
+			operationID     string
+			operator        string
+			operInstanceIDs []string
+		}{
+			operationID:     op.OperationID,
+			operator:        param.Operator,
+			operInstanceIDs: op.InstanceIDs,
+		}
+	}
+
+	// list all deployments by condition.
+	deployments, num, err := h.daoNodeDeployment.ListNodeDeployment(rCtx, types.UnlimitedPage(), req.ConvertConditionsToDeploymentTypes(tokens))
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node deployment")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	result := make([]*types.NodeWorkflowListOperationResult, len(deployments))
+	for idx, dep := range deployments {
+		op, exists := operationMaps[dep.Token]
+		if !exists {
+			continue
 		}
 
 		result[idx] = &types.NodeWorkflowListOperationResult{
-			Operator:        param.Operator,
-			NetworkAreaID:   deployment.Host.Static.NetworkAreaID,
-			NetworkUnitID:   deployment.Host.Dynamic.NetworkUnitID,
-			InnerIPList:     deployment.Host.Static.InnerIPList,
-			InnerIPV6List:   deployment.Host.Static.InnerIPV6List,
-			BizID:           deployment.Host.Static.BizID,
-			OperationID:     op.OperationID,
-			OperInstanceIDs: op.InstanceIDs,
-			NodeVersion:     deployment.Host.Dynamic.NodeVersion,
+			Operator:        op.operator,
+			NetworkAreaID:   dep.Info.Host.Static.NetworkAreaID,
+			NetworkUnitID:   dep.Info.Host.Dynamic.NetworkUnitID,
+			InnerIPList:     dep.Info.Host.Static.InnerIPList,
+			InnerIPV6List:   dep.Info.Host.Static.InnerIPV6List,
+			BizID:           dep.Info.Host.Static.BizID,
+			OperationID:     op.operationID,
+			OperInstanceIDs: op.operInstanceIDs,
+			NodeVersion:     dep.Info.Host.Dynamic.NodeVersion,
 		}
 	}
 

@@ -21,18 +21,6 @@ const (
 	// FieldKeyTriggerID the trigger_id field key.
 	FieldKeyTriggerID = "data.trigger_id"
 
-	// FieldKeyBizID the biz_id field key.
-	FieldKeyBizID = "data.extras.biz_id"
-
-	// FieldKeyAreaID the area_id field key.
-	FieldKeyAreaID = "data.extras.networkarea_id"
-
-	// FieldKeyIPV4 the ipv4 field key.
-	FieldKeyIPV4 = "data.extras.inner_ip"
-
-	// FieldKeyIPV6 the ipv6 field key.
-	FieldKeyIPV6 = "data.extras.inner_ipv6"
-
 	// FieldKeyOperationInstantiated the instantiated field key.
 	FieldKeyOperationInstantiated = "data.instantiated"
 )
