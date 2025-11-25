@@ -90,7 +90,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	ctx = trace.ContextWithSpanContext(ctx, spanCtx)
 
 	tracer := mgr.traceSvc.TracerProvider().Tracer(scopeNameAction)
-	ctx, span := tracer.Start(ctx, fmt.Sprintf("action %s", actionName),
+	ctx, span := tracer.Start(ctx, fmt.Sprintf("%s %s", scopeNamePrefixAction, actionName),
 		trace.WithAttributes(
 			attribute.String(attributeKeyActionName, actionName),
 			attribute.String(attributeKeyOperationInstanceID, operationInstanceID),

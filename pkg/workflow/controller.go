@@ -467,7 +467,7 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
 	}
 
 	tracer := ctl.mgr.traceSvc.TracerProvider().Tracer(scopeNameOperationInstance)
-	traceCtx, span := tracer.Start(nCtx, fmt.Sprintf("operation_instance %s", ctl.operInstanceBriefData.Metadata.OperationDefName),
+	traceCtx, span := tracer.Start(nCtx, fmt.Sprintf("%s %s", scopeNamePrefixOperationInstance, ctl.operInstanceBriefData.Metadata.OperationDefName),
 		trace.WithSpanKind(trace.SpanKindProducer),
 		trace.WithAttributes(
 			attribute.String(attributeKeyTriggerID, ctl.operInstanceBriefData.Metadata.TriggerID),

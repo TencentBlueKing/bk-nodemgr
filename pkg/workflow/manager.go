@@ -57,7 +57,7 @@ const (
 )
 
 // NewManager creates a new manager.
-func NewManager(workerNum int, opts ...OptionsFunc) IManager {
+func NewManager(workerNum int, opts ...OptionsFunc) (IManager, error) {
 	mgr := &manager{
 		mConfig: &machineryConfig.Config{
 			DefaultQueue:    queueNameDefault,
@@ -75,10 +75,15 @@ func NewManager(workerNum int, opts ...OptionsFunc) IManager {
 		opt(mgr)
 	}
 
-	mgr.triggerHandler = newTriggerHandler(mgr, mgr.globalLocker)
+	var err error
+	mgr.triggerHandler, err = newTriggerHandler(mgr, mgr.globalLocker)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create trigger handler: %w", err)
+	}
+
 	machineryLog.Set(newLoggerAdaptor())
 
-	return mgr
+	return mgr, nil
 }
 
 // OptionsFunc is a function that configures manager.

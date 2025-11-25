@@ -48,7 +48,8 @@ func NewManager(conf Config) (*Manager, error) {
 		conf:      conf,
 	}
 
-	mgr.workflowMgr = workflow.NewManager(
+	var err error
+	mgr.workflowMgr, err = workflow.NewManager(
 		mgr.conf.WorkflowConfig.WorkNodeNum,
 		workflow.WithStorageTrigger(conf.StorageWorkflow),
 		workflow.WithStorageOperation(conf.StorageWorkflow),
@@ -61,6 +62,9 @@ func NewManager(conf Config) (*Manager, error) {
 			mgr.conf.WorkflowConfig.Redis.DB),
 		workflow.WithTraceService(mgr.conf.TraceService),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create workflow manager: %w", err)
+	}
 
 	return mgr, nil
 }

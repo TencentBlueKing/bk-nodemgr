@@ -25,6 +25,7 @@ type Task struct {
 	_     struct{}
 	nCtx  contextx.IContext
 	runFn RunFn
+	name  string
 }
 
 // RunOptions defines the options of goasync.
@@ -34,5 +35,12 @@ type RunOptions func(task *Task)
 func WithTimeout(timeout time.Duration) RunOptions {
 	return func(task *Task) {
 		task.nCtx, _ = contextx.WithTimeout(task.nCtx, timeout)
+	}
+}
+
+// WithName defines the name of goasync.
+func WithName(name string) RunOptions {
+	return func(task *Task) {
+		task.name = name
 	}
 }

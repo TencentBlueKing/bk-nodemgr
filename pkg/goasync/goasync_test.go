@@ -20,7 +20,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
-	"github.com/panjf2000/ants/v2"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -48,10 +47,10 @@ func setupTestTracer(t *testing.T) trace.Tracer {
 func TestNewHandler(t *testing.T) {
 	// Test with valid options
 	option := HandlerOption{
-		Size:                  10,
-		SizePerPool:           5,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           5,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	}
 
 	handler, err := NewHandler(option)
@@ -71,9 +70,9 @@ func TestHandlerOption_Validate(t *testing.T) {
 			name: "valid options",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					Size:        10,
-					SizePerPool: 5,
-					Tracer:      setupTestTracer(t),
+					PoolNum:        10,
+					PerPoolSize:    5,
+					TracerProvider: setupTestTracer(t),
 				}
 			},
 			wantErr: false,
@@ -82,9 +81,9 @@ func TestHandlerOption_Validate(t *testing.T) {
 			name: "invalid size",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					Size:        0,
-					SizePerPool: 5,
-					Tracer:      setupTestTracer(t),
+					PoolNum:        0,
+					PerPoolSize:    5,
+					TracerProvider: setupTestTracer(t),
 				}
 			},
 			wantErr: true,
@@ -93,9 +92,9 @@ func TestHandlerOption_Validate(t *testing.T) {
 			name: "invalid size per pool",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					Size:        10,
-					SizePerPool: 0,
-					Tracer:      setupTestTracer(t),
+					PoolNum:        10,
+					PerPoolSize:    0,
+					TracerProvider: setupTestTracer(t),
 				}
 			},
 			wantErr: true,
@@ -104,9 +103,9 @@ func TestHandlerOption_Validate(t *testing.T) {
 			name: "nil tracer",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					Size:        10,
-					SizePerPool: 5,
-					Tracer:      nil,
+					PoolNum:        10,
+					PerPoolSize:    5,
+					TracerProvider: nil,
 				}
 			},
 			wantErr: true,
@@ -129,10 +128,10 @@ func TestHandlerOption_Validate(t *testing.T) {
 // TestHandler_Run_Basic tests basic async task execution
 func TestHandler_Run_Basic(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -169,10 +168,10 @@ func TestHandler_Run_Basic(t *testing.T) {
 // TestHandler_Run_Concurrent tests concurrent execution
 func TestHandler_Run_Concurrent(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  50,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               50,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -201,10 +200,10 @@ func TestHandler_Run_Concurrent(t *testing.T) {
 // TestHandler_Run_PoolCapacity tests goroutine pool capacity limits
 func TestHandler_Run_PoolCapacity(t *testing.T) {
 	option := HandlerOption{
-		Size:                  2,
-		SizePerPool:           2,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               2,
+		PerPoolSize:           2,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	}
 
 	handler, err := NewHandler(option)
@@ -252,10 +251,10 @@ func TestHandler_Run_PoolCapacity(t *testing.T) {
 // TestHandler_Run_WithError tests error handling in async tasks
 func TestHandler_Run_WithError(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -289,10 +288,10 @@ func TestHandler_Run_WithError(t *testing.T) {
 // TestHandler_Run_Panic tests panic handling in async tasks
 func TestHandler_Run_Panic(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -326,10 +325,10 @@ func TestHandler_Run_Panic(t *testing.T) {
 // TestHandler_Run_MixedErrors tests handling of mixed successful and failed tasks
 func TestHandler_Run_MixedErrors(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  20,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               20,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -369,10 +368,10 @@ func TestHandler_Run_MixedErrors(t *testing.T) {
 // TestHandler_TracingIntegration tests tracing integration
 func TestHandler_TracingIntegration(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -402,10 +401,10 @@ func TestHandler_TracingContext(t *testing.T) {
 	tracer := setupTestTracer(t)
 
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                tracer,
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        tracer,
 	})
 	assert.NoError(t, err)
 
@@ -434,18 +433,18 @@ func TestHandler_TracingContext(t *testing.T) {
 
 // TestHandler_TracingWithDifferentLoadBalancing tests tracing with different load balancing strategies
 func TestHandler_TracingWithDifferentLoadBalancing(t *testing.T) {
-	strategies := []ants.LoadBalancingStrategy{
-		ants.RoundRobin,
-		ants.LeastTasks,
+	strategies := []LoadBalancingStrategy{
+		LoadBalancingStrategyRoundRobin,
+		LoadBalancingStrategyLeastFirst,
 	}
 
 	for _, strategy := range strategies {
 		t.Run(fmt.Sprintf("strategy_%v", strategy), func(t *testing.T) {
 			handler, err := NewHandler(HandlerOption{
-				Size:                  5,
-				SizePerPool:           5,
+				PoolNum:               5,
+				PerPoolSize:           5,
 				LoadBalancingStrategy: strategy,
-				Tracer:                setupTestTracer(t),
+				TracerProvider:        setupTestTracer(t),
 			})
 			assert.NoError(t, err)
 
@@ -473,10 +472,10 @@ func TestHandler_TracingWithDifferentLoadBalancing(t *testing.T) {
 // TestHandler_Run_WithNilContext tests behavior with nil context
 func TestHandler_Run_WithNilContext(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -501,10 +500,10 @@ func TestHandler_Run_WithNilContext(t *testing.T) {
 // TestHandler_Run_WithCancelledContext tests behavior with cancelled context
 func TestHandler_Run_WithCancelledContext(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -531,10 +530,10 @@ func TestHandler_Run_WithCancelledContext(t *testing.T) {
 // TestHandler_Run_WithNilFunction tests behavior with nil function
 func TestHandler_Run_WithNilFunction(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -554,10 +553,10 @@ func TestHandler_Run_WithNilFunction(t *testing.T) {
 // TestHandler_Run_WithTimeoutContext tests behavior with timeout context
 func TestHandler_Run_WithTimeoutContext(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -593,10 +592,10 @@ func TestHandler_NewHandlerEdgeCases(t *testing.T) {
 			name: "minimum valid sizes",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					Size:                  1,
-					SizePerPool:           1,
-					LoadBalancingStrategy: ants.RoundRobin,
-					Tracer:                setupTestTracer(t),
+					PoolNum:               1,
+					PerPoolSize:           1,
+					LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+					TracerProvider:        setupTestTracer(t),
 				}
 			},
 			wantErr: false,
@@ -605,10 +604,10 @@ func TestHandler_NewHandlerEdgeCases(t *testing.T) {
 			name: "large sizes",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					Size:                  10000,
-					SizePerPool:           1000,
-					LoadBalancingStrategy: ants.RoundRobin,
-					Tracer:                setupTestTracer(t),
+					PoolNum:               10000,
+					PerPoolSize:           1000,
+					LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+					TracerProvider:        setupTestTracer(t),
 				}
 			},
 			wantErr: false,
@@ -617,10 +616,10 @@ func TestHandler_NewHandlerEdgeCases(t *testing.T) {
 			name: "uneven pool distribution",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					Size:                  10,
-					SizePerPool:           3, // 10 % 3 != 0
-					LoadBalancingStrategy: ants.RoundRobin,
-					Tracer:                setupTestTracer(t),
+					PoolNum:               10,
+					PerPoolSize:           3, // 10 % 3 != 0
+					LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+					TracerProvider:        setupTestTracer(t),
 				}
 			},
 			wantErr: false, // ants should handle this
@@ -643,10 +642,10 @@ func TestHandler_NewHandlerEdgeCases(t *testing.T) {
 // TestHandler_ResourceCleanup tests resource cleanup behavior
 func TestHandler_ResourceCleanup(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           5,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           5,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -687,10 +686,10 @@ func TestHandler_ResourceCleanup(t *testing.T) {
 // TestHandler_MemoryUsage tests memory usage patterns
 func TestHandler_MemoryUsage(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  50,
-		SizePerPool:           10,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               50,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -722,10 +721,10 @@ func TestHandler_MemoryUsage(t *testing.T) {
 // TestHandler_PoolReuse tests that goroutine pools are properly reused
 func TestHandler_PoolReuse(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  10,
-		SizePerPool:           5,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               10,
+		PerPoolSize:           5,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -769,10 +768,10 @@ func TestHandler_ConcurrentHandlers(t *testing.T) {
 	// Create multiple handlers
 	for i := 0; i < handlerCount; i++ {
 		handler, err := NewHandler(HandlerOption{
-			Size:                  10,
-			SizePerPool:           5,
-			LoadBalancingStrategy: ants.RoundRobin,
-			Tracer:                setupTestTracer(t),
+			PoolNum:               10,
+			PerPoolSize:           5,
+			LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+			TracerProvider:        setupTestTracer(t),
 		})
 		assert.NoError(t, err)
 		handlers[i] = handler
@@ -804,10 +803,10 @@ func TestHandler_ConcurrentHandlers(t *testing.T) {
 // TestHandler_BenchmarkTaskSubmission benchmarks task submission performance
 func TestHandler_BenchmarkTaskSubmission(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  100,
-		SizePerPool:           20,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               100,
+		PerPoolSize:           20,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -841,10 +840,10 @@ func TestHandler_BenchmarkTaskSubmission(t *testing.T) {
 // TestHandler_BenchmarkTaskExecution benchmarks task execution performance
 func TestHandler_BenchmarkTaskExecution(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  100,
-		SizePerPool:           20,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               100,
+		PerPoolSize:           20,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -881,10 +880,10 @@ func TestHandler_BenchmarkTaskExecution(t *testing.T) {
 // TestHandler_BenchmarkVsGoroutines compares performance vs raw goroutines
 func TestHandler_BenchmarkVsGoroutines(t *testing.T) {
 	handler, err := NewHandler(HandlerOption{
-		Size:                  100,
-		SizePerPool:           20,
-		LoadBalancingStrategy: ants.RoundRobin,
-		Tracer:                setupTestTracer(t),
+		PoolNum:               100,
+		PerPoolSize:           20,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -958,10 +957,10 @@ func TestHandler_ScalabilityTest(t *testing.T) {
 	for _, testSize := range testSizes {
 		t.Run(testSize.name, func(t *testing.T) {
 			handler, err := NewHandler(HandlerOption{
-				Size:                  testSize.size,
-				SizePerPool:           testSize.sizePerPool,
-				LoadBalancingStrategy: ants.RoundRobin,
-				Tracer:                setupTestTracer(t),
+				PoolNum:               testSize.size,
+				PerPoolSize:           testSize.sizePerPool,
+				LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+				TracerProvider:        setupTestTracer(t),
 			})
 			assert.NoError(t, err)
 
@@ -985,7 +984,7 @@ func TestHandler_ScalabilityTest(t *testing.T) {
 			duration := time.Since(start)
 
 			tasksPerSecond := float64(taskCount) / duration.Seconds()
-			t.Logf("Size %s (%d/%d): %d tasks in %v (%.2f tasks/sec)",
+			t.Logf("PoolNum %s (%d/%d): %d tasks in %v (%.2f tasks/sec)",
 				testSize.name, testSize.size, testSize.sizePerPool, taskCount, duration, tasksPerSecond)
 
 			// All configurations should complete tasks successfully

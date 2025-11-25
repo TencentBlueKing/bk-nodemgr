@@ -11,10 +11,17 @@
 package workflow
 
 const (
-	scopeNameOperationInstance = "operation_instance"
-	scopeNameAction            = "action"
+	scopeNameTrigger      = "trigger"
+	spanNamePrefixTrigger = "trigger"
 
-	attributeKeyTriggerID = "trigger_id"
+	scopeNameOperationInstance       = "operation_instance"
+	scopeNamePrefixOperationInstance = "operation_instance"
+
+	scopeNameAction       = "action"
+	scopeNamePrefixAction = "action"
+
+	attributeKeyTriggerID       = "trigger_id"
+	attributeKeyTriggerCategory = "trigger_category"
 
 	attributeKeyOperationID = "operation_id"
 

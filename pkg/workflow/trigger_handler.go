@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
@@ -26,6 +27,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func newCachedTriggers() *cachedTriggers {
@@ -58,15 +61,35 @@ func (ct *cachedTriggers) get() []*trigger.Trigger {
 	return result
 }
 
-func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) *triggerHandler {
-	return &triggerHandler{
+const (
+	triggerHandlerGoAsyncPoolNum         = 10000
+	triggerHandlerGoAsyncPoolPerPoolSize = 10000
+)
+
+func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) (*triggerHandler, error) {
+	trigHandler := &triggerHandler{
 		mgr:          mgr,
 		globalLocker: globalLocker,
 
 		onceTriggers:     newCachedTriggers(),
 		orderedTriggers:  newCachedTriggers(),
 		periodicTriggers: newCachedTriggers(),
+
+		tracerProvider: mgr.traceSvc.TracerProvider(),
 	}
+
+	var err error
+	trigHandler.goAsyncPool, err = goasync.NewHandler(goasync.HandlerOption{
+		PoolNum:               triggerHandlerGoAsyncPoolNum,
+		PerPoolSize:           triggerHandlerGoAsyncPoolPerPoolSize,
+		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
+		TracerProvider:        trigHandler.tracerProvider,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create goasync handler: %w", err)
+	}
+
+	return trigHandler, nil
 }
 
 type triggerHandler struct {
@@ -78,6 +101,10 @@ type triggerHandler struct {
 	onceTriggers     *cachedTriggers
 	orderedTriggers  *cachedTriggers
 	periodicTriggers *cachedTriggers
+
+	goAsyncPool goasync.IHandler
+
+	tracerProvider trace.TracerProvider
 }
 
 // Start starts the manager.
@@ -227,19 +254,13 @@ func (handler *triggerHandler) syncPeriodicTrigger(nCtx contextx.IContext) error
 	return nil
 }
 
-// defaultCheckConcurrency defines the default check concurrency.
-const defaultCheckConcurrency = 100
-
 // executeTriggerList executes the trigger list.
 func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list []*trigger.Trigger) error {
 	logger.G.Sys().With("count", len(list)).Debug("check trigger list")
 
-	gp := gopool.NewPool()
-	gp.SetLimit(defaultCheckConcurrency)
-
 	for idx := range list {
 		trig := list[idx]
-		fn := func() error {
+		fn := func(nCtx contextx.IContext) error {
 			mutex := handler.globalLocker.NewMutex(trig.TriggerID)
 			if err := mutex.TryLock(); err != nil {
 				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to lock trigger")
@@ -271,19 +292,29 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 			return nil
 		}
 
-		gp.Go(fn)
-	}
-
-	if err := gp.Wait(); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to check trigger list")
-
-		return err
+		if err := handler.goAsyncPool.Run(nCtx, fn,
+			goasync.WithName("executeTriggerList"),
+		); err != nil {
+			return fmt.Errorf("failed to push trigger fn to async pool: %w", err)
+		}
 	}
 
 	return nil
 }
 
 func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) error {
+	traceCtx, span := handler.tracerProvider.Tracer(scopeNameTrigger).Start(nCtx,
+		fmt.Sprintf("%s %s", spanNamePrefixTrigger, trigCtl.GetTriggerID()),
+		trace.WithSpanKind(trace.SpanKindInternal),
+		trace.WithAttributes(
+			attribute.String(attributeKeyTriggerID, trigCtl.GetTriggerID()),
+			attribute.String(attributeKeyTriggerCategory, string(trigCtl.GetTriggerCategory())),
+		))
+	defer span.End()
+
+	// set trace context
+	nCtx = contextx.FromContext(traceCtx)
+
 	logger.G.Sys().With("trigger-id", trigCtl.GetTriggerID(), "category", trigCtl.GetTriggerCategory()).Debug("do trigger")
 
 	switch trigCtl.GetTriggerCategory() {
@@ -440,6 +471,10 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 	return instanceList, nil
 }
 
+const (
+	periodicTriggerMaxSleepTime = 1 * time.Minute
+)
+
 func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
 	metadata, ok := trigCtl.GetTriggerMetadata().(*trigger.MetadataPeriodic)
 	if !ok {
@@ -455,6 +490,7 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 
 	if nextTime.After(time.Now()) {
 		sleepTime := time.Until(nextTime)
+		sleepTime = min(sleepTime, periodicTriggerMaxSleepTime)
 		time.Sleep(sleepTime)
 
 		return nil, nil

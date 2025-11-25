@@ -29,25 +29,38 @@ type Handler struct {
 	tracer trace.Tracer
 }
 
+// LoadBalancingStrategy defines the strategy of goroutine pool.
+type LoadBalancingStrategy string
+
+const (
+	// LoadBalancingStrategyRoundRobin defines round robin strategy.
+	LoadBalancingStrategyRoundRobin LoadBalancingStrategy = "round_robin"
+
+	// LoadBalancingStrategyLeastFirst defines least first strategy.
+	LoadBalancingStrategyLeastFirst LoadBalancingStrategy = "least_first"
+)
+
 // HandlerOption defines the options of handler.
 type HandlerOption struct {
-	Size                  int
-	SizePerPool           int
-	LoadBalancingStrategy ants.LoadBalancingStrategy
-	Tracer                trace.Tracer
+	// the number of goroutine pool.
+	PoolNum int
+	// the size of each goroutine pool.
+	PerPoolSize           int
+	LoadBalancingStrategy LoadBalancingStrategy
+	TracerProvider        trace.TracerProvider
 }
 
 // Validate validates the handler option.
 func (opt *HandlerOption) Validate() error {
-	if opt.Size <= 0 {
+	if opt.PoolNum <= 0 {
 		return fmt.Errorf("size should be greater than 0")
 	}
 
-	if opt.SizePerPool <= 0 {
+	if opt.PerPoolSize <= 0 {
 		return fmt.Errorf("sizePerPool should be greater than 0")
 	}
 
-	if opt.Tracer == nil {
+	if opt.TracerProvider == nil {
 		return fmt.Errorf("tracer should not be nil")
 	}
 
@@ -55,17 +68,28 @@ func (opt *HandlerOption) Validate() error {
 }
 
 const (
-	spanName = "goasync"
+	scopeName = "goasync"
+	spanName  = "goasync"
 )
 
 // NewHandler returns a new handler.
 func NewHandler(option HandlerOption) (*Handler, error) {
 	h := &Handler{
-		tracer: option.Tracer,
+		tracer: option.TracerProvider.Tracer(scopeName),
 	}
 
-	pool, err := ants.NewMultiPoolWithFuncGeneric[*Task](option.Size, option.SizePerPool, func(task *Task) {
-		spanCtx, span := h.tracer.Start(task.nCtx, spanName,
+	var loadBalancingStrategy ants.LoadBalancingStrategy
+	switch option.LoadBalancingStrategy {
+	case LoadBalancingStrategyRoundRobin:
+		loadBalancingStrategy = ants.RoundRobin
+	case LoadBalancingStrategyLeastFirst:
+		loadBalancingStrategy = ants.LeastTasks
+	default:
+		return nil, fmt.Errorf("invalid load balancing strategy: %s", option.LoadBalancingStrategy)
+	}
+
+	pool, err := ants.NewMultiPoolWithFuncGeneric[*Task](option.PoolNum, option.PerPoolSize, func(task *Task) {
+		spanCtx, span := h.tracer.Start(task.nCtx, fmt.Sprintf("%s %s", spanName, task.name),
 			trace.WithSpanKind(trace.SpanKindInternal),
 		)
 		defer span.End()
@@ -75,7 +99,7 @@ func NewHandler(option HandlerOption) (*Handler, error) {
 		if err := task.runFn(nCtx); err != nil {
 			logger.G.Biz(nCtx).WithErr(err).Error("failed to run async function")
 		}
-	}, option.LoadBalancingStrategy)
+	}, loadBalancingStrategy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pool: %w", err)
 	}
