@@ -119,6 +119,7 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
 
 	// let the callback server known which action to mark and log.
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+	std.DeployInfo().BlockingActionStatusReportKey = actionStatusReportKeyWaitInstallerComplete
 
 	// get upgrade params.
 	upgradeParams, err := act.setupUpgradeParams(std)

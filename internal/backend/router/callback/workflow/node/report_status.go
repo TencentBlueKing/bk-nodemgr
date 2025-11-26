@@ -17,7 +17,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,13 +31,6 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 		return
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to report status, failed to validate request")
-		gCtx.JSON(http.StatusBadRequest, err)
-
-		return
-	}
-
 	info, err := h.GetNodeDeploymentInfo(nCtx, req.GetToken())
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to report status, failed to get node deployment conf")
@@ -47,15 +39,18 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 		return
 	}
 
+	dataMap := map[string]any{
+		info.BlockingActionStatusReportKey: req.GetStatus(),
+	}
+
+	if err := h.UpsertActionInstancePrivateData(nCtx, req.GetOperInstId(), info.BlockingActionName, dataMap); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report result, failed to update action private data")
+		gCtx.JSON(http.StatusInternalServerError, err)
+	}
+
 	logger.G.Biz(nCtx).
 		With("oper-inst-id", req.GetOperInstId(), "action", info.BlockingActionName, "status", req.GetStatus()).
 		Info("report status")
-
-	if err = h.UpdateOperInstActionStatus(nCtx, req.GetOperInstId(), info.BlockingActionName,
-		action.State(req.GetStatus())); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to report status, failed to update action status")
-		gCtx.JSON(http.StatusInternalServerError, err)
-	}
 
 	gCtx.JSON(http.StatusOK, nil)
 }

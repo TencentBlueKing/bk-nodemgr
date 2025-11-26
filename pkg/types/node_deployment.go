@@ -108,9 +108,10 @@ type DeploymentVersionSupports struct {
 
 // DeploymentInfo this is the info for node deployment.
 type DeploymentInfo struct {
-	BlockingActionName string
-	Host               Host
-	RelayInfo          RelayInfo
+	BlockingActionName            string
+	BlockingActionStatusReportKey string
+	Host                          Host
+	RelayInfo                     RelayInfo
 
 	// InstallerWorkDir is used to store the installation files.
 	InstallerWorkDir string
@@ -140,6 +141,10 @@ type DeploymentInfo struct {
 func (info DeploymentInfo) Validate() error {
 	if info.BlockingActionName == "" {
 		return errors.New("blocking_action_name shouldn't not be empty")
+	}
+
+	if info.BlockingActionStatusReportKey == "" {
+		return errors.New("blocking_action_status_report_key shouldn't not be empty")
 	}
 
 	if info.Host.HostID < 0 {

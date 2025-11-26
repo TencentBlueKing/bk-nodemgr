@@ -133,6 +133,7 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) error {
 	}()
 	// let the callback server known which action to mark and log.
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+	std.DeployInfo().BlockingActionStatusReportKey = actionStatusReportKeyWaitInstallerComplete
 
 	// select matching tools.
 	toolName, err := tool.FormatInstallerName(std.DeployInfo().Host.Dynamic.NodeOsType, std.DeployInfo().Host.Dynamic.NodeCPUArch)

@@ -11,10 +11,15 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
+	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -22,16 +27,23 @@ import (
 const (
 	// ActionNameWaitInstallerComplete defines the action name.
 	ActionNameWaitInstallerComplete = "wait_node_installer_complete"
+
+	// actionStatusReportKeyWaitInstallerComplete defines the action status report key.
+	actionStatusReportKeyWaitInstallerComplete = "installer_result_status"
+
+	waitReportInterval = 1 * time.Second
 )
 
 // NewActionWaitInstallerComplete get a new action.
 func NewActionWaitInstallerComplete(capability *Capability) action.Definition {
 	return &actionWaitInstallerComplete{
+		storageNodeDeployment: capability.StorageNode,
 		storageActionInstance: capability.StorageWorkflow,
 	}
 }
 
 type actionWaitInstallerComplete struct {
+	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageActionInstance workflow.IStorageActionInstance
 }
 
@@ -71,39 +83,91 @@ func (act *actionWaitInstallerComplete) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
+// nolint: gocognit
 func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamReconfigNode)
+	err := conv.MapToStruct(ctx.Data.Content, param)
+	if err != nil {
+		return err
+	}
+
+	// initialize standard data.
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
+		return err
+	}
+	defer func() {
+		if storeErr := std.Save(); storeErr != nil {
+			err = errors.Join(storeErr, err)
+		}
+	}()
+
+	instanceID := std.InstanceData().OperationInstanceID
+
+	ticker := time.NewTicker(waitReportInterval)
+	defer ticker.Stop()
+
 	for {
 		select {
 		case <-ctx.Ctx.Done():
 			return nil
-		default:
-		}
 
-		lifecycle, err := act.storageActionInstance.GetActionInstanceLifecycle(
-			ctx.Ctx,
-			ctx.Data.OperationInstanceID,
-			ctx.Data.Name)
-		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to get action_inst_data lifecycle")
+		case <-ticker.C:
+			installerResult, err := act.fetchInstallerResult(std, instanceID)
+			if err != nil {
+				return err
+			}
 
-			return err
-		}
+			// check and update action state
+			switch installerResult {
+			case installer.ProcessStateUnknown:
+				continue
 
-		// check action state is running or not
-		switch lifecycle.State {
-		case action.StateRunning:
-			logger.G.Sys().With("oper-inst-id", ctx.Data.OperationInstanceID, "action", ctx.Data.Name).Debug("action is running, sleep 1 second")
+			case installer.ProcessStateSuccess:
+				std.InstanceData().LogI("received installer result is success.")
 
-			time.Sleep(1 * time.Second)
+				return nil
 
-		case action.StateFailed:
-			logger.G.Sys().With("oper-inst-id", ctx.Data.OperationInstanceID, "action", ctx.Data.Name).Error("failed to wait install complete")
+			case installer.ProcessStateFailed, installer.ProcessStateTimeout:
 
-			return fmt.Errorf("wait install complete failed. oper_inst_id(%s), action_name(%s)",
-				ctx.Data.OperationInstanceID, ctx.Data.Name)
+				std.InstanceData().LogI(fmt.Sprintf("received installer result is not success. installer-result(%s)", installerResult))
 
-		default:
-			return nil
+				return fmt.Errorf("installer failed. oper-inst-id(%s), action-name(%s), installer-result(%s)",
+					instanceID, ActionNameWaitInstallerComplete, installerResult)
+
+			default:
+				logger.G.Sys().With("oper-inst-id", instanceID, "state", installerResult).Warn("installer state is not supported")
+
+				return fmt.Errorf("unexpected installer state. state(%s)", installerResult)
+			}
 		}
 	}
+}
+
+func (act *actionWaitInstallerComplete) fetchInstallerResult(std *nodeUtils.NodeActionStandarder, instanceID string) (installer.ProcessState, error) {
+	privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
+		std.Context(),
+		instanceID,
+		ActionNameWaitInstallerComplete)
+	if err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to get action private data")
+
+		return installer.ProcessStateUnknown, err
+	}
+
+	installerResultRaw, exists := privateData[std.DeployInfo().BlockingActionStatusReportKey]
+	if !exists {
+		logger.G.Sys().With("oper-inst-id", instanceID).Debug("no receive data, sleep 1 second")
+
+		return installer.ProcessStateUnknown, nil
+	}
+
+	installerResult, err := conv.ToString(installerResultRaw)
+	if err != nil {
+		logger.G.Sys().With("oper-inst-id", instanceID, "state", installerResultRaw).Error("unexpected type for installer result")
+
+		return installer.ProcessStateUnknown, fmt.Errorf("failed to get installer state. state(%v)", installerResultRaw)
+	}
+
+	return installer.ProcessState(installerResult), nil
 }

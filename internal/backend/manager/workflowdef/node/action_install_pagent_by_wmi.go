@@ -131,6 +131,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 
 	// let the callback server known which action to mark and log.
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
+	std.DeployInfo().BlockingActionStatusReportKey = actionStatusReportKeyWaitInstallerComplete
 
 	// get ssh credit.
 	credit := nodeUtils.NewCreditHandler(act.storageHostCredit, act.passwordVault)
