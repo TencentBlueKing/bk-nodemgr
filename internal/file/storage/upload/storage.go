@@ -30,8 +30,9 @@ type IStorage interface {
 	IBinTool
 	ICert
 	IPluginBinTool
-	IPlugin
-	IExternalPlugin
+	IPluginV2
+	IExternalPluginV2
+	IPluginV3
 }
 
 // StorageName defines the storage name.

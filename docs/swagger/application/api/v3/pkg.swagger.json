@@ -322,6 +322,40 @@
         ]
       }
     },
+    "/api/v3/package/publish/release/v3/plugin": {
+      "post": {
+        "summary": "PublishReleasePluginV3 provides release plugin v3 publish.",
+        "operationId": "Package_PublishReleasePluginV3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleasePluginV3Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackagePublishReleasePluginV3Req is the request for publish release plugin v3\npkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackagePublishReleasePluginV3Req"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/agent/download": {
       "post": {
         "summary": "DownloadAgent download release agent package.",
@@ -1035,6 +1069,40 @@
           "Package"
         ]
       }
+    },
+    "/api/v3/package/upload/origin/v3/plugin": {
+      "post": {
+        "summary": "UploadOriginPluginV3 provides origin plugin v3 upload.",
+        "operationId": "Package_UploadOriginPluginV3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginPluginV3Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageUploadOriginPluginV3Req is the request for upload origin plugin v3.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageUploadOriginPluginV3Req"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
     }
   },
   "definitions": {
@@ -1572,6 +1640,40 @@
       "description": "PackagePublishReleasePluginV2Resp is the response for publish release plugin\nv2 pkg."
     },
     "v3PackagePublishReleasePluginV2RespData": {
+      "type": "object"
+    },
+    "v3PackagePublishReleasePluginV3Req": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PackagePublishReleasePluginV3Req is the request for publish release plugin v3\npkg."
+    },
+    "v3PackagePublishReleasePluginV3Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackagePublishReleasePluginV3RespData"
+        }
+      },
+      "description": "PackagePublishReleasePluginV3Resp is the response for publish release plugin\nv3 pkg."
+    },
+    "v3PackagePublishReleasePluginV3RespData": {
       "type": "object"
     },
     "v3PackagePublishReleaseProxyReq": {
@@ -2673,6 +2775,89 @@
           "type": "string"
         },
         "launch_node": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3PackageUploadOriginPluginV3Req": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "PackageUploadOriginPluginV3Req is the request for upload origin plugin v3."
+    },
+    "v3PackageUploadOriginPluginV3Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PackageUploadOriginPluginV3RespData"
+        }
+      },
+      "description": "PackageUploadOriginPluginV3Resp is the response for upload origin plugin v3."
+    },
+    "v3PackageUploadOriginPluginV3RespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "descriptionEn": {
+          "type": "string"
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "scenarioEn": {
+          "type": "string"
+        },
+        "launch_node": {
+          "type": "string"
+        },
+        "template_renderer": {
           "type": "string"
         },
         "platforms": {

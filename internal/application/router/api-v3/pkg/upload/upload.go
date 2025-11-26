@@ -49,6 +49,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/origin/plugin_bintool", restserver.Handler(h.UploadOriginPluginBinTool))
 	h.rg.POST("/origin/v2/plugin", restserver.Handler(h.UploadOriginPluginV2))
 	h.rg.POST("/origin/v2/external_plugin", restserver.Handler(h.UploadOriginExternalPluginV2))
+	h.rg.POST("/origin/v3/plugin", restserver.Handler(h.UploadOriginPluginV3))
 }
 
 // UploadOriginAgent upload origin agent.
@@ -238,6 +239,38 @@ func (h *handler) UploadOriginExternalPluginV2(rCtx restserver.IContext) (interf
 	logger.G.Biz(rCtx).With("detail", detail).Info("uploaded origin external plugin v2")
 
 	resp := new(protoApplication.PackageUploadOriginExternalPluginV2Resp)
+	resp.ConvertResultFromTypes(false, detail)
+
+	return resp.GetData(), nil
+}
+
+// UploadOriginPluginV3 upload origin plugin v3.
+func (h *handler) UploadOriginPluginV3(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageUploadOriginPluginV3Req)
+	fileHeader, err := rCtx.ParseFileForm(req)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload plugin v3, failed to parse file form: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload plugin v3, failed to open file")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	detail, err := h.fileHandler.UploadOriginPluginV3(rCtx, fileHeader.Filename, file, req.GetOverwrite())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload plugin v3: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	logger.G.Biz(rCtx).With("detail", detail).Info("uploaded origin plugin v3")
+
+	resp := new(protoApplication.PackageUploadOriginPluginV3Resp)
 	resp.ConvertResultFromTypes(false, detail)
 
 	return resp.GetData(), nil

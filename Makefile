@@ -23,6 +23,7 @@ GO = go1.23.10
 # cmd
 MKDIR = mkdir -p
 ECHO  = $(if $(filter Linux,$(shell uname)),echo -e,echo)
+SED   = sed
 CD    = cd
 CP    = cp
 RM    = rm
@@ -175,7 +176,8 @@ plugin-pkg-relay: pre
                     plugin_path=$(OUTPUT_DIR)/$(APP_NAME)/plugins_linux_aarch64; \
                 fi; \
 				$(MKDIR) $$plugin_path && \
-				binary="$$plugin_path/$(APP_NAME)$$ext" && \
+				$(MKDIR) $$plugin_path/bin && \
+				binary="$$plugin_path/bin/$(APP_NAME)$$ext" && \
 				GOOS=$(os) GOARCH=$(arch) $(GO) build $(GO_FLAGS) $(LD_FLAGS) \
 					-o $$binary $(ROOT_DIR)/cmd/relay/*.go && \
 				$(ECHO) "Built: $$binary" && \
@@ -190,7 +192,9 @@ plugin-pkg-relay: pre
 		)\
 	)
 
-	@$(CP) "./plugin/relay/project.yaml" "$(OUTPUT_DIR)/$(APP_NAME)/project.yaml"
+	@$(ECHO) "Rendering project.yaml with VERSION=$(VERSION)..."
+	@$(SED) 's/{{VERSION}}/$(VERSION)/g' "./plugin/relay/project.yaml" > "$(OUTPUT_DIR)/$(APP_NAME)/project.yaml"
+
 	@$(ECHO) "Packaging artifacts..."
 	@$(TAR) "$(OUTPUT_DIR)/$(APP_NAME)-$(VERSION).tgz" -C "$(OUTPUT_DIR)" $(APP_NAME)
 

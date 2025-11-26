@@ -48,6 +48,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/release/plugin_bintool", restserver.Handler(h.PublishReleasePluginBinTool))
 	h.rg.POST("/release/v2/plugin", restserver.Handler(h.PublishReleasePluginV2))
 	h.rg.POST("/release/v2/external_plugin", restserver.Handler(h.PublishReleaseExternalPluginV2))
+	h.rg.POST("/release/v3/plugin", restserver.Handler(h.PublishReleasePluginV3))
 }
 
 // PublishReleaseAgent publish release agent.
@@ -178,6 +179,28 @@ func (h *handler) PublishReleaseExternalPluginV2(rCtx restserver.IContext) (inte
 	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release external plugin v2")
 
 	resp := new(protoApplication.PackagePublishReleaseExternalPluginV2Resp)
+
+	return resp.GetData(), nil
+}
+
+// PublishReleasePluginV3 publish release plugin v3.
+func (h *handler) PublishReleasePluginV3(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackagePublishReleasePluginV3Req)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin v3, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	uploadID := req.GetUploadId()
+	if err := h.fileHandler.PublishReleasePluginV3(rCtx, uploadID); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release plugin v3. upload-id(%s): %v", uploadID, err)
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release plugin v3")
+
+	resp := new(protoApplication.PackagePublishReleasePluginV3Resp)
 
 	return resp.GetData(), nil
 }

@@ -253,6 +253,40 @@
           "Upload"
         ]
       }
+    },
+    "/upload/origin/v3/plugin": {
+      "post": {
+        "summary": "UploadOriginPluginV3 provides origin plugin upload.",
+        "operationId": "Upload_UploadOriginPluginV3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginPluginV3Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginPluginV3Req is the request for upload origin\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginPluginV3Req"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
     }
   },
   "definitions": {
@@ -721,6 +755,86 @@
           "type": "string"
         },
         "launch_node": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3UploadOriginPluginV3Req": {
+      "type": "object",
+      "properties": {
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginPluginV3Req is the request for upload origin\nplugin pkg."
+    },
+    "v3UploadOriginPluginV3Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginPluginV3RespData"
+        }
+      },
+      "description": "UploadOriginPluginV3Resp is the response for upload origin\nplugin pkg."
+    },
+    "v3UploadOriginPluginV3RespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "descriptionEn": {
+          "type": "string"
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "scenarioEn": {
+          "type": "string"
+        },
+        "launch_node": {
+          "type": "string"
+        },
+        "template_renderer": {
           "type": "string"
         },
         "platforms": {

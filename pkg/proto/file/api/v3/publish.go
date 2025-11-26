@@ -72,3 +72,12 @@ func (x *PublishReleaseExternalPluginV2Req) Validate() error {
 // AutoConvert auto convert.
 func (x *PublishReleaseExternalPluginV2Req) AutoConvert() {
 }
+
+// Validate check request body.
+func (x *PublishReleasePluginV3Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PublishReleasePluginV3Req) AutoConvert() {
+}

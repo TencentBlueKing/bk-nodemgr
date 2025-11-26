@@ -41,6 +41,9 @@ const (
 
 	// UploadCategoryOriginExternalPluginV2 represents the origin external plugin v2.
 	UploadCategoryOriginExternalPluginV2 UploadCategory = "origin_external_plugin_v2"
+
+	// UploadCategoryOriginPluginV3 represents the origin plugin v3.
+	UploadCategoryOriginPluginV3 UploadCategory = "origin_plugin_v3"
 )
 
 // Upload defines the upload struct.
@@ -140,6 +143,7 @@ func NewOriginPluginV2PkgDetail() *OriginPluginV2PkgDetail {
 	return &OriginPluginV2PkgDetail{
 		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
 		Controller:      make(map[string]ProcessController),
+		Platforms:       make([]platfmt.Platform, 0),
 	}
 }
 
@@ -172,5 +176,38 @@ func NewOriginExternalPluginV2PkgDetail() *OriginExternalPluginV2PkgDetail {
 		SubDirPaths:     make(map[string]map[string]struct{}),
 		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
 		Controller:      make(map[string]ProcessController),
+		Platforms:       make([]platfmt.Platform, 0),
+	}
+}
+
+// OriginPluginV3PkgDetail defines the detail of plugin package v3.
+type OriginPluginV3PkgDetail struct {
+	fileiface.FileInfo
+
+	UploadID string
+	Existed  bool
+
+	PluginPkgName    string
+	Version          string
+	Description      string
+	DescriptionEn    string
+	Scenario         string
+	ScenarioEn       string
+	LaunchNode       string
+	TemplateRenderer TemplateRendererType
+
+	// key: platform.String()
+	ConfigTemplates map[string][]PluginPkgConfigTemplate
+	Controller      map[string]ProcessController
+
+	Platforms []platfmt.Platform
+}
+
+// NewOriginPluginV3PkgDetail creates a new OriginPluginV3PkgDetail.
+func NewOriginPluginV3PkgDetail() *OriginPluginV3PkgDetail {
+	return &OriginPluginV3PkgDetail{
+		ConfigTemplates: make(map[string][]PluginPkgConfigTemplate),
+		Controller:      make(map[string]ProcessController),
+		Platforms:       make([]platfmt.Platform, 0),
 	}
 }

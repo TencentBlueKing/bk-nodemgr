@@ -34,6 +34,9 @@ const (
 	// ReleaseTypeOriginExternalPluginV2 defines the release of nodemgr origin external plugin v2 package.
 	ReleaseTypeOriginExternalPluginV2 ReleaseType = "origin_external_plugin_v2"
 
+	// ReleaseTypeOriginPluginV3 defines the release of nodemgr origin plugin v3 package.
+	ReleaseTypeOriginPluginV3 ReleaseType = "origin_plugin_v3"
+
 	// ReleaseTypeAgent defines the release of nodemgr agent package transformed from origin gse agent package.
 	ReleaseTypeAgent ReleaseType = "agent"
 
@@ -64,6 +67,7 @@ func (rt ReleaseType) Validate() error {
 		ReleaseTypeBinTool,
 		ReleaseTypeOriginPluginV2,
 		ReleaseTypeOriginExternalPluginV2,
+		ReleaseTypeOriginPluginV3,
 		ReleaseTypePluginBinTool,
 		ReleaseTypePlugin:
 		return nil
@@ -223,27 +227,37 @@ func (t TemplateRendererType) Validate() error {
 }
 
 // PluginPkgConfigTemplate defines the template of plugin package.
+// @Name: template name.
+// @FilePath: the path where the template is located in the package.
+// @IsMainConfig: whether it is the main configuration file.
+// @SourceContent: the content of the template.
+// @TemplateRenderer: the renderer type of the template.
+// @Variables: the variables used in the template.
 type PluginPkgConfigTemplate struct {
-	PluginVersion    string
 	Name             string
-	Version          string
 	FilePath         string
-	Format           string
 	IsMainConfig     bool
-	SourcePath       string
 	SourceContent    string
 	TemplateRenderer TemplateRendererType
-	Variables        *PluginPkgConfigTemplateProperty
+	Variables        map[string]*PluginPkgConfigTemplateProperty
 }
 
 // PluginPkgConfigTemplateProperty defines the template of plugin package.
+// @Title: property title.
+// @Type: property type.
+// @Required: whether the property is required.
+// @Default: default value of the property.
+// @Description: property description in Chinese.
+// @DescriptionEn: property description in English.
+// @Properties: nested properties.
 type PluginPkgConfigTemplateProperty struct {
-	Title      string                                      `yaml:"title,omitempty"`
-	Type       string                                      `yaml:"type,omitempty"`
-	Required   bool                                        `yaml:"required,omitempty"`
-	Default    any                                         `yaml:"default,omitempty"`
-	Items      *PluginPkgConfigTemplateProperty            `yaml:"items,omitempty"`
-	Properties map[string]*PluginPkgConfigTemplateProperty `yaml:"properties,omitempty"`
+	Title         string
+	Type          string
+	Required      bool
+	Default       any
+	Description   string
+	DescriptionEn string
+	Properties    map[string]*PluginPkgConfigTemplateProperty
 }
 
 // PackageEventType represents the event type of watch event.

@@ -96,6 +96,9 @@ type IPkgUploadHandler interface {
 	UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (
 		*types.OriginExternalPluginV2PkgDetail, error)
 
+	// UploadOriginPluginV3 upload origin plugin v3.
+	UploadOriginPluginV3(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (*types.OriginPluginV3PkgDetail, error)
+
 	// UploadOriginPluginBinTool upload origin plugin bin tool.
 	UploadOriginPluginBinTool(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (
 		*types.OriginPluginBinToolPkgDetail, error)
@@ -120,6 +123,9 @@ type IPkgPublishHandler interface {
 
 	// PublishReleaseExternalPluginV2 publish release external plugin v2.
 	PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleasePluginV3 publish release plugin v3.
+	PublishReleasePluginV3(nCtx contextx.IContext, uploadID string) error
 
 	// PublishReleasePluginBinTool publish release plugin bin tool.
 	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error
@@ -672,6 +678,40 @@ func (h *handler) UploadOriginExternalPluginV2(nCtx contextx.IContext, fileName 
 	}, nil
 }
 
+// UploadOriginPluginV3 upload origin plugin v3.
+func (h *handler) UploadOriginPluginV3(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (
+	*types.OriginPluginV3PkgDetail, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.UploadOriginPluginV3Req{Overwrite: overwrite}
+	data, err := h.cli.uploadOriginPluginV3(nCtx, tenantID, params, fileName, file)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.OriginPluginV3PkgDetail{
+		FileInfo: fileiface.FileInfo{
+			Name: data.GetName(),
+			Size: data.GetSize(),
+			MD5:  data.GetMd5(),
+		},
+		UploadID:         data.GetUploadId(),
+		Existed:          data.GetExisted(),
+		Version:          data.GetVersion(),
+		Description:      data.GetDescription(),
+		DescriptionEn:    data.GetDescriptionEn(),
+		Scenario:         data.GetScenario(),
+		ScenarioEn:       data.GetScenarioEn(),
+		LaunchNode:       data.GetLaunchNode(),
+		TemplateRenderer: types.TemplateRendererType(data.GetTemplateRenderer()),
+		Platforms:        data.ConvertPlatformsToTypes(),
+	}, nil
+}
+
 // PublishReleasePluginV2 publish release plugin v2.
 func (h *handler) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error {
 	if err := nCtx.CheckTenantID(); err != nil {
@@ -696,6 +736,21 @@ func (h *handler) PublishReleaseExternalPluginV2(nCtx contextx.IContext, uploadI
 	tenantID := nCtx.TenantID()
 	params := &protoFile.PublishReleaseExternalPluginV2Req{UploadId: uploadID}
 	if _, err := h.cli.publishReleaseExternalPluginV2(nCtx, tenantID, params); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PublishReleasePluginV3 publish release plugin v3.
+func (h *handler) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.PublishReleasePluginV3Req{UploadId: uploadID}
+	if _, err := h.cli.publishReleasePluginV3(nCtx, tenantID, params); err != nil {
 		return err
 	}
 

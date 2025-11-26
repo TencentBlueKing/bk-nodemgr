@@ -49,6 +49,7 @@ type IManager interface {
 	IPluginBinTool
 	IPluginV2
 	IExternalPluginV2
+	IPluginV3
 
 	// EnsureNodeToLocal ensure the node pkg to local.
 	// returns file, local-file-dir, error.
@@ -133,6 +134,13 @@ func WithUpstreamOriginPluginV2FileGroup(fileGroup fileiface.FileGroup) OptionFn
 func WithUpstreamOriginExternalPluginV2FileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
 		manager.upstreamOriginExternalPluginV2 = fileGroup
+	}
+}
+
+// WithUpstreamOriginPluginV3FileGroup sets the upstream file group.
+func WithUpstreamOriginPluginV3FileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamOriginPluginV3 = fileGroup
 	}
 }
 
@@ -289,6 +297,7 @@ type Manager struct {
 	upstreamOriginPluginBinTool    fileiface.FileGroup
 	upstreamOriginPluginV2         fileiface.FileGroup
 	upstreamOriginExternalPluginV2 fileiface.FileGroup
+	upstreamOriginPluginV3         fileiface.FileGroup
 	upstreamReleaseAgent           fileiface.FileGroup
 	upstreamReleaseProxy           fileiface.FileGroup
 	upstreamReleaseCert            fileiface.FileGroup
@@ -355,6 +364,10 @@ func (m *Manager) Start(_ context.Context) error {
 
 	if m.upstreamOriginExternalPluginV2 == nil {
 		return errors.New("invalid upstream origin external plugin v2")
+	}
+
+	if m.upstreamOriginPluginV3 == nil {
+		return errors.New("invalid upstream origin plugin v3")
 	}
 
 	if m.upstreamReleaseAgent == nil {

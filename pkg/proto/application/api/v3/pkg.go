@@ -399,33 +399,6 @@ func (x *PackageUploadOriginPluginV2Req) Validate() error {
 func (x *PackageUploadOriginPluginV2Req) AutoConvert() {
 }
 
-// Validate check request body.
-func (x *PackageUploadOriginExternalPluginV2Req) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackageUploadOriginExternalPluginV2Req) AutoConvert() {
-}
-
-// Validate check request body.
-func (x *PackagePublishReleasePluginV2Req) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackagePublishReleasePluginV2Req) AutoConvert() {
-}
-
-// Validate check request body.
-func (x *PackagePublishReleaseExternalPluginV2Req) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PackagePublishReleaseExternalPluginV2Req) AutoConvert() {
-}
-
 // ConvertResultFromTypes convert result from types.
 func (x *PackageUploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginV2PkgDetail) {
 	if detail == nil {
@@ -471,6 +444,15 @@ func (x *PackageUploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool,
 	*data.LaunchNode = detail.LaunchNode
 }
 
+// Validate check request body.
+func (x *PackageUploadOriginExternalPluginV2Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageUploadOriginExternalPluginV2Req) AutoConvert() {
+}
+
 // ConvertResultFromTypes convert result from types.
 func (x *PackageUploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generated bool, detail *types.OriginExternalPluginV2PkgDetail) {
 	if detail == nil {
@@ -514,4 +496,87 @@ func (x *PackageUploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generat
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
 	*data.LaunchNode = detail.LaunchNode
+}
+
+// Validate check request body.
+func (x *PackageUploadOriginPluginV3Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageUploadOriginPluginV3Req) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PackageUploadOriginPluginV3Resp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginV3PkgDetail) {
+	if detail == nil {
+		return
+	}
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, ConvertPlatformFromTypes(plat))
+	}
+	data := &PackageUploadOriginPluginV3Resp_Data{
+		UploadId:         new(string),
+		Existed:          new(bool),
+		Generated:        new(bool),
+		Name:             new(string),
+		Size:             new(int64),
+		Md5:              new(string),
+		Version:          new(string),
+		Description:      new(string),
+		DescriptionEn:    new(string),
+		Scenario:         new(string),
+		ScenarioEn:       new(string),
+		LaunchNode:       new(string),
+		TemplateRenderer: new(string),
+		Platforms:        plats,
+	}
+	*x = PackageUploadOriginPluginV3Resp{
+		Code:      0,
+		Message:   "success",
+		RequestId: "",
+		Error:     nil,
+		Data:      data,
+	}
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.FileInfo.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.Description = detail.Description
+	*data.DescriptionEn = detail.DescriptionEn
+	*data.Scenario = detail.Scenario
+	*data.ScenarioEn = detail.ScenarioEn
+	*data.LaunchNode = detail.LaunchNode
+	*data.TemplateRenderer = string(detail.TemplateRenderer)
+}
+
+// Validate check request body.
+func (x *PackagePublishReleasePluginV2Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackagePublishReleasePluginV2Req) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *PackagePublishReleaseExternalPluginV2Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackagePublishReleaseExternalPluginV2Req) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *PackagePublishReleasePluginV3Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackagePublishReleasePluginV3Req) AutoConvert() {
 }

@@ -222,8 +222,8 @@
     },
     "/publish/release/v2/plugin": {
       "post": {
-        "summary": "PublishReleasePlugin provides release plugin publish.",
-        "operationId": "Publish_PublishReleasePlugin",
+        "summary": "PublishReleasePluginV2 provides release plugin v2 publish.",
+        "operationId": "Publish_PublishReleasePluginV2",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -246,6 +246,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PublishReleasePluginV2Req"
+            }
+          }
+        ],
+        "tags": [
+          "Publish"
+        ]
+      }
+    },
+    "/publish/release/v3/plugin": {
+      "post": {
+        "summary": "PublishReleasePluginV3 provides release plugin v3 publish.",
+        "operationId": "Publish_PublishReleasePluginV3",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginV3Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PublishReleasePluginV3Req is the request for upload release\nplugin pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PublishReleasePluginV3Req"
             }
           }
         ],
@@ -468,6 +502,37 @@
       "description": "PublishReleasePluginV2Resp is the response for upload release\nplugin pkg."
     },
     "v3PublishReleasePluginV2RespData": {
+      "type": "object"
+    },
+    "v3PublishReleasePluginV3Req": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        }
+      },
+      "description": "PublishReleasePluginV3Req is the request for upload release\nplugin pkg."
+    },
+    "v3PublishReleasePluginV3Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PublishReleasePluginV3RespData"
+        }
+      },
+      "description": "PublishReleasePluginV3Resp is the response for upload release\nplugin pkg."
+    },
+    "v3PublishReleasePluginV3RespData": {
       "type": "object"
     },
     "v3PublishReleaseProxyReq": {

@@ -18,16 +18,16 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IPlugin defines the interface of upload storage.
-type IPlugin interface {
+// IPluginV2 defines the interface of upload storage.
+type IPluginV2 interface {
 	// GetPluginV2Upload gets a upload by upload-id.
 	GetPluginV2Upload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 
 	// CreatePluginV2Upload creates a upload.
 	CreatePluginV2Upload(nCtx contextx.IContext, up *types.Upload) (string, error)
 
-	// DeletePluginUpload deletes a upload by upload-id.
-	DeletePluginUpload(nCtx contextx.IContext, uploadID string) error
+	// DeletePluginV2Upload deletes a upload by upload-id.
+	DeletePluginV2Upload(nCtx contextx.IContext, uploadID string) error
 }
 
 // GetPluginV2Upload gets a upload by upload-id.
@@ -53,8 +53,8 @@ func (s *Storage) CreatePluginV2Upload(nCtx contextx.IContext, up *types.Upload)
 	return up.UploadID, nil
 }
 
-// DeletePluginUpload deletes a upload by upload-id.
-func (s *Storage) DeletePluginUpload(nCtx contextx.IContext, uploadID string) (err error) {
+// DeletePluginV2Upload deletes a upload by upload-id.
+func (s *Storage) DeletePluginV2Upload(nCtx contextx.IContext, uploadID string) (err error) {
 	// record metric.
 	metric := s.metric().Start("delete_plugin_v2")
 	defer metric.End(err)

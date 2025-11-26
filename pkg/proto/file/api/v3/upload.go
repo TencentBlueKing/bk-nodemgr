@@ -463,3 +463,70 @@ func (x *UploadOriginExternalPluginV2Resp_Data) ConvertPlatformsToTypes() []plat
 
 	return plats
 }
+
+// Validate check request body.
+func (x *UploadOriginPluginV3Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *UploadOriginPluginV3Req) AutoConvert() {}
+
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginPluginV3Resp) ConvertResultFromTypes(generated bool, detail *types.OriginPluginV3PkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, ConvertPlatformFromTypes(plat))
+	}
+
+	data := &UploadOriginPluginV3Resp_Data{
+		UploadId:         new(string),
+		Existed:          new(bool),
+		Generated:        new(bool),
+		Name:             new(string),
+		Size:             new(int64),
+		Md5:              new(string),
+		Version:          new(string),
+		Description:      new(string),
+		DescriptionEn:    new(string),
+		Scenario:         new(string),
+		ScenarioEn:       new(string),
+		LaunchNode:       new(string),
+		TemplateRenderer: new(string),
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.FileInfo.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.Description = detail.Description
+	*data.DescriptionEn = detail.DescriptionEn
+	*data.Scenario = detail.Scenario
+	*data.ScenarioEn = detail.ScenarioEn
+	*data.LaunchNode = detail.LaunchNode
+	*data.TemplateRenderer = string(detail.TemplateRenderer)
+
+	data.Platforms = plats
+
+	x.Data = data
+}
+
+// ConvertPlatformsToTypes convert platforms to types.
+func (x *UploadOriginPluginV3Resp_Data) ConvertPlatformsToTypes() []platform.Platform {
+	plats := make([]platform.Platform, 0)
+	for _, plat := range x.GetPlatforms() {
+		plats = append(plats, platform.Platform{
+			OS:   criteria.OSType(plat.GetOsType()),
+			Arch: criteria.CPUArch(plat.GetCpuArch()),
+		})
+	}
+
+	return plats
+}

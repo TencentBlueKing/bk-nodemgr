@@ -18,8 +18,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IExternalPlugin defines the interface of upload storage.
-type IExternalPlugin interface {
+// IExternalPluginV2 defines the interface of upload storage.
+type IExternalPluginV2 interface {
 	// GetExternalPluginV2Upload gets a upload by upload-id.
 	GetExternalPluginV2Upload(nCtx contextx.IContext, uploadID string) (*types.Upload, error)
 

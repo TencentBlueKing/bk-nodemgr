@@ -169,6 +169,35 @@ message PackageUploadOriginExternalPluginV2Resp {
   Data data = 5;
 }
 
+// PackageUploadOriginPluginV3Req is the request for upload origin plugin v3.
+message PackageUploadOriginPluginV3Req { bool overwrite = 1; }
+
+// PackageUploadOriginPluginV3Resp is the response for upload origin plugin v3.
+message PackageUploadOriginPluginV3Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    optional string version = 7;
+    optional string description = 8;
+    optional string descriptionEn = 9;
+    optional string scenario = 10;
+    optional string scenarioEn = 11;
+    optional string launch_node = 12;
+    optional string template_renderer = 13;
+    repeated Platform platforms = 14;
+  }
+  Data data = 5;
+}
+
 // UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool
 // pkg.
 message PackageUploadOriginPluginBinToolReq { bool overwrite = 1; }
@@ -220,6 +249,22 @@ message PackagePublishReleaseExternalPluginV2Req { string upload_id = 1; }
 // PackagePublishReleaseExternalPluginV2Resp is the response for publish release
 // external plugin v2 pkg.
 message PackagePublishReleaseExternalPluginV2Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackagePublishReleasePluginV3Req is the request for publish release plugin v3
+// pkg.
+message PackagePublishReleasePluginV3Req { string upload_id = 1; }
+
+// PackagePublishReleasePluginV3Resp is the response for publish release plugin
+// v3 pkg.
+message PackagePublishReleasePluginV3Resp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -908,6 +953,15 @@ service Package {
     };
   }
 
+  // UploadOriginPluginV3 provides origin plugin v3 upload.
+  rpc UploadOriginPluginV3(PackageUploadOriginPluginV3Req)
+      returns (PackageUploadOriginPluginV3Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/upload/origin/v3/plugin"
+      body : "*"
+    };
+  }
+
   // PublishReleasePluginV2 provides release plugin v2 publish.
   rpc PublishReleasePluginV2(PackagePublishReleasePluginV2Req)
       returns (PackagePublishReleasePluginV2Resp) {
@@ -922,6 +976,15 @@ service Package {
       returns (PackagePublishReleaseExternalPluginV2Resp) {
     option (google.api.http) = {
       post : "/api/v3/package/publish/release/v2/external_plugin"
+      body : "*"
+    };
+  }
+
+  // PublishReleasePluginV3 provides release plugin v3 publish.
+  rpc PublishReleasePluginV3(PackagePublishReleasePluginV3Req)
+      returns (PackagePublishReleasePluginV3Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/publish/release/v3/plugin"
       body : "*"
     };
   }

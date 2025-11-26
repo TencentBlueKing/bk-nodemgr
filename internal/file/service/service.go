@@ -301,6 +301,10 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin external plugin file group: %w", err)
 	}
+	upstreamOriginPluginV3, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/v3/plugin")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin plugin file group: %w", err)
+	}
 
 	// init upstream release file groups from bkrepo.
 	upstreamReleaseAgentFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "release/agent")
@@ -370,6 +374,7 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 		manager.WithGSEHandler(svc.Cap.GSEHandler),
 		manager.WithUpstreamOriginPluginV2FileGroup(upstreamOriginPluginV2),
 		manager.WithUpstreamOriginExternalPluginV2FileGroup(upstreamOriginExternalPluginV2),
+		manager.WithUpstreamOriginPluginV3FileGroup(upstreamOriginPluginV3),
 		manager.WithUpstreamReleasePluginFileGroup(upstreamReleasePlugin),
 	)
 

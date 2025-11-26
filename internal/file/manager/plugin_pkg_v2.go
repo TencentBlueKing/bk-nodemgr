@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -22,11 +21,11 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/pluginpkg"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"gopkg.in/yaml.v2"
 )
@@ -34,8 +33,7 @@ import (
 // IPluginV2 defines the interface of plugin.
 type IPluginV2 interface {
 	// UploadOriginPluginV2 uploads the origin plugin package v2.
-	UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.ReadCloser) (
-		*types.OriginPluginV2PkgDetail, error)
+	UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginPluginV2PkgDetail, error)
 
 	// PublishReleasePluginV2 generates release plugin package v2 by upload-id.
 	PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error
@@ -44,9 +42,7 @@ type IPluginV2 interface {
 // UploadOriginPluginV2 uploads origin plugin package v2.
 // nolint:funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.ReadCloser) (
-	*types.OriginPluginV2PkgDetail, error) {
-
+func (m *Manager) UploadOriginPluginV2(nCtx contextx.IContext, pluginFile io.ReadCloser) (*types.OriginPluginV2PkgDetail, error) {
 	if pluginFile == nil {
 		logger.G.Biz(nCtx).Error("failed to upload origin plugin package v2 package, file is nil")
 
@@ -166,24 +162,24 @@ type PluginV2Control struct {
 
 // PluginV2ConfigTemplate represents the project.yml file's config_templates field.
 type PluginV2ConfigTemplate struct {
-	PluginVersion string    `yaml:"plugin_version"`
-	Name          string    `yaml:"name"`
-	Version       string    `yaml:"version"`
-	FilePath      string    `yaml:"file_path"`
-	Format        string    `yaml:"format"`
-	IsMainConfig  string    `yaml:"is_main_config"`
-	SourcePath    string    `yaml:"source_path"`
-	Variables     *Property `yaml:"variables"`
+	PluginVersion string            `yaml:"plugin_version"`
+	Name          string            `yaml:"name"`
+	Version       string            `yaml:"version"`
+	FilePath      string            `yaml:"file_path"`
+	Format        string            `yaml:"format"`
+	IsMainConfig  string            `yaml:"is_main_config"`
+	SourcePath    string            `yaml:"source_path"`
+	Variables     *PluginV2Property `yaml:"variables"`
 }
 
-// Property represents the project.yml file's variables field.
-type Property struct {
-	Title      string               `yaml:"title,omitempty"`
-	Type       string               `yaml:"type,omitempty"`
-	Required   bool                 `yaml:"required,omitempty"`
-	Default    any                  `yaml:"default,omitempty"`
-	Items      *Property            `yaml:"items,omitempty"`
-	Properties map[string]*Property `yaml:"properties,omitempty"`
+// PluginV2Property represents the project.yml file's variables field.
+type PluginV2Property struct {
+	Title      string                       `yaml:"title,omitempty"`
+	Type       string                       `yaml:"type,omitempty"`
+	Required   bool                         `yaml:"required,omitempty"`
+	Default    any                          `yaml:"default,omitempty"`
+	Items      *PluginV2Property            `yaml:"items,omitempty"`
+	Properties map[string]*PluginV2Property `yaml:"properties,omitempty"`
 }
 
 /**
@@ -205,7 +201,7 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 				".*",
 				buildFullMatchRegex(originalPluginPkgV2FileNameProject)},
 			callback: func(path []string, projectFile io.Reader) error {
-				plat := convPluginDirNameToPlat(path[0])
+				plat := convPluginV2DirNameToPlat(path[0])
 				detail.Platforms = append(detail.Platforms, plat)
 
 				pluginProject := new(PluginV2Project)
@@ -243,7 +239,7 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 				buildFullMatchRegex(originalPluginPkgV2DirNameEtc),
 				buildSuffixMatchRegex(originalPluginPkgV2FileNameEtcExt)},
 			callback: func(path []string, tplFile io.Reader) error {
-				plat := convPluginDirNameToPlat(path[0])
+				plat := convPluginV2DirNameToPlat(path[0])
 
 				content, err := io.ReadAll(tplFile)
 				if err != nil {
@@ -254,8 +250,7 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 					multiPlatConfigTplSourceContent[plat.String()] = make(map[string]string)
 				}
 
-				sourcePath := filepath.Clean(filepath.Join(originalPluginPkgV2DirNameEtc, path[len(path)-1]))
-				multiPlatConfigTplSourceContent[plat.String()][sourcePath] = string(content)
+				multiPlatConfigTplSourceContent[plat.String()][path[len(path)-1]] = string(content)
 
 				return nil
 			},
@@ -269,17 +264,16 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 
 	for platStr, configTemplates := range detail.ConfigTemplates {
 		configTplSourceContent := multiPlatConfigTplSourceContent[platStr]
+		if multiPlatConfigTplSourceContent[platStr] == nil {
+			continue
+		}
+
 		for idx, configTemplate := range configTemplates {
-			if multiPlatConfigTplSourceContent[platStr] == nil {
+			if configTplSourceContent[configTemplate.Name] == "" {
 				continue
 			}
 
-			sourcePath := filepath.Clean(configTemplate.SourcePath)
-			if configTplSourceContent[sourcePath] == "" {
-				continue
-			}
-
-			configTemplates[idx].SourceContent = configTplSourceContent[sourcePath]
+			configTemplates[idx].SourceContent = configTplSourceContent[configTemplate.Name]
 		}
 	}
 
@@ -296,15 +290,17 @@ func parsePluginV2PkgConfigTemplateFromProject(pluginProject *PluginV2Project) (
 		}
 
 		pkgConfigTemplates[idx] = types.PluginPkgConfigTemplate{
-			PluginVersion:    configTemplate.PluginVersion,
-			Name:             configTemplate.Name,
-			Version:          configTemplate.Version,
+			// For v2 plugins, the config template file name is generated by appending ".tpl" to the template name in project.yaml.
+			Name:             configTemplate.Name + originalPluginPkgV2FileNameEtcExt,
 			FilePath:         configTemplate.FilePath,
-			Format:           configTemplate.Format,
 			IsMainConfig:     isMainConfig,
-			SourcePath:       configTemplate.SourcePath,
-			Variables:        convPropertyToTypes(configTemplate.Variables),
+			Variables:        make(map[string]*types.PluginPkgConfigTemplateProperty),
 			TemplateRenderer: types.TemplateRendererTypeJinja2,
+		}
+
+		variables := convPluginV2PropertyToTypes(configTemplate.Variables)
+		if variables != nil {
+			pkgConfigTemplates[idx].Variables[variables.Title] = variables
 		}
 	}
 
@@ -313,49 +309,38 @@ func parsePluginV2PkgConfigTemplateFromProject(pluginProject *PluginV2Project) (
 
 // notice: because the official plugin pkg's control cmd is provided by the nodemgr, so we specify the script path.
 func buildPluginV2PkgController(plat platfmt.Platform, pluginProject *PluginV2Project) types.ProcessController {
-	if plat.OS == criteria.OSWindows {
-		return types.ProcessController{
-			StartCmd:   winpath.Join(pluginPkgDirNameBin, pluginProject.Control.StartCmd),
-			StopCmd:    winpath.Join(pluginPkgDirNameBin, pluginProject.Control.StopCmd),
-			RestartCmd: winpath.Join(pluginPkgDirNameBin, pluginProject.Control.RestartCmd),
-			ReloadCmd:  winpath.Join(pluginPkgDirNameBin, pluginProject.Control.ReloadCmd),
-			KillCmd:    winpath.Join(pluginPkgDirNameBin, pluginProject.Control.KillCmd),
-			VersionCmd: winpath.Join(pluginPkgDirNameBin, pluginProject.Control.VersionCmd),
-			HealthCmd:  winpath.Join(pluginPkgDirNameBin, pluginProject.Control.HealthCmd),
-		}
-	}
-
 	return types.ProcessController{
-		StartCmd:   filepath.Join(pluginPkgDirNameBin, pluginProject.Control.StartCmd),
-		StopCmd:    filepath.Join(pluginPkgDirNameBin, pluginProject.Control.StopCmd),
-		RestartCmd: filepath.Join(pluginPkgDirNameBin, pluginProject.Control.RestartCmd),
-		ReloadCmd:  filepath.Join(pluginPkgDirNameBin, pluginProject.Control.ReloadCmd),
-		KillCmd:    filepath.Join(pluginPkgDirNameBin, pluginProject.Control.KillCmd),
-		VersionCmd: filepath.Join(pluginPkgDirNameBin, pluginProject.Control.VersionCmd),
-		HealthCmd:  filepath.Join(pluginPkgDirNameBin, pluginProject.Control.HealthCmd),
+		StartCmd:   tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.StartCmd),
+		StopCmd:    tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.StopCmd),
+		RestartCmd: tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.RestartCmd),
+		ReloadCmd:  tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.ReloadCmd),
+		KillCmd:    tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.KillCmd),
+		VersionCmd: tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.VersionCmd),
+		HealthCmd:  tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.HealthCmd),
 	}
 }
 
-func convPropertyToTypes(property *Property) *types.PluginPkgConfigTemplateProperty {
+func convPluginV2PropertyToTypes(property *PluginV2Property) *types.PluginPkgConfigTemplateProperty {
 	if property == nil {
 		return nil
 	}
 
 	pluginPkgConfigTemplateProperty := &types.PluginPkgConfigTemplateProperty{
-		Title:    property.Title,
-		Type:     property.Type,
-		Required: property.Required,
-		Default:  property.Default,
+		Title:      property.Title,
+		Type:       property.Type,
+		Required:   property.Required,
+		Default:    property.Default,
+		Properties: make(map[string]*types.PluginPkgConfigTemplateProperty),
 	}
 
 	if property.Items != nil {
-		pluginPkgConfigTemplateProperty.Items = convPropertyToTypes(property.Items)
+		pluginPkgConfigTemplateProperty.Properties[property.Items.Title] = convPluginV2PropertyToTypes(property.Items)
 	}
 
 	if property.Properties != nil {
 		pluginPkgConfigTemplateProperty.Properties = make(map[string]*types.PluginPkgConfigTemplateProperty)
 		for k, v := range property.Properties {
-			pluginPkgConfigTemplateProperty.Properties[k] = convPropertyToTypes(v)
+			pluginPkgConfigTemplateProperty.Properties[k] = convPluginV2PropertyToTypes(v)
 		}
 	}
 
@@ -512,7 +497,7 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 	return nil
 }
 
-type releasePluginPkg struct {
+type releasePluginV2Pkg struct {
 	platform     platfmt.Platform
 	tempFileName string
 }
@@ -522,7 +507,7 @@ type releasePluginPkg struct {
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 	originDetail *types.OriginPluginV2PkgDetail,
-	originLocalFileName string) ([]*releasePluginPkg, error) {
+	originLocalFileName string) ([]*releasePluginV2Pkg, error) {
 
 	// local origin plugin package v2.
 	localOrigin, err := m.tempFileGroup.GetFile(nCtx, originLocalFileName)
@@ -540,7 +525,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 
 	gp := gopool.NewPool()
 
-	result := make(map[string]*releasePluginPkg)
+	result := make(map[string]*releasePluginV2Pkg)
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
 
@@ -569,11 +554,11 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{
 					{
-						targetFilePath: []string{pluginPkgDirNameBin},
+						targetFilePath: []string{pluginV2PkgDirNameBin},
 						targetFileMode: tgzModeDir,
 					},
 					{
-						targetFilePath: []string{pluginPkgDirNameEtc},
+						targetFilePath: []string{pluginV2PkgDirNameEtc},
 						targetFileMode: tgzModeDir,
 					},
 				},
@@ -583,15 +568,15 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 						sourceFile: origiPluginFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{convPlatToPluginDirName(plat), pluginName, originalPluginPkgV2DirNameBin,
+								sourceFilePath: []string{convPlatToPluginV2DirName(plat), pluginName, originalPluginPkgV2DirNameBin,
 									tgzPathMatchingSegment2},
 								targetFilePath: []string{
-									pluginPkgDirNameBin, tgzPathMatchingSegment2,
+									pluginV2PkgDirNameBin, tgzPathMatchingSegment2,
 								},
 								targetFileMode: tgzModeExe,
 							},
 							{
-								sourceFilePath: []string{convPlatToPluginDirName(plat), pluginName, originalPluginPkgV2FileNameProject},
+								sourceFilePath: []string{convPlatToPluginV2DirName(plat), pluginName, originalPluginPkgV2FileNameProject},
 								targetFilePath: []string{
 									fmt.Sprintf("project_%s.yaml", pluginName),
 								},
@@ -605,7 +590,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 						fileRules: []tgzWriteRuleFile{
 							{
 								sourceFilePath: []string{tgzPathMatchingSegment1, convPlatToPluginBinToolDirName(plat), tgzPathMatchingSegment2},
-								targetFilePath: []string{pluginPkgDirNameBin, tgzPathMatchingSegment2},
+								targetFilePath: []string{pluginV2PkgDirNameBin, tgzPathMatchingSegment2},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -615,7 +600,7 @@ func (m *Manager) generatePluginV2Pkg(nCtx contextx.IContext,
 				return fmt.Errorf("failed to generate tgz from origin packages: %w", err)
 			}
 
-			result[plat.String()] = &releasePluginPkg{
+			result[plat.String()] = &releasePluginV2Pkg{
 				platform:     plat,
 				tempFileName: tempFileName,
 			}
@@ -639,15 +624,15 @@ const (
 	originalPluginPkgV2DirNamePlatPrefix     = "plugins_"
 	originalPluginPkgV2DirNamePlatSplitTimes = 3
 
-	pluginPkgDirNameBin = "bin"
-	pluginPkgDirNameEtc = "etc"
+	pluginV2PkgDirNameBin = "bin"
+	pluginV2PkgDirNameEtc = "etc"
 )
 
-func convPlatToPluginDirName(plat platfmt.Platform) string {
+func convPlatToPluginV2DirName(plat platfmt.Platform) string {
 	return fmt.Sprintf("%s%s_%s", originalPluginPkgV2DirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())
 }
 
-func convPluginDirNameToPlat(dirName string) platfmt.Platform {
+func convPluginV2DirNameToPlat(dirName string) platfmt.Platform {
 	if !strings.HasPrefix(dirName, originalPluginPkgV2DirNamePlatPrefix) {
 		return platfmt.NewPlatform(criteria.OSUnknown, criteria.CPUArchUnknown)
 	}

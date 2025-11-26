@@ -102,6 +102,21 @@ message PublishReleaseExternalPluginV2Resp {
   Data data = 4;
 }
 
+// PublishReleasePluginV3Req is the request for upload release
+// plugin pkg.
+message PublishReleasePluginV3Req { string upload_id = 1; }
+
+// PublishReleasePluginV3Resp is the response for upload release
+// plugin pkg.
+message PublishReleasePluginV3Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {}
+  Data data = 4;
+}
+
 // Publish service.
 service Publish {
   // PublishReleaseAgent provides release agent publish.
@@ -149,8 +164,8 @@ service Publish {
     };
   }
 
-  // PublishReleasePlugin provides release plugin publish.
-  rpc PublishReleasePlugin(PublishReleasePluginV2Req)
+  // PublishReleasePluginV2 provides release plugin v2 publish.
+  rpc PublishReleasePluginV2(PublishReleasePluginV2Req)
       returns (PublishReleasePluginV2Resp) {
     option (google.api.http) = {
       post : "/publish/release/v2/plugin"
@@ -163,6 +178,15 @@ service Publish {
       returns (PublishReleaseExternalPluginV2Resp) {
     option (google.api.http) = {
       post : "/publish/release/v2/external_plugin"
+      body : "*"
+    };
+  }
+
+  // PublishReleasePluginV3 provides release plugin v3 publish.
+  rpc PublishReleasePluginV3(PublishReleasePluginV3Req)
+      returns (PublishReleasePluginV3Resp) {
+    option (google.api.http) = {
+      post : "/publish/release/v3/plugin"
       body : "*"
     };
   }

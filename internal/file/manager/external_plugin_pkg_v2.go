@@ -159,14 +159,14 @@ type ExternalPluginProject struct {
 
 // ExternalPluginConfigTemplate represents the project.yml file's config_templates field.
 type ExternalPluginConfigTemplate struct {
-	PluginVersion string    `yaml:"plugin_version"`
-	Name          string    `yaml:"name"`
-	Version       string    `yaml:"version"`
-	FilePath      string    `yaml:"file_path"`
-	Format        string    `yaml:"format"`
-	IsMainConfig  string    `yaml:"is_main_config"`
-	SourcePath    string    `yaml:"source_path"`
-	Variables     *Property `yaml:"variables"`
+	PluginVersion string            `yaml:"plugin_version"`
+	Name          string            `yaml:"name"`
+	Version       string            `yaml:"version"`
+	FilePath      string            `yaml:"file_path"`
+	Format        string            `yaml:"format"`
+	IsMainConfig  string            `yaml:"is_main_config"`
+	SourcePath    string            `yaml:"source_path"`
+	Variables     *PluginV2Property `yaml:"variables"`
 }
 
 /**
@@ -257,15 +257,16 @@ func parseExternalPluginPkgConfigTemplateFromProject(pluginProject *ExternalPlug
 		}
 
 		pkgConfigTemplates[idx] = types.PluginPkgConfigTemplate{
-			PluginVersion:    configTemplate.PluginVersion,
 			Name:             configTemplate.Name,
-			Version:          configTemplate.Version,
 			FilePath:         configTemplate.FilePath,
-			Format:           configTemplate.Format,
 			IsMainConfig:     isMainConfig,
-			SourcePath:       configTemplate.SourcePath,
-			Variables:        convPropertyToTypes(configTemplate.Variables),
+			Variables:        make(map[string]*types.PluginPkgConfigTemplateProperty),
 			TemplateRenderer: types.TemplateRendererTypeJinja2,
+		}
+
+		variables := convPluginV2PropertyToTypes(configTemplate.Variables)
+		if variables != nil {
+			pkgConfigTemplates[idx].Variables[variables.Title] = variables
 		}
 	}
 

@@ -1,5 +1,5 @@
 name: bk-nodemgr-relay
-version: 1.0.0
+version: {{VERSION}}
 description: 蓝鲸节点管理中继模块
 descriptionEn: BlueKing Node Management Relay Module
 scenario: 蓝鲸节点管理中继模块，用于节点管理在多级 proxy 场景下的对 agent 的操作命令转发

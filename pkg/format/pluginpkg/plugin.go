@@ -23,7 +23,9 @@ import (
 const PkgExtension = "tgz"
 
 // FormatPkgFileName formats the package name based on the node role, generation, and version.
-func FormatPkgFileName(pluginPkgName string, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string) (string, error) {
+func FormatPkgFileName(
+	pluginPkgName string, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string) (string, error) {
+
 	if err := releaseType.Validate(); err != nil {
 		return "", fmt.Errorf("format plugin pkg name failed: %w", err)
 	}
@@ -35,7 +37,7 @@ func FormatPkgFileName(pluginPkgName string, releaseType types.ReleaseType, gen 
 	// origin agent pkg contains all platforms in one pkg.
 	// so the pkg-name should not contain platform info.
 	switch releaseType {
-	case types.ReleaseTypeOriginPluginV2, types.ReleaseTypeOriginExternalPluginV2:
+	case types.ReleaseTypeOriginPluginV2, types.ReleaseTypeOriginExternalPluginV2, types.ReleaseTypeOriginPluginV3:
 		pkgName := fmt.Sprintf(
 			"bk-nodemgr_%s_%d_%s-%s-all.%s",
 			releaseType,

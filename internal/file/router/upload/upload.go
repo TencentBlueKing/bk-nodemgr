@@ -44,4 +44,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 	h.rg.POST("/origin/plugin_bintool", restserver.Handler(h.UploadOriginPluginBinTool))
 	h.rg.POST("/origin/v2/plugin", restserver.Handler(h.UploadOriginPluginV2))
 	h.rg.POST("/origin/v2/external_plugin", restserver.Handler(h.UploadOriginExternalPluginV2))
+	h.rg.POST("/origin/v3/plugin", restserver.Handler(h.UploadOriginPluginV3))
 }

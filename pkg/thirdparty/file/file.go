@@ -690,6 +690,48 @@ func (c *cli) uploadOriginExternalPluginV2(
 	return data, nil
 }
 
+func (c *cli) uploadOriginPluginV3(
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginPluginV3Req, fileName string, file io.Reader) (
+	*protoFile.UploadOriginPluginV3Resp_Data, error) {
+
+	resp := new(protoFile.UploadOriginPluginV3Resp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.generateUploadFileBody(req, header, fileName, file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate upload file body: %w", err)
+	}
+	defer func() {
+		_ = body.Close()
+	}()
+
+	err = c.client.Post().
+		SubResourcef("/upload/origin/v3/plugin").
+		WithContext(nCtx).
+		WithHeaders(header).
+		BodyReader(body).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to upload origin plugin v3. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to upload origin plugin v3, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
 func (c *cli) publishReleasePluginV2(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleasePluginV2Req) (
 	*protoFile.PublishReleasePluginV2Resp_Data, error) {
 
@@ -740,6 +782,34 @@ func (c *cli) publishReleaseExternalPluginV2(nCtx contextx.IContext, tenantID st
 
 	if code := resp.GetCode(); code != CodeOK {
 		return nil, fmt.Errorf("failed to publish release external plugin v2. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp.GetData(), nil
+}
+
+func (c *cli) publishReleasePluginV3(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleasePluginV3Req) (
+	*protoFile.PublishReleasePluginV3Resp_Data, error) {
+
+	resp := new(protoFile.PublishReleasePluginV3Resp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/publish/release/v3/plugin").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to publish release plugin v3. code(%d), message(%s), request-id(%s)",
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
