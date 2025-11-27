@@ -985,6 +985,23 @@ func (s *Storage) WatchOperInstStopping(nCtx contextx.IContext, operInstID strin
 	return channel
 }
 
+// UpsertNeedStopOperInst upserts need stop operation instance.
+func (s *Storage) UpsertNeedStopOperInst(nCtx contextx.IContext, operInstID string) error {
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("upsert_oper_inst_stop")
+	defer metric.End(err)
+
+	if err = s.upsertNeedStopOperInst(nCtx, operInstID); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operInstID).Error("failed to upsert operation instance stop record")
+
+		return fmt.Errorf("failed to upsert operation instance stop record, oper-inst-id(%s): %w", operInstID, err)
+	}
+
+	return nil
+}
+
 // UpdateActionInstanceContent update action instance content.
 func (s *Storage) UpdateActionInstanceContent(
 	nCtx contextx.IContext, operInstID string, actionName string, content map[string]any) error {

@@ -523,8 +523,22 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
 }
 
 // TerminateOperationInstance terminates the operation instance.
-func (ctl *controller) TerminateOperationInstance(_ contextx.IContext) error {
-	return errors.New("not implemented")
+func (ctl *controller) TerminateOperationInstance(nCtx contextx.IContext) error {
+	if operation.CheckStateFinished(ctl.operInstanceBriefData.Lifecycle.State) {
+		logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
+			Info("operation instance already stop, skip terminate")
+
+		return nil
+	}
+
+	if err := ctl.mgr.stgOperationInstance.UpsertNeedStopOperInst(nCtx, ctl.operInstanceBriefData.Metadata.OperationInstanceID); err != nil {
+		return fmt.Errorf("failed to upsert need stop oper inst: %w", err)
+	}
+
+	logger.G.Sys().With("oper-inst-id", ctl.operInstanceBriefData.Metadata.OperationInstanceID).
+		Info("operation instance terminated")
+
+	return nil
 }
 
 func (ctl *controller) generateOperationInstance(nCtx contextx.IContext) (*operation.InstanceData, error) {

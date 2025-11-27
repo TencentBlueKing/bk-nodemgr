@@ -412,7 +412,25 @@ func (s *Storage) getNotifications() []notifyItem {
 	return notifications
 }
 
-// UpdateActionInstanceContent update action instance content.
+// upsertNeedStopOperInst upserts need stop operation instance.
+func (s *Storage) upsertNeedStopOperInst(nCtx contextx.IContext, operInstID string) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	err := s.daoStopOperInst.Upsert(nCtx, operInstID)
+	if err != nil {
+		return fmt.Errorf("failed to upsert stop operation instance, operInstID(%s): %w", operInstID, err)
+	}
+
+	return nil
+}
+
+// updateActionInstanceContent update action instance content.
 func (s *Storage) updateActionInstanceContent(
 	nCtx contextx.IContext, operInstID string, actionName string, content map[string]any) error {
 

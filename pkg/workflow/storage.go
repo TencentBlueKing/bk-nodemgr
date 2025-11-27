@@ -109,6 +109,9 @@ type IStorageOperationInstance interface {
 	// WatchOperInstStopping watches operation instance stopping.
 	WatchOperInstStopping(ctx contextx.IContext, operationInstanceID string) <-chan struct{}
 
+	// UpsertNeedStopOperInst upserts need stop operation instance.
+	UpsertNeedStopOperInst(nCtx contextx.IContext, operInstID string) error
+
 	// DeleteOperationInstances deletes operation instances.
 	DeleteOperationInstances(ctx contextx.IContext, operationInstanceID ...string) error
 
