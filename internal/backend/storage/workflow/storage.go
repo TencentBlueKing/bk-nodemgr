@@ -32,7 +32,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/sync/singleflight"
 )
@@ -54,8 +53,9 @@ func NewStorage(client *mongo.Client, database string) (IStorage, error) {
 
 	s := &Storage{
 		Storage: basestorage.Storage{
-			Name:     StorageName,
-			Database: client.Database(database),
+			Name:      StorageName,
+			Database:  client.Database(database),
+			Scheduler: scheduler.NewScheduler(),
 		},
 	}
 	if err := basestorage.InitStorage(&s.Storage,
@@ -64,6 +64,12 @@ func NewStorage(client *mongo.Client, database string) (IStorage, error) {
 		logger.G.Sys().WithErr(err).Error("failed to new storage")
 
 		return nil, err
+	}
+
+	if err := s.registerStopOperInstTask(); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to register scheduler")
+
+		return nil, fmt.Errorf("failed to register scheduler: %w", err)
 	}
 
 	return s, nil
@@ -99,13 +105,6 @@ func (s *Storage) initDao() error {
 	s.stopEventSubsMap = make(map[string]*StopEventSubscription)
 	s.stopOperInsts = make(map[string]struct{})
 
-	err := s.registerScheduler()
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to register scheduler")
-
-		return fmt.Errorf("failed to register scheduler: %w", err)
-	}
-
 	return nil
 }
 
@@ -113,36 +112,6 @@ func (s *Storage) check() error {
 	if s.daoTrigger == nil {
 		return errors.New("trigger dao is nil")
 	}
-
-	return nil
-}
-
-func (s *Storage) registerScheduler() error {
-	s.Scheduler = scheduler.NewScheduler()
-	err := s.Scheduler.RegisterTask(scheduler.NewTask(
-		syncOperationTask,
-		taskInterval,
-		taskTimeout,
-		s.syncStopOperInsts,
-	))
-	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to register sync stopping operation instance task")
-
-		return fmt.Errorf("failed to register sync stopping operation instance task: %w", err)
-	}
-
-	go s.daoStopOperInst.WatchInsert(func(stopInstID string) {
-		s.stopOperInstsMutex.Lock()
-		defer s.stopOperInstsMutex.Unlock()
-		s.stopOperInsts[stopInstID] = struct{}{}
-
-		go func() {
-			err := s.checkNotifyStopping(contextx.New(s.Ctx))
-			if err != nil {
-				logger.G.Sys().WithErr(err).Warn("failed to check notify stopping")
-			}
-		}()
-	})
 
 	return nil
 }
@@ -971,33 +940,7 @@ func (s *Storage) UpdateOperationInstanceExtraExecutionMessages(
 
 // WatchOperInstStopping watches operation instance stopping.
 func (s *Storage) WatchOperInstStopping(nCtx contextx.IContext, operInstID string) <-chan struct{} {
-	channel := make(chan struct{}, 1)
-	subscription := &StopEventSubscription{
-		OperInstID: operInstID,
-		C:          channel,
-	}
-
-	subscriptionID := uuid.New().String()
-	s.stopEventSubsMapMutex.Lock()
-	s.stopEventSubsMap[subscriptionID] = subscription
-	s.stopEventSubsMapMutex.Unlock()
-
-	go func() {
-		<-nCtx.Done()
-
-		s.stopEventSubsMapMutex.Lock()
-		delete(s.stopEventSubsMap, subscriptionID)
-		s.stopEventSubsMapMutex.Unlock()
-	}()
-
-	go func() {
-		err := s.checkNotifyStopping(nCtx)
-		if err != nil {
-			logger.G.Sys().WithErr(err).Error("watch operation instance stopping event succeed, but check notify stopping failed")
-		}
-	}()
-
-	return channel
+	return s.watchOperInstStopping(nCtx, operInstID)
 }
 
 // UpsertNeedStopOperInst upserts need stop operation instance.

@@ -59,7 +59,7 @@ func testClient(t *testing.T) Handler {
 // Test_handler_Upsert ...
 func Test_handler_Upsert(t *testing.T) {
 	type args struct {
-		nCtx       context.Context
+		nCtx       contextx.IContext
 		operInstID string
 	}
 
@@ -71,7 +71,7 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "temp-test",
 			},
 			wantErr: false,
@@ -87,7 +87,7 @@ func Test_handler_Upsert(t *testing.T) {
 		{
 			name: "empty operInstID",
 			args: args{
-				nCtx:       context.Background(),
+				nCtx:       contextx.Background(),
 				operInstID: "",
 			},
 			wantErr: true,
@@ -118,7 +118,7 @@ func Test_handler_WatchInsert(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 			},
 			want: []string{},
 		},
@@ -172,7 +172,7 @@ func Test_handler_FindAll(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx: context.Background(),
+				nCtx: contextx.Background(),
 			},
 			wantErr: false,
 		},

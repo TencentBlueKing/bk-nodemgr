@@ -13,12 +13,10 @@ package workflow
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operinstdata"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
@@ -322,123 +320,6 @@ func (s *Storage) updateOperationInstanceExtraExecutionMessages(
 	}
 
 	return s.daoOperInstData.UpdateExtraExecutionMessages(nCtx, operInstID, messages...)
-}
-
-// StopEventSubscription represents the stop event subscription.
-type StopEventSubscription struct {
-	OperInstID string
-	C          chan<- struct{}
-}
-
-// syncStopOperInsts sync all stopping operation instances.
-func (s *Storage) syncStopOperInsts(nCtx contextx.IContext) error {
-	stopInstIDs, err := s.daoStopOperInst.FindAll(nCtx)
-	if err != nil {
-		return fmt.Errorf("failed to find all stopping operation instances: %v", err)
-	}
-
-	stopInstMap := make(map[string]struct{}, len(stopInstIDs))
-	for _, stopInstID := range stopInstIDs {
-		stopInstMap[stopInstID] = struct{}{}
-	}
-
-	s.stopOperInstsMutex.Lock()
-	s.stopOperInsts = stopInstMap
-	s.stopOperInstsMutex.Unlock()
-
-	go func() {
-		err := s.checkNotifyStopping(nCtx)
-		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to check notify stopping")
-		}
-	}()
-
-	return nil
-}
-
-// checkNotifyStopping check and notify the stopping event.
-func (s *Storage) checkNotifyStopping(nCtx contextx.IContext) error {
-	_, err, _ := s.sg.Do("checkNotifyStopping", func() (interface{}, error) {
-		err := s.processStoppingEvents(nCtx)
-		if err != nil {
-			return nil, err
-		}
-
-		return nil, nil // nolint: nilnil
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// processStoppingEvents ...
-func (s *Storage) processStoppingEvents(nCtx contextx.IContext) error {
-	nCtx, cancel := contextx.WithTimeout(contextx.From(nCtx), 5*time.Second) // nolint: mnd
-	defer cancel()
-
-	notifications := s.getNotifications()
-
-	for _, notify := range notifications {
-		select {
-		case <-nCtx.Done():
-			return nCtx.Err()
-		case notify.Subscription.C <- struct{}{}:
-			s.stopEventSubsMapMutex.Lock()
-			delete(s.stopEventSubsMap, notify.Key)
-			s.stopEventSubsMapMutex.Unlock()
-		default:
-			logger.G.Sys().With("notify", notify).Error("failed to notify stopping event")
-		}
-	}
-
-	return nil
-}
-
-// notifyItem notify item.
-type notifyItem struct {
-	Key          string
-	Subscription *StopEventSubscription
-}
-
-// getNotifications get the notifications.
-func (s *Storage) getNotifications() []notifyItem {
-	s.stopEventSubsMapMutex.Lock()
-	defer s.stopEventSubsMapMutex.Unlock()
-	s.stopOperInstsMutex.Lock()
-	defer s.stopOperInstsMutex.Unlock()
-
-	notifications := make([]notifyItem, 0, len(s.stopEventSubsMap))
-	for key, subscription := range s.stopEventSubsMap {
-		_, ok := s.stopOperInsts[subscription.OperInstID]
-		if ok {
-			notifications = append(notifications, notifyItem{
-				Key:          key,
-				Subscription: subscription,
-			})
-		}
-	}
-
-	return notifications
-}
-
-// upsertNeedStopOperInst upserts need stop operation instance.
-func (s *Storage) upsertNeedStopOperInst(nCtx contextx.IContext, operInstID string) error {
-	if nCtx == nil {
-		return basestorage.ErrNilContent()
-	}
-
-	if operInstID == "" {
-		return errors.New("operation instance id is empty")
-	}
-
-	err := s.daoStopOperInst.Upsert(nCtx, operInstID)
-	if err != nil {
-		return fmt.Errorf("failed to upsert stop operation instance, operInstID(%s): %w", operInstID, err)
-	}
-
-	return nil
 }
 
 // updateActionInstanceContent update action instance content.

@@ -303,13 +303,12 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 	actionTimeoutCtx, actionTimeoutCancel := contextx.WithTimeout(contextx.From(nCtx), actionDef.Timeout())
 	defer actionTimeoutCancel()
 
-	operationTimeoutCtx, operationTimeoutCancel := context.WithDeadline(
+	operInstTimeoutCtx, operInstTimeoutCancel := context.WithDeadline(
 		nCtx, operInstBriefData.Lifecycle.StartedAt.Add(operInstBriefData.Metadata.Timeout))
-	defer operationTimeoutCancel()
+	defer operInstTimeoutCancel()
 
 	// watch storage for stopping event.
-	terminatingC := mgr.stgOperationInstance.WatchOperInstStopping(
-		actionTimeoutCtx, operInstBriefData.Metadata.OperationID)
+	terminatingC := mgr.stgOperationInstance.WatchOperInstStopping(actionTimeoutCtx, operInstBriefData.Metadata.OperationInstanceID)
 
 	doResult := make(chan error, 1)
 	actionInstCtx := &action.InstanceContext{
@@ -335,7 +334,7 @@ func (mgr *manager) executeAndWatchAction(nCtx contextx.IContext,
 				operInstBriefData.Metadata.OperationID, actionInstData.Name)
 		}
 
-	case <-operationTimeoutCtx.Done():
+	case <-operInstTimeoutCtx.Done():
 		{
 			actionInstData.Lifecycle.EndWithTimeout()
 
