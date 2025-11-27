@@ -210,7 +210,7 @@ func convertWorkflowOperationConditionsToDeploymentTypes(tokens []string,
 	}
 
 	// exact conditions token
-	condition.ExactExclude.Token = tokens
+	condition.ExactInclude.Token = tokens
 
 	return condition
 }
