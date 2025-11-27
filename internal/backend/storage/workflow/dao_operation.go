@@ -138,3 +138,16 @@ func (s *Storage) listNeedInstantiateOperationByTriggerID(nCtx contextx.IContext
 
 	return s.daoOperation.List(nCtx, page, operation.WithTriggerID(triggerID), operation.WithInstantiated(true))
 }
+
+// existNeedInstantiateOperationByTriggerID checks whether there are operations need to be instantiated by trigger id.
+func (s *Storage) existNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, triggerID string) (bool, error) {
+	if nCtx == nil {
+		return false, basestorage.ErrNilContent()
+	}
+
+	if triggerID == "" {
+		return false, basestorage.ErrEmptyTriggerID()
+	}
+
+	return s.daoOperation.Exist(nCtx, operation.WithTriggerID(triggerID), operation.WithInstantiated(true))
+}

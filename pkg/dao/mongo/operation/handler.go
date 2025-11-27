@@ -29,6 +29,9 @@ type IHandler interface {
 	// List list operation by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
 
+	// Exist check operation whether exists by opts.
+	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
+
 	// Delete deletes operations.
 	Delete(nCtx contextx.IContext, operationID ...string) error
 
@@ -85,6 +88,16 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return operations, num, nil
+}
+
+// Exist check operation whether exists by opts.
+func (h *handler) Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.dao.Exist(nCtx, filter)
 }
 
 // Upsert insert or update an operation.

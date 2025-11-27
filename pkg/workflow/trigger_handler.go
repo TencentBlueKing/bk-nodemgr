@@ -132,8 +132,6 @@ const (
 	orderedTriggersSyncAndCheckIntervalDefault  = 1 * time.Second
 	periodicTriggersSyncAndCheckIntervalDefault = 1 * time.Second
 
-	maxOnceTriggerProcessLimit = 500
-
 	taskIDSyncAndCheckOnceTrigger     = "sync_and_check_once_trigger"
 	taskIDSyncAndCheckOrderedTrigger  = "sync_and_check_ordered_trigger"
 	taskIDSyncAndCheckPeriodicTrigger = "sync_and_check_periodic_trigger"
@@ -329,7 +327,7 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 		}
 
 		// inactivate once trigger after processing
-		if err := trigCtl.InactivateTrigger(nCtx); err != nil {
+		if err := trigCtl.TryInactivateTrigger(nCtx); err != nil {
 			return err
 		}
 
@@ -348,7 +346,7 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 		}
 
 		// inactivate once trigger after processing
-		if err := trigCtl.InactivateTrigger(nCtx); err != nil {
+		if err := trigCtl.TryInactivateTrigger(nCtx); err != nil {
 			return err
 		}
 
@@ -373,8 +371,9 @@ func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITrigge
 	}
 }
 
-func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trigCtl ITriggerCtl, limit int) error {
-	operList, err := trigCtl.ListNeedInstantiateOperation(nCtx, types.Page{Limit: limit})
+// instantiateOperation instantiates operations for the trigger.
+func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trigCtl ITriggerCtl, page types.Page) error {
+	operList, err := trigCtl.ListNeedInstantiateOperation(nCtx, page)
 	if err != nil {
 		return err
 	}
@@ -407,14 +406,14 @@ func (handler *triggerHandler) instantiateOperation(nCtx contextx.IContext, trig
 }
 
 func (handler *triggerHandler) doOnceTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) ([]IOperationInstanceCtl, error) {
-	if err := handler.instantiateOperation(nCtx, trigCtl, maxOnceTriggerProcessLimit); err != nil {
+	if err := handler.instantiateOperation(nCtx, trigCtl, types.UnlimitedPage()); err != nil {
 		logger.G.Sys().
 			WithErr(err).
 			With("trigger-id", trigCtl.GetTriggerID()).
 			Warn("failed to init once empty operation")
 	}
 
-	instanceList, err := trigCtl.ListOperationInstances(nCtx, types.Page{Limit: maxOnceTriggerProcessLimit}, operation.StateInit)
+	instanceList, err := trigCtl.ListOperationInstances(nCtx, types.UnlimitedPage(), operation.StateInit)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +437,7 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 				trigCtl.GetTriggerID(), metadata.MaxConcurrencyNum))
 	}
 
-	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstance(nCtx, trigCtl.GetTriggerID(),
+	workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstanceByState(nCtx, trigCtl.GetTriggerID(),
 		operation.StateLaunched, operation.StateRunning)
 	if err != nil {
 		return nil, err
@@ -450,7 +449,7 @@ func (handler *triggerHandler) doOrderedTrigger(nCtx contextx.IContext, trigCtl 
 		return nil, nil
 	}
 
-	if err := handler.instantiateOperation(nCtx, trigCtl, idleNum); err != nil {
+	if err := handler.instantiateOperation(nCtx, trigCtl, types.Page{Limit: idleNum}); err != nil {
 		logger.G.Sys().
 			WithErr(err).
 			With("trigger-id", trigCtl.GetTriggerID()).
@@ -497,7 +496,7 @@ func (handler *triggerHandler) doPeriodicTrigger(nCtx contextx.IContext, trigCtl
 	}
 
 	if !metadata.AllowedConcurrency {
-		workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstance(nCtx, trigCtl.GetTriggerID(),
+		workingCount, err := handler.mgr.stgOperationInstance.CountOperationInstanceByState(nCtx, trigCtl.GetTriggerID(),
 			operation.StateLaunched, operation.StateRunning)
 		if err != nil {
 			return nil, err

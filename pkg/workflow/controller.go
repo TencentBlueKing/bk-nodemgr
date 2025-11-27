@@ -65,6 +65,9 @@ type ITriggerCtl interface {
 	// InactivateTrigger inactivates the trigger.
 	InactivateTrigger(nCtx contextx.IContext) error
 
+	// TryInactivateTrigger try inactivates the trigger.
+	TryInactivateTrigger(nCtx contextx.IContext) error
+
 	// CreateOperation creates a new operation under trigger.
 	CreateOperation(nCtx contextx.IContext, operationDef operation.Definition, param operation.Param) (IOperationCtl, error)
 
@@ -189,6 +192,28 @@ func (ctl *controller) ActivateTrigger(nCtx contextx.IContext) error {
 
 // Inactivate inactivates the trigger.
 func (ctl *controller) InactivateTrigger(nCtx contextx.IContext) error {
+	return ctl.mgr.stgTrigger.SwitchTriggerActive(nCtx, ctl.trig.TriggerID, false)
+}
+
+// TryInactivateTrigger try inactivates the trigger.
+func (ctl *controller) TryInactivateTrigger(nCtx contextx.IContext) error {
+	operNeedInstantiated, err := ctl.mgr.stgOperation.ExistNeedInstantiateOperationByTriggerID(nCtx, ctl.trig.TriggerID)
+	if err != nil {
+		return err
+	}
+
+	operInstNeedLauched, err := ctl.mgr.stgOperationInstance.ExistOperationInstanceByState(nCtx, ctl.trig.TriggerID, operation.StateInit)
+	if err != nil {
+		return err
+	}
+
+	if operNeedInstantiated || operInstNeedLauched {
+		logger.G.Sys().With("trigger-id", ctl.trig.TriggerID).
+			Info("trigger has need instantiate operations or need lauched operation instances, skip inactivate")
+
+		return nil
+	}
+
 	return ctl.mgr.stgTrigger.SwitchTriggerActive(nCtx, ctl.trig.TriggerID, false)
 }
 

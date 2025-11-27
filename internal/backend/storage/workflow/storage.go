@@ -565,6 +565,26 @@ func (s *Storage) ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext
 	return opers, num, nil
 }
 
+// ExistNeedInstantiateOperationByTriggerID checks whether there are operations need to be instantiated by trigger id.
+func (s *Storage) ExistNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, triggerID string) (bool, error) {
+	var (
+		exist bool
+		err   error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_need_instantiate_operation_by_trigger_id")
+	defer metric.End(err)
+
+	if exist, err = s.existNeedInstantiateOperationByTriggerID(nCtx, triggerID); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID).Error("failed to check whether exist need instantiate operations")
+
+		return false, fmt.Errorf("failed to check whether exist need instantiate operations, trigger-id(%s): %w", triggerID, err)
+	}
+
+	return exist, nil
+}
+
 // DeleteOperationsByTriggerID deletes operations by trigger ID.
 func (s *Storage) DeleteOperationsByTriggerID(ctx contextx.IContext, triggerID ...string) error {
 	var err error
@@ -800,10 +820,8 @@ func (s *Storage) ListOperationInstanceBriefDataWithoutActionInst(
 	return results, num, nil
 }
 
-// CountOperationInstance counts operation instance.
-func (s *Storage) CountOperationInstance(
-	nCtx contextx.IContext, triggerID string, states ...workoper.State) (int64, error) {
-
+// CountOperationInstanceByState counts operation instance by state.
+func (s *Storage) CountOperationInstanceByState(nCtx contextx.IContext, triggerID string, states ...workoper.State) (int64, error) {
 	var (
 		num int64
 		err error
@@ -813,7 +831,7 @@ func (s *Storage) CountOperationInstance(
 	metric := s.metric().Start("count_operation_instance")
 	defer metric.End(err)
 
-	if num, err = s.countOperationInstance(nCtx, triggerID, states...); err != nil {
+	if num, err = s.countOperationInstanceByState(nCtx, triggerID, states...); err != nil {
 		logger.G.Sys().WithErr(err).With("trigger-id", triggerID, "states", states).Error("failed to count operation instance")
 
 		return 0, fmt.Errorf("failed to count operation instance, trigger-id(%s), states(%v): %w",
@@ -821,6 +839,27 @@ func (s *Storage) CountOperationInstance(
 	}
 
 	return num, nil
+}
+
+// ExistOperationInstanceByState checks whether operation instance exists by state.
+func (s *Storage) ExistOperationInstanceByState(nCtx contextx.IContext, triggerID string, states ...workoper.State) (bool, error) {
+	var (
+		exist bool
+		err   error
+	)
+
+	// record metric.
+	metric := s.metric().Start("exist_operation_instance")
+	defer metric.End(err)
+
+	if exist, err = s.existOperationInstanceByState(nCtx, triggerID, states...); err != nil {
+		logger.G.Sys().WithErr(err).With("trigger-id", triggerID, "states", states).Error("failed to check whether operation instance exists")
+
+		return false, fmt.Errorf("failed to check whether operation instance exists, trigger-id(%s), states(%v): %w",
+			triggerID, states, err)
+	}
+
+	return exist, nil
 }
 
 // ListOperInstanceBriefWithoutActionInstByOperationID lists operation instance brief data.

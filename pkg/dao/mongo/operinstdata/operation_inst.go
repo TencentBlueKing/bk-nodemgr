@@ -35,6 +35,9 @@ type IOperationInstData interface {
 	// Count count OperationDatas by conditions.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
+	// Exist check operation whether exists by opts.
+	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
+
 	// ListFullData find all full OperInstData.
 	ListFullData(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.InstanceData, int64, error)
 
@@ -293,6 +296,20 @@ func (h *Handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
 	}
 
 	return h.dao.Count(nCtx, filter)
+}
+
+// Exist check operation whether exists by opts.
+func (h *Handler) Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error) {
+	if nCtx == nil {
+		return false, errors.New("nCtx is nil")
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.dao.Exist(nCtx, filter)
 }
 
 // UpdateLifeCycle update operation instance's LifeCycle.

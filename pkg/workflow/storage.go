@@ -66,6 +66,9 @@ type IStorageOperation interface {
 	// ListEmptyOperationByTriggerID lists empty operation.
 	ListNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, page types.Page, triggerID string) ([]*operation.Operation, int64, error)
 
+	// ExistNeedInstantiateOperationByTriggerID checks whether there are operations need to be instantiated by trigger id.
+	ExistNeedInstantiateOperationByTriggerID(nCtx contextx.IContext, triggerID string) (bool, error)
+
 	// DeleteOperationsByTriggerID deletes operations by trigger ID.
 	DeleteOperationsByTriggerID(ctx contextx.IContext, triggerID ...string) error
 
@@ -94,8 +97,11 @@ type IStorageOperationInstance interface {
 	ListOperInstanceBriefWithoutActionInstByTriggerID(ctx contextx.IContext, page types.Page, triggerID ...string) (
 		[]*operation.InstanceBriefData, int64, error)
 
-	// CountOperationInstance counts operation instance.
-	CountOperationInstance(ctx contextx.IContext, triggerID string, states ...operation.State) (int64, error)
+	// CountOperationInstanceByState counts operation instance by state.
+	CountOperationInstanceByState(ctx contextx.IContext, triggerID string, states ...operation.State) (int64, error)
+
+	// ExistOperationInstanceByState checks whether operation instance exists by state.
+	ExistOperationInstanceByState(ctx contextx.IContext, triggerID string, states ...operation.State) (bool, error)
 
 	// UpsertOperationInstanceData upserts operation instance data.
 	UpsertOperationInstanceData(ctx contextx.IContext, operationInstanceData *operation.InstanceData) error

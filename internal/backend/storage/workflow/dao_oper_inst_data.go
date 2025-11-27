@@ -219,10 +219,8 @@ func (s *Storage) listOperationInstanceBriefDataWithoutActionInst(
 	return s.daoOperInstData.ListWithoutActInst(nCtx, page, convertOperInstDataConditionsToOptions(conditions...)...)
 }
 
-// countOperationInstance counts operation instance.
-func (s *Storage) countOperationInstance(
-	nCtx contextx.IContext, triggerID string, states ...operation.State) (int64, error) {
-
+// countOperationInstanceByState counts operation instance.
+func (s *Storage) countOperationInstanceByState(nCtx contextx.IContext, triggerID string, states ...operation.State) (int64, error) {
 	if nCtx == nil {
 		return 0, basestorage.ErrNilContent()
 	}
@@ -232,6 +230,19 @@ func (s *Storage) countOperationInstance(
 	}
 
 	return s.daoOperInstData.Count(nCtx, operinstdata.WithTriggerID(triggerID), operinstdata.WithState(states...))
+}
+
+// existOperationInstanceByState checks whether operation instance exists.
+func (s *Storage) existOperationInstanceByState(nCtx contextx.IContext, triggerID string, states ...operation.State) (bool, error) {
+	if nCtx == nil {
+		return false, basestorage.ErrNilContent()
+	}
+
+	if triggerID == "" {
+		return false, errors.New("trigger id is empty")
+	}
+
+	return s.daoOperInstData.Exist(nCtx, operinstdata.WithTriggerID(triggerID), operinstdata.WithState(states...))
 }
 
 // listOperationInstanceBriefDataWithoutActionInstByOperationID lists operation instance brief data without action instance data.
