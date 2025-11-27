@@ -95,6 +95,9 @@ type IOperationCtl interface {
 	// GetOperationID returns the operation ID.
 	GetOperationID() string
 
+	// GetLastOperationInstance returns the last operation instance.
+	GetLastOperationInstance(nCtx contextx.IContext) (IOperationInstanceCtl, error)
+
 	// CreateOperationInstance creates a new operation instance.
 	CreateOperationInstance(nCtx contextx.IContext) (IOperationInstanceCtl, error)
 
@@ -369,6 +372,16 @@ func (ctl *controller) ListNeedInstantiateOperation(nCtx contextx.IContext, page
 	}
 
 	return ctls, nil
+}
+
+// GetLastOperationInstance returns the last operation instance.
+func (ctl *controller) GetLastOperationInstance(nCtx contextx.IContext) (IOperationInstanceCtl, error) {
+	lastInstanceID := ctl.oper.GetLastInstanceID()
+	if lastInstanceID == "" {
+		return nil, fmt.Errorf("operation has no instance, operation-id(%s)", ctl.oper.OperationID)
+	}
+
+	return ctl.GetOperationInstance(nCtx, lastInstanceID)
 }
 
 // ListOperationInstances returns the operation instances with states.

@@ -52,9 +52,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/statistics", restserver.Handler(h.Statistics))
 	h.rg.POST("/distinct", restserver.Handler(h.Distinct))
 	h.rg.POST("/operation/list", restserver.Handler(h.ListOperation))
+	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
+	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
-	h.rg.POST("/operation/retry", restserver.Handler(h.OperationRetry))
 }
 
 // List workflows.
@@ -313,24 +314,39 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 	return resp.GetData(), nil
 }
 
-func (h *handler) OperationRetry(rCtx restserver.IContext) (interface{}, error) {
+// RetryOperation retry operation.
+func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationRetryReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation, failed to validate request body")
+	err := h.backendHandler.RetryNodeOperation(rCtx, req.ConvertNodeOperationRetryParamToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+	resp := new(protoApplication.NodeWorkflowOperationRetryResp)
+
+	return resp.GetData(), nil
+}
+
+// TerminateOperation terminate operation.
+func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.NodeWorkflowOperationTerminateReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate operation, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.backendHandler.OperationRetry(rCtx, req.ConvertRetryParamToTypes())
+	err := h.backendHandler.TerminateNodeOperation(rCtx, req.ConvertNodeOperationTerminateParamToTypes())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation: %v", err)
-		return nil, err
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate operation")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
-	resp := new(protoApplication.NodeWorkflowOperationRetryResp)
+
+	resp := new(protoApplication.NodeWorkflowOperationTerminateResp)
 
 	return resp.GetData(), nil
 }

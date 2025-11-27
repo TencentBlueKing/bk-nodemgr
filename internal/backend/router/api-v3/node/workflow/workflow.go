@@ -59,10 +59,11 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/list", restserver.Handler(h.ListNodeWorkflow))
 	h.rg.POST("/distinct", restserver.Handler(h.DistinctNodeWorkflow))
 	h.rg.POST("/operation/list", restserver.Handler(h.ListOperation))
+	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
+	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/status/list", restserver.Handler(h.ListOperationInstanceStatus))
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
-	h.rg.POST("/operation/retry", restserver.Handler(h.WorkflowOperationRetry))
 }
 
 // List workflows.

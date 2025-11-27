@@ -43,8 +43,11 @@ type INodeManager interface {
 	// LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
 	LaunchUninstallNode(ctx contextx.IContext, param UninstallNodeParam) (string, error)
 
-	// LaunchRetryOperationNode launch a task to retry operation instance
-	LaunchRetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) error
+	// LaunchRetryNodeOperation launch a task to retry operation.
+	LaunchRetryNodeOperation(ctx contextx.IContext, param RetryNodeOperationParam) error
+
+	// TerminateNodeOperation terminate node operation.
+	TerminateNodeOperation(ctx contextx.IContext, param TerminateNodeOperationParam) error
 }
 
 // InstallNodeParam install node param.
@@ -87,11 +90,16 @@ type UninstallNodeParam struct {
 	NodeDeployments []*types.NodeDeployment
 }
 
-// RetryOperationNodeParam retry node param.
-type RetryOperationNodeParam struct {
-	WorkflowID string
-
+// RetryNodeOperationParam retry node param.
+type RetryNodeOperationParam struct {
+	WorkflowID   string
 	RetryMod     operation.RetryMode
+	OperationIDs []string
+}
+
+// TerminateNodeOperationParam terminate operation node param.
+type TerminateNodeOperationParam struct {
+	WorkflowID   string
 	OperationIDs []string
 }
 
@@ -136,27 +144,65 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param InstallNodeP
 	return workflowID, nil
 }
 
-// LaunchRetryOperationNode launch a task to retry operation instance.
-func (mgr *Manager) LaunchRetryOperationNode(ctx contextx.IContext, param RetryOperationNodeParam) error {
-	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(ctx, param.WorkflowID)
+// LaunchRetryNodeOperation launch a task to retry operation instance.
+func (mgr *Manager) LaunchRetryNodeOperation(nCtx contextx.IContext, param RetryNodeOperationParam) error {
+	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
-		return fmt.Errorf("get trigger failed: %w", err)
+		return fmt.Errorf("failed to get node workflow: %w", err)
 	}
 
-	triggerCtl, err := mgr.workflowMgr.GetTrigger(ctx, nodeWorkflow.TriggerID)
+	triggerCtl, err := mgr.workflowMgr.GetTrigger(nCtx, nodeWorkflow.TriggerID)
 	if err != nil {
-		return fmt.Errorf("get trigger failed: %w", err)
+		return fmt.Errorf("failed to get trigger: %w", err)
 	}
 
-	if err := triggerCtl.UpdateOperationRetryFlag(ctx, param.RetryMod, param.OperationIDs...); err != nil {
-		return fmt.Errorf("update operation retry flag failed: %w", err)
+	if err := triggerCtl.UpdateOperationRetryFlag(nCtx, param.RetryMod, param.OperationIDs...); err != nil {
+		return fmt.Errorf("failed to update operation retry flag: %w", err)
 	}
 
-	if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(ctx, param.WorkflowID, types.NodeWorkflowStatusRunning); err != nil {
-		return fmt.Errorf("update node workflow status failed: %w", err)
+	if err := mgr.conf.StorageNode.UpdateNodeWorkflowStatus(nCtx, param.WorkflowID, types.NodeWorkflowStatusRunning); err != nil {
+		return fmt.Errorf("failed to update node workflow status: %w", err)
 	}
 
-	return triggerCtl.ActivateTrigger(ctx)
+	return triggerCtl.ActivateTrigger(nCtx)
+}
+
+// TerminateNodeOperation terminate node operation.
+func (mgr *Manager) TerminateNodeOperation(nCtx contextx.IContext, param TerminateNodeOperationParam) error {
+	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(nCtx, param.WorkflowID)
+	if err != nil {
+		return fmt.Errorf("failed to get node workflow: %w", err)
+	}
+
+	triggerCtl, err := mgr.workflowMgr.GetTrigger(nCtx, nodeWorkflow.TriggerID)
+	if err != nil {
+		return fmt.Errorf("failed to get trigger: %w", err)
+	}
+
+	operationCtls, err := triggerCtl.ListOperation(nCtx, param.OperationIDs...)
+	if err != nil {
+		return fmt.Errorf("failed to list operation: %w", err)
+	}
+
+	gp := gopool.NewPool()
+	for _, operationCtl := range operationCtls {
+		opCtl := operationCtl
+
+		gp.Go(func() error {
+			instanceCtl, err := opCtl.GetLastOperationInstance(nCtx)
+			if err != nil {
+				return fmt.Errorf("failed to get last operation instance: %w", err)
+			}
+
+			return instanceCtl.TerminateOperationInstance(nCtx)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return fmt.Errorf("failed to terminate node operation: %w", err)
+	}
+
+	return nil
 }
 
 func (mgr *Manager) createInstallNodeOper(

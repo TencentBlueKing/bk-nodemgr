@@ -17,28 +17,26 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
-// RetryOperation retry the operation of node workflow.
-func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.NodeWorkflowOperationRetryReq)
+// TerminateOperation terminate node workflow operation.
+func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.NodeWorkflowOperationTerminateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate operation, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.manager.LaunchRetryNodeOperation(rCtx, manager.RetryNodeOperationParam{
+	err := h.manager.TerminateNodeOperation(rCtx, manager.TerminateNodeOperationParam{
 		WorkflowID:   req.GetWorkflowId(),
-		RetryMod:     operation.RetryMode(req.GetRetryMod()),
 		OperationIDs: req.GetOperationIds(),
 	})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation: %w", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate operation")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
+	resp := new(protoBackend.NodeWorkflowOperationTerminateResp)
 
 	return resp.GetData(), nil
 }

@@ -218,6 +218,39 @@
         ]
       }
     },
+    "/api/v3/node/workflow/operation/terminate": {
+      "post": {
+        "summary": "NodeWorkflowOperationTerminate provides node operation terminate.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationTerminate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationTerminateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationTerminateReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/workflow/statistics": {
       "post": {
         "summary": "NodeWorkflowStatistics provides node workflow statistics.",
@@ -914,7 +947,7 @@
         "retry_mod": {
           "type": "string"
         },
-        "operation_id": {
+        "operation_ids": {
           "type": "array",
           "items": {
             "type": "string"
@@ -959,6 +992,46 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeWorkflowOperationTerminateReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "operation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "NodeWorkflowOperationTerminateReq"
+    },
+    "v3NodeWorkflowOperationTerminateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationTerminateRespData"
+        }
+      },
+      "title": "NodeWorkflowOperationTerminateResp"
+    },
+    "v3NodeWorkflowOperationTerminateRespData": {
+      "type": "object"
     },
     "v3NodeWorkflowStatisticsReq": {
       "type": "object",

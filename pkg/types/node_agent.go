@@ -12,8 +12,6 @@ package types
 
 import (
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // NodeAgentInstallHost describes the node agent install host.
@@ -92,13 +90,6 @@ type NodeAgentInstallCheckInfo struct {
 	HostID        int64
 	NetworkUnitID int64
 	InnerIP       string
-}
-
-// NodeOperationRetryParam validates the node install parameter.
-type NodeOperationRetryParam struct {
-	WorkflowID   string
-	OperationIDs []string
-	RetryMode    operation.RetryMode
 }
 
 // NodeAgentInstallElig describes the node agent install eligibility.

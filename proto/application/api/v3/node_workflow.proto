@@ -299,11 +299,28 @@ message NodeWorkflowActionData {
 message NodeWorkflowOperationRetryReq {
   string workflow_id = 1;
   string retry_mod = 2;
-  repeated string operation_id = 3;
+  repeated string operation_ids = 3;
 }
 
 // NodeWorkflowOperationRetryResp
 message NodeWorkflowOperationRetryResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// NodeWorkflowOperationTerminateReq
+message NodeWorkflowOperationTerminateReq {
+  string workflow_id = 1;
+  repeated string operation_ids = 2;
+}
+
+// NodeWorkflowOperationTerminateResp
+message NodeWorkflowOperationTerminateResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -375,6 +392,15 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationRetryResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/retry"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationTerminate provides node operation terminate.
+  rpc NodeWorkflowOperationTerminate(NodeWorkflowOperationTerminateReq)
+      returns (NodeWorkflowOperationTerminateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/terminate"
       body : "*"
     };
   }

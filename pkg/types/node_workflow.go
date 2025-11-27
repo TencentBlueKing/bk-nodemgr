@@ -252,3 +252,16 @@ func InstanceStatusToNodeWorkflowOperationState(status operation.State) (NodeWor
 		return "", fmt.Errorf("invalid operation instance state. state(%s)", status)
 	}
 }
+
+// NodeOperationRetryParam validates the retry param.
+type NodeOperationRetryParam struct {
+	WorkflowID   string
+	OperationIDs []string
+	RetryMode    operation.RetryMode
+}
+
+// NodeOperationTerminateParam validates the terminate param.
+type NodeOperationTerminateParam struct {
+	WorkflowID   string
+	OperationIDs []string
+}

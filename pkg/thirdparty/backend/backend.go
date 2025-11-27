@@ -1148,6 +1148,33 @@ func (c *cli) retryOperation(ctx contextx.IContext, req *protoBackend.NodeWorkfl
 	return resp, nil
 }
 
+func (c *cli) terminateOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationTerminateReq,
+) (*protoBackend.NodeWorkflowOperationTerminateResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationTerminateResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/node/workflow/operation/terminate").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("terminate operation instance failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
 func (c *cli) installNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyInstallReq) (
 	*protoBackend.NodeProxyInstallResp, error) {
 

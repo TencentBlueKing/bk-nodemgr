@@ -364,6 +364,31 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 }
 
 // AutoConvert auto convert.
+func (x *NodeWorkflowOperationTerminateReq) AutoConvert() {
+}
+
+// Validate convert workflow id.
+func (x *NodeWorkflowOperationTerminateReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	if len(x.GetOperationIds()) == 0 {
+		return errors.New("operation_id is required")
+	}
+
+	return nil
+}
+
+// ConvertNodeOperationTerminateParamToTypes convert terminate node operation param to types.
+func (x *NodeWorkflowOperationTerminateReq) ConvertNodeOperationTerminateParamToTypes() *types.NodeOperationTerminateParam {
+	return &types.NodeOperationTerminateParam{
+		WorkflowID:   x.GetWorkflowId(),
+		OperationIDs: x.GetOperationIds(),
+	}
+}
+
+// AutoConvert auto convert.
 func (x *NodeWorkflowOperationRetryReq) AutoConvert() {
 }
 
@@ -373,7 +398,11 @@ func (x *NodeWorkflowOperationRetryReq) Validate() error {
 		return errors.New("workflow_id is required")
 	}
 
-	for _, oper := range x.GetOperationId() {
+	if len(x.GetOperationIds()) == 0 {
+		return errors.New("operation_id is required")
+	}
+
+	for _, oper := range x.GetOperationIds() {
 		if oper == "" {
 			return errors.New("operation_id can not be empty")
 		}
@@ -382,11 +411,11 @@ func (x *NodeWorkflowOperationRetryReq) Validate() error {
 	return nil
 }
 
-// ConvertRetryParamToTypes ...
-func (x *NodeWorkflowOperationRetryReq) ConvertRetryParamToTypes() *types.NodeOperationRetryParam {
+// ConvertNodeOperationRetryParamToTypes convert retry node operation param to types.
+func (x *NodeWorkflowOperationRetryReq) ConvertNodeOperationRetryParamToTypes() *types.NodeOperationRetryParam {
 	return &types.NodeOperationRetryParam{
 		WorkflowID:   x.GetWorkflowId(),
-		OperationIDs: x.GetOperationId(),
+		OperationIDs: x.GetOperationIds(),
 		RetryMode:    operation.RetryMode(x.GetRetryMod()),
 	}
 }
