@@ -6,7 +6,7 @@
       class="w-full overflow-auto mt-[16px]"
     >
       <Table
-        class="w-full"
+        class="w-full filterTable"
         ref="tableRef"
         :data="list"
         :empty-text="$t('table.empty')"
@@ -280,7 +280,7 @@ const getParams = () => {
   });
   return params;
 };
-const getAgentList = async () => {
+const getProxyList = async () => {
   loading.value = true;
   const res = await TopoService.HostList(getParams()).catch((err) => {
     console.log(err);
@@ -294,12 +294,16 @@ const getAgentList = async () => {
     ...item.state,
     ...item.info,
     ...item,
+    bk_host_innerip: item.info.bk_host_innerip_list.join(','),
+    bk_host_innerip_v6: item.info.bk_host_innerip_v6_list.join(','),
+    export_ip: item.info.bk_host_outerip_list.join(','),
+    advertise_ip: item.info.bk_host_outerip_v6_list.join(','),
   }));
   emit('getData', list.value);
   loading.value = false;
 };
 const handleUpdate = async () => {
-  await getAgentList();
+  await getProxyList();
 };
 const isShowInstallProxy = ref(false);
 const reinstallData = ref<Host[]>([]);
@@ -343,14 +347,14 @@ watch(route, async () => {
         }],
       },
     ]);
-    await getAgentList();
+    await getProxyList();
   }
 }, { immediate: true, deep: true });
 watch(() => mainStore.selectedBusinessId, async () => {
-  await getAgentList();
+  await getProxyList();
 }, { immediate: true });
 watch(searchSelectValue, async () => {
-  await getAgentList();
+  await getProxyList();
 }, { deep: true });
 </script>
 <style lang="postcss" scoped>

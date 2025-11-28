@@ -27,7 +27,6 @@
               v-model.trim="searchSelectValue"
               :unique-select="true"
               :placeholder="'IPV4、IPV6、操作系统、主机名'"
-              @update:model-value="handleSearchSelectChange"
             >
             </SearchSelect>
             <copy-ip-dropdown

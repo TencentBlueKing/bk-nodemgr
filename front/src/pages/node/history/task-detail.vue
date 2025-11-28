@@ -92,155 +92,153 @@
       >
       </SearchSelect>
     </div>
-    <bk-loading title="数据加载中" :loading="loading">
-      <div class="relative">
-        <Table
-          class="filterTable"
-          :data="filterTableData"
-          :empty-text="'暂无数据'"
-          :pagination="pagination"
-          show-overflow-tooltip
-          :max-height="maxHeight"
-          @checkbox-change="handleSelectChange"
-          @checkbox-all="handleSelectAllChange"
-          :show-settings="isShowSetting"
-          :settings="settings"
-          @setting-change="handleSettingChange"
-          @column-filter="handleFilter"
+    <div class="relative">
+      <Table
+        class="filterTable"
+        :data="filterTableData"
+        :empty-text="'暂无数据'"
+        :pagination="pagination"
+        show-overflow-tooltip
+        :max-height="maxHeight"
+        @checkbox-change="handleSelectChange"
+        @checkbox-all="handleSelectAllChange"
+        :show-settings="isShowSetting"
+        :settings="settings"
+        @setting-change="handleSettingChange"
+        @column-filter="handleFilter"
+      >
+        <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
+        <TableColumn
+          field="bk_host_inner_list"
+          :title="'IPv4'"
+          width="150"
+          fixed="left"
+        ></TableColumn>
+        <TableColumn
+          field="bk_host_innerip_v6_list"
+          :title="'IPv6'"
+          width="150"
+        ></TableColumn>
+        <TableColumn
+          field="bk_networkarea_id"
+          :title="'管控区域'"
+          min-width="150"
         >
-          <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
-          <TableColumn
-            field="bk_host_inner_list"
-            :title="'IPv4'"
-            width="150"
-            fixed="left"
-          ></TableColumn>
-          <TableColumn
-            field="bk_host_innerip_v6_list"
-            :title="'IPv6'"
-            width="150"
-          ></TableColumn>
-          <TableColumn
-            field="bk_networkarea_id"
-            :title="'管控区域'"
-            min-width="150"
-          >
-            <template #default="{ row }">
-              {{ networkAreaListMap.get(row.bk_networkarea_id) }}
-            </template>
-          </TableColumn>
-          <TableColumn
-            field="bk_networkunit_id"
-            :title="'管控单元'"
-            min-width="150"
-          >
-            <template #default="{ row }">
-              {{ networkUnitListMap.get(row.bk_networkunit_id) }}
-            </template>
-          </TableColumn>
-          <TableColumn
-            field="bk_biz_name"
-            :title="'业务'"
-            min-width="150"
-          ></TableColumn>
-          <TableColumn
-            field="node_version"
-            :title="'目标版本'"
-            min-width="150"
-            :filter="filterOptionSource.node_version"
-          >
-          </TableColumn>
-          <TableColumn field="total_time_second" :title="'耗时'">
-            <template #default="{ row }">
-              <span>{{ formatTimeToMS(row.total_time_second) }}</span>
-            </template>
-          </TableColumn>
-          <TableColumn
-            field="state"
-            :title="'执行状态'"
-            :filter="filterOptionSource.state"
-            min-width="120"
-          >
-            <template #default="{ row }">
-              <div
-                class="flex items-center"
-                v-if="row.state && statusMap[row.state]"
+          <template #default="{ row }">
+            {{ networkAreaListMap.get(row.bk_networkarea_id) }}
+          </template>
+        </TableColumn>
+        <TableColumn
+          field="bk_networkunit_id"
+          :title="'管控单元'"
+          min-width="150"
+        >
+          <template #default="{ row }">
+            {{ networkUnitListMap.get(row.bk_networkunit_id) }}
+          </template>
+        </TableColumn>
+        <TableColumn
+          field="bk_biz_name"
+          :title="'业务'"
+          min-width="150"
+        ></TableColumn>
+        <TableColumn
+          field="node_version"
+          :title="'目标版本'"
+          min-width="150"
+          :filter="filterOptionSource.node_version"
+        >
+        </TableColumn>
+        <TableColumn field="total_time_second" :title="'耗时'">
+          <template #default="{ row }">
+            <span>{{ formatTimeToMS(row.total_time_second) }}</span>
+          </template>
+        </TableColumn>
+        <TableColumn
+          field="state"
+          :title="'执行状态'"
+          :filter="filterOptionSource.state"
+          min-width="120"
+        >
+          <template #default="{ row }">
+            <div
+              class="flex items-center"
+              v-if="row.state && statusMap[row.state]"
+            >
+              <Spinner v-if="row.state === 'running'" class="mr-[8px]" />
+              <template v-else>
+                <i
+                  :class="`nodeman-icon nc-${
+                    statusMap[row.state].icon
+                  } status-icon`"
+                ></i>
+              </template>
+              <span>{{ statusMap[row.state].text }}</span>
+            </div>
+            <div class="flex items-center" v-else>
+              <span class="nodeman-icon nc-unknown status-icon"></span>
+              <span>{{ row.state }}</span>
+            </div>
+          </template>
+        </TableColumn>
+        <TableColumn
+          field="reTryCount"
+          :title="'重试次数'"
+          min-width="100"
+        ></TableColumn>
+        <TableColumn :title="'操作'" fixed="right" width="200">
+          <template #default="{ row }">
+            <div class="flex items-center gap-[11px]">
+              <Button text theme="primary" @click="handleViewLog(row)"
+              >查看日志</Button
               >
-                <Spinner v-if="row.state === 'running'" class="mr-[8px]" />
-                <template v-else>
-                  <i
-                    :class="`nodeman-icon nc-${
-                      statusMap[row.state].icon
-                    } status-icon`"
-                  ></i>
-                </template>
-                <span>{{ statusMap[row.state].text }}</span>
-              </div>
-              <div class="flex items-center" v-else>
-                <span class="nodeman-icon nc-unknown status-icon"></span>
-                <span>{{ row.state }}</span>
-              </div>
-            </template>
-          </TableColumn>
-          <TableColumn
-            field="reTryCount"
-            :title="'重试次数'"
-            min-width="100"
-          ></TableColumn>
-          <TableColumn :title="'操作'" fixed="right" width="200">
-            <template #default="{ row }">
-              <div class="flex items-center gap-[11px]">
-                <Button text theme="primary" @click="handleViewLog(row)"
-                >查看日志</Button
+              <Button text theme="primary" :disabled="row.state !== 'running'"
+              >终止</Button
+              >
+              <Dropdown
+                theme="light"
+                trigger="click"
+                ext-cls="dropdownCls"
+                :popover-options="{
+                  clickContentAutoHide: true,
+                }"
+              >
+                <Button
+                  text
+                  theme="primary"
+                  v-if="!['success', 'running'].includes(row.state)"
+                  class="flex items-stretch"
                 >
-                <Button text theme="primary" :disabled="row.state !== 'running'"
-                >终止</Button
-                >
-                <Dropdown
-                  theme="light"
-                  trigger="click"
-                  ext-cls="dropdownCls"
-                  :popover-options="{
-                    clickContentAutoHide: true,
-                  }"
-                >
-                  <Button
-                    text
-                    theme="primary"
-                    v-if="!['success', 'running'].includes(row.state)"
-                    class="flex items-stretch"
-                  >
-                    <right-turn-line fill="#3A84FF" />
-                    <span>重试</span>
-                  </Button>
-                  <template #content>
-                    <Dropdown.DropdownMenu ext-cls="dropDown-menu">
-                      <Dropdown.DropdownItem
-                        class="text-14px"
-                        v-for="item in reTryType"
-                        :key="item.id"
-                        v-bk-tooltips="{
-                          content: item.tooltip,
-                        }"
-                        @click="handleRetry(row, item.id)"
+                  <right-turn-line fill="#3A84FF" />
+                  <span>重试</span>
+                </Button>
+                <template #content>
+                  <Dropdown.DropdownMenu ext-cls="dropDown-menu">
+                    <Dropdown.DropdownItem
+                      class="text-14px"
+                      v-for="item in reTryType"
+                      :key="item.id"
+                      v-bk-tooltips="{
+                        content: item.tooltip,
+                      }"
+                      @click="handleRetry(row, item.id)"
+                    >
+                      <Button
+                        text
+                        :disabled="
+                          row.state === 'terminate' && item.id === 'PARTIAL'
+                        "
+                      >{{ item.name }}</Button
                       >
-                        <Button
-                          text
-                          :disabled="
-                            row.state === 'terminate' && item.id === 'PARTIAL'
-                          "
-                        >{{ item.name }}</Button
-                        >
-                      </Dropdown.DropdownItem>
-                    </Dropdown.DropdownMenu>
-                  </template>
-                </Dropdown>
-              </div>
-            </template>
-          </TableColumn>
-        </Table>
-      </div>
-    </bk-loading>
+                    </Dropdown.DropdownItem>
+                  </Dropdown.DropdownMenu>
+                </template>
+              </Dropdown>
+            </div>
+          </template>
+        </TableColumn>
+      </Table>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -263,7 +261,6 @@ import {
 import dayjs from 'dayjs';
 import {
   computed,
-  nextTick,
   onBeforeUnmount,
   onMounted,
   reactive,
@@ -344,13 +341,17 @@ const statusMap = {
   },
   timeout: {
     text: '超时',
-    icon: 'unknown',
+    icon: 'terminated',
     tagTheme: '',
   },
   init: {
     text: '初始化',
     icon: 'unknown',
     tagTheme: '',
+  },
+  terminate: {
+    text: '终止',
+    icon: 'terminated',
   },
 };
 const typeMap = {
@@ -474,11 +475,10 @@ const bussinessMap = computed(() => mainStore.businessList.map(item => ({
   name: item.bk_biz_name,
 })));
 const getUniqueChildren = (prop: string) => {
-  const uniqueValues = Array.from(
-    new Set(tableData.value
-      .map((item: any) => item[prop])
-      .filter((item: any) => item !== null && item !== undefined && item !== '')));
-  return uniqueValues.map(value => {
+  const uniqueValues = Array.from(new Set(tableData.value
+    .map((item: any) => item[prop])
+    .filter((item: any) => item !== null && item !== undefined && item !== '')));
+  return uniqueValues.map((value) => {
     let name;
     switch (prop) {
       case 'state':
@@ -810,15 +810,12 @@ const needInterval = computed(() => subTasksStatus.value?.includes('running')
     || subTasksStatus.value?.includes('empty_instance')
     || subTasksStatus.value?.includes('init'));
 const getOperateList = async () => {
-  loading.value = true;
   subTasksStatus.value = [];
-  const currentRowData = nodeManageStore.taskHistoryTableRowData;
   const searchParameters = getParams();
   const res = await NodeWorkflowService.NodeWorkflowOperationList(searchParameters).catch(() => ({
     operations: [],
     total_count: 0,
   }));
-  loading.value = false ;
   const mapList = res.operations.map((item) => {
     subTasksStatus.value?.push(item.status.state);
     return {
@@ -826,7 +823,8 @@ const getOperateList = async () => {
       ...item.status,
       bk_host_inner_list: item.param.bk_host_inner_list?.join(','),
       bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(','),
-      bk_biz_name: currentRowData?.bk_biz_name || item.param.bk_biz_id,
+      bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.param.bk_biz_id)?.bk_biz_name
+         || item.param.bk_biz_id,
       operation_id: item.operation_id,
       reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
     };
@@ -902,10 +900,10 @@ watch(
 );
 
 onMounted(async () => {
-  Promise.all([
+  await updataCurrentTaskInfo();
+  await Promise.all([
     getNetworkAreaList(),
     getNetworkUnitList(),
-    updataCurrentTaskInfo(),
     getOperateList(),
   ]);
   if (currentTaskStatus.value === 'running' && needInterval.value) {

@@ -168,6 +168,37 @@ export interface PackageUploadOriginExternalPluginV2RespData {
   platforms: Platform[];
 }
 
+// PackageUploadOriginPluginV3Req is the request for upload origin plugin v3.
+export interface PackageUploadOriginPluginV3Req {
+  overwrite: boolean;
+}
+
+// PackageUploadOriginPluginV3Resp is the response for upload origin plugin v3.
+export interface PackageUploadOriginPluginV3Resp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageUploadOriginPluginV3RespData;
+}
+
+export interface PackageUploadOriginPluginV3RespData {
+  upload_id: string;
+  existed: boolean;
+  generated: boolean;
+  name: string;
+  size: number;
+  md5: string;
+  version: string;
+  description: string;
+  descriptionEn: string;
+  scenario: string;
+  scenarioEn: string;
+  launch_node: string;
+  template_renderer: string;
+  platforms: Platform[];
+}
+
 // UploadOriginPluginBinToolReq is the request for upload origin plugin bin tool
 // pkg.
 export interface PackageUploadOriginPluginBinToolReq {
@@ -238,6 +269,25 @@ export interface PackagePublishReleaseExternalPluginV2Resp {
 }
 
 export interface PackagePublishReleaseExternalPluginV2RespData {
+}
+
+// PackagePublishReleasePluginV3Req is the request for publish release plugin v3
+// pkg.
+export interface PackagePublishReleasePluginV3Req {
+  upload_id: string;
+}
+
+// PackagePublishReleasePluginV3Resp is the response for publish release plugin
+// v3 pkg.
+export interface PackagePublishReleasePluginV3Resp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackagePublishReleasePluginV3RespData;
+}
+
+export interface PackagePublishReleasePluginV3RespData {
 }
 
 // PackagePublishReleaseAgentReq is the request for upload release agent pkg.

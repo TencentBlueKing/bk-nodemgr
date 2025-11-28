@@ -166,6 +166,7 @@ export interface NodeWorkflowOperationExactConditions {
   bk_host_innerip_v6: string[];
   bk_biz_id: number[];
   bk_networkarea_id: number[];
+  bk_networkunit_id: number[];
   state: string[];
 }
 

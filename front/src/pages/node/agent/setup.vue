@@ -145,7 +145,7 @@
       ref="footerRef"
     >
       <Button
-        v-if="activeInstallType === 'import'"
+        v-show="activeInstallType === 'import' && !isEqual(formData.info, excelImportData)"
         class="w-[100px]"
         theme="primary"
         :disabled="!excelImportData.length"

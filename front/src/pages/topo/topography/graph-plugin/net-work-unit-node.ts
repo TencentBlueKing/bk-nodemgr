@@ -225,7 +225,7 @@ export default class NetWorkUnitNode extends BaseNode {
 
       // 染色前缀
       this.upsert(`${gridKeyPrefix}-prefix`, 'text', {
-        x: centerX - prefix.length * 8 - 7,
+        x: centerX - prefix.length * 9 - 4,
         y: mainTextY,
         text: prefix,
         ...NetWorkUnitNode.defaultTextStyle,
@@ -261,8 +261,8 @@ export default class NetWorkUnitNode extends BaseNode {
       }
     } else if (latency && mainText) {
       const centerX = x + NetWorkUnitNode.gridWidth / 2;
-      const parts = mainText.split(','); // 按逗号分割 ["120", "80", "150"]
-      const textParts = [];
+      const parts = mainText.replace('ms', '').split(','); // 按逗号分割 ["120", "80", "150"]
+      const textParts: any[] = [];
 
       // 1. 准备所有要绘制的文本片段（数字、逗号、ms）
       parts.forEach((part, index) => {

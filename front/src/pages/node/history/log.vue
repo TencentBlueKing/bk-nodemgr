@@ -38,36 +38,38 @@
         <ArrowsLeft width="24" height="24" class="text-[#3a84ff] cursor-pointer mr-[5px]" @click="router.back()" />
         <span>{{ $t(title) }}</span>
       </div>
-      <Dropdown
-        theme="light"
-        trigger="click"
-        ext-cls="dropdownCls h-[72px]"
-        :popover-options="{
-          clickContentAutoHide: true,
-        }">
-        <Button
-          v-if="!['success'].includes(currentOperate?.state)"
-          class="flex items-stretch my-[20px] w-[86px]">
-          <span>重试</span>
-        </Button>
-        <template #content>
-          <Dropdown.DropdownMenu ext-cls="dropDown-menu">
-            <Dropdown.DropdownItem
-              class="text-14px"
-              v-for="item in reTryType"
-              :key="item.id"
-              v-bk-tooltips="{
-                content: item.tooltip
-              }"
-              @click="handleRetry(currentOperate, item.id)">
-              <Button
-                text
-                :disabled="currentOperate?.state === 'terminate' && item.id === 'PARTIAL'"
-              >{{ item.name }}</Button>
-            </Dropdown.DropdownItem>
-          </Dropdown.DropdownMenu>
-        </template>
-      </Dropdown>
+      <div class="h-[72px] my-[20px]">
+        <Dropdown
+          theme="light"
+          trigger="click"
+          ext-cls="dropdownCls"
+          :popover-options="{
+            clickContentAutoHide: true,
+          }">
+          <Button
+            v-if="!['success'].includes(currentOperate?.state)"
+            class="w-[86px]">
+            <span>重试</span>
+          </Button>
+          <template #content>
+            <Dropdown.DropdownMenu>
+              <Dropdown.DropdownItem
+                class="text-14px"
+                v-for="item in reTryType"
+                :key="item.id"
+                v-bk-tooltips="{
+                  content: item.tooltip
+                }"
+                @click="handleRetry(currentOperate, item.id)">
+                <Button
+                  text
+                  :disabled="currentOperate?.state === 'terminate' && item.id === 'PARTIAL'"
+                >{{ item.name }}</Button>
+              </Dropdown.DropdownItem>
+            </Dropdown.DropdownMenu>
+          </template>
+        </Dropdown>
+      </div>
       <bk-loading title="数据加载中" :loading="instanceLoading" class="flex-1 flex h-[calc(100%-102px)]">
         <Table
           :data="tableData"
@@ -98,7 +100,7 @@
               <div class="flex items-center">
                 <div class="flex items-center w-[100px]">
                   <i
-                    v-if="statusMap[row.state].icon"
+                    v-if="statusMap[row.state]?.icon"
                     :class="`nodeman-icon nc-${
                       statusMap[row.state].icon
                     } status-icon`"
@@ -110,7 +112,7 @@
                   />
                   <span class="nodeman-icon nc-unknown status-icon" v-else></span>
                   <span :class="['ml-[5px]', { 'text-[#c4c6cc]': row.state === 'pending' }]">
-                    {{ statusMap[row.state].text }}
+                    {{ statusMap[row.state]?.text }}
                   </span>
                 </div>
                 <Button text theme="primary" v-if="row.state === 'running'">终止</Button>
@@ -289,6 +291,10 @@ const statusMap = {
   pending: {
     text: '等待执行',
     icon: 'unknown',
+  },
+  terminate: {
+    text: '终止',
+    icon: 'terminated',
   },
 };
 const typeMap = {

@@ -741,7 +741,6 @@ const initAreaData = async () => {
       data: {
         name: item.bk_networkunit_name,
         unitType: item.is_direct ? 'direct' : 'indirect',
-        status: item.is_healthy ? 'healthy' : 'abnormal',
         area: workAreaPrefix + item.bk_networkarea_id,
         is_direct: item.is_direct,
         direct_endpoints: item.direct_endpoints || { cluster: ['未知'], count: 0 },
@@ -752,7 +751,7 @@ const initAreaData = async () => {
         running_agent: item.running_agent || 0,
         total_agent: item.total_agent || 0,
         cycle_times: item.cycle_times || ['0', '0', '0'],
-        is_healthy: item.is_healthy || true,
+        is_healthy: item.is_healthy,
       },
       type: NodeType.NET_WORK_UNIT,
     };
@@ -833,7 +832,6 @@ function filterAreaNodes() {
         data: {
           name: item.bk_networkunit_name,
           unitType: item.is_direct ? 'direct' : 'indirect',
-          status: item.is_healthy ? 'healthy' : 'abnormal',
           area: workAreaPrefix + item.bk_networkarea_id,
           is_direct: item.is_direct,
           direct_endpoints: item.direct_endpoints || { cluster: ['未知'], count: 0 },
@@ -844,7 +842,7 @@ function filterAreaNodes() {
           running_agent: item.running_agent || 0,
           total_agent: item.total_agent || 0,
           cycle_times: item.cycle_times || ['0', '0', '0'],
-          is_healthy: item.is_healthy || true,
+          is_healthy: item.is_healthy,
         },
         type: NodeType.NET_WORK_UNIT,
       };
