@@ -66,12 +66,6 @@ func NewStorage(client *mongo.Client, database string) (IStorage, error) {
 		return nil, err
 	}
 
-	if err := s.registerStopOperInstTask(); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to register scheduler")
-
-		return nil, fmt.Errorf("failed to register scheduler: %w", err)
-	}
-
 	return s, nil
 }
 
@@ -104,6 +98,12 @@ func (s *Storage) initDao() error {
 
 	s.stopEventSubsMap = make(map[string]*StopEventSubscription)
 	s.stopOperInsts = make(map[string]struct{})
+
+	if err := s.registerStopOperInstTask(); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to register scheduler")
+
+		return fmt.Errorf("failed to register scheduler: %w", err)
+	}
 
 	return nil
 }
