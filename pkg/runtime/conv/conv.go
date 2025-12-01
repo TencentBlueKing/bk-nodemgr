@@ -500,6 +500,20 @@ func SliceToSlice[T any, U any](originSlice []T, fn func(T) U) []U {
 	return resultSlice
 }
 
+// SliceToSliceWithError converts a slice to a slice with error handling.
+func SliceToSliceWithError[T any, U any](originSlice []T, fn func(T) (U, error)) ([]U, error) {
+	resultSlice := make([]U, len(originSlice))
+	for i := range originSlice {
+		var err error
+		resultSlice[i], err = fn(originSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return resultSlice, nil
+}
+
 // NumberConvertible defines a type constraint that matches all numeric types.
 type NumberConvertible interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
