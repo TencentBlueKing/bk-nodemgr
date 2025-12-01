@@ -12,7 +12,6 @@
 package periodictask
 
 import (
-	"context"
 	"sort"
 	"time"
 
@@ -96,7 +95,7 @@ func (l operInstList) Swap(i, j int) {
 // nolint: gocognit
 func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[*trigger.Trigger](triggerListMaxPage, 1*time.Hour)
-	fn := func(_ context.Context, p types.Page) ([]*trigger.Trigger, error) {
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*trigger.Trigger, error) {
 		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryOnce)
 		return triggers, err
 	}
@@ -161,7 +160,7 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 // nolint: gocognit
 func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[*trigger.Trigger](triggerListMaxPage, 1*time.Hour)
-	fn := func(_ context.Context, p types.Page) ([]*trigger.Trigger, error) {
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*trigger.Trigger, error) {
 		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryOrdered)
 		return triggers, err
 	}
@@ -239,7 +238,7 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 
 func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[*trigger.Trigger](triggerListMaxPage, 1*time.Hour)
-	fn := func(_ context.Context, p types.Page) ([]*trigger.Trigger, error) {
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*trigger.Trigger, error) {
 		triggers, _, err := pt.conf.StgWorkflow.ListTrigger(nCtx, p, trigger.CategoryPeriodic)
 		return triggers, err
 	}

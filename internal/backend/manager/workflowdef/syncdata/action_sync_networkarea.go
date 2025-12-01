@@ -11,7 +11,7 @@
 package syncdata
 
 import (
-	"context"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -98,13 +98,13 @@ func (act *actionSyncNetworkArea) Do(ctx *action.InstanceContext) error {
 	}
 
 	executor := pageexecutor.NewPageExecutor[*types.NetworkArea](500, 1*time.Hour) // nolint: mnd
-	fn := func(_ context.Context, p types.Page) ([]*types.NetworkArea, error) {
-		networkareas, err := act.cmdbHandler.SearchNetworkArea(std.Context(), p)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.NetworkArea, error) {
+		networkAreas, err := act.cmdbHandler.SearchNetworkArea(nCtx, p)
 		if err != nil {
 			return nil, err
 		}
 
-		return networkareas, nil
+		return networkAreas, nil
 	}
 
 	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)

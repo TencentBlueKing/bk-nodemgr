@@ -11,8 +11,8 @@
 package syncdata
 
 import (
-	"context"
 	"fmt"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -105,7 +105,7 @@ func (act *actionGenOperSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 
 	var trigCtl workflow.ITriggerCtl
 	executor := pageexecutor.NewPageExecutor[*types.Host](syncAgentInfoMaxPageSize, 1*time.Hour)
-	fn := func(_ context.Context, p types.Page) ([]*types.Host, error) {
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		// find alive nodes and sync agent info. skip the empty-agent-id nodes.
 		cond := &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
@@ -116,7 +116,7 @@ func (act *actionGenOperSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 			},
 		}
 
-		hosts, err := act.topoStg.FindHostWithDynamic(std.Context(), p, cond)
+		hosts, err := act.topoStg.FindHostWithDynamic(nCtx, p, cond)
 		if err != nil {
 			return nil, err
 		}
@@ -132,7 +132,7 @@ func (act *actionGenOperSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 				Namespace: std.InstanceData().TriggerID,
 				MaxNum:    100, // nolint: mnd
 			}
-			trigCtl, err = act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOnce, meta)
+			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOnce, meta)
 			if err != nil {
 				logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync agent info operations")
 
@@ -147,7 +147,7 @@ func (act *actionGenOperSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		return hosts, nil
 	}
 
-	result, err := executor.Execute(ctx.Ctx, types.UnlimitedPage(), fn)
+	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)
 	if err != nil {
 		return err
 	}

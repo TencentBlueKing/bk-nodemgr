@@ -299,7 +299,7 @@ func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.P
 	loginUsername := nCtx.BKUsername()
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
-	fn := func(ctx context.Context, p types.Page) ([]*types.Host, error) {
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		req := &ListBizHostsReq{
 			BKBizID: bizID,
 			Page: Page{
@@ -309,7 +309,7 @@ func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.P
 			},
 		}
 
-		newCtx := contextx.New(ctx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(loginUsername))
+		newCtx := contextx.New(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(loginUsername))
 		resp, err := h.cli.listBizHosts(newCtx, req)
 		if err != nil {
 			return nil, err

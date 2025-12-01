@@ -12,19 +12,19 @@
 package pageexecutor
 
 import (
-	"context"
 	"errors"
 	"reflect"
 	"testing"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // TestExecutor_Execute ...
 func TestExecutor_Execute(t *testing.T) {
 	type args[T any] struct {
-		ctx context.Context
+		ctx contextx.IContext
 		req types.Page
 		fn  PageExecutorFn[T]
 	}
@@ -40,13 +40,13 @@ func TestExecutor_Execute(t *testing.T) {
 			name: "over max page size",
 			e:    NewPageExecutor[int](10, 30*time.Second),
 			args: args[int]{
-				ctx: context.Background(),
+				ctx: contextx.Background(),
 				req: types.Page{
 					Offset: 0,
 					Limit:  11,
 					Sort:   "",
 				},
-				fn: func(ctx context.Context, p types.Page) ([]int, error) {
+				fn: func(ctx contextx.IContext, p types.Page) ([]int, error) {
 					result := make([]int, 0)
 					for i := p.Offset; i < p.Offset+p.Limit; i++ {
 						result = append(result, i)
@@ -65,13 +65,13 @@ func TestExecutor_Execute(t *testing.T) {
 			name: "less than max page size",
 			e:    NewPageExecutor[int](10, 30*time.Second),
 			args: args[int]{
-				ctx: context.Background(),
+				ctx: contextx.Background(),
 				req: types.Page{
 					Offset: 0,
 					Limit:  9,
 					Sort:   "",
 				},
-				fn: func(ctx context.Context, p types.Page) ([]int, error) {
+				fn: func(ctx contextx.IContext, p types.Page) ([]int, error) {
 					result := make([]int, 0)
 					for i := p.Offset; i < p.Offset+p.Limit; i++ {
 						result = append(result, i)
@@ -90,13 +90,13 @@ func TestExecutor_Execute(t *testing.T) {
 			name: "execute timeout",
 			e:    NewPageExecutor[int](10, 1*time.Second),
 			args: args[int]{
-				ctx: context.Background(),
+				ctx: contextx.Background(),
 				req: types.Page{
 					Offset: 0,
 					Limit:  11,
 					Sort:   "",
 				},
-				fn: func(ctx context.Context, p types.Page) ([]int, error) {
+				fn: func(ctx contextx.IContext, p types.Page) ([]int, error) {
 					time.Sleep(2 * time.Second)
 
 					result := make([]int, 0)
@@ -114,13 +114,13 @@ func TestExecutor_Execute(t *testing.T) {
 			name: "execute error",
 			e:    NewPageExecutor[int](10, 30*time.Second),
 			args: args[int]{
-				ctx: context.Background(),
+				ctx: contextx.Background(),
 				req: types.Page{
 					Offset: 0,
 					Limit:  11,
 					Sort:   "",
 				},
-				fn: func(ctx context.Context, p types.Page) ([]int, error) {
+				fn: func(ctx contextx.IContext, p types.Page) ([]int, error) {
 					return nil, errors.New("test error")
 				},
 			},
@@ -131,13 +131,13 @@ func TestExecutor_Execute(t *testing.T) {
 			name: "first item",
 			e:    NewPageExecutor[int](10, 30*time.Second),
 			args: args[int]{
-				ctx: context.Background(),
+				ctx: contextx.Background(),
 				req: types.Page{
 					Offset: 0,
 					Limit:  1,
 					Sort:   "",
 				},
-				fn: func(ctx context.Context, p types.Page) ([]int, error) {
+				fn: func(ctx contextx.IContext, p types.Page) ([]int, error) {
 					result := make([]int, 0)
 					for i := p.Offset; i < p.Offset+p.Limit; i++ {
 						result = append(result, i)
@@ -156,13 +156,13 @@ func TestExecutor_Execute(t *testing.T) {
 			name: "pagination",
 			e:    NewPageExecutor[int](10, 30*time.Second),
 			args: args[int]{
-				ctx: context.Background(),
+				ctx: contextx.Background(),
 				req: types.Page{
 					Offset: 5,
 					Limit:  5,
 					Sort:   "",
 				},
-				fn: func(ctx context.Context, p types.Page) ([]int, error) {
+				fn: func(ctx contextx.IContext, p types.Page) ([]int, error) {
 					result := make([]int, 0)
 					for i := p.Offset; i < p.Offset+p.Limit; i++ {
 						result = append(result, i)
@@ -181,8 +181,8 @@ func TestExecutor_Execute(t *testing.T) {
 			name: "context canceled test",
 			e:    NewPageExecutor[int](10, 30*time.Second),
 			args: args[int]{
-				ctx: func() context.Context {
-					ctx, cancel := context.WithCancel(context.Background())
+				ctx: func() contextx.IContext {
+					ctx, cancel := contextx.WithCancel(contextx.Background())
 					cancel()
 					return ctx
 				}(),
@@ -191,7 +191,7 @@ func TestExecutor_Execute(t *testing.T) {
 					Limit:  10,
 					Sort:   "",
 				},
-				fn: func(ctx context.Context, p types.Page) ([]int, error) {
+				fn: func(ctx contextx.IContext, p types.Page) ([]int, error) {
 					return nil, nil
 				},
 			},

@@ -13,7 +13,6 @@ package bkrepo
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -210,7 +209,7 @@ func (h *Handler) listNodes(nCtx contextx.IContext, path string) ([]NodeRecord, 
 	}
 
 	executor := pageexecutor.NewPageExecutor[NodeRecord](500, time.Minute) // nolint: mnd
-	fn := func(_ context.Context, p types.Page) ([]NodeRecord, error) {
+	fn := func(nCtx contextx.IContext, p types.Page) ([]NodeRecord, error) {
 		result, err := h.cli.ListNode(nCtx, &ListNodeReq{
 			Path:     path,
 			PageNum:  p.Offset/p.Limit + 1,

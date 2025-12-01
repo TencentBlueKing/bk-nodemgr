@@ -12,9 +12,9 @@
 package pageexecutor
 
 import (
-	"context"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -47,15 +47,15 @@ func NewPageExecutor[T any](maxPageSize int, timeout time.Duration) *PageExecuto
 }
 
 // PageExecutorFn ...
-type PageExecutorFn[T any] func(ctx context.Context, p types.Page) ([]T, error)
+type PageExecutorFn[T any] func(nCtx contextx.IContext, p types.Page) ([]T, error)
 
 // Execute page query.
-func (e *PageExecutor[T]) Execute(ctx context.Context, p types.Page, fn PageExecutorFn[T]) (*PageResult[T], error) {
+func (e *PageExecutor[T]) Execute(nCtx contextx.IContext, p types.Page, fn PageExecutorFn[T]) (*PageResult[T], error) {
 	if err := p.Validate(); err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, e.timeout)
+	nCtx, cancel := contextx.WithTimeout(nCtx, e.timeout)
 	defer cancel()
 
 	offset := p.Offset
@@ -66,9 +66,9 @@ func (e *PageExecutor[T]) Execute(ctx context.Context, p types.Page, fn PageExec
 	}
 	for offset < end {
 		select {
-		case <-ctx.Done():
+		case <-nCtx.Done():
 			{
-				return nil, ctx.Err()
+				return nil, nCtx.Err()
 			}
 		default:
 		}
@@ -80,7 +80,7 @@ func (e *PageExecutor[T]) Execute(ctx context.Context, p types.Page, fn PageExec
 			Sort:   p.Sort,
 		}
 
-		items, err := fn(ctx, pageReq)
+		items, err := fn(nCtx, pageReq)
 		if err != nil {
 			return nil, err
 		}

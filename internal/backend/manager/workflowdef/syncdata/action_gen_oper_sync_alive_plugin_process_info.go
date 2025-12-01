@@ -11,7 +11,7 @@
 package syncdata
 
 import (
-	"context"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -107,8 +107,8 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 
 	var trigCtl workflow.ITriggerCtl
 	executor := pageexecutor.NewPageExecutor[*types.Host](syncAlivePluginProcessStatusMaxPageSize, 1*time.Hour)
-	fn := func(_ context.Context, p types.Page) ([]*types.Host, error) {
-		hosts, err := act.topoStg.FindHostWithDynamic(std.Context(), p, &types.HostCondition{
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+		hosts, err := act.topoStg.FindHostWithDynamic(nCtx, p, &types.HostCondition{
 			ExactExclude: &types.HostExactFields{
 				AgentID: []string{""},
 			},
@@ -133,7 +133,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 				Namespace: std.InstanceData().TriggerID,
 				MaxNum:    100, // nolint: mnd
 			}
-			trigCtl, err = act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOnce, meta)
+			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOnce, meta)
 			if err != nil {
 				logger.G.Sys().WithErr(err).With("action", act.Name()).Error("failed to create trigger for handling sync alive plugin process info operations")
 				return nil, err
@@ -147,7 +147,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 		return hosts, nil
 	}
 
-	result, err := executor.Execute(ctx.Ctx, types.UnlimitedPage(), fn)
+	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)
 	if err != nil {
 		return err
 	}

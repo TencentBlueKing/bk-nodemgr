@@ -12,7 +12,6 @@
 package agent
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -222,7 +221,7 @@ func (h *handler) getHostByIPs(nCtx contextx.IContext,
 
 	executor := pageexecutor.NewPageExecutor[*types.Host](checkAgentInstallMaxPageSize, 1*time.Hour)
 
-	fn := func(_ context.Context, p types.Page) ([]*types.Host, error) {
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		cond := &types.HostCondition{
 			ExactInclude: &types.HostExactFields{
 				InnerIP: innerIPs,

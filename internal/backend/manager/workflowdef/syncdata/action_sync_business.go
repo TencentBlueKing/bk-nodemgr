@@ -11,7 +11,7 @@
 package syncdata
 
 import (
-	"context"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"time"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
@@ -102,8 +102,8 @@ func (act *actionSyncBusiness) Do(ctx *action.InstanceContext) error {
 	gp.SetLimit(10) // nolint: mnd
 
 	executor := pageexecutor.NewPageExecutor[*types.Business](500, 1*time.Hour) // nolint: mnd
-	fn := func(_ context.Context, p types.Page) ([]*types.Business, error) {
-		bizs, err := act.cmdbHandler.SearchBusiness(std.Context(), p)
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Business, error) {
+		bizs, err := act.cmdbHandler.SearchBusiness(nCtx, p)
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +111,7 @@ func (act *actionSyncBusiness) Do(ctx *action.InstanceContext) error {
 		return bizs, nil
 	}
 
-	result, err := executor.Execute(ctx.Ctx, types.UnlimitedPage(), fn)
+	result, err := executor.Execute(std.Context(), types.UnlimitedPage(), fn)
 	if err != nil {
 		return err
 	}
