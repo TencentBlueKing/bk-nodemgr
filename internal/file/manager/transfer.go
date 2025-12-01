@@ -268,8 +268,9 @@ func (m *Manager) transferPkg(nCtx contextx.IContext, srcFilePath, dstDir string
 
 	taskID, err := m.gseHandler.TransferFile(nCtx,
 		&types.TransferOptions{
-			Timeout:   transferPackageTimeout,
-			AutoMkdir: true,
+			Timeout:           transferPackageTimeout,
+			AutoMkdir:         true,
+			KeepSourceSeeding: true,
 		},
 		&types.TransferDetail{
 			Source: types.TransferSource{

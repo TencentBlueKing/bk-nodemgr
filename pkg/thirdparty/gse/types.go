@@ -365,11 +365,12 @@ type TransferDetail struct {
 
 // AsyncTransferFileReq describes the request data of transfer_file.
 type AsyncTransferFileReq struct {
-	TimeoutSec    uint              `json:"timeout_seconds"`
-	AutoMkdir     bool              `json:"auto_mkdir"`
-	UploadSpeed   uint              `json:"upload_speed"`
-	DownloadSpeed uint              `json:"download_speed"`
-	Tasks         []*TransferDetail `json:"tasks"`
+	TimeoutSec        uint              `json:"timeout_seconds"`
+	AutoMkdir         bool              `json:"auto_mkdir"`
+	UploadSpeed       uint              `json:"upload_speed"`
+	DownloadSpeed     uint              `json:"download_speed"`
+	KeepSourceSeeding bool              `json:"keep_source_seeding"`
+	Tasks             []*TransferDetail `json:"tasks"`
 }
 
 // AsyncTransferFileResp describes the response data of transfer_file.

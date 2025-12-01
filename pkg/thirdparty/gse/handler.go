@@ -532,11 +532,12 @@ func (h *Handler) TransferFile(nCtx contextx.IContext, opts *types.TransferOptio
 	}
 
 	req := &AsyncTransferFileReq{
-		TimeoutSec:    uint(opts.Timeout.Seconds()),
-		AutoMkdir:     opts.AutoMkdir,
-		UploadSpeed:   opts.UploadSpeedMBPerSec,
-		DownloadSpeed: opts.DownloadSpeedMBPerSec,
-		Tasks:         tasks,
+		TimeoutSec:        uint(opts.Timeout.Seconds()),
+		AutoMkdir:         opts.AutoMkdir,
+		UploadSpeed:       opts.UploadSpeedMBPerSec,
+		DownloadSpeed:     opts.DownloadSpeedMBPerSec,
+		KeepSourceSeeding: opts.KeepSourceSeeding,
+		Tasks:             tasks,
 	}
 	resp, err := h.cli.asyncTransferFile(nCtx, req)
 	if err != nil {

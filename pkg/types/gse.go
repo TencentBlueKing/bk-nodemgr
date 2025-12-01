@@ -152,6 +152,7 @@ type TransferOptions struct {
 	AutoMkdir             bool
 	UploadSpeedMBPerSec   uint
 	DownloadSpeedMBPerSec uint
+	KeepSourceSeeding     bool
 }
 
 // TransferSource represents the gse transfer source.
