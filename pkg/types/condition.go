@@ -533,7 +533,7 @@ type ProcessExactFields struct {
 	NodeGeneration []string
 	PlatformOS     []string
 	PlatformArch   []string
-	InfoStatus     []string
+	InfoStatus     []ProcessStatus
 	InfoAgentID    []string
 	InfoVersion    []string
 	PluginName     []string

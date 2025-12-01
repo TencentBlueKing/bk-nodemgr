@@ -10,7 +10,10 @@
 
 package process
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
 
 // OptFn provides filtering options.
 type OptFn = base.OptFn
@@ -61,7 +64,7 @@ func WithPlatformArch(archs ...string) OptFn {
 }
 
 // WithInfoStatus filters by info status.
-func WithInfoStatus(statuses ...string) OptFn {
+func WithInfoStatus(statuses ...types.ProcessStatus) OptFn {
 	return base.WithValues(FieldKeyInfoStatus, statuses...)
 }
 

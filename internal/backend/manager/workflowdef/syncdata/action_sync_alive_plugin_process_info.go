@@ -118,7 +118,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	cond := &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
 			HostID:     param.HostIDs,
-			InfoStatus: []string{string(types.ProcessStatusRunning)},
+			InfoStatus: []types.ProcessStatus{types.ProcessStatusRunning},
 		},
 	}
 	aliveProcess, _, err := act.processStg.ListProcesses(std.Context(), types.UnlimitedPage(), cond)

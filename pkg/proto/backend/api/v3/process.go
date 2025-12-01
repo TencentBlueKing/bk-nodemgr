@@ -12,6 +12,7 @@ package v3
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -42,11 +43,13 @@ func convertProcessConditionsToTypes(
 			NodeGeneration: exactCond.GetNodeGeneration(),
 			PlatformOS:     exactCond.GetPlatformOs(),
 			PlatformArch:   exactCond.GetPlatformArch(),
-			InfoStatus:     exactCond.GetStatus(),
-			InfoAgentID:    exactCond.GetAgentId(),
-			InfoVersion:    exactCond.GetVersion(),
-			PluginName:     exactCond.GetPluginName(),
-			PluginPkgName:  exactCond.GetPluginPkgName(),
+			InfoStatus: conv.SliceToSlice[string, types.ProcessStatus](exactCond.GetStatus(), func(status string) types.ProcessStatus {
+				return types.ProcessStatus(status)
+			}),
+			InfoAgentID:   exactCond.GetAgentId(),
+			InfoVersion:   exactCond.GetVersion(),
+			PluginName:    exactCond.GetPluginName(),
+			PluginPkgName: exactCond.GetPluginPkgName(),
 		}
 	}
 
@@ -80,11 +83,13 @@ func (x *ProcessListReq) ConvertConditionFromTypes(condition *types.ProcessCondi
 			NodeGeneration: condition.ExactInclude.NodeGeneration,
 			PlatformOs:     condition.ExactInclude.PlatformOS,
 			PlatformArch:   condition.ExactInclude.PlatformArch,
-			Status:         condition.ExactInclude.InfoStatus,
-			AgentId:        condition.ExactInclude.InfoAgentID,
-			Version:        condition.ExactInclude.InfoVersion,
-			PluginName:     condition.ExactInclude.PluginName,
-			PluginPkgName:  condition.ExactInclude.PluginPkgName,
+			Status: conv.SliceToSlice[types.ProcessStatus, string](condition.ExactInclude.InfoStatus, func(status types.ProcessStatus) string {
+				return string(status)
+			}),
+			AgentId:       condition.ExactInclude.InfoAgentID,
+			Version:       condition.ExactInclude.InfoVersion,
+			PluginName:    condition.ExactInclude.PluginName,
+			PluginPkgName: condition.ExactInclude.PluginPkgName,
 		}
 	}
 

@@ -10,7 +10,10 @@
 
 package v3
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
 
 // Validate check body.
 func (x *ProcessListReq) Validate() error {
@@ -38,11 +41,13 @@ func convertProcessConditionsToTypes(
 			NodeGeneration: exactCond.GetNodeGeneration(),
 			PlatformOS:     exactCond.GetPlatformOs(),
 			PlatformArch:   exactCond.GetPlatformArch(),
-			InfoStatus:     exactCond.GetStatus(),
-			InfoAgentID:    exactCond.GetAgentId(),
-			InfoVersion:    exactCond.GetVersion(),
-			PluginName:     exactCond.GetPluginName(),
-			PluginPkgName:  exactCond.GetPluginPkgName(),
+			InfoStatus: conv.SliceToSlice[string, types.ProcessStatus](exactCond.GetStatus(), func(status string) types.ProcessStatus {
+				return types.ProcessStatus(status)
+			}),
+			InfoAgentID:   exactCond.GetAgentId(),
+			InfoVersion:   exactCond.GetVersion(),
+			PluginName:    exactCond.GetPluginName(),
+			PluginPkgName: exactCond.GetPluginPkgName(),
 		}
 	}
 
