@@ -64,7 +64,7 @@ basicServer:
 # downloadServer defines self node http server settings.
 downloadServer:
   # listening IP and Port.
-  bindIP: 127.0.0.1
+  bindIP: 0.0.0.0
   port: __BK_NODEMGR_FILE_DOWNLOAD_PORT__
 
   # advertiseIP advertise ip for external access.
