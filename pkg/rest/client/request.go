@@ -340,6 +340,8 @@ func (r *Result) Into(obj interface{}) error {
 		return nil
 	}
 
+	logger.G.Sys().With("body", r.maskResponseBody(bodyData), "url", r.FullURL).Info("get response data")
+
 	if r.StatusCode >= http.StatusInternalServerError {
 		return fmt.Errorf("http request failed, status(%d), body(%s)", r.StatusCode, bodyData)
 	}
@@ -634,23 +636,12 @@ func (r *Request) maskRequestBody() string {
 	return string(r.body)
 }
 
-// MaskResponseBody defaultHeaderMasker the http response body.
+// maskResponseBody defaultHeaderMasker the http response body.
 // notice: please make sure the response body is necessary and hasn't security risk.
-func (r *Result) MaskResponseBody() string {
+func (r *Result) maskResponseBody(bodyData []byte) string {
 	if !r.enableLogResponse {
 		return "hidden"
 	}
-
-	if r.Body == nil {
-		return ""
-	}
-
-	bodyData, err := io.ReadAll(r.Body)
-	if err != nil {
-		return fmt.Sprintf("failed to read body: %v", err)
-	}
-
-	r.Body = io.NopCloser(bytes.NewReader(bodyData))
 
 	return string(bodyData)
 }
