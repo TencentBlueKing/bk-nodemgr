@@ -490,6 +490,16 @@ func StringToBool(val string) (bool, error) {
 	}
 }
 
+// SliceToSlice converts a slice to a slice.
+func SliceToSlice[T any, U any](originSlice []T, fn func(T) U) []U {
+	resultSlice := make([]U, len(originSlice))
+	for i := range originSlice {
+		resultSlice[i] = fn(originSlice[i])
+	}
+
+	return resultSlice
+}
+
 // NumberConvertible defines a type constraint that matches all numeric types.
 type NumberConvertible interface {
 	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64
