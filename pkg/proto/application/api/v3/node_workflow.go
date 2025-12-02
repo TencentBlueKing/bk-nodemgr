@@ -380,9 +380,9 @@ func (x *NodeWorkflowOperationTerminateReq) Validate() error {
 	return nil
 }
 
-// ConvertNodeOperationTerminateParamToTypes convert terminate node operation param to types.
-func (x *NodeWorkflowOperationTerminateReq) ConvertNodeOperationTerminateParamToTypes() *types.NodeOperationTerminateParam {
-	return &types.NodeOperationTerminateParam{
+// ConvertNodeWorkflowOperationTerminateParamToTypes convert terminate node operation param to types.
+func (x *NodeWorkflowOperationTerminateReq) ConvertNodeWorkflowOperationTerminateParamToTypes() *types.NodeWorkflowOperationTerminateParam {
+	return &types.NodeWorkflowOperationTerminateParam{
 		WorkflowID:   x.GetWorkflowId(),
 		OperationIDs: x.GetOperationIds(),
 	}
@@ -411,9 +411,9 @@ func (x *NodeWorkflowOperationRetryReq) Validate() error {
 	return nil
 }
 
-// ConvertNodeOperationRetryParamToTypes convert retry node operation param to types.
-func (x *NodeWorkflowOperationRetryReq) ConvertNodeOperationRetryParamToTypes() *types.NodeOperationRetryParam {
-	return &types.NodeOperationRetryParam{
+// ConvertNodeWorkflowOperationRetryParamToTypes convert retry node operation param to types.
+func (x *NodeWorkflowOperationRetryReq) ConvertNodeWorkflowOperationRetryParamToTypes() *types.NodeWorkflowOperationRetryParam {
+	return &types.NodeWorkflowOperationRetryParam{
 		WorkflowID:   x.GetWorkflowId(),
 		OperationIDs: x.GetOperationIds(),
 		RetryMode:    operation.RetryMode(x.GetRetryMod()),

@@ -322,7 +322,7 @@ func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.backendHandler.RetryNodeOperation(rCtx, req.ConvertNodeOperationRetryParamToTypes())
+	err := h.backendHandler.RetryNodeWorkflowOperation(rCtx, req.ConvertNodeWorkflowOperationRetryParamToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -340,7 +340,7 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.backendHandler.TerminateNodeOperation(rCtx, req.ConvertNodeOperationTerminateParamToTypes())
+	err := h.backendHandler.TerminateNodeWorkflowOperation(rCtx, req.ConvertNodeWorkflowOperationTerminateParamToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate operation")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

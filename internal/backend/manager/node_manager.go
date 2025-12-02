@@ -43,11 +43,11 @@ type INodeManager interface {
 	// LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
 	LaunchUninstallNode(ctx contextx.IContext, param UninstallNodeParam) (string, error)
 
-	// LaunchRetryNodeOperation launch a task to retry operation.
-	LaunchRetryNodeOperation(ctx contextx.IContext, param RetryNodeOperationParam) error
+	// LaunchRetryOperationFromLastInstance launch a task to retry operation from last instance.
+	LaunchRetryOperationFromLastInstance(ctx contextx.IContext, param RetryNodeWorkflowOperationParam) error
 
-	// TerminateNodeOperation terminate node operation.
-	TerminateNodeOperation(ctx contextx.IContext, param TerminateNodeOperationParam) error
+	// TerminateOperationLastInstance terminate operation from last instance.
+	TerminateOperationLastInstance(ctx contextx.IContext, param TerminateNodeWorkflowOperationParam) error
 }
 
 // InstallNodeParam install node param.
@@ -90,15 +90,15 @@ type UninstallNodeParam struct {
 	NodeDeployments []*types.NodeDeployment
 }
 
-// RetryNodeOperationParam retry node param.
-type RetryNodeOperationParam struct {
+// RetryNodeWorkflowOperationParam retry node workflow operation param.
+type RetryNodeWorkflowOperationParam struct {
 	WorkflowID   string
 	RetryMod     operation.RetryMode
 	OperationIDs []string
 }
 
-// TerminateNodeOperationParam terminate operation node param.
-type TerminateNodeOperationParam struct {
+// TerminateNodeWorkflowOperationParam terminate node workflow operation param.
+type TerminateNodeWorkflowOperationParam struct {
 	WorkflowID   string
 	OperationIDs []string
 }
@@ -144,8 +144,8 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param InstallNodeP
 	return workflowID, nil
 }
 
-// LaunchRetryNodeOperation launch a task to retry operation instance.
-func (mgr *Manager) LaunchRetryNodeOperation(nCtx contextx.IContext, param RetryNodeOperationParam) error {
+// LaunchRetryOperationFromLastInstance launch a task to retry operation from last instance.
+func (mgr *Manager) LaunchRetryOperationFromLastInstance(nCtx contextx.IContext, param RetryNodeWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get node workflow: %w", err)
@@ -167,8 +167,8 @@ func (mgr *Manager) LaunchRetryNodeOperation(nCtx contextx.IContext, param Retry
 	return triggerCtl.ActivateTrigger(nCtx)
 }
 
-// TerminateNodeOperation terminate node operation.
-func (mgr *Manager) TerminateNodeOperation(nCtx contextx.IContext, param TerminateNodeOperationParam) error {
+// TerminateOperationLastInstance terminate operation from last instance.
+func (mgr *Manager) TerminateOperationLastInstance(nCtx contextx.IContext, param TerminateNodeWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get node workflow: %w", err)

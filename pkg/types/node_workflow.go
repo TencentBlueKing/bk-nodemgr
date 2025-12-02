@@ -253,15 +253,15 @@ func InstanceStatusToNodeWorkflowOperationState(status operation.State) (NodeWor
 	}
 }
 
-// NodeOperationRetryParam validates the retry param.
-type NodeOperationRetryParam struct {
+// NodeWorkflowOperationRetryParam validates the retry param.
+type NodeWorkflowOperationRetryParam struct {
 	WorkflowID   string
 	OperationIDs []string
 	RetryMode    operation.RetryMode
 }
 
-// NodeOperationTerminateParam validates the terminate param.
-type NodeOperationTerminateParam struct {
+// NodeWorkflowOperationTerminateParam validates the terminate param.
+type NodeWorkflowOperationTerminateParam struct {
 	WorkflowID   string
 	OperationIDs []string
 }

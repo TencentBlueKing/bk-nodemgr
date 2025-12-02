@@ -624,14 +624,14 @@ func (x *NodeWorkflowOperationTerminateReq) Validate() error {
 
 // ConvertOperationTerminateParamFromTypes convert operation terminate param from types.
 func (x *NodeWorkflowOperationTerminateReq) ConvertOperationTerminateParamFromTypes(
-	terminateParam *types.NodeOperationTerminateParam) {
+	terminateParam *types.NodeWorkflowOperationTerminateParam) {
 
 	x.WorkflowId = terminateParam.WorkflowID
 	x.OperationIds = terminateParam.OperationIDs
 }
 
 // ConvertOperationRetryParamFromTypes convert operation retry param from types.
-func (x *NodeWorkflowOperationRetryReq) ConvertOperationRetryParamFromTypes(retryParm types.NodeOperationRetryParam) {
+func (x *NodeWorkflowOperationRetryReq) ConvertOperationRetryParamFromTypes(retryParm types.NodeWorkflowOperationRetryParam) {
 	x.WorkflowId = retryParm.WorkflowID
 	x.OperationIds = retryParm.OperationIDs
 	x.RetryMod = string(retryParm.RetryMode)

@@ -343,17 +343,17 @@ type IHandlerNodeWorkflow interface {
 	ListNodeWorkflowOperationInstanceStatus(ctx contextx.IContext,
 		condition *types.NodeWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error)
 
-	// TerminateNodeOperation terminate node operation.
+	// TerminateNodeWorkflowOperation terminate node operation.
 	// @param ctx contextx.IContext, contains tenant-id and username.
-	// @param terminateParam the terminate param.
+	// @param param the terminate param.
 	// @return the error.
-	TerminateNodeOperation(ctx contextx.IContext, param *types.NodeOperationTerminateParam) error
+	TerminateNodeWorkflowOperation(ctx contextx.IContext, terminateParam *types.NodeWorkflowOperationTerminateParam) error
 
-	// RetryNodeOperation retry node operation.
+	// RetryNodeWorkflowOperation retry node operation.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param retryParam the retry param.
 	// @return the error.
-	RetryNodeOperation(ctx contextx.IContext, retryParam *types.NodeOperationRetryParam) error
+	RetryNodeWorkflowOperation(ctx contextx.IContext, retryParam *types.NodeWorkflowOperationRetryParam) error
 }
 
 // IHandlerRelease defines the backend Handler for release.
@@ -1098,8 +1098,8 @@ func (h *Handler) ListNodeWorkflowOperationInstanceStatus(ctx contextx.IContext,
 	return instanceStatus, nil
 }
 
-// RetryNodeOperation retry node workflow operation.
-func (h *Handler) RetryNodeOperation(ctx contextx.IContext, retryParam *types.NodeOperationRetryParam) error {
+// RetryNodeWorkflowOperation retry node workflow operation.
+func (h *Handler) RetryNodeWorkflowOperation(ctx contextx.IContext, retryParam *types.NodeWorkflowOperationRetryParam) error {
 	req := &protoBackend.NodeWorkflowOperationRetryReq{}
 
 	req.ConvertOperationRetryParamFromTypes(*retryParam)
@@ -1112,8 +1112,8 @@ func (h *Handler) RetryNodeOperation(ctx contextx.IContext, retryParam *types.No
 	return nil
 }
 
-// TerminateNodeOperation terminate node workflow operation.
-func (h *Handler) TerminateNodeOperation(ctx contextx.IContext, terminateParam *types.NodeOperationTerminateParam) error {
+// TerminateNodeWorkflowOperation terminate node operation.
+func (h *Handler) TerminateNodeWorkflowOperation(ctx contextx.IContext, terminateParam *types.NodeWorkflowOperationTerminateParam) error {
 	req := &protoBackend.NodeWorkflowOperationTerminateReq{}
 
 	req.ConvertOperationTerminateParamFromTypes(terminateParam)
