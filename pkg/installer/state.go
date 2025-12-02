@@ -23,7 +23,4 @@ const (
 
 	// ProcessStateTimeout this state means the step is timeout.
 	ProcessStateTimeout ProcessState = "timeout"
-
-	// ProcessStateUnknown this state means the step is unknown.
-	ProcessStateUnknown ProcessState = "unknown"
 )

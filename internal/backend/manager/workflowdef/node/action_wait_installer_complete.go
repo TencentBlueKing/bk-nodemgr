@@ -104,7 +104,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	ticker := time.NewTicker(waitReportInterval)
 	defer ticker.Stop()
 
-	agentIDFound := false
+	var agentID, rawInstallerResult string
 
 	for {
 		select {
@@ -112,54 +112,52 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 			return nil
 
 		case <-ticker.C:
-			if !agentIDFound {
-				agentID, err := act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportAgentIDKey)
-				if err != nil {
-					return err
-				}
-
-				if agentID == "" {
-					continue
-				}
-
-				// update agent id to deployment record
-				agentIDFound = true
-				std.DeployInfo().Host.Dynamic.AgentID = agentID
-
-				std.InstanceData().LogI(fmt.Sprintf("received agent id from installer report. agent-id(%s)", agentID))
-			}
-
-			// fetch installer result
-			rawInstallerResult, err := act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportStatusKey)
+			// fetch agent id
+			agentID, err = act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportAgentIDKey)
 			if err != nil {
 				return err
 			}
 
-			installerResult := installer.ProcessState(rawInstallerResult)
-
-			// check and update action state
-			switch installerResult {
-			case installer.ProcessStateUnknown:
+			if agentID == "" {
 				continue
+			}
 
-			case installer.ProcessStateSuccess:
-				std.InstanceData().LogI("received installer result is success.")
+			// fetch installer result
+			rawInstallerResult, err = act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportStatusKey)
+			if err != nil {
+				return err
+			}
 
-				return nil
-
-			case installer.ProcessStateFailed, installer.ProcessStateTimeout:
-
-				std.InstanceData().LogI(fmt.Sprintf("received installer result is not success. installer-result(%s)", installerResult))
-
-				return fmt.Errorf("installer failed. oper-inst-id(%s), action-name(%s), installer-result(%s)",
-					instanceID, ActionNameWaitInstallerComplete, installerResult)
-
-			default:
-				logger.G.Sys().With("oper-inst-id", instanceID, "state", installerResult).Warn("installer state is not supported")
-
-				return fmt.Errorf("unexpected installer state. state(%s)", installerResult)
+			if rawInstallerResult == "" {
+				continue
 			}
 		}
+
+		break
+	}
+
+	// update agent id to deployment record
+	std.DeployInfo().Host.Dynamic.AgentID = agentID
+	std.InstanceData().LogI(fmt.Sprintf("received agent id from installer report. agent-id(%s)", agentID))
+
+	installerResult := installer.ProcessState(rawInstallerResult)
+	// check and update action state
+	switch installerResult {
+	case installer.ProcessStateSuccess:
+		std.InstanceData().LogI("received installer result is success.")
+
+		return nil
+
+	case installer.ProcessStateFailed, installer.ProcessStateTimeout:
+		std.InstanceData().LogI(fmt.Sprintf("received installer result is not success. installer-result(%s)", installerResult))
+
+		return fmt.Errorf("installer failed. oper-inst-id(%s), action-name(%s), installer-result(%s)",
+			instanceID, ActionNameWaitInstallerComplete, installerResult)
+
+	default:
+		logger.G.Sys().With("oper-inst-id", instanceID, "state", installerResult).Warn("installer state is not supported")
+
+		return fmt.Errorf("unexpected installer state. state(%s)", installerResult)
 	}
 }
 
