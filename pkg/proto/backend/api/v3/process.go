@@ -104,7 +104,7 @@ func (x *ProcessListReq) ConvertConditionFromTypes(condition *types.ProcessCondi
 
 // ConvertProcessFromTypes converts process from types.
 func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.Process) {
-	items := make([]*Process, len(process))
+	items := make([]*ProcessListResp_Process, len(process))
 	for idx, proc := range process {
 		item := newEmptyProcess()
 		*item.TenantId = proc.TenantID
@@ -149,8 +149,8 @@ func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.
 	}
 }
 
-func newEmptyProcess() *Process {
-	return &Process{
+func newEmptyProcess() *ProcessListResp_Process {
+	return &ProcessListResp_Process{
 		TenantId:      new(string),
 		BkHostId:      new(int64),
 		PluginName:    new(string),

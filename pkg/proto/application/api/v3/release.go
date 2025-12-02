@@ -70,6 +70,8 @@ func convertReleaseConditionsToTypes(exactCond *PackageReleaseExactConditions) *
 			Version:    exactCond.GetVersion(),
 			AsDefault:  exactCond.GetAsDefault(),
 			Enabled:    exactCond.GetEnabled(),
+			Name:       exactCond.GetName(),
+			FileName:   exactCond.GetFileName(),
 		}
 	}
 
@@ -93,6 +95,8 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 		exactCond.Version = conditions.ExactInclude.Version
 		exactCond.AsDefault = conditions.ExactInclude.AsDefault
 		exactCond.Enabled = conditions.ExactInclude.Enabled
+		exactCond.Name = conditions.ExactInclude.Name
+		exactCond.FileName = conditions.ExactInclude.FileName
 	}
 
 	if conditions.FuzzyInclude != nil || conditions.ExactExclude != nil || conditions.FuzzyExclude != nil {

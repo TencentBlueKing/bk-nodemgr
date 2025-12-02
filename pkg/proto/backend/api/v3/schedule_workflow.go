@@ -113,8 +113,8 @@ func convertScheduleWorkConditionsFromTypes(condition *types.ScheduledWorkflowCo
 	return exactCond, fuzzyCond, nil
 }
 
-func newEmptyScheduleWorkflow() *ScheduleWorkflow {
-	return &ScheduleWorkflow{
+func newEmptyScheduleWorkflow() *ListScheduleWorkflowResp_ScheduleWorkflow {
+	return &ListScheduleWorkflowResp_ScheduleWorkflow{
 		WorkflowId:   new(string),
 		WorkflowName: new(string),
 		TriggerId:    new(string),
@@ -125,7 +125,7 @@ func newEmptyScheduleWorkflow() *ScheduleWorkflow {
 
 // ConvertScheduleWorkflowsFromTypes convert node workflows from types.
 func (x *ListScheduleWorkflowResp) ConvertScheduleWorkflowsFromTypes(num int64, workflows []*types.ScheduledWorkflow) {
-	items := make([]*ScheduleWorkflow, 0, len(workflows))
+	items := make([]*ListScheduleWorkflowResp_ScheduleWorkflow, 0, len(workflows))
 	for _, workflow := range workflows {
 		item := newEmptyScheduleWorkflow()
 		*item.WorkflowId = workflow.WorkflowID

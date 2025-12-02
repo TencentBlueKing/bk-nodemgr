@@ -1689,6 +1689,169 @@ func (c *cli) deleteRelease(ctx contextx.IContext, req *protoBackend.PackageRele
 	return nil
 }
 
+func (c *cli) listReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginListReq,
+) (*protoBackend.PackageReleasePluginListResp, error) {
+
+	resp := new(protoBackend.PackageReleasePluginListResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/release_plugin/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list release proxy failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list release proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
+		    resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) enableReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginEnableReq) error {
+	resp := new(protoBackend.PackageReleasePluginEnableResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/release_plugin/enable").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("enable release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) disableReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginDisableReq) error {
+	resp := new(protoBackend.PackageReleasePluginDisableResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/release_plugin/disable").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("disable release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setAsDefaultReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginSetAsDefaultReq) error {
+	resp := new(protoBackend.PackageReleasePluginSetAsDefaultResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/release_plugin/set_as_default").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("set release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) cancelAsDefaultReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginCancelAsDefaultReq) error {
+	resp := new(protoBackend.PackageReleasePluginCancelAsDefaultResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/release_plugin/cancel_as_default").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("cancel release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) deleteReleasePlugin(ctx contextx.IContext, req *protoBackend.PackageReleasePluginDeleteReq) error {
+	resp := new(protoBackend.PackageReleasePluginDeleteResp)
+	header := c.getHeader(ctx)
+
+	result := c.client.Post().
+		SubResourcef("/package/release_plugin/delete").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do()
+	logger.G.Biz(ctx).With("body", result.MaskResponseBody(), "url", result.FullURL).Info("get response data")
+
+	if err := result.Into(resp); err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("delete release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
 func (c *cli) listConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyListReq) (
 	*protoBackend.ConfigPolicyListResp, error) {
 

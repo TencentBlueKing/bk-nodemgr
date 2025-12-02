@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "Package"
+      "name": "Plugin"
     }
   ],
   "consumes": [
@@ -19,7 +19,7 @@
     "/api/v3/plugin/apply_subconfig": {
       "post": {
         "summary": "ApplyPluginSubConfig apply sub-configuration for a plugin on specified\nhosts.",
-        "operationId": "Package_ApplyPluginSubConfig",
+        "operationId": "Plugin_ApplyPluginSubConfig",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -46,14 +46,14 @@
           }
         ],
         "tags": [
-          "Package"
+          "Plugin"
         ]
       }
     },
     "/api/v3/plugin/install": {
       "post": {
         "summary": "InstallPlugin installs a plugin on specified hosts.",
-        "operationId": "Package_InstallPlugin",
+        "operationId": "Plugin_InstallPlugin",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -80,14 +80,14 @@
           }
         ],
         "tags": [
-          "Package"
+          "Plugin"
         ]
       }
     },
     "/api/v3/plugin/list": {
       "post": {
         "summary": "ListPlugins lists plugins based on the given conditions.",
-        "operationId": "Package_ListPlugins",
+        "operationId": "Plugin_ListPlugins",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -114,7 +114,7 @@
           }
         ],
         "tags": [
-          "Package"
+          "Plugin"
         ]
       }
     }
@@ -232,24 +232,6 @@
         }
       },
       "description": "Page describes the generaic conditions when paging query."
-    },
-    "v3Plugin": {
-      "type": "object",
-      "properties": {
-        "tenant_id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "group": {
-          "type": "string"
-        },
-        "pkg_name": {
-          "type": "string"
-        }
-      },
-      "description": "Plugin describes a plugin."
     },
     "v3PluginApplySubConfigReq": {
       "type": "object",
@@ -436,8 +418,25 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3Plugin"
+            "$ref": "#/definitions/v3PluginListRespPlugin"
           }
+        }
+      }
+    },
+    "v3PluginListRespPlugin": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "group": {
+          "type": "string"
+        },
+        "pkg_name": {
+          "type": "string"
         }
       }
     }

@@ -281,6 +281,7 @@ type NodeWorkflowOperInstanceStatusCondition struct {
 
 // ReleaseExactFields defines the release exact fields.
 type ReleaseExactFields struct {
+	Name       []string
 	FileName   []string
 	Generation []Generation
 	Platform   []platfmt.Platform

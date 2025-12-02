@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "Schedule"
+      "name": "ScheduleWorkflow"
     }
   ],
   "consumes": [
@@ -19,7 +19,7 @@
     "/api/v3/schedule/workflow/disable": {
       "post": {
         "summary": "DisableScheduleWorkflow provides disable schedule workflow.",
-        "operationId": "Schedule_DisableScheduleWorkflow",
+        "operationId": "ScheduleWorkflow_DisableScheduleWorkflow",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -46,14 +46,14 @@
           }
         ],
         "tags": [
-          "Schedule"
+          "ScheduleWorkflow"
         ]
       }
     },
     "/api/v3/schedule/workflow/enable": {
       "post": {
         "summary": "EnableScheduleWorkflow provides enable schedule workflow.",
-        "operationId": "Schedule_EnableScheduleWorkflow",
+        "operationId": "ScheduleWorkflow_EnableScheduleWorkflow",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -80,14 +80,14 @@
           }
         ],
         "tags": [
-          "Schedule"
+          "ScheduleWorkflow"
         ]
       }
     },
     "/api/v3/schedule/workflow/list": {
       "post": {
         "summary": "ListScheduleWorkflow provides list schedule workflow.",
-        "operationId": "Schedule_ListScheduleWorkflow",
+        "operationId": "ScheduleWorkflow_ListScheduleWorkflow",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -114,7 +114,7 @@
           }
         ],
         "tags": [
-          "Schedule"
+          "ScheduleWorkflow"
         ]
       }
     }
@@ -128,6 +128,27 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "ListScheduleWorkflowRespScheduleWorkflow": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "workflow_name": {
+          "type": "string"
+        },
+        "trigger_id": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "operate_time": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -299,7 +320,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3ScheduleWorkflow"
+            "$ref": "#/definitions/ListScheduleWorkflowRespScheduleWorkflow"
           }
         }
       }
@@ -317,28 +338,6 @@
         }
       },
       "description": "Page describes the generaic conditions when paging query."
-    },
-    "v3ScheduleWorkflow": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        },
-        "workflow_name": {
-          "type": "string"
-        },
-        "trigger_id": {
-          "type": "string"
-        },
-        "operator": {
-          "type": "string"
-        },
-        "operate_time": {
-          "type": "integer",
-          "format": "int64"
-        }
-      },
-      "title": "ScheduleWorkflow describes the schedule workflow"
     },
     "v3ScheduleWorkflowExactConditions": {
       "type": "object",

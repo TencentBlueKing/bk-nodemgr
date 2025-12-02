@@ -12,6 +12,8 @@ message PackageReleaseExactConditions {
   repeated string version = 2;
   repeated bool as_default = 3;
   repeated bool enabled = 4;
+  repeated string name = 5;
+  repeated string file_name = 6;
 }
 
 // PackageReleaseListReq describes the HTTP request body when list package
@@ -344,11 +346,10 @@ message ReleasePlugin { Release release = 1; }
 // release.
 message PackageReleasePluginListReq {
   Page page = 1;
-  int64 name = 2;
-  int64 generation = 3;
-  bool only_count = 4;
+  int64 generation = 2;
+  bool only_count = 3;
 
-  PackageReleaseExactConditions exact_include_conditions = 5;
+  PackageReleaseExactConditions exact_include_conditions = 4;
 }
 
 // PackageReleasePluginListResp describes the HTTP response body when list
@@ -582,7 +583,7 @@ service Package {
   rpc EnableReleasePlugin(PackageReleasePluginEnableReq)
       returns (PackageReleasePluginEnableResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/enable"
+      post : "/api/v3/package/release_plugin/enable"
       body : "*"
     };
   }
@@ -591,7 +592,7 @@ service Package {
   rpc DisableReleasePlugin(PackageReleasePluginDisableReq)
       returns (PackageReleasePluginDisableResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/disable"
+      post : "/api/v3/package/release_plugin/disable"
       body : "*"
     };
   }
@@ -600,7 +601,7 @@ service Package {
   rpc SetAsDefaultReleasePlugin(PackageReleasePluginSetAsDefaultReq)
       returns (PackageReleasePluginSetAsDefaultResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/set_as_default"
+      post : "/api/v3/package/release_plugin/set_as_default"
       body : "*"
     };
   }
@@ -609,16 +610,16 @@ service Package {
   rpc CancelAsDefaultReleasePlugin(PackageReleasePluginCancelAsDefaultReq)
       returns (PackageReleasePluginCancelAsDefaultResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/cancel_as_default"
+      post : "/api/v3/package/release_plugin/cancel_as_default"
       body : "*"
     };
   }
 
   // DeleteReleasePlugin deletes release.
   rpc DeleteReleasePlugin(PackageReleasePluginDeleteReq)
-      returns (PackageReleaseDeleteResp) {
+      returns (PackageReleasePluginDeleteResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/delete"
+      post : "/api/v3/package/release_plugin/delete"
       body : "*"
     };
   }

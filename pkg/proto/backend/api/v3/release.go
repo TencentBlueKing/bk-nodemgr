@@ -74,6 +74,8 @@ func convertReleaseExactConditionsToTypes(exactCond *PackageReleaseExactConditio
 		Version:   exactCond.GetVersion(),
 		AsDefault: exactCond.GetAsDefault(),
 		Enabled:   exactCond.GetEnabled(),
+		Name:      exactCond.GetName(),
+		FileName:  exactCond.GetFileName(),
 	}
 }
 
@@ -93,6 +95,8 @@ func convertReleaseConditionsFromTypes(conditions *types.ReleaseCondition) (*Pac
 		exactCond.Version = conditions.ExactInclude.Version
 		exactCond.AsDefault = conditions.ExactInclude.AsDefault
 		exactCond.Enabled = conditions.ExactInclude.Enabled
+		exactCond.Name = conditions.ExactInclude.Name
+		exactCond.FileName = conditions.ExactInclude.FileName
 	}
 
 	if conditions.FuzzyInclude != nil || conditions.ExactExclude != nil || conditions.FuzzyExclude != nil {
@@ -840,6 +844,41 @@ func (x *PackageReleasePluginListResp) ConvertReleasePluginsFromTypes(total int6
 		Total: total,
 		Items: items,
 	}
+}
+
+// ConvertReleasePluginsToTypes convert releases to types.
+func (x *PackageReleasePluginListResp) ConvertReleasePluginsToTypes() (int64, []*types.ReleasePlugin) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.ReleasePlugin, len(items))
+	for idx, item := range items {
+		releasePlugin := &types.ReleasePlugin{
+			Release: types.Release{
+				Name:       item.GetRelease().GetName(),
+				Generation: types.Generation(item.GetRelease().GetGeneration()),
+				Type:       types.ReleaseType(item.GetRelease().GetReleaseType()),
+				Version:    item.GetRelease().GetVersion(),
+				Platform: platfmt.Platform{
+					OS:   criteria.OSType(item.GetRelease().GetOsType()),
+					Arch: criteria.CPUArch(item.GetRelease().GetCpuArch()),
+				},
+				Labels:    item.GetRelease().GetLabels(),
+				FileName:  item.GetRelease().GetFileName(),
+				MD5:       item.GetRelease().GetMd5(),
+				Enabled:   item.GetRelease().GetEnabled(),
+				AsDefault: item.GetRelease().GetAsDefault(),
+				UpdatedAt: time.UnixMilli(int64(item.GetRelease().GetUpdatedAt())).Local(),
+				Operator:  item.GetRelease().GetOperator(),
+			},
+		}
+		result[idx] = releasePlugin
+	}
+
+	return data.GetTotal(), result
 }
 
 // Validate check body.

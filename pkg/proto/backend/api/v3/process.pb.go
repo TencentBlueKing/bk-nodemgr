@@ -468,139 +468,6 @@ func (x *ProcessMonitorPolicy) GetOperateTimeoutSeconds() int64 {
 	return 0
 }
 
-// Process describes the process.
-type Process struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	TenantId             *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id"`
-	BkHostId             *int64                 `protobuf:"varint,2,opt,name=bk_host_id,json=bkHostId,proto3,oneof" json:"bk_host_id"`
-	PluginName           *string                `protobuf:"bytes,3,opt,name=plugin_name,json=pluginName,proto3,oneof" json:"plugin_name"`
-	PluginPkgName        *string                `protobuf:"bytes,4,opt,name=plugin_pkg_name,json=pluginPkgName,proto3,oneof" json:"plugin_pkg_name"`
-	PluginGroup          *string                `protobuf:"bytes,5,opt,name=plugin_group,json=pluginGroup,proto3,oneof" json:"plugin_group"`
-	Platform             *Platform              `protobuf:"bytes,6,opt,name=platform,proto3,oneof" json:"platform"`
-	Generation           *int64                 `protobuf:"varint,7,opt,name=generation,proto3,oneof" json:"generation"`
-	ProcessInfo          *ProcessInfo           `protobuf:"bytes,8,opt,name=process_info,json=processInfo,proto3,oneof" json:"process_info"`
-	ProcessIdentity      *ProcessIdentity       `protobuf:"bytes,9,opt,name=process_identity,json=processIdentity,proto3,oneof" json:"process_identity"`
-	ProcessController    *ProcessController     `protobuf:"bytes,10,opt,name=process_controller,json=processController,proto3,oneof" json:"process_controller"`
-	ProcessResource      *ProcessResource       `protobuf:"bytes,11,opt,name=process_resource,json=processResource,proto3,oneof" json:"process_resource"`
-	ProcessMonitorPolicy *ProcessMonitorPolicy  `protobuf:"bytes,12,opt,name=process_monitor_policy,json=processMonitorPolicy,proto3,oneof" json:"process_monitor_policy"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
-}
-
-func (x *Process) Reset() {
-	*x = Process{}
-	mi := &file_process_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Process) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Process) ProtoMessage() {}
-
-func (x *Process) ProtoReflect() protoreflect.Message {
-	mi := &file_process_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Process.ProtoReflect.Descriptor instead.
-func (*Process) Descriptor() ([]byte, []int) {
-	return file_process_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *Process) GetTenantId() string {
-	if x != nil && x.TenantId != nil {
-		return *x.TenantId
-	}
-	return ""
-}
-
-func (x *Process) GetBkHostId() int64 {
-	if x != nil && x.BkHostId != nil {
-		return *x.BkHostId
-	}
-	return 0
-}
-
-func (x *Process) GetPluginName() string {
-	if x != nil && x.PluginName != nil {
-		return *x.PluginName
-	}
-	return ""
-}
-
-func (x *Process) GetPluginPkgName() string {
-	if x != nil && x.PluginPkgName != nil {
-		return *x.PluginPkgName
-	}
-	return ""
-}
-
-func (x *Process) GetPluginGroup() string {
-	if x != nil && x.PluginGroup != nil {
-		return *x.PluginGroup
-	}
-	return ""
-}
-
-func (x *Process) GetPlatform() *Platform {
-	if x != nil {
-		return x.Platform
-	}
-	return nil
-}
-
-func (x *Process) GetGeneration() int64 {
-	if x != nil && x.Generation != nil {
-		return *x.Generation
-	}
-	return 0
-}
-
-func (x *Process) GetProcessInfo() *ProcessInfo {
-	if x != nil {
-		return x.ProcessInfo
-	}
-	return nil
-}
-
-func (x *Process) GetProcessIdentity() *ProcessIdentity {
-	if x != nil {
-		return x.ProcessIdentity
-	}
-	return nil
-}
-
-func (x *Process) GetProcessController() *ProcessController {
-	if x != nil {
-		return x.ProcessController
-	}
-	return nil
-}
-
-func (x *Process) GetProcessResource() *ProcessResource {
-	if x != nil {
-		return x.ProcessResource
-	}
-	return nil
-}
-
-func (x *Process) GetProcessMonitorPolicy() *ProcessMonitorPolicy {
-	if x != nil {
-		return x.ProcessMonitorPolicy
-	}
-	return nil
-}
-
 // ProcessListResp describes the process list response.
 type ProcessListResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -615,7 +482,7 @@ type ProcessListResp struct {
 
 func (x *ProcessListResp) Reset() {
 	*x = ProcessListResp{}
-	mi := &file_process_proto_msgTypes[7]
+	mi := &file_process_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -627,7 +494,7 @@ func (x *ProcessListResp) String() string {
 func (*ProcessListResp) ProtoMessage() {}
 
 func (x *ProcessListResp) ProtoReflect() protoreflect.Message {
-	mi := &file_process_proto_msgTypes[7]
+	mi := &file_process_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -640,7 +507,7 @@ func (x *ProcessListResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessListResp.ProtoReflect.Descriptor instead.
 func (*ProcessListResp) Descriptor() ([]byte, []int) {
-	return file_process_proto_rawDescGZIP(), []int{7}
+	return file_process_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ProcessListResp) GetCode() int32 {
@@ -696,7 +563,7 @@ type ProcessListReq_ExactConditions struct {
 
 func (x *ProcessListReq_ExactConditions) Reset() {
 	*x = ProcessListReq_ExactConditions{}
-	mi := &file_process_proto_msgTypes[8]
+	mi := &file_process_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -708,7 +575,7 @@ func (x *ProcessListReq_ExactConditions) String() string {
 func (*ProcessListReq_ExactConditions) ProtoMessage() {}
 
 func (x *ProcessListReq_ExactConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_process_proto_msgTypes[8]
+	mi := &file_process_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -804,7 +671,7 @@ type ProcessListReq_FuzzyConditions struct {
 
 func (x *ProcessListReq_FuzzyConditions) Reset() {
 	*x = ProcessListReq_FuzzyConditions{}
-	mi := &file_process_proto_msgTypes[9]
+	mi := &file_process_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -816,7 +683,7 @@ func (x *ProcessListReq_FuzzyConditions) String() string {
 func (*ProcessListReq_FuzzyConditions) ProtoMessage() {}
 
 func (x *ProcessListReq_FuzzyConditions) ProtoReflect() protoreflect.Message {
-	mi := &file_process_proto_msgTypes[9]
+	mi := &file_process_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -846,10 +713,142 @@ func (x *ProcessListReq_FuzzyConditions) GetPluginPkgName() []string {
 	return nil
 }
 
+type ProcessListResp_Process struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	TenantId             *string                `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3,oneof" json:"tenant_id"`
+	BkHostId             *int64                 `protobuf:"varint,2,opt,name=bk_host_id,json=bkHostId,proto3,oneof" json:"bk_host_id"`
+	PluginName           *string                `protobuf:"bytes,3,opt,name=plugin_name,json=pluginName,proto3,oneof" json:"plugin_name"`
+	PluginPkgName        *string                `protobuf:"bytes,4,opt,name=plugin_pkg_name,json=pluginPkgName,proto3,oneof" json:"plugin_pkg_name"`
+	PluginGroup          *string                `protobuf:"bytes,5,opt,name=plugin_group,json=pluginGroup,proto3,oneof" json:"plugin_group"`
+	Platform             *Platform              `protobuf:"bytes,6,opt,name=platform,proto3,oneof" json:"platform"`
+	Generation           *int64                 `protobuf:"varint,7,opt,name=generation,proto3,oneof" json:"generation"`
+	ProcessInfo          *ProcessInfo           `protobuf:"bytes,8,opt,name=process_info,json=processInfo,proto3,oneof" json:"process_info"`
+	ProcessIdentity      *ProcessIdentity       `protobuf:"bytes,9,opt,name=process_identity,json=processIdentity,proto3,oneof" json:"process_identity"`
+	ProcessController    *ProcessController     `protobuf:"bytes,10,opt,name=process_controller,json=processController,proto3,oneof" json:"process_controller"`
+	ProcessResource      *ProcessResource       `protobuf:"bytes,11,opt,name=process_resource,json=processResource,proto3,oneof" json:"process_resource"`
+	ProcessMonitorPolicy *ProcessMonitorPolicy  `protobuf:"bytes,12,opt,name=process_monitor_policy,json=processMonitorPolicy,proto3,oneof" json:"process_monitor_policy"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *ProcessListResp_Process) Reset() {
+	*x = ProcessListResp_Process{}
+	mi := &file_process_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProcessListResp_Process) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProcessListResp_Process) ProtoMessage() {}
+
+func (x *ProcessListResp_Process) ProtoReflect() protoreflect.Message {
+	mi := &file_process_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProcessListResp_Process.ProtoReflect.Descriptor instead.
+func (*ProcessListResp_Process) Descriptor() ([]byte, []int) {
+	return file_process_proto_rawDescGZIP(), []int{6, 0}
+}
+
+func (x *ProcessListResp_Process) GetTenantId() string {
+	if x != nil && x.TenantId != nil {
+		return *x.TenantId
+	}
+	return ""
+}
+
+func (x *ProcessListResp_Process) GetBkHostId() int64 {
+	if x != nil && x.BkHostId != nil {
+		return *x.BkHostId
+	}
+	return 0
+}
+
+func (x *ProcessListResp_Process) GetPluginName() string {
+	if x != nil && x.PluginName != nil {
+		return *x.PluginName
+	}
+	return ""
+}
+
+func (x *ProcessListResp_Process) GetPluginPkgName() string {
+	if x != nil && x.PluginPkgName != nil {
+		return *x.PluginPkgName
+	}
+	return ""
+}
+
+func (x *ProcessListResp_Process) GetPluginGroup() string {
+	if x != nil && x.PluginGroup != nil {
+		return *x.PluginGroup
+	}
+	return ""
+}
+
+func (x *ProcessListResp_Process) GetPlatform() *Platform {
+	if x != nil {
+		return x.Platform
+	}
+	return nil
+}
+
+func (x *ProcessListResp_Process) GetGeneration() int64 {
+	if x != nil && x.Generation != nil {
+		return *x.Generation
+	}
+	return 0
+}
+
+func (x *ProcessListResp_Process) GetProcessInfo() *ProcessInfo {
+	if x != nil {
+		return x.ProcessInfo
+	}
+	return nil
+}
+
+func (x *ProcessListResp_Process) GetProcessIdentity() *ProcessIdentity {
+	if x != nil {
+		return x.ProcessIdentity
+	}
+	return nil
+}
+
+func (x *ProcessListResp_Process) GetProcessController() *ProcessController {
+	if x != nil {
+		return x.ProcessController
+	}
+	return nil
+}
+
+func (x *ProcessListResp_Process) GetProcessResource() *ProcessResource {
+	if x != nil {
+		return x.ProcessResource
+	}
+	return nil
+}
+
+func (x *ProcessListResp_Process) GetProcessMonitorPolicy() *ProcessMonitorPolicy {
+	if x != nil {
+		return x.ProcessMonitorPolicy
+	}
+	return nil
+}
+
 type ProcessListResp_Data struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
-	Items         []*Process             `protobuf:"bytes,2,rep,name=items,proto3" json:"items"`
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Total         int64                      `protobuf:"varint,1,opt,name=total,proto3" json:"total"`
+	Items         []*ProcessListResp_Process `protobuf:"bytes,2,rep,name=items,proto3" json:"items"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -881,7 +880,7 @@ func (x *ProcessListResp_Data) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProcessListResp_Data.ProtoReflect.Descriptor instead.
 func (*ProcessListResp_Data) Descriptor() ([]byte, []int) {
-	return file_process_proto_rawDescGZIP(), []int{7, 0}
+	return file_process_proto_rawDescGZIP(), []int{6, 1}
 }
 
 func (x *ProcessListResp_Data) GetTotal() int64 {
@@ -891,7 +890,7 @@ func (x *ProcessListResp_Data) GetTotal() int64 {
 	return 0
 }
 
-func (x *ProcessListResp_Data) GetItems() []*Process {
+func (x *ProcessListResp_Data) GetItems() []*ProcessListResp_Process {
 	if x != nil {
 		return x.Items
 	}
@@ -1033,7 +1032,18 @@ var file_process_proto_rawDesc = string([]byte{
 	0x15, 0x0a, 0x13, 0x5f, 0x73, 0x74, 0x6f, 0x70, 0x5f, 0x63, 0x68, 0x65, 0x63, 0x6b, 0x5f, 0x73,
 	0x65, 0x63, 0x6f, 0x6e, 0x64, 0x73, 0x42, 0x1a, 0x0a, 0x18, 0x5f, 0x6f, 0x70, 0x65, 0x72, 0x61,
 	0x74, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x6f, 0x75, 0x74, 0x5f, 0x73, 0x65, 0x63, 0x6f, 0x6e,
-	0x64, 0x73, 0x22, 0xdb, 0x06, 0x0a, 0x07, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x12, 0x20,
+	0x64, 0x73, 0x22, 0xdc, 0x08, 0x0a, 0x0f, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x4c, 0x69,
+	0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65,
+	0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73,
+	0x73, 0x61, 0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f,
+	0x69, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65,
+	0x72, 0x72, 0x6f, 0x72, 0x12, 0x2c, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x4c,
+	0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61,
+	0x74, 0x61, 0x1a, 0xdb, 0x06, 0x0a, 0x07, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x12, 0x20,
 	0x0a, 0x09, 0x74, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x09, 0x48, 0x00, 0x52, 0x08, 0x74, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x49, 0x64, 0x88, 0x01, 0x01,
 	0x12, 0x21, 0x0a, 0x0a, 0x62, 0x6b, 0x5f, 0x68, 0x6f, 0x73, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x02,
@@ -1087,22 +1097,12 @@ var file_process_proto_rawDesc = string([]byte{
 	0x42, 0x13, 0x0a, 0x11, 0x5f, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x5f, 0x72, 0x65, 0x73,
 	0x6f, 0x75, 0x72, 0x63, 0x65, 0x42, 0x19, 0x0a, 0x17, 0x5f, 0x70, 0x72, 0x6f, 0x63, 0x65, 0x73,
 	0x73, 0x5f, 0x6d, 0x6f, 0x6e, 0x69, 0x74, 0x6f, 0x72, 0x5f, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79,
-	0x22, 0xee, 0x01, 0x0a, 0x0f, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x4c, 0x69, 0x73, 0x74,
-	0x52, 0x65, 0x73, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x05, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73,
-	0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61,
-	0x67, 0x65, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x69, 0x64,
-	0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x49,
-	0x64, 0x12, 0x1f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x09, 0x2e, 0x76, 0x33, 0x2e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x52, 0x05, 0x65, 0x72, 0x72,
-	0x6f, 0x72, 0x12, 0x2c, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x4c, 0x69, 0x73,
-	0x74, 0x52, 0x65, 0x73, 0x70, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61,
-	0x1a, 0x3f, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61,
-	0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x12, 0x21,
-	0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0b, 0x2e,
-	0x76, 0x33, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d,
-	0x73, 0x32, 0x64, 0x0a, 0x07, 0x50, 0x61, 0x63, 0x6b, 0x61, 0x67, 0x65, 0x12, 0x59, 0x0a, 0x0d,
+	0x1a, 0x4f, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61,
+	0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x12, 0x31,
+	0x0a, 0x05, 0x69, 0x74, 0x65, 0x6d, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1b, 0x2e,
+	0x76, 0x33, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x52, 0x05, 0x69, 0x74, 0x65, 0x6d,
+	0x73, 0x32, 0x64, 0x0a, 0x07, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x12, 0x59, 0x0a, 0x0d,
 	0x4c, 0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x65, 0x73, 0x12, 0x12, 0x2e,
 	0x76, 0x33, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65,
 	0x71, 0x1a, 0x13, 0x2e, 0x76, 0x33, 0x2e, 0x50, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73, 0x4c, 0x69,
@@ -1136,30 +1136,30 @@ var file_process_proto_goTypes = []any{
 	(*ProcessController)(nil),              // 3: v3.ProcessController
 	(*ProcessResource)(nil),                // 4: v3.ProcessResource
 	(*ProcessMonitorPolicy)(nil),           // 5: v3.ProcessMonitorPolicy
-	(*Process)(nil),                        // 6: v3.Process
-	(*ProcessListResp)(nil),                // 7: v3.ProcessListResp
-	(*ProcessListReq_ExactConditions)(nil), // 8: v3.ProcessListReq.ExactConditions
-	(*ProcessListReq_FuzzyConditions)(nil), // 9: v3.ProcessListReq.FuzzyConditions
+	(*ProcessListResp)(nil),                // 6: v3.ProcessListResp
+	(*ProcessListReq_ExactConditions)(nil), // 7: v3.ProcessListReq.ExactConditions
+	(*ProcessListReq_FuzzyConditions)(nil), // 8: v3.ProcessListReq.FuzzyConditions
+	(*ProcessListResp_Process)(nil),        // 9: v3.ProcessListResp.Process
 	(*ProcessListResp_Data)(nil),           // 10: v3.ProcessListResp.Data
 	(*Page)(nil),                           // 11: v3.Page
-	(*Platform)(nil),                       // 12: v3.Platform
-	(*Error)(nil),                          // 13: v3.Error
+	(*Error)(nil),                          // 12: v3.Error
+	(*Platform)(nil),                       // 13: v3.Platform
 }
 var file_process_proto_depIdxs = []int32{
 	11, // 0: v3.ProcessListReq.page:type_name -> v3.Page
-	8,  // 1: v3.ProcessListReq.exact_include_conditions:type_name -> v3.ProcessListReq.ExactConditions
-	9,  // 2: v3.ProcessListReq.fuzzy_include_conditions:type_name -> v3.ProcessListReq.FuzzyConditions
-	12, // 3: v3.Process.platform:type_name -> v3.Platform
-	1,  // 4: v3.Process.process_info:type_name -> v3.ProcessInfo
-	2,  // 5: v3.Process.process_identity:type_name -> v3.ProcessIdentity
-	3,  // 6: v3.Process.process_controller:type_name -> v3.ProcessController
-	4,  // 7: v3.Process.process_resource:type_name -> v3.ProcessResource
-	5,  // 8: v3.Process.process_monitor_policy:type_name -> v3.ProcessMonitorPolicy
-	13, // 9: v3.ProcessListResp.error:type_name -> v3.Error
-	10, // 10: v3.ProcessListResp.data:type_name -> v3.ProcessListResp.Data
-	6,  // 11: v3.ProcessListResp.Data.items:type_name -> v3.Process
-	0,  // 12: v3.Package.ListProcesses:input_type -> v3.ProcessListReq
-	7,  // 13: v3.Package.ListProcesses:output_type -> v3.ProcessListResp
+	7,  // 1: v3.ProcessListReq.exact_include_conditions:type_name -> v3.ProcessListReq.ExactConditions
+	8,  // 2: v3.ProcessListReq.fuzzy_include_conditions:type_name -> v3.ProcessListReq.FuzzyConditions
+	12, // 3: v3.ProcessListResp.error:type_name -> v3.Error
+	10, // 4: v3.ProcessListResp.data:type_name -> v3.ProcessListResp.Data
+	13, // 5: v3.ProcessListResp.Process.platform:type_name -> v3.Platform
+	1,  // 6: v3.ProcessListResp.Process.process_info:type_name -> v3.ProcessInfo
+	2,  // 7: v3.ProcessListResp.Process.process_identity:type_name -> v3.ProcessIdentity
+	3,  // 8: v3.ProcessListResp.Process.process_controller:type_name -> v3.ProcessController
+	4,  // 9: v3.ProcessListResp.Process.process_resource:type_name -> v3.ProcessResource
+	5,  // 10: v3.ProcessListResp.Process.process_monitor_policy:type_name -> v3.ProcessMonitorPolicy
+	9,  // 11: v3.ProcessListResp.Data.items:type_name -> v3.ProcessListResp.Process
+	0,  // 12: v3.Process.ListProcesses:input_type -> v3.ProcessListReq
+	6,  // 13: v3.Process.ListProcesses:output_type -> v3.ProcessListResp
 	13, // [13:14] is the sub-list for method output_type
 	12, // [12:13] is the sub-list for method input_type
 	12, // [12:12] is the sub-list for extension type_name
@@ -1178,7 +1178,7 @@ func file_process_proto_init() {
 	file_process_proto_msgTypes[3].OneofWrappers = []any{}
 	file_process_proto_msgTypes[4].OneofWrappers = []any{}
 	file_process_proto_msgTypes[5].OneofWrappers = []any{}
-	file_process_proto_msgTypes[6].OneofWrappers = []any{}
+	file_process_proto_msgTypes[9].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

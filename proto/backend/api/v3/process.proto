@@ -75,28 +75,27 @@ message ProcessMonitorPolicy {
   optional int64 operate_timeout_seconds = 4;
 }
 
-// Process describes the process.
-message Process {
-  optional string tenant_id = 1;
-  optional int64 bk_host_id = 2;
-  optional string plugin_name = 3;
-  optional string plugin_pkg_name = 4;
-  optional string plugin_group = 5;
-  optional Platform platform = 6;
-  optional int64 generation = 7;
-  optional ProcessInfo process_info = 8;
-  optional ProcessIdentity process_identity = 9;
-  optional ProcessController process_controller = 10;
-  optional ProcessResource process_resource = 11;
-  optional ProcessMonitorPolicy process_monitor_policy = 12;
-}
-
 // ProcessListResp describes the process list response.
 message ProcessListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
   Error error = 4;
+
+  message Process {
+    optional string tenant_id = 1;
+    optional int64 bk_host_id = 2;
+    optional string plugin_name = 3;
+    optional string plugin_pkg_name = 4;
+    optional string plugin_group = 5;
+    optional Platform platform = 6;
+    optional int64 generation = 7;
+    optional ProcessInfo process_info = 8;
+    optional ProcessIdentity process_identity = 9;
+    optional ProcessController process_controller = 10;
+    optional ProcessResource process_resource = 11;
+    optional ProcessMonitorPolicy process_monitor_policy = 12;
+  }
 
   message Data {
     int64 total = 1;
@@ -105,7 +104,7 @@ message ProcessListResp {
   Data data = 5;
 }
 
-service Package {
+service Process {
   // ListProcesses lists the processes.
   rpc ListProcesses(ProcessListReq) returns (ProcessListResp) {
     option (google.api.http) = {

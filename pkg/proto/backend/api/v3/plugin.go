@@ -166,7 +166,7 @@ func (x *PluginListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertPluginFromTypes converts plugin from types.
 func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Plugin) {
-	items := make([]*Plugin, len(plugins))
+	items := make([]*PluginListResp_Plugin, len(plugins))
 	for idx, plugin := range plugins {
 		item := newEmptyPlugin()
 		*item.TenantId = plugin.TenantID
@@ -183,8 +183,8 @@ func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Pl
 	}
 }
 
-func newEmptyPlugin() *Plugin {
-	return &Plugin{
+func newEmptyPlugin() *PluginListResp_Plugin {
+	return &PluginListResp_Plugin{
 		TenantId: new(string),
 		Name:     new(string),
 		Group:    new(string),

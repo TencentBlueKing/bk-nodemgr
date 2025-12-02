@@ -75,20 +75,19 @@ message PluginListReq {
   FuzzyConditions fuzzy_include_conditions = 4;
 }
 
-// Plugin describes a plugin.
-message Plugin {
-  optional string tenant_id = 1;
-  optional string name = 2;
-  optional string group = 3;
-  optional string pkg_name = 4;
-}
-
 // PluginListResp describes the plugin list response.
 message PluginListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
   Error error = 4;
+
+  message Plugin {
+    optional string tenant_id = 1;
+    optional string name = 2;
+    optional string group = 3;
+    optional string pkg_name = 4;
+  }
 
   message Data {
     int64 total = 1;
@@ -97,7 +96,7 @@ message PluginListResp {
   Data data = 5;
 }
 
-service Package {
+service Plugin {
   // InstallPlugin installs a plugin on specified hosts.
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
     option (google.api.http) = {
