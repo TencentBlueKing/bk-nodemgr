@@ -46,11 +46,11 @@ func testProviderEtcd(t *testing.T) *ProviderEtcd {
 			Name: "test1",
 			Endpoints: map[discover.EndpointName]discover.Endpoint{
 				discover.EndpointNameBackendBasic: {
-					IPV4: "192.168.186.2",
+					IPV4: "127.0.0.1",
 					Port: 8000,
 				},
 				discover.EndpointNameBackendCallback: {
-					IPV4: "192.168.186.2",
+					IPV4: "127.0.0.1",
 					Port: 8001,
 				},
 			},
@@ -64,11 +64,11 @@ func testProviderEtcd(t *testing.T) *ProviderEtcd {
 			Name: "test2",
 			Endpoints: map[discover.EndpointName]discover.Endpoint{
 				discover.EndpointNameBackendBasic: {
-					IPV4: "192.168.186.3",
+					IPV4: "127.0.0.2",
 					Port: 8000,
 				},
 				discover.EndpointNameBackendCallback: {
-					IPV4: "192.168.186.3",
+					IPV4: "127.0.0.2",
 					Port: 8001,
 				},
 			},
@@ -82,11 +82,11 @@ func testProviderEtcd(t *testing.T) *ProviderEtcd {
 			Name: "test3",
 			Endpoints: map[discover.EndpointName]discover.Endpoint{
 				discover.EndpointNameBackendBasic: {
-					IPV4: "192.168.186.4",
+					IPV4: "127.0.0.3",
 					Port: 8000,
 				},
 				discover.EndpointNameBackendCallback: {
-					IPV4: "192.168.186.4",
+					IPV4: "127.0.0.3",
 					Port: 8001,
 				},
 			},
@@ -120,11 +120,11 @@ func TestProviderEtcd_GetAllService(t *testing.T) {
 					Name: "test1",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							Port: 8001,
 						},
 					},
@@ -135,11 +135,11 @@ func TestProviderEtcd_GetAllService(t *testing.T) {
 					Name: "test2",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -150,11 +150,11 @@ func TestProviderEtcd_GetAllService(t *testing.T) {
 					Name: "test3",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8001,
 						},
 					},
@@ -240,15 +240,15 @@ func TestProviderEtcd_GetAllEndpoint(t *testing.T) {
 			},
 			want: []discover.Endpoint{
 				{
-					IPV4: "192.168.186.2",
+					IPV4: "127.0.0.1",
 					Port: 8000,
 				},
 				{
-					IPV4: "192.168.186.3",
+					IPV4: "127.0.0.2",
 					Port: 8000,
 				},
 				{
-					IPV4: "192.168.186.4",
+					IPV4: "127.0.0.3",
 					Port: 8000,
 				},
 			},
@@ -261,15 +261,15 @@ func TestProviderEtcd_GetAllEndpoint(t *testing.T) {
 			},
 			want: []discover.Endpoint{
 				{
-					IPV4: "192.168.186.2",
+					IPV4: "127.0.0.1",
 					Port: 8001,
 				},
 				{
-					IPV4: "192.168.186.3",
+					IPV4: "127.0.0.2",
 					Port: 8001,
 				},
 				{
-					IPV4: "192.168.186.4",
+					IPV4: "127.0.0.3",
 					Port: 8001,
 				},
 			},
@@ -339,15 +339,15 @@ func TestProviderEtcd_GetEndpoint(t *testing.T) {
 			},
 			want: []discover.Endpoint{
 				{
-					IPV4: "192.168.186.2",
+					IPV4: "127.0.0.1",
 					Port: 8000,
 				},
 				{
-					IPV4: "192.168.186.3",
+					IPV4: "127.0.0.2",
 					Port: 8000,
 				},
 				{
-					IPV4: "192.168.186.4",
+					IPV4: "127.0.0.3",
 					Port: 8000,
 				},
 			},
@@ -361,15 +361,15 @@ func TestProviderEtcd_GetEndpoint(t *testing.T) {
 			},
 			want: []discover.Endpoint{
 				{
-					IPV4: "192.168.186.2",
+					IPV4: "127.0.0.1",
 					Port: 8001,
 				},
 				{
-					IPV4: "192.168.186.3",
+					IPV4: "127.0.0.2",
 					Port: 8001,
 				},
 				{
-					IPV4: "192.168.186.4",
+					IPV4: "127.0.0.3",
 					Port: 8001,
 				},
 			},
@@ -443,12 +443,12 @@ func TestProviderEtcd_Update(t *testing.T) {
 					Name: "test1",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							IPV6: "::1",
 							Port: 9000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							IPV6: "::1",
 							Port: 9001,
 						},
@@ -462,12 +462,12 @@ func TestProviderEtcd_Update(t *testing.T) {
 					Name: "test1",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							IPV6: "::1",
 							Port: 9000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							IPV6: "::1",
 							Port: 9001,
 						},
@@ -479,11 +479,11 @@ func TestProviderEtcd_Update(t *testing.T) {
 					Name: "test2",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -494,11 +494,11 @@ func TestProviderEtcd_Update(t *testing.T) {
 					Name: "test3",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8001,
 						},
 					},
@@ -587,11 +587,11 @@ func TestProviderEtcd_Deregister(t *testing.T) {
 					Name: "test2",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -602,11 +602,11 @@ func TestProviderEtcd_Deregister(t *testing.T) {
 					Name: "test3",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8001,
 						},
 					},
@@ -627,11 +627,11 @@ func TestProviderEtcd_Deregister(t *testing.T) {
 					Name: "test2",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -642,11 +642,11 @@ func TestProviderEtcd_Deregister(t *testing.T) {
 					Name: "test3",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8001,
 						},
 					},
@@ -734,11 +734,11 @@ func TestProviderDefault_Register(t *testing.T) {
 					Name: "test",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -756,11 +756,11 @@ func TestProviderDefault_Register(t *testing.T) {
 					Name: "",
 					Endpoints: map[discover.EndpointName]discover.Endpoint{
 						discover.EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						discover.EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},

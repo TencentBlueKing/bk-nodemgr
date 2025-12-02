@@ -159,8 +159,21 @@ func (provider *ProviderEtcd) GetEndpoint(
 }
 
 // Register registers a service instance.
+// nolint: gocognit
 func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instance discover.Instance) error {
 	logger.G.Sys().With("service", serviceName, "id", instance.ID).Info("registering service")
+
+	if serviceName == "" {
+		return discover.ErrInvalidServiceName()
+	}
+
+	if instance.ID == "" {
+		return discover.ErrInvalidInstanceID()
+	}
+
+	if instance.Name == "" {
+		return discover.ErrInvalidInstanceName()
+	}
 
 	resp, err := provider.etcdClient.Grant(provider.ctx, defaultEtcdLeaseTTLSec)
 	if err != nil {
@@ -249,6 +262,10 @@ func (provider *ProviderEtcd) putService(serviceName discover.ServiceName, insta
 
 	if instance.ID == "" {
 		return discover.ErrInvalidInstanceID()
+	}
+
+	if instance.Name == "" {
+		return discover.ErrInvalidInstanceName()
 	}
 
 	holder := provider.getLocalInstanceHolder(serviceName)

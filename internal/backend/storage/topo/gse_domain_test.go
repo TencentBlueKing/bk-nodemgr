@@ -40,18 +40,18 @@ func prepareGSEData(t *testing.T, nCtx contextx.IContext) {
 			Name:     "direct-unit",
 			IsDirect: true,
 			DirectEndpoints: &types.Endpoints{
-				Cluster: []string{"1.1.1.1:20001", "2.2.2.2:20001"},
-				File:    []string{"3.3.3.3:20002"},
-				Data:    []string{"4.4.4.4:20003"},
+				Cluster: []string{"127.0.0.1:20001", "127.0.0.2:20001"},
+				File:    []string{"127.0.0.3:20002"},
+				Data:    []string{"127.0.0.4:20003"},
 			},
 		}, &types.AccessPoint{
 			TenantID:      tenantID,
 			NetworkAreaID: 0,
 			Name:          "direct-access",
 			Endpoints: types.Endpoints{
-				Cluster: []string{"5.5.5.5", "6.6.6.6"},
-				File:    []string{"7.7.7.7"},
-				Data:    []string{"8.8.8.8"},
+				Cluster: []string{"127.0.0.5", "127.0.0.6"},
+				File:    []string{"127.0.0.7"},
+				Data:    []string{"127.0.0.8"},
 			},
 		})
 		if err != nil {
@@ -63,18 +63,18 @@ func prepareGSEData(t *testing.T, nCtx contextx.IContext) {
 			Name:     "in-direct-unit",
 			IsDirect: false,
 			DirectEndpoints: &types.Endpoints{
-				Cluster: []string{"1.1.1.1:20001", "2.2.2.2:20001"},
-				File:    []string{"3.3.3.3:20002"},
-				Data:    []string{"4.4.4.4:20003"},
+				Cluster: []string{"127.0.0.1:20001", "127.0.0.2:20001"},
+				File:    []string{"127.0.0.3:20002"},
+				Data:    []string{"127.0.0.4:20003"},
 			},
 		}, &types.AccessPoint{
 			TenantID:      tenantID,
 			NetworkAreaID: 0,
 			Name:          "direct-access",
 			Endpoints: types.Endpoints{
-				Cluster: []string{"5.5.5.5", "6.6.6.6"},
-				File:    []string{"7.7.7.7"},
-				Data:    []string{"8.8.8.8"},
+				Cluster: []string{"127.0.0.5", "127.0.0.6"},
+				File:    []string{"127.0.0.7"},
+				Data:    []string{"127.0.0.8"},
 			},
 		})
 		if err != nil {
@@ -102,7 +102,7 @@ func prepareGSEData(t *testing.T, nCtx contextx.IContext) {
 			Static: &types.HostStatic{
 				BizID:         0,
 				NetworkAreaID: 0,
-				InnerIP:       "9.9.9.9,10.10.10.10",
+				InnerIP:       "127.0.0.9,127.0.0.10",
 			},
 			Dynamic: &types.HostDynamic{
 				NetworkUnitID:    gsePrepareNormalUnitID,
@@ -143,9 +143,9 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 				nCtx:   nCtx,
 				unitID: gsePrepareDirectUnitID,
 			},
-			wantClusterEp: []string{"1.1.1.1:20001", "2.2.2.2:20001"},
-			wantFileEp:    []string{"3.3.3.3:20002"},
-			wantDataEp:    []string{"4.4.4.4:20003"},
+			wantClusterEp: []string{"127.0.0.1:20001", "127.0.0.2:20001"},
+			wantFileEp:    []string{"127.0.0.3:20002"},
+			wantDataEp:    []string{"127.0.0.4:20003"},
 			wantErr:       false,
 		},
 		{
@@ -154,9 +154,9 @@ func Test_storage_GetAgentV4AccessEndpoints(t *testing.T) {
 				nCtx:   nCtx,
 				unitID: gsePrepareNormalUnitID,
 			},
-			wantClusterEp: []string{"9.9.9.9:12001", "10.10.10.10:12001"},
-			wantFileEp:    []string{"9.9.9.9:12002", "10.10.10.10:12002"},
-			wantDataEp:    []string{"9.9.9.9:12003", "10.10.10.10:12003"},
+			wantClusterEp: []string{"127.0.0.9:12001", "127.0.0.10:12001"},
+			wantFileEp:    []string{"127.0.0.9:12002", "127.0.0.10:12002"},
+			wantDataEp:    []string{"127.0.0.9:12003", "127.0.0.10:12003"},
 			wantErr:       false,
 		},
 	}
@@ -224,9 +224,9 @@ func Test_storage_GetProxyUpstreamAccessEndpoints(t *testing.T) {
 				nCtx:   nCtx,
 				unitID: gsePrepareNormalUnitID,
 			},
-			wantClusterEp: []string{"5.5.5.5", "6.6.6.6"},
-			wantFileEp:    []string{"7.7.7.7"},
-			wantDataEp:    []string{"8.8.8.8"},
+			wantClusterEp: []string{"127.0.0.5", "127.0.0.6"},
+			wantFileEp:    []string{"127.0.0.7"},
+			wantDataEp:    []string{"127.0.0.8"},
 			wantErr:       false,
 		},
 	}

@@ -54,12 +54,12 @@ func TestRender(t *testing.T) {
 				tmpl: "IP: {{ server.ip }}, Port: {{ server.port }}",
 				context: map[string]any{
 					"server": map[string]any{
-						"ip":   "192.168.1.100",
+						"ip":   "127.0.0.3",
 						"port": 80,
 					},
 				},
 			},
-			want:    "IP: 192.168.1.100, Port: 80",
+			want:    "IP: 127.0.0.3, Port: 80",
 			wantErr: false,
 		},
 		{
@@ -125,13 +125,13 @@ func TestRender(t *testing.T) {
 					"services": []map[string]any{
 						{
 							"name":    "web",
-							"host":    "10.0.1.10",
+							"host":    "127.0.0.1",
 							"port":    80,
 							"enabled": true,
 						},
 						{
 							"name":    "api",
-							"host":    "10.0.1.11",
+							"host":    "127.0.0.2",
 							"port":    8080,
 							"enabled": false,
 						},
@@ -139,9 +139,9 @@ func TestRender(t *testing.T) {
 				},
 			},
 			want: `Services:
-- web: 10.0.1.10:80
+- web: 127.0.0.1:80
   [ENABLED]
-- api: 10.0.1.11:8080
+- api: 127.0.0.2:8080
 `,
 			wantErr: false,
 		},

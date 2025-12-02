@@ -32,11 +32,11 @@ func testProviderDefault(t *testing.T) *ProviderDefault {
 				Name: "test1",
 				Endpoints: map[EndpointName]Endpoint{
 					EndpointNameBackendBasic: {
-						IPV4: "192.168.186.2",
+						IPV4: "127.0.0.1",
 						Port: 8000,
 					},
 					EndpointNameBackendCallback: {
-						IPV4: "192.168.186.2",
+						IPV4: "127.0.0.1",
 						Port: 8001,
 					},
 				},
@@ -47,11 +47,11 @@ func testProviderDefault(t *testing.T) *ProviderDefault {
 				Name: "test2",
 				Endpoints: map[EndpointName]Endpoint{
 					EndpointNameBackendBasic: {
-						IPV4: "192.168.186.3",
+						IPV4: "127.0.0.2",
 						Port: 8000,
 					},
 					EndpointNameBackendCallback: {
-						IPV4: "192.168.186.3",
+						IPV4: "127.0.0.2",
 						Port: 8001,
 					},
 				},
@@ -62,11 +62,11 @@ func testProviderDefault(t *testing.T) *ProviderDefault {
 				Name: "test3",
 				Endpoints: map[EndpointName]Endpoint{
 					EndpointNameBackendBasic: {
-						IPV4: "192.168.186.4",
+						IPV4: "127.0.0.3",
 						Port: 8000,
 					},
 					EndpointNameBackendCallback: {
-						IPV4: "192.168.186.4",
+						IPV4: "127.0.0.3",
 						Port: 8001,
 					},
 				},
@@ -104,11 +104,11 @@ func TestProviderDefault_GetAllService(t *testing.T) {
 					Name: "test1",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							Port: 8001,
 						},
 					},
@@ -119,11 +119,11 @@ func TestProviderDefault_GetAllService(t *testing.T) {
 					Name: "test2",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -134,11 +134,11 @@ func TestProviderDefault_GetAllService(t *testing.T) {
 					Name: "test3",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8001,
 						},
 					},
@@ -200,15 +200,15 @@ func TestProviderDefault_GetAllEndpoint(t *testing.T) {
 			},
 			want: []Endpoint{
 				{
-					IPV4: "192.168.186.2",
+					IPV4: "127.0.0.1",
 					Port: 8000,
 				},
 				{
-					IPV4: "192.168.186.3",
+					IPV4: "127.0.0.2",
 					Port: 8000,
 				},
 				{
-					IPV4: "192.168.186.4",
+					IPV4: "127.0.0.3",
 					Port: 8000,
 				},
 			},
@@ -338,12 +338,12 @@ func TestProviderDefault_Update(t *testing.T) {
 					Name: "test1",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							IPV6: "::1",
 							Port: 9000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							IPV6: "::1",
 							Port: 9001,
 						},
@@ -357,12 +357,12 @@ func TestProviderDefault_Update(t *testing.T) {
 					Name: "test1",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							IPV6: "::1",
 							Port: 9000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.2",
+							IPV4: "127.0.0.1",
 							IPV6: "::1",
 							Port: 9001,
 						},
@@ -374,11 +374,11 @@ func TestProviderDefault_Update(t *testing.T) {
 					Name: "test2",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -389,11 +389,11 @@ func TestProviderDefault_Update(t *testing.T) {
 					Name: "test3",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8001,
 						},
 					},
@@ -482,11 +482,11 @@ func TestProviderDefault_Deregister(t *testing.T) {
 					Name: "test2",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -497,11 +497,11 @@ func TestProviderDefault_Deregister(t *testing.T) {
 					Name: "test3",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8001,
 						},
 					},
@@ -522,11 +522,11 @@ func TestProviderDefault_Deregister(t *testing.T) {
 					Name: "test2",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -537,11 +537,11 @@ func TestProviderDefault_Deregister(t *testing.T) {
 					Name: "test3",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.4",
+							IPV4: "127.0.0.3",
 							Port: 8001,
 						},
 					},
@@ -628,11 +628,11 @@ func TestProviderDefault_Register(t *testing.T) {
 					Name: "test",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
@@ -650,11 +650,11 @@ func TestProviderDefault_Register(t *testing.T) {
 					Name: "",
 					Endpoints: map[EndpointName]Endpoint{
 						EndpointNameBackendBasic: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8000,
 						},
 						EndpointNameBackendCallback: {
-							IPV4: "192.168.186.3",
+							IPV4: "127.0.0.2",
 							Port: 8001,
 						},
 					},
