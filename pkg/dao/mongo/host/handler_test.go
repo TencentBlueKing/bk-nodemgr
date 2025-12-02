@@ -113,7 +113,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 					NetworkAreaID: 0,
 					HostName:      "unknown-name",
 					DeptName:      "",
-					InnerIPList:   []string{"192.168.132.114,172.133.122.143"},
+					InnerIPList:   []string{"127.0.0.1", "127.0.0.2"},
 					InnerIPV6List: []string{""},
 					OuterIPList:   []string{""},
 					OuterIPV6List: []string{""},
@@ -136,7 +136,7 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 
 // Test_handler_ListAll ...
 func Test_handler_ListAll(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	tests := []struct {
 		name    string
@@ -166,10 +166,10 @@ func Test_handler_ListAll(t *testing.T) {
 
 // UpsertMany upsert many hosts.
 func Test_handler_UpsertMany(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		hosts []*types.Host
 	}
 
@@ -213,7 +213,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 						Static: &types.HostStatic{
 							NetworkAreaID: 1,
 							BizID:         1,
-							InnerIP:       "127.0.0.1",
+							InnerIPList:   []string{"127.0.0.1"},
 							Mac:           "123",
 							OSType:        "centos",
 						},
@@ -229,7 +229,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 						Static: &types.HostStatic{
 							NetworkAreaID: 1,
 							BizID:         2,
-							InnerIP:       "127.0.0.21",
+							InnerIPList:   []string{"127.0.0.2"},
 							Mac:           "123",
 							OSType:        "centos",
 						},
@@ -245,7 +245,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 						Static: &types.HostStatic{
 							NetworkAreaID: 1,
 							BizID:         3,
-							InnerIP:       "127.0.0.3",
+							InnerIPList:   []string{"127.0.0.3"},
 							Mac:           "123",
 							OSType:        "centos",
 						},
@@ -270,7 +270,7 @@ func Test_handler_UpsertMany(t *testing.T) {
 						Static: &types.HostStatic{
 							NetworkAreaID: 1,
 							BizID:         1,
-							InnerIP:       "127.0.0.1",
+							InnerIPList:   []string{"127.0.0.1"},
 							Mac:           "123",
 							OSType:        "centos",
 						},
@@ -302,10 +302,10 @@ func Test_handler_UpsertMany(t *testing.T) {
 
 // Test_handler_UpsertStaticMany tests upsert host statics.
 func Test_handler_UpsertStaticMany(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		hosts []*types.Host
 	}
 
@@ -349,7 +349,7 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 						Static: &types.HostStatic{
 							NetworkAreaID: 2,
 							BizID:         2,
-							InnerIP:       "127.0.0.2",
+							InnerIPList:   []string{"127.0.0.2"},
 							Mac:           "456",
 							OSType:        "macos",
 						},
@@ -370,7 +370,7 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 						Static: &types.HostStatic{
 							NetworkAreaID: 2,
 							BizID:         2,
-							InnerIP:       "127.0.0.2",
+							InnerIPList:   []string{"127.0.0.2"},
 							Mac:           "456",
 							OSType:        "macos",
 						},
@@ -402,10 +402,10 @@ func Test_handler_UpsertStaticMany(t *testing.T) {
 
 // Test_handler_UpdateDynamicMany tests update host dynamics.
 func Test_handler_UpdateDynamicMany(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	type args struct {
-		nCtx  context.Context
+		nCtx  contextx.IContext
 		hosts []*types.Host
 	}
 
@@ -470,7 +470,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 							NetworkAreaID: 1,
 							HostName:      "test",
 							DeptName:      "test",
-							InnerIP:       "127.0.0.1",
+							InnerIPList:   []string{"127.0.0.1"},
 							OSType:        "test",
 						},
 						Dynamic: &types.HostDynamic{
@@ -501,7 +501,7 @@ func Test_handler_UpdateDynamicMany(t *testing.T) {
 
 // Test_handler_Count covers count method.
 func Test_handler_Count(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	prepareData(t, nCtx)
 
@@ -551,7 +551,7 @@ func Test_handler_Count(t *testing.T) {
 
 // Test_handler_List covers list method.
 func Test_handler_List(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	prepareData(t, nCtx)
 
@@ -602,7 +602,7 @@ func Test_handler_List(t *testing.T) {
 				Offset: 0,
 				Limit:  1,
 			},
-			optFn:     []OptFn{WithStaticInnerIP("172.133.122.143")},
+			optFn:     []OptFn{WithStaticInnerIPList("127.0.0.1")},
 			wantTotal: 1,
 			wantNum:   1,
 			wantErr:   false,
@@ -660,7 +660,7 @@ func Test_handler_List(t *testing.T) {
 
 // Test_handler_DistinctNodeVersion distinct node role fields.
 func Test_handler_DistinctNodeVersion(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	prepareData(t, nCtx)
 
@@ -704,7 +704,7 @@ func Test_handler_DistinctNodeVersion(t *testing.T) {
 
 // Test_handler_DistinctNodeStatus distinct node status fields.
 func Test_handler_DistinctNodeStatus(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	prepareData(t, nCtx)
 
@@ -748,7 +748,7 @@ func Test_handler_DistinctNodeStatus(t *testing.T) {
 
 // Test_handler_DistinctNetworkAreaID distinct networkarea fields.
 func Test_handler_DistinctNetworkAreaID(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	prepareData(t, nCtx)
 
@@ -792,12 +792,12 @@ func Test_handler_DistinctNetworkAreaID(t *testing.T) {
 
 // Test_handler_DeleteMany delete many hosts.
 func Test_handler_DeleteMany(t *testing.T) {
-	nCtx := contextx.New(context.Background(), contextx.WithTenantID("test"))
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("single"))
 
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx    context.Context
+		nCtx    contextx.IContext
 		hostIDs []int64
 	}
 	tests := []struct {

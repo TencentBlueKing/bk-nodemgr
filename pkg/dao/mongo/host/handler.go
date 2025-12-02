@@ -133,6 +133,10 @@ func New(client *mongo.Database) IHandler {
 
 // ListAll list all host.
 func (h *handler) ListAll(nCtx contextx.IContext) ([]*types.Host, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
@@ -154,6 +158,10 @@ func (h *handler) ListAll(nCtx contextx.IContext) ([]*types.Host, error) {
 
 // Count count host by conditions.
 func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	if nCtx == nil {
+		return 0, base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return 0, err
 	}
@@ -188,6 +196,10 @@ func (h *handler) Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error) {
 func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	[]*types.Host, int64, error) {
 
+	if nCtx == nil {
+		return nil, 0, base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, 0, err
 	}
@@ -221,6 +233,10 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 
 // DistinctBizID distincts with field biz-id.
 func (h *handler) DistinctBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	result, err := h.distinctInt64(nCtx, FieldKeyStaticBizID, opts...)
 	if err != nil {
 		return nil, err
@@ -231,6 +247,10 @@ func (h *handler) DistinctBizID(nCtx contextx.IContext, opts ...OptFn) ([]int64,
 
 // DistinctNodeRole distincts with field node-role.
 func (h *handler) DistinctNodeRole(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeRole, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	result, err := h.distinctString(nCtx, FieldKeyDynamicNodeRole, opts...)
 	if err != nil {
 		return nil, err
@@ -241,6 +261,10 @@ func (h *handler) DistinctNodeRole(nCtx contextx.IContext, opts ...OptFn) ([]typ
 
 // DistinctNodeStatus distincts with field node-status.
 func (h *handler) DistinctNodeStatus(nCtx contextx.IContext, opts ...OptFn) ([]types.NodeStatus, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	result, err := h.distinctString(nCtx, FieldKeyDynamicNodeStatus, opts...)
 	if err != nil {
 		return nil, err
@@ -251,36 +275,64 @@ func (h *handler) DistinctNodeStatus(nCtx contextx.IContext, opts ...OptFn) ([]t
 
 // DistinctNodeVersion distincts with field node-version.
 func (h *handler) DistinctNodeVersion(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	return h.distinctString(nCtx, FieldKeyDynamicNodeVersion, opts...)
 }
 
 // DistinctDeptName distincts with field dept-name.
 func (h *handler) DistinctDeptName(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	return h.distinctString(nCtx, FieldKeyStaticDeptName, opts...)
 }
 
 // DistinctOSType distincts with field os-type.
 func (h *handler) DistinctOSType(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	return h.distinctString(nCtx, FieldKeyStaticOSType, opts...)
 }
 
 // DistinctArch distincts with field arch.
 func (h *handler) DistinctArch(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	return h.distinctString(nCtx, FieldKeyStaticArch, opts...)
 }
 
 // DistinctAddressing distincts with field addressing.
 func (h *handler) DistinctAddressing(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	return h.distinctString(nCtx, FieldKeyStaticAddressing, opts...)
 }
 
 // DistinctNetworkAreaID distincts with field networkarea-id.
 func (h *handler) DistinctNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	return h.distinctInt64(nCtx, FieldKeyStaticNetworkAreaID, opts...)
 }
 
 // DistinctNetworkUnitID distincts with field networkunit-id.
 func (h *handler) DistinctNetworkUnitID(nCtx contextx.IContext, opts ...OptFn) ([]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	return h.distinctInt64(nCtx, FieldKeyDynamicNetworkUnitID, opts...)
 }
 
@@ -318,6 +370,10 @@ func (h *handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 
 // UpsertMany updates or inserts hosts.
 func (h *handler) UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
@@ -350,6 +406,10 @@ func (h *handler) UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error
 
 // UpsertStaticMany updates or inserts host statics.
 func (h *handler) UpsertStaticMany(nCtx contextx.IContext, hosts ...*types.Host) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
@@ -382,6 +442,10 @@ func (h *handler) UpsertStaticMany(nCtx contextx.IContext, hosts ...*types.Host)
 
 // UpdateDynamicMany updates host dynamics. will not insert.
 func (h *handler) UpdateDynamicMany(nCtx contextx.IContext, hosts ...*types.Host) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
@@ -550,6 +614,10 @@ func convertHostToTypes(host *Host) *types.Host {
 
 // DeleteMany delete many hosts.
 func (h *handler) DeleteMany(nCtx contextx.IContext, hostIDs ...int64) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
@@ -571,6 +639,10 @@ func (h *handler) DeleteMany(nCtx contextx.IContext, hostIDs ...int64) error {
 
 // FindWithDynamic finds hosts with dynamic fields.
 func (h *handler) FindWithDynamic(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.Host, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
@@ -600,6 +672,10 @@ func (h *handler) FindWithDynamic(nCtx contextx.IContext, page types.Page, opts 
 
 // UpdateDynamicFields updates host dynamic fields.
 func (h *handler) UpdateDynamicFields(nCtx contextx.IContext, fields types.HostDynamicFields, hosts ...*types.Host) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
