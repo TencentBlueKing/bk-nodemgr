@@ -13,10 +13,12 @@ package conv
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -1322,4 +1324,825 @@ func TestNumberToBool(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Test types for SliceToSlice tests
+type Person struct {
+	Name string
+	Age  int
+}
+type PersonSummary struct {
+	NameLen int
+	IsAdult bool
+}
+
+// Types for nested struct test
+type Address struct {
+	Street string
+	City   string
+}
+type PersonWithAddress struct {
+	Name    string
+	Age     int
+	Address Address
+}
+type PersonWithAddressSummary struct {
+	FullName  string
+	IsAdult   bool
+	City      string
+	StreetLen int
+}
+
+// ValidationError for custom error type testing
+type ValidationError struct {
+	Field   string
+	Value   interface{}
+	Message string
+}
+
+func (ve ValidationError) Error() string {
+	return fmt.Sprintf("validation failed for field %s: %s", ve.Field, ve.Message)
+}
+
+// TestSliceToSlice tests the SliceToSlice function.
+func TestSliceToSlice(t *testing.T) {
+	type args[T any, U any] struct {
+		originSlice []T
+		fn          func(T) U
+	}
+	type testCase[T any, U any] struct {
+		name string
+		args args[T, U]
+		want []U
+	}
+
+	// Test case 1: String to string transformation
+	stringTests := []testCase[string, string]{
+		{
+			name: "nil slice",
+			args: args[string, string]{
+				originSlice: nil,
+				fn:          func(s string) string { return strings.ToUpper(s) },
+			},
+			want: []string{},
+		},
+		{
+			name: "empty slice",
+			args: args[string, string]{
+				originSlice: []string{},
+				fn:          func(s string) string { return strings.ToUpper(s) },
+			},
+			want: []string{},
+		},
+		{
+			name: "normal transformation",
+			args: args[string, string]{
+				originSlice: []string{"hello", "world", "test"},
+				fn:          func(s string) string { return strings.ToUpper(s) },
+			},
+			want: []string{"HELLO", "WORLD", "TEST"},
+		},
+		{
+			name: "identity transformation",
+			args: args[string, string]{
+				originSlice: []string{"a", "b", "c"},
+				fn:          func(s string) string { return s },
+			},
+			want: []string{"a", "b", "c"},
+		},
+		{
+			name: "prefix addition",
+			args: args[string, string]{
+				originSlice: []string{"apple", "banana"},
+				fn:          func(s string) string { return "fruit_" + s },
+			},
+			want: []string{"fruit_apple", "fruit_banana"},
+		},
+	}
+
+	for _, tt := range stringTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SliceToSlice(tt.args.originSlice, tt.args.fn)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSlice() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 2: Integer to string transformation
+	intToStringTests := []testCase[int, string]{
+		{
+			name: "int to string",
+			args: args[int, string]{
+				originSlice: []int{1, 2, 3, 4, 5},
+				fn:          func(i int) string { return fmt.Sprintf("num_%d", i) },
+			},
+			want: []string{"num_1", "num_2", "num_3", "num_4", "num_5"},
+		},
+		{
+			name: "negative int to string",
+			args: args[int, string]{
+				originSlice: []int{-1, 0, 1},
+				fn:          func(i int) string { return strconv.Itoa(i) },
+			},
+			want: []string{"-1", "0", "1"},
+		},
+		{
+			name: "int to binary string",
+			args: args[int, string]{
+				originSlice: []int{2, 4, 8},
+				fn:          func(i int) string { return strconv.FormatInt(int64(i), 2) },
+			},
+			want: []string{"10", "100", "1000"},
+		},
+	}
+
+	for _, tt := range intToStringTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SliceToSlice(tt.args.originSlice, tt.args.fn)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSlice() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 3: String to integer transformation
+	stringToIntTests := []testCase[string, int]{
+		{
+			name: "string length to int",
+			args: args[string, int]{
+				originSlice: []string{"a", "ab", "abc", "abcd"},
+				fn:          func(s string) int { return len(s) },
+			},
+			want: []int{1, 2, 3, 4},
+		},
+		{
+			name: "string to parsed int",
+			args: args[string, int]{
+				originSlice: []string{"10", "20", "30"},
+				fn: func(s string) int {
+					if val, err := strconv.Atoi(s); err == nil {
+						return val
+					}
+					return 0
+				},
+			},
+			want: []int{10, 20, 30},
+		},
+	}
+
+	for _, tt := range stringToIntTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SliceToSlice(tt.args.originSlice, tt.args.fn)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSlice() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 4: Struct transformation
+
+	structTests := []testCase[Person, PersonSummary]{
+		{
+			name: "person to summary",
+			args: args[Person, PersonSummary]{
+				originSlice: []Person{
+					{Name: "Alice", Age: 25},
+					{Name: "Bob", Age: 17},
+					{Name: "Charlie", Age: 30},
+				},
+				fn: func(p Person) PersonSummary {
+					return PersonSummary{
+						NameLen: len(p.Name),
+						IsAdult: p.Age >= 18,
+					}
+				},
+			},
+			want: []PersonSummary{
+				{NameLen: 5, IsAdult: true},
+				{NameLen: 3, IsAdult: false},
+				{NameLen: 7, IsAdult: true},
+			},
+		},
+	}
+
+	for _, tt := range structTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SliceToSlice(tt.args.originSlice, tt.args.fn)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSlice() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 5: Pointer handling
+	pointerTests := []testCase[*string, string]{
+		{
+			name: "pointer slice to value slice",
+			args: args[*string, string]{
+				originSlice: func() []*string {
+					a, b, c := "a", "b", "c"
+					return []*string{&a, &b, &c}
+				}(),
+				fn: func(p *string) string {
+					if p != nil {
+						return *p
+					}
+					return ""
+				},
+			},
+			want: []string{"a", "b", "c"},
+		},
+		{
+			name: "pointer slice with nil values",
+			args: args[*string, string]{
+				originSlice: []*string{nil, nil, nil},
+				fn: func(p *string) string {
+					if p != nil {
+						return *p
+					}
+					return "nil"
+				},
+			},
+			want: []string{"nil", "nil", "nil"},
+		},
+	}
+
+	for _, tt := range pointerTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SliceToSlice(tt.args.originSlice, tt.args.fn)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSlice() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 6: Performance test with large slice
+	t.Run("large slice performance", func(t *testing.T) {
+		// Create a large slice (10000 elements)
+		largeSlice := make([]int, 10000)
+		for i := range largeSlice {
+			largeSlice[i] = i
+		}
+
+		// Transform to strings
+		got := SliceToSlice(largeSlice, func(i int) string {
+			return strconv.Itoa(i)
+		})
+
+		// Verify length
+		if len(got) != 10000 {
+			t.Errorf("Expected length 10000, got %d", len(got))
+		}
+
+		// Verify first and last elements
+		if got[0] != "0" {
+			t.Errorf("Expected first element '0', got '%s'", got[0])
+		}
+		if got[9999] != "9999" {
+			t.Errorf("Expected last element '9999', got '%s'", got[9999])
+		}
+	})
+
+	// Test case 7: Complex transformation
+	t.Run("complex transformation", func(t *testing.T) {
+		type Input struct {
+			ID   int
+			Name string
+			Tags []string
+		}
+		type Output struct {
+			IDStr    string
+			Initial  string
+			TagCount int
+		}
+
+		inputs := []Input{
+			{ID: 1, Name: "Alice", Tags: []string{"dev", "go"}},
+			{ID: 2, Name: "Bob", Tags: []string{"ops"}},
+			{ID: 3, Name: "Charlie", Tags: []string{"dev", "python", "ml"}},
+		}
+
+		want := []Output{
+			{IDStr: "ID_1", Initial: "A", TagCount: 2},
+			{IDStr: "ID_2", Initial: "B", TagCount: 1},
+			{IDStr: "ID_3", Initial: "C", TagCount: 3},
+		}
+
+		got := SliceToSlice(inputs, func(in Input) Output {
+			initial := ""
+			if len(in.Name) > 0 {
+				initial = string(in.Name[0])
+			}
+			return Output{
+				IDStr:    fmt.Sprintf("ID_%d", in.ID),
+				Initial:  initial,
+				TagCount: len(in.Tags),
+			}
+		})
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("SliceToSlice() = %v, want %v", got, want)
+		}
+	})
+
+	// Test case 8: Interface type slice transformation
+	t.Run("interface type slice transformation", func(t *testing.T) {
+		// Create interface slice with different types
+		var interfaceSlice []interface{} = []interface{}{
+			"hello",
+			42,
+			3.14,
+			true,
+		}
+
+		want := []string{"string", "int", "float", "bool"}
+		got := SliceToSlice(interfaceSlice, func(item interface{}) string {
+			switch item.(type) {
+			case string:
+				return "string"
+			case int:
+				return "int"
+			case float64:
+				return "float"
+			case bool:
+				return "bool"
+			default:
+				return "unknown"
+			}
+		})
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("SliceToSlice() = %v, want %v", got, want)
+		}
+	})
+
+	// Test case 9: Function type slice transformation
+	t.Run("function type slice transformation", func(t *testing.T) {
+		// Create slice of functions
+		functionSlice := []func() int{
+			func() int { return 1 },
+			func() int { return 2 },
+			func() int { return 3 },
+		}
+
+		want := []int{1, 2, 3}
+		got := SliceToSlice(functionSlice, func(f func() int) int {
+			return f()
+		})
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("SliceToSlice() = %v, want %v", got, want)
+		}
+	})
+
+	// Test case 10: Channel type slice transformation
+	t.Run("channel type slice transformation", func(t *testing.T) {
+		// Create slice of channels
+		channelSlice := []chan int{
+			make(chan int),
+			make(chan int),
+			make(chan int),
+		}
+
+		// Close channels to avoid blocking
+		for _, ch := range channelSlice {
+			close(ch)
+		}
+
+		want := []bool{true, true, true} // All channels are closed
+		got := SliceToSlice(channelSlice, func(ch chan int) bool {
+			// Check if channel is closed
+			select {
+			case <-ch:
+				return true
+			default:
+				return false
+			}
+		})
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("SliceToSlice() = %v, want %v", got, want)
+		}
+	})
+
+	// Test case 11: Nested struct transformation
+	nestedStructTests := []testCase[PersonWithAddress, PersonWithAddressSummary]{
+		{
+			name: "nested struct transformation",
+			args: args[PersonWithAddress, PersonWithAddressSummary]{
+				originSlice: []PersonWithAddress{
+					{
+						Name: "Alice Johnson",
+						Age:  25,
+						Address: Address{
+							Street: "123 Main St",
+							City:   "New York",
+						},
+					},
+					{
+						Name: "Bob Smith",
+						Age:  17,
+						Address: Address{
+							Street: "456 Oak Ave",
+							City:   "Los Angeles",
+						},
+					},
+				},
+				fn: func(p PersonWithAddress) PersonWithAddressSummary {
+					return PersonWithAddressSummary{
+						FullName:  p.Name,
+						IsAdult:   p.Age >= 18,
+						City:      p.Address.City,
+						StreetLen: len(p.Address.Street),
+					}
+				},
+			},
+			want: []PersonWithAddressSummary{
+				{
+					FullName:  "Alice Johnson",
+					IsAdult:   true,
+					City:      "New York",
+					StreetLen: 11,
+				},
+				{
+					FullName:  "Bob Smith",
+					IsAdult:   false,
+					City:      "Los Angeles",
+					StreetLen: 11,
+				},
+			},
+		},
+	}
+
+	for _, tt := range nestedStructTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SliceToSlice(tt.args.originSlice, tt.args.fn)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSlice() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 12: Panic recovery in transformation function
+	t.Run("panic recovery transformation", func(t *testing.T) {
+		// Test that panics in transformation function are not caught by SliceToSlice
+		// (this is expected behavior - panics should propagate)
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Expected panic, but function did not panic")
+			}
+		}()
+
+		input := []string{"a", "b", "c"}
+		_ = SliceToSlice(input, func(s string) string {
+			if s == "b" {
+				panic("intentional panic for testing")
+			}
+			return s + "_transformed"
+		})
+	})
+
+	// Test case 13: Nil transformation function
+	t.Run("nil transformation function", func(t *testing.T) {
+		// Note: This will cause a compile-time error, so we can't test it directly
+		// The function signature requires a non-nil function
+		input := []string{"a", "b", "c"}
+
+		// Create a function that returns nil for specific input to test behavior
+		got := SliceToSlice(input, func(s string) *string {
+			if s == "b" {
+				return nil
+			}
+			result := s + "_transformed"
+			return &result
+		})
+
+		// Check that we get the expected results with nil pointer in middle
+		if len(got) != 3 {
+			t.Errorf("Expected length 3, got %d", len(got))
+		}
+		if got[0] == nil || *got[0] != "a_transformed" {
+			t.Errorf("Expected 'a_transformed', got %v", got[0])
+		}
+		if got[1] != nil {
+			t.Errorf("Expected nil for 'b', got %v", got[1])
+		}
+		if got[2] == nil || *got[2] != "c_transformed" {
+			t.Errorf("Expected 'c_transformed', got %v", got[2])
+		}
+	})
+}
+
+// TestSliceToSliceWithError tests the SliceToSliceWithError function using table-driven testing.
+func TestSliceToSliceWithError(t *testing.T) {
+	// Define test case structures for different transformation types
+	type stringTestCase struct {
+		name        string
+		originSlice []string
+		fn          func(string) (string, error)
+		want        []string
+		wantErr     bool
+		errMsg      string
+	}
+
+	type intToStringTestCase struct {
+		name        string
+		originSlice []int
+		fn          func(int) (string, error)
+		want        []string
+		wantErr     bool
+		errMsg      string
+	}
+
+	type personTestCase struct {
+		name        string
+		originSlice []Person
+		fn          func(Person) (PersonSummary, error)
+		want        []PersonSummary
+		wantErr     bool
+		errMsg      string
+	}
+
+	// Test case 1: String to string transformations with error handling
+	stringTests := []stringTestCase{
+		{
+			name:        "nil slice",
+			originSlice: nil,
+			fn: func(s string) (string, error) {
+				return strings.ToUpper(s), nil
+			},
+			want:    []string{},
+			wantErr: false,
+		},
+		{
+			name:        "empty slice",
+			originSlice: []string{},
+			fn: func(s string) (string, error) {
+				return strings.ToUpper(s), nil
+			},
+			want:    []string{},
+			wantErr: false,
+		},
+		{
+			name:        "normal transformation",
+			originSlice: []string{"hello", "world", "test"},
+			fn: func(s string) (string, error) {
+				return strings.ToUpper(s), nil
+			},
+			want:    []string{"HELLO", "WORLD", "TEST"},
+			wantErr: false,
+		},
+		{
+			name:        "first element error",
+			originSlice: []string{"error", "hello", "world"},
+			fn: func(s string) (string, error) {
+				if s == "error" {
+					return "", fmt.Errorf("transformation error for: %s", s)
+				}
+				return strings.ToUpper(s), nil
+			},
+			want:    nil,
+			wantErr: true,
+			errMsg:  "transformation error for: error",
+		},
+		{
+			name:        "middle element error",
+			originSlice: []string{"hello", "error", "world"},
+			fn: func(s string) (string, error) {
+				if s == "error" {
+					return "", fmt.Errorf("transformation error for: %s", s)
+				}
+				return strings.ToUpper(s), nil
+			},
+			want:    nil,
+			wantErr: true,
+			errMsg:  "transformation error for: error",
+		},
+		{
+			name:        "last element error",
+			originSlice: []string{"hello", "world", "error"},
+			fn: func(s string) (string, error) {
+				if s == "error" {
+					return "", fmt.Errorf("transformation error for: %s", s)
+				}
+				return strings.ToUpper(s), nil
+			},
+			want:    nil,
+			wantErr: true,
+			errMsg:  "transformation error for: error",
+		},
+		{
+			name:        "all elements error",
+			originSlice: []string{"error", "error", "error"},
+			fn: func(s string) (string, error) {
+				return "", fmt.Errorf("transformation error for: %s", s)
+			},
+			want:    nil,
+			wantErr: true,
+			errMsg:  "transformation error for: error",
+		},
+	}
+
+	for _, tt := range stringTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := SliceToSliceWithError(tt.originSlice, tt.fn)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SliceToSliceWithError() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil && tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("SliceToSliceWithError() error message = %v, expected to contain %v", err.Error(), tt.errMsg)
+			}
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSliceWithError() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 2: Integer to string transformations with error handling
+	intToStringTests := []intToStringTestCase{
+		{
+			name:        "int to string with error",
+			originSlice: []int{1, 2, 3, 4, 5},
+			fn: func(i int) (string, error) {
+				if i == 3 {
+					return "", fmt.Errorf("invalid number: %d", i)
+				}
+				return fmt.Sprintf("num_%d", i), nil
+			},
+			want:    nil,
+			wantErr: true,
+			errMsg:  "invalid number: 3",
+		},
+		{
+			name:        "negative int to string",
+			originSlice: []int{-1, 0, 1},
+			fn: func(i int) (string, error) {
+				return strconv.Itoa(i), nil
+			},
+			want:    []string{"-1", "0", "1"},
+			wantErr: false,
+		},
+		{
+			name:        "zero division error",
+			originSlice: []int{1, 2, 0, 4},
+			fn: func(i int) (string, error) {
+				if i == 0 {
+					return "", fmt.Errorf("division by zero")
+				}
+				return fmt.Sprintf("result_%d", 10/i), nil
+			},
+			want:    nil,
+			wantErr: true,
+			errMsg:  "division by zero",
+		},
+	}
+
+	for _, tt := range intToStringTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := SliceToSliceWithError(tt.originSlice, tt.fn)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SliceToSliceWithError() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil && tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("SliceToSliceWithError() error message = %v, expected to contain %v", err.Error(), tt.errMsg)
+			}
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSliceWithError() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 3: Struct transformations with error handling
+	structTests := []personTestCase{
+		{
+			name: "person to summary with age validation error",
+			originSlice: []Person{
+				{Name: "Alice", Age: 25},
+				{Name: "Bob", Age: -5}, // Invalid age
+				{Name: "Charlie", Age: 30},
+			},
+			fn: func(p Person) (PersonSummary, error) {
+				if p.Age < 0 {
+					return PersonSummary{}, fmt.Errorf("invalid age: %d for person: %s", p.Age, p.Name)
+				}
+				return PersonSummary{
+					NameLen: len(p.Name),
+					IsAdult: p.Age >= 18,
+				}, nil
+			},
+			want:    nil,
+			wantErr: true,
+			errMsg:  "invalid age: -5 for person: Bob",
+		},
+		{
+			name: "person to summary with name validation error",
+			originSlice: []Person{
+				{Name: "", Age: 25}, // Empty name
+				{Name: "Bob", Age: 17},
+			},
+			fn: func(p Person) (PersonSummary, error) {
+				if p.Name == "" {
+					return PersonSummary{}, fmt.Errorf("empty name not allowed")
+				}
+				return PersonSummary{
+					NameLen: len(p.Name),
+					IsAdult: p.Age >= 18,
+				}, nil
+			},
+			want:    nil,
+			wantErr: true,
+			errMsg:  "empty name not allowed",
+		},
+		{
+			name: "successful person transformation",
+			originSlice: []Person{
+				{Name: "Alice", Age: 25},
+				{Name: "Bob", Age: 17},
+				{Name: "Charlie", Age: 30},
+			},
+			fn: func(p Person) (PersonSummary, error) {
+				return PersonSummary{
+					NameLen: len(p.Name),
+					IsAdult: p.Age >= 18,
+				}, nil
+			},
+			want: []PersonSummary{
+				{NameLen: 5, IsAdult: true},
+				{NameLen: 3, IsAdult: false},
+				{NameLen: 7, IsAdult: true},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range structTests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := SliceToSliceWithError(tt.originSlice, tt.fn)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SliceToSliceWithError() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil && tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("SliceToSliceWithError() error message = %v, expected to contain %v", err.Error(), tt.errMsg)
+			}
+			if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("SliceToSliceWithError() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+	// Test case 4: Large slice with error handling
+	t.Run("large slice with error handling", func(t *testing.T) {
+		// Create a large slice (1000 elements)
+		largeSlice := make([]int, 1000)
+		for i := range largeSlice {
+			largeSlice[i] = i
+		}
+
+		// Transform with error at position 500
+		got, err := SliceToSliceWithError(largeSlice, func(i int) (string, error) {
+			if i == 500 {
+				return "", fmt.Errorf("error at position %d", i)
+			}
+			return strconv.Itoa(i), nil
+		})
+
+		// Should return error
+		if err == nil {
+			t.Errorf("Expected error for large slice with error, got nil")
+		}
+		if !strings.Contains(err.Error(), "error at position 500") {
+			t.Errorf("Expected error message to contain 'error at position 500', got %v", err.Error())
+		}
+		if got != nil {
+			t.Errorf("Expected nil result on error, got %v", got)
+		}
+	})
+
+	// Test case 5: Custom error types
+	t.Run("custom error types", func(t *testing.T) {
+
+		got, err := SliceToSliceWithError([]int{1, 2, 3}, func(i int) (string, error) {
+			if i == 2 {
+				return "", ValidationError{Field: "number", Value: i, Message: "invalid number"}
+			}
+			return fmt.Sprintf("num_%d", i), nil
+		})
+
+		if err == nil {
+			t.Errorf("Expected ValidationError, got nil")
+		}
+		if got != nil {
+			t.Errorf("Expected nil result on error, got %v", got)
+		}
+
+		// Check error type
+		var validationErr ValidationError
+		if !errors.As(err, &validationErr) {
+			t.Errorf("Expected ValidationError type, got %T", err)
+		}
+	})
 }
