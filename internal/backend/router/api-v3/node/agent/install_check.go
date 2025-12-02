@@ -22,7 +22,6 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -30,9 +29,6 @@ const (
 	// checkAgentInstallMaxPageSize defines the max page size for page executor.
 	// In the scenario of 40,000 hosts, a single request for 1,000 hosts requires 400 table lookups.
 	checkAgentInstallMaxPageSize = 1000
-
-	// defaultCheckConcurrency defines the default check concurrency.
-	defaultCheckConcurrency = 100
 )
 
 // AgentInstallCheck checks if an agent can be installed on hosts.
@@ -83,27 +79,16 @@ func (h *handler) checkInstall(nCtx contextx.IContext,
 		return nil, fmt.Errorf("failed to get pagent install eligibility: %w", err)
 	}
 
-	gp := gopool.NewPool()
-	gp.SetLimit(defaultCheckConcurrency)
 	results := make([]*types.NodeAgentInstallCheckResult, len(hosts))
 
-	for i := range hosts {
-		idx := i
-		gp.Go(func() error {
-			result, err := h.processHost(hosts[idx], ipHostMap, unitsIDMap, unitPagentEligMap)
-			if err != nil {
-				logger.G.Biz(nCtx).WithErr(err).With("host", hosts[idx]).Error("failed to process host install check")
+	for idx := range hosts {
+		result, err := h.processHost(hosts[idx], ipHostMap, unitsIDMap, unitPagentEligMap)
+		if err != nil {
+			logger.G.Biz(nCtx).WithErr(err).With("host", hosts[idx]).Error("failed to process host install check")
 
-				return fmt.Errorf("failed to process host install check: %w", err)
-			}
-			results[idx] = result
-
-			return nil
-		})
-	}
-
-	if err := gp.Wait(); err != nil {
-		return nil, err
+			return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+		}
+		results[idx] = result
 	}
 
 	return results, nil
@@ -222,11 +207,11 @@ func (h *handler) getPagentInstallEligs(nCtx contextx.IContext,
 			continue
 		}
 
-		inDirectUnits, err := h.domainNodeInstall.ExistDedicatedInstallerProxyHost(nCtx, unitID)
+		isPagentSupported, err := h.domainNodeInstall.ExistDedicatedInstallerProxyHost(nCtx, unitID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to check dedicated installer proxy host: %w", err)
 		}
-		result[unitID] = inDirectUnits
+		result[unitID] = isPagentSupported
 	}
 
 	return result, nil
