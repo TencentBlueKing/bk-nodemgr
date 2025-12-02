@@ -125,7 +125,7 @@ type BackendService struct {
 }
 
 // NewBackendService generates a new BackendService with default values.
-// nolint: funlen
+// nolint: funlen,fnsize
 func NewBackendService() *BackendService {
 	return &BackendService{
 		RunMode:    defaultBackendRunMode,

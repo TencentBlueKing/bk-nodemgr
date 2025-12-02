@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package credit provides the credit data models.
 package credit
 
 import (

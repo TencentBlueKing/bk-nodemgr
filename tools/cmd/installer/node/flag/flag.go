@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package flag defines the flags for the installer.
 package flag
 
 const (

@@ -404,7 +404,8 @@ func (formatter GSEVersionFormatter) GreaterEqualThan(other GSEVersionFormatter)
 	if formatter.archVer < other.archVer ||
 		formatter.archVer == other.archVer && formatter.majorVer < other.majorVer ||
 		formatter.archVer == other.archVer && formatter.majorVer == other.majorVer && formatter.minorVer < other.minorVer ||
-		formatter.archVer == other.archVer && formatter.majorVer == other.majorVer && formatter.minorVer == other.minorVer && formatter.patch < other.patch {
+		formatter.archVer == other.archVer && formatter.majorVer == other.majorVer &&
+			formatter.minorVer == other.minorVer && formatter.patch < other.patch {
 
 		return false
 	}

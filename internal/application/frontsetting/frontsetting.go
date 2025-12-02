@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package frontsetting provides the frontend settings.
 package frontsetting
 
 import (

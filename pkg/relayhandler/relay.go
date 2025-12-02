@@ -76,13 +76,13 @@ type IPushServer interface {
 		eventType protoRelay.ServerPushEventType, payload []byte, agentIDs ...string) <-chan error
 
 	// SendAck sends the ack to client.
-	SendAck(ctx contextx.IContext, OriginalMessageID string, agentIDs ...string)
+	SendAck(ctx contextx.IContext, originalMessageID string, agentIDs ...string)
 
 	// TryMarkProcessed tries to mark the message as processed. if it has been processed, return false.
 	TryMarkProcessed(ctx contextx.IContext, mid string) (bool, error)
 
 	// MarkAcked handles the ack.
-	MarkAcked(ctx contextx.IContext, OriginalMessageID string) error
+	MarkAcked(ctx contextx.IContext, originalMessageID string) error
 
 	// DecodeAckRequest decodes the ack request.
 	DecodeAckRequest(data *ServerReceivedData) (*protoRelay.AckReq, error)

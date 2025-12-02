@@ -10,6 +10,7 @@
 
 package types
 
+// DeployPolicy provides deploy policy.
 type DeployPolicy struct {
 	TenantID       string
 	DeployPolicyID int64

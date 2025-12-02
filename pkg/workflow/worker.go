@@ -66,10 +66,10 @@ func (mgr *manager) launchWorker() error {
 	return nil
 }
 
-// doAction executes the action defined by actionName for the operation instance with operationInstanceID.
-// nolint: funlen,gocognit,cyclop,gocyclo
-// NOCC: golint/fnsize(func design is not suitable for splitting).
-// notice: this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
+// do executes the action defined by actionName for the operation instance with operationInstanceID.
+// this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
+//
+// nolint: funlen,gocognit,cyclop,gocyclo,lll,fnsize
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string, traceID string, spanID string) error {
 	tid, err := trace.TraceIDFromHex(traceID)
 	if err != nil {
@@ -93,14 +93,10 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	ctx, span := tracer.Start(ctx, fmt.Sprintf("%s %s", scopeNamePrefixAction, actionName),
 		trace.WithAttributes(
 			attribute.String(attributeKeyActionName, actionName),
-			attribute.String(attributeKeyOperationInstanceID, operationInstanceID),
-		),
+			attribute.String(attributeKeyOperationInstanceID, operationInstanceID)),
 		trace.WithSpanKind(trace.SpanKindConsumer),
 	)
 	defer span.End()
-
-	var nCtx contextx.IContext
-	nCtx = contextx.New(ctx, contextx.WithMessageID(actionMessageID(operationInstanceID, actionName)))
 
 	actionDef, ok := mgr.registeredActionDefs[actionName]
 	if !ok {
@@ -109,6 +105,8 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 
 		return fmt.Errorf("action not registered, name(%s)", actionName)
 	}
+
+	nCtx := contextx.New(ctx, contextx.WithMessageID(actionMessageID(operationInstanceID, actionName)))
 
 	// get action instance.
 	actionInstData, err := mgr.stgActionInstance.GetActionInstanceData(nCtx, operationInstanceID, actionName)
@@ -140,8 +138,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 			"oper-inst-id(%s): %v", operationInstanceID, err)
 	}
 
-	// handle extra execution before action executed.
-	// if retry happens, action maybe not first
+	// handle extra execution before action executed. if retry happens, action maybe not first
 	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
 		operInstBriefData.Lifecycle.End(action.StateFailed)
 		err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle)
@@ -214,8 +211,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 				err, executeErr)
 		}
 
-		logger.G.Sys().
-			With("oper-inst-id", operationInstanceID, "lifecycle", operInstBriefData.Lifecycle).
+		logger.G.Sys().With("oper-inst-id", operationInstanceID, "lifecycle", operInstBriefData.Lifecycle).
 			Info("updated operation instance lifecycle with terminated state")
 
 		if err = mgr.doOperExtraExecution(nCtx, operInstBriefData); err != nil {

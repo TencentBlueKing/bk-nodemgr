@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package cptemplate provides the config policy template data models.
 package cptemplate
 
 import (

@@ -340,7 +340,7 @@ func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile f
 	return nil
 }
 
-// nolint: lll
+// nolint: lll,linelength
 func (m *Manager) generatePluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
 	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {
@@ -409,7 +409,7 @@ func (m *Manager) generatePluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile 
 	return file.Content(nCtx)
 }
 
-// nolint: lll
+// nolint: lll,linelength
 func (m *Manager) generatePluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {
 	tempFileName, err := m.createTempFile(nCtx)
 	if err != nil {

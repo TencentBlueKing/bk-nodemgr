@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package step provides the step sub commands.
 package step
 
 import (

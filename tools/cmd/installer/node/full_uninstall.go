@@ -8,7 +8,6 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package node provides node related commands.
 package node
 
 import (

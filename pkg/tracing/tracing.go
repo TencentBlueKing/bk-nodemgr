@@ -8,6 +8,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package tracing provides OpenTelemetry-based distributed tracing support for multiple services.
+// This package is designed to support multiple services within the same program
+// without using global state and supports multiple exporters (stdout, OTLP, Jaeger).
 package tracing
 
 import (

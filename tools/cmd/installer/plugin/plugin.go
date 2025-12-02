@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package plugin provides plugin related commands.
 package plugin
 
 import (

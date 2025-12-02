@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package system defines the system information.
 package system
 
 import (
@@ -21,6 +22,7 @@ const Code = "bk-nodemgr"
 // Name is the system name.
 const Name = "bk-nodemgr"
 
+// nolint: gochecknoglobals
 var deployEnv = struct {
 	sync.Once
 	env string

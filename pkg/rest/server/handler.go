@@ -125,8 +125,8 @@ func handleStream(gCtx *gin.Context, streamResp *StreamResponse) error {
 	// copy status
 	gCtx.Status(streamResp.StatusCode)
 
-	defer func(Data io.ReadCloser) {
-		_ = Data.Close()
+	defer func(data io.ReadCloser) {
+		_ = data.Close()
 	}(streamResp.Data)
 
 	// copy data
@@ -172,8 +172,8 @@ func FileHandler(handler FileHandlerFunc) gin.HandlerFunc {
 
 			setFileHeaders(gCtx, fileResp)
 
-			defer func(Data io.ReadCloser) {
-				_ = Data.Close()
+			defer func(data io.ReadCloser) {
+				_ = data.Close()
 			}(fileResp.Data)
 
 			gCtx.DataFromReader(http.StatusOK, fileResp.Size, fileResp.ContentType.String(), fileResp.Data, fileResp.Headers)

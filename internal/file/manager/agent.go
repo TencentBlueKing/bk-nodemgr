@@ -139,7 +139,7 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 }
 
 // checkGSE2OriginAgentPkg check origin agent package.
-// nolint:funlen,gocognit,gocyclo,cyclop, lll
+// nolint:funlen,gocognit,gocyclo,cyclop,lll,linelength
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
 	plats := make(map[string]platfmt.Platform)
@@ -445,7 +445,7 @@ type releaseAgentPkg struct {
 }
 
 // generateAgentPkg generates agent package.
-// nolint:funlen,gocognit,gocyclo,cyclop
+// nolint:funlen,gocognit,gocyclo,cyclop,lll,linelength
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) generateAgentPkg(nCtx contextx.IContext, originDetail *types.OriginPkgDetail, originLocalFileName string) (
 	[]*releaseAgentPkg, error) {

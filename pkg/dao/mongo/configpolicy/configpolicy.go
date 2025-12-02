@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package configpolicy provides the config policy data models.
 package configpolicy
 
 import (

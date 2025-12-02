@@ -388,7 +388,7 @@ func (x *NodeProxyUpdateReq) AutoConvert() {
 	}
 }
 
-// ConvertParamFromTypes convert host to types.
+// ConvertHostToTypes convert host to types.
 func (x *NodeProxyUpdateReq) ConvertHostToTypes() []*types.Host {
 	hosts := make([]*types.Host, 0, len(x.GetHost()))
 	for _, host := range x.GetHost() {

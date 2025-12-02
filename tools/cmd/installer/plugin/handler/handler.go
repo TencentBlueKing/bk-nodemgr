@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package handler provides plugin the multi platform handler for installer.
 package handler
 
 import (
