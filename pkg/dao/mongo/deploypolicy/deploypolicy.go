@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package deploy_policy this package is used to store the need data for deploy policy.
-package deploy_policy
+// Package deploypolicy this package is used to store the need data for deploy policy.
+package deploypolicy
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"

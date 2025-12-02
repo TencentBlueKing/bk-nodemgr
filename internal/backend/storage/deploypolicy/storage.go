@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package deploy_policy provide deploy policy storage.
+// Package deploypolicy provide deploy policy storage.
 // nolint: nonamedreturns
 package deploypolicy
 
@@ -18,14 +18,14 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	daoDeployPolicy "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/deploy_policy"
+	daoDeployPolicy "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // StorageName the name of storage.
-const StorageName = "deploy_policy"
+const StorageName = "deploypolicy"
 
 // NewStorage ...
 func NewStorage(client *mongo.Client, database string) (*Storage, error) {
@@ -86,7 +86,7 @@ func (s *Storage) CreateDeployPolicy(nCtx contextx.IContext, deployPolicy *types
 	)
 
 	// record metric.
-	metric := s.metric().Start("create_deploy_policy")
+	metric := s.metric().Start("create_deploypolicy")
 	defer metric.End(err)
 
 	err = s.createDeployPolicy(nCtx, deployPolicy)
@@ -112,7 +112,7 @@ func (s *Storage) GetDeployPolicyByID(nCtx contextx.IContext, deployPolicyID int
 	deployPolicy *types.DeployPolicy, err error) {
 
 	// record metric.
-	metric := s.metric().Start("get_deploy_policy_by_id")
+	metric := s.metric().Start("get_deploypolicy_by_id")
 	defer metric.End(err)
 
 	deployPolicy, err = s.getDeployPolicyByID(nCtx, deployPolicyID)
@@ -123,7 +123,7 @@ func (s *Storage) GetDeployPolicyByID(nCtx contextx.IContext, deployPolicyID int
 // UpdateDeployPolicy update deploy policy.
 func (s *Storage) UpdateDeployPolicy(nCtx contextx.IContext, deployPolicyID int64, deployPolicy *types.DeployPolicy) (err error) {
 	// record metric.
-	metric := s.metric().Start("update_deploy_policy")
+	metric := s.metric().Start("update_deploypolicy")
 	defer metric.End(err)
 
 	err = s.updateDeployPolicy(nCtx, deployPolicyID, deployPolicy)
@@ -134,7 +134,7 @@ func (s *Storage) UpdateDeployPolicy(nCtx contextx.IContext, deployPolicyID int6
 // DeleteDeployPolicy delete deploy policy.
 func (s *Storage) DeleteDeployPolicy(nCtx contextx.IContext, deployPolicyID int64) (err error) {
 	// record metric.
-	metric := s.metric().Start("delete_deploy_policy")
+	metric := s.metric().Start("delete_deploypolicy")
 	defer metric.End(err)
 
 	err = s.deleteDeployPolicy(nCtx, deployPolicyID)
@@ -145,7 +145,7 @@ func (s *Storage) DeleteDeployPolicy(nCtx contextx.IContext, deployPolicyID int6
 // ExistDeployPolicy check deploy policy exist.
 func (s *Storage) ExistDeployPolicy(nCtx contextx.IContext, deployPolicyID int64) (exist bool, err error) {
 	// record metric.
-	metric := s.metric().Start("exist_deploy_policy")
+	metric := s.metric().Start("exist_deploypolicy")
 	defer metric.End(err)
 
 	exist, err = s.existDeployPolicy(nCtx, deployPolicyID)

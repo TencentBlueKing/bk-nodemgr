@@ -160,7 +160,7 @@ func (x *NodeProxyUpgradeReq) Validate() error {
 	return nil
 }
 
-// convert host param from types.
+// ConvertParamFromTypes convert host param from types.
 func (x *NodeProxyUpgradeReq) ConvertParamFromTypes(upgradeParam *types.NodeProxyUpgradeParam) {
 	hostsParam := make([]*NodeProxyUpgradeReq_Host, len(upgradeParam.Hosts))
 	for idx, host := range upgradeParam.Hosts {
@@ -248,7 +248,7 @@ func (x *NodeProxyRestartReq) AutoConvert() {
 	}
 }
 
-// convert host param from types.
+// ConvertParamFromTypes convert host param from types.
 func (x *NodeProxyRestartReq) ConvertParamFromTypes(restartParam *types.NodeProxyRestartParam) {
 	hostsParam := make([]*NodeProxyRestartReq_Host, len(restartParam.Hosts))
 	for idx, host := range restartParam.Hosts {
@@ -318,7 +318,7 @@ func (x *NodeProxyReconfigReq) AutoConvert() {
 	}
 }
 
-// convert host param from types.
+// ConvertParamFromTypes convert host param from types.
 func (x *NodeProxyReconfigReq) ConvertParamFromTypes(reconfigParam *types.NodeProxyReconfigParam) {
 	hostsParam := make([]*NodeProxyReconfigReq_Host, len(reconfigParam.Hosts))
 	for idx, host := range reconfigParam.Hosts {
@@ -388,7 +388,7 @@ func (x *NodeProxyUpdateReq) AutoConvert() {
 	}
 }
 
-// convert host to types.
+// ConvertParamFromTypes convert host to types.
 func (x *NodeProxyUpdateReq) ConvertHostToTypes() []*types.Host {
 	hosts := make([]*types.Host, 0, len(x.GetHost()))
 	for _, host := range x.GetHost() {
@@ -409,7 +409,7 @@ func (x *NodeProxyUpdateReq) ConvertHostToTypes() []*types.Host {
 	return hosts
 }
 
-// convert host param from types.
+// ConvertParamFromTypes convert host param from types.
 func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyUpdateParam) {
 	hostsParam := make([]*NodeProxyUpdateHost, len(updateParam.Hosts))
 	for idx, host := range updateParam.Hosts {
@@ -428,7 +428,7 @@ func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyU
 	x.Host = hostsParam
 }
 
-// convert host dynamic fields to types.
+// ConvertHostFieldsToTypes convert host dynamic fields to types.
 func (x *NodeProxyUpdateReq) ConvertHostFieldsToTypes() types.HostDynamicFields {
 	return types.HostDynamicFields{
 		LoginIP:     true,

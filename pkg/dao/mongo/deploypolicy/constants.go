@@ -8,9 +8,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package deploy_policy
+package deploypolicy
 
 const (
 	// FieldKeyDeployPolicyID the deploy policy id field key.
-	FieldKeyDeployPolicyID = "data.deploy_policy_id"
+	FieldKeyDeployPolicyID = "data.deploypolicy_id"
 )

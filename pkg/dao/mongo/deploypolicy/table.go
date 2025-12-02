@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package deploy_policy
+package deploypolicy
 
 import (
 	"fmt"
@@ -16,9 +16,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
-const tableNamePrefix = "deploy_policy"
+const tableNamePrefix = "deploypolicy"
 
-// TableName deploy_policy table name.
+// TableName deploy policy table name.
 func TableName(tenantID string) string {
 	return fmt.Sprintf("%s_%s", tableNamePrefix, tenantID)
 }
@@ -29,7 +29,7 @@ var _ base.IData = &DeployPolicy{}
 // DeployPolicyID should be the unique key.
 type DeployPolicy struct {
 	TenantID       string `json:"tenant_id" bson:"tenant_id"`
-	DeployPolicyID int64  `json:"deploy_policy_id" bson:"deploy_policy_id"`
+	DeployPolicyID int64  `json:"deploypolicy_id" bson:"deploypolicy_id"`
 }
 
 // UniqueFields unique fields of the table.

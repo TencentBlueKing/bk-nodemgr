@@ -93,7 +93,7 @@ type IAgentProcessHandler interface {
 	Reload(ctx context.Context, opts *AsyncOutputOptions) error
 }
 
-// NodeProcess creates a new node process.
+// NewNodeProcess creates a new node process.
 func NewNodeProcess() *NodeProcess {
 	return &NodeProcess{
 		Running: make([]string, 0),

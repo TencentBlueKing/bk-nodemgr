@@ -43,7 +43,7 @@ func (req *ListScheduleWorkflowReq) Validate() error {
 func (req *ListScheduleWorkflowReq) AutoConvert() {
 }
 
-// ConvertPageFromTypes convert page from types.
+// ConvertPageToTypes convert page to types.
 func (x *ListScheduleWorkflowReq) ConvertPageToTypes(maxLimit int) types.Page {
 	return generatePage(x.GetPage(), maxLimit)
 }
