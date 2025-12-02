@@ -162,6 +162,7 @@ func NewFullUpgrade() *cobra.Command {
 				CallbackSvrAddr: callbackSvrAddr,
 				Token:           deployToken,
 				AgentID:         agentID,
+				OperInstID:      operInstID,
 			}).Run(cmd.Context()); err != nil {
 				return err
 			}

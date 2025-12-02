@@ -30,3 +30,11 @@ const (
 	// NodeCmdStepRestart defines the installer cmd.
 	NodeCmdStepRestart = "node step restart"
 )
+
+const (
+	// WaitInstallerCompleteReportStatusKey defines the report status key.
+	WaitInstallerCompleteReportStatusKey = "installer_report_status"
+
+	// WaitInstallerCompleteReportAgentIDKey defines the report agent id key.
+	WaitInstallerCompleteReportAgentIDKey = "installer_report_agent_id"
+)

@@ -136,8 +136,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 	}
 
 	return &types.DeploymentInfo{
-		BlockingActionName:            info.ActionName,
-		BlockingActionStatusReportKey: info.ActionStatusReportKey,
+		BlockingActionName: info.ActionName,
 		Host: types.Host{
 			HostID:   info.HostID,
 			TenantID: info.TenantID,
@@ -361,25 +360,24 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		return nil, errors.New("info is nil")
 	}
 	data := &Info{
-		ActionName:            info.BlockingActionName,
-		ActionStatusReportKey: info.BlockingActionStatusReportKey,
-		HostID:                info.Host.HostID,
-		OSType:                info.Host.Static.OSType,
-		TenantID:              info.Host.TenantID,
-		NodeRole:              string(info.Host.Dynamic.NodeRole),
-		NodeStatus:            string(info.Host.Dynamic.NodeStatus),
-		NodeVersion:           info.Host.Dynamic.NodeVersion,
-		NodeGeneration:        int64(info.Host.Dynamic.NodeGeneration),
-		NodeCPUArch:           string(info.Host.Dynamic.NodeCPUArch),
-		NodeOsType:            string(info.Host.Dynamic.NodeOsType),
-		AgentID:               info.Host.Dynamic.AgentID,
-		NetworkUnitID:         info.Host.Dynamic.NetworkUnitID,
-		NetworkAreaID:         info.Host.Static.NetworkAreaID,
-		BizID:                 info.Host.Static.BizID,
-		InnerIPList:           info.Host.Static.InnerIPList,
-		Addressing:            string(info.Host.Static.Addressing),
-		ExportIP:              info.Host.Dynamic.ExportIP,
-		AdvertiseIP:           info.Host.Dynamic.AdvertiseIP,
+		ActionName:     info.BlockingActionName,
+		HostID:         info.Host.HostID,
+		OSType:         info.Host.Static.OSType,
+		TenantID:       info.Host.TenantID,
+		NodeRole:       string(info.Host.Dynamic.NodeRole),
+		NodeStatus:     string(info.Host.Dynamic.NodeStatus),
+		NodeVersion:    info.Host.Dynamic.NodeVersion,
+		NodeGeneration: int64(info.Host.Dynamic.NodeGeneration),
+		NodeCPUArch:    string(info.Host.Dynamic.NodeCPUArch),
+		NodeOsType:     string(info.Host.Dynamic.NodeOsType),
+		AgentID:        info.Host.Dynamic.AgentID,
+		NetworkUnitID:  info.Host.Dynamic.NetworkUnitID,
+		NetworkAreaID:  info.Host.Static.NetworkAreaID,
+		BizID:          info.Host.Static.BizID,
+		InnerIPList:    info.Host.Static.InnerIPList,
+		Addressing:     string(info.Host.Static.Addressing),
+		ExportIP:       info.Host.Dynamic.ExportIP,
+		AdvertiseIP:    info.Host.Dynamic.AdvertiseIP,
 		ProxyTags: func() []string {
 			tags := make([]string, len(info.Host.Dynamic.ProxyTags))
 			for i, tag := range info.Host.Dynamic.ProxyTags {

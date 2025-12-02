@@ -14,6 +14,7 @@ import (
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
@@ -31,13 +32,6 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 		return
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to report data, failed to validate request")
-		gCtx.JSON(http.StatusBadRequest, err)
-
-		return
-	}
-
 	info, err := h.GetNodeDeploymentInfo(nCtx, req.GetToken())
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to report data, failed to get node deployment conf")
@@ -46,16 +40,17 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 		return
 	}
 
-	info.Host.Dynamic.AgentID = req.GetAgentId()
-
-	err = h.UpdateNodeDeploymentInfo(nCtx, req.GetToken(), info)
-	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to report data, failed to update node deployment conf")
-		gCtx.JSON(http.StatusInternalServerError, err)
-
-		return
+	dataMap := map[string]any{
+		installer.WaitInstallerCompleteReportAgentIDKey: req.GetAgentId(),
 	}
-	gCtx.JSON(http.StatusOK, nil)
 
-	return
+	if err := h.UpsertActionInstancePrivateData(nCtx, req.GetOperInstId(), info.BlockingActionName, dataMap); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report data, failed to update action private data")
+		gCtx.JSON(http.StatusInternalServerError, err)
+	}
+
+	logger.G.Biz(nCtx).With("oper-inst-id", req.GetOperInstId(), "action", info.BlockingActionName).
+		Info("report data success")
+
+	gCtx.JSON(http.StatusOK, nil)
 }

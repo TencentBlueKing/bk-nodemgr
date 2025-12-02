@@ -168,7 +168,6 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 
 	// let the callback server known which action to mark and log.
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
-	std.DeployInfo().BlockingActionStatusReportKey = actionStatusReportKeyWaitInstallerComplete
 
 	// preset the node status to "damaged" in the deployment table.
 	// if this action fails, the "damaged" status will not be set in the host table in the end.

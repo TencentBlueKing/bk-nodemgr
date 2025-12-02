@@ -181,6 +181,7 @@ func NewFullInstall() *cobra.Command {
 			if err := datareporter.NewStep(datareporter.StepArgs{
 				CallbackSvrAddr: callbackSvrAddr,
 				Token:           deployToken,
+				OperInstID:      operInstID,
 				AgentID:         installResult.AgentID,
 			}).Run(cmd.Context()); err != nil {
 				return err

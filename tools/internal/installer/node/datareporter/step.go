@@ -35,13 +35,14 @@ type Step struct {
 type StepArgs struct {
 	Token           string
 	AgentID         string
+	OperInstID      string
 	CallbackSvrAddr string
 }
 
 // String step args string message.
 func (args StepArgs) String() string {
-	return fmt.Sprintf("token(%s), agent-id(%s), callback-svr-addr(%s)",
-		args.Token, args.AgentID, args.CallbackSvrAddr)
+	return fmt.Sprintf("token(%s), oper-inst-id(%s),  agent-id(%s), callback-svr-addr(%s)",
+		args.Token, args.OperInstID, args.AgentID, args.CallbackSvrAddr)
 }
 
 // NewStep new a step to report data.
@@ -73,8 +74,9 @@ func (step *Step) Run(ctx context.Context) error {
 
 // reportDataReq report log req.
 type reportDataReq struct {
-	Token   string `json:"token"`
-	AgentID string `json:"agent_id"`
+	Token      string `json:"token"`
+	OperInstID string `json:"oper_inst_id"`
+	AgentID    string `json:"agent_id"`
 }
 
 const (
@@ -86,8 +88,9 @@ const (
 // ReportData report data.
 func (step *Step) reportData(ctx context.Context) error {
 	req := &reportDataReq{
-		Token:   step.args.Token,
-		AgentID: step.args.AgentID,
+		Token:      step.args.Token,
+		OperInstID: step.args.OperInstID,
+		AgentID:    step.args.AgentID,
 	}
 
 	jsonData, err := json.Marshal(req)

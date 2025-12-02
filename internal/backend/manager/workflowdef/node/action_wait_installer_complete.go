@@ -28,9 +28,6 @@ const (
 	// ActionNameWaitInstallerComplete defines the action name.
 	ActionNameWaitInstallerComplete = "wait_node_installer_complete"
 
-	// actionStatusReportKeyWaitInstallerComplete defines the action status report key.
-	actionStatusReportKeyWaitInstallerComplete = "installer_result_status"
-
 	waitReportInterval = 1 * time.Second
 )
 
@@ -107,16 +104,38 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	ticker := time.NewTicker(waitReportInterval)
 	defer ticker.Stop()
 
+	agentIDFound := false
+
 	for {
 		select {
 		case <-ctx.Ctx.Done():
 			return nil
 
 		case <-ticker.C:
-			installerResult, err := act.fetchInstallerResult(std, instanceID)
+			if !agentIDFound {
+				agentID, err := act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportAgentIDKey)
+				if err != nil {
+					return err
+				}
+
+				if agentID == "" {
+					continue
+				}
+
+				// update agent id to deployment record
+				agentIDFound = true
+				std.DeployInfo().Host.Dynamic.AgentID = agentID
+
+				std.InstanceData().LogI(fmt.Sprintf("received agent id from installer report. agent-id(%s)", agentID))
+			}
+
+			// fetch installer result
+			rawInstallerResult, err := act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportStatusKey)
 			if err != nil {
 				return err
 			}
+
+			installerResult := installer.ProcessState(rawInstallerResult)
 
 			// check and update action state
 			switch installerResult {
@@ -144,7 +163,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	}
 }
 
-func (act *actionWaitInstallerComplete) fetchInstallerResult(std *nodeUtils.NodeActionStandarder, instanceID string) (installer.ProcessState, error) {
+func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionStandarder, instanceID, key string) (string, error) {
 	privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 		std.Context(),
 		instanceID,
@@ -152,22 +171,22 @@ func (act *actionWaitInstallerComplete) fetchInstallerResult(std *nodeUtils.Node
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to get action private data")
 
-		return installer.ProcessStateUnknown, err
+		return "", err
 	}
 
-	installerResultRaw, exists := privateData[std.DeployInfo().BlockingActionStatusReportKey]
+	rawValue, exists := privateData[key]
 	if !exists {
-		logger.G.Sys().With("oper-inst-id", instanceID).Debug("no receive data, sleep 1 second")
+		logger.G.Sys().With("oper-inst-id", instanceID, "key", key).Debug("no receive data, sleep 1 second")
 
-		return installer.ProcessStateUnknown, nil
+		return "", nil
 	}
 
-	installerResult, err := conv.ToString(installerResultRaw)
+	value, err := conv.ToString(rawValue)
 	if err != nil {
-		logger.G.Sys().With("oper-inst-id", instanceID, "state", installerResultRaw).Error("unexpected type for installer result")
+		logger.G.Sys().With("oper-inst-id", instanceID, "key", key, "rawValue", rawValue).Error("unexpected type for fetched value")
 
-		return installer.ProcessStateUnknown, fmt.Errorf("failed to get installer state. state(%v)", installerResultRaw)
+		return "", fmt.Errorf("failed to get value for key. key(%s)", key)
 	}
 
-	return installer.ProcessState(installerResult), nil
+	return value, nil
 }

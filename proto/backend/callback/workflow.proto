@@ -58,6 +58,7 @@ message ReportLog {
 message ReportDataReq {
   string token = 1;
   string agent_id = 2;
+  string oper_inst_id = 3;
 }
 
 // ReportStatusReq describes the HTTP request body when report status.

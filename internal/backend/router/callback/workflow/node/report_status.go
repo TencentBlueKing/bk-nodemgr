@@ -15,6 +15,7 @@ import (
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	"github.com/gin-gonic/gin"
@@ -40,7 +41,7 @@ func (h *handler) ReportStatus(gCtx *gin.Context) {
 	}
 
 	dataMap := map[string]any{
-		info.BlockingActionStatusReportKey: req.GetStatus(),
+		installer.WaitInstallerCompleteReportStatusKey: req.GetStatus(),
 	}
 
 	if err := h.UpsertActionInstancePrivateData(nCtx, req.GetOperInstId(), info.BlockingActionName, dataMap); err != nil {
