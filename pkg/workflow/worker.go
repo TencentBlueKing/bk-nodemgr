@@ -457,7 +457,10 @@ func (mgr *manager) callActionDefWithRetry(actionInstCtx *action.InstanceContext
 			actionInstCtx.Data.LogW(fmt.Sprintf("failed to do action, action-name(%s), retry-num(%d): %v",
 				actionInstCtx.Data.Name, retryNum, doErr))
 
-			actionDef.DelayFn()
+			delayFn := actionDef.DelayFn()
+			if delayFn != nil {
+				delayFn()
+			}
 
 			continue
 		}
