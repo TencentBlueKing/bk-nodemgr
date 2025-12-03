@@ -51,9 +51,11 @@ func (d *dao) GetTableName() string {
 
 // GetIndexes get the dao's indexes.
 func (d *dao) GetIndexes() []mongo.IndexModel {
-	var indexes []mongo.IndexModel
-
-	return indexes
+	return []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: FieldKeyTriggerID, Value: 1}},
+		},
+	}
 }
 
 // upsert updates or inserts an operation.
