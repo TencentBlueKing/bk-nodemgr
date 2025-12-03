@@ -143,7 +143,7 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 		if len(hosts) == 0 {
 			hostID, err := act.insertHost(nCtx, info)
 			if err != nil {
-				return err
+				return fmt.Errorf("insert host to cmdb failed: %w", err)
 			}
 
 			info.Host.HostID = hostID
