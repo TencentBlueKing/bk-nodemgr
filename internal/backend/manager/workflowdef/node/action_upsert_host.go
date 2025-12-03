@@ -141,10 +141,12 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 		}
 
 		if len(hosts) == 0 {
-			info.Host.HostID, err = act.insertHost(nCtx, info)
+			hostID, err := act.insertHost(nCtx, info)
 			if err != nil {
 				return err
 			}
+
+			info.Host.HostID = hostID
 			if err := act.storageHost.UpsertManyHost(nCtx, &info.Host); err != nil {
 				return fmt.Errorf("upsert host to db failed: %w", err)
 			}
@@ -193,11 +195,11 @@ func (act *actionUpsertHostToCMDB) insertHost(nCtx contextx.IContext, info *type
 
 	hostIDs, err := act.cmdbHandler.AddHostToBusinessIdle(nCtx, info.Host.Static.BizID, host)
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 
 	if len(hostIDs) == 0 {
-		return 0, errors.New("no host id returned")
+		return -1, errors.New("no host id returned")
 	}
 
 	return hostIDs[0], nil
