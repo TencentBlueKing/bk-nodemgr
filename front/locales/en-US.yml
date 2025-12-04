@@ -112,6 +112,10 @@ platform:
         failed: Failed
         success: Success
         partial_failed: Partial_failed
+  taskHistory:
+    title: Task history
+    taskDetail:
+      title: Task details
 topoManager:
   workArea:
     title: Workarea

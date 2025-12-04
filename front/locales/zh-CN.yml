@@ -113,6 +113,10 @@ platform:
   topoManagerName: 拓扑管理
   ruleManagerName: 策略管理
   pkgManagerName: 包管理
+  taskHistory: 
+    title: 任务历史
+    taskDetail:
+      title: 任务详情
 topoManager:
   workArea:
     title: 管控区域
@@ -282,6 +286,7 @@ topoManager:
       password: 批量编辑密码 / 密钥
       directory: 批量编辑临时文件目录
       zip: 批量编辑数据压缩
+  
   topo:
     title: 拓扑图
     toolbar:

@@ -5,13 +5,11 @@
       ref="tableRef"
       :data="tableData"
       :empty-text="$t('table.empty')"
-      :pagination="workareaStore.pagination"
+      :pagination="pagination"
       :sort-config="sortConfig"
       :show-settings="isShowSetting"
       :settings="settings"
       :max-height="maxHeight"
-      @page-limit-change="workareaStore.pageLimitChange"
-      @page-value-change="workareaStore.pageValueChange"
       @setting-change="handleSettingChange"
       @column-filter="handleColumnFilter">
       <TableColumn
@@ -20,6 +18,19 @@
         show-overflow="tooltip"
         :min-width="280">
         <template #default="{ row }">
+          <Button
+            text
+            class="mr-[12px]"
+            @click.stop="handleCollect(row.bk_networkarea_id)">
+            <i
+              class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
+              v-if="collectList.includes(row.bk_networkarea_id)">
+            </i>
+            <i
+              class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[18px]"
+              v-else>
+            </i>
+          </Button>
           <Button theme="primary" class="!text-[12px]" text @click="handleToWorkareaDetail(row.bk_networkarea_id)">
             {{ row.bk_networkarea_name }}
           </Button>
@@ -118,6 +129,7 @@ import { Table, TableColumn } from '@blueking/table';
 
 import { vendorMap } from '../vendorMap';
 
+import usePage from '@/composables/use-page';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
 import type { INetWorkArea } from '@/stores/workarea';
@@ -136,6 +148,9 @@ const { t } = useI18n();
 const router = useRouter();
 const workareaStore = useWorkareaStore();
 const sortConfig = ref({ multiple: true });
+
+// 分页
+const { pagination } = usePage(tableData);
 
 // table setting逻辑
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
@@ -165,6 +180,30 @@ const filterOption = reactive<{
 const handleColumnFilter = ({ checked }: { checked: string[] }) => {
   filterOption.checked = checked;
   handleFilter(checked);
+};
+
+// 收藏管控区域
+const collectList = ref<number[]>(JSON.parse(localStorage.getItem('collect_workarea') || '[]'));
+const handleCollect = (val: number) => {
+  if (collectList.value.includes(val)) {
+    collectList.value = collectList.value.filter(item => item !== val);
+  } else {
+    collectList.value.push(val);
+  }
+  tableData.value.sort((a: any, b: any) => {
+    // bk_networkarea_id为0的始终排在最前面
+    if (a.bk_networkarea_id === 0) return -1;
+    if (b.bk_networkarea_id === 0) return 1;
+    const aIsFavorite = collectList.value.includes(a.bk_networkarea_id);
+    const bIsFavorite = collectList.value.includes(b.bk_networkarea_id);
+    if (aIsFavorite && bIsFavorite) return b.bk_networkarea_id - a.bk_networkarea_id;
+    if (aIsFavorite && !bIsFavorite) return -1;
+    if (!aIsFavorite && bIsFavorite) return 1;
+    return b.bk_networkarea_id - a.bk_networkarea_id;
+  });
+  localStorage.setItem('collect_workarea', JSON.stringify(collectList.value));
+  // 同步更新store中的收藏状态
+  workareaStore.syncFavoriteWorkareaList();
 };
 
 // 改变includeConditions 重新请求table data

@@ -302,7 +302,7 @@ export interface NodeWorkflowActionData {
 export interface NodeWorkflowOperationRetryReq {
   workflow_id: string;
   retry_mod: string;
-  operation_id: string[];
+  operation_ids: string[];
 }
 
 // NodeWorkflowOperationRetryResp
@@ -315,5 +315,23 @@ export interface NodeWorkflowOperationRetryResp {
 }
 
 export interface NodeWorkflowOperationRetryRespData {
+}
+
+// NodeWorkflowOperationTerminateReq
+export interface NodeWorkflowOperationTerminateReq {
+  workflow_id: string;
+  operation_ids: string[];
+}
+
+// NodeWorkflowOperationTerminateResp
+export interface NodeWorkflowOperationTerminateResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeWorkflowOperationTerminateRespData;
+}
+
+export interface NodeWorkflowOperationTerminateRespData {
 }
 

@@ -95,8 +95,10 @@
                 ></i>
                 <span class="text-[14px] text-[#313238]">{{ item.label }}</span>
                 <div
-                  :class="`rounded-[8px] w-[23px] h-[16px] border text-[12px] leading-[16px] text-center
-                    bg-[${item.name === active ? '#E1ECFF' : '#DCDEE5'}]`"
+                  :class="[
+                    'rounded-[8px] w-[23px] h-[16px] border text-[12px] leading-[16px] text-center',
+                    item.name === active ? 'bg-[#E1ECFF]' : 'bg-[#DCDEE5]'
+                  ]"
                 >
                   {{ item.count }}
                 </div>
@@ -111,6 +113,7 @@
                 :max-height="462"
                 :show-settings="isShowSetting"
                 :settings="settings"
+                :virtual-y-config="{ enabled: true, gt: 20 }"
                 @setting-change="handleSettingChange"
                 @checkbox-change="handleSelectChange"
                 @checkbox-all="handleSelectAllChange"

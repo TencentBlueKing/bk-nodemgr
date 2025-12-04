@@ -6,10 +6,44 @@
     render-directive="if"
     :before-close="handleBeforeClose"
   >
+    <template #header>
+      <div class="flex items-center justify-between w-full">
+        <span>包上传</span>
+        <template v-if="route.name === 'pluginPackageMng'">
+          <Dropdown
+            theme="light"
+            trigger="click"
+            placement="bottom-start"
+            :popover-options="{
+              clickContentAutoHide: true,
+            }"
+          >
+            <Button
+              class="mr-[24px]"
+              text
+            >
+              <i class="nodeman-icon nc-setting"></i>
+            </Button>
+            <template #content>
+              <Dropdown.DropdownMenu ext-cls="dropDown-menu">
+                <Dropdown.DropdownItem
+                  :class="['text-14px', { 'active': pluginUploadType === item.id }]"
+                  v-for="item in pluginUploadTypeList"
+                  :key="item.id"
+                  @click="triggerHandler(item.id)"
+                >
+                  {{ item.name }}
+                </Dropdown.DropdownItem>
+              </Dropdown.DropdownMenu>
+            </template>
+          </Dropdown>
+        </template>
+      </div>
+    </template>
     <template #default>
       <div class="px-[24px] pt-[28px]">
         <pkg-upload
-          :plugin-type="type"
+          :plugin-type="pluginUploadType"
           @upload="handleUpload"
           @cancel="handleCancel"
           @loading="handleLoading"
@@ -41,9 +75,9 @@
 <script lang="ts" setup>
 import {
   Button,
+  Dropdown,
   InfoBox,
   Message,
-  plugins,
   Sideslider,
 } from 'bkui-vue';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -56,19 +90,29 @@ import type { PackageUploadOriginAgentRespData } from '@/@types/pkg';
 import { PackageService } from '@/api/modules/pkg';
 import { usePackageStore } from '@/stores/package';
 
-const props = defineProps({
-  type: {
-    type: String,
-    default: '',
-  },
-});
-
 const isShow = defineModel('isShow', { type: Boolean });
 const emit = defineEmits('confirm');
 const route = useRoute();
 const hasPkg = computed(() => !!uploadData.value);
 const uploadData = ref<PackageUploadOriginAgentRespData | null>(null);
 const packageStore = usePackageStore();
+
+// 插件上传类型
+const pluginUploadType = ref('v3/plugin');
+const pluginUploadTypeList = ref([
+  {
+    id: 'v2/plugin',
+    name: '2.0 官方插件包',
+  },
+  {
+    id: 'v2/external_plugin',
+    name: '2.0 业务插件包',
+  },
+]);
+const triggerHandler = (id: string) => {
+  isShow.value = true;
+  pluginUploadType.value = id;
+};
 
 const handleBeforeClose = () => new Promise((resolve, reject) => {
   InfoBox({
@@ -105,9 +149,10 @@ const submit = async () => {
       bintoolPackageMng: PackageService.PublishReleaseBinTool,
       'pluginPackageMng_v2/plugin': PackageService.PublishReleasePluginV2,
       'pluginPackageMng_v2/external_plugin': PackageService.PublishReleaseExternalPluginV2,
+      'pluginPackageMng_v3/plugin': PackageService.PublishReleasePluginV3,
     };
 
-    const key = route.name === 'pluginPackageMng' ? `pluginPackageMng_${props.type}` : route.name;
+    const key = route.name === 'pluginPackageMng' ? `pluginPackageMng_${pluginUploadType.value}` : route.name;
     // 获取映射中的服务方法
     const serviceMethod = route.name ? serviceMap[key] : undefined;
 
@@ -135,3 +180,9 @@ watch(() => isShow.value, async () => {
   }
 }, { immediate: true });
 </script>
+<style lang="postcss" scoped>
+.active {
+  color: #3a84ff !important;
+  background-color: #eaf3ff;
+}
+</style>

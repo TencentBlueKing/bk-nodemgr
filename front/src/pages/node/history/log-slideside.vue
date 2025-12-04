@@ -142,7 +142,6 @@ interface IProps {
   data: any;
 }
 const props = defineProps<IProps>();
-console.log("🚀 ~ props:", props.data)
 const emit = defineEmits(['stop']);
 const { t } = useI18n();
 // 全屏

@@ -12,6 +12,7 @@ export const useMainStore = defineStore('mainStore', {
     curLanguage: string;
     routeState: Object,
     isLogRetry: Boolean,
+    isLogTerminate: Boolean,
   } => ({
     globalPageSize: 50, // 全局分页
     windowInnerHeight: 0,
@@ -23,6 +24,7 @@ export const useMainStore = defineStore('mainStore', {
     curLanguage: 'zh-CN',
     routeState: {},
     isLogRetry: false,
+    isLogTerminate: false,
   }),
   actions: {
     // 更新全局分页
@@ -56,6 +58,9 @@ export const useMainStore = defineStore('mainStore', {
     },
     updateLogRetry(isRetry: Boolean) {
       this.isLogRetry = isRetry;
+    },
+    updateLogTerminate(isTerminate: Boolean) {
+      this.isLogTerminate = isTerminate;
     },
   },
 });

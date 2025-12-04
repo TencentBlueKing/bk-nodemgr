@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
   display: flex;
   margin: -33px -24px -26px;
 
-  &-left {
+  &.log-version-left {
     flex: 0 0 260px;
     background-color: #fafbfd;
     border-right: 1px solid #dcdee5;
@@ -170,7 +170,7 @@ onBeforeUnmount(() => {
       flex-direction: column;
       width: 100%;
 
-      &-item {
+      &.left-list-item {
         flex: 0 0 54px;
         display: flex;
         flex-direction: column;
@@ -224,7 +224,7 @@ onBeforeUnmount(() => {
     }
   }
 
-  &-right {
+  &.log-version-right {
     flex: 1;
     padding: 25px 30px 50px 45px;
 

@@ -71,14 +71,6 @@ export interface PluginListReqFuzzyConditions {
   pkg_name: string[];
 }
 
-// Plugin describes a plugin.
-export interface Plugin {
-  tenant_id: string;
-  name: string;
-  group: string;
-  pkg_name: string;
-}
-
 // PluginListResp describes the plugin list response.
 export interface PluginListResp {
   code: number;
@@ -86,6 +78,13 @@ export interface PluginListResp {
   request_id: string;
   error: Error;
   data: PluginListRespData;
+}
+
+export interface PluginListRespPlugin {
+  tenant_id: string;
+  name: string;
+  group: string;
+  pkg_name: string;
 }
 
 export interface PluginListRespData {

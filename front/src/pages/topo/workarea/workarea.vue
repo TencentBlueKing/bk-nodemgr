@@ -22,7 +22,7 @@
     </FlexRow>
     <RegionTable
       ref="regionTableRef"
-      :list="sortTableData"
+      :list="tableData"
       :vendor-list="workareaStore.vendorList"
       @edit="handleEditWorkarea"
     />
@@ -87,14 +87,6 @@ const handleUpdate = async () => {
 
 // 表格数据
 const tableData = ref<INetWorkArea[]>([]);
-const sortTableData = computed(() => tableData.value.sort((a: INetWorkArea, b: INetWorkArea) => {
-  if (a.bk_networkarea_id === 0) {
-    return -1;
-  } if (b.bk_networkarea_id === 0) {
-    return 1;
-  }
-  return b.bk_networkarea_id - a.bk_networkarea_id;
-}));
 
 // 下拉搜索框value、list
 const searchKey = ref<ISearchValue[]>([]);

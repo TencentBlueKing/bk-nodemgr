@@ -19,6 +19,9 @@ export const useWorkareaStore = defineStore('workarea', () => {
   const allWorkUnitList = ref<Map<number, NetworkUnit[]>>(new Map());
   const allAccessPointList = ref<Map<number, AccessPoint[]>>(new Map());
 
+  // 收藏的管控区域
+  const favoriteWorkareaList = ref<number[]>(JSON.parse(localStorage.getItem('collect_workarea') || '[]'));
+
   const vendorList = ref<string[]>([]);
   const osTypeList = ref<string[]>([]);
   // const all
@@ -42,13 +45,11 @@ export const useWorkareaStore = defineStore('workarea', () => {
   const handleFetchWorkareaList = async () => {
     loading.value = true;
     try {
+      // 先同步收藏状态，确保排序使用最新数据
+      syncFavoriteWorkareaList();
+
       const result = await TopoService.NetworkAreaList({
-        page: {
-          // todo
-          // 接口文档示例 offset为0，了解下前端是否需要-1
-          offset: (pagination.current - 1) * pagination.limit,
-          limit: pagination.limit,
-        },
+        page: { offset: 0, limit: 0 },
         onlyCount: false,
         exact_include_conditions: {
           bk_networkarea_id: includeConditions.bk_networkarea_id,
@@ -59,6 +60,17 @@ export const useWorkareaStore = defineStore('workarea', () => {
         },
       });
       workareaList.value = (result?.items as INetWorkArea[]) || [];
+      workareaList.value.sort((a: INetWorkArea, b: INetWorkArea) => {
+        // bk_networkarea_id为0的始终排在最前面
+        if (a.bk_networkarea_id === 0) return -1;
+        if (b.bk_networkarea_id === 0) return 1;
+        const aIsFavorite = favoriteWorkareaList.value.includes(a.bk_networkarea_id);
+        const bIsFavorite = favoriteWorkareaList.value.includes(b.bk_networkarea_id);
+        if (aIsFavorite && bIsFavorite) return b.bk_networkarea_id - a.bk_networkarea_id;
+        if (aIsFavorite && !bIsFavorite) return -1;
+        if (!aIsFavorite && bIsFavorite) return 1;
+        return b.bk_networkarea_id - a.bk_networkarea_id;
+      });
       pagination.count = result?.total || 0;
     } catch (err) {
       console.error(err);
@@ -102,9 +114,23 @@ export const useWorkareaStore = defineStore('workarea', () => {
     };
 
     try {
+      // 先同步收藏状态，确保排序使用最新数据
+      syncFavoriteWorkareaList();
+
       // 1. 第一次请求：获取基础列表
       const result = await TopoService.NetworkAreaList(params);
       workareaList.value = (result?.items as INetWorkArea[]) || [];
+      workareaList.value.sort((a: INetWorkArea, b: INetWorkArea) => {
+        // bk_networkarea_id为0的始终排在最前面
+        if (a.bk_networkarea_id === 0) return -1;
+        if (b.bk_networkarea_id === 0) return 1;
+        const aIsFavorite = favoriteWorkareaList.value.includes(a.bk_networkarea_id);
+        const bIsFavorite = favoriteWorkareaList.value.includes(b.bk_networkarea_id);
+        if (aIsFavorite && bIsFavorite) return b.bk_networkarea_id - a.bk_networkarea_id;
+        if (aIsFavorite && !bIsFavorite) return -1;
+        if (!aIsFavorite && bIsFavorite) return 1;
+        return b.bk_networkarea_id - a.bk_networkarea_id;
+      });
       pagination.count = result?.total || 0;
       loading.value = false; // 立即结束加载，先渲染
 
@@ -129,6 +155,9 @@ export const useWorkareaStore = defineStore('workarea', () => {
 
   // 将所有管控区域存入Map
   const handleFetchAllWorkarea = async () => {
+    // 先同步收藏状态，确保排序使用最新数据
+    syncFavoriteWorkareaList();
+
     allWorkareaList.value.clear();
     const params: Partial<TopoNetworkAreaListReq> = {
       page: {
@@ -137,7 +166,17 @@ export const useWorkareaStore = defineStore('workarea', () => {
       },
     };
     const result = await TopoService.NetworkAreaList(params).catch(() => {});
-    const list = result?.items || [];
+    const list = result?.items.sort((a: INetWorkArea, b: INetWorkArea) => {
+      // bk_networkarea_id为0的始终排在最前面
+      if (a.bk_networkarea_id === 0) return -1;
+      if (b.bk_networkarea_id === 0) return 1;
+      const aIsFavorite = favoriteWorkareaList.value.includes(a.bk_networkarea_id);
+      const bIsFavorite = favoriteWorkareaList.value.includes(b.bk_networkarea_id);
+      if (aIsFavorite && bIsFavorite) return b.bk_networkarea_id - a.bk_networkarea_id;
+      if (aIsFavorite && !bIsFavorite) return -1;
+      if (!aIsFavorite && bIsFavorite) return 1;
+      return b.bk_networkarea_id - a.bk_networkarea_id;
+    }) || [];
     for (const area of list) {
       allWorkareaList.value.set(area.bk_networkarea_id, area);
     }
@@ -196,6 +235,11 @@ export const useWorkareaStore = defineStore('workarea', () => {
     osTypeList.value = result?.os_type;
   };
 
+  // 同步更新收藏状态
+  const syncFavoriteWorkareaList = () => {
+    favoriteWorkareaList.value = JSON.parse(localStorage.getItem('collect_workarea') || '[]');
+  };
+
   return {
     workareaList,
     loading,
@@ -206,6 +250,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
     allAccessPointList,
     vendorList,
     osTypeList,
+    favoriteWorkareaList,
     pageLimitChange,
     pageValueChange,
     handleCreateWorkarea,
@@ -217,5 +262,6 @@ export const useWorkareaStore = defineStore('workarea', () => {
     handleFetchAllWorkUnit,
     handleFetchRecordList,
     handleFetchVendorAndOs,
+    syncFavoriteWorkareaList,
   };
 });

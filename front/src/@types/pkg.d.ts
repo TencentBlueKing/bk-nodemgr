@@ -386,6 +386,8 @@ export interface PackageReleaseExactConditions {
   version: string[];
   as_default: boolean[];
   enabled: boolean[];
+  name: string[];
+  file_name: string[];
 }
 
 // PackageReleaseListReq describes the HTTP request body when list package
@@ -741,5 +743,144 @@ export interface PackageEventDistinctRespData {
   cpu_arch: string[];
   version: string[];
   operator: string[];
+}
+
+// ReleasePlugin describes the package release plugin information.
+export interface ReleasePlugin {
+  release: Release;
+}
+
+// PackageReleasePluginListReq describes the HTTP request body when list package
+// release.
+export interface PackageReleasePluginListReq {
+  page: Page;
+  generation: number;
+  only_count: boolean;
+  exact_include_conditions: PackageReleaseExactConditions;
+}
+
+// PackageReleasePluginListResp describes the HTTP response body when list
+// package release.
+export interface PackageReleasePluginListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginListRespData;
+}
+
+export interface PackageReleasePluginListRespData {
+  total: number;
+  items: ReleasePlugin[];
+}
+
+// PackageReleasePluginEnableReq describes the HTTP request body when enable
+// package release.
+export interface PackageReleasePluginEnableReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginEnableResp describes the HTTP response body when enable
+// package release.
+export interface PackageReleasePluginEnableResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginEnableRespData;
+}
+
+export interface PackageReleasePluginEnableRespData {
+}
+
+// PackageReleasePluginDisableReq describes the HTTP request body when disable
+// package release.
+export interface PackageReleasePluginDisableReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginDisableResp describes the HTTP response body when disable
+// package release.
+export interface PackageReleasePluginDisableResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginDisableRespData;
+}
+
+export interface PackageReleasePluginDisableRespData {
+}
+
+// PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set
+// default package release.
+export interface PackageReleasePluginSetAsDefaultReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginSetAsDefaultResp describes the HTTP response body when
+// set default package release.
+export interface PackageReleasePluginSetAsDefaultResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginSetAsDefaultRespData;
+}
+
+export interface PackageReleasePluginSetAsDefaultRespData {
+}
+
+// PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when
+// cancel default package release.
+export interface PackageReleasePluginCancelAsDefaultReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when
+// cancel default package release.
+export interface PackageReleasePluginCancelAsDefaultResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginCancelAsDefaultRespData;
+}
+
+export interface PackageReleasePluginCancelAsDefaultRespData {
+}
+
+// PackageReleasePluginDeleteReq describes the HTTP request body when delete
+// release.
+export interface PackageReleasePluginDeleteReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginDeleteResp describes the HTTP response body when delete
+// release.
+export interface PackageReleasePluginDeleteResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginDeleteRespData;
+}
+
+export interface PackageReleasePluginDeleteRespData {
 }
 

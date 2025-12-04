@@ -8,7 +8,7 @@ const fetch = new Fetch({
   prefix: `${import.meta.env.BK_API_PREFIX}`,
 });
 
-export const PackageService = {
+export const PluginService = {
   // InstallPlugin installs a plugin on specified hosts.
   InstallPlugin: async <Request = PluginInstallReq, ResponseData = PluginInstallResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/install')(params, config),
   // ApplyPluginSubConfig apply sub-configuration for a plugin on specified

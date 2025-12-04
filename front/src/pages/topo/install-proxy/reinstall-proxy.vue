@@ -27,7 +27,7 @@
           <install-table
             ref="installTableRef"
             v-model:data="form.info"
-            realease-type="proxy"
+            release-type="proxy"
             :is-reinstall="true"
             :method="form.method"
             :current-settings="settings"

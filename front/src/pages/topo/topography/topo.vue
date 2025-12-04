@@ -168,6 +168,7 @@ import NetWorkUnitNode from './graph-plugin/net-work-unit-node';
 import type { TopoGraphNodeCountRespNodeInfo } from '@/@types/topo';
 import useMinLengthRef from '@/composables/use-min-length-ref';
 import { useTopoStore } from '@/stores/topo';
+import { useWorkareaStore } from '@/stores/workarea';
 
 const { t } = useI18n();
 const {
@@ -175,6 +176,7 @@ const {
   handleFetchAllWorkUnit,
 } = useTopoStore();
 const topoStore = useTopoStore();
+const workareaStore = useWorkareaStore();
 const router = useRouter();
 
 // 选择器逻辑
@@ -717,82 +719,8 @@ const initAreaData = async () => {
     bk_networkarea_name: defaultArea!.bk_networkarea_name,
   };
 
-  // 1. 区域节点
-  const areaNodes = topoStore.allWorkareaList.map((item) => {
-    const nodeId = workAreaPrefix + item.bk_networkarea_id;
-    return {
-      id: nodeId,
-      data: {
-        name: item.bk_networkarea_name,
-        bk_networkarea_id: item.bk_networkarea_id,
-        bk_networkarea_name: item.bk_networkarea_name,
-        width: 600,
-        height: 400,
-      },
-      type: NodeType.NET_WORK_AREA,
-    };
-  });
-
-  // 2. 单元节点
-  const unitNodes = topoStore.workUnitByArea.map((item) => {
-    const nodeId = `workUnit-${item.bk_networkunit_id}`;
-    return {
-      id: nodeId,
-      data: {
-        name: item.bk_networkunit_name,
-        unitType: item.is_direct ? 'direct' : 'indirect',
-        area: workAreaPrefix + item.bk_networkarea_id,
-        is_direct: item.is_direct,
-        direct_endpoints: item.direct_endpoints || { cluster: ['未知'], count: 0 },
-        accesspoints: item.accesspoints || [],
-        links: item.links || {},
-        running_proxy: item.running_proxy || 0,
-        total_proxy: item.total_proxy || 0,
-        running_agent: item.running_agent || 0,
-        total_agent: item.total_agent || 0,
-        cycle_times: item.cycle_times || ['0', '0', '0'],
-        is_healthy: item.is_healthy,
-      },
-      type: NodeType.NET_WORK_UNIT,
-    };
-  });
-
-  // 3. 接入点节点
-  const accessPointNodes = topoStore.accessPointData.map((item) => {
-    const nodeId = `accessPoint-${item.bk_accesspoint_id}`;
-    return {
-      id: nodeId,
-      data: {
-        name: item.name,
-        downstreamUnits: item.downstreamUnits || 0,
-        area: workAreaPrefix + item.bk_networkarea_id,
-        bk_networkunit_id: item.bk_networkunit_id,
-        type: item.type,
-        endpoints: item.endpoints,
-        endpointsData: [{
-          name: item.name,
-          endpoints: item.endpoints,
-        }],
-      },
-      type: NodeType.ACCESS_POINT,
-    };
-  });
-
-  // 4. 生成Agent节点和边（保留）
-  // const { agentNodes, agentEdges } = generateAgentNodesAndEdges(unitNodes);
-
-  // 5. 生成其他连接关系（保留）
-  const edges = generateEdgesFromUnitData();
-
-  // 组合所有节点和边
-  graphData.nodes = [
-    ...areaNodes,
-    ...unitNodes,
-    ...accessPointNodes,
-  ];
-  graphData.edges = [
-    ...edges,
-  ];
+  // 直接调用filterAreaNodes来设置初始的节点数据，避免重复的数据处理
+  filterAreaNodes();
 };
 
 // 筛选区域数据（删除 Server 相关逻辑）
@@ -805,7 +733,8 @@ function filterAreaNodes() {
   } else {
     targetAreaIds = selectedValues.flatMap((areaId) => {
       const numId = Number(areaId);
-      return topoStore.areaDependencyMap.get(numId) || [numId];
+      const arr = topoStore.areaDependencyMap.get(numId) || [numId];
+      return arr;
     });
   }
 
@@ -916,6 +845,15 @@ function handleResize() {
 
 onMounted(async () => {
   isLoading.value = true;
+  // 确保收藏状态同步
+  workareaStore.syncFavoriteWorkareaList();
+
+  // 如果有收藏的管控区域，则选中收藏的区域，否则选中所有区域
+  if (workareaStore.favoriteWorkareaList.length > 0) {
+    regionList.value = workareaStore.favoriteWorkareaList.map(id => Number(id));
+  } else {
+    regionList.value = ['all'];
+  }
   try {
     // 注册插件
     handleRegistryCategory();
@@ -940,9 +878,6 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
-
-  // 默认选中所有区域
-  regionList.value = ['all'];
 });
 
 onUnmounted(() => {

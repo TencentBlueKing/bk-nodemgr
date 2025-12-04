@@ -63,7 +63,7 @@
                 @click="handleRetry(currentOperate, item.id)">
                 <Button
                   text
-                  :disabled="currentOperate?.state === 'terminate' && item.id === 'PARTIAL'"
+                  :disabled="currentOperate?.state === 'terminated' && item.id === 'PARTIAL'"
                 >{{ item.name }}</Button>
               </Dropdown.DropdownItem>
             </Dropdown.DropdownMenu>
@@ -115,7 +115,13 @@
                     {{ statusMap[row.state]?.text }}
                   </span>
                 </div>
-                <Button text theme="primary" v-if="row.state === 'running'">终止</Button>
+                <Button
+                  v-if="row.state === 'running'"
+                  text
+                  theme="primary"
+                  @click="handleTerminate(row)">
+                  终止
+                </Button>
               </div>
             </template>
           </TableColumn>
@@ -292,7 +298,7 @@ const statusMap = {
     text: '等待执行',
     icon: 'unknown',
   },
-  terminate: {
+  terminated: {
     text: '终止',
     icon: 'terminated',
   },
@@ -340,7 +346,7 @@ const reTryType = [
 const handleRetry = async (row: any, type: string) => {
   const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
     workflow_id: route.params.taskId,
-    operation_id: [row.operation_id],
+    operation_ids: [row.operation_id],
     retry_mod: type,
   }).catch(() => false);
   if (res !== false) {
@@ -349,6 +355,21 @@ const handleRetry = async (row: any, type: string) => {
     await getInstance();
     start();
     mainStore.updateLogRetry(true);
+  }
+};
+
+// 终止
+const handleTerminate = async (row: any) => {
+  const res = await NodeWorkflowService.NodeWorkflowOperationTerminate({
+    workflow_id: route.params.taskId,
+    operation_ids: [row.operation_id],
+  }).catch(() => false);
+  if (res !== false) {
+    isInterval.value = false;
+    await getOperateList();
+    await getInstance();
+    stop();
+    mainStore.updateLogTerminate(true);
   }
 };
 

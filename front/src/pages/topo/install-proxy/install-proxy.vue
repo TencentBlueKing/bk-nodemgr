@@ -27,7 +27,7 @@
           <install-table
             ref="installTableRef"
             v-model:data="form.info"
-            realease-type="proxy"
+            release-type="proxy"
             :current-settings="settings"
             :max-height="520"
           >

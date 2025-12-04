@@ -117,20 +117,12 @@
           :title="t('platform.nodeMan.inner_ip')"
           :min-width="150"
           fixed="left"
-        >
-          <template #default="{ row }">
-            {{ row.bk_host_innerip_list?.join(',') }}
-          </template>
-        </TableColumn>
+        ></TableColumn>
         <TableColumn
           field="bk_host_innerip_v6"
           :title="t('platform.nodeMan.inner_ipv6')"
           :min-width="150"
-        >
-          <template #default="{ row }">
-            {{ row.bk_host_innerip_v6_list?.join(',') }}
-          </template>
-        </TableColumn>
+        ></TableColumn>
         <TableColumn
           field="bk_agent_id"
           :title="t('platform.nodeMan.agentId')"
@@ -490,7 +482,13 @@ const getAgentList = async () => {
   try {
     const res = await TopoService.HostList(getParams());
     pagination.count = res.total;
-    tableData.value = res.items.map((item: any) => ({ ...item.state, ...item.info, ...item }));
+    tableData.value = res.items.map((item: any) => ({
+      ...item.state,
+      ...item.info,
+      ...item,
+      bk_host_innerip: item.info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6: item.info.bk_host_innerip_v6_list?.join(','),
+    }));
     agentList.value = tableData.value;
   } catch (err) {
     console.error('获取Agent列表失败:', err);

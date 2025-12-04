@@ -8,7 +8,7 @@ const fetch = new Fetch({
   prefix: `${import.meta.env.BK_API_PREFIX}`,
 });
 
-export const PackageService = {
+export const ProcessService = {
   // ListProcesses lists the processes.
   ListProcesses: async <Request = ProcessListReq, ResponseData = ProcessListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/process/list')(params, config),
 };

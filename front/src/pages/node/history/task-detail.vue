@@ -1,7 +1,7 @@
 <template>
   <PageHeader
     class="w-full absolute top-0 z-100"
-    :title="'任务详情'"
+    :title="$t('platform.taskHistory.taskDetail.title')"
     :back="true"
   >
     <span class="mx-[6px] text-[#979BA5] text-[14px]">-</span>
@@ -53,7 +53,10 @@
                 }"
                 @click="handleFullRetry(item.id)"
               >
-                {{ item.name }}
+                <Button
+                  text
+                  :disabled="!!failedSelection.find(el => el.state === 'terminated') && item.id === 'PARTIAL'"
+                >{{ item.name }}</Button>
               </Dropdown.DropdownItem>
             </Dropdown.DropdownMenu>
           </template>
@@ -189,12 +192,8 @@
         <TableColumn :title="'操作'" fixed="right" width="200">
           <template #default="{ row }">
             <div class="flex items-center gap-[11px]">
-              <Button text theme="primary" @click="handleViewLog(row)"
-              >查看日志</Button
-              >
-              <Button text theme="primary" :disabled="row.state !== 'running'"
-              >终止</Button
-              >
+              <Button text theme="primary" @click="handleViewLog(row)">查看日志</Button>
+              <Button text theme="primary" :disabled="row.state !== 'running'">终止</Button>
               <Dropdown
                 theme="light"
                 trigger="click"
@@ -226,7 +225,7 @@
                       <Button
                         text
                         :disabled="
-                          row.state === 'terminate' && item.id === 'PARTIAL'
+                          row.state === 'terminated' && item.id === 'PARTIAL'
                         "
                       >{{ item.name }}</Button
                       >
@@ -349,7 +348,7 @@ const statusMap = {
     icon: 'unknown',
     tagTheme: '',
   },
-  terminate: {
+  terminated: {
     text: '终止',
     icon: 'terminated',
   },
@@ -736,7 +735,7 @@ const getNetworkUnitList = async () => {
 const handleRetry = async (row: any, type: string) => {
   const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
     workflow_id: route.params.taskId,
-    operation_id: [row.operation_id],
+    operation_ids: [row.operation_id],
     retry_mod: type,
   }).catch(() => false);
   if (res !== false) {
@@ -750,7 +749,7 @@ const handleRetry = async (row: any, type: string) => {
 const handleFullRetry = async (type: string) => {
   const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
     workflow_id: route.params.taskId,
-    operation_id: failedSelection.value.map(item => item.operation_id),
+    operation_ids: failedSelection.value.map(item => item.operation_id),
     retry_mod: type,
   }).catch(() => false);
   if (res) {
@@ -891,6 +890,16 @@ watch(
 // 日志页面点击重试触发此页面的list的数据轮询
 watch(
   () => mainStore.isLogRetry,
+  (val: Boolean) => {
+    if (val) {
+      start();
+      mainStore.updateLogRetry(false);
+    }
+  },
+);
+// 日志页面点击终止触发此页面的list的数据轮询
+watch(
+  () => mainStore.isLogTerminate,
   (val: Boolean) => {
     if (val) {
       start();

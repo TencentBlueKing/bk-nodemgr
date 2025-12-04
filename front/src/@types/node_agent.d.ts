@@ -136,6 +136,7 @@ export interface NodeAgentUninstallRespData {
 // AgentInstallCheckInfo describes the node agent install check parameter.
 export interface AgentInstallCheckInfo {
   bk_biz_id: number;
+  bk_host_id: number;
   bk_host_innerip: string;
   bk_networkunit_id: number;
 }

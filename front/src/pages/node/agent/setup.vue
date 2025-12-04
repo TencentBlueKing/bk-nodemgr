@@ -116,7 +116,9 @@
                 <template #header>
                   <span class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.packageVersion') }}</span>
                   <span class="mr-[10px] w-[14px] text-[#ea3636]">*</span>
-                  <i class="nodeman-icon nc-bulk-edit"></i>
+                  <Button text @click="handleBatchEditVersion">
+                    <i class="nodeman-icon nc-bulk-edit cursor-pointer"></i>
+                  </Button>
                 </template>
                 <template #default="{ row }">
                   <Validate
@@ -155,7 +157,7 @@
       <Button
         v-show="activeInstallType !== 'import'
           || (excelImportData.length > 0 && isEqual(formData.info, excelImportData))"
-        class="w-[100px]"
+        class="w-[120px]"
         theme="primary"
         :disabled="systemData.length === 0"
         v-bk-tooltips="{
@@ -163,7 +165,14 @@
           disabled: systemData.length > 0
         }"
         @click="handlePreview"
-      >{{ $t("platform.nodeMan.installAgentPage.button.install") }}</Button
+      >
+        <span>{{ $t("platform.nodeMan.installAgentPage.button.install") }}</span>
+        <span
+          class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
+        >
+          {{ formData.info.length }}
+        </span>
+      </Button
       >
       <Button
         v-if="excelImportData.length && activeInstallType === 'import' && formData.info.length > 0"
@@ -180,8 +189,9 @@
     <choose-version-dialog
       v-model:is-show="isShowDialog"
       :data="dialogData"
+      :batch="isBatch"
       :release-type="'agent'"
-      @confirm="handleComfirmVerion"
+      @confirm="handleConfirmVersion"
     ></choose-version-dialog>
   </div>
 </template>
@@ -262,18 +272,32 @@ const isShowDialog = ref(false);
 const businessList = computed(() => mainStore.businessList);
 const isAtBottom = ref(false);
 const handleSelect = (newValue: string, oldValue: string) => {
-  formData.bk_networkarea_name =    networkAreaList.value?.find(item => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
+  formData.bk_networkarea_name = networkAreaList.value?.find(item => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
 };
 const dialogData = ref([{
   os: '',
   version: '',
 }]);
+const isBatch = ref(false);
 const handleChooseVersion = (row: { version: string; os: string }) => {
   isShowDialog.value = true;
   dialogData.value = [row];
 };
-const handleComfirmVerion = (data: any[]) => {
-  dialogData.value[0].version = data[0]?.version;
+// 批量选择版本
+const handleBatchEditVersion = () => {
+  isShowDialog.value = true;
+  dialogData.value = systemData.value;
+  isBatch.value = true;
+};
+
+const handleConfirmVersion = (data: any[]) => {
+  systemData.value.forEach((sys: { version: string; os: string }) => {
+    const find = data.find((item) => sys.os === `${item.os_type}_${item.cup_arch}`);
+    if (find) {
+      sys.version = find.version;
+    }
+  });
+  isBatch.value = false;
 };
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);

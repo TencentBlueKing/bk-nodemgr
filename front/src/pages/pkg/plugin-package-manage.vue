@@ -4,33 +4,6 @@
     <div class="flex items-center w-full h-[32px] mb-[16px]">
       <Button theme="primary" @click="handleUpload">
         <span>包上传</span>
-        <Dropdown
-          theme="light"
-          trigger="manual"
-          placement="bottom-start"
-          :is-show="isUploadTypeShow"
-          :popover-options="{
-            clickContentAutoHide: true,
-          }"
-        >
-          <angle-down-line
-            width="12px"
-            height="12px"
-            :class="['ml-[5px]', { 'transform rotate-180': isUploadTypeShow }]"
-            @click.stop="handleShowUploadType" />
-          <template #content>
-            <Dropdown.DropdownMenu ext-cls="dropDown-menu">
-              <Dropdown.DropdownItem
-                class="text-14px"
-                v-for="item in uploadTypeList"
-                :key="item.id"
-                @click="triggerHandler(item.id)"
-              >
-                {{ item.name }}
-              </Dropdown.DropdownItem>
-            </Dropdown.DropdownMenu>
-          </template>
-        </Dropdown>
       </Button>
       <SearchSelect
         class="ml-[16px] flex-1"
@@ -38,7 +11,7 @@
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
-        :placeholder="'请输入 插件名称、插件别名、状态 搜索'"
+        :placeholder="'请输入 插件包名、版本号、操作系统、架构、上传用户、状态、默认版本 搜索'"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -218,6 +191,15 @@
                 >
                   设为默认版本
                 </Button>
+                <Button
+                  theme="primary"
+                  class="mr-[8px]"
+                  text
+                  v-if="row.enabled && row.as_default"
+                  @click="handleCancelAsDefaultVersion(row)"
+                >
+                  取消设置默认版本
+                </Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
@@ -287,7 +269,7 @@
       </Loading>
     </div>
   </div>
-  <pkg-upload-sideslider v-model:is-show="isShow" :type="uploadType" @confirm="handleConfirm" />
+  <pkg-upload-sideslider v-model:is-show="isShow" @confirm="handleConfirm" />
 </template>
 <script lang="ts" setup>
 import { Button, Dropdown, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
@@ -525,12 +507,6 @@ const searchSelectData = computed(() => [
     children: getUniqueChildren('cpu_arch'),
   },
   {
-    id: 'labels',
-    name: '标签',
-    children: getUniqueChildren('labels'),
-    multiple: true,
-  },
-  {
     id: 'operator',
     name: '上传用户',
     children: getUniqueChildren('operator'),
@@ -685,52 +661,30 @@ const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
   }
 };
 
-// 上传
-const uploadTypeList = ref([
-  {
-    id: 'v2/plugin',
-    name: '2.0 官方插件包',
-  },
-  {
-    id: 'v2/external_plugin',
-    name: '2.0 业务插件包',
-  },
-]);
-const uploadType = ref('');
+// 包上传
 const handleUpload = () => {
   isShow.value = true;
-  uploadType.value = 'v2/plugin';
-};
-const triggerHandler = (id: string) => {
-  isShow.value = true;
-  isUploadTypeShow.value = false;
-  uploadType.value = id;
 };
 
 const getPackages = async () => {
   loading.value = true;
-  const res = await PackageService.ListRelease({
-    release_type: 'plugin',
+  const res = await PackageService.ListReleasePlugin({
     generation: 2,
   }).catch(() => ({
     total: 0,
     items: [],
   }));
-  const items = res.items.map((item, index) => ({
+  const items = res.items.map(item => ({
     ...item,
-    labels: item.labels || [],
-    os_cpu_arch: `${item.os_type}_${item.cpu_arch}`,
-    isShowTagInput: false,
-    createPopShow: false,
-  }))
-    .sort((a, b) => compareVersions(a.version, b.version));
+    os_cpu_arch: `${item.release.os_type}_${item.release.cpu_arch}`,
+  })).sort((a, b) => compareVersions(a.release.version, b.release.version));
   originPackageList.value = items;
   packageList.value = items;
   loading.value = false;
 };
 const getParams = (row: Release) => ({
   generation: row.generation,
-  release_type: row.release_type,
+  name: row.name,
   platform: {
     os_type: row.os_type,
     cpu_arch: row.cpu_arch,
@@ -738,19 +692,23 @@ const getParams = (row: Release) => ({
   version: row.version,
 });
 const handleSetDefaultVersion = async (row: Release) => {
-  await PackageService.SetAsDefaultRelease(getParams(row));
+  await PackageService.SetAsDefaultReleasePlugin(getParams(row));
+  await getPackages();
+};
+const handleCancelAsDefaultVersion = async (row: Release) => {
+  await PackageService.CancelAsDefaultReleasePlugin(getParams(row));
   await getPackages();
 };
 const handleDisabled = async (row: Release) => {
-  await PackageService.DisableRelease(getParams(row));
+  await PackageService.DisableReleasePlugin(getParams(row));
   await getPackages();
 };
 const handleEnabled = async (row: Release) => {
-  await PackageService.EnableRelease(getParams(row));
+  await PackageService.EnableReleasePlugin(getParams(row));
   await getPackages();
 };
 const handleDelete = async (row: Release) => {
-  await PackageService.DeleteRelease(getParams(row));
+  await PackageService.DeleteReleasePlugin(getParams(row));
   await getPackages();
 };
 const handleConfirm = async () => {

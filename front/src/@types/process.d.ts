@@ -69,8 +69,16 @@ export interface ProcessMonitorPolicy {
   operate_timeout_seconds: number;
 }
 
-// Process describes the process.
-export interface Process {
+// ProcessListResp describes the process list response.
+export interface ProcessListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: ProcessListRespData;
+}
+
+export interface ProcessListRespProcess {
   tenant_id: string;
   bk_host_id: number;
   plugin_name: string;
@@ -83,15 +91,6 @@ export interface Process {
   process_controller: ProcessController;
   process_resource: ProcessResource;
   process_monitor_policy: ProcessMonitorPolicy;
-}
-
-// ProcessListResp describes the process list response.
-export interface ProcessListResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: ProcessListRespData;
 }
 
 export interface ProcessListRespData {

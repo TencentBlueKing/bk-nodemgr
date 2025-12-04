@@ -82,12 +82,12 @@ export const useTopoStore = defineStore('topo', () => {
 
     // 4. 构建单元ID到 proxy/agent 的映射（方便快速查找）
     const unitProxyAgentMap = new Map<number, { proxy: number; agent: number }>();
-    allWorkGraphInfos.value.forEach(info => {
+    allWorkGraphInfos.value.forEach((info) => {
       unitProxyAgentMap.set(info.bk_networkunit_id, info);
     });
 
     // 5. 给基础单元数据补充 proxy 和 agent
-    const unitsWithProxyAgent = baseUnits.map(unit => {
+    const unitsWithProxyAgent = baseUnits.map((unit) => {
       const proxyAgent = unitProxyAgentMap.get(unit.bk_networkunit_id) || { proxy: 0, agent: 0 };
       return {
         ...unit,
@@ -161,103 +161,65 @@ export const useTopoStore = defineStore('topo', () => {
   })));
 
   const areaDependencyMap = computed(() => {
-    // 第一步：构建核心映射（包含所有单元，不管是否在 workUnitByArea 中）
-    const unitToUpstreamUnit = new Map<number, number>(); // 单元→上游单元
-    const unitToArea = new Map<number, number>(); // 单元→所属区域（关键：包含所有单元）
-    const allAreaIds = new Set<number>(); // 所有区域ID
-    const allUnitIds = new Set<number>(); // 所有单元ID（避免遗漏上游单元）
-
-    // 1. 先处理 workUnitByArea 中的单元（下游单元）
-    workUnitByArea.value.forEach((unit) => {
-      const unitId = unit.bk_networkunit_id;
-      const areaId = unit.bk_networkarea_id;
-
-      allUnitIds.add(unitId);
-      allAreaIds.add(areaId);
-      unitToArea.set(unitId, areaId);
-
-      // 提取上游单元
-      const firstLink = unit.links.cluster || unit.links.file || unit.links.data;
-      if (firstLink && firstLink.bk_networkunit_id) {
-        const upstreamUnitId = firstLink.bk_networkunit_id;
-        unitToUpstreamUnit.set(unitId, upstreamUnitId);
-        allUnitIds.add(upstreamUnitId); // 收集上游单元ID
-        allAreaIds.add(firstLink.bk_networkarea_id); // 收集上游单元的区域ID
-      }
-    });
-
-    // 2. 补充上游单元的「单元→区域」映射（关键修复！）
-    workUnitByArea.value.forEach((unit) => {
-      const firstLink = unit.links.cluster || unit.links.file || unit.links.data;
-      if (firstLink) {
-        const upstreamUnitId = firstLink.bk_networkunit_id;
-        const upstreamAreaId = firstLink.bk_networkarea_id;
-        // 给上游单元绑定区域ID（即使上游单元不在 workUnitByArea 中）
-        if (!unitToArea.has(upstreamUnitId) && upstreamAreaId) {
-          unitToArea.set(upstreamUnitId, upstreamAreaId);
-        }
-      }
-    });
-
-    // 第二步：构建「区域→直接上游」和「区域→直接下游」（精准绑定）
-    const areaToDirectUpstream = new Map<number, Set<number>>();
-    const areaToDirectDownstream = new Map<number, Set<number>>();
-    allAreaIds.forEach((areaId) => {
-      areaToDirectUpstream.set(areaId, new Set());
-      areaToDirectDownstream.set(areaId, new Set());
-    });
-
-    // 遍历所有单元，建立区域上下游关系
-    allUnitIds.forEach((unitId) => {
-      const currentAreaId = unitToArea.get(unitId);
-      const upstreamUnitId = unitToUpstreamUnit.get(unitId);
-      const upstreamAreaId = upstreamUnitId ? unitToArea.get(upstreamUnitId) : undefined;
-
-      if (currentAreaId !== undefined && upstreamAreaId !== undefined && currentAreaId !== upstreamAreaId) {
-        // 当前区域的直接上游 = 上游单元的区域
-        areaToDirectUpstream.get(currentAreaId)!.add(upstreamAreaId);
-        // 上游区域的直接下游 = 当前区域
-        areaToDirectDownstream.get(upstreamAreaId)!.add(currentAreaId);
-      }
-    });
-
-    // 第三步：以自身为中心，递归收集所有上下游（含间接）
-    const getSelfCenteredRelations = (startAreaId: number): number[] => {
-      const result = new Set<number>([startAreaId]); // 自身必含
-
-      // 递归收集所有上游（含间接）
-      const collectUpstream = (areaId: number) => {
-        const directUpstreams = areaToDirectUpstream.get(areaId)!;
-        directUpstreams.forEach((upAreaId) => {
-          if (!result.has(upAreaId)) {
-            result.add(upAreaId);
-            collectUpstream(upAreaId); // 递归上游的上游
-          }
-        });
-      };
-
-      // 递归收集所有下游（含间接）
-      const collectDownstream = (areaId: number) => {
-        const directDownstreams = areaToDirectDownstream.get(areaId)!;
-        directDownstreams.forEach((downAreaId) => {
-          if (!result.has(downAreaId)) {
-            result.add(downAreaId);
-            collectDownstream(downAreaId); // 递归下游的下游
-          }
-        });
-      };
-
-      collectUpstream(startAreaId);
-      collectDownstream(startAreaId);
-
-      return Array.from(result);
-    };
-
-    // 第四步：生成最终Map
     const resultMap = new Map<number, number[]>();
+    const allAreaIds = new Set<number>();
+
+    // 第一步：收集所有区域ID和接入点映射
+    const accessPointToArea = new Map<number, number>(); // 接入点ID -> 区域ID
+
+    workUnitByArea.value.forEach((unit) => {
+      allAreaIds.add(unit.bk_networkarea_id);
+
+      // 收集该单元的所有接入点对应的区域ID
+      unit.accesspoints?.forEach((ap) => {
+        accessPointToArea.set(ap.accesspoint_id, unit.bk_networkarea_id);
+      });
+    });
+
+    // 第二步：根据单元的链接关系建立区域间连接
+    const areaConnections = new Map<number, Set<number>>();
     allAreaIds.forEach((areaId) => {
-      const relations = getSelfCenteredRelations(areaId);
-      resultMap.set(areaId, relations);
+      areaConnections.set(areaId, new Set([areaId])); // 每个区域都包含自身
+    });
+
+    workUnitByArea.value.forEach((unit) => {
+      const currentAreaId = unit.bk_networkarea_id;
+
+      // 检查所有类型的链接
+      const linkTypes = ['cluster', 'file', 'data'] as const;
+      linkTypes.forEach((type) => {
+        const link = unit.links[type];
+        if (link?.accesspoint_id !== undefined) {
+          // 通过接入点ID找到对应的区域ID
+          const linkedAreaId = accessPointToArea.get(link.accesspoint_id);
+          if (linkedAreaId !== undefined && linkedAreaId !== currentAreaId) {
+            // 建立双向连接关系
+            areaConnections.get(currentAreaId)!.add(linkedAreaId);
+            areaConnections.get(linkedAreaId)!.add(currentAreaId);
+          }
+        }
+      });
+    });
+
+    // 第三步：为每个区域构建完整的依赖关系
+    allAreaIds.forEach((areaId) => {
+      const relatedAreas = new Set<number>();
+      const visited = new Set<number>();
+
+      const collectRelatedAreas = (currentAreaId: number) => {
+        if (visited.has(currentAreaId)) return;
+        visited.add(currentAreaId);
+        relatedAreas.add(currentAreaId);
+
+        areaConnections.get(currentAreaId)?.forEach((connectedAreaId) => {
+          if (!visited.has(connectedAreaId)) {
+            collectRelatedAreas(connectedAreaId);
+          }
+        });
+      };
+
+      collectRelatedAreas(areaId);
+      resultMap.set(areaId, Array.from(relatedAreas));
     });
 
     return resultMap;
