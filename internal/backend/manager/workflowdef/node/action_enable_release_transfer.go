@@ -83,7 +83,7 @@ func (act *actionEnableReleaseTransfer) DelayFn() func() {
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionEnableReleaseTransfer) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamDetectInfoBySSH)
+	param := new(ActionParamEnableReleaseTransfer)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

@@ -159,7 +159,10 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std.InstanceData().LogI("install pagent by ssh successfully")
+	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+		NodeActionStandardParam: param.NodeActionStandardParam,
+		EnsureAgentID:           true,
+	})
 
 	return nil
 }

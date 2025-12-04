@@ -167,6 +167,11 @@ func (act *actionReconfigNode) Do(ctx *action.InstanceContext) error {
 		BaseDeployDir:    deployConstant.BaseDeployDir,
 	}
 
+	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+		NodeActionStandardParam: param.NodeActionStandardParam,
+		EnsureAgentID:           true,
+	})
+
 	// exec reconfig command
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {
 		return act.doReconfigWindows(std, reconfigParams)

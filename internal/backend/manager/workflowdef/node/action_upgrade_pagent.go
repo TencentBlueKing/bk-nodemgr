@@ -100,7 +100,7 @@ func (act *actionUpgradePagent) DelayFn() func() {
 // nolint: funlen,nonamedreturns
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamInstallAgentBySSH)
+	param := new(ActionParamUpgradePagent)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -125,6 +125,11 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return err
 	}
+
+	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+		NodeActionStandardParam: param.NodeActionStandardParam,
+		EnsureAgentID:           true,
+	})
 
 	// exec upgrade command
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {

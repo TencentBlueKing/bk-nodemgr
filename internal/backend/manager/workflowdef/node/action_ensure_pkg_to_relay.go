@@ -120,7 +120,7 @@ func (act *actionEnsurePkgToRelay) DelayFn() func() {
 // nolint: perfsprint,funlen
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamInstallPagentBywmi)
+	param := new(ActParamEnsurePkgToRelay)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err

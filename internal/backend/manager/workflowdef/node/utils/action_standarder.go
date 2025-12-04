@@ -15,6 +15,7 @@ import (
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -85,6 +86,16 @@ func (std *NodeActionStandarder) Operator() string {
 // InstanceData returns the instance data.
 func (std *NodeActionStandarder) InstanceData() *action.InstanceData {
 	return std.instanceContext.Data
+}
+
+// ResetInstanceDataContext resets the instance data content.
+func (std *NodeActionStandarder) ResetInstanceDataContext() {
+	std.instanceContext.Data.Content = conv.StructToMapIgnoreError(std.param)
+}
+
+// UpdateInstanceDataContent updates the instance data content.
+func (std *NodeActionStandarder) UpdateInstanceDataContent(obj any) {
+	std.instanceContext.Data.UpdateContent(obj)
 }
 
 // NodeActionStandardParam defines the standard parameters of node action.

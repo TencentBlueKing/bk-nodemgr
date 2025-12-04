@@ -39,6 +39,12 @@ func NewActionWaitInstallerComplete(capability *Capability) action.Definition {
 	}
 }
 
+// ActionWaitInstallerComplete defines the action param.
+type ActionWaitInstallerComplete struct {
+	nodeUtils.NodeActionStandardParam `json:",inline"`
+	EnsureAgentID                     bool `json:"ensure_agent_id"`
+}
+
 type actionWaitInstallerComplete struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
 	storageActionInstance workflow.IStorageActionInstance
@@ -82,7 +88,7 @@ func (act *actionWaitInstallerComplete) DelayFn() func() {
 // Do this func define what the action will do.
 // nolint: gocognit
 func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
-	param := new(ActionParamReconfigNode)
+	param := new(ActionWaitInstallerComplete)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -104,7 +110,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	ticker := time.NewTicker(waitReportInterval)
 	defer ticker.Stop()
 
-	var agentID, rawInstallerResult string
+	var rawInstallerResult string
 
 	for {
 		select {
@@ -112,14 +118,17 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 			return nil
 
 		case <-ticker.C:
-			// fetch agent id
-			agentID, err = act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportAgentIDKey)
-			if err != nil {
-				return err
-			}
+			// if agent-id set, fetch agent id
+			if param.EnsureAgentID {
+				agentID, err := act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportAgentIDKey)
+				if err != nil {
+					return err
+				}
 
-			if agentID == "" {
-				continue
+				if agentID == "" {
+					continue
+				}
+				std.DeployInfo().Host.Dynamic.AgentID = agentID
 			}
 
 			// fetch installer result
@@ -136,15 +145,13 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 		break
 	}
 
-	// update agent id to deployment record
-	std.DeployInfo().Host.Dynamic.AgentID = agentID
-	std.InstanceData().LogI(fmt.Sprintf("received agent id from installer report. agent-id(%s)", agentID))
-
-	installerResult := installer.ProcessState(rawInstallerResult)
 	// check and update action state
+	installerResult := installer.ProcessState(rawInstallerResult)
 	switch installerResult {
 	case installer.ProcessStateSuccess:
-		std.InstanceData().LogI("received installer result is success.")
+		// reset action context
+		std.ResetInstanceDataContext()
+		std.InstanceData().LogI("received installer result is success")
 
 		return nil
 
