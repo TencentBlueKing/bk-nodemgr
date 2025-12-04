@@ -69,7 +69,7 @@ func (mgr *manager) launchWorker() error {
 // do executes the action defined by actionName for the operation instance with operationInstanceID.
 // this func only accept context.Context as input, so we accept context.Context and then change it to contextx.IContext.
 //
-// nolint: funlen,gocognit,cyclop,gocyclo,lll,fnsize
+// nolint: funlen,gocognit,cyclop,gocyclo,lll
 func (mgr *manager) do(ctx context.Context, actionName string, operationInstanceID string, traceID string, spanID string) error {
 	tid, err := trace.TraceIDFromHex(traceID)
 	if err != nil {

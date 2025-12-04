@@ -286,7 +286,7 @@ func buildExternalPluginPkgController(pluginProject *ExternalPluginProject) type
 }
 
 // PublishReleaseExternalPlugin generates release external plugin by upload-id.
-// nolint: funlen,gocognit,fnsize
+// nolint: funlen,gocognit
 func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetExternalPluginV2Upload(nCtx, uploadID)
 	if err != nil {
@@ -437,7 +437,7 @@ type releaseExternalPluginPkg struct {
 }
 
 // generateExternalPluginPkg generates external plugin package.
-// nolint:funlen,gocognit,gocyclo,cyclop,fnsize
+// nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 	originDetail *types.OriginExternalPluginV2PkgDetail,
