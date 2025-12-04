@@ -96,9 +96,10 @@ func (h *handler) getUninstallNodeHosts(
 
 	hosts, _, err := h.storageHost.ListHost(nCtx,
 		types.UnlimitedPage(),
-		&types.HostCondition{ExactInclude: &types.HostExactFields{
-			HostID: conv.MapKeyToSlice(hostIDs),
-		}})
+		&types.HostCondition{
+			StaticExactInclude: &types.HostStaticExactFields{
+				HostID: conv.MapKeyToSlice(hostIDs),
+			}})
 
 	result := make(map[int64]*types.Host)
 	for _, host := range hosts {

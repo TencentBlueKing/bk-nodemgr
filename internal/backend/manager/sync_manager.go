@@ -96,7 +96,7 @@ func (mgr *Manager) LaunchSyncAgentState(ctx contextx.IContext, hostIDs ...int64
 	}
 
 	hosts, err := mgr.conf.StorageTopo.FindHostWithDynamic(ctx, types.UnlimitedPage(), &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
+		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: hostIDs,
 		},
 	})
@@ -269,7 +269,7 @@ func (mgr *Manager) LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64)
 	}
 
 	hosts, err := mgr.conf.StorageTopo.FindHostWithDynamic(ctx, types.UnlimitedPage(), &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
+		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: hostIDs,
 		},
 	})

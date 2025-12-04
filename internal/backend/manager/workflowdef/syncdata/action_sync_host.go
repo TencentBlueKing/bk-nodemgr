@@ -112,7 +112,7 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 
 	gp.Go(func() error {
 		dbData, _, err = act.storageHost.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
+			StaticExactInclude: &types.HostStaticExactFields{
 				BizID: []int64{param.BizID},
 			},
 		})

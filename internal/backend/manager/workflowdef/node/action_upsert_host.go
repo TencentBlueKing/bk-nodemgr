@@ -124,7 +124,7 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 			Offset: 0,
 			Limit:  1,
 		}, &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
+			StaticExactInclude: &types.HostStaticExactFields{
 				NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
 				Addressing:    []types.Addressing{info.Host.Static.Addressing},
 				InnerIP:       info.Host.Static.InnerIPList,
@@ -159,7 +159,7 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 
 	// host-id specified.
 	count, err := act.storageHost.CountHost(nCtx, &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
+		StaticExactInclude: &types.HostStaticExactFields{
 			HostID:        []int64{info.Host.HostID},
 			NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
 			Addressing:    []types.Addressing{info.Host.Static.Addressing},

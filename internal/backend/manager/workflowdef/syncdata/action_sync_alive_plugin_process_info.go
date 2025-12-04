@@ -102,7 +102,7 @@ func (act *actionSyncAlivePluginProcessInfo) Do(ctx *action.InstanceContext) err
 	}
 
 	hosts, err := act.hostStg.FindHostWithDynamic(std.Context(), types.UnlimitedPage(), &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
+		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: param.HostIDs,
 		},
 	})

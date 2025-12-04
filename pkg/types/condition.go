@@ -60,12 +60,9 @@ type BusinessCondition struct {
 	FuzzyExclude *BusinessFuzzyFields
 }
 
-// HostExactFields defines the host exact fields.
+// HostDynamicExactFields defines the host exact fields.
 // support includes and excludes.
-type HostExactFields struct {
-	HostID         []int64
-	BizID          []int64
-	NetworkAreaID  []int64
+type HostDynamicExactFields struct {
 	NetworkUnitID  []int64
 	OSType         []string
 	Arch           []string
@@ -74,12 +71,25 @@ type HostExactFields struct {
 	NodeVersion    []string
 	NodeGeneration []int64
 	AgentID        []string
-	InnerIP        []string
-	Addressing     []Addressing
 }
 
-// HostFuzzyFields defines the host fuzzy fields.
-type HostFuzzyFields struct {
+// HostDynamicFuzzyFields defines the host fuzzy fields.
+type HostDynamicFuzzyFields struct {
+}
+
+// HostStaticExactFields defines the host exact fields.
+// support includes and excludes.
+type HostStaticExactFields struct {
+	HostID        []int64
+	BizID         []int64
+	NetworkAreaID []int64
+	InnerIP       []string
+	Addressing    []Addressing
+}
+
+// HostStaticFuzzyFields defines the host fuzzy fields.
+type HostStaticFuzzyFields struct {
+	HostID    []int64
 	HostName  []string
 	DeptName  []string
 	InnerIP   []string
@@ -91,17 +101,29 @@ type HostFuzzyFields struct {
 // HostCondition defines the host condition.
 // in this condition, fields are generated with AND expr.
 type HostCondition struct {
-	// will be used when condition type is included in exact mode.
-	ExactInclude *HostExactFields
+	// will be used when condition type is included in static exact mode.
+	StaticExactInclude *HostStaticExactFields
 
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *HostFuzzyFields
+	// will be used when condition type is included in static fuzzy mode.
+	StaticFuzzyInclude *HostStaticFuzzyFields
 
-	// will be used when condition type is excluded in exclude mode.
-	ExactExclude *HostExactFields
+	// will be used when condition type is excluded in static exclude mode.
+	StaticExactExclude *HostStaticExactFields
 
-	// will be used when condition type is excluded in exclude mode.
-	FuzzyExclude *HostFuzzyFields
+	// will be used when condition type is excluded in static exclude mode.
+	StaticFuzzyExclude *HostStaticFuzzyFields
+
+	// will be used when condition type is included in dynamic exact mode.
+	DynamicExactInclude *HostDynamicExactFields
+
+	// will be used when condition type is included in dynamic fuzzy mode.
+	DynamicFuzzyInclude *HostDynamicFuzzyFields
+
+	// will be used when condition type is excluded in dynamic exclude mode.
+	DynamicExactExclude *HostDynamicExactFields
+
+	// will be used when condition type is excluded in dynamic exclude mode.
+	DynamicFuzzyExclude *HostDynamicFuzzyFields
 }
 
 // NetworkAreaExactFields defines the network area exact fields.

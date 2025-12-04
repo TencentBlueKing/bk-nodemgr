@@ -223,7 +223,7 @@ func (h *handler) getHostByIPs(nCtx contextx.IContext,
 
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		cond := &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
+			StaticExactInclude: &types.HostStaticExactFields{
 				InnerIP: innerIPs,
 			},
 		}

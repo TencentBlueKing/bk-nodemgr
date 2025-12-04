@@ -11,8 +11,6 @@
 package v3
 
 import (
-	"errors"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -38,13 +36,13 @@ func (x *TopoHostListReq) ConvertConditionsToTypes() *types.HostCondition {
 
 // ConvertConditionsFromTypes convert types to proto.
 func (x *TopoHostListReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
-	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	exactIncludeCond, fuzzyIncludeCond, err := convertHostConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
-	x.ExactIncludeConditions = exactCond
-	x.FuzzyIncludeConditions = fuzzyCond
+	x.ExactIncludeConditions = exactIncludeCond
+	x.FuzzyIncludeConditions = fuzzyIncludeCond
 
 	return nil
 }
@@ -176,13 +174,13 @@ func (x *TopoHostDistinctReq) ConvertConditionsToTypes() *types.HostCondition {
 
 // ConvertConditionsFromTypes converts the request to types.
 func (x *TopoHostDistinctReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
-	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	exactIncludeCond, fuzzyIncludeCond, err := convertHostConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
-	x.ExactIncludeConditions = exactCond
-	x.FuzzyIncludeConditions = fuzzyCond
+	x.ExactIncludeConditions = exactIncludeCond
+	x.FuzzyIncludeConditions = fuzzyIncludeCond
 
 	return nil
 }
@@ -306,36 +304,39 @@ func newEmptyHost() *Host {
 }
 
 func convertHostConditionsToTypes(
-	exactCond *TopoHostExactConditions, fuzzyCond *TopoHostFuzzyConditions) *types.HostCondition {
+	exactIncludeCond *TopoHostExactConditions, fuzzyIncludeCond *TopoHostFuzzyConditions) *types.HostCondition {
 
 	condition := &types.HostCondition{}
 
 	// exact conditions.
-	if exactCond != nil {
-		condition.ExactInclude = &types.HostExactFields{
-			HostID:         exactCond.GetBkHostId(),
-			BizID:          exactCond.GetBkBizId(),
-			NetworkAreaID:  exactCond.GetBkNetworkareaId(),
-			NetworkUnitID:  exactCond.GetBkNetworkunitId(),
-			OSType:         exactCond.GetOsType(),
-			Arch:           exactCond.GetArch(),
-			NodeRole:       types.StringListToNodeRoleList(exactCond.GetNodeRole()),
-			NodeStatus:     types.StringListToNodeStatusList(exactCond.GetNodeStatus()),
-			NodeVersion:    exactCond.GetNodeVersion(),
-			NodeGeneration: exactCond.GetNodeGeneration(),
-			AgentID:        exactCond.GetBkAgentId(),
+	if exactIncludeCond != nil {
+		condition.StaticExactInclude = &types.HostStaticExactFields{
+			HostID:        exactIncludeCond.GetBkHostId(),
+			BizID:         exactIncludeCond.GetBkBizId(),
+			NetworkAreaID: exactIncludeCond.GetBkNetworkareaId(),
+		}
+
+		condition.DynamicExactInclude = &types.HostDynamicExactFields{
+			NetworkUnitID:  exactIncludeCond.GetBkNetworkunitId(),
+			OSType:         exactIncludeCond.GetOsType(),
+			Arch:           exactIncludeCond.GetArch(),
+			NodeRole:       types.StringListToNodeRoleList(exactIncludeCond.GetNodeRole()),
+			NodeStatus:     types.StringListToNodeStatusList(exactIncludeCond.GetNodeStatus()),
+			NodeVersion:    exactIncludeCond.GetNodeVersion(),
+			NodeGeneration: exactIncludeCond.GetNodeGeneration(),
+			AgentID:        exactIncludeCond.GetBkAgentId(),
 		}
 	}
 
 	// fuzzy conditions.
-	if fuzzyCond != nil {
-		condition.FuzzyInclude = &types.HostFuzzyFields{
-			HostName:  fuzzyCond.GetBkHostName(),
-			DeptName:  fuzzyCond.GetDeptName(),
-			InnerIP:   fuzzyCond.GetBkHostInnerip(),
-			InnerIPV6: fuzzyCond.GetBkHostInneripV6(),
-			OuterIP:   fuzzyCond.GetBkHostOuterip(),
-			OuterIPV6: fuzzyCond.GetBkHostOuteripV6(),
+	if fuzzyIncludeCond != nil {
+		condition.StaticFuzzyInclude = &types.HostStaticFuzzyFields{
+			HostName:  fuzzyIncludeCond.GetBkHostName(),
+			DeptName:  fuzzyIncludeCond.GetDeptName(),
+			InnerIP:   fuzzyIncludeCond.GetBkHostInnerip(),
+			InnerIPV6: fuzzyIncludeCond.GetBkHostInneripV6(),
+			OuterIP:   fuzzyIncludeCond.GetBkHostOuterip(),
+			OuterIPV6: fuzzyIncludeCond.GetBkHostOuteripV6(),
 		}
 	}
 
@@ -345,45 +346,40 @@ func convertHostConditionsToTypes(
 func convertHostConditionsFromTypes(
 	condition *types.HostCondition) (*TopoHostExactConditions, *TopoHostFuzzyConditions, error) {
 
+	exactIncludeCond := new(TopoHostExactConditions)
+	fuzzyIncludeCond := new(TopoHostFuzzyConditions)
+
 	if condition == nil {
-		return nil, nil, nil
+		return exactIncludeCond, fuzzyIncludeCond, nil
 	}
 
-	var exactCond *TopoHostExactConditions
-	var fuzzyCond *TopoHostFuzzyConditions
-
-	if condition.ExactInclude != nil {
-		exactCond = &TopoHostExactConditions{
-			BkHostId:        condition.ExactInclude.HostID,
-			BkBizId:         condition.ExactInclude.BizID,
-			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
-			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
-			OsType:          condition.ExactInclude.OSType,
-			Arch:            condition.ExactInclude.Arch,
-			NodeRole:        types.NodeRoleListToStringList(condition.ExactInclude.NodeRole),
-			NodeStatus:      types.NodeStatusListToStringList(condition.ExactInclude.NodeStatus),
-			NodeVersion:     condition.ExactInclude.NodeVersion,
-			NodeGeneration:  condition.ExactInclude.NodeGeneration,
-			BkAgentId:       condition.ExactInclude.AgentID,
-		}
+	if condition.StaticExactInclude != nil {
+		exactIncludeCond.BkHostId = condition.StaticExactInclude.HostID
+		exactIncludeCond.BkBizId = condition.StaticExactInclude.BizID
+		exactIncludeCond.BkNetworkareaId = condition.StaticExactInclude.NetworkAreaID
 	}
 
-	if condition.FuzzyInclude != nil {
-		fuzzyCond = &TopoHostFuzzyConditions{
-			BkHostName:      condition.FuzzyInclude.HostName,
-			DeptName:        condition.FuzzyInclude.DeptName,
-			BkHostInnerip:   condition.FuzzyInclude.InnerIP,
-			BkHostInneripV6: condition.FuzzyInclude.InnerIPV6,
-			BkHostOuterip:   condition.FuzzyInclude.OuterIP,
-			BkHostOuteripV6: condition.FuzzyInclude.OuterIPV6,
-		}
+	if condition.StaticFuzzyInclude != nil {
+		fuzzyIncludeCond.BkHostName = condition.StaticFuzzyInclude.HostName
+		fuzzyIncludeCond.DeptName = condition.StaticFuzzyInclude.DeptName
+		fuzzyIncludeCond.BkHostInnerip = condition.StaticFuzzyInclude.InnerIP
+		fuzzyIncludeCond.BkHostInneripV6 = condition.StaticFuzzyInclude.InnerIPV6
+		fuzzyIncludeCond.BkHostOuterip = condition.StaticFuzzyInclude.OuterIP
+		fuzzyIncludeCond.BkHostOuteripV6 = condition.StaticFuzzyInclude.OuterIPV6
 	}
 
-	if condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, errors.New("exact-exclude and fuzzy-exclude not supported")
+	if condition.DynamicExactInclude != nil {
+		exactIncludeCond.BkNetworkunitId = condition.DynamicExactInclude.NetworkUnitID
+		exactIncludeCond.OsType = condition.DynamicExactInclude.OSType
+		exactIncludeCond.Arch = condition.DynamicExactInclude.Arch
+		exactIncludeCond.NodeRole = types.NodeRoleListToStringList(condition.DynamicExactInclude.NodeRole)
+		exactIncludeCond.NodeStatus = types.NodeStatusListToStringList(condition.DynamicExactInclude.NodeStatus)
+		exactIncludeCond.NodeVersion = condition.DynamicExactInclude.NodeVersion
+		exactIncludeCond.NodeGeneration = condition.DynamicExactInclude.NodeGeneration
+		exactIncludeCond.BkAgentId = condition.DynamicExactInclude.AgentID
 	}
 
-	return exactCond, fuzzyCond, nil
+	return exactIncludeCond, fuzzyIncludeCond, nil
 }
 
 // Validate validates the request.
@@ -402,13 +398,13 @@ func (x *TopoGetHostDistributionByNodeRoleReq) ConvertConditionsToTypes() *types
 
 // ConvertConditionsFromTypes converts the request to types.
 func (x *TopoGetHostDistributionByNodeRoleReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
-	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	exactIncludeCond, fuzzyIncludeCond, err := convertHostConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
-	x.ExactIncludeConditions = exactCond
-	x.FuzzyIncludeConditions = fuzzyCond
+	x.ExactIncludeConditions = exactIncludeCond
+	x.FuzzyIncludeConditions = fuzzyIncludeCond
 
 	return nil
 }
@@ -429,13 +425,13 @@ func (x *TopoGetHostDistributionByNetworkAreaIDReq) ConvertConditionsToTypes() *
 
 // ConvertConditionsFromTypes converts the request to types.
 func (x *TopoGetHostDistributionByNetworkAreaIDReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
-	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	exactIncludeCond, fuzzyIncludeCond, err := convertHostConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
-	x.ExactIncludeConditions = exactCond
-	x.FuzzyIncludeConditions = fuzzyCond
+	x.ExactIncludeConditions = exactIncludeCond
+	x.FuzzyIncludeConditions = fuzzyIncludeCond
 
 	return nil
 }

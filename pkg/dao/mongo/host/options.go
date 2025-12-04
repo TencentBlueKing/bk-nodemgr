@@ -247,3 +247,23 @@ func WithoutFuzzyStaticOuterIPV6List(ips ...string) OptFn {
 func WithoutAgentID(agentIDs ...string) OptFn {
 	return base.WithoutValues(FieldKeyDynamicAgentID, agentIDs...)
 }
+
+// WithoutNodeGeneration filters by not contains node generation.
+func WithoutNodeGeneration(generations ...int64) OptFn {
+	return base.WithoutValues(FieldKeyDynamicNodeGeneration, generations...)
+}
+
+// WithoutStaticAddressing filters by contains addressing.
+func WithoutStaticAddressing(addressings ...types.Addressing) OptFn {
+	strs := make([]string, len(addressings))
+	for idx, addressing := range addressings {
+		strs[idx] = string(addressing)
+	}
+
+	return base.WithoutValues(FieldKeyStaticAddressing, strs...)
+}
+
+// WithoutStaticInnerIPList filters by contains inner ip list.
+func WithoutStaticInnerIPList(ips ...string) OptFn {
+	return base.WithoutValues(FieldKeyStaticInnerIPList, ips...)
+}

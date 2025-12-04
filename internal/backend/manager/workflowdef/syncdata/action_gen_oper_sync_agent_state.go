@@ -107,7 +107,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		// find nodes and sync agent state. skip the empty-agent-id nodes.
 		cond := &types.HostCondition{
-			ExactExclude: &types.HostExactFields{
+			DynamicExactExclude: &types.HostDynamicExactFields{
 				AgentID: []string{""},
 			},
 		}

@@ -123,7 +123,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 		Offset: 0,
 		Limit:  1,
 	}, &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
+		StaticExactInclude: &types.HostStaticExactFields{
 			NetworkAreaID: []int64{std.DeployInfo().Host.Static.NetworkAreaID},
 			Addressing:    []types.Addressing{std.DeployInfo().Host.Static.Addressing},
 			InnerIP:       std.DeployInfo().Host.Static.InnerIPList,

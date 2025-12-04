@@ -109,7 +109,7 @@ func (act *actionGenOperSyncAlivePluginProcessInfo) Do(ctx *action.InstanceConte
 	executor := pageexecutor.NewPageExecutor[*types.Host](syncAlivePluginProcessStatusMaxPageSize, 1*time.Hour)
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		hosts, err := act.topoStg.FindHostWithDynamic(nCtx, p, &types.HostCondition{
-			ExactExclude: &types.HostExactFields{
+			DynamicExactExclude: &types.HostDynamicExactFields{
 				AgentID: []string{""},
 			},
 		})

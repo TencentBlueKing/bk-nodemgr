@@ -127,7 +127,7 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	}
 
 	hosts, num, err := act.storageHost.ListHost(std.Context(), types.UnlimitedPage(), &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
+		DynamicExactInclude: &types.HostDynamicExactFields{
 			NetworkUnitID: []int64{networkunitID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 			NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},

@@ -80,7 +80,7 @@ func (h *handler) countAgents(rCtx restserver.IContext, gp gopool.Pool, result m
 	// count total agent
 	gp.Go(func() error {
 		totalAgents, err := h.storage.CountHost(rCtx, &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
+			DynamicExactInclude: &types.HostDynamicExactFields{
 				NetworkUnitID: []int64{id},
 				NodeRole:      []types.NodeRole{types.NodeRoleAgent},
 			},
@@ -96,7 +96,7 @@ func (h *handler) countAgents(rCtx restserver.IContext, gp gopool.Pool, result m
 	// count running agent
 	gp.Go(func() error {
 		runningAgents, err := h.storage.CountHost(rCtx, &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
+			DynamicExactInclude: &types.HostDynamicExactFields{
 				NetworkUnitID: []int64{id},
 				NodeRole:      []types.NodeRole{types.NodeRoleAgent},
 				NodeStatus:    []types.NodeStatus{types.NodeStatusRunning},
@@ -148,7 +148,7 @@ type proxyData struct {
 
 func (h *handler) getProxyData(rCtx restserver.IContext, networkUnitID int64) (*proxyData, error) {
 	proxies, totalProxy, err := h.storage.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
+		DynamicExactInclude: &types.HostDynamicExactFields{
 			NetworkUnitID: []int64{networkUnitID},
 			NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 		},

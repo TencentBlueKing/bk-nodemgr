@@ -198,7 +198,7 @@ func Test_hanlder_ListHost(t *testing.T) {
 					Limit:  500,
 				},
 				condition: &types.HostCondition{
-					ExactInclude: &types.HostExactFields{
+					StaticExactInclude: &types.HostStaticExactFields{
 						BizID: []int64{0, 1, 2},
 					},
 				},

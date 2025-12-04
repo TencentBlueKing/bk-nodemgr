@@ -111,7 +111,7 @@ func (h *handler) CountGraphNode(rCtx restserver.IContext) (interface{}, error) 
 		// count agent.
 		gp.Go(func() error {
 			num, err := h.backendHandler.CountHost(rCtx, &types.HostCondition{
-				ExactInclude: &types.HostExactFields{
+				DynamicExactInclude: &types.HostDynamicExactFields{
 					NetworkUnitID: []int64{id},
 					NodeRole:      []types.NodeRole{types.NodeRoleAgent},
 				},
@@ -128,7 +128,7 @@ func (h *handler) CountGraphNode(rCtx restserver.IContext) (interface{}, error) 
 		// count proxy.
 		gp.Go(func() error {
 			num, err := h.backendHandler.CountHost(rCtx, &types.HostCondition{
-				ExactInclude: &types.HostExactFields{
+				DynamicExactInclude: &types.HostDynamicExactFields{
 					NetworkUnitID: []int64{id},
 					NodeRole:      []types.NodeRole{types.NodeRoleProxy},
 				},

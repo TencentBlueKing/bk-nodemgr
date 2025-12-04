@@ -226,7 +226,7 @@ func (h *handler) fetchExistedHosts(ctx contextx.IContext, hosts []*protoBackend
 	}
 
 	existedHostList, _, err := h.storageHost.ListHost(ctx, types.UnlimitedPage(), &types.HostCondition{
-		ExactInclude: &types.HostExactFields{
+		StaticExactInclude: &types.HostStaticExactFields{
 			HostID: conv.MapKeyToSlice(hostIDMap),
 		},
 	})

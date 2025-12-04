@@ -403,7 +403,7 @@ func (x *PackageReleaseDeployedHostCountReq) ConvertConditionsToHostTypes() (*ty
 		return &types.HostCondition{}, nil
 	}
 
-	condition := &types.HostExactFields{
+	condition := &types.HostDynamicExactFields{
 		NodeRole:       make([]types.NodeRole, 0),
 		NodeGeneration: make([]int64, 0),
 		OSType:         make([]string, 0),
@@ -424,7 +424,7 @@ func (x *PackageReleaseDeployedHostCountReq) ConvertConditionsToHostTypes() (*ty
 	}
 
 	return &types.HostCondition{
-		ExactInclude: condition,
+		DynamicExactInclude: condition,
 	}, nil
 }
 

@@ -19,7 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/business"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/host"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -272,61 +271,71 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 			continue
 		}
 
-		if condition.ExactInclude != nil {
+		if condition.StaticExactInclude != nil {
 			opts = append(opts,
-				host.WithHostID(condition.ExactInclude.HostID...),
-				host.WithBizID(condition.ExactInclude.BizID...),
-				host.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-				host.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
-				host.WithOSType(condition.ExactInclude.OSType...),
-				host.WithArch(condition.ExactInclude.Arch...),
-				host.WithNodeRole(condition.ExactInclude.NodeRole...),
-				host.WithNodeStatus(condition.ExactInclude.NodeStatus...),
-				host.WithNodeVersion(condition.ExactInclude.NodeVersion...),
-				host.WithAgentID(condition.ExactInclude.AgentID...),
-				host.WithNodeGeneration(condition.ExactInclude.NodeGeneration...),
-				host.WithStaticAddressing(condition.ExactInclude.Addressing...),
-				host.WithStaticInnerIPList(condition.ExactInclude.InnerIP...),
+				host.WithHostID(condition.StaticExactInclude.HostID...),
+				host.WithBizID(condition.StaticExactInclude.BizID...),
+				host.WithNetworkAreaID(condition.StaticExactInclude.NetworkAreaID...),
+				host.WithStaticAddressing(condition.StaticExactInclude.Addressing...),
+				host.WithStaticInnerIPList(condition.StaticExactInclude.InnerIP...),
 			)
 		}
 
-		if condition.ExactExclude != nil {
+		if condition.DynamicExactInclude != nil {
 			opts = append(opts,
-				business.WithoutBizID(condition.ExactExclude.HostID...),
-				host.WithoutBizID(condition.ExactExclude.BizID...),
-				host.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
-				host.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
-				host.WithoutOSType(condition.ExactExclude.OSType...),
-				host.WithoutArch(condition.ExactExclude.Arch...),
-				host.WithoutNodeRole(condition.ExactExclude.NodeRole...),
-				host.WithoutNodeStatus(condition.ExactExclude.NodeStatus...),
-				host.WithoutNodeVersion(condition.ExactExclude.NodeVersion...),
-				host.WithoutAgentID(condition.ExactExclude.AgentID...),
-				host.WithNodeGeneration(condition.ExactExclude.NodeGeneration...),
-				host.WithStaticAddressing(condition.ExactExclude.Addressing...),
-				host.WithStaticInnerIPList(condition.ExactExclude.InnerIP...),
+				host.WithNetworkUnitID(condition.DynamicExactInclude.NetworkUnitID...),
+				host.WithOSType(condition.DynamicExactInclude.OSType...),
+				host.WithArch(condition.DynamicExactInclude.Arch...),
+				host.WithNodeRole(condition.DynamicExactInclude.NodeRole...),
+				host.WithNodeStatus(condition.DynamicExactInclude.NodeStatus...),
+				host.WithNodeVersion(condition.DynamicExactInclude.NodeVersion...),
+				host.WithAgentID(condition.DynamicExactInclude.AgentID...),
+				host.WithNodeGeneration(condition.DynamicExactInclude.NodeGeneration...),
 			)
 		}
 
-		if condition.FuzzyInclude != nil {
+		if condition.StaticExactExclude != nil {
 			opts = append(opts,
-				host.WithFuzzyHostName(condition.FuzzyInclude.HostName...),
-				host.WithFuzzyDeptName(condition.FuzzyInclude.DeptName...),
-				host.WithFuzzyStaticInnerIPList(condition.FuzzyInclude.InnerIP...),
-				host.WithFuzzyStaticInnerIPV6List(condition.FuzzyInclude.InnerIPV6...),
-				host.WithFuzzyStaticOuterIPList(condition.FuzzyInclude.OuterIP...),
-				host.WithFuzzyStaticOuterIPV6List(condition.FuzzyInclude.OuterIPV6...),
+				host.WithoutHostID(condition.StaticExactExclude.HostID...),
+				host.WithoutBizID(condition.StaticExactExclude.BizID...),
+				host.WithoutNetworkAreaID(condition.StaticExactExclude.NetworkAreaID...),
+				host.WithoutStaticAddressing(condition.StaticExactExclude.Addressing...),
+				host.WithoutStaticInnerIPList(condition.StaticExactExclude.InnerIP...),
 			)
 		}
 
-		if condition.FuzzyExclude != nil {
+		if condition.DynamicExactExclude != nil {
 			opts = append(opts,
-				host.WithoutFuzzyHostName(condition.FuzzyExclude.HostName...),
-				host.WithoutFuzzyDeptName(condition.FuzzyExclude.DeptName...),
-				host.WithoutFuzzyStaticInnerIPList(condition.FuzzyExclude.InnerIP...),
-				host.WithoutFuzzyStaticInnerIPV6List(condition.FuzzyExclude.InnerIPV6...),
-				host.WithoutFuzzyStaticOuterIPList(condition.FuzzyExclude.OuterIP...),
-				host.WithoutFuzzyStaticOuterIPV6List(condition.FuzzyExclude.OuterIPV6...),
+				host.WithoutNetworkUnitID(condition.DynamicExactExclude.NetworkUnitID...),
+				host.WithoutOSType(condition.DynamicExactExclude.OSType...),
+				host.WithoutArch(condition.DynamicExactExclude.Arch...),
+				host.WithoutNodeRole(condition.DynamicExactExclude.NodeRole...),
+				host.WithoutNodeStatus(condition.DynamicExactExclude.NodeStatus...),
+				host.WithoutNodeVersion(condition.DynamicExactExclude.NodeVersion...),
+				host.WithoutAgentID(condition.DynamicExactExclude.AgentID...),
+				host.WithoutNodeGeneration(condition.DynamicExactExclude.NodeGeneration...),
+			)
+		}
+
+		if condition.StaticFuzzyInclude != nil {
+			opts = append(opts,
+				host.WithFuzzyHostName(condition.StaticFuzzyInclude.HostName...),
+				host.WithFuzzyDeptName(condition.StaticFuzzyInclude.DeptName...),
+				host.WithFuzzyStaticInnerIPList(condition.StaticFuzzyInclude.InnerIP...),
+				host.WithFuzzyStaticInnerIPV6List(condition.StaticFuzzyInclude.InnerIPV6...),
+				host.WithFuzzyStaticOuterIPList(condition.StaticFuzzyInclude.OuterIP...),
+				host.WithFuzzyStaticOuterIPV6List(condition.StaticFuzzyInclude.OuterIPV6...),
+			)
+		}
+
+		if condition.StaticFuzzyExclude != nil {
+			opts = append(opts,
+				host.WithoutFuzzyHostName(condition.StaticFuzzyExclude.HostName...),
+				host.WithoutFuzzyDeptName(condition.StaticFuzzyExclude.DeptName...),
+				host.WithoutFuzzyStaticInnerIPList(condition.StaticFuzzyExclude.InnerIP...),
+				host.WithoutFuzzyStaticInnerIPV6List(condition.StaticFuzzyExclude.InnerIPV6...),
+				host.WithoutFuzzyStaticOuterIPList(condition.StaticFuzzyExclude.OuterIP...),
+				host.WithoutFuzzyStaticOuterIPV6List(condition.StaticFuzzyExclude.OuterIPV6...),
 			)
 		}
 	}

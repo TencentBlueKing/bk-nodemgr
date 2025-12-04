@@ -175,7 +175,7 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 	// get agent host count
 	gp.Go(func() error {
 		hostDistributionByNetworkAreaID, err := h.backendHandler.GetHostDistributionByNetworkAreaID(rCtx, &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
+			DynamicExactInclude: &types.HostDynamicExactFields{
 				NodeRole: []types.NodeRole{types.NodeRoleAgent},
 			},
 		})
@@ -193,7 +193,7 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 	// get proxy host count
 	gp.Go(func() error {
 		hostDistributionByNetworkAreaID, err := h.backendHandler.GetHostDistributionByNetworkAreaID(rCtx, &types.HostCondition{
-			ExactInclude: &types.HostExactFields{
+			DynamicExactInclude: &types.HostDynamicExactFields{
 				NodeRole: []types.NodeRole{types.NodeRoleProxy},
 			},
 		})
