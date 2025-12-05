@@ -19,21 +19,21 @@ import (
 )
 
 // DoFunc is the function to be launched.
-type DoFunc func(key string, data []interface{}) (interface{}, error)
+type DoFunc[T, V any] func(key string, data []T) (V, error)
 
-// Handler is the combined handler.
-type Handler interface {
+// IHandler is the combined handler.
+type IHandler[T, V any] interface {
 	// Call calls the function.
-	Call(ctx context.Context, data ...interface{}) (interface{}, error)
+	Call(ctx context.Context, data ...T) (V, error)
 
 	// CallWithAggregationKey calls the function with aggregation key.
-	CallWithAggregationKey(ctx context.Context, key string, data ...interface{}) (interface{}, error)
+	CallWithAggregationKey(ctx context.Context, key string, data ...T) (V, error)
 }
 
 // New creates a new combined handler.
-func New(maxDataLimit int, maxLaunchTimeGap time.Duration, dofunc DoFunc) Handler {
-	return &combinedHandlerGroup{
-		handlers:         make(map[string]*combinedHandler),
+func New[T, V any](maxDataLimit int, maxLaunchTimeGap time.Duration, dofunc DoFunc[T, V]) IHandler[T, V] {
+	return &combinedHandlerGroup[T, V]{
+		handlers:         make(map[string]*combinedHandler[T, V]),
 		maxDataLimit:     maxDataLimit,
 		maxLaunchTimeGap: maxLaunchTimeGap,
 		dofunc:           dofunc,
@@ -41,99 +41,131 @@ func New(maxDataLimit int, maxLaunchTimeGap time.Duration, dofunc DoFunc) Handle
 }
 
 const (
+	// defaultAggregationKey the default aggregation key.
 	defaultAggregationKey = "__combined_aggregation__"
+
+	// maxGeneration the max generation.
+	maxGeneration int = 1e6
+
+	// handlerMaxIdleTime the max idle time of handler.
+	handlerMaxIdleTime = 10 * time.Minute
 )
 
-type combinedHandlerGroup struct {
+type combinedHandlerGroup[T, V any] struct {
 	mu sync.Mutex
 
-	handlers map[string]*combinedHandler
+	handlers map[string]*combinedHandler[T, V]
 
 	maxDataLimit     int
 	maxLaunchTimeGap time.Duration
-	dofunc           DoFunc
+	dofunc           DoFunc[T, V]
 }
 
 // Call calls the function.
-func (group *combinedHandlerGroup) Call(ctx context.Context, data ...interface{}) (interface{}, error) {
+func (group *combinedHandlerGroup[T, V]) Call(ctx context.Context, data ...T) (V, error) {
 	return group.CallWithAggregationKey(ctx, defaultAggregationKey, data...)
 }
 
 // CallWithAggregationKey calls the function with aggregation key.
-func (group *combinedHandlerGroup) CallWithAggregationKey(ctx context.Context, key string, data ...interface{}) (interface{}, error) {
+func (group *combinedHandlerGroup[T, V]) CallWithAggregationKey(ctx context.Context, key string, data ...T) (V, error) {
 	group.mu.Lock()
 	handler, ok := group.handlers[key]
 	if !ok {
-		handler = &combinedHandler{
+		handler = &combinedHandler[T, V]{
 			key:              key,
-			data:             make([]interface{}, 0),
-			result:           make(map[int][]chan combinedResult),
+			data:             make([]T, 0),
+			resultChs:        make(map[int][]chan combinedResult[V]),
 			maxDataLimit:     group.maxDataLimit,
 			maxLaunchTimeGap: group.maxLaunchTimeGap,
 			dofunc:           group.dofunc,
+			lastCallTime:     time.Now(),
 		}
 
 		group.handlers[key] = handler
+
+		// trigger check handlers.
+		go group.checkHandlers()
 	}
 	group.mu.Unlock()
 
 	return handler.call(ctx, data...)
 }
 
-type combinedResult struct {
-	val interface{}
+func (group *combinedHandlerGroup[T, V]) checkHandlers() {
+	group.mu.Lock()
+	defer group.mu.Unlock()
+
+	keys := make([]string, 0)
+	for _, handler := range group.handlers {
+		if handler.idle() {
+			keys = append(keys, handler.key)
+		}
+	}
+	for _, key := range keys {
+		delete(group.handlers, key)
+	}
+}
+
+type combinedResult[V any] struct {
+	val V
 	err error
 }
 
 // CombinedHandler is the combined handler.
-type combinedHandler struct {
+type combinedHandler[T, V any] struct {
 	mu sync.Mutex
 
 	key    string
-	dofunc DoFunc
+	dofunc DoFunc[T, V]
 
 	// generation is to track the version of data.
 	generation int
-	data       []interface{}
-	result     map[int][]chan combinedResult
+	data       []T
+	resultChs  map[int][]chan combinedResult[V]
 
 	maxDataLimit int
 
 	maxLaunchTimeGap time.Duration
 	lastLaunchedTime time.Time
+
+	lastCallTime time.Time
 }
 
 // call calls the function.
-func (handler *combinedHandler) call(ctx context.Context, data ...interface{}) (interface{}, error) {
+func (handler *combinedHandler[T, V]) call(ctx context.Context, data ...T) (V, error) {
+	var zeroV V
 	if ctx == nil {
-		return nil, errors.New("ctx is nil")
+		return zeroV, errors.New("ctx is nil")
 	}
 
 	if handler.dofunc == nil {
-		return nil, errors.New("dofunc is nil")
+		return zeroV, errors.New("dofunc is nil")
 	}
 
 	if len(data) == 0 {
-		return nil, errors.New("data is empty")
+		return zeroV, errors.New("data is empty")
 	}
 
 	handler.mu.Lock()
 	ch := handler.add(data...)
+	defer close(ch)
 	handler.check()
 	handler.mu.Unlock()
 
 	select {
 	case <-ctx.Done():
-		return nil, ctx.Err()
+		return zeroV, ctx.Err()
 	case result := <-ch:
 		return result.val, result.err
 	}
 }
 
-func (handler *combinedHandler) add(data ...interface{}) <-chan combinedResult {
+func (handler *combinedHandler[T, V]) add(data ...T) chan combinedResult[V] {
+	handler.lastCallTime = time.Now()
+
 	handler.data = append(handler.data, data...)
-	if _, ok := handler.result[handler.generation]; !ok {
-		handler.result[handler.generation] = make([]chan combinedResult, 0)
+	if _, ok := handler.resultChs[handler.generation]; !ok {
+		handler.resultChs[handler.generation] = make([]chan combinedResult[V], 0)
 
 		// delay check for first added.
 		go func() {
@@ -145,13 +177,13 @@ func (handler *combinedHandler) add(data ...interface{}) <-chan combinedResult {
 		}()
 	}
 
-	ch := make(chan combinedResult, 1)
-	handler.result[handler.generation] = append(handler.result[handler.generation], ch)
+	ch := make(chan combinedResult[V], 1)
+	handler.resultChs[handler.generation] = append(handler.resultChs[handler.generation], ch)
 
 	return ch
 }
 
-func (handler *combinedHandler) check() {
+func (handler *combinedHandler[T, V]) check() {
 	if time.Since(handler.lastLaunchedTime) < handler.maxLaunchTimeGap && len(handler.data) < handler.maxDataLimit {
 		return
 	}
@@ -159,21 +191,36 @@ func (handler *combinedHandler) check() {
 	data := handler.data
 	generation := handler.generation
 
-	handler.data = make([]interface{}, 0)
-	handler.generation++
+	handler.data = make([]T, 0)
+	handler.generation = handler.generation%maxGeneration + 1
 
 	handler.lastLaunchedTime = time.Now()
 
 	go func() {
 		result, err := handler.dofunc(handler.key, data)
 		handler.mu.Lock()
-		for _, ch := range handler.result[generation] {
-			ch <- combinedResult{
+		for _, ch := range handler.resultChs[generation] {
+			handler.sendResult(ch, combinedResult[V]{
 				val: result,
 				err: err,
-			}
+			})
 		}
-		delete(handler.result, generation)
+		delete(handler.resultChs, generation)
 		handler.mu.Unlock()
 	}()
+}
+
+func (handler *combinedHandler[T, V]) sendResult(resultCh chan combinedResult[V], result combinedResult[V]) {
+	defer func() {
+		_ = recover()
+	}()
+
+	resultCh <- result
+}
+
+func (handler *combinedHandler[T, V]) idle() bool {
+	handler.mu.Lock()
+	defer handler.mu.Unlock()
+
+	return time.Since(handler.lastCallTime) > handlerMaxIdleTime && len(handler.data) == 0 && len(handler.resultChs) == 0
 }

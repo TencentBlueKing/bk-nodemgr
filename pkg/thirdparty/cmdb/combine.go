@@ -11,7 +11,6 @@
 package cmdb
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
@@ -22,127 +21,135 @@ import (
 )
 
 const (
+	// combinedMax defines the max items in one combined task.
 	combinedMax = 100
+
+	// combinedGap defines the max gap between two combined tasks.
 	combinedGap = 1 * time.Second
 )
 
 func (h *Handler) registerBindHostAgentCombinedHandler() {
-	h.bindHostAgentCombinedHandler = combine.New(combinedMax, combinedGap, func(_ string, data []interface{}) (interface{}, error) {
-		reqList := make([]*HostAgentIDInfo, len(data))
-		for idx := range data {
-			item, ok := data[idx].(*HostAgentIDInfo)
-			if !ok {
-				return nil, fmt.Errorf("invalid data: %v", data[idx])
-			}
+	h.bindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, *struct{}](
+		combinedMax,
+		combinedGap,
+		func(_ string, data []*HostAgentIDInfo) (*struct{}, error) {
+			reqList := make([]*HostAgentIDInfo, len(data))
+			for idx := range data {
+				item := data[idx]
 
-			found := false
-			for preIdx := 0; preIdx < idx; preIdx++ {
-				if reqList[preIdx].BKHostID == item.BKHostID {
-					reqList[preIdx].BKAgentID = item.BKAgentID
-					found = true
+				found := false
+				for preIdx := 0; preIdx < len(reqList); preIdx++ {
+					if reqList[preIdx].BKHostID == item.BKHostID {
+						reqList[preIdx].BKAgentID = item.BKAgentID
+						found = true
 
-					break
+						break
+					}
 				}
+				if found {
+					continue
+				}
+
+				reqList[idx] = item
 			}
-			if found {
-				continue
+
+			virtualUser := access.GetVirtualUser()
+			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
+
+			req := &BindHostAgentReq{
+				List: reqList,
 			}
 
-			reqList[idx] = item
-		}
+			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to bind host agent")
 
-		virtualUser := access.GetVirtualUser()
-		newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
-
-		req := &BindHostAgentReq{
-			List: reqList,
-		}
-
-		logger.G.Biz(newCtx).With("req", req).Info("use virtual user to bind host agent")
-
-		return nil, h.cli.bindHostAgent(newCtx, req)
-	})
+			return nil, h.cli.bindHostAgent(newCtx, req)
+		},
+	)
 }
 
 func (h *Handler) registerUnbindHostAgentCombinedHandler() {
-	h.unbindHostAgentCombinedHandler = combine.New(combinedMax, combinedGap, func(_ string, data []interface{}) (interface{}, error) {
-		reqList := make([]*HostAgentIDInfo, len(data))
-		for idx := range data {
-			item, ok := data[idx].(*HostAgentIDInfo)
-			if !ok {
-				return nil, fmt.Errorf("invalid data: %v", data[idx])
-			}
+	h.unbindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, *struct{}](
+		combinedMax,
+		combinedGap,
+		func(_ string, data []*HostAgentIDInfo) (*struct{}, error) {
+			reqList := make([]*HostAgentIDInfo, len(data))
+			for idx := range data {
+				item := data[idx]
 
-			found := false
-			for preIdx := 0; preIdx < idx; preIdx++ {
-				if reqList[preIdx].BKHostID == item.BKHostID {
-					reqList[preIdx].BKAgentID = item.BKAgentID
-					found = true
+				found := false
+				for preIdx := 0; preIdx < len(reqList); preIdx++ {
+					if reqList[preIdx].BKHostID == item.BKHostID {
+						reqList[preIdx].BKAgentID = item.BKAgentID
+						found = true
 
-					break
+						break
+					}
 				}
+				if found {
+					continue
+				}
+
+				reqList[idx] = item
 			}
-			if found {
-				continue
+
+			virtualUser := access.GetVirtualUser()
+			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
+
+			req := &UnbindHostAgentReq{
+				List: reqList,
 			}
 
-			reqList[idx] = item
-		}
+			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to unbind host agent")
 
-		virtualUser := access.GetVirtualUser()
-		newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
-
-		req := &UnbindHostAgentReq{
-			List: reqList,
-		}
-
-		logger.G.Biz(newCtx).With("req", req).Info("use virtual user to unbind host agent")
-
-		return nil, h.cli.unbindHostAgent(newCtx, req)
-	})
+			return nil, h.cli.unbindHostAgent(newCtx, req)
+		},
+	)
 }
 
 func (h *Handler) registerPushHostIdentifierCombinedHandler() {
-	h.pushHostIdentifierCombinedHandler = combine.New(combinedMax, combinedGap, func(_ string, data []interface{}) (interface{}, error) {
-		reqMap := make(map[int64]struct{})
-		for idx := range data {
-			hostID, ok := data[idx].(int64)
-			if !ok {
-				return nil, fmt.Errorf("invalid data: %v", data[idx])
+	h.pushHostIdentifierCombinedHandler = combine.New[int64, *PushHostIdentifierResp](
+		combinedMax,
+		combinedGap,
+		func(_ string, data []int64) (*PushHostIdentifierResp, error) {
+			reqMap := make(map[int64]struct{})
+			for _, hostID := range data {
+				reqMap[hostID] = struct{}{}
 			}
 
-			reqMap[hostID] = struct{}{}
-		}
+			virtualUser := access.GetVirtualUser()
+			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
 
-		virtualUser := access.GetVirtualUser()
-		newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
+			req := &PushHostIdentifierReq{
+				BKHostIDs: conv.MapKeyToSlice(reqMap),
+			}
 
-		req := &PushHostIdentifierReq{
-			BKHostIDs: conv.MapKeyToSlice(reqMap),
-		}
+			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to push host identifier")
 
-		logger.G.Biz(newCtx).With("req", req).Info("use virtual user to push host identifier")
-
-		return h.cli.pushHostIdentifier(newCtx, req)
-	})
+			return h.cli.pushHostIdentifier(newCtx, req)
+		},
+	)
 }
 
 func (h *Handler) registerFindHostIdentifierPushResultCombinedHandler() {
-	h.findHostIdentifierPushResultCombinedHandler = combine.New(combinedMax, combinedGap, func(taskID string, _ []interface{}) (interface{}, error) {
-		req := &FindHostIdentifierPushResultReq{
-			TaskID: taskID,
-		}
+	h.findHostIdentifierPushResultCombinedHandler = combine.New[struct{}, *FindHostIdentifierPushResultResp](
+		combinedMax,
+		combinedGap,
+		func(taskID string, _ []struct{}) (*FindHostIdentifierPushResultResp, error) {
+			req := &FindHostIdentifierPushResultReq{
+				TaskID: taskID,
+			}
 
-		virtualUser := access.GetVirtualUser()
-		newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
+			virtualUser := access.GetVirtualUser()
+			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
 
-		logger.G.Biz(newCtx).With("req", req).Info("use virtual user to find host identifier push result")
+			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to find host identifier push result")
 
-		resp, err := h.cli.findHostIdentifierPushResult(newCtx, req)
-		if err != nil {
-			return nil, err
-		}
+			resp, err := h.cli.findHostIdentifierPushResult(newCtx, req)
+			if err != nil {
+				return nil, err
+			}
 
-		return resp, nil
-	})
+			return resp, nil
+		},
+	)
 }

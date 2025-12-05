@@ -166,10 +166,10 @@ type Handler struct {
 	cpuArchKeeper     iEnumResourceKeeper
 
 	// combined handler
-	bindHostAgentCombinedHandler                combine.Handler
-	unbindHostAgentCombinedHandler              combine.Handler
-	pushHostIdentifierCombinedHandler           combine.Handler
-	findHostIdentifierPushResultCombinedHandler combine.Handler
+	bindHostAgentCombinedHandler                combine.IHandler[*HostAgentIDInfo, *struct{}]
+	unbindHostAgentCombinedHandler              combine.IHandler[*HostAgentIDInfo, *struct{}]
+	pushHostIdentifierCombinedHandler           combine.IHandler[int64, *PushHostIdentifierResp]
+	findHostIdentifierPushResultCombinedHandler combine.IHandler[struct{}, *FindHostIdentifierPushResultResp]
 }
 
 const (
@@ -485,7 +485,7 @@ func (h *Handler) BindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Host)
 		return errors.New("host info list is empty")
 	}
 
-	reqList := make([]interface{}, len(hostInfo))
+	reqList := make([]*HostAgentIDInfo, len(hostInfo))
 	for idx := range hostInfo {
 		reqList[idx] = &HostAgentIDInfo{
 			BKHostID:  hostInfo[idx].HostID,
@@ -504,7 +504,7 @@ func (h *Handler) UnbindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Hos
 		return errors.New("host info list is empty")
 	}
 
-	reqList := make([]interface{}, len(hostInfo))
+	reqList := make([]*HostAgentIDInfo, len(hostInfo))
 	for idx := range hostInfo {
 		reqList[idx] = &HostAgentIDInfo{
 			BKHostID:  hostInfo[idx].HostID,
@@ -546,19 +546,9 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 // PushHostIdentifier push host identifier.
 // nolint: nonamedreturns
 func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (taskID string, err error) {
-	reqList := make([]interface{}, len(hostIDs))
-	for idx := range hostIDs {
-		reqList[idx] = hostIDs[idx]
-	}
-
-	r, err := h.pushHostIdentifierCombinedHandler.Call(nCtx, reqList...)
+	resp, err := h.pushHostIdentifierCombinedHandler.Call(nCtx, hostIDs...)
 	if err != nil {
 		return "", err
-	}
-
-	resp, ok := r.(*PushHostIdentifierResp)
-	if !ok {
-		return "", errors.New("invalid response")
 	}
 
 	return resp.TaskID, nil
@@ -569,14 +559,9 @@ func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (
 func (h *Handler) FindHostIdentifierPushResult(nCtx contextx.IContext, taskID string) (successList []int64,
 	failedList []int64, pendingList []int64, err error) {
 
-	r, err := h.findHostIdentifierPushResultCombinedHandler.CallWithAggregationKey(nCtx, taskID, struct{}{})
+	resp, err := h.findHostIdentifierPushResultCombinedHandler.CallWithAggregationKey(nCtx, taskID, struct{}{})
 	if err != nil {
 		return nil, nil, nil, err
-	}
-
-	resp, ok := r.(*FindHostIdentifierPushResultResp)
-	if !ok {
-		return nil, nil, nil, errors.New("invalid response")
 	}
 
 	return resp.SuccessList, resp.FailedList, resp.PendingList, nil

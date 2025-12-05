@@ -23,9 +23,9 @@ func Test_Call(t *testing.T) {
 
 		maxDataLimit     int
 		maxLaunchTimeGap time.Duration
-		dofunc           DoFunc
+		dofunc           DoFunc[int, *struct{}]
 
-		data []interface{}
+		data []int
 
 		wantErr   bool
 		wantTimes int
@@ -41,12 +41,12 @@ func Test_Call(t *testing.T) {
 				ctx:              context.Background(),
 				maxDataLimit:     100,
 				maxLaunchTimeGap: 1 * time.Second,
-				dofunc: func(key string, data []interface{}) (interface{}, error) {
+				dofunc: func(key string, data []int) (*struct{}, error) {
 					times["test1"]++
 
 					return nil, nil
 				},
-				data:      []interface{}{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+				data:      []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
 				wantErr:   false,
 				wantTimes: 2,
 			},
@@ -57,12 +57,12 @@ func Test_Call(t *testing.T) {
 				ctx:              context.Background(),
 				maxDataLimit:     3,
 				maxLaunchTimeGap: 1 * time.Second,
-				dofunc: func(key string, data []interface{}) (interface{}, error) {
+				dofunc: func(key string, data []int) (*struct{}, error) {
 					times["test2"]++
 
 					return nil, nil
 				},
-				data:      []interface{}{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+				data:      []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
 				wantErr:   false,
 				wantTimes: 4,
 			},
@@ -73,10 +73,10 @@ func Test_Call(t *testing.T) {
 				ctx:              nil,
 				maxDataLimit:     3,
 				maxLaunchTimeGap: 1 * time.Second,
-				dofunc: func(key string, data []interface{}) (interface{}, error) {
+				dofunc: func(key string, data []int) (*struct{}, error) {
 					return nil, nil
 				},
-				data:      []interface{}{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+				data:      []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
 				wantErr:   true,
 				wantTimes: 0,
 			},
@@ -92,7 +92,7 @@ func Test_Call(t *testing.T) {
 			wg := sync.WaitGroup{}
 			for _, d := range tt.args.data {
 				wg.Add(1)
-				go func(d interface{}) {
+				go func(d int) {
 					_, err := h.Call(tt.args.ctx, d)
 					if (err != nil) != tt.args.wantErr {
 						t.Errorf("Call() error = %v, wantErr = %v", err, tt.args.wantErr)
@@ -111,18 +111,20 @@ func Test_Call(t *testing.T) {
 	}
 }
 
+type testAggreationData struct {
+	key  string
+	item int
+}
+
 func Test_CallWithAggregationKey(t *testing.T) {
 	type args struct {
 		ctx context.Context
 
 		maxDataLimit     int
 		maxLaunchTimeGap time.Duration
-		dofunc           DoFunc
+		dofunc           DoFunc[int, *struct{}]
 
-		data []struct {
-			key  string
-			item interface{}
-		}
+		data []*testAggreationData
 
 		wantErr   bool
 		wantTimes int
@@ -138,15 +140,12 @@ func Test_CallWithAggregationKey(t *testing.T) {
 				ctx:              context.Background(),
 				maxDataLimit:     100,
 				maxLaunchTimeGap: 1 * time.Second,
-				dofunc: func(key string, data []interface{}) (interface{}, error) {
+				dofunc: func(key string, data []int) (*struct{}, error) {
 					times["test1"]++
 
 					return nil, nil
 				},
-				data: []struct {
-					key  string
-					item interface{}
-				}{
+				data: []*testAggreationData{
 					{"k1", 1},
 					{"k1", 2},
 					{"k2", 3},
@@ -170,10 +169,7 @@ func Test_CallWithAggregationKey(t *testing.T) {
 			wg := sync.WaitGroup{}
 			for _, d := range tt.args.data {
 				wg.Add(1)
-				go func(d struct {
-					key  string
-					item interface{}
-				}) {
+				go func(d *testAggreationData) {
 					_, err := h.CallWithAggregationKey(tt.args.ctx, d.key, d.item)
 					if (err != nil) != tt.args.wantErr {
 						t.Errorf("Call() error = %v, wantErr = %v", err, tt.args.wantErr)
