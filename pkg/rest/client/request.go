@@ -443,7 +443,7 @@ func (r *Request) Do() (result *Result) {
 	)
 	defer func() {
 		span.SetAttributes(
-			attribute.Int("http.response.status_code", result.StatusCode),
+			attribute.Int(attributeHttpResponseStatusCode, result.StatusCode),
 		)
 
 		span.End()

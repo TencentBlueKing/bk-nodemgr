@@ -26,6 +26,9 @@ const (
 	// BKNodemgrRequestIDKey is request id header key.
 	BKNodemgrRequestIDKey = "X-Bknodemgr-Request-Id"
 
+	// TraceId is request id header key.
+	TraceId = "TraceId"
+
 	// BKNodemgrAuthorization is authorization header key.
 	BKNodemgrAuthorization = "X-Bknodemgr-Authorization"
 )

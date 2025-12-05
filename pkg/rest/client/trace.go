@@ -14,4 +14,6 @@ const (
 	attributeHttpRequestBaseURL = "http.request.base_url"
 	attributeHttpRequestBoby    = "http.request.body"
 	attributeHttpRequestHeader  = "http.request.header"
+
+	attributeHttpResponseStatusCode = "http.response.status_code"
 )

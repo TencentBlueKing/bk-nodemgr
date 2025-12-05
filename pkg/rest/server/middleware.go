@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // MiddlewareContext verify auth info.
@@ -225,14 +226,20 @@ func MiddlewareReturnedLog(skipPaths ...string) gin.HandlerFunc {
 }
 
 // MiddlewareTracing tracing.
-func MiddlewareTracing(tracerSvc tracing.IService) gin.HandlerFunc {
-	return func(gCtx *gin.Context) {
-		fn := otelgin.Middleware(tracerSvc.ServiceName(),
+func MiddlewareTracing(tracerSvc tracing.IService) []gin.HandlerFunc {
+	middlewares := []gin.HandlerFunc{
+		otelgin.Middleware(tracerSvc.ServiceName(),
 			otelgin.WithTracerProvider(tracerSvc.TracerProvider()),
 			otelgin.WithPropagators(tracerSvc.TracerPropagator()),
-		)
-		fn(gCtx)
+		),
+		func(gCtx *gin.Context) {
+			spanContext := trace.SpanContextFromContext(gCtx)
 
-		gCtx.Next()
+			gCtx.Writer.Header().Set(restheader.TraceId, spanContext.TraceID().String())
+
+			gCtx.Next()
+		},
 	}
+
+	return middlewares
 }
