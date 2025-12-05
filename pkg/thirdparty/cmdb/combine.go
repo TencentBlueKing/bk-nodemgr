@@ -38,7 +38,7 @@ func (h *Handler) registerBindHostAgentCombinedHandler() {
 				item := data[idx]
 
 				found := false
-				for preIdx := 0; preIdx < len(reqList); preIdx++ {
+				for preIdx := 0; preIdx < idx; preIdx++ {
 					if reqList[preIdx].BKHostID == item.BKHostID {
 						reqList[preIdx].BKAgentID = item.BKAgentID
 						found = true
@@ -77,7 +77,7 @@ func (h *Handler) registerUnbindHostAgentCombinedHandler() {
 				item := data[idx]
 
 				found := false
-				for preIdx := 0; preIdx < len(reqList); preIdx++ {
+				for preIdx := 0; preIdx < idx; preIdx++ {
 					if reqList[preIdx].BKHostID == item.BKHostID {
 						reqList[preIdx].BKAgentID = item.BKAgentID
 						found = true
