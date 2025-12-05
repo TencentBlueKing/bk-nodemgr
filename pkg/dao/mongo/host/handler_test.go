@@ -525,7 +525,7 @@ func Test_handler_Count(t *testing.T) {
 		},
 		{
 			name:      "filter by fuzzy host name",
-			optFn:     []OptFn{WithFuzzyHostName("hostname")},
+			optFn:     []OptFn{WithFuzzyStaticHostName("hostname")},
 			wantTotal: 2,
 			wantErr:   false,
 		},
@@ -591,7 +591,7 @@ func Test_handler_List(t *testing.T) {
 				Offset: 1,
 				Limit:  1,
 			},
-			optFn:     []OptFn{WithFuzzyHostName("hostname")},
+			optFn:     []OptFn{WithFuzzyStaticHostName("hostname")},
 			wantTotal: 2,
 			wantNum:   1,
 			wantErr:   false,

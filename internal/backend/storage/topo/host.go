@@ -274,8 +274,8 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 		if condition.StaticExactInclude != nil {
 			opts = append(opts,
 				host.WithHostID(condition.StaticExactInclude.HostID...),
-				host.WithBizID(condition.StaticExactInclude.BizID...),
-				host.WithNetworkAreaID(condition.StaticExactInclude.NetworkAreaID...),
+				host.WithStaticBizID(condition.StaticExactInclude.BizID...),
+				host.WithStaticNetworkAreaID(condition.StaticExactInclude.NetworkAreaID...),
 				host.WithStaticAddressing(condition.StaticExactInclude.Addressing...),
 				host.WithStaticInnerIPList(condition.StaticExactInclude.InnerIP...),
 			)
@@ -283,22 +283,22 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 
 		if condition.DynamicExactInclude != nil {
 			opts = append(opts,
-				host.WithNetworkUnitID(condition.DynamicExactInclude.NetworkUnitID...),
-				host.WithOSType(condition.DynamicExactInclude.OSType...),
-				host.WithArch(condition.DynamicExactInclude.Arch...),
-				host.WithNodeRole(condition.DynamicExactInclude.NodeRole...),
-				host.WithNodeStatus(condition.DynamicExactInclude.NodeStatus...),
-				host.WithNodeVersion(condition.DynamicExactInclude.NodeVersion...),
-				host.WithAgentID(condition.DynamicExactInclude.AgentID...),
-				host.WithNodeGeneration(condition.DynamicExactInclude.NodeGeneration...),
+				host.WithDynamicNetworkUnitID(condition.DynamicExactInclude.NetworkUnitID...),
+				host.WithDynamicNodeOsType(condition.DynamicExactInclude.OSType...),
+				host.WithDynamicCPUArch(condition.DynamicExactInclude.Arch...),
+				host.WithDynamicNodeRole(condition.DynamicExactInclude.NodeRole...),
+				host.WithDynamicNodeStatus(condition.DynamicExactInclude.NodeStatus...),
+				host.WithDynamicNodeVersion(condition.DynamicExactInclude.NodeVersion...),
+				host.WithDynamicAgentID(condition.DynamicExactInclude.AgentID...),
+				host.WithDynamicNodeGeneration(condition.DynamicExactInclude.NodeGeneration...),
 			)
 		}
 
 		if condition.StaticExactExclude != nil {
 			opts = append(opts,
 				host.WithoutHostID(condition.StaticExactExclude.HostID...),
-				host.WithoutBizID(condition.StaticExactExclude.BizID...),
-				host.WithoutNetworkAreaID(condition.StaticExactExclude.NetworkAreaID...),
+				host.WithoutStaticBizID(condition.StaticExactExclude.BizID...),
+				host.WithoutStaticNetworkAreaID(condition.StaticExactExclude.NetworkAreaID...),
 				host.WithoutStaticAddressing(condition.StaticExactExclude.Addressing...),
 				host.WithoutStaticInnerIPList(condition.StaticExactExclude.InnerIP...),
 			)
@@ -306,21 +306,21 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 
 		if condition.DynamicExactExclude != nil {
 			opts = append(opts,
-				host.WithoutNetworkUnitID(condition.DynamicExactExclude.NetworkUnitID...),
-				host.WithoutOSType(condition.DynamicExactExclude.OSType...),
-				host.WithoutArch(condition.DynamicExactExclude.Arch...),
-				host.WithoutNodeRole(condition.DynamicExactExclude.NodeRole...),
-				host.WithoutNodeStatus(condition.DynamicExactExclude.NodeStatus...),
-				host.WithoutNodeVersion(condition.DynamicExactExclude.NodeVersion...),
-				host.WithoutAgentID(condition.DynamicExactExclude.AgentID...),
-				host.WithoutNodeGeneration(condition.DynamicExactExclude.NodeGeneration...),
+				host.WithoutDynamicNetworkUnitID(condition.DynamicExactExclude.NetworkUnitID...),
+				host.WithoutDynamicNodeOsType(condition.DynamicExactExclude.OSType...),
+				host.WithoutDynamicCPUArch(condition.DynamicExactExclude.Arch...),
+				host.WithoutDynamicNodeRole(condition.DynamicExactExclude.NodeRole...),
+				host.WithoutDynamicNodeStatus(condition.DynamicExactExclude.NodeStatus...),
+				host.WithoutDynamicNodeVersion(condition.DynamicExactExclude.NodeVersion...),
+				host.WithoutDynamicAgentID(condition.DynamicExactExclude.AgentID...),
+				host.WithoutDynamicNodeGeneration(condition.DynamicExactExclude.NodeGeneration...),
 			)
 		}
 
 		if condition.StaticFuzzyInclude != nil {
 			opts = append(opts,
-				host.WithFuzzyHostName(condition.StaticFuzzyInclude.HostName...),
-				host.WithFuzzyDeptName(condition.StaticFuzzyInclude.DeptName...),
+				host.WithFuzzyStaticHostName(condition.StaticFuzzyInclude.HostName...),
+				host.WithFuzzyStaticDeptName(condition.StaticFuzzyInclude.DeptName...),
 				host.WithFuzzyStaticInnerIPList(condition.StaticFuzzyInclude.InnerIP...),
 				host.WithFuzzyStaticInnerIPV6List(condition.StaticFuzzyInclude.InnerIPV6...),
 				host.WithFuzzyStaticOuterIPList(condition.StaticFuzzyInclude.OuterIP...),
@@ -330,8 +330,8 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 
 		if condition.StaticFuzzyExclude != nil {
 			opts = append(opts,
-				host.WithoutFuzzyHostName(condition.StaticFuzzyExclude.HostName...),
-				host.WithoutFuzzyDeptName(condition.StaticFuzzyExclude.DeptName...),
+				host.WithoutFuzzyStaticHostName(condition.StaticFuzzyExclude.HostName...),
+				host.WithoutFuzzyStaticDeptName(condition.StaticFuzzyExclude.DeptName...),
 				host.WithoutFuzzyStaticInnerIPList(condition.StaticFuzzyExclude.InnerIP...),
 				host.WithoutFuzzyStaticInnerIPV6List(condition.StaticFuzzyExclude.InnerIPV6...),
 				host.WithoutFuzzyStaticOuterIPList(condition.StaticFuzzyExclude.OuterIP...),

@@ -28,78 +28,108 @@ func WithoutHostID(hostIDs ...int64) OptFn {
 	return base.WithoutValues(FieldKeyHostID, hostIDs...)
 }
 
-// WithBizID filters by biz-id.
-func WithBizID(bizIDs ...int64) OptFn {
+// WithStaticBizID filters by biz-id.
+func WithStaticBizID(bizIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyStaticBizID, bizIDs...)
 }
 
-// WithoutBizID filters by not contains biz-id.
-func WithoutBizID(bizIDs ...int64) OptFn {
+// WithoutStaticBizID filters by not contains biz-id.
+func WithoutStaticBizID(bizIDs ...int64) OptFn {
 	return base.WithoutValues(FieldKeyStaticBizID, bizIDs...)
 }
 
-// WithNetworkAreaID filters by network area id.
-func WithNetworkAreaID(networkAreaIDs ...int64) OptFn {
+// WithStaticNetworkAreaID filters by network area id.
+func WithStaticNetworkAreaID(networkAreaIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyStaticNetworkAreaID, networkAreaIDs...)
 }
 
-// WithoutNetworkAreaID filters by not contains network area id.
-func WithoutNetworkAreaID(networkAreaIDs ...int64) OptFn {
+// WithoutStaticNetworkAreaID filters by not contains network area id.
+func WithoutStaticNetworkAreaID(networkAreaIDs ...int64) OptFn {
 	return base.WithoutValues(FieldKeyStaticNetworkAreaID, networkAreaIDs...)
 }
 
-// WithNetworkUnitID filters by network unit id.
-func WithNetworkUnitID(networkUnitID ...int64) OptFn {
+// WithDynamicNetworkUnitID filters by network unit id.
+func WithDynamicNetworkUnitID(networkUnitID ...int64) OptFn {
 	return base.WithValues(FieldKeyDynamicNetworkUnitID, networkUnitID...)
 }
 
-// WithoutNetworkUnitID filters by not contains network unit id.
-func WithoutNetworkUnitID(networkUnitID ...int64) OptFn {
+// WithoutDynamicNetworkUnitID filters by not contains network unit id.
+func WithoutDynamicNetworkUnitID(networkUnitID ...int64) OptFn {
 	return base.WithoutValues(FieldKeyDynamicNetworkUnitID, networkUnitID...)
 }
 
-// WithFuzzyHostName filters by host name.
-func WithFuzzyHostName(hostNames ...string) OptFn {
+// WithFuzzyStaticHostName filters by host name.
+func WithFuzzyStaticHostName(hostNames ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyStaticHostName, hostNames...)
 }
 
-// WithoutFuzzyHostName filters by not contains host name.
-func WithoutFuzzyHostName(hostNames ...string) OptFn {
+// WithoutFuzzyStaticHostName filters by not contains host name.
+func WithoutFuzzyStaticHostName(hostNames ...string) OptFn {
 	return base.WithoutFuzzyValues(FieldKeyStaticHostName, hostNames...)
 }
 
-// WithFuzzyDeptName filters by dept name.
-func WithFuzzyDeptName(deptNames ...string) OptFn {
+// WithFuzzyStaticDeptName filters by dept name.
+func WithFuzzyStaticDeptName(deptNames ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyStaticDeptName, deptNames...)
 }
 
-// WithoutFuzzyDeptName filters by not contains dept name.
-func WithoutFuzzyDeptName(deptNames ...string) OptFn {
+// WithoutFuzzyStaticDeptName filters by not contains dept name.
+func WithoutFuzzyStaticDeptName(deptNames ...string) OptFn {
 	return base.WithoutFuzzyValues(FieldKeyStaticDeptName, deptNames...)
 }
 
-// WithOSType filters by os type.
-func WithOSType(osTypes ...string) OptFn {
+// WithStaticOSType filters by os type.
+func WithStaticOSType(osTypes ...string) OptFn {
 	return base.WithValues(FieldKeyStaticOSType, osTypes...)
 }
 
-// WithoutOSType filters by not contains os type.
-func WithoutOSType(osTypes ...string) OptFn {
+// WithoutStaticOSType filters by not contains os type.
+func WithoutStaticOSType(osTypes ...string) OptFn {
 	return base.WithoutValues(FieldKeyStaticOSType, osTypes...)
 }
 
-// WithArch filters by arch.
-func WithArch(archs ...string) OptFn {
+// WithStaticAddressing filters by contains addressing.
+func WithStaticAddressing(addressings ...types.Addressing) OptFn {
+	strs := make([]string, len(addressings))
+	for idx, addressing := range addressings {
+		strs[idx] = string(addressing)
+	}
+
+	return base.WithValues(FieldKeyStaticAddressing, strs...)
+}
+
+// WithoutStaticAddressing filters by contains addressing.
+func WithoutStaticAddressing(addressings ...types.Addressing) OptFn {
+	strs := make([]string, len(addressings))
+	for idx, addressing := range addressings {
+		strs[idx] = string(addressing)
+	}
+
+	return base.WithoutValues(FieldKeyStaticAddressing, strs...)
+}
+
+// WithDynamicNodeOsType filters by os type.
+func WithDynamicNodeOsType(osTypes ...string) OptFn {
+	return base.WithValues(FieldKeyDynamicNodeOsType, osTypes...)
+}
+
+// WithoutDynamicNodeOsType filters by not contains os type.
+func WithoutDynamicNodeOsType(osTypes ...string) OptFn {
+	return base.WithoutValues(FieldKeyDynamicNodeOsType, osTypes...)
+}
+
+// WithDynamicCPUArch filters by arch.
+func WithDynamicCPUArch(archs ...string) OptFn {
 	return base.WithValues(FieldKeyDynamicNodeCPUArch, archs...)
 }
 
-// WithoutArch filters by not contains arch.
-func WithoutArch(archs ...string) OptFn {
+// WithoutDynamicCPUArch filters by not contains arch.
+func WithoutDynamicCPUArch(archs ...string) OptFn {
 	return base.WithoutValues(FieldKeyDynamicNodeCPUArch, archs...)
 }
 
-// WithNodeRole filters by node role.
-func WithNodeRole(roles ...types.NodeRole) OptFn {
+// WithDynamicNodeRole filters by node role.
+func WithDynamicNodeRole(roles ...types.NodeRole) OptFn {
 	str := make([]string, len(roles))
 	for idx, role := range roles {
 		str[idx] = string(role)
@@ -108,8 +138,8 @@ func WithNodeRole(roles ...types.NodeRole) OptFn {
 	return base.WithValues(FieldKeyDynamicNodeRole, str...)
 }
 
-// WithoutNodeRole filters by not contains node role.
-func WithoutNodeRole(roles ...types.NodeRole) OptFn {
+// WithoutDynamicNodeRole filters by not contains node role.
+func WithoutDynamicNodeRole(roles ...types.NodeRole) OptFn {
 	str := make([]string, len(roles))
 	for idx, role := range roles {
 		str[idx] = string(role)
@@ -118,8 +148,8 @@ func WithoutNodeRole(roles ...types.NodeRole) OptFn {
 	return base.WithoutValues(FieldKeyDynamicNodeRole, str...)
 }
 
-// WithNodeStatus filters by node status.
-func WithNodeStatus(statuses ...types.NodeStatus) OptFn {
+// WithDynamicNodeStatus filters by node status.
+func WithDynamicNodeStatus(statuses ...types.NodeStatus) OptFn {
 	str := make([]string, len(statuses))
 	for idx, status := range statuses {
 		str[idx] = string(status)
@@ -128,8 +158,8 @@ func WithNodeStatus(statuses ...types.NodeStatus) OptFn {
 	return base.WithValues(FieldKeyDynamicNodeStatus, str...)
 }
 
-// WithoutNodeStatus filters by not contains node status.
-func WithoutNodeStatus(statuses ...types.NodeStatus) OptFn {
+// WithoutDynamicNodeStatus filters by not contains node status.
+func WithoutDynamicNodeStatus(statuses ...types.NodeStatus) OptFn {
 	str := make([]string, len(statuses))
 	for idx, status := range statuses {
 		str[idx] = string(status)
@@ -153,34 +183,34 @@ func WithDynamicProxyAccessDisabled(bools ...bool) OptFn {
 	return base.WithValues(FieldKeyDynamicProxyAccessDisabled, bools...)
 }
 
-// WithNodeVersion filters by node version.
-func WithNodeVersion(versions ...string) OptFn {
+// WithDynamicNodeVersion filters by node version.
+func WithDynamicNodeVersion(versions ...string) OptFn {
 	return base.WithValues(FieldKeyDynamicNodeVersion, versions...)
 }
 
-// WithNodeGeneration filters by node generation.
-func WithNodeGeneration(generations ...int64) OptFn {
-	return base.WithValues(FieldKeyDynamicNodeGeneration, generations...)
-}
-
-// WithoutNodeVersion filters by not contains node version.
-func WithoutNodeVersion(versions ...string) OptFn {
+// WithoutDynamicNodeVersion filters by not contains node version.
+func WithoutDynamicNodeVersion(versions ...string) OptFn {
 	return base.WithoutValues(FieldKeyDynamicNodeVersion, versions...)
 }
 
-// WithAgentID filters by contains agent id.
-func WithAgentID(agentIDs ...string) OptFn {
+// WithDynamicNodeGeneration filters by node generation.
+func WithDynamicNodeGeneration(generations ...int64) OptFn {
+	return base.WithValues(FieldKeyDynamicNodeGeneration, generations...)
+}
+
+// WithoutDynamicNodeGeneration filters by not contains node generation.
+func WithoutDynamicNodeGeneration(generations ...int64) OptFn {
+	return base.WithoutValues(FieldKeyDynamicNodeGeneration, generations...)
+}
+
+// WithDynamicAgentID filters by contains agent id.
+func WithDynamicAgentID(agentIDs ...string) OptFn {
 	return base.WithValues(FieldKeyDynamicAgentID, agentIDs...)
 }
 
-// WithStaticAddressing filters by contains addressing.
-func WithStaticAddressing(addressings ...types.Addressing) OptFn {
-	strs := make([]string, len(addressings))
-	for idx, addressing := range addressings {
-		strs[idx] = string(addressing)
-	}
-
-	return base.WithValues(FieldKeyStaticAddressing, strs...)
+// WithoutDynamicAgentID filters by not contains agent id.
+func WithoutDynamicAgentID(agentIDs ...string) OptFn {
+	return base.WithoutValues(FieldKeyDynamicAgentID, agentIDs...)
 }
 
 // WithStaticInnerIPList filters by contains inner ip list.
@@ -188,19 +218,24 @@ func WithStaticInnerIPList(ips ...string) OptFn {
 	return base.WithValues(FieldKeyStaticInnerIPList, ips...)
 }
 
-// WithFuzzyStaticInnerIPList filters by contains inner ip.
-func WithFuzzyStaticInnerIPList(ips ...string) OptFn {
-	return base.WithFuzzyValues(FieldKeyStaticInnerIPList, ips...)
-}
-
 // WithoutFuzzyStaticInnerIPList filters by not contains inner ip list.
 func WithoutFuzzyStaticInnerIPList(ips ...string) OptFn {
 	return base.WithoutFuzzyValues(FieldKeyStaticInnerIPList, ips...)
 }
 
+// WithFuzzyStaticInnerIPList filters by contains inner ip.
+func WithFuzzyStaticInnerIPList(ips ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyStaticInnerIPList, ips...)
+}
+
 // WithoutFuzzyStaticInnerIPV6List filters by not contains inner ip v6 list.
 func WithoutFuzzyStaticInnerIPV6List(ips ...string) OptFn {
 	return base.WithoutFuzzyValues(FieldKeyStaticInnerIPV6List, ips...)
+}
+
+// WithoutStaticInnerIPList filters by contains inner ip list.
+func WithoutStaticInnerIPList(ips ...string) OptFn {
+	return base.WithoutValues(FieldKeyStaticInnerIPList, ips...)
 }
 
 // WithStaticInnerIPV6List filters by contains inner ip v6 list.
@@ -223,6 +258,11 @@ func WithFuzzyStaticOuterIPList(ips ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyStaticOuterIPList, ips...)
 }
 
+// WithoutFuzzyStaticOuterIPList filters by not contains outer ip list.
+func WithoutFuzzyStaticOuterIPList(ips ...string) OptFn {
+	return base.WithoutFuzzyValues(FieldKeyStaticOuterIPList, ips...)
+}
+
 // WithStaticOuterIPV6List filters by contains outer ip v6 list.
 func WithStaticOuterIPV6List(ips ...string) OptFn {
 	return base.WithValues(FieldKeyStaticOuterIPV6List, ips...)
@@ -233,37 +273,7 @@ func WithFuzzyStaticOuterIPV6List(ips ...string) OptFn {
 	return base.WithFuzzyValues(FieldKeyStaticOuterIPV6List, ips...)
 }
 
-// WithoutFuzzyStaticOuterIPList filters by not contains outer ip list.
-func WithoutFuzzyStaticOuterIPList(ips ...string) OptFn {
-	return base.WithoutFuzzyValues(FieldKeyStaticOuterIPList, ips...)
-}
-
 // WithoutFuzzyStaticOuterIPV6List filters by not contains outer ip v6 list.
 func WithoutFuzzyStaticOuterIPV6List(ips ...string) OptFn {
 	return base.WithoutFuzzyValues(FieldKeyStaticOuterIPV6List, ips...)
-}
-
-// WithoutAgentID filters by not contains agent id.
-func WithoutAgentID(agentIDs ...string) OptFn {
-	return base.WithoutValues(FieldKeyDynamicAgentID, agentIDs...)
-}
-
-// WithoutNodeGeneration filters by not contains node generation.
-func WithoutNodeGeneration(generations ...int64) OptFn {
-	return base.WithoutValues(FieldKeyDynamicNodeGeneration, generations...)
-}
-
-// WithoutStaticAddressing filters by contains addressing.
-func WithoutStaticAddressing(addressings ...types.Addressing) OptFn {
-	strs := make([]string, len(addressings))
-	for idx, addressing := range addressings {
-		strs[idx] = string(addressing)
-	}
-
-	return base.WithoutValues(FieldKeyStaticAddressing, strs...)
-}
-
-// WithoutStaticInnerIPList filters by contains inner ip list.
-func WithoutStaticInnerIPList(ips ...string) OptFn {
-	return base.WithoutValues(FieldKeyStaticInnerIPList, ips...)
 }

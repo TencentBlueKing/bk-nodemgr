@@ -24,7 +24,7 @@ func (s *Storage) getHostsByAreaAndInnerIP(nCtx contextx.IContext,
 
 	opts := make([]host.OptFn, 0)
 	opts = append(opts,
-		host.WithNetworkAreaID(networkAreaID),
+		host.WithStaticNetworkAreaID(networkAreaID),
 		host.WithStaticInnerIPList(innerip),
 	)
 
@@ -39,9 +39,9 @@ func (s *Storage) getHostsByAreaAndInnerIP(nCtx contextx.IContext,
 func (s *Storage) existDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (bool, error) {
 	opts := make([]host.OptFn, 0)
 	opts = append(opts,
-		host.WithNetworkUnitID(networkUnitID),
-		host.WithNodeRole(types.NodeRoleProxy),
-		host.WithNodeStatus(types.NodeStatusRunning),
+		host.WithDynamicNetworkUnitID(networkUnitID),
+		host.WithDynamicNodeRole(types.NodeRoleProxy),
+		host.WithDynamicNodeStatus(types.NodeStatusRunning),
 		host.WithDynamicProxyTags(types.ProxyTagDedicatedInstaller),
 	)
 
