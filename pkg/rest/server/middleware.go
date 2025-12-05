@@ -235,7 +235,7 @@ func MiddlewareTracing(tracerSvc tracing.IService) []gin.HandlerFunc {
 		func(gCtx *gin.Context) {
 			spanContext := trace.SpanContextFromContext(gCtx)
 
-			gCtx.Writer.Header().Set(restheader.TraceId, spanContext.TraceID().String())
+			gCtx.Writer.Header().Set(restheader.TraceID, spanContext.TraceID().String())
 
 			gCtx.Next()
 		},

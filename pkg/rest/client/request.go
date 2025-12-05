@@ -436,14 +436,14 @@ func (r *Request) Do() (result *Result) {
 	traceCtx, span := tracer.Start(r.nCtx, fmt.Sprintf("%s %s", r.verb, fmt.Sprintf(r.subPath, r.subPathArgs...)),
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
-			attribute.String(attributeHttpRequestBaseURL, r.baseURL),
-			attribute.String(attributeHttpRequestBoby, r.maskRequestBody()),
-			attribute.String(attributeHttpRequestHeader, r.maskHeader(r.headers)),
+			attribute.String(attributeHTTPRequestBaseURL, r.baseURL),
+			attribute.String(attributeHTTPRequestBoby, r.maskRequestBody()),
+			attribute.String(attributeHTTPRequestHeader, r.maskHeader(r.headers)),
 		),
 	)
 	defer func() {
 		span.SetAttributes(
-			attribute.Int(attributeHttpResponseStatusCode, result.StatusCode),
+			attribute.Int(attributeHTTPResponseStatusCode, result.StatusCode),
 		)
 
 		span.End()
