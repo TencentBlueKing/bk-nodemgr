@@ -184,7 +184,9 @@ func (handler *combinedHandler[T, V]) add(data ...T) chan combinedResult[V] {
 }
 
 func (handler *combinedHandler[T, V]) check() {
-	if time.Since(handler.lastLaunchedTime) < handler.maxLaunchTimeGap && len(handler.data) < handler.maxDataLimit {
+	// empty data should not trigger any function.
+	// trigger with limited data and the max gap time.
+	if len(handler.data) == 0 || time.Since(handler.lastLaunchedTime) < handler.maxLaunchTimeGap && len(handler.data) < handler.maxDataLimit {
 		return
 	}
 
