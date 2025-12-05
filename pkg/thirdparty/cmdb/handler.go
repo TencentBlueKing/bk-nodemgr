@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/combine"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
@@ -163,6 +164,12 @@ type Handler struct {
 	cloudVendorKeeper iEnumResourceKeeper
 	osTypeKeeper      iEnumResourceKeeper
 	cpuArchKeeper     iEnumResourceKeeper
+
+	// combined handler
+	bindHostAgentCombinedHandler                combine.Handler
+	unbindHostAgentCombinedHandler              combine.Handler
+	pushHostIdentifierCombinedHandler           combine.Handler
+	findHostIdentifierPushResultCombinedHandler combine.Handler
 }
 
 const (
@@ -198,6 +205,12 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 
 		return nil, err
 	}
+
+	// register combined handler.
+	h.registerBindHostAgentCombinedHandler()
+	h.registerUnbindHostAgentCombinedHandler()
+	h.registerPushHostIdentifierCombinedHandler()
+	h.registerFindHostIdentifierPushResultCombinedHandler()
 
 	return h, nil
 }
@@ -472,56 +485,36 @@ func (h *Handler) BindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Host)
 		return errors.New("host info list is empty")
 	}
 
-	req := &BindHostAgentReq{
-		List: make([]*HostAgentIDInfo, 0, len(hostInfo)),
+	reqList := make([]interface{}, len(hostInfo))
+	for idx := range hostInfo {
+		reqList[idx] = &HostAgentIDInfo{
+			BKHostID:  hostInfo[idx].HostID,
+			BKAgentID: hostInfo[idx].Dynamic.AgentID,
+		}
 	}
 
-	virtualUser := access.GetVirtualUser()
-	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
+	_, err := h.bindHostAgentCombinedHandler.Call(nCtx, reqList...)
 
-	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to bind host agent")
-
-	for _, host := range hostInfo {
-		req.List = append(req.List, &HostAgentIDInfo{
-			BKHostID:  host.HostID,
-			BKAgentID: host.Dynamic.AgentID,
-		})
-	}
-	err := h.cli.bindHostAgent(newCtx, req)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
-// UnbindHostAgent bind host agent.
+// UnbindHostAgent unbind host agent.
 func (h *Handler) UnbindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Host) error {
 	if len(hostInfo) == 0 {
 		return errors.New("host info list is empty")
 	}
 
-	req := &UnbindHostAgentReq{
-		List: make([]*HostAgentIDInfo, 0, len(hostInfo)),
+	reqList := make([]interface{}, len(hostInfo))
+	for idx := range hostInfo {
+		reqList[idx] = &HostAgentIDInfo{
+			BKHostID:  hostInfo[idx].HostID,
+			BKAgentID: hostInfo[idx].Dynamic.AgentID,
+		}
 	}
 
-	virtualUser := access.GetVirtualUser()
-	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
+	_, err := h.unbindHostAgentCombinedHandler.Call(nCtx, reqList...)
 
-	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to unbind host agent")
-
-	for _, host := range hostInfo {
-		req.List = append(req.List, &HostAgentIDInfo{
-			BKHostID:  host.HostID,
-			BKAgentID: host.Dynamic.AgentID,
-		})
-	}
-	err := h.cli.unbindHostAgent(newCtx, req)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // AddHostToBusinessIdle add host to business idle.
@@ -553,18 +546,19 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 // PushHostIdentifier push host identifier.
 // nolint: nonamedreturns
 func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (taskID string, err error) {
-	req := &PushHostIdentifierReq{
-		BKHostIDs: hostIDs,
+	reqList := make([]interface{}, len(hostIDs))
+	for idx := range hostIDs {
+		reqList[idx] = hostIDs[idx]
 	}
 
-	virtualUser := access.GetVirtualUser()
-	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
-
-	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to push host identifier")
-
-	resp, err := h.cli.pushHostIdentifier(newCtx, req)
+	r, err := h.pushHostIdentifierCombinedHandler.Call(nCtx, reqList...)
 	if err != nil {
 		return "", err
+	}
+
+	resp, ok := r.(*PushHostIdentifierResp)
+	if !ok {
+		return "", errors.New("invalid response")
 	}
 
 	return resp.TaskID, nil
@@ -575,18 +569,14 @@ func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (
 func (h *Handler) FindHostIdentifierPushResult(nCtx contextx.IContext, taskID string) (successList []int64,
 	failedList []int64, pendingList []int64, err error) {
 
-	req := &FindHostIdentifierPushResultReq{
-		TaskID: taskID,
-	}
-
-	virtualUser := access.GetVirtualUser()
-	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
-
-	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to find host identifier push result")
-
-	resp, err := h.cli.findHostIdentifierPushResult(newCtx, req)
+	r, err := h.findHostIdentifierPushResultCombinedHandler.CallWithAggregationKey(nCtx, taskID, struct{}{})
 	if err != nil {
 		return nil, nil, nil, err
+	}
+
+	resp, ok := r.(*FindHostIdentifierPushResultResp)
+	if !ok {
+		return nil, nil, nil, errors.New("invalid response")
 	}
 
 	return resp.SuccessList, resp.FailedList, resp.PendingList, nil

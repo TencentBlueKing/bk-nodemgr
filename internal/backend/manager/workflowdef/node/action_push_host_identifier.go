@@ -117,23 +117,25 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 
 	var success bool
 	err = polling.Do(std.Context(), func(_ int) error {
-		successList, failedList, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(std.Context(), taskID)
+		successList, _, pendingList, err := act.cmdbClient.FindHostIdentifierPushResult(std.Context(), taskID)
 		if err != nil {
 			logger.G.Sys().WithErr(err).Error("failed to find host identifier push result")
 
 			return err
 		}
 
-		if len(pendingList) > 0 {
-			return errors.New("pending host identifier push result")
+		for _, hostID := range pendingList {
+			if hostID == std.DeployInfo().Host.HostID {
+				return errors.New("pending host identifier push result")
+			}
 		}
 
-		if len(successList)+len(failedList) == 0 {
-			return errors.New("invalid host identifier push result, no success or failed")
-		}
+		for _, hostID := range successList {
+			if hostID == std.DeployInfo().Host.HostID {
+				success = true
 
-		if len(successList) > 0 {
-			success = true
+				return nil
+			}
 		}
 
 		return nil
