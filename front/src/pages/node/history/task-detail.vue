@@ -61,7 +61,7 @@
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown>
-        <Button :disabled="!runningSelection.length">批量终止</Button>
+        <Button :disabled="!runningSelection.length" @click="handleBatchTerminate">批量终止</Button>
         <copy-ip-dropdown
           type="agent"
           :list="list"
@@ -193,7 +193,7 @@
           <template #default="{ row }">
             <div class="flex items-center gap-[11px]">
               <Button text theme="primary" @click="handleViewLog(row)">查看日志</Button>
-              <Button text theme="primary" :disabled="row.state !== 'running'">终止</Button>
+              <Button text theme="primary" :disabled="row.state !== 'running'" @click="handleTerminate(row)">终止</Button>
               <Dropdown
                 theme="light"
                 trigger="click"
@@ -634,7 +634,7 @@ const list = [
 ];
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
-const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout'].includes(item.state)));
+const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout', 'terminated'].includes(item.state)));
 const runningSelection = computed(() => selection.value.filter((item: any) => ['running'].includes(item.state)));
 const handleSelectChange = ({
   checked,
@@ -760,6 +760,36 @@ const handleFullRetry = async (type: string) => {
     await updataCurrentTaskInfo();
   }
 };
+
+// 终止
+const handleTerminate = async (row: any) => {
+  const res = await NodeWorkflowService.NodeWorkflowOperationTerminate({
+    workflow_id: route.params.taskId,
+    operation_ids: [row.operation_id],
+  }).catch(() => false);
+  if (res !== false) {
+    await getOperateList();
+    if (currentTaskStatus.value === 'running' && needInterval.value) {
+      start();
+    }
+    await updataCurrentTaskInfo();
+  }
+};
+// 批量终止
+const handleBatchTerminate = async () => {
+  const res = await NodeWorkflowService.NodeWorkflowOperationTerminate({
+    workflow_id: route.params.taskId,
+    operation_ids: failedSelection.value.map(item => item.operation_id),
+  }).catch(() => false);
+  if (res !== false) {
+    await getOperateList();
+    if (currentTaskStatus.value === 'running' && needInterval.value) {
+      start();
+    }
+    await updataCurrentTaskInfo();
+  }
+};
+
 const updataCurrentTaskInfo = async () => {
   const res = await NodeWorkflowService.NodeWorkflowList({
     exact_include_conditions: {

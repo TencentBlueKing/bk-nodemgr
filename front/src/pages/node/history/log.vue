@@ -119,7 +119,7 @@
                   v-if="row.state === 'running'"
                   text
                   theme="primary"
-                  @click="handleTerminate(row)">
+                  @click="handleTerminate">
                   终止
                 </Button>
               </div>
@@ -350,25 +350,26 @@ const handleRetry = async (row: any, type: string) => {
     retry_mod: type,
   }).catch(() => false);
   if (res !== false) {
-    isInterval.value = true;
-    await getOperateList();
-    await getInstance();
-    start();
+    setTimeout(async () => { // 重试后数据有0.5s到1s的延迟更新
+      isInterval.value = true;
+      await getOperateList();
+      await getInstance();
+      start();
+    }, 500);
     mainStore.updateLogRetry(true);
   }
 };
 
 // 终止
-const handleTerminate = async (row: any) => {
+const handleTerminate = async () => {
   const res = await NodeWorkflowService.NodeWorkflowOperationTerminate({
     workflow_id: route.params.taskId,
-    operation_ids: [row.operation_id],
+    operation_ids: [currentOperate.value.operation_id],
   }).catch(() => false);
   if (res !== false) {
-    isInterval.value = false;
     await getOperateList();
     await getInstance();
-    stop();
+    start();
     mainStore.updateLogTerminate(true);
   }
 };
@@ -513,7 +514,7 @@ async function getLog() {
 
   let currentKey;
   for (const [key, entry] of Object.entries(logData.value.oper_inst_logs)) {
-    if (['failed', 'timeout'].includes(entry.life_cycle?.state)) {
+    if (['failed', 'timeout', 'terminated'].includes(entry.life_cycle?.state)) {
       currentKey = key;
       hasErrorOrTimeout.value = true;
       isInterval.value = false;
@@ -560,6 +561,13 @@ watch(() => route.path, async () => {
     stop();
   }
 });
+
+watch(() => currentOperate.value, async () => {
+  if (['launched', 'init'].includes(currentOperate.value?.state)) {
+    await getOperateList();
+  }
+});
+
 onBeforeUnmount(() => {
   stop();
 });
