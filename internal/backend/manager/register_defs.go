@@ -89,6 +89,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionEnableReleaseTransfer(nodeCap),
 		node.NewActionUpgradePagent(nodeCap),
 		node.NewActionUninstallNode(nodeCap),
+		node.NewActionResetNodeDynamic(nodeCap),
 	); err != nil {
 		return err
 	}

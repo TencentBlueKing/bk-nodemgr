@@ -169,11 +169,6 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 	// let the callback server known which action to mark and log.
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
-	// clear node deployment info in the end.
-	std.DeployInfo().Host.Dynamic.NodeStatus = types.NodeStatusDamaged
-	std.DeployInfo().Host.Dynamic.NodeRole = types.NodeRoleBlank
-	std.DeployInfo().Host.Dynamic.AgentID = ""
-
 	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
 		NodeActionStandardParam: param.NodeActionStandardParam,
 		EnsureAgentID:           false,

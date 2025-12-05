@@ -125,15 +125,7 @@ func (h *handler) generatesUninstallDeploys(
 			TenantID: tenantID,
 			HostID:   host.HostID,
 			Static:   host.Static,
-			Dynamic: &types.HostDynamic{
-				NodeRole:       host.Dynamic.NodeRole,
-				NodeStatus:     host.Dynamic.NodeStatus,
-				NodeGeneration: host.Dynamic.NodeGeneration,
-				NodeOsType:     host.Dynamic.NodeOsType,
-				NodeCPUArch:    host.Dynamic.NodeCPUArch,
-				AgentID:        host.Dynamic.AgentID,
-				NetworkUnitID:  host.Dynamic.NetworkUnitID,
-			},
+			Dynamic:  host.Dynamic,
 		},
 		TransferOptions: types.DeploymentTransferOptions{
 			SelectDownloads: true,
