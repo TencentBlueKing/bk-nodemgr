@@ -148,7 +148,6 @@ func (handler *combinedHandler[T, V]) call(ctx context.Context, data ...T) (V, e
 
 	handler.mu.Lock()
 	ch := handler.add(data...)
-	defer close(ch)
 	handler.check()
 	handler.mu.Unlock()
 
@@ -202,22 +201,15 @@ func (handler *combinedHandler[T, V]) check() {
 		result, err := handler.dofunc(handler.key, data)
 		handler.mu.Lock()
 		for _, ch := range handler.resultChs[generation] {
-			handler.sendResult(ch, combinedResult[V]{
+			ch <- combinedResult[V]{
 				val: result,
 				err: err,
-			})
+			}
+			close(ch)
 		}
 		delete(handler.resultChs, generation)
 		handler.mu.Unlock()
 	}()
-}
-
-func (handler *combinedHandler[T, V]) sendResult(resultCh chan combinedResult[V], result combinedResult[V]) {
-	defer func() {
-		_ = recover()
-	}()
-
-	resultCh <- result
 }
 
 func (handler *combinedHandler[T, V]) idle() bool {
