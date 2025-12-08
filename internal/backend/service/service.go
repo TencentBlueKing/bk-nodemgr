@@ -293,6 +293,7 @@ func (svc *Service) newCMDBHandler() (cmdb.IHandler, error) {
 		apiGwClientCapability,
 		&cmdb.Config{
 			SupplierAccount: svc.conf.CMDB.SupplierAccount,
+			VirtualUser:     access.GetVirtualUser(),
 			APIGWAppConfig:  apiGWAPPConfig,
 		},
 	)

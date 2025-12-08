@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/combine"
@@ -29,8 +28,62 @@ const (
 	combinedGap = 1 * time.Second
 )
 
-func (h *Handler) registerBindHostAgentCombinedHandler() {
-	h.bindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, interface{}](
+func (h *Handler) getCombinedHandler(nCtx contextx.IContext) *combinedHandler {
+	tenantID := nCtx.TenantID()
+
+	h.combinedHandlerGroupMu.RLock()
+	handler, ok := h.combinedHandlerGroup[tenantID]
+	h.combinedHandlerGroupMu.RUnlock()
+
+	if ok {
+		return handler
+	}
+
+	h.combinedHandlerGroupMu.Lock()
+	defer h.combinedHandlerGroupMu.Unlock()
+
+	handler, ok = h.combinedHandlerGroup[tenantID]
+	if ok {
+		return handler
+	}
+
+	// create new handler.
+	handler = &combinedHandler{
+		tenantID: tenantID,
+		username: h.cli.config.VirtualUser,
+		cli:      h.cli,
+	}
+	handler.init()
+
+	h.combinedHandlerGroup[tenantID] = handler
+
+	return handler
+}
+
+type combinedHandler struct {
+	cli      *cli
+	tenantID string
+	username string
+
+	bindHostAgentCombinedHandler                combine.IHandler[*HostAgentIDInfo, interface{}]
+	unbindHostAgentCombinedHandler              combine.IHandler[*HostAgentIDInfo, interface{}]
+	pushHostIdentifierCombinedHandler           combine.IHandler[int64, *PushHostIdentifierResp]
+	findHostIdentifierPushResultCombinedHandler combine.IHandler[struct{}, *FindHostIdentifierPushResultResp]
+	addHostToBusinessIdleCombinedHandler        combine.IHandler[*CreateHostInfo, *AddHostToBusinessIdleResp]
+	addHostToResourcePoolCombinedHandler        combine.IHandler[*CreateHostInfo, *AddHostToResourcePoolResp]
+}
+
+func (hdl *combinedHandler) init() {
+	hdl.registerAddHostToBusinessIdleCombinedHandler()
+	hdl.registerBindHostAgentCombinedHandler()
+	hdl.registerUnbindHostAgentCombinedHandler()
+	hdl.registerPushHostIdentifierCombinedHandler()
+	hdl.registerFindHostIdentifierPushResultCombinedHandler()
+	hdl.registerAddHostToResourcePoolCombinedHandler()
+}
+
+func (hdl *combinedHandler) registerBindHostAgentCombinedHandler() {
+	hdl.bindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, interface{}](
 		combinedMax,
 		combinedGap,
 		func(_ string, data []*HostAgentIDInfo) (interface{}, error) {
@@ -51,23 +104,21 @@ func (h *Handler) registerBindHostAgentCombinedHandler() {
 
 				reqList = append(reqList, item)
 			}
-
-			virtualUser := access.GetVirtualUser()
-			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
 
 			req := &BindHostAgentReq{
 				List: reqList,
 			}
 
-			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to bind host agent")
+			nCtx := contextx.From(contextx.Background(), contextx.WithTenantID(hdl.tenantID), contextx.WithBKUsername(hdl.username))
+			logger.G.Biz(nCtx).With("req", req).Info("use virtual user to bind host agent")
 
-			return nil, h.cli.bindHostAgent(newCtx, req)
+			return nil, hdl.cli.bindHostAgent(nCtx, req)
 		},
 	)
 }
 
-func (h *Handler) registerUnbindHostAgentCombinedHandler() {
-	h.unbindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, interface{}](
+func (hdl *combinedHandler) registerUnbindHostAgentCombinedHandler() {
+	hdl.unbindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, interface{}](
 		combinedMax,
 		combinedGap,
 		func(_ string, data []*HostAgentIDInfo) (interface{}, error) {
@@ -89,22 +140,20 @@ func (h *Handler) registerUnbindHostAgentCombinedHandler() {
 				reqList = append(reqList, item)
 			}
 
-			virtualUser := access.GetVirtualUser()
-			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
-
 			req := &UnbindHostAgentReq{
 				List: reqList,
 			}
 
-			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to unbind host agent")
+			nCtx := contextx.From(contextx.Background(), contextx.WithTenantID(hdl.tenantID), contextx.WithBKUsername(hdl.username))
+			logger.G.Biz(nCtx).With("req", req).Info("use virtual user to unbind host agent")
 
-			return nil, h.cli.unbindHostAgent(newCtx, req)
+			return nil, hdl.cli.unbindHostAgent(nCtx, req)
 		},
 	)
 }
 
-func (h *Handler) registerPushHostIdentifierCombinedHandler() {
-	h.pushHostIdentifierCombinedHandler = combine.New[int64, *PushHostIdentifierResp](
+func (hdl *combinedHandler) registerPushHostIdentifierCombinedHandler() {
+	hdl.pushHostIdentifierCombinedHandler = combine.New[int64, *PushHostIdentifierResp](
 		combinedMax,
 		combinedGap,
 		func(_ string, data []int64) (*PushHostIdentifierResp, error) {
@@ -113,22 +162,20 @@ func (h *Handler) registerPushHostIdentifierCombinedHandler() {
 				reqMap[hostID] = struct{}{}
 			}
 
-			virtualUser := access.GetVirtualUser()
-			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
-
 			req := &PushHostIdentifierReq{
 				BKHostIDs: conv.MapKeyToSlice(reqMap),
 			}
 
-			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to push host identifier")
+			nCtx := contextx.From(contextx.Background(), contextx.WithTenantID(hdl.tenantID), contextx.WithBKUsername(hdl.username))
+			logger.G.Biz(nCtx).With("req", req).Info("use virtual user to push host identifier")
 
-			return h.cli.pushHostIdentifier(newCtx, req)
+			return hdl.cli.pushHostIdentifier(nCtx, req)
 		},
 	)
 }
 
-func (h *Handler) registerFindHostIdentifierPushResultCombinedHandler() {
-	h.findHostIdentifierPushResultCombinedHandler = combine.New[struct{}, *FindHostIdentifierPushResultResp](
+func (hdl *combinedHandler) registerFindHostIdentifierPushResultCombinedHandler() {
+	hdl.findHostIdentifierPushResultCombinedHandler = combine.New[struct{}, *FindHostIdentifierPushResultResp](
 		combinedMax,
 		combinedGap,
 		func(taskID string, _ []struct{}) (*FindHostIdentifierPushResultResp, error) {
@@ -136,29 +183,19 @@ func (h *Handler) registerFindHostIdentifierPushResultCombinedHandler() {
 				TaskID: taskID,
 			}
 
-			virtualUser := access.GetVirtualUser()
-			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
+			nCtx := contextx.From(contextx.Background(), contextx.WithTenantID(hdl.tenantID), contextx.WithBKUsername(hdl.username))
+			logger.G.Biz(nCtx).With("req", req).Info("use virtual user to find host identifier push result")
 
-			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to find host identifier push result")
-
-			resp, err := h.cli.findHostIdentifierPushResult(newCtx, req)
-			if err != nil {
-				return nil, err
-			}
-
-			return resp, nil
+			return hdl.cli.findHostIdentifierPushResult(nCtx, req)
 		},
 	)
 }
 
-func (h *Handler) registerAddHostToBusinessIdleCombinedHandler() {
-	h.addHostToBusinessIdleCombinedHandler = combine.New[*CreateHostInfo, *AddHostToBusinessIdleResp](
+func (hdl *combinedHandler) registerAddHostToBusinessIdleCombinedHandler() {
+	hdl.addHostToBusinessIdleCombinedHandler = combine.New[*CreateHostInfo, *AddHostToBusinessIdleResp](
 		combinedMax,
 		combinedGap,
 		func(bizIDKey string, data []*CreateHostInfo) (*AddHostToBusinessIdleResp, error) {
-			virtualUser := access.GetVirtualUser()
-			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
-
 			// convert bizIDKey to int64.
 			bizID, err := conv.ToInt64(bizIDKey)
 			if err != nil {
@@ -170,9 +207,27 @@ func (h *Handler) registerAddHostToBusinessIdleCombinedHandler() {
 				BKHostList: data,
 			}
 
-			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to add host to business idle")
+			nCtx := contextx.From(contextx.Background(), contextx.WithTenantID(hdl.tenantID), contextx.WithBKUsername(hdl.username))
+			logger.G.Biz(nCtx).With("req", req).Info("use virtual user to add host to business idle")
 
-			return h.cli.addHostToBusinessIdle(newCtx, req)
+			return hdl.cli.addHostToBusinessIdle(nCtx, req)
+		},
+	)
+}
+
+func (hdl *combinedHandler) registerAddHostToResourcePoolCombinedHandler() {
+	hdl.addHostToResourcePoolCombinedHandler = combine.New[*CreateHostInfo, *AddHostToResourcePoolResp](
+		combinedMax,
+		combinedGap,
+		func(_ string, data []*CreateHostInfo) (*AddHostToResourcePoolResp, error) {
+			req := &AddHostToResourcePoolReq{
+				HostInfo: data,
+			}
+
+			nCtx := contextx.From(contextx.Background(), contextx.WithTenantID(hdl.tenantID), contextx.WithBKUsername(hdl.username))
+			logger.G.Biz(nCtx).With("req", req).Info("use virtual user to add host to resource pool")
+
+			return hdl.cli.addHostToResource(nCtx, req)
 		},
 	)
 }

@@ -38,6 +38,7 @@ const (
 // Config the config of cmdb.
 type Config struct {
 	SupplierAccount string
+	VirtualUser     string
 	APIGWAppConfig  apigwclient.AppConfig
 }
 

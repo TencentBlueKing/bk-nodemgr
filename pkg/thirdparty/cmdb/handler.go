@@ -16,14 +16,13 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/combine"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/scheduler"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
@@ -165,12 +164,9 @@ type Handler struct {
 	osTypeKeeper      iEnumResourceKeeper
 	cpuArchKeeper     iEnumResourceKeeper
 
-	// combined handler
-	bindHostAgentCombinedHandler                combine.IHandler[*HostAgentIDInfo, interface{}]
-	unbindHostAgentCombinedHandler              combine.IHandler[*HostAgentIDInfo, interface{}]
-	pushHostIdentifierCombinedHandler           combine.IHandler[int64, *PushHostIdentifierResp]
-	findHostIdentifierPushResultCombinedHandler combine.IHandler[struct{}, *FindHostIdentifierPushResultResp]
-	addHostToBusinessIdleCombinedHandler        combine.IHandler[*CreateHostInfo, *AddHostToBusinessIdleResp]
+	// combined handler group splited by tenant.
+	combinedHandlerGroupMu sync.RWMutex
+	combinedHandlerGroup   map[string]*combinedHandler
 }
 
 const (
@@ -194,6 +190,8 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 		cloudVendorKeeper: newCloudVendorKeeper(cli),
 		osTypeKeeper:      newOSTypeKeeper(cli),
 		cpuArchKeeper:     newCPUArchKeeper(cli),
+
+		combinedHandlerGroup: make(map[string]*combinedHandler),
 	}
 
 	for _, opt := range opts {
@@ -206,13 +204,6 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 
 		return nil, err
 	}
-
-	// register combined handler.
-	h.registerBindHostAgentCombinedHandler()
-	h.registerUnbindHostAgentCombinedHandler()
-	h.registerPushHostIdentifierCombinedHandler()
-	h.registerFindHostIdentifierPushResultCombinedHandler()
-	h.registerAddHostToBusinessIdleCombinedHandler()
 
 	return h, nil
 }
@@ -233,7 +224,7 @@ func (h *Handler) initEnumKeepers() error {
 			func(nCtx contextx.IContext) error {
 				tenantIDs := tenant.GetAllTenantIDs()
 				for _, tenantID := range tenantIDs {
-					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(access.GetVirtualUser()))
+					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 					if err := h.cloudVendorKeeper.update(newCtx); err != nil {
 						return err
 					}
@@ -249,7 +240,7 @@ func (h *Handler) initEnumKeepers() error {
 			func(nCtx contextx.IContext) error {
 				tenantIDs := tenant.GetAllTenantIDs()
 				for _, tenantID := range tenantIDs {
-					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(access.GetVirtualUser()))
+					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 					if err := h.osTypeKeeper.update(newCtx); err != nil {
 						return err
 					}
@@ -265,7 +256,7 @@ func (h *Handler) initEnumKeepers() error {
 			func(nCtx contextx.IContext) error {
 				tenantIDs := tenant.GetAllTenantIDs()
 				for _, tenantID := range tenantIDs {
-					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(access.GetVirtualUser()))
+					newCtx := contextx.From(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 					if err := h.cpuArchKeeper.update(newCtx); err != nil {
 						return err
 					}
@@ -290,7 +281,7 @@ func (h *Handler) initEnumKeepers() error {
 
 	tenantIDs := tenant.GetAllTenantIDs()
 	for _, tenantID := range tenantIDs {
-		newCtx := contextx.New(ctx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(access.GetVirtualUser()))
+		newCtx := contextx.New(ctx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 		if err := h.cloudVendorKeeper.update(newCtx); err != nil {
 			logger.G.Sys().WithErr(err).Warn("failed to sync cloud vendor")
 		}
@@ -495,7 +486,7 @@ func (h *Handler) BindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Host)
 		}
 	}
 
-	_, err := h.bindHostAgentCombinedHandler.Call(nCtx, reqList...)
+	_, err := h.getCombinedHandler(nCtx).bindHostAgentCombinedHandler.Call(nCtx, reqList...)
 
 	return err
 }
@@ -514,7 +505,7 @@ func (h *Handler) UnbindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Hos
 		}
 	}
 
-	_, err := h.unbindHostAgentCombinedHandler.Call(nCtx, reqList...)
+	_, err := h.getCombinedHandler(nCtx).unbindHostAgentCombinedHandler.Call(nCtx, reqList...)
 
 	return err
 }
@@ -533,7 +524,7 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 	}
 
 	bizIDStr, _ := conv.ToString(bizID)
-	resp, err := h.addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDStr, reqList...)
+	resp, err := h.getCombinedHandler(nCtx).addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDStr, reqList...)
 	if err != nil {
 		return nil, err
 	}
@@ -544,7 +535,7 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 // PushHostIdentifier push host identifier.
 // nolint: nonamedreturns
 func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (taskID string, err error) {
-	resp, err := h.pushHostIdentifierCombinedHandler.Call(nCtx, hostIDs...)
+	resp, err := h.getCombinedHandler(nCtx).pushHostIdentifierCombinedHandler.Call(nCtx, hostIDs...)
 	if err != nil {
 		return "", err
 	}
@@ -557,7 +548,7 @@ func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (
 func (h *Handler) FindHostIdentifierPushResult(nCtx contextx.IContext, taskID string) (successList []int64,
 	failedList []int64, pendingList []int64, err error) {
 
-	resp, err := h.findHostIdentifierPushResultCombinedHandler.CallWithAggregationKey(nCtx, taskID, struct{}{})
+	resp, err := h.getCombinedHandler(nCtx).findHostIdentifierPushResultCombinedHandler.CallWithAggregationKey(nCtx, taskID, struct{}{})
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -618,20 +609,13 @@ func (h *Handler) ListHostsWithoutBusiness(ctx contextx.IContext, page types.Pag
 func (h *Handler) AddHostToResourcePool(nCtx contextx.IContext, hosts ...*types.Host) (successHost []*types.Host,
 	failedIndexMsg []string, err error) {
 
-	req := &AddHostToResourcePoolReq{
-		HostInfo: make([]*CreateHostInfo, 0, len(hosts)),
+	reqList := make([]*CreateHostInfo, len(hosts))
+
+	for idx := range hosts {
+		reqList[idx] = h.convCreateHostInfoFromTypes(hosts[idx])
 	}
 
-	virtualUser := access.GetVirtualUser()
-	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
-
-	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to add host to resource pool")
-
-	for _, host := range hosts {
-		req.HostInfo = append(req.HostInfo, h.convCreateHostInfoFromTypes(host))
-	}
-
-	resp, err := h.cli.addHostToResource(newCtx, req)
+	resp, err := h.getCombinedHandler(nCtx).addHostToResourcePoolCombinedHandler.Call(nCtx, reqList...)
 	if err != nil {
 		return nil, nil, err
 	}
