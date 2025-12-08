@@ -29,10 +29,10 @@ const (
 )
 
 func (h *Handler) registerBindHostAgentCombinedHandler() {
-	h.bindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, *struct{}](
+	h.bindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, interface{}](
 		combinedMax,
 		combinedGap,
-		func(_ string, data []*HostAgentIDInfo) (*struct{}, error) {
+		func(_ string, data []*HostAgentIDInfo) (interface{}, error) {
 			reqList := make([]*HostAgentIDInfo, 0, len(data))
 			for _, item := range data {
 				found := false
@@ -66,10 +66,10 @@ func (h *Handler) registerBindHostAgentCombinedHandler() {
 }
 
 func (h *Handler) registerUnbindHostAgentCombinedHandler() {
-	h.unbindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, *struct{}](
+	h.unbindHostAgentCombinedHandler = combine.New[*HostAgentIDInfo, interface{}](
 		combinedMax,
 		combinedGap,
-		func(_ string, data []*HostAgentIDInfo) (*struct{}, error) {
+		func(_ string, data []*HostAgentIDInfo) (interface{}, error) {
 			reqList := make([]*HostAgentIDInfo, 0, len(data))
 			for _, item := range data {
 				found := false

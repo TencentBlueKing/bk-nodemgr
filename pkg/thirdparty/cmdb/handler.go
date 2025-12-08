@@ -166,8 +166,8 @@ type Handler struct {
 	cpuArchKeeper     iEnumResourceKeeper
 
 	// combined handler
-	bindHostAgentCombinedHandler                combine.IHandler[*HostAgentIDInfo, *struct{}]
-	unbindHostAgentCombinedHandler              combine.IHandler[*HostAgentIDInfo, *struct{}]
+	bindHostAgentCombinedHandler                combine.IHandler[*HostAgentIDInfo, interface{}]
+	unbindHostAgentCombinedHandler              combine.IHandler[*HostAgentIDInfo, interface{}]
 	pushHostIdentifierCombinedHandler           combine.IHandler[int64, *PushHostIdentifierResp]
 	findHostIdentifierPushResultCombinedHandler combine.IHandler[struct{}, *FindHostIdentifierPushResultResp]
 }
