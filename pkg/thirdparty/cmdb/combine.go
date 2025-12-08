@@ -33,14 +33,12 @@ func (h *Handler) registerBindHostAgentCombinedHandler() {
 		combinedMax,
 		combinedGap,
 		func(_ string, data []*HostAgentIDInfo) (*struct{}, error) {
-			reqList := make([]*HostAgentIDInfo, len(data))
-			for idx := range data {
-				item := data[idx]
-
+			reqList := make([]*HostAgentIDInfo, 0, len(data))
+			for _, item := range data {
 				found := false
-				for preIdx := 0; preIdx < idx; preIdx++ {
-					if reqList[preIdx].BKHostID == item.BKHostID {
-						reqList[preIdx].BKAgentID = item.BKAgentID
+				for _, req := range reqList {
+					if req.BKHostID == item.BKHostID {
+						req.BKAgentID = item.BKAgentID
 						found = true
 
 						break
@@ -50,7 +48,7 @@ func (h *Handler) registerBindHostAgentCombinedHandler() {
 					continue
 				}
 
-				reqList[idx] = item
+				reqList = append(reqList, item)
 			}
 
 			virtualUser := access.GetVirtualUser()
@@ -72,14 +70,12 @@ func (h *Handler) registerUnbindHostAgentCombinedHandler() {
 		combinedMax,
 		combinedGap,
 		func(_ string, data []*HostAgentIDInfo) (*struct{}, error) {
-			reqList := make([]*HostAgentIDInfo, len(data))
-			for idx := range data {
-				item := data[idx]
-
+			reqList := make([]*HostAgentIDInfo, 0, len(data))
+			for _, item := range data {
 				found := false
-				for preIdx := 0; preIdx < idx; preIdx++ {
-					if reqList[preIdx].BKHostID == item.BKHostID {
-						reqList[preIdx].BKAgentID = item.BKAgentID
+				for _, req := range reqList {
+					if req.BKHostID == item.BKHostID {
+						req.BKAgentID = item.BKAgentID
 						found = true
 
 						break
@@ -89,7 +85,7 @@ func (h *Handler) registerUnbindHostAgentCombinedHandler() {
 					continue
 				}
 
-				reqList[idx] = item
+				reqList = append(reqList, item)
 			}
 
 			virtualUser := access.GetVirtualUser()
