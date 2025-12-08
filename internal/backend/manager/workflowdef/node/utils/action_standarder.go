@@ -94,8 +94,8 @@ func (std *NodeActionStandarder) ResetInstanceDataContext() {
 }
 
 // UpdateInstanceDataContent updates the instance data content.
-func (std *NodeActionStandarder) UpdateInstanceDataContent(obj any) {
-	std.instanceContext.Data.UpdateContent(obj)
+func (std *NodeActionStandarder) UpdateInstanceDataContent(obj any) error {
+	return std.instanceContext.Data.UpdateContent(obj)
 }
 
 // NodeActionStandardParam defines the standard parameters of node action.

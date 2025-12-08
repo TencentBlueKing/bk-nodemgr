@@ -159,10 +159,12 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
 		NodeActionStandardParam: param.NodeActionStandardParam,
 		EnsureAgentID:           true,
-	})
+	}); err != nil {
+		return fmt.Errorf("failed to update instance data content: %w", err)
+	}
 
 	return nil
 }

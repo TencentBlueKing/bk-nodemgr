@@ -179,10 +179,12 @@ func (act *actionUpgradeNode) Do(ctx *action.InstanceContext) error {
 		BaseDeployDir:    deployConstant.BaseDeployDir,
 	}
 
-	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
 		NodeActionStandardParam: param.NodeActionStandardParam,
 		EnsureAgentID:           true,
-	})
+	}); err != nil {
+		return fmt.Errorf("failed to update instance data content: %w", err)
+	}
 
 	// exec upgrade command
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {

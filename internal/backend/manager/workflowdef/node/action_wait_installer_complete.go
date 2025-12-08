@@ -120,7 +120,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 		case <-ticker.C:
 			// if agent-id set, fetch agent id
 			if param.EnsureAgentID {
-				agentID, err := act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportAgentIDKey)
+				agentID, err := act.tryFetchValue(std, instanceID, installer.InstallerReportKeyAgentID)
 				if err != nil {
 					return err
 				}
@@ -132,7 +132,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 			}
 
 			// fetch installer result
-			rawInstallerResult, err = act.tryFetchValue(std, instanceID, installer.WaitInstallerCompleteReportStatusKey)
+			rawInstallerResult, err = act.tryFetchValue(std, instanceID, installer.InstallerReportKeyStatus)
 			if err != nil {
 				return err
 			}

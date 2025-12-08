@@ -41,7 +41,7 @@ func (h *handler) ReportData(gCtx *gin.Context) {
 	}
 
 	dataMap := map[string]any{
-		installer.WaitInstallerCompleteReportAgentIDKey: req.GetAgentId(),
+		installer.InstallerReportKeyAgentID: req.GetAgentId(),
 	}
 
 	if err := h.UpsertActionInstancePrivateData(nCtx, req.GetOperInstId(), info.BlockingActionName, dataMap); err != nil {

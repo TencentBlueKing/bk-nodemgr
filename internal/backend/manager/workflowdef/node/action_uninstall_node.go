@@ -169,10 +169,12 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 	// let the callback server known which action to mark and log.
 	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
 
-	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
 		NodeActionStandardParam: param.NodeActionStandardParam,
 		EnsureAgentID:           false,
-	})
+	}); err != nil {
+		return fmt.Errorf("failed to update instance data content: %w", err)
+	}
 
 	// exec uninstall command
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {

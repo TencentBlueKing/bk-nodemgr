@@ -115,6 +115,23 @@ func (act *actionResetNodeDynamic) Do(ctx *action.InstanceContext) error {
 	std.DeployInfo().Host.Dynamic.RelayCallbackPort = 0
 	std.DeployInfo().Host.Dynamic.ProxyAccessDisabled = false
 
+	ctx.Data.LogI(fmt.Sprintf(
+		"reset node dynamic info: node-role(%s), node-status(%s), agent-id(%s), proxy-tags(%v), "+
+			"proxy-cluster-port(%d), proxy-data-port(%d), proxy-file-port(%d), proxy-install-origin-unit-id(%d), "+
+			"relay-download-port(%d), relay-callback-port(%d), proxy-access-disabled(%t)",
+		std.DeployInfo().Host.Dynamic.NodeRole,
+		std.DeployInfo().Host.Dynamic.NodeStatus,
+		std.DeployInfo().Host.Dynamic.AgentID,
+		std.DeployInfo().Host.Dynamic.ProxyTags,
+		std.DeployInfo().Host.Dynamic.ProxyClusterPort,
+		std.DeployInfo().Host.Dynamic.ProxyDataPort,
+		std.DeployInfo().Host.Dynamic.ProxyFilePort,
+		std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID,
+		std.DeployInfo().Host.Dynamic.RelayDownloadPort,
+		std.DeployInfo().Host.Dynamic.RelayCallbackPort,
+		std.DeployInfo().Host.Dynamic.ProxyAccessDisabled,
+	))
+
 	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), std.Token(), std.DeployInfo()); err != nil {
 		return fmt.Errorf("update node deployment info failed: %w", err)
 	}

@@ -123,13 +123,15 @@ func (act *actionUpgradePagent) Do(ctx *action.InstanceContext) error {
 	// get upgrade params.
 	upgradeParams, err := act.setupUpgradeParams(std)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to update instance data content: %w", err)
 	}
 
-	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
 		NodeActionStandardParam: param.NodeActionStandardParam,
 		EnsureAgentID:           true,
-	})
+	}); err != nil {
+		return err
+	}
 
 	// exec upgrade command
 	if std.DeployInfo().Host.Dynamic.NodeOsType == criteria.OSWindows {

@@ -189,10 +189,12 @@ func (act *actionInstallNodeBySSH) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to execute install cmd: %w", err)
 	}
 
-	std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
+	if err := std.UpdateInstanceDataContent(ActionWaitInstallerComplete{
 		NodeActionStandardParam: param.NodeActionStandardParam,
 		EnsureAgentID:           true,
-	})
+	}); err != nil {
+		return fmt.Errorf("failed to update instance data content: %w", err)
+	}
 
 	return nil
 }

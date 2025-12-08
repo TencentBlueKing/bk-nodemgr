@@ -47,8 +47,13 @@ type InstanceData struct {
 }
 
 // UpdateContent updates the content of the action instance.
-func (data *InstanceData) UpdateContent(obj any) {
-	data.Content = conv.StructToMapIgnoreError(obj)
+func (data *InstanceData) UpdateContent(obj any) error {
+	var err error
+	if data.Content, err = conv.StructToMap(obj); err != nil {
+		return fmt.Errorf("failed to convert struct to map: %w", err)
+	}
+
+	return nil
 }
 
 // Info gets info string.

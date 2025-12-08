@@ -32,9 +32,9 @@ const (
 )
 
 const (
-	// WaitInstallerCompleteReportStatusKey defines the report status key.
-	WaitInstallerCompleteReportStatusKey = "installer_report_status"
+	// InstallerReportKeyStatus defines the report status key.
+	InstallerReportKeyStatus = "installer_report_status"
 
-	// WaitInstallerCompleteReportAgentIDKey defines the report agent id key.
-	WaitInstallerCompleteReportAgentIDKey = "installer_report_agent_id"
+	// InstallerReportKeyAgentID defines the report agent id key.
+	InstallerReportKeyAgentID = "installer_report_agent_id"
 )
