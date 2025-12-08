@@ -11,6 +11,7 @@
 package cmdb
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
@@ -146,6 +147,33 @@ func (h *Handler) registerFindHostIdentifierPushResultCombinedHandler() {
 			}
 
 			return resp, nil
+		},
+	)
+}
+
+func (h *Handler) registerAddHostToBusinessIdleCombinedHandler() {
+	h.addHostToBusinessIdleCombinedHandler = combine.New[*CreateHostInfo, *AddHostToBusinessIdleResp](
+		combinedMax,
+		combinedGap,
+		func(bizIDKey string, data []*CreateHostInfo) (*AddHostToBusinessIdleResp, error) {
+			virtualUser := access.GetVirtualUser()
+			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
+
+			// convert bizIDKey to int64.
+			var bizID int64
+			_, err := fmt.Sscanf(bizIDKey, "%d", &bizID)
+			if err != nil {
+				return nil, fmt.Errorf("invalid bizID key: %s", bizIDKey)
+			}
+
+			req := &AddHostToBusinessIdleReq{
+				BKBizID:    bizID,
+				BKHostList: data,
+			}
+
+			logger.G.Biz(newCtx).With("req", req).Info("use virtual user to add host to business idle")
+
+			return h.cli.addHostToBusinessIdle(newCtx, req)
 		},
 	)
 }

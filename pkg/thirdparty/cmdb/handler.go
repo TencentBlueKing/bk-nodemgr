@@ -170,6 +170,7 @@ type Handler struct {
 	unbindHostAgentCombinedHandler              combine.IHandler[*HostAgentIDInfo, interface{}]
 	pushHostIdentifierCombinedHandler           combine.IHandler[int64, *PushHostIdentifierResp]
 	findHostIdentifierPushResultCombinedHandler combine.IHandler[struct{}, *FindHostIdentifierPushResultResp]
+	addHostToBusinessIdleCombinedHandler        combine.IHandler[*CreateHostInfo, *AddHostToBusinessIdleResp]
 }
 
 const (
@@ -211,6 +212,7 @@ func New(c *restclient.Capability, conf *Config, opts ...OptionFn) (IHandler, er
 	h.registerUnbindHostAgentCombinedHandler()
 	h.registerPushHostIdentifierCombinedHandler()
 	h.registerFindHostIdentifierPushResultCombinedHandler()
+	h.registerAddHostToBusinessIdleCombinedHandler()
 
 	return h, nil
 }
@@ -525,17 +527,13 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 		return nil, errors.New("host list is empty")
 	}
 
-	req := &AddHostToBusinessIdleReq{BKBizID: bizID}
-	for _, host := range hosts {
-		req.BKHostList = append(req.BKHostList, h.convCreateHostInfoFromTypes(host))
+	reqList := make([]*CreateHostInfo, len(hosts))
+	for idx := range hosts {
+		reqList[idx] = h.convCreateHostInfoFromTypes(hosts[idx])
 	}
 
-	virtualUser := access.GetVirtualUser()
-	newCtx := contextx.From(nCtx, contextx.WithBKUsername(virtualUser))
-
-	logger.G.Biz(newCtx).With("req", req).Info("use virtual user to add host to business idle")
-
-	resp, err := h.cli.addHostToBusinessIdle(newCtx, req)
+	bizIDKey := fmt.Sprintf("%d", bizID)
+	resp, err := h.addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDKey, reqList...)
 	if err != nil {
 		return nil, err
 	}
