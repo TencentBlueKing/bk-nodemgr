@@ -136,7 +136,7 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// not match host, can't reuse.
 	// maybe: host don't exist, or host 's network area changed.
 	if count == 0 {
-		std.InstanceData().LogE("not match host, can't reuse agent id")
+		std.InstanceData().LogW("not match host, can't reuse agent id")
 		logger.G.Sys().Info("not match host, can't reuse agent id")
 
 		return nil
