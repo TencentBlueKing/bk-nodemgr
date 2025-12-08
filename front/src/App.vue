@@ -131,9 +131,9 @@
             :name="item.bk_biz_name"
             :id="item.bk_biz_id"
           >
-            <div class="w-full flex items-center justify-between biz-select-option">
-              <span>[{{ item.bk_biz_id }}] {{ item.bk_biz_name }}</span>
+            <div class="w-full flex items-center biz-select-option">
               <Button
+                class="mr-[8px] w-[18px]"
                 text
                 @click.native.stop="handleCollect(item.bk_biz_id)">
                 <i
@@ -145,6 +145,7 @@
                   v-else>
                 </i>
               </Button>
+              <span>[{{ item.bk_biz_id }}] {{ item.bk_biz_name }}</span>
             </div>
           </Select.Option>
         </Select>

@@ -292,6 +292,7 @@
           theme="primary"
           @click="handleSetup"
           :disabled="disabledDataNum > 0 || checkFailed"
+          :loading="loading"
           v-bk-tooltips="{
             content: disabledDataNum
               ? '有Agent 状态错误数据，不可安装'
@@ -585,7 +586,10 @@ const handleBatchRemove = () => {
   originData.value = originData.value.filter((item: any) => !['exist_proxy', 'exist_agent', 'not_exist_relay'].includes(item.elig_status) || !item.checked);
   tabKey.value = Date.now();
 };
+
+const loading = ref(false);
 const handleSetup = async () => {
+  loading.value = true;
   // 过滤掉每条数据中的duplicate_host_ids和elig_status字段
   const filteredData = tableData.value.map((item: any) => {
     const { pending_host_ids, elig_status, ...rest } = item;
@@ -598,6 +602,7 @@ const handleSetup = async () => {
   }).catch(() => ({
     workflow_id: '',
   }));
+  loading.value = false;
   if (!res) return;
   if (res.workflow_id) {
     router.push({

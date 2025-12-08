@@ -1,7 +1,13 @@
 <template>
   <div class="text-[12px]">
     <div class="mb-[14px] flex items-start">
-      <div class="text-[#4D4F56] w-[72px] mr-[3px]">{{ $t('topoManager.workUnit.accessPoints.upstream') }} :</div>
+      <div class="text-[#4D4F56] w-[72px] mr-[3px]">
+        {{
+          is_direct
+            ? $t("topoManager.workUnit.form.directConfig")
+            : $t("topoManager.workUnit.accessPoints.upstream")
+        }} :
+      </div>
       <template v-if="is_direct">
         <Popover
           theme="light"

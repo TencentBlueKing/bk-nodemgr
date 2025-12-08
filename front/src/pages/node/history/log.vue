@@ -387,6 +387,16 @@ const scrollToFirstErrorByClassNames = (classNames: string | undefined) => {
     behavior: 'smooth',
     block: 'start', // 对齐元素顶部
   });
+  // 添加高亮动画效果
+  setTimeout(() => {
+    // 添加高亮样式类
+    targetEl.classList.add('scroll-highlight-animation');
+
+    // 3秒后移除高亮样式
+    setTimeout(() => {
+      targetEl.classList.remove('scroll-highlight-animation');
+    }, 3000);
+  }, 500); // 滚动完成后开始高亮动画
 };
 const activeStepKey = ref();
 const handleClickStep = (row: any) => {
@@ -615,6 +625,27 @@ onMounted(async () => {
   &::before {
     border-color: #b2b5bd;
     background: #f0f1f5;
+  }
+}
+
+/* 滚动高亮动画样式 */
+.scroll-highlight-animation {
+  animation: highlightPulse 1.5s ease-in-out 3;
+  border-radius: 4px;
+}
+
+@keyframes highlightPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(58, 132, 255, 0.7);
+    background-color: rgba(58, 132, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(58, 132, 255, 0.3);
+    background-color: rgba(58, 132, 255, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(58, 132, 255, 0);
+    background-color: rgba(58, 132, 255, 0.05);
   }
 }
 </style>

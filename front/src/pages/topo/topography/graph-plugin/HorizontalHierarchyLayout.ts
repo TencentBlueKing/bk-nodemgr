@@ -3,6 +3,10 @@ import { BaseLayout } from '@antv/g6';
 
 import { NodeType } from './config';
 
+export interface HorizontalHierarchyLayoutOptions {
+  collapsed?: boolean; // 控制孤立区域是否收起
+}
+
 export default class HorizontalHierarchyLayout extends BaseLayout {
   id = 'horizontal-hierarchy-layout';
 
@@ -14,36 +18,73 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
   private readonly AP_NODE_HEIGHT = 32;
   private readonly NODE_SPACING_ROW = 60;
   private readonly NODE_SPACING_COL = 40;
-  private readonly UNIT_COL_WIDTH = 270;
+  private readonly UNIT_COL_WIDTH = 290;
   private readonly AP_COL_WIDTH = 270;
   private readonly AREA_MIN_WIDTH = 300;
   private readonly AREA_HEIGHT_EXTRA = 20;
 
-  async assign(data: GraphData, options?: any) {
-    return this.execute(data, options);
+  private options: HorizontalHierarchyLayoutOptions = { collapsed: false };
+
+  async assign(data: GraphData, options?: HorizontalHierarchyLayoutOptions) {
+    if (options) {
+      this.options = { ...this.options, ...options };
+    }
+    return this.execute(data, this.options);
   }
 
-  async execute(data: GraphData, options?: any) {
+  async execute(data: GraphData, options?: HorizontalHierarchyLayoutOptions) {
     const nodes = data.nodes || [];
     const edges = data.edges || [];
+    const isCollapsed = options?.collapsed ?? this.options.collapsed ?? false;
 
     const areaNodes = nodes.filter(node => node?.type === NodeType.NET_WORK_AREA);
     const unitNodes = nodes.filter(node => node?.type === NodeType.NET_WORK_UNIT);
     const accessPointNodes = nodes.filter(node => node?.type === NodeType.ACCESS_POINT);
 
     const nodesByArea = this.groupNodesByArea(areaNodes, unitNodes, accessPointNodes, edges);
-    const { areaColumns } = this.buildAreaColumnsByDirectUnitDependency(edges, nodesByArea);
+
+    // 构建列，并分离出孤立区域
+    const { areaColumns, isolatedAreas } = this.buildAreaColumnsByDirectUnitDependency(edges, nodesByArea);
+
+    // 根据折叠状态决定参与布局的列
+    const columnsToLayout = [...areaColumns];
+    if (!isCollapsed && isolatedAreas.length > 0) {
+      columnsToLayout.push(isolatedAreas);
+    }
 
     const globalDependencies = this.buildGlobalDependencies(nodes, edges);
     const sourceNodes = unitNodes.filter(u => (u.data as any).is_direct);
     const globalNodeLevels = this.calculateGlobalNodeLevels(nodes, globalDependencies, sourceNodes);
 
     const { allNodes, nodeLayoutInfo } = this.layoutAreasByColumnsWithGlobalLevels(
-      areaColumns,
+      columnsToLayout,
       nodesByArea,
       areaNodes,
       globalNodeLevels,
     );
+
+    // 处理被折叠的隐藏节点
+    if (isCollapsed && isolatedAreas.length > 0) {
+      isolatedAreas.forEach((areaId) => {
+        const areaData = nodesByArea.get(areaId);
+        if (areaData) {
+          // 隐藏区域节点
+          allNodes.push({
+            id: areaData.area.id,
+            style: { visibility: 'hidden', x: 0, y: 0 },
+            data: { ...areaData.area.data },
+          });
+          // 隐藏区域内的子节点
+          [...areaData.units, ...areaData.accessPoints].forEach((node) => {
+            allNodes.push({
+              id: node.id,
+              style: { visibility: 'hidden', x: 0, y: 0 },
+              data: { ...node.data },
+            });
+          });
+        }
+      });
+    }
 
     const edgesWithStyle = this.optimizeEdgeStyle(edges, allNodes, nodeLayoutInfo);
 
@@ -119,9 +160,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     return nodesByArea;
   }
 
-  /**
-   * 修复无依赖区域的排序逻辑
-   */
   private buildAreaColumnsByDirectUnitDependency(edges: EdgeData[], nodesByArea: Map<string, any>) {
     const areaIds = Array.from(nodesByArea.keys());
     const dependencies = new Map(areaIds.map(id => [id, new Set<string>()]));
@@ -134,7 +172,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       }
     });
 
-    // 构建区域间依赖关系
     edges.forEach((edge) => {
       if (!edge.source || !edge.target) return;
       const sourceId = edge.source as string;
@@ -145,7 +182,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
       nodesByArea.forEach((areaData, areaId) => {
         const nodeIds = new Set([...areaData.units, ...areaData.accessPoints].map(n => n.id));
-        // 只要边的任何一端是接入点，就认为是跨区域依赖
         if (nodeIds.has(sourceId) && (sourceId.startsWith('accessPoint-') || targetId.startsWith('accessPoint-'))) {
           downstreamAreaId = areaId;
         }
@@ -163,21 +199,33 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     const visited = new Set<string>();
     const areaColumns: string[][] = [];
 
-    // 第一列：有直连单元的区域
     const firstCol = Array.from(directUnitAreas);
-    areaColumns.push(firstCol);
-    firstCol.forEach(id => visited.add(id));
+    if (firstCol.length > 0) {
+      areaColumns.push(firstCol);
+      firstCol.forEach(id => visited.add(id));
+    }
 
-    // 后续列：根据依赖关系排列
     let currentLevel = 0;
     while (true) {
       const currentCol = areaColumns[currentLevel] || [];
+
+      // 兜底逻辑：如果依赖图有环或无直连单元入口，找入度为0的
+      if (areaColumns.length === 0 && dependencies.size > 0 && directUnitAreas.size === 0) {
+        const roots = areaIds.filter(id => dependencies.get(id)!.size === 0 && !visited.has(id));
+        if (roots.length > 0) {
+          areaColumns.push(roots);
+          roots.forEach(id => visited.add(id));
+          continue;
+        } else {
+          break;
+        }
+      }
+
       if (!currentCol.length) break;
 
       const nextCol = new Set<string>();
       currentCol.forEach((upAreaId) => {
         reverseDependencies.get(upAreaId)!.forEach((downAreaId) => {
-          // 确保下游区域的所有依赖都已被访问
           if (!visited.has(downAreaId) && Array.from(dependencies.get(downAreaId)!).every(u => visited.has(u))) {
             nextCol.add(downAreaId);
           }
@@ -191,14 +239,10 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
       currentLevel++;
     }
 
-    // 【修复点 1】：正确处理无依赖的区域
-    // 无依赖区域是指：不依赖任何其他区域，也不被任何其他区域依赖的区域
-    const remainingAreas = areaIds.filter(id => !visited.has(id));
-    if (remainingAreas.length > 0) {
-      areaColumns.push(remainingAreas);
-    }
+    // 孤立区域
+    const isolatedAreas = areaIds.filter(id => !visited.has(id));
 
-    return { areaColumns };
+    return { areaColumns, isolatedAreas };
   }
 
   private buildGlobalDependencies(nodes: NodeData[], edges: EdgeData[]): Map<string, Set<string>> {
@@ -217,7 +261,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     return dependencies;
   }
 
-  // eslint-disable-next-line max-len
   private calculateGlobalNodeLevels(nodes: NodeData[], dependencies: Map<string, Set<string>>, sourceNodes: NodeData[]): Map<string, number> {
     const nodeLevels = new Map<string, number>();
     const visited = new Set<string>();
@@ -273,7 +316,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
         const allAreaNodes = [...areaData.units, ...areaData.accessPoints].filter(Boolean);
         if (allAreaNodes.length === 0) {
-          // 【修复点 2】：处理空区域
           this.layoutEmptyArea(areaId, areaNodes, currentColumnX, currentRowY, allNodes);
           currentRowY += this.UNIT_NODE_HEIGHT + this.AREA_SPACING_VERTICAL;
           return;
@@ -302,7 +344,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
         currentRowY += areaSize.height + this.AREA_SPACING_VERTICAL;
       });
 
-      // 【修复点 3】：正确计算包含无依赖区域的列宽
       const columnMaxWidth = this.calculateColumnMaxWidth(columnAreaIds, nodesByArea, globalNodeLevels);
       currentColumnX += columnMaxWidth + this.AREA_SPACING_HORIZONTAL;
     });
@@ -310,9 +351,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     return { allNodes, nodeLayoutInfo };
   }
 
-  /**
-   * 为无依赖区域计算全局层级
-   */
   private groupNodesByGlobalLevel(
     nodes: NodeData[],
     globalNodeLevels: Map<string, number>,
@@ -322,7 +360,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     const levelGroups = new Map<number, NodeData[]>();
     let areaSourceLevel = this.getAreaSourceGlobalLevel(areaData, globalNodeLevels);
 
-    // 如果是无依赖区域，且没有源节点，手动设置一个基础层级
     if (areaSourceLevel === Infinity) {
       areaSourceLevel = 0;
     }
@@ -342,13 +379,11 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
   private getAreaSourceGlobalLevel(areaData: any, globalNodeLevels: Map<string, number>): number {
     let minLevel = Infinity;
 
-    // 优先找直连单元
     areaData.directUnits.forEach((unit: NodeData) => {
       const level = globalNodeLevels.get(unit.id) || 0;
       minLevel = Math.min(minLevel, level);
     });
 
-    // 如果没有直连单元，找无依赖的节点
     if (minLevel === Infinity) {
       const allAreaNodes = [...areaData.units, ...areaData.accessPoints].filter(Boolean);
       allAreaNodes.forEach((node) => {
@@ -386,7 +421,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     const maxColHeight = columns.reduce((max, col) => {
       let totalHeight = 0;
       col.nodes.forEach((node) => {
-        // eslint-disable-next-line max-len
         totalHeight += (node.type === NodeType.NET_WORK_UNIT ? this.UNIT_NODE_HEIGHT : this.AP_NODE_HEIGHT) + this.NODE_SPACING_ROW;
       });
       return Math.max(max, totalHeight > 0 ? totalHeight - this.NODE_SPACING_ROW : 0);
@@ -396,9 +430,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     return { width: areaWidth, height: areaHeight };
   }
 
-  /**
-   * 布局空区域
-   */
   private layoutEmptyArea(
     areaId: string,
     areaNodes: NodeData[],
@@ -421,6 +452,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
           stroke: '#dce1e8',
           lineWidth: 2,
           zIndex: -1,
+          visibility: 'visible',
         },
       });
     }
@@ -449,6 +481,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
           stroke: '#dce1e8',
           lineWidth: 2,
           zIndex: -1,
+          visibility: 'visible',
         },
       });
     }
@@ -488,6 +521,7 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
             textBaseline: 'middle',
             fontSize: 14,
             fontWeight: 500,
+            visibility: 'visible',
             ...node.style,
           },
           zIndex: 1,
@@ -504,10 +538,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     });
   }
 
-  /**
-   * 确保计算列宽时包含无依赖区域
-   */
-  // eslint-disable-next-line max-len
   private calculateColumnMaxWidth(columnAreaIds: string[], nodesByArea: Map<string, any>, globalNodeLevels: Map<string, number>): number {
     let maxWidth = 0;
     columnAreaIds.forEach((areaId) => {
@@ -516,7 +546,6 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
       const allAreaNodes = [...areaData.units, ...areaData.accessPoints].filter(Boolean);
       if (allAreaNodes.length === 0) {
-        // 空区域使用最小宽度
         maxWidth = Math.max(maxWidth, this.AREA_MIN_WIDTH);
         return;
       }
@@ -529,19 +558,20 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
         return nodes[0].type === NodeType.ACCESS_POINT ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH;
       });
 
-      // eslint-disable-next-line max-len
       const totalWidth = colWidths.reduce((sum, w) => sum + w, 0) + (colWidths.length - 1) * this.NODE_SPACING_COL + this.AREA_PADDING * 2;
       maxWidth = Math.max(maxWidth, totalWidth, this.AREA_MIN_WIDTH);
     });
     return maxWidth;
   }
 
+  // ---------------------- 重点修改：还原旧的边样式逻辑 ----------------------
   private optimizeEdgeStyle(
     edges: EdgeData[],
     allNodes: NodeData[],
-    nodeLayoutInfo: Map<string, { x: number; y: number; areaId: string; rowIndex: number }>
+    nodeLayoutInfo: Map<string, { x: number; y: number; areaId: string; rowIndex: number }>,
   ) {
-    const nodeIds = new Set(allNodes.map(n => n.id));
+    // 过滤掉不可见的节点
+    const nodeIds = new Set(allNodes.filter(n => n.style?.visibility !== 'hidden').map(n => n.id));
     const apToUnitCount = new Map<string, number>();
 
     edges.forEach((edge) => {

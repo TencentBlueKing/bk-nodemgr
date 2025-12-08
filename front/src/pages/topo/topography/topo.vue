@@ -1,6 +1,6 @@
 <template>
   <Loading mode="spin" theme="primary" :loading="isLoading">
-    <div class="min-h-[calc(100vh_-_104px)]">
+    <div class="min-h-[calc(100vh_-_104px)] relative">
       <!-- 下拉选择器 -->
       <Select
         class="w-[240px] absolute z-[2] m-[24px]"
@@ -17,20 +17,63 @@
           <Select.Option
             :key="defaultNetWorkarea?.bk_networkarea_id"
             :id="defaultNetWorkarea?.bk_networkarea_id"
-            :name="`[${defaultNetWorkarea?.bk_networkarea_id}] ${defaultNetWorkarea?.bk_networkarea_name}`"
           >
+            <div class="w-[180px] flex">
+              <Button
+                text
+                class="mr-[8px] w-[18px] favorited-item"
+                @click.stop="handleCollect(defaultNetWorkarea?.bk_networkarea_id)">
+                <i
+                  class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
+                  v-if="collectList.includes(defaultNetWorkarea?.bk_networkarea_id)">
+                </i>
+                <i
+                  class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[18px] hidden"
+                  v-else>
+                </i>
+              </Button>
+              <span>
+                {{ `[${defaultNetWorkarea?.bk_networkarea_id}] ${defaultNetWorkarea?.bk_networkarea_name}` }}
+              </span>
+            </div>
           </Select.Option>
         </Select.Group>
         <Select.Group :label="$t('topoManager.topo.select.other')">
           <Select.Option
-            v-for="item in netWorkAreaList"
+            v-for="item in sortedNetWorkAreaList"
             :key="item.bk_networkarea_id"
             :id="item.bk_networkarea_id"
-            :name="`[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`"
           >
+            <div class="w-[180px] flex favorited-item">
+              <Button
+                text
+                class="mr-[8px] w-[18px]"
+                @click.stop="handleCollect(item.bk_networkarea_id)">
+                <i
+                  class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
+                  v-if="collectList.includes(item.bk_networkarea_id)">
+                </i>
+                <i
+                  class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[18px] hidden"
+                  v-else>
+                </i>
+              </Button>
+              <OverflowTitle type="tips">{{ `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}` }}</OverflowTitle>
+            </div>
           </Select.Option>
         </Select.Group>
       </Select>
+
+      <!-- 【新增】收起/展开无关联区域按钮 -->
+      <div class="absolute top-[24px] right-[80px] z-[2]">
+        <Button
+          theme="primary"
+          :outline="true"
+          @click="toggleIsolatedAreas"
+        >
+          {{ isIsolatedCollapsed ? '展开无单元区域' : '收起无单元区域' }}
+        </Button>
+      </div>
 
       <div id="nodemgr-g6-container"></div>
 
@@ -98,7 +141,7 @@
           v-model:is-show="detailState.showPopover"
           trigger="manual"
           theme="light"
-          placement="top"
+          placement="bottom"
           :arrow="true"
         >
           <!-- 锚点 -->
@@ -142,9 +185,9 @@
 </template>
 
 <script setup lang="ts">
-import { Loading, Popover, Select } from 'bkui-vue';
+import { Button, Loading, OverflowTitle, Popover, Select } from 'bkui-vue';
 import { throttle } from 'lodash';
-import { onMounted, onUnmounted, reactive, ref } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -187,6 +230,44 @@ const regionList = useMinLengthRef(
 const netWorkAreaList = ref<Partial<any>[]>([]);
 const defaultNetWorkarea = ref<Partial<any>>();
 
+// 计算属性：排序后的其他区域列表（按照优先级顺序：默认区域第一，勾选优先级第二，收藏优先级第三，ID从大到小第四）
+const sortedNetWorkAreaList = computed(() => [...netWorkAreaList.value].sort((a, b) => {
+  // bk_networkarea_id为0的始终排在最前面
+  if (a.bk_networkarea_id === 0) return -1;
+  if (b.bk_networkarea_id === 0) return 1;
+
+  // 勾选的区域排在前面（regionList中存在的区域）
+  const aIsSelected = regionList.value.includes(a.bk_networkarea_id);
+  const bIsSelected = regionList.value.includes(b.bk_networkarea_id);
+  if (aIsSelected && !bIsSelected) return -1;
+  if (!aIsSelected && bIsSelected) return 1;
+
+  // 收藏的区域排在前面
+  const aIsFavorite = workareaStore.favoriteWorkareaList.includes(a.bk_networkarea_id);
+  const bIsFavorite = workareaStore.favoriteWorkareaList.includes(b.bk_networkarea_id);
+  if (aIsFavorite && !bIsFavorite) return -1;
+  if (!aIsFavorite && bIsFavorite) return 1;
+
+  // 其他情况按ID从大到小排序
+  return b.bk_networkarea_id - a.bk_networkarea_id;
+}));
+
+// 收藏管控区域
+const collectList = ref<number[]>(JSON.parse(localStorage.getItem('collect_workarea') || '[]'));
+const handleCollect = (val: number) => {
+  if (collectList.value.includes(val)) {
+    collectList.value = collectList.value.filter(item => item !== val);
+  } else {
+    collectList.value.push(val);
+  }
+  localStorage.setItem('collect_workarea', JSON.stringify(collectList.value));
+  // 同步更新store中的收藏状态
+  workareaStore.syncFavoriteWorkareaList();
+};
+
+// 【新增】孤立区域折叠状态
+const isIsolatedCollapsed = ref(false);
+
 let graph: Graph;
 const graphData: GraphData = reactive({
   nodes: [],
@@ -199,6 +280,126 @@ const workUnitPrefix = 'workUnit-';
 
 function handleSelectChange() {
   filterAreaNodes();
+}
+
+// 【新增】切换折叠状态的方法
+function toggleIsolatedAreas() {
+  isIsolatedCollapsed.value = !isIsolatedCollapsed.value;
+  if (graph) {
+    graph.layout({
+      type: 'horizontal-hierarchy-layout',
+      collapsed: isIsolatedCollapsed.value
+    });
+  }
+}
+
+// 初始化拓扑图
+function handleInitTopo() {
+  if (graph) return;
+
+  const container = document.getElementById('nodemgr-g6-container');
+  if (!container) return;
+
+  const minimapContainer = document.getElementById('minimap-container');
+  if (minimapContainer) {
+    minimapContainer.innerHTML = '';
+  }
+
+  graph = new Graph({
+    container: 'nodemgr-g6-container',
+    width: container.clientWidth,
+    height: container.clientHeight,
+    zoom: 0.8,
+    zoomRange: [0.2, 2],
+    autoFit: 'view',
+    animation: false,
+    autoResize: true,
+    data: graphData,
+    node: {},
+    edge: {},
+    behaviors: [
+      'scroll-canvas', 'drag-canvas', 'zoom-canvas',
+      {
+        type: 'drag-element',
+        key: 'drag-element-1',
+        enableAnimation: true,
+        dropEffect: 'move',
+        shadow: true, // 启用拖拽幽灵节点
+        // 自定义幽灵节点样式
+        shadowFill: '#E8F3FF',
+        shadowFillOpacity: 0.4,
+        shadowStroke: '#1890FF',
+        shadowStrokeOpacity: 0.8,
+        shadowLineDash: [4, 4],
+        // 允许拖拽的元素类型：节点+边
+        enable: (event: IElementDragEvent) => ['node', 'edge'].includes(event.targetType) && !event.target.id.includes('workArea'),
+        // 拖拽时鼠标样式
+        cursor: {
+          default: 'default',
+          grab: 'grab',
+          grabbing: 'grabbing',
+        },
+      },
+    ],
+    plugins: [
+      {
+        type: 'minimap',
+        container: 'minimap-container',
+        size: [240, 148],
+      },
+    ],
+    layout: {
+      type: 'horizontal-hierarchy-layout',
+      // 【修改】传入初始折叠状态
+      collapsed: isIsolatedCollapsed.value,
+    },
+    background: '#FAFBFD',
+  });
+
+  graph.render();
+  graph.on(NodeEvent.DRAG, handleNodeDrag); // 注册拖拽事件
+  initGlobalListeners(); // 注册全局关闭菜单的监听
+  graph.on(EdgeEvent.POINTER_OVER, handleHoverEdge);
+  graph.on(EdgeEvent.POINTER_OUT, handleLeaveEdge);
+
+  // 监听节点的移入移出 (显示详情)
+  graph.on(NodeEvent.POINTER_OVER, handleNodeEnter);
+  graph.on(NodeEvent.POINTER_OUT, handleNodeLeave);
+  // 【修改】使用新的整合函数
+  graph.on(NodeEvent.CLICK, handleNodeClick);
+}
+
+function reRender() {
+  if (!graph) return;
+  graph.setData(graphData);
+  graph.layout();
+  graph.render();
+}
+
+// 工具栏处理
+function handleClickTool(code: string, value?: number) {
+  switch (code) {
+    case 'center':
+      graph?.fitCenter?.();
+      break;
+    case 'mapSize':
+      graph?.zoomTo?.(value);
+      break;
+    case 'init':
+      graph?.fitView?.();
+      graph?.zoomTo?.(0.6);
+      break;
+  }
+}
+
+function handleHoverEdge(evt: Event) {
+  const { target } = evt;
+  graph.setElementState(target?.id, 'highlight');
+}
+
+function handleLeaveEdge(evt: Event) {
+  const { target } = evt;
+  graph.setElementState(target?.id, '');
 }
 
 // ------------------ 菜单状态与辅助函数 ------------------
@@ -315,8 +516,7 @@ function handleNodeLeave(evt: any) {
   }, 100);
 }
 
-// 计算节点的包围盒，并更新区域节点及相邻区域的位置
-// ---------------------- 最终完整版逻辑 ----------------------
+// ---------------------- 节点拖拽逻辑 (保持原样) ----------------------
 
 // 计算节点的包围盒，并联动更新区域及其邻居节点（含邻居内部节点）
 const updateAreaByChildNodes = throttle((movedNodeId: string, areaId: string) => {
@@ -485,106 +685,8 @@ function handleNodeDrag(e: any) {
     updateAreaByChildNodes(targetNode.id, areaId);
   }
 }
-// 初始化拓扑图
-function handleInitTopo() {
-  if (graph) return;
 
-  const container = document.getElementById('nodemgr-g6-container');
-  if (!container) return;
-
-  const minimapContainer = document.getElementById('minimap-container');
-  if (minimapContainer) {
-    minimapContainer.innerHTML = '';
-  }
-
-  graph = new Graph({
-    container: 'nodemgr-g6-container',
-    width: container.clientWidth,
-    height: container.clientHeight,
-    zoom: 0.8,
-    zoomRange: [0.2, 2],
-    autoFit: 'view',
-    animation: false,
-    autoResize: true,
-    data: graphData,
-    node: {},
-    edge: {},
-    behaviors: [
-      'scroll-canvas', 'drag-canvas', 'zoom-canvas',
-      {
-        type: 'drag-element',
-        key: 'drag-element-1',
-        enableAnimation: true,
-        dropEffect: 'move',
-        shadow: true, // 启用拖拽幽灵节点
-        // 自定义幽灵节点样式
-        shadowFill: '#E8F3FF',
-        shadowFillOpacity: 0.4,
-        shadowStroke: '#1890FF',
-        shadowStrokeOpacity: 0.8,
-        shadowLineDash: [4, 4],
-        // 允许拖拽的元素类型：节点+边
-        enable: (event: IElementDragEvent) => ['node', 'edge'].includes(event.targetType) && !event.target.id.includes('workArea'),
-        // 拖拽时鼠标样式
-        cursor: {
-          default: 'default',
-          grab: 'grab',
-          grabbing: 'grabbing',
-        },
-      },
-    ],
-    plugins: [
-      {
-        type: 'minimap',
-        container: 'minimap-container',
-        size: [240, 148],
-      },
-    ],
-    layout: {
-      type: 'horizontal-hierarchy-layout',
-    },
-    background: '#FAFBFD',
-  });
-
-  graph.render();
-  // 监听节点拖拽过程
-  graph.on(NodeEvent.DRAG, handleNodeDrag);
-}
-
-function reRender() {
-  if (!graph) return;
-  graph.setData(graphData);
-  graph.layout();
-  graph.render();
-}
-
-// 工具栏处理
-function handleClickTool(code: string, value?: number) {
-  switch (code) {
-    case 'center':
-      graph?.fitCenter?.();
-      break;
-    case 'mapSize':
-      graph?.zoomTo?.(value);
-      break;
-    case 'init':
-      graph?.fitView?.();
-      graph?.zoomTo?.(0.6);
-      break;
-  }
-}
-
-function handleHoverEdge(evt: Event) {
-  const { target } = evt;
-  graph.setElementState(target?.id, 'highlight');
-}
-
-function handleLeaveEdge(evt: Event) {
-  const { target } = evt;
-  graph.setElementState(target?.id, '');
-}
-
-// 节点点击处理函数：分发菜单点击和跳转逻辑
+// ------------------ 节点点击逻辑 (保持原样) ------------------
 function handleNodeClick(evt: any) {
   const { target, path, canvas } = evt;
 
@@ -861,18 +963,9 @@ onMounted(async () => {
     await initAreaData();
     // 初始化拓扑图
     handleInitTopo();
-    initGlobalListeners(); // 注册全局关闭菜单的监听
 
     // 事件监听
     window.addEventListener('resize', handleResize);
-    graph.on(EdgeEvent.POINTER_OVER, handleHoverEdge);
-    graph.on(EdgeEvent.POINTER_OUT, handleLeaveEdge);
-
-    // 监听节点的移入移出 (显示详情)
-    graph.on(NodeEvent.POINTER_OVER, handleNodeEnter);
-    graph.on(NodeEvent.POINTER_OUT, handleNodeLeave);
-    // 【修改】使用新的整合函数
-    graph.on(NodeEvent.CLICK, handleNodeClick);
   } catch (err) {
     console.error(err);
   } finally {
@@ -887,11 +980,18 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 #nodemgr-g6-container {
   width: 100%;
   height: calc(100vh - 104px);
   position: relative;
   overflow: hidden;
+}
+.favorited-item {
+  &:hover {
+    .nc-not-favorited {
+      display: inline;
+    }
+  }
 }
 </style>

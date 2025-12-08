@@ -1,4 +1,5 @@
 import type { Group, RectStyleProps, TextStyleProps } from '@antv/g';
+// 确保引入了 Rect 和 Text
 import { Rect, Text } from '@antv/g';
 import type { BaseNodeStyleProps } from '@antv/g6';
 import { BaseNode } from '@antv/g6';
@@ -88,7 +89,7 @@ export default class AccessPointNode extends BaseNode {
   private drawAPLabel(container: Group) {
     const height = AccessPointNode.nodeHeight;
     const labelStyle = AccessPointNode.defaultAPLabelStyle;
-    const { type } = this.data; // type为'internal'/'external'
+    // const { type } = this.data;
 
     // 标识背景矩形
     this.upsert('ap-label-bg', 'rect', {
@@ -112,19 +113,32 @@ export default class AccessPointNode extends BaseNode {
     return container;
   }
 
-  // 绘制接入点名称
+  // 绘制接入点名称 (修改部分)
   private drawAccessPointName(container: Group) {
     const height = AccessPointNode.nodeHeight;
-    const { name, bk_networkunit_id } = this.data;
+    const width = AccessPointNode.nodeWidth;
+    const { name } = this.data;
+
+    // 计算文字起始位置和可用宽度
+    const textStartX = 60;
+    const paddingRight = 8; // 右侧留一点空隙
+    const availableWidth = width - textStartX - paddingRight; // 140 - 60 - 8 = 72px
 
     return this.upsert('access-point-name', 'text', {
-      x: 60, // 跟在标识后面
+      x: textStartX, // 跟在标识后面
       y: height / 2,
       text: name,
       ...AccessPointNode.defaultTextStyle,
       fontWeight: 600,
-      maxWidth: 150,
-      ellipsis: true,
+      textAlign: 'left', // 确保左对齐
+
+      // --- 截断配置 Start ---
+      wordWrap: true,             // 开启自动换行/截断逻辑
+      wordWrapWidth: availableWidth, // 设置最大宽度
+      maxLines: 1,                // 限制最大行数为 1
+      textOverflow: 'ellipsis',   // 超出部分显示省略号 '...'
+      // --- 截断配置 End ---
+
     }, container);
   }
 

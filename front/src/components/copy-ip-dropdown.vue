@@ -2,7 +2,7 @@
   <Cascader
     v-model="area"
     :list="copylist"
-    :scroll-height="134"
+    :scroll-height="136"
     trigger="click"
     @change="handleChange"
     @toggle="handleToggle"

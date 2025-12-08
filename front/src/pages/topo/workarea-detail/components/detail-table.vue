@@ -20,11 +20,18 @@
         @checkbox-all="handleSelectAllChange"
         @setting-change="handleSettingChange"
         @column-filter="handleColumnFilter">
-        <TableColumn type="checkbox" :width="60" :resizable="false" />
+        <TableColumn type="checkbox" :width="60" :resizable="false" fixed="left" />
+        <TableColumn
+          field="bk_host_id"
+          title="Host ID"
+          fixed="left"
+          :min-width="100"
+        ></TableColumn>
         <TableColumn
           :label="$t('topoManager.workAreaDetail.table.ipv4')"
           field="bk_host_innerip"
           show-overflow="tooltip"
+          fixed="left"
           :min-width="150">
         </TableColumn>
         <TableColumn
