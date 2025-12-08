@@ -532,8 +532,8 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 		reqList[idx] = h.convCreateHostInfoFromTypes(hosts[idx])
 	}
 
-	bizIDKey := fmt.Sprintf("%d", bizID)
-	resp, err := h.addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDKey, reqList...)
+	bizIDStr, _ := conv.ToString(bizID)
+	resp, err := h.addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDStr, reqList...)
 	if err != nil {
 		return nil, err
 	}

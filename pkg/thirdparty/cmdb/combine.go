@@ -160,10 +160,9 @@ func (h *Handler) registerAddHostToBusinessIdleCombinedHandler() {
 			newCtx := contextx.From(contextx.Background(), contextx.WithBKUsername(virtualUser))
 
 			// convert bizIDKey to int64.
-			var bizID int64
-			_, err := fmt.Sscanf(bizIDKey, "%d", &bizID)
+			bizID, err := conv.ToInt64(bizIDKey)
 			if err != nil {
-				return nil, fmt.Errorf("invalid bizID key: %s", bizIDKey)
+				return nil, fmt.Errorf("invalid biz-id. key(%s)", bizIDKey)
 			}
 
 			req := &AddHostToBusinessIdleReq{
