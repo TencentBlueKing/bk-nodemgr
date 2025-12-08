@@ -41,9 +41,9 @@ func Init(conf Config) error {
 
 // G get the global tracing globalHandler.
 func G() IHandler {
-	globalHandler.Once.Do(func() {
+	if globalHandler.IHandler == nil {
 		_ = Init(DefaultConfig())
-	})
+	}
 
 	return globalHandler.IHandler
 }
