@@ -486,7 +486,7 @@ func (h *Handler) BindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Host)
 		}
 	}
 
-	_, err := h.getCombinedHandler(nCtx).bindHostAgentCombinedHandler.Call(nCtx, reqList...)
+	_, _, err := h.getCombinedHandler(nCtx).bindHostAgentCombinedHandler.Call(nCtx, reqList...)
 
 	return err
 }
@@ -505,7 +505,7 @@ func (h *Handler) UnbindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Hos
 		}
 	}
 
-	_, err := h.getCombinedHandler(nCtx).unbindHostAgentCombinedHandler.Call(nCtx, reqList...)
+	_, _, err := h.getCombinedHandler(nCtx).unbindHostAgentCombinedHandler.Call(nCtx, reqList...)
 
 	return err
 }
@@ -524,7 +524,7 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 	}
 
 	bizIDStr, _ := conv.ToString(bizID)
-	resp, err := h.getCombinedHandler(nCtx).addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDStr, reqList...)
+	resp, _, err := h.getCombinedHandler(nCtx).addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDStr, reqList...)
 	if err != nil {
 		return nil, err
 	}
@@ -535,7 +535,7 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 // PushHostIdentifier push host identifier.
 // nolint: nonamedreturns
 func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (taskID string, err error) {
-	resp, err := h.getCombinedHandler(nCtx).pushHostIdentifierCombinedHandler.Call(nCtx, hostIDs...)
+	resp, _, err := h.getCombinedHandler(nCtx).pushHostIdentifierCombinedHandler.Call(nCtx, hostIDs...)
 	if err != nil {
 		return "", err
 	}
@@ -548,7 +548,7 @@ func (h *Handler) PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (
 func (h *Handler) FindHostIdentifierPushResult(nCtx contextx.IContext, taskID string) (successList []int64,
 	failedList []int64, pendingList []int64, err error) {
 
-	resp, err := h.getCombinedHandler(nCtx).findHostIdentifierPushResultCombinedHandler.CallWithAggregationKey(nCtx, taskID, struct{}{})
+	resp, _, err := h.getCombinedHandler(nCtx).findHostIdentifierPushResultCombinedHandler.CallWithAggregationKey(nCtx, taskID, struct{}{})
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -615,7 +615,7 @@ func (h *Handler) AddHostToResourcePool(nCtx contextx.IContext, hosts ...*types.
 		reqList[idx] = h.convCreateHostInfoFromTypes(hosts[idx])
 	}
 
-	resp, err := h.getCombinedHandler(nCtx).addHostToResourcePoolCombinedHandler.Call(nCtx, reqList...)
+	resp, _, err := h.getCombinedHandler(nCtx).addHostToResourcePoolCombinedHandler.Call(nCtx, reqList...)
 	if err != nil {
 		return nil, nil, err
 	}

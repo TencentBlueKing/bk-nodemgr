@@ -24,10 +24,12 @@ type DoFunc[T, V any] func(key string, data []T) (V, error)
 // IHandler is the combined handler.
 type IHandler[T, V any] interface {
 	// Call calls the function.
-	Call(ctx context.Context, data ...T) (V, error)
+	// return the result, param begin index and error.
+	Call(ctx context.Context, data ...T) (V, int, error)
 
 	// CallWithAggregationKey calls the function with aggregation key.
-	CallWithAggregationKey(ctx context.Context, key string, data ...T) (V, error)
+	// return the result, param begin index and error.
+	CallWithAggregationKey(ctx context.Context, key string, data ...T) (V, int, error)
 }
 
 // New creates a new combined handler.
@@ -62,12 +64,12 @@ type combinedHandlerGroup[T, V any] struct {
 }
 
 // Call calls the function.
-func (group *combinedHandlerGroup[T, V]) Call(ctx context.Context, data ...T) (V, error) {
+func (group *combinedHandlerGroup[T, V]) Call(ctx context.Context, data ...T) (V, int, error) {
 	return group.CallWithAggregationKey(ctx, defaultAggregationKey, data...)
 }
 
 // CallWithAggregationKey calls the function with aggregation key.
-func (group *combinedHandlerGroup[T, V]) CallWithAggregationKey(ctx context.Context, key string, data ...T) (V, error) {
+func (group *combinedHandlerGroup[T, V]) CallWithAggregationKey(ctx context.Context, key string, data ...T) (V, int, error) {
 	group.mu.Lock()
 	handler, ok := group.handlers[key]
 	if !ok {
@@ -132,36 +134,37 @@ type combinedHandler[T, V any] struct {
 }
 
 // call calls the function.
-func (handler *combinedHandler[T, V]) call(ctx context.Context, data ...T) (V, error) {
+func (handler *combinedHandler[T, V]) call(ctx context.Context, data ...T) (V, int, error) {
 	var zeroV V
 	if ctx == nil {
-		return zeroV, errors.New("ctx is nil")
+		return zeroV, -1, errors.New("ctx is nil")
 	}
 
 	if handler.dofunc == nil {
-		return zeroV, errors.New("dofunc is nil")
+		return zeroV, -1, errors.New("dofunc is nil")
 	}
 
 	if len(data) == 0 {
-		return zeroV, errors.New("data is empty")
+		return zeroV, -1, errors.New("data is empty")
 	}
 
 	handler.mu.Lock()
-	ch := handler.add(data...)
+	ch, index := handler.add(data...)
 	handler.check()
 	handler.mu.Unlock()
 
 	select {
 	case <-ctx.Done():
-		return zeroV, ctx.Err()
+		return zeroV, index, ctx.Err()
 	case result := <-ch:
-		return result.val, result.err
+		return result.val, index, result.err
 	}
 }
 
-func (handler *combinedHandler[T, V]) add(data ...T) chan combinedResult[V] {
+func (handler *combinedHandler[T, V]) add(data ...T) (<-chan combinedResult[V], int) {
 	handler.lastCallTime = time.Now()
 
+	index := len(handler.data)
 	handler.data = append(handler.data, data...)
 	if _, ok := handler.resultChs[handler.generation]; !ok {
 		handler.resultChs[handler.generation] = make([]chan combinedResult[V], 0)
@@ -179,7 +182,7 @@ func (handler *combinedHandler[T, V]) add(data ...T) chan combinedResult[V] {
 	ch := make(chan combinedResult[V], 1)
 	handler.resultChs[handler.generation] = append(handler.resultChs[handler.generation], ch)
 
-	return ch
+	return ch, index
 }
 
 func (handler *combinedHandler[T, V]) check() {
