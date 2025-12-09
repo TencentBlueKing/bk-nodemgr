@@ -15,6 +15,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel/trace"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -32,6 +33,8 @@ type Interface interface {
 
 const (
 	pingTimeoutDefault = 3 * time.Second
+	scopeNamePrefix    = "storage_"
+	SpanNamePrefix     = "storage"
 )
 
 // Storage define the Storage basic interface.
@@ -219,4 +222,22 @@ func (s *Storage) Terminate() error {
 	s.Cancel()
 
 	return nil
+}
+
+// WrapFn ()
+func (s *Storage) WrapFn(nCtx contextx.IContext, fnName string, fn func(contextx.IContext) error) (err error) {
+	parentSpan := trace.SpanFromContext(nCtx)
+	tracer := parentSpan.TracerProvider().Tracer(fmt.Sprintf("%s%s", scopeNamePrefix, s.Name))
+	traceCtx, span := tracer.Start(nCtx, fmt.Sprintf("%s %s", SpanNamePrefix, fnName))
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+		}
+
+		span.End()
+	}()
+
+	newCtx := contextx.FromContext(traceCtx)
+
+	return fn(newCtx)
 }

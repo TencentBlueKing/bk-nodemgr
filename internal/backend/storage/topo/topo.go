@@ -14,7 +14,6 @@ package topo
 
 import (
 	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
@@ -48,44 +47,57 @@ func (s *Storage) UpsertManyBusiness(nCtx contextx.IContext, biz ...*types.Busin
 
 // ListBusinesses lists businesses by page and conditions.
 func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, conditions ...*types.BusinessCondition) (
-	results []*types.Business, num int64, err error) {
+	[]*types.Business, int64, error) {
 
-	// record metric.
-	metric := s.metric().Start("list_business")
-	defer metric.End(err)
+	var (
+		results []*types.Business
+		num     int64
+		err     error
+	)
 
-	opts := make([]business.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
+	err = s.WrapFn(nCtx, "list_business", func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start("list_business")
+		defer metric.End(err)
+
+		opts := make([]business.OptFn, 0)
+		for _, condition := range conditions {
+			if condition == nil {
+				continue
+			}
+
+			if condition.ExactInclude != nil {
+				opts = append(opts,
+					business.WithBizID(condition.ExactInclude.BizID...),
+				)
+			}
+
+			if condition.ExactExclude != nil {
+				opts = append(opts,
+					business.WithoutBizID(condition.ExactExclude.BizID...),
+				)
+			}
+
+			if condition.FuzzyInclude != nil {
+				opts = append(opts,
+					business.WithFuzzyBizName(condition.FuzzyInclude.BizName...),
+				)
+			}
+
+			if condition.FuzzyExclude != nil {
+				opts = append(opts,
+					business.WithoutFuzzyBizName(condition.FuzzyExclude.BizName...),
+				)
+			}
 		}
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				business.WithBizID(condition.ExactInclude.BizID...),
-			)
+		if results, num, err = s.daoBusiness.List(nCtx, page, opts...); err != nil {
+			return err
 		}
 
-		if condition.ExactExclude != nil {
-			opts = append(opts,
-				business.WithoutBizID(condition.ExactExclude.BizID...),
-			)
-		}
-
-		if condition.FuzzyInclude != nil {
-			opts = append(opts,
-				business.WithFuzzyBizName(condition.FuzzyInclude.BizName...),
-			)
-		}
-
-		if condition.FuzzyExclude != nil {
-			opts = append(opts,
-				business.WithoutFuzzyBizName(condition.FuzzyExclude.BizName...),
-			)
-		}
-	}
-
-	if results, num, err = s.daoBusiness.List(nCtx, page, opts...); err != nil {
+		return nil
+	})
+	if err != nil {
 		return nil, 0, err
 	}
 
