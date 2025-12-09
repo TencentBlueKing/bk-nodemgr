@@ -690,3 +690,70 @@ func Test_handler_WatchResourceEvent(t *testing.T) {
 		})
 	}
 }
+
+func Test_splitHostIDsByIndex(t *testing.T) {
+	testCases := []struct {
+		name       string
+		hostIDs    []int64
+		beginIndex int
+		length     int
+		want       []int64
+		wantErr    bool
+	}{
+		{
+			name:       "take head segment",
+			hostIDs:    []int64{1, 2, 3, 4, 5},
+			beginIndex: 0,
+			length:     2,
+			want:       []int64{1, 2},
+		},
+		{
+			name:       "take middle segment",
+			hostIDs:    []int64{1, 2, 3, 4, 5, 6},
+			beginIndex: 2,
+			length:     3,
+			want:       []int64{3, 4, 5},
+		},
+		{
+			name:       "invalid negative index",
+			hostIDs:    []int64{1, 2, 3},
+			beginIndex: -1,
+			length:     1,
+			wantErr:    true,
+		},
+		{
+			name:       "range exceeds length",
+			hostIDs:    []int64{1, 2, 3},
+			beginIndex: 1,
+			length:     5,
+			wantErr:    true,
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := splitHostIDsByIndex(tc.hostIDs, tc.beginIndex, tc.length)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("got unexpected error: %v", err)
+			}
+
+			if len(got) != len(tc.want) {
+				t.Fatalf("expect len %d, got len %d", len(tc.want), len(got))
+			}
+
+			for idx := range got {
+				if got[idx] != tc.want[idx] {
+					t.Fatalf("expect value %d at index %d, got %d", tc.want[idx], idx, got[idx])
+				}
+			}
+		})
+	}
+}

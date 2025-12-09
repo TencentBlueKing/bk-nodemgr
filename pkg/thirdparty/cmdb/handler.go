@@ -524,12 +524,41 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 	}
 
 	bizIDStr, _ := conv.ToString(bizID)
-	resp, _, err := h.getCombinedHandler(nCtx).addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDStr, reqList...)
+	resp, beginIndex, err := h.getCombinedHandler(nCtx).addHostToBusinessIdleCombinedHandler.CallWithAggregationKey(nCtx, bizIDStr, reqList...)
 	if err != nil {
 		return nil, err
 	}
 
-	return resp.BKHostIDs, nil
+	if resp == nil {
+		return nil, errors.New("add host to business idle response is nil")
+	}
+
+	hostIDs, err := splitHostIDsByIndex(resp.BKHostIDs, beginIndex, len(reqList))
+	if err != nil {
+		return nil, err
+	}
+
+	return hostIDs, nil
+}
+
+func splitHostIDsByIndex(hostIDs []int64, beginIndex int, segmentLength int) ([]int64, error) {
+	if segmentLength == 0 {
+		return []int64{}, nil
+	}
+
+	if beginIndex < 0 {
+		return nil, fmt.Errorf("invalid begin index. index(%d)", beginIndex)
+	}
+
+	endIndex := beginIndex + segmentLength
+	if endIndex > len(hostIDs) {
+		return nil, fmt.Errorf("host ids length mismatch, begin(%d), len(%d), total(%d)", beginIndex, segmentLength, len(hostIDs))
+	}
+
+	result := make([]int64, segmentLength)
+	copy(result, hostIDs[beginIndex:endIndex])
+
+	return result, nil
 }
 
 // PushHostIdentifier push host identifier.
