@@ -302,7 +302,7 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 
 func (handler *triggerHandler) doTrigger(nCtx contextx.IContext, trigCtl ITriggerCtl) error {
 	traceCtx, span := handler.tracerProvider.Tracer(scopeNameTrigger).Start(nCtx,
-		fmt.Sprintf("%s %s", spanNamePrefixTrigger, trigCtl.GetTriggerID()),
+		fmt.Sprintf("%s %s", spanNamePrefixTrigger, trigCtl.GetTriggerCategory()),
 		trace.WithSpanKind(trace.SpanKindInternal),
 		trace.WithAttributes(
 			attribute.String(attributeKeyTriggerID, trigCtl.GetTriggerID()),
