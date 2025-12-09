@@ -114,20 +114,19 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("host login user is empty, host id: %d", host.HostID)
 	}
 
-	pluginConfDetails, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token())
+	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token())
 	if err != nil {
 		return err
 	}
 
-	pluginDeployConf, err := deployconstant.GetPluginDeployConf(
-		std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform.OS)
+	pluginDeployConf, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform.OS)
 	if err != nil {
 		return err
 	}
 
 	endpoints := []*types.Endpoint{{AgentID: host.Dynamic.AgentID}}
-	tasks := make([]*types.PushFileDetail, 0, len(pluginConfDetails))
-	for _, pluginConfDetail := range pluginConfDetails {
+	tasks := make([]*types.PushFileDetail, 0, len(pluginConf))
+	for _, pluginConfDetail := range pluginConf {
 		if pluginConfDetail == nil {
 			continue
 		}

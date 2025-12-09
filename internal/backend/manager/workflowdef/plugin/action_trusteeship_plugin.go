@@ -115,10 +115,13 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 	std.InstanceData().LogI(fmt.Sprintf("successfully execute trusteeship plugin operate, result(%s)", result))
 
 	std.InstanceData().LogI("wait process running")
-	expoBackoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	polling := retrier.NewPolling(retrier.PollingOpts{
+		Timeout:  act.Timeout(),
+		Interval: time.Second,
+	})
 
 	var processInfo *types.ProcessInfo
-	err = expoBackoff.Do(nCtx, func(_ int) error {
+	err = polling.Do(nCtx, func(_ int) error {
 		processInfo, err = act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
 		if err != nil {
 			return fmt.Errorf("failed to query process info: %w", err)

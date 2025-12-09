@@ -1,26 +1,63 @@
+pluginName: {{ .PluginInfo.Name | default "bk-nodemgr-relay" }}
 plugin:
-  pidFile: "{{ .PluginInfo.PidPath }}"
-  {{- if eq .NodeInfo.OSType "windows" }}
-  messageLocalSocketPort: {{ .PluginInfo.PluginIPC ｜toInt }}
+  pidFile: {{ .PluginInfo.PidPath }}/{{ .PluginInfo.Name | default "bk-nodemgr-relay" }}.pid
+  {{- if eq .NodeInfo.Dynamic.NodeOsType "windows" }}
+  messageLocalSocketPort: {{ .PluginInfo.PluginIPC | default 26000 | int }}
   {{- else }}
-  messageDomainSocketPath: "{{ .PluginInfo.PluginIPC }}"
+  messageDomainSocketPath: {{ .PluginInfo.PluginIPC | default "/usr/local/gse2/agent/lib/ipc.state.message" }}
   {{- end }}
 
+infoServer:
+  bindIP: {{ .CustomContext.InfoServer.BindIP | default "0.0.0.0" }}
+  port: {{ .CustomContext.InfoServer.Port | default 28300 }}
+  advertiseIPV4: {{ .CustomContext.InfoServer.AdvertiseIPV4 | default "0.0.0.0" }}
+  advertiseIPV6: {{ .CustomContext.InfoServer.AdvertiseIPV6 | default "::1" }}
+  authIdentity: {{ .CustomContext.InfoServer.AuthIdentity | default "none" }}
+  traceServiceName: relay-server-info
+  traceSampleRate: 0
+
+adminServer:
+  bindIP: {{ .CustomContext.AdminServer.BindIP | default "0.0.0.0" }}
+  port: {{ .CustomContext.AdminServer.Port | default 28301 }}
+  advertiseIPV4: {{ .CustomContext.AdminServer.AdvertiseIPV4 | default "0.0.0.0" }}
+  advertiseIPV6: {{ .CustomContext.AdminServer.AdvertiseIPV6 | default "::1" }}
+  authIdentity: {{ .CustomContext.AdminServer.AuthIdentity | default "none" }}
+  traceServiceName: relay-server-admin
+  traceSampleRate: 0
+
 callbackServer:
-  bindIP: "{{ .CustomContext.CallbackServer.BindIP }}"
-  port: {{ .CustomContext.CallbackServer.Port }}
-  advertiseIPV4: "{{ .CustomContext.CallbackServer.AdvertiseIPV4 }}"
+  bindIP: {{ .CustomContext.CallbackServer.BindIP | default "0.0.0.0" }}
+  port: {{ .CustomContext.CallbackServer.Port | default 28302 }}
+  advertiseIPV4: {{ .CustomContext.CallbackServer.AdvertiseIPV4 | default "0.0.0.0" }}
+  advertiseIPV6: {{ .CustomContext.CallbackServer.AdvertiseIPV6 | default "::1" }}
+  authIdentity: {{ .CustomContext.CallbackServer.AuthIdentity | default "none" }}
+  traceServiceName: relay-server-callback
+  traceSampleRate: 0
 
 downloadServer:
-  bindIP: "{{ .CustomContext.DownloadServer.BindIP }}"
-  port: {{ .CustomContext.DownloadServer.Port }}
-  advertiseIPV4: "{{ .CustomContext.DownloadServer.AdvertiseIPV4 }}"
+  bindIP: {{ .CustomContext.DownloadServer.BindIP | default "0.0.0.0" }}
+  port: {{ .CustomContext.DownloadServer.Port | default 28303 }}
+  advertiseIPV4: {{ .CustomContext.DownloadServer.AdvertiseIPV4 | default "0.0.0.0" }}
+  advertiseIPV6: {{ .CustomContext.DownloadServer.AdvertiseIPV6 | default "::1" }}
+  authIdentity: {{ .CustomContext.DownloadServer.AuthIdentity | default "none" }}
+  traceServiceName: relay-server-download
+  traceSampleRate: 0
 
 relayWorkspaceFileGroup:
-  fullPath: "{{ .CustomContext.WorkspaceFileGroupFullPath }}"
+  fullPath: {{ .CustomContext.WorkspaceFileGroupFullPath | default "/tmp/bknm" }}
+
+{{- if .CustomContext.Tracing }}
+tracing:
+  exporterType: {{ .CustomContext.Tracing.ExporterType }}
+  otlpEndpoint: {{ .CustomContext.Tracing.OtlpEndpoint }}
+  otlpInsecure: {{ .CustomContext.Tracing.OtlpInsecure }}
+  otlpHeaders: {{ .CustomContext.Tracing.OtlpHeaders }}
+{{- end }}
 
 log:
-  dir: "{{ .PluginInfo.LogPath }}"
-  maxSizeMB: "{{ .CustomContext.LogMaxSizeMB }}"
-  maxNum: "{{ .CustomContext.LogMaxNum }}"
-  level: "{{ .CustomContext.LogLevel }}"
+  dir: {{ .CustomContext.Log.LogDir | default .PluginInfo.LogPath }}
+  maxSizeMB: {{ .CustomContext.Log.LogMaxSizeMB | default 100 }}
+  maxNum: {{ .CustomContext.Log.LogMaxNum | default 7 }}
+  level: {{ .CustomContext.Log.LogLevel | default "INFO" }}
+  toStderr: {{ .CustomContext.Log.LogToStderr | default false}}
+  alsoToStderr: {{ .CustomContext.Log.LogAlsoToStderr | default false }}

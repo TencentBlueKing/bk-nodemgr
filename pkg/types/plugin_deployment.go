@@ -34,8 +34,14 @@ func NewPluginDeployment(info *PluginDeploymentInfo, conf *PluginDeploymentPlugi
 
 // PluginDeploymentPluginConf defines the plugin config.
 type PluginDeploymentPluginConf struct {
+	// TemplateRenderer is the template renderer for plugin process.
+	TemplateRenderer TemplateRendererType
+
 	// ConfigFilesDetail is the config file detail for plugin process.
 	ConfigFilesDetail []*PluginConfigDetail
+
+	// SystemConfigContext is the system config context for plugin process.
+	SystemConfigContext map[string]any
 
 	// CustomConfigContext is the custom config context for plugin process.
 	CustomConfigContext map[string]any

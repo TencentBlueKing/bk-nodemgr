@@ -75,6 +75,45 @@ func (s *Storage) updatePluginDeploymentInfo(nCtx contextx.IContext, token strin
 	return nil
 }
 
+// getPluginDeploymentPluginConf get plugin deployment plugin conf.
+func (s *Storage) getPluginDeploymentPluginConf(ctx contextx.IContext, token string) (*types.PluginDeploymentPluginConf, error) {
+	if ctx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if token == "" {
+		return nil, basestorage.ErrEmptyUniqueKey()
+	}
+
+	pluginConf, err := s.daoPluginDeployment.GetPluginConf(ctx, token)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get plugin deployment plugin conf: %v", err)
+	}
+
+	return pluginConf, nil
+}
+
+// updatePluginDeploymentPluginConf set plugin deployment plugin conf.
+func (s *Storage) updatePluginDeploymentPluginConf(ctx contextx.IContext, token string, pluginConf *types.PluginDeploymentPluginConf) error {
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if token == "" {
+		return basestorage.ErrEmptyUniqueKey()
+	}
+
+	if pluginConf == nil {
+		return errors.New("plugin conf is nil")
+	}
+
+	if err := s.daoPluginDeployment.UpdatePluginConf(ctx, token, pluginConf); err != nil {
+		return fmt.Errorf("failed to set plugin deployment plugin conf: %w", err)
+	}
+
+	return nil
+}
+
 // getPluginDeploymentPluginConfConfigFilesDetail get plugin deployment plugin conf config files detail.
 func (s *Storage) getPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string) ([]*types.PluginConfigDetail, error) {
 	if ctx == nil {
@@ -87,47 +126,8 @@ func (s *Storage) getPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IC
 
 	configs, err := s.daoPluginDeployment.GetPluginConfConfigFilesDetail(ctx, token)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get plugin deployment main config: %v", err)
+		return nil, fmt.Errorf("failed to get plugin deployment config: %v", err)
 	}
 
 	return configs, nil
-}
-
-// updatePluginDeploymentPluginConfConfigFilesDetail set plugin deployment plugin conf config files detail.
-func (s *Storage) updatePluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string, detail ...*types.PluginConfigDetail) error {
-	if ctx == nil {
-		return basestorage.ErrNilContent()
-	}
-
-	if token == "" {
-		return basestorage.ErrEmptyUniqueKey()
-	}
-
-	if len(detail) == 0 {
-		return errors.New("main config is empty")
-	}
-
-	if err := s.daoPluginDeployment.UpdatePluginConfConfigFilesDetail(ctx, token, detail...); err != nil {
-		return fmt.Errorf("failed to set plugin deployment main config: %w", err)
-	}
-
-	return nil
-}
-
-// getPluginDeploymentPluginConfCustomConfigContext get plugin deployment plugin conf custom config context.
-func (s *Storage) getPluginDeploymentPluginConfCustomConfigContext(ctx contextx.IContext, token string) (map[string]any, error) {
-	if ctx == nil {
-		return nil, basestorage.ErrNilContent()
-	}
-
-	if token == "" {
-		return nil, basestorage.ErrEmptyUniqueKey()
-	}
-
-	customConfigContext, err := s.daoPluginDeployment.GetPluginConfCustomConfigContext(ctx, token)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get plugin deployment custom config context: %w", err)
-	}
-
-	return customConfigContext, nil
 }

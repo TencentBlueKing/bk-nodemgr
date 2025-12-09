@@ -257,11 +257,11 @@ func parseExternalPluginPkgConfigTemplateFromProject(pluginProject *ExternalPlug
 		}
 
 		pkgConfigTemplates[idx] = types.PluginPkgConfigTemplate{
-			Name:             configTemplate.Name,
-			FilePath:         configTemplate.FilePath,
-			IsMainConfig:     isMainConfig,
-			Variables:        make(map[string]*types.PluginPkgConfigTemplateProperty),
-			TemplateRenderer: types.TemplateRendererTypeJinja2,
+			Name:         configTemplate.Name,
+			FilePath:     configTemplate.FilePath,
+			IsMainConfig: isMainConfig,
+			SourcePath:   configTemplate.SourcePath,
+			Variables:    make(map[string]*types.PluginPkgConfigTemplateProperty),
 		}
 
 		variables := convPluginV2PropertyToTypes(configTemplate.Variables)
@@ -400,8 +400,9 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 					AdditionInfo: nil,
 				},
 				ReleaseAdditionInfoPlugin: types.ReleaseAdditionInfoPlugin{
-					ConfigTemplates:  detail.ConfigTemplates[pkg.platform.String()],
-					PluginController: detail.Controller[pkg.platform.String()],
+					TemplateRendererType: types.TemplateRendererTypeJinja2,
+					ConfigTemplates:      detail.ConfigTemplates[pkg.platform.String()],
+					PluginController:     detail.Controller[pkg.platform.String()],
 				},
 			}
 

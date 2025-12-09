@@ -37,14 +37,14 @@ type IDaoPluginDeployment interface {
 	// GetPluginDeploymentInfo get plugin deployment info.
 	GetPluginDeploymentInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
 
+	// GetPluginDeploymentPluginConf get plugin deployment plugin conf.
+	GetPluginDeploymentPluginConf(ctx contextx.IContext, token string) (*types.PluginDeploymentPluginConf, error)
+
+	// UpdatePluginDeploymentPluginConf set plugin deployment plugin conf.
+	UpdatePluginDeploymentPluginConf(ctx contextx.IContext, token string, pluginConf *types.PluginDeploymentPluginConf) error
+
 	// GetPluginDeploymentPluginConfConfigFilesDetail get plugin deployment plugin conf config detail.
 	GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string) ([]*types.PluginConfigDetail, error)
-
-	// UpdatePluginDeploymentPluginConfConfigFilesDetail set plugin deployment plugin conf config detail.
-	UpdatePluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string, configs ...*types.PluginConfigDetail) error
-
-	// GetPluginDeploymentPluginConfCustomConfigContext get plugin deployment plugin conf custom config context.
-	GetPluginDeploymentPluginConfCustomConfigContext(ctx contextx.IContext, token string) (map[string]any, error)
 }
 
 // IDaoPluginWorkflow defines the dao interface.
@@ -105,7 +105,7 @@ type IDaoProcess interface {
 
 	// UpdateManyProcessInfo batch update process info by process ID.
 	UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error
-	
+
 	// GetProcess get process by host id and plugin name.
 	GetProcess(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error)
 }

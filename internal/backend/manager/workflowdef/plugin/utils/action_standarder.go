@@ -62,16 +62,6 @@ func (std *PluginActionStandarder) Save() error {
 	return nil
 }
 
-// UpdatePluginConfConfigFilesDetail updates the config files detail of the plugin deployment plugin conf.
-func (std *PluginActionStandarder) UpdatePluginConfConfigFilesDetail(config ...*types.PluginConfigDetail) error {
-	if err := std.daoPluginDeployment.UpdatePluginDeploymentPluginConfConfigFilesDetail(std.instanceContext.Ctx, std.param.Token,
-		config...); err != nil {
-		return fmt.Errorf("failed to update plugin deployment main config: %w", err)
-	}
-
-	return nil
-}
-
 // DeployInfo returns the plugin deployment info.
 func (std *PluginActionStandarder) DeployInfo() *types.PluginDeploymentInfo {
 	return std.info

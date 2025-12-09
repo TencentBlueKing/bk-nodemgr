@@ -33,14 +33,14 @@ type IHandler interface {
 	// UpdateInfo update plugin deployment info.
 	UpdateInfo(nCtx contextx.IContext, token string, info *types.PluginDeploymentInfo) error
 
+	// GetPluginConf get plugin deployment plugin conf.
+	GetPluginConf(nCtx contextx.IContext, token string) (*types.PluginDeploymentPluginConf, error)
+
+	// UpdatePluginConf set plugin deployment plugin conf.
+	UpdatePluginConf(nCtx contextx.IContext, token string, detail *types.PluginDeploymentPluginConf) error
+
 	// GetPluginConfConfigFilesDetail get plugin conf config files detail.
 	GetPluginConfConfigFilesDetail(nCtx contextx.IContext, token string) ([]*types.PluginConfigDetail, error)
-
-	// UpdatePluginConfConfigFilesDetail set config files detail.
-	UpdatePluginConfConfigFilesDetail(nCtx contextx.IContext, token string, detail ...*types.PluginConfigDetail) error
-
-	// GetPluginConfCustomConfigContext get plugin conf custom config context.
-	GetPluginConfCustomConfigContext(nCtx contextx.IContext, token string) (map[string]any, error)
 }
 
 // Handler this is a Handler to operate node deployment table.
@@ -126,6 +126,51 @@ func (h *Handler) UpdateInfo(nCtx contextx.IContext, token string, info *types.P
 	return nil
 }
 
+// GetPluginConf get plugin deployment plugin conf.
+func (h *Handler) GetPluginConf(nCtx contextx.IContext, token string) (*types.PluginDeploymentPluginConf, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return nil, ErrInvalidToken()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+	data, err := h.dao.Get(nCtx, filter, FieldKeyPluginConf)
+	if err != nil {
+		return nil, base.ErrRecordNoFound()
+	}
+
+	return convertPluginDeploymentPluginConfToTypes(data.PluginConf), nil
+}
+
+// UpdatePluginConf set plugin deployment plugin conf.
+func (h *Handler) UpdatePluginConf(nCtx contextx.IContext, token string, conf *types.PluginDeploymentPluginConf) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return ErrInvalidToken()
+	}
+
+	if conf == nil {
+		return base.ErrEmptyParamData()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+
+	data := convertPluginDeploymentPluginConfFromTypes(conf)
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyPluginConf, data); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetPluginConfConfigFilesDetail get plugin conf config files detail.
 func (h *Handler) GetPluginConfConfigFilesDetail(nCtx contextx.IContext, token string) ([]*types.PluginConfigDetail, error) {
 	if nCtx == nil {
@@ -144,46 +189,6 @@ func (h *Handler) GetPluginConfConfigFilesDetail(nCtx contextx.IContext, token s
 	}
 
 	return convertPluginConfigDetailsToTypes(data.PluginConf.ConfigFilesDetail...), nil
-}
-
-// UpdatePluginConfConfigFilesDetail set plugin config details.
-func (h *Handler) UpdatePluginConfConfigFilesDetail(nCtx contextx.IContext, token string, detail ...*types.PluginConfigDetail) error {
-	if nCtx == nil {
-		return base.ErrInvalidContext()
-	}
-
-	if token == "" {
-		return ErrInvalidToken()
-	}
-
-	filter := base.AliveFilter()
-	filter = WithToken(token)(filter)
-
-	if err := h.dao.UpdateField(nCtx, filter, FieldKeyPluginConfConfigFilesDetail, convertPluginConfigDetailsFromTypes(detail...)); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// GetPluginConfCustomConfigContext get plugin conf custom config context.
-func (h *Handler) GetPluginConfCustomConfigContext(nCtx contextx.IContext, token string) (map[string]any, error) {
-	if nCtx == nil {
-		return nil, base.ErrInvalidContext()
-	}
-
-	if token == "" {
-		return nil, ErrInvalidToken()
-	}
-
-	filter := base.AliveFilter()
-	filter = WithToken(token)(filter)
-	data, err := h.dao.Get(nCtx, filter, FieldKeyPluginConfCustomConfigContext)
-	if err != nil {
-		return nil, base.ErrRecordNoFound()
-	}
-
-	return data.PluginConf.CustomConfigContext, nil
 }
 
 func convertPluginDeploymentFromTypes(data *types.PluginDeployment) (*Data, error) {
@@ -341,13 +346,30 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 	return data, nil
 }
 
+func convertPluginDeploymentPluginConfToTypes(conf *PluginConf) *types.PluginDeploymentPluginConf {
+	if conf == nil {
+		return nil
+	}
+
+	pluginConf := &types.PluginDeploymentPluginConf{
+		TemplateRenderer:    types.TemplateRendererType(conf.TemplateRenderer),
+		ConfigFilesDetail:   convertPluginConfigDetailsToTypes(conf.ConfigFilesDetail...),
+		SystemConfigContext: conf.SystemConfigContext,
+		CustomConfigContext: conf.CustomConfigContext,
+	}
+
+	return pluginConf
+}
+
 func convertPluginDeploymentPluginConfFromTypes(conf *types.PluginDeploymentPluginConf) *PluginConf {
 	if conf == nil {
 		return nil
 	}
 
 	pluginConf := &PluginConf{
+		TemplateRenderer:    string(conf.TemplateRenderer),
 		ConfigFilesDetail:   convertPluginConfigDetailsFromTypes(conf.ConfigFilesDetail...),
+		SystemConfigContext: conf.SystemConfigContext,
 		CustomConfigContext: conf.CustomConfigContext,
 	}
 

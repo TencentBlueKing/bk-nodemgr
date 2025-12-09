@@ -13,18 +13,14 @@ package plugin
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"time"
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
-	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/renderer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -32,63 +28,12 @@ import (
 const (
 	// ActionNameRenderPluginConfig defines the action name.
 	ActionNameRenderPluginConfig = "render_plugin_config"
-
-	keyPluginPath   = "plugin_path"
-	keyNodeMan      = "nodeman"
-	keyCmdbInstance = "cmdb_instance"
-	keyTarget       = "target"
-	keyControlInfo  = "control_info"
-
-	keyLogPath       = "log_path"
-	keyDataPath      = "data_path"
-	keyPidPath       = "pid_path"
-	keySetupPath     = "setup_path"
-	keyEndpoint      = "endpoint"
-	keyHostID        = "host_id"
-	keySubConfigPath = "subconfig_path"
-
-	keyHost = "host"
-
-	keyIsMultiTenant = "is_multi_tenant"
-	keyConstants     = "constants"
-	keyBkHostID      = "bk_host_id"
-	keyOsType        = "os_type"
-	keyCPUArch       = "cpu_arch"
-	keyInnerIPList   = "inner_ip_list"
-	keyOuterIPList   = "outer_ip_list"
-	keyLoginIP       = "login_ip"
-	keyGlobal        = "global"
-
-	keyBkBizID             = "bk_biz_id"
-	keyBkHostName          = "bk_host_name"
-	keyBkAddressing        = "bk_addressing"
-	keyBkCloudID           = "bk_cloud_id"
-	keyBkCloudName         = "bk_cloud_name"
-	keyBkHostInnerIPList   = "bk_host_innerip_list"
-	keyBkHostOuterIPList   = "bk_host_outerip_list"
-	keyBkHostInnerIPv6List = "bk_host_innerip_v6_list"
-	keyBkHostOuterIPv6List = "bk_host_outerip_v6_list"
-	keyBkOSType            = "bk_os_type"
-	keyBkAgentID           = "bk_agent_id"
-	keyBkCPUArchitecture   = "bk_cpu_architecture"
-	keyBkCPU               = "bk_cpu"
-	keyBkMem               = "bk_mem"
-
-	keyPluginIPC    = "pluginipc"
-	keyDataIPC      = "dataipc"
-	keyGSEAgentHome = "gse_agent_home"
-	keyListenIP     = "listen_ip"
-	keyListenPort   = "listen_port"
-	keyGroupID      = "group_id"
 )
 
 // NewActionRenderPluginConfig ...
 func NewActionRenderPluginConfig(capability *Capability) action.Definition {
 	return &actionRenderPluginConfig{
-		daoHost:             capability.StorageTopo,
-		daoNetworkArea:      capability.StorageTopo,
 		daoPluginDeployment: capability.StoragePlugin,
-		daoPluginRelease:    capability.StorageRelease,
 	}
 }
 
@@ -99,10 +44,7 @@ type ActParamRenderPluginConfig struct {
 
 // actionRenderPluginConfig ...
 type actionRenderPluginConfig struct {
-	daoHost             topoStg.IStorageHost
-	daoNetworkArea      topoStg.IStorageNetworkArea
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoPluginRelease    release.IPlugin
 }
 
 // Name returns the name of the action.
@@ -161,217 +103,73 @@ func (act *actionRenderPluginConfig) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	host, err := act.daoHost.GetHostByID(std.Context(), std.DeployInfo().Process.HostID)
+	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConf(std.Context(), std.Token())
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
+		return fmt.Errorf("failed to get plugin deployment plugin conf: %w", err)
 	}
 
-	pluginRelease, err := act.daoPluginRelease.GetEnabledReleasePlugin(std.Context(), std.DeployInfo().Process.PluginName,
-		std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform, std.DeployInfo().Process.Info.Version)
+	if pluginConf == nil {
+		return fmt.Errorf("plugin deployment plugin conf is nil")
+	}
+
+	renderContext, err := act.generateConfigContext(pluginConf)
 	if err != nil {
-		return fmt.Errorf("failed to get plugin release info: %w", err)
+		return fmt.Errorf("failed to generate config context: %w", err)
 	}
 
-	renderContext, err := act.getRenderContext(std, host)
-	if err != nil {
-		return fmt.Errorf("failed to get render context: %w", err)
+	if err = act.renderConfig(std, pluginConf, renderContext); err != nil {
+		return fmt.Errorf("failed to render config: %w", err)
 	}
 
-	configFiles, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token())
-	if err != nil {
-		return fmt.Errorf("failed to get plugin config files detail: %w", err)
-	}
-
-	configNameMap := make(map[string]types.PluginPkgConfigTemplate)
-	for _, template := range pluginRelease.ConfigTemplates {
-		configNameMap[template.Name] = template
-	}
-
-	for idx := range configFiles {
-		template, ok := configNameMap[configFiles[idx].Name]
-		if !ok {
-			std.InstanceData().LogE(fmt.Sprintf("template(%s) not found in plugin release", configFiles[idx].Name))
-			return fmt.Errorf("template(%s) not found in plugin release", configFiles[idx].Name)
-		}
-
-		renderer, err := renderer.NewRenderer(template.TemplateRenderer)
-		if err != nil {
-			return fmt.Errorf("failed to create template renderer: %w", err)
-		}
-
-		std.InstanceData().LogI(fmt.Sprintf("using template renderer(%s) to render template(%s)",
-			template.TemplateRenderer, configFiles[idx].Name))
-
-		result, err := renderer.Render(template.SourceContent, renderContext)
-		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to render template")
-			return fmt.Errorf("failed to render template: %w", err)
-		}
-
-		std.InstanceData().LogI(fmt.Sprintf("rendered plugin(%s-%s-%s) config(%s) success",
-			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
-			std.DeployInfo().Process.Info.Version, configFiles[idx].Name))
-
-		configFiles[idx].Content = result
-	}
-
-	if err := std.UpdatePluginConfConfigFilesDetail(configFiles...); err != nil {
-		return err
+	if err := act.daoPluginDeployment.UpdatePluginDeploymentPluginConf(std.Context(), std.Token(), pluginConf); err != nil {
+		return fmt.Errorf("failed to update plugin deployment plugin conf: %w", err)
 	}
 
 	return nil
 }
 
-func (act *actionRenderPluginConfig) getRenderContext(std *pluginUtils.PluginActionStandarder, hostInfo *types.Host) (map[string]any, error) {
-	pluginPath, err := act.getPluginPath(std.DeployInfo(), hostInfo)
+func (act *actionRenderPluginConfig) renderConfig(
+	std *pluginUtils.PluginActionStandarder,
+	pluginConf *types.PluginDeploymentPluginConf,
+	renderContext map[string]any) error {
+
+	renderer, err := renderer.NewRenderer(pluginConf.TemplateRenderer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get plugin path: %w", err)
+		return fmt.Errorf("failed to create template renderer: %w", err)
 	}
 
-	nodeManContext, err := act.getNodeContext(std.DeployInfo(), hostInfo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get node context: %w", err)
+	std.InstanceData().LogI(fmt.Sprintf("using template renderer(%s) to render sub config", pluginConf.TemplateRenderer))
+
+	for idx := range pluginConf.ConfigFilesDetail {
+		pluginConf.ConfigFilesDetail[idx].Content, err = renderer.Render(pluginConf.ConfigFilesDetail[idx].Content, renderContext)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to render sub config template")
+			return fmt.Errorf("failed to render sub config template: %w", err)
+		}
+
+		std.InstanceData().LogI(fmt.Sprintf("rendered plugin(%s-%s-%s) sub config(%s) success",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
+			std.DeployInfo().Process.Info.Version, pluginConf.ConfigFilesDetail[idx].Name))
 	}
 
-	cmdbInstance, err := act.getCMDBInstance(std.Context(), hostInfo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get cmdb instance: %w", err)
-	}
-
-	controlInfo, err := act.getControlInfo(std.DeployInfo(), hostInfo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get control info: %w", err)
-	}
-
-	customContext, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfCustomConfigContext(std.Context(), std.Token())
-	if err != nil {
-		return nil, fmt.Errorf("failed to get custom config context: %w", err)
-	}
-
-	customContext[keyPluginPath] = pluginPath
-	customContext[keyNodeMan] = nodeManContext
-	customContext[keyCmdbInstance] = cmdbInstance
-	customContext[keyTarget] = cmdbInstance
-	customContext[keyControlInfo] = controlInfo
-
-	return customContext, nil
+	return nil
 }
 
-func (act *actionRenderPluginConfig) getPluginPath(info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
-	pluginDeployConf, err := deployconstant.GetPluginDeployConf(
-		info.Process.Generation, info.Process.Platform.OS)
-	if err != nil {
-		return nil, err
+func (act *actionRenderPluginConfig) generateConfigContext(pluginConf *types.PluginDeploymentPluginConf) (map[string]any, error) {
+	customContext := pluginConf.CustomConfigContext
+	systemContext := pluginConf.SystemConfigContext
+	result := make(map[string]any)
+
+	switch pluginConf.TemplateRenderer {
+	case types.TemplateRendererTypeJinja2:
+		maps.Copy(result, systemContext)
+		maps.Copy(result, customContext)
+	case types.TemplateRendererTypeGoTemplate:
+		maps.Copy(result, systemContext)
+		result[keyCustomContext] = customContext
+	default:
+		return nil, fmt.Errorf("unsupported template renderer type: %s", pluginConf.TemplateRenderer)
 	}
 
-	nodeDeployConf, err := deployconstant.GetNodeDeployConf(
-		info.Process.Generation, info.Process.Platform.OS)
-	if err != nil {
-		return nil, err
-	}
-
-	paths := map[string]any{
-		keyLogPath:       pluginDeployConf.LogDir,
-		keyDataPath:      pluginDeployConf.GenerateDefaultDataDir(info.Process.PluginGroup, info.Process.PluginName),
-		keyPidPath:       pluginDeployConf.GenerateDefaultRunDir(info.Process.PluginGroup, info.Process.PluginName),
-		keySetupPath:     pluginDeployConf.GenerateDefaultSetupPath(info.Process.PluginGroup, info.Process.PluginName),
-		keyEndpoint:      nodeDeployConf.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
-		keyHostID:        pluginDeployConf.HostIDPath,
-		keySubConfigPath: pluginDeployConf.GenerateDefaultSubConfigDir(info.Process.PluginGroup, info.Process.PluginName),
-	}
-
-	return paths, nil
-}
-
-func (act *actionRenderPluginConfig) getNodeContext(info *types.PluginDeploymentInfo, hostInfo *types.Host) (
-	map[string]any, error) {
-
-	pluginDeployConf, err := deployconstant.GetPluginDeployConf(
-		info.Process.Generation, info.Process.Platform.OS)
-	if err != nil {
-		return nil, err
-	}
-
-	nodeContext := map[string]any{
-		keyHost: map[string]any{
-			keyBkHostID:    hostInfo.HostID,
-			keyOsType:      hostInfo.Dynamic.NodeOsType,
-			keyCPUArch:     hostInfo.Dynamic.NodeCPUArch,
-			keyInnerIPList: hostInfo.Static.InnerIPList,
-			keyOuterIPList: hostInfo.Static.OuterIPList,
-			keyLoginIP:     hostInfo.Dynamic.LoginIP,
-		},
-		keyIsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
-		keyConstants:     map[string]any{},
-	}
-
-	if commonConstants, ok := pluginDeployConf.CommonConstants[info.Process.PluginPkgName]; ok {
-		nodeContext[keyConstants] = commonConstants
-	}
-
-	if _, ok := pluginDeployConf.CommonConstants[keyGlobal]; !ok {
-		return nodeContext, nil
-	}
-
-	if constantsMap, ok := nodeContext[keyConstants].(map[string]any); ok {
-		constantsMap[keyGlobal] = pluginDeployConf.CommonConstants[keyGlobal]
-	}
-
-	return nodeContext, nil
-}
-
-func (act *actionRenderPluginConfig) getCMDBInstance(nCtx contextx.IContext, hostInfo *types.Host) (
-	map[string]any, error) {
-
-	networkArea, err := act.daoNetworkArea.GetNetworkArea(nCtx, hostInfo.Static.NetworkAreaID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get network area by id: %w", err)
-	}
-
-	return map[string]any{
-		keyHost: map[string]any{
-			keyBkBizID:             hostInfo.Static.BizID,
-			keyBkHostID:            hostInfo.HostID,
-			keyBkOSType:            hostInfo.Static.OSTypeCCID,
-			keyBkAgentID:           hostInfo.Static.SyncedAgentID,
-			keyBkCloudID:           hostInfo.Static.NetworkAreaID,
-			keyBkCloudName:         networkArea.Name,
-			keyBkHostName:          hostInfo.Static.HostName,
-			keyBkAddressing:        hostInfo.Static.Addressing,
-			keyBkHostInnerIPList:   hostInfo.Static.InnerIPList,
-			keyBkHostOuterIPList:   hostInfo.Static.OuterIPList,
-			keyBkHostInnerIPv6List: hostInfo.Static.InnerIPV6List,
-			keyBkHostOuterIPv6List: hostInfo.Static.OuterIPV6List,
-			keyBkCPUArchitecture:   hostInfo.Static.Arch,
-			keyBkCPU:               hostInfo.Static.CPUNum,
-			keyBkMem:               hostInfo.Static.MemCap,
-		},
-	}, nil
-}
-
-func (act *actionRenderPluginConfig) getControlInfo(info *types.PluginDeploymentInfo, hostInfo *types.Host) (map[string]any, error) {
-	pluginDeployConf, err := deployconstant.GetPluginDeployConf(info.Process.Generation, info.Process.Platform.OS)
-	if err != nil {
-		return nil, err
-	}
-
-	nodeDeployConf, err := deployconstant.GetNodeDeployConf(info.Process.Generation, info.Process.Platform.OS)
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]any{
-		keyPluginIPC:    nodeDeployConf.GenerateDefaultPluginIPCPath(hostInfo.Dynamic.NodeRole),
-		keyDataIPC:      nodeDeployConf.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
-		keyGSEAgentHome: nodeDeployConf.GenerateNodeHomeDir(hostInfo.Dynamic.NodeRole),
-		keyGroupID:      info.Process.PluginGroup,
-		keyLogPath:      pluginDeployConf.LogDir,
-		keyDataPath:     pluginDeployConf.GenerateDefaultDataDir(info.Process.PluginGroup, info.Process.PluginName),
-		keyPidPath:      pluginDeployConf.GenerateDefaultRunDir(info.Process.PluginGroup, info.Process.PluginName),
-		keySetupPath:    pluginDeployConf.GenerateDefaultSetupPath(info.Process.PluginGroup, info.Process.PluginName),
-
-		// TODO: implement a plugin to obtain listen ip and port
-		keyListenIP:   "",
-		keyListenPort: 0,
-	}, nil
+	return result, nil
 }

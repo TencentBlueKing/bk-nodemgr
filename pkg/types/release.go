@@ -200,8 +200,9 @@ type ReleasePlugin struct {
 
 // ReleaseAdditionInfoPlugin defines the addition info of release plugin.
 type ReleaseAdditionInfoPlugin struct {
-	ConfigTemplates  []PluginPkgConfigTemplate
-	PluginController ProcessController
+	TemplateRendererType TemplateRendererType
+	ConfigTemplates      []PluginPkgConfigTemplate
+	PluginController     ProcessController
 }
 
 // TemplateRendererType defines the type of template renderer.
@@ -229,17 +230,17 @@ func (t TemplateRendererType) Validate() error {
 // PluginPkgConfigTemplate defines the template of plugin package.
 // @Name: template name.
 // @FilePath: the path where the template is located in the package.
+// @SourcePath: the source path of the template.
 // @IsMainConfig: whether it is the main configuration file.
 // @SourceContent: the content of the template.
-// @TemplateRenderer: the renderer type of the template.
 // @Variables: the variables used in the template.
 type PluginPkgConfigTemplate struct {
-	Name             string
-	FilePath         string
-	IsMainConfig     bool
-	SourceContent    string
-	TemplateRenderer TemplateRendererType
-	Variables        map[string]*PluginPkgConfigTemplateProperty
+	Name          string
+	FilePath      string
+	SourcePath    string
+	IsMainConfig  bool
+	SourceContent string
+	Variables     map[string]*PluginPkgConfigTemplateProperty
 }
 
 // PluginPkgConfigTemplateProperty defines the template of plugin package.

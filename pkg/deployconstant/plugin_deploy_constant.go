@@ -34,7 +34,7 @@ type PluginDeployConf struct {
 	// custom.
 	LogDir          string
 	HostIDPath      string
-	CommonConstants map[string]any
+	CommonConstants map[string]map[string]any
 }
 
 // Validate checks if the deployment configuration is valid.
@@ -131,4 +131,33 @@ func (conf PluginDeployConf) GenerateDefaultSetupPath(pluginGroup, pluginName st
 // GenerateDefaultSubConfigDir generates the default sub-configuration directory based on plugin group and plugin name.
 func (conf PluginDeployConf) GenerateDefaultSubConfigDir(pluginGroup, pluginName string) string {
 	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName, pluginConfigDirName, pluginName)
+}
+
+// GetCommonConstants returns the common constants by target plugin name.
+// CommonConstants structure:
+//
+//	{
+//	    "plugin_name_1": {
+//	        "constant_key_1": "constant_value_1",
+//	        "constant_key_2": "constant_value_2"
+//	    },
+//	    "plugin_name_2": {
+//	        "constant_key_3": "constant_value_3",
+//	        "constant_key_4": "constant_value_4"
+//	    },
+//	    "global": {
+//	        "constant_key_5": "constant_value_5"
+//	    }
+//	}.
+func (conf PluginDeployConf) GetCommonConstants(targetPluginName string) map[string]any {
+	if conf.CommonConstants == nil {
+		return map[string]any{}
+	}
+
+	pluginConstants, ok := conf.CommonConstants[targetPluginName]
+	if !ok {
+		return map[string]any{}
+	}
+
+	return pluginConstants
 }

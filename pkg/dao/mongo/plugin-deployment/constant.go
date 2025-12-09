@@ -17,8 +17,8 @@ const (
 	// FieldKeyInfo the info field key.
 	FieldKeyInfo = "data.info"
 
-	// FieldKeyPluginConfCustomConfigContext the plugin_config.custom_config_context field key.
-	FieldKeyPluginConfCustomConfigContext = "data.plugin_config.custom_config_context"
+	// FieldKeyPluginConf the plugin conf field key.
+	FieldKeyPluginConf = "data.plugin_config"
 
 	// FieldKeyPluginConfConfigFilesDetail the plugin_config.config_files_detail field key.
 	FieldKeyPluginConfConfigFilesDetail = "data.plugin_config.config_files_detail"

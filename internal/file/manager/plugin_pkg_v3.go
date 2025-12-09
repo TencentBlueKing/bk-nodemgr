@@ -169,6 +169,7 @@ type PluginV3Control struct {
 type PluginV3ConfigTemplate struct {
 	Name         string              `yaml:"name"`
 	FilePath     string              `yaml:"filePath"`
+	SourcePath   string              `yaml:"sourcePath"`
 	IsMainConfig bool                `yaml:"isMainConfig"`
 	Variables    []*PluginV3Property `yaml:"variables"`
 }
@@ -287,6 +288,7 @@ func parsePluginV3PkgConfigTemplateFromDefinition(pluginDefinition *PluginV3Defi
 		pkgConfigTemplates[idx] = types.PluginPkgConfigTemplate{
 			Name:         configTemplate.Name,
 			FilePath:     configTemplate.FilePath,
+			SourcePath:   configTemplate.SourcePath,
 			IsMainConfig: configTemplate.IsMainConfig,
 			Variables:    convPluginV3PropertyToTypes(configTemplate.Variables...),
 		}
@@ -457,8 +459,9 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					Operator:  nCtx.BKUsername(),
 				},
 				ReleaseAdditionInfoPlugin: types.ReleaseAdditionInfoPlugin{
-					ConfigTemplates:  detail.ConfigTemplates[pkg.platform.String()],
-					PluginController: detail.Controller[pkg.platform.String()],
+					TemplateRendererType: detail.TemplateRenderer,
+					ConfigTemplates:      detail.ConfigTemplates[pkg.platform.String()],
+					PluginController:     detail.Controller[pkg.platform.String()],
 				},
 			}
 

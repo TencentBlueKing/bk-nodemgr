@@ -84,21 +84,14 @@ type processController struct {
 	HealthCmd  string `json:"health_cmd" bson:"health_cmd"`
 }
 type processResource struct {
-	CPULimitPercent float64
-	MemLimitPercent float64
+	CPULimitPercent float64 `json:"cpu_limit_percent" bson:"cpu_limit_percent"`
+	MemLimitPercent float64 `json:"mem_limit_percent" bson:"mem_limit_percent"`
 }
 type processMonitorPolicy struct {
-	// AutoType defines the auto type of process.
-	AutoType string
-
-	// StartCheckSecs start checking the time the process survives after the execution of the command, in seconds, with a default value of 5.
-	StartCheckSecs int64
-
-	// StopCheckSecs stop checking the time the process survives after the execution of the command, in seconds.
-	StopCheckSecs int64
-
-	// OpTimeoutSecs the timeout period of the operation, in seconds.
-	OpTimeoutSecs int64
+	AutoType       string `json:"auto_type" bson:"auto_type"`
+	StartCheckSecs int64  `json:"start_check_secs" bson:"start_check_secs"`
+	StopCheckSecs  int64  `json:"stop_check_secs" bson:"stop_check_secs"`
+	OpTimeoutSecs  int64  `json:"op_timeout_secs" bson:"op_timeout_secs"`
 }
 
 // installOptions this is the options for nodemgr tools.
@@ -115,7 +108,9 @@ type transferOptions struct {
 
 // PluginConf defines the plugin config.
 type PluginConf struct {
+	TemplateRenderer    string         `json:"template_renderer" bson:"template_renderer"`
 	ConfigFilesDetail   []configDetail `json:"config_files_detail" bson:"config_files_detail"`
+	SystemConfigContext map[string]any `json:"system_config_context" bson:"system_config_context"`
 	CustomConfigContext map[string]any `json:"custom_config_context" bson:"custom_config_context"`
 }
 
