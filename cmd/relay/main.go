@@ -14,12 +14,18 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/service"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
 	"github.com/spf13/cobra"
+)
+
+const (
+	fileMode644 = 0644
+	dirMode600  = 0600
 )
 
 func main() {
@@ -46,14 +52,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			if err := os.WriteFile(
-				conf.Plugin.PidFile,
-				[]byte(fmt.Sprintf("%d", os.Getpid())),
-				os.FileMode(0644),
-			); err != nil {
-				fmt.Printf("failed to write pid file(%s): %v\n", conf.Plugin.PidFile, err)
-				os.Exit(1)
-			}
+			ensureAndCreatePidFile(conf.Plugin.PidFile)
 
 			// init log.
 			logger.Init(logger.Config{
@@ -92,10 +91,10 @@ func main() {
 	}
 
 	serverCmd.PersistentFlags().StringVarP(
-		&configPath, "file", "f", "", "path of service config file",
+		&configPath, "config", "c", "", "path of service config file",
 	)
 
-	err := serverCmd.MarkPersistentFlagRequired("file")
+	err := serverCmd.MarkPersistentFlagRequired("config")
 	if err != nil {
 		fmt.Printf("failed to mark flag required: %v\n", err)
 		os.Exit(1)
@@ -104,6 +103,33 @@ func main() {
 	err = serverCmd.Execute()
 	if err != nil {
 		fmt.Printf("failed to execute cmd: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func ensureAndCreatePidFile(pidFilePath string) {
+	pidDir := filepath.Dir(pidFilePath)
+	info, err := os.Stat(pidDir)
+	if err == nil {
+		if !info.IsDir() {
+			fmt.Printf("failed to create pid dir(%s): file exists and not a dir\n", pidDir)
+			os.Exit(1)
+		}
+	}
+
+	if os.IsNotExist(err) {
+		if err := os.MkdirAll(pidDir, os.FileMode(dirMode600)); err != nil {
+			fmt.Printf("failed to create pid dir(%s): %v\n", pidDir, err)
+			os.Exit(1)
+		}
+	}
+
+	if err := os.WriteFile(
+		pidFilePath,
+		fmt.Appendf(nil, "%d", os.Getpid()),
+		os.FileMode(fileMode644),
+	); err != nil {
+		fmt.Printf("failed to write pid file(%s): %v\n", pidFilePath, err)
 		os.Exit(1)
 	}
 }
