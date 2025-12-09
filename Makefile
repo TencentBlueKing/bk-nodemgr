@@ -178,7 +178,7 @@ plugin-pkg-relay: pre
 				$(MKDIR) $$plugin_path && \
 				$(MKDIR) $$plugin_path/bin && \
 				binary="$$plugin_path/bin/$(APP_NAME)$$ext" && \
-				GOOS=$(os) GOARCH=$(arch) $(GO) build $(GO_FLAGS) $(LD_FLAGS) \
+				GOOS=$(os) GOARCH=$(arch) $(GO) build $(GO_FLAGS) -ldflags $(LDVersionFLAG) \
 					-o $$binary $(ROOT_DIR)/cmd/relay/*.go && \
 				$(ECHO) "Built: $$binary" && \
 				if [ "$(UPX_ENABLED)" ]; then \
