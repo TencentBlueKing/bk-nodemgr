@@ -53,16 +53,17 @@
 import { Input, Radio, Select, Switcher } from 'bkui-vue';
 import { cloneDeep } from 'lodash';
 import { computed, onMounted, ref, watch  } from 'vue';
-import { useRoute } from 'vue-router';
 
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
-import { useMainStore } from '@/stores/main';
+
+const props = defineProps<{
+  visible?: boolean;
+  isEdit: boolean;
+  configpolicyType: string;
+  configs: ConfigPolicyConfigBlock[];
+}>();
 
 const emit = defineEmits(['updateConfig']);
-const route = useRoute();
-const mainStore = useMainStore();
-const configpolicyType = computed(() => route.params.configpolicy_type);
-const isEdit = computed(() => route.name === 'editConfig');
 const configTemplates = ref<ConfigPolicyConfigBlock[]>([]);
 const typeMap = {
   0: 'string',
@@ -71,6 +72,7 @@ const typeMap = {
   3: 'stringSelect',
   4: 'numberSelect',
 };
+
 const updateValue = () => {
   emit('updateConfig', configTemplates.value);
 };
@@ -100,18 +102,26 @@ const getList = (
 
 // 获取配置
 const getConfigs = async () => {
-  if (isEdit.value && mainStore.configEditData) {
-    configTemplates.value = cloneDeep(mainStore.configEditData.configs);
+  if (props.isEdit && props.configs) {
+    configTemplates.value = cloneDeep(props.configs);
     return;
   }
   const res = await ConfigPolicyAPIService.ConfigPolicyTemplate({
-    configpolicy_type: configpolicyType.value,
+    configpolicy_type: props.configpolicyType,
   }).catch(() => ({
     templates: [],
   }));
   configTemplates.value = cloneDeep(res.templates);
 };
-onMounted(async () => {
-  await getConfigs();
-});
+// 监听visible变化
+watch(() => props.visible, (newVal: boolean) => {
+  if (newVal) {
+    getConfigs();
+  }
+}, { immediate: true });
+
+// 移除onMounted调用，改为通过visible监听触发
+// onMounted(async () => {
+//   await getConfigs();
+// });
 </script>

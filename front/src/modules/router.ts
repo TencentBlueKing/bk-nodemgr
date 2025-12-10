@@ -185,22 +185,7 @@ const routes = setupLayouts([
               mainMenu: 'ruleManager',
             },
           },
-          {
-            name: 'createConfig',
-            path: 'createConfig/:configpolicy_type',
-            component: CreateConfig,
-            meta: {
-              mainMenu: 'ruleManager',
-            },
-          },
-          {
-            name: 'editConfig',
-            path: 'editConfig/:configpolicy_type',
-            component: CreateConfig,
-            meta: {
-              mainMenu: 'ruleManager',
-            },
-          },
+
           {
             name: 'proxyStrategy',
             path: 'proxyStrategy',

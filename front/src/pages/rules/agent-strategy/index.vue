@@ -212,13 +212,26 @@
       </Table>
     </Loading>
   </div>
+
+  <!-- CreateConfig组件 -->
+  <CreateConfig
+    v-model:is-show="isShowSideslider"
+    :configpolicy-type="configpolicyType"
+    :is-edit="sidesliderMode === 'edit'"
+    :config-data="currentEditConfig"
+    @save="handleSave"
+  />
 </template>
 <script lang="ts" setup>
-import { Button, Loading, PopConfirm, Popover, SearchSelect, Tab, Tag } from 'bkui-vue';
+import { Button, Loading, PopConfirm, Popover, SearchSelect, Sideslider, Tab, Tag } from 'bkui-vue';
+import { debounce } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
+
+// 导入create-config组件
+import CreateConfig from './create-config.vue';
 
 import type { ConfigPolicyExactConditions, ConfigPolicyFuzzyConditions } from '@/@types/configpolicy';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
@@ -227,9 +240,8 @@ import { formatTimestamp } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 
-const mainStore = useMainStore();
 const route = useRoute();
-const router = useRouter();
+const mainStore = useMainStore();
 const configpolicyType = computed(() => (route.name === 'agentStrategy' ? 'config_policy_agent' : 'config_policy_proxy'));
 const maxHeight = computed(() => mainStore.windowInnerHeight - 255);
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
@@ -240,7 +252,11 @@ const panels = ref([
   { name: 'configStrategy', label: '配置策略' },
   // { name: 'deploymentStrategy', label: '部署策略' },
 ]);
-// 表格
+
+// Sideslider控制变量
+const isShowSideslider = ref(false);
+const sidesliderMode = ref<'create' | 'edit'>('create');
+const currentEditConfig = ref<ConfigPolicy | null>(null);// 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'configpolicy_name',
@@ -315,21 +331,17 @@ const handleUpdate = async (row: ConfigPolicy) => {
   const res = await ConfigPolicyAPIService.ConfigPolicyGet({
     configpolicy_id: row.configpolicy_id,
   });
+  sidesliderMode.value = 'edit';
+  currentEditConfig.value = { ...res };
   mainStore.updateConfigEditData({ ...res });
-  router.push({
-    name: 'editConfig',
-    params: {
-      configpolicy_type: configpolicyType.value,
-    },
-  });
+  isShowSideslider.value = true;
 };
 const handleCreate = () => {
-  router.push({
-    name: 'createConfig',
-    params: {
-      configpolicy_type: configpolicyType.value,
-    },
-  });
+  // 打开侧边栏创建配置
+  sidesliderMode.value = 'create';
+  currentEditConfig.value = null;
+  mainStore.updateConfigEditData(null);
+  isShowSideslider.value = true;
 };
 const handleEnabled = async (row: ConfigPolicy) => {
   await ConfigPolicyAPIService.ConfigPolicyEnable({
@@ -347,6 +359,11 @@ const handleDelete = async (row: ConfigPolicy) => {
   await ConfigPolicyAPIService.ConfigPolicyDelete({
     configpolicy_id: [row.configpolicy_id],
   });
+  await getConfigPolicyList();
+};
+
+// Sideslider关闭后的回调
+const handleSave = async () => {
   await getConfigPolicyList();
 };
 const networkAreaList = ref<NetworkArea[]>([]);
@@ -407,12 +424,13 @@ const getConfigPolicyList = async () => {
       .join(',') || '不限',
   }));
 };
+const debounceConfigPolicyList = debounce(getConfigPolicyList, 300);
 watch([
   () => route.name,
   searchSelectValue,
   () => mainStore.selectedBusinessId,
 ], async () => {
-  await getConfigPolicyList();
+  await debounceConfigPolicyList();
 }, { immediate: true, deep: true });
 onMounted(async () => {
   await getNetworkAreaList();

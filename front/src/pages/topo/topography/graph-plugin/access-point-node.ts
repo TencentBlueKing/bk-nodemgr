@@ -83,6 +83,7 @@ export default class AccessPointNode extends BaseNode {
       width,
       height,
       y: 0,
+      cursor: 'move',
     }, container);
   }
 
@@ -96,6 +97,7 @@ export default class AccessPointNode extends BaseNode {
       ...labelStyle,
       x: 10,
       y: (height - (labelStyle.height as number)) / 2,
+      cursor: 'move',
     }, container);
 
     // “接入点 内网/外网”文字
@@ -108,6 +110,7 @@ export default class AccessPointNode extends BaseNode {
       fontWeight: 'bold',
       textAlign: 'center',
       textBaseline: 'middle',
+      cursor: 'move',
     }, container);
 
     return container;
@@ -122,7 +125,7 @@ export default class AccessPointNode extends BaseNode {
     // 计算文字起始位置和可用宽度
     const textStartX = 60;
     const paddingRight = 8; // 右侧留一点空隙
-    const availableWidth = width - textStartX - paddingRight; // 140 - 60 - 8 = 72px
+    const availableWidth = width - textStartX - paddingRight - 12; // 140 - 60 - 8 = 72px
 
     return this.upsert('access-point-name', 'text', {
       x: textStartX, // 跟在标识后面
@@ -137,8 +140,54 @@ export default class AccessPointNode extends BaseNode {
       wordWrapWidth: availableWidth, // 设置最大宽度
       maxLines: 1,                // 限制最大行数为 1
       textOverflow: 'ellipsis',   // 超出部分显示省略号 '...'
-      // --- 截断配置 End ---
+      cursor: 'move',
+    }, container);
+  }
 
+  // 【新增】绘制信息图标 (i)
+  private drawInfoIcon(container: Group) {
+    const width = AccessPointNode.nodeWidth;
+    const height = AccessPointNode.nodeHeight;
+
+    // 放在右侧，垂直居中
+    const iconX = width - 12;
+    const iconY = height / 2;
+
+    // 1. 扩大鼠标感应区 (透明矩形)
+    this.upsert('info-hit-area', 'rect', {
+      x: width - 25,
+      y: 0,
+      width: 25,
+      height,
+      fill: 'transparent',
+      cursor: 'pointer',
+      className: 'ap-info-icon', // 关键标识：用于 topo.vue 识别 Hover
+    }, container);
+
+    // 2. 绘制图标 (这里简单画个红色的 i，或者用图片/Iconfont)
+    // 也可以画个圆圈+文字
+
+    this.upsert('info-circle', 'circle', {
+      cx: iconX,
+      cy: iconY,
+      r: 7,
+      stroke: '#979ba5', // 边框颜色
+      lineWidth: 1.5,     // 边框粗细
+      fill: '#979ba5',    // 圆圈内部填充白色，盖住下面的线或背景
+      pointerEvents: 'none', // 让事件穿透到上面的 hit-area
+    }, container);
+
+    this.upsert('info-text', 'text', {
+      x: iconX,
+      y: iconY,
+      text: 'i',
+      fontSize: 14,
+      fill: '#ffff', // 红色
+      fontWeight: 'bold',
+      fontFamily: 'serif', // 衬线体看起来像图标
+      textAlign: 'center',
+      textBaseline: 'middle',
+      pointerEvents: 'none', // 让事件穿透到 hit-area
     }, container);
   }
 
@@ -150,5 +199,6 @@ export default class AccessPointNode extends BaseNode {
     this.drawHeader(container);
     this.drawAPLabel(container);
     this.drawAccessPointName(container);
+    this.drawInfoIcon(container);
   }
 }

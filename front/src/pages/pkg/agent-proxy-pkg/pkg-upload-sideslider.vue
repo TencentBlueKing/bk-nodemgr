@@ -150,6 +150,7 @@ const submit = async () => {
       'pluginPackageMng_v2/plugin': PackageService.PublishReleasePluginV2,
       'pluginPackageMng_v2/external_plugin': PackageService.PublishReleaseExternalPluginV2,
       'pluginPackageMng_v3/plugin': PackageService.PublishReleasePluginV3,
+      plugin_bintoolPackageMng: PackageService.PublishReleasePluginBinTool,
     };
 
     const key = route.name === 'pluginPackageMng' ? `pluginPackageMng_${pluginUploadType.value}` : route.name;

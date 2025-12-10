@@ -675,9 +675,9 @@ const getPackages = async () => {
     items: [],
   }));
   const items = res.items.map(item => ({
-    ...item,
+    ...item.release,
     os_cpu_arch: `${item.release.os_type}_${item.release.cpu_arch}`,
-  })).sort((a, b) => compareVersions(a.release.version, b.release.version));
+  })).sort((a, b) => compareVersions(a.version, b.version));
   originPackageList.value = items;
   packageList.value = items;
   loading.value = false;

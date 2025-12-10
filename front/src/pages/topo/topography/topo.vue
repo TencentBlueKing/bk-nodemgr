@@ -17,6 +17,7 @@
           <Select.Option
             :key="defaultNetWorkarea?.bk_networkarea_id"
             :id="defaultNetWorkarea?.bk_networkarea_id"
+            :name="defaultNetWorkarea?.bk_networkarea_name"
           >
             <div class="w-[180px] flex">
               <Button
@@ -43,6 +44,7 @@
             v-for="item in sortedNetWorkAreaList"
             :key="item.bk_networkarea_id"
             :id="item.bk_networkarea_id"
+            :name="item.bk_networkarea_name"
           >
             <div class="w-[180px] flex favorited-item">
               <Button
@@ -58,7 +60,19 @@
                   v-else>
                 </i>
               </Button>
-              <OverflowTitle type="tips">{{ `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}` }}</OverflowTitle>
+              <div
+                class="w-[154px] truncate"
+                @mouseenter="handleTextMouseenter($event, item.bk_networkarea_id)"
+                v-bk-tooltips="{
+                  content: item.bk_networkarea_name,
+                  placement: 'top',
+                  boundary: 'body',
+                  extCls: 'force-tooltip-z-index',
+                  disabled: !textOverflowMap[item.bk_networkarea_id] // 没超长就禁用 Tooltip
+                }"
+              >
+                {{ `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}` }}
+              </div>
             </div>
           </Select.Option>
         </Select.Group>
@@ -130,18 +144,18 @@
         :style="{
           position: 'absolute',
           left: `${detailState.x}px`,
-          top: `${detailState.y + 30}px`,
+          top: `${detailState.y}px`,
           width: '1px',
           height: '1px',
           zIndex: 1000,
           pointerEvents: 'none'
         }"
       >
-        <bk-popover
-          v-model:is-show="detailState.showPopover"
+        <Popover
+          :is-show="detailState.showPopover"
           trigger="manual"
           theme="light"
-          placement="bottom"
+          placement="right"
           :arrow="true"
         >
           <!-- 锚点 -->
@@ -178,7 +192,7 @@
               </TableColumn>
             </Table>
           </template>
-        </bk-popover>
+        </Popover>
       </div>
     </div>
   </Loading>
@@ -265,6 +279,20 @@ const handleCollect = (val: number) => {
   workareaStore.syncFavoriteWorkareaList();
 };
 
+// 1. 定义一个响应式对象，用来存储每个区域 ID 是否超长
+// Key: networkarea_id, Value: boolean (true=超长, false=未超长)
+const textOverflowMap = reactive<Record<number, boolean>>({});
+
+// 2. 鼠标移入时的检测函数
+const handleTextMouseenter = (e: MouseEvent, id: number) => {
+  const el = e.target as HTMLElement;
+  // 核心逻辑：内容宽度 > 可视宽度 = 发生了截断
+  const isOverflow = el.scrollWidth > el.clientWidth;
+
+  // 更新状态
+  textOverflowMap[id] = isOverflow;
+};
+
 // 【新增】孤立区域折叠状态
 const isIsolatedCollapsed = ref(false);
 
@@ -332,11 +360,30 @@ function handleInitTopo() {
         shadowStrokeOpacity: 0.8,
         shadowLineDash: [4, 4],
         // 允许拖拽的元素类型：节点+边
-        enable: (event: IElementDragEvent) => ['node', 'edge'].includes(event.targetType) && !event.target.id.includes('workArea'),
+        enable: (event: IElementDragEvent) => {
+          if (!['node', 'edge'].includes(event.targetType) || event.target.id.includes('workArea')) return false;
+
+          const nodeId = event.target.id;
+
+          // 单元节点：通过计算鼠标是否在顶部 36px 范围内
+          if (String(nodeId).includes('workUnit')) {
+            const { y: mouseY } = event.canvas;
+            const bounds = event.target.getRenderBounds();
+            const nodeTopY = bounds.min[1];
+            const headerHeight = 36;
+
+            // 纯数学比对，瞬间返回 true/false，不需要 await
+            if (mouseY >= nodeTopY && mouseY <= nodeTopY + headerHeight + 2) {
+              return true;
+            }
+            return false;
+          }
+          return true;
+        },
         // 拖拽时鼠标样式
         cursor: {
           default: 'default',
-          grab: 'grab',
+          grab: 'pointer',
           grabbing: 'grabbing',
         },
       },
@@ -477,30 +524,39 @@ const detailState = reactive({
 
 // 鼠标移入节点 (显示详情)
 function handleNodeEnter(evt: any) {
-  const { path, canvas } = evt;
+  const { path, canvas, target } = evt;
+  if (!canvas) return;
 
-  // 1. 获取 Node ID
-  // G6 事件冒泡，path[0] 是图形，path[1] 通常是 Node Group (如果不确定，向上查找)
+  // 1. 校验类名 (保持不变)
+  const shapeClass = target.className || target.attributes?.class || path[0]?.config?.className;
+  if (shapeClass !== 'ap-info-icon' && shapeClass !== 'info-hit-area') return;
+
+  // 2. 获取 ID (保持不变)
   let nodeId = evt.id;
   if (!nodeId && path) {
-    // 尝试找 ID 包含 accessPoint 的对象
     const nodeObj = path.find((p: any) => p.id && String(p.id).includes('accessPoint-'));
     nodeId = nodeObj?.id;
   }
 
-  // 2. 只有接入点才显示详情
   if (nodeId && nodeId.startsWith('accessPoint-')) {
-    // 清除隐藏定时器 (防止快速移动时闪烁)
-    if (detailState.timer) clearTimeout(detailState.timer);
-
     const nodeData = graph.getNodeData(nodeId);
 
-    // 坐标转换
-    const viewportPoint = graph.getViewportByCanvas([canvas.x, canvas.y]);
+    // --- 【简化】坐标计算：改为右侧 ---
+    const bbox = target.getRenderBounds();
 
-    // 更新状态
+    // 取图标的【最右侧】X 坐标
+    const rightX = bbox.max[0];
+    // 取图标的【垂直中心】Y 坐标
+    const centerY = (bbox.min[1] + bbox.max[1]) / 2;
+
+    // 转为屏幕坐标
+    const viewportPoint = graph.getViewportByCanvas([rightX, centerY]);
+
+    // x: 图标右边缘 + 10px 间距
     detailState.x = viewportPoint[0];
-    detailState.y = viewportPoint[1]; // 显示在鼠标位置
+    // y: 垂直居中
+    detailState.y = viewportPoint[1];
+
     detailState.data = nodeData?.data || {};
     detailState.visible = true;
     detailState.showPopover = true;
@@ -509,11 +565,9 @@ function handleNodeEnter(evt: any) {
 
 // 鼠标移出节点 (隐藏详情)
 function handleNodeLeave(evt: any) {
-  // 延迟隐藏，给用户一点缓冲时间
-  detailState.timer = setTimeout(() => {
-    detailState.showPopover = false;
-    detailState.visible = false;
-  }, 100);
+  // 目前没有但是之后要设计：移到pop上时候pop可以不消失
+  detailState.showPopover = false;
+  detailState.visible = false;
 }
 
 // ---------------------- 节点拖拽逻辑 (保持原样) ----------------------
@@ -993,5 +1047,20 @@ onUnmounted(() => {
       display: inline;
     }
   }
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 7px;
+  border: 3px solid transparent;
+  -webkit-box-shadow: inset 0 0 8px 8px #c4c6cc;
+  box-shadow: inset 0 0 8px 8px #c4c6cc;
+}
+</style>
+<style>
+.force-tooltip-z-index {
+  z-index: 99999 !important;
 }
 </style>

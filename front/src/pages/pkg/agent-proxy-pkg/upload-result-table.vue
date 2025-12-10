@@ -3,12 +3,13 @@
     <div class="text-[12px] text-[#4D4F56] mb-[8px]">结果预览</div>
     <bk-loading title="数据解析中" :loading="loading">
       <Table
+        v-if="currentType !== 'plugin_bintool'"
         :data="tableData"
       >
         <TableColumn
           field="name"
           :title="currentType === 'cert' ? '文件名' : '包名'"
-          v-if="currentType !== 'bintool'"
+          v-if="!['bintool', 'plugin_bintool'].includes(currentType)"
           min-width="350"
         ></TableColumn>
         <TableColumn
@@ -24,10 +25,40 @@
         <TableColumn
           field="release_type"
           :title="'包类型'"
-          v-if="!['cert', 'bintool'].includes(currentType)"
+          v-if="!['cert', 'bintool', 'plugin_bintool'].includes(currentType)"
           min-width="70"
         ></TableColumn>
       </Table>
+      <template v-else>
+        <div v-for="item in plugin_bintool_list" :key="item.name" class="mb-[10px]">
+          <div>{{ item.name }}</div>
+          <Table
+            :data="item.platforms"
+          >
+            <TableColumn
+              field="name"
+              :title="'包名'"
+              v-if="!['bintool', 'plugin_bintool'].includes(currentType)"
+              min-width="350"
+            ></TableColumn>
+            <TableColumn
+              field="os_type"
+              :title="'操作系统架构'"
+              min-width="150"
+            >
+              <template #default="{ row }">
+                {{ `${row.os_type}_${row.cpu_arch}` }}
+              </template>
+            </TableColumn>
+            <TableColumn
+              field="release_type"
+              :title="'包类型'"
+              v-if="!['cert', 'bintool', 'plugin_bintool'].includes(currentType)"
+              min-width="70"
+            ></TableColumn>
+          </Table>
+        </div>
+      </template>
     </bk-loading>
     <template v-if="data?.change_log_zh || data?.change_log_en || data?.description">
       <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px] flex items-center gap-[16px]">
@@ -84,14 +115,8 @@ const currentType = computed(() => {
   return type;
 });
 const changLog = ref('ZH');
-const selectTag = ref<string[]>([]);
-const tableData = ref();
-const batchUpdateTag = async () => {
-  tableData.value = tableData.value.map((item: any) => ({
-    ...item,
-    labels: [...selectTag.value],
-  }));
-};
+const tableData = ref<any[]>([]);
+const plugin_bintool_list = ref<any[]>([]);
 watch(() => props.data, () => {
   if (['agent', 'proxy', 'plugin'].includes(currentType.value)) {
     tableData.value = props.data?.platforms?.map((item: Platform) => {
@@ -127,6 +152,17 @@ watch(() => props.data, () => {
       labels: [],
       version: props.data.version,
     }));
+  } else if (currentType.value === 'plugin_bintool') {
+    const v2 = props.data?.v2?.platforms.map((item: Platform) => ({
+      ...item,
+    })) || [];
+    const v3 = props.data?.v3?.platforms.map((item: Platform) => ({
+      ...item,
+    })) || [];
+    plugin_bintool_list.value = [
+      { name: 'v2', platforms: v2 },
+      { name: 'v3', platforms: v3 },
+    ];
   }
 }, { immediate: true, deep: true });
 </script>

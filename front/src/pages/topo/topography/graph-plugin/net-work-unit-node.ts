@@ -142,6 +142,7 @@ export default class NetWorkUnitNode extends BaseNode {
       height,
       fill: '#F0F1F5',
       radius: [6, 6, 0, 0],
+      cursor: 'move',
       stroke: NetWorkUnitNode.borderColor,
       strokeWidth: 1,
     }, container);
@@ -154,6 +155,7 @@ export default class NetWorkUnitNode extends BaseNode {
       y2: height,
       stroke: NetWorkUnitNode.borderColor,
       strokeWidth: 1,
+      pointerEvents: 'none',
     }, container);
   }
 
@@ -167,6 +169,7 @@ export default class NetWorkUnitNode extends BaseNode {
       height: 20,
       fill: '#E1ECFF',
       radius: 2,
+      cursor: 'move',
     }, container);
 
     this.upsert('unit-tag-text', 'text', {
@@ -178,6 +181,7 @@ export default class NetWorkUnitNode extends BaseNode {
       textAlign: 'center',
       textBaseline: 'middle',
       fontWeight: 'bold',
+      cursor: 'move',
     }, container);
   }
 
@@ -193,6 +197,7 @@ export default class NetWorkUnitNode extends BaseNode {
       fill: '#313238',
       textBaseline: 'middle',
       fontWeight: 600,
+      cursor: 'move',
     }, container);
   }
 
@@ -349,7 +354,7 @@ export default class NetWorkUnitNode extends BaseNode {
     }
 
     // 绘制 Proxy 角标 "P" (在表格左上角)
-    this.drawBadge(container, startX, startY, 'P', NetWorkUnitNode.badgeColorP);
+    this.drawBadge(container, startX, startY, is_direct ? 'S' : 'P', NetWorkUnitNode.badgeColorP);
   }
 
   private drawAgentBlock(container: Group) {
