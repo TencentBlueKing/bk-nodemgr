@@ -110,7 +110,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	ticker := time.NewTicker(waitReportInterval)
 	defer ticker.Stop()
 
-	var rawInstallerResult string
+	var installerResult installer.ProcessState
 
 	for {
 		select {
@@ -118,8 +118,20 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 			return nil
 
 		case <-ticker.C:
+			// fetch installer result
+			rawInstallerResult, err := act.tryFetchValue(std, instanceID, installer.InstallerReportKeyStatus)
+			if err != nil {
+				return err
+			}
+
+			if rawInstallerResult == "" {
+				continue
+			}
+
+			installerResult = installer.ProcessState(rawInstallerResult)
+
 			// if agent-id set, fetch agent id
-			if param.EnsureAgentID {
+			if param.EnsureAgentID && installerResult == installer.ProcessStateSuccess {
 				agentID, err := act.tryFetchValue(std, instanceID, installer.InstallerReportKeyAgentID)
 				if err != nil {
 					return err
@@ -130,23 +142,12 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 				}
 				std.DeployInfo().Host.Dynamic.AgentID = agentID
 			}
-
-			// fetch installer result
-			rawInstallerResult, err = act.tryFetchValue(std, instanceID, installer.InstallerReportKeyStatus)
-			if err != nil {
-				return err
-			}
-
-			if rawInstallerResult == "" {
-				continue
-			}
 		}
 
 		break
 	}
 
 	// check and update action state
-	installerResult := installer.ProcessState(rawInstallerResult)
 	switch installerResult {
 	case installer.ProcessStateSuccess:
 		// reset action context
