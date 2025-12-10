@@ -529,36 +529,12 @@ func (h *Handler) AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hos
 		return nil, err
 	}
 
-	if resp == nil {
-		return nil, errors.New("add host to business idle response is nil")
+	endIndex := beginIndex + len(reqList)
+	if beginIndex < 0 || endIndex > len(resp.BKHostIDs) {
+		return nil, fmt.Errorf("host ids length is not match, begin(%d), len(%d), total(%d)", beginIndex, len(reqList), len(resp.BKHostIDs))
 	}
 
-	hostIDs, err := splitHostIDsByIndex(resp.BKHostIDs, beginIndex, len(reqList))
-	if err != nil {
-		return nil, err
-	}
-
-	return hostIDs, nil
-}
-
-func splitHostIDsByIndex(hostIDs []int64, beginIndex int, segmentLength int) ([]int64, error) {
-	if segmentLength == 0 {
-		return []int64{}, nil
-	}
-
-	if beginIndex < 0 {
-		return nil, fmt.Errorf("invalid begin index. index(%d)", beginIndex)
-	}
-
-	endIndex := beginIndex + segmentLength
-	if endIndex > len(hostIDs) {
-		return nil, fmt.Errorf("host ids length mismatch, begin(%d), len(%d), total(%d)", beginIndex, segmentLength, len(hostIDs))
-	}
-
-	result := make([]int64, segmentLength)
-	copy(result, hostIDs[beginIndex:endIndex])
-
-	return result, nil
+	return resp.BKHostIDs[beginIndex:endIndex], nil
 }
 
 // PushHostIdentifier push host identifier.
