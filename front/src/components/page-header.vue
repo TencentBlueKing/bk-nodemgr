@@ -14,8 +14,9 @@ import { ArrowsLeft } from 'bkui-vue/lib/icon';
 import { useRouter } from 'vue-router';
 
 import { useRouteSubTitle } from '@/stores/route-sub-title';
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   back: true,
+  onBack: undefined,
 });
 
 const routeSubTitle = useRouteSubTitle();
@@ -24,10 +25,15 @@ interface Props {
   title?: string
   subTitle?: string
   back?: boolean
+  onBack?: () => void
 }
 
 const router = useRouter();
 function handleBack() {
-  router.back();
+  if (props.onBack) {
+    props.onBack();
+  } else {
+    router.back();
+  }
 }
 </script>

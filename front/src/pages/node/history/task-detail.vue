@@ -3,6 +3,7 @@
     class="w-full absolute top-0 z-100"
     :title="$t('platform.taskHistory.taskDetail.title')"
     :back="true"
+    :on-back="handleBackToHistory"
   >
     <span class="mx-[6px] text-[#979BA5] text-[14px]">-</span>
     <span class="text-[#979BA5] text-[14px] mr-[14px]" v-if="currentData">{{
@@ -413,6 +414,13 @@ const timeFormatter = (
   val: number | string | undefined,
   format = 'YYYY-MM-DD HH:mm:ss',
 ) => (val ? dayjs(val).format(format) : '--');
+
+// 精确返回到历史详情页面
+const handleBackToHistory = () => {
+  router.push({
+    name: 'history',
+  });
+};
 
 const sliceWorkflowId = (val: string) => `#${val?.slice(-4)}`;
 const taskInfoList = computed(() => [

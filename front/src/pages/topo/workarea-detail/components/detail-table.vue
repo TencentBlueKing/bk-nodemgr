@@ -142,7 +142,8 @@
 
 <script lang="ts" setup>
 import { Button, Tag } from 'bkui-vue';
-import { computed, onUnmounted, reactive, ref, watch } from 'vue';
+import { debounce } from 'lodash';
+import { computed, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -357,12 +358,19 @@ watch(route, async () => {
     await getProxyList();
   }
 }, { immediate: true, deep: true });
-watch(() => mainStore.selectedBusinessId, async () => {
-  await getProxyList();
-}, { immediate: true });
-watch(searchSelectValue, async () => {
-  await getProxyList();
-}, { deep: true });
+const debounceGetProxyList = debounce(() => {
+  getProxyList();
+}, 300);
+watch(
+  [
+    () => mainStore.selectedBusinessId,
+    () => searchSelectValue.value,
+  ],
+  async () => {
+    await debounceGetProxyList();
+  },
+  { immediate: true, deep: true },
+);
 </script>
 <style lang="postcss" scoped>
 .status-icon::before {

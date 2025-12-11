@@ -169,7 +169,7 @@ import {
 } from 'bkui-vue';
 import { Spinner } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
-import { toLower } from 'lodash';
+import { debounce } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -499,7 +499,9 @@ const getTaskList = async () => {
   });
   loading.value = false;
 };
-
+const debounceGetTaskList = debounce(() => {
+  getTaskList();
+}, 300);
 // 跳转详情
 const detailHandle = (row: NodeWorkflowInfo, status: string) => {
   nodeManageStore.updateCurrentRowData(row);
@@ -520,15 +522,15 @@ watch(
   { deep: true, immediate: true },
 );
 watch(
-  () => searchSelectValue,
+  [
+    () => searchSelectValue,
+    () => mainStore.selectedBusinessId,
+  ],
   async () => {
-    await getTaskList();
+    await debounceGetTaskList();
   },
-  { deep: true },
+  { immediate: true, deep: true },
 );
-watch(() => mainStore.selectedBusinessId, async () => {
-  await getTaskList();
-}, { immediate: true });
 </script>
 <style lang="postcss" scoped>
 :deep(.vxe-table--empty-content) {

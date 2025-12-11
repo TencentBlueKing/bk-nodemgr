@@ -472,9 +472,15 @@ const getHostDistinct = async () => {
  * 获取Agent列表
  */
 const getAgentList = async () => {
-  // 【优化点1】如果基础数据（区域、单元列表）还未加载完成，则不执行
+  // 【修复点】如果基础数据未加载完成，延迟执行而不是直接返回
   if (!isInitialDataLoaded.value) {
-    console.log('基础数据尚未加载完成，暂时不执行 getAgentList');
+    console.log('基础数据尚未加载完成，延迟执行getAgentList...');
+    // 延迟100ms后重试，确保基础数据已加载
+    setTimeout(() => {
+      if (isInitialDataLoaded.value) {
+        getAgentList();
+      }
+    }, 100);
     return;
   }
 
@@ -506,21 +512,22 @@ const debouncedGetAgentList = debounce(getAgentList, 300);
  * 加载所有初始化数据（区域、单元、筛选条件）
  */
 const loadInitialData = async () => {
-  if (mainStore.selectedBusinessId) {
-    loading.value = true;
-    try {
-      // 【优化点1】并行执行三个基础请求，确保它们在getAgentList前完成
-      await Promise.all([
-        getNetworkAreaList(),
-        getNetworkUnitList(),
-        getHostDistinct(),
-      ]);
-      isInitialDataLoaded.value = true; // 标记基础数据已加载完成
-    } catch (error) {
-      console.error('加载初始化数据失败:', error);
-    } finally {
-      loading.value = false;
-    }
+  if (!mainStore.selectedBusinessId || isInitialDataLoaded.value) {
+    return;
+  }
+
+  try {
+    // 【修复点】并行执行三个基础请求，但只执行一次
+    await Promise.all([
+      getNetworkAreaList(),
+      getNetworkUnitList(),
+      getHostDistinct(),
+    ]);
+    isInitialDataLoaded.value = true; // 标记基础数据已加载完成
+  } catch (error) {
+    console.error('加载初始化数据失败:', error);
+    // 即使API失败，也标记为已加载完成，避免无限重试
+    isInitialDataLoaded.value = true;
   }
 };
 
@@ -728,20 +735,25 @@ const handleOperatetHost = async (data: Host[], batch: boolean, operateType: str
 
 // ---------- 监听与生命周期 ----------
 
-// 【优化点3】使用 watchEffect 处理路由参数，自动追踪依赖
-watchEffect(() => {
-  const { os_type, cpu_arch, node_version, bk_networkarea_id, bk_networkunit_id } = route.query;
+// 【修复点1】添加统一的加载状态控制
+const isLoading = ref(false);
+
+// 【修复点2】优化路由参数处理，避免重复触发
+watch(() => route.query, (newQuery, oldQuery) => {
+  // 只有当路由参数实际发生变化时才处理
+  if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) return;
+  
+  const { os_type, cpu_arch, node_version, bk_networkarea_id, bk_networkunit_id } = newQuery;
 
   // 处理操作系统、架构、版本的筛选
   if (os_type && cpu_arch && node_version) {
-    // 确保数组操作的immutability
     searchSelectValue.value = [
       ...searchSelectValue.value.filter(item => !['os_type', 'cpu_arch', 'node_version'].includes(item.id)),
       { id: 'os_type', name: '操作系统', values: [{ id: os_type, name: os_type }] },
       { id: 'cpu_arch', name: '架构', values: [{ id: cpu_arch, name: cpu_arch }] },
       { id: 'node_version', name: 'Agent版本', values: [{ id: node_version, name: node_version }] },
     ];
-  } else if (bk_networkarea_id !== undefined && bk_networkunit_id !== undefined) { // 处理管控区域和单元的筛选
+  } else if (bk_networkarea_id !== undefined && bk_networkunit_id !== undefined) {
     const areaId = Number(bk_networkarea_id);
     const unitId = Number(bk_networkunit_id);
     searchSelectValue.value = [
@@ -758,30 +770,52 @@ watchEffect(() => {
       },
     ];
   }
-});
+}, { immediate: true });
 
-// 【优化点1】监听业务ID变化，重新加载所有数据
-watch(() => mainStore.selectedBusinessId, async (newId) => {
-  if (newId) {
+// 【修复点3】统一初始化逻辑，避免重复调用
+const initializePage = async () => {
+  if (isLoading.value) return;
+  
+  isLoading.value = true;
+  try {
     // 重置状态
     isInitialDataLoaded.value = false;
     tableData.value = [];
     pagination.count = 0;
+    pagination.current = 1;
 
     // 重新加载基础数据
     await loadInitialData();
 
     // 基础数据加载完成后，加载Agent列表
-    debouncedGetAgentList();
+    if (isInitialDataLoaded.value) {
+      await getAgentList();
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// 【修复点4】优化业务ID监听，使用防抖避免重复初始化
+const debouncedInitialize = debounce(initializePage, 100);
+
+watch(() => mainStore.selectedBusinessId, (newId, oldId) => {
+  if (newId && newId !== oldId) {
+    debouncedInitialize();
   }
 }, { immediate: true });
 
-// 【优化点2】监听搜索条件变化，使用防抖函数更新列表
+// 【修复点5】优化搜索条件监听，避免与初始化冲突
 watch(
   searchSelectValue,
-  () => {
-    pagination.current = 1; // 搜索条件变化时，页码重置为1
-    debouncedGetAgentList();
+  (newValue, oldValue) => {
+    // 只有当搜索条件实际发生变化时才触发
+    if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return;
+
+    if (isInitialDataLoaded.value) {
+      pagination.current = 1;
+      debouncedGetAgentList();
+    }
   },
   { deep: true },
 );
@@ -789,6 +823,7 @@ watch(
 // 清理防抖函数
 onUnmounted(() => {
   debouncedGetAgentList.cancel();
+  debouncedInitialize.cancel();
 });
 
 </script>

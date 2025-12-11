@@ -35,7 +35,12 @@
     </div>
     <div class="bg-[#fff] px-[24px] py-[20px] h-full flex-1 flex flex-col">
       <div class="flex items-center h-[30px]">
-        <ArrowsLeft width="24" height="24" class="text-[#3a84ff] cursor-pointer mr-[5px]" @click="router.back()" />
+        <ArrowsLeft
+          width="24"
+          height="24"
+          class="text-[#3a84ff] cursor-pointer mr-[5px]"
+          @click="handleBackToHistoryDetail"
+        />
         <span>{{ $t(title) }}</span>
       </div>
       <div class="h-[72px] my-[20px]">
@@ -135,7 +140,7 @@
         </Table>
         <div
           ref="contentRef"
-          class="flex-1 flex flex-col overflow-y-auto"
+          class="flex-1 flex flex-col"
           :class="[{ 'text-[12px]': !isFullscreen, 'text-[16px]': isFullscreen }]"
         >
           <div
@@ -186,7 +191,7 @@
               </Button>
             </div>
           </div>
-          <div class="bg-[#313238] flex-1 flex">
+          <div class="bg-[#313238] flex-1 flex  overflow-y-auto log-content">
             <div class="flex-1 text-[#a8acb8]" v-if="allLogs">
               <div v-for="logItem in allLogs" :key="logItem.key" :class="logItem.key">
                 <div
@@ -410,6 +415,17 @@ const handleChangeIp = async (ip: string) => {
     name: 'log',
     params: {
       ip,
+      taskId: route.params.taskId,
+    },
+  });
+};
+
+
+// 精确返回到历史详情页面
+const handleBackToHistoryDetail = () => {
+  router.push({
+    name: 'taskDetail',
+    params: {
       taskId: route.params.taskId,
     },
   });
@@ -646,6 +662,18 @@ onMounted(async () => {
   100% {
     box-shadow: 0 0 0 0 rgba(58, 132, 255, 0);
     background-color: rgba(58, 132, 255, 0.05);
+  }
+}
+.log-content {
+  &::-webkit-scrollbar {
+    width: 14px;
+    height: 16px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border-radius: 0;
+    border: 1px solid #63656e;
+    background: #3b3c42;
+    box-shadow: none;
   }
 }
 </style>
