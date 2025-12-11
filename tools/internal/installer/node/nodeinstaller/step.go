@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 )
 
 // Step install agent.
@@ -89,10 +90,22 @@ func (step *Step) Run(ctx context.Context) (*StepResult, error) {
 		logger.Info(node.StepInstallNode, "unregistered agent")
 	}
 
-	// 4. register agent.
-	agentID, err := step.args.AgentHandler.Process().RegisterAgentID(ctx, step.args.AgentID)
-	if err != nil {
-		logger.Error(node.StepInstallNode, fmt.Sprintf("failed to register agent: %v", err))
+	// 4. register agent with retry.
+	var agentID string
+	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	if err := backoff.Do(ctx, func(attempt int) error {
+		id, err := step.args.AgentHandler.Process().RegisterAgentID(ctx, step.args.AgentID)
+		if err != nil {
+			logger.Warnf(node.StepInstallNode, "failed to retry register agent. attempt(%d): %v", attempt, err)
+
+			return err
+		}
+
+		agentID = id
+
+		return nil
+	}); err != nil {
+		logger.Errorf(node.StepInstallNode, fmt.Sprintf("failed to register agent: %v", err))
 
 		return nil, err
 	}
