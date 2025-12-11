@@ -138,6 +138,33 @@ type HostCondition struct {
 	DynamicFuzzyExclude *HostDynamicFuzzyFields
 }
 
+// HostStaticCondition defines the host condition.
+// in this condition, fields are generated with AND expr.
+type HostStaticCondition struct {
+	HostStaticExactCondition
+	HostStaticFuzzyCondition
+}
+
+// HostStaticExactCondition defines the host condition.
+// in this condition, fields are generated with AND expr.
+type HostStaticExactCondition struct {
+	// will be used when condition type is included in static exact mode.
+	StaticExactInclude *HostStaticExactFields
+
+	// will be used when condition type is excluded in static exclude mode.
+	StaticExactExclude *HostStaticExactFields
+}
+
+// HostStaticFuzzyCondition defines the host condition.
+// in this condition, fields are generated with AND expr.
+type HostStaticFuzzyCondition struct {
+	// will be used when condition type is included in static fuzzy mode.
+	StaticFuzzyInclude *HostStaticFuzzyFields
+
+	// will be used when condition type is excluded in static exclude mode.
+	StaticFuzzyExclude *HostStaticFuzzyFields
+}
+
 // ===============================================================================
 // NetworkArea Related Conditions
 // ===============================================================================
