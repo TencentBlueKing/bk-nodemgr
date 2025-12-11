@@ -152,12 +152,14 @@ func (act *actionWaitInstallerComplete) waitInstallerField(
 	instanceID string,
 	key string,
 ) (string, error) {
+
 	ticker := time.NewTicker(waitReportInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-std.Context().Done():
+
 			return "", std.Context().Err()
 		case <-ticker.C:
 			value, err := act.tryFetchValue(std, instanceID, key)
