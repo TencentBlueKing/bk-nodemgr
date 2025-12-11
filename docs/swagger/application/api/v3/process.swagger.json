@@ -6,7 +6,7 @@
   },
   "tags": [
     {
-      "name": "Process"
+      "name": "ProcessAPI"
     }
   ],
   "consumes": [
@@ -19,7 +19,7 @@
     "/api/v3/process/list": {
       "post": {
         "summary": "ListProcesses lists the processes.",
-        "operationId": "Process_ListProcesses",
+        "operationId": "ProcessAPI_ListProcesses",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -46,7 +46,7 @@
           }
         ],
         "tags": [
-          "Process"
+          "ProcessAPI"
         ]
       }
     }
@@ -157,51 +157,8 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/ProcessListRespProcess"
+            "$ref": "#/definitions/v3Process"
           }
-        }
-      }
-    },
-    "ProcessListRespProcess": {
-      "type": "object",
-      "properties": {
-        "tenant_id": {
-          "type": "string"
-        },
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "plugin_name": {
-          "type": "string"
-        },
-        "plugin_pkg_name": {
-          "type": "string"
-        },
-        "plugin_group": {
-          "type": "string"
-        },
-        "platform": {
-          "$ref": "#/definitions/v3Platform"
-        },
-        "generation": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "process_info": {
-          "$ref": "#/definitions/v3ProcessInfo"
-        },
-        "process_identity": {
-          "$ref": "#/definitions/v3ProcessIdentity"
-        },
-        "process_controller": {
-          "$ref": "#/definitions/v3ProcessController"
-        },
-        "process_resource": {
-          "$ref": "#/definitions/v3ProcessResource"
-        },
-        "process_monitor_policy": {
-          "$ref": "#/definitions/v3ProcessMonitorPolicy"
         }
       }
     },
@@ -276,6 +233,49 @@
         }
       },
       "description": "Platform describes the platform informations."
+    },
+    "v3Process": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "plugin_pkg_name": {
+          "type": "string"
+        },
+        "plugin_group": {
+          "type": "string"
+        },
+        "platform": {
+          "$ref": "#/definitions/v3Platform"
+        },
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "process_info": {
+          "$ref": "#/definitions/v3ProcessInfo"
+        },
+        "process_identity": {
+          "$ref": "#/definitions/v3ProcessIdentity"
+        },
+        "process_controller": {
+          "$ref": "#/definitions/v3ProcessController"
+        },
+        "process_resource": {
+          "$ref": "#/definitions/v3ProcessResource"
+        },
+        "process_monitor_policy": {
+          "$ref": "#/definitions/v3ProcessMonitorPolicy"
+        }
+      }
     },
     "v3ProcessController": {
       "type": "object",
