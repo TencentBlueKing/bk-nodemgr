@@ -170,6 +170,16 @@ var agentConfig = []types.ConfigPolicyTemplateBlock{
 				},
 			},
 			{
+				ID:        "enable_outgoing_interface",
+				NameEN:    "Enable outgoing interface",
+				NameZH:    "绑定出口网卡",
+				RemarkEN:  "Enabling outgoing interface will allow the agent to use the specified interface for file transfers.",
+				RemarkZH:  "绑定出口网卡将允许agent使用指定的网卡进行文件传输. 默认为内网IP所在网卡.",
+				Key:       "agent.file.bt_enable_outgoing_interface",
+				Type:      types.ConfigPolicyTemplateTypeBool,
+				ValueBool: true,
+			},
+			{
 				ID:        "disable_listen_sockets",
 				NameEN:    "Enable silent mode",
 				NameZH:    "开启无监听模式",
