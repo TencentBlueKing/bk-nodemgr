@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools script_tools
+.PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools bintools scripts
 
 # version
 BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
@@ -76,81 +76,27 @@ tools: pre
 	@$(CP) -r $(ROOT_DIR)/tools/build/$(VERSION)/* $(OUTPUT_DIR)/tools
 	@$(ECHO) "Built successfully tools"
 
-script_tools: pre
-	@$(ECHO) "Building script tools..."
+bintools: pre
+	@$(ECHO) "Building bintools..."
+	@$(MKDIR) $(OUTPUT_DIR)/bintools/
 
-	@$(ECHO) "Building bin tool..."
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool
+	@$(ECHO) "Building gsectl bintool..."
+	@$(MAKE) -C $(ROOT_DIR)/script_tools/gsectl
+	@$(CP) -r $(ROOT_DIR)/script_tools/gsectl/build/$(VERSION)/bintool.tgz $(OUTPUT_DIR)/bintools/
 
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_linux_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/gsectl/agent/linux/gsectl $(OUTPUT_DIR)/script_tools/bintool/agent_linux_amd64
+	@$(ECHO) "Building plugin bintool..."
+	@$(MAKE) -C $(ROOT_DIR)/script_tools/plugin_scripts
+	@$(CP) -r $(ROOT_DIR)/script_tools/plugin_scripts/build/$(VERSION)/plugin_bintool.tgz $(OUTPUT_DIR)/bintools/
 
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_linux_arm64
-	@$(CP) $(ROOT_DIR)/script_tools/gsectl/agent/linux/gsectl $(OUTPUT_DIR)/script_tools/bintool/agent_linux_arm64
+	@$(ECHO) "Built successfully $(OUTPUT_DIR)/bintools/bintool.tgz"
+	@$(ECHO) "Built successfully $(OUTPUT_DIR)/bintools/plugin_bintool.tgz"
+	@$(ECHO) "Built successfully bintools"
 
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_darwin_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/gsectl/agent/darwin/gsectl $(OUTPUT_DIR)/script_tools/bintool/agent_darwin_amd64
+scripts: pre
+	@$(ECHO) "Building scripts..."
+	@$(MKDIR) $(OUTPUT_DIR)/scripts
 
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/agent_windows_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/gsectl/agent/windows/gsectl.bat $(OUTPUT_DIR)/script_tools/bintool/agent_windows_amd64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/proxy_linux_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/gsectl/proxy/linux/gsectl $(OUTPUT_DIR)/script_tools/bintool/proxy_linux_amd64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/bintool/proxy_linux_arm64
-	@$(CP) $(ROOT_DIR)/script_tools/gsectl/proxy/linux/gsectl $(OUTPUT_DIR)/script_tools/bintool/proxy_linux_arm64
-
-	@$(CD) $(OUTPUT_DIR)/script_tools/ && $(TAR) bintool.tgz bintool/
-
-	@$(ECHO) "Built successfully $(OUTPUT_DIR)/script_tools/bintool.tgz"
-	@$(ECHO) "Built successfully script tools"
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3
-
-	@$(ECHO) "Building v2 plugin bin tool..."
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/linux_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/linux_amd64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/linux_arm64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/linux_arm64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/darwin_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/darwin/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/darwin_amd64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/windows_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/windows/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/windows_amd64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/aix6_ppc64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/aix/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/aix6_ppc64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/aix7_ppc64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v2/aix/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v2/aix7_ppc64
-
-	@$(ECHO) "Building v3 plugin bin tool..."
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/linux_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/linux_amd64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/linux_arm64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/linux/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/linux_arm64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/darwin_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/darwin/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/darwin_amd64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/windows_amd64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/windows/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/windows_amd64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/aix6_ppc64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/aix/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/aix6_ppc64
-
-	@$(MKDIR) $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/aix7_ppc64
-	@$(CP) $(ROOT_DIR)/script_tools/plugin_scripts/v3/aix/* $(OUTPUT_DIR)/script_tools/plugin_bintool/v3/aix7_ppc64
-
-	@$(CD) $(OUTPUT_DIR)/script_tools/ && $(TAR) plugin_bintool.tgz plugin_bintool/
-
-	@$(ECHO) "Built successfully $(OUTPUT_DIR)/script_tools/plugin_bintool.tgz"
-	@$(ECHO) "Built successfully script tools"
+	@$(CP) -R $(ROOT_DIR)/script_tools/manual $(OUTPUT_DIR)/scripts/
 
 OSES := linux
 
@@ -217,7 +163,7 @@ compress-binary:
 		$(ECHO) "UPX compression disabled. Set UPX_ENABLED=1 to enable"; \
 	fi
 
-docker-build-server: backend application file front tools
+docker-build-server: backend application file front tools scripts
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/Dockerfile $(OUTPUT_DIR)
 	@$(CP) $(ROOT_DIR)/install/docker-compose/serviced.sh $(OUTPUT_DIR)
@@ -233,7 +179,7 @@ docker-build-apigw-sync: pre
 	@$(CD) $(OUTPUT_DIR)/apigw-sync && docker build -t bk-nodemgr-apigw-sync:v${VERSION} .
 	@$(ECHO) "Built successfully docker image bk-nodemgr-apigw-sync:v${VERSION}"
 
-all: backend application file relay front tools script_tools
+all: backend application file relay front tools bintools
 
 clean:
 	@$(ECHO) "Cleaning build directory..."
