@@ -1113,9 +1113,9 @@ func Test_cmdb_findHostByServiceTemplate(t *testing.T) {
 					BKBizID:              2,
 					BKServiceTemplateIDs: []int64{1},
 					BKModuleIDs:          []int64{},
-					Fields: []string{
-						"bk_host_id",
-						"bk_cloud_id",
+					Fields: []ccField{
+						ccFieldBKHostID,
+						ccFieldBKCloudID,
 					},
 					Page: Page{
 						Start: 0,
@@ -1165,9 +1165,9 @@ func Test_cmdb_findHostBySetTemplate(t *testing.T) {
 					BKBizID:          2,
 					BKSetTemplateIDs: []int64{1},
 					BKSetIDs:         []int64{},
-					Fields: []string{
-						"bk_host_id",
-						"bk_cloud_id",
+					Fields: []ccField{
+						ccFieldBKHostID,
+						ccFieldBKCloudID,
 					},
 					Page: Page{
 						Start: 0,
@@ -1217,7 +1217,7 @@ func Test_cmdb_findHostByTopo(t *testing.T) {
 					BKBizID:  2,
 					BKObjID:  "set",
 					BKInstID: 1,
-					Fields: []string{
+					Fields: []ccField{
 						"bk_host_id",
 						"bk_cloud_id",
 					},
@@ -1406,7 +1406,7 @@ func Test_cmdb_listBizHostsTopo(t *testing.T) {
 				ctx: ctx,
 				req: &ListBizHostsTopoReq{
 					BKBizID: 2,
-					Fields:  []string{},
+					Fields:  []ccField{},
 					Page: Page{
 						Start: 0,
 						Limit: 500,
@@ -1637,7 +1637,7 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 			executeReq := &ExecuteDynamicGroupReq{
 				BKBizID: tt.args.bizID,
 				ID:      group.ID,
-				Fields:  []string{"bk_host_id", "bk_host_name"},
+				Fields:  []ccField{ccFieldBKHostID, ccFieldBKHostName},
 				Page:    tt.args.page,
 			}
 			got, err := h.executeDynamicGroup(tt.args.ctx, executeReq)
@@ -1647,7 +1647,7 @@ func Test_cmdb_dynamicGroup(t *testing.T) {
 			}
 
 			for index, item := range got.Info {
-				t.Logf("index: %d, dynamic group info: %#v", index, *item)
+				t.Logf("index: %d, dynamic group info: %#v", index, item)
 			}
 
 			getReq := &GetDynamicGroupReq{

@@ -15,6 +15,7 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -22,6 +23,7 @@ import (
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 )
@@ -57,10 +59,23 @@ func testClient(t *testing.T) IHandler {
 	}
 
 	clientCap := &restclient.Capability{
+		Name:                 "cmdb",
 		HTTPClient:           httpClient,
 		Discover:             restdiscovery.NewDiscovery("apigateway", []string{os.Getenv("BK_APIGW_ENDPOINT")}),
 		ToleranceLatencyTime: restclient.ToleranceLatencyTimeDefault,
 		MetricOpts:           restclient.MetricOption{},
+		TraceSvc: func() tracing.IService {
+
+			traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
+				ServiceName: "cmdb",
+				SampleRate:  0,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			return traceSvc
+		}(),
 	}
 
 	apigwClientConfig, err := LoadAuthHeader()
@@ -314,7 +329,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 				hosts: []*types.Host{
 					{
 						Static: &types.HostStatic{
-							InnerIP:       "1.1.1.3",
+							InnerIPList:   []string{"1.1.1.3"},
 							NetworkAreaID: 0,
 							OSType:        "1",
 							Arch:          "x86",
@@ -323,7 +338,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 					},
 					{
 						Static: &types.HostStatic{
-							InnerIP:       "1.1.1.4",
+							InnerIPList:   []string{"1.1.1.4"},
 							NetworkAreaID: 0,
 							OSType:        "1",
 							Arch:          "x86",
@@ -351,7 +366,7 @@ func Test_handler_CreateAndUpdateHost(t *testing.T) {
 			}
 
 			exist, err := h.CheckBizHostByIP(tt.args.ctx, tt.args.bizID, tt.args.hosts[0].Static.NetworkAreaID,
-				tt.args.hosts[0].Static.InnerIP)
+				strings.Join(tt.args.hosts[0].Static.InnerIPList, ipSeparator))
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CheckBizHostByIP() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -488,67 +503,6 @@ func Test_handler_ListHostsWithoutBusiness(t *testing.T) {
 	}
 }
 
-// Test_handler_DynamicGroup...
-func Test_handler_DynamicGroup(t *testing.T) {
-	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
-
-	type args struct {
-		ctx   contextx.IContext
-		bizID int64
-		group *types.DynamicGroup
-		page  types.Page
-	}
-
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				ctx:   ctx,
-				bizID: 2,
-				group: &types.DynamicGroup{
-					BizID: 2,
-					ObjID: "host",
-					Name:  "nodemgr_test",
-				},
-				page: types.Page{
-					Offset: 0,
-					Limit:  500,
-				},
-			},
-			wantErr: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.SearchDynamicGroup(tt.args.ctx, tt.args.bizID, tt.args.page)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SearchDynamicGroup() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			for index, group := range got {
-				t.Logf("index: %d, group: %#v", index, *group)
-
-				hosts, err := h.ExecuteHostDynamicGroup(tt.args.ctx, tt.args.bizID, group.ID, tt.args.page)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("ExecuteDynamicGroup() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-
-				for index, host := range hosts {
-					t.Logf("index: %d, host: %#v", index, *host)
-				}
-			}
-		})
-	}
-}
-
 // Test_handler_ListServiceTemplate...
 func Test_handler_ListServiceTemplate(t *testing.T) {
 	ctx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("test"))
@@ -600,6 +554,7 @@ func Test_handler_FindHostByServiceTemplate(t *testing.T) {
 		ctx                contextx.IContext
 		bizID              int64
 		serviceTemplateIDs []int64
+		moduleIDs          []int64
 		page               types.Page
 	}
 
@@ -614,6 +569,7 @@ func Test_handler_FindHostByServiceTemplate(t *testing.T) {
 				ctx:                ctx,
 				bizID:              2,
 				serviceTemplateIDs: []int64{1},
+				moduleIDs:          []int64{},
 				page: types.Page{
 					Offset: 0,
 					Limit:  500,
@@ -625,8 +581,7 @@ func Test_handler_FindHostByServiceTemplate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.FindHostByServiceTemplate(tt.args.ctx, tt.args.bizID, tt.args.page,
-				tt.args.serviceTemplateIDs...)
+			got, err := h.FindHostByServiceTemplate(tt.args.ctx, tt.args.bizID, tt.args.page, tt.args.serviceTemplateIDs, tt.args.moduleIDs)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindHostByServiceTemplate() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -686,6 +641,74 @@ func Test_handler_WatchResourceEvent(t *testing.T) {
 				for _, event := range hostRelation {
 					hostRelationCursor = event.Cursor
 				}
+			}
+		})
+	}
+}
+
+// Test_handler_FindHostWithCondition...
+func TestHandler_FindHostWithCondition(t *testing.T) {
+	nCtx := contextx.New(context.Background(), contextx.WithTenantID("0"), contextx.WithBKUsername("admin"))
+
+	type args struct {
+		nCtx contextx.IContext
+		page types.Page
+		cond *types.HostStaticExactCondition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal-filter-by-addressing",
+			args: args{
+				nCtx: nCtx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  50,
+					Sort:   "",
+				},
+				cond: &types.HostStaticExactCondition{
+					StaticExactInclude: &types.HostStaticExactFields{
+						Addressing: []types.Addressing{
+							types.AddressingStatic,
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			// 实际的主机ip 是 127.0.0.1,127.0.0.2
+			name: "normal-filter-by-inner-ip",
+			args: args{
+				nCtx: nCtx,
+				page: types.Page{
+					Offset: 0,
+					Limit:  50,
+					Sort:   "",
+				},
+				cond: &types.HostStaticExactCondition{
+					StaticExactInclude: &types.HostStaticExactFields{
+						InnerIP: []string{"127.0.0.2"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.FindHostWithCondition(tt.args.nCtx, tt.args.page, tt.args.cond)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FindHostWithCondition() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for index, host := range got {
+				t.Logf("index: %d, host: %#v", index, *host)
 			}
 		})
 	}

@@ -41,8 +41,11 @@ func ccHostFields() []ccField {
 }
 
 const (
-	ccFieldBKInnerIP ccField = "bk_host_innerip"
-	ccFieldBKCloudID ccField = "bk_cloud_id"
+	ccFieldBKInnerIP    ccField = "bk_host_innerip"
+	ccFieldBKHostID     ccField = "bk_host_id"
+	ccFieldBKHostName   ccField = "bk_host_name"
+	ccFieldBKCloudID    ccField = "bk_cloud_id"
+	ccFieldBKAddressing ccField = "bk_addressing"
 )
 
 // Page describe the page data in request.
@@ -168,29 +171,39 @@ type BaseBroker[T any] struct {
 }
 
 const (
-	// CodeOK define the success code.
-	CodeOK = 0
+	// codeOK define the success code.
+	codeOK = 0
 
-	// CodeNoPermission define the no permission code.
+	// codeNoPermission define the no permission code.
 	// notice: !!! not all api will return correct response code.
-	CodeNoPermission = 9900403
+	codeNoPermission = 9900403
 )
 
 // IsFailed check the response is ok.
 func (resp *BaseBroker[T]) IsFailed() error {
 	switch {
-	case resp.Result == true && resp.Code == CodeOK:
+	case resp.Result == true && resp.Code == codeOK:
 		return nil
-	case (resp.Result == false && resp.Code == CodeNoPermission) || resp.Permission != nil:
+	case (resp.Result == false && resp.Code == codeNoPermission) || resp.Permission != nil:
 		return fmt.Errorf("no permission, please check your permission, permission(%v)", resp.Permission)
 	default:
 		return fmt.Errorf("result(%v), code(%d) , msg(%s)", resp.Result, resp.Code, resp.Message)
 	}
 }
 
+type filterCondition string
+
+const (
+	// hostPropertyFilterConditionAnd describe the and condition.
+	hostPropertyFilterConditionAnd filterCondition = "AND"
+
+	// hostPropertyFilterConditionOr describe the or condition.
+	hostPropertyFilterConditionOr filterCondition = "OR"
+)
+
 // HostPropertyFilter describe the host property filter.
 type HostPropertyFilter struct {
-	Condition string            `json:"condition"`
+	Condition filterCondition   `json:"condition"`
 	Rules     []*FieldCondition `json:"rules"`
 }
 
@@ -597,8 +610,8 @@ type ExecuteDynamicGroupReq struct {
 
 // ExecuteDynamicGroupResp describe the response data of execute_dynamic_groupwhen dynamic group type is host.
 type ExecuteDynamicGroupResp struct {
-	Count int    `json:"count"`
-	Info  []*any `json:"info"`
+	Count int              `json:"count"`
+	Info  []map[string]any `json:"info"`
 }
 
 // SetInfo describe the set info define by cmdb.
@@ -672,8 +685,9 @@ type UpdateDynamicGroupResp string
 
 // ListHostsWithoutBusinessReq describe the request data of list_host_without_business.
 type ListHostsWithoutBusinessReq struct {
-	Fields []ccField `json:"fields"`
-	Page   Page      `json:"page"`
+	Fields             []ccField           `json:"fields"`
+	Page               Page                `json:"page"`
+	HostPropertyFilter *HostPropertyFilter `json:"host_property_filter"`
 }
 
 // ListHostsWithoutBusinessResp describe the response data of list_host_without_business.
@@ -995,12 +1009,12 @@ type FindHostTopoRelationResp struct {
 
 // FindHostBizRelationsReq describe the request data of find_host_biz_relations.
 type FindHostBizRelationsReq struct {
-	BKBizID  int64   `json:"bk_biz_id"`
+	BKBizID  int64   `json:"bk_biz_id,omitempty"`
 	BKHostID []int64 `json:"bk_host_id"`
 }
 
 // FindHostBizRelationsResp describe the response data of find_host_biz_relations.
-type FindHostBizRelationsResp []*HostTopoRelation
+type FindHostBizRelationsResp = []*HostTopoRelation
 
 // FindHostByServiceTemplateReq describe the request data of find_host_by_service_template.
 type FindHostByServiceTemplateReq struct {
@@ -1019,11 +1033,11 @@ type FindHostByServiceTemplateResp struct {
 
 // FindHostBySetTemplateReq describe the request data of find_host_by_set_template.
 type FindHostBySetTemplateReq struct {
-	BKBizID          int64    `json:"bk_biz_id"`
-	BKSetTemplateIDs []int64  `json:"bk_set_template_ids,omitempty"`
-	BKSetIDs         []int64  `json:"bk_set_ids,omitempty"`
-	Fields           []string `json:"fields"`
-	Page             Page     `json:"page"`
+	BKBizID          int64     `json:"bk_biz_id"`
+	BKSetTemplateIDs []int64   `json:"bk_set_template_ids"`
+	BKSetIDs         []int64   `json:"bk_set_ids,omitempty"`
+	Fields           []ccField `json:"fields"`
+	Page             Page      `json:"page"`
 }
 
 // FindHostBySetTemplateResp describe the response data of find_host_by_set_template.
@@ -1034,11 +1048,11 @@ type FindHostBySetTemplateResp struct {
 
 // FindHostByTopoReq describe the request data of find_host_by_topo.
 type FindHostByTopoReq struct {
-	BKBizID  int64    `json:"bk_biz_id"`
-	BKObjID  string   `json:"bk_obj_id"`
-	BKInstID int64    `json:"bk_inst_id"`
-	Fields   []string `json:"fields"`
-	Page     Page     `json:"page"`
+	BKBizID  int64     `json:"bk_biz_id"`
+	BKObjID  string    `json:"bk_obj_id"`
+	BKInstID int64     `json:"bk_inst_id"`
+	Fields   []ccField `json:"fields"`
+	Page     Page      `json:"page"`
 }
 
 // FindHostByTopoResp describe the response data of find_host_by_topo.
@@ -1156,9 +1170,9 @@ type ListBizHostsTopoReq struct {
 	//	tenant id of this request.
 	TenantID string `json:"-"`
 
-	BKBizID int64    `json:"bk_biz_id"`
-	Fields  []string `json:"fields"`
-	Page    Page     `json:"page"`
+	BKBizID int64     `json:"bk_biz_id"`
+	Fields  []ccField `json:"fields"`
+	Page    Page      `json:"page"`
 }
 
 // HostTopo describe the topo node define by cmdb.

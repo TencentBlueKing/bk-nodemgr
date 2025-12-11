@@ -12,7 +12,6 @@ package cmdb
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -46,21 +45,19 @@ type IHandler interface {
 	IDynamicGroup
 	IServiceTemplate
 	IWatch
+	IScope
 }
 
 // IDynamicGroup this interface is used to edit dynamic group.
 type IDynamicGroup interface {
 	// SearchDynamicGroup search dynamic group.
-	SearchDynamicGroup(ctx contextx.IContext, bizID int64, page types.Page) ([]*types.DynamicGroup, error)
-
-	// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
-	ExecuteHostDynamicGroup(ctx contextx.IContext, bizID int64, groupID string, page types.Page) ([]*types.Host, error)
+	SearchDynamicGroup(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.DynamicGroup, error)
 }
 
 // IBiz this interface is used to edit biz info.
 type IBiz interface {
 	// SearchBusiness search business.
-	SearchBusiness(ctx contextx.IContext, page types.Page) ([]*types.Business, error)
+	SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Business, error)
 }
 
 // IEnum this interface is used to get enum resource.
@@ -75,83 +72,61 @@ type IEnum interface {
 // IHostIdentifier host identifier.
 type IHostIdentifier interface {
 	// PushHostIdentifier push host identifier.
-	PushHostIdentifier(ctx contextx.IContext, hostIDs ...int64) (taskID string, err error)
+	PushHostIdentifier(nCtx contextx.IContext, hostIDs ...int64) (taskID string, err error)
 
 	// FindHostIdentifierPushResult find host identifier push result.
-	FindHostIdentifierPushResult(ctx contextx.IContext, taskID string) (successList []int64, failedList []int64,
+	FindHostIdentifierPushResult(nCtx contextx.IContext, taskID string) (successList []int64, failedList []int64,
 		pendingList []int64, err error)
-}
-
-// IHost this interface is used to edit host info.
-type IHost interface {
-	// ListBizHosts list biz hosts.
-	ListBizHosts(ctx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error)
-
-	// ListHostsWithoutBusiness list hosts without business.
-	ListHostsWithoutBusiness(ctx contextx.IContext, page types.Page) ([]*types.Host, error)
-
-	// FindHostByServiceTemplate find host by service template.
-	FindHostByServiceTemplate(ctx contextx.IContext, bizID int64, page types.Page, serviceTemplateIDs ...int64) (
-		[]*types.Host, error)
-
-	// CheckBizHostByIP check biz host by ip
-	CheckBizHostByIP(ctx contextx.IContext, bizID int64, cloudID int64, ip string) (bool, error)
-
-	// ListResourcePoolHosts list resource pool hosts.
-	ListResourcePoolHosts(ctx contextx.IContext, page types.Page) ([]*types.Host, error)
-
-	// AddHostToResourcePool add host to resource pool
-	AddHostToResourcePool(ctx contextx.IContext, hosts ...*types.Host) (successHost []*types.Host,
-		failedIndexMsg []string, err error)
-
-	// AddHostToBusinessIdle add host to business idle
-	AddHostToBusinessIdle(ctx contextx.IContext, bizID int64, hosts ...*types.Host) ([]int64, error)
 }
 
 // INetworkArea this interface is used to edit network area.
 type INetworkArea interface {
 	// SearchNetworkArea search network area.
-	SearchNetworkArea(ctx contextx.IContext, page types.Page) ([]*types.NetworkArea, error)
+	SearchNetworkArea(nCtx contextx.IContext, page types.Page) ([]*types.NetworkArea, error)
 
 	// CreateNetworkArea create network area.
-	CreateNetworkArea(ctx contextx.IContext, networkAreaName string, cloudVendor string) (*types.NetworkArea, error)
+	CreateNetworkArea(nCtx contextx.IContext, networkAreaName string, cloudVendor string) (*types.NetworkArea, error)
 
 	// UpdateNetworkArea update network area.
-	UpdateNetworkArea(ctx contextx.IContext, id int64, networkAreaName string, cloudVendor string) error
+	UpdateNetworkArea(nCtx contextx.IContext, id int64, networkAreaName string, cloudVendor string) error
 
 	// DeleteNetworkArea delete network area.
-	DeleteNetworkArea(ctx contextx.IContext, id int64) error
+	DeleteNetworkArea(nCtx contextx.IContext, id int64) error
 }
 
 // IBindHostAgent this interface is used to bind host agent.
 type IBindHostAgent interface {
-	BindHostAgent(ctx contextx.IContext, hostInfo ...*types.Host) error
+	BindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Host) error
 }
 
 // IUnbindHostAgent this interface is used to unbind host agent.
 type IUnbindHostAgent interface {
-	UnbindHostAgent(ctx contextx.IContext, hostInfo ...*types.Host) error
+	UnbindHostAgent(nCtx contextx.IContext, hostInfo ...*types.Host) error
 }
 
 // IUpdateHostNetworkAreaField this interface is used to update host network area field.
 type IUpdateHostNetworkAreaField interface {
 	// UpdateHostNetworkAreaField update host network area field.
-	UpdateHostNetworkAreaField(ctx contextx.IContext, bizID int64, networkAreaID int64, hostIDs ...int64) error
+	UpdateHostNetworkAreaField(nCtx contextx.IContext, bizID int64, networkAreaID int64, hostIDs ...int64) error
 }
 
 // IServiceTemplate this interface is used to list service template.
 type IServiceTemplate interface {
 	// ListServiceTemplate list service template.
-	ListServiceTemplate(ctx contextx.IContext, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
+	ListServiceTemplate(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.ServiceTemplate, error)
 }
 
 // IWatch this interface is used to watch resource event.
 type IWatch interface {
 	// WatchHostResourceEvent watch host resource event.
-	WatchHostResourceEvent(ctx contextx.IContext, cursor string) ([]*types.HostEvent, error)
+	WatchHostResourceEvent(nCtx contextx.IContext, cursor string) ([]*types.HostEvent, error)
 
 	// WatchHostRelationResourceEvent watch host relation resource event.
-	WatchHostRelationResourceEvent(ctx contextx.IContext, cursor string) ([]*types.HostEvent, error)
+	WatchHostRelationResourceEvent(nCtx contextx.IContext, cursor string) ([]*types.HostEvent, error)
+}
+
+// IFinder this interface is used to find host.
+type IFinder interface {
 }
 
 // Handler the Handler of cmdb.
@@ -276,12 +251,12 @@ func (h *Handler) initEnumKeepers() error {
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), enumResourceSyncTimeout)
+	nCtx, cancel := context.WithTimeout(context.Background(), enumResourceSyncTimeout)
 	defer cancel()
 
 	tenantIDs := tenant.GetAllTenantIDs()
 	for _, tenantID := range tenantIDs {
-		newCtx := contextx.New(ctx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
+		newCtx := contextx.New(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(h.cli.config.VirtualUser))
 		if err := h.cloudVendorKeeper.update(newCtx); err != nil {
 			logger.G.Sys().WithErr(err).Warn("failed to sync cloud vendor")
 		}
@@ -299,46 +274,8 @@ func (h *Handler) initEnumKeepers() error {
 	return nil
 }
 
-// ListBizHosts list biz hosts.
-func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error) {
-	tenantID := nCtx.TenantID()
-	loginUsername := nCtx.BKUsername()
-
-	executor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
-	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		req := &ListBizHostsReq{
-			BKBizID: bizID,
-			Page: Page{
-				Start: p.Offset,
-				Limit: p.Limit,
-				Sort:  p.Sort,
-			},
-		}
-
-		newCtx := contextx.New(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(loginUsername))
-		resp, err := h.cli.listBizHosts(newCtx, req)
-		if err != nil {
-			return nil, err
-		}
-
-		hosts := make([]*types.Host, len(resp.Info))
-		for idx, host := range resp.Info {
-			hosts[idx] = h.convHostInfoToTypes(tenantID, host, bizID)
-		}
-
-		return hosts, nil
-	}
-
-	result, err := executor.Execute(nCtx, page, fn)
-	if err != nil {
-		return nil, fmt.Errorf("execute page executor failed: %v", err)
-	}
-
-	return result.Items, nil
-}
-
 // SearchBusiness search business.
-func (h *Handler) SearchBusiness(ctx contextx.IContext, page types.Page) ([]*types.Business, error) {
+func (h *Handler) SearchBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Business, error) {
 	req := &SearchBusinessReq{
 		Page: Page{
 			Start: page.Offset,
@@ -348,7 +285,7 @@ func (h *Handler) SearchBusiness(ctx contextx.IContext, page types.Page) ([]*typ
 		Fields: nil,
 	}
 
-	resp, err := h.cli.searchBusiness(ctx, req)
+	resp, err := h.cli.searchBusiness(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +293,7 @@ func (h *Handler) SearchBusiness(ctx contextx.IContext, page types.Page) ([]*typ
 	bizs := make([]*types.Business, len(resp.Info))
 	for idx, business := range resp.Info {
 		bizs[idx] = &types.Business{
-			TenantID: ctx.TenantID(),
+			TenantID: nCtx.TenantID(),
 			BizID:    business.BKBizID,
 			BizName:  business.BKBizName,
 		}
@@ -366,7 +303,7 @@ func (h *Handler) SearchBusiness(ctx contextx.IContext, page types.Page) ([]*typ
 }
 
 // SearchNetworkArea search network area.
-func (h *Handler) SearchNetworkArea(ctx contextx.IContext, page types.Page) ([]*types.NetworkArea, error) {
+func (h *Handler) SearchNetworkArea(nCtx contextx.IContext, page types.Page) ([]*types.NetworkArea, error) {
 	req := &SearchCloudAreaReq{
 		Page: Page{
 			Start: page.Offset,
@@ -375,21 +312,21 @@ func (h *Handler) SearchNetworkArea(ctx contextx.IContext, page types.Page) ([]*
 		},
 	}
 
-	resp, err := h.cli.searchCloudArea(ctx, req)
+	resp, err := h.cli.searchCloudArea(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	netAreas := make([]*types.NetworkArea, len(resp.Info))
 	for idx, networkarea := range resp.Info {
-		netAreas[idx] = h.convCloudAreaToTypes(ctx.TenantID(), networkarea)
+		netAreas[idx] = h.convCloudAreaToTypes(nCtx.TenantID(), networkarea)
 	}
 
 	return netAreas, nil
 }
 
 // CreateNetworkArea create network area.
-func (h *Handler) CreateNetworkArea(ctx contextx.IContext, networkAreaName string, cloudVendor string) (
+func (h *Handler) CreateNetworkArea(nCtx contextx.IContext, networkAreaName string, cloudVendor string) (
 	*types.NetworkArea, error) {
 
 	req := &CreateCloudAreaReq{
@@ -397,13 +334,13 @@ func (h *Handler) CreateNetworkArea(ctx contextx.IContext, networkAreaName strin
 		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
 
-	resp, err := h.cli.createCloudArea(ctx, req)
+	resp, err := h.cli.createCloudArea(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	netArea := &types.NetworkArea{
-		TenantID:    ctx.TenantID(),
+		TenantID:    nCtx.TenantID(),
 		ID:          resp.Created.ID,
 		Name:        networkAreaName,
 		CloudVendor: cloudVendor,
@@ -414,7 +351,7 @@ func (h *Handler) CreateNetworkArea(ctx contextx.IContext, networkAreaName strin
 
 // UpdateNetworkArea update network area.
 func (h *Handler) UpdateNetworkArea(
-	ctx contextx.IContext, id int64, networkAreaName string, cloudVendor string) error {
+	nCtx contextx.IContext, id int64, networkAreaName string, cloudVendor string) error {
 
 	req := &UpdateCloudAreaReq{
 		BKCloudID:     id,
@@ -422,7 +359,7 @@ func (h *Handler) UpdateNetworkArea(
 		BKCloudVendor: h.cloudVendorKeeper.getKey(cloudVendor),
 	}
 
-	err := h.cli.updateCloudArea(ctx, req)
+	err := h.cli.updateCloudArea(nCtx, req)
 	if err != nil {
 		return err
 	}
@@ -431,12 +368,12 @@ func (h *Handler) UpdateNetworkArea(
 }
 
 // DeleteNetworkArea delete network area.
-func (h *Handler) DeleteNetworkArea(ctx contextx.IContext, id int64) error {
+func (h *Handler) DeleteNetworkArea(nCtx contextx.IContext, id int64) error {
 	req := &DeleteCloudAreaReq{
 		BKCloudID: id,
 	}
 
-	err := h.cli.deleteCloudArea(ctx, req)
+	err := h.cli.deleteCloudArea(nCtx, req)
 	if err != nil {
 		return err
 	}
@@ -446,7 +383,7 @@ func (h *Handler) DeleteNetworkArea(ctx contextx.IContext, id int64) error {
 
 // UpdateHostNetworkAreaField update host network area field.
 func (h *Handler) UpdateHostNetworkAreaField(
-	ctx contextx.IContext, bizID int64, networkAreaID int64, hostIDs ...int64) error {
+	nCtx contextx.IContext, bizID int64, networkAreaID int64, hostIDs ...int64) error {
 
 	req := &UpdateHostCloudAreaFieldReq{
 		BKBizID:   bizID,
@@ -454,7 +391,7 @@ func (h *Handler) UpdateHostNetworkAreaField(
 		BKHostIDs: hostIDs,
 	}
 
-	err := h.cli.updateHostCloudAreaField(ctx, req)
+	err := h.cli.updateHostCloudAreaField(nCtx, req)
 	if err != nil {
 		return err
 	}
@@ -563,54 +500,6 @@ func (h *Handler) FindHostIdentifierPushResult(nCtx contextx.IContext, taskID st
 	return resp.SuccessList, resp.FailedList, resp.PendingList, nil
 }
 
-// ListResourcePoolHosts list resource pool hosts.
-func (h *Handler) ListResourcePoolHosts(ctx contextx.IContext, page types.Page) ([]*types.Host, error) {
-	req := &ListResourcePoolHostsReq{
-		Fields: ccHostFields(),
-		Page: Page{
-			Start: page.Offset,
-			Limit: page.Limit,
-			Sort:  page.Sort,
-		},
-	}
-
-	resp, err := h.cli.listResourcePoolHosts(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	hosts := make([]*types.Host, len(resp.Info))
-	for idx, host := range resp.Info {
-		hosts[idx] = h.convHostInfoToTypes(ctx.TenantID(), host, CCResourcePoolBusinessID)
-	}
-
-	return hosts, nil
-}
-
-// ListHostsWithoutBusiness list hosts without business.
-func (h *Handler) ListHostsWithoutBusiness(ctx contextx.IContext, page types.Page) ([]*types.Host, error) {
-	req := &ListHostsWithoutBusinessReq{
-		Fields: ccHostFields(),
-		Page: Page{
-			Start: page.Offset,
-			Limit: page.Limit,
-			Sort:  page.Sort,
-		},
-	}
-
-	resp, err := h.cli.listHostsWithoutBusiness(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	hosts := make([]*types.Host, len(resp.Info))
-	for idx, host := range resp.Info {
-		hosts[idx] = h.convHostInfoToTypes(ctx.TenantID(), host, CCNoBusinessID)
-	}
-
-	return hosts, nil
-}
-
 // AddHostToResourcePool add host to resource pool.
 // nolint: nonamedreturns
 func (h *Handler) AddHostToResourcePool(nCtx contextx.IContext, hosts ...*types.Host) (successHost []*types.Host,
@@ -641,48 +530,8 @@ func (h *Handler) AddHostToResourcePool(nCtx contextx.IContext, hosts ...*types.
 	return successHost, failedIndexMsg, nil
 }
 
-// ExecuteHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
-func (h *Handler) ExecuteHostDynamicGroup(ctx contextx.IContext, bizID int64, groupID string, page types.Page) (
-	[]*types.Host, error) {
-
-	req := &ExecuteDynamicGroupReq{
-		BKBizID:        bizID,
-		ID:             groupID,
-		Fields:         ccHostFields(),
-		DisableCounter: false,
-		Page: Page{
-			Start: page.Offset,
-			Limit: page.Limit,
-			Sort:  page.Sort,
-		},
-	}
-
-	resp, err := h.cli.executeDynamicGroup(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*types.Host, len(resp.Info))
-	for index, host := range resp.Info {
-		jsonData, err := json.Marshal(host)
-		if err != nil {
-			return nil, err
-		}
-
-		var hostData HostInfo
-		err = json.Unmarshal(jsonData, &hostData)
-		if err != nil {
-			return nil, err
-		}
-
-		result[index] = h.convHostInfoToTypes(ctx.TenantID(), &hostData, bizID)
-	}
-
-	return result, nil
-}
-
 // SearchDynamicGroup search dynamic group.
-func (h *Handler) SearchDynamicGroup(ctx contextx.IContext, bizID int64, page types.Page) (
+func (h *Handler) SearchDynamicGroup(nCtx contextx.IContext, bizID int64, page types.Page) (
 	[]*types.DynamicGroup, error) {
 
 	req := &SearchDynamicGroupReq{
@@ -694,7 +543,7 @@ func (h *Handler) SearchDynamicGroup(ctx contextx.IContext, bizID int64, page ty
 		},
 	}
 
-	resp, err := h.cli.searchDynamicGroup(ctx, req)
+	resp, err := h.cli.searchDynamicGroup(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -713,7 +562,7 @@ func (h *Handler) SearchDynamicGroup(ctx contextx.IContext, bizID int64, page ty
 }
 
 // ListServiceTemplate list service template.
-func (h *Handler) ListServiceTemplate(ctx contextx.IContext, bizID int64, page types.Page) ([]*types.ServiceTemplate,
+func (h *Handler) ListServiceTemplate(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.ServiceTemplate,
 	error) {
 
 	req := &ListServiceTemplateReq{
@@ -725,7 +574,7 @@ func (h *Handler) ListServiceTemplate(ctx contextx.IContext, bizID int64, page t
 		},
 	}
 
-	resp, err := h.cli.listServiceTemplate(ctx, req)
+	resp, err := h.cli.listServiceTemplate(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -746,34 +595,6 @@ func (h *Handler) ListServiceTemplate(ctx contextx.IContext, bizID int64, page t
 
 // ipSeparator is the separator of inner and outer ip.
 const ipSeparator = ","
-
-// FindHostByServiceTemplate find host by service template.
-func (h *Handler) FindHostByServiceTemplate(ctx contextx.IContext, bizID int64, page types.Page,
-	serviceTemplateIDs ...int64) ([]*types.Host, error) {
-
-	req := &FindHostByServiceTemplateReq{
-		BKBizID:              bizID,
-		BKServiceTemplateIDs: serviceTemplateIDs,
-		Fields:               ccHostFields(),
-		Page: Page{
-			Start: page.Offset,
-			Sort:  page.Sort,
-			Limit: page.Limit,
-		},
-	}
-
-	resp, err := h.cli.findHostByServiceTemplate(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	result := make([]*types.Host, len(resp.Info))
-	for index, host := range resp.Info {
-		result[index] = h.convHostInfoToTypes(ctx.TenantID(), host, bizID)
-	}
-
-	return result, nil
-}
 
 // convHostInfoToTypes convert host info to types.Host.
 func (h *Handler) convHostInfoToTypes(tenantID string, hostInfo *HostInfo, bizID int64) *types.Host {
@@ -847,8 +668,386 @@ func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.Host {
 	}
 }
 
+// WatchHostResourceEvent watch host resource event.
+func (h *Handler) WatchHostResourceEvent(nCtx contextx.IContext, cursor string) ([]*types.HostEvent, error) {
+	req := &ResourceWatchReq{
+		BKCursor:   cursor,
+		BKResource: string(types.ResourceTypeHost),
+		BKFields:   ccHostFields(),
+	}
+
+	resp, err := h.cli.resourceWatch(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hostEvents := make([]*types.HostEvent, 0, len(resp.BKEvents))
+	for _, hostEvent := range resp.BKEvents {
+		hostData := new(HostEventInfo)
+		if err := conv.MapToStruct(*hostEvent, hostData); err != nil {
+			return nil, err
+		}
+
+		hostEvents = append(hostEvents, &types.HostEvent{
+			Cursor:    hostData.BKCursor,
+			Resource:  types.ResourceTypeHost,
+			EventType: types.EventType(hostData.BKEventType),
+			Detail:    h.convHostInfoToTypes(nCtx.TenantID(), hostData.BKDetail, CCNoBusinessID),
+		})
+	}
+
+	return hostEvents, nil
+}
+
+// WatchHostRelationResourceEvent get host relation resource by watch.
+func (h *Handler) WatchHostRelationResourceEvent(nCtx contextx.IContext, cursor string) ([]*types.HostEvent, error) {
+	req := &ResourceWatchReq{
+		BKCursor:   cursor,
+		BKResource: string(types.ResourceTypeHostRelation),
+	}
+
+	resp, err := h.cli.resourceWatch(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hostEvents := make([]*types.HostEvent, 0)
+	for _, relationEvent := range resp.BKEvents {
+		relationData := new(HostRelationEventInfo)
+		if err := conv.MapToStruct(*relationEvent, relationData); err != nil {
+			return nil, err
+		}
+
+		hostEvents = append(hostEvents, &types.HostEvent{
+			Cursor:    relationData.BKCursor,
+			Resource:  types.ResourceTypeHostRelation,
+			EventType: types.EventType(relationData.BKEventType),
+			Detail:    convHostTopoRelationToTypes(relationData.BKDetail),
+		})
+	}
+
+	return hostEvents, nil
+}
+
+// IHost this interface is used to edit host info.
+type IHost interface {
+	// ListBizHosts list biz hosts.
+	ListBizHosts(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error)
+
+	// ListHostsWithoutBusiness list hosts without business.
+	ListHostsWithoutBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Host, error)
+
+	// CheckBizHostByIP check biz host by ip
+	CheckBizHostByIP(nCtx contextx.IContext, bizID int64, cloudID int64, ip string) (bool, error)
+
+	// ListResourcePoolHosts list resource pool hosts.
+	ListResourcePoolHosts(nCtx contextx.IContext, page types.Page) ([]*types.Host, error)
+
+	// AddHostToResourcePool add host to resource pool
+	AddHostToResourcePool(nCtx contextx.IContext, hosts ...*types.Host) (successHost []*types.Host,
+		failedIndexMsg []string, err error)
+
+	// AddHostToBusinessIdle add host to business idle
+	AddHostToBusinessIdle(nCtx contextx.IContext, bizID int64, hosts ...*types.Host) ([]int64, error)
+
+	// FindHostWithCondition find host with condition.
+	FindHostWithCondition(nCtx contextx.IContext, page types.Page, cond *types.HostStaticExactCondition) ([]*types.Host, error)
+
+	// FindHostByServiceTemplate find host by service template.
+	FindHostByServiceTemplate(nCtx contextx.IContext, bizID int64, page types.Page, serviceTemplateIDs []int64, moduleIDs []int64) (
+		[]*types.Host, error)
+
+	// FindHostBySetTemplate find host by set template.
+	FindHostBySetTemplate(nCtx contextx.IContext, bizID int64, page types.Page, setTemplateIDs []int64, setIDs []int64) ([]*types.Host, error)
+}
+
+// ListBizHosts list biz hosts.
+// Deprecated: use FindHostWithCondition instead.
+func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.Page) ([]*types.Host, error) {
+	if nCtx == nil {
+		return nil, fmt.Errorf("failed to list biz hosts, nCtx is nil")
+	}
+
+	if bizID == 0 {
+		return nil, fmt.Errorf("failed to list biz hosts, bizID is 0")
+	}
+
+	tenantID := nCtx.TenantID()
+	bkUsername := nCtx.BKUsername()
+
+	executor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+		req := &ListBizHostsReq{
+			BKBizID: bizID,
+			Page: Page{
+				Start: p.Offset,
+				Limit: p.Limit,
+				Sort:  p.Sort,
+			},
+		}
+
+		newCtx := contextx.New(nCtx, contextx.WithTenantID(tenantID), contextx.WithBKUsername(bkUsername))
+		resp, err := h.cli.listBizHosts(newCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		hosts := make([]*types.Host, len(resp.Info))
+		for idx, host := range resp.Info {
+			hosts[idx] = h.convHostInfoToTypes(tenantID, host, bizID)
+		}
+
+		return hosts, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, fmt.Errorf("execute page executor failed: %v", err)
+	}
+
+	return result.Items, nil
+}
+
+// ListHostsWithoutBusiness list hosts without business.
+// Deprecated: use FindHostWithCondition instead.
+func (h *Handler) ListHostsWithoutBusiness(nCtx contextx.IContext, page types.Page) ([]*types.Host, error) {
+	req := &ListHostsWithoutBusinessReq{
+		Fields: ccHostFields(),
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
+	}
+
+	resp, err := h.cli.listHostsWithoutBusiness(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hosts := make([]*types.Host, len(resp.Info))
+	for idx, host := range resp.Info {
+		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), host, CCNoBusinessID)
+	}
+
+	return hosts, nil
+}
+
+// FindHostWithCondition find host with condition.
+func (h *Handler) FindHostWithCondition(nCtx contextx.IContext, page types.Page, cond *types.HostStaticExactCondition) (
+	[]*types.Host, error) {
+
+	if nCtx == nil {
+		return nil, fmt.Errorf("failed to find host with condition, nCtx is nil")
+	}
+
+	bizIDs := convHostStaticExactConditionToBizIDs(cond)
+	filter := convHostStaticExactConditionToFilter(cond)
+	executor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, 1*time.Hour) // nolint: mnd
+
+	hosts := make([]*types.Host, 0)
+	if len(bizIDs) > 0 {
+		for idx := range bizIDs {
+			bizID := bizIDs[idx]
+
+			fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+				return h.listHostWithBiz(nCtx, p, bizID, filter)
+			}
+
+			result, err := executor.Execute(nCtx, page, fn)
+			if err != nil {
+				return nil, fmt.Errorf("execute page executor failed: %v", err)
+			}
+
+			hosts = append(hosts, result.Items...)
+		}
+	} else {
+		fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+			return h.listHostWithoutBiz(nCtx, p, filter)
+		}
+
+		result, err := executor.Execute(nCtx, page, fn)
+		if err != nil {
+			return nil, fmt.Errorf("execute page executor failed: %v", err)
+		}
+
+		hosts = append(hosts, result.Items...)
+	}
+
+	return hosts, nil
+}
+
+func (h *Handler) listHostWithBiz(nCtx contextx.IContext, p types.Page, bizID int64, filter *HostPropertyFilter) ([]*types.Host, error) {
+	req := &ListBizHostsReq{
+		Page: Page{
+			Start: p.Offset,
+			Limit: p.Limit,
+			Sort:  p.Sort,
+		},
+		BKBizID:            bizID,
+		Fields:             ccHostFields(),
+		HostPropertyFilter: filter,
+	}
+
+	resp, err := h.cli.listBizHosts(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hosts := make([]*types.Host, len(resp.Info))
+	for idx, host := range resp.Info {
+		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), host, bizID)
+	}
+
+	return hosts, nil
+}
+
+func (h *Handler) listHostWithoutBiz(nCtx contextx.IContext, p types.Page, filter *HostPropertyFilter) ([]*types.Host, error) {
+	listHostsWithoutBusinessReq := &ListHostsWithoutBusinessReq{
+		Page: Page{
+			Start: p.Offset,
+			Limit: p.Limit,
+			Sort:  p.Sort,
+		},
+		Fields:             ccHostFields(),
+		HostPropertyFilter: filter,
+	}
+
+	listHostsWithoutBusinessResp, err := h.cli.listHostsWithoutBusiness(nCtx, listHostsWithoutBusinessReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list host without biz: %w", err)
+	}
+
+	hosts := make([]*types.Host, len(listHostsWithoutBusinessResp.Info))
+	for idx, host := range listHostsWithoutBusinessResp.Info {
+		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), host, 0)
+	}
+
+	hostIDs := conv.SliceToSlice[*types.Host, int64](hosts, func(host *types.Host) int64 {
+		return host.HostID
+	})
+
+	findHostBizRelationsReq := &FindHostBizRelationsReq{
+		BKHostID: hostIDs,
+	}
+	findHostBizRelationsResp, err := h.cli.findHostBizRelations(nCtx, findHostBizRelationsReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list host without biz: %w", err)
+	}
+
+	hostBizRel, err := conv.SliceToMap[int64, *HostTopoRelation](*findHostBizRelationsResp, func(rel *HostTopoRelation) int64 {
+		return rel.BKHostID
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to list host without biz: %w", err)
+	}
+
+	for _, host := range hosts {
+		if _, ok := hostBizRel[host.HostID]; !ok {
+			continue
+		}
+
+		host.Static.BizID = hostBizRel[host.HostID].BKBizID
+	}
+
+	return hosts, nil
+}
+
+func convHostStaticExactConditionToBizIDs(cond *types.HostStaticExactCondition) []int64 {
+	if cond == nil {
+		return []int64{}
+	}
+
+	if cond.StaticExactInclude == nil {
+		return []int64{}
+	}
+
+	return cond.StaticExactInclude.BizID
+}
+
+func convHostStaticExactConditionToFilter(cond *types.HostStaticExactCondition) *HostPropertyFilter {
+	if cond == nil {
+		return &HostPropertyFilter{}
+	}
+
+	filter := &HostPropertyFilter{
+		Condition: hostPropertyFilterConditionAnd,
+		Rules:     make([]*FieldCondition, 0),
+	}
+
+	if cond.StaticExactInclude != nil {
+		if len(cond.StaticExactInclude.HostID) > 0 {
+			filter.Rules = append(filter.Rules, &FieldCondition{
+				Field:    ccFieldBKHostID,
+				Operator: ruleOperatorIn,
+				Value:    cond.StaticExactInclude.HostID,
+			})
+		}
+
+		if len(cond.StaticExactInclude.NetworkAreaID) > 0 {
+			filter.Rules = append(filter.Rules, &FieldCondition{
+				Field:    ccFieldBKCloudID,
+				Operator: ruleOperatorIn,
+				Value:    cond.StaticExactInclude.NetworkAreaID,
+			})
+		}
+
+		if len(cond.StaticExactInclude.InnerIP) > 0 {
+			filter.Rules = append(filter.Rules, &FieldCondition{
+				Field:    ccFieldBKInnerIP,
+				Operator: ruleOperatorIn,
+				Value:    cond.StaticExactInclude.InnerIP,
+			})
+		}
+
+		if len(cond.StaticExactInclude.Addressing) > 0 {
+			filter.Rules = append(filter.Rules, &FieldCondition{
+				Field:    ccFieldBKAddressing,
+				Operator: ruleOperatorIn,
+				Value:    cond.StaticExactInclude.Addressing,
+			})
+		}
+	}
+
+	if cond.StaticExactExclude != nil {
+		if len(cond.StaticExactExclude.HostID) > 0 {
+			filter.Rules = append(filter.Rules, &FieldCondition{
+				Field:    ccFieldBKHostID,
+				Operator: ruleOperatorIn,
+				Value:    cond.StaticExactExclude.HostID,
+			})
+		}
+
+		if len(cond.StaticExactExclude.NetworkAreaID) > 0 {
+			filter.Rules = append(filter.Rules, &FieldCondition{
+				Field:    ccFieldBKCloudID,
+				Operator: ruleOperatorIn,
+				Value:    cond.StaticExactExclude.NetworkAreaID,
+			})
+		}
+
+		if len(cond.StaticExactExclude.InnerIP) > 0 {
+			filter.Rules = append(filter.Rules, &FieldCondition{
+				Field:    ccFieldBKInnerIP,
+				Operator: ruleOperatorIn,
+				Value:    cond.StaticExactExclude.InnerIP,
+			})
+		}
+
+		if len(cond.StaticExactExclude.Addressing) > 0 {
+			filter.Rules = append(filter.Rules, &FieldCondition{
+				Field:    ccFieldBKAddressing,
+				Operator: ruleOperatorIn,
+				Value:    cond.StaticExactExclude.Addressing,
+			})
+		}
+	}
+
+	return filter
+}
+
 // CheckBizHostByIP check biz host by ip.
-func (h *Handler) CheckBizHostByIP(ctx contextx.IContext, bizID int64, cloudID int64, ip string) (bool, error) {
+func (h *Handler) CheckBizHostByIP(nCtx contextx.IContext, bizID int64, cloudID int64, ip string) (bool, error) {
 	req := &ListBizHostsReq{
 		BKBizID: bizID,
 		Page: Page{
@@ -872,7 +1071,7 @@ func (h *Handler) CheckBizHostByIP(ctx contextx.IContext, bizID int64, cloudID i
 		Value:    cloudID,
 	})
 
-	resp, err := h.cli.listBizHosts(ctx, req)
+	resp, err := h.cli.listBizHosts(nCtx, req)
 	if err != nil {
 		return false, err
 	}
@@ -884,63 +1083,307 @@ func (h *Handler) CheckBizHostByIP(ctx contextx.IContext, bizID int64, cloudID i
 	return true, nil
 }
 
-// WatchHostResourceEvent watch host resource event.
-func (h *Handler) WatchHostResourceEvent(ctx contextx.IContext, cursor string) ([]*types.HostEvent, error) {
-	req := &ResourceWatchReq{
-		BKCursor:   cursor,
-		BKResource: string(types.ResourceTypeHost),
-		BKFields:   ccHostFields(),
+// ListResourcePoolHosts list resource pool hosts.
+func (h *Handler) ListResourcePoolHosts(nCtx contextx.IContext, page types.Page) ([]*types.Host, error) {
+	req := &ListResourcePoolHostsReq{
+		Fields: ccHostFields(),
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
 	}
 
-	resp, err := h.cli.resourceWatch(ctx, req)
+	resp, err := h.cli.listResourcePoolHosts(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	hostEvents := make([]*types.HostEvent, 0, len(resp.BKEvents))
-	for _, hostEvent := range resp.BKEvents {
-		hostData := new(HostEventInfo)
-		if err := conv.MapToStruct(*hostEvent, hostData); err != nil {
-			return nil, err
-		}
-
-		hostEvents = append(hostEvents, &types.HostEvent{
-			Cursor:    hostData.BKCursor,
-			Resource:  types.ResourceTypeHost,
-			EventType: types.EventType(hostData.BKEventType),
-			Detail:    h.convHostInfoToTypes(ctx.TenantID(), hostData.BKDetail, CCNoBusinessID),
-		})
+	hosts := make([]*types.Host, len(resp.Info))
+	for idx, host := range resp.Info {
+		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), host, CCResourcePoolBusinessID)
 	}
 
-	return hostEvents, nil
+	return hosts, nil
 }
 
-// WatchHostRelationResourceEvent get host relation resource by watch.
-func (h *Handler) WatchHostRelationResourceEvent(ctx contextx.IContext, cursor string) ([]*types.HostEvent, error) {
-	req := &ResourceWatchReq{
-		BKCursor:   cursor,
-		BKResource: string(types.ResourceTypeHostRelation),
+// FindHostByServiceTemplate find host by service template.
+func (h *Handler) FindHostByServiceTemplate(nCtx contextx.IContext, bizID int64, page types.Page, serviceTemplateIDs []int64, modleIDs []int64) ([]*types.Host, error) {
+
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+		req := &FindHostByServiceTemplateReq{
+			BKBizID:              bizID,
+			BKServiceTemplateIDs: serviceTemplateIDs,
+			BKModuleIDs:          modleIDs,
+			Fields:               ccHostFields(),
+			Page: Page{
+				Start: p.Offset,
+				Sort:  p.Sort,
+				Limit: p.Limit,
+			},
+		}
+
+		resp, err := h.cli.findHostByServiceTemplate(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		host := make([]*types.Host, len(resp.Info))
+		for idx, info := range resp.Info {
+			host[idx] = h.convHostInfoToTypes(nCtx.TenantID(), info, bizID)
+		}
+
+		return host, nil
 	}
 
-	resp, err := h.cli.resourceWatch(ctx, req)
+	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
+	result, err := pExecutor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, err
 	}
 
-	hostEvents := make([]*types.HostEvent, 0)
-	for _, relationEvent := range resp.BKEvents {
-		relationData := new(HostRelationEventInfo)
-		if err := conv.MapToStruct(*relationEvent, relationData); err != nil {
+	return result.Items, nil
+}
+
+// FindHostBySetTemplate find host by set template.
+func (h *Handler) FindHostBySetTemplate(nCtx contextx.IContext, bizID int64, page types.Page, setTemplateIDs []int64, setIDs []int64) (
+	[]*types.Host, error) {
+
+	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+		req := &FindHostBySetTemplateReq{
+			BKBizID:          bizID,
+			BKSetTemplateIDs: setTemplateIDs,
+			BKSetIDs:         setIDs,
+			Fields:           ccHostFields(),
+			Page: Page{
+				Start: p.Offset,
+				Sort:  p.Sort,
+				Limit: p.Limit,
+			},
+		}
+
+		resp, err := h.cli.findHostBySetTemplate(nCtx, req)
+		if err != nil {
 			return nil, err
 		}
 
-		hostEvents = append(hostEvents, &types.HostEvent{
-			Cursor:    relationData.BKCursor,
-			Resource:  types.ResourceTypeHostRelation,
-			EventType: types.EventType(relationData.BKEventType),
-			Detail:    convHostTopoRelationToTypes(relationData.BKDetail),
-		})
+		host := make([]*types.Host, len(resp.Info))
+		for idx, info := range resp.Info {
+			host[idx] = h.convHostInfoToTypes(nCtx.TenantID(), info, bizID)
+		}
+
+		return host, nil
 	}
 
-	return hostEvents, nil
+	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
+	result, err := pExecutor.Execute(nCtx, page, fn)
+	if err != nil {
+		return nil, err
+	}
+
+	return result.Items, nil
+}
+
+// FindHostByDynamicGroup find host by dynamic group.
+func (h *Handler) FindHostByDynamicGroup(nCtx contextx.IContext, bizID int64, dynamicGroupIDs []string, page types.Page) ([]*types.Host, error) {
+	if nCtx == nil {
+		return nil, fmt.Errorf("failed to get host by dynamic group, nCtx is nil")
+	}
+
+	if bizID == 0 {
+		return nil, fmt.Errorf("failed to get host by dynamic group, bizID is 0")
+	}
+
+	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
+	hosts := make([]*types.Host, 0)
+	for idx := range dynamicGroupIDs {
+		dynamicGroupID := dynamicGroupIDs[idx]
+		fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+			return h.executeHostDynamicGroup(nCtx, bizID, dynamicGroupID, p)
+		}
+
+		result, err := pExecutor.Execute(nCtx, page, fn)
+		if err != nil {
+			return nil, err
+		}
+
+		hosts = append(hosts, result.Items...)
+	}
+
+	return hosts, nil
+}
+
+// executeHostDynamicGroup execute dynamic grouping rules to return hosts within the group.
+func (h *Handler) executeHostDynamicGroup(nCtx contextx.IContext, bizID int64, groupID string, page types.Page) (
+	[]*types.Host, error) {
+
+	req := &ExecuteDynamicGroupReq{
+		BKBizID:        bizID,
+		ID:             groupID,
+		Fields:         ccHostFields(),
+		DisableCounter: false,
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
+	}
+
+	resp, err := h.cli.executeDynamicGroup(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*types.Host, len(resp.Info))
+	for index := range resp.Info {
+		hostData := HostInfo{}
+		if err := conv.MapToStruct(resp.Info[index], &hostData); err != nil {
+			return nil, fmt.Errorf("failed to convert host info: %w", err)
+		}
+
+		result[index] = h.convHostInfoToTypes(nCtx.TenantID(), &hostData, bizID)
+	}
+
+	return result, nil
+}
+
+const (
+	// topoNodeObjIDBiz topo node object id for biz.
+	topoNodeObjIDBiz = "biz"
+	// topoNodeObjIDHost topo node object id for host.
+	topoNodeObjIDHost = "host"
+)
+
+// FindHostByTopo find host by topo.
+func (h *Handler) FindHostByTopo(nCtx contextx.IContext, bizID int64, topoNodes ...*types.ScopeTopoNode) ([]*types.Host, error) {
+	// this has a special logic, so we need to split it for three parts:
+	// 1. find obj id is biz
+	// 2. find obj id is host
+	// 3. find obj id is other
+	bizTopoNodes := make([]*types.ScopeTopoNode, 0)
+	hostTopoNodes := make([]*types.ScopeTopoNode, 0)
+	otherTopoNodes := make([]*types.ScopeTopoNode, 0)
+	for idx := range topoNodes {
+		switch topoNodes[idx].TopoObjID {
+		case topoNodeObjIDBiz:
+			bizTopoNodes = append(bizTopoNodes, topoNodes[idx])
+		case topoNodeObjIDHost:
+			hostTopoNodes = append(hostTopoNodes, topoNodes[idx])
+		default:
+			otherTopoNodes = append(otherTopoNodes, topoNodes[idx])
+		}
+	}
+
+	finalhost := make([]*types.Host, 0)
+	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
+
+	if len(bizTopoNodes) > 0 {
+		for idx := range bizTopoNodes {
+			instID := topoNodes[idx].TopoInstID
+			if bizID != instID {
+				return nil, fmt.Errorf("faied to find host by topo node biz: biz-id(%d), inst-id(%d): invalid topo node",
+					instID, topoNodes[idx].TopoInstID)
+			}
+
+			fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+				return h.findHostByTopoNodeBiz(nCtx, instID, p)
+			}
+
+			result, err := pExecutor.Execute(nCtx, types.UnlimitedPage(), fn)
+			if err != nil {
+				return nil, fmt.Errorf("failed to find host by topo node biz: %w", err)
+			}
+
+			finalhost = append(finalhost, result.Items...)
+		}
+	}
+
+	if len(hostTopoNodes) > 0 {
+		hostIDs := conv.SliceToSlice[*types.ScopeTopoNode, int64](hostTopoNodes, func(node *types.ScopeTopoNode) int64 {
+			return node.TopoInstID
+		})
+		cond := &types.HostStaticExactCondition{
+			StaticExactInclude: &types.HostStaticExactFields{
+				HostID: hostIDs,
+			},
+		}
+
+		hosts, err := h.FindHostWithCondition(nCtx, types.UnlimitedPage(), cond)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find host by topo node host: %w", err)
+		}
+
+		finalhost = append(finalhost, hosts...)
+	}
+
+	if len(otherTopoNodes) > 0 {
+		for idx := range otherTopoNodes {
+			objID := otherTopoNodes[idx].TopoObjID
+			instID := otherTopoNodes[idx].TopoInstID
+			fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+				return h.findHostByTopoNodeBelowBiz(nCtx, p, bizID, objID, instID)
+			}
+
+			result, err := pExecutor.Execute(nCtx, types.UnlimitedPage(), fn)
+			if err != nil {
+				return nil, fmt.Errorf("failed to find host by topo node other: %w", err)
+			}
+
+			finalhost = append(finalhost, result.Items...)
+		}
+	}
+
+	return finalhost, nil
+}
+
+// findHostByTopoNodeBelowBiz find host by biz topo node.
+// notice: this topo node is below biz and above host.
+func (h *Handler) findHostByTopoNodeBelowBiz(nCtx contextx.IContext, p types.Page, bizID int64, objID string, instID int64) ([]*types.Host, error) {
+	req := &FindHostByTopoReq{
+		BKBizID:  bizID,
+		BKObjID:  objID,
+		BKInstID: instID,
+		Fields:   ccHostFields(),
+		Page: Page{
+			Start: p.Offset,
+			Limit: p.Limit,
+			Sort:  p.Sort,
+		},
+	}
+
+	resp, err := h.cli.findHostByTopo(nCtx, req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find host by topo node other: %w", err)
+	}
+
+	hosts := make([]*types.Host, len(resp.Info))
+	for idx := range resp.Info {
+		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), resp.Info[idx], bizID)
+	}
+
+	return hosts, nil
+}
+
+func (h *Handler) findHostByTopoNodeBiz(nCtx contextx.IContext, bizID int64, p types.Page) ([]*types.Host, error) {
+	req := &ListBizHostsReq{
+		BKBizID: bizID,
+		Fields:  ccHostFields(),
+		Page: Page{
+			Start: p.Offset,
+			Limit: p.Limit,
+			Sort:  p.Sort,
+		},
+	}
+
+	resp, err := h.cli.listBizHosts(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hosts := make([]*types.Host, len(resp.Info))
+	for idx := range resp.Info {
+		hosts[idx] = h.convHostInfoToTypes(nCtx.TenantID(), resp.Info[idx], bizID)
+	}
+
+	return hosts, nil
 }
