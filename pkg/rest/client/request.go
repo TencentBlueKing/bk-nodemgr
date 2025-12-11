@@ -347,7 +347,7 @@ func (r *Result) Into(obj interface{}) error {
 	}
 
 	err = json.Unmarshal(bodyData, obj)
-	if nil != err {
+	if err != nil {
 		return fmt.Errorf("invalid response body, body(%s): %v", bodyData, err)
 	}
 
