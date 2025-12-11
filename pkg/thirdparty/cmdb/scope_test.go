@@ -146,6 +146,7 @@ func TestHandler_GetTargetByScopeInstance(t *testing.T) {
 	}
 }
 
+// TestHandler_GetTargetByScopeDynamicGroup ...
 func TestHandler_GetTargetByScopeDynamicGroup(t *testing.T) {
 	nCtx := contextx.New(contextx.Background(), contextx.WithBKUsername("admin"))
 	type args struct {
@@ -166,7 +167,7 @@ func TestHandler_GetTargetByScopeDynamicGroup(t *testing.T) {
 					BizID:       12,
 					TenantID:    "default",
 					DynamicGroupIDs: []string{
-						"8e2a1084-d593-11f0-b7cd-0692be2071e4",
+						"xxxx",
 					},
 					Filter: types.TargetFilter{},
 				},
@@ -180,6 +181,74 @@ func TestHandler_GetTargetByScopeDynamicGroup(t *testing.T) {
 			got, err := h.GetTargetByScopeDynamicGroup(tt.args.nCtx, tt.args.scope)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetTargetByScopeDynamicGroup() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			for idx, target := range got {
+				t.Logf("%d: %+v", idx, target)
+			}
+		})
+	}
+}
+
+// TestHandler_GetTargetByScopeTopo ...
+func TestHandler_GetTargetByScopeTopo(t *testing.T) {
+	nCtx := contextx.New(contextx.Background(), contextx.WithBKUsername("admin"))
+
+	type args struct {
+		nCtx  contextx.IContext
+		scope *types.ScopeTopo
+	}
+	var tests = []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "normal_test_host",
+			args: args{
+				nCtx: nCtx,
+				scope: &types.ScopeTopo{
+					Granularity: types.TargetGranularityHost,
+					BizID:       2,
+					TenantID:    "default",
+					Paths: []*types.ScopeTopoNode{
+						{
+							TopoObjID:  "set",
+							TopoInstID: 2,
+						},
+					},
+					Filter: types.TargetFilter{},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "",
+			args: args{
+				nCtx: nCtx,
+				scope: &types.ScopeTopo{
+					Granularity: types.TargetGranularityHost,
+					BizID:       12,
+					TenantID:    "default",
+					Paths: []*types.ScopeTopoNode{
+						{
+							TopoObjID:  "set",
+							TopoInstID: 96,
+						},
+					},
+					Filter: types.TargetFilter{},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.GetTargetByScopeTopo(tt.args.nCtx, tt.args.scope)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetTargetByScopeTopo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 

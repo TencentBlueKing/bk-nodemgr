@@ -221,12 +221,12 @@ func (scope *Scope) ToScopeTopo() (*ScopeTopo, error) {
 		Granularity: scope.Granularity,
 		BizID:       scope.BizID,
 		TenantID:    scope.TenantID,
-		Paths:       make([]ScopeTopoNode, len(items)),
+		Paths:       make([]*ScopeTopoNode, len(items)),
 		Filter:      scope.Filter,
 	}
 
 	for idx := range items {
-		scopeTopo.Paths[idx] = ScopeTopoNode{
+		scopeTopo.Paths[idx] = &ScopeTopoNode{
 			TopoObjID:  items[idx].TopoObjID,
 			TopoInstID: items[idx].TopoInstID,
 		}
