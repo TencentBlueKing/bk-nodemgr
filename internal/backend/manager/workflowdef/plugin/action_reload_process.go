@@ -25,68 +25,69 @@ import (
 )
 
 const (
-	// ActionNameRestartPluginProcess the name of action restart plugin process.
-	ActionNameRestartPluginProcess = "restart_plugin_process"
+	// ActionNameReloadProcess the name of action reload process.
+	ActionNameReloadProcess = "reload_process"
 )
 
-// NewActionRestartPluginProcess new an action to restart plugin process.
-func NewActionRestartPluginProcess(capability *Capability) action.Definition {
-	return &actionRestartPluginProcess{
+// NewActionReloadProcess new an action to reload process.
+func NewActionReloadProcess(capability *Capability) action.Definition {
+	return &actionReloadProcess{
 		daoPluginDeployment: capability.StoragePlugin,
 		gseHandlerProc:      capability.GSEHandler,
 	}
 }
 
-// ActParamRestartPluginProcess defines the parameters for actionRestartPluginProcess.
-type ActParamRestartPluginProcess struct {
+// ActParamReloadProcess defines the parameters for actionReloadProcess.
+type ActParamReloadProcess struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
-type actionRestartPluginProcess struct {
+// actionReloadProcess ...
+type actionReloadProcess struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	gseHandlerProc      gse.IHandlerProc
 }
 
 // Name returns the name of the action.
-func (act *actionRestartPluginProcess) Name() string {
-	return ActionNameRestartPluginProcess
+func (act *actionReloadProcess) Name() string {
+	return ActionNameReloadProcess
 }
 
 // Version returns the version of the action.
-func (act *actionRestartPluginProcess) Version() string {
+func (act *actionReloadProcess) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *actionRestartPluginProcess) Description() string {
-	return "restart plugin process"
+func (act *actionReloadProcess) Description() string {
+	return "reload process by gse."
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionRestartPluginProcess) Timeout() time.Duration {
+func (act *actionReloadProcess) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionRestartPluginProcess) Tags() []action.Tag {
+func (act *actionReloadProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionRestartPluginProcess) MaxRetryCount() uint {
+func (act *actionReloadProcess) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionRestartPluginProcess) DelayFn() func() {
+func (act *actionReloadProcess) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *actionRestartPluginProcess) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamRestartPluginProcess)
+func (act *actionReloadProcess) Do(ctx *action.InstanceContext) error {
+	param := new(ActParamReloadProcess)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -103,32 +104,30 @@ func (act *actionRestartPluginProcess) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	processSpec := types.ProcessSpec{
-		PluginName:    std.DeployInfo().Process.PluginName,
-		AgentID:       std.DeployInfo().Process.Info.AgentID,
-		Identity:      std.DeployInfo().Process.Identity,
-		Controller:    std.DeployInfo().Process.Controller,
-		Resource:      std.DeployInfo().Process.Resource,
-		MonitorPolicy: std.DeployInfo().Process.MonitorPolicy,
-	}
+	std.InstanceData().LogI(fmt.Sprintf("try to executed reload plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
+		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.RestartCmd))
 
-	std.InstanceData().LogI(fmt.Sprintf("try to executed the operation of restart process by cmd(%s)", std.DeployInfo().Process.Controller.RestartCmd))
-
-	cmdOut, err := act.gseHandlerProc.RestartProcess(std.Context(), processSpec)
+	nCtx := std.Context()
+	processSpec := std.DeployInfo().Process.ToProcessSpec()
+	result, err := act.gseHandlerProc.ReloadProcess(nCtx, processSpec)
 	if err != nil {
-		std.InstanceData().LogE(fmt.Sprintf("failed to restart process, cmdOut(%s), error(%s)", cmdOut, err.Error()))
-		return err
+		return fmt.Errorf("failed to reload plugin process: %w", err)
 	}
-	std.InstanceData().LogI(fmt.Sprintf("succeed to executed the operation of restart process, cmd-output(%s)", cmdOut))
+
+	std.InstanceData().LogI(fmt.Sprintf("successfully execute reload plugin process operation, result(%s)", result))
 
 	std.InstanceData().LogI("wait process running")
-	expoBackoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
+	polling := retrier.NewPolling(retrier.PollingOpts{
+		Timeout:  act.Timeout(),
+		Interval: time.Second,
+	})
 
 	var processInfo *types.ProcessInfo
-	err = expoBackoff.Do(std.Context(), func(_ int) error {
+	err = polling.Do(std.Context(), func(_ int) error {
 		processInfo, err = act.gseHandlerProc.QueryProcessInfo(std.Context(), processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
 		if err != nil {
-			return fmt.Errorf("failed to query process info: %w", err)
+			return fmt.Errorf("failed to query process info, plugin-name(%s), process-identity-name(%s), agent-id(%s): %w",
+				processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID, err)
 		}
 
 		if processInfo.Status != types.ProcessStatusRunning {
@@ -146,7 +145,8 @@ func (act *actionRestartPluginProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process running: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process running, info(%+v)", processInfo))
+	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), trusteeship(%t), status(%s)",
+		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.Trusteeship, processInfo.Status))
 
 	return nil
 }

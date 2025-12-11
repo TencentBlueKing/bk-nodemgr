@@ -103,25 +103,30 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 
 	process, err := act.daoProcess.GetProcess(std.Context(), std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName)
 	if err != nil {
-		return err
+		std.InstanceData().LogE(fmt.Sprintf("failed to get process, process-name(%s), host-id(%d): %v",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, err))
+
+		return fmt.Errorf("failed to get plugin process, process-name(%s), host-id(%d): %w",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, err)
 	}
 
 	if process.Info.Status != types.ProcessStatusRunning {
-		std.InstanceData().LogE(fmt.Sprintf("plugin(%s) of host-id(%d) is not running",
+		std.InstanceData().LogE(fmt.Sprintf("plugin process is not running, plugin-name(%s), host-id(%d)",
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID))
 
-		return fmt.Errorf("plugin(%s) of host-id(%d) is not running", std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID)
+		return fmt.Errorf("plugin process is not running, plugin-name(%s), host-id(%d)",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID)
 	}
 
 	if process.Info.Version != std.DeployInfo().InstallOptions.Version {
-		std.InstanceData().LogE(fmt.Sprintf("plugin(%s) of host-id(%d) version mismatch, expect(%s), actual(%s)",
+		std.InstanceData().LogE(fmt.Sprintf("plugin process version mismatch, plugin-name(%s), host-id(%d), expect-version(%s), actual-version(%s)",
 			std.DeployInfo().Process.PluginName,
 			std.DeployInfo().Process.HostID,
 			std.DeployInfo().InstallOptions.Version,
 			process.Info.Version,
 		))
 
-		return fmt.Errorf("plugin(%s) of host-id(%d) version mismatch, expect(%s), actual(%s)",
+		return fmt.Errorf("plugin process version mismatch, plugin-name(%s), host-id(%d), expect-version(%s), actual-version(%s)",
 			std.DeployInfo().Process.PluginName,
 			std.DeployInfo().Process.HostID,
 			std.DeployInfo().InstallOptions.Version,
@@ -129,7 +134,7 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 		)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("plugin(%s) of host-id(%d) is running normally",
+	std.InstanceData().LogI(fmt.Sprintf("plugin process is running normally, plugin-name(%s), host-id(%d)",
 		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID))
 
 	std.DeployInfo().Process = *process

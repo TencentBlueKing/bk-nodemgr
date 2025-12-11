@@ -189,7 +189,7 @@ func (act *actionInstallPlugin) buildInstallParams(
 
 	deployConstant, err := deployconstant.GetPluginDeployConf(targetHost.Dynamic.NodeGeneration, targetHost.Dynamic.NodeOsType)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return nil, fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	randSelector := discover.NewRandomSelector()

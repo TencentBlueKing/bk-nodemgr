@@ -101,8 +101,6 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	param := new(ActionParamTransferPluginPkgToNode)
 	err = conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
-		err = fmt.Errorf("failed to convert param, err: %w", err)
-
 		return err
 	}
 
@@ -122,12 +120,12 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	nCtx := std.Context()
 	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
+		return fmt.Errorf("failed to get host by id, host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
 	deployConstant, err := deployconstant.GetPluginDeployConf(std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform.OS)
 	if err != nil {
-		return fmt.Errorf("failed to get deploy constant, err: %w", err)
+		return fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
 	// installer workdir priority: user specified in info > deploy constant default.
@@ -142,7 +140,7 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 			defer std.InstanceData().LogI("transfer release done.")
 
 			if err := act.transferRelease(nCtx, std.DeployInfo(), targetHost); err != nil {
-				return fmt.Errorf("failed to transfer release. host-id(%d), err: %w", targetHost.HostID, err)
+				return fmt.Errorf("failed to transfer release, host-id(%d): %w", targetHost.HostID, err)
 			}
 
 			return nil
@@ -182,30 +180,28 @@ func (act *actionTransferPluginPkgToNode) transferRelease(nCtx contextx.IContext
 		dataDir,
 		targetHost)
 	if err != nil {
-		return fmt.Errorf("failed to launch transfer release. host-id(%d), err: %w", targetHost.HostID, err)
+		return fmt.Errorf("failed to launch transfer release, host-id(%d): %w", targetHost.HostID, err)
 	}
 
-	logger.G.Biz(nCtx).Info("launched transfer release. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), targetHost.HostID)
+	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("launched transfer release.")
 
 	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
-		return fmt.Errorf("failed to wait until transfer release done. task-id(%s), host-id(%d), err: %w",
+		return fmt.Errorf("failed to wait until transfer release done, task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), targetHost.HostID, err)
 	}
 
 	if !result.Terminated {
-		return fmt.Errorf("transfer release not terminated. task-id(%s), host-id(%d)",
+		return fmt.Errorf("transfer release not terminated, task-id(%s), host-id(%d)",
 			transferHandler.GetTaskID(), targetHost.HostID)
 	}
 
 	if result.ErrorCode != 0 {
-		return fmt.Errorf("transfer release failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
+		return fmt.Errorf("transfer release failed, task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
 			transferHandler.GetTaskID(), targetHost.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	logger.G.Biz(nCtx).Info("transfer release done. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), targetHost.HostID)
+	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("transfer release done.")
 
 	return nil
 }
@@ -220,30 +216,28 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IConte
 		info.InstallerWorkDir,
 		targetHost)
 	if err != nil {
-		return fmt.Errorf("failed to launch transfer installer. host-id(%d), err: %w", targetHost.HostID, err)
+		return fmt.Errorf("failed to launch transfer installer, host-id(%d): %w", targetHost.HostID, err)
 	}
 
-	logger.G.Biz(nCtx).Info("launched transfer installer. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), targetHost.HostID)
+	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("launched transfer installer.")
 
 	result, err := transferHandler.WaitUntilDone(nCtx)
 	if err != nil {
-		return fmt.Errorf("failed to wait until transfer installer done. task-id(%s), host-id(%d), err: %w",
+		return fmt.Errorf("failed to wait until transfer installer done, task-id(%s), host-id(%d): %w",
 			transferHandler.GetTaskID(), targetHost.HostID, err)
 	}
 
 	if !result.Terminated {
-		return fmt.Errorf("transfer installer not terminated. task-id(%s), host-id(%d)",
+		return fmt.Errorf("transfer installer not terminated, task-id(%s), host-id(%d)",
 			transferHandler.GetTaskID(), targetHost.HostID)
 	}
 
 	if result.ErrorCode != 0 {
-		return fmt.Errorf("transfer installer failed. task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
+		return fmt.Errorf("transfer installer failed, task-id(%s), host-id(%d), err-code(%d), err-msg(%s)",
 			transferHandler.GetTaskID(), targetHost.HostID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	logger.G.Biz(nCtx).Info("transfer installer done. task-id(%s), host-id(%d)",
-		transferHandler.GetTaskID(), targetHost.HostID)
+	logger.G.Biz(nCtx).With("task-id", transferHandler.GetTaskID(), "host-id", targetHost.HostID).Info("transfer installer done.")
 
 	return nil
 }

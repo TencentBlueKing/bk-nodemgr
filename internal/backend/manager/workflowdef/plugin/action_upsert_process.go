@@ -130,7 +130,8 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	if !exist {
-		std.InstanceData().LogI(fmt.Sprintf("the specified process id does not exist, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
+		std.InstanceData().LogI(fmt.Sprintf("the specified process does not exist, host-id(%d), plugin-name(%s)",
+			process.HostID, process.PluginName))
 
 		err = act.daoProcess.CreateProcess(nCtx, &process)
 		if err != nil {
@@ -138,14 +139,16 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 		}
 
 		std.InstanceData().LogI(fmt.Sprintf("successfully create process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
-	}
+	} else {
+		std.InstanceData().LogI(fmt.Sprintf("the specified process exist, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
 
-	err = act.daoProcess.UpdateProcessInfo(nCtx, process.HostID, process.PluginName, &process.Info)
-	if err != nil {
-		return fmt.Errorf("failed to update process info: %w", err)
-	}
+		err = act.daoProcess.UpdateProcessInfo(nCtx, process.HostID, process.PluginName, &process.Info)
+		if err != nil {
+			return fmt.Errorf("failed to update process info: %w", err)
+		}
 
-	std.InstanceData().LogI(fmt.Sprintf("successfully update process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
+		std.InstanceData().LogI(fmt.Sprintf("successfully update process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
+	}
 
 	std.DeployInfo().Process = process
 

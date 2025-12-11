@@ -138,16 +138,16 @@ func (act *actionRenderPluginConfig) renderConfig(
 		return fmt.Errorf("failed to create template renderer: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("using template renderer(%s) to render sub config", pluginConf.TemplateRenderer))
+	std.InstanceData().LogI(fmt.Sprintf("start render plugin config, template-renderer-type(%s)", pluginConf.TemplateRenderer))
 
 	for idx := range pluginConf.ConfigFilesDetail {
 		pluginConf.ConfigFilesDetail[idx].Content, err = renderer.Render(pluginConf.ConfigFilesDetail[idx].Content, renderContext)
 		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to render sub config template")
+			logger.G.Sys().WithErr(err).Error("failed to render config template")
 			return fmt.Errorf("failed to render sub config template: %w", err)
 		}
 
-		std.InstanceData().LogI(fmt.Sprintf("rendered plugin(%s-%s-%s) sub config(%s) success",
+		std.InstanceData().LogI(fmt.Sprintf("rendered plugin config success, plugin-name(%s), platform(%s), version(%s), config-file-name(%s)",
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Platform.String(),
 			std.DeployInfo().Process.Info.Version, pluginConf.ConfigFilesDetail[idx].Name))
 	}

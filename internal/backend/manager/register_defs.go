@@ -168,14 +168,18 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionRenderPluginDeployment(pluginCap),
 		plugin.NewActionRenderPluginConfig(pluginCap),
 		plugin.NewActionWaitInstallerComplete(pluginCap),
-		plugin.NewActionTrusteeshipPlugin(pluginCap),
 		plugin.NewActionInstallPlugin(pluginCap),
 		plugin.NewActionUpsertProcess(pluginCap),
 		plugin.NewActionPushPluginConfig(pluginCap),
-		plugin.NewActionRestartPluginProcess(pluginCap),
 		plugin.NewActionCheckPluginProcessAlive(pluginCap),
 		plugin.NewActionEnsureAndUpdatePluginConfigDetails(pluginCap),
 		plugin.NewActionUpdateProcess(pluginCap),
+		plugin.NewActionStartProcess(pluginCap),
+		plugin.NewActionStopProcess(pluginCap),
+		plugin.NewActionRestartProcess(pluginCap),
+		plugin.NewActionReloadProcess(pluginCap),
+		plugin.NewActionTrusteeshipProcess(pluginCap),
+		plugin.NewActionUnTrusteeshipProcess(pluginCap),
 	); err != nil {
 		return err
 	}

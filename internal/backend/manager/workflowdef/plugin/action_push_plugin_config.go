@@ -111,7 +111,7 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 	}
 
 	if host.Dynamic.LoginUser == "" {
-		return fmt.Errorf("host login user is empty, host id: %d", host.HostID)
+		return fmt.Errorf("host login user is empty, host-id(%d)", host.HostID)
 	}
 
 	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token())
@@ -151,11 +151,11 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 	}
 
 	if !result.Terminated {
-		return fmt.Errorf("push config not terminated. task-id(%s)", taskID)
+		return fmt.Errorf("push config not terminated, task-id(%s)", taskID)
 	}
 
 	if result.ErrorCode != 0 {
-		return fmt.Errorf("push config failed. task-id(%s), err-code(%d), err-msg(%s)", taskID, result.ErrorCode, result.ErrorMessage)
+		return fmt.Errorf("push config failed, task-id(%s), err-code(%d), err-msg(%s)", taskID, result.ErrorCode, result.ErrorMessage)
 	}
 
 	std.InstanceData().LogI(fmt.Sprintf("push plugin config all done, task-id(%s).", taskID))

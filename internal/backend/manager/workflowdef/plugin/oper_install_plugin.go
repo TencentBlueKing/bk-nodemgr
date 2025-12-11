@@ -52,7 +52,7 @@ func (oper *operInstallPlugin) ActionDefNames() []string {
 		ActionNameTransferPluginPkgToNode,
 		ActionNameInstallPlugin,
 		ActionNameWaitInstallerComplete,
-		ActionNameTrusteeshipPlugin,
+		ActionNameTrusteeshipProcess,
 		ActionNameUpdateProcess,
 	}
 }
@@ -67,7 +67,7 @@ func (oper *operInstallPlugin) DefaultParameters() operation.Param {
 			ActionNameTransferPluginPkgToNode: true,
 			ActionNameInstallPlugin:           true,
 			ActionNameWaitInstallerComplete:   false,
-			ActionNameTrusteeshipPlugin:       true,
+			ActionNameTrusteeshipProcess:      true,
 		},
 	}
 }

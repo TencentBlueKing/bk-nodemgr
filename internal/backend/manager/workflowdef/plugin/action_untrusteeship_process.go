@@ -23,71 +23,69 @@ import (
 )
 
 const (
-	// ActionNameUpdateProcess defines the action name.
-	ActionNameUpdateProcess = "update_process"
+	// ActionNameUnTrusteeshipProcess the name of action untrusteeship process.
+	ActionNameUnTrusteeshipProcess = "untrusteeship_process"
 )
 
-// NewActionUpdateProcess ...
-func NewActionUpdateProcess(capability *Capability) action.Definition {
-	return &actUpdateProcess{
+// NewActionUnTrusteeshipProcess new an action to untrusteeship process.
+func NewActionUnTrusteeshipProcess(capability *Capability) action.Definition {
+	return &actUnTrusteeshipProcess{
 		daoPluginDeployment: capability.StoragePlugin,
-		daoProcess:          capability.StoragePlugin,
 		gseHandlerProc:      capability.GSEHandler,
 	}
 }
 
-// ActionParamUpdateProcess ...
-type ActionParamUpdateProcess struct {
+// ActionParamUnTrusteeshipProcess defines the parameters for actionUnTrusteeshipProcess.
+type ActionParamUnTrusteeshipProcess struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
-// actUpdateProcess ...
-type actUpdateProcess struct {
+// actUnTrusteeshipProcess ...
+type actUnTrusteeshipProcess struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
-	daoProcess          pluginStg.IDaoProcess
 	gseHandlerProc      gse.IHandlerProc
 }
 
 // Name returns the name of the action.
-func (act *actUpdateProcess) Name() string {
-	return ActionNameUpdateProcess
+func (act *actUnTrusteeshipProcess) Name() string {
+	return ActionNameUnTrusteeshipProcess
 }
 
 // Version returns the version of the action.
-func (act *actUpdateProcess) Version() string {
+func (act *actUnTrusteeshipProcess) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *actUpdateProcess) Description() string {
-	return "trusteeship plugin to gse."
+func (act *actUnTrusteeshipProcess) Description() string {
+	return "untrusteeship process by gse."
 }
 
 // Timeout returns the timeout of the action.
-func (act *actUpdateProcess) Timeout() time.Duration {
+func (act *actUnTrusteeshipProcess) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actUpdateProcess) Tags() []action.Tag {
+func (act *actUnTrusteeshipProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actUpdateProcess) MaxRetryCount() uint {
+func (act *actUnTrusteeshipProcess) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actUpdateProcess) DelayFn() func() {
+func (act *actUnTrusteeshipProcess) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *actUpdateProcess) Do(ctx *action.InstanceContext) error {
-	param := new(ActionParamUpdateProcess)
+func (act *actUnTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
+	param := new(ActionParamUnTrusteeshipProcess)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -105,15 +103,28 @@ func (act *actUpdateProcess) Do(ctx *action.InstanceContext) error {
 	}()
 
 	nCtx := std.Context()
-	err = act.daoProcess.UpdateProcess(nCtx, std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName, &std.DeployInfo().Process)
+	processSpec := std.DeployInfo().Process.ToProcessSpec()
+
+	result, err := act.gseHandlerProc.UnTrusteeshipProcess(nCtx, processSpec)
 	if err != nil {
-		return fmt.Errorf("failed to update process, plugin-name(%s), host-id(%d): %w",
-			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, err)
+		return fmt.Errorf("failed to untrusteeship process: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("succeed to update process info, plugin-name(%s), host-id(%d)",
-		std.DeployInfo().Process.PluginName,
-		std.DeployInfo().Process.HostID))
+	std.InstanceData().LogI(fmt.Sprintf("successfully execute untrusteeship process operate, result(%s)", result))
+
+	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
+	if err != nil {
+		return fmt.Errorf("failed to query process info: %w", err)
+	}
+
+	if processInfo.Trusteeship {
+		std.InstanceData().LogI("process is still trusteeship by gse")
+
+		return fmt.Errorf("process is still trusteeship by gse")
+	}
+
+	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), trusteeship(%t), status(%s)",
+		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.Trusteeship, processInfo.Status))
 
 	return nil
 }

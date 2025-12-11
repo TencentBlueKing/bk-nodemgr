@@ -116,12 +116,12 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	nCtx := std.Context()
 	host, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
+		return fmt.Errorf("failed to get host by id, host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
 	plugin, err := act.daoPlugin.GetPlugin(nCtx, std.DeployInfo().Process.PluginName)
 	if err != nil {
-		return fmt.Errorf("failed to get plugin. host-id(%d), plugin-name(%s): %w",
+		return fmt.Errorf("failed to get plugin, host-id(%d), plugin-name(%s): %w",
 			std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName, err)
 	}
 
@@ -161,7 +161,7 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 		version,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to get plugin pkg by name. plugin-pkg-name(%s): %w", pluginPkgName, err)
+		return fmt.Errorf("failed to get plugin pkg by name, plugin-pkg-name(%s): %w", pluginPkgName, err)
 	}
 
 	std.DeployInfo().Process.Controller = pluginPkg.PluginController
@@ -169,7 +169,7 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	// setting process by plugin deploy conf.
 	pluginDeployConf, err := deployconstant.GetPluginDeployConf(nodeGeneration, nodePlatform.OS)
 	if err != nil {
-		return fmt.Errorf("failed to get plugin deploy conf. node-generation(%d), node-os(%s), node-arch(%s): %w",
+		return fmt.Errorf("failed to get plugin deploy conf, node-generation(%d), node-os(%s), node-arch(%s): %w",
 			nodeGeneration, nodePlatform.OS, nodePlatform.Arch, err)
 	}
 

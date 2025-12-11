@@ -125,7 +125,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 
 	hostInfo, err := act.daoHost.GetHostByID(std.Context(), std.DeployInfo().Process.HostID)
 	if err != nil {
-		return fmt.Errorf("failed to get host by id. host-id(%d): %w", std.DeployInfo().Process.HostID, err)
+		return fmt.Errorf("failed to get host by id, host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
 	pluginRelease, err := act.daoPluginRelease.GetEnabledReleasePlugin(std.Context(), std.DeployInfo().Process.PluginName,
@@ -336,7 +336,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 
 	networkArea, err := act.daoNetworkArea.GetNetworkArea(std.Context(), hostInfo.Static.NetworkAreaID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get network area by networkarea-id(%d): %w", hostInfo.Static.NetworkAreaID, err)
+		return nil, fmt.Errorf("failed to get network area, networkarea-id(%d): %w", hostInfo.Static.NetworkAreaID, err)
 	}
 
 	constants := act.pluginDeployConstant.GetCommonConstants(std.DeployInfo().Process.PluginName)
@@ -429,9 +429,9 @@ func getBlacklistKeys() map[string]struct{} {
 
 func (act *actionEnsureAndUpdatePluginConfigDetails) validateCustomContextBlacklist(customContext map[string]any) error {
 	blacklistPrefixKeys := getBlacklistKeys()
-	for custonKey := range customContext {
-		if _, exists := blacklistPrefixKeys[custonKey]; exists {
-			return fmt.Errorf("custom context key '%s' is reserved and cannot be used", custonKey)
+	for customKey := range customContext {
+		if _, exists := blacklistPrefixKeys[customKey]; exists {
+			return fmt.Errorf("the key is reserved, cannot be used, custom-context-key(%s)", customKey)
 		}
 	}
 

@@ -84,7 +84,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 			ctx.Data.OperationInstanceID,
 			ctx.Data.Name)
 		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to get action_inst_data lifecycle")
+			logger.G.Sys().WithErr(err).Error("failed to get action instance data lifecycle")
 
 			return err
 		}
@@ -99,7 +99,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 		case action.StateFailed:
 			logger.G.Sys().With("oper-inst-id", ctx.Data.OperationInstanceID, "action", ctx.Data.Name).Error("failed to wait install complete")
 
-			return fmt.Errorf("wait install complete failed. oper_inst_id(%s), action_name(%s)",
+			return fmt.Errorf("wait install complete failed, oper-inst-id(%s), action-name(%s)",
 				ctx.Data.OperationInstanceID, ctx.Data.Name)
 
 		default:

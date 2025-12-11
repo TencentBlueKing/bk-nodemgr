@@ -25,69 +25,69 @@ import (
 )
 
 const (
-	// ActionNameTrusteeshipPlugin defines the action name.
-	ActionNameTrusteeshipPlugin = "trusteeship_plugin"
+	// ActionNameRestartProcess the name of action restart process.
+	ActionNameRestartProcess = "restart_process"
 )
 
-// NewActionTrusteeshipPlugin ...
-func NewActionTrusteeshipPlugin(capability *Capability) action.Definition {
-	return &actTrusteeshipPlugin{
+// NewActionRestartProcess new an action to restart process.
+func NewActionRestartProcess(capability *Capability) action.Definition {
+	return &actionRestartProcess{
 		daoPluginDeployment: capability.StoragePlugin,
 		gseHandlerProc:      capability.GSEHandler,
 	}
 }
 
-// ActionParamTrusteeshipPlugin ...
-type ActionParamTrusteeshipPlugin struct {
+// ActParamRestartProcess defines the parameters for actionRestartProcess.
+type ActParamRestartProcess struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
-// actTrusteeshipPlugin ...
-type actTrusteeshipPlugin struct {
+// actRestartProcess ...
+type actionRestartProcess struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	gseHandlerProc      gse.IHandlerProc
 }
 
 // Name returns the name of the action.
-func (act *actTrusteeshipPlugin) Name() string {
-	return ActionNameTrusteeshipPlugin
+func (act *actionRestartProcess) Name() string {
+	return ActionNameRestartProcess
 }
 
 // Version returns the version of the action.
-func (act *actTrusteeshipPlugin) Version() string {
+func (act *actionRestartProcess) Version() string {
 	return "1.0.0"
 }
 
 // Description returns the description of the action.
-func (act *actTrusteeshipPlugin) Description() string {
-	return "trusteeship plugin to gse."
+func (act *actionRestartProcess) Description() string {
+	return "restart process by gse."
 }
 
 // Timeout returns the timeout of the action.
-func (act *actTrusteeshipPlugin) Timeout() time.Duration {
+func (act *actionRestartProcess) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actTrusteeshipPlugin) Tags() []action.Tag {
+func (act *actionRestartProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actTrusteeshipPlugin) MaxRetryCount() uint {
+func (act *actionRestartProcess) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actTrusteeshipPlugin) DelayFn() func() {
+func (act *actionRestartProcess) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
-	param := new(ActionParamTrusteeshipPlugin)
+func (act *actionRestartProcess) Do(ctx *action.InstanceContext) error {
+	param := new(ActParamRestartProcess)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -104,15 +104,17 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	std.InstanceData().LogI(fmt.Sprintf("try to executed restart plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
+		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.RestartCmd))
+
 	nCtx := std.Context()
 	processSpec := std.DeployInfo().Process.ToProcessSpec()
-
-	result, err := act.gseHandlerProc.TrusteeshipProcess(nCtx, processSpec)
+	result, err := act.gseHandlerProc.RestartProcess(nCtx, processSpec)
 	if err != nil {
-		return fmt.Errorf("failed to trusteeship plugin: %w", err)
+		return fmt.Errorf("failed to restart plugin process: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("successfully execute trusteeship plugin operate, result(%s)", result))
+	std.InstanceData().LogI(fmt.Sprintf("successfully execute restart plugin process operation, result(%s)", result))
 
 	std.InstanceData().LogI("wait process running")
 	polling := retrier.NewPolling(retrier.PollingOpts{
@@ -121,10 +123,11 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 	})
 
 	var processInfo *types.ProcessInfo
-	err = polling.Do(nCtx, func(_ int) error {
-		processInfo, err = act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
+	err = polling.Do(std.Context(), func(_ int) error {
+		processInfo, err = act.gseHandlerProc.QueryProcessInfo(std.Context(), processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
 		if err != nil {
-			return fmt.Errorf("failed to query process info: %w", err)
+			return fmt.Errorf("failed to query process info, plugin-name(%s), process-identity-name(%s), agent-id(%s): %w",
+				processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID, err)
 		}
 
 		if processInfo.Status != types.ProcessStatusRunning {
@@ -142,7 +145,8 @@ func (act *actTrusteeshipPlugin) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process running: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process running, info(%+v)", processInfo))
+	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), trusteeship(%t), status(%s)",
+		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.Trusteeship, processInfo.Status))
 
 	return nil
 }
