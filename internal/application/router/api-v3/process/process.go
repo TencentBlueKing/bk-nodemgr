@@ -36,4 +36,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
 	h.rg.POST("/list", restserver.Handler(h.List))
+	h.rg.POST("/get_distribution_by_host_id", restserver.Handler(h.GetDistributionByHostID))
+	h.rg.POST("/get_distribution_by_plugin_name", restserver.Handler(h.GetDistributionByPluginName))
 }
