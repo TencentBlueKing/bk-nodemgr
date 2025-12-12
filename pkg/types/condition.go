@@ -18,6 +18,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
+// ===============================================================================
+// Time Related Conditions
+// ===============================================================================
+
 // TimeRange defines the time range.
 type TimeRange struct {
 	StartTime time.Time
@@ -31,6 +35,10 @@ func RecentTimeRange(duration time.Duration) TimeRange {
 		EndTime:   time.Now(),
 	}
 }
+
+// ===============================================================================
+// Business Related Conditions
+// ===============================================================================
 
 // BusinessExactFields defines the business exact fields.
 // support includes and excludes.
@@ -59,6 +67,10 @@ type BusinessCondition struct {
 	// will be used when condition type is excluded in exclude mode.
 	FuzzyExclude *BusinessFuzzyFields
 }
+
+// ===============================================================================
+// Host Related Conditions
+// ===============================================================================
 
 // HostDynamicExactFields defines the host exact fields.
 // support includes and excludes.
@@ -126,6 +138,10 @@ type HostCondition struct {
 	DynamicFuzzyExclude *HostDynamicFuzzyFields
 }
 
+// ===============================================================================
+// NetworkArea Related Conditions
+// ===============================================================================
+
 // NetworkAreaExactFields defines the network area exact fields.
 type NetworkAreaExactFields struct {
 	NetworkAreaID []int64
@@ -152,6 +168,10 @@ type NetworkAreaCondition struct {
 	// will be used when condition type is excluded in exclude mode.
 	FuzzyExclude *NetworkAreaFuzzyFields
 }
+
+// ===============================================================================
+// NetworkUnit Related Conditions
+// ===============================================================================
 
 // NetworkUnitExactFields defines the network unit exact fields.
 type NetworkUnitExactFields struct {
@@ -180,6 +200,10 @@ type NetworkUnitCondition struct {
 	FuzzyExclude *NetworkUnitFuzzyFields
 }
 
+// ===============================================================================
+// AccessPoint Related Conditions
+// ===============================================================================
+
 // AccessPointExactFields defines the access point exact fields.
 type AccessPointExactFields struct {
 	AccessPointID []int64
@@ -205,6 +229,10 @@ type AccessPointCondition struct {
 	// will be used when condition type is excluded in exclude mode.
 	FuzzyExclude *AccessPointFuzzyFields
 }
+
+// ===============================================================================
+// Event Related Conditions
+// ===============================================================================
 
 // TopoEventExactFields defines the topo event exact fields.
 type TopoEventExactFields struct {
@@ -244,6 +272,75 @@ type TopoConstantFields struct {
 	CloudVendor bool
 	OSType      bool
 }
+
+// PackageEventExactFields defines the package event exact fields.
+type PackageEventExactFields struct {
+	Generation  []Generation
+	ReleaseType []ReleaseType
+	OSType      []criteria.OSType
+	CPUArch     []criteria.CPUArch
+	Version     []string
+	Operator    []string
+	EventType   []PackageEventType
+}
+
+// PackageEventFuzzyFields defines the package event fuzzy fields.
+type PackageEventFuzzyFields struct {
+}
+
+// PackageEventCondition defines the package event condition.
+type PackageEventCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PackageEventExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PackageEventFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *PackageEventExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *PackageEventFuzzyFields
+}
+
+// ConfigPolicyEventExactFields defines the policy event exact fields.
+type ConfigPolicyEventExactFields struct {
+	ConfigPolicyID   []int64
+	ConfigPolicyType []ConfigPolicyType
+	Version          []int64
+	Type             []ConfigPolicyEventType
+}
+
+// ConfigPolicyEventFuzzyFields defines the policy event fuzzy fields.
+type ConfigPolicyEventFuzzyFields struct {
+	ConfigPolicyName []string
+	Operator         []string
+}
+
+// ConfigPolicyEventCondition defines the policy event condition.
+type ConfigPolicyEventCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ConfigPolicyEventExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ConfigPolicyEventFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *ConfigPolicyEventExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *ConfigPolicyEventFuzzyFields
+}
+
+// ===============================================================================
+// Workflow Related Conditions
+// ===============================================================================
 
 // NodeWorkflowExactFields defines the node workflow exact fields.
 type NodeWorkflowExactFields struct {
@@ -301,69 +398,6 @@ type NodeWorkflowOperInstanceStatusCondition struct {
 	FuzzyExclude *NodeWorkflowOperInstanceStatusFuzzyFields
 }
 
-// ReleaseExactFields defines the release exact fields.
-type ReleaseExactFields struct {
-	Name       []string
-	FileName   []string
-	Generation []Generation
-	Platform   []platfmt.Platform
-	Version    []string
-	AsDefault  []bool
-	Enabled    []bool
-}
-
-// ReleaseFuzzyFields defines the release fuzzy fields.
-type ReleaseFuzzyFields struct {
-}
-
-// ReleaseCondition defines the release condition.
-type ReleaseCondition struct {
-	// will be used when condition type is included in exact mode.
-	ExactInclude *ReleaseExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *ReleaseFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *ReleaseExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *ReleaseFuzzyFields
-}
-
-// PackageEventExactFields defines the package event exact fields.
-type PackageEventExactFields struct {
-	Generation  []Generation
-	ReleaseType []ReleaseType
-	OSType      []criteria.OSType
-	CPUArch     []criteria.CPUArch
-	Version     []string
-	Operator    []string
-	EventType   []PackageEventType
-}
-
-// PackageEventFuzzyFields defines the package event fuzzy fields.
-type PackageEventFuzzyFields struct {
-}
-
-// PackageEventCondition defines the package event condition.
-type PackageEventCondition struct {
-	// operate time range will be used whatever condition type is.
-	OperateTimeRange *TimeRange
-
-	// will be used when condition type is included in exact mode.
-	ExactInclude *PackageEventExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *PackageEventFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *PackageEventExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *PackageEventFuzzyFields
-}
-
 // NodeWorkflowOperationExactFields defines the condition of list operation.
 type NodeWorkflowOperationExactFields struct {
 	TriggerID     string
@@ -393,32 +427,6 @@ type NodeWorkflowOperationCondition struct {
 
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *NodeWorkflowOperationFuzzyFields
-}
-
-// OperInstDataExactFields defines the workflow operation instance data condition exact fields.
-type OperInstDataExactFields struct {
-	TriggerID   []string
-	OperationID []string
-	OperInstID  []string
-	State       []operation.State
-}
-
-// OperInstDataFuzzyFields defines the workflow operation instance data fuzzy fields.
-type OperInstDataFuzzyFields struct{}
-
-// OperInstDataCondition defines the workflow operation instance data condition.
-type OperInstDataCondition struct {
-	// will be used when condition type is included in exact mode.
-	ExactInclude *OperInstDataExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *OperInstDataFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *OperInstDataExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *OperInstDataFuzzyFields
 }
 
 // ScheduledWorkflowExactFields defines the scheduled workflow exact fields.
@@ -475,6 +483,74 @@ type ScheduleWorkflowOperInstanceStatusCondition struct {
 	FuzzyExclude *ScheduleWorkflowOperInstanceStatusFuzzyFields
 }
 
+// ===============================================================================
+// Release Related Conditions
+// ===============================================================================
+
+// ReleaseExactFields defines the release exact fields.
+type ReleaseExactFields struct {
+	Name       []string
+	FileName   []string
+	Generation []Generation
+	Platform   []platfmt.Platform
+	Version    []string
+	AsDefault  []bool
+	Enabled    []bool
+}
+
+// ReleaseFuzzyFields defines the release fuzzy fields.
+type ReleaseFuzzyFields struct {
+}
+
+// ReleaseCondition defines the release condition.
+type ReleaseCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ReleaseExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ReleaseFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *ReleaseExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *ReleaseFuzzyFields
+}
+
+// ===============================================================================
+// OperInstData Related Conditions
+// ===============================================================================
+
+// OperInstDataExactFields defines the workflow operation instance data condition exact fields.
+type OperInstDataExactFields struct {
+	TriggerID   []string
+	OperationID []string
+	OperInstID  []string
+	State       []operation.State
+}
+
+// OperInstDataFuzzyFields defines the workflow operation instance data fuzzy fields.
+type OperInstDataFuzzyFields struct{}
+
+// OperInstDataCondition defines the workflow operation instance data condition.
+type OperInstDataCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *OperInstDataExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *OperInstDataFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *OperInstDataExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *OperInstDataFuzzyFields
+}
+
+// ===============================================================================
+// GlobalSettings Related Conditions
+// ===============================================================================
+
 // GlobalSettingsExactFields defines the global settings exact fields.
 type GlobalSettingsExactFields struct {
 	SettingName []string
@@ -502,6 +578,10 @@ type GlobalSettingsCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *GlobalSettingsFuzzyFields
 }
+
+// ===============================================================================
+// ConfigPolicy Related Conditions
+// ===============================================================================
 
 // ConfigPolicyExactFields defines the config policy exact fields.
 type ConfigPolicyExactFields struct {
@@ -531,6 +611,10 @@ type ConfigPolicyCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *ConfigPolicyFuzzyFields
 }
+
+// ===============================================================================
+// Process Related Conditions
+// ===============================================================================
 
 // ProcessCondition defines the process condition.
 // in this condition, fields are generated with AND expr.
@@ -570,6 +654,10 @@ type ProcessFuzzyFields struct {
 	PkgName []string
 }
 
+// ===============================================================================
+// Plugin Related Conditions
+// ===============================================================================
+
 // PluginCondition defines the plugin condition.
 type PluginCondition struct {
 	// will be used when condition type is included in exact mode.
@@ -597,37 +685,9 @@ type PluginFuzzyFields struct {
 	PkgName []string
 }
 
-// ConfigPolicyEventExactFields defines the policy event exact fields.
-type ConfigPolicyEventExactFields struct {
-	ConfigPolicyID   []int64
-	ConfigPolicyType []ConfigPolicyType
-	Version          []int64
-	Type             []ConfigPolicyEventType
-}
-
-// ConfigPolicyEventFuzzyFields defines the policy event fuzzy fields.
-type ConfigPolicyEventFuzzyFields struct {
-	ConfigPolicyName []string
-	Operator         []string
-}
-
-// ConfigPolicyEventCondition defines the policy event condition.
-type ConfigPolicyEventCondition struct {
-	// operate time range will be used whatever condition type is.
-	OperateTimeRange *TimeRange
-
-	// will be used when condition type is included in exact mode.
-	ExactInclude *ConfigPolicyEventExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *ConfigPolicyEventFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *ConfigPolicyEventExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *ConfigPolicyEventFuzzyFields
-}
+// ===============================================================================
+// Deployment Related Conditions
+// ===============================================================================
 
 // NodeDeploymentExactFields defines the node deployment exact fields.
 type NodeDeploymentExactFields struct {
