@@ -16,6 +16,74 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/process/get_distribution_by_host_id": {
+      "post": {
+        "summary": "GetProcessDistributionByHostID describes the process statistics request.",
+        "operationId": "Process_GetProcessDistributionByHostID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3GetProcessDistributionByHostIDResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "GetProcessDistributionByHostIDReq describes the process statistics request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3GetProcessDistributionByHostIDReq"
+            }
+          }
+        ],
+        "tags": [
+          "Process"
+        ]
+      }
+    },
+    "/api/v3/process/get_distribution_by_plugin_name": {
+      "post": {
+        "summary": "GetProcessDistributionByPluginName describes the process statistics\nrequest.",
+        "operationId": "Process_GetProcessDistributionByPluginName",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3GetProcessDistributionByPluginNameResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "GetProcessDistributionByPluginNameReq describes the process statistics\nrequest.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3GetProcessDistributionByPluginNameReq"
+            }
+          }
+        ],
+        "tags": [
+          "Process"
+        ]
+      }
+    },
     "/api/v3/process/list": {
       "post": {
         "summary": "ListProcesses lists the processes.",
@@ -60,89 +128,6 @@
         },
         "message": {
           "type": "string"
-        }
-      }
-    },
-    "ProcessListReqExactConditions": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "plugin_group": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "node_generation": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "platform_os": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "platform_arch": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "status": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "agent_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "version": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "plugin_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "plugin_pkg_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "ProcessListReqFuzzyConditions": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "plugin_pkg_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       }
     },
@@ -251,6 +236,82 @@
         }
       }
     },
+    "v3GetProcessDistributionByHostIDReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ProcessExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ProcessFuzzyConditions"
+        }
+      },
+      "description": "GetProcessDistributionByHostIDReq describes the process statistics request."
+    },
+    "v3GetProcessDistributionByHostIDResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "GetProcessDistributionByHostIDResp describes the process statistics response."
+    },
+    "v3GetProcessDistributionByPluginNameReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ProcessExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ProcessFuzzyConditions"
+        }
+      },
+      "description": "GetProcessDistributionByPluginNameReq describes the process statistics\nrequest."
+    },
+    "v3GetProcessDistributionByPluginNameResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "description": "GetProcessDistributionByPluginNameResp describes the process statistics\nresponse."
+    },
     "v3Page": {
       "type": "object",
       "properties": {
@@ -303,6 +364,89 @@
         }
       },
       "description": "ProcessController describes the process controller."
+    },
+    "v3ProcessExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "plugin_group": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "node_generation": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "platform_os": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "platform_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "agent_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_pkg_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3ProcessFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_pkg_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "v3ProcessIdentity": {
       "type": "object",
@@ -360,10 +504,10 @@
           "type": "boolean"
         },
         "exact_include_conditions": {
-          "$ref": "#/definitions/ProcessListReqExactConditions"
+          "$ref": "#/definitions/v3ProcessExactConditions"
         },
         "fuzzy_include_conditions": {
-          "$ref": "#/definitions/ProcessListReqFuzzyConditions"
+          "$ref": "#/definitions/v3ProcessFuzzyConditions"
         }
       },
       "description": "ProcessListReq describes the process list request."
