@@ -108,4 +108,10 @@ type IDaoProcess interface {
 
 	// GetProcess get process by host id and plugin name.
 	GetProcess(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error)
+
+	// GetProcessDistributionByHostID get process distribution by host ID.
+	GetProcessDistributionByHostID(nCtx contextx.IContext, condition ...*types.ProcessCondition) (map[int64]int64, error)
+
+	// GetProcessDistributionByPluginName get process distribution by plugin name.
+	GetProcessDistributionByPluginName(nCtx contextx.IContext, condition ...*types.ProcessCondition) (map[string]int64, error)
 }

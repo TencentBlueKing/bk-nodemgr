@@ -395,3 +395,60 @@ func (s *Storage) GetProcess(nCtx contextx.IContext, hostID int64, pluginName st
 
 	return process, err
 }
+
+const (
+	metricOperationGetProcessDistributionByHostID     = "get_process_distribution_by_host_id"
+	metricOperationGetProcessDistributionByPluginName = "get_process_distribution_by_plugin_name"
+)
+
+// GetProcessDistributionByHostID get process distribution by host id.
+func (s *Storage) GetProcessDistributionByHostID(nCtx contextx.IContext, condition ...*types.ProcessCondition) (map[int64]int64, error) {
+	var (
+		dist map[int64]int64
+		err  error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetProcessDistributionByHostID, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetProcessDistributionByHostID)
+		defer metric.End(err)
+
+		dist, err = s.getProcessDistributionByHostID(nCtx, condition...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return dist, nil
+}
+
+// GetProcessDistributionByPluginName get process distribution by plugin name.
+func (s *Storage) GetProcessDistributionByPluginName(nCtx contextx.IContext, condition ...*types.ProcessCondition) (map[string]int64, error) {
+	var (
+		dist map[string]int64
+		err  error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetProcessDistributionByPluginName, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetProcessDistributionByPluginName)
+		defer metric.End(err)
+
+		dist, err = s.getProcessDistributionByPluginName(nCtx, condition...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return dist, nil
+}

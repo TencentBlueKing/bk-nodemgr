@@ -191,3 +191,37 @@ func (s *Storage) getProcess(nCtx contextx.IContext, hostID int64, pluginName st
 
 	return process, nil
 }
+
+func (s *Storage) getProcessDistributionByHostID(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (map[int64]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	opts, err := convertProcessConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	dist, err := s.daoProcess.GetProcessDistributionByHostID(nCtx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get process distribution: %w", err)
+	}
+
+	return dist, nil
+}
+func (s *Storage) getProcessDistributionByPluginName(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (map[string]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+	opts, err := convertProcessConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	dist, err := s.daoProcess.GetProcessDistributionByPluginName(nCtx, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get process distribution: %w", err)
+	}
+
+	return dist, nil
+}
