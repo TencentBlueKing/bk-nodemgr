@@ -423,6 +423,12 @@ type IHandlerProcess interface {
 
 	// CountProcesses counts processes by conditions.
 	CountProcesses(ctx contextx.IContext, condition *types.ProcessCondition) (int64, error)
+
+	// GetProcessDistributionByHostID gets process distribution by host id.
+	GetProcessDistributionByHostID(nCtx contextx.IContext, condition *types.ProcessCondition) (map[int64]int64, error)
+
+	// GetProcessDistributionByPluginName gets process distribution by plugin name.
+	GetProcessDistributionByPluginName(nCtx contextx.IContext, condition *types.ProcessCondition) (map[string]int64, error)
 }
 
 // IHandlerConfigPolicyEvent defines the backend Handler for policy event.

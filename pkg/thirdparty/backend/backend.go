@@ -2185,6 +2185,70 @@ func (c *cli) listProcesses(ctx contextx.IContext, req *protoBackend.ProcessList
 	return resp, nil
 }
 
+func (c *cli) getProcessDistributionByHostID(ctx contextx.IContext, req *protoBackend.GetProcessDistributionByHostIDReq) (
+	*protoBackend.GetProcessDistributionByHostIDResp, error) {
+
+	resp := new(protoBackend.GetProcessDistributionByHostIDResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/process/get_distribution_by_host_id").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get process distribution by host id failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("get process distribution by host id failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) getProcessDistributionByPluginName(ctx contextx.IContext, req *protoBackend.GetProcessDistributionByPluginNameReq) (
+	*protoBackend.GetProcessDistributionByPluginNameResp, error) {
+
+	resp := new(protoBackend.GetProcessDistributionByPluginNameResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/process/get_distribution_by_plugin_name").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get process distribution by plugin name failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("get process distribution by plugin name failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) getGraphNode(ctx contextx.IContext, req *protoBackend.TopoGraphNodeGetReq) (
 	*protoBackend.TopoGraphNodeGetResp, error) {
 

@@ -61,3 +61,53 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 
 	return resp.GetData(), nil
 }
+
+// GetDistributionByHostID defines the process distribution by host id handler.
+func (h *handler) GetDistributionByHostID(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.GetProcessDistributionByHostIDReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get process distribution by host id, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.daoProcess.GetProcessDistributionByHostID(
+		rCtx,
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			Error("failed to get process distribution by host id. failed to get process distribution by host id fields: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.GetProcessDistributionByHostIDResp)
+
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
+// GetDistributionByPluginName defines the process distribution by plugin name handler.
+func (h *handler) GetDistributionByPluginName(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.GetProcessDistributionByPluginNameReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get process distribution by plugin name, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.daoProcess.GetProcessDistributionByPluginName(
+		rCtx,
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).
+			Error("failed to get process distribution by plugin name. failed to get process distribution by plugin name fields: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.GetProcessDistributionByPluginNameResp)
+
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}

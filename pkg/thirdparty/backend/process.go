@@ -46,3 +46,29 @@ func (h *Handler) ListProcesses(ctx contextx.IContext, page types.Page, conditio
 
 	return processes, total, nil
 }
+
+// GetProcessDistributionByHostID get process distribution by host id.
+func (h *Handler) GetProcessDistributionByHostID(nCtx contextx.IContext, condition *types.ProcessCondition) (map[int64]int64, error) {
+	req := new(protoBackend.GetProcessDistributionByHostIDReq)
+	req.ConvertConditionFromTypes(condition)
+
+	resp, err := h.cli.getProcessDistributionByHostID(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Data, nil
+}
+
+// GetProcessDistributionByPluginName get process distribution by plugin name.
+func (h *Handler) GetProcessDistributionByPluginName(nCtx contextx.IContext, condition *types.ProcessCondition) (map[string]int64, error) {
+	req := new(protoBackend.GetProcessDistributionByPluginNameReq)
+	req.ConvertConditionFromTypes(condition)
+
+	resp, err := h.cli.getProcessDistributionByPluginName(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Data, nil
+}
