@@ -29,7 +29,7 @@ func (x *ProcessListReq) ConvertConditionsToTypes() *types.ProcessCondition {
 }
 
 func convertProcessConditionsToTypes(
-	exactCond *ProcessListReq_ExactConditions, fuzzyCond *ProcessListReq_FuzzyConditions) *types.ProcessCondition {
+	exactCond *ProcessExactConditions, fuzzyCond *ProcessFuzzyConditions) *types.ProcessCondition {
 
 	condition := &types.ProcessCondition{}
 
@@ -161,4 +161,40 @@ func newEmptyProcess() *Process {
 			OperateTimeoutSeconds: new(int64),
 		},
 	}
+}
+
+// Validate check body.
+func (x *GetProcessDistributionByHostIDReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *GetProcessDistributionByHostIDReq) AutoConvert() {}
+
+// ConvertConditionsToTypes convert conditions.
+func (x *GetProcessDistributionByHostIDReq) ConvertConditionsToTypes() *types.ProcessCondition {
+	return convertProcessConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// Validate check body.
+func (x *GetProcessDistributionByPluginNameReq) Validate() error {
+	return nil
+}
+
+// ConvertResultFromTypes convert result.
+func (x *GetProcessDistributionByHostIDResp) ConvertResultFromTypes(data map[int64]int64) {
+	x.Data = data
+}
+
+// AutoConvert auto convert.
+func (x *GetProcessDistributionByPluginNameReq) AutoConvert() {}
+
+// ConvertConditionsToTypes convert conditions.
+func (x *GetProcessDistributionByPluginNameReq) ConvertConditionsToTypes() *types.ProcessCondition {
+	return convertProcessConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertResultFromTypes convert result.
+func (x *GetProcessDistributionByPluginNameResp) ConvertResultFromTypes(data map[string]int64) {
+	x.Data = data
 }

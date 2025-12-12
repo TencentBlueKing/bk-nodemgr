@@ -6,29 +6,32 @@ import "common.proto";
 
 import "google/api/annotations.proto";
 
+message ProcessExactConditions {
+  repeated int64 bk_host_id = 1;
+  repeated string plugin_group = 3;
+  repeated string node_generation = 4;
+  repeated string platform_os = 5;
+  repeated string platform_arch = 6;
+  repeated string status = 7;
+  repeated string agent_id = 8;
+  repeated string version = 9;
+  repeated string plugin_name = 10;
+  repeated string plugin_pkg_name = 11;
+}
+
+message ProcessFuzzyConditions {
+  repeated string name = 1;
+  repeated string plugin_pkg_name = 2;
+}
+
 // ProcessListReq describes the process list request.
 message ProcessListReq {
   Page page = 1;
   bool only_count = 2;
-  message ExactConditions {
-    repeated int64 bk_host_id = 1;
-    repeated string plugin_group = 3;
-    repeated string node_generation = 4;
-    repeated string platform_os = 5;
-    repeated string platform_arch = 6;
-    repeated string status = 7;
-    repeated string agent_id = 8;
-    repeated string version = 9;
-    repeated string plugin_name = 10;
-    repeated string plugin_pkg_name = 11;
-  }
-  ExactConditions exact_include_conditions = 3;
 
-  message FuzzyConditions {
-    repeated string name = 1;
-    repeated string plugin_pkg_name = 2;
-  }
-  FuzzyConditions fuzzy_include_conditions = 4;
+  ProcessExactConditions exact_include_conditions = 3;
+
+  ProcessFuzzyConditions fuzzy_include_conditions = 4;
 }
 
 // ProcessInfo describes the process information.
@@ -104,11 +107,64 @@ message ProcessListResp {
   Data data = 5;
 }
 
+// GetProcessDistributionByHostIDReq describes the process statistics request.
+message GetProcessDistributionByHostIDReq {
+  ProcessExactConditions exact_include_conditions = 1;
+  ProcessFuzzyConditions fuzzy_include_conditions = 2;
+}
+
+// GetProcessDistributionByHostIDResp describes the process statistics response.
+message GetProcessDistributionByHostIDResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  map<int64, int64> data = 5;
+}
+
+// GetProcessDistributionByPluginNameReq describes the process statistics
+// request.
+message GetProcessDistributionByPluginNameReq {
+  ProcessExactConditions exact_include_conditions = 1;
+  ProcessFuzzyConditions fuzzy_include_conditions = 2;
+}
+
+// GetProcessDistributionByPluginNameResp describes the process statistics
+// response.
+message GetProcessDistributionByPluginNameResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  map<string, int64> data = 5;
+}
+
 service Process {
   // ListProcesses lists the processes.
   rpc ListProcesses(ProcessListReq) returns (ProcessListResp) {
     option (google.api.http) = {
       post : "/api/v3/process/list"
+      body : "*"
+    };
+  }
+
+  // GetProcessDistributionByHostID describes the process statistics request.
+  rpc GetProcessDistributionByHostID(GetProcessDistributionByHostIDReq)
+      returns (GetProcessDistributionByHostIDResp) {
+    option (google.api.http) = {
+      post : "/api/v3/process/get_distribution_by_host_id"
+      body : "*"
+    };
+  }
+
+  // GetProcessDistributionByPluginName describes the process statistics
+  // request.
+  rpc GetProcessDistributionByPluginName(GetProcessDistributionByPluginNameReq)
+      returns (GetProcessDistributionByPluginNameResp) {
+    option (google.api.http) = {
+      post : "/api/v3/process/get_distribution_by_plugin_name"
       body : "*"
     };
   }

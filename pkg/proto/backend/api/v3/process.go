@@ -31,7 +31,7 @@ func (x *ProcessListReq) ConvertConditionsToTypes() *types.ProcessCondition {
 }
 
 func convertProcessConditionsToTypes(
-	exactCond *ProcessListReq_ExactConditions, fuzzyCond *ProcessListReq_FuzzyConditions) *types.ProcessCondition {
+	exactCond *ProcessExactConditions, fuzzyCond *ProcessFuzzyConditions) *types.ProcessCondition {
 
 	condition := &types.ProcessCondition{}
 
@@ -77,28 +77,36 @@ func (x *ProcessListReq) ConvertConditionFromTypes(condition *types.ProcessCondi
 
 	// exact conditions.
 	if condition.ExactInclude != nil {
-		x.ExactIncludeConditions = &ProcessListReq_ExactConditions{
-			BkHostId:       condition.ExactInclude.HostID,
-			PluginGroup:    condition.ExactInclude.PluginGroup,
-			NodeGeneration: condition.ExactInclude.NodeGeneration,
-			PlatformOs:     condition.ExactInclude.PlatformOS,
-			PlatformArch:   condition.ExactInclude.PlatformArch,
-			Status: conv.SliceToSlice[types.ProcessStatus, string](condition.ExactInclude.InfoStatus, func(status types.ProcessStatus) string {
-				return string(status)
-			}),
-			AgentId:       condition.ExactInclude.InfoAgentID,
-			Version:       condition.ExactInclude.InfoVersion,
-			PluginName:    condition.ExactInclude.PluginName,
-			PluginPkgName: condition.ExactInclude.PluginPkgName,
-		}
+		x.ExactIncludeConditions = convExactIncludeConditionsFromTypes(condition)
 	}
 
 	// fuzzy conditions.
 	if condition.FuzzyInclude != nil {
-		x.FuzzyIncludeConditions = &ProcessListReq_FuzzyConditions{
-			Name:          condition.FuzzyInclude.Name,
-			PluginPkgName: condition.FuzzyInclude.PkgName,
-		}
+		x.FuzzyIncludeConditions = convFuzzyConditionsFromTypes(condition)
+	}
+}
+
+func convFuzzyConditionsFromTypes(condition *types.ProcessCondition) *ProcessFuzzyConditions {
+	return &ProcessFuzzyConditions{
+		Name:          condition.FuzzyInclude.Name,
+		PluginPkgName: condition.FuzzyInclude.PkgName,
+	}
+}
+
+func convExactIncludeConditionsFromTypes(condition *types.ProcessCondition) *ProcessExactConditions {
+	return &ProcessExactConditions{
+		BkHostId:       condition.ExactInclude.HostID,
+		PluginGroup:    condition.ExactInclude.PluginGroup,
+		NodeGeneration: condition.ExactInclude.NodeGeneration,
+		PlatformOs:     condition.ExactInclude.PlatformOS,
+		PlatformArch:   condition.ExactInclude.PlatformArch,
+		Status: conv.SliceToSlice[types.ProcessStatus, string](condition.ExactInclude.InfoStatus, func(status types.ProcessStatus) string {
+			return string(status)
+		}),
+		AgentId:       condition.ExactInclude.InfoAgentID,
+		Version:       condition.ExactInclude.InfoVersion,
+		PluginName:    condition.ExactInclude.PluginName,
+		PluginPkgName: condition.ExactInclude.PluginPkgName,
 	}
 }
 
@@ -255,4 +263,74 @@ func (x *ProcessListResp) ConvertProcessToTypes() ([]*types.Process, int64) {
 	}
 
 	return process, total
+}
+
+// Validate check body.
+func (x *GetProcessDistributionByHostIDReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *GetProcessDistributionByHostIDReq) AutoConvert() {}
+
+// ConvertConditionsToTypes convert conditions.
+func (x *GetProcessDistributionByHostIDReq) ConvertConditionsToTypes() *types.ProcessCondition {
+	return convertProcessConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertConditionFromTypes convert conditions.
+func (x *GetProcessDistributionByHostIDReq) ConvertConditionFromTypes(condition *types.ProcessCondition) {
+	if condition == nil {
+		return
+	}
+
+	// exact conditions.
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = convExactIncludeConditionsFromTypes(condition)
+	}
+
+	// fuzzy conditions.
+	if condition.FuzzyInclude != nil {
+		x.FuzzyIncludeConditions = convFuzzyConditionsFromTypes(condition)
+	}
+}
+
+// Validate check body.
+func (x *GetProcessDistributionByPluginNameReq) Validate() error {
+	return nil
+}
+
+// ConvertResultFromTypes convert result.
+func (x *GetProcessDistributionByHostIDResp) ConvertResultFromTypes(data map[int64]int64) {
+	x.Data = data
+}
+
+// AutoConvert auto convert.
+func (x *GetProcessDistributionByPluginNameReq) AutoConvert() {}
+
+// ConvertConditionsToTypes convert conditions.
+func (x *GetProcessDistributionByPluginNameReq) ConvertConditionsToTypes() *types.ProcessCondition {
+	return convertProcessConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertResultFromTypes convert result.
+func (x *GetProcessDistributionByPluginNameResp) ConvertResultFromTypes(data map[string]int64) {
+	x.Data = data
+}
+
+// ConvertConditionFromTypes convert conditions.
+func (x *GetProcessDistributionByPluginNameReq) ConvertConditionFromTypes(condition *types.ProcessCondition) {
+	if condition == nil {
+		return
+	}
+
+	// exact conditions.
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = convExactIncludeConditionsFromTypes(condition)
+	}
+
+	// fuzzy conditions.
+	if condition.FuzzyInclude != nil {
+		x.FuzzyIncludeConditions = convFuzzyConditionsFromTypes(condition)
+	}
 }
