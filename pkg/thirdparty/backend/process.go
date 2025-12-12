@@ -57,7 +57,7 @@ func (h *Handler) GetProcessDistributionByHostID(nCtx contextx.IContext, conditi
 		return nil, err
 	}
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
 
 // GetProcessDistributionByPluginName get process distribution by plugin name.
@@ -70,5 +70,5 @@ func (h *Handler) GetProcessDistributionByPluginName(nCtx contextx.IContext, con
 		return nil, err
 	}
 
-	return resp.Data, nil
+	return resp.GetData(), nil
 }
