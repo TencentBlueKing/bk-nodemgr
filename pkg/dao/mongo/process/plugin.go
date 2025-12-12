@@ -12,8 +12,12 @@
 package process
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func newDao(client *mongo.Database, tableName string) *dao {
@@ -49,4 +53,98 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	var indexes []mongo.IndexModel
 
 	return indexes
+}
+
+func (d *dao) getProcessDistributionByHostID(nCtx contextx.IContext, filter bson.D, aggregateOptions ...*options.AggregateOptions) (
+	[]processDistributionByHostID, error) {
+
+	pipeline := mongo.Pipeline{}
+
+	if filter != nil && len(filter) > 0 {
+		pipeline = append(pipeline, bson.D{
+			{"$match", filter},
+		})
+	}
+
+	pipeline = append(pipeline,
+		bson.D{
+			{"$group", bson.D{
+				{"_id", "$" + FieldKeyHostID},
+				{"count", bson.D{{"$sum", 1}}},
+			}},
+		},
+		bson.D{
+			{"$sort", bson.D{{"_id", 1}}},
+		},
+	)
+
+	cursor, err := d.client.Aggregate(nCtx, pipeline, aggregateOptions...)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if closeErr := cursor.Close(nCtx); closeErr != nil {
+			logger.G.Sys().WithErr(closeErr).With("filter", filter).Error("failed to close cursor of process distribution by host id")
+		}
+	}()
+
+	var results []processDistributionByHostID
+	if err = cursor.All(nCtx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+// processDistributionByHostID process aggregate result.
+type processDistributionByHostID struct {
+	HostID       int64 `bson:"_id"`
+	ProcessCount int64 `bson:"count"`
+}
+
+func (d *dao) getProcessDistributionByPluginName(nCtx contextx.IContext, filter bson.D, aggregateOptions ...*options.AggregateOptions) (
+	[]processDistributionByPluginName, error) {
+
+	pipeline := mongo.Pipeline{}
+
+	if filter != nil && len(filter) > 0 {
+		pipeline = append(pipeline, bson.D{
+			{"$match", filter},
+		})
+	}
+
+	pipeline = append(pipeline,
+		bson.D{
+			{"$group", bson.D{
+				{"_id", "$" + FieldKeyPluginName},
+				{"count", bson.D{{"$sum", 1}}},
+			}},
+		},
+		bson.D{
+			{"$sort", bson.D{{"_id", 1}}},
+		},
+	)
+
+	cursor, err := d.client.Aggregate(nCtx, pipeline, aggregateOptions...)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if closeErr := cursor.Close(nCtx); closeErr != nil {
+			logger.G.Sys().WithErr(closeErr).With("filter", filter).Error("failed to close cursor of process distribution by plugin name")
+		}
+	}()
+
+	var results []processDistributionByPluginName
+	if err = cursor.All(nCtx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+// processDistributionByPluginName process aggregate result.
+type processDistributionByPluginName struct {
+	PluginName   string `bson:"_id"`
+	ProcessCount int64  `bson:"count"`
 }

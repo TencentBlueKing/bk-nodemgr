@@ -51,6 +51,17 @@ type IHandler interface {
 
 	// Exist check a process exist by conditions.
 	Exist(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
+
+	IDistribution
+}
+
+// IDistribution process distribution interface.
+type IDistribution interface {
+	// GetProcessDistributionByHostID get process distribution by host ID.
+	GetProcessDistributionByHostID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
+
+	// GetProcessDistributionByPluginName get process distribution by plugin name.
+	GetProcessDistributionByPluginName(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error)
 }
 
 var _ IHandler = &Handler{}
@@ -441,4 +452,64 @@ func (h *Handler) Update(nCtx contextx.IContext, hostID int64, pluginName string
 	}
 
 	return nil
+}
+
+// GetProcessDistributionByHostID gets the process distribution by host id.
+func (h *Handler) GetProcessDistributionByHostID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to get process distribution by host id: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	results, err := h.tenantDao(tenantID).getProcessDistributionByHostID(nCtx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get process distribution by host id: %w", err)
+	}
+
+	hostIDDistribution := make(map[int64]int64)
+	for _, result := range results {
+		hostIDDistribution[result.HostID] = result.ProcessCount
+	}
+
+	return hostIDDistribution, nil
+}
+
+// GetProcessDistributionByPluginName gets the process distribution by plugin name.
+func (h *Handler) GetProcessDistributionByPluginName(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to get process distribution by plugin name: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	results, err := h.tenantDao(tenantID).getProcessDistributionByPluginName(nCtx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get process distribution by plugin name: %w", err)
+	}
+
+	pluginNameDistribution := make(map[string]int64)
+	for _, result := range results {
+		pluginNameDistribution[result.PluginName] = result.ProcessCount
+	}
+
+	return pluginNameDistribution, nil
 }
