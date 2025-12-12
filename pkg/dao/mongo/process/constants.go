@@ -35,8 +35,8 @@ const (
 	// FieldKeyGroup the group field key.
 	FieldKeyGroup = "data.group"
 
-	// FieldKeyPkgName the pkg_name field key.
-	FieldKeyPkgName = "data.pkg_name"
+	// FieldKeyPkgName the plugin_pkg_name field key.
+	FieldKeyPkgName = "data.plugin_pkg_name"
 
 	// FieldKeyGeneration the generation field key.
 	FieldKeyGeneration = "data.generation"
