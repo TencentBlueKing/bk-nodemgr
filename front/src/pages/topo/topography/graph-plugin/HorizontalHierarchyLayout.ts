@@ -316,35 +316,66 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
 
         const allAreaNodes = [...areaData.units, ...areaData.accessPoints].filter(Boolean);
         if (allAreaNodes.length === 0) {
+          // 对空区域也做同样的位置保持处理 (略，原理同下)
           this.layoutEmptyArea(areaId, areaNodes, currentColumnX, currentRowY, allNodes);
           currentRowY += this.UNIT_NODE_HEIGHT + this.AREA_SPACING_VERTICAL;
           return;
         }
 
+        // ... (中间的分组和排序逻辑保持不变) ...
         const levelGroups = this.groupNodesByGlobalLevel(allAreaNodes, globalNodeLevels, areaData, nodesByArea);
         const sortedLevels = Array.from(levelGroups.keys()).sort((a, b) => a - b);
         const columns = sortedLevels.map((level) => {
-          const nodes = levelGroups.get(level)!;
-          const firstNode = nodes[0];
-          const colWidth = firstNode.type === NodeType.ACCESS_POINT ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH;
-          return { nodes: this.sortNodesInColumn(nodes), width: colWidth };
+          const nodes = this.sortNodesInColumn(levelGroups.get(level)!);
+          const colWidth = nodes[0].type === NodeType.ACCESS_POINT ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH;
+          return { nodes, width: colWidth };
         });
 
-        const areaSize = this.calculateAreaSize(columns);
-        this.layoutAreaBackground(areaId, areaNodes, areaSize, currentColumnX, currentRowY, allNodes);
+        // 1. 计算尺寸 (取最大值，保持宽度不缩回)
+        let areaSize = this.calculateAreaSize(columns);
+        const areaNode = areaNodes.find(n => n.id === areaId);
+        const currentW = Number(areaNode?.style?.width || areaNode?.data?.width || 0);
+        const currentH = Number(areaNode?.style?.height || areaNode?.data?.height || 0);
+        
+        areaSize = {
+          width: Math.max(areaSize.width, currentW),
+          height: Math.max(areaSize.height, currentH)
+        };
+
+        // 2. 【核心修改】确定区域位置 (X, Y)
+        // 算法计算出的理论位置
+        const calculatedX = currentColumnX;
+        const calculatedY = currentRowY;
+
+        // 尝试读取现有位置
+        // 注意：G6 中 style.x 可能是 0，所以要判断 undefined
+        const existingX = areaNode?.style?.x;
+        const existingY = areaNode?.style?.y;
+
+        // 如果有现有位置，就用现有的；否则用算出来的
+        const finalAreaX = (existingX !== undefined) ? Number(existingX) : calculatedX;
+        const finalAreaY = (existingY !== undefined) ? Number(existingY) : calculatedY;
+
+        // 3. 传递 finalAreaX / finalAreaY 给背景绘制和子节点布局
+        this.layoutAreaBackground(areaId, areaNodes, areaSize, finalAreaX, finalAreaY, allNodes);
+        
         this.layoutAreaChildNodes(
           areaId,
           columns,
-          currentColumnX,
-          currentRowY,
+          finalAreaX, // 使用最终确定的 X
+          finalAreaY, // 使用最终确定的 Y
           allNodes,
           nodeLayoutInfo,
         );
 
+        // 更新下一行的理论 Y 坐标 (依然按算法累加，保证新加入的区域不会重叠)
+        // 如果你希望被拖走的区域原来的位置“空出来”，就保持这样。
+        // 如果你希望被拖走的区域原来的位置“被填补”，这里逻辑会更复杂，目前保持这样最稳妥。
         currentRowY += areaSize.height + this.AREA_SPACING_VERTICAL;
       });
 
-      const columnMaxWidth = this.calculateColumnMaxWidth(columnAreaIds, nodesByArea, globalNodeLevels);
+      // 计算列宽 (保持不变)
+      const columnMaxWidth = this.calculateColumnMaxWidth(columnAreaIds, nodesByArea, globalNodeLevels, areaNodes);
       currentColumnX += columnMaxWidth + this.AREA_SPACING_HORIZONTAL;
     });
 
@@ -490,28 +521,40 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
   private layoutAreaChildNodes(
     areaId: string,
     columns: { nodes: NodeData[], width: number }[],
-    areaX: number,
-    areaY: number,
+    areaX: number, // 这是上面传进来的 finalAreaX
+    areaY: number, // 这是上面传进来的 finalAreaY
     allNodes: any[],
     nodeLayoutInfo: Map<string, { x: number; y: number; areaId: string; rowIndex: number }>,
   ) {
+    // 算法计算出的子节点起始基准点
     const childStartX = areaX + this.AREA_PADDING;
     const childStartY = areaY + this.AREA_PADDING + 60;
+    
     let currentColX = childStartX;
 
     columns.forEach((col) => {
       const { nodes, width } = col;
       nodes.forEach((node, rowIndex) => {
         const nodeHeight = node.type === NodeType.NET_WORK_UNIT ? this.UNIT_NODE_HEIGHT : this.AP_NODE_HEIGHT;
-        const nodeY = childStartY + rowIndex * (nodeHeight + this.NODE_SPACING_ROW);
+        
+        // 算法计算出的理论位置
+        const calculatedChildX = currentColX;
+        const calculatedChildY = childStartY + rowIndex * (nodeHeight + this.NODE_SPACING_ROW);
+
+        // 【核心修改】优先使用子节点现有的位置
+        const existingChildX = node.style?.x;
+        const existingChildY = node.style?.y;
+
+        const finalChildX = (existingChildX !== undefined) ? Number(existingChildX) : calculatedChildX;
+        const finalChildY = (existingChildY !== undefined) ? Number(existingChildY) : calculatedChildY;
 
         allNodes.push({
           id: node.id,
           type: node.type,
           data: { ...node.data },
           style: {
-            x: currentColX,
-            y: nodeY,
+            x: finalChildX, // 使用最终位置
+            y: finalChildY, // 使用最终位置
             width,
             height: nodeHeight,
             fill: '#ffffff',
@@ -522,14 +565,14 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
             fontSize: 14,
             fontWeight: 500,
             visibility: 'visible',
-            ...node.style,
+            ...node.style, // 这里的 ...node.style 会包含之前的 x,y，但我们显式指定了 finalX/Y 更清晰
           },
           zIndex: 1,
         });
 
         nodeLayoutInfo.set(node.id, {
-          x: currentColX,
-          y: nodeY,
+          x: finalChildX,
+          y: finalChildY,
           areaId,
           rowIndex,
         });
@@ -538,28 +581,45 @@ export default class HorizontalHierarchyLayout extends BaseLayout {
     });
   }
 
-  private calculateColumnMaxWidth(columnAreaIds: string[], nodesByArea: Map<string, any>, globalNodeLevels: Map<string, number>): number {
+  private calculateColumnMaxWidth(
+    columnAreaIds: string[],
+    nodesByArea: Map<string, any>,
+    globalNodeLevels: Map<string, number>,
+    areaNodes: NodeData[], // 新增参数
+  ): number {
     let maxWidth = 0;
     columnAreaIds.forEach((areaId) => {
       const areaData = nodesByArea.get(areaId);
       if (!areaData) return;
 
+      // 1. 获取算法计算的宽度
+      let calculatedWidth = 0;
       const allAreaNodes = [...areaData.units, ...areaData.accessPoints].filter(Boolean);
+
       if (allAreaNodes.length === 0) {
-        maxWidth = Math.max(maxWidth, this.AREA_MIN_WIDTH);
-        return;
+        calculatedWidth = this.AREA_MIN_WIDTH;
+      } else {
+        const levelGroups = this.groupNodesByGlobalLevel(allAreaNodes, globalNodeLevels, areaData, nodesByArea);
+        const sortedLevels = Array.from(levelGroups.keys()).sort((a, b) => a - b);
+        const colWidths = sortedLevels.map((level) => {
+          const nodes = levelGroups.get(level)!;
+          return nodes[0].type === NodeType.ACCESS_POINT ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH;
+        });
+        // eslint-disable-next-line max-len
+        calculatedWidth = colWidths.reduce((sum, w) => sum + w, 0) + (colWidths.length - 1) * this.NODE_SPACING_COL + this.AREA_PADDING * 2;
+        calculatedWidth = Math.max(calculatedWidth, this.AREA_MIN_WIDTH);
       }
 
-      const levelGroups = this.groupNodesByGlobalLevel(allAreaNodes, globalNodeLevels, areaData, nodesByArea);
-      const sortedLevels = Array.from(levelGroups.keys()).sort((a, b) => a - b);
+      // ------------------ 【核心修改开始】 ------------------
+      // 2. 获取当前实际宽度
+      const areaNode = areaNodes.find(n => n.id === areaId);
+      const currentWidth = Number(areaNode?.style?.width || areaNode?.data?.width || 0);
 
-      const colWidths = sortedLevels.map((level) => {
-        const nodes = levelGroups.get(level)!;
-        return nodes[0].type === NodeType.ACCESS_POINT ? this.AP_COL_WIDTH : this.UNIT_COL_WIDTH;
-      });
+      // 3. 取最大值作为该区域对列宽的贡献
+      const finalWidth = Math.max(calculatedWidth, currentWidth);
+      // ------------------ 【核心修改结束】 ------------------
 
-      const totalWidth = colWidths.reduce((sum, w) => sum + w, 0) + (colWidths.length - 1) * this.NODE_SPACING_COL + this.AREA_PADDING * 2;
-      maxWidth = Math.max(maxWidth, totalWidth, this.AREA_MIN_WIDTH);
+      maxWidth = Math.max(maxWidth, finalWidth);
     });
     return maxWidth;
   }

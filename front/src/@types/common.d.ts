@@ -274,6 +274,98 @@ interface ConfigPolicyEvent {
   operator: string;
 }
 
+// ProcessInfo describes the process information.
+interface ProcessInfo {
+  pid: number;
+  version: string;
+  agent_id: string;
+  trusteeship: boolean;
+  status: string;
+}
+
+// ProcessIdentity describes the process identity.
+interface ProcessIdentity {
+  name: string;
+  setup_path: string;
+  pid_path: string;
+  config_path: string;
+  log_path: string;
+  user: string;
+}
+
+// ProcessController describes the process controller.
+interface ProcessController {
+  start_cmd: string;
+  stop_cmd: string;
+  restart_cmd: string;
+  reload_cmd: string;
+  kill_cmd: string;
+  version_cmd: string;
+  health_cmd: string;
+}
+
+// ProcessResource describes the process resource.
+interface ProcessResource {
+  cpu_limit_percent: number;
+  mem_limit_percent: number;
+}
+
+// ProcessMonitorPolicy describes the process monitor policy.
+interface ProcessMonitorPolicy {
+  auto_type: string;
+  start_check_seconds: number;
+  stop_check_seconds: number;
+  operate_timeout_seconds: number;
+}
+
+interface Process {
+  tenant_id: string;
+  bk_host_id: number;
+  plugin_name: string;
+  plugin_pkg_name: string;
+  plugin_group: string;
+  platform: Platform;
+  generation: number;
+  process_info: ProcessInfo;
+  process_identity: ProcessIdentity;
+  process_controller: ProcessController;
+  process_resource: ProcessResource;
+  process_monitor_policy: ProcessMonitorPolicy;
+}
+
+interface ProcessExactConditions {
+  bk_host_id: number[];
+  plugin_group: string[];
+  node_generation: string[];
+  platform_os: string[];
+  platform_arch: string[];
+  status: string[];
+  agent_id: string[];
+  version: string[];
+  plugin_name: string[];
+  plugin_pkg_name: string[];
+}
+
+interface ProcessFuzzyConditions {
+  name: string[];
+  plugin_pkg_name: string[];
+}
+
+// ProcessListReq describes the process list request.
+interface ProcessListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: ProcessExactConditions;
+  fuzzy_include_conditions: ProcessFuzzyConditions;
+}
+
+interface Plugin {
+  tenant_id: string;
+  name: string;
+  group: string;
+  pkg_name: string;
+}
+
 interface Error {
   system: string;
   message: string;

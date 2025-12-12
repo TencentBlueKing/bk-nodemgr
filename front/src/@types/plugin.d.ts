@@ -80,13 +80,6 @@ export interface PluginListResp {
   data: PluginListRespData;
 }
 
-export interface PluginListRespPlugin {
-  tenant_id: string;
-  name: string;
-  group: string;
-  pkg_name: string;
-}
-
 export interface PluginListRespData {
   total: number;
   items: Plugin[];

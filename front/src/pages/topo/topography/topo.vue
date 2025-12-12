@@ -316,7 +316,7 @@ function toggleIsolatedAreas() {
   if (graph) {
     graph.layout({
       type: 'horizontal-hierarchy-layout',
-      collapsed: isIsolatedCollapsed.value
+      collapsed: isIsolatedCollapsed.value,
     });
   }
 }
@@ -405,6 +405,7 @@ function handleInitTopo() {
 
   graph.render();
   graph.on(NodeEvent.DRAG, handleNodeDrag); // 注册拖拽事件
+  graph.on(NodeEvent.DRAG_END, handleNodeDragEnd); // 注册拖拽结束事件
   initGlobalListeners(); // 注册全局关闭菜单的监听
   graph.on(EdgeEvent.POINTER_OVER, handleHoverEdge);
   graph.on(EdgeEvent.POINTER_OUT, handleLeaveEdge);
@@ -573,7 +574,7 @@ function handleNodeLeave(evt: any) {
 // ---------------------- 节点拖拽逻辑 (保持原样) ----------------------
 
 // 计算节点的包围盒，并联动更新区域及其邻居节点（含邻居内部节点）
-const updateAreaByChildNodes = throttle((movedNodeId: string, areaId: string) => {
+const execUpdateArea = (areaId: string) => {
   if (!graph || !areaId) return;
 
   // 1. 获取所有节点数据
@@ -724,19 +725,53 @@ const updateAreaByChildNodes = throttle((movedNodeId: string, areaId: string) =>
   }
 
   // 6. 执行批量更新
+  console.log("🚀 ~ 2");
   graph.updateNodeData(updates);
+  console.log("🚀 ~ 3");
+};
+
+// 2. 节流版 (保持简单)
+const throttledUpdateArea = throttle((areaId: string) => {
+  execUpdateArea(areaId);
 }, 16);
 
-// 拖拽事件回调
+// 3. 拖拽中
 function handleNodeDrag(e: any) {
   const targetNode = e.target;
-  // 只有拖拽 Node 类型才处理
-  if (!targetNode || targetNode.id.startsWith('edge-')) return;
+  // 注意：G6 5.0 中 e.target 是 Group，ID 就在上面
+  if (!targetNode || (targetNode.id && targetNode.id.startsWith('edge-'))) return;
 
-  // 获取所属区域 ID
-  const areaId = targetNode.data?.area;
+  const nodeId = targetNode.id;
+  // 这里需要从 graph 里拿数据找 areaId
+  const nodeData = graph.getNodeData(nodeId);
+  const areaId = nodeData?.data?.area;
+
+  console.log("🚀 ~ handleNodeDrag ~ areaId:", areaId)
   if (areaId) {
-    updateAreaByChildNodes(targetNode.id, areaId);
+    throttledUpdateArea(areaId as string);
+  }
+}
+
+// 拖拽结束事件回调
+function handleNodeDragEnd(e: any) {
+  const targetNode = e.target;
+  if (!targetNode || (targetNode.id && targetNode.id.startsWith('edge-'))) return;
+
+  const nodeId = targetNode.id;
+  const nodeData = graph.getNodeData(nodeId);
+  const areaId = nodeData?.data?.area;
+
+  if (areaId) {
+    // 1. 取消节流队列，防止旧的覆盖新的
+    throttledUpdateArea.cancel();
+
+    // 2. 使用 setTimeout(0) 将其推到下一个事件循环
+    // 这就是“模拟第二次拖拽”的效果：等待 G6 内部把拖拽后的最终坐标写入数据模型后，
+    // 我们立即执行一次计算，把区域框校准到最新位置。
+    setTimeout(() => {
+      execUpdateArea(areaId as string);
+      console.log("🚀 ~ handleNodeDragEnd ~ areaId:", areaId)
+    }, 100);
   }
 }
 

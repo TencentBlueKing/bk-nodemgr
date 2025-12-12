@@ -76,7 +76,10 @@ platform:
     operate: Actions
     edit: Edit
     delete: Detele
-    pluginManagement: Plugin management
+    pluginManagement:
+      pluginGroupName: Plugin
+      plugin:
+        title: Plugin status
     history: History
     taskHistory:
       title:

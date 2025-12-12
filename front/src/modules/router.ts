@@ -10,7 +10,7 @@ import TaskHistory from '@/pages/node/history/history.vue';
 import Log from '@/pages/node/history/log.vue';
 import TaskDetail from '@/pages/node/history/task-detail.vue';
 import NodeManager from '@/pages/node/index.vue';
-import PluginManager from '@/pages/node/plugin.vue';
+import PluginManager from '@/pages/node/plugin/plugin.vue';
 import AgentPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
 import CertBintoolMng from '@/pages/pkg/cert-bintool-manage/list.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
@@ -85,6 +85,8 @@ const routes = setupLayouts([
             component: PluginManager,
             meta: {
               mainMenu: 'nodeManager',
+              title: '插件状态',
+              back: false,
             },
           },
           {

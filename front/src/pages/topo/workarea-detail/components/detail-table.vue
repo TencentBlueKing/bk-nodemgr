@@ -113,6 +113,18 @@
           </template>
         </TableColumn>
         <TableColumn
+          title="bkmonitorbeat"
+          field="bkmonitorbeat"
+          v-if="route.name === 'proxy'"
+          :min-width="122"
+        >
+          <template #default="{ row }">
+            <Button text theme="primary" @click="openSidebar(row)">
+              {{ row.bkmonitorbeat || 0 }}
+            </Button>
+          </template>
+        </TableColumn>
+        <TableColumn
           :label="$t('topoManager.workAreaDetail.table.action')"
           field="action"
           fixed="right"
@@ -137,6 +149,12 @@
     <edit-proxy-sideslider v-model:is-show="sidesliderData.isShow" :data="sidesliderData.data" @update="handleUpdate">
     </edit-proxy-sideslider>
     <ReinstallProxy v-model:is-show="isShowInstallProxy" :data="reinstallData" :bk_networkunit_id="bkNetworkunitId" />
+    <!-- 侧边栏 -->
+    <processSideslider
+      v-model:is-show="isShowSideslider"
+      type="node"
+      :node="currentProxy"
+    ></processSideslider>
   </div>
 </template>
 
@@ -148,6 +166,7 @@ import { useRoute } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import processSideslider from '../../../node/plugin/process-sideslider.vue';
 import ReinstallProxy from '../../install-proxy/reinstall-proxy.vue';
 
 import EditProxySideslider from './edit-proxy-sideslider.vue';
@@ -157,6 +176,7 @@ import type {
   TopoHostExactConditions,
   TopoHostFuzzyConditions,
 } from '@/@types/topo.d';
+import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
@@ -205,6 +225,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'node_version',
     'node_status',
     'proxy_tags',
+    'bkmonitorbeat',
     'action',
   ],
   disabled: ['action'],
@@ -255,6 +276,15 @@ const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
   }));
 };
 
+// ---------- 侧边栏 ----------
+const isShowSideslider = ref(false);
+const currentProxy = ref();
+// 打开侧边栏并加载进程列表
+const openSidebar = async (proxy) => {
+  isShowSideslider.value = true;
+  currentProxy.value = proxy;
+};
+
 const handleEdit = (row: Host) => {
   sidesliderData.isShow = true;
   sidesliderData.data = row;
@@ -298,6 +328,16 @@ const getProxyList = async () => {
     };
   });
   pagination.count = res.total;
+
+  const pluginNumMap = await ProcessAPIService.GetProcessDistributionByHostID({
+    exact_include_conditions: {
+      bk_host_id: res.items.map((item: any) => item.bk_host_id),
+    },
+  }).catch((err: any) => {
+    console.error('获取插件数量失败:', err);
+    return {} as Record<number, number>;
+  });
+
   list.value = res.items.map((item: any) => ({
     ...item.state,
     ...item.info,
@@ -306,6 +346,7 @@ const getProxyList = async () => {
     bk_host_innerip_v6: item.info.bk_host_innerip_v6_list.join(','),
     export_ip: item.info.bk_host_outerip_list.join(','),
     advertise_ip: item.info.bk_host_outerip_v6_list.join(','),
+    bkmonitorbeat: pluginNumMap[item.bk_host_id] || 0,
   }));
   emit('getData', list.value);
   loading.value = false;

@@ -184,6 +184,17 @@
           </template>
         </TableColumn>
         <TableColumn
+          title="bkmonitorbeat"
+          field="bkmonitorbeat"
+          :min-width="122"
+        >
+          <template #default="{ row }">
+            <Button text theme="primary" @click="openSidebar(row)">
+              {{ row.bkmonitorbeat || 0 }}
+            </Button>
+          </template>
+        </TableColumn>
+        <TableColumn
           field="action"
           :title="t('platform.nodeMan.operate')"
           :min-width="100"
@@ -240,6 +251,13 @@
       :sub-title="operateDialogData.subTitle"
       @confirm="operateJob"
     ></operate-dialog>
+
+    <!-- 侧边栏 -->
+    <processSideslider
+      v-model:is-show="isShowSideslider"
+      type="node"
+      :node="currentAgent"
+    ></processSideslider>
   </div>
 </template>
 <script setup lang="ts">
@@ -252,12 +270,15 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import processSideslider from '../plugin/process-sideslider.vue';
+
 import type { TopoHostDistinctRespData } from '@/@types/topo';
 import type {
   TopoHostExactConditions,
   TopoHostFuzzyConditions,
 } from '@/@types/topo.d';
 import { NodeAgentService } from '@/api/modules/node_agent';
+import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
@@ -375,6 +396,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'os_type',
     'node_version',
     'node_status',
+    'bkmonitorbeat',
     'action',
   ],
   disabled: ['action'],
@@ -468,6 +490,16 @@ const getHostDistinct = async () => {
   }
 };
 
+// ---------- 侧边栏 ----------
+const isShowSideslider = ref(false);
+const currentAgent = ref();
+// 打开侧边栏并加载进程列表
+const openSidebar = async (agent) => {
+  isShowSideslider.value = true;
+  currentAgent.value = agent;
+};
+
+
 /**
  * 获取Agent列表
  */
@@ -486,14 +518,27 @@ const getAgentList = async () => {
 
   loading.value = true;
   try {
-    const res = await TopoService.HostList(getParams());
+    const res = await TopoService.HostList(getParams()).catch((err: any) => {
+      console.error('获取Agent列表失败:', err);
+      return { total: 0, items: [] };
+    });
     pagination.count = res.total;
+
+    const pluginNumMap = await ProcessAPIService.GetProcessDistributionByHostID({
+      exact_include_conditions: {
+        bk_host_id: res.items.map((item: any) => item.bk_host_id),
+      },
+    }).catch((err: any) => {
+      console.error('获取插件数量失败:', err);
+      return {} as Record<number, number>;
+    });
     tableData.value = res.items.map((item: any) => ({
       ...item.state,
       ...item.info,
       ...item,
       bk_host_innerip: item.info.bk_host_innerip_list?.join(','),
       bk_host_innerip_v6: item.info.bk_host_innerip_v6_list?.join(','),
+      bkmonitorbeat: pluginNumMap[item.bk_host_id] || 0,
     }));
     agentList.value = tableData.value;
   } catch (err) {
@@ -742,7 +787,7 @@ const isLoading = ref(false);
 watch(() => route.query, (newQuery, oldQuery) => {
   // 只有当路由参数实际发生变化时才处理
   if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) return;
-  
+
   const { os_type, cpu_arch, node_version, bk_networkarea_id, bk_networkunit_id } = newQuery;
 
   // 处理操作系统、架构、版本的筛选
@@ -769,13 +814,15 @@ watch(() => route.query, (newQuery, oldQuery) => {
         values: [{ id: unitId, name: networkUnitListMap.value.get(unitId) || unitId }],
       },
     ];
+  } else {
+    searchSelectValue.value = [];
   }
 }, { immediate: true });
 
 // 【修复点3】统一初始化逻辑，避免重复调用
 const initializePage = async () => {
   if (isLoading.value) return;
-  
+
   isLoading.value = true;
   try {
     // 重置状态
@@ -808,10 +855,7 @@ watch(() => mainStore.selectedBusinessId, (newId, oldId) => {
 // 【修复点5】优化搜索条件监听，避免与初始化冲突
 watch(
   searchSelectValue,
-  (newValue, oldValue) => {
-    // 只有当搜索条件实际发生变化时才触发
-    if (JSON.stringify(newValue) === JSON.stringify(oldValue)) return;
-
+  () => {
     if (isInitialDataLoaded.value) {
       pagination.current = 1;
       debouncedGetAgentList();

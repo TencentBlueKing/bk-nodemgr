@@ -74,7 +74,10 @@ platform:
     operate: 操作
     edit: 编辑
     delete: 删除
-    pluginManagement: 插件管理
+    pluginManagement:
+      pluginGroupName: 插件
+      plugin:
+        title: 插件状态
     history: 历史
     taskHistory:
       title:
