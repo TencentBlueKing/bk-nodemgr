@@ -91,11 +91,11 @@ func TestHandler_Create(t *testing.T) {
 							HostID:     0,
 							PluginName: "",
 							Info: types.ProcessInfo{
-								Pid:         233,
-								Version:     "1.0.0",
-								AgentID:     "123456",
-								Trusteeship: false,
-								Status:      "running",
+								Pid:       233,
+								Version:   "1.0.0",
+								AgentID:   "123456",
+								AutoStart: false,
+								Status:    "running",
 							},
 							Identity: types.ProcessIdentity{
 								Name:       "proc-test",
@@ -220,11 +220,11 @@ func TestHandler_UpdateInfo(t *testing.T) {
 						HostID:     0,
 						PluginName: "",
 						Info: types.ProcessInfo{
-							Pid:         233,
-							Version:     "1.0.0",
-							AgentID:     "123456",
-							Trusteeship: false,
-							Status:      "running",
+							Pid:       233,
+							Version:   "1.0.0",
+							AgentID:   "123456",
+							AutoStart: false,
+							Status:    "running",
 						},
 						Identity: types.ProcessIdentity{
 							Name:       "proc-test",

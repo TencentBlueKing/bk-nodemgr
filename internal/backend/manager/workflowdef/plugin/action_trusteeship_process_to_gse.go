@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	// ActionNameTrusteeshipProcess the name of action trusteeship process.
-	ActionNameTrusteeshipProcess = "trusteeship_process"
+	// ActionNameTrusteeshipProcessToGse the name of action trusteeship process.
+	ActionNameTrusteeshipProcessToGse = "trusteeship_process_to_gse"
 )
 
 // NewActionTrusteeshipProcess new an action to trusteeship process.
@@ -50,7 +50,7 @@ type actTrusteeshipProcess struct {
 
 // Name returns the name of the action.
 func (act *actTrusteeshipProcess) Name() string {
-	return ActionNameTrusteeshipProcess
+	return ActionNameTrusteeshipProcessToGse
 }
 
 // Version returns the version of the action.
@@ -112,7 +112,7 @@ func (act *actTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to trusteeship process: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("successfully execute trusteeship plugin process operate, result(%s)", result))
+	std.InstanceData().LogI(fmt.Sprintf("successfully execute trusteeship plugin process operation, result(%s)", result))
 
 	std.InstanceData().LogI("wait process running")
 	polling := retrier.NewPolling(retrier.PollingOpts{
@@ -133,7 +133,7 @@ func (act *actTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("process status is not running, status(%s)", processInfo.Status)
 		}
 
-		if !processInfo.Trusteeship {
+		if !processInfo.AutoStart {
 			std.InstanceData().LogI("process is not trusteeship by gse")
 
 			return fmt.Errorf("process is not trusteeship by gse")
@@ -148,8 +148,8 @@ func (act *actTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process running: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), trusteeship(%t), status(%s)",
-		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.Trusteeship, processInfo.Status))
+	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status))
 
 	return nil
 }

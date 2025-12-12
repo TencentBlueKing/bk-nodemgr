@@ -145,7 +145,7 @@ func convProcessInfoFromTypes(info types.ProcessInfo) processInfo {
 		Pid:         info.Pid,
 		Version:     info.Version,
 		AgentID:     info.AgentID,
-		Trusteeship: info.Trusteeship,
+		Trusteeship: info.AutoStart,
 		Status:      string(info.Status),
 	}
 }
@@ -245,11 +245,11 @@ func convertProcessToTypes(data *Process) *types.Process {
 		},
 		Generation: types.Generation(data.Generation),
 		Info: types.ProcessInfo{
-			Pid:         data.Info.Pid,
-			Version:     data.Info.Version,
-			AgentID:     data.Info.AgentID,
-			Trusteeship: data.Info.Trusteeship,
-			Status:      types.ProcessStatus(data.Info.Status),
+			Pid:       data.Info.Pid,
+			Version:   data.Info.Version,
+			AgentID:   data.Info.AgentID,
+			AutoStart: data.Info.Trusteeship,
+			Status:    types.ProcessStatus(data.Info.Status),
 		},
 		Identity: types.ProcessIdentity{
 

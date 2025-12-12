@@ -137,7 +137,7 @@ func (act *actStartProcess) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("process status is not running, status(%s)", processInfo.Status)
 		}
 
-		if !processInfo.Trusteeship {
+		if !processInfo.AutoStart {
 			std.InstanceData().LogI("process is not trusteeship by gse")
 
 			return fmt.Errorf("process is not trusteeship by gse")
@@ -152,8 +152,8 @@ func (act *actStartProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process running: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), trusteeship(%t), status(%s)",
-		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.Trusteeship, processInfo.Status))
+	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status))
 
 	return nil
 }

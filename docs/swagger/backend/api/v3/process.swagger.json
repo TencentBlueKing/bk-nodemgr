@@ -341,7 +341,7 @@
         "agent_id": {
           "type": "string"
         },
-        "trusteeship": {
+        "auto_start": {
           "type": "boolean"
         },
         "status": {

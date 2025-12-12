@@ -118,7 +118,7 @@ func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.
 		*item.ProcessInfo.Pid = int32(proc.Info.Pid)
 		*item.ProcessInfo.Version = proc.Info.Version
 		*item.ProcessInfo.AgentId = proc.Info.AgentID
-		*item.ProcessInfo.Trusteeship = proc.Info.Trusteeship
+		*item.ProcessInfo.AutoStart = proc.Info.AutoStart
 		*item.ProcessInfo.Status = proc.Info.Status.String()
 		*item.ProcessIdentity.Name = proc.Identity.Name
 		*item.ProcessIdentity.SetupPath = proc.Identity.SetupPath
@@ -162,11 +162,11 @@ func newEmptyProcess() *ProcessListResp_Process {
 		},
 		Generation: new(int64),
 		ProcessInfo: &ProcessInfo{
-			Pid:         new(int32),
-			Version:     new(string),
-			AgentId:     new(string),
-			Trusteeship: new(bool),
-			Status:      new(string),
+			Pid:       new(int32),
+			Version:   new(string),
+			AgentId:   new(string),
+			AutoStart: new(bool),
+			Status:    new(string),
 		},
 		ProcessIdentity: &ProcessIdentity{
 			Name:       new(string),
@@ -216,11 +216,11 @@ func (x *ProcessListResp) ConvertProcessToTypes() ([]*types.Process, int64) {
 			},
 			Generation: types.Generation(proc.GetGeneration()),
 			Info: types.ProcessInfo{
-				Pid:         int(proc.GetProcessInfo().GetPid()),
-				Version:     proc.GetProcessInfo().GetVersion(),
-				AgentID:     proc.GetProcessInfo().GetAgentId(),
-				Trusteeship: proc.GetProcessInfo().GetTrusteeship(),
-				Status:      types.ProcessStatus(proc.GetProcessInfo().GetStatus()),
+				Pid:       int(proc.GetProcessInfo().GetPid()),
+				Version:   proc.GetProcessInfo().GetVersion(),
+				AgentID:   proc.GetProcessInfo().GetAgentId(),
+				AutoStart: proc.GetProcessInfo().GetAutoStart(),
+				Status:    types.ProcessStatus(proc.GetProcessInfo().GetStatus()),
 			},
 			Identity: types.ProcessIdentity{
 				Name:       proc.GetProcessIdentity().GetName(),

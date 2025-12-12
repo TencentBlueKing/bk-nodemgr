@@ -282,7 +282,7 @@ message ProcessInfo {
   optional int32 pid = 1;
   optional string version = 2;
   optional string agent_id = 3;
-  optional bool trusteeship = 4;
+  optional bool auto_start = 4;
   optional string status = 5;
 }
 

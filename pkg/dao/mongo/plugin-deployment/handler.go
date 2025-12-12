@@ -230,11 +230,11 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 			},
 			Generation: types.Generation(info.Process.Generation),
 			Info: types.ProcessInfo{
-				Pid:         info.Process.Info.Pid,
-				Version:     info.Process.Info.Version,
-				AgentID:     info.Process.Info.AgentID,
-				Trusteeship: info.Process.Info.Trusteeship,
-				Status:      types.ProcessStatus(info.Process.Info.Status),
+				Pid:       info.Process.Info.Pid,
+				Version:   info.Process.Info.Version,
+				AgentID:   info.Process.Info.AgentID,
+				AutoStart: info.Process.Info.AutoStart,
+				Status:    types.ProcessStatus(info.Process.Info.Status),
 			},
 			Identity: types.ProcessIdentity{
 				Name:       info.Process.Identity.Name,
@@ -299,11 +299,11 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 			},
 			Generation: int64(info.Process.Generation),
 			Info: processInfo{
-				Pid:         info.Process.Info.Pid,
-				Version:     info.Process.Info.Version,
-				AgentID:     info.Process.Info.AgentID,
-				Trusteeship: info.Process.Info.Trusteeship,
-				Status:      string(info.Process.Info.Status),
+				Pid:       info.Process.Info.Pid,
+				Version:   info.Process.Info.Version,
+				AgentID:   info.Process.Info.AgentID,
+				AutoStart: info.Process.Info.AutoStart,
+				Status:    string(info.Process.Info.Status),
 			},
 			Identity: processIdentity{
 				Name:       info.Process.Identity.Name,

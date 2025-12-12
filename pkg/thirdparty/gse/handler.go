@@ -756,11 +756,11 @@ func (h *Handler) QueryProcessInfo(nCtx contextx.IContext, pluginName string, pr
 	}
 
 	info := &types.ProcessInfo{
-		Trusteeship: procInfoMap[agentID].IsAuto,
-		Pid:         procInfoMap[agentID].Pid,
-		AgentID:     agentID,
-		Version:     strings.TrimSpace(procInfoMap[agentID].Version),
-		Status:      convPidToProcStatus(procInfoMap[agentID].Pid),
+		AutoStart: procInfoMap[agentID].IsAuto,
+		Pid:       procInfoMap[agentID].Pid,
+		AgentID:   agentID,
+		Version:   strings.TrimSpace(procInfoMap[agentID].Version),
+		Status:    convPidToProcStatus(procInfoMap[agentID].Pid),
 	}
 
 	return info, nil
@@ -839,11 +839,11 @@ func (h *Handler) QueryMultiProcessInfoMany(
 	for agentID, infos := range procInfoMap {
 		for _, info := range infos {
 			processInfoMap[info.ProcessName] = append(processInfoMap[info.ProcessName], types.ProcessInfo{
-				Trusteeship: info.IsAuto,
-				AgentID:     agentID,
-				Pid:         info.Pid,
-				Version:     strings.TrimSpace(info.Version),
-				Status:      convPidToProcStatus(info.Pid),
+				AutoStart: info.IsAuto,
+				AgentID:   agentID,
+				Pid:       info.Pid,
+				Version:   strings.TrimSpace(info.Version),
+				Status:    convPidToProcStatus(info.Pid),
 			})
 		}
 	}

@@ -83,7 +83,7 @@ func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.
 		*item.ProcessInfo.Pid = int32(proc.Info.Pid)
 		*item.ProcessInfo.Version = proc.Info.Version
 		*item.ProcessInfo.AgentId = proc.Info.AgentID
-		*item.ProcessInfo.Trusteeship = proc.Info.Trusteeship
+		*item.ProcessInfo.AutoStart = proc.Info.AutoStart
 		*item.ProcessInfo.Status = proc.Info.Status.String()
 		*item.ProcessIdentity.Name = proc.Identity.Name
 		*item.ProcessIdentity.SetupPath = proc.Identity.SetupPath
@@ -127,11 +127,11 @@ func newEmptyProcess() *Process {
 		},
 		Generation: new(int64),
 		ProcessInfo: &ProcessInfo{
-			Pid:         new(int32),
-			Version:     new(string),
-			AgentId:     new(string),
-			Trusteeship: new(bool),
-			Status:      new(string),
+			Pid:       new(int32),
+			Version:   new(string),
+			AgentId:   new(string),
+			AutoStart: new(bool),
+			Status:    new(string),
 		},
 		ProcessIdentity: &ProcessIdentity{
 			Name:       new(string),

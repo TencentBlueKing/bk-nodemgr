@@ -53,11 +53,11 @@ func (status ProcessStatus) String() string {
 
 // ProcessInfo represents the process info.
 type ProcessInfo struct {
-	Pid         int
-	Version     string
-	AgentID     string
-	Trusteeship bool
-	Status      ProcessStatus
+	Pid       int
+	Version   string
+	AgentID   string
+	AutoStart bool
+	Status    ProcessStatus
 }
 
 // ProcessIdentity defines the identity of process.

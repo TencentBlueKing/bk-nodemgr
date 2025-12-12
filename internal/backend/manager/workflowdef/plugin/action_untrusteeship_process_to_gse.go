@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	// ActionNameUnTrusteeshipProcess the name of action untrusteeship process.
-	ActionNameUnTrusteeshipProcess = "untrusteeship_process"
+	// ActionNameUnTrusteeshipProcessToGse the name of action untrusteeship process.
+	ActionNameUnTrusteeshipProcessToGse = "untrusteeship_process_to_gse"
 )
 
 // NewActionUnTrusteeshipProcess new an action to untrusteeship process.
@@ -48,7 +48,7 @@ type actUnTrusteeshipProcess struct {
 
 // Name returns the name of the action.
 func (act *actUnTrusteeshipProcess) Name() string {
-	return ActionNameUnTrusteeshipProcess
+	return ActionNameUnTrusteeshipProcessToGse
 }
 
 // Version returns the version of the action.
@@ -58,7 +58,7 @@ func (act *actUnTrusteeshipProcess) Version() string {
 
 // Description returns the description of the action.
 func (act *actUnTrusteeshipProcess) Description() string {
-	return "untrusteeship process by gse."
+	return "cancel trusteeship process to gse."
 }
 
 // Timeout returns the timeout of the action.
@@ -110,21 +110,21 @@ func (act *actUnTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to untrusteeship process: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("successfully execute untrusteeship process operate, result(%s)", result))
+	std.InstanceData().LogI(fmt.Sprintf("successfully execute untrusteeship process operation, result(%s)", result))
 
 	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
 	if err != nil {
 		return fmt.Errorf("failed to query process info: %w", err)
 	}
 
-	if processInfo.Trusteeship {
+	if processInfo.AutoStart {
 		std.InstanceData().LogI("process is still trusteeship by gse")
 
 		return fmt.Errorf("process is still trusteeship by gse")
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), trusteeship(%t), status(%s)",
-		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.Trusteeship, processInfo.Status))
+	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status))
 
 	return nil
 }

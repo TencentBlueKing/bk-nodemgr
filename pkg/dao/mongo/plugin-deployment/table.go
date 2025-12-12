@@ -60,11 +60,11 @@ type platform struct {
 }
 
 type processInfo struct {
-	Pid         int    `json:"pid" bson:"pid"`
-	Version     string `json:"version" bson:"version"`
-	AgentID     string `json:"agent_id" bson:"agent_id"`
-	Trusteeship bool   `json:"trusteeship" bson:"trusteeship"`
-	Status      string `json:"status" bson:"status"`
+	Pid       int    `json:"pid" bson:"pid"`
+	Version   string `json:"version" bson:"version"`
+	AgentID   string `json:"agent_id" bson:"agent_id"`
+	AutoStart bool   `json:"auto_start" bson:"auto_start"`
+	Status    string `json:"status" bson:"status"`
 }
 type processIdentity struct {
 	Name       string `json:"name" bson:"name"`

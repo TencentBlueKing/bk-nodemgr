@@ -145,8 +145,8 @@ func (act *actionReloadProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process running: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), trusteeship(%t), status(%s)",
-		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.Trusteeship, processInfo.Status))
+	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status))
 
 	return nil
 }
