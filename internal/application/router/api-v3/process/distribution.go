@@ -19,23 +19,23 @@ import (
 
 // GetDistributionByHostID defines the process distribution by host id handler.
 func (h *handler) GetDistributionByHostID(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.GetProcessDistributionByPluginNameReq)
+	req := new(protoApplication.GetProcessDistributionByHostIDReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get process distribution by plugin name, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get process distribution by host id, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.GetProcessDistributionByPluginName(
+	result, err := h.backendHandler.GetProcessDistributionByHostID(
 		rCtx,
 		req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
-			Error("failed to get process distribution by plugin name. failed to get process distribution by plugin name fields: %v", err)
+			Error("failed to get process distribution by host id. failed to get process distribution by host id fields: %v", err)
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	resp := new(protoApplication.GetProcessDistributionByPluginNameResp)
+	resp := new(protoApplication.GetProcessDistributionByHostIDResp)
 
 	resp.ConvertResultFromTypes(result)
 
