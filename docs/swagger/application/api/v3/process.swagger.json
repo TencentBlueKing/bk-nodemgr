@@ -429,7 +429,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "description": "ProcessExactConditions describes the exact match conditions for process\nquery."
     },
     "v3ProcessFuzzyConditions": {
       "type": "object",
@@ -446,7 +447,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "description": "ProcessFuzzyConditions describes the fuzzy match conditions for process\nquery."
     },
     "v3ProcessIdentity": {
       "type": "object",

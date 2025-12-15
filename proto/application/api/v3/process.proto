@@ -6,6 +6,36 @@ import "common.proto";
 
 import "google/api/annotations.proto";
 
+// ProcessExactConditions describes the exact match conditions for process
+// query.
+message ProcessExactConditions {
+  repeated int64 bk_host_id = 1;
+  repeated string plugin_group = 3;
+  repeated string node_generation = 4;
+  repeated string platform_os = 5;
+  repeated string platform_arch = 6;
+  repeated string status = 7;
+  repeated string agent_id = 8;
+  repeated string version = 9;
+  repeated string plugin_name = 10;
+  repeated string plugin_pkg_name = 11;
+}
+
+// ProcessFuzzyConditions describes the fuzzy match conditions for process
+// query.
+message ProcessFuzzyConditions {
+  repeated string name = 1;
+  repeated string plugin_pkg_name = 2;
+}
+// ProcessListReq describes the process list request.
+message ProcessListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  ProcessExactConditions exact_include_conditions = 3;
+
+  ProcessFuzzyConditions fuzzy_include_conditions = 4;
+}
 // ProcessListResp describes the process list response.
 message ProcessListResp {
   int32 code = 1;
