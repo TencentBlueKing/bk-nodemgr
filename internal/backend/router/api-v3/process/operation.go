@@ -111,3 +111,25 @@ func (h *handler) GetDistributionByPluginName(rCtx restserver.IContext) (interfa
 
 	return resp.GetData(), nil
 }
+
+// Distinct defines the process distinct handler.
+func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.ProcessDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to process distinct, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.daoProcess.DistinctProcess(rCtx,
+		req.ConvertSelectorToTypes(),
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to process distinct, failed to distinct process fields")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.ProcessDistinctResp)
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}

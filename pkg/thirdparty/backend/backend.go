@@ -2249,6 +2249,38 @@ func (c *cli) getProcessDistributionByPluginName(ctx contextx.IContext, req *pro
 	return resp, nil
 }
 
+// distinctProcess distinct process by conditions.
+func (c *cli) distinctProcess(ctx contextx.IContext, req *protoBackend.ProcessDistinctReq) (
+	*protoBackend.ProcessDistinctResp, error) {
+
+	resp := new(protoBackend.ProcessDistinctResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/process/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct process failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct process failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) getGraphNode(ctx contextx.IContext, req *protoBackend.TopoGraphNodeGetReq) (
 	*protoBackend.TopoGraphNodeGetResp, error) {
 

@@ -429,6 +429,10 @@ type IHandlerProcess interface {
 
 	// GetProcessDistributionByPluginName gets process distribution by plugin name.
 	GetProcessDistributionByPluginName(nCtx contextx.IContext, condition *types.ProcessCondition) (map[string]int64, error)
+
+	// DistinctProcess distinct process by conditions.
+	DistinctProcess(nCtx contextx.IContext, selector types.ProcessDistinctSelector, condition *types.ProcessCondition) (
+		*types.ProcessDistinctResult, error)
 }
 
 // IHandlerConfigPolicyEvent defines the backend Handler for policy event.
