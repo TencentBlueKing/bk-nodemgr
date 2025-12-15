@@ -18,6 +18,7 @@
           <template #default="{ row }">
             <Button text theme="primary" @click="openSidebar(row)">
               {{ row.node_num || 0 }}
+              <i class="nodeman-icon nc-cloud-machine ml-[5px]"></i>
             </Button>
           </template>
         </TableColumn>

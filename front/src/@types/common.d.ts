@@ -279,7 +279,7 @@ interface ProcessInfo {
   pid: number;
   version: string;
   agent_id: string;
-  trusteeship: boolean;
+  auto_start: boolean;
   status: string;
 }
 

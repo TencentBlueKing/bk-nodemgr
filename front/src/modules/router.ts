@@ -85,7 +85,7 @@ const routes = setupLayouts([
             component: PluginManager,
             meta: {
               mainMenu: 'nodeManager',
-              title: '插件状态',
+              title: '插件',
               back: false,
             },
           },

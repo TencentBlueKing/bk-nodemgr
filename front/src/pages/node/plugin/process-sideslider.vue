@@ -16,21 +16,25 @@
         :show-settings="isShowSetting"
         :pagination="pagination"
         :settings="settings"
+        show-overflow-tooltip
+        :tooltip-config="{
+          popupClassName: 'process-table'
+        }"
         @setting-change="handleSettingChange"
         @page-limit-change="pageLimitChange"
         @page-value-change="pageValueChange"
       >
-        <TableColumn title="Host ID" field="bk_host_id" fixed="left"></TableColumn>
-        <TableColumn title="插件名" field="plugin_name"></TableColumn>
-        <TableColumn title="插件包名" field="plugin_pkg_name"></TableColumn>
-        <TableColumn title="插件组" field="plugin_group"></TableColumn>
-        <TableColumn title="操作系统" field="os_type"></TableColumn>
-        <TableColumn title="CPU 架构" field="cpu_arch"></TableColumn>
-        <TableColumn title="Pid" field="pid"></TableColumn>
-        <TableColumn title="版本" field="version"></TableColumn>
-        <TableColumn title="Agent Id" field="agent_id"></TableColumn>
-        <TableColumn title="进程名" field="name"></TableColumn>
-        <TableColumn title="进程状态" field="status">
+        <TableColumn title="Host ID" field="bk_host_id" fixed="left" min-width="120"></TableColumn>
+        <TableColumn title="插件名" field="plugin_name" min-width="150"></TableColumn>
+        <TableColumn title="插件包名" field="plugin_pkg_name" min-width="150"></TableColumn>
+        <TableColumn title="插件组" field="plugin_group" min-width="120"></TableColumn>
+        <TableColumn title="操作系统" field="os_type" min-width="100"></TableColumn>
+        <TableColumn title="CPU 架构" field="cpu_arch" min-width="100"></TableColumn>
+        <TableColumn title="Pid" field="pid" min-width="100"></TableColumn>
+        <TableColumn title="版本" field="version" min-width="120"></TableColumn>
+        <TableColumn title="Agent Id" field="agent_id" min-width="120"></TableColumn>
+        <TableColumn title="进程名" field="name" min-width="120"></TableColumn>
+        <TableColumn title="进程状态" field="status" min-width="100">
           <template #default="{ row }">
             <div class="flex items-center">
               <i :class="`nodeman-icon nc-${statusMap[row.status]?.icon} status-icon`"></i>
@@ -38,46 +42,46 @@
             </div>
           </template>
         </TableColumn>
-        <TableColumn title="安装路径" field="setup_path"></TableColumn>
-        <TableColumn title="Pid 文件路径" field="pid_path"></TableColumn>
-        <TableColumn title="配置文件路径" field="config_path"></TableColumn>
-        <TableColumn title="日志文件夹路径" field="log_path"></TableColumn>
-        <TableColumn title="进程所属系统账户" field="user"></TableColumn>
-        <TableColumn title="启动命令" field="start_cmd"></TableColumn>
-        <TableColumn title="停止命令" field="stop_cmd"></TableColumn>
-        <TableColumn title="重启命令" field="restart_cmd"></TableColumn>
-        <TableColumn title="Reload 命令" field="reload_cmd"></TableColumn>
-        <TableColumn title="Kill命令" field="kill_cmd"></TableColumn>
-        <TableColumn title="进程版本查询命令" field="version_cmd"></TableColumn>
-        <TableColumn title="进程健康检查命令" field="health_cmd"></TableColumn>
-        <TableColumn title="CPU 使用率上限百分比（总占比，非单核占比）" field="cpu_limit_percent"></TableColumn>
-        <TableColumn title="Mem 使用率上限百分比" field="mem_limit_percent"></TableColumn>
-        <TableColumn title="重启策略" field="auto_type"></TableColumn>
-        <TableColumn title="启动后延迟检查的时间" field="start_check_seconds">
+        <TableColumn title="安装路径" field="setup_path" min-width="120"></TableColumn>
+        <TableColumn title="Pid 文件路径" field="pid_path" min-width="120"></TableColumn>
+        <TableColumn title="配置文件路径" field="config_path" min-width="120"></TableColumn>
+        <TableColumn title="日志文件夹路径" field="log_path" min-width="130"></TableColumn>
+        <TableColumn title="进程所属系统账户" field="user" min-width="150"></TableColumn>
+        <TableColumn title="启动命令" field="start_cmd" min-width="180"></TableColumn>
+        <TableColumn title="停止命令" field="stop_cmd" min-width="180"></TableColumn>
+        <TableColumn title="重启命令" field="restart_cmd" min-width="180"></TableColumn>
+        <TableColumn title="Reload 命令" field="reload_cmd" min-width="180"></TableColumn>
+        <TableColumn title="Kill命令" field="kill_cmd" min-width="180"></TableColumn>
+        <TableColumn title="进程版本查询命令" field="version_cmd" min-width="180"></TableColumn>
+        <TableColumn title="进程健康检查命令" field="health_cmd" min-width="180"></TableColumn>
+        <TableColumn title="CPU 使用率上限百分比（总占比，非单核占比）" field="cpu_limit_percent" min-width="120"></TableColumn>
+        <TableColumn title="Mem 使用率上限百分比" field="mem_limit_percent" min-width="120"></TableColumn>
+        <TableColumn title="重启策略" field="auto_type" min-width="120"></TableColumn>
+        <TableColumn title="启动后延迟检查的时间" field="start_check_seconds" min-width="120">
           <template #default="{ row }">
-            <span>{{ formatTimestamp(row.start_check_seconds) }}</span>
+            <span>{{ row.start_check_seconds }}s</span>
           </template>
         </TableColumn>
-        <TableColumn title="停止命令执行后开始检查进程存活的时间" field="stop_check_seconds">
+        <TableColumn title="停止命令执行后开始检查进程存活的时间" field="stop_check_seconds" min-width="120">
           <template #default="{ row }">
-            <span>{{ formatTimestamp(row.stop_check_seconds) }}</span>
+            <span>{{ row.stop_check_seconds }}s</span>
           </template>
         </TableColumn>
-        <TableColumn title="命令执行超时时间" field="operate_timeout_seconds">
+        <TableColumn title="命令执行超时时间" field="operate_timeout_seconds" min-width="120">
           <template #default="{ row }">
-            <span>{{ formatTimestamp(row.operate_timeout_seconds) }}</span>
+            <span>{{ row.operate_timeout_seconds }}s</span>
           </template>
         </TableColumn>
       </Table>
     </Loading>
-    <template #footer>
+    <!-- <template #footer>
       <Button class="mr-[8px]" theme="primary" @click="handleBeforeClose">
         {{ $t('action.confirm') }}
       </Button>
       <Button @click="handleBeforeClose">
         {{ $t('action.cancel') }}
       </Button>
-    </template>
+    </template> -->
   </Sideslider>
 </template>
 <script lang="ts" setup>
@@ -259,4 +263,13 @@ watch(
     background: #b2b5bd;
   }
 }
+
 </style>
+<style lang="postcss">
+.vxe-table--tooltip-wrapper {
+  &.process-table {
+    z-index: 2004 !important;
+  }
+}
+</style>
+

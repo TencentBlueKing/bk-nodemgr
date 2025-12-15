@@ -77,7 +77,7 @@ platform:
     pluginManagement:
       pluginGroupName: 插件
       plugin:
-        title: 插件状态
+        title: 插件
     history: 历史
     taskHistory:
       title:

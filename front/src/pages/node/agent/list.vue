@@ -184,13 +184,14 @@
           </template>
         </TableColumn>
         <TableColumn
-          title="bkmonitorbeat"
-          field="bkmonitorbeat"
+          title="插件数"
+          field="pluginNum"
           :min-width="122"
         >
           <template #default="{ row }">
             <Button text theme="primary" @click="openSidebar(row)">
-              {{ row.bkmonitorbeat || 0 }}
+              {{ row.pluginNum || 0 }}
+              <i class="nodeman-icon nc-plug-in ml-[5px]"></i>
             </Button>
           </template>
         </TableColumn>
@@ -396,7 +397,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'os_type',
     'node_version',
     'node_status',
-    'bkmonitorbeat',
+    'pluginNum',
     'action',
   ],
   disabled: ['action'],
@@ -538,7 +539,7 @@ const getAgentList = async () => {
       ...item,
       bk_host_innerip: item.info.bk_host_innerip_list?.join(','),
       bk_host_innerip_v6: item.info.bk_host_innerip_v6_list?.join(','),
-      bkmonitorbeat: pluginNumMap[item.bk_host_id] || 0,
+      pluginNum: pluginNumMap[item.bk_host_id] || 0,
     }));
     agentList.value = tableData.value;
   } catch (err) {

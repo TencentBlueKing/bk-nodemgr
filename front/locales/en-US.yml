@@ -79,7 +79,7 @@ platform:
     pluginManagement:
       pluginGroupName: Plugin
       plugin:
-        title: Plugin status
+        title: Plugin
     history: History
     taskHistory:
       title:

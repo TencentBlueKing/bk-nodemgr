@@ -113,14 +113,14 @@
           </template>
         </TableColumn>
         <TableColumn
-          title="bkmonitorbeat"
-          field="bkmonitorbeat"
-          v-if="route.name === 'proxy'"
+          title="插件数"
+          field="pluginNum"
           :min-width="122"
         >
           <template #default="{ row }">
             <Button text theme="primary" @click="openSidebar(row)">
-              {{ row.bkmonitorbeat || 0 }}
+              {{ row.pluginNum || 0 }}
+              <i class="nodeman-icon nc-plug-in ml-[5px]"></i>
             </Button>
           </template>
         </TableColumn>
@@ -225,7 +225,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'node_version',
     'node_status',
     'proxy_tags',
-    'bkmonitorbeat',
+    'pluginNum',
     'action',
   ],
   disabled: ['action'],
@@ -346,7 +346,7 @@ const getProxyList = async () => {
     bk_host_innerip_v6: item.info.bk_host_innerip_v6_list.join(','),
     export_ip: item.info.bk_host_outerip_list.join(','),
     advertise_ip: item.info.bk_host_outerip_v6_list.join(','),
-    bkmonitorbeat: pluginNumMap[item.bk_host_id] || 0,
+    pluginNum: pluginNumMap[item.bk_host_id] || 0,
   }));
   emit('getData', list.value);
   loading.value = false;
