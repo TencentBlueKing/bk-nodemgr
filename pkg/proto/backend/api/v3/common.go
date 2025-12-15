@@ -61,7 +61,7 @@ func generatePage(reqPage *Page, maxLimit int) types.Page {
 }
 
 // formatRespSlice formats the response slice.
-func formatRespSlice[T bool | string | int64](values []T) []T {
+func formatRespSlice[T ~bool | ~string | ~int64](values []T) []T {
 	if values == nil {
 		return make([]T, 0)
 	}

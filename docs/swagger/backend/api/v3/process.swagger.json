@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/process/distinct": {
+      "post": {
+        "summary": "ProcessDistinct describes the process distinct request.",
+        "operationId": "Process_ProcessDistinct",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3ProcessDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ProcessDistinctReq describes the process distinct request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3ProcessDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "Process"
+        ]
+      }
+    },
     "/api/v3/process/get_distribution_by_host_id": {
       "post": {
         "summary": "GetProcessDistributionByHostID describes the process statistics request.",
@@ -128,22 +162,6 @@
         },
         "message": {
           "type": "string"
-        }
-      }
-    },
-    "ProcessListRespData": {
-      "type": "object",
-      "properties": {
-        "total": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/ProcessListRespProcess"
-          }
         }
       }
     },
@@ -365,6 +383,117 @@
       },
       "description": "ProcessController describes the process controller."
     },
+    "v3ProcessDistinctReq": {
+      "type": "object",
+      "properties": {
+        "selector": {
+          "$ref": "#/definitions/v3ProcessDistinctSelector"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ProcessExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ProcessFuzzyConditions"
+        }
+      },
+      "description": "ProcessDistinctReq describes the process distinct request."
+    },
+    "v3ProcessDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ProcessDistinctRespData"
+        }
+      },
+      "description": "ProcessDistinctResp describes the process distinct response."
+    },
+    "v3ProcessDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_group": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_pkg_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3ProcessDistinctSelector": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "boolean"
+        },
+        "cpu_arch": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "boolean"
+        },
+        "plugin_name": {
+          "type": "boolean"
+        },
+        "plugin_group": {
+          "type": "boolean"
+        },
+        "plugin_pkg_name": {
+          "type": "boolean"
+        }
+      },
+      "description": "ProcessDistinctSelector describes the process distinct selector."
+    },
     "v3ProcessExactConditions": {
       "type": "object",
       "properties": {
@@ -529,10 +658,26 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/ProcessListRespData"
+          "$ref": "#/definitions/v3ProcessListRespData"
         }
       },
       "description": "ProcessListResp describes the process list response."
+    },
+    "v3ProcessListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ProcessListRespProcess"
+          }
+        }
+      }
     },
     "v3ProcessMonitorPolicy": {
       "type": "object",

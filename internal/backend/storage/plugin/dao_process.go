@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	daoProcess "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -224,4 +225,82 @@ func (s *Storage) getProcessDistributionByPluginName(nCtx contextx.IContext, con
 	}
 
 	return dist, nil
+}
+
+// distinctProcess distinct process.
+func (s *Storage) distinctProcess(nCtx contextx.IContext, request types.ProcessDistinctSelector, conditions ...*types.ProcessCondition) (
+	*types.ProcessDistinctResult, error) {
+
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	opts, err := convertProcessConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	data := new(types.ProcessDistinctResult)
+	gp := gopool.NewPool()
+	if request.OSType {
+		gp.Go(func() error {
+			var err error
+			data.OSType, err = s.daoProcess.DistinctPlatformOS(nCtx, opts...)
+
+			return err
+		})
+	}
+	if request.CPUArch {
+		gp.Go(func() error {
+			var err error
+			data.CPUArch, err = s.daoProcess.DistinctCPUArch(nCtx, opts...)
+
+			return err
+		})
+	}
+	if request.Version {
+		gp.Go(func() error {
+			var err error
+			data.Version, err = s.daoProcess.DistinctInfoVersion(nCtx, opts...)
+
+			return err
+		})
+	}
+	if request.Status {
+		gp.Go(func() error {
+			var err error
+			data.Status, err = s.daoProcess.DistinctInfoStatus(nCtx, opts...)
+
+			return err
+		})
+	}
+	if request.PluginName {
+		gp.Go(func() error {
+			var err error
+			data.PluginName, err = s.daoProcess.DistinctPluginName(nCtx, opts...)
+
+			return err
+		})
+	}
+	if request.PluginGroup {
+		gp.Go(func() error {
+			var err error
+			data.PluginGroup, err = s.daoProcess.DistinctGroup(nCtx, opts...)
+
+			return err
+		})
+	}
+	if request.PluginPkgName {
+		gp.Go(func() error {
+			var err error
+			data.PluginPkgName, err = s.daoProcess.DistinctPkgName(nCtx, opts...)
+
+			return err
+		})
+	}
+	if err = gp.Wait(); err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

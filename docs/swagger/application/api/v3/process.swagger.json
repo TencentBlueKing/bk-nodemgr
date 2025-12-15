@@ -16,6 +16,40 @@
     "application/json"
   ],
   "paths": {
+    "/api/v3/process/distinct": {
+      "post": {
+        "summary": "DistinctProcess describes the process distinct request.",
+        "operationId": "ProcessAPI_DistinctProcess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DistinctProcessResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DistinctProcessReq describes the process distinct request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DistinctProcessReq"
+            }
+          }
+        ],
+        "tags": [
+          "ProcessAPI"
+        ]
+      }
+    },
     "/api/v3/process/get_distribution_by_host_id": {
       "post": {
         "summary": "GetProcessDistributionByHostID describes the process statistics request.",
@@ -131,22 +165,6 @@
         }
       }
     },
-    "ProcessListRespData": {
-      "type": "object",
-      "properties": {
-        "total": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3Process"
-          }
-        }
-      }
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -171,6 +189,87 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3DistinctProcessReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3ProcessExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3ProcessFuzzyConditions"
+        }
+      },
+      "description": "DistinctProcessReq describes the process distinct request."
+    },
+    "v3DistinctProcessResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DistinctProcessRespData"
+        }
+      },
+      "description": "DistinctProcessResp describes the process distinct response."
+    },
+    "v3DistinctProcessRespData": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cpu_arch": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_group": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_pkg_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }
@@ -531,10 +630,26 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/ProcessListRespData"
+          "$ref": "#/definitions/v3ProcessListRespData"
         }
       },
       "description": "ProcessListResp describes the process list response."
+    },
+    "v3ProcessListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Process"
+          }
+        }
+      }
     },
     "v3ProcessMonitorPolicy": {
       "type": "object",

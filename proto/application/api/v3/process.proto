@@ -85,6 +85,32 @@ message GetProcessDistributionByPluginNameResp {
   map<string, int64> data = 5;
 }
 
+// DistinctProcessReq describes the process distinct request.
+message DistinctProcessReq {
+  ProcessExactConditions exact_include_conditions = 1;
+  ProcessFuzzyConditions fuzzy_include_conditions = 2;
+}
+
+// DistinctProcessResp describes the process distinct response.
+message DistinctProcessResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    repeated string os_type = 1;
+    repeated string cpu_arch = 2;
+    repeated string version = 3;
+    repeated string status = 4;
+    repeated string plugin_name = 5;
+    repeated string plugin_group = 6;
+    repeated string plugin_pkg_name = 7;
+  }
+  Data data = 5;
+}
+
+// ProcessAPI describes the process API.
 service ProcessAPI {
   // ListProcesses lists the processes.
   rpc ListProcesses(ProcessListReq) returns (ProcessListResp) {
@@ -109,6 +135,14 @@ service ProcessAPI {
       returns (GetProcessDistributionByPluginNameResp) {
     option (google.api.http) = {
       post : "/api/v3/process/get_distribution_by_plugin_name"
+      body : "*"
+    };
+  }
+
+  // DistinctProcess describes the process distinct request.
+  rpc DistinctProcess(DistinctProcessReq) returns (DistinctProcessResp) {
+    option (google.api.http) = {
+      post : "/api/v3/process/distinct"
       body : "*"
     };
   }

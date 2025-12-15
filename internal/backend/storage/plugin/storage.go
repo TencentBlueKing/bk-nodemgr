@@ -399,6 +399,7 @@ func (s *Storage) GetProcess(nCtx contextx.IContext, hostID int64, pluginName st
 const (
 	metricOperationGetProcessDistributionByHostID     = "get_process_distribution_by_host_id"
 	metricOperationGetProcessDistributionByPluginName = "get_process_distribution_by_plugin_name"
+	metricOperationDistinctProcess                    = "distinct_process"
 )
 
 // GetProcessDistributionByHostID get process distribution by host id.
@@ -451,4 +452,30 @@ func (s *Storage) GetProcessDistributionByPluginName(nCtx contextx.IContext, con
 	}
 
 	return dist, nil
+}
+
+// DistinctProcess distinct process.
+func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessDistinctSelector, condition ...*types.ProcessCondition) (*types.ProcessDistinctResult, error) {
+	var (
+		result *types.ProcessDistinctResult
+		err    error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDistinctProcess, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationDistinctProcess)
+		defer metric.End(err)
+
+		result, err = s.distinctProcess(nCtx, request, condition...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

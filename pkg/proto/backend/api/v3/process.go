@@ -11,6 +11,8 @@
 package v3
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -333,4 +335,157 @@ func (x *GetProcessDistributionByPluginNameReq) ConvertConditionFromTypes(condit
 	if condition.FuzzyInclude != nil {
 		x.FuzzyIncludeConditions = convFuzzyConditionsFromTypes(condition)
 	}
+}
+
+// ===============================================================================
+// ProcessDistinct
+// ===============================================================================
+
+// Validate check body.
+func (x *ProcessDistinctReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ProcessDistinctReq) AutoConvert() {}
+
+// ConvertSelectorToTypes convert selector.
+func (x *ProcessDistinctReq) ConvertSelectorToTypes() types.ProcessDistinctSelector {
+	if x.GetSelector() == nil {
+		return types.ProcessDistinctSelector{}
+	}
+
+	selector := x.GetSelector()
+
+	return types.ProcessDistinctSelector{
+		OSType:        selector.GetOsType(),
+		CPUArch:       selector.GetCpuArch(),
+		Version:       selector.GetVersion(),
+		Status:        selector.GetStatus(),
+		PluginName:    selector.GetPluginName(),
+		PluginGroup:   selector.GetPluginGroup(),
+		PluginPkgName: selector.GetPluginPkgName(),
+	}
+}
+
+// ConvertSelectorFromTypes convert selector.
+func (x *ProcessDistinctReq) ConvertSelectorFromTypes(selector types.ProcessDistinctSelector) {
+	x.Selector = &ProcessDistinctSelector{
+		OsType:        selector.OSType,
+		CpuArch:       selector.CPUArch,
+		Version:       selector.Version,
+		Status:        selector.Status,
+		PluginName:    selector.PluginName,
+		PluginGroup:   selector.PluginGroup,
+		PluginPkgName: selector.PluginPkgName,
+	}
+}
+
+// ConvertConditionsToTypes convert conditions.
+func (x *ProcessDistinctReq) ConvertConditionsToTypes() *types.ProcessCondition {
+	return convertProcessConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertConditionFromTypes convert conditions.
+func (x *ProcessDistinctReq) ConvertConditionFromTypes(condition *types.ProcessCondition) {
+	if condition == nil {
+		return
+	}
+
+	exactCond, fuzzyCond := convertProcessConditionsFromTypes(condition)
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return
+}
+
+func convertProcessConditionsFromTypes(condition *types.ProcessCondition) (*ProcessExactConditions, *ProcessFuzzyConditions) {
+	if condition == nil {
+		return nil, nil
+	}
+
+	exactCond := &ProcessExactConditions{}
+	fuzzyCond := &ProcessFuzzyConditions{}
+
+	if condition.ExactInclude != nil {
+		exactCond = convExactIncludeConditionsFromTypes(condition)
+	}
+
+	if condition.FuzzyInclude != nil {
+		fuzzyCond = convFuzzyConditionsFromTypes(condition)
+	}
+
+	return exactCond, fuzzyCond
+}
+
+// ConvertResultFromTypes convert result.
+func (x *ProcessDistinctResp) ConvertResultFromTypes(result *types.ProcessDistinctResult) {
+	x.Data = &ProcessDistinctResp_Data{
+		OsType: formatRespSlice(conv.SliceToSlice[criteria.OSType, string](
+			result.OSType, func(osType criteria.OSType) string { return osType.String() })),
+		CpuArch: formatRespSlice(conv.SliceToSlice[criteria.CPUArch, string](
+			result.CPUArch, func(cpuArch criteria.CPUArch) string { return cpuArch.String() })),
+		Version: formatRespSlice(result.Version),
+		Status: formatRespSlice(conv.SliceToSlice[types.ProcessStatus, string](
+			result.Status, func(status types.ProcessStatus) string { return status.String() })),
+		PluginName:    formatRespSlice(result.PluginName),
+		PluginGroup:   formatRespSlice(result.PluginGroup),
+		PluginPkgName: formatRespSlice(result.PluginPkgName),
+	}
+}
+
+// ConvertResultToTypes convert result to types.
+func (x *ProcessDistinctResp) ConvertResultToTypes() (*types.ProcessDistinctResult, error) {
+	if x.GetData() == nil {
+		return nil, fmt.Errorf("distinct process failed, get empty data")
+	}
+
+	var err error
+	result := new(types.ProcessDistinctResult)
+	result.OSType, err = conv.SliceToSliceWithError[string, criteria.OSType](
+		x.GetData().GetOsType(),
+		func(s string) (criteria.OSType, error) {
+			osType := criteria.OSType(s)
+			if err := osType.Validate(); err != nil {
+				return "", err
+			}
+
+			return osType, nil
+		})
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert os type: %w", err)
+	}
+	result.CPUArch, err = conv.SliceToSliceWithError[string, criteria.CPUArch](
+		x.GetData().GetCpuArch(),
+		func(s string) (criteria.CPUArch, error) {
+			cpuArch := criteria.CPUArch(s)
+			if err := cpuArch.Validate(); err != nil {
+				return "", err
+			}
+
+			return cpuArch, nil
+		})
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert cpu arch: %w", err)
+	}
+	result.Version = x.GetData().GetVersion()
+	result.Status, err = conv.SliceToSliceWithError[string, types.ProcessStatus](
+		x.GetData().GetStatus(),
+		func(s string) (types.ProcessStatus, error) {
+			processStatus := types.ProcessStatus(s)
+			if err := processStatus.Validate(); err != nil {
+				return "", err
+			}
+
+			return processStatus, nil
+		})
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert status: %w", err)
+	}
+	result.PluginName = x.GetData().GetPluginName()
+	result.PluginGroup = x.GetData().GetPluginGroup()
+	result.PluginPkgName = x.GetData().GetPluginPkgName()
+
+	return result, nil
 }

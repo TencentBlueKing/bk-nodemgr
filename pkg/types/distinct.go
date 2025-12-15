@@ -206,3 +206,42 @@ type ConfigPolicyEventDistinctResult struct {
 	Version          []int64
 	Operator         []string
 }
+
+// ===============================================================================
+// ProcessDistinct
+// ===============================================================================
+
+// NewProcessDistinctSelectorAllSet creates a ProcessDistinctSelector with all fields set to true.
+func NewProcessDistinctSelectorAllSet() ProcessDistinctSelector {
+	return ProcessDistinctSelector{
+		OSType:        true,
+		CPUArch:       true,
+		Version:       true,
+		Status:        true,
+		PluginName:    true,
+		PluginGroup:   true,
+		PluginPkgName: true,
+	}
+}
+
+// ProcessDistinctSelector describes the wanted distinct fields.
+type ProcessDistinctSelector struct {
+	OSType        bool
+	CPUArch       bool
+	Version       bool
+	Status        bool
+	PluginName    bool
+	PluginGroup   bool
+	PluginPkgName bool
+}
+
+// ProcessDistinctResult describes the result of distinct.
+type ProcessDistinctResult struct {
+	OSType        []criteria.OSType
+	CPUArch       []criteria.CPUArch
+	Version       []string
+	Status        []ProcessStatus
+	PluginName    []string
+	PluginGroup   []string
+	PluginPkgName []string
+}

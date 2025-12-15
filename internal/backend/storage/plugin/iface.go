@@ -114,4 +114,8 @@ type IDaoProcess interface {
 
 	// GetProcessDistributionByPluginName get process distribution by plugin name.
 	GetProcessDistributionByPluginName(nCtx contextx.IContext, condition ...*types.ProcessCondition) (map[string]int64, error)
+
+	// DistinctProcess get distinct process.
+	DistinctProcess(nCtx contextx.IContext, request types.ProcessDistinctSelector, condition ...*types.ProcessCondition) (
+		*types.ProcessDistinctResult, error)
 }
