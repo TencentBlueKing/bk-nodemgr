@@ -28,7 +28,7 @@ func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.manager.LaunchRetryOperationFromLastInstance(rCtx, manager.RetryNodeWorkflowOperationParam{
+	err := h.manager.LaunchRetryNodeOperationFromLastInstance(rCtx, manager.RetryNodeWorkflowOperationParam{
 		WorkflowID:   req.GetWorkflowId(),
 		RetryMod:     operation.RetryMode(req.GetRetryMod()),
 		OperationIDs: req.GetOperationIds(),

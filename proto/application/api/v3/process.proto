@@ -69,7 +69,6 @@ message GetProcessDistributionByHostIDResp {
 // GetProcessDistributionByPluginNameReq describes the process statistics
 // request.
 message GetProcessDistributionByPluginNameReq {
-
   ProcessExactConditions exact_include_conditions = 1;
   ProcessFuzzyConditions fuzzy_include_conditions = 2;
 }

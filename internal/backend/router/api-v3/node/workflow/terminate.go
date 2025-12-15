@@ -27,7 +27,7 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.manager.TerminateOperationLastInstance(rCtx, manager.TerminateNodeWorkflowOperationParam{
+	err := h.manager.TerminateNodeOperationLastInstance(rCtx, manager.TerminateNodeWorkflowOperationParam{
 		WorkflowID:   req.GetWorkflowId(),
 		OperationIDs: req.GetOperationIds(),
 	})

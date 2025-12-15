@@ -14,11 +14,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Validate check body.
@@ -185,12 +184,12 @@ func (x *NodeWorkflowOperationListReq) GetWorkflowID() string {
 
 // ConvertConditionsToDeploymentTypes convert conditions to deployment types.
 func (x *NodeWorkflowOperationListReq) ConvertConditionsToDeploymentTypes(tokens []string) *types.NodeDeploymentCondition {
-	return convertWorkflowOperationConditionsToDeploymentTypes(tokens,
+	return convertNodeWorkflowOperationConditionsToNodeDeploymentTypes(tokens,
 		x.GetExactIncludeConditions(),
 	)
 }
 
-func convertWorkflowOperationConditionsToDeploymentTypes(tokens []string,
+func convertNodeWorkflowOperationConditionsToNodeDeploymentTypes(tokens []string,
 	exactCond *NodeWorkflowOperationExactConditions) *types.NodeDeploymentCondition {
 
 	condition := &types.NodeDeploymentCondition{
@@ -234,7 +233,7 @@ func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(
 func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes(
 	triggerID string) *types.NodeWorkflowOperationCondition {
 
-	return convertWorkflowOperationConditionsToTypes(
+	return convertNodeWorkflowOperationConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(), triggerID)
 }
@@ -323,16 +322,16 @@ func (x *NodeWorkflowOperationInstanceListReq) AutoConvert() {
 func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 	num int64, result []*operation.InstanceBriefData) {
 
-	items := make([]*NodeWorflowOperationInstanceData, 0, len(result))
+	items := make([]*WorflowOperationInstanceData, 0, len(result))
 	for _, opinstance := range result {
-		oper := &NodeWorflowOperationInstanceData{
+		oper := &WorflowOperationInstanceData{
 			OperInstId:        opinstance.Metadata.OperationInstanceID,
 			OperationId:       opinstance.Metadata.OperationID,
 			OperInstStatus:    string(opinstance.Lifecycle.State),
 			OperationDefName:  opinstance.Metadata.OperationDefName,
 			ParentOperationId: opinstance.Metadata.ParentOperationID,
 			ActionNames:       opinstance.Metadata.ActionNames,
-			LifeCycle: &LifeCycle{
+			LifeCycle: &WorkflowLifeCycle{
 				State:      string(opinstance.Lifecycle.State),
 				CreateTime: opinstance.Lifecycle.CreatedAt.Unix(),
 				StartTime:  opinstance.Lifecycle.StartedAt.Unix(),
@@ -352,9 +351,9 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 func (x *NodeWorkflowOperationInstanceListResp) ConvertOperationInstanceFromTypes(
 	total int64, result *operation.InstanceBriefData) {
 
-	items := make([]*NodeWorflowOperationInstanceData, 1)
+	items := make([]*WorflowOperationInstanceData, 1)
 
-	oper := &NodeWorflowOperationInstanceData{
+	oper := &WorflowOperationInstanceData{
 		OperInstId:        result.Metadata.OperationInstanceID,
 		OperationId:       result.Metadata.OperationID,
 		OperInstStatus:    string(result.Lifecycle.State),
@@ -434,9 +433,9 @@ func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertListStatusConditions
 func (x *NodeWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperInstanceStatusFromTypes(
 	result []*operation.InstanceBriefData) {
 
-	items := make([]*NodeWorkflowOperationInstanceStatus, 0)
+	items := make([]*WorkflowOperationInstanceStatus, 0)
 	for _, opinstance := range result {
-		item := &NodeWorkflowOperationInstanceStatus{
+		item := &WorkflowOperationInstanceStatus{
 			Index:       int64(opinstance.Metadata.Index),
 			Status:      string(opinstance.Lifecycle.State),
 			OperationId: opinstance.Metadata.OperationID,
@@ -507,27 +506,27 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 		return
 	}
 
-	operInstLogs := make(map[string]*NodeWorkflowActionData)
+	operInstLogs := make(map[string]*WorkflowActionData)
 	for actionID, v := range result.ActionInstanceDataMap {
-		lifecycle := &LifeCycle{
+		lifecycle := &WorkflowLifeCycle{
 			State:      string(v.Lifecycle.State),
 			CreateTime: v.Lifecycle.CreatedAt.Unix(),
 			StartTime:  v.Lifecycle.StartedAt.Unix(),
 			EndTime:    v.Lifecycle.EndedAt.Unix(),
 		}
 
-		messages := make([]*NodeWorkflowActionMessage_Message, 0, len(v.Messages))
+		messages := make([]*WorkflowActionMessage_Message, 0, len(v.Messages))
 		for _, msg := range v.Messages {
-			messages = append(messages, &NodeWorkflowActionMessage_Message{
+			messages = append(messages, &WorkflowActionMessage_Message{
 				Time:  msg.Time.Unix(),
 				Text:  msg.Text,
 				Level: msg.Level,
 			})
 		}
 
-		operInstLogs[actionID] = &NodeWorkflowActionData{
+		operInstLogs[actionID] = &WorkflowActionData{
 			LifeCycle: lifecycle,
-			Message:   &NodeWorkflowActionMessage{Logs: messages},
+			Message:   &WorkflowActionMessage{Logs: messages},
 		}
 	}
 
@@ -631,7 +630,7 @@ func (x *NodeWorkflowOperationTerminateReq) ConvertOperationTerminateParamFromTy
 }
 
 // ConvertOperationRetryParamFromTypes convert operation retry param from types.
-func (x *NodeWorkflowOperationRetryReq) ConvertOperationRetryParamFromTypes(retryParm types.NodeWorkflowOperationRetryParam) {
+func (x *NodeWorkflowOperationRetryReq) ConvertOperationRetryParamFromTypes(retryParm *types.NodeWorkflowOperationRetryParam) {
 	x.WorkflowId = retryParm.WorkflowID
 	x.OperationIds = retryParm.OperationIDs
 	x.RetryMod = string(retryParm.RetryMode)
@@ -664,7 +663,7 @@ func convertNodeWorkflowConditionsToTypes(
 	return condition
 }
 
-func convertWorkflowOperationConditionsToTypes(
+func convertNodeWorkflowOperationConditionsToTypes(
 	exactCond *NodeWorkflowOperationExactConditions,
 	_ *NodeWorkflowOperationFuzzyConditions, triggerID string) *types.NodeWorkflowOperationCondition {
 

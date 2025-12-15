@@ -44,10 +44,10 @@ type INodeManager interface {
 	LaunchUninstallNode(ctx contextx.IContext, param UninstallNodeParam) (string, error)
 
 	// LaunchRetryOperationFromLastInstance launch a task to retry operation from last instance.
-	LaunchRetryOperationFromLastInstance(ctx contextx.IContext, param RetryNodeWorkflowOperationParam) error
+	LaunchRetryNodeOperationFromLastInstance(ctx contextx.IContext, param RetryNodeWorkflowOperationParam) error
 
 	// TerminateOperationLastInstance terminate operation from last instance.
-	TerminateOperationLastInstance(ctx contextx.IContext, param TerminateNodeWorkflowOperationParam) error
+	TerminateNodeOperationLastInstance(ctx contextx.IContext, param TerminateNodeWorkflowOperationParam) error
 }
 
 // InstallNodeParam install node param.
@@ -144,8 +144,8 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param InstallNodeP
 	return workflowID, nil
 }
 
-// LaunchRetryOperationFromLastInstance launch a task to retry operation from last instance.
-func (mgr *Manager) LaunchRetryOperationFromLastInstance(nCtx contextx.IContext, param RetryNodeWorkflowOperationParam) error {
+// LaunchRetryNodeOperationFromLastInstance launch a task to retry operation from last instance.
+func (mgr *Manager) LaunchRetryNodeOperationFromLastInstance(nCtx contextx.IContext, param RetryNodeWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get node workflow: %w", err)
@@ -167,8 +167,8 @@ func (mgr *Manager) LaunchRetryOperationFromLastInstance(nCtx contextx.IContext,
 	return triggerCtl.ActivateTrigger(nCtx)
 }
 
-// TerminateOperationLastInstance terminate operation from last instance.
-func (mgr *Manager) TerminateOperationLastInstance(nCtx contextx.IContext, param TerminateNodeWorkflowOperationParam) error {
+// TerminateNodeOperationLastInstance terminate operation from last instance.
+func (mgr *Manager) TerminateNodeOperationLastInstance(nCtx contextx.IContext, param TerminateNodeWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get node workflow: %w", err)

@@ -1,0 +1,52 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// WorflowOperationInstanceData describes the workflow operation instance data.
+message WorflowOperationInstanceData {
+  string operation_id = 1;
+  string oper_inst_id = 2;
+  string oper_inst_status = 3;
+  string operation_def_name = 4;
+  string parent_operation_id = 5;
+  repeated string action_names = 6;
+  WorkflowLifeCycle life_cycle = 7;
+}
+
+// WorkflowLifeCycle describes the workflow life cycle.
+message WorkflowLifeCycle {
+  string state = 1;
+  int64 create_time = 2;
+  int64 start_time = 3;
+  int64 end_time = 4;
+  int64 stop_time = 5;
+}
+
+// WorkflowActionData describes the workflow action data.
+message WorkflowActionData {
+  WorkflowLifeCycle life_cycle = 1;
+  WorkflowActionMessage message = 2;
+}
+
+// WorkflowActionMessage describes the workflow action message logs.
+message WorkflowActionMessage {
+  message Message {
+    int64 time = 1;
+    string text = 2;
+    string level = 3;
+  }
+  repeated Message logs = 1;
+}
+
+// WorkflowOperationInstanceStatus describes the workflow operation instance
+// status.
+message WorkflowOperationInstanceStatus {
+  int64 index = 1;
+  string operation_id = 2;
+  string status = 3;
+  string trigger_id = 4;
+}

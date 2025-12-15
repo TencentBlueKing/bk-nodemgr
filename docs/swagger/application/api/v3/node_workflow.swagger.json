@@ -298,7 +298,7 @@
         }
       }
     },
-    "NodeWorkflowActionMessageMessage": {
+    "WorkflowActionMessageMessage": {
       "type": "object",
       "properties": {
         "time": {
@@ -310,46 +310,6 @@
         },
         "level": {
           "type": "string"
-        }
-      }
-    },
-    "NodeWorkflowStatisticsRespStatisticsInfo": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        },
-        "total_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "init_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "launched_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "running_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "success_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "failed_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "timeout_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "terminated_count": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     },
@@ -395,75 +355,6 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/ErrorDetails"
-          }
-        }
-      }
-    },
-    "v3LifeCycle": {
-      "type": "object",
-      "properties": {
-        "state": {
-          "type": "string"
-        },
-        "create_time": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "start_time": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "end_time": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    },
-    "v3NodeWorflowOperationInstanceData": {
-      "type": "object",
-      "properties": {
-        "operation_id": {
-          "type": "string"
-        },
-        "oper_inst_id": {
-          "type": "string"
-        },
-        "oper_inst_status": {
-          "type": "string"
-        },
-        "operation_def_name": {
-          "type": "string"
-        },
-        "parent_operation_id": {
-          "type": "string"
-        },
-        "action_names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowActionData": {
-      "type": "object",
-      "properties": {
-        "life_cycle": {
-          "$ref": "#/definitions/v3LifeCycle"
-        },
-        "message": {
-          "$ref": "#/definitions/v3NodeWorkflowActionMessage"
-        }
-      }
-    },
-    "v3NodeWorkflowActionMessage": {
-      "type": "object",
-      "properties": {
-        "logs": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/NodeWorkflowActionMessageMessage"
           }
         }
       }
@@ -797,7 +688,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NodeWorflowOperationInstanceData"
+            "$ref": "#/definitions/v3WorflowOperationInstanceData"
           }
         }
       }
@@ -842,7 +733,7 @@
         "oper_inst_logs": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/v3NodeWorkflowActionData"
+            "$ref": "#/definitions/v3WorkflowActionData"
           }
         }
       }
@@ -1074,7 +965,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/NodeWorkflowStatisticsRespStatisticsInfo"
+            "$ref": "#/definitions/v3WorkflowStatisticsInfo"
           }
         }
       }
@@ -1106,6 +997,124 @@
         }
       },
       "description": "TimeRange describes the time range."
+    },
+    "v3WorflowOperationInstanceData": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "oper_inst_id": {
+          "type": "string"
+        },
+        "oper_inst_status": {
+          "type": "string"
+        },
+        "operation_def_name": {
+          "type": "string"
+        },
+        "parent_operation_id": {
+          "type": "string"
+        },
+        "action_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "WorflowOperationInstanceData describes the workflow operation instance data."
+    },
+    "v3WorkflowActionData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "message": {
+          "$ref": "#/definitions/v3WorkflowActionMessage"
+        }
+      },
+      "description": "WorkflowActionData describes the workflow action data."
+    },
+    "v3WorkflowActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/WorkflowActionMessageMessage"
+          }
+        }
+      },
+      "description": "WorkflowActionMessage describes the workflow action message logs."
+    },
+    "v3WorkflowLifeCycle": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "stop_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "WorkflowLifeCycle describes the workflow life cycle."
+    },
+    "v3WorkflowStatisticsInfo": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "init_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "launched_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "running_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "success_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "failed_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "timeout_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "terminated_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "WorkflowStatisticsInfo describes the workflow statistics information."
     }
   }
 }

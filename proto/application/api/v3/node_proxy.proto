@@ -56,7 +56,6 @@ message NodeProxyUpgradeHost {
 
 // NodeProxyUpgradeReq describes the node proxy upgrade request.
 message NodeProxyUpgradeReq {
-
   repeated NodeProxyUpgradeHost host = 1;
   repeated TargetVersion target_version = 2;
 }

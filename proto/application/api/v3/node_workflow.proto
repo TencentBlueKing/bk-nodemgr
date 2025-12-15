@@ -3,6 +3,7 @@ package v3;
 option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
 
 import "common.proto";
+import "workflow.proto";
 
 import "google/api/annotations.proto";
 
@@ -67,18 +68,7 @@ message NodeWorkflowStatisticsResp {
   string request_id = 3;
   Error error = 4;
 
-  message StatisticsInfo {
-    optional string workflow_id = 1;
-    optional int64 total_count = 2;
-    optional int64 init_count = 3;
-    optional int64 launched_count = 4;
-    optional int64 running_count = 5;
-    optional int64 success_count = 6;
-    optional int64 failed_count = 7;
-    optional int64 timeout_count = 8;
-    optional int64 terminated_count = 9;
-  }
-  message Data { repeated StatisticsInfo items = 1; }
+  message Data { repeated WorkflowStatisticsInfo items = 1; }
   Data data = 5;
 }
 
@@ -124,39 +114,6 @@ message NodeWorkflowOperation {
 message NodeWorkflowOperationStatus {
   string state = 1;
   int64 total_time_second = 2;
-}
-
-message Lifecycle {
-  string state = 1;
-  int64 operate_time = 2;
-  int64 finish_time = 3;
-}
-
-// NodeWorflowOperationInstance describes the node operation instance.
-message NodeWorflowOperationInstance {
-  string operation_id = 1;
-  string oper_inst_id = 2;
-  string oper_inst_status = 3;
-  string bk_host_innerip = 4;
-  string bk_networkunit_id = 5;
-  string bk_biz_id = 6;
-  string node_version = 7;
-
-  message Action {
-    string action_name = 1;
-    string action_status = 2;
-    int64 cost_time_sec = 3;
-  }
-  repeated Action action = 8;
-}
-
-message NodeWorflowOperationInstanceData {
-  string operation_id = 1;
-  string oper_inst_id = 2;
-  string oper_inst_status = 3;
-  string operation_def_name = 4;
-  string parent_operation_id = 5;
-  repeated string action_names = 6;
 }
 
 // NodeWorkflowOperationExactConditions describes the exact conditions of node
@@ -216,7 +173,7 @@ message NodeWorkflowOperationInstanceListResp {
 
   message Data {
     int64 total = 1;
-    repeated NodeWorflowOperationInstanceData oper_inst_data = 2;
+    repeated WorflowOperationInstanceData oper_inst_data = 2;
   }
   Data data = 5;
 }
@@ -238,20 +195,13 @@ message NodeWorkflowOperationInstanceListStatusReq {
   NodeWorkflowInstanceStatusFuzzyConditions fuzzy_include_conditions = 4;
 }
 
-message NodeWorkflowOperationInstanceStatus {
-  int64 index = 1;
-  string instance_id = 2;
-  string status = 3;
-  string trigger_id = 4;
-}
-
 message NodeWorkflowOperationInstanceListStatusResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
   Error error = 4;
 
-  message Data { repeated NodeWorkflowOperationInstanceStatus items = 1; }
+  message Data { repeated WorkflowOperationInstanceStatus items = 1; }
   Data data = 5;
 }
 
@@ -269,30 +219,9 @@ message NodeWorkflowOperationInstanceLogGetResp {
 
   message Data {
     int64 total = 1;
-    map<string, NodeWorkflowActionData> oper_inst_logs = 2;
+    map<string, WorkflowActionData> oper_inst_logs = 2;
   }
   Data data = 5;
-}
-
-message LifeCycle {
-  string state = 1;
-  int64 create_time = 2;
-  int64 start_time = 3;
-  int64 end_time = 4;
-}
-
-message NodeWorkflowActionMessage {
-  message Message {
-    int64 time = 1;
-    string text = 2;
-    string level = 3;
-  }
-  repeated Message logs = 1;
-}
-
-message NodeWorkflowActionData {
-  LifeCycle life_cycle = 1;
-  NodeWorkflowActionMessage message = 2;
 }
 
 // NodeWorkflowOperationRetryReq

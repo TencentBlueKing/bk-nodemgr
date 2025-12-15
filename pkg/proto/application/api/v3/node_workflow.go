@@ -128,7 +128,7 @@ func (x *NodeWorkflowStatisticsReq) ConvertConditionsToWorkflowConditionTypes() 
 
 // ConvertNodeWorkflowsFromTypes convert node workflows from types.
 func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromTypes(result []*NodeWorkflowStatistics) {
-	items := make([]*NodeWorkflowStatisticsResp_StatisticsInfo, len(result))
+	items := make([]*WorkflowStatisticsInfo, len(result))
 
 	for i, item := range result {
 		items[i] = newEmptyNodeWorkflowOperationStatus()
@@ -209,7 +209,7 @@ func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes() *types.NodeWorkflowOperationCondition {
-	return convertWorkflowOperationConditionsToTypes(
+	return convertNodeWorkflowOperationConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions())
 }
@@ -293,9 +293,9 @@ func (x *NodeWorkflowOperationInstanceListReq) AutoConvert() {
 func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(total int64,
 	result []*operation.InstanceBriefData) {
 
-	items := make([]*NodeWorflowOperationInstanceData, 0, len(result))
+	items := make([]*WorflowOperationInstanceData, 0, len(result))
 	for _, opinstance := range result {
-		oper := &NodeWorflowOperationInstanceData{
+		oper := &WorflowOperationInstanceData{
 			OperInstId:        opinstance.Metadata.OperationInstanceID,
 			OperationId:       opinstance.Metadata.OperationID,
 			OperInstStatus:    string(opinstance.Lifecycle.State),
@@ -333,27 +333,27 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 		return
 	}
 
-	operInstLogs := make(map[string]*NodeWorkflowActionData)
+	operInstLogs := make(map[string]*WorkflowActionData)
 	for actionID, v := range result.ActionInstanceDataMap {
-		lifecycle := &LifeCycle{
+		lifecycle := &WorkflowLifeCycle{
 			State:      string(v.Lifecycle.State),
 			CreateTime: v.Lifecycle.CreatedAt.Unix(),
 			StartTime:  v.Lifecycle.StartedAt.Unix(),
 			EndTime:    v.Lifecycle.EndedAt.Unix(),
 		}
 
-		messages := make([]*NodeWorkflowActionMessage_Message, 0, len(v.Messages))
+		messages := make([]*WorkflowActionMessage_Message, 0, len(v.Messages))
 		for _, msg := range v.Messages {
-			messages = append(messages, &NodeWorkflowActionMessage_Message{
+			messages = append(messages, &WorkflowActionMessage_Message{
 				Time:  msg.Time.Unix(),
 				Text:  msg.Text,
 				Level: msg.Level,
 			})
 		}
 
-		operInstLogs[actionID] = &NodeWorkflowActionData{
+		operInstLogs[actionID] = &WorkflowActionData{
 			LifeCycle: lifecycle,
-			Message:   &NodeWorkflowActionMessage{Logs: messages},
+			Message:   &WorkflowActionMessage{Logs: messages},
 		}
 	}
 
@@ -511,7 +511,7 @@ func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperati
 	return exactCond, fuzzyCond, nil
 }
 
-func convertWorkflowOperationConditionsToTypes(
+func convertNodeWorkflowOperationConditionsToTypes(
 	exactCond *NodeWorkflowOperationExactConditions,
 	_ *NodeWorkflowOperationFuzzyConditions) *types.NodeWorkflowOperationCondition {
 
@@ -546,8 +546,8 @@ func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 	}
 }
 
-func newEmptyNodeWorkflowOperationStatus() *NodeWorkflowStatisticsResp_StatisticsInfo {
-	return &NodeWorkflowStatisticsResp_StatisticsInfo{
+func newEmptyNodeWorkflowOperationStatus() *WorkflowStatisticsInfo {
+	return &WorkflowStatisticsInfo{
 		WorkflowId:      new(string),
 		TotalCount:      new(int64),
 		InitCount:       new(int64),
