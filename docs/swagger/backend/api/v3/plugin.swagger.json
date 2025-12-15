@@ -437,6 +437,9 @@
         },
         "pkg_name": {
           "type": "string"
+        },
+        "memo": {
+          "type": "string"
         }
       }
     }

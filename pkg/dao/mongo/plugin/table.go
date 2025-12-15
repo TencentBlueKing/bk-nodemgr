@@ -30,6 +30,7 @@ type Plugin struct {
 	Name     string `json:"name" bson:"name"`
 	Group    string `json:"group" bson:"group"`
 	PkgName  string `json:"pkg_name" bson:"pkg_name"`
+	Memo     string `json:"memo" bson:"memo"`
 }
 
 // UniqueFields unique fields of the table.

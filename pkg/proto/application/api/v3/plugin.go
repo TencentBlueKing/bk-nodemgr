@@ -173,6 +173,7 @@ func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Pl
 		*item.Name = plugin.Name
 		*item.Group = plugin.Group
 		*item.PkgName = plugin.PkgName
+		*item.Memo = plugin.Memo
 
 		items[idx] = item
 	}
@@ -189,6 +190,7 @@ func newEmptyPlugin() *Plugin {
 		Name:     new(string),
 		Group:    new(string),
 		PkgName:  new(string),
+		Memo:     new(string),
 	}
 }
 
@@ -203,6 +205,7 @@ func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
 			Name:     plugin.GetName(),
 			Group:    plugin.GetGroup(),
 			PkgName:  plugin.GetPkgName(),
+			Memo:     plugin.GetMemo(),
 		}
 
 		plugins[idx] = item

@@ -20,6 +20,7 @@ type Plugin struct {
 	Name    string
 	PkgName string
 	Group   string
+	Memo    string
 }
 
 // PluginInstallParam describe the plugin install param.

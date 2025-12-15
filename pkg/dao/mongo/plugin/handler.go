@@ -116,6 +116,7 @@ func convPluginFromTypes(plugin *types.Plugin) *Plugin {
 		Name:     plugin.Name,
 		Group:    plugin.Group,
 		PkgName:  plugin.PkgName,
+		Memo:     plugin.Memo,
 	}
 
 	return data
@@ -191,6 +192,7 @@ func convertPluginToTypes(data *Plugin) *types.Plugin {
 		Name:     data.Name,
 		Group:    data.Group,
 		PkgName:  data.PkgName,
+		Memo:     data.Memo,
 	}
 
 	return plugin
