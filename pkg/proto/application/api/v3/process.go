@@ -12,6 +12,7 @@ package v3
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -197,4 +198,37 @@ func (x *GetProcessDistributionByPluginNameReq) ConvertConditionsToTypes() *type
 // ConvertResultFromTypes convert result.
 func (x *GetProcessDistributionByPluginNameResp) ConvertResultFromTypes(data map[string]int64) {
 	x.Data = data
+}
+
+// ===============================================================================
+// DistinctProcessReq
+// ===============================================================================
+
+// Validate check body.
+func (x *DistinctProcessReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *DistinctProcessReq) AutoConvert() {}
+
+// ConvertConditionsToTypes convert conditions.
+func (x *DistinctProcessReq) ConvertConditionsToTypes() *types.ProcessCondition {
+	return convertProcessConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+// ConvertResultFromTypes convert result.
+func (x *DistinctProcessResp) ConvertResultFromTypes(data *types.ProcessDistinctResult) {
+	x.Data = &DistinctProcessResp_Data{
+		OsType: formatRespSlice(conv.SliceToSlice[criteria.OSType, string](
+			data.OSType, func(osType criteria.OSType) string { return osType.String() })),
+		CpuArch: formatRespSlice(conv.SliceToSlice[criteria.CPUArch, string](
+			data.CPUArch, func(cpuArch criteria.CPUArch) string { return cpuArch.String() })),
+		Version: formatRespSlice(data.Version),
+		Status: formatRespSlice(conv.SliceToSlice[types.ProcessStatus, string](
+			data.Status, func(status types.ProcessStatus) string { return status.String() })),
+		PluginName:    formatRespSlice(data.PluginName),
+		PluginGroup:   formatRespSlice(data.PluginGroup),
+		PluginPkgName: formatRespSlice(data.PluginPkgName),
+	}
 }
