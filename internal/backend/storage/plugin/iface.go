@@ -81,6 +81,7 @@ type IDaoPlugin interface {
 }
 
 // IDaoProcess defines the process dao interface.
+// nolint: interfacebloat
 type IDaoProcess interface {
 	// CountProcesses count processes.
 	CountProcesses(nCtx contextx.IContext, condition ...*types.ProcessCondition) (int64, error)
