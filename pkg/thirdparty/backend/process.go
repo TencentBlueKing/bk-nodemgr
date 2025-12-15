@@ -74,7 +74,9 @@ func (h *Handler) GetProcessDistributionByPluginName(nCtx contextx.IContext, con
 }
 
 // DistinctProcess distinct process by conditions.
-func (h *Handler) DistinctProcess(nCtx contextx.IContext, selector types.ProcessDistinctSelector, condition *types.ProcessCondition) (*types.ProcessDistinctResult, error) {
+func (h *Handler) DistinctProcess(nCtx contextx.IContext, selector types.ProcessDistinctSelector, condition *types.ProcessCondition) (
+	*types.ProcessDistinctResult, error) {
+
 	req := new(protoBackend.ProcessDistinctReq)
 	req.ConvertSelectorFromTypes(selector)
 	req.ConvertConditionFromTypes(condition)

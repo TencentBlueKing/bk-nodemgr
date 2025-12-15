@@ -38,6 +38,19 @@ type IHandler interface {
 	// Get gets a process by conditions.
 	Get(nCtx contextx.IContext, opts ...OptFn) (*types.Process, error)
 
+	// Delete delete a process by conditions.
+	Delete(nCtx contextx.IContext, hostID int64, pluginName string) error
+
+	// Exist check a process exist by conditions.
+	Exist(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
+
+	IUpdater
+	IDistribution
+	IDistinctor
+}
+
+// IUpdater process updater interface.
+type IUpdater interface {
 	// Update update a process by conditions.
 	Update(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error
 
@@ -46,15 +59,6 @@ type IHandler interface {
 
 	// UpdateManyInfo batch update process info by process ID.
 	UpdateManyInfo(nCtx contextx.IContext, processInfosDeltas []*types.ProcessInfoDelta) error
-
-	// Delete delete a process by conditions.
-	Delete(nCtx contextx.IContext, hostID int64, pluginName string) error
-
-	// Exist check a process exist by conditions.
-	Exist(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
-
-	IDistribution
-	IDistinctor
 }
 
 // IDistribution process distribution interface.

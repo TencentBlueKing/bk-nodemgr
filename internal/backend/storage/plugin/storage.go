@@ -455,7 +455,9 @@ func (s *Storage) GetProcessDistributionByPluginName(nCtx contextx.IContext, con
 }
 
 // DistinctProcess distinct process.
-func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessDistinctSelector, condition ...*types.ProcessCondition) (*types.ProcessDistinctResult, error) {
+func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessDistinctSelector, condition ...*types.ProcessCondition) (
+	*types.ProcessDistinctResult, error) {
+
 	var (
 		result *types.ProcessDistinctResult
 		err    error
