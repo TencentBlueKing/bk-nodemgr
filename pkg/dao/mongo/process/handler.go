@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -53,6 +54,7 @@ type IHandler interface {
 	Exist(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error)
 
 	IDistribution
+	IDistinctor
 }
 
 // IDistribution process distribution interface.
@@ -62,6 +64,30 @@ type IDistribution interface {
 
 	// GetProcessDistributionByPluginName get process distribution by plugin name.
 	GetProcessDistributionByPluginName(nCtx contextx.IContext, opts ...OptFn) (map[string]int64, error)
+}
+
+// IDistinctor process distinct interface.
+type IDistinctor interface {
+	// DistinctCPUArch distinct with field cpu-arch.
+	DistinctCPUArch(nCtx contextx.IContext, opts ...OptFn) ([]criteria.CPUArch, error)
+
+	// DistinctInfoVersion distinct with field info-version.
+	DistinctInfoVersion(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
+
+	// DistinctInfoStatus distinct with field info-status.
+	DistinctInfoStatus(nCtx contextx.IContext, opts ...OptFn) ([]types.ProcessStatus, error)
+
+	// DistinctPlatformOS distinct with field platform-os.
+	DistinctPlatformOS(nCtx contextx.IContext, opts ...OptFn) ([]criteria.OSType, error)
+
+	// DistinctPluginName distinct with field plugin-name.
+	DistinctPluginName(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
+
+	// DistinctGroup distinct with field group.
+	DistinctGroup(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
+
+	// DistinctPkgName distinct with field pkg-name.
+	DistinctPkgName(nCtx contextx.IContext, opts ...OptFn) ([]string, error)
 }
 
 var _ IHandler = &Handler{}
@@ -512,4 +538,153 @@ func (h *Handler) GetProcessDistributionByPluginName(nCtx contextx.IContext, opt
 	}
 
 	return pluginNameDistribution, nil
+}
+
+// DistinctCPUArch distincts with field node-role.
+func (h *Handler) DistinctCPUArch(nCtx contextx.IContext, opts ...OptFn) ([]criteria.CPUArch, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	result, err := h.distinctString(nCtx, FieldKeyPlatformArch, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	archList, err := conv.SliceToSliceWithError[string, criteria.CPUArch](result, func(s string) (criteria.CPUArch, error) {
+		arch := criteria.CPUArch(s)
+		if err := arch.Validate(); err != nil {
+			return "", err
+		}
+
+		return arch, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get distinct cpu arch: %w", err)
+	}
+
+	return archList, nil
+}
+
+func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.tenantDao(tenantID).DistinctString(nCtx, key, filter, nil)
+}
+
+// DistinctInfoVersion distincts with field info version.
+func (h *Handler) DistinctInfoVersion(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	result, err := h.distinctString(nCtx, FieldKeyInfoVersion, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// DistinctPluginName distincts with field plugin name.
+func (h *Handler) DistinctPluginName(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	result, err := h.distinctString(nCtx, FieldKeyPluginName, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// DistinctGroup distincts with field group.
+func (h *Handler) DistinctGroup(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	result, err := h.distinctString(nCtx, FieldKeyGroup, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// DistinctPkgName distincts with field plugin package name.
+func (h *Handler) DistinctPkgName(nCtx contextx.IContext, opts ...OptFn) ([]string, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	result, err := h.distinctString(nCtx, FieldKeyPkgName, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// DistinctInfoStatus distincts with field info status.
+func (h *Handler) DistinctInfoStatus(nCtx contextx.IContext, opts ...OptFn) ([]types.ProcessStatus, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	result, err := h.distinctString(nCtx, FieldKeyInfoStatus, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	statusList, err := conv.SliceToSliceWithError[string, types.ProcessStatus](result, func(s string) (types.ProcessStatus, error) {
+		status := types.ProcessStatus(s)
+		if err := status.Validate(); err != nil {
+			return "", err
+		}
+
+		return status, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get distinct info status: %w", err)
+	}
+
+	return statusList, nil
+}
+
+// DistinctPlatformOS distincts with field platform os.
+func (h *Handler) DistinctPlatformOS(nCtx contextx.IContext, opts ...OptFn) ([]criteria.OSType, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	result, err := h.distinctString(nCtx, FieldKeyPlatformOS, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	osList, err := conv.SliceToSliceWithError[string, criteria.OSType](result, func(s string) (criteria.OSType, error) {
+		osType := criteria.OSType(s)
+		if err := osType.Validate(); err != nil {
+			return "", err
+		}
+
+		return osType, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get distinct platform os: %w", err)
+	}
+
+	return osList, nil
 }
