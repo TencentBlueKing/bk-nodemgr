@@ -12,7 +12,13 @@
         @page-value-change="pageValueChange"
       >
         <TableColumn title="插件名" field="name"></TableColumn>
-        <TableColumn title="插件包名" field="pkg_name"></TableColumn>
+        <TableColumn title="插件包名" field="pkg_name">
+          <template #default="{ row }">
+            <Button text theme="primary" @click="handleGoToPluginPkgMng(row)">
+              {{ row.pkg_name }}
+            </Button>
+          </template>
+        </TableColumn>
         <TableColumn title="插件组" field="group"></TableColumn>
         <TableColumn title="节点数" field="node_num">
           <template #default="{ row }">
@@ -37,6 +43,7 @@
 <script setup lang="ts">
 import { Button, Loading, Sideslider } from 'bkui-vue';
 import { onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
@@ -47,6 +54,7 @@ import { PluginAPIService } from '@/api/modules/plugin';
 import { ProcessAPIService } from '@/api/modules/process';
 import useTableSetting from '@/composables/use-table-setting';
 
+const router = useRouter();
 // 插件列表数据
 const pluginList = ref<Array<PluginListRespPlugin & { node_num: number }>>([]);
 
@@ -76,6 +84,16 @@ const pageLimitChange = async (limit: number) => {
 const pageValueChange = async (current: number) => {
   pagination.current = current;
   await loadPluginList(); // 分页变化不防抖，立即执行
+};
+
+// 跳转插件包管理
+const handleGoToPluginPkgMng = (row: PluginListRespPlugin) => {
+  router.push({
+    name: 'pluginPackageMng',
+    query: {
+      name: row.pkg_name,
+    },
+  });
 };
 
 // 侧边栏相关状态

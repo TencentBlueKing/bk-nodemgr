@@ -230,8 +230,8 @@ const fetchRecordList = async () => {
       fuzzy_include_conditions: fuzzyData.value,
       operate_time_range: operateTimeRange.value,
     };
-    const res = await handleFetchRecordList(params);
-    pagination.count = res.total || 0;
+    const res = await handleFetchRecordList(params).catch(() => ({ total: 0, items: [] }));
+    pagination.count = res.items.length;
     list.value = res.items || [];
   } catch (err) {
     console.error(err);

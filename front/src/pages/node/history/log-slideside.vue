@@ -219,12 +219,13 @@ const getInstance = async () => {
     oper_inst_data: [],
     total: 0,
   }));
-  curOperInstId.value = res.total > 0 ? res.oper_inst_data[res.total - 1].oper_inst_id : '';
-  curSortNames.value = res.total > 0 ? res.oper_inst_data[res.total - 1].action_names : [];
+  const total = res.oper_inst_data.length;
+  curOperInstId.value = total > 0 ? res.oper_inst_data[total - 1].oper_inst_id : '';
+  curSortNames.value = total > 0 ? res.oper_inst_data[total - 1].action_names : [];
   operInstList.value = [];
-  for (let i = 1; i <= res.total; i++) {
+  for (let i = 1; i <= total; i++) {
     operInstList.value.push({
-      name: i < res.total ? getOrdinalSuffix(i) : 'latest',
+      name: i < total ? getOrdinalSuffix(i) : 'latest',
       id: res.oper_inst_data[i - 1].oper_inst_id,
       sort_names: res.oper_inst_data[i - 1].action_names,
     });
@@ -239,11 +240,11 @@ async function getLog() {
     total: 0,
     oper_inst_logs: {},
   }));
-
+  const total = Object.keys(res.oper_inst_logs).length;
   curSortNames.value.forEach((key: string) => {
     logData.value.oper_inst_logs[key] = res.oper_inst_logs[key];
   });
-  logData.value.total = res.total;
+  logData.value.total = total;
 
   let currentKey;
   for (const [key, entry] of Object.entries(logData.value.oper_inst_logs)) {

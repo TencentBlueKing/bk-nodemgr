@@ -503,13 +503,15 @@ const getInstance = async () => {
     oper_inst_data: [],
     total: 0,
   }));
+
+  const total = res.oper_inst_data.length;
   instanceLoading.value = false;
-  curOperInstId.value = res.total > 0 ? res.oper_inst_data[res.total - 1].oper_inst_id : '';
-  curSortNames.value = res.total > 0 ? res.oper_inst_data[res.total - 1].action_names : [];
+  curOperInstId.value = total > 0 ? res.oper_inst_data[total - 1].oper_inst_id : '';
+  curSortNames.value = total > 0 ? res.oper_inst_data[total - 1].action_names : [];
   operInstList.value = [];
-  for (let i = 1; i <= res.total; i++) {
+  for (let i = 1; i <= total; i++) {
     operInstList.value.push({
-      name: i < res.total ? getOrdinalSuffix(i) : 'latest',
+      name: i < total ? getOrdinalSuffix(i) : 'latest',
       id: res.oper_inst_data[i - 1].oper_inst_id,
       sort_names: res.oper_inst_data[i - 1].action_names,
     });
@@ -535,7 +537,7 @@ async function getLog() {
       state: state || '未知',
     });
   });
-  logData.value.total = res.total;
+  logData.value.total = Object.keys(res.oper_inst_logs).length;
   tableData.value = list;
 
   let currentKey;

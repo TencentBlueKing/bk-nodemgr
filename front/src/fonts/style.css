@@ -395,3 +395,21 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .nc-package-agent:before {
 	content: "\e188";
 }
+.nc-package-agent-2:before {
+	content: "\e18c";
+}
+.nc-package-proxy:before {
+	content: "\e18b";
+}
+.nc-agentcelve:before {
+	content: "\e18d";
+}
+.nc-proxycelve:before {
+	content: "\e18e";
+}
+.nc-agent-jiedian:before {
+	content: "\e190";
+}
+.nc-proxy-jiedian:before {
+	content: "\e18f";
+}

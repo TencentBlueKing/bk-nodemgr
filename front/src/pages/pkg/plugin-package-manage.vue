@@ -1,4 +1,5 @@
 <template>
+  <page-header :title="'插件包管理'" :back="!!route.query?.name"></page-header>
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
@@ -721,14 +722,15 @@ watch(
     originPackageList,
   ],
   () => {
-    packageList.value = originPackageList.value.filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
-      const { id: searchField, values } = searchItem;
-      const searchIds = values?.map((value: {id: string}) => value.id);
-      if (isArray(row[searchField])) {
-        return !!row[searchField].find((el: string) => searchIds.includes(el));
-      }
-      return searchIds.includes(row[searchField]);
-    }));
+    packageList.value = originPackageList.value
+      .filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
+        const { id: searchField, values } = searchItem;
+        const searchIds = values?.map((value: {id: string}) => value.id);
+        if (isArray(row[searchField])) {
+          return !!row[searchField].find((el: string) => searchIds.includes(el));
+        }
+        return searchIds.includes(row[searchField]);
+      }));
   },
   { immediate: true, deep: true },
 );
@@ -743,6 +745,18 @@ watch(
   },
   { immediate: true },
 );
+watch(() => route.query, () => {
+  if (route.query.name) {
+    searchSelectValue.value.push({
+      id: 'name',
+      name: '插件包名',
+      values: [{
+        id: route.query.name,
+        name: route.query.name,
+      }],
+    });
+  }
+}, { immediate: true });
 watch(() => searchSelectValue.value, (data) => {
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];

@@ -451,7 +451,9 @@ const getNetworkAreaList = async () => {
  * 获取管控单元列表
  */
 const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({ exact_include_conditions: { bk_networkarea_id: [] } }).catch((err: any) => {
+  const res = await TopoService.NetworkUnitList({
+    exact_include_conditions: { bk_networkarea_id: [] } }
+  ).catch((err: any) => {
     console.error('获取管控单元列表失败:', err);
     return { total: 0, items: [] };
   });
@@ -523,7 +525,7 @@ const getAgentList = async () => {
       console.error('获取Agent列表失败:', err);
       return { total: 0, items: [] };
     });
-    pagination.count = res.total;
+    pagination.count = res.items.length;
 
     const pluginNumMap = await ProcessAPIService.GetProcessDistributionByHostID({
       exact_include_conditions: {

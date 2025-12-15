@@ -281,7 +281,6 @@ const routes = setupLayouts([
             path: 'pluginPackageMng',
             component: PluginPackageMng,
             meta: {
-              title: '插件包管理',
               back: false,
               mainMenu: 'pkgManager',
             },

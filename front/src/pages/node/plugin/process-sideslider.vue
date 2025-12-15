@@ -4,76 +4,90 @@
     render-directive="if"
     :title="title"
     width="1200"
-    :before-close="handleBeforeClose"
   >
-    <Loading
-      :title="$t('table.loading')"
-      :loading="loading"
-      class="p-[24px] overflow-auto">
-      <Table
+    <div class="p-[24px]">
+      <copy-ip-dropdown
+        class="mb-[20px]"
+        :type="'agent'"
+        :disabled="!selection.length"
         :data="processList"
-        :empty-text="$t('table.empty')"
-        :show-settings="isShowSetting"
-        :pagination="pagination"
-        :settings="settings"
-        show-overflow-tooltip
-        :tooltip-config="{
-          popupClassName: 'process-table'
-        }"
-        @setting-change="handleSettingChange"
-        @page-limit-change="pageLimitChange"
-        @page-value-change="pageValueChange"
-      >
-        <TableColumn title="Host ID" field="bk_host_id" fixed="left" min-width="120"></TableColumn>
-        <TableColumn title="插件名" field="plugin_name" min-width="150"></TableColumn>
-        <TableColumn title="插件包名" field="plugin_pkg_name" min-width="150"></TableColumn>
-        <TableColumn title="插件组" field="plugin_group" min-width="120"></TableColumn>
-        <TableColumn title="操作系统" field="os_type" min-width="100"></TableColumn>
-        <TableColumn title="CPU 架构" field="cpu_arch" min-width="100"></TableColumn>
-        <TableColumn title="Pid" field="pid" min-width="100"></TableColumn>
-        <TableColumn title="版本" field="version" min-width="120"></TableColumn>
-        <TableColumn title="Agent Id" field="agent_id" min-width="120"></TableColumn>
-        <TableColumn title="进程名" field="name" min-width="120"></TableColumn>
-        <TableColumn title="进程状态" field="status" min-width="100">
-          <template #default="{ row }">
-            <div class="flex items-center">
-              <i :class="`nodeman-icon nc-${statusMap[row.status]?.icon} status-icon`"></i>
-              <span>{{ statusMap[row.status]?.text || '--' }}</span>
-            </div>
-          </template>
-        </TableColumn>
-        <TableColumn title="安装路径" field="setup_path" min-width="120"></TableColumn>
-        <TableColumn title="Pid 文件路径" field="pid_path" min-width="120"></TableColumn>
-        <TableColumn title="配置文件路径" field="config_path" min-width="120"></TableColumn>
-        <TableColumn title="日志文件夹路径" field="log_path" min-width="130"></TableColumn>
-        <TableColumn title="进程所属系统账户" field="user" min-width="150"></TableColumn>
-        <TableColumn title="启动命令" field="start_cmd" min-width="180"></TableColumn>
-        <TableColumn title="停止命令" field="stop_cmd" min-width="180"></TableColumn>
-        <TableColumn title="重启命令" field="restart_cmd" min-width="180"></TableColumn>
-        <TableColumn title="Reload 命令" field="reload_cmd" min-width="180"></TableColumn>
-        <TableColumn title="Kill命令" field="kill_cmd" min-width="180"></TableColumn>
-        <TableColumn title="进程版本查询命令" field="version_cmd" min-width="180"></TableColumn>
-        <TableColumn title="进程健康检查命令" field="health_cmd" min-width="180"></TableColumn>
-        <TableColumn title="CPU 使用率上限百分比（总占比，非单核占比）" field="cpu_limit_percent" min-width="120"></TableColumn>
-        <TableColumn title="Mem 使用率上限百分比" field="mem_limit_percent" min-width="120"></TableColumn>
-        <TableColumn title="重启策略" field="auto_type" min-width="120"></TableColumn>
-        <TableColumn title="启动后延迟检查的时间" field="start_check_seconds" min-width="120">
-          <template #default="{ row }">
-            <span>{{ row.start_check_seconds }}s</span>
-          </template>
-        </TableColumn>
-        <TableColumn title="停止命令执行后开始检查进程存活的时间" field="stop_check_seconds" min-width="120">
-          <template #default="{ row }">
-            <span>{{ row.stop_check_seconds }}s</span>
-          </template>
-        </TableColumn>
-        <TableColumn title="命令执行超时时间" field="operate_timeout_seconds" min-width="120">
-          <template #default="{ row }">
-            <span>{{ row.operate_timeout_seconds }}s</span>
-          </template>
-        </TableColumn>
-      </Table>
-    </Loading>
+        :list="[]"
+      ></copy-ip-dropdown>
+      <Loading
+        :title="$t('table.loading')"
+        :loading="loading"
+        class="overflow-auto">
+        <Table
+          :data="processList"
+          :empty-text="$t('table.empty')"
+          :show-settings="isShowSetting"
+          :pagination="pagination"
+          :settings="settings"
+          show-overflow-tooltip
+          :tooltip-config="{
+            popupClassName: 'process-table'
+          }"
+          @setting-change="handleSettingChange"
+          @page-limit-change="pageLimitChange"
+          @page-value-change="pageValueChange"
+          @checkbox-change="handleSelectChange"
+          @checkbox-all="handleSelectAllChange"
+        >
+          <TableColumn type="checkbox" width="60" fixed="left"></TableColumn>
+          <TableColumn title="Host ID" field="bk_host_id" fixed="left" min-width="120"></TableColumn>
+          <TableColumn :title="$t('platform.nodeMan.inner_ip')" field="bk_host_innerip" min-width="150"></TableColumn>
+          <TableColumn :title="$t('platform.nodeMan.inner_ipv6')" field="bk_host_innerip_v6" min-width="120">
+          </TableColumn>
+          <TableColumn title="插件名" field="plugin_name" min-width="150"></TableColumn>
+          <TableColumn title="插件包名" field="plugin_pkg_name" min-width="150"></TableColumn>
+          <TableColumn title="插件组" field="plugin_group" min-width="120"></TableColumn>
+          <TableColumn title="操作系统" field="os_type" min-width="100"></TableColumn>
+          <TableColumn title="CPU 架构" field="cpu_arch" min-width="100"></TableColumn>
+          <TableColumn title="Pid" field="pid" min-width="100"></TableColumn>
+          <TableColumn title="版本" field="version" min-width="120"></TableColumn>
+          <TableColumn title="Agent Id" field="agent_id" min-width="120"></TableColumn>
+          <TableColumn title="进程名" field="name" min-width="120"></TableColumn>
+          <TableColumn title="进程状态" field="status" min-width="100">
+            <template #default="{ row }">
+              <div class="flex items-center">
+                <i :class="`nodeman-icon nc-${statusMap[row.status]?.icon} status-icon`"></i>
+                <span>{{ statusMap[row.status]?.text || '--' }}</span>
+              </div>
+            </template>
+          </TableColumn>
+          <TableColumn title="安装路径" field="setup_path" min-width="120"></TableColumn>
+          <TableColumn title="Pid 文件路径" field="pid_path" min-width="120"></TableColumn>
+          <TableColumn title="配置文件路径" field="config_path" min-width="120"></TableColumn>
+          <TableColumn title="日志文件夹路径" field="log_path" min-width="130"></TableColumn>
+          <TableColumn title="进程所属系统账户" field="user" min-width="150"></TableColumn>
+          <TableColumn title="启动命令" field="start_cmd" min-width="180"></TableColumn>
+          <TableColumn title="停止命令" field="stop_cmd" min-width="180"></TableColumn>
+          <TableColumn title="重启命令" field="restart_cmd" min-width="180"></TableColumn>
+          <TableColumn title="Reload 命令" field="reload_cmd" min-width="180"></TableColumn>
+          <TableColumn title="Kill命令" field="kill_cmd" min-width="180"></TableColumn>
+          <TableColumn title="进程版本查询命令" field="version_cmd" min-width="180"></TableColumn>
+          <TableColumn title="进程健康检查命令" field="health_cmd" min-width="180"></TableColumn>
+          <TableColumn title="CPU 使用率上限百分比（总占比，非单核占比）" field="cpu_limit_percent" min-width="120"></TableColumn>
+          <TableColumn title="Mem 使用率上限百分比" field="mem_limit_percent" min-width="120"></TableColumn>
+          <TableColumn title="重启策略" field="auto_type" min-width="120"></TableColumn>
+          <TableColumn title="启动后延迟检查的时间" field="start_check_seconds" min-width="120">
+            <template #default="{ row }">
+              <span>{{ row.start_check_seconds }}s</span>
+            </template>
+          </TableColumn>
+          <TableColumn title="停止命令执行后开始检查进程存活的时间" field="stop_check_seconds" min-width="120">
+            <template #default="{ row }">
+              <span>{{ row.stop_check_seconds }}s</span>
+            </template>
+          </TableColumn>
+          <TableColumn title="命令执行超时时间" field="operate_timeout_seconds" min-width="120">
+            <template #default="{ row }">
+              <span>{{ row.operate_timeout_seconds }}s</span>
+            </template>
+          </TableColumn>
+        </Table>
+      </Loading>
+    </div>
     <!-- <template #footer>
       <Button class="mr-[8px]" theme="primary" @click="handleBeforeClose">
         {{ $t('action.confirm') }}
@@ -96,7 +110,8 @@ import { computed, reactive, ref, watch } from 'vue';
 import { Table, TableColumn } from '@blueking/table';
 
 import { ProcessAPIService } from '@/api/modules/process';
-import { formatTimestamp } from '@/common/util';
+import { TopoService } from '@/api/modules/topo';
+
 import useTableSetting from '@/composables/use-table-setting';
 
 // Sideslider显示状态
@@ -129,7 +144,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
       'pid',
       'version',
       'agent_id',
-      ...(props.type === 'plugin' ? ['plugin_group'] : ['os_type', 'cpu_arch']),
+      ...(props.type === 'plugin' ? ['plugin_group', 'bk_host_innerip', 'bk_host_innerip_v6'] : ['os_type', 'cpu_arch']),
     ],
     disabled: [''],
   },
@@ -177,6 +192,17 @@ const statusMap = {
 // 进程列表
 const processList = ref<any[]>([]);
 
+// 表格勾选
+const selection = computed(() => processList.value.filter((item: any) => item.checked));
+
+const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
+  row.checked = checked;
+};
+
+const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
+  processList.value.forEach((item: any) => (item.checked = checked));
+};
+
 const loading = ref(false);
 
 const getProcessList = async () => {
@@ -197,8 +223,27 @@ const getProcessList = async () => {
       items: [],
     };
   });
-  pagination.count = res.total;
+  pagination.count = res.items.length;
   loading.value = false;
+
+  let hostListMap = new Map();
+  if (props.type === 'plugin') {
+    const hostList = await TopoService.HostList({
+      exact_include_conditions: {
+        bk_host_id: res.items.map(item => item.bk_host_id),
+      },
+    }).catch((err) => {
+      console.log(err);
+      return {
+        items: [],
+      };
+    });
+    hostListMap = new Map(hostList.items.map(item => [item.bk_host_id, {
+      bk_host_innerip: item.info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6: item.info.bk_host_innerip_v6_list?.join(','),
+    }]));
+  };
+
   processList.value = res.items.map(item => ({
     ...item,
     ...item.platform,
@@ -207,20 +252,23 @@ const getProcessList = async () => {
     ...item.process_controller,
     ...item.process_resource,
     ...item.process_monitor_policy,
+    bk_host_innerip: hostListMap.get(item.bk_host_id)?.bk_host_innerip || '',
+    bk_host_innerip_v6: hostListMap.get(item.bk_host_id)?.bk_host_innerip_v6 || '',
   }));
 };
 
-const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
-  InfoBox({
-    title: '确认关闭?',
-    infoType: 'warning',
-    onConfirm: () => {
-      resolve(true);
-      isShow.value = false;
-    },
-    onCancel: () => reject(),
-  });
-});
+// 暂时没有编辑数据，不需要离开前确认
+// const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
+//   InfoBox({
+//     title: '确认关闭?',
+//     infoType: 'warning',
+//     onConfirm: () => {
+//       resolve(true);
+//       isShow.value = false;
+//     },
+//     onCancel: () => reject(),
+//   });
+// });
 
 watch(
   () => isShow.value,
