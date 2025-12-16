@@ -1,0 +1,774 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package v3
+
+import (
+	"errors"
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+)
+
+// Validate check body.
+func (x *PluginWorkflowListReq) Validate() error {
+	return validatePage(x.GetPage())
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowListReq) AutoConvert() {
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *PluginWorkflowListReq) ConvertPageToTypes(maxLimit int) types.Page {
+	return generatePage(x.GetPage(), maxLimit)
+}
+
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *PluginWorkflowListReq) ConvertConditionsFromTypes(condition *types.PluginWorkflowCondition) error {
+	exactCond, fuzzyCond, timeRange, err := convertPluginWorkConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+	x.OperateTimeRange = timeRange
+
+	return nil
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *PluginWorkflowListReq) ConvertConditionsToTypes() *types.PluginWorkflowCondition {
+	return convertPluginWorkflowConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		x.GetOperateTimeRange())
+}
+
+// ConvertPluginWorkflowsFromTypes convert node workflows from types.
+func (x *PluginWorkflowListResp) ConvertPluginWorkflowsFromTypes(num int64, workflows []*types.PluginWorkflow) {
+	items := make([]*PluginWorkflowInfo, 0, len(workflows))
+	for _, workflow := range workflows {
+		item := newEmptyPluginWorkflow()
+		*item.WorkflowId = workflow.WorkflowID
+		item.BkHostId = workflow.HostIDs
+		*item.Type = string(workflow.Type)
+		*item.Status = string(workflow.Status)
+		*item.TriggerId = workflow.TriggerID
+		*item.Operator = workflow.Operator
+		*item.OperateTime = workflow.OperateTime.UnixMilli()
+		*item.FinishTime = workflow.FinishTime.UnixMilli()
+		items = append(items, item)
+	}
+
+	x.Data = &PluginWorkflowListResp_Data{
+		Total: num,
+		Items: items,
+	}
+}
+
+// ConvertPluginWorkflowsToTypes convert node workflows to types.
+func (x *PluginWorkflowListResp) ConvertPluginWorkflowsToTypes() ([]*types.PluginWorkflow, int64) {
+	data := x.GetData()
+	if data == nil {
+		return nil, 0
+	}
+
+	items := data.GetItems()
+	result := make([]*types.PluginWorkflow, len(items))
+
+	for idx, item := range items {
+		workflow := &types.PluginWorkflow{
+			TenantID:    item.GetTenantId(),
+			WorkflowID:  item.GetWorkflowId(),
+			TriggerID:   item.GetTriggerId(),
+			Type:        types.PluginWorkflowType(item.GetType()),
+			Status:      types.PluginWorkflowStatus(item.GetStatus()),
+			HostIDs:     item.GetBkHostId(),
+			Operator:    item.GetOperator(),
+			OperateTime: time.UnixMilli(item.GetOperateTime()),
+			FinishTime:  time.UnixMilli(item.GetFinishTime()),
+		}
+
+		result[idx] = workflow
+	}
+
+	return result, data.GetTotal()
+}
+
+// Validate check body.
+func (x *PluginWorkflowDistinctReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowDistinctReq) AutoConvert() {
+}
+
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *PluginWorkflowDistinctReq) ConvertConditionsFromTypes(condition *types.PluginWorkflowCondition) error {
+	exactCond, fuzzyCond, _, err := convertPluginWorkConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *PluginWorkflowDistinctReq) ConvertConditionsToTypes() *types.PluginWorkflowCondition {
+	return convertPluginWorkflowConditionsToTypes(
+		x.GetExactIncludeConditions(),
+		x.GetFuzzyIncludeConditions(),
+		nil)
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PluginWorkflowDistinctResp) ConvertResultFromTypes(result *types.PluginWorkflowDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &PluginWorkflowDistinctResp_Data{
+		Type:     formatRespSlice(types.PluginWorkflowTypeListToStringList(result.Type)),
+		BkHostId: formatRespSlice(result.HostID),
+		Operator: formatRespSlice(result.Operator),
+		Status:   formatRespSlice(types.PluginWorkflowStatusListToStringList(result.Status)),
+	}
+}
+
+// ConvertWorkflowDistinctToTypes ...
+func (x *PluginWorkflowDistinctResp) ConvertWorkflowDistinctToTypes() *types.PluginWorkflowDistinctResult {
+	data := x.GetData()
+	if data == nil {
+		return nil
+	}
+
+	result := &types.PluginWorkflowDistinctResult{
+		Type:     types.StringListToPluginWorkflowTypeList(data.GetType()),
+		HostID:   data.GetBkHostId(),
+		Status:   types.StringListToPluginWorkflowStatusList(data.GetStatus()),
+		Operator: data.GetOperator(),
+	}
+
+	return result
+}
+
+func convertPluginWorkflowConditionsToTypes(
+	exactCond *PluginWorkflowExactConditions,
+	_ *PluginWorkflowFuzzyConditions, timeRange *TimeRange) *types.PluginWorkflowCondition {
+
+	condition := &types.PluginWorkflowCondition{}
+
+	if timeRange != nil {
+		condition.OperateTimeRange = &types.TimeRange{
+			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
+			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		}
+	}
+
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.PluginWorkflowExactFields{
+			HostID:     exactCond.GetBkHostId(),
+			Type:       types.StringListToPluginWorkflowTypeList(exactCond.GetType()),
+			Status:     types.StringListToPluginWorkflowStatusList(exactCond.GetStatus()),
+			WorkflowID: exactCond.GetWorkflowId(),
+			Operator:   exactCond.GetOperator(),
+		}
+	}
+
+	return condition
+}
+
+func convertPluginWorkConditionsFromTypes(condition *types.PluginWorkflowCondition) (
+	*PluginWorkflowExactConditions, *PluginWorkflowFuzzyConditions, *TimeRange, error) {
+
+	if condition == nil {
+		return nil, nil, nil, nil
+	}
+
+	var exactCond *PluginWorkflowExactConditions
+	var fuzzyCond *PluginWorkflowFuzzyConditions
+	var timeRange *TimeRange
+
+	if condition.OperateTimeRange != nil {
+		timeRange = &TimeRange{
+			StartTimestampSec: condition.OperateTimeRange.StartTime.Unix(),
+			EndTimestampSec:   condition.OperateTimeRange.EndTime.Unix(),
+		}
+	}
+
+	if condition.ExactInclude != nil {
+		exactCond = &PluginWorkflowExactConditions{
+			BkHostId:   condition.ExactInclude.HostID,
+			WorkflowId: condition.ExactInclude.WorkflowID,
+			Type:       types.PluginWorkflowTypeListToStringList(condition.ExactInclude.Type),
+			Status:     types.PluginWorkflowStatusListToStringList(condition.ExactInclude.Status),
+			Operator:   condition.ExactInclude.Operator,
+		}
+	}
+
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return exactCond, fuzzyCond, timeRange, nil
+}
+
+func newEmptyPluginWorkflow() *PluginWorkflowInfo {
+	return &PluginWorkflowInfo{
+		WorkflowId:  new(string),
+		Type:        new(string),
+		TriggerId:   new(string),
+		BkHostId:    make([]int64, 0),
+		Operator:    new(string),
+		OperateTime: new(int64),
+		FinishTime:  new(int64),
+		Status:      new(string),
+	}
+}
+
+// Validate check body.
+func (x *PluginWorkflowOperationListReq) Validate() error {
+	if x.GetExactIncludeConditions() == nil || x.GetExactIncludeConditions().GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	return validatePage(x.GetPage())
+}
+
+// GetWorkflowID get workflow id.
+func (x *PluginWorkflowOperationListReq) GetWorkflowID() string {
+	return x.GetExactIncludeConditions().GetWorkflowId()
+}
+
+// ConvertConditionsToDeploymentTypes convert conditions to deployment types.
+func (x *PluginWorkflowOperationListReq) ConvertConditionsToDeploymentTypes(tokens []string) *types.PluginDeploymentCondition {
+	return convertPluginWorkflowOperationConditionsToPluginDeploymentTypes(tokens, x.GetExactIncludeConditions())
+}
+
+func convertPluginWorkflowOperationConditionsToPluginDeploymentTypes(tokens []string,
+	exactCond *PluginWorkflowOperationExactConditions) *types.PluginDeploymentCondition {
+
+	condition := &types.PluginDeploymentCondition{
+		ExactInclude: &types.PluginDeploymentExactFields{},
+	}
+
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.PluginDeploymentExactFields{
+			HostID:        exactCond.GetBkHostId(),
+			PluginName:    exactCond.GetPluginName(),
+			PluginVersion: exactCond.GetPluginVersion(),
+		}
+	}
+
+	// exact conditions token
+	condition.ExactInclude.Token = tokens
+
+	return condition
+}
+
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *PluginWorkflowOperationListReq) ConvertConditionsFromTypes(
+	condition *types.PluginWorkflowOperationCondition) error {
+
+	exactCond, fuzzyCond, err := convertPluginWorkOperConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *PluginWorkflowOperationListReq) ConvertConditionsToTypes(triggerID string) *types.PluginWorkflowOperationCondition {
+	return convertPluginWorkflowOperationConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), triggerID)
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowOperationListReq) AutoConvert() {
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *PluginWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) types.Page {
+	return generatePage(x.GetPage(), maxLimit)
+}
+
+// ConvertResultFromTypes convert workflow id to types.
+func (x *PluginWorkflowOperationListResp) ConvertResultFromTypes(total int64, result []*types.PluginWorkflowListOperationResult) {
+	items := make([]*PluginWorkflowOperation, len(result))
+	for idx, op := range result {
+		item := &PluginWorkflowOperation{
+			OperationId:   op.OperationID,
+			InstanceIds:   op.OperInstanceIDs,
+			BkHostId:      op.HostID,
+			PluginName:    op.PluginName,
+			PluginVersion: op.PluginVersion,
+			Operator:      op.Operator,
+		}
+		items[idx] = item
+	}
+
+	x.Data = &PluginWorkflowOperationListResp_Data{
+		TotalCount: total,
+		Operations: items,
+	}
+}
+
+// ConvertWorkflowOperationToTypes convert workflow operation to types.
+func (x *PluginWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*types.PluginWorkflowListOperationResult, int64) {
+	data := x.GetData()
+	if data == nil {
+		return nil, 0
+	}
+
+	items := data.GetOperations()
+	result := make([]*types.PluginWorkflowListOperationResult, len(items))
+
+	for idx, item := range items {
+		operation := &types.PluginWorkflowListOperationResult{
+			OperationID:     item.GetOperationId(),
+			Operator:        item.GetOperator(),
+			OperInstanceIDs: item.GetInstanceIds(),
+			HostID:          item.GetBkHostId(),
+			PluginName:      item.GetPluginName(),
+			PluginVersion:   item.GetPluginVersion(),
+		}
+
+		result[idx] = operation
+	}
+
+	return result, data.GetTotalCount()
+}
+
+func convertPluginWorkOperConditionsFromTypes(condition *types.PluginWorkflowOperationCondition) (
+	*PluginWorkflowOperationExactConditions, *PluginWorkflowOperationFuzzyConditions, error) {
+
+	if condition == nil {
+		return nil, nil, nil
+	}
+
+	var exactCond *PluginWorkflowOperationExactConditions
+	var fuzzyCond *PluginWorkflowOperationFuzzyConditions
+
+	if condition.ExactInclude != nil {
+		exactCond = &PluginWorkflowOperationExactConditions{
+			WorkflowId:    condition.ExactInclude.WorkflowID,
+			TriggerId:     condition.ExactInclude.TriggerID,
+			BkHostId:      condition.ExactInclude.HostID,
+			PluginName:    condition.ExactInclude.PluginName,
+			PluginVersion: condition.ExactInclude.PluginVersion,
+		}
+	}
+
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return exactCond, fuzzyCond, nil
+}
+
+func convertPluginWorkflowOperationConditionsToTypes(
+	exactCond *PluginWorkflowOperationExactConditions,
+	_ *PluginWorkflowOperationFuzzyConditions, triggerID string) *types.PluginWorkflowOperationCondition {
+
+	condition := &types.PluginWorkflowOperationCondition{}
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.PluginWorkflowOperationExactFields{
+			TriggerID:     triggerID,
+			WorkflowID:    exactCond.GetWorkflowId(),
+			HostID:        exactCond.GetBkHostId(),
+			PluginName:    exactCond.GetPluginName(),
+			PluginVersion: exactCond.GetPluginVersion(),
+		}
+	}
+
+	return condition
+}
+
+// Validate check body.
+func (x *PluginWorkflowOperationInstanceListReq) Validate() error {
+	if len(x.GetOperationId()) == 0 || x.GetOperationId()[0] == "" {
+		return errors.New("operation id is required")
+	}
+
+	return nil
+}
+
+// ConvertConditionsToComm ...
+func (x *PluginWorkflowOperationInstanceListReq) ConvertConditionsToComm() []string {
+	return x.GetOperationId()
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowOperationInstanceListReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes ...
+func (x *PluginWorkflowOperationInstanceListResp) ConvertResultFromTypes(
+	num int64, result []*operation.InstanceBriefData) {
+
+	items := make([]*WorflowOperationInstanceData, 0, len(result))
+	for _, opinstance := range result {
+		oper := &WorflowOperationInstanceData{
+			OperInstId:        opinstance.Metadata.OperationInstanceID,
+			OperationId:       opinstance.Metadata.OperationID,
+			OperInstStatus:    string(opinstance.Lifecycle.State),
+			OperationDefName:  opinstance.Metadata.OperationDefName,
+			ParentOperationId: opinstance.Metadata.ParentOperationID,
+			ActionNames:       opinstance.Metadata.ActionNames,
+			LifeCycle: &WorkflowLifeCycle{
+				State:      string(opinstance.Lifecycle.State),
+				CreateTime: opinstance.Lifecycle.CreatedAt.Unix(),
+				StartTime:  opinstance.Lifecycle.StartedAt.Unix(),
+				EndTime:    opinstance.Lifecycle.EndedAt.Unix(),
+				StopTime:   opinstance.Lifecycle.StoppedAt.Unix(),
+			},
+		}
+		items = append(items, oper)
+	}
+
+	x.Data = &PluginWorkflowOperationInstanceListResp_Data{
+		OperInstData: items,
+		Total:        num,
+	}
+}
+
+// ConvertOperationInstanceFromTypes  ...
+func (x *PluginWorkflowOperationInstanceListResp) ConvertOperationInstanceFromTypes(
+	total int64, result *operation.InstanceBriefData) {
+
+	items := make([]*WorflowOperationInstanceData, 1)
+
+	oper := &WorflowOperationInstanceData{
+		OperInstId:        result.Metadata.OperationInstanceID,
+		OperationId:       result.Metadata.OperationID,
+		OperInstStatus:    string(result.Lifecycle.State),
+		OperationDefName:  result.Metadata.OperationDefName,
+		ParentOperationId: result.Metadata.ParentOperationID,
+		ActionNames:       result.Metadata.ActionNames,
+		LifeCycle: &WorkflowLifeCycle{
+			State:      string(result.Lifecycle.State),
+			CreateTime: result.Lifecycle.CreatedAt.Unix(),
+			StartTime:  result.Lifecycle.StartedAt.Unix(),
+			EndTime:    result.Lifecycle.EndedAt.Unix(),
+			StopTime:   result.Lifecycle.StoppedAt.Unix(),
+		},
+	}
+
+	items[0] = oper
+	x.Data = &PluginWorkflowOperationInstanceListResp_Data{
+		OperInstData: items,
+		Total:        total,
+	}
+}
+
+// ConvertWorkflowOperationInstanceToTypes ...
+func (x *PluginWorkflowOperationInstanceListResp) ConvertWorkflowOperationInstanceToTypes() (
+	[]*operation.InstanceBriefData, int64) {
+
+	data := x.GetData()
+	if data == nil {
+		return nil, 0
+	}
+
+	total := data.GetTotal()
+	items := data.GetOperInstData()
+	result := make([]*operation.InstanceBriefData, total)
+
+	for idx, item := range items {
+		inst := &operation.InstanceBriefData{
+			Metadata: &operation.InstanceMetadata{
+				OperationInstanceID: item.GetOperInstId(),
+				OperationID:         item.GetOperationId(),
+				OperationDefName:    item.GetOperationDefName(),
+				ParentOperationID:   item.GetParentOperationId(),
+				ActionNames:         item.GetActionNames(),
+			},
+			Lifecycle: &operation.Lifecycle{
+				State:     operation.State(item.GetOperInstStatus()),
+				CreatedAt: time.Unix(item.GetLifeCycle().GetCreateTime(), 0),
+				StartedAt: time.Unix(item.GetLifeCycle().GetStartTime(), 0),
+				EndedAt:   time.Unix(item.GetLifeCycle().GetEndTime(), 0),
+			},
+		}
+
+		result[idx] = inst
+	}
+
+	return result, total
+}
+
+// Validate check body.
+func (x *PluginWorkflowOperationInstanceLogGetReq) Validate() error {
+	if x.GetOperInstId() == "" {
+		return errors.New("workflow_id is required and cannot be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowOperationInstanceLogGetReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result *operation.InstanceData) {
+	if result == nil {
+		return
+	}
+
+	operInstLogs := make(map[string]*WorkflowActionData)
+	for actionID, v := range result.ActionInstanceDataMap {
+		lifecycle := &WorkflowLifeCycle{
+			State:      string(v.Lifecycle.State),
+			CreateTime: v.Lifecycle.CreatedAt.Unix(),
+			StartTime:  v.Lifecycle.StartedAt.Unix(),
+			EndTime:    v.Lifecycle.EndedAt.Unix(),
+		}
+
+		messages := make([]*WorkflowActionMessage_Message, 0, len(v.Messages))
+		for _, msg := range v.Messages {
+			messages = append(messages, &WorkflowActionMessage_Message{
+				Time:  msg.Time.Unix(),
+				Text:  msg.Text,
+				Level: msg.Level,
+			})
+		}
+
+		operInstLogs[actionID] = &WorkflowActionData{
+			LifeCycle: lifecycle,
+			Message:   &WorkflowActionMessage{Logs: messages},
+		}
+	}
+
+	x.Data = &PluginWorkflowOperationInstanceLogGetResp_Data{
+		OperInstLogs: operInstLogs,
+		Total:        int64(len(result.ActionInstanceDataMap)),
+	}
+}
+
+// ConvertWorkflowOperationInstanceLogToTypes convert workflow operation instance log to types.
+func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstanceLogToTypes() *operation.InstanceData {
+	data := x.GetData()
+	if data == nil {
+		return nil
+	}
+
+	result := &operation.InstanceData{
+		ActionInstanceDataMap: make(map[string]*action.InstanceData),
+	}
+
+	for actionID, actionData := range x.GetData().GetOperInstLogs() {
+		if actionData == nil {
+			continue
+		}
+
+		instance := &action.InstanceData{
+			Lifecycle: &action.Lifecycle{
+				State:     action.State(actionData.GetLifeCycle().GetState()),
+				CreatedAt: time.Unix(actionData.GetLifeCycle().GetCreateTime(), 0),
+				StartedAt: time.Unix(actionData.GetLifeCycle().GetStartTime(), 0),
+				EndedAt:   time.Unix(actionData.GetLifeCycle().GetEndTime(), 0),
+			},
+		}
+
+		if actionData.GetMessage() != nil {
+			instance.Messages = make([]common.Message, 0, len(actionData.GetMessage().GetLogs()))
+			for _, msg := range actionData.GetMessage().GetLogs() {
+				if msg == nil {
+					continue
+				}
+				instance.Messages = append(instance.Messages, common.Message{
+					Time:  time.Unix(msg.GetTime(), 0),
+					Text:  msg.GetText(),
+					Level: msg.GetLevel(),
+				})
+			}
+		}
+
+		result.ActionInstanceDataMap[actionID] = instance
+	}
+
+	return result
+}
+
+// Validate check body.
+func (x *PluginWorkflowOperationInstanceListStatusReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowOperationInstanceListStatusReq) AutoConvert() {
+}
+
+// ConvertPageToTypes convert page to types.
+func (x *PluginWorkflowOperationInstanceListStatusReq) ConvertPageToTypes(maxLimit int) types.Page {
+	return generatePage(x.GetPage(), maxLimit)
+}
+
+// ConvertListStatusConditionsToTypes ...
+func (x *PluginWorkflowOperationInstanceListStatusReq) ConvertListStatusConditionsToTypes() *types.OperInstDataCondition {
+	return &types.OperInstDataCondition{
+		ExactInclude: &types.OperInstDataExactFields{
+			TriggerID: x.GetExactIncludeConditions().GetTriggerId(),
+			State:     operation.GetAllStates(),
+		},
+	}
+}
+
+// ConvertConditionsFromTypes ...
+func (x *PluginWorkflowOperationInstanceListStatusReq) ConvertConditionsFromTypes(
+	condition *types.PluginWorkflowOperInstanceStatusCondition) error {
+
+	exactCond, fuzzyCond, err := convertPluginWorkOperaInstanceStatusConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// ConvertWorkflowOperInstanceStatusFromTypes ...
+func (x *PluginWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperInstanceStatusFromTypes(
+	result []*operation.InstanceBriefData) {
+
+	items := make([]*WorkflowOperationInstanceStatus, 0)
+	for _, opinstance := range result {
+		item := &WorkflowOperationInstanceStatus{
+			Index:               int64(opinstance.Metadata.Index),
+			Status:              string(opinstance.Lifecycle.State),
+			OperationId:         opinstance.Metadata.OperationID,
+			TriggerId:           opinstance.Metadata.TriggerID,
+			OperationInstanceId: opinstance.Metadata.OperationInstanceID,
+		}
+
+		items = append(items, item)
+	}
+
+	x.Data = &PluginWorkflowOperationInstanceListStatusResp_Data{
+		Items: items,
+	}
+}
+
+// ConvertWorkflowOperationInstanceStatusToTypes convert workflow operation instance status to types.
+func (x *PluginWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperationInstanceStatusToTypes() []*operation.InstanceStatus {
+	data := x.GetData()
+	if data == nil {
+		return nil
+	}
+
+	items := data.GetItems()
+
+	result := make([]*operation.InstanceStatus, 0)
+	for _, value := range items {
+		result = append(result, &operation.InstanceStatus{
+			TriggerID:           value.GetTriggerId(),
+			State:               operation.State(value.GetStatus()),
+			Index:               int(value.GetIndex()),
+			OperationID:         value.GetOperationId(),
+			OperationInstanceID: value.GetOperationInstanceId(),
+		})
+	}
+
+	return result
+}
+
+func convertPluginWorkOperaInstanceStatusConditionsFromTypes(condition *types.PluginWorkflowOperInstanceStatusCondition) (
+	*PluginWorkflowInstanceStatusExactConditions, *PluginWorkflowInstanceStatusFuzzyConditions, error) {
+
+	if condition == nil {
+		return nil, nil, nil
+	}
+
+	var exactCond *PluginWorkflowInstanceStatusExactConditions
+	var fuzzyCond *PluginWorkflowInstanceStatusFuzzyConditions
+
+	if condition.ExactInclude != nil {
+		exactCond = &PluginWorkflowInstanceStatusExactConditions{
+			TriggerId: condition.ExactInclude.TriggerID,
+		}
+	}
+
+	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
+		return nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+	}
+
+	return exactCond, fuzzyCond, nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowOperationRetryReq) AutoConvert() {
+}
+
+// Validate convert workflow id.
+func (x *PluginWorkflowOperationRetryReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	if len(x.GetOperationIds()) == 0 {
+		return errors.New("operation_id is required")
+	}
+
+	for _, oper := range x.GetOperationIds() {
+		if oper == "" {
+			return errors.New("operation_id can not be empty")
+		}
+	}
+
+	return nil
+}
+
+// ConvertOperationRetryParamFromTypes convert operation retry param from types.
+func (x *PluginWorkflowOperationRetryReq) ConvertOperationRetryParamFromTypes(retryParm *types.PluginWorkflowOperationRetryParam) {
+	x.WorkflowId = retryParm.WorkflowID
+	x.OperationIds = retryParm.OperationIDs
+	x.RetryMod = string(retryParm.RetryMode)
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowOperationTerminateReq) AutoConvert() {
+}
+
+// Validate convert workflow id.
+func (x *PluginWorkflowOperationTerminateReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	if len(x.GetOperationIds()) == 0 {
+		return errors.New("operation_id is required")
+	}
+
+	return nil
+}
+
+// ConvertOperationTerminateParamFromTypes convert operation terminate param from types.
+func (x *PluginWorkflowOperationTerminateReq) ConvertOperationTerminateParamFromTypes(terminateParam *types.PluginWorkflowOperationTerminateParam) {
+	x.WorkflowId = terminateParam.WorkflowID
+	x.OperationIds = terminateParam.OperationIDs
+}

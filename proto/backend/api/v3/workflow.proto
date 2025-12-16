@@ -49,4 +49,5 @@ message WorkflowOperationInstanceStatus {
   string operation_id = 2;
   string status = 3;
   string trigger_id = 4;
+  string operation_instance_id = 5;
 }

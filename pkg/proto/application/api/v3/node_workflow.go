@@ -225,7 +225,7 @@ func (x *NodeWorkflowOperationListReq) AutoConvert() {
 
 // ConvertResultFromTypes convert workflow id to types.
 func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
-	total int64, result []*types.NodeWorkflowListOperationResult, operationsSummary []*types.OperationSummary) {
+	total int64, result []*types.NodeWorkflowListOperationResult, operationsSummary []*types.NodeWorkflowOperationSummary) {
 
 	items := make([]*NodeWorkflowOperation, len(result))
 	for idx, op := range result {
@@ -302,6 +302,13 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(total int
 			OperationDefName:  opinstance.Metadata.OperationDefName,
 			ParentOperationId: opinstance.Metadata.ParentOperationID,
 			ActionNames:       opinstance.Metadata.ActionNames,
+			LifeCycle: &WorkflowLifeCycle{
+				State:      string(opinstance.Lifecycle.State),
+				CreateTime: opinstance.Lifecycle.CreatedAt.Unix(),
+				StartTime:  opinstance.Lifecycle.StartedAt.Unix(),
+				EndTime:    opinstance.Lifecycle.EndedAt.Unix(),
+				StopTime:   opinstance.Lifecycle.StoppedAt.Unix(),
+			},
 		}
 
 		items = append(items, oper)
@@ -496,7 +503,7 @@ func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperati
 		exactCond = &NodeWorkflowOperationExactConditions{
 			BkBizId:         condition.ExactInclude.BizID,
 			WorkflowId:      condition.ExactInclude.WorkflowID,
-			State:           types.WorkflowOperationStatusListToStringList(condition.ExactInclude.State),
+			State:           types.NodeWorkflowOperationStatusListToStringList(condition.ExactInclude.State),
 			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
 			BkHostInnerip:   condition.ExactInclude.InnerIP,
 			BkHostInneripV6: condition.ExactInclude.InnerIPv6,
@@ -520,7 +527,7 @@ func convertNodeWorkflowOperationConditionsToTypes(
 	if exactCond != nil {
 		condition.ExactInclude = &types.NodeWorkflowOperationExactFields{
 			WorkflowID:    exactCond.GetWorkflowId(),
-			State:         types.StringListToWorkflowOperationStatusList(exactCond.GetState()),
+			State:         types.StringListToNodeWorkflowOperationStatusList(exactCond.GetState()),
 			InnerIP:       exactCond.GetBkHostInnerip(),
 			InnerIPv6:     exactCond.GetBkHostInneripV6(),
 			BizID:         exactCond.GetBkBizId(),

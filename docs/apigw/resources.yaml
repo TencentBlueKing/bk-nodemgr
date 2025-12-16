@@ -8138,6 +8138,8 @@ paths:
                               type: string
                             operation_id:
                               type: string
+                            operation_instance_id:
+                              type: string
                           description: WorkflowOperationInstanceStatus describes the workflow operation instance\nstatus.
                   error:
                     type: object
@@ -11344,3 +11346,1032 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         descriptionEn: None
+  /api/v3/plugin/workflow/distinct:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowDistinct
+      description: PluginWorkflowDistinct provides plugin workflow distinct.
+      tags:
+      - PluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                title: PluginWorkflowDistinctResp describes the plugin workflow distinct
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      type:
+                        type: array
+                        items:
+                          type: string
+                      status:
+                        type: array
+                        items:
+                          type: string
+                      operator:
+                        type: array
+                        items:
+                          type: string
+                      bk_host_id:
+                        type: array
+                        items:
+                          type: integer
+                          format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                  description: PluginWorkflowExactConditions describes the exact conditions of plugin\nworkflow list request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin\nworkflow list request.
+              description: PluginWorkflowDistinctReq describes the plugin workflow distinct request.
+        required: true
+        description: PluginWorkflowDistinctReq describes the plugin workflow distinct request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/workflow/list:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowList
+      description: PluginWorkflowList provides plugin workflow list.
+      tags:
+      - PluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            status:
+                              type: string
+                            operator:
+                              type: string
+                            tenant_id:
+                              type: string
+                            bk_host_id:
+                              type: array
+                              items:
+                                type: integer
+                                format: int64
+                            trigger_id:
+                              type: string
+                            finish_time:
+                              type: integer
+                              format: int64
+                            workflow_id:
+                              type: string
+                            operate_time:
+                              type: integer
+                              format: int64
+                          description: PluginWorkflowInfo describes the plugin workflow information.
+                      total:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginWorkflowListResp describes the plugin workflow list response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                operate_time_range:
+                  type: object
+                  properties:
+                    end_timestamp_sec:
+                      type: integer
+                      format: int64
+                    start_timestamp_sec:
+                      type: integer
+                      format: int64
+                  description: TimeRange describes the time range.
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    type:
+                      type: array
+                      items:
+                        type: string
+                    status:
+                      type: array
+                      items:
+                        type: string
+                    operator:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    workflow_id:
+                      type: array
+                      items:
+                        type: string
+                  description: PluginWorkflowExactConditions describes the exact conditions of plugin\nworkflow list request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin\nworkflow list request.
+              description: PluginWorkflowListReq describes the plugin workflow list request.
+        required: true
+        description: PluginWorkflowListReq describes the plugin workflow list request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/workflow/operation/instance/list:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowOperationInstanceList
+      description: PluginWorkflowOperationInstanceList provides plugin workflow operation\ninstance list.
+      tags:
+      - PluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                create_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                            action_names:
+                              type: array
+                              items:
+                                type: string
+                            oper_inst_id:
+                              type: string
+                            operation_id:
+                              type: string
+                            oper_inst_status:
+                              type: string
+                            operation_def_name:
+                              type: string
+                            parent_operation_id:
+                              type: string
+                          description: WorflowOperationInstanceData describes the workflow operation instance data.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginWorkflowOperationInstanceListResp describes the node operation instance\nlist by operation-id response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                only_count:
+                  type: boolean
+                operation_id:
+                  type: array
+                  items:
+                    type: string
+              description: PluginWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.
+        required: true
+        description: PluginWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/operation/instance/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/workflow/operation/instance/log/get:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowOperationInstanceLogGet
+      description: PluginWorkflowOperationInstanceLogGet provides plugin operation instance\nlog get.
+      tags:
+      - PluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        format: int64
+                      oper_inst_logs:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            message:
+                              type: object
+                              properties:
+                                logs:
+                                  type: array
+                                  items:
+                                    type: object
+                                    properties:
+                                      text:
+                                        type: string
+                                      time:
+                                        type: integer
+                                        format: int64
+                                      level:
+                                        type: string
+                              description: WorkflowActionMessage describes the workflow action message logs.
+                            life_cycle:
+                              type: object
+                              properties:
+                                state:
+                                  type: string
+                                end_time:
+                                  type: integer
+                                  format: int64
+                                stop_time:
+                                  type: integer
+                                  format: int64
+                                start_time:
+                                  type: integer
+                                  format: int64
+                                create_time:
+                                  type: integer
+                                  format: int64
+                              description: WorkflowLifeCycle describes the workflow life cycle.
+                          description: WorkflowActionData describes the workflow action data.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginWorkflowOperationInstanceLogGetResp describes the node operation action\ninstance log response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oper_inst_id:
+                  type: string
+              description: PluginWorkflowOperationInstanceLogGetReq describes the node operation\ninstance log request.
+        required: true
+        description: PluginWorkflowOperationInstanceLogGetReq describes the node operation\ninstance log request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/operation/instance/log/get
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/workflow/operation/instance/status/list:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowOperationInstanceStatusList
+      description: PluginWorkflowOperationInstanceStatusList provides plugin workflow\noperation list status.
+      tags:
+      - PluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            index:
+                              type: integer
+                              format: int64
+                            status:
+                              type: string
+                            trigger_id:
+                              type: string
+                            operation_id:
+                              type: string
+                            operation_instance_id:
+                              type: string
+                          description: WorkflowOperationInstanceStatus describes the workflow operation instance\nstatus.
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginWorkflowOperationInstanceListStatusResp describes the plugin workflow\noperation list status response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    trigger_id:
+                      type: array
+                      items:
+                        type: string
+                  description: PluginWorkflowInstanceStatusExactConditions describes the exact conditions of\nplugin workflow list request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: PluginWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\nplugin workflow list request.
+              description: PluginWorkflowOperationInstanceListStatusReq describes the plugin workflow\noperation list status request.
+        required: true
+        description: PluginWorkflowOperationInstanceListStatusReq describes the plugin workflow\noperation list status request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/operation/instance/status/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/workflow/operation/list:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowOperationList
+      description: PluginWorkflowOperationList provides plugin workflow operation list.
+      tags:
+      - PluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      operations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            operator:
+                              type: string
+                            bk_host_id:
+                              type: integer
+                              format: int64
+                            plugin_name:
+                              type: string
+                            instance_ids:
+                              type: array
+                              items:
+                                type: string
+                            operation_id:
+                              type: string
+                            plugin_version:
+                              type: string
+                          description: PluginWorkflowOperation describes the node workflow operation.
+                      total_count:
+                        type: integer
+                        format: int64
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginWorkflowOperationListResp describes the node operation list by\nworkflow-id response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: object
+                  properties:
+                    limit:
+                      type: integer
+                      format: int32
+                    offset:
+                      type: integer
+                      format: int32
+                  description: Page describes the generaic conditions when paging query.
+                only_count:
+                  type: boolean
+                exact_include_conditions:
+                  type: object
+                  properties:
+                    state:
+                      type: array
+                      items:
+                        type: string
+                    bk_host_id:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                    trigger_id:
+                      type: string
+                    plugin_name:
+                      type: array
+                      items:
+                        type: string
+                    workflow_id:
+                      type: string
+                    plugin_version:
+                      type: array
+                      items:
+                        type: string
+                  description: PluginWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request.
+                fuzzy_include_conditions:
+                  type: object
+                  description: PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\nworkflow list request.
+              description: PluginWorkflowOperationListReq describes the node operation list\nrequest.
+        required: true
+        description: PluginWorkflowOperationListReq describes the node operation list\nrequest.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/operation/list
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/workflow/operation/retry:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowOperationRetry
+      description: PluginWorkflowOperationRetry provides plugin operation retry.
+      tags:
+      - PluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginWorkflowOperationRetryResp describes the plugin operation retry.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                retry_mod:
+                  type: string
+                workflow_id:
+                  type: string
+                operation_ids:
+                  type: array
+                  items:
+                    type: string
+              description: PluginWorkflowOperationRetryReq describes the plugin operation retry.
+        required: true
+        description: PluginWorkflowOperationRetryReq describes the plugin operation retry.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/operation/retry
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:
+  /api/v3/plugin/workflow/operation/terminate:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowOperationTerminate
+      description: PluginWorkflowOperationTerminate provides plugin operation terminate.
+      tags:
+      - PluginWorkflow
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginWorkflowOperationTerminateResp describes the plugin operation\nterminate.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        '@type':
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workflow_id:
+                  type: string
+                operation_ids:
+                  type: array
+                  items:
+                    type: string
+              description: PluginWorkflowOperationTerminateReq describes the plugin operation terminate.
+        required: true
+        description: PluginWorkflowOperationTerminateReq describes the plugin operation terminate.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/operation/terminate
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn:

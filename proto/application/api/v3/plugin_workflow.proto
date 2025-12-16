@@ -1,0 +1,301 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+import "workflow.proto";
+
+import "google/api/annotations.proto";
+
+// PluginWorkflowInfo describes the plugin workflow information.
+message PluginWorkflowInfo {
+  optional string tenant_id = 1;
+  optional string workflow_id = 2;
+  optional string trigger_id = 3;
+  optional string type = 4;
+  repeated int64 bk_host_id = 5;
+  optional string operator = 6;
+  optional int64 operate_time = 7;
+  optional int64 finish_time = 8;
+  optional string status = 9;
+}
+
+// PluginWorkflowExactConditions describes the exact conditions of plugin
+// workflow list request.
+message PluginWorkflowExactConditions {
+  repeated string workflow_id = 1;
+  repeated string type = 2;
+  repeated int64 bk_host_id = 3;
+  repeated string status = 4;
+  repeated string operator = 5;
+}
+
+// PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin
+// workflow list request.
+message PluginWorkflowFuzzyConditions {}
+
+// PluginWorkflowListReq describes the plugin workflow list request.
+message PluginWorkflowListReq {
+  Page page = 1;
+  bool only_count = 2;
+
+  PluginWorkflowExactConditions exact_include_conditions = 3;
+  PluginWorkflowFuzzyConditions fuzzy_include_conditions = 4;
+  TimeRange operate_time_range = 5;
+}
+
+// PluginWorkflowListResp describes the plugin workflow list response.
+message PluginWorkflowListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated PluginWorkflowInfo items = 2;
+  }
+  Data data = 5;
+}
+
+// PluginWorkflowStatisticReq describes the node workflow statistic request.
+message PluginWorkflowStatisticsReq { repeated string workflow_id = 1; }
+
+// PluginWorkflowStatisticResp describes the node workflow statistic response.
+message PluginWorkflowStatisticsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated WorkflowStatisticsInfo items = 1; }
+  Data data = 5;
+}
+
+// PluginWorkflowDistinctReq describes the plugin workflow distinct request.
+message PluginWorkflowDistinctReq {
+  PluginWorkflowExactConditions exact_include_conditions = 1;
+  PluginWorkflowFuzzyConditions fuzzy_include_conditions = 2;
+}
+
+// PluginWorkflowDistinctResp describes the plugin workflow distinct
+message PluginWorkflowDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    repeated string type = 1;
+    repeated int64 bk_host_id = 2;
+    repeated string operator = 3;
+    repeated string status = 4;
+  }
+  Data data = 5;
+}
+
+// PluginWorkflowOperationParam describes the plugin workflow operation
+message PluginWorkflowOperationParam {
+  int64 bk_host_id = 3;
+  string plugin_name = 4;
+  string plugin_version = 5;
+  string operator = 6;
+}
+
+// PluginWorkflowOperationStatus describes the plugin workflow operation status.
+message PluginWorkflowOperationStatus {
+  string state = 1;
+  int64 total_time_second = 2;
+}
+
+// PluginWorkflowOperation describes the node workflow operation.
+message PluginWorkflowOperation {
+  string operation_id = 1;
+  repeated string instance_ids = 2;
+  PluginWorkflowOperationParam param = 3;
+  PluginWorkflowOperationStatus status = 4;
+}
+
+// PluginWorkflowOperationExactConditions describes the exact conditions of node
+// workflow operation list request.
+message PluginWorkflowOperationExactConditions {
+  string workflow_id = 1;
+  string trigger_id = 2;
+  repeated int64 bk_host_id = 3;
+  repeated string plugin_name = 4;
+  repeated string plugin_version = 5;
+  repeated string state = 6;
+}
+
+// PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of node
+// workflow list request.
+message PluginWorkflowOperationFuzzyConditions {}
+
+// PluginWorkflowOperationListReq describes the node operation list
+// request.
+message PluginWorkflowOperationListReq {
+  bool only_count = 1;
+  Page page = 2;
+  PluginWorkflowOperationExactConditions exact_include_conditions = 3;
+  PluginWorkflowOperationFuzzyConditions fuzzy_include_conditions = 4;
+}
+
+// PluginWorkflowOperationListResp describes the node operation list by
+// workflow-id response.
+message PluginWorkflowOperationListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  message Data {
+    repeated PluginWorkflowOperation operations = 1;
+    int64 total_count = 2;
+  }
+  Data data = 5;
+}
+
+// PluginWorkflowOperationInstanceListReq describes the node operation instance
+// list by operation-id request.
+message PluginWorkflowOperationInstanceListReq {
+  bool only_count = 1;
+  repeated string operation_id = 2;
+}
+
+// PluginWorkflowOperationInstanceListResp describes the node operation instance
+// list by operation-id response.
+message PluginWorkflowOperationInstanceListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated WorflowOperationInstanceData oper_inst_data = 2;
+  }
+  Data data = 5;
+}
+
+// PluginWorkflowOperationInstanceLogGetReq describes the node operation
+// instance log request.
+message PluginWorkflowOperationInstanceLogGetReq { string oper_inst_id = 1; }
+
+// PluginWorkflowOperationInstanceLogGetResp describes the node operation action
+// instance log response.
+message PluginWorkflowOperationInstanceLogGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    map<string, WorkflowActionData> oper_inst_logs = 2;
+  }
+  Data data = 5;
+}
+
+// PluginWorkflowOperationRetryReq describes the plugin operation retry.
+message PluginWorkflowOperationRetryReq {
+  string workflow_id = 1;
+  string retry_mod = 2;
+  repeated string operation_ids = 3;
+}
+
+// PluginWorkflowOperationRetryResp describes the plugin operation retry.
+message PluginWorkflowOperationRetryResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PluginWorkflowOperationTerminateReq describes the plugin operation terminate.
+message PluginWorkflowOperationTerminateReq {
+  string workflow_id = 1;
+  repeated string operation_ids = 2;
+}
+
+// PluginWorkflowOperationTerminateResp describes the plugin operation
+// terminate.
+message PluginWorkflowOperationTerminateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+service PluginWorkflow {
+  // PluginWorkflowList provides plugin workflow list.
+  rpc PluginWorkflowList(PluginWorkflowListReq)
+      returns (PluginWorkflowListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/list"
+      body : "*"
+    };
+  }
+
+  // PluginWorkflowDistinct provides plugin workflow distinct.
+  rpc PluginWorkflowDistinct(PluginWorkflowDistinctReq)
+      returns (PluginWorkflowDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/distinct"
+      body : "*"
+    };
+  }
+
+  // PluginWorkflowOperationList provides plugin workflow operation list.
+  rpc PluginWorkflowOperationList(PluginWorkflowOperationListReq)
+      returns (PluginWorkflowOperationListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/operation/list"
+      body : "*"
+    };
+  }
+
+  // PluginWorkflowOperationInstanceList provides plugin workflow operation
+  // instance list.
+  rpc PluginWorkflowOperationInstanceList(
+      PluginWorkflowOperationInstanceListReq)
+      returns (PluginWorkflowOperationInstanceListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/operation/instance/list"
+      body : "*"
+    };
+  }
+
+  // PluginWorkflowOperationInstanceLogGet provides plugin operation instance
+  // log get.
+  rpc PluginWorkflowOperationInstanceLogGet(
+      PluginWorkflowOperationInstanceLogGetReq)
+      returns (PluginWorkflowOperationInstanceLogGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/operation/instance/log/get"
+      body : "*"
+    };
+  }
+
+  // PluginWorkflowOperationRetry provides plugin operation retry.
+  rpc PluginWorkflowOperationRetry(PluginWorkflowOperationRetryReq)
+      returns (PluginWorkflowOperationRetryResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/operation/retry"
+      body : "*"
+    };
+  }
+
+  // PluginWorkflowOperationTerminate provides plugin operation terminate.
+  rpc PluginWorkflowOperationTerminate(PluginWorkflowOperationTerminateReq)
+      returns (PluginWorkflowOperationTerminateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/operation/terminate"
+      body : "*"
+    };
+  }
+}

@@ -58,116 +58,107 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
 }
 
-// List workflows.
+// List plugin workflows.
 func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeWorkflowListReq)
+	req := new(protoApplication.PluginWorkflowListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	resp := new(protoApplication.NodeWorkflowListResp)
+	resp := new(protoApplication.PluginWorkflowListResp)
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.backendHandler.CountNodeWorkflow(
+		num, err := h.backendHandler.CountPluginWorkflow(
 			rCtx,
 			req.ConvertConditionsToTypes())
 		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow, failed to count workflow")
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to count plugin workflow")
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
-		resp.ConvertNodeWorkflowsFromTypes(num, nil, nil)
+		resp.ConvertPluginWorkflowsFromTypes(num, nil)
 		// only count, no data.
 		return resp.GetData(), nil
 	}
 
-	workflows, num, err := h.backendHandler.ListNodeWorkflow(rCtx,
-		req.ConvertPageToTypes(maxWorkflowLimit), req.ConvertConditionsToTypes())
-
+	workflows, num, err := h.backendHandler.ListPluginWorkflow(rCtx, req.ConvertPageToTypes(maxWorkflowLimit), req.ConvertConditionsToTypes())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	businessMap, err := h.listAllBusiness(rCtx)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business")
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	resp.ConvertNodeWorkflowsFromTypes(num, workflows, businessMap)
+	resp.ConvertPluginWorkflowsFromTypes(num, workflows)
 
 	return resp.GetData(), nil
 }
 
 // TODO：如果数据量过大可能要分页或者拆协程查询
-// Statistics workflow statistics.
+// Statistics plugin workflow statistics.
 func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeWorkflowStatisticsReq)
+	req := new(protoApplication.PluginWorkflowStatisticsReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics plugin workflow, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflows, _, err := h.backendHandler.ListNodeWorkflow(
+	workflows, _, err := h.backendHandler.ListPluginWorkflow(
 		rCtx, types.UnlimitedPage(), req.ConvertConditionsToWorkflowConditionTypes())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to list workflow")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics plugin workflow, failed to list plugin workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	var instanceStatus []*operation.InstanceStatus
 	if len(workflows) > 0 {
-		instanceStatus, err = h.backendHandler.ListNodeWorkflowOperationInstanceStatus(
-			rCtx, convertWorkflowToTriggerID(workflows))
+		instanceStatus, err = h.backendHandler.ListPluginWorkflowOperationInstanceStatus(rCtx, convertWorkflowToTriggerID(workflows))
 		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow instance status: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow instance status: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 	}
 
-	workflowStatusMap := make(map[string]map[string]*types.NodeWorkflowOperationStatus)
+	workflowStatusMap := make(map[string]map[string]*types.PluginWorkflowOperationStatus)
 	for _, instatus := range instanceStatus {
 		innerMap, exists := workflowStatusMap[instatus.TriggerID]
 		if !exists {
-			innerMap = make(map[string]*types.NodeWorkflowOperationStatus)
+			innerMap = make(map[string]*types.PluginWorkflowOperationStatus)
 			workflowStatusMap[instatus.TriggerID] = innerMap
 		}
 
 		current, exists := innerMap[instatus.OperationID]
 		if !exists || current.Index < instatus.Index {
-			innerMap[instatus.OperationID] = &types.NodeWorkflowOperationStatus{
+			innerMap[instatus.OperationID] = &types.PluginWorkflowOperationStatus{
 				OperationID: instatus.OperationID,
 				Index:       instatus.Index,
 				TriggerID:   instatus.TriggerID,
-				State:       types.NodeWorkflowOperationState(instatus.State),
+				State:       types.PluginWorkflowOperationState(instatus.State),
 			}
 		}
 	}
 
 	result := calculateStats(workflows, workflowStatusMap, req.GetWorkflowId())
 
-	resp := new(protoApplication.NodeWorkflowStatisticsResp)
-	resp.ConvertNodeWorkflowsFromTypes(result)
+	resp := new(protoApplication.PluginWorkflowStatisticsResp)
+	resp.ConvertPluginWorkflowsFromTypes(result)
 
 	return resp.GetData(), nil
 }
 
-// Distinct workflow distinct.
+// Distinct plugin workflow distinct.
 func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeWorkflowDistinctReq)
+	req := new(protoApplication.PluginWorkflowDistinctReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct workflow, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin workflow, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.DistinctNodeWorkflow(
+	result, err := h.backendHandler.DistinctPluginWorkflow(
 		rCtx,
-		types.NewNodeWorkflowDistinctRequestAllSet(),
+		types.NewPluginWorkflowDistinctRequestAllSet(),
 		req.ConvertConditionsToTypes())
-	resp := new(protoApplication.NodeWorkflowDistinctResp)
+	resp := new(protoApplication.PluginWorkflowDistinctResp)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct workflow: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin workflow: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -176,9 +167,9 @@ func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-// ListOperation list workflow operation.
+// ListOperation list plugin workflow operation.
 func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeWorkflowOperationListReq)
+	req := new(protoApplication.PluginWorkflowOperationListReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -194,7 +185,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		targetStates = exactCond.GetState()
 	}
 
-	result, num, err := h.backendHandler.ListNodeWorkflowOperation(
+	result, num, err := h.backendHandler.ListPluginWorkflowOperation(
 		rCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation: %v", err)
@@ -202,7 +193,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	if len(result) == 0 {
-		resp := new(protoApplication.NodeWorkflowOperationListResp)
+		resp := new(protoApplication.PluginWorkflowOperationListResp)
 		resp.ConvertResultFromTypes(num, nil, nil)
 
 		if req.GetOnlyCount() {
@@ -219,7 +210,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 
 	// get all operation instances.
 	// need to grouby operation id. than use last instance status and calculate total time.
-	allInstances, _, err := h.backendHandler.ListNodeWorkflowOperationInstance(rCtx, operationIDs...)
+	allInstances, _, err := h.backendHandler.ListPluginWorkflowOperationInstance(rCtx, operationIDs...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -242,7 +233,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		targetStates,
 	)
 
-	resp := new(protoApplication.NodeWorkflowOperationListResp)
+	resp := new(protoApplication.PluginWorkflowOperationListResp)
 	resp.ConvertResultFromTypes(num, filteredResults, filteredSummaries)
 
 	if req.GetOnlyCount() {
@@ -252,9 +243,9 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-// ListOperationInstance list workflow operation instance.
+// ListOperationInstance list plugin workflow operation instance.
 func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeWorkflowOperationInstanceListReq)
+	req := new(protoApplication.PluginWorkflowOperationInstanceListReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -265,11 +256,10 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
 	}
 
-	resp := new(protoApplication.NodeWorkflowOperationInstanceListResp)
+	resp := new(protoApplication.PluginWorkflowOperationInstanceListResp)
 
 	if req.GetOnlyCount() {
-		num, err := h.backendHandler.CountNodeWorkflowOperationInstance(
-			rCtx, req.ConvertConditionsToComm())
+		num, err := h.backendHandler.CountPluginWorkflowOperationInstance(rCtx, req.ConvertConditionsToComm()...)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to count operation instance: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -279,8 +269,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 		return resp.GetData(), nil
 	}
 
-	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
-		rCtx, req.ConvertConditionsToComm())
+	instances, num, err := h.backendHandler.ListPluginWorkflowOperationInstance(rCtx, req.ConvertConditionsToComm()...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -293,13 +282,13 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 
 // GetOperationInstanceLog get operation instance log.
 func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeWorkflowOperationInstanceLogGetReq)
+	req := new(protoApplication.PluginWorkflowOperationInstanceLogGetReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to decode request body: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	logs, err := h.backendHandler.GetNodeWorkflowOperationInstanceLog(
+	logs, err := h.backendHandler.GetPluginWorkflowOperationInstanceLog(
 		rCtx,
 		req.GetOperInstId())
 	if err != nil {
@@ -307,7 +296,7 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	resp := new(protoApplication.NodeWorkflowOperationInstanceLogGetResp)
+	resp := new(protoApplication.PluginWorkflowOperationInstanceLogGetResp)
 
 	resp.ConvertResultFromTypes(logs)
 
@@ -316,65 +305,65 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 
 // RetryOperation retry operation.
 func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeWorkflowOperationRetryReq)
+	req := new(protoApplication.PluginWorkflowOperationRetryReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry plugin workflow operation, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.backendHandler.RetryNodeWorkflowOperation(rCtx, req.ConvertNodeWorkflowOperationRetryParamToTypes())
+	err := h.backendHandler.RetryPluginWorkflowOperation(rCtx, req.ConvertPluginWorkflowOperationRetryParamToTypes())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry operation")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to retry plugin workflow operation")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
-	resp := new(protoApplication.NodeWorkflowOperationRetryResp)
+	resp := new(protoApplication.PluginWorkflowOperationRetryResp)
 
 	return resp.GetData(), nil
 }
 
 // TerminateOperation terminate operation.
 func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.NodeWorkflowOperationTerminateReq)
+	req := new(protoApplication.PluginWorkflowOperationTerminateReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate operation, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate plugin workflow operation, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.backendHandler.TerminateNodeWorkflowOperation(rCtx, req.ConvertNodeWorkflowOperationTerminateParamToTypes())
+	err := h.backendHandler.TerminatePluginWorkflowOperation(rCtx, req.ConvertPluginWorkflowOperationTerminateParamToTypes())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate operation")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate plugin workflow operation")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	resp := new(protoApplication.NodeWorkflowOperationTerminateResp)
+	resp := new(protoApplication.PluginWorkflowOperationTerminateResp)
 
 	return resp.GetData(), nil
 }
 
-func convertWorkflowToTriggerID(workflows []*types.NodeWorkflow) *types.NodeWorkflowOperInstanceStatusCondition {
+func convertWorkflowToTriggerID(workflows []*types.PluginWorkflow) *types.PluginWorkflowOperInstanceStatusCondition {
 	triggerIDs := make([]string, len(workflows))
 	for i, workflow := range workflows {
 		triggerIDs[i] = workflow.TriggerID
 	}
 
-	return &types.NodeWorkflowOperInstanceStatusCondition{
-		ExactInclude: &types.NodeWorkflowOperInstanceStatusExactFields{
+	return &types.PluginWorkflowOperInstanceStatusCondition{
+		ExactInclude: &types.PluginWorkflowOperInstanceStatusExactFields{
 			TriggerID: triggerIDs,
 		},
 	}
 }
 
-func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[string]*types.NodeWorkflowOperationStatus,
-	reqIDs []string) []*protoApplication.NodeWorkflowStatistics {
+func calculateStats(workflows []*types.PluginWorkflow, statusMap map[string]map[string]*types.PluginWorkflowOperationStatus,
+	reqIDs []string) []*protoApplication.PluginWorkflowStatistics {
 
 	idIndexMap := make(map[string]int)
 	for i, id := range reqIDs {
 		idIndexMap[id] = i
 	}
 
-	result := make([]*protoApplication.NodeWorkflowStatistics, len(reqIDs))
+	result := make([]*protoApplication.PluginWorkflowStatistics, len(reqIDs))
 	for i, id := range reqIDs {
-		result[i] = &protoApplication.NodeWorkflowStatistics{WorkflowID: id}
+		result[i] = &protoApplication.PluginWorkflowStatistics{WorkflowID: id}
 	}
 
 	for _, workflow := range workflows {
@@ -388,19 +377,19 @@ func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[st
 			for _, inst := range innerMap {
 				statusList.TotalCount++
 				switch inst.State {
-				case types.NodeWorkflowOperationStateInit:
+				case types.PluginWorkflowOperationStateInit:
 					statusList.InitCount++
-				case types.NodeWorkflowOperationStateRunning:
+				case types.PluginWorkflowOperationStateRunning:
 					statusList.RunningCount++
-				case types.NodeWorkflowOperationStateLaunched:
+				case types.PluginWorkflowOperationStateLaunched:
 					statusList.LaunchedCount++
-				case types.NodeWorkflowOperationStateSuccess:
+				case types.PluginWorkflowOperationStateSuccess:
 					statusList.SuccessCount++
-				case types.NodeWorkflowOperationStateFailed:
+				case types.PluginWorkflowOperationStateFailed:
 					statusList.FailedCount++
-				case types.NodeWorkflowOperationStateTimeout:
+				case types.PluginWorkflowOperationStateTimeout:
 					statusList.TimeoutCount++
-				case types.NodeWorkflowOperationStateTerminated:
+				case types.PluginWorkflowOperationStateTerminated:
 					statusList.TerminatedCount++
 				}
 			}
@@ -408,21 +397,6 @@ func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[st
 	}
 
 	return result
-}
-
-func (h *handler) listAllBusiness(rCtx restserver.IContext) (map[int64]string, error) {
-	businesses, num, err := h.backendHandler.ListBusiness(rCtx, types.UnlimitedPage(), nil)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	bizNameMap := make(map[int64]string, num)
-	for _, biz := range businesses {
-		bizNameMap[biz.BizID] = biz.BizName
-	}
-
-	return bizNameMap, nil
 }
 
 func groupInstancesByOperationID(
@@ -438,10 +412,10 @@ func groupInstancesByOperationID(
 }
 
 func filterOperationsByState(
-	ops []*types.NodeWorkflowListOperationResult,
-	summaries []*types.NodeWorkflowOperationSummary,
+	ops []*types.PluginWorkflowListOperationResult,
+	summaries []*types.PluginWorkflowOperationSummary,
 	targetStates []string) (
-	[]*types.NodeWorkflowListOperationResult, []*types.NodeWorkflowOperationSummary) {
+	[]*types.PluginWorkflowListOperationResult, []*types.PluginWorkflowOperationSummary) {
 
 	// no state filter required. directly return.
 	if len(targetStates) == 0 {
@@ -449,13 +423,13 @@ func filterOperationsByState(
 	}
 
 	// record the states that need to be filtered.
-	targetStateSet := make(map[types.NodeWorkflowOperationState]struct{}, len(targetStates))
+	targetStateSet := make(map[types.PluginWorkflowOperationState]struct{}, len(targetStates))
 	for _, state := range targetStates {
-		targetStateSet[types.NodeWorkflowOperationState(state)] = struct{}{}
+		targetStateSet[types.PluginWorkflowOperationState(state)] = struct{}{}
 	}
 
-	matchedOperations := make([]*types.NodeWorkflowListOperationResult, len(ops))
-	matchedSummaries := make([]*types.NodeWorkflowOperationSummary, len(ops))
+	matchedOperations := make([]*types.PluginWorkflowListOperationResult, len(ops))
+	matchedSummaries := make([]*types.PluginWorkflowOperationSummary, len(ops))
 
 	for i, op := range ops {
 		summary := summaries[i]
@@ -471,18 +445,18 @@ func filterOperationsByState(
 }
 
 func calculateOperationSummaries(operationIDs []string,
-	instancesByOpID map[string][]*operation.InstanceBriefData) ([]*types.NodeWorkflowOperationSummary, error) {
+	instancesByOpID map[string][]*operation.InstanceBriefData) ([]*types.PluginWorkflowOperationSummary, error) {
 
-	summaries := make([]*types.NodeWorkflowOperationSummary, len(operationIDs))
+	summaries := make([]*types.PluginWorkflowOperationSummary, len(operationIDs))
 
 	for idx, opID := range operationIDs {
 		instances, exists := instancesByOpID[opID]
 
 		// no instances found.
 		if !exists || len(instances) == 0 {
-			summaries[idx] = &types.NodeWorkflowOperationSummary{
+			summaries[idx] = &types.PluginWorkflowOperationSummary{
 				TotalDuration: 0,
-				LastStatus:    types.NodeWorkflowOperationStateInit,
+				LastStatus:    types.PluginWorkflowOperationStateInit,
 			}
 
 			continue
@@ -504,12 +478,12 @@ func calculateOperationSummaries(operationIDs []string,
 
 		// calculate last status.
 		lastInstance := instances[len(instances)-1]
-		lastStatus, err := types.InstanceStatusToNodeWorkflowOperationState(lastInstance.Lifecycle.State)
+		lastStatus, err := types.InstanceStatusToPluginWorkflowOperationState(lastInstance.Lifecycle.State)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert instance status to operation state: %w", err)
 		}
 
-		summaries[idx] = &types.NodeWorkflowOperationSummary{
+		summaries[idx] = &types.PluginWorkflowOperationSummary{
 			TotalDuration: totalSeconds,
 			LastStatus:    lastStatus,
 		}

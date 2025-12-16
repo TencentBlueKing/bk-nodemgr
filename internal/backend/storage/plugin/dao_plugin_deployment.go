@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	plugindeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -34,6 +35,27 @@ func (s *Storage) createPluginDeployment(nCtx contextx.IContext, pluginDeploymen
 	}
 
 	return nil
+}
+
+// listPluginDeployment list plugin deployment.
+func (s *Storage) listPluginDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginDeploymentCondition) (
+	[]*types.PluginDeployment, int64, error) {
+
+	if nCtx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertPluginDeploymentConditionToOptions(conditions...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to convert plugin deployment condition to options: %w", err)
+	}
+
+	pluginDeployments, total, err := s.daoPluginDeployment.List(nCtx, page, opts...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list plugin deployment: %w", err)
+	}
+
+	return pluginDeployments, total, nil
 }
 
 // getPluginDeploymentInfo get plugin deployment info.
@@ -130,4 +152,36 @@ func (s *Storage) getPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IC
 	}
 
 	return configs, nil
+}
+
+func convertPluginDeploymentConditionToOptions(conditions ...*types.PluginDeploymentCondition) ([]plugindeployment.OptFn, error) {
+	var opts []plugindeployment.OptFn
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts,
+				plugindeployment.WithToken(condition.ExactInclude.Token...),
+				plugindeployment.WithHostID(condition.ExactInclude.HostID...),
+				plugindeployment.WithPluginName(condition.ExactInclude.PluginName...),
+				plugindeployment.WithPluginVersion(condition.ExactInclude.PluginVersion...),
+			)
+		}
+
+		if condition.FuzzyInclude != nil {
+			return nil, errors.New("fuzzy include is not supported")
+		}
+
+		if condition.ExactExclude != nil {
+			return nil, errors.New("exact exclude is not supported")
+		}
+
+		if condition.FuzzyExclude != nil {
+			return nil, errors.New("fuzzy exclude is not supported")
+		}
+	}
+
+	return opts, nil
 }

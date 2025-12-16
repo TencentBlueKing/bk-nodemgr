@@ -13,10 +13,13 @@ package types
 import (
 	"fmt"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
 // PluginWorkflow represents a plugin workflow.
 type PluginWorkflow struct {
+	TenantID   string
 	WorkflowID string
 	TriggerID  string
 	Type       PluginWorkflowType
@@ -61,6 +64,26 @@ func (pluginWorkflowType PluginWorkflowType) Validate() error {
 	}
 }
 
+// PluginWorkflowTypeListToStringList convert plugin workflow type list to string list.
+func PluginWorkflowTypeListToStringList(types []PluginWorkflowType) []string {
+	strList := make([]string, 0, len(types))
+	for _, t := range types {
+		strList = append(strList, string(t))
+	}
+
+	return strList
+}
+
+// StringListToPluginWorkflowTypeList convert string list to plugin workflow type list.
+func StringListToPluginWorkflowTypeList(strList []string) []PluginWorkflowType {
+	types := make([]PluginWorkflowType, 0, len(strList))
+	for _, str := range strList {
+		types = append(types, PluginWorkflowType(str))
+	}
+
+	return types
+}
+
 // PluginWorkflowStatus represents the status of a plugin workflow.
 type PluginWorkflowStatus string
 
@@ -89,4 +112,138 @@ func (pluginWorkflowStatus PluginWorkflowStatus) Validate() error {
 	default:
 		return fmt.Errorf("invalid plugin workflow status: %s", pluginWorkflowStatus)
 	}
+}
+
+// PluginWorkflowStatusListToStringList convert plugin workflow status list to string list.
+func PluginWorkflowStatusListToStringList(statuses []PluginWorkflowStatus) []string {
+	strList := make([]string, 0, len(statuses))
+	for _, s := range statuses {
+		strList = append(strList, string(s))
+	}
+
+	return strList
+}
+
+// StringListToPluginWorkflowStatusList convert string list to plugin workflow status list.
+func StringListToPluginWorkflowStatusList(strList []string) []PluginWorkflowStatus {
+	statuses := make([]PluginWorkflowStatus, 0, len(strList))
+	for _, str := range strList {
+		statuses = append(statuses, PluginWorkflowStatus(str))
+	}
+
+	return statuses
+}
+
+// PluginWorkflowOperationStatus ...
+type PluginWorkflowOperationStatus struct {
+	Index       int
+	OperationID string
+	TriggerID   string
+	State       PluginWorkflowOperationState
+}
+
+// PluginWorkflowOperationState defines the state of plugin workflow operation.
+type PluginWorkflowOperationState string
+
+const (
+	// PluginWorkflowOperationStateInit plugin workflow operation state init.
+	PluginWorkflowOperationStateInit PluginWorkflowOperationState = "init"
+
+	// PluginWorkflowOperationStateLaunched plugin workflow operation state launched.
+	PluginWorkflowOperationStateLaunched PluginWorkflowOperationState = "launched"
+
+	// PluginWorkflowOperationStateRunning plugin workflow operation state running.
+	PluginWorkflowOperationStateRunning PluginWorkflowOperationState = "running"
+
+	// PluginWorkflowOperationStateSuccess plugin workflow operation state success.
+	PluginWorkflowOperationStateSuccess PluginWorkflowOperationState = "success"
+
+	// PluginWorkflowOperationStateFailed plugin workflow operation state failed.
+	PluginWorkflowOperationStateFailed PluginWorkflowOperationState = "failed"
+
+	// PluginWorkflowOperationStateTimeout plugin workflow operation state timeout.
+	PluginWorkflowOperationStateTimeout PluginWorkflowOperationState = "timeout"
+
+	// PluginWorkflowOperationStateTerminated plugin workflow operation state terminated.
+	PluginWorkflowOperationStateTerminated PluginWorkflowOperationState = "terminated"
+)
+
+// PluginWorkflowOperationStatusListToStringList converts a plugin status list to a string list.
+func PluginWorkflowOperationStatusListToStringList(operationStatusList []PluginWorkflowOperationState) []string {
+	data := make([]string, len(operationStatusList))
+	for idx, operationStatus := range operationStatusList {
+		data[idx] = string(operationStatus)
+	}
+
+	return data
+}
+
+// StringListToPluginWorkflowOperationStatusList converts a string list to a plugin status list.
+func StringListToPluginWorkflowOperationStatusList(stringList []string) []PluginWorkflowOperationState {
+	data := make([]PluginWorkflowOperationState, len(stringList))
+	for idx, operationStatus := range stringList {
+		data[idx] = PluginWorkflowOperationState(operationStatus)
+	}
+
+	return data
+}
+
+// GetFinishedPluginWorkflowStatus returns the finished plugin workflow status.
+func GetFinishedPluginWorkflowStatus() []PluginWorkflowStatus {
+	return []PluginWorkflowStatus{
+		PluginWorkflowStatusSuccess,
+		PluginWorkflowStatusFailed,
+		PluginWorkflowStatusPartialFailed,
+	}
+}
+
+// PluginWorkflowListOperationResult operation list result.
+type PluginWorkflowListOperationResult struct {
+	PluginName      string
+	PluginVersion   string
+	HostID          int64
+	Operator        string
+	OperationID     string
+	OperInstanceIDs []string
+}
+
+// PluginWorkflowOperationSummary summary of plugin workflow operation.
+type PluginWorkflowOperationSummary struct {
+	TotalDuration int64
+	LastStatus    PluginWorkflowOperationState
+}
+
+// InstanceStatusToPluginWorkflowOperationState converts the instance status to operation state.
+func InstanceStatusToPluginWorkflowOperationState(status operation.State) (PluginWorkflowOperationState, error) {
+	switch status {
+	case operation.StateInit:
+		return PluginWorkflowOperationStateInit, nil
+	case operation.StateLaunched:
+		return PluginWorkflowOperationStateLaunched, nil
+	case operation.StateRunning:
+		return PluginWorkflowOperationStateRunning, nil
+	case operation.StateSuccess:
+		return PluginWorkflowOperationStateSuccess, nil
+	case operation.StateFailed:
+		return PluginWorkflowOperationStateFailed, nil
+	case operation.StateTimeout:
+		return PluginWorkflowOperationStateTimeout, nil
+	case operation.StateTerminated:
+		return PluginWorkflowOperationStateTerminated, nil
+	default:
+		return "", fmt.Errorf("invalid operation instance state. state(%s)", status)
+	}
+}
+
+// PluginWorkflowOperationRetryParam validates the retry param.
+type PluginWorkflowOperationRetryParam struct {
+	WorkflowID   string
+	OperationIDs []string
+	RetryMode    operation.RetryMode
+}
+
+// PluginWorkflowOperationTerminateParam validates the terminate param.
+type PluginWorkflowOperationTerminateParam struct {
+	WorkflowID   string
+	OperationIDs []string
 }

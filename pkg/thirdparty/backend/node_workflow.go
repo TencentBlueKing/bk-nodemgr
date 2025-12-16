@@ -234,7 +234,7 @@ func (h *Handler) GetNodeWorkflowOperationInstanceLog(ctx contextx.IContext, ins
 		OperInstId: instanceID,
 	}
 
-	resp, err := h.cli.getOperationInstanceLog(ctx, req)
+	resp, err := h.cli.getNodeWorkflowOperationInstanceLog(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +256,7 @@ func (h *Handler) ListNodeWorkflowOperationInstanceStatus(ctx contextx.IContext,
 		return nil, err
 	}
 
-	resp, err := h.cli.listNodeWorkflowOpInstanceStatus(ctx, req)
+	resp, err := h.cli.listNodeWorkflowOperationInstanceStatus(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (h *Handler) RetryNodeWorkflowOperation(ctx contextx.IContext, retryParam *
 
 	req.ConvertOperationRetryParamFromTypes(retryParam)
 
-	_, err := h.cli.retryOperation(ctx, req)
+	_, err := h.cli.retryNodeWorkflowOperation(ctx, req)
 	if err != nil {
 		return err
 	}
@@ -286,7 +286,7 @@ func (h *Handler) TerminateNodeWorkflowOperation(ctx contextx.IContext, terminat
 
 	req.ConvertOperationTerminateParamFromTypes(terminateParam)
 
-	_, err := h.cli.terminateOperation(ctx, req)
+	_, err := h.cli.terminateNodeWorkflowOperation(ctx, req)
 	if err != nil {
 		return err
 	}

@@ -111,6 +111,32 @@ type NodeWorkflowDistinctResult struct {
 	Operator []string
 }
 
+// PluginWorkflowDistinctRequest describes the wanted distinct fields.
+type PluginWorkflowDistinctRequest struct {
+	Type     bool
+	HostID   bool
+	Status   bool
+	Operator bool
+}
+
+// NewPluginWorkflowDistinctRequestAllSet creates a PluginWorkflowDistinctRequest with all fields set to true.
+func NewPluginWorkflowDistinctRequestAllSet() PluginWorkflowDistinctRequest {
+	return PluginWorkflowDistinctRequest{
+		Type:     true,
+		HostID:   true,
+		Status:   true,
+		Operator: true,
+	}
+}
+
+// PluginWorkflowDistinctResult describes the result of distinct.
+type PluginWorkflowDistinctResult struct {
+	Type     []PluginWorkflowType
+	HostID   []int64
+	Status   []PluginWorkflowStatus
+	Operator []string
+}
+
 // ReleaseDistinctField describes the wanted distinct fields.
 type ReleaseDistinctField struct {
 	OSType  bool

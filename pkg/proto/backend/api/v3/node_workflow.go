@@ -336,6 +336,7 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 				CreateTime: opinstance.Lifecycle.CreatedAt.Unix(),
 				StartTime:  opinstance.Lifecycle.StartedAt.Unix(),
 				EndTime:    opinstance.Lifecycle.EndedAt.Unix(),
+				StopTime:   opinstance.Lifecycle.StoppedAt.Unix(),
 			},
 		}
 		items = append(items, oper)
@@ -360,6 +361,13 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertOperationInstanceFromType
 		OperationDefName:  result.Metadata.OperationDefName,
 		ParentOperationId: result.Metadata.ParentOperationID,
 		ActionNames:       result.Metadata.ActionNames,
+		LifeCycle: &WorkflowLifeCycle{
+			State:      string(result.Lifecycle.State),
+			CreateTime: result.Lifecycle.CreatedAt.Unix(),
+			StartTime:  result.Lifecycle.StartedAt.Unix(),
+			EndTime:    result.Lifecycle.EndedAt.Unix(),
+			StopTime:   result.Lifecycle.StoppedAt.Unix(),
+		},
 	}
 
 	items[0] = oper
@@ -436,10 +444,11 @@ func (x *NodeWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperInstanc
 	items := make([]*WorkflowOperationInstanceStatus, 0)
 	for _, opinstance := range result {
 		item := &WorkflowOperationInstanceStatus{
-			Index:       int64(opinstance.Metadata.Index),
-			Status:      string(opinstance.Lifecycle.State),
-			OperationId: opinstance.Metadata.OperationID,
-			TriggerId:   opinstance.Metadata.TriggerID,
+			Index:               int64(opinstance.Metadata.Index),
+			Status:              string(opinstance.Lifecycle.State),
+			OperationId:         opinstance.Metadata.OperationID,
+			TriggerId:           opinstance.Metadata.TriggerID,
+			OperationInstanceId: opinstance.Metadata.OperationInstanceID,
 		}
 
 		items = append(items, item)
@@ -462,10 +471,11 @@ func (x *NodeWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperationIn
 	result := make([]*operation.InstanceStatus, 0)
 	for _, value := range items {
 		result = append(result, &operation.InstanceStatus{
-			TriggerID:   value.GetTriggerId(),
-			State:       operation.State(value.GetStatus()),
-			Index:       int(value.GetIndex()),
-			OperationID: value.GetOperationId(),
+			TriggerID:           value.GetTriggerId(),
+			State:               operation.State(value.GetStatus()),
+			Index:               int(value.GetIndex()),
+			OperationID:         value.GetOperationId(),
+			OperationInstanceID: value.GetOperationInstanceId(),
 		})
 	}
 

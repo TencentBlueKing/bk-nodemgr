@@ -21,3 +21,18 @@ type OptFn = base.OptFn
 func WithToken(token ...string) OptFn {
 	return base.WithValues(FieldKeyToken, token...)
 }
+
+// WithHostID set host id.
+func WithHostID(hostIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyHostID, hostIDs...)
+}
+
+// WithPluginName set plugin name.
+func WithPluginName(names ...string) OptFn {
+	return base.WithValues(FieldKeyPluginName, names...)
+}
+
+// WithPluginVersion set plugin version.
+func WithPluginVersion(versions ...string) OptFn {
+	return base.WithValues(FieldKeyPluginVersion, versions...)
+}

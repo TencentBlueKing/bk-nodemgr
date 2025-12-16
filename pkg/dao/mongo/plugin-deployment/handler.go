@@ -27,6 +27,9 @@ type IHandler interface {
 	// Create create a node deployment.
 	Create(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error
 
+	// List list node deployments.
+	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginDeployment, int64, error)
+
 	// GetInfo get a plugin deployment info.
 	GetInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error)
 
@@ -77,6 +80,42 @@ func (h *Handler) Create(nCtx contextx.IContext, pluginDeployment *types.PluginD
 	}
 
 	return h.dao.Create(nCtx, data)
+}
+
+// List list node deployments.
+func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*types.PluginDeployment, int64, error) {
+	if nCtx == nil {
+		return nil, 0, base.ErrInvalidContext()
+	}
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.dao.Count(nCtx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	findOpt := base.ParsePage(page)
+
+	deployments, err := h.dao.List(nCtx, filter, findOpt)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data := make([]*types.PluginDeployment, len(deployments))
+	for idx, deployment := range deployments {
+		depTypes, err := convertPluginDeploymentToTypes(deployment)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		data[idx] = depTypes
+	}
+
+	return data, num, nil
 }
 
 // GetInfo get a plugin deployment info.
@@ -206,6 +245,24 @@ func convertPluginDeploymentFromTypes(data *types.PluginDeployment) (*Data, erro
 	}
 
 	pluginDeployment.PluginConf = convertPluginDeploymentPluginConfFromTypes(data.PluginConf)
+
+	return pluginDeployment, nil
+}
+
+func convertPluginDeploymentToTypes(data *Data) (*types.PluginDeployment, error) {
+	pluginDeployment := &types.PluginDeployment{
+		Token:      data.Token,
+		Info:       nil,
+		PluginConf: nil,
+	}
+
+	var err error
+	pluginDeployment.Info, err = convertPluginDeploymentInfoToTypes(data.Info)
+	if err != nil {
+		return nil, err
+	}
+
+	pluginDeployment.PluginConf = convertPluginDeploymentPluginConfToTypes(data.PluginConf)
 
 	return pluginDeployment, nil
 }

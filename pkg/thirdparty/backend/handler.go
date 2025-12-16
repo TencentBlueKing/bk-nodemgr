@@ -31,6 +31,7 @@ type IHandler interface {
 	IHandlerPackage
 	IHandlerConfigPolicy
 	IHandlerPlugin
+	IHandlerPluginWorkflow
 	IHandlerProcess
 	IHandlerConfigPolicyEvent
 	IHandlerGraph

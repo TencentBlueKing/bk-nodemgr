@@ -31,6 +31,10 @@ type IDaoPluginDeployment interface {
 	// CreatePluginDeployment create plugin deployment.
 	CreatePluginDeployment(nCtx contextx.IContext, pluginDeployment *types.PluginDeployment) error
 
+	// ListPluginDeployment list plugin deployment.
+	ListPluginDeployment(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginDeploymentCondition) (
+		[]*types.PluginDeployment, int64, error)
+
 	// UpdatePluginDeploymentInfo update plugin deployment info.
 	UpdatePluginDeploymentInfo(nCtx contextx.IContext, token string, pluginDeploymentInfo *types.PluginDeploymentInfo) error
 
@@ -48,8 +52,7 @@ type IDaoPluginDeployment interface {
 }
 
 // IDaoPluginWorkflow defines the dao interface.
-type IDaoPluginWorkflow interface {
-	// GetPluginWorkflow gets a plugin workflow by workflow-id.
+type IDaoPluginWorkflow interface { // GetPluginWorkflow gets a plugin workflow by workflow-id.
 	GetPluginWorkflow(nCtx contextx.IContext, workflowID string) (*types.PluginWorkflow, error)
 
 	// CreatePluginWorkflow creates a new plugin workflow.
@@ -57,6 +60,16 @@ type IDaoPluginWorkflow interface {
 
 	// UpdatePluginWorkflowStatus updates the status of a plugin workflow.
 	UpdatePluginWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error
+
+	// CountPluginWorkflow count plugin workflows.
+	CountPluginWorkflow(nCtx contextx.IContext, conditions ...*types.PluginWorkflowCondition) (int64, error)
+
+	// ListPluginWorkflow list plugin workflows.
+	ListPluginWorkflow(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginWorkflowCondition) ([]*types.PluginWorkflow, int64, error)
+
+	// DistinctPluginWorkflow distinct plugin workflows.
+	DistinctPluginWorkflow(nCtx contextx.IContext, request types.PluginWorkflowDistinctRequest, conditions ...*types.PluginWorkflowCondition) (
+		*types.PluginWorkflowDistinctResult, error)
 }
 
 // IDaoPlugin defines the plugin dao interface.

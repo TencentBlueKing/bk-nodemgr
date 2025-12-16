@@ -183,8 +183,8 @@ const (
 	NodeWorkflowOperationStateTerminated NodeWorkflowOperationState = "terminated"
 )
 
-// WorkflowOperationStatusListToStringList converts a node status list to a string list.
-func WorkflowOperationStatusListToStringList(operationStatusList []NodeWorkflowOperationState) []string {
+// NodeWorkflowOperationStatusListToStringList converts a node status list to a string list.
+func NodeWorkflowOperationStatusListToStringList(operationStatusList []NodeWorkflowOperationState) []string {
 	data := make([]string, len(operationStatusList))
 	for idx, operationStatus := range operationStatusList {
 		data[idx] = string(operationStatus)
@@ -193,8 +193,8 @@ func WorkflowOperationStatusListToStringList(operationStatusList []NodeWorkflowO
 	return data
 }
 
-// StringListToWorkflowOperationStatusList converts a string list to a node status list.
-func StringListToWorkflowOperationStatusList(stringList []string) []NodeWorkflowOperationState {
+// StringListToNodeWorkflowOperationStatusList converts a string list to a node status list.
+func StringListToNodeWorkflowOperationStatusList(stringList []string) []NodeWorkflowOperationState {
 	data := make([]NodeWorkflowOperationState, len(stringList))
 	for idx, operationStatus := range stringList {
 		data[idx] = NodeWorkflowOperationState(operationStatus)
@@ -225,8 +225,8 @@ type NodeWorkflowListOperationResult struct {
 	OperInstanceIDs []string
 }
 
-// OperationSummary ...
-type OperationSummary struct {
+// NodeWorkflowOperationSummary defines the summary of node workflow operation.
+type NodeWorkflowOperationSummary struct {
 	TotalDuration int64
 	LastStatus    NodeWorkflowOperationState
 }

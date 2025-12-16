@@ -1021,6 +1021,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
         }
       },
       "description": "WorflowOperationInstanceData describes the workflow operation instance data."

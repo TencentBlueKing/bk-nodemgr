@@ -33,6 +33,12 @@ type IPluginManager interface {
 
 	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
 	LaunchApplyPluginSubConfig(ctx contextx.IContext, param ApplyPluginSubConfigParam) (string, error)
+
+	// LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
+	LaunchRetryPluginOperationFromLastInstance(ctx contextx.IContext, param RetryPluginWorkflowOperationParam) error
+
+	// TerminatePluginOperationLastInstance terminate operation from last instance.
+	TerminatePluginOperationLastInstance(ctx contextx.IContext, param TerminatePluginWorkflowOperationParam) error
 }
 
 // InstallPluginParam define the param of LaunchInstallPlugin.
@@ -206,4 +212,78 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param App
 	}
 
 	return workflowID, nil
+}
+
+// RetryPluginWorkflowOperationParam retry node workflow operation param.
+type RetryPluginWorkflowOperationParam struct {
+	WorkflowID   string
+	RetryMod     operation.RetryMode
+	OperationIDs []string
+}
+
+// LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
+func (mgr *Manager) LaunchRetryPluginOperationFromLastInstance(nCtx contextx.IContext, param RetryPluginWorkflowOperationParam) error {
+	nodeWorkflow, err := mgr.conf.StoragePlugin.GetPluginWorkflow(nCtx, param.WorkflowID)
+	if err != nil {
+		return fmt.Errorf("failed to get plugin workflow: %w", err)
+	}
+
+	triggerCtl, err := mgr.workflowMgr.GetTrigger(nCtx, nodeWorkflow.TriggerID)
+	if err != nil {
+		return fmt.Errorf("failed to get trigger: %w", err)
+	}
+
+	if err := triggerCtl.UpdateOperationRetryFlag(nCtx, param.RetryMod, param.OperationIDs...); err != nil {
+		return fmt.Errorf("failed to update operation retry flag: %w", err)
+	}
+
+	if err := mgr.conf.StoragePlugin.UpdatePluginWorkflowStatus(nCtx, param.WorkflowID, types.PluginWorkflowStatusRunning); err != nil {
+		return fmt.Errorf("failed to update plugin workflow status: %w", err)
+	}
+
+	return triggerCtl.ActivateTrigger(nCtx)
+}
+
+// TerminatePluginWorkflowOperationParam terminate node workflow operation param.
+type TerminatePluginWorkflowOperationParam struct {
+	WorkflowID   string
+	OperationIDs []string
+}
+
+// TerminatePluginOperationLastInstance terminate operation from last instance.
+func (mgr *Manager) TerminatePluginOperationLastInstance(nCtx contextx.IContext, param TerminatePluginWorkflowOperationParam) error {
+	nodeWorkflow, err := mgr.conf.StoragePlugin.GetPluginWorkflow(nCtx, param.WorkflowID)
+	if err != nil {
+		return fmt.Errorf("failed to get plugin workflow: %w", err)
+	}
+
+	triggerCtl, err := mgr.workflowMgr.GetTrigger(nCtx, nodeWorkflow.TriggerID)
+	if err != nil {
+		return fmt.Errorf("failed to get trigger: %w", err)
+	}
+
+	operationCtls, err := triggerCtl.ListOperation(nCtx, param.OperationIDs...)
+	if err != nil {
+		return fmt.Errorf("failed to list operation: %w", err)
+	}
+
+	gp := gopool.NewPool()
+	for _, operationCtl := range operationCtls {
+		opCtl := operationCtl
+
+		gp.Go(func() error {
+			instanceCtl, err := opCtl.GetLastOperationInstance(nCtx)
+			if err != nil {
+				return fmt.Errorf("failed to get last operation instance: %w", err)
+			}
+
+			return instanceCtl.TerminateOperationInstance(nCtx)
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return fmt.Errorf("failed to terminate plugin operation: %w", err)
+	}
+
+	return nil
 }

@@ -178,33 +178,6 @@ message NodeWorkflowOperationInstanceListResp {
   Data data = 5;
 }
 
-// NodeWorkflowInstanceStatusExactConditions describes the exact conditions of
-// node workflow
-message NodeWorkflowInstanceStatusExactConditions {
-  repeated string trigger_id = 1;
-}
-
-// NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of
-// node workflow list request.
-message NodeWorkflowInstanceStatusFuzzyConditions {}
-
-// NodeWorkflowOperationInstanceStatusListReq ...
-message NodeWorkflowOperationInstanceListStatusReq {
-  Page page = 1;
-  NodeWorkflowInstanceStatusExactConditions exact_include_conditions = 3;
-  NodeWorkflowInstanceStatusFuzzyConditions fuzzy_include_conditions = 4;
-}
-
-message NodeWorkflowOperationInstanceListStatusResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data { repeated WorkflowOperationInstanceStatus items = 1; }
-  Data data = 5;
-}
-
 // NodeWorkflowOperationInstanceLogGetReq describes the node operation instance
 
 message NodeWorkflowOperationInstanceLogGetReq { string oper_inst_id = 1; }

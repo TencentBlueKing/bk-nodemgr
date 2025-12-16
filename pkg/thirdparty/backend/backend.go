@@ -80,6 +80,10 @@ func (c *cli) getHeader(ctx contextx.IContext) http.Header {
 	return header
 }
 
+// ===============================================================================
+// Topo Related Interfaces
+// ===============================================================================
+
 func (c *cli) listBusiness(ctx contextx.IContext, req *protoBackend.TopoBusinessListReq,
 ) (*protoBackend.TopoBusinessListResp_Data, error) {
 
@@ -671,6 +675,42 @@ func (c *cli) getConstant(ctx contextx.IContext, req *protoBackend.TopoConstantG
 	return resp, nil
 }
 
+func (c *cli) getGraphNode(ctx contextx.IContext, req *protoBackend.TopoGraphNodeGetReq) (
+	*protoBackend.TopoGraphNodeGetResp, error) {
+
+	resp := new(protoBackend.TopoGraphNodeGetResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/graph_node/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get graph node failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list plugin workflows failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+// ===============================================================================
+// Node Workflow Related Interfaces
+// ===============================================================================
+
 func (c *cli) listNodeWorkflow(ctx contextx.IContext, req *protoBackend.NodeWorkflowListReq,
 ) (*protoBackend.NodeWorkflowListResp, error) {
 
@@ -798,7 +838,7 @@ func (c *cli) listNodeWorkflowOperationInstance(
 	return resp, nil
 }
 
-func (c *cli) getOperationInstanceLog(
+func (c *cli) getNodeWorkflowOperationInstanceLog(
 	ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationInstanceLogGetReq,
 ) (*protoBackend.NodeWorkflowOperationInstanceLogGetResp, error) {
 
@@ -831,7 +871,7 @@ func (c *cli) getOperationInstanceLog(
 	return resp, nil
 }
 
-func (c *cli) listNodeWorkflowOpInstanceStatus(
+func (c *cli) listNodeWorkflowOperationInstanceStatus(
 	ctx contextx.IContext,
 	req *protoBackend.NodeWorkflowOperationInstanceListStatusReq,
 ) (*protoBackend.NodeWorkflowOperationInstanceListStatusResp, error) {
@@ -864,6 +904,62 @@ func (c *cli) listNodeWorkflowOpInstanceStatus(
 
 	return resp, nil
 }
+
+func (c *cli) retryNodeWorkflowOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationRetryReq,
+) (*protoBackend.NodeWorkflowOperationRetryResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/workflow/operation/retry").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("retry operation failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) terminateNodeWorkflowOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationTerminateReq,
+) (*protoBackend.NodeWorkflowOperationTerminateResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationTerminateResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/workflow/operation/terminate").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("terminate operation instance failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+// ===============================================================================
+// Node Agent Related Interfaces
+// ===============================================================================
 
 func (c *cli) installNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAgentInstallReq,
 ) (*protoBackend.NodeAgentInstallResp, error) {
@@ -1057,57 +1153,10 @@ func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAge
 	return resp, nil
 }
 
-func (c *cli) retryOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationRetryReq,
-) (*protoBackend.NodeWorkflowOperationRetryResp, error) {
+// ===============================================================================
+// Node Proxy Related Interfaces
+// ===============================================================================
 
-	resp := new(protoBackend.NodeWorkflowOperationRetryResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/node/workflow/operation/retry").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("retry operation failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) terminateOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationTerminateReq,
-) (*protoBackend.NodeWorkflowOperationTerminateResp, error) {
-
-	resp := new(protoBackend.NodeWorkflowOperationTerminateResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/node/workflow/operation/terminate").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("terminate operation instance failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
 func (c *cli) installNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyInstallReq) (
 	*protoBackend.NodeProxyInstallResp, error) {
 
@@ -1299,6 +1348,10 @@ func (c *cli) uninstallNodeProxy(ctx contextx.IContext, req *protoBackend.NodePr
 
 	return resp, nil
 }
+
+// ===============================================================================
+// Package Release Related Interfaces
+// ===============================================================================
 
 func (c *cli) listRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseListReq,
 ) (*protoBackend.PackageReleaseListResp, error) {
@@ -1751,6 +1804,10 @@ func (c *cli) deleteReleasePlugin(ctx contextx.IContext, req *protoBackend.Packa
 	return nil
 }
 
+// ===============================================================================
+// Policy Related Interfaces
+// ===============================================================================
+
 func (c *cli) listConfigPolicy(ctx contextx.IContext, req *protoBackend.ConfigPolicyListReq) (
 	*protoBackend.ConfigPolicyListResp, error) {
 
@@ -1933,6 +1990,72 @@ func (c *cli) deleteConfigPolicy(ctx contextx.IContext, req *protoBackend.Config
 	return resp, nil
 }
 
+func (c *cli) listConfigPolicyEvent(ctx contextx.IContext, req *protoBackend.ConfigPolicyEventListReq,
+) (*protoBackend.ConfigPolicyEventListResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyEventListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/policy/config/event/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list config policy event failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("list config policy event failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) distinctConfigPolicyEvent(ctx contextx.IContext, req *protoBackend.ConfigPolicyEventDistinctReq,
+) (*protoBackend.ConfigPolicyEventDistinctResp, error) {
+
+	resp := new(protoBackend.ConfigPolicyEventDistinctResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/policy/config/event/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct config policy event failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct config policy event failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+// ===============================================================================
+// Package Event Related Interfaces
+// ===============================================================================
+
 func (c *cli) listPackageEvent(ctx contextx.IContext, req *protoBackend.PackageEventListReq,
 ) (*protoBackend.PackageEventListResp, error) {
 
@@ -1995,67 +2118,9 @@ func (c *cli) distinctPackageEvent(ctx contextx.IContext, req *protoBackend.Pack
 	return resp, nil
 }
 
-func (c *cli) listConfigPolicyEvent(ctx contextx.IContext, req *protoBackend.ConfigPolicyEventListReq,
-) (*protoBackend.ConfigPolicyEventListResp, error) {
-
-	resp := new(protoBackend.ConfigPolicyEventListResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/policy/config/event/list").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list config policy event failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	if resp.GetData() == nil {
-		return nil, fmt.Errorf("list config policy event failed, get empty data. code(%d), message(%s), request-id(%s)",
-			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) distinctConfigPolicyEvent(ctx contextx.IContext, req *protoBackend.ConfigPolicyEventDistinctReq,
-) (*protoBackend.ConfigPolicyEventDistinctResp, error) {
-
-	resp := new(protoBackend.ConfigPolicyEventDistinctResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/policy/config/event/distinct").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct config policy event failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	if resp.GetData() == nil {
-		return nil, fmt.Errorf("distinct config policy event failed, get empty data. code(%d), message(%s), request-id(%s)",
-			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
+// ===============================================================================
+// Plugin Related Interfaces
+// ===============================================================================
 
 func (c *cli) installPlugin(ctx contextx.IContext, req *protoBackend.PluginInstallReq) (
 	*protoBackend.PluginInstallResp, error) {
@@ -2152,6 +2217,10 @@ func (c *cli) applyPluginSubConfig(ctx contextx.IContext, req *protoBackend.Plug
 
 	return resp, nil
 }
+
+// ===============================================================================
+// Process Related Interfaces
+// ===============================================================================
 
 func (c *cli) listProcesses(ctx contextx.IContext, req *protoBackend.ProcessListReq) (
 	*protoBackend.ProcessListResp, error) {
@@ -2281,14 +2350,18 @@ func (c *cli) distinctProcess(ctx contextx.IContext, req *protoBackend.ProcessDi
 	return resp, nil
 }
 
-func (c *cli) getGraphNode(ctx contextx.IContext, req *protoBackend.TopoGraphNodeGetReq) (
-	*protoBackend.TopoGraphNodeGetResp, error) {
+// ===============================================================================
+// Plugin Workflow Related Interfaces
+// ===============================================================================
 
-	resp := new(protoBackend.TopoGraphNodeGetResp)
+func (c *cli) listPluginWorkflows(ctx contextx.IContext, req *protoBackend.PluginWorkflowListReq) (
+	*protoBackend.PluginWorkflowListResp, error) {
+
+	resp := new(protoBackend.PluginWorkflowListResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/topo/graph_node/get").
+		SubResourcef("/plugin/workflow/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -2300,15 +2373,223 @@ func (c *cli) getGraphNode(ctx contextx.IContext, req *protoBackend.TopoGraphNod
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get graph node failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return nil, fmt.Errorf("list plugin workflows failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
 		return nil,
-			fmt.Errorf("get graph node failed, get empty data. code(%d), message(%s), request-id(%s)",
+			fmt.Errorf("list plugin workflows failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
 	return resp, nil
+}
+
+func (c *cli) distinctPluginWorkflows(ctx contextx.IContext, req *protoBackend.PluginWorkflowDistinctReq) (
+	*protoBackend.PluginWorkflowDistinctResp, error) {
+
+	resp := new(protoBackend.PluginWorkflowDistinctResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct plugin workflows failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("distinct plugin workflows failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listPluginWorkflowOperation(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationListReq) (
+	*protoBackend.PluginWorkflowOperationListResp, error) {
+
+	resp := new(protoBackend.PluginWorkflowOperationListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/operation/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list plugin workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list plugin workflow operation failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listPluginWorkflowOperationInstance(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationInstanceListReq) (
+	*protoBackend.PluginWorkflowOperationInstanceListResp, error) {
+
+	resp := new(protoBackend.PluginWorkflowOperationInstanceListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/operation/instance/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list plugin workflow operation instance failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list plugin workflow operation instance failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) getPluginWorkflowOperationInstanceLog(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationInstanceLogGetReq) (
+	*protoBackend.PluginWorkflowOperationInstanceLogGetResp, error) {
+
+	resp := new(protoBackend.PluginWorkflowOperationInstanceLogGetResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/operation/instance/log/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get plugin workflow operation instance log failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("get plugin workflow operation instance log failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listPluginWorkflowOperationInstanceStatus(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationInstanceListStatusReq) (
+	*protoBackend.PluginWorkflowOperationInstanceListStatusResp, error) {
+
+	resp := new(protoBackend.PluginWorkflowOperationInstanceListStatusResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/operation/instance/status/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list plugin workflow operation instance status failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list plugin workflow operation instance status failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) retryPluginWorkflowOperation(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationRetryReq) error {
+	resp := new(protoBackend.PluginWorkflowOperationRetryResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/operation/retry").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("retry plugin workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) terminatePluginWorkflowOperation(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationTerminateReq) error {
+	resp := new(protoBackend.PluginWorkflowOperationTerminateResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/operation/terminate").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("terminate plugin workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
 }

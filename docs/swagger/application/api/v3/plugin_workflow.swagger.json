@@ -1,12 +1,12 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "node_workflow.proto",
+    "title": "plugin_workflow.proto",
     "version": "version not set"
   },
   "tags": [
     {
-      "name": "NodeWorkflow"
+      "name": "PluginWorkflow"
     }
   ],
   "consumes": [
@@ -16,15 +16,15 @@
     "application/json"
   ],
   "paths": {
-    "/api/v3/node/workflow/distinct": {
+    "/api/v3/plugin/workflow/distinct": {
       "post": {
-        "summary": "NodeWorkflowDistinct provides node workflow distinct.",
-        "operationId": "NodeWorkflow_NodeWorkflowDistinct",
+        "summary": "PluginWorkflowDistinct provides plugin workflow distinct.",
+        "operationId": "PluginWorkflow_PluginWorkflowDistinct",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowDistinctResp"
+              "$ref": "#/definitions/v3PluginWorkflowDistinctResp"
             }
           },
           "default": {
@@ -37,28 +37,28 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowDistinctReq describes the node workflow distinct request.",
+            "description": "PluginWorkflowDistinctReq describes the plugin workflow distinct request.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowDistinctReq"
+              "$ref": "#/definitions/v3PluginWorkflowDistinctReq"
             }
           }
         ],
         "tags": [
-          "NodeWorkflow"
+          "PluginWorkflow"
         ]
       }
     },
-    "/api/v3/node/workflow/list": {
+    "/api/v3/plugin/workflow/list": {
       "post": {
-        "summary": "NodeWorkflowList provides node workflow list.",
-        "operationId": "NodeWorkflow_NodeWorkflowList",
+        "summary": "PluginWorkflowList provides plugin workflow list.",
+        "operationId": "PluginWorkflow_PluginWorkflowList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowListResp"
+              "$ref": "#/definitions/v3PluginWorkflowListResp"
             }
           },
           "default": {
@@ -71,28 +71,28 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowListReq describes the node workflow list request.",
+            "description": "PluginWorkflowListReq describes the plugin workflow list request.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowListReq"
+              "$ref": "#/definitions/v3PluginWorkflowListReq"
             }
           }
         ],
         "tags": [
-          "NodeWorkflow"
+          "PluginWorkflow"
         ]
       }
     },
-    "/api/v3/node/workflow/operation/instance/list": {
+    "/api/v3/plugin/workflow/operation/instance/list": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.",
-        "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceList",
+        "summary": "PluginWorkflowOperationInstanceList provides plugin workflow operation\ninstance list.",
+        "operationId": "PluginWorkflow_PluginWorkflowOperationInstanceList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListResp"
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceListResp"
             }
           },
           "default": {
@@ -105,28 +105,28 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.",
+            "description": "PluginWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListReq"
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceListReq"
             }
           }
         ],
         "tags": [
-          "NodeWorkflow"
+          "PluginWorkflow"
         ]
       }
     },
-    "/api/v3/node/workflow/operation/instance/log/get": {
+    "/api/v3/plugin/workflow/operation/instance/log/get": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceLogGet provides node operation instance log\nget.",
-        "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceLogGet",
+        "summary": "PluginWorkflowOperationInstanceLogGet provides plugin operation instance\nlog get.",
+        "operationId": "PluginWorkflow_PluginWorkflowOperationInstanceLogGet",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetResp"
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceLogGetResp"
             }
           },
           "default": {
@@ -139,28 +139,28 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request.",
+            "description": "PluginWorkflowOperationInstanceLogGetReq describes the node operation\ninstance log request.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetReq"
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceLogGetReq"
             }
           }
         ],
         "tags": [
-          "NodeWorkflow"
+          "PluginWorkflow"
         ]
       }
     },
-    "/api/v3/node/workflow/operation/instance/status/list": {
+    "/api/v3/plugin/workflow/operation/list": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceStatusList provides node workflow operation\nlist status.",
-        "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceStatusList",
+        "summary": "PluginWorkflowOperationList provides plugin workflow operation list.",
+        "operationId": "PluginWorkflow_PluginWorkflowOperationList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusResp"
+              "$ref": "#/definitions/v3PluginWorkflowOperationListResp"
             }
           },
           "default": {
@@ -173,28 +173,28 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationInstanceListStatusReq ...",
+            "description": "PluginWorkflowOperationListReq describes the node operation list\nrequest.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusReq"
+              "$ref": "#/definitions/v3PluginWorkflowOperationListReq"
             }
           }
         ],
         "tags": [
-          "NodeWorkflow"
+          "PluginWorkflow"
         ]
       }
     },
-    "/api/v3/node/workflow/operation/list": {
+    "/api/v3/plugin/workflow/operation/retry": {
       "post": {
-        "summary": "NodeWorkflowOperationList provides node workflow operation list.",
-        "operationId": "NodeWorkflow_NodeWorkflowOperationList",
+        "summary": "PluginWorkflowOperationRetry provides plugin operation retry.",
+        "operationId": "PluginWorkflow_PluginWorkflowOperationRetry",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationListResp"
+              "$ref": "#/definitions/v3PluginWorkflowOperationRetryResp"
             }
           },
           "default": {
@@ -207,28 +207,28 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationListReq describes the node operation list\nrequest.",
+            "description": "PluginWorkflowOperationRetryReq describes the plugin operation retry.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationListReq"
+              "$ref": "#/definitions/v3PluginWorkflowOperationRetryReq"
             }
           }
         ],
         "tags": [
-          "NodeWorkflow"
+          "PluginWorkflow"
         ]
       }
     },
-    "/api/v3/node/workflow/operation/retry": {
+    "/api/v3/plugin/workflow/operation/terminate": {
       "post": {
-        "summary": "NodeWorkflowOperationRetry provides node operation retry.",
-        "operationId": "NodeWorkflow_NodeWorkflowOperationRetry",
+        "summary": "PluginWorkflowOperationTerminate provides plugin operation terminate.",
+        "operationId": "PluginWorkflow_PluginWorkflowOperationTerminate",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationRetryResp"
+              "$ref": "#/definitions/v3PluginWorkflowOperationTerminateResp"
             }
           },
           "default": {
@@ -241,48 +241,16 @@
         "parameters": [
           {
             "name": "body",
+            "description": "PluginWorkflowOperationTerminateReq describes the plugin operation terminate.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationRetryReq"
+              "$ref": "#/definitions/v3PluginWorkflowOperationTerminateReq"
             }
           }
         ],
         "tags": [
-          "NodeWorkflow"
-        ]
-      }
-    },
-    "/api/v3/node/workflow/operation/terminate": {
-      "post": {
-        "summary": "NodeWorkflowOperationTerminate provides node operation terminate.",
-        "operationId": "NodeWorkflow_NodeWorkflowOperationTerminate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationTerminateResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationTerminateReq"
-            }
-          }
-        ],
-        "tags": [
-          "NodeWorkflow"
+          "PluginWorkflow"
         ]
       }
     }
@@ -360,19 +328,33 @@
         }
       }
     },
-    "v3NodeWorkflowDistinctReq": {
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3PluginWorkflowDistinctReq": {
       "type": "object",
       "properties": {
         "exact_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowExactConditions"
+          "$ref": "#/definitions/v3PluginWorkflowExactConditions"
         },
         "fuzzy_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowFuzzyConditions"
+          "$ref": "#/definitions/v3PluginWorkflowFuzzyConditions"
         }
       },
-      "description": "NodeWorkflowDistinctReq describes the node workflow distinct request."
+      "description": "PluginWorkflowDistinctReq describes the plugin workflow distinct request."
     },
-    "v3NodeWorkflowDistinctResp": {
+    "v3PluginWorkflowDistinctResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -389,12 +371,12 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeWorkflowDistinctRespData"
+          "$ref": "#/definitions/v3PluginWorkflowDistinctRespData"
         }
       },
-      "description": "NodeWorkflowDistinctResp describes the node workflow distinct response."
+      "title": "PluginWorkflowDistinctResp describes the plugin workflow distinct"
     },
-    "v3NodeWorkflowDistinctRespData": {
+    "v3PluginWorkflowDistinctRespData": {
       "type": "object",
       "properties": {
         "type": {
@@ -403,7 +385,7 @@
             "type": "string"
           }
         },
-        "bk_biz_id": {
+        "bk_host_id": {
           "type": "array",
           "items": {
             "type": "integer",
@@ -424,7 +406,7 @@
         }
       }
     },
-    "v3NodeWorkflowExactConditions": {
+    "v3PluginWorkflowExactConditions": {
       "type": "object",
       "properties": {
         "workflow_id": {
@@ -439,7 +421,7 @@
             "type": "string"
           }
         },
-        "bk_biz_id": {
+        "bk_host_id": {
           "type": "array",
           "items": {
             "type": "integer",
@@ -459,13 +441,13 @@
           }
         }
       },
-      "description": "NodeWorkflowExactConditions describes the exact conditions of node workflow\nlist request."
+      "description": "PluginWorkflowExactConditions describes the exact conditions of plugin\nworkflow list request."
     },
-    "v3NodeWorkflowFuzzyConditions": {
+    "v3PluginWorkflowFuzzyConditions": {
       "type": "object",
-      "description": "NodeWorkflowFuzzyConditions describes the fuzzy conditions of node workflow\nlist request."
+      "description": "PluginWorkflowFuzzyConditions describes the fuzzy conditions of plugin\nworkflow list request."
     },
-    "v3NodeWorkflowInfo": {
+    "v3PluginWorkflowInfo": {
       "type": "object",
       "properties": {
         "tenant_id": {
@@ -480,7 +462,7 @@
         "type": {
           "type": "string"
         },
-        "bk_biz_id": {
+        "bk_host_id": {
           "type": "array",
           "items": {
             "type": "integer",
@@ -502,25 +484,9 @@
           "type": "string"
         }
       },
-      "description": "NodeWorkflowInfo describes the node workflow information."
+      "description": "PluginWorkflowInfo describes the plugin workflow information."
     },
-    "v3NodeWorkflowInstanceStatusExactConditions": {
-      "type": "object",
-      "properties": {
-        "trigger_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "NodeWorkflowInstanceStatusExactConditions describes the exact conditions of\nnode workflow list request."
-    },
-    "v3NodeWorkflowInstanceStatusFuzzyConditions": {
-      "type": "object",
-      "description": "NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\nnode workflow list request."
-    },
-    "v3NodeWorkflowListReq": {
+    "v3PluginWorkflowListReq": {
       "type": "object",
       "properties": {
         "page": {
@@ -530,18 +496,18 @@
           "type": "boolean"
         },
         "exact_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowExactConditions"
+          "$ref": "#/definitions/v3PluginWorkflowExactConditions"
         },
         "fuzzy_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowFuzzyConditions"
+          "$ref": "#/definitions/v3PluginWorkflowFuzzyConditions"
         },
         "operate_time_range": {
           "$ref": "#/definitions/v3TimeRange"
         }
       },
-      "description": "NodeWorkflowListReq describes the node workflow list request."
+      "description": "PluginWorkflowListReq describes the plugin workflow list request."
     },
-    "v3NodeWorkflowListResp": {
+    "v3PluginWorkflowListResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -558,12 +524,12 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeWorkflowListRespData"
+          "$ref": "#/definitions/v3PluginWorkflowListRespData"
         }
       },
-      "description": "NodeWorkflowListResp describes the node workflow list response."
+      "description": "PluginWorkflowListResp describes the plugin workflow list response."
     },
-    "v3NodeWorkflowListRespData": {
+    "v3PluginWorkflowListRespData": {
       "type": "object",
       "properties": {
         "total": {
@@ -574,12 +540,12 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowInfo"
+            "$ref": "#/definitions/v3PluginWorkflowInfo"
           }
         }
       }
     },
-    "v3NodeWorkflowOperation": {
+    "v3PluginWorkflowOperation": {
       "type": "object",
       "properties": {
         "operation_id": {
@@ -591,92 +557,57 @@
             "type": "string"
           }
         },
-        "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int64"
+        "param": {
+          "$ref": "#/definitions/v3PluginWorkflowOperationParam"
         },
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_host_innerip_list": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_innerip_v6_list": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "node_version": {
-          "type": "string"
-        },
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "operator": {
-          "type": "string"
+        "status": {
+          "$ref": "#/definitions/v3PluginWorkflowOperationStatus"
         }
       },
-      "description": "NodeWorkflowOperation describes the node workflow operation."
+      "description": "PluginWorkflowOperation describes the node workflow operation."
     },
-    "v3NodeWorkflowOperationExactConditions": {
+    "v3PluginWorkflowOperationExactConditions": {
       "type": "object",
       "properties": {
         "workflow_id": {
           "type": "string"
         },
-        "node_version": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "trigger_id": {
+          "type": "string"
         },
-        "bk_host_innerip": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_innerip_v6": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_biz_id": {
+        "bk_host_id": {
           "type": "array",
           "items": {
             "type": "integer",
             "format": "int64"
           }
         },
-        "bk_networkarea_id": {
+        "plugin_name": {
           "type": "array",
           "items": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
           }
         },
-        "bk_networkunit_id": {
+        "plugin_version": {
           "type": "array",
           "items": {
-            "type": "integer",
-            "format": "int64"
+            "type": "string"
+          }
+        },
+        "state": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       },
-      "description": "NodeWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request."
+      "description": "PluginWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request."
     },
-    "v3NodeWorkflowOperationFuzzyConditions": {
+    "v3PluginWorkflowOperationFuzzyConditions": {
       "type": "object",
-      "description": "NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\nworkflow list request."
+      "description": "PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\nworkflow list request."
     },
-    "v3NodeWorkflowOperationInstanceListReq": {
+    "v3PluginWorkflowOperationInstanceListReq": {
       "type": "object",
       "properties": {
         "only_count": {
@@ -689,9 +620,9 @@
           }
         }
       },
-      "description": "NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request."
+      "description": "PluginWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request."
     },
-    "v3NodeWorkflowOperationInstanceListResp": {
+    "v3PluginWorkflowOperationInstanceListResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -708,12 +639,12 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListRespData"
+          "$ref": "#/definitions/v3PluginWorkflowOperationInstanceListRespData"
         }
       },
-      "description": "NodeWorkflowOperationInstanceListResp describes the node operation instance\nlist by operation-id response."
+      "description": "PluginWorkflowOperationInstanceListResp describes the node operation instance\nlist by operation-id response."
     },
-    "v3NodeWorkflowOperationInstanceListRespData": {
+    "v3PluginWorkflowOperationInstanceListRespData": {
       "type": "object",
       "properties": {
         "total": {
@@ -729,65 +660,16 @@
         }
       }
     },
-    "v3NodeWorkflowOperationInstanceListStatusReq": {
-      "type": "object",
-      "properties": {
-        "page": {
-          "$ref": "#/definitions/v3Page"
-        },
-        "exact_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowInstanceStatusExactConditions"
-        },
-        "fuzzy_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowInstanceStatusFuzzyConditions"
-        }
-      },
-      "description": "NodeWorkflowOperationInstanceListStatusReq ..."
-    },
-    "v3NodeWorkflowOperationInstanceListStatusResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "data": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespData"
-        }
-      },
-      "description": "NodeWorkflowOperationInstanceListStatusResp ..."
-    },
-    "v3NodeWorkflowOperationInstanceListStatusRespData": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3WorkflowOperationInstanceStatus"
-          }
-        }
-      }
-    },
-    "v3NodeWorkflowOperationInstanceLogGetReq": {
+    "v3PluginWorkflowOperationInstanceLogGetReq": {
       "type": "object",
       "properties": {
         "oper_inst_id": {
           "type": "string"
         }
       },
-      "description": "NodeWorkflowOperationInstanceLogGetReq describes the node operation instance\nlog request."
+      "description": "PluginWorkflowOperationInstanceLogGetReq describes the node operation\ninstance log request."
     },
-    "v3NodeWorkflowOperationInstanceLogGetResp": {
+    "v3PluginWorkflowOperationInstanceLogGetResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -804,12 +686,12 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceLogGetRespData"
+          "$ref": "#/definitions/v3PluginWorkflowOperationInstanceLogGetRespData"
         }
       },
-      "description": "NodeWorkflowOperationInstanceLogGetResp describes the node operation action\ninstance log response."
+      "description": "PluginWorkflowOperationInstanceLogGetResp describes the node operation action\ninstance log response."
     },
-    "v3NodeWorkflowOperationInstanceLogGetRespData": {
+    "v3PluginWorkflowOperationInstanceLogGetRespData": {
       "type": "object",
       "properties": {
         "total": {
@@ -824,7 +706,7 @@
         }
       }
     },
-    "v3NodeWorkflowOperationListReq": {
+    "v3PluginWorkflowOperationListReq": {
       "type": "object",
       "properties": {
         "only_count": {
@@ -834,15 +716,15 @@
           "$ref": "#/definitions/v3Page"
         },
         "exact_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationExactConditions"
+          "$ref": "#/definitions/v3PluginWorkflowOperationExactConditions"
         },
         "fuzzy_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationFuzzyConditions"
+          "$ref": "#/definitions/v3PluginWorkflowOperationFuzzyConditions"
         }
       },
-      "description": "NodeWorkflowOperationListReq describes the node operation list\nrequest."
+      "description": "PluginWorkflowOperationListReq describes the node operation list\nrequest."
     },
-    "v3NodeWorkflowOperationListResp": {
+    "v3PluginWorkflowOperationListResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -859,19 +741,19 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationListRespData"
+          "$ref": "#/definitions/v3PluginWorkflowOperationListRespData"
         }
       },
-      "description": "NodeWorkflowOperationListResp describes the node operation list by\nworkflow-id response."
+      "description": "PluginWorkflowOperationListResp describes the node operation list by\nworkflow-id response."
     },
-    "v3NodeWorkflowOperationListRespData": {
+    "v3PluginWorkflowOperationListRespData": {
       "type": "object",
       "properties": {
         "operations": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NodeWorkflowOperation"
+            "$ref": "#/definitions/v3PluginWorkflowOperation"
           }
         },
         "total_count": {
@@ -880,7 +762,26 @@
         }
       }
     },
-    "v3NodeWorkflowOperationRetryReq": {
+    "v3PluginWorkflowOperationParam": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "plugin_version": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "title": "PluginWorkflowOperationParam describes the plugin workflow operation"
+    },
+    "v3PluginWorkflowOperationRetryReq": {
       "type": "object",
       "properties": {
         "workflow_id": {
@@ -896,9 +797,9 @@
           }
         }
       },
-      "title": "NodeWorkflowOperationRetryReq"
+      "description": "PluginWorkflowOperationRetryReq describes the plugin operation retry."
     },
-    "v3NodeWorkflowOperationRetryResp": {
+    "v3PluginWorkflowOperationRetryResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -915,15 +816,28 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationRetryRespData"
+          "$ref": "#/definitions/v3PluginWorkflowOperationRetryRespData"
         }
       },
-      "title": "NodeWorkflowOperationRetryResp"
+      "description": "PluginWorkflowOperationRetryResp describes the plugin operation retry."
     },
-    "v3NodeWorkflowOperationRetryRespData": {
+    "v3PluginWorkflowOperationRetryRespData": {
       "type": "object"
     },
-    "v3NodeWorkflowOperationTerminateReq": {
+    "v3PluginWorkflowOperationStatus": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "total_time_second": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "PluginWorkflowOperationStatus describes the plugin workflow operation status."
+    },
+    "v3PluginWorkflowOperationTerminateReq": {
       "type": "object",
       "properties": {
         "workflow_id": {
@@ -936,9 +850,9 @@
           }
         }
       },
-      "title": "NodeWorkflowOperationTerminateReq"
+      "description": "PluginWorkflowOperationTerminateReq describes the plugin operation terminate."
     },
-    "v3NodeWorkflowOperationTerminateResp": {
+    "v3PluginWorkflowOperationTerminateResp": {
       "type": "object",
       "properties": {
         "code": {
@@ -955,27 +869,13 @@
           "$ref": "#/definitions/v3Error"
         },
         "data": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationTerminateRespData"
+          "$ref": "#/definitions/v3PluginWorkflowOperationTerminateRespData"
         }
       },
-      "title": "NodeWorkflowOperationTerminateResp"
+      "description": "PluginWorkflowOperationTerminateResp describes the plugin operation\nterminate."
     },
-    "v3NodeWorkflowOperationTerminateRespData": {
+    "v3PluginWorkflowOperationTerminateRespData": {
       "type": "object"
-    },
-    "v3Page": {
-      "type": "object",
-      "properties": {
-        "offset": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "limit": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "description": "Page describes the generaic conditions when paging query."
     },
     "v3TimeRange": {
       "type": "object",
@@ -1070,28 +970,6 @@
         }
       },
       "description": "WorkflowLifeCycle describes the workflow life cycle."
-    },
-    "v3WorkflowOperationInstanceStatus": {
-      "type": "object",
-      "properties": {
-        "index": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "operation_id": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "trigger_id": {
-          "type": "string"
-        },
-        "operation_instance_id": {
-          "type": "string"
-        }
-      },
-      "description": "WorkflowOperationInstanceStatus describes the workflow operation instance\nstatus."
     }
   }
 }

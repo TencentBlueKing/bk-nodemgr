@@ -429,6 +429,91 @@ type NodeWorkflowOperationCondition struct {
 	FuzzyExclude *NodeWorkflowOperationFuzzyFields
 }
 
+// PluginWorkflowExactFields defines the plugin workflow exact fields.
+type PluginWorkflowExactFields struct {
+	WorkflowID []string
+	Type       []PluginWorkflowType
+	HostID     []int64
+	Status     []PluginWorkflowStatus
+	Operator   []string
+}
+
+// PluginWorkflowFuzzyFields defines the plugin workflow fuzzy fields.
+type PluginWorkflowFuzzyFields struct {
+}
+
+// PluginWorkflowCondition defines the plugin workflow condition.
+type PluginWorkflowCondition struct {
+	// operate time range will be used whatever condition type is.
+	OperateTimeRange *TimeRange
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PluginWorkflowExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PluginWorkflowFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *PluginWorkflowExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *PluginWorkflowFuzzyFields
+}
+
+// PluginWorkflowOperationExactFields defines the condition of list operation.
+type PluginWorkflowOperationExactFields struct {
+	TriggerID     string
+	WorkflowID    string
+	State         []PluginWorkflowOperationState
+	HostID        []int64
+	PluginName    []string
+	PluginVersion []string
+}
+
+// PluginWorkflowOperationFuzzyFields defines the plugin workflow operation fuzzy fields.
+type PluginWorkflowOperationFuzzyFields struct {
+}
+
+// PluginWorkflowOperationCondition defines the plugin workflow operation condition.
+type PluginWorkflowOperationCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PluginWorkflowOperationExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PluginWorkflowOperationFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *PluginWorkflowOperationExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *PluginWorkflowOperationFuzzyFields
+}
+
+// PluginWorkflowOperInstanceStatusExactFields defines the plugin workflow instance status exact fields.
+type PluginWorkflowOperInstanceStatusExactFields struct {
+	TriggerID []string
+}
+
+// PluginWorkflowOperInstanceStatusFuzzyFields defines the plugin workflow  instance status fuzzy fields.
+type PluginWorkflowOperInstanceStatusFuzzyFields struct {
+}
+
+// PluginWorkflowOperInstanceStatusCondition defines the plugin workflow instance status condition.
+type PluginWorkflowOperInstanceStatusCondition struct {
+
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PluginWorkflowOperInstanceStatusExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PluginWorkflowOperInstanceStatusFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *PluginWorkflowOperInstanceStatusExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *PluginWorkflowOperInstanceStatusFuzzyFields
+}
+
 // ScheduledWorkflowExactFields defines the scheduled workflow exact fields.
 type ScheduledWorkflowExactFields struct {
 	WorkflowID   []string
@@ -717,4 +802,31 @@ type NodeDeploymentCondition struct {
 
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *NodeDeploymentFuzzyFields
+}
+
+// PluginDeploymentExactFields defines the plugin deployment exact fields.
+type PluginDeploymentExactFields struct {
+	Token         []string
+	HostID        []int64
+	PluginName    []string
+	PluginVersion []string
+}
+
+// PluginDeploymentFuzzyFields defines the plugin deployment fuzzy fields.
+type PluginDeploymentFuzzyFields struct {
+}
+
+// PluginDeploymentCondition defines the plugin deployment condition.
+type PluginDeploymentCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *PluginDeploymentExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *PluginDeploymentFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *PluginDeploymentExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *PluginDeploymentFuzzyFields
 }

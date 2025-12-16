@@ -25,4 +25,13 @@ const (
 
 	// FieldKeyExpireAt the expire_at field key.
 	FieldKeyExpireAt = "data.expire_at"
+
+	// FieldKeyHostID the host id field key.
+	FieldKeyHostID = "data.info.process.host_id"
+
+	// FieldKeyPluginName the plugin name field key.
+	FieldKeyPluginName = "data.info.process.name"
+
+	// FieldKeyPluginVersion the plugin version field key.
+	FieldKeyPluginVersion = "data.info.install_options.version"
 )

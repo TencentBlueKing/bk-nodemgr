@@ -138,7 +138,7 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 
 	workflows := make([]*types.PluginWorkflow, len(datas))
 	for idx, data := range datas {
-		workflows[idx] = convertPluginWorkflowToTypes(data)
+		workflows[idx] = convertPluginWorkflowToTypes(data, tenantID)
 	}
 
 	return workflows, num, nil
@@ -186,7 +186,7 @@ func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.PluginW
 		return nil, err
 	}
 
-	return convertPluginWorkflowToTypes(data), nil
+	return convertPluginWorkflowToTypes(data, tenantID), nil
 }
 
 // UpdateStatus updates the status of a plugin workflow.
@@ -312,8 +312,9 @@ func (h *Handler) distinctString(nCtx contextx.IContext, key string, opts ...Opt
 }
 
 // convertPluginWorkflowToTypes convert plugin workflow to types.
-func convertPluginWorkflowToTypes(data *Data) *types.PluginWorkflow {
+func convertPluginWorkflowToTypes(data *Data, tenantID string) *types.PluginWorkflow {
 	return &types.PluginWorkflow{
+		TenantID:    tenantID,
 		WorkflowID:  data.WorkflowID,
 		TriggerID:   data.TriggerID,
 		Type:        types.PluginWorkflowType(data.Type),

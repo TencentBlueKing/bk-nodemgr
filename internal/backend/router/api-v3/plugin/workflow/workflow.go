@@ -1,0 +1,285 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package workflow describes the workflow router.
+package workflow
+
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
+	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/gin-gonic/gin"
+)
+
+const (
+	maxPluginWorkflowLimit = 500
+)
+
+type handler struct {
+	rg      *gin.RouterGroup
+	manager manager.IManager
+
+	daoPluginWorkflow   pluginStg.IDaoPluginWorkflow
+	daoPluginDeployment pluginStg.IDaoPluginDeployment
+
+	storageWorkflow workflow.IStorage
+}
+
+func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+	return &handler{
+		// this is a sub router, so we can use some special middleware in it and not affect the father router.
+		rg:                  rg.Group("/workflow"),
+		manager:             capability.Manager,
+		daoPluginWorkflow:   capability.StoragePlugin,
+		daoPluginDeployment: capability.StoragePlugin,
+		storageWorkflow:     capability.StorageWorkflow,
+	}
+}
+
+// Load loads workflow handler.
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
+	h := newHandler(rg, capability)
+
+	h.rg.POST("/list", restserver.Handler(h.ListPluginWorkflow))
+	h.rg.POST("/distinct", restserver.Handler(h.DistinctPluginWorkflow))
+	h.rg.POST("/operation/list", restserver.Handler(h.ListOperation))
+	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
+	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
+	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
+	h.rg.POST("/operation/instance/status/list", restserver.Handler(h.ListOperationInstanceStatus))
+	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
+}
+
+// List workflows.
+func (h *handler) ListPluginWorkflow(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginWorkflowListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// only count.
+	if req.GetOnlyCount() {
+		num, err := h.daoPluginWorkflow.CountPluginWorkflow(rCtx, req.ConvertConditionsToTypes())
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to count workflow")
+			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+		}
+
+		resp := new(protoBackend.PluginWorkflowListResp)
+		resp.ConvertPluginWorkflowsFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	workflows, total, err := h.daoPluginWorkflow.ListPluginWorkflow(rCtx,
+		req.ConvertPageToTypes(maxPluginWorkflowLimit),
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PluginWorkflowListResp)
+
+	resp.ConvertPluginWorkflowsFromTypes(total, workflows)
+
+	return resp.GetData(), nil
+}
+
+// DistinctPluginWorkflow workflow distinct.
+func (h *handler) DistinctPluginWorkflow(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginWorkflowDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin workflow, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.daoPluginWorkflow.DistinctPluginWorkflow(
+		rCtx,
+		types.NewPluginWorkflowDistinctRequestAllSet(),
+		req.ConvertConditionsToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin workflow. failed to distinct plugin workflow fields: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PluginWorkflowDistinctResp)
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
+// ListOperation list workflow operation.
+// nolint: funlen
+func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginWorkflowOperationListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	workflow, err := h.daoPluginWorkflow.GetPluginWorkflow(rCtx, req.GetWorkflowID())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get plugin workflow")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	// list all operations by trigger id.
+	operations, _, err := h.storageWorkflow.ListOperationByTriggerID(rCtx, types.UnlimitedPage(), workflow.TriggerID)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	tokens := make([]string, len(operations))
+	operationMaps := make(map[string]*struct {
+		operationID     string
+		operator        string
+		operInstanceIDs []string
+	}, len(operations))
+
+	for idx, op := range operations {
+		param := new(utils.PluginActionStandardParam)
+
+		if err := conv.MapToStruct(op.Param.InitContent, param); err != nil {
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		}
+
+		tokens[idx] = param.Token
+		operationMaps[param.Token] = &struct {
+			operationID     string
+			operator        string
+			operInstanceIDs []string
+		}{
+			operationID:     op.OperationID,
+			operator:        param.Operator,
+			operInstanceIDs: op.InstanceIDs,
+		}
+	}
+
+	// list all deployments by condition.
+	deployments, num, err := h.daoPluginDeployment.ListPluginDeployment(rCtx, types.UnlimitedPage(), req.ConvertConditionsToDeploymentTypes(tokens))
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin deployment")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	result := make([]*types.PluginWorkflowListOperationResult, len(deployments))
+	for idx, dep := range deployments {
+		op, exists := operationMaps[dep.Token]
+		if !exists {
+			continue
+		}
+
+		result[idx] = &types.PluginWorkflowListOperationResult{
+			Operator:        op.operator,
+			HostID:          dep.Info.Process.HostID,
+			PluginName:      dep.Info.Process.PluginName,
+			PluginVersion:   dep.Info.InstallOptions.Version,
+			OperationID:     op.operationID,
+			OperInstanceIDs: op.operInstanceIDs,
+		}
+	}
+
+	resp := new(protoBackend.PluginWorkflowOperationListResp)
+
+	// only count.
+	if req.GetOnlyCount() {
+		resp.ConvertResultFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	resp.ConvertResultFromTypes(num, result)
+
+	return resp.GetData(), nil
+}
+
+// ListOperationInstance list workflow operation instance.
+func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginWorkflowOperationInstanceListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	if err := req.Validate(); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, operation ID is required")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, num, err := h.storageWorkflow.ListOperInstanceBriefWithoutActionInstByOperationID(
+		rCtx, types.UnlimitedPage(), req.GetOperationId()...)
+	if err != nil {
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PluginWorkflowOperationInstanceListResp)
+
+	// only count.
+	if req.GetOnlyCount() {
+		resp.ConvertResultFromTypes(num, nil)
+
+		return resp.GetData(), nil
+	}
+
+	resp.ConvertResultFromTypes(num, result)
+
+	return resp.GetData(), nil
+}
+
+// GetOperationInstanceLog get operation instance log.
+func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginWorkflowOperationInstanceLogGetReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	instance, err := h.storageWorkflow.GetOperationInstanceFullData(rCtx, req.GetOperInstId())
+	if err != nil {
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PluginWorkflowOperationInstanceLogGetResp)
+
+	resp.ConvertResultFromTypes(instance)
+
+	return resp.GetData(), nil
+}
+
+// ListOperationInstanceStatus list workflow operation instance status.
+func (h *handler) ListOperationInstanceStatus(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginWorkflowOperationInstanceListStatusReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance status, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, _, err := h.storageWorkflow.ListOperationInstanceBriefDataWithoutActionInst(rCtx, types.UnlimitedPage(),
+		req.ConvertListStatusConditionsToTypes())
+	if err != nil {
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PluginWorkflowOperationInstanceListStatusResp)
+	resp.ConvertWorkflowOperInstanceStatusFromTypes(result)
+
+	return resp.GetData(), nil
+}

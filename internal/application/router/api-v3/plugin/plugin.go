@@ -13,6 +13,7 @@ package plugin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/plugin/workflow"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
@@ -38,4 +39,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/install", restserver.Handler(h.Install))
 	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/apply_subconfig", restserver.Handler(h.ApplySubConfig))
+
+	workflow.Load(h.rg, capability)
 }

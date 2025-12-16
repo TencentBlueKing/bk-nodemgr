@@ -27,15 +27,7 @@ message WorflowOperationInstanceData {
   string operation_def_name = 4;
   string parent_operation_id = 5;
   repeated string action_names = 6;
-}
-
-// WorkflowOperationInstanceStatus describes the workflow operation instance
-// status.
-message WorkflowOperationInstanceStatus {
-  int64 index = 1;
-  string instance_id = 2;
-  string status = 3;
-  string trigger_id = 4;
+  WorkflowLifeCycle life_cycle = 7;
 }
 
 // WorkflowLifeCycle describes the workflow life cycle.
