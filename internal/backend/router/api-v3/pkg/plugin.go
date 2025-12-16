@@ -13,6 +13,7 @@ package pkg
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -23,6 +24,11 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+const (
+	// maxMemoFields is the maximum number of memo fields (Description, Scenario, DescriptionEn, ScenarioEn).
+	maxMemoFields = 4
 )
 
 // ListReleasePlugin list plugin.
@@ -104,7 +110,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	if err := h.initDefaultPluginForAllTenants(rCtx, pluginPkgName); err != nil {
+	if err := h.initDefaultPluginForAllTenants(rCtx, pluginPkgName, gen, plat, version); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("gen", gen, "platform", plat, "version", version).
 			Error("failed to chack and create default plugin for all tenants")
 
@@ -123,7 +129,9 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	return resp.GetData(), nil
 }
 
-func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, pluginPkgName string) error {
+func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, pluginPkgName string, gen types.Generation, plat platfmt.Platform,
+	version string) error {
+
 	tenants, err := h.daoTenant.ListAllEnabledTenants(rCtx)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list all tenants")
@@ -136,32 +144,7 @@ func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, plugi
 		nCtx := contextx.New(rCtx, contextx.WithTenantID(tenant.ID))
 
 		gp.Go(func() error {
-			exist, err := h.daoPlugin.ExistDefaultPluginByPluginPkgName(nCtx, pluginPkgName)
-			if err != nil {
-				logger.G.Biz(rCtx).WithErr(err).With("tenant_id", tenant.ID, "plugin_pkg_name", pluginPkgName).
-					Error("failed to check plugin exist for tenant")
-
-				return fmt.Errorf("failed to check tenant-id(%s) plugin(%s) exist", tenant.ID, pluginPkgName)
-			}
-
-			if exist {
-				return nil
-			}
-
-			defaultPlugin := &types.Plugin{
-				TenantID: tenant.ID,
-				Name:     pluginPkgName,
-				PkgName:  pluginPkgName,
-				Group:    types.PluginGroupDefault,
-			}
-			if err := h.daoPlugin.CreatePlugin(nCtx, defaultPlugin); err != nil {
-				logger.G.Biz(rCtx).WithErr(err).With("tenant_id", tenant.ID, "plugin_pkg_name", pluginPkgName).
-					Error("failed to create default plugin for tenant")
-
-				return fmt.Errorf("failed to create default plugin for tenant(%s) by plugin-pkg-name(%s): %w", tenant.ID, pluginPkgName, err)
-			}
-
-			return nil
+			return h.createDefaultPluginForTenant(nCtx, tenant.ID, pluginPkgName, gen, plat, version)
 		})
 	}
 
@@ -170,6 +153,70 @@ func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, plugi
 	}
 
 	return nil
+}
+
+// createDefaultPluginForTenant creates default plugin for a single tenant.
+func (h *handler) createDefaultPluginForTenant(nCtx contextx.IContext, tenantID, pluginPkgName string, gen types.Generation, plat platfmt.Platform,
+	version string) error {
+
+	exist, err := h.daoPlugin.ExistDefaultPluginByPluginPkgName(nCtx, pluginPkgName)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "plugin_pkg_name", pluginPkgName).
+			Error("failed to check plugin exist for tenant")
+
+		return fmt.Errorf("failed to check tenant-id(%s) plugin(%s) exist: %w", tenantID, pluginPkgName, err)
+	}
+
+	if exist {
+		return nil
+	}
+
+	plugin, err := h.daoReleasePlugin.GetReleasePlugin(nCtx, pluginPkgName, gen, plat, version)
+	if err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("tenant_id", tenantID, "plugin_pkg_name", pluginPkgName, "gen", gen, "platform", plat, "version", version).
+			Error("failed to get release plugin")
+
+		return fmt.Errorf("failed to get release plugin for tenant(%s) by plugin-pkg-name(%s), gen(%d), platform(%s), version(%s): %w",
+			tenantID, pluginPkgName, gen, plat.String(), version, err)
+	}
+
+	defaultPlugin := &types.Plugin{
+		TenantID: tenantID,
+		Name:     pluginPkgName,
+		PkgName:  pluginPkgName,
+		Group:    types.PluginGroupDefault,
+		Memo:     buildPluginMemo(plugin),
+	}
+
+	if err := h.daoPlugin.CreatePlugin(nCtx, defaultPlugin); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "plugin_pkg_name", pluginPkgName).
+			Error("failed to create default plugin for tenant")
+
+		return fmt.Errorf("failed to create default plugin for tenant(%s) by plugin-pkg-name(%s): %w", tenantID, pluginPkgName, err)
+	}
+
+	return nil
+}
+
+// buildPluginMemo builds memo string from plugin description and scenario fields, only including non-empty fields.
+func buildPluginMemo(plugin *types.ReleasePlugin) string {
+	memoParts := make([]string, 0, maxMemoFields)
+	if plugin.Description != "" {
+		memoParts = append(memoParts, fmt.Sprintf("描述: %s", plugin.Description))
+	}
+	if plugin.Scenario != "" {
+		memoParts = append(memoParts, fmt.Sprintf("场景: %s", plugin.Scenario))
+	}
+	if plugin.DescriptionEn != "" {
+		memoParts = append(memoParts, fmt.Sprintf("Description: %s", plugin.DescriptionEn))
+	}
+	if plugin.ScenarioEn != "" {
+		memoParts = append(memoParts, fmt.Sprintf("Scene: %s", plugin.ScenarioEn))
+	}
+
+	return strings.Join(memoParts, "\n")
 }
 
 // DisableReleasePlugin disable plugin.
