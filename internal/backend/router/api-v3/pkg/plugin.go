@@ -112,7 +112,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 
 	if err := h.initDefaultPluginForAllTenants(rCtx, pluginPkgName, gen, plat, version); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("gen", gen, "platform", plat, "version", version).
-			Error("failed to chack and create default plugin for all tenants")
+			Error("failed to check and create default plugin for all tenants")
 
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
