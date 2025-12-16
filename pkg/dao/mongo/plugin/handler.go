@@ -62,7 +62,7 @@ func (h *Handler) Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error) {
 
 	exist, err := h.tenantDao(nCtx.TenantID()).Exist(nCtx, filter)
 	if err != nil {
-		return false, fmt.Errorf("failed to check plugin exist, err: %w", err)
+		return false, fmt.Errorf("failed to check plugin exist: %w", err)
 	}
 
 	return exist, nil
@@ -104,7 +104,7 @@ func (h *Handler) Create(nCtx contextx.IContext, plugin *types.Plugin) error {
 	data := convPluginFromTypes(plugin)
 
 	if err := h.tenantDao(nCtx.TenantID()).Create(nCtx, data); err != nil {
-		return fmt.Errorf("failed to create plugin, err: %w", err)
+		return fmt.Errorf("failed to create plugin, plugin-name(%s): %w", plugin.Name, err)
 	}
 
 	return nil

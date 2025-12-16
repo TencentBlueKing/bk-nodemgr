@@ -164,7 +164,7 @@ func (h *handler) createDefaultPluginForTenant(nCtx contextx.IContext, tenantID,
 		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "plugin_pkg_name", pluginPkgName).
 			Error("failed to check plugin exist for tenant")
 
-		return fmt.Errorf("failed to check tenant-id(%s) plugin(%s) exist: %w", tenantID, pluginPkgName, err)
+		return fmt.Errorf("failed to check plugin exist, tenant-id(%s) plugin(%s): %w", tenantID, pluginPkgName, err)
 	}
 
 	if exist {
@@ -178,8 +178,8 @@ func (h *handler) createDefaultPluginForTenant(nCtx contextx.IContext, tenantID,
 			With("tenant_id", tenantID, "plugin_pkg_name", pluginPkgName, "gen", gen, "platform", plat, "version", version).
 			Error("failed to get release plugin")
 
-		return fmt.Errorf("failed to get release plugin for tenant(%s) by plugin-pkg-name(%s), gen(%d), platform(%s), version(%s): %w",
-			tenantID, pluginPkgName, gen, plat.String(), version, err)
+		return fmt.Errorf("failed to get release plugin, plugin-pkg-name(%s), gen(%d), platform(%s), version(%s): %w",
+			pluginPkgName, gen, plat.String(), version, err)
 	}
 
 	defaultPlugin := &types.Plugin{

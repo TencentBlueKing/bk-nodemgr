@@ -29,7 +29,7 @@ func (s *Storage) getPlugin(nCtx contextx.IContext, pluginName string) (*types.P
 		daoPlugin.WithName(pluginName),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get plugin: %w", err)
+		return nil, fmt.Errorf("failed to get plugin, plugin-name(%s): %w", pluginName, err)
 	}
 
 	return plugin, nil
@@ -111,7 +111,7 @@ func (s *Storage) existPluginByPluginName(nCtx contextx.IContext, name string) (
 
 	exist, err := s.daoPlugin.Exist(nCtx, daoPlugin.WithName(name))
 	if err != nil {
-		return false, fmt.Errorf("failed to get plugin: %w", err)
+		return false, fmt.Errorf("failed to get plugin, plugin-name(%s): %w", name, err)
 	}
 
 	return exist, nil
@@ -124,7 +124,7 @@ func (s *Storage) existPluginByPluginPkgName(nCtx contextx.IContext, name string
 
 	exist, err := s.daoPlugin.Exist(nCtx, daoPlugin.WithPkgName(name), daoPlugin.WithGroup(types.PluginGroupDefault))
 	if err != nil {
-		return false, fmt.Errorf("failed to get plugin: %w", err)
+		return false, fmt.Errorf("failed to get plugin, plugin-pkg-name(%s): %w", name, err)
 	}
 
 	return exist, nil
@@ -140,7 +140,7 @@ func (s *Storage) createPlugin(nCtx contextx.IContext, p *types.Plugin) error {
 	}
 
 	if err := s.daoPlugin.Create(nCtx, p); err != nil {
-		return fmt.Errorf("failed to create plugin: %w", err)
+		return fmt.Errorf("failed to create plugin, plugin-name(%s): %w", p.Name, err)
 	}
 
 	return nil
