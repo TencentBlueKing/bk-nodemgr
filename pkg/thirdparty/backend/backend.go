@@ -147,6 +147,37 @@ func (c *cli) listHost(ctx contextx.IContext, req *protoBackend.TopoHostListReq,
 	return resp, nil
 }
 
+func (c *cli) simpleListHost(ctx contextx.IContext, req *protoBackend.TopoHostSimpleListReq,
+) (*protoBackend.TopoHostSimpleListResp, error) {
+
+	resp := new(protoBackend.TopoHostSimpleListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/host/simple-list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("simple list host failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("simple list host failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) getHostDistributionByNodeRole(ctx contextx.IContext, req *protoBackend.TopoGetHostDistributionByNodeRoleReq,
 ) (*protoBackend.TopoGetHostDistributionByNodeRoleResp, error) {
 

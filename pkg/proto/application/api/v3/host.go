@@ -31,7 +31,7 @@ func (x *TopoHostListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoHostListReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
 }
 
 // ConvertConditionsFromTypes convert types to proto.
@@ -163,7 +163,7 @@ func (x *TopoHostDistinctReq) AutoConvert() {
 
 // ConvertConditionsToTypes converts the request to types.
 func (x *TopoHostDistinctReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
 }
 
 // ConvertConditionsFromTypes converts the request to types.
@@ -221,6 +221,57 @@ func (x *TopoHostDistinctResp) ConvertResultToTypes() *types.HostDistinctResult 
 	}
 }
 
+// Validate check body.
+func (x *TopoHostSimpleListReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoHostSimpleListReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoHostSimpleListReq) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetExactExcludeConditions())
+}
+
+func (x *TopoHostSimpleListReq) ConvertFieldSelectionToTypes() *types.HostFieldSelection {
+	if x.GetFieldSelection() == nil {
+		return nil
+	}
+
+	return &types.HostFieldSelection{
+		EnableFieldBkHostID:        x.GetFieldSelection().GetEnableFieldBkHostId(),
+		EnableFieldBkBizID:         x.GetFieldSelection().GetEnableFieldBkBizId(),
+		EnableFieldBkHostInnerip:   x.GetFieldSelection().GetEnableFieldBkHostInnerip(),
+		EnableFieldBkHostInneripV6: x.GetFieldSelection().GetEnableFieldBkHostInneripV6(),
+		EnableFieldBkNetworkunitID: x.GetFieldSelection().GetEnableFieldBkNetworkunitId(),
+	}
+}
+
+// ConvertHostsFromTypes convert types to proto.
+func (x *TopoHostSimpleListResp) ConvertHostSelectedFiledFromTypes(total int64, hosts []*types.HostSelectedFields) {
+	if hosts == nil {
+		return
+	}
+
+	items := make([]*HostSelectedFields, len(hosts))
+	for idx, host := range hosts {
+		items[idx] = &HostSelectedFields{
+			BkHostId:            &host.BkHostID,
+			BkBizId:             &host.BkBizID,
+			BkHostInneripList:   host.BkHostInnerip,
+			BkHostInneripV6List: host.BkHostInneripV6,
+			BkNetworkunitId:     &host.BkNetworkunitID,
+		}
+	}
+
+	x.Data = &TopoHostSimpleListResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
 func newEmptyHost() *Host {
 	return &Host{
 		TenantId: new(string),
@@ -260,7 +311,7 @@ func newEmptyHost() *Host {
 }
 
 func convertHostConditionsToTypes(
-	exactCond *TopoHostExactConditions, fuzzyCond *TopoHostFuzzyConditions) *types.HostCondition {
+	exactCond *TopoHostExactConditions, fuzzyCond *TopoHostFuzzyConditions, exactExcCond *TopoHostExactConditions) *types.HostCondition {
 
 	condition := &types.HostCondition{}
 
@@ -291,6 +342,23 @@ func convertHostConditionsToTypes(
 			InnerIPV6: fuzzyCond.GetBkHostInneripV6(),
 			OuterIP:   fuzzyCond.GetBkHostOuterip(),
 			OuterIPV6: fuzzyCond.GetBkHostOuteripV6(),
+		}
+	}
+
+	if exactExcCond != nil {
+		condition.StaticExactExclude = &types.HostStaticExactFields{
+			HostID:        exactExcCond.GetBkHostId(),
+			BizID:         exactExcCond.GetBkBizId(),
+			NetworkAreaID: exactExcCond.GetBkNetworkareaId(),
+		}
+		condition.DynamicExactExclude = &types.HostDynamicExactFields{
+			NetworkUnitID:  exactExcCond.GetBkNetworkunitId(),
+			OSType:         exactExcCond.GetOsType(),
+			NodeRole:       types.StringListToNodeRoleList(exactExcCond.GetNodeRole()),
+			NodeStatus:     types.StringListToNodeStatusList(exactExcCond.GetNodeStatus()),
+			NodeVersion:    exactExcCond.GetNodeVersion(),
+			NodeGeneration: exactExcCond.GetNodeGeneration(),
+			AgentID:        exactExcCond.GetBkAgentId(),
 		}
 	}
 

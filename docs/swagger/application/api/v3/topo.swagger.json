@@ -320,6 +320,40 @@
         ]
       }
     },
+    "/api/v3/topo/host/simple-list": {
+      "post": {
+        "summary": "HostSimpleList provides host listing with field selection.",
+        "operationId": "Topo_HostSimpleList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSimpleListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoHostSimpleListReq describes the HTTP request body when list host with\nfield selection in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSimpleListReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/networkarea/create": {
       "post": {
         "summary": "NetworkAreaCreate provides creating a new network-area.",
@@ -922,6 +956,27 @@
       },
       "description": "Host describes the host informations."
     },
+    "v3HostFieldSelection": {
+      "type": "object",
+      "properties": {
+        "enable_field_bk_host_id": {
+          "type": "boolean"
+        },
+        "enable_field_bk_host_innerip": {
+          "type": "boolean"
+        },
+        "enable_field_bk_host_innerip_v6": {
+          "type": "boolean"
+        },
+        "enable_field_bk_biz_id": {
+          "type": "boolean"
+        },
+        "enable_field_bk_networkunit_id": {
+          "type": "boolean"
+        }
+      },
+      "description": "HostFieldSelection describes field selection options for host queries."
+    },
     "v3HostInfo": {
       "type": "object",
       "properties": {
@@ -1006,6 +1061,36 @@
         }
       },
       "description": "HostInfo describes the host info informations. Usually contains static\nconfigs."
+    },
+    "v3HostSelectedFields": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "HostSelectedFields contains only the selected fields for a host."
     },
     "v3HostState": {
       "type": "object",
@@ -1965,6 +2050,63 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3Host"
+          }
+        }
+      }
+    },
+    "v3TopoHostSimpleListReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "field_selection": {
+          "$ref": "#/definitions/v3HostFieldSelection",
+          "description": "field_selection describes field selection options for host queries."
+        }
+      },
+      "description": "TopoHostSimpleListReq describes the HTTP request body when list host with\nfield selection in topo service."
+    },
+    "v3TopoHostSimpleListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoHostSimpleListRespData"
+        }
+      },
+      "description": "TopoHostSimpleListResp describes the HTTP response body when list host with\nfield selection in topo service."
+    },
+    "v3TopoHostSimpleListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3HostSelectedFields"
           }
         }
       }

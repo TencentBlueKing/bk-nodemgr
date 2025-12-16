@@ -99,6 +99,13 @@ type IHandlerHost interface {
 	// @return host list with page and the total count with filter.
 	ListHost(ctx contextx.IContext, page types.Page, condition *types.HostCondition) ([]*types.Host, int64, error)
 
+	// SimpleListHost simple list host within specified tenant in contextx.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @param selection the field selection.
+	// @return the host list with page and the total count with filter.
+	SimpleListHost(ctx contextx.IContext, condition *types.HostCondition, selection *types.HostFieldSelection) ([]*types.HostSelectedFields, int64, error)
+
 	// DistinctHost distinct host by condition.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param condition the filter conditions.
@@ -430,6 +437,28 @@ func (h *Handler) ListHost(ctx contextx.IContext, page types.Page, condition *ty
 	}
 
 	resp, err := h.cli.listHost(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, hosts := resp.ConvertHostsToTypes()
+
+	return hosts, total, nil
+}
+
+// SimpleListHost simple list host within specified tenant in contextx.
+func (h *Handler) SimpleListHost(ctx contextx.IContext, condition *types.HostCondition, fieldSelection *types.HostFieldSelection) (
+	[]*types.HostSelectedFields, int64, error) {
+
+	req := &protoBackend.TopoHostSimpleListReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, 0, err
+	}
+
+	// set field selection
+	req.ConvertFieldSelectionFromTypes(fieldSelection)
+
+	resp, err := h.cli.simpleListHost(ctx, req)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -329,6 +329,25 @@ message TopoHostListReq {
   TopoHostFuzzyConditions fuzzy_include_conditions = 4;
 }
 
+// TopoHostSimpleListReq describes the HTTP request body when list host with
+// field selection in topo service.
+message TopoHostSimpleListReq {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+  TopoHostExactConditions exact_exclude_conditions = 3;
+
+  message HostFieldSelection {
+    bool enable_field_bk_host_id = 1;
+    bool enable_field_bk_host_innerip = 2;
+    bool enable_field_bk_host_innerip_v6 = 3;
+    bool enable_field_bk_biz_id = 4;
+    bool enable_field_bk_networkunit_id = 5;
+  }
+
+  // field_selection describes field selection options for host queries.
+  HostFieldSelection field_selection = 4;
+}
+
 // TopoHostListResp describes the HTTP response body when list host in topo
 // service.
 message TopoHostListResp {
@@ -340,6 +359,29 @@ message TopoHostListResp {
   message Data {
     int64 total = 1;
     repeated Host items = 2;
+  }
+  Data data = 5;
+}
+
+// TopoHostSimpleListResp describes the HTTP response body when list host with
+// field selection in topo service.
+message TopoHostSimpleListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message HostSelectedFields {
+    optional int64 bk_host_id = 1;
+    optional int64 bk_biz_id = 2;
+    repeated string bk_host_innerip_list = 3;
+    repeated string bk_host_innerip_v6_list = 4;
+    optional int64 bk_networkunit_id = 5;
+  }
+
+  message Data {
+    int64 total = 1;
+    repeated HostSelectedFields items = 2;
   }
   Data data = 5;
 }
@@ -653,6 +695,14 @@ service Topo {
   rpc HostList(TopoHostListReq) returns (TopoHostListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/host/list"
+      body : "*"
+    };
+  }
+
+  // HostSimpleList provides host listing with field selection.
+  rpc HostSimpleList(TopoHostSimpleListReq) returns (TopoHostSimpleListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/simple-list"
       body : "*"
     };
   }

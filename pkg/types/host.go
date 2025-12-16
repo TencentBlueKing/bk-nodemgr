@@ -375,3 +375,21 @@ const (
 	// NodeRoleProxy means this node is a proxy.
 	NodeRoleProxy NodeRole = "proxy"
 )
+
+// HostFieldSelection represents field selection options for host queries.
+type HostFieldSelection struct {
+	EnableFieldBkHostID        bool
+	EnableFieldBkBizID         bool
+	EnableFieldBkHostInnerip   bool
+	EnableFieldBkHostInneripV6 bool
+	EnableFieldBkNetworkunitID bool
+}
+
+// HostSelectedFields represents selected fields for host queries.
+type HostSelectedFields struct {
+	BkHostInnerip     []string
+	BkHostInneripV6   []string
+	BkHostID          int64
+	BkBizID           int64
+	BkNetworkunitID   int64
+}

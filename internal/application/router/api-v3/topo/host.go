@@ -74,6 +74,29 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
+// SimpleListHost lists hosts with field selection.
+func (h *handler) SimpleListHost(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.TopoHostSimpleListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to simple list host, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	hosts, num, err := h.backendHandler.SimpleListHost(
+		rCtx,
+		req.ConvertConditionsToTypes(),
+		req.ConvertFieldSelectionToTypes())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to simple list host")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.TopoHostSimpleListResp)
+	resp.ConvertHostSelectedFiledFromTypes(num, hosts)
+
+	return resp.GetData(), nil
+}
+
 func (h *handler) completeNetworkAreaName(
 	rCtx restserver.IContext, hosts []*types.Host, mapping *types.TopoNameMapping) error {
 

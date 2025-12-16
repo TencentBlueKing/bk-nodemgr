@@ -11,7 +11,11 @@
 package topo
 
 import (
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
@@ -20,7 +24,9 @@ import (
 )
 
 const (
-	maxHostLimit = 1000
+	maxHostLimit              = 1000
+	fieldSelectionMaxPageSize = 2000
+	fieldSelectionTimeout     = 1 * time.Minute
 )
 
 // ListHost lists hosts with page and conditions.
@@ -71,6 +77,35 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 
 	resp := new(protoBackend.TopoHostListResp)
 	resp.ConvertHostsFromTypes(num, hosts, hostCredits)
+
+	return resp.GetData(), nil
+}
+
+// SimpleListHost lists hosts with field selection.
+func (h *handler) SimpleListHost(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.TopoHostSimpleListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to simple list host, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	fieldSelection := req.ConvertFieldSelectionToTypes()
+
+	// fetch result by page executor.
+	executor := pageexecutor.NewPageExecutor[*types.Host](fieldSelectionMaxPageSize, fieldSelectionTimeout)
+	fn := func(rCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
+		hosts, _, err := h.storage.ListHost(rCtx, p, req.ConvertConditionsToTypes())
+		return hosts, err
+	}
+
+	pageResult, err := executor.Execute(rCtx, types.UnlimitedPage(), fn)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host by page executor")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.TopoHostSimpleListResp)
+	resp.ConvertHostSelectFiledFromTypes(pageResult.Items, fieldSelection, pageResult.Total)
 
 	return resp.GetData(), nil
 }

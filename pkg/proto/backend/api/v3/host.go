@@ -31,7 +31,7 @@ func (x *TopoHostListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoHostListReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
 }
 
 // ConvertConditionsFromTypes convert types to proto.
@@ -45,6 +45,120 @@ func (x *TopoHostListReq) ConvertConditionsFromTypes(condition *types.HostCondit
 	x.FuzzyIncludeConditions = fuzzyIncludeCond
 
 	return nil
+}
+
+// Validate check body for simple list.
+func (x *TopoHostSimpleListReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert for simple list.
+func (x *TopoHostSimpleListReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types for simple list.
+func (x *TopoHostSimpleListReq) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetExactExcludeConditions())
+}
+
+// ConvertFieldSelectionToTypes convert field selection to types for simple list.
+func (x *TopoHostSimpleListReq) ConvertFieldSelectionToTypes() *types.HostFieldSelection {
+	fieldSelection := x.GetFieldSelection()
+	if fieldSelection == nil {
+		return nil
+	}
+
+	return &types.HostFieldSelection{
+		EnableFieldBkHostInnerip:   fieldSelection.GetEnableFieldBkHostInnerip(),
+		EnableFieldBkHostInneripV6: fieldSelection.GetEnableFieldBkHostInneripV6(),
+		EnableFieldBkHostID:        fieldSelection.GetEnableFieldBkHostId(),
+		EnableFieldBkBizID:         fieldSelection.GetEnableFieldBkBizId(),
+		EnableFieldBkNetworkunitID: fieldSelection.GetEnableFieldBkNetworkunitId(),
+	}
+}
+
+// ConvertConditionsFromTypes convert types to proto for simple list.
+func (x *TopoHostSimpleListReq) ConvertConditionsFromTypes(condition *types.HostCondition) error {
+	exactCond, fuzzyCond, err := convertHostConditionsFromTypes(condition)
+	if err != nil {
+		return err
+	}
+
+	x.ExactIncludeConditions = exactCond
+	x.FuzzyIncludeConditions = fuzzyCond
+
+	return nil
+}
+
+// ConvertConditionsFromTypes convert types to proto for simple list.
+func (x *TopoHostSimpleListReq) ConvertFieldSelectionFromTypes(fieldSelection *types.HostFieldSelection) {
+	x.FieldSelection = &TopoHostSimpleListReq_HostFieldSelection{
+		EnableFieldBkHostInnerip:   fieldSelection.EnableFieldBkHostInnerip,
+		EnableFieldBkHostInneripV6: fieldSelection.EnableFieldBkHostInneripV6,
+		EnableFieldBkHostId:        fieldSelection.EnableFieldBkHostID,
+		EnableFieldBkBizId:         fieldSelection.EnableFieldBkBizID,
+		EnableFieldBkNetworkunitId: fieldSelection.EnableFieldBkNetworkunitID,
+	}
+}
+
+// ConvertHostsToTypes convert proto to types for simple list.
+func (x *TopoHostSimpleListResp) ConvertHostsToTypes() (int64, []*types.HostSelectedFields) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.HostSelectedFields, len(items))
+	for idx, item := range items {
+		result[idx] = &types.HostSelectedFields{
+			BkHostID:        item.GetBkHostId(),
+			BkBizID:         item.GetBkBizId(),
+			BkHostInnerip:   item.GetBkHostInneripList(),
+			BkHostInneripV6: item.GetBkHostInneripV6List(),
+			BkNetworkunitID: item.GetBkNetworkunitId(),
+		}
+	}
+
+	return data.Total, result
+}
+
+func (x *TopoHostSimpleListResp) ConvertHostSelectFiledFromTypes(hosts []*types.Host, fieldSelection *types.HostFieldSelection, total int) {
+	if fieldSelection == nil {
+		return
+	}
+
+	items := make([]*TopoHostSimpleListResp_HostSelectedFields, len(hosts))
+	for idx, host := range hosts {
+		item := &TopoHostSimpleListResp_HostSelectedFields{}
+
+		if fieldSelection.EnableFieldBkHostID {
+			item.BkHostId = &host.HostID
+		}
+
+		if fieldSelection.EnableFieldBkBizID {
+			item.BkBizId = &host.Static.BizID
+		}
+
+		if fieldSelection.EnableFieldBkHostInnerip {
+			item.BkHostInneripList = host.Static.InnerIPList
+		}
+
+		if fieldSelection.EnableFieldBkHostInneripV6 {
+			item.BkHostInneripV6List = host.Static.InnerIPV6List
+		}
+
+		if fieldSelection.EnableFieldBkNetworkunitID {
+			item.BkNetworkunitId = &host.Dynamic.NetworkUnitID
+		}
+
+		items[idx] = item
+	}
+
+	x.Data = &TopoHostSimpleListResp_Data{
+		Total: int64(total),
+		Items: items,
+	}
 }
 
 // ConvertHostsFromTypes convert types to proto.
@@ -169,7 +283,7 @@ func (x *TopoHostDistinctReq) AutoConvert() {
 
 // ConvertConditionsToTypes converts the request to types.
 func (x *TopoHostDistinctReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
 }
 
 // ConvertConditionsFromTypes converts the request to types.
@@ -304,7 +418,7 @@ func newEmptyHost() *Host {
 }
 
 func convertHostConditionsToTypes(
-	exactIncludeCond *TopoHostExactConditions, fuzzyIncludeCond *TopoHostFuzzyConditions) *types.HostCondition {
+	exactIncludeCond *TopoHostExactConditions, fuzzyIncludeCond *TopoHostFuzzyConditions, exactExcludeCond *TopoHostExactConditions) *types.HostCondition {
 
 	condition := &types.HostCondition{}
 
@@ -338,6 +452,26 @@ func convertHostConditionsToTypes(
 			OuterIP:   fuzzyIncludeCond.GetBkHostOuterip(),
 			OuterIPV6: fuzzyIncludeCond.GetBkHostOuteripV6(),
 		}
+	}
+
+	// exact exclude conditions.
+	if exactExcludeCond != nil {
+		condition.StaticExactExclude = &types.HostStaticExactFields{
+			HostID:        exactExcludeCond.GetBkHostId(),
+			BizID:         exactExcludeCond.GetBkBizId(),
+			NetworkAreaID: exactExcludeCond.GetBkNetworkareaId(),
+		}
+		condition.DynamicExactInclude = &types.HostDynamicExactFields{
+			NetworkUnitID:  exactIncludeCond.GetBkNetworkunitId(),
+			OSType:         exactIncludeCond.GetOsType(),
+			Arch:           exactIncludeCond.GetArch(),
+			NodeRole:       types.StringListToNodeRoleList(exactIncludeCond.GetNodeRole()),
+			NodeStatus:     types.StringListToNodeStatusList(exactIncludeCond.GetNodeStatus()),
+			NodeVersion:    exactIncludeCond.GetNodeVersion(),
+			NodeGeneration: exactIncludeCond.GetNodeGeneration(),
+			AgentID:        exactIncludeCond.GetBkAgentId(),
+		}
+
 	}
 
 	return condition
@@ -393,7 +527,7 @@ func (x *TopoGetHostDistributionByNodeRoleReq) AutoConvert() {
 
 // ConvertConditionsToTypes converts the request to types.
 func (x *TopoGetHostDistributionByNodeRoleReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
 }
 
 // ConvertConditionsFromTypes converts the request to types.
@@ -420,7 +554,7 @@ func (x *TopoGetHostDistributionByNetworkAreaIDReq) AutoConvert() {
 
 // ConvertConditionsToTypes converts the request to types.
 func (x *TopoGetHostDistributionByNetworkAreaIDReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
 }
 
 // ConvertConditionsFromTypes converts the request to types.
