@@ -462,6 +462,10 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 					TemplateRendererType: detail.TemplateRenderer,
 					ConfigTemplates:      detail.ConfigTemplates[pkg.platform.String()],
 					PluginController:     detail.Controller[pkg.platform.String()],
+					Description:          detail.Description,
+					DescriptionEn:        detail.DescriptionEn,
+					Scenario:             detail.Scenario,
+					ScenarioEn:           detail.ScenarioEn,
 				},
 			}
 

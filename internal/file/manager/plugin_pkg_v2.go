@@ -469,6 +469,10 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 					TemplateRendererType: types.TemplateRendererTypeJinja2,
 					ConfigTemplates:      detail.ConfigTemplates[pkg.platform.String()],
 					PluginController:     detail.Controller[pkg.platform.String()],
+					Description:          detail.Description,
+					DescriptionEn:        detail.DescriptionEn,
+					Scenario:             detail.Scenario,
+					ScenarioEn:           detail.ScenarioEn,
 				},
 			}
 

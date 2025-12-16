@@ -126,7 +126,9 @@ type OriginPluginV2PkgDetail struct {
 	PluginPkgName string
 	Version       string
 	Description   string
+	DescriptionEn string
 	Scenario      string
+	ScenarioEn    string
 	ConfigFile    string
 	ConfigFormat  string
 	LaunchNode    string
@@ -157,7 +159,9 @@ type OriginExternalPluginV2PkgDetail struct {
 	PluginPkgName string
 	Version       string
 	Description   string
+	DescriptionEn string
 	Scenario      string
+	ScenarioEn    string
 	ConfigFile    string
 	ConfigFormat  string
 	LaunchNode    string

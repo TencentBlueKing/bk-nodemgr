@@ -203,6 +203,10 @@ type ReleaseAdditionInfoPlugin struct {
 	TemplateRendererType TemplateRendererType
 	ConfigTemplates      []PluginPkgConfigTemplate
 	PluginController     ProcessController
+	Description          string
+	DescriptionEn        string
+	Scenario             string
+	ScenarioEn           string
 }
 
 // TemplateRendererType defines the type of template renderer.
