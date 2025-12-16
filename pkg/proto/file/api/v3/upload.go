@@ -498,6 +498,7 @@ func (x *UploadOriginPluginV3Resp) ConvertResultFromTypes(generated bool, detail
 		Name:             new(string),
 		Size:             new(int64),
 		Md5:              new(string),
+		PluginPkgName:    new(string),
 		Version:          new(string),
 		Description:      new(string),
 		DescriptionEn:    new(string),
@@ -513,6 +514,7 @@ func (x *UploadOriginPluginV3Resp) ConvertResultFromTypes(generated bool, detail
 	*data.Name = detail.FileInfo.Name
 	*data.Size = detail.Size
 	*data.Md5 = detail.MD5
+	*data.PluginPkgName = detail.PluginPkgName
 	*data.Version = detail.Version
 	*data.Description = detail.Description
 	*data.DescriptionEn = detail.DescriptionEn
