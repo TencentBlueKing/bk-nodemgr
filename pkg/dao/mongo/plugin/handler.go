@@ -37,6 +37,9 @@ type IHandler interface {
 
 	// Exist check a plugin exist by conditions.
 	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
+
+	// UpdateMemo update plugin memo by name.
+	UpdateMemo(nCtx contextx.IContext, pluginName string, memo string) error
 }
 
 var _ IHandler = &Handler{}
@@ -196,4 +199,24 @@ func convertPluginToTypes(data *Plugin) *types.Plugin {
 	}
 
 	return plugin
+}
+
+// UpdateMemo update plugin memo by name.
+func (h *Handler) UpdateMemo(nCtx contextx.IContext, pluginName string, memo string) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	if pluginName == "" {
+		return fmt.Errorf("plugin name is empty")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithName(pluginName)(filter)
+
+	if err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyMemo, memo); err != nil {
+		return fmt.Errorf("failed to update plugin memo, err: %w", err)
+	}
+
+	return nil
 }

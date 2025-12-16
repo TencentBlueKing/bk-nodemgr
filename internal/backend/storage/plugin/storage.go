@@ -616,6 +616,17 @@ func (s *Storage) ExistDefaultPluginByPluginPkgName(nCtx contextx.IContext, plug
 	return exist, err
 }
 
+// SetPluginMemo set plugin memo by plugin name.
+func (s *Storage) SetPluginMemo(nCtx contextx.IContext, pluginName string, memo string) (err error) {
+	// record metric.
+	metric := s.metric().Start("set_plugin_memo")
+	defer metric.End(err)
+
+	err = s.setPluginMemo(nCtx, pluginName, memo)
+
+	return err
+}
+
 // CreatePlugin create plugin.
 func (s *Storage) CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) (err error) {
 	// record metric.

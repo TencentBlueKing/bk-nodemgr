@@ -74,3 +74,16 @@ func (h *Handler) ApplyPluginSubConfig(ctx contextx.IContext, applyParam ...*typ
 
 	return resp.GetData().GetWorkflowId(), nil
 }
+
+// SetPluginMemo set plugin memo.
+func (h *Handler) SetPluginMemo(ctx contextx.IContext, pluginName string, memo string) error {
+	req := new(protoBackend.PluginSetMemoReq)
+	req.PluginName = pluginName
+	req.Memo = memo
+
+	if err := h.cli.setPluginMemo(ctx, req); err != nil {
+		return err
+	}
+
+	return nil
+}

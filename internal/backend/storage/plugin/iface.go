@@ -91,6 +91,9 @@ type IDaoPlugin interface {
 
 	// CreatePlugin create a plugin.
 	CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) error
+
+	// SetPluginMemo set plugin memo by plugin name.
+	SetPluginMemo(nCtx contextx.IContext, pluginName string, memo string) error
 }
 
 // IDaoProcess defines the process dao interface.

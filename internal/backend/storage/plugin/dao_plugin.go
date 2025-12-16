@@ -145,3 +145,19 @@ func (s *Storage) createPlugin(nCtx contextx.IContext, p *types.Plugin) error {
 
 	return nil
 }
+
+func (s *Storage) setPluginMemo(nCtx contextx.IContext, pluginName string, memo string) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if pluginName == "" {
+		return fmt.Errorf("plugin name is empty")
+	}
+
+	if err := s.daoPlugin.UpdateMemo(nCtx, pluginName, memo); err != nil {
+		return fmt.Errorf("failed to set plugin memo: %w", err)
+	}
+
+	return nil
+}

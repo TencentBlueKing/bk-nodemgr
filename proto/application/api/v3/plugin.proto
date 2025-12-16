@@ -89,6 +89,20 @@ message PluginListResp {
   Data data = 5;
 }
 
+// PluginSetMemoReq describes the plugin set memo request.
+message PluginSetMemoReq {
+  string plugin_name = 1;
+  string memo = 2;
+}
+
+// PluginSetMemoResp describes the plugin set memo response.
+message PluginSetMemoResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+}
+
 service PluginAPI {
   // InstallPlugin installs a plugin on specified hosts.
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
@@ -112,6 +126,14 @@ service PluginAPI {
   rpc ListPlugins(PluginListReq) returns (PluginListResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/list"
+      body : "*"
+    };
+  }
+
+  // SetPluginMemo sets the memo for a plugin.
+  rpc SetPluginMemo(PluginSetMemoReq) returns (PluginSetMemoResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/set_memo"
       body : "*"
     };
   }

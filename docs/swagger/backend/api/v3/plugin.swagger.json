@@ -117,6 +117,40 @@
           "Plugin"
         ]
       }
+    },
+    "/api/v3/plugin/set_memo": {
+      "post": {
+        "summary": "SetPluginMemo sets the memo for a plugin.",
+        "operationId": "Plugin_SetPluginMemo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginSetMemoResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginSetMemoReq describes the plugin set memo request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginSetMemoReq"
+            }
+          }
+        ],
+        "tags": [
+          "Plugin"
+        ]
+      }
     }
   },
   "definitions": {
@@ -442,6 +476,37 @@
           "type": "string"
         }
       }
+    },
+    "v3PluginSetMemoReq": {
+      "type": "object",
+      "properties": {
+        "plugin_name": {
+          "type": "string"
+        },
+        "memo": {
+          "type": "string"
+        }
+      },
+      "description": "PluginSetMemoReq describes the plugin set memo request."
+    },
+    "v3PluginSetMemoResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        }
+      },
+      "description": "PluginSetMemoResp describes the plugin set memo response."
     }
   }
 }

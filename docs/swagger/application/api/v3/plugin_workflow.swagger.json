@@ -256,7 +256,7 @@
     },
     "/api/v3/plugin/workflow/statistics": {
       "post": {
-        "summary": "PluginWorkflowStatistics provides node workflow statistics.",
+        "summary": "PluginWorkflowStatistics provides plugin workflow statistics.",
         "operationId": "PluginWorkflow_PluginWorkflowStatistics",
         "responses": {
           "200": {

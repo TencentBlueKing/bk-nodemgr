@@ -19,4 +19,7 @@ const (
 
 	// FieldKeyName the plugin name field key.
 	FieldKeyName = "data.name"
+
+	// FieldKeyMemo the plugin memo field key.
+	FieldKeyMemo = "data.memo"
 )

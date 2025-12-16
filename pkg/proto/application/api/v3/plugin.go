@@ -305,3 +305,15 @@ func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginApplySubC
 
 	return installParam
 }
+
+// Validate check body.
+func (x *PluginSetMemoReq) Validate() error {
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginSetMemoReq) AutoConvert() {}

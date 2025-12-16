@@ -2593,3 +2593,27 @@ func (c *cli) terminatePluginWorkflowOperation(ctx contextx.IContext, req *proto
 
 	return nil
 }
+
+func (c *cli) setPluginMemo(ctx contextx.IContext, req *protoBackend.PluginSetMemoReq) error {
+	resp := new(protoBackend.PluginSetMemoResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/set_memo").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("set plugin memo failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}

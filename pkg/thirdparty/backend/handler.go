@@ -334,6 +334,9 @@ type IHandlerPlugin interface {
 
 	// ApplyPluginSubConfig apply plugin sub config.
 	ApplyPluginSubConfig(ctx contextx.IContext, applyParam ...*types.PluginApplySubConfigParam) (string, error)
+
+	// SetPluginMemo set plugin memo.
+	SetPluginMemo(ctx contextx.IContext, pluginName string, memo string) error
 }
 
 // IHandlerProcess defines the backend Handler for process.
