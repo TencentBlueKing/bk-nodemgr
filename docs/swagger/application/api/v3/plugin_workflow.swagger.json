@@ -253,6 +253,40 @@
           "PluginWorkflow"
         ]
       }
+    },
+    "/api/v3/plugin/workflow/statistics": {
+      "post": {
+        "summary": "PluginWorkflowStatistics provides node workflow statistics.",
+        "operationId": "PluginWorkflow_PluginWorkflowStatistics",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowStatisticsResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginWorkflowStatisticReq describes the node workflow statistic request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowStatisticsReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginWorkflow"
+        ]
+      }
     }
   },
   "definitions": {
@@ -877,6 +911,52 @@
     "v3PluginWorkflowOperationTerminateRespData": {
       "type": "object"
     },
+    "v3PluginWorkflowStatisticsReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "PluginWorkflowStatisticReq describes the node workflow statistic request."
+    },
+    "v3PluginWorkflowStatisticsResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginWorkflowStatisticsRespData"
+        }
+      },
+      "description": "PluginWorkflowStatisticResp describes the node workflow statistic response."
+    },
+    "v3PluginWorkflowStatisticsRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3WorkflowStatisticsInfo"
+          }
+        }
+      }
+    },
     "v3TimeRange": {
       "type": "object",
       "properties": {
@@ -970,6 +1050,47 @@
         }
       },
       "description": "WorkflowLifeCycle describes the workflow life cycle."
+    },
+    "v3WorkflowStatisticsInfo": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "total_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "init_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "launched_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "running_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "success_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "failed_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "timeout_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "terminated_count": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "WorkflowStatisticsInfo describes the workflow statistics information."
     }
   }
 }

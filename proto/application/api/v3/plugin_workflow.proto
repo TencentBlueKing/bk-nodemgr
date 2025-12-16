@@ -241,6 +241,15 @@ service PluginWorkflow {
     };
   }
 
+  // PluginWorkflowStatistics provides plugin workflow statistics.
+  rpc PluginWorkflowStatistics(PluginWorkflowStatisticsReq)
+      returns (PluginWorkflowStatisticsResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/statistics"
+      body : "*"
+    };
+  }
+
   // PluginWorkflowDistinct provides plugin workflow distinct.
   rpc PluginWorkflowDistinct(PluginWorkflowDistinctReq)
       returns (PluginWorkflowDistinctResp) {
