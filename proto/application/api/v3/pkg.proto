@@ -130,11 +130,13 @@ message PackageUploadOriginPluginV2Resp {
     optional string md5 = 6;
     optional string version = 7;
     optional string description = 8;
-    optional string scenario = 9;
-    optional string config_file = 10;
-    optional string config_format = 11;
-    optional string launch_node = 12;
-    repeated Platform platforms = 13;
+    optional string description_en = 9;
+    optional string scenario = 10;
+    optional string scenario_en = 11;
+    optional string config_file = 12;
+    optional string config_format = 13;
+    optional string launch_node = 14;
+    repeated Platform platforms = 15;
   }
   Data data = 5;
 }
@@ -160,11 +162,13 @@ message PackageUploadOriginExternalPluginV2Resp {
     optional string md5 = 6;
     optional string version = 7;
     optional string description = 8;
-    optional string scenario = 9;
-    optional string config_file = 10;
-    optional string config_format = 11;
-    optional string launch_node = 12;
-    repeated Platform platforms = 13;
+    optional string description_en = 9;
+    optional string scenario = 10;
+    optional string scenario_en = 11;
+    optional string config_file = 12;
+    optional string config_format = 13;
+    optional string launch_node = 14;
+    repeated Platform platforms = 15;
   }
   Data data = 5;
 }
@@ -188,9 +192,9 @@ message PackageUploadOriginPluginV3Resp {
     optional string md5 = 6;
     optional string version = 7;
     optional string description = 8;
-    optional string descriptionEn = 9;
+    optional string description_en = 9;
     optional string scenario = 10;
-    optional string scenarioEn = 11;
+    optional string scenario_en = 11;
     optional string launch_node = 12;
     optional string template_renderer = 13;
     repeated Platform platforms = 14;

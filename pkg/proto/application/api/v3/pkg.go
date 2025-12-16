@@ -412,19 +412,21 @@ func (x *PackageUploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool,
 		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 	data := &PackageUploadOriginPluginV2Resp_Data{
-		UploadId:     new(string),
-		Existed:      new(bool),
-		Generated:    new(bool),
-		Name:         new(string),
-		Size:         new(int64),
-		Md5:          new(string),
-		Version:      new(string),
-		Description:  new(string),
-		Scenario:     new(string),
-		ConfigFile:   new(string),
-		ConfigFormat: new(string),
-		LaunchNode:   new(string),
-		Platforms:    plats,
+		UploadId:      new(string),
+		Existed:       new(bool),
+		Generated:     new(bool),
+		Name:          new(string),
+		Size:          new(int64),
+		Md5:           new(string),
+		Version:       new(string),
+		Description:   new(string),
+		DescriptionEn: new(string),
+		Scenario:      new(string),
+		ScenarioEn:    new(string),
+		ConfigFile:    new(string),
+		ConfigFormat:  new(string),
+		LaunchNode:    new(string),
+		Platforms:     plats,
 	}
 	*x = PackageUploadOriginPluginV2Resp{
 		Code:      0,
@@ -441,7 +443,9 @@ func (x *PackageUploadOriginPluginV2Resp) ConvertResultFromTypes(generated bool,
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
 	*data.Description = detail.Description
+	*data.DescriptionEn = detail.DescriptionEn
 	*data.Scenario = detail.Scenario
+	*data.ScenarioEn = detail.ScenarioEn
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
 	*data.LaunchNode = detail.LaunchNode
@@ -466,19 +470,21 @@ func (x *PackageUploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generat
 		plats = append(plats, ConvertPlatformFromTypes(plat))
 	}
 	data := &PackageUploadOriginExternalPluginV2Resp_Data{
-		UploadId:     new(string),
-		Existed:      new(bool),
-		Generated:    new(bool),
-		Name:         new(string),
-		Size:         new(int64),
-		Md5:          new(string),
-		Version:      new(string),
-		Description:  new(string),
-		Scenario:     new(string),
-		ConfigFile:   new(string),
-		ConfigFormat: new(string),
-		LaunchNode:   new(string),
-		Platforms:    plats,
+		UploadId:      new(string),
+		Existed:       new(bool),
+		Generated:     new(bool),
+		Name:          new(string),
+		Size:          new(int64),
+		Md5:           new(string),
+		Version:       new(string),
+		Description:   new(string),
+		DescriptionEn: new(string),
+		Scenario:      new(string),
+		ScenarioEn:    new(string),
+		ConfigFile:    new(string),
+		ConfigFormat:  new(string),
+		LaunchNode:    new(string),
+		Platforms:     plats,
 	}
 	*x = PackageUploadOriginExternalPluginV2Resp{
 		Code:      0,
@@ -495,7 +501,9 @@ func (x *PackageUploadOriginExternalPluginV2Resp) ConvertResultFromTypes(generat
 	*data.Md5 = detail.MD5
 	*data.Version = detail.Version
 	*data.Description = detail.Description
+	*data.DescriptionEn = detail.DescriptionEn
 	*data.Scenario = detail.Scenario
+	*data.ScenarioEn = detail.ScenarioEn
 	*data.ConfigFile = detail.ConfigFile
 	*data.ConfigFormat = detail.ConfigFormat
 	*data.LaunchNode = detail.LaunchNode
