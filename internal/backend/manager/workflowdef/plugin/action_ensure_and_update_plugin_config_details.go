@@ -128,10 +128,14 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 		return fmt.Errorf("failed to get host by id, host-id(%d): %w", std.DeployInfo().Process.HostID, err)
 	}
 
-	pluginRelease, err := act.daoPluginRelease.GetEnabledReleasePlugin(std.Context(), std.DeployInfo().Process.PluginName,
+	pluginRelease, err := act.daoPluginRelease.GetReleasePlugin(std.Context(), std.DeployInfo().Process.PluginName,
 		std.DeployInfo().Process.Generation, std.DeployInfo().Process.Platform, std.DeployInfo().Process.Info.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get plugin release info: %w", err)
+	}
+	if !pluginRelease.Enabled {
+		return fmt.Errorf("plugin release is not enabled, plugin-name(%s), version(%s)",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.Info.Version)
 	}
 
 	pluginConf, err := act.daoPluginDeployment.GetPluginDeploymentPluginConf(std.Context(), std.Token())

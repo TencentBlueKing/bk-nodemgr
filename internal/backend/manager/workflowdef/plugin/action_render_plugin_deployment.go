@@ -153,7 +153,7 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 
 	// setting process by plugin pkg.
 
-	pluginPkg, err := act.daoPluginPkg.GetEnabledReleasePlugin(
+	pluginPkg, err := act.daoPluginPkg.GetReleasePlugin(
 		nCtx,
 		pluginPkgName,
 		nodeGeneration,
@@ -162,6 +162,9 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	)
 	if err != nil {
 		return fmt.Errorf("failed to get plugin pkg by name, plugin-pkg-name(%s): %w", pluginPkgName, err)
+	}
+	if !pluginPkg.Enabled {
+		return fmt.Errorf("plugin pkg is not enabled, plugin-pkg-name(%s), version(%s)", pluginPkgName, version)
 	}
 
 	std.DeployInfo().Process.Controller = pluginPkg.PluginController

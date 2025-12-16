@@ -427,15 +427,15 @@ func (s *Storage) ListReleaseProxy(nCtx contextx.IContext, page types.Page,
 	return results, num, nil
 }
 
-// GetEnabledReleasePlugin gets enabled release plugin by name, generation, platform and version.
-func (s *Storage) GetEnabledReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+// GetReleasePlugin gets release plugin by name, generation, platform and version.
+func (s *Storage) GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
 	releasePlugin *types.ReleasePlugin, err error) {
 
 	// record metric.
 	metric := s.metric().Start("get_release_release_plugin")
 	defer metric.End(err)
 
-	releasePlugin, err = s.getEnabledReleasePlugin(nCtx, name, gen, plat, version)
+	releasePlugin, err = s.getReleasePlugin(nCtx, name, gen, plat, version)
 
 	return releasePlugin, err
 }
