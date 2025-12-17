@@ -96,10 +96,15 @@ message PluginWorkflowDistinctResp {
 
 // PluginWorkflowOperationParam describes the plugin workflow operation
 message PluginWorkflowOperationParam {
-  int64 bk_host_id = 3;
-  string plugin_name = 4;
-  string plugin_version = 5;
-  string operator = 6;
+  int64 bk_host_id = 1;
+  int64 bk_biz_id = 2;
+  int64 bk_networkarea_id = 3;
+  int64 bk_networkunit_id = 4;
+  repeated string bk_host_innerip_list = 5;
+  repeated string bk_host_innerip_v6_list = 6;
+  string plugin_name = 7;
+  string plugin_version = 8;
+  string operator = 9;
 }
 
 // PluginWorkflowOperationStatus describes the plugin workflow operation status.

@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -36,6 +37,7 @@ type handler struct {
 
 	daoPluginWorkflow   pluginStg.IDaoPluginWorkflow
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
+	daoHost             topoStg.IStorageHost
 
 	storageWorkflow workflow.IStorage
 }
@@ -47,6 +49,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		manager:             capability.Manager,
 		daoPluginWorkflow:   capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
+		daoHost:             capability.StorageTopo,
 		storageWorkflow:     capability.StorageWorkflow,
 	}
 }
@@ -180,6 +183,24 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	hostIDList := make([]int64, 0, len(deployments))
+	for _, dep := range deployments {
+		hostIDList = append(hostIDList, dep.Info.Process.HostID)
+	}
+
+	hosts, _, err := h.daoHost.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
+		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDList},
+	})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	hostIDMap := make(map[int64]*types.Host, len(hosts))
+	for _, host := range hosts {
+		hostIDMap[host.HostID] = host
+	}
+
 	result := make([]*types.PluginWorkflowListOperationResult, len(deployments))
 	for idx, dep := range deployments {
 		op, exists := operationMaps[dep.Token]
@@ -190,6 +211,11 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		result[idx] = &types.PluginWorkflowListOperationResult{
 			Operator:        op.operator,
 			HostID:          dep.Info.Process.HostID,
+			BizID:           hostIDMap[dep.Info.Process.HostID].Static.BizID,
+			NetworkAreaID:   hostIDMap[dep.Info.Process.HostID].Static.NetworkAreaID,
+			NetworkUnitID:   hostIDMap[dep.Info.Process.HostID].Dynamic.NetworkUnitID,
+			InnerIPList:     hostIDMap[dep.Info.Process.HostID].Static.InnerIPList,
+			InnerIPV6List:   hostIDMap[dep.Info.Process.HostID].Static.InnerIPV6List,
 			PluginName:      dep.Info.Process.PluginName,
 			PluginVersion:   dep.Info.InstallOptions.Version,
 			OperationID:     op.operationID,

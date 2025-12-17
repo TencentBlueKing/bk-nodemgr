@@ -318,12 +318,17 @@ func (x *PluginWorkflowOperationListResp) ConvertResultFromTypes(total int64, re
 	items := make([]*PluginWorkflowOperation, len(result))
 	for idx, op := range result {
 		item := &PluginWorkflowOperation{
-			OperationId:   op.OperationID,
-			InstanceIds:   op.OperInstanceIDs,
-			BkHostId:      op.HostID,
-			PluginName:    op.PluginName,
-			PluginVersion: op.PluginVersion,
-			Operator:      op.Operator,
+			OperationId:         op.OperationID,
+			InstanceIds:         op.OperInstanceIDs,
+			BkHostId:            op.HostID,
+			BkBizId:             op.BizID,
+			BkNetworkareaId:     op.NetworkAreaID,
+			BkNetworkunitId:     op.NetworkUnitID,
+			BkHostInneripList:   op.InnerIPList,
+			BkHostInneripV6List: op.InnerIPV6List,
+			PluginName:          op.PluginName,
+			PluginVersion:       op.PluginVersion,
+			Operator:            op.Operator,
 		}
 		items[idx] = item
 	}
@@ -347,11 +352,16 @@ func (x *PluginWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*
 	for idx, item := range items {
 		operation := &types.PluginWorkflowListOperationResult{
 			OperationID:     item.GetOperationId(),
-			Operator:        item.GetOperator(),
 			OperInstanceIDs: item.GetInstanceIds(),
 			HostID:          item.GetBkHostId(),
+			BizID:           item.GetBkBizId(),
+			NetworkAreaID:   item.GetBkNetworkareaId(),
+			NetworkUnitID:   item.GetBkNetworkunitId(),
+			InnerIPList:     item.GetBkHostInneripList(),
+			InnerIPV6List:   item.GetBkHostInneripV6List(),
 			PluginName:      item.GetPluginName(),
 			PluginVersion:   item.GetPluginVersion(),
+			Operator:        item.GetOperator(),
 		}
 
 		result[idx] = operation

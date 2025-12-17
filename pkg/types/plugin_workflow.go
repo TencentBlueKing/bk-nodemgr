@@ -199,9 +199,14 @@ func GetFinishedPluginWorkflowStatus() []PluginWorkflowStatus {
 
 // PluginWorkflowListOperationResult operation list result.
 type PluginWorkflowListOperationResult struct {
+	HostID          int64
+	BizID           int64
+	NetworkAreaID   int64
+	NetworkUnitID   int64
+	InnerIPList     []string
+	InnerIPV6List   []string
 	PluginName      string
 	PluginVersion   string
-	HostID          int64
 	Operator        string
 	OperationID     string
 	OperInstanceIDs []string
