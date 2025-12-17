@@ -10,8 +10,10 @@
 
 package types
 
-// PluginGroupDefault default plugin group name.
-const PluginGroupDefault = "default"
+const (
+	// PluginGroupDefault default plugin group name.
+	PluginGroupDefault = "default"
+)
 
 // Plugin define the all info of plugin.
 type Plugin struct {
@@ -21,24 +23,4 @@ type Plugin struct {
 	PkgName string
 	Group   string
 	Memo    string
-}
-
-// PluginInstallParam describe the plugin install param.
-type PluginInstallParam struct {
-	HostID     int64
-	PluginName string
-	Version    string
-}
-
-// PluginListParam describe the plugin list param.
-type PluginListParam struct {
-}
-
-// PluginApplySubConfigParam defines the plugin apply sub config param.
-type PluginApplySubConfigParam struct {
-	HostID              int64
-	PluginName          string
-	Version             string
-	ConfigName          []string
-	CustomConfigContext map[string]any
 }

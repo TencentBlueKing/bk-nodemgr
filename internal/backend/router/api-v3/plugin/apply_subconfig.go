@@ -12,13 +12,10 @@ package plugin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -30,7 +27,7 @@ func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginDeployments, hostIDs, err := h.generateApplyPluginSubConfigDeployments(rCtx, req)
+	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(rCtx.TenantID(), req.ConvertParamToTypes()...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -53,57 +50,4 @@ func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) 
 	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched apply plugin subconfig workflow")
 
 	return respData, nil
-}
-
-func (h *handler) generateApplyPluginSubConfigDeployments(nCtx contextx.IContext, req *protoBackend.PluginApplySubConfigReq) (
-	[]*types.PluginDeployment, []int64, error) {
-
-	gp := gopool.NewPool()
-	pluginDeployments := make([]*types.PluginDeployment, len(req.GetPlugin()))
-	for i := range req.GetPlugin() {
-		idx := i
-		reqProcess := req.GetPlugin()[idx]
-
-		gp.Go(func() error {
-			conf := &types.PluginDeploymentPluginConf{
-				ConfigFilesDetail:   make([]*types.PluginConfigDetail, 0, len(reqProcess.GetConfigName())),
-				CustomConfigContext: reqProcess.GetCustomConfigContext().AsMap(),
-			}
-			for _, item := range reqProcess.GetConfigName() {
-				conf.ConfigFilesDetail = append(conf.ConfigFilesDetail, &types.PluginConfigDetail{Name: item})
-			}
-
-			deploymentInfo := &types.PluginDeploymentInfo{
-				Process: types.Process{
-					TenantID:   nCtx.TenantID(),
-					HostID:     reqProcess.GetBkHostId(),
-					PluginName: reqProcess.GetPluginName(),
-				},
-				InstallOptions: types.PluginDeploymentInstallOptions{
-					Version: reqProcess.GetVersion(),
-				},
-				TransferOptions: types.PluginDeploymentTransferOptions{
-					SelectDownloads:      true,
-					EnableReleasePackage: false,
-					EnableInstaller:      true,
-				},
-			}
-
-			pluginDeployments[idx] = types.NewPluginDeployment(deploymentInfo, conf)
-
-			return nil
-		})
-	}
-
-	if err := gp.Wait(); err != nil {
-		return nil, nil, err
-	}
-
-	hostIDMap := make(map[int64]struct{})
-	for _, host := range req.GetPlugin() {
-		hostIDMap[host.GetBkHostId()] = struct{}{}
-	}
-	hostIDs := conv.MapKeyToSlice(hostIDMap)
-
-	return pluginDeployments, hostIDs, nil
 }

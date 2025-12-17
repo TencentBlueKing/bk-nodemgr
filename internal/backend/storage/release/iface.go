@@ -103,6 +103,7 @@ type IAgent interface {
 }
 
 // IPlugin define the plugin interface.
+// nolint:interfacebloat
 type IPlugin interface {
 	// GetReleasePlugin gets release by generation, release type, platform and version.
 	GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (
@@ -131,6 +132,9 @@ type IPlugin interface {
 
 	// ExistReleasePlugin exist release plugin.
 	ExistReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (bool, error)
+
+	// GetDefaultReleasePluginVersion gets default release plugin version by name, generation and platform.
+	GetDefaultReleasePluginVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform) (string, error)
 }
 
 // IPackageEvent define the package event interface.

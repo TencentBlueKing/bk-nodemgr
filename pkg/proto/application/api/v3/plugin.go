@@ -68,26 +68,34 @@ func (x *PluginInstallReq_Plugin) AutoConvert() {
 }
 
 // ConvertParamFromTypes converts param from types.
-func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginInstallParam) {
+func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginDeploymentParam) error {
+	var err error
 	plugin := make([]*PluginInstallReq_Plugin, len(installParam))
 	for idx, param := range installParam {
 		item := &PluginInstallReq_Plugin{}
 		item.BkHostId = &param.HostID
 		item.PluginName = param.PluginName
 		item.Version = param.Version
+		item.ConfigName = param.ConfigName
+		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return err
+		}
 
 		plugin[idx] = item
 	}
 
 	x.Plugin = plugin
+
+	return nil
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginInstallParam {
+func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	plugin := x.GetPlugin()
-	installParam := make([]*types.PluginInstallParam, len(plugin))
+	installParam := make([]*types.PluginDeploymentParam, len(plugin))
 	for idx, proc := range plugin {
-		item := &types.PluginInstallParam{
+		item := &types.PluginDeploymentParam{
 			HostID:     proc.GetBkHostId(),
 			PluginName: proc.GetPluginName(),
 			Version:    proc.GetVersion(),
@@ -265,7 +273,7 @@ func (x *PluginApplySubConfigReq_Plugin) AutoConvert() {
 }
 
 // ConvertParamFromTypes converts param from types.
-func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.PluginApplySubConfigParam) error {
+func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.PluginDeploymentParam) error {
 	plugin := make([]*PluginApplySubConfigReq_Plugin, len(installParam))
 	for idx, param := range installParam {
 		item := &PluginApplySubConfigReq_Plugin{}
@@ -288,11 +296,11 @@ func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.P
 }
 
 // ConvertParamToTypes converts param to types.
-func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginApplySubConfigParam {
+func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
 	plugin := x.GetPlugin()
-	installParam := make([]*types.PluginApplySubConfigParam, len(plugin))
+	installParam := make([]*types.PluginDeploymentParam, len(plugin))
 	for idx, proc := range plugin {
-		item := &types.PluginApplySubConfigParam{
+		item := &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
 			PluginName:          proc.GetPluginName(),
 			Version:             proc.GetVersion(),

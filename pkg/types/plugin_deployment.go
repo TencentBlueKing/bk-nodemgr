@@ -11,8 +11,11 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/google/uuid"
 )
 
@@ -89,4 +92,85 @@ type PluginDeploymentTransferOptions struct {
 
 	EnableReleasePackage bool
 	EnableInstaller      bool
+}
+
+// PluginDeploymentParam defines the parameters for plugin deployment.
+type PluginDeploymentParam struct {
+	HostID              int64
+	PluginName          string
+	Version             string
+	ConfigName          []string
+	CustomConfigContext map[string]any
+}
+
+// Validate validates the plugin deployment param.
+func (p *PluginDeploymentParam) Validate() error {
+	if p.HostID <= 0 {
+		return fmt.Errorf("invalid HostID: %d", p.HostID)
+	}
+
+	if p.PluginName == "" {
+		return fmt.Errorf("empty PluginName: %s", p.PluginName)
+	}
+
+	if p.Version == "" {
+		return fmt.Errorf("empty Version: %s", p.Version)
+	}
+
+	return nil
+}
+
+// NewPluginDeploymentsByParams create base plugin deployments by params.
+func NewPluginDeploymentsByParams(tenantID string, params ...*PluginDeploymentParam) ([]*PluginDeployment, []int64, error) {
+	gp := gopool.NewPool()
+	pluginDeployments := make([]*PluginDeployment, len(params))
+	for idx := range params {
+		param := params[idx]
+
+		gp.Go(func() error {
+			if err := param.Validate(); err != nil {
+				return err
+			}
+
+			conf := &PluginDeploymentPluginConf{
+				ConfigFilesDetail:   make([]*PluginConfigDetail, 0, len(param.ConfigName)),
+				CustomConfigContext: param.CustomConfigContext,
+			}
+			for _, item := range param.ConfigName {
+				conf.ConfigFilesDetail = append(conf.ConfigFilesDetail, &PluginConfigDetail{Name: item})
+			}
+
+			deploymentInfo := &PluginDeploymentInfo{
+				Process: Process{
+					TenantID:   tenantID,
+					HostID:     param.HostID,
+					PluginName: param.PluginName,
+				},
+				InstallOptions: PluginDeploymentInstallOptions{
+					Version: param.Version,
+				},
+				TransferOptions: PluginDeploymentTransferOptions{
+					SelectDownloads:      true,
+					EnableReleasePackage: false,
+					EnableInstaller:      true,
+				},
+			}
+
+			pluginDeployments[idx] = NewPluginDeployment(deploymentInfo, conf)
+
+			return nil
+		})
+	}
+
+	if err := gp.Wait(); err != nil {
+		return nil, nil, err
+	}
+
+	hostIDMap := make(map[int64]struct{})
+	for _, host := range params {
+		hostIDMap[host.HostID] = struct{}{}
+	}
+	hostIDs := conv.MapKeyToSlice(hostIDMap)
+
+	return pluginDeployments, hostIDs, nil
 }

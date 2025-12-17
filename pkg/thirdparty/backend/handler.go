@@ -320,25 +320,6 @@ type IHandlerPackage interface {
 		*types.PackageEventDistinctResult, error)
 }
 
-// IHandlerPlugin defines the backend Handler for plugin.
-type IHandlerPlugin interface {
-	// ListPlugins lists plugins by page and conditions.
-	ListPlugins(ctx contextx.IContext, page types.Page, condition *types.PluginCondition) (
-		[]*types.Plugin, int64, error)
-
-	// CountPlugins counts plugins by conditions.
-	CountPlugins(ctx contextx.IContext, condition *types.PluginCondition) (int64, error)
-
-	// InstallPlugin install plugin.
-	InstallPlugin(ctx contextx.IContext, installParam ...*types.PluginInstallParam) (string, error)
-
-	// ApplyPluginSubConfig apply plugin sub config.
-	ApplyPluginSubConfig(ctx contextx.IContext, applyParam ...*types.PluginApplySubConfigParam) (string, error)
-
-	// SetPluginMemo set plugin memo.
-	SetPluginMemo(ctx contextx.IContext, pluginName string, memo string) error
-}
-
 // IHandlerProcess defines the backend Handler for process.
 type IHandlerProcess interface {
 	// ListProcesses lists processes by page and conditions.
