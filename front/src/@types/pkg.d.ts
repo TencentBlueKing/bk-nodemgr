@@ -129,7 +129,9 @@ export interface PackageUploadOriginPluginV2RespData {
   md5: string;
   version: string;
   description: string;
+  description_en: string;
   scenario: string;
+  scenario_en: string;
   config_file: string;
   config_format: string;
   launch_node: string;
@@ -161,7 +163,9 @@ export interface PackageUploadOriginExternalPluginV2RespData {
   md5: string;
   version: string;
   description: string;
+  description_en: string;
   scenario: string;
+  scenario_en: string;
   config_file: string;
   config_format: string;
   launch_node: string;
@@ -191,9 +195,9 @@ export interface PackageUploadOriginPluginV3RespData {
   md5: string;
   version: string;
   description: string;
-  descriptionEn: string;
+  description_en: string;
   scenario: string;
-  scenarioEn: string;
+  scenario_en: string;
   launch_node: string;
   template_renderer: string;
   platforms: Platform[];

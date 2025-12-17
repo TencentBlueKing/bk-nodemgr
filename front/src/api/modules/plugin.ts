@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PluginInstallReq, PluginInstallResp, PluginApplySubConfigReq, PluginApplySubConfigResp, PluginListReq, PluginListResp } from '@/@types/plugin';
+import type { PluginInstallReq, PluginInstallResp, PluginApplySubConfigReq, PluginApplySubConfigResp, PluginListReq, PluginListResp, PluginSetMemoReq, PluginSetMemoResp } from '@/@types/plugin';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -16,5 +16,7 @@ export const PluginAPIService = {
   ApplyPluginSubConfig: async <Request = PluginApplySubConfigReq, ResponseData = PluginApplySubConfigResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/apply_subconfig')(params, config),
   // ListPlugins lists plugins based on the given conditions.
   ListPlugins: async <Request = PluginListReq, ResponseData = PluginListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/list')(params, config),
+  // SetPluginMemo sets the memo for a plugin.
+  SetPluginMemo: async <Request = PluginSetMemoReq, ResponseData = PluginSetMemoResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/set_memo')(params, config),
 };
 

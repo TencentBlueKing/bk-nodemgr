@@ -85,3 +85,17 @@ export interface PluginListRespData {
   items: Plugin[];
 }
 
+// PluginSetMemoReq describes the plugin set memo request.
+export interface PluginSetMemoReq {
+  plugin_name: string;
+  memo: string;
+}
+
+// PluginSetMemoResp describes the plugin set memo response.
+export interface PluginSetMemoResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+}
+

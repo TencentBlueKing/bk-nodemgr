@@ -333,37 +333,12 @@ interface Process {
   process_monitor_policy: ProcessMonitorPolicy;
 }
 
-interface ProcessExactConditions {
-  bk_host_id: number[];
-  plugin_group: string[];
-  node_generation: string[];
-  platform_os: string[];
-  platform_arch: string[];
-  status: string[];
-  agent_id: string[];
-  version: string[];
-  plugin_name: string[];
-  plugin_pkg_name: string[];
-}
-
-interface ProcessFuzzyConditions {
-  name: string[];
-  plugin_pkg_name: string[];
-}
-
-// ProcessListReq describes the process list request.
-interface ProcessListReq {
-  page: Page;
-  only_count: boolean;
-  exact_include_conditions: ProcessExactConditions;
-  fuzzy_include_conditions: ProcessFuzzyConditions;
-}
-
 interface Plugin {
   tenant_id: string;
   name: string;
   group: string;
   pkg_name: string;
+  memo: string;
 }
 
 interface Error {

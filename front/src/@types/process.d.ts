@@ -1,4 +1,34 @@
 // gen-api.js 自动生成，请勿手动修改
+// ProcessExactConditions describes the exact match conditions for process
+// query.
+export interface ProcessExactConditions {
+  bk_host_id: number[];
+  plugin_group: string[];
+  node_generation: string[];
+  platform_os: string[];
+  platform_arch: string[];
+  status: string[];
+  agent_id: string[];
+  version: string[];
+  plugin_name: string[];
+  plugin_pkg_name: string[];
+}
+
+// ProcessFuzzyConditions describes the fuzzy match conditions for process
+// query.
+export interface ProcessFuzzyConditions {
+  name: string[];
+  plugin_pkg_name: string[];
+}
+
+// ProcessListReq describes the process list request.
+export interface ProcessListReq {
+  page: Page;
+  only_count: boolean;
+  exact_include_conditions: ProcessExactConditions;
+  fuzzy_include_conditions: ProcessFuzzyConditions;
+}
+
 // ProcessListResp describes the process list response.
 export interface ProcessListResp {
   code: number;
@@ -43,5 +73,30 @@ export interface GetProcessDistributionByPluginNameResp {
   request_id: string;
   error: Error;
   data: Record<string, number>;
+}
+
+// DistinctProcessReq describes the process distinct request.
+export interface DistinctProcessReq {
+  exact_include_conditions: ProcessExactConditions;
+  fuzzy_include_conditions: ProcessFuzzyConditions;
+}
+
+// DistinctProcessResp describes the process distinct response.
+export interface DistinctProcessResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: DistinctProcessRespData;
+}
+
+export interface DistinctProcessRespData {
+  os_type: string[];
+  cpu_arch: string[];
+  version: string[];
+  status: string[];
+  plugin_name: string[];
+  plugin_group: string[];
+  plugin_pkg_name: string[];
 }
 

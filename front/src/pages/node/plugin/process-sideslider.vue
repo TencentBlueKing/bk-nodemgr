@@ -7,6 +7,7 @@
   >
     <div class="p-[24px]">
       <copy-ip-dropdown
+        v-if="type === 'plugin'"
         class="mb-[20px]"
         :type="'agent'"
         :disabled="!selection.length"
@@ -18,6 +19,7 @@
         :loading="loading"
         class="overflow-auto">
         <Table
+          class="filterTable"
           :data="processList"
           :empty-text="$t('table.empty')"
           :show-settings="isShowSetting"
@@ -25,7 +27,7 @@
           :settings="settings"
           show-overflow-tooltip
           :tooltip-config="{
-            popupClassName: 'process-table'
+            popupClassName: 'process-table',
           }"
           @setting-change="handleSettingChange"
           @page-limit-change="pageLimitChange"
@@ -34,53 +36,189 @@
           @checkbox-all="handleSelectAllChange"
         >
           <TableColumn type="checkbox" width="60" fixed="left"></TableColumn>
-          <TableColumn title="Host ID" field="bk_host_id" fixed="left" min-width="120"></TableColumn>
-          <TableColumn :title="$t('platform.nodeMan.inner_ip')" field="bk_host_innerip" min-width="150"></TableColumn>
-          <TableColumn :title="$t('platform.nodeMan.inner_ipv6')" field="bk_host_innerip_v6" min-width="120">
+          <TableColumn
+            v-if="type === 'plugin'"
+            title="Host ID"
+            field="bk_host_id"
+            fixed="left"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            v-if="type === 'plugin'"
+            :title="$t('platform.nodeMan.inner_ip')"
+            field="bk_host_innerip"
+            min-width="150"
+            fixed="left"
+          ></TableColumn>
+          <TableColumn
+            v-if="type === 'plugin'"
+            :title="$t('platform.nodeMan.inner_ipv6')"
+            field="bk_host_innerip_v6"
+            min-width="120"
+          >
           </TableColumn>
-          <TableColumn title="插件名" field="plugin_name" min-width="150"></TableColumn>
-          <TableColumn title="插件包名" field="plugin_pkg_name" min-width="150"></TableColumn>
-          <TableColumn title="插件组" field="plugin_group" min-width="120"></TableColumn>
-          <TableColumn title="操作系统" field="os_type" min-width="100"></TableColumn>
-          <TableColumn title="CPU 架构" field="cpu_arch" min-width="100"></TableColumn>
+          <TableColumn
+            title="插件名"
+            field="plugin_name"
+            min-width="150"
+            :filter="filterOptionSource.plugin_name"
+          ></TableColumn>
+          <TableColumn
+            title="插件包名"
+            field="plugin_pkg_name"
+            min-width="150"
+            :filter="filterOptionSource.plugin_pkg_name"
+          ></TableColumn>
+          <TableColumn
+            title="插件组"
+            field="plugin_group"
+            min-width="120"
+            :filter="filterOptionSource.plugin_group"
+          ></TableColumn>
+          <TableColumn
+            title="操作系统"
+            field="os_type"
+            min-width="120"
+            :filter="filterOptionSource.os_type"
+          ></TableColumn>
+          <TableColumn
+            title="CPU 架构"
+            field="cpu_arch"
+            min-width="120"
+            :filter="filterOptionSource.cpu_arch"
+          ></TableColumn>
           <TableColumn title="Pid" field="pid" min-width="100"></TableColumn>
-          <TableColumn title="版本" field="version" min-width="120"></TableColumn>
-          <TableColumn title="Agent Id" field="agent_id" min-width="120"></TableColumn>
-          <TableColumn title="进程名" field="name" min-width="120"></TableColumn>
-          <TableColumn title="进程状态" field="status" min-width="100">
+          <TableColumn
+            title="版本"
+            field="version"
+            min-width="120"
+            :filter="filterOptionSource.version"
+          ></TableColumn>
+          <TableColumn
+            title="Agent Id"
+            field="agent_id"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            title="进程名"
+            field="name"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            title="进程状态"
+            field="status"
+            min-width="120"
+            :filter="filterOptionSource.status"
+          >
             <template #default="{ row }">
               <div class="flex items-center">
-                <i :class="`nodeman-icon nc-${statusMap[row.status]?.icon} status-icon`"></i>
-                <span>{{ statusMap[row.status]?.text || '--' }}</span>
+                <i
+                  :class="`nodeman-icon nc-${
+                    statusMap[row.status]?.icon
+                  } status-icon`"
+                ></i>
+                <span>{{ statusMap[row.status]?.text || "--" }}</span>
               </div>
             </template>
           </TableColumn>
-          <TableColumn title="安装路径" field="setup_path" min-width="120"></TableColumn>
-          <TableColumn title="Pid 文件路径" field="pid_path" min-width="120"></TableColumn>
-          <TableColumn title="配置文件路径" field="config_path" min-width="120"></TableColumn>
-          <TableColumn title="日志文件夹路径" field="log_path" min-width="130"></TableColumn>
-          <TableColumn title="进程所属系统账户" field="user" min-width="150"></TableColumn>
-          <TableColumn title="启动命令" field="start_cmd" min-width="180"></TableColumn>
-          <TableColumn title="停止命令" field="stop_cmd" min-width="180"></TableColumn>
-          <TableColumn title="重启命令" field="restart_cmd" min-width="180"></TableColumn>
-          <TableColumn title="Reload 命令" field="reload_cmd" min-width="180"></TableColumn>
-          <TableColumn title="Kill命令" field="kill_cmd" min-width="180"></TableColumn>
-          <TableColumn title="进程版本查询命令" field="version_cmd" min-width="180"></TableColumn>
-          <TableColumn title="进程健康检查命令" field="health_cmd" min-width="180"></TableColumn>
-          <TableColumn title="CPU 使用率上限百分比（总占比，非单核占比）" field="cpu_limit_percent" min-width="120"></TableColumn>
-          <TableColumn title="Mem 使用率上限百分比" field="mem_limit_percent" min-width="120"></TableColumn>
-          <TableColumn title="重启策略" field="auto_type" min-width="120"></TableColumn>
-          <TableColumn title="启动后延迟检查的时间" field="start_check_seconds" min-width="120">
+          <TableColumn
+            title="安装路径"
+            field="setup_path"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            title="Pid 文件路径"
+            field="pid_path"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            title="配置文件路径"
+            field="config_path"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            title="日志文件夹路径"
+            field="log_path"
+            min-width="130"
+          ></TableColumn>
+          <TableColumn
+            title="进程所属系统账户"
+            field="user"
+            min-width="150"
+          ></TableColumn>
+          <TableColumn
+            title="启动命令"
+            field="start_cmd"
+            min-width="180"
+          ></TableColumn>
+          <TableColumn
+            title="停止命令"
+            field="stop_cmd"
+            min-width="180"
+          ></TableColumn>
+          <TableColumn
+            title="重启命令"
+            field="restart_cmd"
+            min-width="180"
+          ></TableColumn>
+          <TableColumn
+            title="Reload 命令"
+            field="reload_cmd"
+            min-width="180"
+          ></TableColumn>
+          <TableColumn
+            title="Kill命令"
+            field="kill_cmd"
+            min-width="180"
+          ></TableColumn>
+          <TableColumn
+            title="进程版本查询命令"
+            field="version_cmd"
+            min-width="180"
+          ></TableColumn>
+          <TableColumn
+            title="进程健康检查命令"
+            field="health_cmd"
+            min-width="180"
+          ></TableColumn>
+          <TableColumn
+            title="CPU 使用率上限百分比（总占比，非单核占比）"
+            field="cpu_limit_percent"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            title="Mem 使用率上限百分比"
+            field="mem_limit_percent"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            title="重启策略"
+            field="auto_type"
+            min-width="120"
+          ></TableColumn>
+          <TableColumn
+            title="启动后延迟检查的时间"
+            field="start_check_seconds"
+            min-width="120"
+          >
             <template #default="{ row }">
               <span>{{ row.start_check_seconds }}s</span>
             </template>
           </TableColumn>
-          <TableColumn title="停止命令执行后开始检查进程存活的时间" field="stop_check_seconds" min-width="120">
+          <TableColumn
+            title="停止命令执行后开始检查进程存活的时间"
+            field="stop_check_seconds"
+            min-width="120"
+          >
             <template #default="{ row }">
               <span>{{ row.stop_check_seconds }}s</span>
             </template>
           </TableColumn>
-          <TableColumn title="命令执行超时时间" field="operate_timeout_seconds" min-width="120">
+          <TableColumn
+            title="命令执行超时时间"
+            field="operate_timeout_seconds"
+            min-width="120"
+          >
             <template #default="{ row }">
               <span>{{ row.operate_timeout_seconds }}s</span>
             </template>
@@ -114,6 +252,15 @@ import { TopoService } from '@/api/modules/topo';
 
 import useTableSetting from '@/composables/use-table-setting';
 
+import type { DistinctProcessRespData } from '@/@types/process';
+
+
+interface FilterOption {
+  list: { text: string; value: string }[];
+  checked: string[];
+  filterScope: string;
+}
+
 // Sideslider显示状态
 const isShow = defineModel('isShow', { type: Boolean });
 
@@ -138,13 +285,12 @@ const title = computed(() => '插件进程列表');
 const { isShowSetting, settings, handleSettingChange } = useTableSetting(
   {
     checked: [
-      'bk_host_id',
       'plugin_name',
       'status',
       'pid',
       'version',
       'agent_id',
-      ...(props.type === 'plugin' ? ['plugin_group', 'bk_host_innerip', 'bk_host_innerip_v6'] : ['os_type', 'cpu_arch']),
+      ...(props.type === 'plugin' ? ['bk_host_id', 'plugin_group', 'bk_host_innerip', 'bk_host_innerip_v6'] : ['os_type', 'cpu_arch']),
     ],
     disabled: [''],
   },
@@ -203,6 +349,41 @@ const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
   processList.value.forEach((item: any) => (item.checked = checked));
 };
 
+// 筛选
+const filterOptionSource: Record<string, FilterOption> = reactive({
+  os_type: { list: [], checked: [], filterScope: 'all' },
+  cpu_arch: { list: [], checked: [], filterScope: 'all' },
+  version: { list: [], checked: [], filterScope: 'all' },
+  plugin_group: { list: [], checked: [], filterScope: 'all' },
+  plugin_name: { list: [], checked: [], filterScope: 'all' },
+  plugin_pkg_name: { list: [], checked: [], filterScope: 'all' },
+  status: { list: [], checked: [], filterScope: 'all' },
+});
+
+// distinct
+const distinct = ref<DistinctProcessRespData>();
+const getDistinct = async () => {
+  const res = await ProcessAPIService.DistinctProcess({
+    exact_include_conditions: {
+      bk_host_id: processList.value.map((item: any) => item.bk_host_id),
+    },
+  });
+  if (res) {
+    distinct.value = res;
+    Object.keys(res).forEach((key: any) => {
+      if (filterOptionSource[key]) {
+        filterOptionSource[key].list = res[key]
+          .filter((item: any) => item !== '')
+          .map((value: string | number) => {
+            let text = value;
+            if (key === 'status') text = statusMap[value]?.text || value;
+            return { text, value };
+          });
+      }
+    });
+  }
+};
+
 const loading = ref(false);
 
 const getProcessList = async () => {
@@ -223,7 +404,7 @@ const getProcessList = async () => {
       items: [],
     };
   });
-  pagination.count = res.items.length;
+  pagination.count = res.total;
   loading.value = false;
 
   let hostListMap = new Map();
@@ -255,6 +436,7 @@ const getProcessList = async () => {
     bk_host_innerip: hostListMap.get(item.bk_host_id)?.bk_host_innerip || '',
     bk_host_innerip_v6: hostListMap.get(item.bk_host_id)?.bk_host_innerip_v6 || '',
   }));
+  getDistinct();
 };
 
 // 暂时没有编辑数据，不需要离开前确认
