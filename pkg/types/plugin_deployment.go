@@ -152,7 +152,6 @@ func NewPluginDeploymentsByParams(tenantID string, params ...*PluginDeploymentPa
 		}
 
 		pluginDeployments = append(pluginDeployments, NewPluginDeployment(deploymentInfo, conf))
-
 	}
 
 	hostIDMap := make(map[int64]struct{})
