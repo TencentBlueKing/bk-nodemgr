@@ -31,7 +31,7 @@ const (
 	// StorageName defines the storage name.
 	StorageName = "release"
 
-	metricOperateionGetAsDefaultReleasePluginVersion = "get_as_default_release_plugin_version"
+	metricOperateionGetReleasePluginDefaultVersion = "get_release_plugin_default_version"
 )
 
 // NewStorage creates a new release storage.
@@ -545,19 +545,19 @@ func (s *Storage) ExistReleasePlugin(nCtx contextx.IContext, name string, gen ty
 	return exist, err
 }
 
-// GetDefaultReleasePluginVersion gets default release plugin version by name, generation and platform.
-func (s *Storage) GetDefaultReleasePluginVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform) (string, error) {
+// GetReleasePluginDefaultVersion gets release plugin default version by name, generation and platform.
+func (s *Storage) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform) (string, error) {
 	var (
 		version string
 		err     error
 	)
 
-	err = s.WrapFn(nCtx, metricOperateionGetAsDefaultReleasePluginVersion, func(nCtx contextx.IContext) error {
+	err = s.WrapFn(nCtx, metricOperateionGetReleasePluginDefaultVersion, func(nCtx contextx.IContext) error {
 		// record metric.
-		metric := s.metric().Start(metricOperateionGetAsDefaultReleasePluginVersion)
+		metric := s.metric().Start(metricOperateionGetReleasePluginDefaultVersion)
 		defer metric.End(err)
 
-		version, err = s.getAsDefaultReleasePluginVersion(nCtx, name, gen, plat)
+		version, err = s.getReleasePluginDefaultVersion(nCtx, name, gen, plat)
 		if err != nil {
 			return err
 		}

@@ -195,7 +195,7 @@ func (s *Storage) existReleasePlugin(nCtx contextx.IContext, name string, gen ty
 	return exist, nil
 }
 
-func (s *Storage) getAsDefaultReleasePluginVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform) (string, error) {
+func (s *Storage) getReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform) (string, error) {
 	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypePlugin,
 		release.WithName(name),
 		release.WithGeneration(gen),
@@ -203,7 +203,7 @@ func (s *Storage) getAsDefaultReleasePluginVersion(nCtx contextx.IContext, name 
 		release.WithAsDefault(true),
 	)
 	if err != nil {
-		return "", fmt.Errorf("failed to get default release plugin: %w", err)
+		return "", fmt.Errorf("failed to get release default plugin: %w", err)
 	}
 
 	return rls.Version, nil

@@ -133,8 +133,8 @@ type IPlugin interface {
 	// ExistReleasePlugin exist release plugin.
 	ExistReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (bool, error)
 
-	// GetDefaultReleasePluginVersion gets default release plugin version by name, generation and platform.
-	GetDefaultReleasePluginVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform) (string, error)
+	// GetReleasePluginDefaultVersion gets release plugin default version by name, generation and platform.
+	GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform) (string, error)
 }
 
 // IPackageEvent define the package event interface.

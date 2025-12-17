@@ -15,7 +15,6 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/google/uuid"
 )
 
@@ -122,48 +121,38 @@ func (p *PluginDeploymentParam) Validate() error {
 
 // NewPluginDeploymentsByParams create base plugin deployments by params.
 func NewPluginDeploymentsByParams(tenantID string, params ...*PluginDeploymentParam) ([]*PluginDeployment, []int64, error) {
-	gp := gopool.NewPool()
-	pluginDeployments := make([]*PluginDeployment, len(params))
-	for idx := range params {
-		param := params[idx]
+	pluginDeployments := make([]*PluginDeployment, 0, len(params))
+	for _, param := range params {
+		if err := param.Validate(); err != nil {
+			return nil, nil, err
+		}
 
-		gp.Go(func() error {
-			if err := param.Validate(); err != nil {
-				return err
-			}
+		conf := &PluginDeploymentPluginConf{
+			ConfigFilesDetail:   make([]*PluginConfigDetail, 0, len(param.ConfigName)),
+			CustomConfigContext: param.CustomConfigContext,
+		}
+		for _, item := range param.ConfigName {
+			conf.ConfigFilesDetail = append(conf.ConfigFilesDetail, &PluginConfigDetail{Name: item})
+		}
 
-			conf := &PluginDeploymentPluginConf{
-				ConfigFilesDetail:   make([]*PluginConfigDetail, 0, len(param.ConfigName)),
-				CustomConfigContext: param.CustomConfigContext,
-			}
-			for _, item := range param.ConfigName {
-				conf.ConfigFilesDetail = append(conf.ConfigFilesDetail, &PluginConfigDetail{Name: item})
-			}
+		deploymentInfo := &PluginDeploymentInfo{
+			Process: Process{
+				TenantID:   tenantID,
+				HostID:     param.HostID,
+				PluginName: param.PluginName,
+			},
+			InstallOptions: PluginDeploymentInstallOptions{
+				Version: param.Version,
+			},
+			TransferOptions: PluginDeploymentTransferOptions{
+				SelectDownloads:      true,
+				EnableReleasePackage: false,
+				EnableInstaller:      true,
+			},
+		}
 
-			deploymentInfo := &PluginDeploymentInfo{
-				Process: Process{
-					TenantID:   tenantID,
-					HostID:     param.HostID,
-					PluginName: param.PluginName,
-				},
-				InstallOptions: PluginDeploymentInstallOptions{
-					Version: param.Version,
-				},
-				TransferOptions: PluginDeploymentTransferOptions{
-					SelectDownloads:      true,
-					EnableReleasePackage: false,
-					EnableInstaller:      true,
-				},
-			}
+		pluginDeployments = append(pluginDeployments, NewPluginDeployment(deploymentInfo, conf))
 
-			pluginDeployments[idx] = NewPluginDeployment(deploymentInfo, conf)
-
-			return nil
-		})
-	}
-
-	if err := gp.Wait(); err != nil {
-		return nil, nil, err
 	}
 
 	hostIDMap := make(map[int64]struct{})
