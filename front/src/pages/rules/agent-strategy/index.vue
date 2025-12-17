@@ -415,7 +415,7 @@ const getConfigPolicyList = async () => {
     items: [],
   }));
   loading.value = false;
-  pagination.count = res.items.length;
+  pagination.count = res.total;
   tableData.value = res.items.map((item: any) => ({
     ...item,
     biz_name: mainStore.businessList

@@ -473,7 +473,7 @@ const getTaskList = async () => {
     total: 0,
     items: [],
   }));
-  pagination.count = res.items.length;
+  pagination.count = res.total;
   tableData.value = res.items;
   loading.value = false;
 };

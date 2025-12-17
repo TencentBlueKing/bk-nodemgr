@@ -9,7 +9,7 @@ declare interface Window {
     BK_LOGIN_URL: string,
     SITE_URL: string,
     BK_REQUEST_ID_HEADER_KEY: string,
-    PASSWORD_VAULT_SWITCH: boolean,
+    PASSWORD_VAULT_SWITCH: string,
     PASSWORD_VAULT_NAME: string,
     BK_COMPONENT_API_URL: string,
     BK_DOMAIN: string,

@@ -26,7 +26,11 @@
                 filterable
                 placeholder="选择业务"
                 @change="clearError(rowIndex, 'bk_biz_id')"
-                @toggle="(val) => !val && handleFieldBlur(rowIndex, 'bk_biz_id', row.bk_biz_id)"
+                @toggle="
+                  (val) =>
+                    !val &&
+                    handleFieldBlur(rowIndex, 'bk_biz_id', row.bk_biz_id)
+                "
               >
                 <Select.Option
                   v-for="item in businessList"
@@ -58,10 +62,19 @@
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip')">
               <Input
                 v-model.trim="row.bk_host_innerip"
-                @change="(val) => {
-                  handleChangeIPv4(val, row); clearError(rowIndex, 'bk_host_innerip')
-                }"
-                @blur="handleFieldBlur(rowIndex, 'bk_host_innerip', row.bk_host_innerip)"
+                @change="
+                  (val) => {
+                    handleChangeIPv4(val, row, rowIndex);
+                    clearError(rowIndex, 'bk_host_innerip');
+                  }
+                "
+                @blur="
+                  handleFieldBlur(
+                    rowIndex,
+                    'bk_host_innerip',
+                    row.bk_host_innerip
+                  )
+                "
               ></Input>
             </ValidateCell>
           </template>
@@ -77,7 +90,13 @@
               <Input
                 v-model.trim="row.bk_host_innerip_v6"
                 @change="clearError(rowIndex, 'bk_host_innerip_v6')"
-                @blur="handleFieldBlur(rowIndex, 'bk_host_innerip_v6', row.bk_host_innerip_v6)"
+                @blur="
+                  handleFieldBlur(
+                    rowIndex,
+                    'bk_host_innerip_v6',
+                    row.bk_host_innerip_v6
+                  )
+                "
               ></Input>
             </ValidateCell>
           </template>
@@ -109,10 +128,16 @@
               <Select
                 v-model="row.os_type"
                 auto-focus
-                @change="(val) => {
-                  handleChangeOsType(val, row); clearError(rowIndex, 'os_type')
-                }"
-                @toggle="(val) => !val && handleFieldBlur(rowIndex, 'os_type', row.os_type)"
+                @change="
+                  (val) => {
+                    handleChangeOsType(val, row, rowIndex);
+                    clearError(rowIndex, 'os_type');
+                  }
+                "
+                @toggle="
+                  (val) =>
+                    !val && handleFieldBlur(rowIndex, 'os_type', row.os_type)
+                "
               >
                 <Select.Option
                   v-for="option in datasourceList"
@@ -157,7 +182,9 @@
               <Input
                 v-model.trim="row.advertise_ip"
                 @change="clearError(rowIndex, 'advertise_ip')"
-                @blur="handleFieldBlur(rowIndex, 'advertise_ip', row.advertise_ip)"
+                @blur="
+                  handleFieldBlur(rowIndex, 'advertise_ip', row.advertise_ip)
+                "
               ></Input>
             </ValidateCell>
           </template>
@@ -207,7 +234,10 @@
             <ValidateCell :error="getError(rowIndex, 'login_port')">
               <Input
                 v-model.trim="row.login_port"
-                @change="clearError(rowIndex, 'login_port')"
+                @change="() => {
+                  clearError(rowIndex, 'login_port')
+                  console.log(row.login_port)
+                }"
                 @blur="handleFieldBlur(rowIndex, 'login_port', row.login_port)"
               ></Input>
             </ValidateCell>
@@ -261,10 +291,17 @@
               <Select
                 v-model="row.login_mode"
                 auto-focus
-                @change="(val) => {
-                  handleChangeMode(val, row); clearError(rowIndex, 'login_mode')
-                }"
-                @toggle="(val) => !val && handleFieldBlur(rowIndex, 'login_mode', row.login_mode)"
+                @change="
+                  (val) => {
+                    handleChangeMode(val, row, rowIndex);
+                    clearError(rowIndex, 'login_mode');
+                  }
+                "
+                @toggle="
+                  (val) =>
+                    !val &&
+                    handleFieldBlur(rowIndex, 'login_mode', row.login_mode)
+                "
               >
                 <Select.Option
                   v-for="option in authenticationTypes"
@@ -300,10 +337,7 @@
               :value="'自动拉取'"
               disabled
             ></Input>
-            <ValidateCell
-              v-else
-              :error="getError(rowIndex, 'credit')"
-            >
+            <ValidateCell v-else :error="getError(rowIndex, 'credit')">
               <Upload
                 ref="uploader"
                 type="formdata"
@@ -313,14 +347,16 @@
                 :multiple="false"
                 :limit="1"
                 theme="button"
-                :before-upload="(val) => handleBeforeUpload(val,row)"
+                :before-upload="(val) => handleBeforeUpload(val, row)"
                 :custom-request="() => {}"
                 @change="clearError(rowIndex, 'credit')"
               ></Upload>
               <Input
                 v-else
                 v-model.trim="row.credit"
-                :placeholder="row.login_credit_valid ? '密码有效，点击修改' : '请输入密码'"
+                :placeholder="
+                  row.login_credit_valid ? '密码有效，点击修改' : '请输入密码'
+                "
                 type="password"
                 @change="clearError(rowIndex, 'credit')"
                 @blur="handleFieldBlur(rowIndex, 'credit', row.credit)"
@@ -461,7 +497,16 @@ const props = defineProps({
         { title: '认证方式', field: 'login_mode' },
         { title: '密码 / 密钥', field: 'credit' },
       ],
-      checked: ['bk_host_innerip', 'bk_host_innerip_v6', 'os_type', 'login_port', 'login_ip', 'login_user', 'login_mode', 'credit'],
+      checked: [
+        'bk_host_innerip',
+        'bk_host_innerip_v6',
+        'os_type',
+        'login_port',
+        'login_ip',
+        'login_user',
+        'login_mode',
+        'credit',
+      ],
       disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
       size: 'medium' as VxeComponentSizeType,
     }),
@@ -494,19 +539,44 @@ const props = defineProps({
 // };
 
 const initData = {
-  bk_host_innerip: '', bk_host_innerip_v6: '', os_type: '', login_ip: '', login_port: '',
-  login_user: '', login_mode: 'password', login_password: '', login_key_file: '',
-  bk_addressing: 'static', bk_networkunit_id: '', bk_biz_id: '', bk_host_id: '',
-  re_register: false, credit: '', export_ip: '', advertise_ip: '',
-  dedicated_installer: true, cluster_tunnel: true, file_tunnel: true, data_tunnel: true, proxy_tags: [],
+  bk_host_innerip: '',
+  bk_host_innerip_v6: '',
+  os_type: '',
+  login_ip: '',
+  login_port: '',
+  login_user: '',
+  login_mode: 'password',
+  login_password: '',
+  login_key_file: '',
+  bk_addressing: 'static',
+  bk_networkunit_id: '',
+  bk_biz_id: '',
+  bk_host_id: '',
+  re_register: false,
+  credit: '',
+  export_ip: '',
+  advertise_ip: '',
+  dedicated_installer: true,
+  cluster_tunnel: true,
+  file_tunnel: true,
+  data_tunnel: true,
+  proxy_tags: [],
 };
 
 const rules: ValidationRules = {
-  bk_host_innerip: [{ validator: VALIDATE_REGEX.IPV4, message: '请输入正确的内网 IPv4' }],
-  bk_host_innerip_v6: [{ validator: VALIDATE_REGEX.IPV6, message: '请输入正确的内网 IPv6' }],
+  bk_host_innerip: [
+    { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的内网 IPv4' },
+  ],
+  bk_host_innerip_v6: [
+    { validator: VALIDATE_REGEX.IPV6, message: '请输入正确的内网 IPv6' },
+  ],
   os_type: [{ validator: (val: string) => val, message: '请输入操作系统' }],
-  login_ip: [{ validator: VALIDATE_REGEX.IPV4, message: '请输入正确的登录 IP' }],
-  login_port: [{ validator: VALIDATE_REGEX.PORT, message: '请输入正确的登录端口' }],
+  login_ip: [
+    { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的登录 IP' },
+  ],
+  login_port: [
+    { validator: VALIDATE_REGEX.PORT, message: '请输入正确的登录端口' },
+  ],
   login_user: [{ validator: (val: string) => val, message: '请输入登录账号' }],
   login_mode: [{ validator: (val: string) => val, message: '请输入认证方式' }],
   credit: [{ validator: (val: string) => val, message: '请输入密码 / 密钥' }],
@@ -539,10 +609,12 @@ const shiftErrors = (index: number, offset: number) => {
   const newMap: Record<number, Record<string, string>> = {};
   Object.keys(errorMap).forEach((keyStr) => {
     const k = Number(keyStr);
-    if (offset === 1) { // 新增
+    if (offset === 1) {
+      // 新增
       if (k <= index) newMap[k] = errorMap[k];
       else newMap[k + 1] = errorMap[k];
-    } else if (offset === -1) { // 删除
+    } else if (offset === -1) {
+      // 删除
       if (k < index) newMap[k] = errorMap[k];
       else if (k > index) newMap[k - 1] = errorMap[k];
     }
@@ -574,23 +646,39 @@ const datasourceList = ref<{ id: string; name: string }[]>([]);
 const authenticationTypes = ref([
   { id: 'password', name: '密码' },
   { id: 'keyfile', name: '密钥' },
-  ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH ? [{ id: 'password_vault', name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME }] : []),
+  ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true'
+    ? [
+      {
+        id: 'password_vault',
+        name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME,
+      },
+    ]
+    : []),
 ]);
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 
 // --- 业务逻辑 ---
-const handleChangeMode = (val: string, row: any) => {
-  row.login_mode = val; row.credit = '';
+const handleChangeMode = (val: string, row: any, rowIndex: number) => {
+  row.login_mode = val;
+  row.credit = '';
+  clearError(rowIndex, 'credit');
 };
-const handleChangeIPv4 = (val: string, row: any) => {
-  if (new RegExp(VALIDATE_REGEX.IPV4).test(val)) row.login_ip = val;
+const handleChangeIPv4 = (val: string, row: any, rowIndex: number) => {
+  if (new RegExp(VALIDATE_REGEX.IPV4).test(val)) {
+    row.login_ip = val;
+    handleFieldBlur(rowIndex, 'login_ip', val);
+  };
 };
-const handleChangeOsType = (val: string, row: any) => {
+const handleChangeOsType = (val: string, row: any, rowIndex: number) => {
   if (val === 'linux') {
-    row.login_port = '36000'; row.login_user = 'root';
+    row.login_port = '36000';
+    row.login_user = 'root';
+    handleFieldBlur(rowIndex, 'login_port', '36000');
+    handleFieldBlur(rowIndex, 'login_user', 'root');
   }
   if (val === 'windows') {
     row.login_user = 'administrator';
+    handleFieldBlur(rowIndex, 'login_user', 'administrator');
   }
 };
 
@@ -598,23 +686,41 @@ const getHostDistinct = async () => {
   const res = await TopoService.HostDistinct({}).catch(() => null);
   if (res) {
     hostDistinct.value = res;
-    datasourceList.value = res.os_type.map(item => ({ id: item, name: item }));
+    datasourceList.value = res.os_type.map(item => ({
+      id: item,
+      name: item,
+    }));
   }
 };
 
 const handleBatchEdit = (field: string, value: any) => {
-  tableData.value?.forEach((item: any) => {
+  tableData.value?.forEach((item: any, index: number) => {
     if (field === 'credit') {
       if (item.login_mode === 'password') item.credit = value.password;
       else {
-        item.credit = value.key; item.file = value.file;
+        item.credit = value.key;
+        item.file = value.file;
       }
     } else {
       item[field] = value;
     }
+
+    handleFieldBlur(index, field, value);
+
+    // 如果存在联动（例如修改 OS 会影响 Port），可以在这里加特判
+    if (field === 'os_type') {
+      // 复用之前的联动逻辑
+      if (value === 'linux') {
+        item.login_port = '36000';
+        item.login_user = 'root';
+        handleFieldBlur(index, 'login_port', '36000');
+        handleFieldBlur(index, 'login_user', 'root');
+      } else if (value === 'windows') {
+        item.login_user = 'administrator';
+        handleFieldBlur(index, 'login_user', 'administrator');
+      }
+    }
   });
-  // 批量操作建议清空所有错误，让用户重新触发
-  for (const key in errorMap) delete errorMap[key];
 };
 
 const url = location.href;
@@ -646,13 +752,24 @@ const validateItemData = (value: any, rulesArr: IValidate[]) => {
 
 // 【新增】单个字段失焦校验
 // 模拟旧组件的 validate('blur') 行为
+// 【修正】单个字段失焦校验
 const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
+  // 先假设校验通过，清除错误（或者在下面的逻辑分支中显式清除）
+  // 推荐策略：只在发现错误时 setError，否则 clearError。
+
   // 1. 必填检查
-  // 这里列出那些"必填"的字段 (可以优化为从 rules 读取 validator 判断，或维护一个必填列表)
-  const requiredFields = ['bk_host_innerip', 'os_type', 'login_ip', 'login_port', 'login_user', 'login_mode', 'export_ip'];
+  const requiredFields = [
+    'bk_host_innerip',
+    'os_type',
+    'login_ip',
+    'login_port',
+    'login_user',
+    'login_mode',
+    'export_ip',
+  ];
   if (props.isReinstall) requiredFields.push('bk_biz_id');
 
-  if (requiredFields.includes(field) && (!value && value !== 0)) {
+  if (requiredFields.includes(field) && !value && value !== 0) {
     setError(rowIndex, field, '必填项');
     return;
   }
@@ -660,7 +777,11 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
   // 密码特殊必填处理
   if (field === 'credit') {
     const row = tableData.value![rowIndex];
-    if (row.login_mode !== 'password_vault' && !row.login_credit_valid && !value) {
+    if (
+      row.login_mode !== 'password_vault' &&
+      !row.login_credit_valid &&
+      !value
+    ) {
       setError(rowIndex, field, '必填项');
       return;
     }
@@ -671,7 +792,13 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
   if (fieldRules) {
     if (!validateItemData(value, fieldRules)) {
       setError(rowIndex, field, fieldRules[0].message);
+    } else {
+      // 【关键修复】校验通过，必须清除错误！
+      clearError(rowIndex, field);
     }
+  } else {
+    // 没有规则且通过了必填检查 -> 清除错误
+    clearError(rowIndex, field);
   }
 };
 
@@ -690,38 +817,59 @@ const tableValidate = async () => {
     let rowValid = true;
 
     // 2.1 业务属性
-    if (props.isReinstall && settings.checked.includes('bk_biz_id') && !row.bk_biz_id) {
-      setError(i, 'bk_biz_id', '必填项'); rowValid = false;
+    if (
+      props.isReinstall
+      && settings.checked.includes('bk_biz_id')
+      && !row.bk_biz_id
+    ) {
+      setError(i, 'bk_biz_id', '必填项');
+      rowValid = false;
     }
     // 2.2 IP
     if (settings.checked.includes('bk_host_innerip')) {
       if (!row.bk_host_innerip) {
-        setError(i, 'bk_host_innerip', '必填项'); rowValid = false;
-      } else if (!validateItemData(row.bk_host_innerip, rules.bk_host_innerip)) {
-        setError(i, 'bk_host_innerip', rules.bk_host_innerip[0].message); rowValid = false;
+        setError(i, 'bk_host_innerip', '必填项');
+        rowValid = false;
+      } else if (
+        !validateItemData(row.bk_host_innerip, rules.bk_host_innerip)
+      ) {
+        setError(i, 'bk_host_innerip', rules.bk_host_innerip[0].message);
+        rowValid = false;
       }
     }
-    if (settings.checked.includes('bk_host_innerip_v6') && row.bk_host_innerip_v6) {
+    if (
+      settings.checked.includes('bk_host_innerip_v6')
+      && row.bk_host_innerip_v6
+    ) {
       if (!validateItemData(row.bk_host_innerip_v6, rules.bk_host_innerip_v6)) {
-        setError(i, 'bk_host_innerip_v6', rules.bk_host_innerip_v6[0].message); rowValid = false;
+        setError(i, 'bk_host_innerip_v6', rules.bk_host_innerip_v6[0].message);
+        rowValid = false;
       }
     }
     // 2.3 OS
-    if ((props.realeaseType !== 'proxy' || props.isReinstall) && settings.checked.includes('os_type') && !row.os_type) {
-      setError(i, 'os_type', '必填项'); rowValid = false;
+    if (
+      (props.realeaseType !== 'proxy' || props.isReinstall)
+      && settings.checked.includes('os_type')
+      && !row.os_type
+    ) {
+      setError(i, 'os_type', '必填项');
+      rowValid = false;
     }
     // 2.4 Proxy IP
     if (props.realeaseType === 'proxy') {
       if (settings.checked.includes('export_ip')) {
         if (!row.export_ip) {
-          setError(i, 'export_ip', '必填项'); rowValid = false;
+          setError(i, 'export_ip', '必填项');
+          rowValid = false;
         } else if (!validateItemData(row.export_ip, rules.login_ip)) {
-          setError(i, 'export_ip', rules.login_ip[0].message); rowValid = false;
+          setError(i, 'export_ip', rules.login_ip[0].message);
+          rowValid = false;
         }
       }
       if (settings.checked.includes('advertise_ip') && row.advertise_ip) {
         if (!validateItemData(row.advertise_ip, rules.login_ip)) {
-          setError(i, 'advertise_ip', rules.login_ip[0].message); rowValid = false;
+          setError(i, 'advertise_ip', rules.login_ip[0].message);
+          rowValid = false;
         }
       }
     }
@@ -729,29 +877,39 @@ const tableValidate = async () => {
     if (type.value !== 'manual') {
       if (settings.checked.includes('login_ip')) {
         if (!row.login_ip) {
-          setError(i, 'login_ip', '必填项'); rowValid = false;
+          setError(i, 'login_ip', '必填项');
+          rowValid = false;
         } else if (!validateItemData(row.login_ip, rules.login_ip)) {
-          setError(i, 'login_ip', rules.login_ip[0].message); rowValid = false;
+          setError(i, 'login_ip', rules.login_ip[0].message);
+          rowValid = false;
         }
       }
       if (props.realeaseType !== 'proxy' || props.isReinstall) {
         if (settings.checked.includes('login_port')) {
           if (!row.login_port) {
-            setError(i, 'login_port', '必填项'); rowValid = false;
+            setError(i, 'login_port', '必填项');
+            rowValid = false;
           } else if (!validateItemData(row.login_port, rules.login_port)) {
-            setError(i, 'login_port', rules.login_port[0].message); rowValid = false;
+            setError(i, 'login_port', rules.login_port[0].message);
+            rowValid = false;
           }
         }
         if (settings.checked.includes('login_user') && !row.login_user) {
-          setError(i, 'login_user', '必填项'); rowValid = false;
+          setError(i, 'login_user', '必填项');
+          rowValid = false;
         }
       }
       if (settings.checked.includes('login_mode') && !row.login_mode) {
-        setError(i, 'login_mode', '必填项'); rowValid = false;
+        setError(i, 'login_mode', '必填项');
+        rowValid = false;
       }
-      if (settings.checked.includes('credit') && row.login_mode !== 'password_vault') {
+      if (
+        settings.checked.includes('credit')
+        && row.login_mode !== 'password_vault'
+      ) {
         if (!row.login_credit_valid && !row.credit) {
-          setError(i, 'credit', '必填项'); rowValid = false;
+          setError(i, 'credit', '必填项');
+          rowValid = false;
         }
       }
     }

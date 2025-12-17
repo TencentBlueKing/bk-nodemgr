@@ -525,7 +525,7 @@ const getAgentList = async () => {
       console.error('获取Agent列表失败:', err);
       return { total: 0, items: [] };
     });
-    pagination.count = res.items.length;
+    pagination.count = res.total;
 
     const pluginNumMap = await ProcessAPIService.GetProcessDistributionByHostID({
       exact_include_conditions: {

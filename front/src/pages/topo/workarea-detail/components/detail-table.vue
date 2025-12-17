@@ -327,7 +327,7 @@ const getProxyList = async () => {
       items: [],
     };
   });
-  pagination.count = res.items.length;
+  pagination.count = res.total;
 
   const pluginNumMap = await ProcessAPIService.GetProcessDistributionByHostID({
     exact_include_conditions: {

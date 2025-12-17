@@ -223,7 +223,7 @@ const fetchRecordList = async () => {
     loading.value = true;
     const params = {
       page: {
-        offset: (pagination.current - 1)*pagination.limit,
+        offset: (pagination.current - 1) * pagination.limit,
         limit: pagination.limit,
       },
       exact_include_conditions: exactData.value,
@@ -231,7 +231,7 @@ const fetchRecordList = async () => {
       operate_time_range: operateTimeRange.value,
     };
     const res = await handleFetchRecordList(params).catch(() => ({ total: 0, items: [] }));
-    pagination.count = res.items.length;
+    pagination.count = res.total;
     list.value = res.items || [];
   } catch (err) {
     console.error(err);

@@ -157,7 +157,7 @@ const authenticationTypes = ref([
     id: 'keyfile',
     name: '密钥',
   },
-  ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === true
+  ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true'
     ? [{ id: 'password_vault', name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME }]
     : []),
 ]);
