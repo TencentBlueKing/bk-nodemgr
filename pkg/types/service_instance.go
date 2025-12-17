@@ -12,8 +12,11 @@ package types
 
 // ServiceInstance defines the service instance.
 type ServiceInstance struct {
+	ID                int64
+	Name              string
 	BizID             int64
 	HostID            int64
 	ModuleID          int64
+	ServiceTemplateID int64
 	ServiceCategoryID int64
 }

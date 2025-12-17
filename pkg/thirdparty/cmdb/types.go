@@ -1076,10 +1076,15 @@ type FindHostRelationsWithTopoResp struct {
 	Info  []*HostTopoRelation `json:"info"`
 }
 
-// ListServiceInstanceDetailReq describe the request data of list_service_instance_detail .
+// ListServiceInstanceDetailReq describe the request data of list_service_instance_detail.
+// Reference: https://github.com/TencentBlueKing/bk-cmdb/blob/master/docs/apidoc/apigw/open/zh/list_service_instance_detail.md
 type ListServiceInstanceDetailReq struct {
-	BKBizID int64 `json:"bk_biz_id"`
-	Page    Page  `json:"page"`
+	BKBizID            int64           `json:"bk_biz_id"`
+	BKModuleID         int64           `json:"bk_module_id,omitempty"`
+	BKHostList         []int64         `json:"bk_host_list,omitempty"`
+	ServiceInstanceIDs []int64         `json:"service_instance_ids,omitempty"`
+	Selectors          []*KeyCondition `json:"selectors,omitempty"`
+	Page               Page            `json:"page"`
 }
 
 // ServiceInstanceDetailInfo describe the service instance detail info define by cmdb.
