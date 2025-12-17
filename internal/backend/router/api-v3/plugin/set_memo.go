@@ -36,6 +36,6 @@ func (h *handler) SetMemo(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	resp := new(protoBackend.PluginSetMemoResp)
+
 	return resp, nil
 }
-
