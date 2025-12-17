@@ -183,10 +183,9 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	hostIDList := make([]int64, 0, len(deployments))
-	for _, dep := range deployments {
-		hostIDList = append(hostIDList, dep.Info.Process.HostID)
-	}
+	hostIDList := conv.SliceToSlice[*types.PluginDeployment, int64](deployments, func(dep *types.PluginDeployment) int64 {
+		return dep.Info.Process.HostID
+	})
 
 	hosts, _, err := h.daoHost.ListHost(rCtx, types.UnlimitedPage(), &types.HostCondition{
 		StaticExactInclude: &types.HostStaticExactFields{HostID: hostIDList},
@@ -196,9 +195,12 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	hostIDMap := make(map[int64]*types.Host, len(hosts))
-	for _, host := range hosts {
-		hostIDMap[host.HostID] = host
+	hostIDMap, err := conv.SliceToMap[int64, *types.Host](hosts, func(host *types.Host) int64 {
+		return host.HostID
+	})
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to convert host slice to map")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}
 
 	result := make([]*types.PluginWorkflowListOperationResult, len(deployments))
