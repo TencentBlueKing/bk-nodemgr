@@ -110,6 +110,7 @@ message NodeWorkflowOperation {
   repeated string instance_ids = 2;
   NodeWorkflowOperationParam param = 3;
   NodeWorkflowOperationStatus status = 4;
+  WorkflowActionInstBriefData latest_action_inst_brief_data = 5;
 }
 
 message NodeWorkflowOperationStatus {
@@ -230,6 +231,42 @@ message NodeWorkflowOperationTerminateResp {
   Data data = 5;
 }
 
+// ManualSolutionStep describes the step of manual solution.
+message ManualSolutionStep {
+  string type = 1;
+  string name_en = 2;
+  string name_zh = 3;
+  string content_en = 4;
+  string content_zh = 5;
+}
+
+// ManualSolution describes the manual solution.
+message ManualSolution {
+  string type = 1;
+  string description_en = 2;
+  string description_zh = 3;
+  repeated ManualSolutionStep steps = 4;
+}
+
+// NodeWorkflowOperationManualSolutionGetReq describes the node workflow
+// operation get manual solution request.
+message NodeWorkflowOperationManualSolutionGetReq {
+  string workflow_id = 1;
+  string operation_id = 2;
+}
+
+// NodeWorkflowOperationManualSolutionGetResp describes the node workflow
+// operation get manual solution response.
+message NodeWorkflowOperationManualSolutionGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  repeated ManualSolution data = 5;
+}
+
+// NodeWorkflow provides node workflow service.
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
@@ -301,6 +338,17 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationTerminateResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/terminate"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationManualSolutionGet provides node operation manual
+  // solution get.
+  rpc NodeWorkflowOperationManualSolutionGet(
+      NodeWorkflowOperationManualSolutionGetReq)
+      returns (NodeWorkflowOperationManualSolutionGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/manual/solution/get"
       body : "*"
     };
   }

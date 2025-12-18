@@ -22,13 +22,6 @@ import (
 
 // Validate check body.
 func (x *NodeAgentInstallReq) Validate() error {
-	switch {
-	case x.GetDisableDefaultTargetVersion() && len(x.GetTargetVersion()) == 0:
-		return errors.New("target_version can not be empty when disable_default_target_version is true")
-	case !x.GetDisableDefaultTargetVersion() && len(x.GetTargetVersion()) > 0:
-		return errors.New("target_version can not be set when disable_default_target_version is false")
-	}
-
 	_, err := conv.SliceToMap(x.GetTargetVersion(), func(v *TargetVersion) string {
 		return fmt.Sprintf("%s:%s", v.GetOsType(), v.GetCpuArch())
 	})
@@ -136,6 +129,7 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 	return &types.NodeAgentInstallParam{
 		NodeAgentInstallHosts:    hostsParam,
 		NodeInstallTargetVersion: targetVersion,
+		IsManual:                 x.GetIsManual(),
 	}
 }
 

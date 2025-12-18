@@ -473,7 +473,7 @@
             "$ref": "#/definitions/v3TargetVersion"
           }
         },
-        "disable_default_target_version": {
+        "is_manual": {
           "type": "boolean"
         }
       },

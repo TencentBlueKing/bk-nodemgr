@@ -185,6 +185,40 @@
         ]
       }
     },
+    "/api/v3/node/workflow/operation/manual/solution/get": {
+      "post": {
+        "summary": "NodeWorkflowOperationManualSolutionGet provides node operation manual\nsolution get.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationManualSolutionGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationManualSolutionGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationManualSolutionGetReq describes the node workflow\noperation get manual solution request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationManualSolutionGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/workflow/operation/retry": {
       "post": {
         "summary": "NodeWorkflowOperationRetry retry node operation.",
@@ -358,6 +392,49 @@
           }
         }
       }
+    },
+    "v3ManualSolution": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "description_en": {
+          "type": "string"
+        },
+        "description_zh": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ManualSolutionStep"
+          }
+        }
+      },
+      "description": "ManualSolution describes the manual solution."
+    },
+    "v3ManualSolutionStep": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "name_en": {
+          "type": "string"
+        },
+        "name_zh": {
+          "type": "string"
+        },
+        "content_en": {
+          "type": "string"
+        },
+        "content_zh": {
+          "type": "string"
+        }
+      },
+      "description": "ManualSolutionStep describes the step of manual solution."
     },
     "v3NodeWorkflowDistinctReq": {
       "type": "object",
@@ -582,6 +659,9 @@
         },
         "status": {
           "$ref": "#/definitions/v3NodeWorkflowOperationStatus"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
         }
       }
     },
@@ -789,6 +869,44 @@
           "format": "int64"
         }
       }
+    },
+    "v3NodeWorkflowOperationManualSolutionGetReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "operation_id": {
+          "type": "string"
+        }
+      },
+      "description": "NodeWorkflowOperationManualSolutionGetReq describes the node workflow\noperation get manual solution request."
+    },
+    "v3NodeWorkflowOperationManualSolutionGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ManualSolution"
+          }
+        }
+      },
+      "description": "NodeWorkflowOperationManualSolutionGetResp describes the node workflow\noperation get manual solution response."
     },
     "v3NodeWorkflowOperationParam": {
       "type": "object",
@@ -1024,6 +1142,9 @@
         },
         "life_cycle": {
           "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
         }
       },
       "description": "WorflowOperationInstanceData describes the workflow operation instance data."
@@ -1039,6 +1160,21 @@
         }
       },
       "description": "WorkflowActionData describes the workflow action data."
+    },
+    "v3WorkflowActionInstBriefData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "WorkflowActionInstBriefData describes the workflow action instance brief\ndata."
     },
     "v3WorkflowActionMessage": {
       "type": "object",

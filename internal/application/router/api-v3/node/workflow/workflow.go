@@ -56,6 +56,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
+	h.rg.POST("/operation/manual/solution/get", restserver.Handler(h.GetManualSolution))
 }
 
 // List workflows.
@@ -219,7 +220,11 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 
 	// get all operation instances.
 	// need to grouby operation id. than use last instance status and calculate total time.
-	allInstances, _, err := h.backendHandler.ListNodeWorkflowOperationInstance(rCtx, operationIDs...)
+	allInstances, _, err := h.backendHandler.ListNodeWorkflowOperationInstance(rCtx, &types.OperInstDataCondition{
+		ExactInclude: &types.OperInstDataExactFields{
+			OperationID: operationIDs,
+		},
+	})
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -262,7 +267,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountNodeWorkflowOperationInstance(
-			rCtx, req.ConvertConditionsToOperationID())
+			rCtx, req.ConvertConditionsToTypes())
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to count operation instance: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -275,7 +280,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 	}
 
 	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
-		rCtx, req.ConvertConditionsToOperationID())
+		rCtx, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -343,6 +348,31 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 	}
 
 	resp := new(protoApplication.NodeWorkflowOperationTerminateResp)
+
+	return resp.GetData(), nil
+}
+
+// GetManualSolution get manual solution.
+func (h *handler) GetManualSolution(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.NodeWorkflowOperationManualSolutionGetReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get manual solution, failed to decode request body: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	manualInfo, err := h.backendHandler.GetNodeWorkflowOperationManualInfo(
+		rCtx,
+		req.GetWorkflowId(),
+		req.GetOperationId())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get manual info: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.NodeWorkflowOperationManualSolutionGetResp)
+
+	// convert ManualInfo to ManualSolution
+	resp.ConvertResultFromTypes(manualInfo)
 
 	return resp.GetData(), nil
 }
@@ -506,8 +536,9 @@ func calculateOperationSummaries(operationIDs []string,
 		}
 
 		summaries[idx] = &types.NodeWorkflowOperationSummary{
-			TotalDuration: totalSeconds,
-			LastStatus:    lastStatus,
+			TotalDuration:             totalSeconds,
+			LastStatus:                lastStatus,
+			LatestActionInstBriefData: lastInstance.LatestActionInstBriefData,
 		}
 	}
 
