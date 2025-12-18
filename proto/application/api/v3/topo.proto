@@ -311,6 +311,106 @@ message TopoHostListResp {
   Data data = 5;
 }
 
+// TopoHostSelectHostIDReq describes the HTTP request body when select host
+// id in topo service.
+message TopoHostSelectHostIDReq {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+  TopoHostExactConditions exact_exclude_conditions = 3;
+}
+
+// TopoHostSelectHostIDResp  describes the HTTP response body when select
+// host id in topo service.
+message TopoHostSelectHostIDResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated int64 items = 1; }
+  Data data = 5;
+}
+
+// TopoHostSelectInnerIPReq describes the HTTP request body when select host
+// inner ip in topo service.
+message TopoHostSelectInnerIPReq {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+  TopoHostExactConditions exact_exclude_conditions = 3;
+}
+
+// TopoHostSelectInnerIPResp  describes the HTTP response body when select
+// host inner ip in topo service.
+message TopoHostSelectInnerIPResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated string items = 1; }
+  Data data = 5;
+}
+
+// TopoHostSelectInnerIPV6Req describes the HTTP request body when select host
+// inner ipv6 in topo service.
+message TopoHostSelectInnerIPV6Req {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+  TopoHostExactConditions exact_exclude_conditions = 3;
+}
+
+// TopoHostSelectInnerIPV6Resp  describes the HTTP response body when select
+// host inner ipv6 in topo service.
+message TopoHostSelectInnerIPV6Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated string items = 1; }
+  Data data = 5;
+}
+
+// TopoHostSelectNetWorkareaIDAndInnerIPReq describes the HTTP request body when
+// select host networkarea id and inner ip in topo service.
+message TopoHostSelectNetWorkareaIDAndInnerIPReq {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+  TopoHostExactConditions exact_exclude_conditions = 3;
+}
+
+// TopoHostSelectNetWorkareaIDAndInnerIPResp  describes the HTTP response body
+// when select host networkarea id and inner ip in topo service.
+message TopoHostSelectNetWorkareaIDAndInnerIPResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated string items = 1; }
+  Data data = 5;
+}
+
+// TopoHostSelectNetWorkareaIDAndInnerIPV6Req describes the HTTP request body
+// when select host networkarea id and inner ipv6 in topo service.
+message TopoHostSelectNetWorkareaIDAndInnerIPV6Req {
+  TopoHostExactConditions exact_include_conditions = 1;
+  TopoHostFuzzyConditions fuzzy_include_conditions = 2;
+  TopoHostExactConditions exact_exclude_conditions = 3;
+}
+
+// TopoHostSelectNetWorkareaIDAndInnerIPV6Resp  describes the HTTP response body
+// when select host networkarea id and inner ipv6 in topo service.
+message TopoHostSelectNetWorkareaIDAndInnerIPV6Resp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated string items = 1; }
+  Data data = 5;
+}
+
 // TopoHostDistinctReq describes the HTTP request body when distinct host in
 // topp service.
 message TopoHostDistinctReq {
@@ -604,6 +704,55 @@ service Topo {
   rpc HostList(TopoHostListReq) returns (TopoHostListResp) {
     option (google.api.http) = {
       post : "/api/v3/topo/host/list"
+      body : "*"
+    };
+  }
+
+  // HostSelectHostID provides host id selecting.
+  rpc HostSelectHostID(TopoHostSelectHostIDReq)
+      returns (TopoHostSelectHostIDResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/scenario/select_host_id"
+      body : "*"
+    };
+  }
+
+  // HostSelectInnerIP provides host inner ip selecting.
+  rpc HostSelectInnerIP(TopoHostSelectInnerIPReq)
+      returns (TopoHostSelectInnerIPResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/scenario/select_inner_ip"
+      body : "*"
+    };
+  }
+
+  // HostSelectInnerIPV6 provides host inner ipv6 selecting.
+  rpc HostSelectInnerIPV6(TopoHostSelectInnerIPV6Req)
+      returns (TopoHostSelectInnerIPV6Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/scenario/select_inner_ipv6"
+      body : "*"
+    };
+  }
+
+  // HostSelectNetWorkareaIDAndInnerIP provides host networkarea id and inner ip
+  // selecting.
+  rpc HostSelectNetWorkareaIDAndInnerIP(
+      TopoHostSelectNetWorkareaIDAndInnerIPReq)
+      returns (TopoHostSelectNetWorkareaIDAndInnerIPResp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/scenario/select_networkarea_id_and_inner_ip"
+      body : "*"
+    };
+  }
+
+  // HostSelectNetWorkareaIDAndInnerIPV6 provides host networkarea id and inner
+  // ipv6 selecting.
+  rpc HostSelectNetWorkareaIDAndInnerIPV6(
+      TopoHostSelectNetWorkareaIDAndInnerIPV6Req)
+      returns (TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) {
+    option (google.api.http) = {
+      post : "/api/v3/topo/host/scenario/select_networkarea_id_and_inner_ipv6"
       body : "*"
     };
   }

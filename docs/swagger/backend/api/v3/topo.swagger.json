@@ -355,6 +355,176 @@
         ]
       }
     },
+    "/api/v3/topo/host/scenario/select_host_id": {
+      "post": {
+        "summary": "HostSelectHostID provides host id selecting.",
+        "operationId": "Topo_HostSelectHostID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectHostIDResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoHostSelectHostIDReq describes the HTTP request body when select host\nid in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectHostIDReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/host/scenario/select_inner_ip": {
+      "post": {
+        "summary": "HostSelectInnerIP provides host inner ip selecting.",
+        "operationId": "Topo_HostSelectInnerIP",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectInnerIPResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoHostSelectInnerIPReq describes the HTTP request body when select host\ninner ip in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectInnerIPReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/host/scenario/select_inner_ipv6": {
+      "post": {
+        "summary": "HostSelectInnerIPV6 provides host inner ipv6 selecting.",
+        "operationId": "Topo_HostSelectInnerIPV6",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectInnerIPV6Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoHostSelectInnerIPV6Req describes the HTTP request body when select host\ninner ipv6 in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectInnerIPV6Req"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/host/scenario/select_networkarea_id_and_inner_ip": {
+      "post": {
+        "summary": "HostSelectNetWorkareaIDAndInnerIP provides host networkarea id and inner ip\nselecting.",
+        "operationId": "Topo_HostSelectNetWorkareaIDAndInnerIP",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectNetWorkareaIDAndInnerIPResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoHostSelectNetWorkareaIDAndInnerIPReq describes the HTTP request body when\nselect host networkarea id and inner ip in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectNetWorkareaIDAndInnerIPReq"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
+    "/api/v3/topo/host/scenario/select_networkarea_id_and_inner_ipv6": {
+      "post": {
+        "summary": "HostSelectNetWorkareaIDAndInnerIPV6 provides host networkarea id and inner\nipv6 selecting.",
+        "operationId": "Topo_HostSelectNetWorkareaIDAndInnerIPV6",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectNetWorkareaIDAndInnerIPV6Resp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "TopoHostSelectNetWorkareaIDAndInnerIPV6Req describes the HTTP request body\nwhen select host networkarea id and inner ipv6 in topo service.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3TopoHostSelectNetWorkareaIDAndInnerIPV6Req"
+            }
+          }
+        ],
+        "tags": [
+          "Topo"
+        ]
+      }
+    },
     "/api/v3/topo/networkarea/create": {
       "post": {
         "summary": "NetworkAreaCreate provides creating a new network-area.",
@@ -1982,6 +2152,247 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3Host"
+          }
+        }
+      }
+    },
+    "v3TopoHostSelectHostIDReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        }
+      },
+      "description": "TopoHostSelectHostIDReq describes the HTTP request body when select host\nid in topo service."
+    },
+    "v3TopoHostSelectHostIDResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoHostSelectHostIDRespData"
+        }
+      },
+      "description": "TopoHostSelectHostIDResp  describes the HTTP response body when select\nhost id in topo service."
+    },
+    "v3TopoHostSelectHostIDRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      }
+    },
+    "v3TopoHostSelectInnerIPReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        }
+      },
+      "description": "TopoHostSelectInnerIPReq describes the HTTP request body when select host\ninner ip in topo service."
+    },
+    "v3TopoHostSelectInnerIPResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoHostSelectInnerIPRespData"
+        }
+      },
+      "description": "TopoHostSelectInnerIPResp  describes the HTTP response body when select\nhost inner ip in topo service."
+    },
+    "v3TopoHostSelectInnerIPRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3TopoHostSelectInnerIPV6Req": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        }
+      },
+      "description": "TopoHostSelectInnerIPV6Req describes the HTTP request body when select host\ninner ipv6 in topo service."
+    },
+    "v3TopoHostSelectInnerIPV6Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoHostSelectInnerIPV6RespData"
+        }
+      },
+      "description": "TopoHostSelectInnerIPResp  describes the HTTP response body when select\nhost inner ipv6 in topo service."
+    },
+    "v3TopoHostSelectInnerIPV6RespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3TopoHostSelectNetWorkareaIDAndInnerIPReq": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        }
+      },
+      "description": "TopoHostSelectNetWorkareaIDAndInnerIPReq describes the HTTP request body when\nselect host networkarea id and inner ip in topo service."
+    },
+    "v3TopoHostSelectNetWorkareaIDAndInnerIPResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoHostSelectNetWorkareaIDAndInnerIPRespData"
+        }
+      },
+      "description": "TopoHostSelectNetWorkareaIDAndInnerIPResp  describes the HTTP response body\nwhen select host networkarea id and inner ip in topo service."
+    },
+    "v3TopoHostSelectNetWorkareaIDAndInnerIPRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3TopoHostSelectNetWorkareaIDAndInnerIPV6Req": {
+      "type": "object",
+      "properties": {
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3TopoHostFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/v3TopoHostExactConditions"
+        }
+      },
+      "description": "TopoHostSelectNetWorkareaIDAndInnerIPV6Req describes the HTTP request body\nwhen select host networkarea id and inner ipv6 in topo service."
+    },
+    "v3TopoHostSelectNetWorkareaIDAndInnerIPV6Resp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3TopoHostSelectNetWorkareaIDAndInnerIPV6RespData"
+        }
+      },
+      "description": "TopoHostSelectNetWorkareaIDAndInnerIPV6Resp  describes the HTTP response body\nwhen select host networkarea id and inner ipv6 in topo service."
+    },
+    "v3TopoHostSelectNetWorkareaIDAndInnerIPV6RespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       }
