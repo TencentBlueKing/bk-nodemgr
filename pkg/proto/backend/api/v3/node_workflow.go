@@ -334,7 +334,7 @@ func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsFromTypes(condit
 func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 	num int64, result []*operation.InstanceBriefData) {
 
-	items := make([]*WorflowOperationInstanceData, 0, len(result))
+	items := make([]*WorflowOperationInstanceData, len(result))
 	for idx, opinstance := range result {
 		items[idx] = &WorflowOperationInstanceData{
 			OperInstId:                opinstance.Metadata.OperationInstanceID,
@@ -358,9 +358,7 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 func (x *NodeWorkflowOperationInstanceListResp) ConvertOperationInstanceFromTypes(
 	total int64, result *operation.InstanceBriefData) {
 
-	items := make([]*WorflowOperationInstanceData, 1)
-
-	oper := &WorflowOperationInstanceData{
+	instance := &WorflowOperationInstanceData{
 		OperInstId:                result.Metadata.OperationInstanceID,
 		OperationId:               result.Metadata.OperationID,
 		OperInstStatus:            string(result.Lifecycle.State),
@@ -371,9 +369,8 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertOperationInstanceFromType
 		LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(result.LatestActionInstBriefData),
 	}
 
-	items[0] = oper
 	x.Data = &NodeWorkflowOperationInstanceListResp_Data{
-		OperInstData: items,
+		OperInstData: []*WorflowOperationInstanceData{instance},
 		Total:        total,
 	}
 }
