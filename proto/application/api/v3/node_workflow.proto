@@ -95,13 +95,14 @@ message NodeWorkflowDistinctResp {
 }
 
 message NodeWorkflowOperationParam {
-  int64 bk_networkarea_id = 1;
-  int64 bk_networkunit_id = 2;
-  repeated string bk_host_inner_list = 3;
-  repeated string bk_host_innerip_v6_list = 4;
-  string node_version = 5;
-  int64 bk_biz_id = 6;
-  string operator = 7;
+  int64 bk_host_id = 1;
+  int64 bk_biz_id = 2;
+  int64 bk_networkarea_id = 3;
+  int64 bk_networkunit_id = 4;
+  repeated string bk_host_inner_list = 5;
+  repeated string bk_host_innerip_v6_list = 6;
+  string node_version = 7;
+  string operator = 8;
 }
 
 message NodeWorkflowOperation {
@@ -151,7 +152,7 @@ message NodeWorkflowOperationListResp {
 
   message Data {
     repeated NodeWorkflowOperation operations = 1;
-    int64 total_count = 2;
+    int64 total = 2;
   }
   Data data = 5;
 }
@@ -190,10 +191,7 @@ message NodeWorkflowOperationInstanceLogGetResp {
   string request_id = 3;
   Error error = 4;
 
-  message Data {
-    int64 total = 1;
-    map<string, WorkflowActionData> oper_inst_logs = 2;
-  }
+  message Data { map<string, WorkflowActionData> oper_inst_logs = 1; }
   Data data = 5;
 }
 

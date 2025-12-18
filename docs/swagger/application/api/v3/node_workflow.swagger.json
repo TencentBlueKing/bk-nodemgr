@@ -726,10 +726,6 @@
     "v3NodeWorkflowOperationInstanceLogGetRespData": {
       "type": "object",
       "properties": {
-        "total": {
-          "type": "integer",
-          "format": "int64"
-        },
         "oper_inst_logs": {
           "type": "object",
           "additionalProperties": {
@@ -788,7 +784,7 @@
             "$ref": "#/definitions/v3NodeWorkflowOperation"
           }
         },
-        "total_count": {
+        "total": {
           "type": "integer",
           "format": "int64"
         }
@@ -797,6 +793,14 @@
     "v3NodeWorkflowOperationParam": {
       "type": "object",
       "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
         "bk_networkarea_id": {
           "type": "integer",
           "format": "int64"
@@ -819,10 +823,6 @@
         },
         "node_version": {
           "type": "string"
-        },
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
         },
         "operator": {
           "type": "string"
