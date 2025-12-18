@@ -181,6 +181,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionReloadProcess(pluginCap),
 		plugin.NewActionTrusteeshipProcess(pluginCap),
 		plugin.NewActionUnTrusteeshipProcess(pluginCap),
+		plugin.NewActionCheckPluginLaunchNode(pluginCap),
 	); err != nil {
 		return err
 	}

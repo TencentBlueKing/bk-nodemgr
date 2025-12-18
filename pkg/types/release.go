@@ -224,6 +224,30 @@ const (
 	LaunchNodeTypeAll LaunchNodeType = "all"
 )
 
+// Validate validates the launch node type.
+func (t LaunchNodeType) Validate() error {
+	switch t {
+	case LaunchNodeTypeAgent, LaunchNodeTypeProxy, LaunchNodeTypeAll:
+		return nil
+	default:
+		return fmt.Errorf("invalid launch node type, type(%s)", t)
+	}
+}
+
+// IsLaunchNode checks whether the launch node type includes the given node role.
+func (t LaunchNodeType) IsLaunchNode(role NodeRole) bool {
+	switch t {
+	case LaunchNodeTypeAll:
+		return true
+	case LaunchNodeTypeAgent:
+		return role == NodeRoleAgent
+	case LaunchNodeTypeProxy:
+		return role == NodeRoleProxy
+	default:
+		return false
+	}
+}
+
 // TemplateRendererType defines the type of template renderer.
 type TemplateRendererType string
 

@@ -12,6 +12,8 @@
 package workflow
 
 import (
+	"errors"
+
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
@@ -193,6 +195,11 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	if len(hosts) == 0 {
+		logger.G.Biz(rCtx).Error("failed to list operation, no host found")
+		return nil, resterrf.ErrWrap(resterrf.Aborted, errors.New("no host found"))
 	}
 
 	hostIDMap, err := conv.SliceToMap[int64, *types.Host](hosts, func(host *types.Host) int64 {
