@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -228,8 +229,9 @@ type NodeWorkflowListOperationResult struct {
 
 // NodeWorkflowOperationSummary defines the summary of node workflow operation.
 type NodeWorkflowOperationSummary struct {
-	TotalDuration int64
-	LastStatus    NodeWorkflowOperationState
+	TotalDuration             int64
+	LastStatus                NodeWorkflowOperationState
+	LatestActionInstBriefData *action.InstanceBriefData
 }
 
 // InstanceStatusToNodeWorkflowOperationState converts the instance status to operation state.
@@ -265,4 +267,26 @@ type NodeWorkflowOperationRetryParam struct {
 type NodeWorkflowOperationTerminateParam struct {
 	WorkflowID   string
 	OperationIDs []string
+}
+
+// NodeWorkflowOperationManualCommandType describes the manual command type.
+type NodeWorkflowOperationManualCommandType string
+
+const (
+	// NodeWorkflowOperationManualCommandTypeBash the bash command type.
+	NodeWorkflowOperationManualCommandTypeBash NodeWorkflowOperationManualCommandType = "bash"
+	// NodeWorkflowOperationManualCommandTypeBat the bat command type.
+	NodeWorkflowOperationManualCommandTypeBat NodeWorkflowOperationManualCommandType = "bat"
+)
+
+// NodeWorkflowOperationManualCommand describes the manual command.
+type NodeWorkflowOperationManualCommand struct {
+	Type    NodeWorkflowOperationManualCommandType
+	Command string
+}
+
+// NodeWorkflowOperationManualInfo describes the manual info.
+type NodeWorkflowOperationManualInfo struct {
+	NetworkPolicies []*NetworkPolicy
+	Commands        []*NodeWorkflowOperationManualCommand
 }

@@ -32,9 +32,9 @@ type NodeAgentInstallHost struct {
 
 // NodeAgentInstallParam describes the node agent install parameter.
 type NodeAgentInstallParam struct {
-	NodeAgentInstallHosts       []*NodeAgentInstallHost
-	NodeInstallTargetVersion    []*TargetVersion
-	DisableDefaultTargetVersion bool
+	NodeAgentInstallHosts    []*NodeAgentInstallHost
+	NodeInstallTargetVersion []*TargetVersion
+	IsManual                 bool
 }
 
 // NodeAgentUpgradeHost describes the node agent upgrade host.

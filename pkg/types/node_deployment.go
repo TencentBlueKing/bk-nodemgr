@@ -76,6 +76,7 @@ func (mode LoginMode) Validate() error {
 type DeploymentInstallOptions struct {
 	ReRegister    bool
 	DirectInstall bool
+	IsManual      bool
 }
 
 // DeploymentUpgradeOptions this is the options for node upgrade.

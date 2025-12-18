@@ -14,6 +14,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
@@ -307,35 +309,42 @@ func (x *NodeWorkflowOperationInstanceListReq) Validate() error {
 	return nil
 }
 
-// ConvertConditionsToComm ...
-func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToComm() []string {
+// AutoConvert auto convert.
+func (x *NodeWorkflowOperationInstanceListReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToTypes() []string {
 	return x.GetOperationId()
 }
 
-// AutoConvert auto convert.
-func (x *NodeWorkflowOperationInstanceListReq) AutoConvert() {
+// ConvertConditionsFromTypes convert conditions from types.
+func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsFromTypes(condition *types.OperInstDataCondition) {
+	if condition == nil {
+		return
+	}
+
+	if condition.ExactInclude != nil {
+		x.OperationId = condition.ExactInclude.OperationID
+		x.OperInstId = condition.ExactInclude.OperInstID
+	}
 }
 
 // ConvertResultFromTypes ...
 func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 	num int64, result []*operation.InstanceBriefData) {
 
-	items := make([]*WorflowOperationInstanceData, len(result))
+	items := make([]*WorflowOperationInstanceData, 0, len(result))
 	for idx, opinstance := range result {
 		items[idx] = &WorflowOperationInstanceData{
-			OperInstId:        opinstance.Metadata.OperationInstanceID,
-			OperationId:       opinstance.Metadata.OperationID,
-			OperInstStatus:    string(opinstance.Lifecycle.State),
-			OperationDefName:  opinstance.Metadata.OperationDefName,
-			ParentOperationId: opinstance.Metadata.ParentOperationID,
-			ActionNames:       opinstance.Metadata.ActionNames,
-			LifeCycle: &WorkflowLifeCycle{
-				State:      string(opinstance.Lifecycle.State),
-				CreateTime: opinstance.Lifecycle.CreatedAt.Unix(),
-				StartTime:  opinstance.Lifecycle.StartedAt.Unix(),
-				EndTime:    opinstance.Lifecycle.EndedAt.Unix(),
-				StopTime:   opinstance.Lifecycle.StoppedAt.Unix(),
-			},
+			OperInstId:                opinstance.Metadata.OperationInstanceID,
+			OperationId:               opinstance.Metadata.OperationID,
+			OperInstStatus:            string(opinstance.Lifecycle.State),
+			OperationDefName:          opinstance.Metadata.OperationDefName,
+			ParentOperationId:         opinstance.Metadata.ParentOperationID,
+			ActionNames:               opinstance.Metadata.ActionNames,
+			LifeCycle:                 convertNodeWorkflowOperInstLifeCycleFromTypes(opinstance.Lifecycle),
+			LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(opinstance.LatestActionInstBriefData),
 		}
 	}
 
@@ -352,19 +361,14 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertOperationInstanceFromType
 	items := make([]*WorflowOperationInstanceData, 1)
 
 	oper := &WorflowOperationInstanceData{
-		OperInstId:        result.Metadata.OperationInstanceID,
-		OperationId:       result.Metadata.OperationID,
-		OperInstStatus:    string(result.Lifecycle.State),
-		OperationDefName:  result.Metadata.OperationDefName,
-		ParentOperationId: result.Metadata.ParentOperationID,
-		ActionNames:       result.Metadata.ActionNames,
-		LifeCycle: &WorkflowLifeCycle{
-			State:      string(result.Lifecycle.State),
-			CreateTime: result.Lifecycle.CreatedAt.Unix(),
-			StartTime:  result.Lifecycle.StartedAt.Unix(),
-			EndTime:    result.Lifecycle.EndedAt.Unix(),
-			StopTime:   result.Lifecycle.StoppedAt.Unix(),
-		},
+		OperInstId:                result.Metadata.OperationInstanceID,
+		OperationId:               result.Metadata.OperationID,
+		OperInstStatus:            string(result.Lifecycle.State),
+		OperationDefName:          result.Metadata.OperationDefName,
+		ParentOperationId:         result.Metadata.ParentOperationID,
+		ActionNames:               result.Metadata.ActionNames,
+		LifeCycle:                 convertNodeWorkflowOperInstLifeCycleFromTypes(result.Lifecycle),
+		LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(result.LatestActionInstBriefData),
 	}
 
 	items[0] = oper
@@ -395,12 +399,8 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertWorkflowOperationInstance
 				ParentOperationID:   item.GetParentOperationId(),
 				ActionNames:         item.GetActionNames(),
 			},
-			Lifecycle: &operation.Lifecycle{
-				State:     operation.State(item.GetOperInstStatus()),
-				CreatedAt: time.Unix(item.GetLifeCycle().GetCreateTime(), 0),
-				StartedAt: time.Unix(item.GetLifeCycle().GetStartTime(), 0),
-				EndedAt:   time.Unix(item.GetLifeCycle().GetEndTime(), 0),
-			},
+			Lifecycle:                 convertNodeWorkflowOperInstLifeCycleToTypes(item.GetLifeCycle()),
+			LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataToTypes(item.GetLatestActionInstBriefData()),
 		}
 
 		result[idx] = inst
@@ -639,6 +639,113 @@ func (x *NodeWorkflowOperationRetryReq) ConvertOperationRetryParamFromTypes(retr
 	x.RetryMod = string(retryParm.RetryMode)
 }
 
+// AutoConvert auto convert.
+func (x *NodeWorkflowOperationManualInfoGetReq) AutoConvert() {
+}
+
+// Validate convert workflow id.
+func (x *NodeWorkflowOperationManualInfoGetReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	if x.GetOperationId() == "" {
+		return errors.New("operation_id is required")
+	}
+
+	return nil
+}
+
+// ConvertManualInfoFromTypes convert manual info from types.
+func (x *NodeWorkflowOperationManualInfoGetResp) ConvertManualInfoFromTypes(manualInfo *types.NodeWorkflowOperationManualInfo) {
+	commands := make([]*ManualCommand, 0)
+	for _, cmd := range manualInfo.Commands {
+		commands = append(commands, &ManualCommand{
+			Type:    string(cmd.Type),
+			Command: cmd.Command,
+		})
+	}
+
+	networkPolicies := make([]*NetworkPolicy, 0)
+	for _, policy := range manualInfo.NetworkPolicies {
+		networkPolicies = append(networkPolicies, &NetworkPolicy{
+			Name:          policy.Name,
+			DescriptionEn: policy.DescriptionEN,
+			DescriptionZh: policy.DescriptionZH,
+			Source: &NetworkPolicyEndpoint{
+				Name:          policy.Source.Name,
+				Type:          string(policy.Source.Type),
+				Values:        policy.Source.Values,
+				DescriptionEn: policy.Source.DescriptionEN,
+				DescriptionZh: policy.Source.DescriptionZH,
+			},
+			Target: &NetworkPolicyEndpoint{
+				Name:          policy.Target.Name,
+				Type:          string(policy.Target.Type),
+				Values:        policy.Target.Values,
+				DescriptionEn: policy.Target.DescriptionEN,
+				DescriptionZh: policy.Target.DescriptionZH,
+			},
+			Service: &NetworkPolicyService{
+				Protocol:      string(policy.Service.Protocol),
+				Ports:         policy.Service.Ports,
+				DescriptionEn: policy.Service.DescriptionEN,
+				DescriptionZh: policy.Service.DescriptionZH,
+			},
+		})
+	}
+
+	x.Data = &ManualInfo{
+		Commands:        commands,
+		NetworkPolicies: networkPolicies,
+	}
+}
+
+// ConvertManualInfoToTypes convert manual info to types.
+func (x *NodeWorkflowOperationManualInfoGetResp) ConvertManualInfoToTypes() *types.NodeWorkflowOperationManualInfo {
+	commands := make([]*types.NodeWorkflowOperationManualCommand, 0)
+	for _, cmd := range x.GetData().GetCommands() {
+		commands = append(commands, &types.NodeWorkflowOperationManualCommand{
+			Type:    types.NodeWorkflowOperationManualCommandType(cmd.GetType()),
+			Command: cmd.GetCommand(),
+		})
+	}
+
+	networkPolicies := make([]*types.NetworkPolicy, 0)
+	for _, policy := range x.GetData().GetNetworkPolicies() {
+		networkPolicies = append(networkPolicies, &types.NetworkPolicy{
+			Name:          policy.GetName(),
+			DescriptionEN: policy.GetDescriptionEn(),
+			DescriptionZH: policy.GetDescriptionZh(),
+			Source: types.NetworkPolicyEndpoint{
+				Name:          policy.GetSource().GetName(),
+				Type:          criteria.NetEndpointType(policy.GetSource().GetType()),
+				Values:        policy.GetSource().GetValues(),
+				DescriptionEN: policy.GetSource().GetDescriptionEn(),
+				DescriptionZH: policy.GetSource().GetDescriptionZh(),
+			},
+			Target: types.NetworkPolicyEndpoint{
+				Name:          policy.GetTarget().GetName(),
+				Type:          criteria.NetEndpointType(policy.GetTarget().GetType()),
+				Values:        policy.GetTarget().GetValues(),
+				DescriptionEN: policy.GetTarget().GetDescriptionEn(),
+				DescriptionZH: policy.GetTarget().GetDescriptionZh(),
+			},
+			Service: types.NetworkPolicyService{
+				Protocol:      criteria.NetType(policy.GetService().GetProtocol()),
+				Ports:         policy.GetService().GetPorts(),
+				DescriptionEN: policy.GetService().GetDescriptionEn(),
+				DescriptionZH: policy.GetService().GetDescriptionZh(),
+			},
+		})
+	}
+
+	return &types.NodeWorkflowOperationManualInfo{
+		Commands:        commands,
+		NetworkPolicies: networkPolicies,
+	}
+}
+
 func convertNodeWorkflowConditionsToTypes(
 	exactCond *NodeWorkflowExactConditions,
 	_ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) *types.NodeWorkflowCondition {
@@ -770,6 +877,54 @@ func convertNodeWorkOperaInstanceStatusConditionsFromTypes(condition *types.Node
 	}
 
 	return exactCond, fuzzyCond, nil
+}
+
+func convertNodeWorkflowActionInstBriefDataFromTypes(data *action.InstanceBriefData) *WorkflowActionInstBriefData {
+	if data == nil {
+		return &WorkflowActionInstBriefData{}
+	}
+
+	return &WorkflowActionInstBriefData{
+		Name: data.Name,
+		Tags: conv.SliceToSlice(data.Tags, func(tag action.Tag) string { return string(tag) }),
+	}
+}
+
+func convertNodeWorkflowActionInstBriefDataToTypes(data *WorkflowActionInstBriefData) *action.InstanceBriefData {
+	if data == nil {
+		return &action.InstanceBriefData{}
+	}
+
+	return &action.InstanceBriefData{
+		Name: data.GetName(),
+		Tags: conv.SliceToSlice(data.GetTags(), func(tag string) action.Tag { return action.Tag(tag) }),
+	}
+}
+
+func convertNodeWorkflowOperInstLifeCycleFromTypes(data *operation.Lifecycle) *WorkflowLifeCycle {
+	if data == nil {
+		return &WorkflowLifeCycle{}
+	}
+
+	return &WorkflowLifeCycle{
+		State:      string(data.State),
+		CreateTime: data.CreatedAt.Unix(),
+		StartTime:  data.StartedAt.Unix(),
+		EndTime:    data.EndedAt.Unix(),
+	}
+}
+
+func convertNodeWorkflowOperInstLifeCycleToTypes(data *WorkflowLifeCycle) *operation.Lifecycle {
+	if data == nil {
+		return &operation.Lifecycle{}
+	}
+
+	return &operation.Lifecycle{
+		State:     operation.State(data.GetState()),
+		CreatedAt: time.Unix(data.GetCreateTime(), 0),
+		StartedAt: time.Unix(data.GetStartTime(), 0),
+		EndedAt:   time.Unix(data.GetEndTime(), 0),
+	}
 }
 
 func newEmptyNodeWorkflow() *NodeWorkflowInfo {

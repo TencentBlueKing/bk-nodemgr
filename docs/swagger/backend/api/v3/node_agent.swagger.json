@@ -386,7 +386,7 @@
             "$ref": "#/definitions/v3NodeAgentInstallReqTargetVersion"
           }
         },
-        "disable_default_target_version": {
+        "is_manual": {
           "type": "boolean"
         }
       },

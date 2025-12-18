@@ -157,10 +157,11 @@ func (svc *Service) initialStaticsConfigs() error {
 	// initial gse deploy conf.
 	for idx := range svc.conf.GSEDeployConfs {
 		deployConf := deployconstant.DeployConf{
-			Generation:    types.Generation(svc.conf.GSEDeployConfs[idx].Generation),
-			OsType:        criteria.OSType(svc.conf.GSEDeployConfs[idx].OsType),
-			BaseDeployDir: svc.conf.GSEDeployConfs[idx].BaseDeployDir,
-			BaseWorkDir:   svc.conf.GSEDeployConfs[idx].BaseWorkDir,
+			Generation:       types.Generation(svc.conf.GSEDeployConfs[idx].Generation),
+			OsType:           criteria.OSType(svc.conf.GSEDeployConfs[idx].OsType),
+			BaseDeployDir:    svc.conf.GSEDeployConfs[idx].BaseDeployDir,
+			BaseWorkDir:      svc.conf.GSEDeployConfs[idx].BaseWorkDir,
+			ManualScriptPath: svc.conf.GSEDeployConfs[idx].ManualScriptPath,
 		}
 		if err := deployconstant.SetDeployConf(deployConf); err != nil {
 			return fmt.Errorf("failed to set deploy conf: %w", err)

@@ -140,6 +140,12 @@ func (data *InstanceData) NeedExecuted() error {
 	}
 }
 
+// InstanceBriefData describes the brief data of an action instance.
+type InstanceBriefData struct {
+	Name string
+	Tags []Tag
+}
+
 // Lifecycle describes the lifecycle of an action instance.
 type Lifecycle struct {
 	State     State

@@ -93,6 +93,9 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionUninstallNode(nodeCap),
 		node.NewActionResetNodeDynamic(nodeCap),
 		node.NewActionInstallPreOrderedPlugins(nodeCap),
+		node.NewActionGenManualCommand(nodeCap),
+		node.NewActionWaitDetectInfoByManual(nodeCap),
+		node.NewActionInstallNodeByManual(nodeCap),
 	); err != nil {
 		return err
 	}

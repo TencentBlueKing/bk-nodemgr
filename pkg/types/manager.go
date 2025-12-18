@@ -71,6 +71,12 @@ type TerminateNodeWorkflowOperationParam struct {
 	OperationIDs []string
 }
 
+// GetNodeWorklfowOperationManualInfoParam get node workflow operation manual info param.
+type GetNodeWorklfowOperationManualInfoParam struct {
+	WorkflowID  string
+	OperationID string
+}
+
 // ===============================================================================
 // Plugin Manager Params
 // ===============================================================================

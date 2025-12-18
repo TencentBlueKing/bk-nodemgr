@@ -918,6 +918,25 @@ func (s *Storage) UpdateOperationInstanceLifecycle(
 	return nil
 }
 
+// UpdateOperationLatestActionInstBriefData updates operation latest action inst brief data.
+func (s *Storage) UpdateOperationLatestActionInstBriefData(
+	ctx contextx.IContext, operationInstanceID string, briefData *action.InstanceBriefData) error {
+
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("update_operation_latest_action_inst_brief_data")
+	defer metric.End(err)
+
+	if err = s.updateOperationLatestActionInstBriefData(ctx, operationInstanceID, briefData); err != nil {
+		logger.G.Sys().WithErr(err).With("oper-inst-id", operationInstanceID).Error("failed to update operation latest action inst brief data")
+
+		return fmt.Errorf("failed to update operation latest action inst brief data, oper-inst-id(%s): %w", operationInstanceID, err)
+	}
+
+	return nil
+}
+
 // UpdateOperationInstanceExtraExecutionMessages updates operation instance execution messages.
 func (s *Storage) UpdateOperationInstanceExtraExecutionMessages(
 	nCtx contextx.IContext, operInstID string, messages ...common.Message) error {

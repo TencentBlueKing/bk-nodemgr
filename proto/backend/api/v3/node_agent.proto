@@ -32,7 +32,7 @@ message NodeAgentInstallReq {
     string os_type = 3;
   }
   repeated TargetVersion target_version = 2;
-  bool disable_default_target_version = 3;
+  bool is_manual = 3;
 }
 
 // NodeAgentInstallResp describes the node agent install response.

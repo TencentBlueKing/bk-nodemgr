@@ -71,6 +71,36 @@ func (x *GetCheckListReq) AutoConvert() {
 }
 
 // Validate check request body.
+func (x *ReportDetectInfoReq) Validate() error {
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *GetManualInstallExecCommandReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *GetManualInstallExecCommandReq) Validate() error {
+	if x.GetOperInstId() == "" {
+		return errors.New("oper_inst_id is required")
+	}
+
+	if x.GetActionName() == "" {
+		return errors.New("action_name is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *ReportDetectInfoReq) AutoConvert() {
+}
+
+// Validate check request body.
 func (x *ReportLogReq) Validate() error {
 	if x.GetToken() == "" {
 		return errors.New("token is required")

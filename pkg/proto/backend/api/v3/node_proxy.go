@@ -78,6 +78,7 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 
 	x.TargetVersion = targetVersion
 	x.Host = hostsParam
+	x.IsManual = installParam.IsManual
 }
 
 // Validate check body.

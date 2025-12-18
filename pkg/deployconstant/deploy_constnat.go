@@ -30,6 +30,8 @@ type DeployConf struct {
 
 	DeployDir string
 	WorkDir   string
+
+	ManualScriptPath string
 }
 
 // Validate checks if the deployment configuration is valid.

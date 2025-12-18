@@ -220,6 +220,39 @@
         ]
       }
     },
+    "/api/v3/node/workflow/operation/manual/info/get": {
+      "post": {
+        "summary": "NodeWorkflowOperationManualInfoGet provides node operation manual info get.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationManualInfoGet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationManualInfoGetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationManualInfoGetReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/workflow/operation/retry": {
       "post": {
         "summary": "NodeWorkflowOperationRetry provides node operation retry.",
@@ -359,6 +392,107 @@
           }
         }
       }
+    },
+    "v3ManualCommand": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        }
+      },
+      "description": "ManualCommand describes the manual command."
+    },
+    "v3ManualInfo": {
+      "type": "object",
+      "properties": {
+        "network_policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NetworkPolicy"
+          }
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ManualCommand"
+          }
+        }
+      },
+      "description": "ManualInfo describes the manual info."
+    },
+    "v3NetworkPolicy": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description_en": {
+          "type": "string"
+        },
+        "description_zh": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/definitions/v3NetworkPolicyEndpoint"
+        },
+        "target": {
+          "$ref": "#/definitions/v3NetworkPolicyEndpoint"
+        },
+        "service": {
+          "$ref": "#/definitions/v3NetworkPolicyService"
+        }
+      },
+      "description": "NetworkPolicy describes the network policy."
+    },
+    "v3NetworkPolicyEndpoint": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description_en": {
+          "type": "string"
+        },
+        "description_zh": {
+          "type": "string"
+        }
+      },
+      "description": "NetworkPolicyEndpoint describes the network policy endpoint."
+    },
+    "v3NetworkPolicyService": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string"
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description_en": {
+          "type": "string"
+        },
+        "description_zh": {
+          "type": "string"
+        }
+      },
+      "description": "NetworkPolicyService describes the network policy service."
     },
     "v3NodeWorkflowDistinctReq": {
       "type": "object",
@@ -691,6 +825,12 @@
           "items": {
             "type": "string"
           }
+        },
+        "oper_inst_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "description": "NodeWorkflowOperationInstanceListReq describes the node operation instance\nlist by operation-id request."
@@ -880,6 +1020,40 @@
         }
       }
     },
+    "v3NodeWorkflowOperationManualInfoGetReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "operation_id": {
+          "type": "string"
+        }
+      },
+      "title": "NodeWorkflowOperationManualInfoGetReq"
+    },
+    "v3NodeWorkflowOperationManualInfoGetResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3ManualInfo"
+        }
+      },
+      "title": "NodeWorkflowOperationManualInfoGetResp"
+    },
     "v3NodeWorkflowOperationRetryReq": {
       "type": "object",
       "properties": {
@@ -1017,6 +1191,9 @@
         },
         "life_cycle": {
           "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
         }
       },
       "description": "WorflowOperationInstanceData describes the workflow operation instance data."
@@ -1032,6 +1209,21 @@
         }
       },
       "description": "WorkflowActionData describes the workflow action data."
+    },
+    "v3WorkflowActionInstBriefData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "WorkflowActionInstBriefData describes the workflow action instance brief\ndata."
     },
     "v3WorkflowActionMessage": {
       "type": "object",

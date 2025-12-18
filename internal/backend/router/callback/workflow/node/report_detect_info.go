@@ -16,41 +16,51 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
-// ReportData ...
-func (h *handler) ReportData(gCtx *gin.Context) {
+// ReportDetectInfo report detect info.
+func (h *handler) ReportDetectInfo(gCtx *gin.Context) {
 	nCtx := contextx.New(gCtx)
 
-	req := new(protoCallback.ReportDataReq)
+	req := new(protoCallback.ReportDetectInfoReq)
 	if err := gCtx.BindJSON(req); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to report data, failed to decode request")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report detect info, failed to decode request")
 		gCtx.JSON(http.StatusBadRequest, err)
 
 		return
 	}
 
-	info, err := h.GetNodeDeploymentInfo(nCtx, req.GetToken())
+	if err := req.Validate(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report detect info, failed to validate request")
+		gCtx.JSON(http.StatusBadRequest, err)
+
+		return
+	}
+
+	logger.G.Biz(nCtx).With("oper-inst-id", req.GetOperInstId(), "action", req.GetActionName()).Info("report detect info")
+
+	info, err := conv.StructToMap(types.PDDetectInfo{
+		OsType:  req.GetOsType(),
+		CPUArch: req.GetCpuArch(),
+		RunDir:  req.GetConnectionDir(),
+		ErrMsg:  req.GetErrMsg(),
+	})
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to report data, failed to get node deployment conf")
-		gCtx.JSON(http.StatusBadRequest, err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report detect info, failed to convert struct to map")
+		gCtx.JSON(http.StatusInternalServerError, err)
 
 		return
 	}
 
-	dataMap := map[string]any{
-		types.PDKeyInstallerReportAgentID: req.GetAgentId(),
-	}
-
-	if err := h.UpsertActionInstancePrivateData(nCtx, req.GetOperInstId(), info.BlockingActionName, dataMap); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to report data, failed to update action private data")
+	if err := h.UpsertActionInstancePrivateData(nCtx, req.GetOperInstId(), req.GetActionName(), map[string]any{
+		types.PDKeyReportDetectInfo: info,
+	}); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to report detect info, failed to update action private data")
 		gCtx.JSON(http.StatusInternalServerError, err)
 	}
-
-	logger.G.Biz(nCtx).With("oper-inst-id", req.GetOperInstId(), "action", info.BlockingActionName).
-		Info("report data success")
 
 	gCtx.JSON(http.StatusOK, nil)
 }

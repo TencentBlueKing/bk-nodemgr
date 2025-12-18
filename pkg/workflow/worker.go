@@ -164,6 +164,11 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		return err
 	}
 
+	// update latest action brief data.
+	if err = mgr.updateOperationLatestActionBriefData(nCtx, operationInstanceID, actionDef); err != nil {
+		return err
+	}
+
 	// handle action content.
 	if actionInstData.IsFirst() {
 		// first action should get content from operation instance init data.
@@ -260,6 +265,23 @@ func (mgr *manager) updateOperationInstanceLifecycle(
 	if err := mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(ctx,
 		operationInstanceID, operInstLifecycle); err != nil {
 		return fmt.Errorf("failed to update operation instance lifecycle. "+
+			"oper-inst-id(%s): %v", operationInstanceID, err)
+	}
+
+	return nil
+}
+
+func (mgr *manager) updateOperationLatestActionBriefData(
+	ctx contextx.IContext,
+	operationInstanceID string,
+	actionDef action.Definition) error {
+
+	if err := mgr.stgOperationInstance.UpdateOperationLatestActionInstBriefData(ctx,
+		operationInstanceID, &action.InstanceBriefData{
+			Name: actionDef.Name(),
+			Tags: actionDef.Tags(),
+		}); err != nil {
+		return fmt.Errorf("failed to update latest action brief data. "+
 			"oper-inst-id(%s): %v", operationInstanceID, err)
 	}
 

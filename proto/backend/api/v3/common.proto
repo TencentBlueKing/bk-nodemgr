@@ -243,3 +243,30 @@ message Error {
   }
   repeated Details details = 3;
 }
+
+// NetworkPolicyEndpoint describes the network policy endpoint.
+message NetworkPolicyEndpoint {
+  string name = 1;
+  string type = 2;
+  repeated string values = 3;
+  string description_en = 4;
+  string description_zh = 5;
+}
+
+// NetworkPolicyService describes the network policy service.
+message NetworkPolicyService {
+  string protocol = 1;
+  repeated string ports = 2;
+  string description_en = 3;
+  string description_zh = 4;
+}
+
+// NetworkPolicy describes the network policy.
+message NetworkPolicy {
+  string name = 1;
+  string description_en = 2;
+  string description_zh = 3;
+  NetworkPolicyEndpoint source = 4;
+  NetworkPolicyEndpoint target = 5;
+  NetworkPolicyService service = 6;
+}

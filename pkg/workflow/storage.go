@@ -86,7 +86,8 @@ type IStorageOperationInstance interface {
 	GetOperationInstanceBriefData(ctx contextx.IContext, operationInstanceID string) (*operation.InstanceBriefData, error)
 
 	// ListOperationInstanceBriefDataWithoutActionInst lists operation instance brief data. without action instance data.
-	ListOperationInstanceBriefDataWithoutActionInst(ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
+	ListOperationInstanceBriefDataWithoutActionInst(
+		ctx contextx.IContext, page types.Page, conditions ...*types.OperInstDataCondition) (
 		[]*operation.InstanceBriefData, int64, error)
 
 	// ListOperInstanceBriefWithoutActionInstByOperationID lists operation instance brief data.
@@ -108,6 +109,9 @@ type IStorageOperationInstance interface {
 
 	// UpdateOperationInstanceLifecycle updates operation instance lifecycle.
 	UpdateOperationInstanceLifecycle(ctx contextx.IContext, operationInstanceID string, lifecycle *operation.Lifecycle) error
+
+	// UpdateOperationLatestActionInstBriefData updates operation latest action inst brief data.
+	UpdateOperationLatestActionInstBriefData(ctx contextx.IContext, operationInstanceID string, briefData *action.InstanceBriefData) error
 
 	// UpdateOperationInstanceExtraExecutionMessages updates operation instance extra execution messages.
 	UpdateOperationInstanceExtraExecutionMessages(ctx contextx.IContext, operationInstanceID string, messages ...common.Message) error
