@@ -58,8 +58,8 @@ func (x *NodeWorkflowListReq) ConvertConditionsToTypes() *types.NodeWorkflowCond
 
 // ConvertNodeWorkflowsFromTypes convert node workflows from types.
 func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflows []*types.NodeWorkflow) {
-	items := make([]*NodeWorkflowInfo, 0, len(workflows))
-	for _, workflow := range workflows {
+	items := make([]*NodeWorkflowInfo, len(workflows))
+	for idx, workflow := range workflows {
 		item := newEmptyNodeWorkflow()
 		*item.WorkflowId = workflow.WorkflowID
 		item.BkBizId = workflow.BizIDs
@@ -69,7 +69,7 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		*item.Operator = workflow.Operator
 		*item.OperateTime = workflow.OperateTime.UnixMilli()
 		*item.FinishTime = workflow.FinishTime.UnixMilli()
-		items = append(items, item)
+		items[idx] = item
 	}
 
 	x.Data = &NodeWorkflowListResp_Data{
@@ -257,6 +257,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 			BkNetworkareaId:     op.NetworkAreaID,
 			BkNetworkunitId:     op.NetworkUnitID,
 			BkBizId:             op.BizID,
+			BkHostId:            op.HostID,
 			BkHostInneripList:   op.InnerIPList,
 			BkHostInneripV6List: op.InnerIPV6List,
 			NodeVersion:         op.NodeVersion,
@@ -266,7 +267,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, resu
 	}
 
 	x.Data = &NodeWorkflowOperationListResp_Data{
-		TotalCount: total,
+		Total:      total,
 		Operations: items,
 	}
 }
@@ -289,6 +290,7 @@ func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*ty
 			NetworkAreaID:   item.GetBkNetworkareaId(),
 			NetworkUnitID:   item.GetBkNetworkunitId(),
 			BizID:           item.GetBkBizId(),
+			HostID:          item.GetBkHostId(),
 			InnerIPList:     item.GetBkHostInneripList(),
 			InnerIPV6List:   item.GetBkHostInneripV6List(),
 			NodeVersion:     item.GetNodeVersion(),
@@ -297,15 +299,11 @@ func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*ty
 		result[idx] = operation
 	}
 
-	return result, data.GetTotalCount()
+	return result, data.GetTotal()
 }
 
 // Validate check body.
 func (x *NodeWorkflowOperationInstanceListReq) Validate() error {
-	if len(x.GetOperationId()) == 0 || x.GetOperationId()[0] == "" {
-		return errors.New("operation id is required")
-	}
-
 	return nil
 }
 
@@ -348,7 +346,7 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 	}
 }
 
-// ConvertOperationInstanceFromTypes  ...
+// ConvertOperationInstanceFromTypes convert operation instance from types.
 func (x *NodeWorkflowOperationInstanceListResp) ConvertOperationInstanceFromTypes(
 	total int64, result *operation.InstanceBriefData) {
 
@@ -377,7 +375,7 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertOperationInstanceFromType
 	}
 }
 
-// ConvertWorkflowOperationInstanceToTypes ...
+// ConvertWorkflowOperationInstanceToTypes convert workflow operation instance to types.
 func (x *NodeWorkflowOperationInstanceListResp) ConvertWorkflowOperationInstanceToTypes() (
 	[]*operation.InstanceBriefData, int64) {
 
@@ -386,9 +384,8 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertWorkflowOperationInstance
 		return nil, 0
 	}
 
-	total := data.GetTotal()
 	items := data.GetOperInstData()
-	result := make([]*operation.InstanceBriefData, total)
+	result := make([]*operation.InstanceBriefData, len(items))
 
 	for idx, item := range items {
 		inst := &operation.InstanceBriefData{
@@ -410,7 +407,7 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertWorkflowOperationInstance
 		result[idx] = inst
 	}
 
-	return result, total
+	return result, data.GetTotal()
 }
 
 // Validate check body.
@@ -427,7 +424,7 @@ func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertPageToTypes(maxLimit
 	return generatePage(x.GetPage(), maxLimit)
 }
 
-// ConvertListStatusConditionsToTypes ...
+// ConvertListStatusConditionsToTypes convert list status conditions to types.
 func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertListStatusConditionsToTypes() *types.OperInstDataCondition {
 	return &types.OperInstDataCondition{
 		ExactInclude: &types.OperInstDataExactFields{
@@ -437,7 +434,7 @@ func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertListStatusConditions
 	}
 }
 
-// ConvertWorkflowOperInstanceStatusFromTypes ...
+// ConvertWorkflowOperInstanceStatusFromTypes convert workflow operation instance status from types.
 func (x *NodeWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperInstanceStatusFromTypes(
 	result []*operation.InstanceBriefData) {
 
@@ -468,15 +465,15 @@ func (x *NodeWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperationIn
 
 	items := data.GetItems()
 
-	result := make([]*operation.InstanceStatus, 0)
-	for _, value := range items {
-		result = append(result, &operation.InstanceStatus{
+	result := make([]*operation.InstanceStatus, len(items))
+	for idx, value := range items {
+		result[idx] = &operation.InstanceStatus{
 			TriggerID:           value.GetTriggerId(),
 			State:               operation.State(value.GetStatus()),
 			Index:               int(value.GetIndex()),
 			OperationID:         value.GetOperationId(),
 			OperationInstanceID: value.GetOperationInstanceId(),
-		})
+		}
 	}
 
 	return result
@@ -525,13 +522,13 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 			EndTime:    v.Lifecycle.EndedAt.Unix(),
 		}
 
-		messages := make([]*WorkflowActionMessage_Message, 0, len(v.Messages))
-		for _, msg := range v.Messages {
-			messages = append(messages, &WorkflowActionMessage_Message{
+		messages := make([]*WorkflowActionMessage_Message, len(v.Messages))
+		for idx, msg := range v.Messages {
+			messages[idx] = &WorkflowActionMessage_Message{
 				Time:  msg.Time.Unix(),
 				Text:  msg.Text,
 				Level: msg.Level,
-			})
+			}
 		}
 
 		operInstLogs[actionID] = &WorkflowActionData{
@@ -542,7 +539,6 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 
 	x.Data = &NodeWorkflowOperationInstanceLogGetResp_Data{
 		OperInstLogs: operInstLogs,
-		Total:        int64(len(result.ActionInstanceDataMap)),
 	}
 }
 

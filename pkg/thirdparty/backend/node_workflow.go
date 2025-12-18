@@ -189,7 +189,7 @@ func (h *Handler) CountNodeWorkflowOperation(ctx contextx.IContext,
 		return 0, err
 	}
 
-	return resp.GetData().GetTotalCount(), nil
+	return resp.GetData().GetTotal(), nil
 }
 
 // ListNodeWorkflowOperationInstance list workflow operation instance.

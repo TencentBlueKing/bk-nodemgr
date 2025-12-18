@@ -60,8 +60,8 @@ func (x *NodeWorkflowStatisticsReq) Validate() error {
 func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflows []*types.NodeWorkflow,
 	businessMap map[int64]string) {
 
-	items := make([]*NodeWorkflowInfo, 0, len(workflows))
-	for _, workflow := range workflows {
+	items := make([]*NodeWorkflowInfo, len(workflows))
+	for idx, workflow := range workflows {
 		item := newEmptyNodeWorkflow()
 
 		*item.WorkflowId = workflow.WorkflowID
@@ -83,7 +83,7 @@ func (x *NodeWorkflowListResp) ConvertNodeWorkflowsFromTypes(num int64, workflow
 		}
 		item.BkBizName = bizNames
 
-		items = append(items, item)
+		items[idx] = item
 	}
 
 	x.Data = &NodeWorkflowListResp_Data{
@@ -241,6 +241,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 				BkNetworkareaId:     op.NetworkAreaID,
 				BkNetworkunitId:     op.NetworkUnitID,
 				BkBizId:             op.BizID,
+				BkHostId:            op.HostID,
 				BkHostInnerList:     op.InnerIPList,
 				BkHostInneripV6List: op.InnerIPV6List,
 				NodeVersion:         op.NodeVersion,
@@ -253,7 +254,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 	}
 
 	x.Data = &NodeWorkflowOperationListResp_Data{
-		TotalCount: total,
+		Total:      total,
 		Operations: items,
 	}
 }
@@ -261,27 +262,19 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 // GetCountOnly get count only.
 func (x *NodeWorkflowOperationListResp) GetCountOnly() interface{} {
 	if x.GetData() == nil {
-		return &NodeWorkflowOperationListResp_Data{
-			TotalCount: 0,
-		}
+		return nil
 	}
-
-	x.Data.Operations = nil
 
 	return x.GetData()
 }
 
 // Validate check body.
 func (x *NodeWorkflowOperationInstanceListReq) Validate() error {
-	if x.GetOperationId() == "" {
-		return errors.New("operation_id is required")
-	}
-
 	return nil
 }
 
-// ConvertConditionsToComm ...
-func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToComm() string {
+// ConvertConditionsToOperationInstanceID convert conditions to operation instance id.
+func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToOperationInstanceID() string {
 	return x.GetOperationId()
 }
 
@@ -293,7 +286,7 @@ func (x *NodeWorkflowOperationInstanceListReq) AutoConvert() {
 func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(total int64,
 	result []*operation.InstanceBriefData) {
 
-	items := make([]*WorflowOperationInstanceData, 0, len(result))
+	items := make([]*WorflowOperationInstanceData, len(result))
 	for _, opinstance := range result {
 		oper := &WorflowOperationInstanceData{
 			OperInstId:        opinstance.Metadata.OperationInstanceID,
@@ -366,7 +359,6 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 
 	x.Data = &NodeWorkflowOperationInstanceLogGetResp_Data{
 		OperInstLogs: operInstLogs,
-		Total:        int64(len(result.ActionInstanceDataMap)),
 	}
 }
 

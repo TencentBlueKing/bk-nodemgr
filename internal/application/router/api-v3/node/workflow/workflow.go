@@ -260,31 +260,27 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to validate request body: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
-	}
-
-	resp := new(protoApplication.NodeWorkflowOperationInstanceListResp)
-
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountNodeWorkflowOperationInstance(
-			rCtx, req.ConvertConditionsToComm())
+			rCtx, req.ConvertConditionsToOperationInstanceID())
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to count operation instance: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
+
+		resp := new(protoApplication.NodeWorkflowOperationInstanceListResp)
 		resp.ConvertResultFromTypes(num, nil)
 		// only count, no data.
 		return resp.GetData(), nil
 	}
 
 	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
-		rCtx, req.ConvertConditionsToComm())
+		rCtx, req.ConvertConditionsToOperationInstanceID())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
+	resp := new(protoApplication.NodeWorkflowOperationInstanceListResp)
 
 	resp.ConvertResultFromTypes(num, instances)
 

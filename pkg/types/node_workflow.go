@@ -220,6 +220,7 @@ type NodeWorkflowListOperationResult struct {
 	InnerIPList     []string
 	InnerIPV6List   []string
 	BizID           int64
+	HostID          int64
 	Operator        string
 	OperationID     string
 	OperInstanceIDs []string

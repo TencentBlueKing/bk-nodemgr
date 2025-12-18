@@ -190,13 +190,14 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 
 		result[idx] = &types.NodeWorkflowListOperationResult{
 			Operator:        op.operator,
+			OperationID:     op.operationID,
+			OperInstanceIDs: op.operInstanceIDs,
 			NetworkAreaID:   dep.Info.Host.Static.NetworkAreaID,
 			NetworkUnitID:   dep.Info.Host.Dynamic.NetworkUnitID,
 			InnerIPList:     dep.Info.Host.Static.InnerIPList,
 			InnerIPV6List:   dep.Info.Host.Static.InnerIPV6List,
 			BizID:           dep.Info.Host.Static.BizID,
-			OperationID:     op.operationID,
-			OperInstanceIDs: op.operInstanceIDs,
+			HostID:          dep.Info.Host.HostID,
 			NodeVersion:     dep.Info.Host.Dynamic.NodeVersion,
 		}
 	}
