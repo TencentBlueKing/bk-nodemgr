@@ -63,6 +63,9 @@ type IHandler interface {
 	// GetHostDistributionByNetworkAreaID get host distribution by network area id.
 	GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, opts ...OptFn) (map[int64]int64, error)
 
+	// ListWithFields lists hosts with fields.
+	ListWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, int64, error)
+
 	IDistinctor
 }
 
@@ -838,4 +841,61 @@ func (h *handler) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, opt
 	}
 
 	return nodeRoleDistribution, nil
+}
+
+// ListWithFields lists hosts with fields.
+func (h *handler) ListWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, int64, error) {
+	if nCtx == nil {
+		return nil, 0, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, 0, fmt.Errorf("failed to list hosts with fields: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	num, err := h.tenantDao(tenantID).Count(nCtx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	fields := convertHostFieldSelectionToFields(selection)
+
+	findOpt := base.ParsePage(page)
+
+	hosts, err := h.tenantDao(tenantID).List(nCtx, filter, findOpt, fields...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list hosts with fields: %w", err)
+	}
+
+	data := make([]*types.Host, len(hosts))
+	for idx, host := range hosts {
+		data[idx] = convertHostToTypes(host)
+	}
+
+	return data, num, nil
+}
+
+func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []string {
+	fields := make([]string, 0)
+	if selection.EnableFieldHostID {
+		fields = append(fields, FieldKeyHostID)
+	}
+	if selection.EnableFieldNetworkareaID {
+		fields = append(fields, FieldKeyStaticNetworkAreaID)
+	}
+	if selection.EnableFieldHostInneripList {
+		fields = append(fields, FieldKeyStaticInnerIPList)
+	}
+	if selection.EnableFieldHostInneripV6List {
+		fields = append(fields, FieldKeyStaticInnerIPV6List)
+	}
+
+	return fields
 }

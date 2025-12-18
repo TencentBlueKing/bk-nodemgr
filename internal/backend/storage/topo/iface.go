@@ -131,6 +131,10 @@ type IStorageHost interface {
 	// UpdateManyHostDynamic updates host dynamic.
 	UpdateManyHostDynamic(nCtx contextx.IContext, host ...*types.Host) error
 
+	// ListHostWithFields lists hosts by fields and conditions.
+	ListHostWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
+		[]*types.Host, int64, error)
+
 	// ListHost lists hosts by page and conditions.
 	ListHost(nCtx contextx.IContext, page types.Page, conditions ...*types.HostCondition) ([]*types.Host, int64, error)
 

@@ -55,6 +55,11 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/host/distinct", restserver.Handler(h.DistinctHost))
 	h.rg.POST("/host/get_host_distribution_by_node_role", restserver.Handler(h.GetHostDistributionByNodeRole))
 	h.rg.POST("/host/get_host_distribution_by_networkarea_id", restserver.Handler(h.GetHostDistributionByNetworkAreaID))
+	h.rg.POST("/host/scenario/select_host_id", restserver.Handler(h.SelectHostID))
+	h.rg.POST("/host/scenario/select_inner_ip", restserver.Handler(h.SelectInnerIP))
+	h.rg.POST("/host/scenario/select_inner_ipv6", restserver.Handler(h.SelectInnerIPV6))
+	h.rg.POST("/host/scenario/select_networkarea_id_and_inner_ip", restserver.Handler(h.SelectNetWorkareaIDAndInnerIP))
+	h.rg.POST("/host/scenario/select_networkarea_id_and_inner_ipv6", restserver.Handler(h.SelectNetWorkareaIDAndInnerIPV6))
 
 	// networkarea apis.
 	h.rg.POST("/networkarea/list", restserver.Handler(h.ListNetworkArea))

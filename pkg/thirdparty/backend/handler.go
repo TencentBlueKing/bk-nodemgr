@@ -99,6 +99,36 @@ type IHandlerHost interface {
 	// @return host list with page and the total count with filter.
 	ListHost(ctx contextx.IContext, page types.Page, condition *types.HostCondition) ([]*types.Host, int64, error)
 
+	// SelectHostID select host id by condition.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host id list.
+	SelectHostID(ctx contextx.IContext, condition *types.HostCondition) ([]int64, error)
+
+	// SelectInnerIP select host inner ip by condition.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host inner ip list.
+	SelectInnerIP(ctx contextx.IContext, condition *types.HostCondition) ([]string, error)
+
+	// SelectInnerIPV6 select host inner ipv6 by condition.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host inner ipv6 list.
+	SelectInnerIPV6(ctx contextx.IContext, condition *types.HostCondition) ([]string, error)
+
+	// SelectNetWorkareaIDAndInnerIP select host networkarea id and inner ip by condition.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host networkarea id and inner ip list.
+	SelectNetWorkareaIDAndInnerIP(ctx contextx.IContext, condition *types.HostCondition) ([]string, error)
+
+	// SelectNetWorkareaIDAndInnerIPV6 select host networkarea id and inner ipv6 by condition.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the host networkarea id and inner ipv6 list.
+	SelectNetWorkareaIDAndInnerIPV6(ctx contextx.IContext, condition *types.HostCondition) ([]string, error)
+
 	// DistinctHost distinct host by condition.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param condition the filter conditions.
@@ -421,6 +451,102 @@ func (h *Handler) ListHost(ctx contextx.IContext, page types.Page, condition *ty
 	total, hosts := resp.ConvertHostsToTypes()
 
 	return hosts, total, nil
+}
+
+// ListHost list host within specified tenant in contextx.
+// nolint: funlen
+func (h *Handler) SelectHostID(ctx contextx.IContext, condition *types.HostCondition) (
+	[]int64, error) {
+
+	req := &protoBackend.TopoHostSelectHostIDReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.selectHostID(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	hosts := resp.ConvertHostIDToTypes()
+
+	return hosts, nil
+}
+
+// SelectInnerIP select host inner ip within specified tenant in contextx.
+func (h *Handler) SelectInnerIP(ctx contextx.IContext, condition *types.HostCondition) (
+	[]string, error) {
+
+	req := &protoBackend.TopoHostSelectInnerIPReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.selectInnerIP(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := resp.ConvertInnerIPToTypes()
+
+	return items, nil
+}
+
+// SelectInnerIPV6 select host inner ipv6 within specified tenant in contextx.
+func (h *Handler) SelectInnerIPV6(ctx contextx.IContext, condition *types.HostCondition) (
+	[]string, error) {
+
+	req := &protoBackend.TopoHostSelectInnerIPV6Req{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.selectInnerIPV6(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := resp.ConvertInnerIPV6ToTypes()
+
+	return items, nil
+}
+
+// SelectNetWorkareaIDAndInnerIP select host networkarea id and inner ip within specified tenant in contextx.
+func (h *Handler) SelectNetWorkareaIDAndInnerIP(ctx contextx.IContext, condition *types.HostCondition) (
+	[]string, error) {
+
+	req := &protoBackend.TopoHostSelectNetWorkareaIDAndInnerIPReq{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.selectNetWorkareaIDAndInnerIP(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := resp.ConvertNetWorkareaIDAndInnerIPToTypes()
+
+	return items, nil
+}
+
+// SelectNetWorkareaIDAndInnerIPV6 select host networkarea id and inner ipv6 within specified tenant in contextx.
+func (h *Handler) SelectNetWorkareaIDAndInnerIPV6(ctx contextx.IContext, condition *types.HostCondition) (
+	[]string, error) {
+
+	req := &protoBackend.TopoHostSelectNetWorkareaIDAndInnerIPV6Req{}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.selectNetWorkareaIDAndInnerIPV6(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := resp.ConvertNetWorkareaIDAndInnerIPV6ToTypes()
+
+	return items, nil
 }
 
 // DistinctHost distinct host within specified tenant in contextx.

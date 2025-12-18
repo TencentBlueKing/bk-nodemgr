@@ -70,7 +70,7 @@ type IOrm[P DataPoint[T], T any] interface {
 	Count(nCtx contextx.IContext, filter bson.D) (int64, error)
 
 	// List list the data by given filter.
-	List(nCtx contextx.IContext, filter bson.D, findOpt *mongoOptions.FindOptions) ([]P, error)
+	List(nCtx contextx.IContext, filter bson.D, findOpt *mongoOptions.FindOptions, field ...string) ([]P, error)
 
 	// DistinctString distinct the string value of given key.
 	DistinctString(
@@ -361,7 +361,7 @@ func (orm *Orm[P, T]) Count(nCtx contextx.IContext, filter bson.D) (num int64, e
 }
 
 // List this is a common operation for mongo db.
-func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongoOptions.FindOptions) (dataPoints []P, err error) {
+func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongoOptions.FindOptions, field ...string) (dataPoints []P, err error) {
 	// record metric.
 	metric := orm.metric().start(daomongo.MetricOperationFind, len(filter))
 	defer func() {
@@ -370,6 +370,18 @@ func (orm *Orm[P, T]) List(nCtx contextx.IContext, filter bson.D, findOpt *mongo
 
 	if nCtx == nil {
 		return nil, errors.New("context is nil")
+	}
+
+	// set projection if fields are specified.
+	if len(field) > 0 {
+		projection := make(bson.D, 0)
+		for _, f := range field {
+			projection = append(projection, bson.E{Key: f, Value: 1})
+		}
+		if findOpt == nil {
+			findOpt = mongoOptions.Find()
+		}
+		findOpt.SetProjection(projection)
 	}
 
 	var cursor *mongo.Cursor

@@ -434,3 +434,18 @@ func (s *Storage) getHostDistributionByNetworkAreaID(nCtx contextx.IContext, con
 
 	return hostDistributionByNetworkAreaID, nil
 }
+
+func (s *Storage) listHostWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
+	[]*types.Host, int64, error) {
+	if nCtx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	opts := convertHostConditionsToOptions(conditions...)
+	hosts, num, err := s.daoHost.ListWithFields(nCtx, page, selection, opts...)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list host with fields: %w", err)
+	}
+
+	return hosts, num, nil
+}

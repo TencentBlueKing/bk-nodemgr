@@ -31,7 +31,7 @@ func (x *TopoHostListReq) ConvertPageToTypes(maxLimit int) types.Page {
 
 // ConvertConditionsToTypes convert conditions to types.
 func (x *TopoHostListReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
 }
 
 // ConvertConditionsFromTypes convert types to proto.
@@ -152,6 +152,27 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 	return data.GetTotal(), result
 }
 
+// Validate check body.
+func (x *TopoHostSelectHostIDReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoHostSelectHostIDReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoHostSelectHostIDReq) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetExactExcludeConditions())
+}
+
+// ConvertHostIDToTypes convert types to proto.
+func (x *TopoHostSelectHostIDResp) ConvertHostID(hosts []int64) {
+	x.Data = &TopoHostSelectHostIDResp_Data{
+		Items: hosts,
+	}
+}
+
 // Validate validates the request.
 func (x *TopoHostDistinctReq) Validate() error {
 	return nil
@@ -163,7 +184,7 @@ func (x *TopoHostDistinctReq) AutoConvert() {
 
 // ConvertConditionsToTypes converts the request to types.
 func (x *TopoHostDistinctReq) ConvertConditionsToTypes() *types.HostCondition {
-	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), nil)
 }
 
 // ConvertConditionsFromTypes converts the request to types.
@@ -260,7 +281,7 @@ func newEmptyHost() *Host {
 }
 
 func convertHostConditionsToTypes(
-	exactCond *TopoHostExactConditions, fuzzyCond *TopoHostFuzzyConditions) *types.HostCondition {
+	exactCond *TopoHostExactConditions, fuzzyCond *TopoHostFuzzyConditions, exactExcCond *TopoHostExactConditions) *types.HostCondition {
 
 	condition := &types.HostCondition{}
 
@@ -291,6 +312,23 @@ func convertHostConditionsToTypes(
 			InnerIPV6: fuzzyCond.GetBkHostInneripV6(),
 			OuterIP:   fuzzyCond.GetBkHostOuterip(),
 			OuterIPV6: fuzzyCond.GetBkHostOuteripV6(),
+		}
+	}
+
+	if exactExcCond != nil {
+		condition.StaticExactExclude = &types.HostStaticExactFields{
+			HostID:        exactExcCond.GetBkHostId(),
+			BizID:         exactExcCond.GetBkBizId(),
+			NetworkAreaID: exactExcCond.GetBkNetworkareaId(),
+		}
+		condition.DynamicExactExclude = &types.HostDynamicExactFields{
+			NetworkUnitID:  exactExcCond.GetBkNetworkunitId(),
+			OSType:         exactExcCond.GetOsType(),
+			NodeRole:       types.StringListToNodeRoleList(exactExcCond.GetNodeRole()),
+			NodeStatus:     types.StringListToNodeStatusList(exactExcCond.GetNodeStatus()),
+			NodeVersion:    exactExcCond.GetNodeVersion(),
+			NodeGeneration: exactExcCond.GetNodeGeneration(),
+			AgentID:        exactExcCond.GetBkAgentId(),
 		}
 	}
 
@@ -333,4 +371,88 @@ func convertHostConditionsFromTypes(
 	}
 
 	return exactCond, fuzzyCond, nil
+}
+
+// Validate check body.
+func (x *TopoHostSelectInnerIPReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoHostSelectInnerIPReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoHostSelectInnerIPReq) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetExactExcludeConditions())
+}
+
+// ConvertInnerIP convert types to proto.
+func (x *TopoHostSelectInnerIPResp) ConvertInnerIP(items []string) {
+	x.Data = &TopoHostSelectInnerIPResp_Data{
+		Items: items,
+	}
+}
+
+// Validate check body.
+func (x *TopoHostSelectInnerIPV6Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoHostSelectInnerIPV6Req) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoHostSelectInnerIPV6Req) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetExactExcludeConditions())
+}
+
+// ConvertInnerIPV6 convert types to proto.
+func (x *TopoHostSelectInnerIPV6Resp) ConvertInnerIPV6(items []string) {
+	x.Data = &TopoHostSelectInnerIPV6Resp_Data{
+		Items: items,
+	}
+}
+
+// Validate check body.
+func (x *TopoHostSelectNetWorkareaIDAndInnerIPReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoHostSelectNetWorkareaIDAndInnerIPReq) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoHostSelectNetWorkareaIDAndInnerIPReq) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetExactExcludeConditions())
+}
+
+// ConvertNetWorkareaIDAndInnerIP convert types to proto.
+func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp) ConvertNetWorkareaIDAndInnerIP(items []string) {
+	x.Data = &TopoHostSelectNetWorkareaIDAndInnerIPResp_Data{
+		Items: items,
+	}
+}
+
+// Validate check body.
+func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Req) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Req) AutoConvert() {
+}
+
+// ConvertConditionsToTypes convert conditions to types.
+func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Req) ConvertConditionsToTypes() *types.HostCondition {
+	return convertHostConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions(), x.GetExactExcludeConditions())
+}
+
+// ConvertNetWorkareaIDAndInnerIPV6 convert types to proto.
+func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) ConvertNetWorkareaIDAndInnerIPV6(items []string) {
+	x.Data = &TopoHostSelectNetWorkareaIDAndInnerIPV6Resp_Data{
+		Items: items,
+	}
 }

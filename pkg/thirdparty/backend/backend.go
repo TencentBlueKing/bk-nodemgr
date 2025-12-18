@@ -147,6 +147,161 @@ func (c *cli) listHost(ctx contextx.IContext, req *protoBackend.TopoHostListReq,
 	return resp, nil
 }
 
+func (c *cli) selectHostID(ctx contextx.IContext, req *protoBackend.TopoHostSelectHostIDReq,
+) (*protoBackend.TopoHostSelectHostIDResp, error) {
+
+	resp := new(protoBackend.TopoHostSelectHostIDResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/host/scenario/select_host_id").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("select host id failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("select host id failed,get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) selectInnerIP(ctx contextx.IContext, req *protoBackend.TopoHostSelectInnerIPReq,
+) (*protoBackend.TopoHostSelectInnerIPResp, error) {
+
+	resp := new(protoBackend.TopoHostSelectInnerIPResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/host/scenario/select_inner_ip").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("select inner ip failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("select inner ip failed,get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) selectInnerIPV6(ctx contextx.IContext, req *protoBackend.TopoHostSelectInnerIPV6Req,
+) (*protoBackend.TopoHostSelectInnerIPV6Resp, error) {
+
+	resp := new(protoBackend.TopoHostSelectInnerIPV6Resp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/host/scenario/select_inner_ipv6").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("select inner ipv6 failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("select inner ipv6 failed,get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) selectNetWorkareaIDAndInnerIP(ctx contextx.IContext, req *protoBackend.TopoHostSelectNetWorkareaIDAndInnerIPReq,
+) (*protoBackend.TopoHostSelectNetWorkareaIDAndInnerIPResp, error) {
+
+	resp := new(protoBackend.TopoHostSelectNetWorkareaIDAndInnerIPResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/host/scenario/select_networkarea_id_and_inner_ip").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("select networkarea id and inner ip failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("select networkarea id and inner ip failed,get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) selectNetWorkareaIDAndInnerIPV6(ctx contextx.IContext, req *protoBackend.TopoHostSelectNetWorkareaIDAndInnerIPV6Req,
+) (*protoBackend.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp, error) {
+
+	resp := new(protoBackend.TopoHostSelectNetWorkareaIDAndInnerIPV6Resp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/topo/host/scenario/select_networkarea_id_and_inner_ipv6").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("select networkarea id and inner ipv6 failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("select networkarea id and inner ipv6 failed,get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) getHostDistributionByNodeRole(ctx contextx.IContext, req *protoBackend.TopoGetHostDistributionByNodeRoleReq,
 ) (*protoBackend.TopoGetHostDistributionByNodeRoleResp, error) {
 
