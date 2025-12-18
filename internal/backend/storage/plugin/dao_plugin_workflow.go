@@ -57,6 +57,24 @@ func (s *Storage) getPluginWorkflow(nCtx contextx.IContext, workflowID string) (
 	return pluginWorkflow, nil
 }
 
+// getPluginWorkflowStatus get plugin workflow status.
+func (s *Storage) getPluginWorkflowStatus(nCtx contextx.IContext, workflowID string) (types.PluginWorkflowStatus, error) {
+	if nCtx == nil {
+		return "", basestorage.ErrNilContent()
+	}
+
+	if workflowID == "" {
+		return "", errors.New("workflowID is empty")
+	}
+
+	status, err := s.daoPluginWorkflow.GetStatus(nCtx, workflowID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get plugin workflow status: %v", err)
+	}
+
+	return status, nil
+}
+
 // updatePluginWorkflowStatus update plugin workflow status.
 func (s *Storage) updatePluginWorkflowStatus(nCtx contextx.IContext, workflowID string, status types.PluginWorkflowStatus) error {
 	if nCtx == nil {

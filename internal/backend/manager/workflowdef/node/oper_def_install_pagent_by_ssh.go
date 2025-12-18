@@ -58,6 +58,7 @@ func (oper *operInstallPagentNodeBySSH) ActionDefNames() []string {
 		ActionNameBindAgentHostRel,
 		ActionNamePushHostIdentifier,
 		ActionNameUpdateHost,
+		ActionNameInstallPreOrderedPlugins,
 	}
 }
 
@@ -80,6 +81,7 @@ func (oper *operInstallPagentNodeBySSH) DefaultParameters() operation.Param {
 			ActionNameBindAgentHostRel:      true,
 			ActionNamePushHostIdentifier:    true,
 			ActionNameUpdateHost:            true,
+			ActionNameInstallPreOrderedPlugins: true,
 		},
 	}
 }

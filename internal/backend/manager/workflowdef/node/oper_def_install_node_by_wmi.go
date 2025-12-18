@@ -56,6 +56,7 @@ func (oper *operInstallNodeByWMI) ActionDefNames() []string {
 		ActionNameBindAgentHostRel,
 		ActionNamePushHostIdentifier,
 		ActionNameUpdateHost,
+		ActionNameInstallPreOrderedPlugins,
 	}
 }
 
@@ -76,6 +77,7 @@ func (oper *operInstallNodeByWMI) DefaultParameters() operation.Param {
 			ActionNameBindAgentHostRel:      true,
 			ActionNamePushHostIdentifier:    true,
 			ActionNameUpdateHost:            true,
+			ActionNameInstallPreOrderedPlugins: true,
 		},
 	}
 }

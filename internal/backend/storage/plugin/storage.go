@@ -44,7 +44,8 @@ const (
 	schedulerTaskMonitorWorkflowStatus    = "monitor_plugin_workflow_status"
 	recentMonitoredTime                   = 5 * time.Minute
 
-	metricOperateionListPluginDeployment              = "list_plugin_deployment"
+	metricOperationListPluginDeployment               = "list_plugin_deployment"
+	metricOperationGetPluginWorkflowStatus            = "get_plugin_workflow_status"
 	metricOperationCountPluginWorkflow                = "count_plugin_workflow"
 	metricOperationListPluginWorkflow                 = "list_plugin_workflow"
 	metricOperationCountProcess                       = "count_process"
@@ -352,9 +353,9 @@ func (s *Storage) ListPluginDeployment(nCtx contextx.IContext, page types.Page, 
 		err               error
 	)
 
-	err = s.WrapFn(nCtx, metricOperateionListPluginDeployment, func(nCtx contextx.IContext) error {
+	err = s.WrapFn(nCtx, metricOperationListPluginDeployment, func(nCtx contextx.IContext) error {
 		// record metric.
-		metric := s.metric().Start(metricOperateionListPluginDeployment)
+		metric := s.metric().Start(metricOperationListPluginDeployment)
 		defer metric.End(err)
 
 		pluginDeployments, total, err = s.listPluginDeployment(nCtx, page, conditions...)
@@ -444,6 +445,32 @@ func (s *Storage) GetPluginWorkflow(nCtx contextx.IContext, workflowID string) (
 	pluginWorkflow, err = s.getPluginWorkflow(nCtx, workflowID)
 
 	return pluginWorkflow, err
+}
+
+// GetPluginWorkflowStatus get plugin workflow status.
+func (s *Storage) GetPluginWorkflowStatus(nCtx contextx.IContext, workflowID string) (types.PluginWorkflowStatus, error) {
+	var (
+		status types.PluginWorkflowStatus
+		err    error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetPluginWorkflowStatus, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetPluginWorkflowStatus)
+		defer metric.End(err)
+
+		status, err = s.getPluginWorkflowStatus(nCtx, workflowID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return status, nil
 }
 
 // CreatePluginWorkflow createPluginDeployment plugin workflow.

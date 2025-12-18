@@ -49,6 +49,7 @@ func (mgr *Manager) registerDefNode() error {
 		StorageTopo:         mgr.conf.StorageTopo,
 		StorageRelease:      mgr.conf.StorageRelease,
 		StorageNode:         mgr.conf.StorageNode,
+		StoragePlugin:       mgr.conf.StoragePlugin,
 		StorageWorkflow:     mgr.conf.StorageWorkflow,
 		StorageHostCredit:   mgr.conf.StorageHostCredit,
 		StorageConfigPolicy: mgr.conf.StorageConfigPolicy,
@@ -91,6 +92,7 @@ func (mgr *Manager) registerDefNode() error {
 		node.NewActionUpgradePagent(nodeCap),
 		node.NewActionUninstallNode(nodeCap),
 		node.NewActionResetNodeDynamic(nodeCap),
+		node.NewActionInstallPreOrderedPlugins(nodeCap),
 	); err != nil {
 		return err
 	}

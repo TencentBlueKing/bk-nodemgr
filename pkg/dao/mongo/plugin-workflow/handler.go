@@ -28,6 +28,9 @@ type IHandler interface {
 	// Get gets plugin workflow by id.
 	Get(nCtx contextx.IContext, workflowID string) (*types.PluginWorkflow, error)
 
+	// GetStatus gets the status of a plugin workflow.
+	GetStatus(nCtx contextx.IContext, workflowID string) (types.PluginWorkflowStatus, error)
+
 	// Count counts plugin workflow by opts.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
@@ -187,6 +190,28 @@ func (h *Handler) Get(nCtx contextx.IContext, workflowID string) (*types.PluginW
 	}
 
 	return convertPluginWorkflowToTypes(data, tenantID), nil
+}
+
+// GetStatus gets the status of a plugin workflow.
+func (h *Handler) GetStatus(nCtx contextx.IContext, workflowID string) (types.PluginWorkflowStatus, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return "", err
+	}
+
+	tenantID := nCtx.TenantID()
+
+	if workflowID == "" {
+		return "", errors.New("workflow id should not be empty")
+	}
+
+	filter := base.AliveFilter()
+	filter = WithWorkflowID(workflowID)(filter)
+	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
+	if err != nil {
+		return "", err
+	}
+
+	return types.PluginWorkflowStatus(data.Status), nil
 }
 
 // UpdateStatus updates the status of a plugin workflow.

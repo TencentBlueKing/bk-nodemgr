@@ -15,10 +15,10 @@ import (
 	"errors"
 	"fmt"
 
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
-	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 )
 
 // IManager defines the Manager interface.

@@ -58,6 +58,7 @@ func (oper *operInstallPagentNodeByWMI) ActionDefNames() []string {
 		ActionNameBindAgentHostRel,
 		ActionNamePushHostIdentifier,
 		ActionNameUpdateHost,
+		ActionNameInstallPreOrderedPlugins,
 	}
 }
 
@@ -67,19 +68,20 @@ func (oper *operInstallPagentNodeByWMI) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameTryReuseAgentID:       true,
-			ActionNameUpsertHostToCMDB:      true,
-			ActionNameSelectRelayHost:       true,
-			ActionNamePagentDetectInfoByWMI: true,
-			ActionNameRenderNodeDeployment:  true,
-			ActionNameEnsurePkgToRelay:      true,
-			ActionNameInstallPagentByWMI:    true,
-			ActionNameWaitInstallerComplete: false,
-			ActionNameWaitGseReady:          false,
-			ActionNameSyncNodeInfo:          true,
-			ActionNameBindAgentHostRel:      true,
-			ActionNamePushHostIdentifier:    true,
-			ActionNameUpdateHost:            true,
+			ActionNameTryReuseAgentID:          true,
+			ActionNameUpsertHostToCMDB:         true,
+			ActionNameSelectRelayHost:          true,
+			ActionNamePagentDetectInfoByWMI:    true,
+			ActionNameRenderNodeDeployment:     true,
+			ActionNameEnsurePkgToRelay:         true,
+			ActionNameInstallPagentByWMI:       true,
+			ActionNameWaitInstallerComplete:    false,
+			ActionNameWaitGseReady:             false,
+			ActionNameSyncNodeInfo:             true,
+			ActionNameBindAgentHostRel:         true,
+			ActionNamePushHostIdentifier:       true,
+			ActionNameUpdateHost:               true,
+			ActionNameInstallPreOrderedPlugins: true,
 		},
 	}
 }
