@@ -275,7 +275,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 	}
 
 	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
-		rCtx, req.ConvertConditionsToOperatioID())
+		rCtx, req.ConvertConditionsToOperationID())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
