@@ -45,7 +45,7 @@ func (h *handler) request(gCtx *gin.Context) {
 	defer cancel()
 
 	logger.G.Biz(nCtx).With("url", gCtx.Request.URL.Path, "content", string(content)).Info("request to callback")
-	resp, statusCode, err := h.client.RequestCallback(nCtx, gCtx.Request.Method, gCtx.Request.URL.Path, gCtx.Request.URL.RawQuery, content)
+	resp, statusCode, err := h.client.RequestCallback(nCtx, gCtx.Request.Method, gCtx.Request.URL.EscapedPath(), gCtx.Request.URL.RawQuery, content)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("url", gCtx.Request.URL.Path).Error("failed to request to callback")
 		gCtx.JSON(statusCode, err)

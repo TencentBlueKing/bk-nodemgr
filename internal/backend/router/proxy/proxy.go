@@ -177,6 +177,8 @@ func (h *handler) handleCallback(nCtx contextx.IContext, data *relayhandler.Serv
 		return
 	}
 
+	defer func() { _ = resp.Body.Close() }()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("agent-id", data.AgentID, "callback-url", redirectURL).Error("failed to read response body")

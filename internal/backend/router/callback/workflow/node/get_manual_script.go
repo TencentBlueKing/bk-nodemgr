@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
@@ -90,6 +91,7 @@ func (h *handler) GetManualScript(gCtx *gin.Context) {
 
 		return
 	}
+	defer func() { _ = reader.Close() }()
 
 	content, err := io.ReadAll(reader)
 	if err != nil {
@@ -118,9 +120,9 @@ func manualScriptRender(content string, operInstID string, privateData map[strin
 	if !ok {
 		return "", fmt.Errorf("private data does not contain callback address")
 	}
-	callbackAddress, ok := raw.(string)
-	if !ok {
-		return "", fmt.Errorf("private data does not contain valid callback address")
+	callbackAddress, err := conv.ToString(raw)
+	if err != nil {
+		return "", fmt.Errorf("private data does not contain valid callback address: %w", err)
 	}
 
 	// download address.
@@ -128,9 +130,9 @@ func manualScriptRender(content string, operInstID string, privateData map[strin
 	if !ok {
 		return "", fmt.Errorf("private data does not contain file address")
 	}
-	downloadAddress, ok := raw.(string)
-	if !ok {
-		return "", fmt.Errorf("private data does not contain valid file address")
+	downloadAddress, err := conv.ToString(raw)
+	if err != nil {
+		return "", fmt.Errorf("private data does not contain valid file address: %w", err)
 	}
 
 	// action name report detect info.
@@ -138,9 +140,9 @@ func manualScriptRender(content string, operInstID string, privateData map[strin
 	if !ok {
 		return "", fmt.Errorf("private data does not contain action name report detect info")
 	}
-	actionNameReportDetectInfo, ok := raw.(string)
-	if !ok {
-		return "", fmt.Errorf("private data does not contain valid action name report detect info")
+	actionNameReportDetectInfo, err := conv.ToString(raw)
+	if err != nil {
+		return "", fmt.Errorf("private data does not contain valid action name report detect info: %w", err)
 	}
 
 	// action name get exec command.
@@ -148,9 +150,9 @@ func manualScriptRender(content string, operInstID string, privateData map[strin
 	if !ok {
 		return "", fmt.Errorf("private data does not contain action name get exec command")
 	}
-	actionNameGetExecCommand, ok := raw.(string)
-	if !ok {
-		return "", fmt.Errorf("private data does not contain valid action name get exec command")
+	actionNameGetExecCommand, err := conv.ToString(raw)
+	if err != nil {
+		return "", fmt.Errorf("private data does not contain valid action name get exec command: %w", err)
 	}
 
 	content = strings.ReplaceAll(content, manualScriptTemplateKeyOperInstID, operInstID)

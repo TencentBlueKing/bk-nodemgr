@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -152,9 +153,9 @@ func (mgr *Manager) GetOperationManualInfoFromLastInstance(nCtx contextx.IContex
 	commands := make([]*types.NodeWorkflowOperationManualCommand, 0)
 	raw, ok := privateData[types.PDKeyManualInstallBootstrapCommandBash]
 	if ok {
-		bootstrapCommand, ok := raw.(string)
-		if !ok {
-			return nil, fmt.Errorf("private data does not contain valid bootstrap command bash: %v", raw)
+		bootstrapCommand, err := conv.ToString(raw)
+		if err != nil {
+			return nil, fmt.Errorf("private data does not contain valid bootstrap command bash(%v): %w", raw, err)
 		}
 
 		commands = append(commands, &types.NodeWorkflowOperationManualCommand{
@@ -164,9 +165,9 @@ func (mgr *Manager) GetOperationManualInfoFromLastInstance(nCtx contextx.IContex
 	}
 	raw, ok = privateData[types.PDKeyManualInstallBootstrapCommandBat]
 	if ok {
-		bootstrapCommand, ok := raw.(string)
-		if !ok {
-			return nil, fmt.Errorf("private data does not contain valid bootstrap command bat: %v", raw)
+		bootstrapCommand, err := conv.ToString(raw)
+		if err != nil {
+			return nil, fmt.Errorf("private data does not contain valid bootstrap command bat(%v): %w", raw, err)
 		}
 
 		commands = append(commands, &types.NodeWorkflowOperationManualCommand{

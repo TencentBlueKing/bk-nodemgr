@@ -10,6 +10,8 @@
 
 package criteria
 
+import "fmt"
+
 // NetType define the network type.
 type NetType string
 
@@ -27,6 +29,16 @@ const (
 	NetTypeUDP6 NetType = "udp6"
 )
 
+// Validate validate the network type.
+func (netType NetType) Validate() error {
+	switch netType {
+	case NetTypeTCP, NetTypeTCP6, NetTypeUDP, NetTypeUDP6:
+		return nil
+	default:
+		return fmt.Errorf("invalid network type: %s", netType)
+	}
+}
+
 // NetEndpointType define the network endpoint type.
 type NetEndpointType string
 
@@ -43,3 +55,13 @@ const (
 	// NetEndpointTypeSecureGroup this defines the network endpoint type of secure_group.
 	NetEndpointTypeSecureGroup NetEndpointType = "secure_group"
 )
+
+// Validate validate the network endpoint type.
+func (netEndpointType NetEndpointType) Validate() error {
+	switch netEndpointType {
+	case NetEndpointTypeIP, NetEndpointTypeDomain, NetEndpointTypeCIDR, NetEndpointTypeSecureGroup:
+		return nil
+	default:
+		return fmt.Errorf("invalid network endpoint type: %s", netEndpointType)
+	}
+}
