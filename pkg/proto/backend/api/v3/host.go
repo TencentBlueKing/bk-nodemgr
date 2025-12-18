@@ -251,7 +251,7 @@ func (x *TopoHostSelectInnerIPResp) ConvertInnerIPFromTypes(hosts []*types.Host)
 
 	items := make([]string, len(hosts))
 	for idx, host := range hosts {
-		items[idx] = strings.Join(host.Static.InnerIPList, types.IpSeparator)
+		items[idx] = strings.Join(host.Static.InnerIPList, types.IPSeparator)
 	}
 
 	x.Data = &TopoHostSelectInnerIPResp_Data{
@@ -305,7 +305,7 @@ func (x *TopoHostSelectInnerIPV6Resp) ConvertInnerIPV6FromTypes(hosts []*types.H
 
 	items := make([]string, len(hosts))
 	for idx, host := range hosts {
-		items[idx] = strings.Join(host.Static.InnerIPV6List, types.IpSeparator)
+		items[idx] = strings.Join(host.Static.InnerIPV6List, types.IPSeparator)
 	}
 
 	x.Data = &TopoHostSelectInnerIPV6Resp_Data{
@@ -359,7 +359,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPResp) ConvertNetWorkareaIDAndInner
 
 	items := make([]string, len(hosts))
 	for idx, host := range hosts {
-		ips := strings.Join(host.Static.InnerIPList, types.IpSeparator)
+		ips := strings.Join(host.Static.InnerIPList, types.IPSeparator)
 		items[idx] = fmt.Sprintf("%d:%s", host.Static.NetworkAreaID, ips)
 	}
 
@@ -414,7 +414,7 @@ func (x *TopoHostSelectNetWorkareaIDAndInnerIPV6Resp) ConvertNetWorkareaIDAndInn
 
 	items := make([]string, len(hosts))
 	for idx, host := range hosts {
-		ips := strings.Join(host.Static.InnerIPV6List, types.IpSeparator)
+		ips := strings.Join(host.Static.InnerIPV6List, types.IPSeparator)
 		items[idx] = fmt.Sprintf("%d:%s", host.Static.NetworkAreaID, ips)
 	}
 

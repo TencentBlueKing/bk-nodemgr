@@ -844,7 +844,9 @@ func (h *handler) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, opt
 }
 
 // ListWithFields lists hosts with fields.
-func (h *handler) ListWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, int64, error) {
+func (h *handler) ListWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) (
+	[]*types.Host, int64, error) {
+
 	if nCtx == nil {
 		return nil, 0, base.ErrInvalidContext()
 	}

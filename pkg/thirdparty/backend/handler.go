@@ -453,8 +453,7 @@ func (h *Handler) ListHost(ctx contextx.IContext, page types.Page, condition *ty
 	return hosts, total, nil
 }
 
-// ListHost list host within specified tenant in contextx.
-// nolint: funlen
+// SelectHostID select host id within specified tenant in contextx.
 func (h *Handler) SelectHostID(ctx contextx.IContext, condition *types.HostCondition) (
 	[]int64, error) {
 

@@ -170,6 +170,7 @@ func (h *handler) SelectHostID(rCtx restserver.IContext) (interface{}, error) {
 			&types.HostFieldSelection{
 				EnableFieldHostID: true},
 			req.ConvertConditionsToTypes())
+
 		return hosts, err
 	}
 
@@ -201,6 +202,7 @@ func (h *handler) SelectInnerIP(rCtx restserver.IContext) (interface{}, error) {
 			&types.HostFieldSelection{
 				EnableFieldHostInneripList: true},
 			req.ConvertConditionsToTypes())
+
 		return hosts, err
 	}
 
@@ -232,6 +234,7 @@ func (h *handler) SelectInnerIPV6(rCtx restserver.IContext) (interface{}, error)
 			&types.HostFieldSelection{
 				EnableFieldHostInneripV6List: true},
 			req.ConvertConditionsToTypes())
+
 		return hosts, err
 	}
 
@@ -264,6 +267,7 @@ func (h *handler) SelectNetWorkareaIDAndInnerIP(rCtx restserver.IContext) (inter
 				EnableFieldNetworkareaID:   true,
 				EnableFieldHostInneripList: true},
 			req.ConvertConditionsToTypes())
+
 		return hosts, err
 	}
 
@@ -296,6 +300,7 @@ func (h *handler) SelectNetWorkareaIDAndInnerIPV6(rCtx restserver.IContext) (int
 				EnableFieldNetworkareaID:     true,
 				EnableFieldHostInneripV6List: true},
 			req.ConvertConditionsToTypes())
+
 		return hosts, err
 	}
 

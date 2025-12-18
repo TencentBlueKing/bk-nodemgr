@@ -152,8 +152,10 @@ func (s *Storage) GetNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []i
 }
 
 // ListHostWithFields lists hosts with fields.
-func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
+func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page,
+	selection *types.HostFieldSelection, conditions ...*types.HostCondition) (
 	[]*types.Host, int64, error) {
+
 	var (
 		results []*types.Host
 		err     error

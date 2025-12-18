@@ -26,8 +26,8 @@ const (
 	// AddressingStatic means the addressing type is static.
 	AddressingStatic Addressing = "static"
 
-	// IpSeparator means the ip separator.
-	IpSeparator = ","
+	// IPSeparator means the ip separator.
+	IPSeparator = ","
 )
 
 // Validate validates the addressing type.
