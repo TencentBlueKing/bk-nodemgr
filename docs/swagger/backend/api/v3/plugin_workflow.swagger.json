@@ -1015,6 +1015,9 @@
         },
         "life_cycle": {
           "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
         }
       },
       "description": "WorflowOperationInstanceData describes the workflow operation instance data."
@@ -1030,6 +1033,21 @@
         }
       },
       "description": "WorkflowActionData describes the workflow action data."
+    },
+    "v3WorkflowActionInstBriefData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "WorkflowActionInstBriefData describes the workflow action instance brief\ndata."
     },
     "v3WorkflowActionMessage": {
       "type": "object",
