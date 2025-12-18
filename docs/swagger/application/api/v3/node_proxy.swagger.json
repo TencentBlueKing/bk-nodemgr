@@ -369,6 +369,9 @@
             "type": "object",
             "$ref": "#/definitions/v3TargetVersion"
           }
+        },
+        "is_manual": {
+          "type": "boolean"
         }
       },
       "description": "NodeProxyInstallReq describes the node proxy install request."

@@ -14,7 +14,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -250,6 +252,7 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 				State:           string(operationsSummary[idx].LastStatus),
 				TotalTimeSecond: operationsSummary[idx].TotalDuration,
 			},
+			LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(operationsSummary[idx].LatestActionInstBriefData),
 		}
 	}
 
@@ -273,9 +276,13 @@ func (x *NodeWorkflowOperationInstanceListReq) Validate() error {
 	return nil
 }
 
-// ConvertConditionsToOperationID convert conditions to operation id.
-func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToOperationID() string {
-	return x.GetOperationId()
+// ConvertConditionsToTypes convert conditions to types.
+func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToTypes() *types.OperInstDataCondition {
+	return &types.OperInstDataCondition{
+		ExactInclude: &types.OperInstDataExactFields{
+			OperationID: []string{x.GetOperationId()},
+		},
+	}
 }
 
 // AutoConvert auto convert.
@@ -417,6 +424,76 @@ func (x *NodeWorkflowOperationRetryReq) ConvertNodeWorkflowOperationRetryParamTo
 	}
 }
 
+// AutoConvert auto convert.
+func (x *NodeWorkflowOperationManualSolutionGetReq) AutoConvert() {
+}
+
+// Validate convert workflow id.
+func (x *NodeWorkflowOperationManualSolutionGetReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+
+	if len(x.GetOperationId()) == 0 {
+		return errors.New("operation_id is required")
+	}
+
+	return nil
+}
+
+const (
+	manualStepTypeCommand       = "command"
+	manualStepTypeNetworkPolicy = "network_policy"
+	manualStepTypeDescription   = "description"
+	manualStepTypeDownload      = "download"
+)
+
+// ConvertResultFromTypes convert ManualInfo to ManualSolution.
+func (x *NodeWorkflowOperationManualSolutionGetResp) ConvertResultFromTypes(manualInfo *types.NodeWorkflowOperationManualInfo) {
+	if manualInfo == nil {
+		x.Data = []*ManualSolution{}
+		return
+	}
+
+	solutions := make([]*ManualSolution, 0)
+	for _, cmd := range manualInfo.Commands {
+		switch cmd.Type {
+		case types.NodeWorkflowOperationManualCommandTypeBash:
+			solutions = append(solutions, &ManualSolution{
+				Type:          string(cmd.Type),
+				DescriptionEn: "Use bash to manually install node.",
+				DescriptionZh: "使用 bash 手动安装节点.",
+				Steps: []*ManualSolutionStep{
+					{
+						Type:      manualStepTypeCommand,
+						NameEn:    "Execute bash command",
+						NameZh:    "执行 bash 命令",
+						ContentEn: cmd.Command,
+						ContentZh: cmd.Command,
+					},
+				},
+			})
+		case types.NodeWorkflowOperationManualCommandTypeBat:
+			solutions = append(solutions, &ManualSolution{
+				Type:          string(cmd.Type),
+				DescriptionEn: "Use bat to manually install node.",
+				DescriptionZh: "使用 bat 手动安装节点.",
+				Steps: []*ManualSolutionStep{
+					{
+						Type:      manualStepTypeCommand,
+						NameEn:    "Execute bat command",
+						NameZh:    "执行 bat 命令",
+						ContentEn: cmd.Command,
+						ContentZh: cmd.Command,
+					},
+				},
+			})
+		}
+	}
+
+	x.Data = solutions
+}
+
 func convertNodeWorkflowConditionsToTypes(
 	exactCond *NodeWorkflowExactConditions,
 	_ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) *types.NodeWorkflowCondition {
@@ -527,6 +604,17 @@ func convertNodeWorkflowOperationConditionsToTypes(
 	}
 
 	return condition
+}
+
+func convertNodeWorkflowActionInstBriefDataFromTypes(data *action.InstanceBriefData) *WorkflowActionInstBriefData {
+	if data == nil {
+		return &WorkflowActionInstBriefData{}
+	}
+
+	return &WorkflowActionInstBriefData{
+		Name: data.Name,
+		Tags: conv.SliceToSlice(data.Tags, func(tag action.Tag) string { return string(tag) }),
+	}
 }
 
 // newEmptyNodeWorkflow creates a new empty NodeWorkflowInfo.
