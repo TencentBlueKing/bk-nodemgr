@@ -88,3 +88,20 @@ func (x *DownloadPluginReq) Validate() error {
 // AutoConvert auto convert.
 func (x *DownloadPluginReq) AutoConvert() {
 }
+
+// Validate check request body.
+func (x *DownloadInstallerReq) Validate() error {
+	if x.GetCpuArch() == "" {
+		return errors.New("cpu_arch is required")
+	}
+
+	if x.GetOsType() == "" {
+		return errors.New("os_type is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *DownloadInstallerReq) AutoConvert() {
+}

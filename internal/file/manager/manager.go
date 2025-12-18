@@ -41,6 +41,7 @@ type IManager interface {
 	// Start starts the manager
 	Start(ctx context.Context) error
 
+	IInstaller
 	IAgent
 	IProxy
 	IServer
