@@ -1,5 +1,19 @@
 <template>
-  <div class="p-[24px]">
+  <Tab
+    v-model:active="active"
+    type="unborder-card"
+    :label-height="41"
+    class="text-[14px] bg-[#fff] h-[41px] absolute z-10 w-full"
+  >
+    <Tab.TabPanel
+      v-for="item in panels"
+      :key="item.name"
+      :label="item.label"
+      :name="item.name"
+    >
+    </Tab.TabPanel>
+  </Tab>
+  <div class="p-[24px] mt-[41px]">
     <section class="flex justify-between mb-[15px]">
       <div class="flex gap-[12px]">
         <Checkbox v-model="hideAutoTask">{{
@@ -53,7 +67,7 @@
             <Button
               text
               theme="primary"
-              @click="detailHandle(row, row.status)"
+              @click="detailHandle(row)"
             >{{ "#" + row.workflow_id?.slice(-4) }}</Button
             >
           </template>
@@ -166,6 +180,7 @@ import {
   Dropdown,
   InfoBox,
   SearchSelect,
+  Tab,
 } from 'bkui-vue';
 import { Spinner } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
@@ -178,6 +193,7 @@ import { Table, TableColumn } from '@blueking/table';
 
 import type { NodeWorkflowInfo } from '@/@types/node_workflow';
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
@@ -196,11 +212,20 @@ type taskType =
 type filterProp = 'type' | 'operator' | 'status';
 
 const { t } = useI18n();
+const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const tableData = ref<NodeWorkflowInfo[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+
+// tab
+const active = ref('');
+const panels = ref([
+  { name: 'node', label: '节点历史' },
+  { name: 'plugin', label: '插件历史' },
+]);
+
 // 分页
 const { pagination } = usePage(tableData);
 // 跨页全选
@@ -472,27 +497,46 @@ const getParams = () => {
 };
 const getTaskList = async () => {
   loading.value = true;
-  const res = await NodeWorkflowService.NodeWorkflowList(getParams()).catch((err) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
-    };
-  });
-  const statistics = await NodeWorkflowService.NodeWorkflowStatistics({
-    workflow_id: res.items.map(item => item.workflow_id),
-  }).catch((err) => {
-    console.log(err);
-    return {
-      items: [],
-    };
-  });
+  let res;
+  let statistics: any;
+  if (active.value === 'node') {
+    res = await NodeWorkflowService.NodeWorkflowList(getParams()).catch((err) => {
+      console.log(err);
+      return {
+        total: 0,
+        items: [],
+      };
+    });
+    statistics = await NodeWorkflowService.NodeWorkflowStatistics({
+      workflow_id: res.items.map(item => item.workflow_id),
+    }).catch((err) => {
+      console.log(err);
+      return {
+        items: [],
+      };
+    });
+  } else {
+    res = await PluginWorkflowService.PluginWorkflowList(getParams()).catch((err) => {
+      console.log(err);
+      return {
+        total: 0,
+        items: [],
+      };
+    });
+    statistics = await PluginWorkflowService.PluginWorkflowStatistics({
+      workflow_id: res.items.map(item => item.workflow_id),
+    }).catch((err) => {
+      console.log(err);
+      return {};
+    });
+  };
+
   tableData.value = res.items.map((item) => {
-    const statisticsItem = statistics.items.find(statistic => statistic.workflow_id === item.workflow_id);
+    const statisticsItem = statistics.items?.find(statistic => statistic.workflow_id === item.workflow_id);
     return {
       statistics: statisticsItem,
       ...item,
-      bk_biz_name: item.bk_biz_name.filter(item => item),
+      bk_biz_name: item.bk_biz_name?.filter(item => item),
       cost_time:
         item.finish_time > 0 ? item.finish_time - item.operate_time : 0,
     };
@@ -503,15 +547,26 @@ const debounceGetTaskList = debounce(() => {
   getTaskList();
 }, 300);
 // 跳转详情
-const detailHandle = (row: NodeWorkflowInfo, status: string) => {
+const detailHandle = (row: NodeWorkflowInfo, status?: string) => {
   nodeManageStore.updateCurrentRowData(row);
   router.push({
     name: 'taskDetail',
     params: {
       taskId: row.workflow_id,
     },
+    query: {
+      active: active.value,
+      status,
+    },
   });
 };
+watch(
+  () => route.query,
+  () => {
+    active.value = route.query.active as string || 'node';
+  },
+  { immediate: true },
+);
 watch(
   () => tableData,
   () => {
@@ -525,6 +580,7 @@ watch(
   [
     () => searchSelectValue,
     () => mainStore.selectedBusinessId,
+    () => active,
   ],
   async () => {
     await debounceGetTaskList();

@@ -113,6 +113,13 @@
       >
         <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
         <TableColumn
+          v-if="route.query.active === 'plugin'"
+          field="plugin_name"
+          :title="'插件名'"
+          width="150"
+          fixed="left"
+        ></TableColumn>
+        <TableColumn
           field="bk_host_inner_list"
           :title="'IPv4'"
           width="150"
@@ -273,6 +280,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import { TopoService } from '@/api/modules/topo';
 import useInterval from '@/composables/use-interval';
 import usePage from '@/composables/use-page';
@@ -419,6 +427,9 @@ const timeFormatter = (
 const handleBackToHistory = () => {
   router.push({
     name: 'history',
+    query: {
+      active: route.query?.active,
+    },
   });
 };
 
@@ -456,7 +467,6 @@ const taskInfoList = computed(() => [
 const tableData = ref<any[]>([]);
 const filterTableData = computed(() => tableData.value.filter((item: any) => radioGroupValue.value === 'all' || item.state === radioGroupValue.value));
 const radioGroupValue = ref('all');
-const curOperationId = ref('');
 const radioGroup = computed(() => [
   {
     icon: '',
@@ -671,6 +681,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
       'total_time_second',
       'state',
       'reTryCount',
+      'plugin_name',
     ],
     disabled: [],
   },
@@ -739,9 +750,37 @@ const getNetworkUnitList = async () => {
   });
 };
 
+// 统一服务调用器
+const serviceCaller = {
+  // 根据路由参数获取当前服务类型
+  getCurrentServiceType: () => (route.query.active === 'node' ? 'node' : 'plugin'),
+
+  // 服务方法映射
+  serviceMethods: {
+    node: {
+      retry: NodeWorkflowService.NodeWorkflowOperationRetry,
+      terminate: NodeWorkflowService.NodeWorkflowOperationTerminate,
+      workflowList: NodeWorkflowService.NodeWorkflowList,
+      operationList: NodeWorkflowService.NodeWorkflowOperationList,
+    },
+    plugin: {
+      retry: PluginWorkflowService.PluginWorkflowOperationRetry,
+      terminate: PluginWorkflowService.PluginWorkflowOperationTerminate,
+      workflowList: PluginWorkflowService.PluginWorkflowList,
+      operationList: PluginWorkflowService.PluginWorkflowOperationList,
+    },
+  },
+
+  // 统一调用方法
+  async call(method: 'retry' | 'terminate' | 'workflowList' | 'operationList', params: any) {
+    const serviceType = this.getCurrentServiceType();
+    const serviceMethod = this.serviceMethods[serviceType][method];
+    return await serviceMethod(params);
+  },
+};
 // 重试
 const handleRetry = async (row: any, type: string) => {
-  const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
+  const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
     retry_mod: type,
@@ -755,7 +794,7 @@ const handleRetry = async (row: any, type: string) => {
   }
 };
 const handleFullRetry = async (type: string) => {
-  const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
+  const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: failedSelection.value.map(item => item.operation_id),
     retry_mod: type,
@@ -771,7 +810,7 @@ const handleFullRetry = async (type: string) => {
 
 // 终止
 const handleTerminate = async (row: any) => {
-  const res = await NodeWorkflowService.NodeWorkflowOperationTerminate({
+  const res = await serviceCaller.call('terminate', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
   }).catch(() => false);
@@ -785,7 +824,7 @@ const handleTerminate = async (row: any) => {
 };
 // 批量终止
 const handleBatchTerminate = async () => {
-  const res = await NodeWorkflowService.NodeWorkflowOperationTerminate({
+  const res = await serviceCaller.call('terminate', {
     workflow_id: route.params.taskId,
     operation_ids: failedSelection.value.map(item => item.operation_id),
   }).catch(() => false);
@@ -799,7 +838,7 @@ const handleBatchTerminate = async () => {
 };
 
 const updataCurrentTaskInfo = async () => {
-  const res = await NodeWorkflowService.NodeWorkflowList({
+  const res = await serviceCaller.call('workflowList', {
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
       workflow_id: [route.params.taskId],
@@ -813,7 +852,7 @@ const updataCurrentTaskInfo = async () => {
   });
   const list = res.items.map(item => ({
     ...item,
-    bk_biz_name: item.bk_biz_name.filter(item => item),
+    bk_biz_name: item.bk_biz_name?.filter(item => item),
     cost_time: item.finish_time > 0 ? item.finish_time - item.operate_time : 0,
   }));
   const findItem = list.find((item: any) => item.workflow_id === route.params.taskId);
@@ -849,7 +888,7 @@ const needInterval = computed(() => subTasksStatus.value?.includes('running')
 const getOperateList = async () => {
   subTasksStatus.value = [];
   const searchParameters = getParams();
-  const res = await NodeWorkflowService.NodeWorkflowOperationList(searchParameters).catch(() => ({
+  const res = await serviceCaller.call('operationList', searchParameters).catch(() => ({
     operations: [],
     total_count: 0,
   }));
@@ -858,12 +897,13 @@ const getOperateList = async () => {
     return {
       ...item.param,
       ...item.status,
-      bk_host_inner_list: item.param.bk_host_inner_list?.join(','),
-      bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(','),
+      bk_host_inner_list: item.param.bk_host_inner_list?.join(',') || item.param.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(',') || item.param.bk_host_innerip_v6_list?.join(','),
       bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.param.bk_biz_id)?.bk_biz_name
          || item.param.bk_biz_id,
       operation_id: item.operation_id,
       reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
+      node_version: route.query.active === 'node' ? item.param.node_version : item.param.plugin_version,
     };
   });
   const isEqual = tableData.value.length === mapList.length
@@ -873,21 +913,17 @@ const getOperateList = async () => {
     tableData.value = mapList;
   }
 };
-const logRef = ref<InstanceType<typeof Log>>();
-const curRow = ref(null);
 const handleViewLog = async (row: any) => {
   router.push({
     name: 'log',
     params: {
-      ip: row.bk_host_inner_list,
+      hostId: row.bk_host_id,
       taskId: route.params.taskId,
     },
+    query: {
+      active: route.query?.active,
+    },
   });
-  // curOperationId.value = row.operation_id;
-  // curRow.value = row;
-  // nextTick(() => {
-  //   logRef.value?.show();
-  // });
 };
 const { start, stop } = useInterval(getOperateList, 1000); // 轮询
 // 日志中执行失败或者任务详情表中都失败则更新详情的信息状态
@@ -947,6 +983,16 @@ watch(
 );
 
 onMounted(async () => {
+  if (route.query.status) {
+    searchSelectValue.value.push({
+      id: 'state',
+      name: '执行状态',
+      values: [{
+        id: route.query.status,
+        name: statusMap[route.query.status]?.text || route.query.status,
+      }],
+    });
+  }
   await updataCurrentTaskInfo();
   await Promise.all([
     getNetworkAreaList(),

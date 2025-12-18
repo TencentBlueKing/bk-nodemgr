@@ -406,6 +406,9 @@ const handleConfirm = async () => {
       router.push({
         name: 'taskDetail',
         params: { taskId: res.workflow_id },
+        query: {
+          active: 'node',
+        },
       });
     }
   } else {

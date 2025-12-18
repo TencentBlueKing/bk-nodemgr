@@ -707,6 +707,9 @@ const operateJob = async (extraData: any = {}) => {
     router.push({
       name: 'taskDetail',
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+      query: {
+        active: 'node',
+      },
     });
   }
 };
@@ -725,6 +728,9 @@ const handleUpgrade = async (osVersion: any[]) => {
     router.push({
       name: 'taskDetail',
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+      query: {
+        active: 'node',
+      },
     });
   }
 };
@@ -739,6 +745,9 @@ const handleUninstall = async () => {
     router.push({
       name: 'taskDetail',
       params: { taskId: result.workflow_id, routerBackName: 'taskList' },
+      query: {
+        active: 'node',
+      },
     });
   }
 };

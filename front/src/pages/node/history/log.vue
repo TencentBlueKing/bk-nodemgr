@@ -1,15 +1,15 @@
 <template>
   <div class="flex w-full h-full">
-    <div class="w-[240px] h-full flex flex-col">
+    <div class="w-[280px] h-full flex flex-col">
       <div class="h-[72px] p-[20px]">
-        <Input v-model="searchValue" :placeholder="'请搜索ip'"></Input>
+        <Input v-model="searchValue" :placeholder="route.query.active === 'node' ? '请搜索ip' : '请搜索ip或插件名'"></Input>
       </div>
       <bk-loading title="数据加载中" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)]">
         <div class="h-full overflow-y-auto">
           <div
             v-for="operate in filterIpOpearateList" :key="operate.operation_id"
             class="cursor-pointer w-full px-[20px] h-[40px] leading-[40px] flex items-center"
-            :class="{ 'bg-[#e1ecff]': route.params.ip === operate.bk_host_inner_list }"
+            :class="{ 'bg-[#e1ecff]': Number(route.params.hostId) === operate.bk_host_id }"
             @click="handleChangeIp(operate.bk_host_inner_list)"
           >
             <span class="mr-[5px] leading-none">
@@ -26,8 +26,8 @@
               ></Spinner>
               <i class="nodeman-icon nc-unknown status-icon align-middle text-[8px]" v-else></i>
             </span>
-            <bk-overflow-title type="tips" class="text-[#63656e] w-[179px]">
-              {{ operate.bk_host_inner_list }}
+            <bk-overflow-title type="tips" class="text-[#63656e] w-[219px]">
+              {{ operate.bk_host_inner_list }} <span v-if="operate.plugin_name">({{ operate.plugin_name }})</span>
             </bk-overflow-title>
           </div>
         </div>
@@ -240,6 +240,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { Table, TableColumn } from '@blueking/table';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
+import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import useFullScreen from '@/composables/use-fullscreen';
 import useInterval from '@/composables/use-interval';
 import { useMainStore } from '@/stores/main';
@@ -255,16 +256,48 @@ const nodeManageStore = useNodeManageStore();
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const { start, stop } = useInterval(getLog, 1000); // 轮询
+
+// 统一服务调用器
+const serviceCaller = {
+  // 根据路由参数获取当前服务类型
+  getCurrentServiceType: () => (route.query.active === 'node' ? 'node' : 'plugin'),
+
+  // 服务方法映射
+  serviceMethods: {
+    node: {
+      retry: NodeWorkflowService.NodeWorkflowOperationRetry,
+      terminate: NodeWorkflowService.NodeWorkflowOperationTerminate,
+      operationList: NodeWorkflowService.NodeWorkflowOperationList,
+      operationInstanceList: NodeWorkflowService.NodeWorkflowOperationInstanceList,
+      operationInstanceLogGet: NodeWorkflowService.NodeWorkflowOperationInstanceLogGet,
+    },
+    plugin: {
+      retry: PluginWorkflowService.PluginWorkflowOperationRetry,
+      terminate: PluginWorkflowService.PluginWorkflowOperationTerminate,
+      operationList: PluginWorkflowService.PluginWorkflowOperationList,
+      operationInstanceList: PluginWorkflowService.PluginWorkflowOperationInstanceList,
+      operationInstanceLogGet: PluginWorkflowService.PluginWorkflowOperationInstanceLogGet,
+    },
+  },
+
+  // 统一调用方法
+  async call(method: 'retry' | 'terminate' | 'operationList' | 'operationInstanceList' | 'operationInstanceLogGet', params: any) {
+    const serviceType = this.getCurrentServiceType();
+    const serviceMethod = this.serviceMethods[serviceType][method];
+    return await serviceMethod(params);
+  },
+};
 const activeKey = ref('');
 
 const operateList = ref<any[]>([]); // 子任务列表
 // 搜索过滤
-// eslint-disable-next-line max-len
-const filterIpOpearateList = computed(() => operateList.value.filter(item => !searchValue.value || item.bk_host_inner_list.includes(searchValue.value)));
+const filterIpOpearateList = computed(() => operateList.value.filter(item => !searchValue.value
+    || item.bk_host_inner_list.includes(searchValue.value)
+    || item.plugin_name?.includes(searchValue.value)));
 
 const searchValue = ref();
-const title = computed(() => `${route.params.ip} ${typeMap[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
-const currentOperate = computed(() => operateList.value.find(item => item.bk_host_inner_list === route.params.ip));
+const currentOperate = computed(() => operateList.value.find(item => item.bk_host_id === Number(route.params.hostId)));
+const title = computed(() => `${currentOperate.value?.bk_host_inner_list ?? ''} ${typeMap[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
 const curOperInstId = ref('');
 const curOperInstVal = ref('latest');
 const curSortNames = ref<string[]>([]);
@@ -349,7 +382,7 @@ const reTryType = [
 ];
 
 const handleRetry = async (row: any, type: string) => {
-  const res = await NodeWorkflowService.NodeWorkflowOperationRetry({
+  const res = await serviceCaller.call('retry', {
     workflow_id: route.params.taskId,
     operation_ids: [row.operation_id],
     retry_mod: type,
@@ -360,14 +393,14 @@ const handleRetry = async (row: any, type: string) => {
       await getOperateList();
       await getInstance();
       start();
-    }, 500);
+    }, 1000);
     mainStore.updateLogRetry(true);
   }
 };
 
 // 终止
 const handleTerminate = async () => {
-  const res = await NodeWorkflowService.NodeWorkflowOperationTerminate({
+  const res = await serviceCaller.call('terminate', {
     workflow_id: route.params.taskId,
     operation_ids: [currentOperate.value.operation_id],
   }).catch(() => false);
@@ -417,6 +450,9 @@ const handleChangeIp = async (ip: string) => {
       ip,
       taskId: route.params.taskId,
     },
+    query: {
+      active: route.query?.active,
+    },
   });
 };
 
@@ -427,6 +463,9 @@ const handleBackToHistoryDetail = () => {
     name: 'taskDetail',
     params: {
       taskId: route.params.taskId,
+    },
+    query: {
+      active: route.query?.active,
     },
   });
 };
@@ -476,7 +515,7 @@ function getOrdinalSuffix(number: number) {
 const operateLoading = ref(false);
 const getOperateList = async () => {
   operateLoading.value = true;
-  const res = await NodeWorkflowService.NodeWorkflowOperationList({
+  const res = await serviceCaller.call('operationList', {
     exact_include_conditions: {
       workflow_id: route.params.taskId,
     },
@@ -488,8 +527,8 @@ const getOperateList = async () => {
   operateList.value = res.operations.map(item => ({
     ...item.param,
     ...item.status,
-    bk_host_inner_list: item.param.bk_host_inner_list?.join(','),
-    bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(','),
+    bk_host_inner_list: item.param.bk_host_inner_list?.join(',') || item.param.bk_host_innerip_list?.join(','),
+    bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(',') || item.param.bk_host_innerip_v6_list?.join(','),
     operation_id: item.operation_id,
   }));
 };
@@ -497,11 +536,15 @@ const getOperateList = async () => {
 const instanceLoading = ref(false);
 const getInstance = async () => {
   instanceLoading.value = true;
-  const res = await NodeWorkflowService.NodeWorkflowOperationInstanceList({
-    operation_id: currentOperate.value.operation_id,
-  }).catch(() => ({
+  const params = route.query.active === 'node'
+    ? {
+      operation_id: currentOperate.value.operation_id,
+    }
+    : {
+      operation_id: [currentOperate.value.operation_id],
+    };
+  const res = await serviceCaller.call('operationInstanceList', params).catch(() => ({
     oper_inst_data: [],
-    total: 0,
   }));
 
   const total = res.oper_inst_data.length;
@@ -520,7 +563,7 @@ const getInstance = async () => {
 const hasErrorOrTimeout = ref(false);
 const isInterval = ref(false);
 async function getLog() {
-  const res = await NodeWorkflowService.NodeWorkflowOperationInstanceLogGet({
+  const res = await serviceCaller.call('operationInstanceLogGet', {
     oper_inst_id: curOperInstId.value,
   }).catch(() => ({
     total: 0,

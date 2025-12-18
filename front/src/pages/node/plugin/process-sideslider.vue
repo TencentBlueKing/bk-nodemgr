@@ -35,7 +35,7 @@
           @checkbox-change="handleSelectChange"
           @checkbox-all="handleSelectAllChange"
         >
-          <TableColumn type="checkbox" width="60" fixed="left"></TableColumn>
+          <TableColumn v-if="type === 'plugin'" type="checkbox" width="60" fixed="left"></TableColumn>
           <TableColumn
             v-if="type === 'plugin'"
             title="Host ID"

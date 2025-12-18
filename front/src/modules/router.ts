@@ -110,7 +110,7 @@ const routes = setupLayouts([
           },
           {
             name: 'log',
-            path: 'history/detail/:taskId/log/:ip',
+            path: 'history/detail/:taskId/log/:hostId',
             component: Log,
             meta: {
               mainMenu: 'nodeManager',

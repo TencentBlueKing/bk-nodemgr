@@ -64,20 +64,8 @@ export interface NodeWorkflowStatisticsResp {
   data: NodeWorkflowStatisticsRespData;
 }
 
-export interface NodeWorkflowStatisticsRespStatisticsInfo {
-  workflow_id: string;
-  total_count: number;
-  init_count: number;
-  launched_count: number;
-  running_count: number;
-  success_count: number;
-  failed_count: number;
-  timeout_count: number;
-  terminated_count: number;
-}
-
 export interface NodeWorkflowStatisticsRespData {
-  items: StatisticsInfo[];
+  items: WorkflowStatisticsInfo[];
 }
 
 // NodeWorkflowDistinctReq describes the node workflow distinct request.
@@ -103,12 +91,13 @@ export interface NodeWorkflowDistinctRespData {
 }
 
 export interface NodeWorkflowOperationParam {
+  bk_host_id: number;
+  bk_biz_id: number;
   bk_networkarea_id: number;
   bk_networkunit_id: number;
   bk_host_inner_list: string[];
   bk_host_innerip_v6_list: string[];
   node_version: string;
-  bk_biz_id: number;
   operator: string;
 }
 
@@ -122,39 +111,6 @@ export interface NodeWorkflowOperation {
 export interface NodeWorkflowOperationStatus {
   state: string;
   total_time_second: number;
-}
-
-export interface Lifecycle {
-  state: string;
-  operate_time: number;
-  finish_time: number;
-}
-
-// NodeWorflowOperationInstance describes the node operation instance.
-export interface NodeWorflowOperationInstance {
-  operation_id: string;
-  oper_inst_id: string;
-  oper_inst_status: string;
-  bk_host_innerip: string;
-  bk_networkunit_id: string;
-  bk_biz_id: string;
-  node_version: string;
-  action: Action[];
-}
-
-export interface NodeWorflowOperationInstanceAction {
-  action_name: string;
-  action_status: string;
-  cost_time_sec: number;
-}
-
-export interface NodeWorflowOperationInstanceData {
-  operation_id: string;
-  oper_inst_id: string;
-  oper_inst_status: string;
-  operation_def_name: string;
-  parent_operation_id: string;
-  action_names: string[];
 }
 
 // NodeWorkflowOperationExactConditions describes the exact conditions of node
@@ -195,7 +151,7 @@ export interface NodeWorkflowOperationListResp {
 
 export interface NodeWorkflowOperationListRespData {
   operations: NodeWorkflowOperation[];
-  total_count: number;
+  total: number;
 }
 
 // NodeWorkflowOperationInstanceListReq describes the node operation instance
@@ -217,44 +173,7 @@ export interface NodeWorkflowOperationInstanceListResp {
 
 export interface NodeWorkflowOperationInstanceListRespData {
   total: number;
-  oper_inst_data: NodeWorflowOperationInstanceData[];
-}
-
-// NodeWorkflowInstanceStatusExactConditions describes the exact conditions of
-// node workflow
-export interface NodeWorkflowInstanceStatusExactConditions {
-  trigger_id: string[];
-}
-
-// NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of
-// node workflow list request.
-export interface NodeWorkflowInstanceStatusFuzzyConditions {
-}
-
-// NodeWorkflowOperationInstanceStatusListReq ...
-export interface NodeWorkflowOperationInstanceListStatusReq {
-  page: Page;
-  exact_include_conditions: NodeWorkflowInstanceStatusExactConditions;
-  fuzzy_include_conditions: NodeWorkflowInstanceStatusFuzzyConditions;
-}
-
-export interface NodeWorkflowOperationInstanceStatus {
-  index: number;
-  instance_id: string;
-  status: string;
-  trigger_id: string;
-}
-
-export interface NodeWorkflowOperationInstanceListStatusResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: NodeWorkflowOperationInstanceListStatusRespData;
-}
-
-export interface NodeWorkflowOperationInstanceListStatusRespData {
-  items: NodeWorkflowOperationInstanceStatus[];
+  oper_inst_data: WorflowOperationInstanceData[];
 }
 
 export interface NodeWorkflowOperationInstanceLogGetReq {
@@ -272,30 +191,7 @@ export interface NodeWorkflowOperationInstanceLogGetResp {
 }
 
 export interface NodeWorkflowOperationInstanceLogGetRespData {
-  total: number;
-  oper_inst_logs: Record<string, NodeWorkflowActionData>;
-}
-
-export interface LifeCycle {
-  state: string;
-  create_time: number;
-  start_time: number;
-  end_time: number;
-}
-
-export interface NodeWorkflowActionMessage {
-  logs: Message[];
-}
-
-export interface NodeWorkflowActionMessageMessage {
-  time: number;
-  text: string;
-  level: string;
-}
-
-export interface NodeWorkflowActionData {
-  life_cycle: LifeCycle;
-  message: NodeWorkflowActionMessage;
+  oper_inst_logs: Record<string, WorkflowActionData>;
 }
 
 // NodeWorkflowOperationRetryReq
