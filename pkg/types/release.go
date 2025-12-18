@@ -201,6 +201,7 @@ type ReleasePlugin struct {
 // ReleaseAdditionInfoPlugin defines the addition info of release plugin.
 type ReleaseAdditionInfoPlugin struct {
 	TemplateRendererType TemplateRendererType
+	LaunchNodeType       LaunchNodeType
 	ConfigTemplates      []PluginPkgConfigTemplate
 	PluginController     ProcessController
 	Description          string
@@ -208,6 +209,20 @@ type ReleaseAdditionInfoPlugin struct {
 	Scenario             string
 	ScenarioEn           string
 }
+
+// LaunchNodeType defines the type of launch node.
+type LaunchNodeType string
+
+const (
+	// LaunchNodeTypeAgent defines the launch node type as agent.
+	LaunchNodeTypeAgent LaunchNodeType = "agent"
+
+	// LaunchNodeTypeProxy defines the launch node type as proxy.
+	LaunchNodeTypeProxy LaunchNodeType = "proxy"
+
+	// LaunchNodeTypeAll defines the launch node type as both agent and proxy.
+	LaunchNodeTypeAll LaunchNodeType = "all"
+)
 
 // TemplateRendererType defines the type of template renderer.
 type TemplateRendererType string

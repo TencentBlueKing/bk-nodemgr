@@ -405,6 +405,7 @@ func (m *Manager) PublishReleaseExternalPlugin(nCtx contextx.IContext, uploadID 
 				},
 				ReleaseAdditionInfoPlugin: types.ReleaseAdditionInfoPlugin{
 					TemplateRendererType: types.TemplateRendererTypeJinja2,
+					LaunchNodeType:       types.LaunchNodeType(strings.ToLower(detail.LaunchNode)),
 					ConfigTemplates:      detail.ConfigTemplates[pkg.platform.String()],
 					PluginController:     detail.Controller[pkg.platform.String()],
 					Description:          detail.Description,
