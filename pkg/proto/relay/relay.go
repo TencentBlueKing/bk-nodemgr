@@ -44,8 +44,12 @@ type Base struct {
 type CallbackReq struct {
 	Base
 
-	// URL describes the url to callback server.
-	URL string `json:"url"`
+	// Method describes the method to callback server.
+	Method string `json:"method"`
+
+	// URLPath and URLQuery describe the url to callback server.
+	URLPath  string `json:"url_path"`
+	URLQuery string `json:"url_query"`
 
 	// Body describes the body to callback server.
 	Body []byte `json:"body"`

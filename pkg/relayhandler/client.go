@@ -213,8 +213,8 @@ func (m *clientMessager) dispatcherServerPushEvent(nCtx contextx.IContext, conte
 }
 
 // RequestCallback sends request to url. only transfer the response body to callback.
-func (m *clientMessager) RequestCallback(nCtx contextx.IContext, url string, content []byte) ([]byte, int, error) {
-	if url == "" {
+func (m *clientMessager) RequestCallback(nCtx contextx.IContext, method, urlPath, urlQuery string, content []byte) ([]byte, int, error) {
+	if urlPath == "" {
 		return nil, http.StatusInternalServerError, errors.New("invalid url")
 	}
 	messageID := identifier.GenMessageID()
@@ -225,8 +225,10 @@ func (m *clientMessager) RequestCallback(nCtx contextx.IContext, url string, con
 			MessageID:   messageID,
 			MessageType: protoRelay.MessageTypeCallbackReq,
 		},
-		URL:  url,
-		Body: content,
+		Method:   method,
+		URLPath:  urlPath,
+		URLQuery: urlQuery,
+		Body:     content,
 	}
 	reqData, err := json.Marshal(req)
 	if err != nil {
@@ -290,7 +292,7 @@ func (m *clientMessager) ClientPushReq(nCtx contextx.IContext, callbackURL strin
 	}
 
 	messageID := identifier.GenMessageID()
-	req := &protoRelay.CallbackReq{
+	req := &protoRelay.ClientPushReq{
 		Base: protoRelay.Base{
 			MessageID:   messageID,
 			MessageType: protoRelay.MessageTypeClientPushReq,

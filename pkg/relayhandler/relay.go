@@ -35,8 +35,8 @@ type IClientMessager interface {
 
 // ICallbackClient defines the callback client.
 type ICallbackClient interface {
-	// RequestCallback sends request to url. returns the response body and http code.
-	RequestCallback(nCtx contextx.IContext, url string, content []byte) ([]byte, int, error)
+	// RequestCallback sends request to url with method. returns the response body and http code.
+	RequestCallback(nCtx contextx.IContext, method, urlPath, urlQuery string, content []byte) ([]byte, int, error)
 }
 
 // IClientPush defines the client handler.
