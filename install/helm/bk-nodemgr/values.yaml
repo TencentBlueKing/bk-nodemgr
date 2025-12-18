@@ -967,6 +967,7 @@ backend:
         osType: "linux"
         baseWorkDir: "/tmp/bknm/"
         baseDeployDir: "/usr/local/"
+        manualScriptPath: "/bk-nodemgr/script/manual/linux/install.sh"
         custom:
           logDir: ""
           hostIDPath: ""
@@ -980,6 +981,7 @@ backend:
         osType: "windows"
         baseWorkDir: "c:\\tmp\\bknm\\"
         baseDeployDir: "c:\\"
+        manualScriptPath: "/bk-nodemgr/script/manual/windows/install.bat"
         custom:
           logDir: ""
           hostIDPath: ""

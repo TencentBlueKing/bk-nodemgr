@@ -405,6 +405,21 @@
       },
       "description": "ManualCommand describes the manual command."
     },
+<<<<<<< HEAD
+    "v3ManualInfo": {
+=======
+    "v3ManualCommand": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        }
+      },
+      "description": "ManualCommand describes the manual command."
+    },
     "v3ManualInfo": {
       "type": "object",
       "properties": {
@@ -480,6 +495,130 @@
           "type": "string"
         },
         "ports": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description_en": {
+          "type": "string"
+        },
+        "description_zh": {
+          "type": "string"
+        }
+      },
+      "description": "NetworkPolicyService describes the network policy service."
+    },
+    "v3NodeWorflowOperationInstanceData": {
+>>>>>>> 272bd127 (feat: update docs and install configs for manual install. --issue=#1268)
+      "type": "object",
+      "properties": {
+        "network_policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3NetworkPolicy"
+          }
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ManualCommand"
+          }
+        }
+      },
+      "description": "ManualInfo describes the manual info."
+    },
+    "v3NetworkPolicy": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description_en": {
+          "type": "string"
+        },
+        "description_zh": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/definitions/v3NetworkPolicyEndpoint"
+        },
+        "target": {
+          "$ref": "#/definitions/v3NetworkPolicyEndpoint"
+        },
+        "service": {
+          "$ref": "#/definitions/v3NetworkPolicyService"
+        }
+      },
+      "description": "NetworkPolicy describes the network policy."
+    },
+    "v3NetworkPolicyEndpoint": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+<<<<<<< HEAD
+        "description_en": {
+          "type": "string"
+        },
+        "description_zh": {
+          "type": "string"
+=======
+        "life_cycle": {
+          "$ref": "#/definitions/v3LifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3NodeWorkflowActionInstBriefData"
+>>>>>>> 272bd127 (feat: update docs and install configs for manual install. --issue=#1268)
+        }
+      },
+      "description": "NetworkPolicyEndpoint describes the network policy endpoint."
+    },
+    "v3NetworkPolicyService": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string"
+        },
+<<<<<<< HEAD
+        "ports": {
+=======
+        "message": {
+          "$ref": "#/definitions/v3NodeWorkflowActionMessage"
+        }
+      }
+    },
+    "v3NodeWorkflowActionInstBriefData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+>>>>>>> 272bd127 (feat: update docs and install configs for manual install. --issue=#1268)
           "type": "array",
           "items": {
             "type": "string"
