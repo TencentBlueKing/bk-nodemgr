@@ -19,6 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -132,6 +133,60 @@ func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, err
 	return resp, nil
 }
 
+// Installer download installer package.
+func (h *handler) Installer(rCtx restserver.IContext) (*restserver.FileResponse, error) {
+	req := new(protoFile.DownloadInstallerReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download installer, failed to bind json")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	osType, err := platfmt.NormalizeOS(req.GetOsType())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download installer, failed to normalize os")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("normalize os failed: %w", err))
+	}
+
+	cpuArch, err := platfmt.NormalizeArch(req.GetCpuArch())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download installer, failed to normalize arch")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("normalize arch failed: %w", err))
+	}
+
+	toolName, err := tool.FormatInstallerName(osType, cpuArch)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := h.fileManager.GetFile(rCtx, toolName)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download installer, failed to get installer")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get installer failed: %w", err))
+	}
+
+	reader, err := file.Content(rCtx)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download installer, failed to get file content")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file content failed: %w", err))
+	}
+
+	info := file.Info()
+	resp := &restserver.FileResponse{
+		Data:        reader,
+		Size:        info.Size,
+		FilePath:    filepath.Join(".", info.Name),
+		FileName:    info.Name,
+		ContentType: "application/octet-stream",
+	}
+
+	return resp, nil
+}
+
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
@@ -146,4 +201,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/agent", restserver.FileHandler(h.Agent))
 	h.rg.POST("/proxy", restserver.FileHandler(h.Proxy))
+	h.rg.POST("/installer", restserver.FileHandler(h.Installer))
 }
