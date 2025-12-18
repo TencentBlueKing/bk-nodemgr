@@ -36,7 +36,8 @@ func NewFullUninstall() *cobra.Command {
 		operInstID      string
 
 		// optional flags.
-		logDir string
+		logDir   string
+		logToStd bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -65,7 +66,7 @@ func NewFullUninstall() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
+			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
@@ -123,6 +124,7 @@ func NewFullUninstall() *cobra.Command {
 	 * optional flags.
 	 */
 	fullCmd.Flags().StringVar(&logDir, flag2.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, flag2.LogToStd, false, "also output log to stdout")
 
 	return fullCmd
 }

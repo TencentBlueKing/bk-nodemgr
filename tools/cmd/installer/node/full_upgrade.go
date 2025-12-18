@@ -45,6 +45,7 @@ func NewFullUpgrade() *cobra.Command {
 		// optional flags.
 		downloadSvrAddr string
 		logDir          string
+		logToStd        bool
 		restart         bool
 		force           bool
 		skipDownload    bool
@@ -84,7 +85,7 @@ func NewFullUpgrade() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
+			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
@@ -191,6 +192,7 @@ func NewFullUpgrade() *cobra.Command {
 	 */
 	fullCmd.Flags().StringVar(&downloadSvrAddr, flag2.DownloadSvrAddr, "", "download server address, for downloading release files. if skip_download is set, this can be empty")
 	fullCmd.Flags().StringVar(&logDir, flag2.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, flag2.LogToStd, false, "also output log to stdout")
 	fullCmd.Flags().BoolVar(&restart, flag2.Restart, false, "whether to restart node after upgrade")
 	fullCmd.Flags().BoolVar(&force, flag2.Force, false, "whether to force restart when --restart is set")
 	fullCmd.Flags().BoolVar(&skipDownload, flag2.SkipDownload, false, "whether to skip downloading files")

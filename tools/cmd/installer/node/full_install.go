@@ -47,8 +47,9 @@ func NewFullInstall() *cobra.Command {
 		nodeVersion     string
 
 		// optional flags.
-		logDir  string
-		agentID string
+		logDir   string
+		logToStd bool
+		agentID  string
 
 		// pre-run.
 		persistentVars   *persistent.Variables
@@ -82,7 +83,7 @@ func NewFullInstall() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
+			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
@@ -213,6 +214,7 @@ func NewFullInstall() *cobra.Command {
 	 * optional flags.
 	 */
 	fullCmd.Flags().StringVar(&logDir, flag2.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, flag2.LogToStd, false, "also output log to stdout")
 	fullCmd.Flags().StringVar(&agentID, flag2.AgentID, "", "existing agent-id to install with, if not given, will register a new one")
 
 	return fullCmd

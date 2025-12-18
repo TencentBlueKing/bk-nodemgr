@@ -41,9 +41,10 @@ func NewFullReconfig() *cobra.Command {
 		operInstID      string
 
 		// optional flags.
-		logDir  string
-		restart bool
-		force   bool
+		logDir   string
+		logToStd bool
+		restart  bool
+		force    bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -71,7 +72,7 @@ func NewFullReconfig() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
+			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
@@ -171,6 +172,7 @@ func NewFullReconfig() *cobra.Command {
 	 * optional flags.
 	 */
 	fullCmd.Flags().StringVar(&logDir, flag2.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, flag2.LogToStd, false, "also output log to stdout")
 	fullCmd.Flags().BoolVar(&restart, flag2.Restart, false, "whether to restart node after reload config")
 	fullCmd.Flags().BoolVar(&force, flag2.Force, false, "whether to force restart when --restart is set")
 

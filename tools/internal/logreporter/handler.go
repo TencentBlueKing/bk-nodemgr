@@ -12,6 +12,7 @@ package logreporter
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -28,9 +29,10 @@ const (
 )
 
 // NewHandler creates a new logger handler.
-func NewHandler(logDir, deployToken, operInstID, reportLogURL string) *Handler {
+func NewHandler(logDir string, logToStd bool, deployToken, operInstID, reportLogURL string) *Handler {
 	return &Handler{
 		logDir:      logDir,
+		logToStd:    logToStd,
 		logFilePath: filepath.Join(logDir, fmt.Sprintf("installer_%s.log", time.Now().Format("2006-01-02T15-04-05"))),
 		args: ReportLogsArgs{
 			Token:        deployToken,
@@ -45,6 +47,7 @@ func NewHandler(logDir, deployToken, operInstID, reportLogURL string) *Handler {
 // Handler logs handler.
 type Handler struct {
 	logDir      string
+	logToStd    bool
 	logFilePath string
 	args        ReportLogsArgs
 
@@ -65,7 +68,12 @@ func (lh *Handler) Start() error {
 	if err != nil {
 		return fmt.Errorf("failed to open log file: %w", err)
 	}
-	log.SetOutput(lh.logWFile)
+
+	if lh.logToStd {
+		log.SetOutput(io.MultiWriter(lh.logWFile, os.Stdout))
+	} else {
+		log.SetOutput(lh.logWFile)
+	}
 
 	lh.logRFile, err = os.OpenFile(lh.logFilePath, os.O_RDONLY, logFileMode)
 	if err != nil {

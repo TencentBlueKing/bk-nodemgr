@@ -26,6 +26,9 @@ const (
 	// LogDir defines the log dir flag.
 	LogDir = "log_dir"
 
+	// LogToStd defines the log std flag.
+	LogToStd = "log_to_std"
+
 	// Status defines the status flag.
 	Status = "status"
 
