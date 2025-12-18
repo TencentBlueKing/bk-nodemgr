@@ -399,6 +399,29 @@
         "type": {
           "type": "string"
         },
+<<<<<<< HEAD
+        "description_en": {
+=======
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "start_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_time": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3ManualSolution": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
         "description_en": {
           "type": "string"
         },
@@ -406,6 +429,96 @@
           "type": "string"
         },
         "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3ManualSolutionStep"
+          }
+        }
+      },
+      "description": "ManualSolution describes the manual solution."
+    },
+    "v3ManualSolutionStep": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "name_en": {
+          "type": "string"
+        },
+        "name_zh": {
+          "type": "string"
+        },
+        "content_en": {
+          "type": "string"
+        },
+        "content_zh": {
+          "type": "string"
+        }
+      },
+      "description": "ManualSolutionStep describes the step of manual solution."
+    },
+    "v3NodeWorflowOperationInstanceData": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+>>>>>>> 272bd127 (feat: update docs and install configs for manual install. --issue=#1268)
+          "type": "string"
+        },
+        "description_zh": {
+          "type": "string"
+        },
+<<<<<<< HEAD
+        "steps": {
+=======
+        "oper_inst_status": {
+          "type": "string"
+        },
+        "operation_def_name": {
+          "type": "string"
+        },
+        "parent_operation_id": {
+          "type": "string"
+        },
+        "action_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowActionData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3LifeCycle"
+        },
+        "message": {
+          "$ref": "#/definitions/v3NodeWorkflowActionMessage"
+        }
+      }
+    },
+    "v3NodeWorkflowActionInstBriefData": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowActionMessage": {
+      "type": "object",
+      "properties": {
+        "logs": {
+>>>>>>> 272bd127 (feat: update docs and install configs for manual install. --issue=#1268)
           "type": "array",
           "items": {
             "type": "object",
@@ -661,7 +774,11 @@
           "$ref": "#/definitions/v3NodeWorkflowOperationStatus"
         },
         "latest_action_inst_brief_data": {
+<<<<<<< HEAD
           "$ref": "#/definitions/v3WorkflowActionInstBriefData"
+=======
+          "$ref": "#/definitions/v3NodeWorkflowActionInstBriefData"
+>>>>>>> 272bd127 (feat: update docs and install configs for manual install. --issue=#1268)
         }
       }
     },

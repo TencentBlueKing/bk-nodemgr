@@ -59,6 +59,49 @@
         ]
       }
     },
+    "/download/installer": {
+      "post": {
+        "summary": "DownloadInstaller provides downloading installer.",
+        "operationId": "Download_DownloadInstaller",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3FileChunk"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadInstallerReq is the request for download installer.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadInstallerReq"
+            }
+          }
+        ],
+        "tags": [
+          "Download"
+        ]
+      }
+    },
     "/download/plugin": {
       "post": {
         "summary": "DownloadAgent provides downloading plugin.",
@@ -193,6 +236,18 @@
         }
       },
       "description": "DownloadAgentReq is the request for download agent pkg."
+    },
+    "v3DownloadInstallerReq": {
+      "type": "object",
+      "properties": {
+        "os_type": {
+          "type": "string"
+        },
+        "cpu_arch": {
+          "type": "string"
+        }
+      },
+      "description": "DownloadInstallerReq is the request for download installer."
     },
     "v3DownloadProxyReq": {
       "type": "object",
