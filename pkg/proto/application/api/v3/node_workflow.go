@@ -273,8 +273,8 @@ func (x *NodeWorkflowOperationInstanceListReq) Validate() error {
 	return nil
 }
 
-// ConvertConditionsToOperationInstanceID convert conditions to operation instance id.
-func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToOperationInstanceID() string {
+// ConvertConditionsToOperationID convert conditions to operation id.
+func (x *NodeWorkflowOperationInstanceListReq) ConvertConditionsToOperationID() string {
 	return x.GetOperationId()
 }
 

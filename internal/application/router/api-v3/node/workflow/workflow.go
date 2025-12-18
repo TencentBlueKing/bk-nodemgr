@@ -262,7 +262,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 
 	if req.GetOnlyCount() {
 		num, err := h.backendHandler.CountNodeWorkflowOperationInstance(
-			rCtx, req.ConvertConditionsToOperationInstanceID())
+			rCtx, req.ConvertConditionsToOperationID())
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to count operation instance: %v", err)
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -275,7 +275,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 	}
 
 	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
-		rCtx, req.ConvertConditionsToOperationInstanceID())
+		rCtx, req.ConvertConditionsToOperatioID())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
