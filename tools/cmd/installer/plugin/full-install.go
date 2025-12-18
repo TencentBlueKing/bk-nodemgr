@@ -41,7 +41,8 @@ func NewFullInstall() *cobra.Command {
 		pluginVersion   string
 
 		// optional flags.
-		logDir string
+		logDir   string
+		logToStd bool
 
 		// pre-run.
 		persistentVars *persistent.Variables
@@ -73,9 +74,10 @@ func NewFullInstall() *cobra.Command {
 
 			return nil
 		},
+		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
+			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
@@ -164,6 +166,7 @@ func NewFullInstall() *cobra.Command {
 	 * optional flags.
 	 */
 	fullCmd.Flags().StringVar(&logDir, pluginflag.LogDir, "", "directory to save log files")
+	fullCmd.Flags().BoolVar(&logToStd, pluginflag.LogToStd, false, "also output log to stdout")
 
 	return fullCmd
 }

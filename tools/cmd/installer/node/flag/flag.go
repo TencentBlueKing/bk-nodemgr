@@ -36,6 +36,9 @@ const (
 	// LogDir defines the log dir flag.
 	LogDir = "log_dir"
 
+	// LogToStd defines the log std flag.
+	LogToStd = "log_to_std"
+
 	// PreCheckListConf defines the pre-check list conf flag.
 	PreCheckListConf = "pre_check_list_conf"
 
