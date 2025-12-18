@@ -25,70 +25,70 @@ import (
 )
 
 const (
-	// ActionNameCheckPluginLaunchNode the name of action check plugin launch node.
-	ActionNameCheckPluginLaunchNode = "check_plugin_launch_node"
+	// ActionNameVerifyPluginAvailability the name of action verify plugin availability.
+	ActionNameVerifyPluginAvailability = "verify_plugin_availability"
 )
 
-// NewActionCheckPluginLaunchNode new an action to check plugin launch node.
-func NewActionCheckPluginLaunchNode(capability *Capability) action.Definition {
-	return &actionCheckPluginLaunchNode{
+// NewActionVerifyPluginAvailability new an action to verify plugin availability.
+func NewActionVerifyPluginAvailability(capability *Capability) action.Definition {
+	return &actionVerifyPluginAvailability{
 		daoPluginDeployment: capability.StoragePlugin,
 		daoReleasePlugin:    capability.StorageRelease,
 		daoHost:             capability.StorageTopo,
 	}
 }
 
-// ActParamCheckPluginLaunchNode defines the parameters for actionCheckPluginLaunchNode.
-type ActParamCheckPluginLaunchNode struct {
+// ActParamVerifyPluginAvailability defines the parameters for actionVerifyPluginAvailability.
+type ActParamVerifyPluginAvailability struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
-type actionCheckPluginLaunchNode struct {
+type actionVerifyPluginAvailability struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	daoReleasePlugin    releaseStg.IPlugin
 	daoHost             topoStg.IStorageHost
 }
 
 // Name returns the name of the action.
-func (act *actionCheckPluginLaunchNode) Name() string {
-	return ActionNameCheckPluginLaunchNode
+func (act *actionVerifyPluginAvailability) Name() string {
+	return ActionNameVerifyPluginAvailability
 }
 
 // Version returns the version of the action.
-func (act *actionCheckPluginLaunchNode) Version() string {
+func (act *actionVerifyPluginAvailability) Version() string {
 	return "1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionCheckPluginLaunchNode) Description() string {
-	return "check plugin launch node"
+func (act *actionVerifyPluginAvailability) Description() string {
+	return "verify plugin availability"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionCheckPluginLaunchNode) Timeout() time.Duration {
+func (act *actionVerifyPluginAvailability) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionCheckPluginLaunchNode) Tags() []action.Tag {
+func (act *actionVerifyPluginAvailability) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionCheckPluginLaunchNode) MaxRetryCount() uint {
+func (act *actionVerifyPluginAvailability) MaxRetryCount() uint {
 	return 1 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionCheckPluginLaunchNode) DelayFn() func() {
+func (act *actionVerifyPluginAvailability) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *actionCheckPluginLaunchNode) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamCheckPluginLaunchNode)
+func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error {
+	param := new(ActParamVerifyPluginAvailability)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
