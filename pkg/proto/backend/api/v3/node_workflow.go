@@ -320,9 +320,9 @@ func (x *NodeWorkflowOperationInstanceListReq) AutoConvert() {
 func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 	num int64, result []*operation.InstanceBriefData) {
 
-	items := make([]*WorflowOperationInstanceData, 0, len(result))
-	for _, opinstance := range result {
-		oper := &WorflowOperationInstanceData{
+	items := make([]*WorflowOperationInstanceData, len(result))
+	for idx, opinstance := range result {
+		items[idx] = &WorflowOperationInstanceData{
 			OperInstId:        opinstance.Metadata.OperationInstanceID,
 			OperationId:       opinstance.Metadata.OperationID,
 			OperInstStatus:    string(opinstance.Lifecycle.State),
@@ -337,7 +337,6 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(
 				StopTime:   opinstance.Lifecycle.StoppedAt.Unix(),
 			},
 		}
-		items = append(items, oper)
 	}
 
 	x.Data = &NodeWorkflowOperationInstanceListResp_Data{
@@ -438,17 +437,15 @@ func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertListStatusConditions
 func (x *NodeWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperInstanceStatusFromTypes(
 	result []*operation.InstanceBriefData) {
 
-	items := make([]*WorkflowOperationInstanceStatus, 0)
-	for _, opinstance := range result {
-		item := &WorkflowOperationInstanceStatus{
+	items := make([]*WorkflowOperationInstanceStatus, len(result))
+	for idx, opinstance := range result {
+		items[idx] = &WorkflowOperationInstanceStatus{
 			Index:               int64(opinstance.Metadata.Index),
 			Status:              string(opinstance.Lifecycle.State),
 			OperationId:         opinstance.Metadata.OperationID,
 			TriggerId:           opinstance.Metadata.TriggerID,
 			OperationInstanceId: opinstance.Metadata.OperationInstanceID,
 		}
-
-		items = append(items, item)
 	}
 
 	x.Data = &NodeWorkflowOperationInstanceListStatusResp_Data{

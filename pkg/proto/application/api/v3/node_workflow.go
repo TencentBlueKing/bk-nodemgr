@@ -287,8 +287,8 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(total int
 	result []*operation.InstanceBriefData) {
 
 	items := make([]*WorflowOperationInstanceData, len(result))
-	for _, opinstance := range result {
-		oper := &WorflowOperationInstanceData{
+	for idx, opinstance := range result {
+		items[idx] = &WorflowOperationInstanceData{
 			OperInstId:        opinstance.Metadata.OperationInstanceID,
 			OperationId:       opinstance.Metadata.OperationID,
 			OperInstStatus:    string(opinstance.Lifecycle.State),
@@ -303,8 +303,6 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertResultFromTypes(total int
 				StopTime:   opinstance.Lifecycle.StoppedAt.Unix(),
 			},
 		}
-
-		items = append(items, oper)
 	}
 
 	x.Data = &NodeWorkflowOperationInstanceListResp_Data{
@@ -342,13 +340,13 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 			EndTime:    v.Lifecycle.EndedAt.Unix(),
 		}
 
-		messages := make([]*WorkflowActionMessage_Message, 0, len(v.Messages))
-		for _, msg := range v.Messages {
-			messages = append(messages, &WorkflowActionMessage_Message{
+		messages := make([]*WorkflowActionMessage_Message, len(v.Messages))
+		for idx, msg := range v.Messages {
+			messages[idx] = &WorkflowActionMessage_Message{
 				Time:  msg.Time.Unix(),
 				Text:  msg.Text,
 				Level: msg.Level,
-			})
+			}
 		}
 
 		operInstLogs[actionID] = &WorkflowActionData{
