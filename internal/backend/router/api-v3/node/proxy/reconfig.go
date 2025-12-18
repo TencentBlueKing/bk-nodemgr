@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -39,7 +38,7 @@ func (h *handler) Reconfig(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	workflowID, err := h.manager.LaunchReconfigNode(rCtx, manager.ReconfigNodeParam{
+	workflowID, err := h.nodeMgrIface.LaunchReconfigNode(rCtx, types.ReconfigNodeParam{
 		Type:            types.NodeWorkflowTypeReconfigProxy,
 		BizIDs:          bizIDs,
 		Operator:        rCtx.BKUsername(),

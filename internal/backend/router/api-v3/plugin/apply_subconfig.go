@@ -11,7 +11,6 @@
 package plugin
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
@@ -32,7 +31,7 @@ func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) 
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	workflowID, err := h.manager.LaunchApplyPluginSubConfig(rCtx, manager.ApplyPluginSubConfigParam{
+	workflowID, err := h.pluginMgrIface.LaunchApplyPluginSubConfig(rCtx, types.ApplyPluginSubConfigParam{
 		Type:              types.PluginWorkflowTypeApplyPluginSubConfig,
 		HostIDs:           hostIDs,
 		Operator:          rCtx.BKUsername(),

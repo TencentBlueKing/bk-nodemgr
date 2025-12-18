@@ -12,11 +12,11 @@
 package workflow
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -28,7 +28,7 @@ func (h *handler) RetryOperation(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.manager.LaunchRetryPluginOperationFromLastInstance(rCtx, manager.RetryPluginWorkflowOperationParam{
+	err := h.pluginMgrIface.LaunchRetryPluginOperationFromLastInstance(rCtx, types.RetryPluginWorkflowOperationParam{
 		WorkflowID:   req.GetWorkflowId(),
 		RetryMod:     operation.RetryMode(req.GetRetryMod()),
 		OperationIDs: req.GetOperationIds(),

@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 )
 
 // IManager defines the Manager interface.
@@ -32,9 +33,9 @@ type IManager interface {
 	// GracefulShutdown ...
 	GracefulShutdown() error
 
-	ISyncManager
-	INodeManager
-	IPluginManager
+	managerIface.ISyncManager
+	managerIface.INodeManager
+	managerIface.IPluginManager
 }
 
 // NewManager creates a new Manager.

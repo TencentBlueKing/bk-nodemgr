@@ -21,36 +21,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
-// ISyncManager defines the SyncManager interface.
-type ISyncManager interface {
-	// LaunchSyncBizAndHost launch a task to sync biz and host. returns the trigger-id.
-	LaunchSyncBizAndHost(ctx contextx.IContext) (string, error)
-
-	// LaunchSyncHostByBizID launch a task to sync host by biz-id. returns the trigger-id.
-	LaunchSyncHostByBizID(ctx contextx.IContext, bizID int64) (string, error)
-
-	// LaunchSyncNetworkArea launch a task to sync networkarea. returns the trigger-id.
-	LaunchSyncNetworkArea(ctx contextx.IContext) (string, error)
-
-	// LaunchSyncAgentState launch a task to sync agent state from gse. returns the workflow-id.
-	LaunchSyncAgentState(ctx contextx.IContext, hostIDs ...int64) (string, error)
-
-	// LaunchSyncAllAgentState launch a task to sync all agent state from gse. returns the workflow-id.
-	LaunchSyncAllAgentState(ctx contextx.IContext) (string, error)
-
-	// LaunchSyncAgentInfo launch a task to sync agent info from gse. returns the workflow-id.
-	LaunchSyncAgentInfo(ctx contextx.IContext, hostIDs ...int64) (string, error)
-
-	// LaunchSyncAliveHostAgentInfo launch a task to sync alive host agent info. returns the trigger-id.
-	LaunchSyncAliveHostAgentInfo(ctx contextx.IContext) (string, error)
-
-	// LaunchSyncAlivePluginProcessInfo launch a task to sync alive plugin process info. returns the workflow-id.
-	LaunchSyncAlivePluginProcessInfo(ctx contextx.IContext, hostIDs ...int64) (string, error)
-
-	// LaunchSyncAllAlivePluginProcessInfo launch a task to sync all alive plugin process info. returns the workflow-id.
-	LaunchSyncAllAlivePluginProcessInfo(ctx contextx.IContext) (string, error)
-}
-
 // LaunchSyncAllAgentState launch a task to sync all agent state.
 func (mgr *Manager) LaunchSyncAllAgentState(nCtx contextx.IContext) (string, error) {
 	tenantID := nCtx.TenantID()

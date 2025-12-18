@@ -26,6 +26,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 )
 
 // Capability encapsulates the various capabilities the service supports.
@@ -57,4 +58,7 @@ type Capability struct {
 
 	// relay handler.
 	ProxyMessager relayhandler.IServerMessager
+
+	// plugin manager iface.
+	PluginIface managerIface.IPluginManager
 }

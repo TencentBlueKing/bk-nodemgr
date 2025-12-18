@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -55,7 +54,7 @@ func (h *handler) AgentRestart(rCtx restserver.IContext) (interface{}, error) {
 		nodeDeploys[idx] = nodeDeploy
 	}
 
-	workflowID, err := h.manager.LaunchRestartNode(rCtx, manager.RestartNodeParam{
+	workflowID, err := h.nodeMgrIface.LaunchRestartNode(rCtx, types.RestartNodeParam{
 		Type:            types.NodeWorkflowTypeRestartAgent,
 		BizIDs:          h.getRestartNodeBizIDs(hosts),
 		Operator:        rCtx.BKUsername(),

@@ -787,3 +787,5 @@ linters-settings:
         alias: sdkTrace
       - pkg: go.opentelemetry.io/otel/semconv/v1.17.0
         alias: semconv
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface
+        alias: managerIface

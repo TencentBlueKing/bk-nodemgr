@@ -12,7 +12,7 @@
 package workflow
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
@@ -32,8 +32,8 @@ const (
 )
 
 type handler struct {
-	rg      *gin.RouterGroup
-	manager manager.IManager
+	rg             *gin.RouterGroup
+	pluginMgrIface managerIface.IPluginManager
 
 	daoPluginWorkflow   pluginStg.IDaoPluginWorkflow
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
@@ -46,7 +46,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                  rg.Group("/workflow"),
-		manager:             capability.Manager,
+		pluginMgrIface:      capability.Manager,
 		daoPluginWorkflow:   capability.StoragePlugin,
 		daoPluginDeployment: capability.StoragePlugin,
 		daoHost:             capability.StorageTopo,

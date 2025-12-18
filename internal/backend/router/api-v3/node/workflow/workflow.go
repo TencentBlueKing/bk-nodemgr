@@ -12,7 +12,7 @@
 package workflow
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
@@ -28,12 +28,11 @@ import (
 
 const (
 	maxNodeWorkflowLimit = 500
-	maxOperationLimit    = 500
 )
 
 type handler struct {
-	rg      *gin.RouterGroup
-	manager manager.IManager
+	rg           *gin.RouterGroup
+	nodeMgrIface managerIface.INodeManager
 
 	daoNodeWorkflow   nodeStg.IDaoNodeWorkflow
 	daoNodeDeployment nodeStg.IDaoNodeDeployment
@@ -45,7 +44,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                rg.Group("/workflow"),
-		manager:           capability.Manager,
+		nodeMgrIface:      capability.Manager,
 		daoNodeWorkflow:   capability.StorageNode,
 		daoNodeDeployment: capability.StorageNode,
 		storageWorkflow:   capability.StorageWorkflow,

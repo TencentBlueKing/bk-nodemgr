@@ -57,6 +57,7 @@ func (mgr *Manager) registerDefNode() error {
 		Cache:               mgr.conf.Cache,
 		InstallerFileGroup:  mgr.conf.InstallerFileGroup,
 		ProxyMessager:       mgr.conf.ProxyMessager,
+		PluginIface:         mgr,
 	}
 
 	// register action defs.

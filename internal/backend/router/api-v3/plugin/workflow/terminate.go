@@ -12,11 +12,11 @@
 package workflow
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // TerminateOperation terminate plugin workflow operation.
@@ -27,7 +27,7 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.manager.TerminatePluginOperationLastInstance(rCtx, manager.TerminatePluginWorkflowOperationParam{
+	err := h.pluginMgrIface.TerminatePluginOperationLastInstance(rCtx, types.TerminatePluginWorkflowOperationParam{
 		WorkflowID:   req.GetWorkflowId(),
 		OperationIDs: req.GetOperationIds(),
 	})

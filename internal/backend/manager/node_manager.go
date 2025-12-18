@@ -26,85 +26,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
-// INodeManager defines the NodeManager interface.
-type INodeManager interface {
-	// LaunchInstallNode launch a task to install node. returns the workflow-id.
-	LaunchInstallNode(ctx contextx.IContext, param InstallNodeParam) (string, error)
-
-	// LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
-	LaunchUpgradeNode(ctx contextx.IContext, param UpgradeNodeParam) (string, error)
-
-	// LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
-	LaunchReconfigNode(ctx contextx.IContext, param ReconfigNodeParam) (string, error)
-
-	// LaunchRestartNode launch a task to restart node. returns the workflow-id.
-	LaunchRestartNode(ctx contextx.IContext, param RestartNodeParam) (string, error)
-
-	// LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
-	LaunchUninstallNode(ctx contextx.IContext, param UninstallNodeParam) (string, error)
-
-	// LaunchRetryOperationFromLastInstance launch a task to retry operation from last instance.
-	LaunchRetryNodeOperationFromLastInstance(ctx contextx.IContext, param RetryNodeWorkflowOperationParam) error
-
-	// TerminateOperationLastInstance terminate operation from last instance.
-	TerminateNodeOperationLastInstance(ctx contextx.IContext, param TerminateNodeWorkflowOperationParam) error
-}
-
-// InstallNodeParam install node param.
-type InstallNodeParam struct {
-	Type            types.NodeWorkflowType
-	BizIDs          []int64
-	Operator        string
-	NodeDeployments []*types.NodeDeployment
-}
-
-// UpgradeNodeParam upgrade node param.
-type UpgradeNodeParam struct {
-	Type            types.NodeWorkflowType
-	BizIDs          []int64
-	Operator        string
-	NodeDeployments []*types.NodeDeployment
-}
-
-// ReconfigNodeParam reconfig node param.
-type ReconfigNodeParam struct {
-	Type            types.NodeWorkflowType
-	BizIDs          []int64
-	Operator        string
-	NodeDeployments []*types.NodeDeployment
-}
-
-// RestartNodeParam restart node param.
-type RestartNodeParam struct {
-	Type            types.NodeWorkflowType
-	BizIDs          []int64
-	Operator        string
-	NodeDeployments []*types.NodeDeployment
-}
-
-// UninstallNodeParam uninstall node param.
-type UninstallNodeParam struct {
-	Type            types.NodeWorkflowType
-	BizIDs          []int64
-	Operator        string
-	NodeDeployments []*types.NodeDeployment
-}
-
-// RetryNodeWorkflowOperationParam retry node workflow operation param.
-type RetryNodeWorkflowOperationParam struct {
-	WorkflowID   string
-	RetryMod     operation.RetryMode
-	OperationIDs []string
-}
-
-// TerminateNodeWorkflowOperationParam terminate node workflow operation param.
-type TerminateNodeWorkflowOperationParam struct {
-	WorkflowID   string
-	OperationIDs []string
-}
-
 // LaunchInstallNode launch a task to install node.
-func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param InstallNodeParam) (string, error) {
+func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param types.InstallNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
@@ -145,7 +68,7 @@ func (mgr *Manager) LaunchInstallNode(nCtx contextx.IContext, param InstallNodeP
 }
 
 // LaunchRetryNodeOperationFromLastInstance launch a task to retry operation from last instance.
-func (mgr *Manager) LaunchRetryNodeOperationFromLastInstance(nCtx contextx.IContext, param RetryNodeWorkflowOperationParam) error {
+func (mgr *Manager) LaunchRetryNodeOperationFromLastInstance(nCtx contextx.IContext, param types.RetryNodeWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get node workflow: %w", err)
@@ -168,7 +91,7 @@ func (mgr *Manager) LaunchRetryNodeOperationFromLastInstance(nCtx contextx.ICont
 }
 
 // TerminateNodeOperationLastInstance terminate operation from last instance.
-func (mgr *Manager) TerminateNodeOperationLastInstance(nCtx contextx.IContext, param TerminateNodeWorkflowOperationParam) error {
+func (mgr *Manager) TerminateNodeOperationLastInstance(nCtx contextx.IContext, param types.TerminateNodeWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StorageNode.GetNodeWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get node workflow: %w", err)
@@ -315,7 +238,7 @@ func (mgr *Manager) getNodeInstallOperationDefProxy(deploy *types.NodeDeployment
 }
 
 // LaunchUpgradeNode launch a task to upgrade node. returns the workflow-id.
-func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param UpgradeNodeParam) (string, error) {
+func (mgr *Manager) LaunchUpgradeNode(nCtx contextx.IContext, param types.UpgradeNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
@@ -426,7 +349,7 @@ func enablePagentInstaller(deploy *types.NodeDeployment) {
 }
 
 // LaunchReconfigNode launch a task to reconfig node. returns the workflow-id.
-func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param ReconfigNodeParam) (string, error) {
+func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param types.ReconfigNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
@@ -502,7 +425,7 @@ func (mgr *Manager) LaunchReconfigNode(nCtx contextx.IContext, param ReconfigNod
 }
 
 // LaunchRestartNode launch a task to restart node. returns the workflow-id.
-func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param RestartNodeParam) (string, error) {
+func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param types.RestartNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
@@ -578,7 +501,7 @@ func (mgr *Manager) LaunchRestartNode(nCtx contextx.IContext, param RestartNodeP
 }
 
 // LaunchUninstallNode launch a task to uninstall node. returns the workflow-id.
-func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param UninstallNodeParam) (string, error) {
+func (mgr *Manager) LaunchUninstallNode(nCtx contextx.IContext, param types.UninstallNodeParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err

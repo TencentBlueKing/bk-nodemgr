@@ -15,7 +15,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -54,7 +53,7 @@ func (h *handler) AgentUninstall(rCtx restserver.IContext) (interface{}, error) 
 		nodeDeploys[idx] = nodeDeploy
 	}
 
-	workflowID, err := h.manager.LaunchUninstallNode(rCtx, manager.UninstallNodeParam{
+	workflowID, err := h.nodeMgrIface.LaunchUninstallNode(rCtx, types.UninstallNodeParam{
 		Type:            types.NodeWorkflowTypeUninstallAgent,
 		BizIDs:          h.getUninstallNodeBizIDs(hosts),
 		Operator:        rCtx.BKUsername(),

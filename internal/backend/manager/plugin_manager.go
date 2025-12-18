@@ -26,31 +26,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/trigger"
 )
 
-// IPluginManager defines the PluginManager interface.
-type IPluginManager interface {
-	// LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
-	LaunchInstallPlugin(ctx contextx.IContext, param InstallPluginParam) (string, error)
-
-	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
-	LaunchApplyPluginSubConfig(ctx contextx.IContext, param ApplyPluginSubConfigParam) (string, error)
-
-	// LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
-	LaunchRetryPluginOperationFromLastInstance(ctx contextx.IContext, param RetryPluginWorkflowOperationParam) error
-
-	// TerminatePluginOperationLastInstance terminate operation from last instance.
-	TerminatePluginOperationLastInstance(ctx contextx.IContext, param TerminatePluginWorkflowOperationParam) error
-}
-
-// InstallPluginParam define the param of LaunchInstallPlugin.
-type InstallPluginParam struct {
-	Type              types.PluginWorkflowType
-	HostIDs           []int64
-	Operator          string
-	PluginDeployments []*types.PluginDeployment
-}
-
 // LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
-func (mgr *Manager) LaunchInstallPlugin(nCtx contextx.IContext, param InstallPluginParam) (string, error) {
+func (mgr *Manager) LaunchInstallPlugin(nCtx contextx.IContext, param types.InstallPluginParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
@@ -133,16 +110,8 @@ func (mgr *Manager) getPluginInstallOperationDef(deploy *types.PluginDeployment,
 	})
 }
 
-// ApplyPluginSubConfigParam define the param of LaunchApplyPluginSubConfig.
-type ApplyPluginSubConfigParam struct {
-	Type              types.PluginWorkflowType
-	HostIDs           []int64
-	Operator          string
-	PluginDeployments []*types.PluginDeployment
-}
-
 // LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
-func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param ApplyPluginSubConfigParam) (string, error) {
+func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error) {
 	triggerCtl, err := mgr.workflowMgr.CreateTrigger(nCtx, trigger.CategoryOnce, trigger.NewMetadataOnce())
 	if err != nil {
 		return "", err
@@ -214,15 +183,8 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param App
 	return workflowID, nil
 }
 
-// RetryPluginWorkflowOperationParam retry node workflow operation param.
-type RetryPluginWorkflowOperationParam struct {
-	WorkflowID   string
-	RetryMod     operation.RetryMode
-	OperationIDs []string
-}
-
 // LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
-func (mgr *Manager) LaunchRetryPluginOperationFromLastInstance(nCtx contextx.IContext, param RetryPluginWorkflowOperationParam) error {
+func (mgr *Manager) LaunchRetryPluginOperationFromLastInstance(nCtx contextx.IContext, param types.RetryPluginWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StoragePlugin.GetPluginWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get plugin workflow: %w", err)
@@ -244,14 +206,8 @@ func (mgr *Manager) LaunchRetryPluginOperationFromLastInstance(nCtx contextx.ICo
 	return triggerCtl.ActivateTrigger(nCtx)
 }
 
-// TerminatePluginWorkflowOperationParam terminate node workflow operation param.
-type TerminatePluginWorkflowOperationParam struct {
-	WorkflowID   string
-	OperationIDs []string
-}
-
 // TerminatePluginOperationLastInstance terminate operation from last instance.
-func (mgr *Manager) TerminatePluginOperationLastInstance(nCtx contextx.IContext, param TerminatePluginWorkflowOperationParam) error {
+func (mgr *Manager) TerminatePluginOperationLastInstance(nCtx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StoragePlugin.GetPluginWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get plugin workflow: %w", err)

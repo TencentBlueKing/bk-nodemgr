@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
@@ -61,7 +60,7 @@ func (h *handler) AgentUpgrade(rCtx restserver.IContext) (interface{}, error) {
 		nodeDeploys[idx] = nodeDeploy
 	}
 
-	workflowID, err := h.manager.LaunchUpgradeNode(rCtx, manager.UpgradeNodeParam{
+	workflowID, err := h.nodeMgrIface.LaunchUpgradeNode(rCtx, types.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
 		BizIDs:          h.getUpgradeNodeBizIDs(hosts),
 		Operator:        rCtx.BKUsername(),

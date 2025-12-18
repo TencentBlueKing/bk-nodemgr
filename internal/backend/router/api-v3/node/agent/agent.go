@@ -12,7 +12,7 @@
 package agent
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -23,7 +23,7 @@ import (
 // handler ...
 type handler struct {
 	rg                 *gin.RouterGroup
-	manager            manager.IManager
+	nodeMgrIface       managerIface.INodeManager
 	storageNetworkUnit topoStg.IStorageNetworkUnit
 	storageHost        topoStg.IStorageHost
 	storageHostCredit  credit.IStorageHostCredit
@@ -36,7 +36,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:                 rg.Group("/agent"),
-		manager:            capability.Manager,
+		nodeMgrIface:       capability.Manager,
 		storageNetworkUnit: capability.StorageTopo,
 		storageHost:        capability.StorageTopo,
 		storageHostCredit:  capability.StorageCredit,

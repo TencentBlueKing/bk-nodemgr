@@ -12,7 +12,7 @@
 package plugin
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin/workflow"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
@@ -25,7 +25,7 @@ type handler struct {
 	rg              *gin.RouterGroup
 	daoNodeWorkflow nodeStg.IDaoNodeWorkflow
 	daoPlugin       pluginStg.IDaoPlugin
-	manager         manager.IPluginManager
+	pluginMgrIface  managerIface.IPluginManager
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -34,7 +34,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		rg:              rg.Group("/plugin"),
 		daoNodeWorkflow: capability.StorageNode,
 		daoPlugin:       capability.StoragePlugin,
-		manager:         capability.Manager,
+		pluginMgrIface:  capability.Manager,
 	}
 }
 
