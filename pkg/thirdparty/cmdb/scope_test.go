@@ -43,6 +43,21 @@ func TestHandler_GetTargetByScopeSetTemplate(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "normal_test_service_instance",
+			args: args{
+				nCtx: contextx.New(contextx.Background(), contextx.WithBKUsername("admin")),
+				scope: &types.ScopeSetTemplate{
+					Granularity:    types.TargetGranularityServiceInstance,
+					TenantID:       "default",
+					BizID:          2,
+					SetTemplateIDs: []int64{1},
+					SetIDs:         []int64{},
+					Filter:         types.TargetFilter{},
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -77,6 +92,21 @@ func TestHandler_GetTargetByScopeServiceTemplate(t *testing.T) {
 				nCtx: contextx.New(contextx.Background(), contextx.WithBKUsername("admin")),
 				scope: &types.ScopeServiceTemplate{
 					Granularity:        types.TargetGranularityHost,
+					BizID:              2,
+					TenantID:           "default",
+					Filter:             types.TargetFilter{},
+					ServiceTemplateIDs: []int64{1},
+					ModuleIDs:          []int64{},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "normal_test_service_instance",
+			args: args{
+				nCtx: contextx.New(contextx.Background(), contextx.WithBKUsername("admin")),
+				scope: &types.ScopeServiceTemplate{
+					Granularity:        types.TargetGranularityServiceInstance,
 					BizID:              2,
 					TenantID:           "default",
 					Filter:             types.TargetFilter{},
@@ -164,6 +194,22 @@ func TestHandler_GetTargetByScopeDynamicGroup(t *testing.T) {
 				nCtx: nCtx,
 				scope: &types.ScopeDynamicGroup{
 					Granularity: types.TargetGranularityHost,
+					BizID:       12,
+					TenantID:    "default",
+					DynamicGroupIDs: []string{
+						"xxxx",
+					},
+					Filter: types.TargetFilter{},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "normal_test_service_instance",
+			args: args{
+				nCtx: nCtx,
+				scope: &types.ScopeDynamicGroup{
+					Granularity: types.TargetGranularityServiceInstance,
 					BizID:       12,
 					TenantID:    "default",
 					DynamicGroupIDs: []string{

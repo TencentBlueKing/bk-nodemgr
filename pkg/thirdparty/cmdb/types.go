@@ -41,11 +41,20 @@ func ccHostFields() []ccField {
 }
 
 const (
-	ccFieldBKInnerIP    ccField = "bk_host_innerip"
-	ccFieldBKHostID     ccField = "bk_host_id"
-	ccFieldBKHostName   ccField = "bk_host_name"
-	ccFieldBKCloudID    ccField = "bk_cloud_id"
-	ccFieldBKAddressing ccField = "bk_addressing"
+	ccFieldBKInnerIP     ccField = "bk_host_innerip"
+	ccFieldBKHostID      ccField = "bk_host_id"
+	ccFieldBKHostName    ccField = "bk_host_name"
+	ccFieldBKCloudID     ccField = "bk_cloud_id"
+	ccFieldBKAddressing  ccField = "bk_addressing"
+	ccFieldBKSetID       ccField = "bk_set_id"
+	ccFieldSetTemplateID ccField = "set_template_id"
+	ccFieldBKSetName     ccField = "bk_set_name"
+	ccFieldBKBizID       ccField = "bk_biz_id"
+)
+
+const (
+	// CCInvalidID represents an invalid CMDB ID (typically 0).
+	CCInvalidID int64 = 0
 )
 
 // Page describe the page data in request.
@@ -1079,12 +1088,14 @@ type FindHostRelationsWithTopoResp struct {
 // ListServiceInstanceDetailReq describe the request data of list_service_instance_detail.
 // Reference: https://github.com/TencentBlueKing/bk-cmdb/blob/master/docs/apidoc/apigw/open/zh/list_service_instance_detail.md
 type ListServiceInstanceDetailReq struct {
-	BKBizID            int64           `json:"bk_biz_id"`
-	BKModuleID         int64           `json:"bk_module_id,omitempty"`
-	BKHostList         []int64         `json:"bk_host_list,omitempty"`
-	ServiceInstanceIDs []int64         `json:"service_instance_ids,omitempty"`
-	Selectors          []*KeyCondition `json:"selectors,omitempty"`
-	Page               Page            `json:"page"`
+	BKBizID              int64           `json:"bk_biz_id"`
+	BKModuleID           int64           `json:"bk_module_id,omitempty"`
+	BKHostList           []int64         `json:"bk_host_list,omitempty"`
+	BKServiceTemplateIDs []int64         `json:"bk_service_template_ids,omitempty"`
+	BKSetTemplateIDs     []int64         `json:"bk_set_template_ids,omitempty"`
+	ServiceInstanceIDs   []int64         `json:"service_instance_ids,omitempty"`
+	Selectors            []*KeyCondition `json:"selectors,omitempty"`
+	Page                 Page            `json:"page"`
 }
 
 // ServiceInstanceDetailInfo describe the service instance detail info define by cmdb.

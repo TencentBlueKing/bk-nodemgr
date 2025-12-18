@@ -97,9 +97,9 @@ func (spec DeploySpec) UniqueID() (string, error) {
 
 		// TODO: 继续补充此处代码
 		return param.PluginName, nil
+	default:
+		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.Type)
 	}
-
-	return "", nil
 }
 
 // SpecifyPluginParam defines the specify plugin version param.

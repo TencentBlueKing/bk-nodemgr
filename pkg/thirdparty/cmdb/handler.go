@@ -768,8 +768,8 @@ func (h *Handler) ListBizHosts(nCtx contextx.IContext, bizID int64, page types.P
 		return nil, fmt.Errorf("failed to list biz hosts, nCtx is nil")
 	}
 
-	if bizID == 0 {
-		return nil, fmt.Errorf("failed to list biz hosts, bizID is 0")
+	if bizID == CCInvalidID {
+		return nil, fmt.Errorf("failed to list biz hosts, bizID is invalid")
 	}
 
 	tenantID := nCtx.TenantID()
@@ -1108,7 +1108,8 @@ func (h *Handler) ListResourcePoolHosts(nCtx contextx.IContext, page types.Page)
 }
 
 // FindHostByServiceTemplate find host by service template.
-func (h *Handler) FindHostByServiceTemplate(nCtx contextx.IContext, bizID int64, page types.Page, serviceTemplateIDs []int64, modleIDs []int64) ([]*types.Host, error) {
+func (h *Handler) FindHostByServiceTemplate(nCtx contextx.IContext, bizID int64, page types.Page, serviceTemplateIDs []int64, modleIDs []int64) (
+	[]*types.Host, error) {
 
 	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
 		req := &FindHostByServiceTemplateReq{
@@ -1190,8 +1191,8 @@ func (h *Handler) FindHostByDynamicGroup(nCtx contextx.IContext, bizID int64, dy
 		return nil, fmt.Errorf("failed to get host by dynamic group, nCtx is nil")
 	}
 
-	if bizID == 0 {
-		return nil, fmt.Errorf("failed to get host by dynamic group, bizID is 0")
+	if bizID == CCInvalidID {
+		return nil, fmt.Errorf("failed to get host by dynamic group, bizID is invalid")
 	}
 
 	pExecutor := pageexecutor.NewPageExecutor[*types.Host](CCPageSizeLimit, ccQueryTimeout)
@@ -1247,11 +1248,84 @@ func (h *Handler) executeHostDynamicGroup(nCtx contextx.IContext, bizID int64, g
 	return result, nil
 }
 
+// FindSetByDynamicGroup find set by dynamic group.
+func (h *Handler) FindSetByDynamicGroup(nCtx contextx.IContext, bizID int64, dynamicGroupIDs []string, page types.Page) ([]*SetInfo, error) {
+	if nCtx == nil {
+		return nil, fmt.Errorf("failed to get set by dynamic group, nCtx is nil")
+	}
+
+	if bizID == CCInvalidID {
+		return nil, fmt.Errorf("failed to get set by dynamic group, bizID is invalid")
+	}
+
+	pExecutor := pageexecutor.NewPageExecutor[*SetInfo](CCPageSizeLimit, ccQueryTimeout)
+	sets := make([]*SetInfo, 0)
+	for idx := range dynamicGroupIDs {
+		dynamicGroupID := dynamicGroupIDs[idx]
+		fn := func(nCtx contextx.IContext, p types.Page) ([]*SetInfo, error) {
+			return h.executeSetDynamicGroup(nCtx, bizID, dynamicGroupID, p)
+		}
+
+		result, err := pExecutor.Execute(nCtx, page, fn)
+		if err != nil {
+			return nil, err
+		}
+
+		sets = append(sets, result.Items...)
+	}
+
+	return sets, nil
+}
+
+// executeSetDynamicGroup execute dynamic grouping rules to return sets within the group.
+func (h *Handler) executeSetDynamicGroup(nCtx contextx.IContext, bizID int64, groupID string, page types.Page) (
+	[]*SetInfo, error) {
+
+	// Fields needed: bk_set_id, set_template_id (following Python: fields=["bk_set_id", "set_template_id"])
+	fields := []ccField{
+		ccFieldBKSetID,
+		ccFieldSetTemplateID,
+		ccFieldBKSetName,
+		ccFieldBKBizID,
+	}
+
+	req := &ExecuteDynamicGroupReq{
+		BKBizID:        bizID,
+		ID:             groupID,
+		Fields:         fields,
+		DisableCounter: false,
+		Page: Page{
+			Start: page.Offset,
+			Limit: page.Limit,
+			Sort:  page.Sort,
+		},
+	}
+
+	resp, err := h.cli.executeDynamicGroup(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*SetInfo, 0, len(resp.Info))
+	for index := range resp.Info {
+		setData := SetInfo{}
+		if err := conv.MapToStruct(resp.Info[index], &setData); err != nil {
+			return nil, fmt.Errorf("failed to convert set info: %w", err)
+		}
+
+		result = append(result, &setData)
+	}
+
+	return result, nil
+}
+
 const (
 	// topoNodeObjIDBiz topo node object id for biz.
 	topoNodeObjIDBiz = "biz"
 	// topoNodeObjIDHost topo node object id for host.
 	topoNodeObjIDHost = "host"
+	// topoNodeObjIDModule topo node object id for module.
+	topoNodeObjIDModule = "module"
 )
 
 // FindHostByTopo find host by topo.
