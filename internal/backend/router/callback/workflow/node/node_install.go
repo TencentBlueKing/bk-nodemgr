@@ -39,20 +39,31 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	}
 }
 
+const (
+	pathGetKeyOperationInstanceID = "operation_instance_id"
+	pathGetKeyOsType              = "os_type"
+	queryGetKeyActionName         = "action"
+)
+
 // Load ter register the api v3 router.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	// TODO: 设置权限封禁
+	// TODO: auth things.
 	h.rg.POST("/report_log", h.ReportLog)
 	h.rg.POST("/report_status", h.ReportStatus)
 	h.rg.POST("/report_data", h.ReportData)
+	h.rg.POST("/report_detect_info", h.ReportDetectInfo)
 	h.rg.POST("/get_check_list", h.GetCheckList)
 	h.rg.POST("/get_agent_config", h.GetAgentConfig)
 	h.rg.POST("/get_data_proxy_config", h.GetDataProxyConfig)
 	h.rg.POST("/get_file_proxy_config", h.GetFileProxyConfig)
+	h.rg.POST("/get_manual_install_exec_command", h.GetManualInstallExecCommand)
 	h.rg.POST("/relay/report_file_state", h.RelayReportFileState)
 	h.rg.POST("/relay/report_storage_result", h.RelayReportStorageResult)
 	h.rg.POST("/relay/report_detect_result", h.RelayReportDetectResult)
 	h.rg.POST("/relay/report_install_result", h.RelayReportInstallResult)
+
+	// get manual script
+	h.rg.GET("/get_manual_script/:"+pathGetKeyOsType+"/:"+pathGetKeyOperationInstanceID, h.GetManualScript)
 }

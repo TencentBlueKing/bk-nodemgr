@@ -400,12 +400,13 @@ func (svc *BackendService) Validate() error {
 
 // GSEDeployConf defines the deployment configuration for gse node.
 type GSEDeployConf struct {
-	Generation    int64                 `yaml:"generation" usage:"generation of deploy"`
-	OsType        string                `yaml:"osType" usage:"os type"`
-	BaseWorkDir   string                `yaml:"baseWorkDir" usage:"base work dir"`
-	BaseDeployDir string                `yaml:"baseDeployDir" usage:"base deploy dir"`
-	Custom        GSEDeployCustom       `yaml:"custom" usage:"custom deploy conf"`
-	PluginCustom  GSEDeployPluginCustom `yaml:"pluginCustom" usage:"plugin custom deploy conf"`
+	Generation       int64                 `yaml:"generation" usage:"generation of deploy"`
+	OsType           string                `yaml:"osType" usage:"os type"`
+	BaseWorkDir      string                `yaml:"baseWorkDir" usage:"base work dir"`
+	BaseDeployDir    string                `yaml:"baseDeployDir" usage:"base deploy dir"`
+	Custom           GSEDeployCustom       `yaml:"custom" usage:"custom deploy conf"`
+	PluginCustom     GSEDeployPluginCustom `yaml:"pluginCustom" usage:"plugin custom deploy conf"`
+	ManualScriptPath string                `yaml:"manualScriptPath" usage:"manual script"`
 }
 
 // Validate validates the config.
@@ -428,6 +429,10 @@ func (conf GSEDeployConf) Validate() error {
 
 	if err := conf.PluginCustom.Validate(); err != nil {
 		return fmt.Errorf("failed to validate plugin custom deploy conf: %w", err)
+	}
+
+	if _, err := os.Stat(conf.ManualScriptPath); err != nil {
+		return fmt.Errorf("failed to validate manual script path config: %w", err)
 	}
 
 	return nil

@@ -39,6 +39,7 @@ type NodeProxyInstallHost struct {
 type NodeProxyInstallParam struct {
 	Hosts         []*NodeProxyInstallHost
 	TargetVersion []*TargetVersion
+	IsManual      bool
 }
 
 // NodeProxyUpgradeHost describes the node proxy upgrade host.

@@ -18,6 +18,11 @@ import (
 // Tag represents a tag of an action.
 type Tag string
 
+const (
+	// TagNeedManualExecInstallScript tag need manual execute install script.
+	TagNeedManualExecInstallScript Tag = "need_manual_exec_install_script"
+)
+
 // Definition represents an action, which is a single basic step of work.
 type Definition interface {
 	// Name returns the name of the action.

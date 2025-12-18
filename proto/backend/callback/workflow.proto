@@ -38,6 +38,23 @@ message GetCheckListReq {
   string token = 4;
 }
 
+// GetManualInstallExecCommandReq describes the HTTP request body when get
+// manual install exec command.
+message GetManualInstallExecCommandReq {
+  string oper_inst_id = 1;
+  string action_name = 2;
+}
+
+// ReportDetectInfoReq describes the HTTP request body when report detect info.
+message ReportDetectInfoReq {
+  string oper_inst_id = 1;
+  string action_name = 2;
+  string err_msg = 3;
+  string os_type = 4;
+  string cpu_arch = 5;
+  string connection_dir = 6;
+}
+
 // ReportLogReq describes the HTTP request body when report log.
 message ReportLogReq {
   string token = 1;

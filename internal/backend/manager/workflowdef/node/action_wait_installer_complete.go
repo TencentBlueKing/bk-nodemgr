@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -28,7 +29,7 @@ const (
 	// ActionNameWaitInstallerComplete defines the action name.
 	ActionNameWaitInstallerComplete = "wait_node_installer_complete"
 
-	waitReportInterval = 1 * time.Second
+	waitInstallerCompleteInterval = 1 * time.Second
 )
 
 // NewActionWaitInstallerComplete get a new action.
@@ -108,7 +109,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	instanceID := std.InstanceData().OperationInstanceID
 
 	// wait for installer result
-	rawInstallerResult, err := act.waitInstallerField(std, instanceID, installer.InstallerReportKeyStatus)
+	rawInstallerResult, err := act.waitInstallerField(std, types.PDKeyInstallerReportStatus)
 	if err != nil {
 		return fmt.Errorf("failed to wait for installer result: %w", err)
 	}
@@ -117,7 +118,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 
 	// ensure agent id
 	if param.EnsureAgentID && installerResult == installer.ProcessStateSuccess {
-		agentID, err := act.waitInstallerField(std, instanceID, installer.InstallerReportKeyAgentID)
+		agentID, err := act.waitInstallerField(std, types.PDKeyInstallerReportAgentID)
 		if err != nil {
 			return fmt.Errorf("failed to wait for agent id: %w", err)
 		}
@@ -147,13 +148,8 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	}
 }
 
-func (act *actionWaitInstallerComplete) waitInstallerField(
-	std *nodeUtils.NodeActionStandarder,
-	instanceID string,
-	key string,
-) (string, error) {
-
-	ticker := time.NewTicker(waitReportInterval)
+func (act *actionWaitInstallerComplete) waitInstallerField(std *nodeUtils.NodeActionStandarder, key string) (string, error) {
+	ticker := time.NewTicker(waitInstallerCompleteInterval)
 	defer ticker.Stop()
 
 	for {
@@ -162,7 +158,7 @@ func (act *actionWaitInstallerComplete) waitInstallerField(
 
 			return "", std.Context().Err()
 		case <-ticker.C:
-			value, err := act.tryFetchValue(std, instanceID, key)
+			value, err := act.tryFetchValue(std, key)
 			if err != nil {
 				return "", err
 			}
@@ -174,10 +170,10 @@ func (act *actionWaitInstallerComplete) waitInstallerField(
 	}
 }
 
-func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionStandarder, instanceID, key string) (string, error) {
+func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionStandarder, key string) (string, error) {
 	privateData, err := act.storageActionInstance.GetActionInstancePrivateData(
 		std.Context(),
-		instanceID,
+		std.InstanceData().OperationInstanceID,
 		ActionNameWaitInstallerComplete)
 	if err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to get action private data")
@@ -187,14 +183,15 @@ func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionS
 
 	rawValue, exists := privateData[key]
 	if !exists {
-		logger.G.Sys().With("oper-inst-id", instanceID, "key", key).Debug("no receive data, sleep 1 second")
+		logger.G.Sys().With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key).Debug("no receive data")
 
 		return "", nil
 	}
 
 	value, err := conv.ToString(rawValue)
 	if err != nil {
-		logger.G.Sys().With("oper-inst-id", instanceID, "key", key, "rawValue", rawValue).Error("unexpected type for fetched value")
+		logger.G.Sys().With("oper-inst-id", std.InstanceData().OperationInstanceID, "key", key, "raw-value", rawValue).
+			Error("unexpected type for fetched value")
 
 		return "", fmt.Errorf("failed to get value for key. key(%s)", key)
 	}

@@ -957,6 +957,39 @@ func (c *cli) terminateNodeWorkflowOperation(ctx contextx.IContext, req *protoBa
 	return resp, nil
 }
 
+func (c *cli) getNodeWorkflowManualInfo(
+	ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationManualInfoGetReq,
+) (*protoBackend.NodeWorkflowOperationManualInfoGetResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationManualInfoGetResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/workflow/operation/manual/info/get").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get workflow operation manual info failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("get workflow operation manual info failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 // ===============================================================================
 // Node Agent Related Interfaces
 // ===============================================================================
@@ -1156,7 +1189,6 @@ func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAge
 // ===============================================================================
 // Node Proxy Related Interfaces
 // ===============================================================================
-
 func (c *cli) installNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyInstallReq) (
 	*protoBackend.NodeProxyInstallResp, error) {
 

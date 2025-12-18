@@ -38,6 +38,9 @@ type InstanceBriefData struct {
 	// the below fields should be written only once.
 	Metadata *InstanceMetadata
 
+	// the latest action brief data.
+	LatestActionInstBriefData *action.InstanceBriefData
+
 	// the below fields can be changed.
 	Lifecycle *Lifecycle
 }

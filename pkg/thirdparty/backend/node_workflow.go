@@ -94,6 +94,13 @@ type IHandlerNodeWorkflow interface {
 	// @param retryParam the retry param.
 	// @return the error.
 	RetryNodeWorkflowOperation(ctx contextx.IContext, retryParam *types.NodeWorkflowOperationRetryParam) error
+
+	// GetNodeWorkflowOperationManualInfo get workflow operation manual info.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param workflowID the workflow id.
+	// @param operationID the operation id.
+	// @return the manual info.
+	GetNodeWorkflowOperationManualInfo(ctx contextx.IContext, workflowID, operationID string) (*types.NodeWorkflowOperationManualInfo, error)
 }
 
 // ListNodeWorkflow list node workflow within specified tenant in contextx.
@@ -292,4 +299,21 @@ func (h *Handler) TerminateNodeWorkflowOperation(ctx contextx.IContext, terminat
 	}
 
 	return nil
+}
+
+// GetNodeWorkflowOperationManualInfo get workflow operation manual info.
+func (h *Handler) GetNodeWorkflowOperationManualInfo(ctx contextx.IContext, workflowID, operationID string) (
+	*types.NodeWorkflowOperationManualInfo, error) {
+
+	req := &protoBackend.NodeWorkflowOperationManualInfoGetReq{
+		WorkflowId:  workflowID,
+		OperationId: operationID,
+	}
+
+	resp, err := h.cli.getNodeWorkflowManualInfo(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertManualInfoToTypes(), nil
 }

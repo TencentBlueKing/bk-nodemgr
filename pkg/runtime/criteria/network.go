@@ -26,3 +26,20 @@ const (
 	// NetTypeUDP6 this defines the network type of udp6.
 	NetTypeUDP6 NetType = "udp6"
 )
+
+// NetEndpointType define the network endpoint type.
+type NetEndpointType string
+
+const (
+	// NetEndpointTypeIP this defines the network endpoint type of ip.
+	NetEndpointTypeIP NetEndpointType = "ip"
+
+	// NetEndpointTypeDomain this defines the network endpoint type of domain.
+	NetEndpointTypeDomain NetEndpointType = "domain"
+
+	// NetEndpointTypeCIDR this defines the network endpoint type of cidr.
+	NetEndpointTypeCIDR NetEndpointType = "cidr"
+
+	// NetEndpointTypeSecureGroup this defines the network endpoint type of secure_group.
+	NetEndpointTypeSecureGroup NetEndpointType = "secure_group"
+)

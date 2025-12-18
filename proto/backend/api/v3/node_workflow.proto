@@ -124,6 +124,24 @@ message NodeWorkflowOperation {
   string operator = 10;
 }
 
+// NodeWorflowOperationInstance describes the node operation instance.
+message NodeWorflowOperationInstance {
+  string operation_id = 1;
+  string oper_inst_id = 2;
+  string oper_inst_status = 3;
+  string bk_host_innerip = 4;
+  string bk_networkunit_id = 5;
+  string bk_biz_id = 6;
+  string node_version = 7;
+
+  message Action {
+    string action_name = 1;
+    string action_status = 2;
+    int64 cost_time_sec = 3;
+  }
+  repeated Action action = 8;
+}
+
 // NodeWorkflowOperationExactConditions describes the exact conditions of node
 // workflow operation list request.
 message NodeWorkflowOperationExactConditions {
@@ -168,6 +186,7 @@ message NodeWorkflowOperationListResp {
 message NodeWorkflowOperationInstanceListReq {
   bool only_count = 1;
   repeated string operation_id = 2;
+  repeated string oper_inst_id = 3;
 }
 
 // NodeWorkflowOperationInstanceListResp describes the node operation instance
@@ -236,6 +255,35 @@ message NodeWorkflowOperationTerminateResp {
   Data data = 5;
 }
 
+// ManualCommand describes the manual command.
+message ManualCommand {
+  string type = 1;
+  string command = 2;
+};
+
+// ManualInfo describes the manual info.
+message ManualInfo {
+  repeated NetworkPolicy network_policies = 1;
+  repeated ManualCommand commands = 2;
+}
+
+// NodeWorkflowOperationManualInfoGetReq
+message NodeWorkflowOperationManualInfoGetReq {
+  string workflow_id = 1;
+  string operation_id = 2;
+}
+
+// NodeWorkflowOperationManualInfoGetResp
+message NodeWorkflowOperationManualInfoGetResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  ManualInfo data = 5;
+}
+
+// NodeWorkflow provdies node workflow service.
 service NodeWorkflow {
   // NodeWorkflowList provides node workflow list.
   rpc NodeWorkflowList(NodeWorkflowListReq) returns (NodeWorkflowListResp) {
@@ -309,6 +357,15 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationTerminateResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/terminate"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationManualInfoGet provides node operation manual info get.
+  rpc NodeWorkflowOperationManualInfoGet(NodeWorkflowOperationManualInfoGetReq)
+      returns (NodeWorkflowOperationManualInfoGetResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/manual/info/get"
       body : "*"
     };
   }

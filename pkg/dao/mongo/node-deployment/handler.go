@@ -180,6 +180,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 		InstallOptions: types.DeploymentInstallOptions{
 			ReRegister:    info.InstallOptions.ReRegister,
 			DirectInstall: info.InstallOptions.DirectInstall,
+			IsManual:      info.InstallOptions.IsManual,
 		},
 		RestartOptions: types.DeploymentRestartOptions{
 			ForceRestart:           info.RestartOptions.ForceRestart,
@@ -398,6 +399,7 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		InstallOptions: InstallOptions{
 			ReRegister:    info.InstallOptions.ReRegister,
 			DirectInstall: info.InstallOptions.DirectInstall,
+			IsManual:      info.InstallOptions.IsManual,
 		},
 		RestartOptions: RestartOptions{
 			ForceRestart:           info.RestartOptions.ForceRestart,

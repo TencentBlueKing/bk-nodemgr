@@ -50,6 +50,9 @@ type IOperationInstData interface {
 	// UpdateLifeCycle updates or inserts an InstanceData's LifeCycle.
 	UpdateLifeCycle(nCtx contextx.IContext, operInstID string, lifeCycle *operation.Lifecycle) error
 
+	// UpdateLatestActionInstBriefData updates or inserts an InstanceData's latest action instance brief data.
+	UpdateLatestActionInstBriefData(nCtx contextx.IContext, operInstID string, briefData *action.InstanceBriefData) error
+
 	// UpdateExtraExecutionMessages updates operation instance extra execution messages.
 	UpdateExtraExecutionMessages(nCtx contextx.IContext, operInstID string, messages ...common.Message) error
 
@@ -335,6 +338,36 @@ func (h *Handler) UpdateLifeCycle(nCtx contextx.IContext, operInstID string, lif
 	}
 
 	err := h.dao.updateField(nCtx, filter, FieldKeyLifeCycle, ConvOperaLifeCycleToDB(lifeCycle))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateLatestActionInstBriefData updates or inserts an InstanceData's latest action instance brief data.
+func (h *Handler) UpdateLatestActionInstBriefData(nCtx contextx.IContext, operInstID string, briefData *action.InstanceBriefData) error {
+	if nCtx == nil {
+		return errors.New("nCtx is nil")
+	}
+
+	if operInstID == "" {
+		return errors.New("operation instance id is empty")
+	}
+
+	if briefData == nil {
+		return errors.New("brief data is nil")
+	}
+
+	filter := base.AliveFilter()
+	opts := []OptFn{
+		WithOperInstID(operInstID),
+	}
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	err := h.dao.updateField(nCtx, filter, FieldKeyLatestActionInstBriefData, ConvActionInstBriefDataToDB(briefData))
 	if err != nil {
 		return err
 	}

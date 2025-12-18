@@ -2060,6 +2060,237 @@ func (x *Error) GetDetails() []*Error_Details {
 	return nil
 }
 
+// NetworkPolicyEndpoint describes the network policy endpoint.
+type NetworkPolicyEndpoint struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
+	Type          string                 `protobuf:"bytes,2,opt,name=type,proto3" json:"type"`
+	Values        []string               `protobuf:"bytes,3,rep,name=values,proto3" json:"values"`
+	DescriptionEn string                 `protobuf:"bytes,4,opt,name=description_en,json=descriptionEn,proto3" json:"description_en"`
+	DescriptionZh string                 `protobuf:"bytes,5,opt,name=description_zh,json=descriptionZh,proto3" json:"description_zh"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkPolicyEndpoint) Reset() {
+	*x = NetworkPolicyEndpoint{}
+	mi := &file_common_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkPolicyEndpoint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkPolicyEndpoint) ProtoMessage() {}
+
+func (x *NetworkPolicyEndpoint) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkPolicyEndpoint.ProtoReflect.Descriptor instead.
+func (*NetworkPolicyEndpoint) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *NetworkPolicyEndpoint) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NetworkPolicyEndpoint) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *NetworkPolicyEndpoint) GetValues() []string {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+func (x *NetworkPolicyEndpoint) GetDescriptionEn() string {
+	if x != nil {
+		return x.DescriptionEn
+	}
+	return ""
+}
+
+func (x *NetworkPolicyEndpoint) GetDescriptionZh() string {
+	if x != nil {
+		return x.DescriptionZh
+	}
+	return ""
+}
+
+// NetworkPolicyService describes the network policy service.
+type NetworkPolicyService struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Protocol      string                 `protobuf:"bytes,1,opt,name=protocol,proto3" json:"protocol"`
+	Ports         []string               `protobuf:"bytes,2,rep,name=ports,proto3" json:"ports"`
+	DescriptionEn string                 `protobuf:"bytes,3,opt,name=description_en,json=descriptionEn,proto3" json:"description_en"`
+	DescriptionZh string                 `protobuf:"bytes,4,opt,name=description_zh,json=descriptionZh,proto3" json:"description_zh"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkPolicyService) Reset() {
+	*x = NetworkPolicyService{}
+	mi := &file_common_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkPolicyService) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkPolicyService) ProtoMessage() {}
+
+func (x *NetworkPolicyService) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkPolicyService.ProtoReflect.Descriptor instead.
+func (*NetworkPolicyService) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *NetworkPolicyService) GetProtocol() string {
+	if x != nil {
+		return x.Protocol
+	}
+	return ""
+}
+
+func (x *NetworkPolicyService) GetPorts() []string {
+	if x != nil {
+		return x.Ports
+	}
+	return nil
+}
+
+func (x *NetworkPolicyService) GetDescriptionEn() string {
+	if x != nil {
+		return x.DescriptionEn
+	}
+	return ""
+}
+
+func (x *NetworkPolicyService) GetDescriptionZh() string {
+	if x != nil {
+		return x.DescriptionZh
+	}
+	return ""
+}
+
+// NetworkPolicy describes the network policy.
+type NetworkPolicy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name"`
+	DescriptionEn string                 `protobuf:"bytes,2,opt,name=description_en,json=descriptionEn,proto3" json:"description_en"`
+	DescriptionZh string                 `protobuf:"bytes,3,opt,name=description_zh,json=descriptionZh,proto3" json:"description_zh"`
+	Source        *NetworkPolicyEndpoint `protobuf:"bytes,4,opt,name=source,proto3" json:"source"`
+	Target        *NetworkPolicyEndpoint `protobuf:"bytes,5,opt,name=target,proto3" json:"target"`
+	Service       *NetworkPolicyService  `protobuf:"bytes,6,opt,name=service,proto3" json:"service"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NetworkPolicy) Reset() {
+	*x = NetworkPolicy{}
+	mi := &file_common_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NetworkPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NetworkPolicy) ProtoMessage() {}
+
+func (x *NetworkPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_common_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NetworkPolicy.ProtoReflect.Descriptor instead.
+func (*NetworkPolicy) Descriptor() ([]byte, []int) {
+	return file_common_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *NetworkPolicy) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NetworkPolicy) GetDescriptionEn() string {
+	if x != nil {
+		return x.DescriptionEn
+	}
+	return ""
+}
+
+func (x *NetworkPolicy) GetDescriptionZh() string {
+	if x != nil {
+		return x.DescriptionZh
+	}
+	return ""
+}
+
+func (x *NetworkPolicy) GetSource() *NetworkPolicyEndpoint {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *NetworkPolicy) GetTarget() *NetworkPolicyEndpoint {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *NetworkPolicy) GetService() *NetworkPolicyService {
+	if x != nil {
+		return x.Service
+	}
+	return nil
+}
+
 type Error_Details struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code"`
@@ -2070,7 +2301,7 @@ type Error_Details struct {
 
 func (x *Error_Details) Reset() {
 	*x = Error_Details{}
-	mi := &file_common_proto_msgTypes[27]
+	mi := &file_common_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2082,7 +2313,7 @@ func (x *Error_Details) String() string {
 func (*Error_Details) ProtoMessage() {}
 
 func (x *Error_Details) ProtoReflect() protoreflect.Message {
-	mi := &file_common_proto_msgTypes[27]
+	mi := &file_common_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2604,12 +2835,49 @@ var file_common_proto_rawDesc = string([]byte{
 	0x37, 0x0a, 0x07, 0x44, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x6f,
 	0x64, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x63, 0x6f, 0x64, 0x65, 0x12, 0x18,
 	0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68,
-	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c,
-	0x75, 0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67,
-	0x72, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62,
-	0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x07, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0xa5, 0x01, 0x0a, 0x15, 0x4e, 0x65, 0x74,
+	0x77, 0x6f, 0x72, 0x6b, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x45, 0x6e, 0x64, 0x70, 0x6f, 0x69,
+	0x6e, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75,
+	0x65, 0x73, 0x12, 0x25, 0x0a, 0x0e, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x5f, 0x65, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x64, 0x65, 0x73, 0x63,
+	0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x45, 0x6e, 0x12, 0x25, 0x0a, 0x0e, 0x64, 0x65, 0x73,
+	0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x7a, 0x68, 0x18, 0x05, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0d, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5a, 0x68,
+	0x22, 0x96, 0x01, 0x0a, 0x14, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x50, 0x6f, 0x6c, 0x69,
+	0x63, 0x79, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x18, 0x02,
+	0x20, 0x03, 0x28, 0x09, 0x52, 0x05, 0x70, 0x6f, 0x72, 0x74, 0x73, 0x12, 0x25, 0x0a, 0x0e, 0x64,
+	0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x65, 0x6e, 0x18, 0x03, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0d, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x45, 0x6e, 0x12, 0x25, 0x0a, 0x0e, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x5f, 0x7a, 0x68, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x64, 0x65, 0x73, 0x63,
+	0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5a, 0x68, 0x22, 0x8b, 0x02, 0x0a, 0x0d, 0x4e, 0x65,
+	0x74, 0x77, 0x6f, 0x72, 0x6b, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12,
+	0x25, 0x0a, 0x0e, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x65,
+	0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x45, 0x6e, 0x12, 0x25, 0x0a, 0x0e, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69,
+	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x7a, 0x68, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d,
+	0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5a, 0x68, 0x12, 0x31, 0x0a,
+	0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x19, 0x2e,
+	0x76, 0x33, 0x2e, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79,
+	0x45, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x06, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65,
+	0x12, 0x31, 0x0a, 0x06, 0x74, 0x61, 0x72, 0x67, 0x65, 0x74, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b,
+	0x32, 0x19, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x50, 0x6f, 0x6c,
+	0x69, 0x63, 0x79, 0x45, 0x6e, 0x64, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x52, 0x06, 0x74, 0x61, 0x72,
+	0x67, 0x65, 0x74, 0x12, 0x32, 0x0a, 0x07, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x18, 0x06,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x76, 0x33, 0x2e, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72,
+	0x6b, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x52, 0x07,
+	0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x42, 0x43, 0x5a, 0x41, 0x67, 0x69, 0x74, 0x68, 0x75,
+	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x54, 0x65, 0x6e, 0x63, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x75,
+	0x65, 0x4b, 0x69, 0x6e, 0x67, 0x2f, 0x62, 0x6b, 0x2d, 0x6e, 0x6f, 0x64, 0x65, 0x6d, 0x67, 0x72,
+	0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x63, 0x6f, 0x6c, 0x2f, 0x62, 0x61,
+	0x63, 0x6b, 0x65, 0x6e, 0x64, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x76, 0x33, 0x62, 0x06, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -2624,36 +2892,39 @@ func file_common_proto_rawDescGZIP() []byte {
 	return file_common_proto_rawDescData
 }
 
-var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_common_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_common_proto_goTypes = []any{
-	(*Page)(nil),              // 0: v3.Page
-	(*Business)(nil),          // 1: v3.Business
-	(*NetworkArea)(nil),       // 2: v3.NetworkArea
-	(*Link)(nil),              // 3: v3.Link
-	(*Links)(nil),             // 4: v3.Links
-	(*Endpoints)(nil),         // 5: v3.Endpoints
-	(*AccessPoint)(nil),       // 6: v3.AccessPoint
-	(*NetworkUnit)(nil),       // 7: v3.NetworkUnit
-	(*NetworkUnitBrief)(nil),  // 8: v3.NetworkUnitBrief
-	(*HostState)(nil),         // 9: v3.HostState
-	(*HostInfo)(nil),          // 10: v3.HostInfo
-	(*Host)(nil),              // 11: v3.Host
-	(*TopoEvent)(nil),         // 12: v3.TopoEvent
-	(*TimeRange)(nil),         // 13: v3.TimeRange
-	(*PackageEvent)(nil),      // 14: v3.PackageEvent
-	(*Release)(nil),           // 15: v3.Release
-	(*ReleaseAgent)(nil),      // 16: v3.ReleaseAgent
-	(*ReleaseProxy)(nil),      // 17: v3.ReleaseProxy
-	(*Platform)(nil),          // 18: v3.Platform
-	(*ConfigPolicyScope)(nil), // 19: v3.ConfigPolicyScope
-	(*ConfigPolicy)(nil),      // 20: v3.ConfigPolicy
-	(*ConfigPolicyEvent)(nil), // 21: v3.ConfigPolicyEvent
-	(*TargetVersion)(nil),     // 22: v3.TargetVersion
-	(*Error)(nil),             // 23: v3.Error
-	nil,                       // 24: v3.ConfigPolicy.ConfigsStringEntry
-	nil,                       // 25: v3.ConfigPolicy.ConfigsIntEntry
-	nil,                       // 26: v3.ConfigPolicy.ConfigsBoolEntry
-	(*Error_Details)(nil),     // 27: v3.Error.Details
+	(*Page)(nil),                  // 0: v3.Page
+	(*Business)(nil),              // 1: v3.Business
+	(*NetworkArea)(nil),           // 2: v3.NetworkArea
+	(*Link)(nil),                  // 3: v3.Link
+	(*Links)(nil),                 // 4: v3.Links
+	(*Endpoints)(nil),             // 5: v3.Endpoints
+	(*AccessPoint)(nil),           // 6: v3.AccessPoint
+	(*NetworkUnit)(nil),           // 7: v3.NetworkUnit
+	(*NetworkUnitBrief)(nil),      // 8: v3.NetworkUnitBrief
+	(*HostState)(nil),             // 9: v3.HostState
+	(*HostInfo)(nil),              // 10: v3.HostInfo
+	(*Host)(nil),                  // 11: v3.Host
+	(*TopoEvent)(nil),             // 12: v3.TopoEvent
+	(*TimeRange)(nil),             // 13: v3.TimeRange
+	(*PackageEvent)(nil),          // 14: v3.PackageEvent
+	(*Release)(nil),               // 15: v3.Release
+	(*ReleaseAgent)(nil),          // 16: v3.ReleaseAgent
+	(*ReleaseProxy)(nil),          // 17: v3.ReleaseProxy
+	(*Platform)(nil),              // 18: v3.Platform
+	(*ConfigPolicyScope)(nil),     // 19: v3.ConfigPolicyScope
+	(*ConfigPolicy)(nil),          // 20: v3.ConfigPolicy
+	(*ConfigPolicyEvent)(nil),     // 21: v3.ConfigPolicyEvent
+	(*TargetVersion)(nil),         // 22: v3.TargetVersion
+	(*Error)(nil),                 // 23: v3.Error
+	(*NetworkPolicyEndpoint)(nil), // 24: v3.NetworkPolicyEndpoint
+	(*NetworkPolicyService)(nil),  // 25: v3.NetworkPolicyService
+	(*NetworkPolicy)(nil),         // 26: v3.NetworkPolicy
+	nil,                           // 27: v3.ConfigPolicy.ConfigsStringEntry
+	nil,                           // 28: v3.ConfigPolicy.ConfigsIntEntry
+	nil,                           // 29: v3.ConfigPolicy.ConfigsBoolEntry
+	(*Error_Details)(nil),         // 30: v3.Error.Details
 }
 var file_common_proto_depIdxs = []int32{
 	3,  // 0: v3.Links.cluster:type_name -> v3.Link
@@ -2670,15 +2941,18 @@ var file_common_proto_depIdxs = []int32{
 	15, // 11: v3.ReleaseAgent.release:type_name -> v3.Release
 	15, // 12: v3.ReleaseProxy.release:type_name -> v3.Release
 	19, // 13: v3.ConfigPolicy.scopes:type_name -> v3.ConfigPolicyScope
-	24, // 14: v3.ConfigPolicy.configs_string:type_name -> v3.ConfigPolicy.ConfigsStringEntry
-	25, // 15: v3.ConfigPolicy.configs_int:type_name -> v3.ConfigPolicy.ConfigsIntEntry
-	26, // 16: v3.ConfigPolicy.configs_bool:type_name -> v3.ConfigPolicy.ConfigsBoolEntry
-	27, // 17: v3.Error.details:type_name -> v3.Error.Details
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	27, // 14: v3.ConfigPolicy.configs_string:type_name -> v3.ConfigPolicy.ConfigsStringEntry
+	28, // 15: v3.ConfigPolicy.configs_int:type_name -> v3.ConfigPolicy.ConfigsIntEntry
+	29, // 16: v3.ConfigPolicy.configs_bool:type_name -> v3.ConfigPolicy.ConfigsBoolEntry
+	30, // 17: v3.Error.details:type_name -> v3.Error.Details
+	24, // 18: v3.NetworkPolicy.source:type_name -> v3.NetworkPolicyEndpoint
+	24, // 19: v3.NetworkPolicy.target:type_name -> v3.NetworkPolicyEndpoint
+	25, // 20: v3.NetworkPolicy.service:type_name -> v3.NetworkPolicyService
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_common_proto_init() }
@@ -2708,7 +2982,7 @@ func file_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_proto_rawDesc), len(file_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   28,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

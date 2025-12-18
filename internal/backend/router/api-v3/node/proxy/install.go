@@ -161,6 +161,7 @@ func (h *handler) generateInstallNodeDeployments(
 					InstallOptions: types.DeploymentInstallOptions{
 						ReRegister:    reqHost.GetReRegister(),
 						DirectInstall: installOriginUnit.IsDirect,
+						IsManual:      req.GetIsManual(),
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},

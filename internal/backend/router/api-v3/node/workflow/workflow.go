@@ -63,6 +63,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
 	h.rg.POST("/operation/instance/status/list", restserver.Handler(h.ListOperationInstanceStatus))
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
+	h.rg.POST("/operation/manual/info/get", restserver.Handler(h.GetManualInfo))
 }
 
 // List workflows.
@@ -228,8 +229,11 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, num, err := h.storageWorkflow.ListOperInstanceBriefWithoutActionInstByOperationID(
-		rCtx, types.UnlimitedPage(), req.GetOperationId()...)
+	result, num, err := h.storageWorkflow.ListOperationInstanceBriefDataWithoutActionInst(
+		rCtx, types.UnlimitedPage(), &types.OperInstDataCondition{ExactInclude: &types.OperInstDataExactFields{
+			OperationID: req.GetOperationId(),
+			OperInstID:  req.GetOperInstId(),
+		}})
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}

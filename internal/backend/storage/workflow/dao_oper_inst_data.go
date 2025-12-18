@@ -303,6 +303,20 @@ func (s *Storage) updateOperationInstanceLifecycle(
 	return s.daoOperInstData.UpdateLifeCycle(nCtx, operInstID, lifecycle)
 }
 
+func (s *Storage) updateOperationLatestActionInstBriefData(
+	nCtx contextx.IContext, operInstID string, briefData *action.InstanceBriefData) error {
+
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if briefData == nil {
+		return errors.New("action brief data is nil")
+	}
+
+	return s.daoOperInstData.UpdateLatestActionInstBriefData(nCtx, operInstID, briefData)
+}
+
 // updateOperationInstanceExtraExecutionMessages updates operation instance execution messages.
 func (s *Storage) updateOperationInstanceExtraExecutionMessages(
 	nCtx contextx.IContext, operInstID string, messages ...common.Message) error {

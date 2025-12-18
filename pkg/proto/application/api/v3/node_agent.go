@@ -134,9 +134,8 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 	}
 
 	return &types.NodeAgentInstallParam{
-		NodeAgentInstallHosts:       hostsParam,
-		NodeInstallTargetVersion:    targetVersion,
-		DisableDefaultTargetVersion: x.GetDisableDefaultTargetVersion(),
+		NodeAgentInstallHosts:    hostsParam,
+		NodeInstallTargetVersion: targetVersion,
 	}
 }
 

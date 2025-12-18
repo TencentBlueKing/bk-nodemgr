@@ -15,6 +15,7 @@ message WorflowOperationInstanceData {
   string parent_operation_id = 5;
   repeated string action_names = 6;
   WorkflowLifeCycle life_cycle = 7;
+  WorkflowActionInstBriefData latest_action_inst_brief_data = 8;
 }
 
 // WorkflowLifeCycle describes the workflow life cycle.
@@ -24,6 +25,13 @@ message WorkflowLifeCycle {
   int64 start_time = 3;
   int64 end_time = 4;
   int64 stop_time = 5;
+}
+
+// WorkflowActionInstBriefData describes the workflow action instance brief
+// data.
+message WorkflowActionInstBriefData {
+  string name = 1;
+  repeated string tags = 2;
 }
 
 // WorkflowActionData describes the workflow action data.

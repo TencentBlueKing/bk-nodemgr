@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/common"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -26,10 +27,10 @@ func ConvOperaLifeCycleToDB(lifeCycle *operation.Lifecycle) *LifeCycle {
 	}
 
 	return &LifeCycle{
+		State:     string(lifeCycle.State),
 		CreatedAt: lifeCycle.CreatedAt,
 		StartedAt: lifeCycle.StartedAt,
 		EndedAt:   lifeCycle.EndedAt,
-		State:     string(lifeCycle.State),
 		StoppedAt: lifeCycle.StoppedAt,
 	}
 }
@@ -41,10 +42,10 @@ func ConvActInstLifeCycleToDB(lifeCycle *action.Lifecycle) *LifeCycle {
 	}
 
 	return &LifeCycle{
+		State:     string(lifeCycle.State),
 		CreatedAt: lifeCycle.CreatedAt,
 		StartedAt: lifeCycle.StartedAt,
 		EndedAt:   lifeCycle.EndedAt,
-		State:     string(lifeCycle.State),
 		StoppedAt: lifeCycle.StoppedAt,
 	}
 }
@@ -56,10 +57,10 @@ func ConvOperaLifeCycleFromDB(lifeCycle *LifeCycle) *operation.Lifecycle {
 	}
 
 	return &operation.Lifecycle{
+		State:     operation.State(lifeCycle.State),
 		CreatedAt: lifeCycle.CreatedAt,
 		StartedAt: lifeCycle.StartedAt,
 		EndedAt:   lifeCycle.EndedAt,
-		State:     operation.State(lifeCycle.State),
 		StoppedAt: lifeCycle.StoppedAt,
 	}
 }
@@ -209,7 +210,8 @@ func ConvAOperaInstDataWithoutActionFromDB(opear *OperInstData) (*operation.Inst
 				ExtraExecutionName:     opear.ExtraExecutionName,
 				ExtraExecutionMessages: convMessageFromDB(opear.ExtraExecutionMessages),
 			},
-			Lifecycle: ConvOperaLifeCycleFromDB(opear.Lifecycle),
+			LatestActionInstBriefData: ConvActionInstBriefDataFromDB(opear.LatestActionInstBriefData),
+			Lifecycle:                 ConvOperaLifeCycleFromDB(opear.Lifecycle),
 		},
 	}
 
@@ -242,7 +244,8 @@ func ConvOpeInstBriefDataFromDB(opear *OperInstData) (*operation.InstanceBriefDa
 			ExtraExecutionName:     opear.ExtraExecutionName,
 			ExtraExecutionMessages: convMessageFromDB(opear.ExtraExecutionMessages),
 		},
-		Lifecycle: ConvOperaLifeCycleFromDB(opear.Lifecycle),
+		LatestActionInstBriefData: ConvActionInstBriefDataFromDB(opear.LatestActionInstBriefData),
+		Lifecycle:                 ConvOperaLifeCycleFromDB(opear.Lifecycle),
 	}
 
 	if len(opear.InitContent) == 0 {
@@ -255,4 +258,32 @@ func ConvOpeInstBriefDataFromDB(opear *OperInstData) (*operation.InstanceBriefDa
 	}
 
 	return data, nil
+}
+
+// ConvActionInstBriefDataToDB convert action inst data to db.
+func ConvActionInstBriefDataToDB(briefData *action.InstanceBriefData) *ActionInstBriefData {
+	if briefData == nil {
+		return nil
+	}
+
+	return &ActionInstBriefData{
+		Name: briefData.Name,
+		Tags: conv.SliceToSlice(briefData.Tags, func(tag action.Tag) string {
+			return string(tag)
+		}),
+	}
+}
+
+// ConvActionInstBriefDataFromDB convert action inst data from db.
+func ConvActionInstBriefDataFromDB(briefData *ActionInstBriefData) *action.InstanceBriefData {
+	if briefData == nil {
+		return nil
+	}
+
+	return &action.InstanceBriefData{
+		Name: briefData.Name,
+		Tags: conv.SliceToSlice(briefData.Tags, func(tag string) action.Tag {
+			return action.Tag(tag)
+		}),
+	}
 }

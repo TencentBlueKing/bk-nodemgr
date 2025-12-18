@@ -38,6 +38,10 @@ type INodeManager interface {
 
 	// TerminateOperationLastInstance terminate operation from last instance.
 	TerminateNodeOperationLastInstance(ctx contextx.IContext, param types.TerminateNodeWorkflowOperationParam) error
+
+	// GetOperationManualInfoFromLastInstance get operation manual info from last instance.
+	GetOperationManualInfoFromLastInstance(nCtx contextx.IContext, param types.GetNodeWorklfowOperationManualInfoParam) (
+		*types.NodeWorkflowOperationManualInfo, error)
 }
 
 // IPluginManager defines the PluginManager interface.

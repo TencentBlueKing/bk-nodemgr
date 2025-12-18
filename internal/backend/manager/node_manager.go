@@ -128,6 +128,61 @@ func (mgr *Manager) TerminateNodeOperationLastInstance(nCtx contextx.IContext, p
 	return nil
 }
 
+// GetOperationManualInfoFromLastInstance get operation manual info from last instance.
+func (mgr *Manager) GetOperationManualInfoFromLastInstance(nCtx contextx.IContext, param types.GetNodeWorklfowOperationManualInfoParam) (
+	*types.NodeWorkflowOperationManualInfo, error) {
+
+	operation, err := mgr.conf.StorageWorkflow.GetOperation(nCtx, param.OperationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get operation: %w", err)
+	}
+
+	if len(operation.InstanceIDs) == 0 {
+		return nil, fmt.Errorf("operation has no instances")
+	}
+
+	lastOperInstID := operation.InstanceIDs[len(operation.InstanceIDs)-1]
+
+	privateData, err := mgr.conf.StorageWorkflow.GetActionInstancePrivateData(nCtx, lastOperInstID, node.ActionNameGenManualBootstrapCommand)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get action instance private data: %w", err)
+	}
+
+	// generate bootstrap commands.
+	commands := make([]*types.NodeWorkflowOperationManualCommand, 0)
+	raw, ok := privateData[types.PDKeyManualInstallBootstrapCommandBash]
+	if ok {
+		bootstrapCommand, ok := raw.(string)
+		if !ok {
+			return nil, fmt.Errorf("private data does not contain valid bootstrap command bash: %v", raw)
+		}
+
+		commands = append(commands, &types.NodeWorkflowOperationManualCommand{
+			Type:    types.NodeWorkflowOperationManualCommandTypeBash,
+			Command: bootstrapCommand,
+		})
+	}
+	raw, ok = privateData[types.PDKeyManualInstallBootstrapCommandBat]
+	if ok {
+		bootstrapCommand, ok := raw.(string)
+		if !ok {
+			return nil, fmt.Errorf("private data does not contain valid bootstrap command bat: %v", raw)
+		}
+
+		commands = append(commands, &types.NodeWorkflowOperationManualCommand{
+			Type:    types.NodeWorkflowOperationManualCommandTypeBat,
+			Command: bootstrapCommand,
+		})
+	}
+	if len(commands) == 0 {
+		return nil, fmt.Errorf("private data does not contain bootstrap command")
+	}
+
+	return &types.NodeWorkflowOperationManualInfo{
+		Commands: commands,
+	}, nil
+}
+
 func (mgr *Manager) createInstallNodeOper(
 	nCtx contextx.IContext,
 	operator string,
@@ -177,8 +232,15 @@ func (mgr *Manager) getNodeInstallOperationDef(deploy *types.NodeDeployment, ope
 
 // agent install distinguish direct install or pagent install.
 func (mgr *Manager) getNodeInstallOperationDefAgent(deploy *types.NodeDeployment, operator string) operation.Definition {
-	switch {
-	case deploy.Info.InstallOptions.DirectInstall:
+	// direct install.
+	if deploy.Info.InstallOptions.DirectInstall {
+		if deploy.Info.InstallOptions.IsManual {
+			return node.NewOperInstallNodeByManual(node.OperParamInstallNodeByManual{
+				Token:    deploy.Token,
+				Operator: operator,
+			})
+		}
+
 		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
 		case criteria.OSLinux, criteria.OSDarwin:
 			return node.NewOperInstallNodeBySSH(node.OperParamInstallNodeBySSH{
@@ -198,27 +260,34 @@ func (mgr *Manager) getNodeInstallOperationDefAgent(deploy *types.NodeDeployment
 				Operator: operator,
 			})
 		}
+	}
+
+	// install by relay.
+	if deploy.Info.InstallOptions.IsManual {
+		return node.NewOperInstallPagentByManual(node.OperParamInstallPagentByManual{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+	}
+
+	switch criteria.OSType(deploy.Info.Host.Static.OSType) {
+	case criteria.OSLinux, criteria.OSDarwin:
+		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
+
+	case criteria.OSWindows:
+		return node.NewOperInstallPagentNodeByWMI(node.OperParamInstallPagentNodeByWMI{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
 
 	default:
-		switch criteria.OSType(deploy.Info.Host.Static.OSType) {
-		case criteria.OSLinux, criteria.OSDarwin:
-			return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-
-		case criteria.OSWindows:
-			return node.NewOperInstallPagentNodeByWMI(node.OperParamInstallPagentNodeByWMI{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-
-		default:
-			return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
-				Token:    deploy.Token,
-				Operator: operator,
-			})
-		}
+		return node.NewOperInstallPagentNodeBySSH(node.OperParamInstallPagentNodeBySSH{
+			Token:    deploy.Token,
+			Operator: operator,
+		})
 	}
 }
 
