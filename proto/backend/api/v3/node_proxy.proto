@@ -23,12 +23,14 @@ message NodeProxyInstallHost {
   string login_password = 12;
   string login_key_file = 13;
   string export_ip = 14;
-  string advertise_ip = 15;
-  bool re_register = 16;
-  repeated string proxy_tags = 17;
-  int64 proxy_install_origin_unit_id = 18;
+  string export_ip_v6 = 15;
+  string advertise_ip = 16;
+  string advertise_ip_v6 = 17;
+  bool re_register = 18;
+  repeated string proxy_tags = 19;
+  int64 proxy_install_origin_unit_id = 20;
   // credit expired interval in seconds, default is 86400 (24 hours)
-  int64 credit_expired_interval_sec = 19;
+  int64 credit_expired_interval_sec = 21;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.
@@ -141,8 +143,10 @@ message NodeProxyUpdateHost {
   string login_password = 6;
   string login_key_file = 7;
   string export_ip = 8;
-  string advertise_ip = 9;
-  repeated string proxy_tags = 10;
+  string export_ip_v6 = 9;
+  string advertise_ip = 10;
+  string advertise_ip_v6 = 11;
+  repeated string proxy_tags = 12;
 }
 
 // NodeProxyUpdateReq describes the node proxy update request.

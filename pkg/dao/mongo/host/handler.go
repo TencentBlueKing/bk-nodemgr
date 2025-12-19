@@ -530,7 +530,9 @@ func convertHostFromTypes(host *types.Host) *Host {
 			LoginMode:                string(host.Dynamic.LoginMode),
 			LoginCreditID:            host.Dynamic.LoginCreditID,
 			ExportIP:                 host.Dynamic.ExportIP,
+			ExportIPV6:               host.Dynamic.ExportIPV6,
 			AdvertiseIP:              host.Dynamic.AdvertiseIP,
+			AdvertiseIPV6:            host.Dynamic.AdvertiseIPV6,
 			RelayDownloadPort:        host.Dynamic.RelayDownloadPort,
 			RelayCallbackPort:        host.Dynamic.RelayCallbackPort,
 			ProxyInstallOriginUnitID: host.Dynamic.ProxyInstallOriginUnitID,
@@ -600,7 +602,9 @@ func convertHostToTypes(host *Host) *types.Host {
 			LoginMode:                types.LoginMode(host.Dynamic.LoginMode),
 			LoginCreditID:            host.Dynamic.LoginCreditID,
 			ExportIP:                 host.Dynamic.ExportIP,
+			ExportIPV6:               host.Dynamic.ExportIPV6,
 			AdvertiseIP:              host.Dynamic.AdvertiseIP,
+			AdvertiseIPV6:            host.Dynamic.AdvertiseIPV6,
 			RelayDownloadPort:        host.Dynamic.RelayDownloadPort,
 			RelayCallbackPort:        host.Dynamic.RelayCallbackPort,
 			ProxyInstallOriginUnitID: host.Dynamic.ProxyInstallOriginUnitID,
@@ -753,8 +757,14 @@ func generateHostDynamicUpdates(fields types.HostDynamicFields, host *types.Host
 	if fields.ExportIP {
 		updates[FieldKeyDynamicExportIP] = host.Dynamic.ExportIP
 	}
+	if fields.ExportIPV6 {
+		updates[FieldKeyDynamicExportIPV6] = host.Dynamic.ExportIPV6
+	}
 	if fields.AdvertiseIP {
 		updates[FieldKeyDynamicAdvertiseIP] = host.Dynamic.AdvertiseIP
+	}
+	if fields.AdvertiseIPV6 {
+		updates[FieldKeyDynamicAdvertiseIPV6] = host.Dynamic.AdvertiseIPV6
 	}
 
 	if fields.ProxyTags {

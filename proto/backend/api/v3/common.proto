@@ -110,7 +110,9 @@ message HostInfo {
   optional string login_mode = 16;
   optional bool login_credit_valid = 17;
   optional string export_ip = 18;
-  optional string advertise_ip = 19;
+  optional string export_ip_v6 = 19;
+  optional string advertise_ip = 20;
+  optional string advertise_ip_v6 = 21;
 }
 
 // Host describes the host informations.

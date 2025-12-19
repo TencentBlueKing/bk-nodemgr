@@ -19,7 +19,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	wfStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	workflowStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/cache"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -47,7 +47,7 @@ type Capability struct {
 	StorageTopo         topoStg.IStorage
 	StorageRelease      release.IStorage
 	StorageNode         nodeStg.IStorage
-	StorageWorkflow     wfStg.IStorage
+	StorageWorkflow     workflowStg.IStorage
 	StoragePlugin       plugin.IStorage
 	StorageHostCredit   credit.IStorageHostCredit
 	StorageConfigPolicy configpolicy.IStorage

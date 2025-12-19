@@ -396,13 +396,15 @@ func (x *NodeProxyUpdateReq) ConvertHostToTypes() []*types.Host {
 		hosts = append(hosts, &types.Host{
 			HostID: host.GetBkHostId(),
 			Dynamic: &types.HostDynamic{
-				LoginIP:     host.GetLoginIp(),
-				LoginPort:   host.GetLoginPort(),
-				LoginUser:   host.GetLoginUser(),
-				LoginMode:   types.LoginMode(host.GetLoginMode()),
-				ExportIP:    host.GetExportIp(),
-				AdvertiseIP: host.GetAdvertiseIp(),
-				ProxyTags:   types.StringListToProxyTagList(host.GetProxyTags()),
+				LoginIP:       host.GetLoginIp(),
+				LoginPort:     host.GetLoginPort(),
+				LoginUser:     host.GetLoginUser(),
+				LoginMode:     types.LoginMode(host.GetLoginMode()),
+				ExportIP:      host.GetExportIp(),
+				ExportIPV6:    host.GetExportIpV6(),
+				AdvertiseIP:   host.GetAdvertiseIp(),
+				AdvertiseIPV6: host.GetAdvertiseIpV6(),
+				ProxyTags:     types.StringListToProxyTagList(host.GetProxyTags()),
 			},
 		})
 	}
@@ -415,14 +417,16 @@ func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyU
 	hostsParam := make([]*NodeProxyUpdateHost, len(updateParam.Hosts))
 	for idx, host := range updateParam.Hosts {
 		hostsParam[idx] = &NodeProxyUpdateHost{
-			BkHostId:    host.HostID,
-			LoginIp:     host.LoginIP,
-			LoginPort:   host.LoginPort,
-			LoginUser:   host.LoginUser,
-			LoginMode:   string(host.LoginMode),
-			ExportIp:    host.ExportIP,
-			AdvertiseIp: host.AdvertiseIP,
-			ProxyTags:   types.ProxyTagListToStringList(host.ProxyTags),
+			BkHostId:      host.HostID,
+			LoginIp:       host.LoginIP,
+			LoginPort:     host.LoginPort,
+			LoginUser:     host.LoginUser,
+			LoginMode:     string(host.LoginMode),
+			ExportIp:      host.ExportIP,
+			ExportIpV6:    host.ExportIPV6,
+			AdvertiseIp:   host.AdvertiseIP,
+			AdvertiseIpV6: host.AdvertiseIPV6,
+			ProxyTags:     types.ProxyTagListToStringList(host.ProxyTags),
 		}
 	}
 
@@ -432,13 +436,15 @@ func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyU
 // ConvertHostFieldsToTypes convert host dynamic fields to types.
 func (x *NodeProxyUpdateReq) ConvertHostFieldsToTypes() types.HostDynamicFields {
 	return types.HostDynamicFields{
-		LoginIP:     true,
-		LoginPort:   true,
-		LoginUser:   true,
-		LoginMode:   true,
-		ExportIP:    true,
-		AdvertiseIP: true,
-		ProxyTags:   true,
+		LoginIP:       true,
+		LoginPort:     true,
+		LoginUser:     true,
+		LoginMode:     true,
+		ExportIP:      true,
+		ExportIPV6:    true,
+		AdvertiseIP:   true,
+		AdvertiseIPV6: true,
+		ProxyTags:     true,
 	}
 }
 

@@ -132,6 +132,8 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("convert node role to release type failed: %w", err)
 	}
 
+	act.ensureHostDynamicAdvertiseIPAndExportIP(std)
+
 	switch releaseType {
 	case types.ReleaseTypeAgent:
 		rlsAgent, err := act.storageRelease.GetReleaseAgent(std.Context(),
@@ -368,14 +370,8 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 		return fmt.Errorf("get deploy conf failed: %w", err)
 	}
 
-	var advertiseIPV4, advertiseIPV6 string
-	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
-		advertiseIPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
-	}
-	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
-		advertiseIPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
-	}
-
+	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
+	advertiseIPV6 := std.DeployInfo().Host.Dynamic.AdvertiseIPV6
 	advertiseIP := advertiseIPV4
 	if advertiseIP == "" {
 		advertiseIP = advertiseIPV6
@@ -660,4 +656,30 @@ func (act *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 		conf.PreSetting[GseTemplateKeyDataAgentBindPort], defaultKeyProxyDataPort)
 	info.Host.Dynamic.ProxyFilePort = conv.ToInt64Default(
 		conf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultKeyProxyFilePort)
+}
+
+func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(std *nodeUtils.NodeActionStandarder) {
+	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
+	advertiseIPV6 := std.DeployInfo().Host.Dynamic.AdvertiseIPV6
+	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 && advertiseIPV4 == "" {
+		advertiseIPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
+	}
+	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 && advertiseIPV6 == "" {
+		advertiseIPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
+	}
+
+	std.DeployInfo().Host.Dynamic.AdvertiseIP = advertiseIPV4
+	std.DeployInfo().Host.Dynamic.AdvertiseIPV6 = advertiseIPV6
+
+	exportIPV4 := std.DeployInfo().Host.Dynamic.ExportIP
+	exportIPV6 := std.DeployInfo().Host.Dynamic.ExportIPV6
+	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 && exportIPV4 == "" {
+		exportIPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
+	}
+	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 && exportIPV6 == "" {
+		exportIPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
+	}
+
+	std.DeployInfo().Host.Dynamic.ExportIP = exportIPV4
+	std.DeployInfo().Host.Dynamic.ExportIPV6 = exportIPV6
 }

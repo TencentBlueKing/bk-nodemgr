@@ -78,7 +78,9 @@ func (x *TopoHostListResp) ConvertHostsFromTypes(total int64, hosts []*types.Hos
 		*item.Info.LoginUser = host.Dynamic.LoginUser
 		*item.Info.LoginMode = string(host.Dynamic.LoginMode)
 		*item.Info.ExportIp = host.Dynamic.ExportIP
+		*item.Info.ExportIpV6 = host.Dynamic.ExportIPV6
 		*item.Info.AdvertiseIp = host.Dynamic.AdvertiseIP
+		*item.Info.AdvertiseIpV6 = host.Dynamic.AdvertiseIPV6
 		*item.Info.LoginCreditValid = false
 		if hostCredits != nil {
 			if valid, ok := hostCredits[host.Dynamic.LoginCreditID]; ok && valid {
@@ -152,7 +154,9 @@ func (x *TopoHostListResp) ConvertHostsToTypes() (int64, []*types.Host) {
 			LoginMode:        types.LoginMode(info.GetLoginMode()),
 			LoginCreditValid: info.GetLoginCreditValid(),
 			ExportIP:         info.GetExportIp(),
+			ExportIPV6:       info.GetExportIpV6(),
 			AdvertiseIP:      info.GetAdvertiseIp(),
+			AdvertiseIPV6:    info.GetAdvertiseIpV6(),
 		}
 
 		result[idx] = host
@@ -571,7 +575,9 @@ func newEmptyHost() *Host {
 			LoginMode:           new(string),
 			LoginCreditValid:    new(bool),
 			ExportIp:            new(string),
+			ExportIpV6:          new(string),
 			AdvertiseIp:         new(string),
+			AdvertiseIpV6:       new(string),
 		},
 		State: &HostState{
 			NodeRole:       new(string),

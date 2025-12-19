@@ -48,7 +48,9 @@ type Info struct {
 	InnerIPList            []string        `json:"inner_ip_list" bson:"inner_ip_list"`
 	Addressing             string          `json:"addressing" bson:"addressing"`
 	ExportIP               string          `json:"export_ip" bson:"export_ip"`
+	ExportIPV6             string          `json:"export_ip_v6" bson:"export_ip_v6"`
 	AdvertiseIP            string          `json:"advertise_ip" bson:"advertise_ip"`
+	AdvertiseIPV6          string          `json:"advertise_ip_v6" bson:"advertise_ip_v6"`
 	ProxyTags              []string        `json:"proxy_tags" bson:"proxy_tags"`
 	ProxyClusterPort       int64           `json:"proxy_cluster_port" bson:"proxy_cluster_port"`
 	ProxyDataPort          int64           `json:"proxy_data_port" bson:"proxy_data_port"`

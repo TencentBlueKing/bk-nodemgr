@@ -329,7 +329,13 @@
         "export_ip": {
           "type": "string"
         },
+        "export_ip_v6": {
+          "type": "string"
+        },
         "advertise_ip": {
+          "type": "string"
+        },
+        "advertise_ip_v6": {
           "type": "string"
         },
         "re_register": {
@@ -606,7 +612,13 @@
         "export_ip": {
           "type": "string"
         },
+        "export_ip_v6": {
+          "type": "string"
+        },
         "advertise_ip": {
+          "type": "string"
+        },
+        "advertise_ip_v6": {
           "type": "string"
         },
         "proxy_tags": {

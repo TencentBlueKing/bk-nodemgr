@@ -119,8 +119,8 @@ type HostDynamic struct {
 	NetworkUnitID  int64
 
 	// LoginIP represents the ip when SSH login to install.
-	// ExportIP represents the ip that the outgoing IP in NAT.
-	// AdvertiseIP represents the ip that the incoming IP in NAT.
+	// ExportIP and ExportIPV6 represents the ip that the outgoing IP in NAT.
+	// AdvertiseIP and AdvertiseIPV6 represents the ip that the incoming IP in NAT.
 	LoginIP          string
 	LoginPort        int64
 	LoginUser        string
@@ -128,7 +128,9 @@ type HostDynamic struct {
 	LoginCreditID    string
 	LoginCreditValid bool
 	ExportIP         string
+	ExportIPV6       string
 	AdvertiseIP      string
+	AdvertiseIPV6    string
 
 	// ProxyAccessDisabled This means that there will be no new proxy access connection establishment for this node.
 	// ! This setting does not affect the established connections.
@@ -211,7 +213,9 @@ type HostDynamicFields struct {
 	LoginMode     bool
 	LoginCreditID bool
 	ExportIP      bool
+	ExportIPV6    bool
 	AdvertiseIP   bool
+	AdvertiseIPV6 bool
 
 	ProxyTags                bool
 	ProxyClusterPort         bool

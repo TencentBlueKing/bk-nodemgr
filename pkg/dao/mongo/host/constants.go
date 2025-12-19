@@ -108,8 +108,14 @@ const (
 	// FieldKeyDynamicExportIP the dynamic export ip field key.
 	FieldKeyDynamicExportIP = "data.dynamic.export_ip"
 
+	// FieldKeyDynamicExportIPV6 the dynamic export ipv6 field key.
+	FieldKeyDynamicExportIPV6 = "data.dynamic.export_ipv6"
+
 	// FieldKeyDynamicAdvertiseIP the dynamic advertise ip field key.
 	FieldKeyDynamicAdvertiseIP = "data.dynamic.advertise_ip"
+
+	// FieldKeyDynamicAdvertiseIPV6 the dynamic advertise ip field key.
+	FieldKeyDynamicAdvertiseIPV6 = "data.dynamic.advertise_ipv6"
 
 	// FieldKeyDynamicProxyTags the dynamic proxy tag field key.
 	FieldKeyDynamicProxyTags = "data.dynamic.proxy_tags"

@@ -10,8 +10,8 @@ plugin:
 infoServer:
   bindIP: {{ .CustomContext.InfoServer.BindIP | default "0.0.0.0" }}
   port: {{ .CustomContext.InfoServer.Port | default 28300 }}
-  advertiseIPV4: {{ .CustomContext.InfoServer.AdvertiseIPV4 | default "0.0.0.0" }}
-  advertiseIPV6: {{ .CustomContext.InfoServer.AdvertiseIPV6 | default "::1" }}
+  advertiseIPV4: {{ .NodeInfo.Dynamic.AdvertiseIPV4 | default "0.0.0.0" }}
+  advertiseIPV6: {{ .NodeInfo.Dynamic.AdvertiseIPV6 | default "::1" }}
   authIdentity: {{ .CustomContext.InfoServer.AuthIdentity | default "none" }}
   traceServiceName: relay-server-info
   traceSampleRate: 0
@@ -19,8 +19,8 @@ infoServer:
 adminServer:
   bindIP: {{ .CustomContext.AdminServer.BindIP | default "0.0.0.0" }}
   port: {{ .CustomContext.AdminServer.Port | default 28301 }}
-  advertiseIPV4: {{ .CustomContext.AdminServer.AdvertiseIPV4 | default "0.0.0.0" }}
-  advertiseIPV6: {{ .CustomContext.AdminServer.AdvertiseIPV6 | default "::1" }}
+  advertiseIPV4: {{ .NodeInfo.Dynamic.AdvertiseIPV4 | default "0.0.0.0" }}
+  advertiseIPV6: {{ .NodeInfo.Dynamic.AdvertiseIPV6 | default "::1" }}
   authIdentity: {{ .CustomContext.AdminServer.AuthIdentity | default "none" }}
   traceServiceName: relay-server-admin
   traceSampleRate: 0
@@ -28,8 +28,8 @@ adminServer:
 callbackServer:
   bindIP: {{ .CustomContext.CallbackServer.BindIP | default "0.0.0.0" }}
   port: {{ .CustomContext.CallbackServer.Port | default 28302 }}
-  advertiseIPV4: {{ .CustomContext.CallbackServer.AdvertiseIPV4 | default "0.0.0.0" }}
-  advertiseIPV6: {{ .CustomContext.CallbackServer.AdvertiseIPV6 | default "::1" }}
+  advertiseIPV4: {{ .NodeInfo.Dynamic.AdvertiseIPV4 | default "0.0.0.0" }}
+  advertiseIPV6: {{ .NodeInfo.Dynamic.AdvertiseIPV6 | default "::1" }}
   authIdentity: {{ .CustomContext.CallbackServer.AuthIdentity | default "none" }}
   traceServiceName: relay-server-callback
   traceSampleRate: 0
@@ -37,8 +37,8 @@ callbackServer:
 downloadServer:
   bindIP: {{ .CustomContext.DownloadServer.BindIP | default "0.0.0.0" }}
   port: {{ .CustomContext.DownloadServer.Port | default 28303 }}
-  advertiseIPV4: {{ .CustomContext.DownloadServer.AdvertiseIPV4 | default "0.0.0.0" }}
-  advertiseIPV6: {{ .CustomContext.DownloadServer.AdvertiseIPV6 | default "::1" }}
+  advertiseIPV4: {{ .NodeInfo.Dynamic.AdvertiseIPV4 | default "0.0.0.0" }}
+  advertiseIPV6: {{ .NodeInfo.Dynamic.AdvertiseIPV6 | default "::1" }}
   authIdentity: {{ .CustomContext.DownloadServer.AuthIdentity | default "none" }}
   traceServiceName: relay-server-download
   traceSampleRate: 0

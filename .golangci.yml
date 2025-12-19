@@ -685,7 +685,7 @@ linters-settings:
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin
         alias: pluginStg
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow
-        alias: wfStg
+        alias: workflowStg
       # Using `machinery` things.
       - pkg: github.com/RichardKnop/machinery/v2/backends/iface
         alias: backendIface

@@ -157,7 +157,9 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 				AgentID:        info.AgentID,
 				NetworkUnitID:  info.NetworkUnitID,
 				ExportIP:       info.ExportIP,
+				ExportIPV6:     info.ExportIPV6,
 				AdvertiseIP:    info.AdvertiseIP,
+				AdvertiseIPV6:  info.AdvertiseIPV6,
 				ProxyTags: func() []types.ProxyTag {
 					tags := make([]types.ProxyTag, len(info.ProxyTags))
 					for i, tag := range info.ProxyTags {
@@ -378,7 +380,9 @@ func convertDeploymentInfoFromTypes(info *types.DeploymentInfo) (*Info, error) {
 		InnerIPList:    info.Host.Static.InnerIPList,
 		Addressing:     string(info.Host.Static.Addressing),
 		ExportIP:       info.Host.Dynamic.ExportIP,
+		ExportIPV6:     info.Host.Dynamic.ExportIPV6,
 		AdvertiseIP:    info.Host.Dynamic.AdvertiseIP,
+		AdvertiseIPV6:  info.Host.Dynamic.AdvertiseIPV6,
 		ProxyTags: func() []string {
 			tags := make([]string, len(info.Host.Dynamic.ProxyTags))
 			for i, tag := range info.Host.Dynamic.ProxyTags {

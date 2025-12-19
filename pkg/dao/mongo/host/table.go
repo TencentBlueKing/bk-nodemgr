@@ -70,7 +70,9 @@ type HostDynamic struct {
 	LoginMode                string   `json:"login_mode" bson:"login_mode"`
 	LoginCreditID            string   `json:"login_credit_id" bson:"login_credit_id"`
 	ExportIP                 string   `json:"export_ip" bson:"export_ip"`
+	ExportIPV6               string   `json:"export_ip_v6" bson:"export_ip_v6"`
 	AdvertiseIP              string   `json:"advertise_ip" bson:"advertise_ip"`
+	AdvertiseIPV6            string   `json:"advertise_ip_v6" bson:"advertise_ip_v6"`
 	RelayDownloadPort        int64    `json:"relay_download_port" bson:"relay_download_port"`
 	RelayCallbackPort        int64    `json:"relay_callback_port" bson:"relay_callback_port"`
 }

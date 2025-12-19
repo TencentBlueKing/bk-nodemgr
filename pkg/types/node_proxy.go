@@ -81,14 +81,16 @@ type NodeProxyReconfigParam struct {
 
 // NodeProxyUpdateHost describes the node proxy update host.
 type NodeProxyUpdateHost struct {
-	HostID      int64
-	LoginIP     string
-	LoginPort   int64
-	LoginUser   string
-	LoginMode   LoginMode
-	ExportIP    string
-	AdvertiseIP string
-	ProxyTags   []ProxyTag
+	HostID        int64
+	LoginIP       string
+	LoginPort     int64
+	LoginUser     string
+	LoginMode     LoginMode
+	ExportIP      string
+	ExportIPV6    string
+	AdvertiseIP   string
+	AdvertiseIPV6 string
+	ProxyTags     []ProxyTag
 }
 
 // NodeProxyUpdateParam describes the node proxy update parameter.
