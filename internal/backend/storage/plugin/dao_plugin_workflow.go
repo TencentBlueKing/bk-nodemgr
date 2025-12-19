@@ -120,6 +120,7 @@ func (s *Storage) listPluginWorkflow(nCtx contextx.IContext, page types.Page, co
 		return nil, 0, basestorage.ErrNilContent()
 	}
 
+	page.Sort = types.WithSortFields(page.Sort, types.WithFieldDesc(pluginworkflow.FieldKeyOperateTime))
 	opts := convertPluginWorkflowConditionsToOptions(condition...)
 	workflows, count, err := s.daoPluginWorkflow.List(nCtx, page, opts...)
 	if err != nil {
