@@ -1343,7 +1343,7 @@ func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAge
 
 // ===============================================================================
 // Node Proxy Related Interfaces.
-// ===============================================================================
+// ===============================================================================.
 func (c *cli) installNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxyInstallReq) (
 	*protoBackend.NodeProxyInstallResp, error) {
 
