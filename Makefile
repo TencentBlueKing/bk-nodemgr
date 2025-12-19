@@ -179,7 +179,7 @@ docker-build-apigw-sync: pre
 	@$(CD) $(OUTPUT_DIR)/apigw-sync && docker build -t bk-nodemgr-apigw-sync:v${VERSION} .
 	@$(ECHO) "Built successfully docker image bk-nodemgr-apigw-sync:v${VERSION}"
 
-all: backend application file relay front tools bintools
+all: backend application file relay front tools scripts bintools
 
 clean:
 	@$(ECHO) "Cleaning build directory..."
