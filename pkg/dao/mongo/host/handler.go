@@ -886,16 +886,16 @@ func (h *handler) ListWithFields(nCtx contextx.IContext, page types.Page, select
 
 func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []string {
 	fields := make([]string, 0)
-	if selection.EnableFieldHostID {
+	if selection.HostID {
 		fields = append(fields, FieldKeyHostID)
 	}
-	if selection.EnableFieldNetworkareaID {
+	if selection.NetworkAreaID {
 		fields = append(fields, FieldKeyStaticNetworkAreaID)
 	}
-	if selection.EnableFieldHostInneripList {
+	if selection.InnerIPList {
 		fields = append(fields, FieldKeyStaticInnerIPList)
 	}
-	if selection.EnableFieldHostInneripV6List {
+	if selection.InnerIPV6List {
 		fields = append(fields, FieldKeyStaticInnerIPV6List)
 	}
 

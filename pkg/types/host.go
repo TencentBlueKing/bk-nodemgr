@@ -28,6 +28,9 @@ const (
 
 	// IPSeparator means the ip separator.
 	IPSeparator = ","
+
+	// AreaIPSeparator means the separator between area-id and ip.
+	AreaIPSeparator = ":"
 )
 
 // Validate validates the addressing type.
@@ -381,8 +384,8 @@ const (
 
 // HostFieldSelection represents field selection options for host queries.
 type HostFieldSelection struct {
-	EnableFieldHostID            bool
-	EnableFieldNetworkareaID     bool
-	EnableFieldHostInneripList   bool
-	EnableFieldHostInneripV6List bool
+	HostID        bool
+	NetworkAreaID bool
+	InnerIPList   bool
+	InnerIPV6List bool
 }
