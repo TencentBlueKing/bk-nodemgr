@@ -261,7 +261,7 @@ func (handler *triggerHandler) executeTriggerList(nCtx contextx.IContext, list [
 		fn := func(nCtx contextx.IContext) error {
 			mutex := handler.globalLocker.NewMutex(trig.TriggerID)
 			if err := mutex.TryLock(); err != nil {
-				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Error("failed to lock trigger")
+				logger.G.Sys().WithErr(err).With("trigger-id", trig.TriggerID).Debug("failed to lock trigger")
 
 				return nil
 			}

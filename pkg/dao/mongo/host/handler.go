@@ -393,7 +393,7 @@ func (h *handler) UpsertMany(nCtx contextx.IContext, hosts ...*types.Host) error
 		data[idx] = convertHostFromTypes(host)
 
 		if err := base.CheckTenantIDMatched(tenantID, data[idx].TenantID); err != nil {
-			return err
+			return fmt.Errorf("failed to upsert host(%d): %w", host.HostID, err)
 		}
 	}
 

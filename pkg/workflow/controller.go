@@ -212,7 +212,7 @@ func (ctl *controller) TryInactivateTrigger(nCtx contextx.IContext) error {
 
 	if operNeedInstantiated || operInstNeedLauched {
 		logger.G.Sys().With("trigger-id", ctl.trig.TriggerID).
-			Info("trigger has need instantiate operations or need lauched operation instances, skip inactivate")
+			Info("trigger need instantiate operations or need lauched operation instances, skip inactivate")
 
 		return nil
 	}

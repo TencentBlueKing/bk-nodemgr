@@ -224,6 +224,8 @@ func (mgr *Manager) initScheduledWorkflow(nCtx contextx.IContext, tenantID, work
 		return fmt.Errorf("failed to create scheduled workflow: %w", err)
 	}
 
+	logger.G.Sys().With("workflow-name", sw.WorkflowName, "tenant-id", sw.TenantID).Info("created scheduled workflow")
+
 	return nil
 }
 

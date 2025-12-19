@@ -109,6 +109,10 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 
 	deletingTriggerIDs := make([]string, 0)
 	for _, trig := range results.Items {
+		if trig.Active {
+			continue
+		}
+
 		meta, ok := trig.Metadata.(*trigger.MetadataOnce)
 		if !ok || meta == nil {
 			continue
@@ -130,7 +134,7 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 	}
 
 	for _, triggerList := range cleanQueue {
-		sort.Sort(triggerList)
+		sort.Sort(sort.Reverse(triggerList))
 
 		for i, trig := range triggerList {
 			meta, ok := trig.Metadata.(*trigger.MetadataOnce)
@@ -146,12 +150,26 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 
 	if len(deletingTriggerIDs) > 0 {
 		if err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Info("failed to delete once triggers")
+			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Warn("failed to delete once triggers")
 
 			return err
 		}
 
-		logger.G.Sys().With("count", len(deletingTriggerIDs)).Info("successfully deleted once triggers")
+		if err = pt.conf.StgWorkflow.DeleteOperationsByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
+			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Warn("failed to delete operations of once triggers")
+
+			return err
+		}
+
+		if err = pt.conf.StgWorkflow.DeleteOperationInstancesByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
+			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Warn("failed to delete operations of once triggers")
+
+			return err
+		}
+
+		logger.G.Sys().
+			With("trigger-count", len(deletingTriggerIDs)).
+			Info("successfully deleted once triggers, operations and operation instances")
 	}
 
 	return nil
@@ -174,6 +192,10 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 
 	deletingTriggerIDs := make([]string, 0)
 	for _, trig := range results.Items {
+		if trig.Active {
+			continue
+		}
+
 		meta, ok := trig.Metadata.(*trigger.MetadataOrdered)
 		if !ok || meta == nil {
 			continue
@@ -195,7 +217,7 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 	}
 
 	for _, triggerList := range cleanQueue {
-		sort.Sort(triggerList)
+		sort.Sort(sort.Reverse(triggerList))
 
 		for i, trig := range triggerList {
 			meta, ok := trig.Metadata.(*trigger.MetadataOrdered)
@@ -211,19 +233,19 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 
 	if len(deletingTriggerIDs) > 0 {
 		if err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Info("failed to delete ordered triggers")
+			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete ordered triggers")
 
 			return err
 		}
 
 		if err = pt.conf.StgWorkflow.DeleteOperationsByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Info("failed to delete operations")
+			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete operations of ordered triggers")
 
 			return err
 		}
 
 		if err = pt.conf.StgWorkflow.DeleteOperationInstancesByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Info("failed to delete operation instances")
+			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete oper-instances of ordered triggers")
 
 			return err
 		}
@@ -262,7 +284,7 @@ func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 			continue
 		}
 
-		if len(operInsts) <= meta.CleanPolicy.MaxOperInstNum {
+		if meta.CleanPolicy.MaxOperInstNum <= 0 || len(operInsts) <= meta.CleanPolicy.MaxOperInstNum {
 			continue
 		}
 
