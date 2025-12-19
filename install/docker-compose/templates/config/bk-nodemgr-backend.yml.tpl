@@ -96,14 +96,17 @@ gseDeployConfs:
     osType: "linux"
     baseWorkDir: "/tmp/bknm/"
     baseDeployDir: "/usr/local/"
+    manualScriptPath: "/bk-nodemgr/script/manual/linux/install.sh"
   - generation: 2
     osType: "windows"
     baseWorkDir: "c:\\tmp\\bknm\\"
     baseDeployDir: "c:\\"
+    manualScriptPath: "/bk-nodemgr/script/manual/windows/install.bat"
   - generation: 2
     osType: "darwin"
     baseWorkDir: "/tmp/bknm/"
     baseDeployDir: "/usr/local/"
+    manualScriptPath: "/bk-nodemgr/script/manual/darwin/install.sh"
 
 # encryptKey: define the key used to encrypt the sensitive data.
 encryptKey: "__BK_NODEMGR_BACKEND_ENCRYPT_KEY__"
