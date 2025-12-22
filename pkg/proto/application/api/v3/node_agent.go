@@ -100,6 +100,7 @@ func (x *NodeAgentInstallReq) ConvertAgentParamToTypes() *types.NodeAgentInstall
 
 	for idx, host := range hosts {
 		hostsParam[idx] = &types.NodeAgentInstallHost{
+			HostID:        host.GetBkHostId(),
 			BizID:         host.GetBkBizId(),
 			InnerIP:       host.GetBkHostInnerip(),
 			InnerIPV6:     host.GetBkHostInneripV6(),

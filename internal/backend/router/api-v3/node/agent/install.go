@@ -104,10 +104,11 @@ func (h *handler) generateInstallNodeDeployments(
 	}
 
 	gp := gopool.NewPool()
-	nodeDeployments := make([]*types.NodeDeployment, len(req.GetHost()))
-	for i := range req.GetHost() {
+	reqHosts := req.GetHost()
+	nodeDeployments := make([]*types.NodeDeployment, len(reqHosts))
+	for i := range reqHosts {
 		idx := i
-		reqHost := req.GetHost()[idx]
+		reqHost := reqHosts[idx]
 
 		gp.Go(func() error {
 			networkUnit, ok := networkUnitMap[reqHost.GetBkNetworkunitId()]
@@ -116,9 +117,12 @@ func (h *handler) generateInstallNodeDeployments(
 			}
 
 			loginCreditID := ""
-			if existedHost, ok := existedHostMap[reqHost.GetBkHostId()]; ok {
+			existedHost, ok := existedHostMap[reqHost.GetBkHostId()]
+			if ok {
 				loginCreditID = existedHost.Dynamic.LoginCreditID
 			}
+			logger.G.Biz(nCtx).
+				With("host-id", reqHost.GetBkHostId(), "inner-ip", reqHost.GetBkHostInnerip(), "host-exited", ok).Info("generating node deployment")
 
 			nodeDeployment := types.NewNodeDeployment(
 				&types.DeploymentInfo{
@@ -176,7 +180,13 @@ func (h *handler) generateInstallNodeDeployments(
 func (h *handler) fetchNetworkunits(nCtx contextx.IContext, hosts []*protoBackend.NodeAgentInstallReq_Host) (map[int64]*types.NetworkUnit, error) {
 	networkUnitIDMap := make(map[int64]struct{})
 	for _, host := range hosts {
-		networkUnitIDMap[host.GetBkNetworkunitId()] = struct{}{}
+		if networkUnitID := host.GetBkNetworkunitId(); networkUnitID >= 0 {
+			networkUnitIDMap[networkUnitID] = struct{}{}
+		}
+	}
+
+	if len(networkUnitIDMap) == 0 {
+		return make(map[int64]*types.NetworkUnit), nil
 	}
 
 	networkUnitList, _, err := h.storageNetworkUnit.ListNetworkUnit(nCtx, types.UnlimitedPage(), &types.NetworkUnitCondition{
@@ -202,6 +212,10 @@ func (h *handler) fetchExistedHosts(nCtx contextx.IContext, hosts []*protoBacken
 		if hostID := host.GetBkHostId(); hostID >= 0 {
 			hostIDMap[hostID] = struct{}{}
 		}
+	}
+
+	if len(hostIDMap) == 0 {
+		return make(map[int64]*types.Host), nil
 	}
 
 	existedHostList, _, err := h.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{

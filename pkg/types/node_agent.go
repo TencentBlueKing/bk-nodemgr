@@ -16,6 +16,7 @@ import (
 
 // NodeAgentInstallHost describes the node agent install host.
 type NodeAgentInstallHost struct {
+	HostID        int64
 	BizID         int64
 	InnerIP       string
 	InnerIPV6     string

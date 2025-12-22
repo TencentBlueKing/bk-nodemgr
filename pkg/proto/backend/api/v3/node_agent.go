@@ -124,6 +124,7 @@ func (x *NodeAgentInstallReq) ConvertHostParamFromTypes(installParam *types.Node
 	hostsParam := make([]*NodeAgentInstallReq_Host, len(installParam.NodeAgentInstallHosts))
 	for idx, host := range installParam.NodeAgentInstallHosts {
 		hostsParam[idx] = &NodeAgentInstallReq_Host{
+			BkHostId:        &host.HostID,
 			BkBizId:         &host.BizID,
 			BkHostInnerip:   host.InnerIP,
 			BkHostInneripV6: host.InnerIPV6,
