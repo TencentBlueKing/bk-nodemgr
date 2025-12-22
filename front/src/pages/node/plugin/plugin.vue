@@ -19,25 +19,20 @@
             </Button>
           </template>
         </TableColumn>
-        <TableColumn title="插件组" field="group" min-width="150"></TableColumn>
-        <TableColumn title="备注" field="memo" min-width="280">
-          <template #default="{ row }">
-            <div class="flex items-center" v-if="!row.isEdit">
-              <span class="mr-[5px]">{{ row.memo }}</span>
-              <i class="nodeman-icon nc-icon-edit-2 cursor-pointer" @click="handleEdit(row)"></i>
-            </div>
-            <div class="flex items-center gap-[5px]" v-else>
-              <Input ref="memoInput" v-model="row.editMemo" @blur="handleBlur(row)" autocomplete="true" />
-              <i class="nodeman-icon nc-check-small text-[24px] cursor-pointer" @click="handleEditConfirm(row)"></i>
-              <i class="nodeman-icon nc-delete text-[24px] cursor-pointer" @click="handleEditCancel(row)"></i>
-            </div>
-          </template>
-        </TableColumn>
-        <TableColumn title="节点数" field="node_num" min-width="150">
+        <TableColumn title="插件组" field="group" min-width="120"></TableColumn>
+        <TableColumn title="备注" field="memo" min-width="380"></TableColumn>
+        <TableColumn title="节点数" field="node_num" min-width="120">
           <template #default="{ row }">
             <Button text theme="primary" @click="openSidebar(row)">
               {{ row.node_num || 0 }}
               <i class="nodeman-icon nc-cloud-machine ml-[5px]"></i>
+            </Button>
+          </template>
+        </TableColumn>
+        <TableColumn title="操作" field="operation" min-width="150">
+          <template #default="{ row }">
+            <Button text theme="primary" @click="handleEditInfo(row)">
+              {{ $t('action.edit') }}
             </Button>
           </template>
         </TableColumn>
@@ -50,6 +45,12 @@
       type="plugin"
       :plugin="currentPlugin"
     ></processSideslider>
+    <!-- 弹窗 -->
+    <editDialog
+      v-model:is-show="isShowEditDialog"
+      :plugin="currentPlugin"
+      @confirm="handleEditInfoConfirm">
+    </editDialog>
   </div>
 </template>
 
@@ -60,6 +61,7 @@ import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import editDialog from './edit-dialog.vue';
 import processSideslider from './process-sideslider.vue';
 
 import { PluginAPIService } from '@/api/modules/plugin';
@@ -79,6 +81,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
       'group',
       'memo',
       'node_num',
+      'operation',
     ],
     disabled: ['workflow_id'],
   },
@@ -110,32 +113,43 @@ const handleGoToPluginPkgMng = (row: any) => {
 };
 
 // 编辑备注
-const memoInput = ref<any>(null);
-const handleEdit = (row: any) => {
-  row.isEdit = true;
-  nextTick(() => {
-    memoInput.value?.focus();
-  });
+// const memoInput = ref<any>(null);
+// const handleEdit = (row: any) => {
+//   row.isEdit = true;
+//   nextTick(() => {
+//     memoInput.value?.focus();
+//   });
+// };
+// const handleEditConfirm = async (row: any) => {
+//   row.isEdit = false;
+//   row.memo = row.editMemo.trim();
+//   await PluginAPIService.SetPluginMemo({
+//     plugin_name: row.name,
+//     memo: row.memo,
+//   });
+//   await loadPluginList();
+// };
+// const handleEditCancel = (row: any) => {
+//   row.isEdit = false;
+//   row.editMemo = row.memo;
+// };
+// const handleBlur = (row: any) => {
+//   // 使用setTimeout延迟处理，避免与handleEditConfirm事件冲突
+//   setTimeout(() => {
+//     row.isEdit = false;
+//     row.editMemo = row.memo;
+//   }, 150);
+// };
+
+// 编辑操作
+const isShowEditDialog = ref(false);
+const handleEditInfo = (row: any) => {
+  isShowEditDialog.value = true;
+  currentPlugin.value = row;
 };
-const handleEditConfirm = async (row: any) => {
-  row.isEdit = false;
-  row.memo = row.editMemo.trim();
-  await PluginAPIService.SetPluginMemo({
-    plugin_name: row.name,
-    memo: row.memo,
-  });
+const handleEditInfoConfirm = async () => {
+  isShowEditDialog.value = false;
   await loadPluginList();
-};
-const handleEditCancel = (row: any) => {
-  row.isEdit = false;
-  row.editMemo = row.memo;
-};
-const handleBlur = (row: any) => {
-  // 使用setTimeout延迟处理，避免与handleEditConfirm事件冲突
-  setTimeout(() => {
-    row.isEdit = false;
-    row.editMemo = row.memo;
-  }, 150);
 };
 
 // 侧边栏相关状态
