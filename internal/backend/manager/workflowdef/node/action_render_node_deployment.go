@@ -123,13 +123,13 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	// nodeConf comes from db, which means that this node will not overwrite the original configuration in db.
 	nodeConf, err := act.storageNodeDeployment.GetNodeDeploymentNodeConf(std.Context(), std.Token())
 	if err != nil {
-		return fmt.Errorf("get node conf failed: %w", err)
+		return fmt.Errorf("failed to get node deployment node conf: %w", err)
 	}
 
 	// get release of this node.
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
-		return fmt.Errorf("convert node role to release type failed: %w", err)
+		return fmt.Errorf("failed to convert node role to release type: %w", err)
 	}
 
 	if err := act.ensureHostDynamicAdvertiseIPAndExportIP(std); err != nil {
@@ -147,7 +147,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			std.DeployInfo().Host.Dynamic.NodeVersion,
 		)
 		if err != nil {
-			return fmt.Errorf("get release failed: %w", err)
+			return fmt.Errorf("failed to get release agent: %w", err)
 		}
 
 		nodeConf.PreSetting = rlsAgent.ReleaseAdditionInfoAgent.ConfigEnviron
@@ -162,7 +162,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 			std.DeployInfo().Host.Dynamic.NodeVersion,
 		)
 		if err != nil {
-			return fmt.Errorf("get release failed: %w", err)
+			return fmt.Errorf("failed to get release proxy: %w", err)
 		}
 
 		nodeConf.PreSetting = rlsProxy.ReleaseAdditionInfoProxy.ConfigEnviron
@@ -174,7 +174,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	gp := gopool.NewPool()
 	gp.Go(func() error {
 		if err := act.renderLogicSetting(std, nodeConf); err != nil {
-			return fmt.Errorf("render logic setting failed: %w", err)
+			return fmt.Errorf("failed to render logic setting: %w", err)
 		}
 
 		logger.G.Sys().With("token", std.Token()).Info("rendered logic setting")
@@ -184,7 +184,7 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 	gp.Go(func() error {
 		if err := act.renderCustomSetting(std, nodeConf); err != nil {
-			return fmt.Errorf("render custom setting failed: %w", err)
+			return fmt.Errorf("failed to render custom setting: %w", err)
 		}
 
 		logger.G.Sys().With("token", std.Token()).Info("rendered custom setting")
@@ -197,13 +197,13 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	if err := act.storageNodeDeployment.SetNodeDeploymentNodeConf(std.Context(), std.Token(), nodeConf); err != nil {
-		return fmt.Errorf("set node conf failed: %w", err)
+		return fmt.Errorf("failed to set node conf: %w", err)
 	}
 
 	act.renderNodeDeploymentInfo(std.Context(), std.DeployInfo(), nodeConf)
 
 	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), std.Token(), std.DeployInfo()); err != nil {
-		return fmt.Errorf("set node deployment info failed: %w", err)
+		return fmt.Errorf("failed to set node deployment info: %w", err)
 	}
 
 	return nil
@@ -369,7 +369,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 	osType := std.DeployInfo().Host.Dynamic.NodeOsType
 	deploymentConf, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, osType)
 	if err != nil {
-		return fmt.Errorf("get deploy conf failed: %w", err)
+		return fmt.Errorf("failed to get node deploy conf: %w", err)
 	}
 
 	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
@@ -446,7 +446,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 		std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
 
 	if err != nil {
-		return fmt.Errorf("check static access failed: %w", err)
+		return fmt.Errorf("failed to get need static access: %w", err)
 	}
 
 	// render access endpoints
@@ -455,7 +455,7 @@ func (act *actionRenderNodeDeployment) renderLogicSetting(std *nodeUtils.NodeAct
 		{
 			clusters, files, datas, err := act.storageDomainGse.GetV4AgentAccessEndpoints(std.Context(), std.DeployInfo().Host.Dynamic.NetworkUnitID)
 			if err != nil {
-				return fmt.Errorf("get agent access endpoints failed: %w", err)
+				return fmt.Errorf("failed to get agent access endpoints: %w", err)
 			}
 
 			if len(clusters) == 0 {
