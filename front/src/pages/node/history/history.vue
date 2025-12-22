@@ -83,6 +83,7 @@
           </template>
         </TableColumn>
         <TableColumn
+          v-if="active === 'node'"
           field="bk_biz_name"
           :title="t('platform.nodeMan.taskHistory.label.business')"
           min-width="150"
@@ -580,10 +581,21 @@ watch(
   [
     () => searchSelectValue,
     () => mainStore.selectedBusinessId,
-    () => active,
   ],
   async () => {
     await debounceGetTaskList();
+  },
+  { immediate: true, deep: true },
+);
+// 监听 Tab 切换（立即请求，提升体验）
+watch(
+  () => active,
+  () => {
+    // 切换 Tab 时取消正在等待的防抖计时（如果有的话）
+    debounceGetTaskList.cancel();
+
+    // 立即获取，配合上面的 ID 检查机制，哪怕快速点击也没问题
+    getTaskList();
   },
   { immediate: true, deep: true },
 );

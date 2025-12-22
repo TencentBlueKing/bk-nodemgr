@@ -110,6 +110,8 @@
         :settings="settings"
         @setting-change="handleSettingChange"
         @column-filter="handleFilter"
+        @page-limit-change="pageLimitChange"
+        @page-value-change="pageValueChange"
       >
         <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
         <TableColumn
@@ -283,7 +285,6 @@ import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import { TopoService } from '@/api/modules/topo';
 import useInterval from '@/composables/use-interval';
-import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -578,6 +579,7 @@ const searchSelectData = computed(() => [
     multiple: true,
   },
 ]);
+// eslint-disable-next-line max-len
 const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
@@ -590,7 +592,18 @@ const handleSearchSelectChange = async (data: { id: string; name: string; values
 };
 
 // 分页
-const { pagination } = usePage(tableData);
+const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
+const pageLimitChange = async (limit: number) => {
+  pagination.limit = limit;
+  pagination.current = 1; // 页码重置为1
+  await getOperateList(); // 分页变化不防抖，立即执行
+};
+
+const pageValueChange = async (current: number) => {
+  pagination.current = current;
+  await getOperateList(); // 分页变化不防抖，立即执行
+};
+
 // 复制
 const list = [
   {
@@ -715,10 +728,13 @@ const handleFilter = ({
 
 const networkAreaListMap = new Map<number, string | number>([[-1, -1]]);
 // 管控区域下拉列表获取
-const getNetworkAreaList = async () => {
+const getNetworkAreaList = async (data: {bk_networkarea_id: number}[]) => {
   const res = await TopoService.NetworkAreaList({
     page: {
       limit: 0,
+    },
+    exact_include_conditions: {
+      bk_networkarea_id: data.map(item => item.bk_networkarea_id),
     },
   }).catch((err: any) => {
     console.log(err);
@@ -733,10 +749,10 @@ const getNetworkAreaList = async () => {
 };
 // 管控单元下拉列表获取
 const networkUnitListMap = new Map<number, string | number>([[-1, -1]]);
-const getNetworkUnitList = async () => {
+const getNetworkUnitList = async (data: {bk_networkunit_id: number}[]) => {
   const res = await TopoService.NetworkUnitList({
     exact_include_conditions: {
-      bk_networkarea_id: [],
+      bk_networkunit_id: data.map(item => item.bk_networkunit_id),
     },
   }).catch((err: any) => {
     console.log(err);
@@ -866,8 +882,8 @@ const updataCurrentTaskInfo = async () => {
 const getParams = () => {
   const params = {
     page: {
-      limit: 0,
-      offset: 0,
+      limit: pagination.limit,
+      offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {} as Record<string, string[] | string>,
     fuzzy_include_conditions: {} as Record<string, string[]>,
@@ -890,8 +906,9 @@ const getOperateList = async () => {
   const searchParameters = getParams();
   const res = await serviceCaller.call('operationList', searchParameters).catch(() => ({
     operations: [],
-    total_count: 0,
+    total: 0,
   }));
+  pagination.count = res.total;
   const mapList = res.operations.map((item) => {
     subTasksStatus.value?.push(item.status.state);
     return {
@@ -908,7 +925,13 @@ const getOperateList = async () => {
   });
   const isEqual = tableData.value.length === mapList.length
     && tableData.value.every((item, index) => item.state === mapList[index]?.state);
-
+  const isLengthEqual = tableData.value.length === mapList.length;
+  if (!isLengthEqual && mapList.length > 0) {
+    await Promise.all([
+      getNetworkAreaList(mapList),
+      getNetworkUnitList(mapList),
+    ]);
+  }
   if (!isEqual) {
     tableData.value = mapList;
   }
@@ -994,11 +1017,7 @@ onMounted(async () => {
     });
   }
   await updataCurrentTaskInfo();
-  await Promise.all([
-    getNetworkAreaList(),
-    getNetworkUnitList(),
-    getOperateList(),
-  ]);
+  await getOperateList();
   if (currentTaskStatus.value === 'running' && needInterval.value) {
     start();
   }

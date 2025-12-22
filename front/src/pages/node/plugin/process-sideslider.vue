@@ -365,7 +365,7 @@ const distinct = ref<DistinctProcessRespData>();
 const getDistinct = async () => {
   const res = await ProcessAPIService.DistinctProcess({
     exact_include_conditions: {
-      bk_host_id: processList.value.map((item: any) => item.bk_host_id),
+      bk_host_id: props.type === 'node' ? [props.node.bk_host_id] : processList.value.map((item: any) => item.bk_host_id),
     },
   });
   if (res) {

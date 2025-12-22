@@ -368,8 +368,15 @@ const handleSave = async () => {
 };
 const networkAreaList = ref<NetworkArea[]>([]);
 // 管控区域
-const getNetworkAreaList = async () => {
-  const res = await TopoService.NetworkAreaList({}).catch(() => ({
+const getNetworkAreaList = async (data: {bk_networkarea_id: number}[]) => {
+  const res = await TopoService.NetworkAreaList({
+    page: {
+      limit: 0,
+    },
+    exact_include_conditions: {
+      bk_networkarea_id: data.map((item: any) => item.bk_networkarea_id),
+    },
+  }).catch(() => ({
     total: 0,
     items: [],
   }));
@@ -377,8 +384,12 @@ const getNetworkAreaList = async () => {
 };
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
-const getNetworkUnitList = async () => {
-  const res = await TopoService.NetworkUnitList({}).catch(() => ({
+const getNetworkUnitList = async (data: {bk_networkunit_id: number}[]) => {
+  const res = await TopoService.NetworkUnitList({
+    exact_include_conditions: {
+      bk_networkunit_id: data.map((item: any) => item.bk_networkunit_id),
+    },
+  }).catch(() => ({
     total: 0,
     items: [],
   }));
@@ -416,6 +427,10 @@ const getConfigPolicyList = async () => {
   }));
   loading.value = false;
   pagination.count = res.total;
+  const allScopes = res.items.flatMap(item => item.scopes || []);
+  if (allScopes.length > 0) {
+    await Promise.all([getNetworkAreaList(allScopes), getNetworkUnitList(allScopes)]);
+  }
   tableData.value = res.items.map((item: any) => ({
     ...item,
     biz_name: mainStore.businessList
@@ -432,8 +447,4 @@ watch([
 ], async () => {
   await debounceConfigPolicyList();
 }, { immediate: true, deep: true });
-onMounted(async () => {
-  await getNetworkAreaList();
-  await getNetworkUnitList();
-});
 </script>

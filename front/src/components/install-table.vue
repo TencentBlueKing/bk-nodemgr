@@ -110,7 +110,7 @@
           title="操作系统"
           :min-width="120"
           :visible="settings.checked.includes('os_type')"
-          v-if="realeaseType !== 'proxy' || isReinstall"
+          v-if="releaseType !== 'proxy' || isReinstall"
         >
           <template #header>
             <span class="mr-[5px]">操作系统</span>
@@ -154,7 +154,7 @@
           field="export_ip"
           :min-width="150"
           :visible="settings.checked.includes('export_ip')"
-          v-if="realeaseType === 'proxy'"
+          v-if="releaseType === 'proxy'"
         >
           <template #header>
             <span class="mr-[5px]">出口IP</span>
@@ -174,7 +174,7 @@
           field="advertise_ip"
           title="服务IP"
           :min-width="150"
-          v-if="realeaseType === 'proxy'"
+          v-if="releaseType === 'proxy'"
           :visible="settings.checked.includes('advertise_ip')"
         >
           <template #default="{ row, rowIndex }">
@@ -218,7 +218,7 @@
           title="登录端口"
           :min-width="120"
           :visible="settings.checked.includes('login_port')"
-          v-if="realeaseType !== 'proxy' || isReinstall"
+          v-if="releaseType !== 'proxy' || isReinstall"
         >
           <template #header>
             <span class="mr-[5px]">登录端口</span>
@@ -248,7 +248,7 @@
           title="登录账号"
           :min-width="150"
           :visible="settings.checked.includes('login_user')"
-          v-if="realeaseType !== 'proxy' || isReinstall"
+          v-if="releaseType !== 'proxy' || isReinstall"
         >
           <template #header>
             <span class="mr-[5px]">登录账号</span>
@@ -370,7 +370,7 @@
       <VxeColgroup
         title="开启的服务"
         align="center"
-        v-if="realeaseType === 'proxy'"
+        v-if="releaseType === 'proxy'"
       >
         <VxeColumn
           :min-width="90"
@@ -482,7 +482,7 @@ const tableData = defineModel<Array<ReturnType<typeof getInitData>>>('data');
 const props = defineProps({
   data: { type: Array, default: () => [] as any[] },
   maxHeight: { type: Number, default: 300 },
-  realeaseType: { type: String, default: 'agent' },
+  releaseType: { type: String, default: 'agent' },
   isReinstall: { type: Boolean, default: false },
   currentSettings: {
     type: Object,
@@ -848,7 +848,7 @@ const tableValidate = async () => {
     }
     // 2.3 OS
     if (
-      (props.realeaseType !== 'proxy' || props.isReinstall)
+      (props.releaseType !== 'proxy' || props.isReinstall)
       && settings.checked.includes('os_type')
       && !row.os_type
     ) {
@@ -856,7 +856,7 @@ const tableValidate = async () => {
       rowValid = false;
     }
     // 2.4 Proxy IP
-    if (props.realeaseType === 'proxy') {
+    if (props.releaseType === 'proxy') {
       if (settings.checked.includes('export_ip')) {
         if (!row.export_ip) {
           setError(i, 'export_ip', '必填项');
@@ -884,7 +884,7 @@ const tableValidate = async () => {
           rowValid = false;
         }
       }
-      if (props.realeaseType !== 'proxy' || props.isReinstall) {
+      if (props.releaseType !== 'proxy' || props.isReinstall) {
         if (settings.checked.includes('login_port')) {
           if (!row.login_port) {
             setError(i, 'login_port', '必填项');

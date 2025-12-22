@@ -10,7 +10,7 @@
             v-for="operate in filterIpOpearateList" :key="operate.operation_id"
             class="cursor-pointer w-full px-[20px] h-[40px] leading-[40px] flex items-center"
             :class="{ 'bg-[#e1ecff]': Number(route.params.hostId) === operate.bk_host_id }"
-            @click="handleChangeIp(operate.bk_host_inner_list)"
+            @click="handleChangeIp(operate.bk_host_id)"
           >
             <span class="mr-[5px] leading-none">
               <i
@@ -233,6 +233,7 @@
 import { Button, Dropdown, Input, overflowTitle } from 'bkui-vue';
 import { AngleUpFill, ArrowsLeft, Close, RightShape, Spinner } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
+import { debounce } from 'lodash';
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -443,11 +444,11 @@ const handleClickStep = (row: any) => {
 };
 
 // 搜索Ip
-const handleChangeIp = async (ip: string) => {
+const handleChangeIp = async (hostId: number) => {
   router.replace({
     name: 'log',
     params: {
-      ip,
+      hostId,
       taskId: route.params.taskId,
     },
     query: {
@@ -563,6 +564,7 @@ const getInstance = async () => {
 const hasErrorOrTimeout = ref(false);
 const isInterval = ref(false);
 async function getLog() {
+  if (!curOperInstId.value) return;
   const res = await serviceCaller.call('operationInstanceLogGet', {
     oper_inst_id: curOperInstId.value,
   }).catch(() => ({
@@ -633,9 +635,12 @@ watch(() => route.path, async () => {
   }
 });
 
+const debouncedGetOperateList = debounce(() => {
+  getOperateList();
+}, 1000);
 watch(() => currentOperate.value, async () => {
   if (['launched', 'init'].includes(currentOperate.value?.state)) {
-    await getOperateList();
+    await debouncedGetOperateList();
   }
 });
 

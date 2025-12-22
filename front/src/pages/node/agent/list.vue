@@ -291,9 +291,6 @@ interface FilterOption {
   filterScope: string;
 }
 
-// 类型定义
-type Host = any; // 建议替换为你项目中具体的Host类型定义
-
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
@@ -437,8 +434,11 @@ const getParams = () => {
 /**
  * 获取管控区域列表
  */
-const getNetworkAreaList = async () => {
-  const res = await TopoService.NetworkAreaList({ page: { limit: 0 } }).catch((err: any) => {
+const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) => {
+  const res = await TopoService.NetworkAreaList({
+    page: { limit: 0 },
+    exact_include_conditions: { bk_networkarea_id: data?.bk_networkarea_id || []},
+  }).catch((err: any) => {
     console.error('获取管控区域列表失败:', err);
     return { total: 0, items: [] };
   });
@@ -450,10 +450,10 @@ const getNetworkAreaList = async () => {
 /**
  * 获取管控单元列表
  */
-const getNetworkUnitList = async () => {
+const getNetworkUnitList = async (data: {bk_networkunit_id: number[]} | null) => {
   const res = await TopoService.NetworkUnitList({
-    exact_include_conditions: { bk_networkarea_id: [] } }
-  ).catch((err: any) => {
+    exact_include_conditions: { bk_networkunit_id: data?.bk_networkunit_id || [] },
+  }).catch((err: any) => {
     console.error('获取管控单元列表失败:', err);
     return { total: 0, items: [] };
   });
@@ -476,6 +476,10 @@ const getHostDistinct = async () => {
     console.error('获取主机筛选条件唯一值失败:', err);
     return null;
   });
+  await Promise.all([
+    getNetworkAreaList(res),
+    getNetworkUnitList(res),
+  ]);
   if (res) {
     hostDistinct.value = res;
     Object.keys(res).forEach((key: any) => {
@@ -566,11 +570,7 @@ const loadInitialData = async () => {
 
   try {
     // 【修复点】并行执行三个基础请求，但只执行一次
-    await Promise.all([
-      getNetworkAreaList(),
-      getNetworkUnitList(),
-      getHostDistinct(),
-    ]);
+    await getHostDistinct();
     isInitialDataLoaded.value = true; // 标记基础数据已加载完成
   } catch (error) {
     console.error('加载初始化数据失败:', error);
