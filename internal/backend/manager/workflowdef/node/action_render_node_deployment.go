@@ -661,10 +661,10 @@ func (act *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(std *nodeUtils.NodeActionStandarder) {
 	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
 	advertiseIPV6 := std.DeployInfo().Host.Dynamic.AdvertiseIPV6
-	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 && advertiseIPV4 == "" {
+	if advertiseIPV4 == "" && len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
 		advertiseIPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
 	}
-	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 && advertiseIPV6 == "" {
+	if advertiseIPV6 == "" && len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
 		advertiseIPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
 	}
 
@@ -673,10 +673,10 @@ func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(s
 
 	exportIPV4 := std.DeployInfo().Host.Dynamic.ExportIP
 	exportIPV6 := std.DeployInfo().Host.Dynamic.ExportIPV6
-	if len(std.DeployInfo().Host.Static.InnerIPList) > 0 && exportIPV4 == "" {
+	if exportIPV4 == "" && len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
 		exportIPV4 = std.DeployInfo().Host.Static.InnerIPList[0]
 	}
-	if len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 && exportIPV6 == "" {
+	if exportIPV6 == "" && len(std.DeployInfo().Host.Static.InnerIPV6List) > 0 {
 		exportIPV6 = std.DeployInfo().Host.Static.InnerIPV6List[0]
 	}
 
