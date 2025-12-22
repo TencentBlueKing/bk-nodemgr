@@ -818,6 +818,17 @@ func (x *PackageReleasePluginDeleteReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *PackageReleasePluginDeleteReq) AutoConvert() {
+	if x.GetPlatform() == nil {
+		x.Platform = &Platform{}
+	}
+
+	if x.GetPlatform().GetOsType() == "" {
+		x.Platform.OsType = string(criteria.OSUnknown)
+	}
+
+	if x.GetPlatform().GetCpuArch() == "" {
+		x.Platform.CpuArch = string(criteria.CPUArchUnknown)
+	}
 }
 
 // GetIdentifier get identifier.
