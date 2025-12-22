@@ -562,8 +562,8 @@ type GSEPlugin struct {
 // Front the config of front.
 type Front struct {
 	// PasswordVault Options.
-	PasswordVaultSwitch bool
-	PasswordVaultName   string
+	PasswordVaultSwitch bool   `yaml:"passwordVaultSwitch" usage:"switch of password vault"`
+	PasswordVaultName   string `yaml:"passwordVaultName" usage:"name of password vault"`
 }
 
 // Validate validates the config.
