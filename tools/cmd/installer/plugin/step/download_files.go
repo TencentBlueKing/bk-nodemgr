@@ -96,7 +96,7 @@ const pluginReleasePkgExt = "tgz"
 // GenReleasePkgName generates release package name.
 func GenReleasePkgName(pluginName, version string) string {
 	return fmt.Sprintf(
-		"bk-nodemgr_%s_plugin_%s-%s-%s_%s.%s",
+		"bk-nodemgr_%s_plugin_%s-%s-%s.%s",
 		pluginName,
 		version,
 		runtime.GOOS,
