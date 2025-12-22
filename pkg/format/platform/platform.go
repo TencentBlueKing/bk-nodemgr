@@ -195,9 +195,12 @@ type Platform struct {
 	Arch criteria.CPUArch
 }
 
-// EmptyPlatform returns an empty platform.
-func EmptyPlatform() Platform {
-	return Platform{}
+// UnknownPlatform returns an unknown platform.
+func UnknownPlatform() Platform {
+	return Platform{
+		OS:   criteria.OSUnknown,
+		Arch: criteria.CPUArchUnknown,
+	}
 }
 
 // NewPlatform returns a new platform.

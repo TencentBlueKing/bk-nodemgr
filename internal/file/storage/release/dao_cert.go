@@ -18,7 +18,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/release"
-	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -32,10 +31,6 @@ func (s *Storage) getReleaseCert(ctx contextx.IContext) (*types.ReleaseCert, err
 	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeCert,
 		// cert was designed in generation 2.
 		release.WithGeneration(types.Generation2),
-		release.WithPlatform(platfmt.Platform{
-			OS:   types.ReleaseOSTypeBinTool,
-			Arch: types.ReleaseCPUArchBinTool,
-		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release cert: %w", err)
@@ -51,10 +46,6 @@ func (s *Storage) existReleaseCert(ctx contextx.IContext) (bool, error) {
 	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeCert,
 		// cert was designed in generation 2.
 		release.WithGeneration(types.Generation2),
-		release.WithPlatform(platfmt.Platform{
-			OS:   types.ReleaseOSTypeBinTool,
-			Arch: types.ReleaseCPUArchBinTool,
-		}),
 	)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if release cert exists: %w", err)

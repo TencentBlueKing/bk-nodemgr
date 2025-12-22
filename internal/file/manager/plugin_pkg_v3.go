@@ -78,8 +78,8 @@ func (m *Manager) UploadOriginPluginV3(nCtx contextx.IContext, pluginFile io.Rea
 		return nil, err
 	}
 
-	gen := types.Generation2
-	pkgFileName, err := pluginpkg.FormatPkgFileName(detail.PluginPkgName, types.ReleaseTypeOriginPluginV3, gen, platfmt.EmptyPlatform(), detail.Version)
+	pkgFileName, err := pluginpkg.FormatPkgFileName(detail.PluginPkgName, types.ReleaseTypeOriginPluginV3, types.Generation2,
+		platfmt.UnknownPlatform(), detail.Version)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin package v3 package, failed to format package")
 

@@ -118,7 +118,7 @@ func (m *Manager) UploadOriginCert(nCtx contextx.IContext, certFile io.ReadClose
 
 	// record upload event.
 	m.recordUploadEvent(nCtx, types.ReleaseTypeCert, types.ReleaseNameCert, types.ReleaseVersionCert,
-		[]platfmt.Platform{{OS: types.ReleaseOSTypeCert, Arch: types.ReleaseCPUArchCert}})
+		[]platfmt.Platform{platfmt.UnknownPlatform()})
 
 	logger.G.Biz(nCtx).With("filename", pkgName).Info("uploaded origin cert package to upstream")
 
@@ -285,13 +285,10 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 
 	certInfo := &types.ReleaseCert{
 		Release: types.Release{
-			Name:       releaseCertFileName,
-			Generation: types.Generation2,
-			Type:       types.ReleaseTypeCert,
-			Platform: platfmt.Platform{
-				OS:   types.ReleaseOSTypeCert,
-				Arch: types.ReleaseCPUArchCert,
-			},
+			Name:         releaseCertFileName,
+			Generation:   types.Generation2,
+			Type:         types.ReleaseTypeCert,
+			Platform:     platfmt.UnknownPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,

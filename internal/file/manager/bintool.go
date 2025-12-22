@@ -124,7 +124,7 @@ func (m *Manager) UploadOriginBinTool(
 
 	// record upload.
 	m.recordUploadEvent(nCtx, types.ReleaseTypeBinTool, types.ReleaseNameBinTool, types.ReleaseVersionBinTool,
-		[]platfmt.Platform{{OS: types.ReleaseOSTypeBinTool, Arch: types.ReleaseCPUArchBinTool}})
+		[]platfmt.Platform{platfmt.UnknownPlatform()})
 
 	logger.G.Biz(nCtx).With("filename", pkgName).Info("uploaded origin bintool package to upstream")
 
@@ -227,13 +227,10 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 
 	bintoolInfo := &types.ReleaseBinTool{
 		Release: types.Release{
-			Name:       types.ReleaseNameBinTool,
-			Generation: types.Generation2,
-			Type:       types.ReleaseTypeBinTool,
-			Platform: platfmt.Platform{
-				OS:   types.ReleaseOSTypeBinTool,
-				Arch: types.ReleaseCPUArchBinTool,
-			},
+			Name:         types.ReleaseNameBinTool,
+			Generation:   types.Generation2,
+			Type:         types.ReleaseTypeBinTool,
+			Platform:     platfmt.UnknownPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
 			MD5:          releaseInfo.MD5,

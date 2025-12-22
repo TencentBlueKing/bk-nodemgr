@@ -83,7 +83,7 @@ func (m *Manager) UploadOriginExternalPlugin(nCtx contextx.IContext, externalPlu
 
 	gen := types.Generation2
 	pkgFileName, err := pluginpkg.FormatPkgFileName(
-		detail.PluginPkgName, types.ReleaseTypeOriginExternalPluginV2, gen, platfmt.EmptyPlatform(), detail.Version)
+		detail.PluginPkgName, types.ReleaseTypeOriginExternalPluginV2, gen, platfmt.UnknownPlatform(), detail.Version)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin external plugin package, failed to format package")
 

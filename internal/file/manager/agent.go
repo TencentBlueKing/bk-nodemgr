@@ -81,7 +81,7 @@ func (m *Manager) UploadOriginAgent(nCtx contextx.IContext, pkgFile io.ReadClose
 	pkgFileName, err := nodepkg.FormatPkgFileName(
 		gen,
 		types.ReleaseTypeOriginAgent,
-		platfmt.EmptyPlatform(),
+		platfmt.UnknownPlatform(),
 		detail.Version,
 	)
 	if err != nil {
