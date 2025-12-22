@@ -674,7 +674,7 @@ func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(s
 	std.DeployInfo().Host.Dynamic.AdvertiseIPV6 = advertiseIPV6
 
 	if advertiseIPV4 == "" && advertiseIPV6 == "" {
-		return fmt.Errorf(" advertise ipv4 and ipv6 are empty")
+		return fmt.Errorf("advertise ipv4 and ipv6 are empty")
 	}
 
 	exportIPV4 := std.DeployInfo().Host.Dynamic.ExportIP
@@ -690,7 +690,7 @@ func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(s
 	std.DeployInfo().Host.Dynamic.ExportIPV6 = exportIPV6
 
 	if exportIPV4 == "" && exportIPV6 == "" {
-		return fmt.Errorf(" export ipv4 and ipv6 are empty")
+		return fmt.Errorf("export ipv4 and ipv6 are empty")
 	}
 
 	return nil
