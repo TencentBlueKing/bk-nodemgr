@@ -132,7 +132,9 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("convert node role to release type failed: %w", err)
 	}
 
-	act.ensureHostDynamicAdvertiseIPAndExportIP(std)
+	if err := act.ensureHostDynamicAdvertiseIPAndExportIP(std); err != nil {
+		return fmt.Errorf("failed to ensure host dynamic advertise ip and export ip: %w", err)
+	}
 
 	switch releaseType {
 	case types.ReleaseTypeAgent:
@@ -658,7 +660,7 @@ func (act *actionRenderNodeDeployment) renderNodeDeploymentInfo(
 		conf.PreSetting[GseTemplateKeyFileAgentBindPort], defaultKeyProxyFilePort)
 }
 
-func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(std *nodeUtils.NodeActionStandarder) {
+func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(std *nodeUtils.NodeActionStandarder) error {
 	advertiseIPV4 := std.DeployInfo().Host.Dynamic.AdvertiseIP
 	advertiseIPV6 := std.DeployInfo().Host.Dynamic.AdvertiseIPV6
 	if advertiseIPV4 == "" && len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
@@ -671,6 +673,10 @@ func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(s
 	std.DeployInfo().Host.Dynamic.AdvertiseIP = advertiseIPV4
 	std.DeployInfo().Host.Dynamic.AdvertiseIPV6 = advertiseIPV6
 
+	if advertiseIPV4 == "" && advertiseIPV6 == "" {
+		return fmt.Errorf(" advertise ipv4 and ipv6 are empty")
+	}
+
 	exportIPV4 := std.DeployInfo().Host.Dynamic.ExportIP
 	exportIPV6 := std.DeployInfo().Host.Dynamic.ExportIPV6
 	if exportIPV4 == "" && len(std.DeployInfo().Host.Static.InnerIPList) > 0 {
@@ -682,4 +688,10 @@ func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(s
 
 	std.DeployInfo().Host.Dynamic.ExportIP = exportIPV4
 	std.DeployInfo().Host.Dynamic.ExportIPV6 = exportIPV6
+
+	if exportIPV4 == "" && exportIPV6 == "" {
+		return fmt.Errorf(" export ipv4 and ipv6 are empty")
+	}
+
+	return nil
 }
