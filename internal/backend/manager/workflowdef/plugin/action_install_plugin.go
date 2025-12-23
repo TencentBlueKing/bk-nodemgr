@@ -118,6 +118,9 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
+	// let the callback server known which action to mark and log.
+	std.DeployInfo().BlockingActionName = ActionNameWaitPluginInstallerComplete
+
 	nCtx := std.Context()
 	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)
 	if err != nil {

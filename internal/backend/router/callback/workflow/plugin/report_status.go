@@ -11,13 +11,11 @@
 package plugin
 
 import (
-	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoCallback "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/callback"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 const (
@@ -33,23 +31,10 @@ func (h *handler) ReportStatus(rCtx restserver.IContext) (interface{}, error) {
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
+
 	token := req.GetToken()
 	operInstID := req.GetOperInstId()
 	status := req.GetStatus()
-
-	logger.G.Biz(rCtx).With("oper-inst-id", operInstID, "status", status).Info("report status")
-
-	var state action.State
-	switch status {
-	case pluginInstallerStatusSuccess:
-		state = action.StateSuccess
-	case pluginInstallerStatusFailed:
-		state = action.StateFailed
-	default:
-		logger.G.Biz(rCtx).With("status", status).Error("failed to report status, got invalid status")
-
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("invalid status: %s", req.GetStatus()))
-	}
 
 	info, err := h.daoPluginDeployment.GetPluginDeploymentInfo(rCtx, token)
 	if err != nil {
@@ -58,11 +43,18 @@ func (h *handler) ReportStatus(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	if err = h.stgWorkflow.UpdateOperInstActionStatus(rCtx, operInstID, info.BlockingActionName, state); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to report status, failed to update action status")
+	dataMap := map[string]any{
+		types.PDKeyInstallerReportStatus: status,
+	}
 
+	if err := h.stgWorkflow.UpsertActionInstancePrivateData(rCtx, req.GetOperInstId(), info.BlockingActionName, dataMap); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to report result, failed to update action private data")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
+
+	logger.G.Biz(rCtx).
+		With("oper-inst-id", operInstID, "action", info.BlockingActionName, "status", status).
+		Info("report status")
 
 	resp := new(protoCallback.PluginReportStatusResp)
 

@@ -26,19 +26,7 @@ func (h *handler) ReportData(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	token := req.GetToken()
-	info, err := h.daoPluginDeployment.GetPluginDeploymentInfo(rCtx, token)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to report data, get deployment info failed")
-
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
-	}
-
-	if err := h.daoPluginDeployment.UpdatePluginDeploymentInfo(rCtx, token, info); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to report data, update deployment info failed")
-
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
-	}
+	// Nothing to report here now.
 
 	resp := new(protoCallback.PluginReportDataResp)
 

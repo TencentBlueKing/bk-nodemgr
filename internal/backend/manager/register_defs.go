@@ -173,7 +173,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionTransferPluginPkgToNode(pluginCap),
 		plugin.NewActionRenderPluginDeployment(pluginCap),
 		plugin.NewActionRenderPluginConfig(pluginCap),
-		plugin.NewActionWaitInstallerComplete(pluginCap),
+		plugin.NewActionWaitPluginInstallerComplete(pluginCap),
 		plugin.NewActionInstallPlugin(pluginCap),
 		plugin.NewActionUpsertProcess(pluginCap),
 		plugin.NewActionPushPluginConfig(pluginCap),

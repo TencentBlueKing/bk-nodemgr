@@ -125,8 +125,6 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 			std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName, err)
 	}
 
-	std.DeployInfo().BlockingActionName = ActionNameWaitInstallerComplete
-
 	version := std.DeployInfo().Process.Info.Version
 	pluginPkgName := plugin.PkgName
 	pluginGroup := plugin.Group
