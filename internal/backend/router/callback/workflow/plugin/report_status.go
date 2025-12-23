@@ -18,11 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const (
-	pluginInstallerStatusSuccess = "success"
-	pluginInstallerStatusFailed  = "failed"
-)
-
 // ReportStatus report plugin installer status.
 func (h *handler) ReportStatus(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoCallback.PluginReportStatusReq)
