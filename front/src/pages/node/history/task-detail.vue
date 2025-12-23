@@ -323,7 +323,7 @@ const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
 
 // 当前任务状态
 const currentTaskStatus = computed(() => nodeManageStore.taskHistoryTableRowData.status);
-const statusMap = {
+const statusMap = computed(() => ({
   running: {
     text: '执行中',
     tagTheme: 'info',
@@ -362,8 +362,12 @@ const statusMap = {
     text: '终止',
     icon: 'terminated',
   },
-};
-const typeMap = {
+  launched: {
+    text: '等待执行',
+    icon: 'unknown',
+  },
+}));
+const typeMap = computed(() => ({
   install_agent: t('platform.nodeMan.taskHistory.taskType.install_agent'),
   install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
   upgrade_agent: t('platform.nodeMan.taskHistory.taskType.upgrade_agent'),
@@ -376,7 +380,7 @@ const typeMap = {
   reconfig_proxy: t('platform.nodeMan.taskHistory.taskType.reconfig_proxy'),
   restart_proxy: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
-};
+}));
 
 const formatTimeToMS = (duration = 0) => {
   // 处理非数字或负数情况
@@ -440,7 +444,7 @@ const taskInfoList = computed(() => [
     prop: 'type',
     name: '任务类型',
     value:
-      typeMap[nodeManageStore.taskHistoryTableRowData?.type as taskType]
+      typeMap.value[nodeManageStore.taskHistoryTableRowData?.type as taskType]
       || nodeManageStore.taskHistoryTableRowData?.type,
   },
   {
@@ -500,7 +504,7 @@ const getUniqueChildren = (prop: string) => {
     let name;
     switch (prop) {
       case 'state':
-        name = statusMap[value as string]?.text || String(value);
+        name = statusMap.value[value as string]?.text || String(value);
         break;
       case 'bk_networkarea_id':
         name = networkAreaListMap.get(value as number) || String(value);
@@ -716,7 +720,7 @@ const handleFilter = ({
       id: field,
       name: field,
       values: checked.map((item: any) => {
-        const name = field === 'state' ? statusMap[item].text : item;
+        const name = field === 'state' ? statusMap.value[item]?.text || item : item;
         return {
           id: item,
           name,
@@ -964,11 +968,8 @@ watch(
 watch(
   () => tableData,
   () => {
-    filterOptionSource.node_version.list = filterOptionConfig(
-      'node_version',
-      typeMap,
-    );
-    filterOptionSource.state.list = filterOptionConfig('state', statusMap);
+    filterOptionSource.node_version.list = filterOptionConfig('node_version');
+    filterOptionSource.state.list = filterOptionConfig('state', statusMap.value);
   },
   { deep: true, immediate: true },
 );
@@ -1012,7 +1013,7 @@ onMounted(async () => {
       name: '执行状态',
       values: [{
         id: route.query.status,
-        name: statusMap[route.query.status]?.text || route.query.status,
+        name: statusMap.value[route.query.status]?.text || route.query.status,
       }],
     });
   }

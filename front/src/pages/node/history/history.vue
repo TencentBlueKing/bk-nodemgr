@@ -274,7 +274,7 @@ const shortcutsRange = reactive([
     },
   },
 ]);
-const statusMap = {
+const statusMap = computed(() => ({
   running: {
     text: t('platform.nodeMan.taskHistory.statusType.running'),
   },
@@ -290,8 +290,8 @@ const statusMap = {
     text: t('platform.nodeMan.taskHistory.statusType.partial_failed'),
     icon: 'warning',
   },
-};
-const typeMap = {
+}));
+const typeMap = computed(() => ({
   install_agent: {
     text: t('platform.nodeMan.taskHistory.taskType.install_agent'),
   },
@@ -328,7 +328,7 @@ const typeMap = {
   upgrade_plugin: {
     text: t('platform.nodeMan.taskHistory.taskType.upgrade_plugin'),
   },
-};
+}));
 const bussinessMap = computed(() => mainStore.businessList.map(item => ({
   id: item.bk_biz_id,
   name: item.bk_biz_name,
@@ -367,7 +367,7 @@ const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
     id: value,
-    name: map && map[value as string] ? map[value as string].text : value,
+    name: map && map.value && map.value[value as string] ? map.value[value as string].text : value,
   }));
 };
 const searchSelectData = computed(() => [
@@ -398,7 +398,7 @@ const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
   return uniqueValues.map(value => ({
     text:
-      valMap && valMap[value as string] ? valMap[value as string].text : value,
+      valMap && valMap.value && valMap.value[value as string] ? valMap.value[value as string].text : value,
     value,
   }));
 };
@@ -432,10 +432,10 @@ const handleFilter = ({
         let name;
         switch (field) {
           case 'status':
-            name = statusMap[item].text;
+            name = statusMap.value[item]?.text || item;
             break;
           case 'type':
-            name = typeMap[item as taskType].text;
+            name = typeMap.value[item as taskType]?.text || item;
             break;
           default:
             name = item;

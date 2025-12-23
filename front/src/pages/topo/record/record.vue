@@ -62,7 +62,7 @@
           field="type"
           show-overflow="tooltip">
           <template #default="{ row }">
-            {{ row.type || '--' }}
+            {{ typeMap[row.type] || row.type || '--' }}
           </template>
         </TableColumn>
         <TableColumn
@@ -107,6 +107,19 @@ const {
   handleFetchAllWorkarea,
   handleFetchAllWorkUnit,
 } = useWorkareaStore();
+
+// 操作类型映射
+const typeMap = {
+  'networkarea-create': '创建管控区域',
+  'networkarea-update': '更新管控区域',
+  'networkarea-delete': '删除管控区域',
+  'networkunit-create': '创建管控单元',
+  'networkunit-update': '更新管控单元',
+  'networkunit-delete': '删除管控单元',
+  'accesspoint-create': '创建接入点',
+  'accesspoint-update': '更新接入点',
+  'accesspoint-delete': '删除接入点',
+};
 const workareaStore = useWorkareaStore();
 const searchSelectValue = ref<ISearchValue[]>([]);
 const loading = ref(false);

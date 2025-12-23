@@ -298,7 +298,7 @@ const filterIpOpearateList = computed(() => operateList.value.filter(item => !se
 
 const searchValue = ref();
 const currentOperate = computed(() => operateList.value.find(item => item.bk_host_id === Number(route.params.hostId)));
-const title = computed(() => `${currentOperate.value?.bk_host_inner_list ?? ''} ${typeMap[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
+const title = computed(() => `${currentOperate.value?.bk_host_inner_list ?? ''} ${typeMap.value[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
 const curOperInstId = ref('');
 const curOperInstVal = ref('latest');
 const curSortNames = ref<string[]>([]);
@@ -341,8 +341,16 @@ const statusMap = {
     text: '终止',
     icon: 'terminated',
   },
+  launched: {
+    text: '等待执行',
+    icon: 'unknown',
+  },
+  init: {
+    text: '初始化',
+    icon: 'unknown',
+  },
 };
-const typeMap = {
+const typeMap = computed(() => ({
   install_agent: t('platform.nodeMan.taskHistory.taskType.install_agent'),
   install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
   upgrade_agent: t('platform.nodeMan.taskHistory.taskType.upgrade_agent'),
@@ -355,7 +363,7 @@ const typeMap = {
   reconfig_proxy: t('platform.nodeMan.taskHistory.taskType.reconfig_proxy'),
   restart_proxy: t('platform.nodeMan.taskHistory.taskType.restart_proxy'),
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
-};
+}));
 
 const timeFormatter = (
   val: number | string | undefined,

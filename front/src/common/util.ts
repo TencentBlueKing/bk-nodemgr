@@ -85,8 +85,17 @@ export function compareVersions(a: string, b: string) {
 }
 
 export function bytesToMegabytes(bytes: number) {
-  const megabytes = bytes / (1024 * 1024);
-  return megabytes.toFixed(2);
+  const KB = 1024;
+  const MB = KB * 1024;
+
+  if (bytes < MB) {
+    // 小于1MB时显示KB单位
+    const kilobytes = bytes / KB;
+    return `${kilobytes.toFixed(2)} KB`;
+  }
+  // 大于等于1MB时显示MB单位
+  const megabytes = bytes / MB;
+  return `${megabytes.toFixed(2)} MB`;
 }
 
 /**

@@ -72,7 +72,7 @@
           <span
             class="text-[12px]"
             v-if="['success', 'existed'].includes(curFile.status)"
-          >{{ bytesToMegabytes(file.size) }}M</span
+          >{{ bytesToMegabytes(file.size) }}</span
           >
           <template v-if="curFile.status === 'failed'">
             <Button @click="handleOverwrite" text>
