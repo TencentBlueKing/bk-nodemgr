@@ -288,6 +288,7 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 			Name:         releaseCertFileName,
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypeCert,
+			Version:      types.ReleaseVersionCert,
 			Platform:     platfmt.UnknownPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,

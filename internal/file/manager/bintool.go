@@ -230,6 +230,7 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 			Name:         types.ReleaseNameBinTool,
 			Generation:   types.Generation2,
 			Type:         types.ReleaseTypeBinTool,
+			Version:      types.ReleaseVersionBinTool,
 			Platform:     platfmt.UnknownPlatform(),
 			Labels:       nil,
 			FileName:     releaseInfo.Name,
