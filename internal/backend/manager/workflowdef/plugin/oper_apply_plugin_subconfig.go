@@ -61,9 +61,13 @@ func (oper *operApplyPluginSubConfig) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameRenderPluginDeployment: true,
-			ActionNamePushPluginConfig:       true,
-			ActionNameRestartProcess:         true,
+			ActionNameCheckPluginProcessAlive:            true,
+			ActionNameRenderPluginDeployment:             true,
+			ActionNameEnsureAndUpdatePluginConfigDetails: true,
+			ActionNameRenderPluginConfig:                 true,
+			ActionNamePushPluginConfig:                   true,
+			ActionNameRestartProcess:                     true,
+			ActionNameUpdateProcess:                      true,
 		},
 	}
 }

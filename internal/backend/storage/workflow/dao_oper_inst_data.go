@@ -352,8 +352,8 @@ func (s *Storage) updateActionInstanceContent(
 		return errors.New("action name is empty")
 	}
 
-	if len(content) == 0 {
-		return errors.New("content is empty")
+	if content == nil {
+		content = make(map[string]any)
 	}
 
 	if err := s.existsAction(nCtx, operInstID, actionName); err != nil {
