@@ -15,8 +15,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.opentelemetry.io/otel/trace"
 	"time"
+
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -224,8 +225,13 @@ func (s *Storage) Terminate() error {
 	return nil
 }
 
-// WrapFn ()
+// WrapFn wraps a function with tracing and metric recording.
 func (s *Storage) WrapFn(nCtx contextx.IContext, fnName string, fn func(contextx.IContext) error) (err error) {
+	// Start metric recording
+	metric := Metric(s.Name).Start(MetricOperation(fnName))
+	defer metric.End(err)
+
+	// Start tracing
 	parentSpan := trace.SpanFromContext(nCtx)
 	tracer := parentSpan.TracerProvider().Tracer(fmt.Sprintf("%s%s", scopeNamePrefix, s.Name))
 	traceCtx, span := tracer.Start(nCtx, fmt.Sprintf("%s %s", SpanNamePrefix, fnName))

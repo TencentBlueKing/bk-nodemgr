@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package storage
+package basestorage
 
 import "time"
 
@@ -41,7 +41,6 @@ func (m *MetricData) End(err error) {
 }
 
 // Metric returns the metric data.
-// Deprecated, use basestorage.WrapFn instead
 func Metric(name string) *MetricData {
 	return &MetricData{param: MetricParam{StorageName: name}}
 }
