@@ -301,6 +301,7 @@ func ValidPlatforms() map[string]bool {
 		"windows/amd64":   true,
 		"windows/arm":     true,
 		"windows/arm64":   true,
+		"unknown/unknown": true,
 	}
 }
 
