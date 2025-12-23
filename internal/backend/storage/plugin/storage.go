@@ -44,15 +44,39 @@ const (
 	schedulerTaskMonitorWorkflowStatus    = "monitor_plugin_workflow_status"
 	recentMonitoredTime                   = 5 * time.Minute
 
-	metricOperationListPluginDeployment               = "list_plugin_deployment"
-	metricOperationGetPluginWorkflowStatus            = "get_plugin_workflow_status"
-	metricOperationCountPluginWorkflow                = "count_plugin_workflow"
-	metricOperationListPluginWorkflow                 = "list_plugin_workflow"
-	metricOperationCountProcess                       = "count_process"
-	metricOperationListProcess                        = "list_process"
-	metricOperationGetProcessDistributionByHostID     = "get_process_distribution_by_host_id"
-	metricOperationGetProcessDistributionByPluginName = "get_process_distribution_by_plugin_name"
-	metricOperationDistinctProcess                    = "distinct_process"
+	metricOperationListPluginDeployment                           = "list_plugin_deployment"
+	metricOperationGetPluginWorkflowStatus                        = "get_plugin_workflow_status"
+	metricOperationCountPluginWorkflow                            = "count_plugin_workflow"
+	metricOperationListPluginWorkflow                             = "list_plugin_workflow"
+	metricOperationCountProcess                                   = "count_process"
+	metricOperationListProcess                                    = "list_process"
+	metricOperationGetProcessDistributionByHostID                 = "get_process_distribution_by_host_id"
+	metricOperationGetProcessDistributionByPluginName             = "get_process_distribution_by_plugin_name"
+	metricOperationDistinctProcess                                = "distinct_process"
+	metricOperationCreateProcess                                  = "create_process"
+	metricOperationUpdateProcess                                  = "update_process"
+	metricOperationUpdateProcessInfo                              = "update_process_info"
+	metricOperationDeleteProcess                                  = "delete_process"
+	metricOperationExistProcess                                   = "exist_process"
+	metricOperationUpdateManyProcessInfo                          = "update_many_process_info"
+	metricOperationGetProcess                                     = "get_process"
+	metricOperationGetPluginWorkflow                              = "get_plugin_workflow"
+	metricOperationCreatePluginWorkflow                           = "create_plugin_workflow"
+	metricOperationUpdatePluginWorkflowStatus                     = "update_plugin_workflow_status"
+	metricOperationDistinctPluginWorkflow                         = "distinct_plugin_workflow"
+	metricOperationGetPlugin                                      = "get_plugin"
+	metricOperationCountPlugins                                   = "count_plugins"
+	metricOperationListPlugins                                    = "list_plugins"
+	metricOperationExistPluginByPluginName                        = "exist_plugin_by_plugin_name"
+	metricOperationExistDefaultPluginByPluginPkgName              = "exist_default_plugin_by_plugin_pkg_name"
+	metricOperationSetPluginMemo                                  = "set_plugin_memo"
+	metricOperationCreatePlugin                                   = "create_plugin"
+	metricOperationGetPluginDeploymentInfo                        = "get_plugin_deployment_info"
+	metricOperationCreatePluginDeployment                         = "create_plugin_deployment"
+	metricOperationUpdatePluginDeploymentInfo                     = "update_plugin_deployment_info"
+	metricOperationGetPluginDeploymentPluginConf                  = "get_plugin_deployment_plugin_conf"
+	metricOperationUpdatePluginDeploymentPluginConf               = "update_plugin_deployment_plugin_conf"
+	metricOperationGetPluginDeploymentPluginConfConfigFilesDetail = "get_plugin_deployment_plugin_conf_config_files_detail"
 )
 
 // NewStorage ...
@@ -319,13 +343,20 @@ func (s *Storage) GetPluginDeploymentInfo(nCtx contextx.IContext, token string) 
 		err  error
 	)
 
-	// record metric.
-	metric := s.metric().Start("get_info")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationGetPluginDeploymentInfo, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetPluginDeploymentInfo)
+		defer metric.End(err)
 
-	info, err = s.getPluginDeploymentInfo(nCtx, token)
+		info, err = s.getPluginDeploymentInfo(nCtx, token)
 
-	return info, err
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
 }
 
 // CreatePluginDeployment plugin deployment.
@@ -334,13 +365,20 @@ func (s *Storage) CreatePluginDeployment(nCtx contextx.IContext, pluginDeploymen
 		err error
 	)
 
-	// record metric.
-	metric := s.metric().Start("createPluginDeployment")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationCreatePluginDeployment, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationCreatePluginDeployment)
+		defer metric.End(err)
 
-	err = s.createPluginDeployment(nCtx, pluginDeployment)
+		err = s.createPluginDeployment(nCtx, pluginDeployment)
 
-	return err
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ListPluginDeployment list plugin deployment.
@@ -378,13 +416,19 @@ func (s *Storage) UpdatePluginDeploymentInfo(nCtx contextx.IContext, token strin
 		err error
 	)
 
-	// record metric.
-	metric := s.metric().Start("update_info")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationUpdatePluginDeploymentInfo, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationUpdatePluginDeploymentInfo)
+		defer metric.End(err)
 
-	err = s.updatePluginDeploymentInfo(nCtx, token, pluginDeploymentInfo)
+		err = s.updatePluginDeploymentInfo(nCtx, token, pluginDeploymentInfo)
 
-	return err
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetPluginDeploymentPluginConf get plugin deployment plugin conf.
@@ -394,13 +438,19 @@ func (s *Storage) GetPluginDeploymentPluginConf(ctx contextx.IContext, token str
 		err        error
 	)
 
-	// record metric.
-	metric := s.metric().Start("get_plugin_deployment_plugin_conf")
-	defer metric.End(err)
+	err = s.WrapFn(ctx, metricOperationGetPluginDeploymentPluginConf, func(ctx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetPluginDeploymentPluginConf)
+		defer metric.End(err)
 
-	pluginConf, err = s.getPluginDeploymentPluginConf(ctx, token)
+		pluginConf, err = s.getPluginDeploymentPluginConf(ctx, token)
 
-	return pluginConf, err
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return pluginConf, nil
 }
 
 // UpdatePluginDeploymentPluginConf set plugin deployment plugin conf.
@@ -409,26 +459,46 @@ func (s *Storage) UpdatePluginDeploymentPluginConf(ctx contextx.IContext, token 
 		err error
 	)
 
-	// record metric.
-	metric := s.metric().Start("update_plugin_deployment_plugin_conf")
-	defer metric.End(err)
+	err = s.WrapFn(ctx, metricOperationUpdatePluginDeploymentPluginConf, func(ctx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationUpdatePluginDeploymentPluginConf)
+		defer metric.End(err)
 
-	err = s.updatePluginDeploymentPluginConf(ctx, token, pluginConf)
+		err = s.updatePluginDeploymentPluginConf(ctx, token, pluginConf)
 
-	return err
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetPluginDeploymentPluginConfConfigFilesDetail get plugin deployment plugin conf config files detail.
 func (s *Storage) GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string) (
-	config []*types.PluginConfigDetail, err error) {
+	[]*types.PluginConfigDetail, error) {
+	var (
+		config []*types.PluginConfigDetail
+		err    error
+	)
 
-	// record metric.
-	metric := s.metric().Start("get_plugin_deployment_plugin_conf_config_files_detail")
-	defer metric.End(err)
+	err = s.WrapFn(ctx, metricOperationGetPluginDeploymentPluginConfConfigFilesDetail, func(ctx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetPluginDeploymentPluginConfConfigFilesDetail)
+		defer metric.End(err)
 
-	config, err = s.getPluginDeploymentPluginConfConfigFilesDetail(ctx, token)
+		config, err = s.getPluginDeploymentPluginConfConfigFilesDetail(ctx, token)
+		if err != nil {
+			return err
+		}
 
-	return config, err
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }
 
 // GetPluginWorkflow get plugin workflow.
@@ -438,13 +508,23 @@ func (s *Storage) GetPluginWorkflow(nCtx contextx.IContext, workflowID string) (
 		err            error
 	)
 
-	// record metric.
-	metric := s.metric().Start("create_plugin_workflow")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationGetPluginWorkflow, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetPluginWorkflow)
+		defer metric.End(err)
 
-	pluginWorkflow, err = s.getPluginWorkflow(nCtx, workflowID)
+		pluginWorkflow, err = s.getPluginWorkflow(nCtx, workflowID)
+		if err != nil {
+			return err
+		}
 
-	return pluginWorkflow, err
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return pluginWorkflow, nil
 }
 
 // GetPluginWorkflowStatus get plugin workflow status.
@@ -479,13 +559,20 @@ func (s *Storage) CreatePluginWorkflow(nCtx contextx.IContext, workflow *types.P
 		err error
 	)
 
-	// record metric.
-	metric := s.metric().Start("create_plugin_workflow")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationCreatePluginWorkflow, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationCreatePluginWorkflow)
+		defer metric.End(err)
 
-	err = s.createPluginWorkflow(nCtx, workflow)
+		err = s.createPluginWorkflow(nCtx, workflow)
 
-	return err
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdatePluginWorkflowStatus update plugin workflow status.
@@ -494,13 +581,20 @@ func (s *Storage) UpdatePluginWorkflowStatus(nCtx contextx.IContext, workflowID 
 		err error
 	)
 
-	// record metric.
-	metric := s.metric().Start("update_plugin_workflow_status")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationUpdatePluginWorkflowStatus, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationUpdatePluginWorkflowStatus)
+		defer metric.End(err)
 
-	err = s.updatePluginWorkflowStatus(nCtx, workflowID, status)
+		err = s.updatePluginWorkflowStatus(nCtx, workflowID, status)
 
-	return err
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // CountPluginWorkflow count plugin workflow.
@@ -568,9 +662,9 @@ func (s *Storage) DistinctPluginWorkflow(
 		err    error
 	)
 
-	err = s.WrapFn(nCtx, "distinct_plugin_workflow", func(nCtx contextx.IContext) error {
+	err = s.WrapFn(nCtx, metricOperationDistinctPluginWorkflow, func(nCtx contextx.IContext) error {
 		// record metric.
-		metric := s.metric().Start("distinct_plugin_workflow")
+		metric := s.metric().Start(metricOperationDistinctPluginWorkflow)
 		defer metric.End(err)
 
 		result, err = s.distinctPluginWorkflow(nCtx, request, conditions...)
@@ -588,81 +682,179 @@ func (s *Storage) DistinctPluginWorkflow(
 }
 
 // GetPlugin get plugin by id.
-func (s *Storage) GetPlugin(nCtx contextx.IContext, pluginName string) (plugin *types.Plugin, err error) {
-	// record metric.
-	metric := s.metric().Start("get_plugin")
-	defer metric.End(err)
+func (s *Storage) GetPlugin(nCtx contextx.IContext, pluginName string) (*types.Plugin, error) {
+	var (
+		plugin *types.Plugin
+		err    error
+	)
 
-	plugin, err = s.getPlugin(nCtx, pluginName)
+	err = s.WrapFn(nCtx, metricOperationGetPlugin, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetPlugin)
+		defer metric.End(err)
 
-	return plugin, err
+		plugin, err = s.getPlugin(nCtx, pluginName)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return plugin, nil
 }
 
 // CountPlugins count plugins.
-func (s *Storage) CountPlugins(nCtx contextx.IContext, conditions ...*types.PluginCondition) (count int64, err error) {
-	// record metric.
-	metric := s.metric().Start("count_plugins")
-	defer metric.End(err)
+func (s *Storage) CountPlugins(nCtx contextx.IContext, conditions ...*types.PluginCondition) (int64, error) {
+	var (
+		count int64
+		err   error
+	)
 
-	count, err = s.countPlugins(nCtx, conditions...)
+	err = s.WrapFn(nCtx, metricOperationCountPlugins, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationCountPlugins)
+		defer metric.End(err)
 
-	return count, err
+		count, err = s.countPlugins(nCtx, conditions...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
 
 // ListPlugins list plugins.
-func (s *Storage) ListPlugins(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) (plugins []*types.Plugin,
-	cnt int64, err error) {
-	// record metric.
-	metric := s.metric().Start("list_plugins")
-	defer metric.End(err)
+func (s *Storage) ListPlugins(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) (
+	[]*types.Plugin, int64, error) {
+	var (
+		plugins []*types.Plugin
+		cnt     int64
+		err     error
+	)
 
-	plugins, cnt, err = s.listPlugins(nCtx, page, conditions...)
+	err = s.WrapFn(nCtx, metricOperationListPlugins, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationListPlugins)
+		defer metric.End(err)
 
-	return plugins, cnt, err
+		plugins, cnt, err = s.listPlugins(nCtx, page, conditions...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return plugins, cnt, nil
 }
 
 // ExistPluginByPluginName check plugin exist by plugin name.
-func (s *Storage) ExistPluginByPluginName(nCtx contextx.IContext, pluginName string) (exist bool, err error) {
-	// record metric.
-	metric := s.metric().Start("exist_plugin_by_plugin_name")
-	defer metric.End(err)
+func (s *Storage) ExistPluginByPluginName(nCtx contextx.IContext, pluginName string) (bool, error) {
+	var (
+		exist bool
+		err   error
+	)
 
-	exist, err = s.existPluginByPluginName(nCtx, pluginName)
+	err = s.WrapFn(nCtx, metricOperationExistPluginByPluginName, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationExistPluginByPluginName)
+		defer metric.End(err)
 
-	return exist, err
+		exist, err = s.existPluginByPluginName(nCtx, pluginName)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return exist, nil
 }
 
 // ExistDefaultPluginByPluginPkgName check default plugin exist by plugin package name.
-func (s *Storage) ExistDefaultPluginByPluginPkgName(nCtx contextx.IContext, pluginPkgName string) (exist bool, err error) {
-	// record metric.
-	metric := s.metric().Start("exist_plugin_by_plugin_pkg_name")
-	defer metric.End(err)
+func (s *Storage) ExistDefaultPluginByPluginPkgName(nCtx contextx.IContext, pluginPkgName string) (bool, error) {
+	var (
+		exist bool
+		err   error
+	)
 
-	exist, err = s.existPluginByPluginPkgName(nCtx, pluginPkgName)
+	err = s.WrapFn(nCtx, metricOperationExistDefaultPluginByPluginPkgName, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationExistDefaultPluginByPluginPkgName)
+		defer metric.End(err)
 
-	return exist, err
+		exist, err = s.existPluginByPluginPkgName(nCtx, pluginPkgName)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return exist, nil
 }
 
 // SetPluginMemo set plugin memo by plugin name.
-func (s *Storage) SetPluginMemo(nCtx contextx.IContext, pluginName string, memo string) (err error) {
-	// record metric.
-	metric := s.metric().Start("set_plugin_memo")
-	defer metric.End(err)
+func (s *Storage) SetPluginMemo(nCtx contextx.IContext, pluginName string, memo string) error {
+	var (
+		err error
+	)
 
-	err = s.setPluginMemo(nCtx, pluginName, memo)
+	err = s.WrapFn(nCtx, metricOperationSetPluginMemo, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationSetPluginMemo)
+		defer metric.End(err)
 
-	return err
+		err = s.setPluginMemo(nCtx, pluginName, memo)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // CreatePlugin create plugin.
-func (s *Storage) CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) (err error) {
-	// record metric.
-	metric := s.metric().Start("create_plugin")
-	defer metric.End(err)
+func (s *Storage) CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) error {
+	var (
+		err error
+	)
 
-	err = s.createPlugin(nCtx, plugin)
+	err = s.WrapFn(nCtx, metricOperationCreatePlugin, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationCreatePlugin)
+		defer metric.End(err)
 
-	return err
+		err = s.createPlugin(nCtx, plugin)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // CountProcesses count processes.
@@ -719,80 +911,165 @@ func (s *Storage) ListProcesses(nCtx contextx.IContext, page types.Page, conditi
 }
 
 // CreateProcess create process.
-func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) (err error) {
-	// record metric.
-	metric := s.metric().Start("create_process")
-	defer metric.End(err)
+func (s *Storage) CreateProcess(nCtx contextx.IContext, process *types.Process) error {
+	var (
+		err error
+	)
 
-	err = s.createProcess(nCtx, process)
+	err = s.WrapFn(nCtx, metricOperationCreateProcess, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationCreateProcess)
+		defer metric.End(err)
 
-	return err
+		err = s.createProcess(nCtx, process)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdateProcess create process.
-func (s *Storage) UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) (err error) {
-	// record metric.
-	metric := s.metric().Start("update_process")
-	defer metric.End(err)
+func (s *Storage) UpdateProcess(nCtx contextx.IContext, hostID int64, pluginName string, process *types.Process) error {
+	var (
+		err error
+	)
 
-	err = s.updateProcess(nCtx, process, hostID, pluginName)
+	err = s.WrapFn(nCtx, metricOperationUpdateProcess, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationUpdateProcess)
+		defer metric.End(err)
 
-	return err
+		err = s.updateProcess(nCtx, process, hostID, pluginName)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdateProcessInfo update process info.
-func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) (err error) {
-	// record metric.
-	metric := s.metric().Start("update_process_info")
-	defer metric.End(err)
+func (s *Storage) UpdateProcessInfo(nCtx contextx.IContext, hostID int64, pluginName string, processInfo *types.ProcessInfo) error {
+	var (
+		err error
+	)
 
-	err = s.updateProcessInfo(nCtx, hostID, pluginName, processInfo)
+	err = s.WrapFn(nCtx, metricOperationUpdateProcessInfo, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationUpdateProcessInfo)
+		defer metric.End(err)
 
-	return err
+		err = s.updateProcessInfo(nCtx, hostID, pluginName, processInfo)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // DeleteProcess delete process.
-func (s *Storage) DeleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) (err error) {
-	// record metric.
-	metric := s.metric().Start("delete_process")
-	defer metric.End(err)
+func (s *Storage) DeleteProcess(nCtx contextx.IContext, hostID int64, pluginName string) error {
+	var (
+		err error
+	)
 
-	err = s.deleteProcess(nCtx, hostID, pluginName)
+	err = s.WrapFn(nCtx, metricOperationDeleteProcess, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationDeleteProcess)
+		defer metric.End(err)
 
-	return err
+		err = s.deleteProcess(nCtx, hostID, pluginName)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ExistProcess exist process id.
-func (s *Storage) ExistProcess(nCtx contextx.IContext, hostID int64, pluginName string) (exist bool, err error) {
-	// record metric.
-	metric := s.metric().Start("exist_process_id")
-	defer metric.End(err)
+func (s *Storage) ExistProcess(nCtx contextx.IContext, hostID int64, pluginName string) (bool, error) {
+	var (
+		exist bool
+		err   error
+	)
 
-	exist, err = s.existProcess(nCtx, hostID, pluginName)
+	err = s.WrapFn(nCtx, metricOperationExistProcess, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationExistProcess)
+		defer metric.End(err)
 
-	return exist, err
+		exist, err = s.existProcess(nCtx, hostID, pluginName)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return exist, nil
 }
 
 // UpdateManyProcessInfo batch update process info by process ID.
-func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) (err error) {
-	// record metric.
-	metric := s.metric().Start("update_many_process_info")
-	defer metric.End(err)
+func (s *Storage) UpdateManyProcessInfo(nCtx contextx.IContext, processInfoDeltas []*types.ProcessInfoDelta) error {
+	var (
+		err error
+	)
 
-	err = s.updateManyProcessInfo(nCtx, processInfoDeltas)
+	err = s.WrapFn(nCtx, metricOperationUpdateManyProcessInfo, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationUpdateManyProcessInfo)
+		defer metric.End(err)
 
-	return err
+		err = s.updateManyProcessInfo(nCtx, processInfoDeltas)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetProcess get process.
-func (s *Storage) GetProcess(nCtx contextx.IContext, hostID int64, pluginName string) (process *types.Process, err error) {
-	// record metric.
-	metric := s.metric().Start("get_process")
-	defer metric.End(err)
+func (s *Storage) GetProcess(nCtx contextx.IContext, hostID int64, pluginName string) (*types.Process, error) {
+	var (
+		process *types.Process
+		err     error
+	)
 
-	process, err = s.getProcess(nCtx, hostID, pluginName)
+	err = s.WrapFn(nCtx, metricOperationGetProcess, func(nCtx contextx.IContext) error {
+		// record metric.
+		metric := s.metric().Start(metricOperationGetProcess)
+		defer metric.End(err)
 
-	return process, err
+		process, err = s.getProcess(nCtx, hostID, pluginName)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return process, nil
 }
 
 // GetProcessDistributionByHostID get process distribution by host id.
