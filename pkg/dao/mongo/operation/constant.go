@@ -23,4 +23,7 @@ const (
 
 	// FieldKeyOperationInstantiated the instantiated field key.
 	FieldKeyOperationInstantiated = "data.instantiated"
+
+	// FieldKeyLatestInstBriefData the latest_inst_brief_data field key.
+	FieldKeyLatestInstBriefData = "data.latest_inst_brief_data"
 )

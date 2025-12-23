@@ -25,13 +25,14 @@ var _ base.IData = &Operation{}
 // Operation represents an operation.
 // OperationID should be the unique key.
 type Operation struct {
-	OperationID  string      `json:"operation_id" bson:"operation_id"`
-	TriggerID    string      `json:"trigger_id" bson:"trigger_id"`
-	OperInstIDs  []string    `json:"oper_inst_ids" bson:"oper_inst_ids"`
-	DefSnapshot  DefSnapshot `json:"def_snapshot" bson:"def_snapshot"`
-	Parameters   Parameters  `json:"parameters" bson:"parameters"`
-	RetryFlags   []RetryFlag `json:"retry_flags" bson:"retry_flags"`
-	Instantiated bool        `json:"instantiated" bson:"instantiated"`
+	OperationID         string         `json:"operation_id" bson:"operation_id"`
+	TriggerID           string         `json:"trigger_id" bson:"trigger_id"`
+	OperInstIDs         []string       `json:"oper_inst_ids" bson:"oper_inst_ids"`
+	DefSnapshot         DefSnapshot    `json:"def_snapshot" bson:"def_snapshot"`
+	Parameters          Parameters     `json:"parameters" bson:"parameters"`
+	RetryFlags          []RetryFlag    `json:"retry_flags" bson:"retry_flags"`
+	Instantiated        bool           `json:"instantiated" bson:"instantiated"`
+	LatestInstBriefData *InstBriefData `json:"latest_inst_brief_data" bson:"latest_inst_brief_data"`
 }
 
 // DefSnapshot represents the snapshot of the operation definition.
@@ -55,6 +56,21 @@ type RetryFlag struct {
 	Mode             string `json:"mode" bson:"mode"`
 	SourceInstanceID string `json:"source_instance_id" bson:"source_instance_id"`
 	RetryInstanceID  string `json:"retry_instance_id" bson:"retry_instance_id"`
+}
+
+// InstBriefData represents the brief data of an operation instance.
+type InstBriefData struct {
+	OperInstID string     `json:"oper_inst_id" bson:"oper_inst_id"`
+	LifeCycle  *LifeCycle `json:"life_cycle" bson:"life_cycle"`
+}
+
+// LifeCycle is the lifecycle of an operation instance.
+type LifeCycle struct {
+	State     string    `json:"state" bson:"state"`
+	CreatedAt time.Time `json:"created_at" bson:"created_at"`
+	StartedAt time.Time `json:"started_at" bson:"started_at"`
+	EndedAt   time.Time `json:"ended_at" bson:"ended_at"`
+	StoppedAt time.Time `json:"stopped_at" bson:"stopped_at"`
 }
 
 // UniqueFields unique fields of the table.

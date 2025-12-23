@@ -40,6 +40,9 @@ type IHandler interface {
 
 	// PullOperInstIDs pull operation instance ids by operation id.
 	PullOperInstIDs(nCtx contextx.IContext, operationID string, operInstIDs ...string) error
+
+	// UpdateLatestInstBriefData updates an operation's latest instance brief data.
+	UpdateLatestInstBriefData(nCtx contextx.IContext, operationID string, briefData *operation.InstanceBriefData) error
 }
 
 type handler struct {
@@ -142,6 +145,31 @@ func (h *handler) PullOperInstIDs(nCtx contextx.IContext, operationID string, op
 	return h.dao.pullField(nCtx, operationID, "oper_inst_ids", operInstIDs)
 }
 
+// UpdateLatestInstBriefData updates an operation's latest instance brief data.
+func (h *handler) UpdateLatestInstBriefData(nCtx contextx.IContext, operationID string, briefData *operation.InstanceBriefData) error {
+	if nCtx == nil {
+		return base.ErrEmptyParamData()
+	}
+
+	if operationID == "" {
+		return base.ErrEmptyParamData()
+	}
+
+	if briefData == nil {
+		return base.ErrEmptyParamData()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithOperationID(operationID)(filter)
+
+	err := h.dao.UpdateField(nCtx, filter, FieldKeyLatestInstBriefData, convertInstBriefDataToDB(briefData))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func convertOperationFromDB(dbOp *Operation) *operation.Operation {
 	if dbOp == nil {
 		return nil
@@ -150,14 +178,16 @@ func convertOperationFromDB(dbOp *Operation) *operation.Operation {
 	defSnapshot := convertDefFromDB(dbOp.DefSnapshot)
 	param := convertParamFromDB(dbOp.Parameters)
 	retryFlags := convertRetryFlagsFromDB(dbOp.RetryFlags)
+	latestInstBriefData := convertInstBriefDataFromDB(dbOp.LatestInstBriefData)
 
 	return &operation.Operation{
-		TriggerID:   dbOp.TriggerID,
-		OperationID: dbOp.OperationID,
-		Definition:  defSnapshot,
-		InstanceIDs: dbOp.OperInstIDs,
-		Param:       param,
-		RetryFlags:  retryFlags,
+		TriggerID:           dbOp.TriggerID,
+		OperationID:         dbOp.OperationID,
+		Definition:          defSnapshot,
+		InstanceIDs:         dbOp.OperInstIDs,
+		Param:               param,
+		RetryFlags:          retryFlags,
+		LatestInstBriefData: latestInstBriefData,
 	}
 }
 
@@ -171,12 +201,13 @@ func convertOperationToDB(oper *operation.Operation) *Operation {
 	}
 
 	operation := &Operation{
-		OperationID: oper.OperationID,
-		TriggerID:   oper.TriggerID,
-		OperInstIDs: oper.InstanceIDs,
-		DefSnapshot: defSnapshot,
-		Parameters:  convertParamToDB(oper.Param),
-		RetryFlags:  convertRetryFlagsToDB(oper.RetryFlags),
+		OperationID:         oper.OperationID,
+		TriggerID:           oper.TriggerID,
+		OperInstIDs:         oper.InstanceIDs,
+		DefSnapshot:         defSnapshot,
+		Parameters:          convertParamToDB(oper.Param),
+		RetryFlags:          convertRetryFlagsToDB(oper.RetryFlags),
+		LatestInstBriefData: convertInstBriefDataToDB(oper.LatestInstBriefData),
 	}
 
 	if len(oper.InstanceIDs) == 0 || (len(oper.RetryFlags) > 0 && oper.RetryFlags[len(oper.RetryFlags)-1].RetryInstanceID == "") {
@@ -247,4 +278,58 @@ func convertRetryFlagsToDB(retryFlags []operation.RetryFlag) []RetryFlag {
 	}
 
 	return flags
+}
+
+// convertInstBriefDataToDB converts operation instance brief data to db format.
+func convertInstBriefDataToDB(briefData *operation.InstanceBriefData) *InstBriefData {
+	if briefData == nil {
+		return nil
+	}
+
+	return &InstBriefData{
+		OperInstID: briefData.Metadata.OperationInstanceID,
+		LifeCycle:  convertLifeCycleToDB(briefData.Lifecycle),
+	}
+}
+
+// convertLifeCycleToDB converts lifecycle to db format.
+func convertLifeCycleToDB(lifecycle *operation.Lifecycle) *LifeCycle {
+	if lifecycle == nil {
+		return nil
+	}
+
+	return &LifeCycle{
+		State:     string(lifecycle.State),
+		CreatedAt: lifecycle.CreatedAt,
+		StartedAt: lifecycle.StartedAt,
+		EndedAt:   lifecycle.EndedAt,
+		StoppedAt: lifecycle.StoppedAt,
+	}
+}
+
+func convertInstBriefDataFromDB(briefData *InstBriefData) *operation.InstanceBriefData {
+	if briefData == nil {
+		return nil
+	}
+
+	return &operation.InstanceBriefData{
+		Metadata: &operation.InstanceMetadata{
+			OperationInstanceID: briefData.OperInstID,
+		},
+		Lifecycle: convertLifeCycleFromDB(briefData.LifeCycle),
+	}
+}
+
+func convertLifeCycleFromDB(lifecycle *LifeCycle) *operation.Lifecycle {
+	if lifecycle == nil {
+		return nil
+	}
+
+	return &operation.Lifecycle{
+		State:     operation.State(lifecycle.State),
+		CreatedAt: lifecycle.CreatedAt,
+		StartedAt: lifecycle.StartedAt,
+		EndedAt:   lifecycle.EndedAt,
+		StoppedAt: lifecycle.StoppedAt,
+	}
 }

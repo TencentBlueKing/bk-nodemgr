@@ -151,3 +151,20 @@ func (s *Storage) existNeedInstantiateOperationByTriggerID(nCtx contextx.IContex
 
 	return s.daoOperation.Exist(nCtx, operation.WithTriggerID(triggerID), operation.WithInstantiated(true))
 }
+
+// updateLatestInstBriefData updates operation's latest instance brief data.
+func (s *Storage) updateLatestInstBriefData(nCtx contextx.IContext, operationID string, briefData *workoper.InstanceBriefData) error {
+	if nCtx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if operationID == "" {
+		return basestorage.ErrEmptyOperationID()
+	}
+
+	if briefData == nil {
+		return basestorage.ErrUpsertNilData()
+	}
+
+	return s.daoOperation.UpdateLatestInstBriefData(nCtx, operationID, briefData)
+}

@@ -45,6 +45,8 @@ type Operation struct {
 	InstanceIDs []string
 	Param       Param
 	RetryFlags  []RetryFlag
+	// the latest instance brief data. currently support lifecycle and instance-id.
+	LatestInstBriefData *InstanceBriefData
 }
 
 // CheckEnforceability checks the enforceability of operation.

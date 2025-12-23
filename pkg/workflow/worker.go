@@ -141,7 +141,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	// handle extra execution before action executed. if retry happens, action maybe not first
 	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
 		operInstBriefData.Lifecycle.End(action.StateFailed)
-		err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle)
+		err = mgr.updateOperationInstanceLifecycleAndLatestBriefData(nCtx, operInstBriefData)
 		if err != nil {
 			return fmt.Errorf("update operation instance lifecycle failed: %w, start execution failed: %w",
 				err, execErr)
@@ -153,7 +153,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	// handle operation instance lifecycle.
 	if !operInstBriefData.Lifecycle.IsRunning() {
 		operInstBriefData.Lifecycle.Start()
-		if err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
+		if err = mgr.updateOperationInstanceLifecycleAndLatestBriefData(nCtx, operInstBriefData); err != nil {
 			return err
 		}
 	}
@@ -211,7 +211,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		defer metric.OperationInstanceProcessed(operInstBriefData)
 
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
-		if err = mgr.updateOperationInstanceLifecycle(nCtx, operationInstanceID, operInstBriefData.Lifecycle); err != nil {
+		if err = mgr.updateOperationInstanceLifecycleAndLatestBriefData(nCtx, operInstBriefData); err != nil {
 			return fmt.Errorf("failed to update operation instance lifecycle. err: %v, execution-error(%v)",
 				err, executeErr)
 		}
@@ -257,15 +257,25 @@ func (mgr *manager) updateActionContent(
 	return nil
 }
 
-func (mgr *manager) updateOperationInstanceLifecycle(
+// updateOperationInstanceLifecycleAndLatestBriefData updates operation instance lifecycle and operation's latest instance brief data.
+func (mgr *manager) updateOperationInstanceLifecycleAndLatestBriefData(
 	ctx contextx.IContext,
-	operationInstanceID string,
-	operInstLifecycle *operation.Lifecycle) error {
+	operInstBriefData *operation.InstanceBriefData) error {
 
+	operationID := operInstBriefData.Metadata.OperationID
+	operationInstanceID := operInstBriefData.Metadata.OperationInstanceID
+	// update operation instance lifecycle.
 	if err := mgr.stgOperationInstance.UpdateOperationInstanceLifecycle(ctx,
-		operationInstanceID, operInstLifecycle); err != nil {
+		operationInstanceID, operInstBriefData.Lifecycle); err != nil {
 		return fmt.Errorf("failed to update operation instance lifecycle. "+
 			"oper-inst-id(%s): %v", operationInstanceID, err)
+	}
+
+	// update operation's latest instance brief data.
+	if err := mgr.stgOperation.UpdateOperationLatestInstBriefData(ctx,
+		operationID, operInstBriefData); err != nil {
+		return fmt.Errorf("failed to update operation latest inst brief data. "+
+			"operation-id(%s): %v", operationID, err)
 	}
 
 	return nil

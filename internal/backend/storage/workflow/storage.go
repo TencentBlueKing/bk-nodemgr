@@ -591,6 +591,26 @@ func (s *Storage) PullOperationInstanceIDsFromOperation(
 	return nil
 }
 
+// UpdateOperationLatestInstBriefData updates operation's latest instance brief data.
+func (s *Storage) UpdateOperationLatestInstBriefData(
+	nCtx contextx.IContext, operationID string, briefData *workoper.InstanceBriefData) error {
+
+	var err error
+
+	// record metric.
+	metric := s.metric().Start("update_operation_latest_inst_brief_data")
+	defer metric.End(err)
+
+	if err = s.updateLatestInstBriefData(nCtx, operationID, briefData); err != nil {
+		logger.G.Sys().WithErr(err).With("operation-id", operationID).Error("failed to update operation latest inst brief data")
+
+		return fmt.Errorf("failed to update operation latest inst brief data, operation-id(%s): %w",
+			operationID, err)
+	}
+
+	return nil
+}
+
 // UpdateOperInstActionStatus update the oper inst action status.
 func (s *Storage) UpdateOperInstActionStatus(
 	nCtx contextx.IContext, operInstID string, actionName string, status action.State) error {

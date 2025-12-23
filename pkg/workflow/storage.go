@@ -74,6 +74,9 @@ type IStorageOperation interface {
 
 	// PullOperationInstanceIDsFromOperation pulls operation instance IDs from operation.
 	PullOperationInstanceIDsFromOperation(ctx contextx.IContext, operationID string, operInstIDs ...string) error
+
+	// UpdateOperationLatestInstBriefData updates operation's latest instance brief data.
+	UpdateOperationLatestInstBriefData(ctx contextx.IContext, operationID string, briefData *operation.InstanceBriefData) error
 }
 
 // IStorageOperationInstance defines the storage handler for operation instance.
