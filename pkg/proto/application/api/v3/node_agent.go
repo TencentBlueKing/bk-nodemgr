@@ -87,6 +87,31 @@ func (x *AgentInstallInfo) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeAgentInstallReq) AutoConvert() {
+	for _, host := range x.GetInfo() {
+		if host == nil {
+			continue
+		}
+
+		if host.BkNetworkunitId == nil {
+			host.BkNetworkunitId = new(int64)
+			*host.BkNetworkunitId = -1
+		}
+
+		if host.BkBizId == nil {
+			host.BkBizId = new(int64)
+			*host.BkBizId = -1
+		}
+
+		if host.LoginPort == nil {
+			host.LoginPort = new(int64)
+			*host.LoginPort = -1
+		}
+
+		if host.BkHostId == nil {
+			host.BkHostId = new(int64)
+			*host.BkHostId = -1
+		}
+	}
 }
 
 // ConvertAgentParamToTypes ...
