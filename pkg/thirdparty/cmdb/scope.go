@@ -505,11 +505,6 @@ func (h *Handler) GetTargetByScopeDynamicGroup(nCtx contextx.IContext, scope *ty
 		if err != nil {
 			return nil, fmt.Errorf("failed to get target by scope dynamic group: %w", err)
 		}
-	case types.TargetGranularityServiceInstance:
-		targets, err = h.getServiceTargetByScopeDynamicGroup(nCtx, scope)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get target by scope dynamic group: %w", err)
-		}
 	default:
 		return nil, fmt.Errorf("failed to get target by scope dynamic group, granularity(%s), not supported", scope.Granularity)
 	}
@@ -524,123 +519,6 @@ func (h *Handler) getHostTargetByScopeDynamicGroup(nCtx contextx.IContext, scope
 	}
 
 	targets := convHostToTarget(hosts)
-
-	return targets, nil
-}
-
-func (h *Handler) getServiceTargetByScopeDynamicGroup(nCtx contextx.IContext, scope *types.ScopeDynamicGroup) ([]*types.Target, error) {
-	executor := pageexecutor.NewPageExecutor[*ServiceInstanceDetailInfo](CCPageSizeLimit, ccQueryTimeout)
-
-	var allServiceInstances []*ServiceInstanceDetailInfo
-	var allHosts []*types.Host
-
-	hosts, err := h.FindHostByDynamicGroup(nCtx, scope.BizID, scope.DynamicGroupIDs, types.UnlimitedPage())
-	if err != nil {
-		return nil, fmt.Errorf("failed to find hosts by dynamic group: %w", err)
-	}
-
-	if len(hosts) > 0 {
-		// Query service instances by host IDs
-		hostIDs := conv.SliceUnique(conv.SliceToSlice(hosts, func(host *types.Host) int64 {
-			return host.HostID
-		}))
-
-		detailFn := h.buildListServiceInstanceDetailByHostFn(scope.BizID, hostIDs)
-		detailResult, err := executor.Execute(nCtx, types.UnlimitedPage(), detailFn)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list service instance detail by host IDs: %w", err)
-		}
-		allServiceInstances = append(allServiceInstances, detailResult.Items...)
-		allHosts = append(allHosts, hosts...)
-	}
-
-	sets, err := h.FindSetByDynamicGroup(nCtx, scope.BizID, scope.DynamicGroupIDs, types.UnlimitedPage())
-	if err != nil {
-		return nil, fmt.Errorf("failed to find sets by dynamic group: %w", err)
-	}
-
-	if len(sets) > 0 {
-		// Convert set IDs to module nodes
-		setIDs := conv.SliceUnique(conv.SliceToSlice(sets, func(set *SetInfo) int64 {
-			return set.BKSetID
-		}))
-
-		// Query modules for these sets, then query service instances by module IDs
-		moduleIDs, err := h.getModuleIDsBySetIDs(nCtx, scope.BizID, setIDs)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get module IDs by set IDs: %w", err)
-		}
-
-		if len(moduleIDs) > 0 {
-			// Query service instances by module IDs
-			for _, moduleID := range moduleIDs {
-				detailFn := h.buildListServiceInstanceDetailByModuleIDFn(scope.BizID, moduleID)
-				result, err := executor.Execute(nCtx, types.UnlimitedPage(), detailFn)
-				if err != nil {
-					return nil, fmt.Errorf("failed to query service instances by module ID %d: %w", moduleID, err)
-				}
-				allServiceInstances = append(allServiceInstances, result.Items...)
-			}
-		}
-	}
-
-	if len(allServiceInstances) == 0 {
-		return []*types.Target{}, nil
-	}
-
-	serviceInstanceMap := make(map[int64]*ServiceInstanceDetailInfo, len(allServiceInstances))
-	for _, inst := range allServiceInstances {
-		if _, exists := serviceInstanceMap[inst.ID]; !exists {
-			serviceInstanceMap[inst.ID] = inst
-		}
-	}
-	uniqueServiceInstances := make([]*ServiceInstanceDetailInfo, 0, len(serviceInstanceMap))
-	for _, inst := range serviceInstanceMap {
-		uniqueServiceInstances = append(uniqueServiceInstances, inst)
-	}
-
-	// Step 4: Get hosts for all service instances
-	hostIDs := conv.SliceUnique(conv.SliceToSlice(uniqueServiceInstances, func(inst *ServiceInstanceDetailInfo) int64 {
-		return inst.BKHostID
-	}))
-
-	// Build host map from existing hosts (from host dynamic group) if available
-	hostMap := make(map[int64]*types.Host, len(hostIDs))
-	for _, host := range allHosts {
-		hostMap[host.HostID] = host
-	}
-
-	// Query missing hosts
-	missingHostIDs := make([]int64, 0)
-	for _, hostID := range hostIDs {
-		if _, exists := hostMap[hostID]; !exists {
-			missingHostIDs = append(missingHostIDs, hostID)
-		}
-	}
-
-	if len(missingHostIDs) > 0 {
-		hostCond := &types.HostStaticExactCondition{
-			StaticExactInclude: &types.HostStaticExactFields{
-				HostID: missingHostIDs,
-			},
-		}
-		queriedHosts, err := h.FindHostWithCondition(nCtx, types.UnlimitedPage(), hostCond)
-		if err != nil {
-			return nil, fmt.Errorf("failed to find hosts: %w", err)
-		}
-		for _, host := range queriedHosts {
-			hostMap[host.HostID] = host
-		}
-	}
-
-	uniqueHosts := conv.SliceToSlice(hostIDs, func(hostID int64) *types.Host {
-		return hostMap[hostID]
-	})
-
-	targets, err := convServiceInstanceDetailToTarget(uniqueServiceInstances, uniqueHosts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert service instance detail to target: %w", err)
-	}
 
 	return targets, nil
 }
