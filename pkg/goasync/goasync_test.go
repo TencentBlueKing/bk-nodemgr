@@ -24,8 +24,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// setupTestTracer creates a test tracer with stdout exporter
-func setupTestTracer(t *testing.T) trace.Tracer {
+// setupTestTracer creates a test tracer with stdout exporter and returns tracer provider
+func setupTestTracer(t *testing.T) trace.TracerProvider {
 	ctx := context.Background()
 	nCtx := contextx.New(ctx)
 
@@ -40,7 +40,23 @@ func setupTestTracer(t *testing.T) trace.Tracer {
 	})
 	assert.NoError(t, err)
 
-	return service.TracerProvider().Tracer("test")
+	return service.TracerProvider()
+}
+
+// setupTestContext creates a context with a valid span for testing
+// Note: The span will be ended when the context is garbage collected or the test completes
+func setupTestContext(t *testing.T, tracerProvider trace.TracerProvider) contextx.IContext {
+	ctx := context.Background()
+
+	// Create a root span in the context
+	// The span will remain valid for the duration of the test
+	tracer := tracerProvider.Tracer("test")
+	spanCtx, _ := tracer.Start(ctx, "test-root-span")
+
+	// Create contextx with the span context
+	nCtx := contextx.New(spanCtx, contextx.WithTenantID("test-tenant"))
+
+	return nCtx
 }
 
 // TestNewHandler tests creating a new handler
@@ -50,7 +66,6 @@ func TestNewHandler(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           5,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	}
 
 	handler, err := NewHandler(option)
@@ -70,9 +85,8 @@ func TestHandlerOption_Validate(t *testing.T) {
 			name: "valid options",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					PoolNum:        10,
-					PerPoolSize:    5,
-					TracerProvider: setupTestTracer(t),
+					PoolNum:     10,
+					PerPoolSize: 5,
 				}
 			},
 			wantErr: false,
@@ -81,9 +95,8 @@ func TestHandlerOption_Validate(t *testing.T) {
 			name: "invalid size",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					PoolNum:        0,
-					PerPoolSize:    5,
-					TracerProvider: setupTestTracer(t),
+					PoolNum:     0,
+					PerPoolSize: 5,
 				}
 			},
 			wantErr: true,
@@ -92,20 +105,8 @@ func TestHandlerOption_Validate(t *testing.T) {
 			name: "invalid size per pool",
 			setupOption: func(t *testing.T) HandlerOption {
 				return HandlerOption{
-					PoolNum:        10,
-					PerPoolSize:    0,
-					TracerProvider: setupTestTracer(t),
-				}
-			},
-			wantErr: true,
-		},
-		{
-			name: "nil tracer",
-			setupOption: func(t *testing.T) HandlerOption {
-				return HandlerOption{
-					PoolNum:        10,
-					PerPoolSize:    5,
-					TracerProvider: nil,
+					PoolNum:     10,
+					PerPoolSize: 0,
 				}
 			},
 			wantErr: true,
@@ -131,7 +132,6 @@ func TestHandler_Run_Basic(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -171,7 +171,6 @@ func TestHandler_Run_Concurrent(t *testing.T) {
 		PoolNum:               50,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -203,7 +202,6 @@ func TestHandler_Run_PoolCapacity(t *testing.T) {
 		PoolNum:               2,
 		PerPoolSize:           2,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	}
 
 	handler, err := NewHandler(option)
@@ -254,7 +252,6 @@ func TestHandler_Run_WithError(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -291,7 +288,6 @@ func TestHandler_Run_Panic(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -328,7 +324,6 @@ func TestHandler_Run_MixedErrors(t *testing.T) {
 		PoolNum:               20,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -367,18 +362,21 @@ func TestHandler_Run_MixedErrors(t *testing.T) {
 
 // TestHandler_TracingIntegration tests tracing integration
 func TestHandler_TracingIntegration(t *testing.T) {
+	// Setup test tracer provider
+	tracerProvider := setupTestTracer(t)
+
 	handler, err := NewHandler(HandlerOption{
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
-	ctx := context.Background()
-	nCtx := contextx.New(ctx, contextx.WithTenantID("tracing-test"))
+	// Create context with a valid span
+	nCtx := setupTestContext(t, tracerProvider)
 
 	var executed bool
+	var spanValid bool
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -387,29 +385,35 @@ func TestHandler_TracingIntegration(t *testing.T) {
 		executed = true
 		// Task should execute within a tracing span
 		assert.NotNil(t, nCtx)
+
+		span := trace.SpanFromContext(nCtx)
+		if span.SpanContext().IsValid() {
+			spanValid = true
+		}
+
 		return nil
 	})
 	assert.NoError(t, err)
 
 	wg.Wait()
 	assert.True(t, executed)
+	assert.True(t, spanValid, "span should be valid in async task")
 }
 
 // TestHandler_TracingContext tests that tracing context is properly propagated
 func TestHandler_TracingContext(t *testing.T) {
-	// Create a custom tracer to verify span creation
-	tracer := setupTestTracer(t)
+	// Setup test tracer provider
+	tracerProvider := setupTestTracer(t)
 
 	handler, err := NewHandler(HandlerOption{
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        tracer,
 	})
 	assert.NoError(t, err)
 
-	ctx := context.Background()
-	nCtx := contextx.New(ctx, contextx.WithTenantID("context-test"))
+	// Create context with a valid span
+	nCtx := setupTestContext(t, tracerProvider)
 
 	var spanCreated bool
 	var wg sync.WaitGroup
@@ -428,11 +432,14 @@ func TestHandler_TracingContext(t *testing.T) {
 	assert.NoError(t, err)
 
 	wg.Wait()
-	assert.True(t, spanCreated)
+	assert.True(t, spanCreated, "span should be created and valid")
 }
 
 // TestHandler_TracingWithDifferentLoadBalancing tests tracing with different load balancing strategies
 func TestHandler_TracingWithDifferentLoadBalancing(t *testing.T) {
+	// Setup test tracer provider
+	tracerProvider := setupTestTracer(t)
+
 	strategies := []LoadBalancingStrategy{
 		LoadBalancingStrategyRoundRobin,
 		LoadBalancingStrategyLeastFirst,
@@ -444,20 +451,27 @@ func TestHandler_TracingWithDifferentLoadBalancing(t *testing.T) {
 				PoolNum:               5,
 				PerPoolSize:           5,
 				LoadBalancingStrategy: strategy,
-				TracerProvider:        setupTestTracer(t),
 			})
 			assert.NoError(t, err)
 
-			ctx := context.Background()
-			nCtx := contextx.New(ctx, contextx.WithTenantID("lb-test"))
+			// Create context with a valid span
+			nCtx := setupTestContext(t, tracerProvider)
 
 			var wg sync.WaitGroup
+			var spanValidCount int64
 			const taskCount = 5
 
 			for i := 0; i < taskCount; i++ {
 				wg.Add(1)
 				err := handler.Run(nCtx, func(nCtx contextx.IContext) error {
 					defer wg.Done()
+
+					// Verify tracing is working
+					span := trace.SpanFromContext(nCtx)
+					if span.SpanContext().IsValid() {
+						atomic.AddInt64(&spanValidCount, 1)
+					}
+
 					time.Sleep(10 * time.Millisecond)
 					return nil
 				})
@@ -465,6 +479,8 @@ func TestHandler_TracingWithDifferentLoadBalancing(t *testing.T) {
 			}
 
 			wg.Wait()
+			// All tasks should have valid spans
+			assert.Equal(t, int64(taskCount), atomic.LoadInt64(&spanValidCount))
 		})
 	}
 }
@@ -475,7 +491,6 @@ func TestHandler_Run_WithNilContext(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -503,7 +518,6 @@ func TestHandler_Run_WithCancelledContext(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -533,21 +547,62 @@ func TestHandler_Run_WithNilFunction(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
 	ctx := context.Background()
 	nCtx := contextx.New(ctx, contextx.WithTenantID("nil-fn-test"))
 
-	// This should panic when the ants pool tries to execute the nil function
-	// but the Run method itself should accept the task without error
-	assert.NotPanics(t, func() {
-		err := handler.Run(nCtx, nil)
-		assert.NoError(t, err)
-		// Wait a bit for the panic to be handled by the ants pool
-		time.Sleep(100 * time.Millisecond)
+	// Handler should accept nil function without error
+	// The nil check is handled inside the task execution function
+	err = handler.Run(nCtx, nil)
+	assert.NoError(t, err)
+
+	// Wait for task to complete and nil check to be logged
+	time.Sleep(100 * time.Millisecond)
+
+	// Handler should still be able to accept new tasks
+	var executed bool
+	var wg sync.WaitGroup
+	wg.Add(1)
+	err = handler.Run(nCtx, func(nCtx contextx.IContext) error {
+		defer wg.Done()
+		executed = true
+		return nil
 	})
+	assert.NoError(t, err)
+
+	wg.Wait()
+	assert.True(t, executed)
+}
+
+// TestHandler_Run_WithName tests behavior with name option
+func TestHandler_Run_WithName(t *testing.T) {
+	handler, err := NewHandler(HandlerOption{
+		PoolNum:               10,
+		PerPoolSize:           10,
+		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
+	})
+	assert.NoError(t, err)
+
+	ctx := context.Background()
+	nCtx := contextx.New(ctx, contextx.WithTenantID("name-test"))
+
+	var executed bool
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	taskName := "test-task-name"
+	err = handler.Run(nCtx, func(nCtx contextx.IContext) error {
+		defer wg.Done()
+		executed = true
+		return nil
+	}, WithName(taskName))
+	assert.NoError(t, err)
+
+	wg.Wait()
+	assert.True(t, executed)
+	// The task name is used internally for tracing span naming
 }
 
 // TestHandler_Run_WithTimeoutContext tests behavior with timeout context
@@ -556,7 +611,6 @@ func TestHandler_Run_WithTimeoutContext(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -595,7 +649,6 @@ func TestHandler_NewHandlerEdgeCases(t *testing.T) {
 					PoolNum:               1,
 					PerPoolSize:           1,
 					LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-					TracerProvider:        setupTestTracer(t),
 				}
 			},
 			wantErr: false,
@@ -607,7 +660,6 @@ func TestHandler_NewHandlerEdgeCases(t *testing.T) {
 					PoolNum:               10000,
 					PerPoolSize:           1000,
 					LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-					TracerProvider:        setupTestTracer(t),
 				}
 			},
 			wantErr: false,
@@ -619,7 +671,6 @@ func TestHandler_NewHandlerEdgeCases(t *testing.T) {
 					PoolNum:               10,
 					PerPoolSize:           3, // 10 % 3 != 0
 					LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-					TracerProvider:        setupTestTracer(t),
 				}
 			},
 			wantErr: false, // ants should handle this
@@ -645,7 +696,6 @@ func TestHandler_ResourceCleanup(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           5,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -689,7 +739,6 @@ func TestHandler_MemoryUsage(t *testing.T) {
 		PoolNum:               50,
 		PerPoolSize:           10,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -724,7 +773,6 @@ func TestHandler_PoolReuse(t *testing.T) {
 		PoolNum:               10,
 		PerPoolSize:           5,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -771,7 +819,6 @@ func TestHandler_ConcurrentHandlers(t *testing.T) {
 			PoolNum:               10,
 			PerPoolSize:           5,
 			LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-			TracerProvider:        setupTestTracer(t),
 		})
 		assert.NoError(t, err)
 		handlers[i] = handler
@@ -806,7 +853,6 @@ func TestHandler_BenchmarkTaskSubmission(t *testing.T) {
 		PoolNum:               100,
 		PerPoolSize:           20,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -843,7 +889,6 @@ func TestHandler_BenchmarkTaskExecution(t *testing.T) {
 		PoolNum:               100,
 		PerPoolSize:           20,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -883,7 +928,6 @@ func TestHandler_BenchmarkVsGoroutines(t *testing.T) {
 		PoolNum:               100,
 		PerPoolSize:           20,
 		LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-		TracerProvider:        setupTestTracer(t),
 	})
 	assert.NoError(t, err)
 
@@ -960,7 +1004,6 @@ func TestHandler_ScalabilityTest(t *testing.T) {
 				PoolNum:               testSize.size,
 				PerPoolSize:           testSize.sizePerPool,
 				LoadBalancingStrategy: LoadBalancingStrategyRoundRobin,
-				TracerProvider:        setupTestTracer(t),
 			})
 			assert.NoError(t, err)
 
