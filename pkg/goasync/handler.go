@@ -11,7 +11,9 @@
 package goasync
 
 import (
+	"bytes"
 	"fmt"
+	"runtime/debug"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -25,8 +27,7 @@ var _ IHandler = &Handler{}
 type Handler struct {
 	_ struct{}
 
-	pool   *ants.MultiPoolWithFuncGeneric[*Task]
-	tracer trace.Tracer
+	pool *ants.MultiPoolWithFuncGeneric[*Task]
 }
 
 // LoadBalancingStrategy defines the strategy of goroutine pool.
@@ -47,7 +48,6 @@ type HandlerOption struct {
 	// the size of each goroutine pool.
 	PerPoolSize           int
 	LoadBalancingStrategy LoadBalancingStrategy
-	TracerProvider        trace.TracerProvider
 }
 
 // Validate validates the handler option.
@@ -60,23 +60,21 @@ func (opt *HandlerOption) Validate() error {
 		return fmt.Errorf("sizePerPool should be greater than 0")
 	}
 
-	if opt.TracerProvider == nil {
-		return fmt.Errorf("tracer should not be nil")
-	}
-
 	return nil
 }
 
 const (
-	scopeName = "goasync"
-	spanName  = "goasync"
+	scopeNamePrefix = "goasync_"
+	spanName        = "goasync"
 )
 
 // NewHandler returns a new handler.
 func NewHandler(option HandlerOption) (*Handler, error) {
-	h := &Handler{
-		tracer: option.TracerProvider.Tracer(scopeName),
+	if err := option.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid handler option: %w", err)
 	}
+
+	h := &Handler{}
 
 	var loadBalancingStrategy ants.LoadBalancingStrategy
 	switch option.LoadBalancingStrategy {
@@ -89,12 +87,37 @@ func NewHandler(option HandlerOption) (*Handler, error) {
 	}
 
 	pool, err := ants.NewMultiPoolWithFuncGeneric[*Task](option.PoolNum, option.PerPoolSize, func(task *Task) {
-		spanCtx, span := h.tracer.Start(task.nCtx, fmt.Sprintf("%s %s", spanName, task.name),
+		defer func() {
+			if r := recover(); r != nil {
+				stack := debug.Stack()
+
+				// The first line of the stack trace is of the form "goroutine N [status]:",
+				// but by the time the panic reaches here the goroutine may no longer exist,
+				// and its status will have changed. Trim out the misleading line.
+				if line := bytes.IndexByte(stack[:], '\n'); line >= 0 {
+					stack = stack[line+1:]
+				}
+
+				logger.G.Biz(task.nCtx).
+					With("recover", r, "stack", string(stack)).
+					Error("goasync task execution panic")
+			}
+		}()
+
+		parentSpan := trace.SpanFromContext(task.nCtx)
+		tracer := parentSpan.TracerProvider().Tracer(fmt.Sprintf("%s%s", scopeNamePrefix, task.name))
+
+		spanCtx, span := tracer.Start(task.nCtx, fmt.Sprintf("%s %s", spanName, task.name),
 			trace.WithSpanKind(trace.SpanKindInternal),
 		)
 		defer span.End()
 
 		nCtx := contextx.FromContext(spanCtx)
+
+		if task.runFn == nil {
+			logger.G.Biz(nCtx).Error("goasync task run function is nil")
+			return
+		}
 
 		if err := task.runFn(nCtx); err != nil {
 			logger.G.Biz(nCtx).WithErr(err).Error("failed to run async function")

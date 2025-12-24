@@ -83,7 +83,6 @@ func newTriggerHandler(mgr *manager, globalLocker locker.MutexFactory) (*trigger
 		PoolNum:               triggerHandlerGoAsyncPoolNum,
 		PerPoolSize:           triggerHandlerGoAsyncPoolPerPoolSize,
 		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
-		TracerProvider:        trigHandler.tracerProvider,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create goasync handler: %w", err)
