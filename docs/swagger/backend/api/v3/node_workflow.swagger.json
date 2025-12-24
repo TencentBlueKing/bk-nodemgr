@@ -152,15 +152,15 @@
         ]
       }
     },
-    "/api/v3/node/workflow/operation/instance/status/list": {
+    "/api/v3/node/workflow/operation/instance/status_distribution/list": {
       "post": {
-        "summary": "NodeWorkflowOperationInstanceStatusList provides node workflow operation\nlist status.",
-        "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceStatusList",
+        "summary": "NodeWorkflowOperationInstanceStatusDistribution provides latest operation\ninstance status distribution.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationInstanceStatusDistributionList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusResp"
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceStatusDistributionListResp"
             }
           },
           "default": {
@@ -173,11 +173,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "NodeWorkflowOperationInstanceListStatusReq ...",
+            "description": "NodeWorkflowOperationInstanceStatusDistributionListReq\ndescribes the node workflow latest operation instance status distribution\nrequest.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusReq"
+              "$ref": "#/definitions/v3NodeWorkflowOperationInstanceStatusDistributionListReq"
             }
           }
         ],
@@ -329,6 +329,18 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "NodeWorkflowOperationInstanceStatusDistributionListRespStatusDistribution": {
+      "type": "object",
+      "properties": {
+        "state_counts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     },
@@ -638,22 +650,6 @@
       },
       "description": "NodeWorkflowInfo describes the node workflow information."
     },
-    "v3NodeWorkflowInstanceStatusExactConditions": {
-      "type": "object",
-      "properties": {
-        "trigger_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "NodeWorkflowInstanceStatusExactConditions describes the exact conditions of\nnode workflow list request."
-    },
-    "v3NodeWorkflowInstanceStatusFuzzyConditions": {
-      "type": "object",
-      "description": "NodeWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\nnode workflow list request."
-    },
     "v3NodeWorkflowListReq": {
       "type": "object",
       "properties": {
@@ -873,55 +869,6 @@
         }
       }
     },
-    "v3NodeWorkflowOperationInstanceListStatusReq": {
-      "type": "object",
-      "properties": {
-        "page": {
-          "$ref": "#/definitions/v3Page"
-        },
-        "exact_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowInstanceStatusExactConditions"
-        },
-        "fuzzy_include_conditions": {
-          "$ref": "#/definitions/v3NodeWorkflowInstanceStatusFuzzyConditions"
-        }
-      },
-      "description": "NodeWorkflowOperationInstanceListStatusReq ..."
-    },
-    "v3NodeWorkflowOperationInstanceListStatusResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "data": {
-          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceListStatusRespData"
-        }
-      },
-      "description": "NodeWorkflowOperationInstanceListStatusResp ..."
-    },
-    "v3NodeWorkflowOperationInstanceListStatusRespData": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3WorkflowOperationInstanceStatus"
-          }
-        }
-      }
-    },
     "v3NodeWorkflowOperationInstanceLogGetReq": {
       "type": "object",
       "properties": {
@@ -960,6 +907,51 @@
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/v3WorkflowActionData"
+          }
+        }
+      }
+    },
+    "v3NodeWorkflowOperationInstanceStatusDistributionListReq": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "NodeWorkflowOperationInstanceStatusDistributionListReq\ndescribes the node workflow latest operation instance status distribution\nrequest."
+    },
+    "v3NodeWorkflowOperationInstanceStatusDistributionListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationInstanceStatusDistributionListRespData"
+        }
+      },
+      "description": "NodeWorkflowOperationInstanceStatusDistributionListResp describes\nthe node workflow latest operation instance status distribution response."
+    },
+    "v3NodeWorkflowOperationInstanceStatusDistributionListRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/NodeWorkflowOperationInstanceStatusDistributionListRespStatusDistribution"
           }
         }
       }
@@ -1262,28 +1254,6 @@
         }
       },
       "description": "WorkflowLifeCycle describes the workflow life cycle."
-    },
-    "v3WorkflowOperationInstanceStatus": {
-      "type": "object",
-      "properties": {
-        "index": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "operation_id": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "trigger_id": {
-          "type": "string"
-        },
-        "operation_instance_id": {
-          "type": "string"
-        }
-      },
-      "description": "WorkflowOperationInstanceStatus describes the workflow operation instance\nstatus."
     }
   }
 }

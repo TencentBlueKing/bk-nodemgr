@@ -174,36 +174,6 @@ message PluginWorkflowOperationInstanceLogGetResp {
   Data data = 5;
 }
 
-// PluginWorkflowInstanceStatusExactConditions describes the exact conditions of
-// plugin workflow list request.
-message PluginWorkflowInstanceStatusExactConditions {
-  repeated string trigger_id = 1;
-}
-
-// PluginWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of
-// plugin workflow list request.
-message PluginWorkflowInstanceStatusFuzzyConditions {}
-
-// PluginWorkflowOperationInstanceListStatusReq describes the plugin workflow
-// operation list status request.
-message PluginWorkflowOperationInstanceListStatusReq {
-  Page page = 1;
-  PluginWorkflowInstanceStatusExactConditions exact_include_conditions = 3;
-  PluginWorkflowInstanceStatusFuzzyConditions fuzzy_include_conditions = 4;
-}
-
-// PluginWorkflowOperationInstanceListStatusResp describes the plugin workflow
-// operation list status response.
-message PluginWorkflowOperationInstanceListStatusResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data { repeated WorkflowOperationInstanceStatus items = 1; }
-  Data data = 5;
-}
-
 // PluginWorkflowOperationRetryReq describes the plugin operation retry.
 message PluginWorkflowOperationRetryReq {
   string workflow_id = 1;
@@ -237,6 +207,25 @@ message PluginWorkflowOperationTerminateResp {
   Error error = 4;
 
   message Data {}
+  Data data = 5;
+}
+
+// PluginWorkflowOperationInstanceStatusDistributionListReq
+// describes the plugin workflow latest operation instance status distribution
+// request.
+message PluginWorkflowOperationInstanceStatusDistributionListReq {
+  repeated string trigger_id = 1;
+}
+
+// PluginWorkflowOperationInstanceStatusDistributionListResp describes
+// the plugin workflow latest operation instance status distribution response.
+message PluginWorkflowOperationInstanceStatusDistributionListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  message StatusDistribution { map<string, int64> state_counts = 1; }
+  message Data { map<string, StatusDistribution> items = 1; }
   Data data = 5;
 }
 
@@ -290,17 +279,6 @@ service PluginWorkflow {
     };
   }
 
-  // PluginWorkflowOperationInstanceStatusList provides plugin workflow
-  // operation list status.
-  rpc PluginWorkflowOperationInstanceStatusList(
-      PluginWorkflowOperationInstanceListStatusReq)
-      returns (PluginWorkflowOperationInstanceListStatusResp) {
-    option (google.api.http) = {
-      post : "/api/v3/plugin/workflow/operation/instance/status/list"
-      body : "*"
-    };
-  }
-
   // PluginWorkflowOperationRetry provides plugin operation retry.
   rpc PluginWorkflowOperationRetry(PluginWorkflowOperationRetryReq)
       returns (PluginWorkflowOperationRetryResp) {
@@ -315,6 +293,18 @@ service PluginWorkflow {
       returns (PluginWorkflowOperationTerminateResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/workflow/operation/terminate"
+      body : "*"
+    };
+  }
+
+  // PluginWorkflowOperationInstanceStatusDistribution provides latest operation
+  // instance status distribution.
+  rpc PluginWorkflowOperationInstanceStatusDistributionList(
+      PluginWorkflowOperationInstanceStatusDistributionListReq)
+      returns (PluginWorkflowOperationInstanceStatusDistributionListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/operation/instance/status_distribution/"
+             "list"
       body : "*"
     };
   }

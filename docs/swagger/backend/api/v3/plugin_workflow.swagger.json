@@ -152,15 +152,15 @@
         ]
       }
     },
-    "/api/v3/plugin/workflow/operation/instance/status/list": {
+    "/api/v3/plugin/workflow/operation/instance/status_distribution/list": {
       "post": {
-        "summary": "PluginWorkflowOperationInstanceStatusList provides plugin workflow\noperation list status.",
-        "operationId": "PluginWorkflow_PluginWorkflowOperationInstanceStatusList",
+        "summary": "PluginWorkflowOperationInstanceStatusDistribution provides latest operation\ninstance status distribution.",
+        "operationId": "PluginWorkflow_PluginWorkflowOperationInstanceStatusDistributionList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceListStatusResp"
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceStatusDistributionListResp"
             }
           },
           "default": {
@@ -173,11 +173,11 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PluginWorkflowOperationInstanceListStatusReq describes the plugin workflow\noperation list status request.",
+            "description": "PluginWorkflowOperationInstanceStatusDistributionListReq\ndescribes the plugin workflow latest operation instance status distribution\nrequest.",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceListStatusReq"
+              "$ref": "#/definitions/v3PluginWorkflowOperationInstanceStatusDistributionListReq"
             }
           }
         ],
@@ -298,6 +298,18 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "PluginWorkflowOperationInstanceStatusDistributionListRespStatusDistribution": {
+      "type": "object",
+      "properties": {
+        "state_counts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
         }
       }
     },
@@ -520,22 +532,6 @@
       },
       "description": "PluginWorkflowInfo describes the plugin workflow information."
     },
-    "v3PluginWorkflowInstanceStatusExactConditions": {
-      "type": "object",
-      "properties": {
-        "trigger_id": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "PluginWorkflowInstanceStatusExactConditions describes the exact conditions of\nplugin workflow list request."
-    },
-    "v3PluginWorkflowInstanceStatusFuzzyConditions": {
-      "type": "object",
-      "description": "PluginWorkflowInstanceStatusFuzzyConditions describes the fuzzy conditions of\nplugin workflow list request."
-    },
     "v3PluginWorkflowListReq": {
       "type": "object",
       "properties": {
@@ -741,55 +737,6 @@
         }
       }
     },
-    "v3PluginWorkflowOperationInstanceListStatusReq": {
-      "type": "object",
-      "properties": {
-        "page": {
-          "$ref": "#/definitions/v3Page"
-        },
-        "exact_include_conditions": {
-          "$ref": "#/definitions/v3PluginWorkflowInstanceStatusExactConditions"
-        },
-        "fuzzy_include_conditions": {
-          "$ref": "#/definitions/v3PluginWorkflowInstanceStatusFuzzyConditions"
-        }
-      },
-      "description": "PluginWorkflowOperationInstanceListStatusReq describes the plugin workflow\noperation list status request."
-    },
-    "v3PluginWorkflowOperationInstanceListStatusResp": {
-      "type": "object",
-      "properties": {
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "request_id": {
-          "type": "string"
-        },
-        "error": {
-          "$ref": "#/definitions/v3Error"
-        },
-        "data": {
-          "$ref": "#/definitions/v3PluginWorkflowOperationInstanceListStatusRespData"
-        }
-      },
-      "description": "PluginWorkflowOperationInstanceListStatusResp describes the plugin workflow\noperation list status response."
-    },
-    "v3PluginWorkflowOperationInstanceListStatusRespData": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3WorkflowOperationInstanceStatus"
-          }
-        }
-      }
-    },
     "v3PluginWorkflowOperationInstanceLogGetReq": {
       "type": "object",
       "properties": {
@@ -832,6 +779,51 @@
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/v3WorkflowActionData"
+          }
+        }
+      }
+    },
+    "v3PluginWorkflowOperationInstanceStatusDistributionListReq": {
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "PluginWorkflowOperationInstanceStatusDistributionListReq\ndescribes the plugin workflow latest operation instance status distribution\nrequest."
+    },
+    "v3PluginWorkflowOperationInstanceStatusDistributionListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginWorkflowOperationInstanceStatusDistributionListRespData"
+        }
+      },
+      "description": "PluginWorkflowOperationInstanceStatusDistributionListResp describes\nthe plugin workflow latest operation instance status distribution response."
+    },
+    "v3PluginWorkflowOperationInstanceStatusDistributionListRespData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PluginWorkflowOperationInstanceStatusDistributionListRespStatusDistribution"
           }
         }
       }
@@ -1086,28 +1078,6 @@
         }
       },
       "description": "WorkflowLifeCycle describes the workflow life cycle."
-    },
-    "v3WorkflowOperationInstanceStatus": {
-      "type": "object",
-      "properties": {
-        "index": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "operation_id": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "trigger_id": {
-          "type": "string"
-        },
-        "operation_instance_id": {
-          "type": "string"
-        }
-      },
-      "description": "WorkflowOperationInstanceStatus describes the workflow operation instance\nstatus."
     }
   }
 }
