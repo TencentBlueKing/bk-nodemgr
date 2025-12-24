@@ -2991,7 +2991,8 @@ func (c *cli) getPluginWorkflowOperationInstanceLog(ctx contextx.IContext, req *
 	return resp, nil
 }
 
-func (c *cli) listPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationInstanceStatusDistributionListReq) (
+func (c *cli) listPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext,
+	req *protoBackend.PluginWorkflowOperationInstanceStatusDistributionListReq) (
 	*protoBackend.PluginWorkflowOperationInstanceStatusDistributionListResp, error) {
 
 	resp := new(protoBackend.PluginWorkflowOperationInstanceStatusDistributionListResp)

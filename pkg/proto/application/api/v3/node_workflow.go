@@ -150,29 +150,6 @@ func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromTypes(result []*Nod
 	}
 }
 
-// ConvertNodeWorkflowsFromResult convert node workflows from result map.
-func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromResult(result map[string]*NodeWorkflowStatistics) {
-	items := make([]*WorkflowStatisticsInfo, 0, len(result))
-
-	for _, item := range result {
-		info := newEmptyNodeWorkflowOperationStatus()
-		*info.WorkflowId = item.WorkflowID
-		*info.TotalCount = int64(item.TotalCount)
-		*info.InitCount = int64(item.InitCount)
-		*info.LaunchedCount = int64(item.LaunchedCount)
-		*info.RunningCount = int64(item.RunningCount)
-		*info.SuccessCount = int64(item.SuccessCount)
-		*info.FailedCount = int64(item.FailedCount)
-		*info.TimeoutCount = int64(item.TimeoutCount)
-		*info.TerminatedCount = int64(item.TerminatedCount)
-		items = append(items, info)
-	}
-
-	x.Data = &NodeWorkflowStatisticsResp_Data{
-		Items: items,
-	}
-}
-
 // ConvertNodeWorkflowsFromDistribution converts node workflows from distribution and trigger mapping.
 func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromDistribution(
 	workflowIDs []string,

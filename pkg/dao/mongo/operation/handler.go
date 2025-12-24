@@ -174,7 +174,9 @@ func (h *handler) UpdateLatestInstBriefData(nCtx contextx.IContext, operationID 
 }
 
 // GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger id.
-func (h *handler) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (map[string]map[string]int64, error) {
+func (h *handler) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (
+	map[string]map[string]int64, error) {
+
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}

@@ -244,7 +244,9 @@ func (h *Handler) GetPluginWorkflowOperationInstanceLog(ctx contextx.IContext, i
 }
 
 // ListPluginWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
-func (h *Handler) ListPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, triggerIDs []string) (map[string]map[string]int64, error) {
+func (h *Handler) ListPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, triggerIDs []string) (
+	map[string]map[string]int64, error) {
+
 	req := &protoBackend.PluginWorkflowOperationInstanceStatusDistributionListReq{
 		TriggerId: triggerIDs,
 	}
