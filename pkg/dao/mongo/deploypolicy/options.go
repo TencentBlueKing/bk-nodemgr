@@ -19,3 +19,58 @@ type OptFn = base.OptFn
 func WithDeployPolicyID(deployPolicyIDs ...int64) OptFn {
 	return base.WithValues(FieldKeyDeployPolicyID, deployPolicyIDs...)
 }
+
+// WithoutDeployPolicyID filters by not contains deploy-policy-id.
+func WithoutDeployPolicyID(deployPolicyIDs ...int64) OptFn {
+	return base.WithoutValues(FieldKeyDeployPolicyID, deployPolicyIDs...)
+}
+
+// WithEnabled filters by enabled.
+func WithEnabled(enabled ...bool) OptFn {
+	return base.WithValues(FieldKeyEnabled, enabled...)
+}
+
+// WithoutEnabled filters by not contains enabled.
+func WithoutEnabled(enabled ...bool) OptFn {
+	return base.WithoutValues(FieldKeyEnabled, enabled...)
+}
+
+// WithMetaName filters by meta-name.
+func WithMetaName(deployPolicyNames ...string) OptFn {
+	return base.WithValues(FieldKeyMetaName, deployPolicyNames...)
+}
+
+// WithoutMetaName filters by not contains meta-name.
+func WithoutMetaName(deployPolicyNames ...string) OptFn {
+	return base.WithoutValues(FieldKeyMetaName, deployPolicyNames...)
+}
+
+// WithFuzzyMetaName filters by fuzzy meta-name.
+func WithFuzzyMetaName(deployPolicyNames ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyMetaName, deployPolicyNames...)
+}
+
+// WithoutFuzzyMetaName filters by not contains fuzzy meta-name.
+func WithoutFuzzyMetaName(deployPolicyNames ...string) OptFn {
+	return base.WithoutFuzzyValues(FieldKeyMetaName, deployPolicyNames...)
+}
+
+// WithOperator filters by operator.
+func WithOperator(operators ...string) OptFn {
+	return base.WithValues(FieldKeyOperator, operators...)
+}
+
+// WithoutOperator filters by not contains operator.
+func WithoutOperator(operators ...string) OptFn {
+	return base.WithoutValues(FieldKeyOperator, operators...)
+}
+
+// WithFuzzyOperator filters by fuzzy operator.
+func WithFuzzyOperator(operators ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyOperator, operators...)
+}
+
+// WithoutFuzzyOperator filters by not contains fuzzy operator.
+func WithoutFuzzyOperator(operators ...string) OptFn {
+	return base.WithoutFuzzyValues(FieldKeyOperator, operators...)
+}

@@ -1,0 +1,133 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+
+message DeployPolicyMeta {
+  string name = 1;
+  string description = 2;
+}
+
+message DeploySpec {
+  string spec_type = 1;
+  google.protobuf.Struct spec_param = 2;
+}
+
+message TargetFilter {}
+
+message Scope {
+  int64 bk_biz_id = 1;
+  string type = 2;
+  string granularity = 3;
+  TargetFilter filter = 4;
+  repeated google.protobuf.Struct items = 5;
+}
+
+message DeployPolicy {
+  int64 deploy_policy_id = 1;
+  DeployPolicyMeta meta = 2;
+  repeated DeploySpec specs = 3;
+  repeated Scope scopes = 4;
+
+  string operator = 5;
+  bool enabled = 6;
+}
+
+message DeployPolicyExactConditions {
+  repeated int64 deploy_policy_id = 1;
+  repeated string deploy_policy_name = 2;
+  repeated string operator = 3;
+  repeated bool enabled = 4;
+}
+
+message DeployPolicyFuzzyConditions {
+  repeated string deploy_policy_name = 1;
+  repeated string operator = 2;
+}
+
+message DeployPolicyListReq {
+  Page page = 1;
+  bool only_count = 2;
+  DeployPolicyExactConditions exact_include_conditions = 3;
+  DeployPolicyFuzzyConditions fuzzy_include_conditions = 4;
+}
+
+message DeployPolicyListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  message Data {
+    int64 total = 1;
+    repeated DeployPolicy items = 2;
+  }
+  Data data = 5;
+}
+
+message DeployPolicyCreateReq {
+  string name = 1;
+  string description = 2;
+  bool enabled = 3;
+  repeated DeploySpec specs = 4;
+  repeated Scope scopes = 5;
+}
+
+message DeployPolicyCreateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  message Data { optional int64 deploy_policy_id = 1; }
+  Data data = 5;
+}
+
+message DeployPolicyFields {
+  bool meta = 1;
+  bool scopes = 2;
+  bool specs = 3;
+  bool enabled = 4;
+}
+
+message DeployPolicyUpdateReq {
+  repeated DeployPolicy deploy_policies = 1;
+  DeployPolicyFields fields = 2;
+}
+
+message DeployPolicyUpdateResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  message Data { optional int64 deploy_policy_id = 1; }
+  Data data = 5;
+}
+
+service DeployPolicySvc {
+  // List lists deploy policy.
+  rpc List(DeployPolicyListReq) returns (DeployPolicyListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/deploy_policy/list"
+      body : "*"
+    };
+  }
+
+  // Create creates deploy policy.
+  rpc Create(DeployPolicyCreateReq) returns (DeployPolicyCreateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/deploy_policy/create"
+      body : "*"
+    };
+  }
+
+  // Update updates deploy policy.
+  rpc Update(DeployPolicyUpdateReq) returns (DeployPolicyUpdateResp) {
+    option (google.api.http) = {
+      post : "/api/v3/deploy_policy/update"
+      body : "*"
+    };
+  }
+}

@@ -857,3 +857,36 @@ type PluginDeploymentCondition struct {
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *PluginDeploymentFuzzyFields
 }
+
+// ===============================================================================
+// DeployPolicy Related Conditions
+// ===============================================================================
+
+// DeployPolicyCondition defines the deploy policy condition.
+type DeployPolicyCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *DeployPolicyExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *DeployPolicyFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *DeployPolicyExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *DeployPolicyFuzzyFields
+}
+
+// DeployPolicyExactFields defines the deploy policy exact fields.
+type DeployPolicyExactFields struct {
+	DeployPolicyID   []int64
+	Enabled          []bool
+	DeployPolicyName []string
+	Operator         []string
+}
+
+// DeployPolicyFuzzyFields defines the deploy policy fuzzy fields.
+type DeployPolicyFuzzyFields struct {
+	DeployPolicyName []string
+	Operator         []string
+}

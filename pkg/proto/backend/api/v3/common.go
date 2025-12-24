@@ -38,6 +38,7 @@ func validatePage(reqPage *Page) error {
 }
 
 // generatePage generates list page.
+// Deprecated: use convPageToTypes instead.
 func generatePage(reqPage *Page, maxLimit int) types.Page {
 	page := types.Page{}
 	if reqPage != nil {
@@ -58,6 +59,28 @@ func generatePage(reqPage *Page, maxLimit int) types.Page {
 	}
 
 	return page
+}
+
+func convPageToTypes(reqPage *Page, maxLimit int) (types.Page, error) {
+	page := types.Page{}
+	if reqPage != nil {
+		page.Offset = int(reqPage.GetOffset())
+		page.Limit = int(reqPage.GetLimit())
+	}
+
+	if page.Offset < 0 {
+		page.Offset = 0
+	}
+
+	if page.Limit <= 0 || page.Limit > maxLimit {
+		return page, fmt.Errorf("page.limit must be in (0, %d]", maxLimit)
+	}
+
+	if maxLimit <= 0 {
+		page.Limit = 0
+	}
+
+	return page, nil
 }
 
 // formatRespSlice formats the response slice.

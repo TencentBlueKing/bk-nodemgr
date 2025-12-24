@@ -12,5 +12,23 @@ package deploypolicy
 
 const (
 	// FieldKeyDeployPolicyID the deploy policy id field key.
-	FieldKeyDeployPolicyID = "data.deploypolicy_id"
+	FieldKeyDeployPolicyID = "data.deploy_policy_id"
+
+	// FieldKeyMeta the meta field key.
+	FieldKeyMeta = "data.meta"
+
+	// FieldKeyMetaName the meta name field key.
+	FieldKeyMetaName = "data.meta.name"
+
+	// FieldKeyEnabled the enabled field key.
+	FieldKeyEnabled = "data.enabled"
+
+	// FieldKeyOperator the operator field key.
+	FieldKeyOperator = "data.operator"
+
+	// FieldKeySpecs the specs field key.
+	FieldKeySpecs = "data.specs"
+
+	// FieldKeyScopes the scopes field key.
+	FieldKeyScopes = "data.scopes"
 )

@@ -12,25 +12,27 @@ package types
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
 // DeployPolicy defines the deploy policy.
 type DeployPolicy struct {
-	TenantID       string
 	DeployPolicyID int64
 
-	DeployPolicyMeta *DeployPolicyMeta
+	Meta DeployPolicyMeta
 
 	Scopes []*Scope
 	Specs  []*DeploySpec
+
+	Operator string
+	Enabled  bool
 }
 
 // DeployPolicyMeta defines the deploy policy meta.
 type DeployPolicyMeta struct {
-	CreateAt time.Time
+	Name        string
+	Description string
 }
 
 // DeploySpecType defines the deploy spec type.
@@ -149,4 +151,22 @@ func (spec DeploySpec) GetSpecifyPluginSubConfigParam() (*SpecifyPluginSubConfig
 	}
 
 	return param, nil
+}
+
+// DeployPolicyFields represents the fields of DeployPolicy.
+type DeployPolicyFields struct {
+	Meta    bool
+	Scopes  bool
+	Specs   bool
+	Enabled bool
+}
+
+// NewAllDeployPolicyFields returns all fields of DeployPolicy.
+func NewAllDeployPolicyFields() DeployPolicyFields {
+	return DeployPolicyFields{
+		Meta:    true,
+		Scopes:  true,
+		Specs:   true,
+		Enabled: true,
+	}
 }

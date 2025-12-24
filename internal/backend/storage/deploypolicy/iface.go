@@ -26,20 +26,20 @@ type IStorage interface {
 // IDaoDeployPolicy defines the deploy policy dao interface.
 type IDaoDeployPolicy interface {
 	// CreateDeployPolicy create deploy policy.
-	CreateDeployPolicy(nCtx contextx.IContext, deployPolicy *types.DeployPolicy) error
+	CreateDeployPolicy(nCtx contextx.IContext, deployPolicy *types.DeployPolicy) (int64, error)
 
 	// ListDeployPolicies list deploy policies.
-	ListDeployPolicies(nCtx contextx.IContext, page types.Page) ([]*types.DeployPolicy, int64, error)
+	ListDeployPolicies(nCtx contextx.IContext, page types.Page, condition *types.DeployPolicyCondition) ([]*types.DeployPolicy, int64, error)
 
 	// GetDeployPolicyByID get deploy policy by id.
 	GetDeployPolicyByID(nCtx contextx.IContext, deployPolicyID int64) (*types.DeployPolicy, error)
 
-	// UpdateDeployPolicy update deploy policy.
-	UpdateDeployPolicy(nCtx contextx.IContext, deployPolicyID int64, deployPolicy *types.DeployPolicy) error
+	// UpdateDeployPolicyFields update deploy policy fields.
+	UpdateDeployPolicyFields(nCtx contextx.IContext, fields types.DeployPolicyFields, deployPolicy ...*types.DeployPolicy) error
 
 	// DeleteDeployPolicy delete deploy policy.
 	DeleteDeployPolicy(nCtx contextx.IContext, deployPolicyID int64) error
 
 	// ExistDeployPolicy check deploy policy exist.
-	ExistDeployPolicy(nCtx contextx.IContext, deployPolicyID int64) (bool, error)
+	ExistDeployPolicy(nCtx contextx.IContext, condition *types.DeployPolicyCondition) (bool, error)
 }

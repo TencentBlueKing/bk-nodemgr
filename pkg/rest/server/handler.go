@@ -25,7 +25,7 @@ import (
 const bufferSize = 32 * 1024
 
 // HandlerFunc defines the router handler.
-type HandlerFunc func(IContext) (interface{}, error)
+type HandlerFunc func(rCtx IContext) (interface{}, error)
 
 // Handler rest handler.
 func Handler(handler HandlerFunc) gin.HandlerFunc { // nolint

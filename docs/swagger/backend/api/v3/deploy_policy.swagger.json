@@ -1,0 +1,502 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "deploy_policy.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "DeployPolicySvc"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/deploy_policy/create": {
+      "post": {
+        "summary": "Create creates deploy policy.",
+        "operationId": "DeployPolicySvc_Create",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyCreateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyCreateReq"
+            }
+          }
+        ],
+        "tags": [
+          "DeployPolicySvc"
+        ]
+      }
+    },
+    "/api/v3/deploy_policy/list": {
+      "post": {
+        "summary": "List lists deploy policy.",
+        "operationId": "DeployPolicySvc_List",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyListReq"
+            }
+          }
+        ],
+        "tags": [
+          "DeployPolicySvc"
+        ]
+      }
+    },
+    "/api/v3/deploy_policy/update": {
+      "post": {
+        "summary": "Update updates deploy policy.",
+        "operationId": "DeployPolicySvc_Update",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyUpdateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyUpdateReq"
+            }
+          }
+        ],
+        "tags": [
+          "DeployPolicySvc"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "ErrorDetails": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "protobufNullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3DeployPolicy": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "meta": {
+          "$ref": "#/definitions/v3DeployPolicyMeta"
+        },
+        "specs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeploySpec"
+          }
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Scope"
+          }
+        },
+        "operator": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v3DeployPolicyCreateReq": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "specs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeploySpec"
+          }
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Scope"
+          }
+        }
+      }
+    },
+    "v3DeployPolicyCreateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DeployPolicyCreateRespData"
+        }
+      }
+    },
+    "v3DeployPolicyCreateRespData": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3DeployPolicyExactConditions": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "deploy_policy_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "enabled": {
+          "type": "array",
+          "items": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "v3DeployPolicyFields": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "type": "boolean"
+        },
+        "scopes": {
+          "type": "boolean"
+        },
+        "specs": {
+          "type": "boolean"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v3DeployPolicyFuzzyConditions": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3DeployPolicyListReq": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "$ref": "#/definitions/v3Page"
+        },
+        "only_count": {
+          "type": "boolean"
+        },
+        "exact_include_conditions": {
+          "$ref": "#/definitions/v3DeployPolicyExactConditions"
+        },
+        "fuzzy_include_conditions": {
+          "$ref": "#/definitions/v3DeployPolicyFuzzyConditions"
+        }
+      }
+    },
+    "v3DeployPolicyListResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DeployPolicyListRespData"
+        }
+      }
+    },
+    "v3DeployPolicyListRespData": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeployPolicy"
+          }
+        }
+      }
+    },
+    "v3DeployPolicyMeta": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "v3DeployPolicyUpdateReq": {
+      "type": "object",
+      "properties": {
+        "deploy_policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3DeployPolicy"
+          }
+        },
+        "fields": {
+          "$ref": "#/definitions/v3DeployPolicyFields"
+        }
+      }
+    },
+    "v3DeployPolicyUpdateResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DeployPolicyUpdateRespData"
+        }
+      }
+    },
+    "v3DeployPolicyUpdateRespData": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "v3DeploySpec": {
+      "type": "object",
+      "properties": {
+        "spec_type": {
+          "type": "string"
+        },
+        "spec_param": {
+          "type": "object"
+        }
+      }
+    },
+    "v3Error": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/ErrorDetails"
+          }
+        }
+      }
+    },
+    "v3Page": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3Scope": {
+      "type": "object",
+      "properties": {
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "type": {
+          "type": "string"
+        },
+        "granularity": {
+          "type": "string"
+        },
+        "filter": {
+          "$ref": "#/definitions/v3TargetFilter"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "v3TargetFilter": {
+      "type": "object"
+    }
+  }
+}

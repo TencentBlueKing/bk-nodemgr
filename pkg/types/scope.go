@@ -85,11 +85,10 @@ func (target *Target) UniqueID() string {
 
 // Scope defines the scope of the deploy policy.
 type Scope struct {
-	TenantID    string
 	BizID       int64
 	Type        ScopeType
 	Granularity TargetGranularity
-	Filter      TargetFilter
+	Filter      *TargetFilter
 	Items       []map[string]any
 }
 
@@ -115,7 +114,6 @@ func (scope *Scope) ToScopeServiceTemplate() (*ScopeServiceTemplate, error) {
 	scopeServiceTemplate := &ScopeServiceTemplate{
 		Granularity:        scope.Granularity,
 		BizID:              scope.BizID,
-		TenantID:           scope.TenantID,
 		Filter:             scope.Filter,
 		ServiceTemplateIDs: make([]int64, len(items)),
 		ModuleIDs:          make([]int64, len(items)),
@@ -150,7 +148,6 @@ func (scope *Scope) ToScopeSetTemplate() (*ScopeSetTemplate, error) {
 
 	scopeSetTemplate := &ScopeSetTemplate{
 		Granularity:    scope.Granularity,
-		TenantID:       scope.TenantID,
 		BizID:          scope.BizID,
 		SetTemplateIDs: make([]int64, len(items)),
 		SetIDs:         make([]int64, len(items)),
@@ -186,7 +183,6 @@ func (scope *Scope) ToScopeInstance() (*ScopeInstance, error) {
 	scopeInstance := &ScopeInstance{
 		Granularity: scope.Granularity,
 		BizID:       scope.BizID,
-		TenantID:    scope.TenantID,
 		InstanceIDs: make([]int64, len(items)),
 		Filter:      scope.Filter,
 	}
@@ -220,7 +216,6 @@ func (scope *Scope) ToScopeTopo() (*ScopeTopo, error) {
 	scopeTopo := &ScopeTopo{
 		Granularity: scope.Granularity,
 		BizID:       scope.BizID,
-		TenantID:    scope.TenantID,
 		Paths:       make([]*ScopeTopoNode, len(items)),
 		Filter:      scope.Filter,
 	}
@@ -256,7 +251,6 @@ func (scope *Scope) ToScopeDynamicGroup() (*ScopeDynamicGroup, error) {
 	scopeDynamicGroup := &ScopeDynamicGroup{
 		Granularity:     scope.Granularity,
 		BizID:           scope.BizID,
-		TenantID:        scope.TenantID,
 		DynamicGroupIDs: make([]string, len(items)),
 		Filter:          scope.Filter,
 	}
@@ -272,8 +266,7 @@ func (scope *Scope) ToScopeDynamicGroup() (*ScopeDynamicGroup, error) {
 type ScopeServiceTemplate struct {
 	Granularity        TargetGranularity
 	BizID              int64
-	TenantID           string
-	Filter             TargetFilter
+	Filter             *TargetFilter
 	ServiceTemplateIDs []int64
 	ModuleIDs          []int64
 }
@@ -282,10 +275,6 @@ type ScopeServiceTemplate struct {
 func (scope *ScopeServiceTemplate) Validate() error {
 	if err := scope.Granularity.Validate(); err != nil {
 		return fmt.Errorf("failed to validate scope service template: %w", err)
-	}
-
-	if scope.TenantID == "" {
-		return fmt.Errorf("failed to validate scope service template, tenantID is empty")
 	}
 
 	if scope.BizID == 0 {
@@ -317,7 +306,6 @@ func (scope *ScopeServiceTemplate) ToScope() (*Scope, error) {
 	}
 
 	return &Scope{
-		TenantID:    scope.TenantID,
 		BizID:       scope.BizID,
 		Type:        ScopeTypeServiceTemplate,
 		Granularity: scope.Granularity,
@@ -329,21 +317,16 @@ func (scope *ScopeServiceTemplate) ToScope() (*Scope, error) {
 // ScopeSetTemplate defines the scope of set template.
 type ScopeSetTemplate struct {
 	Granularity    TargetGranularity
-	TenantID       string
 	BizID          int64
 	SetTemplateIDs []int64
 	SetIDs         []int64
-	Filter         TargetFilter
+	Filter         *TargetFilter
 }
 
 // Validate validates the set template scope.
 func (scope *ScopeSetTemplate) Validate() error {
 	if err := scope.Granularity.Validate(); err != nil {
 		return fmt.Errorf("failed to validate scope set template: %w", err)
-	}
-
-	if scope.TenantID == "" {
-		return fmt.Errorf("failed to validate scope set template, tenantID is empty")
 	}
 
 	if scope.BizID == 0 {
@@ -375,7 +358,6 @@ func (scope *ScopeSetTemplate) ToScope() (*Scope, error) {
 	}
 
 	return &Scope{
-		TenantID:    scope.TenantID,
 		BizID:       scope.BizID,
 		Type:        ScopeTypeSetTemplate,
 		Granularity: scope.Granularity,
@@ -388,9 +370,8 @@ func (scope *ScopeSetTemplate) ToScope() (*Scope, error) {
 type ScopeTopo struct {
 	Granularity TargetGranularity
 	BizID       int64
-	TenantID    string
 	Paths       []*ScopeTopoNode
-	Filter      TargetFilter
+	Filter      *TargetFilter
 }
 
 // ScopeTopoNode defines the scope of topo path.
@@ -407,10 +388,6 @@ func (scope *ScopeTopo) Validate() error {
 
 	if scope.BizID == 0 {
 		return fmt.Errorf("failed to validate scope topo, bizID is 0")
-	}
-
-	if scope.TenantID == "" {
-		return fmt.Errorf("failed to validate scope topo, tenantID is empty")
 	}
 
 	if len(scope.Paths) == 0 {
@@ -437,7 +414,6 @@ func (scope *ScopeTopo) ToScope() (*Scope, error) {
 	}
 
 	return &Scope{
-		TenantID:    scope.TenantID,
 		BizID:       scope.BizID,
 		Type:        ScopeTypeTopo,
 		Granularity: scope.Granularity,
@@ -454,9 +430,8 @@ type TargetFilter struct {
 type ScopeInstance struct {
 	Granularity TargetGranularity
 	BizID       int64
-	TenantID    string
 	InstanceIDs []int64
-	Filter      TargetFilter
+	Filter      *TargetFilter
 }
 
 // Validate validates the instance scope.
@@ -467,10 +442,6 @@ func (scope *ScopeInstance) Validate() error {
 
 	if scope.BizID == 0 {
 		return fmt.Errorf("failed to validate scope instance, bizID is 0")
-	}
-
-	if scope.TenantID == "" {
-		return fmt.Errorf("failed to validate scope instance, tenantID is empty")
 	}
 
 	if len(scope.InstanceIDs) == 0 {
@@ -496,7 +467,6 @@ func (scope *ScopeInstance) ToScope() (*Scope, error) {
 	}
 
 	return &Scope{
-		TenantID:    scope.TenantID,
 		BizID:       scope.BizID,
 		Type:        ScopeTypeInstance,
 		Granularity: scope.Granularity,
@@ -509,9 +479,8 @@ func (scope *ScopeInstance) ToScope() (*Scope, error) {
 type ScopeDynamicGroup struct {
 	Granularity     TargetGranularity
 	BizID           int64
-	TenantID        string
 	DynamicGroupIDs []string
-	Filter          TargetFilter
+	Filter          *TargetFilter
 }
 
 // Validate validates the dynamic group scope.
@@ -522,10 +491,6 @@ func (scope *ScopeDynamicGroup) Validate() error {
 
 	if scope.BizID == 0 {
 		return fmt.Errorf("failed to validate scope dynamic group, bizID is 0")
-	}
-
-	if scope.TenantID == "" {
-		return fmt.Errorf("failed to validate scope dynamic group, tenantID is empty")
 	}
 
 	if len(scope.DynamicGroupIDs) == 0 {
@@ -551,7 +516,6 @@ func (scope *ScopeDynamicGroup) ToScope() (*Scope, error) {
 	}
 
 	return &Scope{
-		TenantID:    scope.TenantID,
 		BizID:       scope.BizID,
 		Type:        ScopeTypeDynamicGroup,
 		Granularity: scope.Granularity,

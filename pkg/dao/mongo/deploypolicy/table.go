@@ -28,8 +28,13 @@ var _ base.IData = &DeployPolicy{}
 // DeployPolicy represents the table of deploy policy deployment.
 // DeployPolicyID should be the unique key.
 type DeployPolicy struct {
-	TenantID       string `json:"tenant_id" bson:"tenant_id"`
-	DeployPolicyID int64  `json:"deploypolicy_id" bson:"deploypolicy_id"`
+	TenantID       string   `json:"tenant_id" bson:"tenant_id"`
+	DeployPolicyID int64    `json:"deploy_policy_id" bson:"deploy_policy_id"`
+	Meta           Meta     `json:"meta" bson:"meta"`
+	Specs          []*Spec  `json:"specs" bson:"specs"`
+	Scopes         []*Scope `json:"scopes" bson:"scopes"`
+	Enabled        bool     `json:"enabled" bson:"enabled"`
+	Operator       string   `json:"operator" bson:"operator"`
 }
 
 // UniqueFields unique fields of the table.
@@ -44,3 +49,28 @@ func (deploy *DeployPolicy) UniqueKey() string {
 
 // Table represent the complete db structures of deploy policy deployment.
 type Table base.TableBroker[*DeployPolicy]
+
+// Meta represents the meta of deploy policy.
+type Meta struct {
+	Name        string `json:"name" bson:"name"`
+	Description string `json:"description" bson:"description"`
+}
+
+// Spec represents the spec of deploy policy.
+type Spec struct {
+	Type  string         `json:"type" bson:"type"`
+	Param map[string]any `json:"param" bson:"param"`
+}
+
+// Scope represents the scope of deploy policy.
+type Scope struct {
+	BizID       int64            `json:"biz_id" bson:"biz_id"`
+	Type        string           `json:"type" bson:"type"`
+	Granularity string           `json:"granularity" bson:"granularity"`
+	Filter      *TargetFilter    `json:"filter" bson:"filter"`
+	Items       []map[string]any `json:"items" bson:"items"`
+}
+
+// TargetFilter represents the target filter of deploy policy.
+type TargetFilter struct {
+}

@@ -11,6 +11,7 @@
 package deploypolicy
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -19,24 +20,36 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) createDeployPolicy(nCtx contextx.IContext, deployPolicy *types.DeployPolicy) error {
+func (s *Storage) createDeployPolicy(nCtx contextx.IContext, deployPolicy *types.DeployPolicy) (int64, error) {
 	if nCtx == nil {
-		return base.ErrInvalidContext()
+		return -1, base.ErrInvalidContext()
 	}
 
-	if err := s.daoDeployPolicy.Create(nCtx, deployPolicy); err != nil {
-		return fmt.Errorf("failed to create deploy policy: %w", err)
+	if deployPolicy == nil {
+		return -1, base.ErrInvalidParam(errors.New("deploy policy is nil"))
 	}
 
-	return nil
+	deployPolicyID, err := s.daoDeployPolicy.Create(nCtx, deployPolicy)
+	if err != nil {
+		return -1, fmt.Errorf("failed to create deploy policy: %w", err)
+	}
+
+	return deployPolicyID, nil
 }
 
-func (s *Storage) listDeployPolicies(nCtx contextx.IContext, page types.Page) ([]*types.DeployPolicy, int64, error) {
+func (s *Storage) listDeployPolicies(nCtx contextx.IContext, page types.Page, condition *types.DeployPolicyCondition) (
+	[]*types.DeployPolicy, int64, error) {
+
 	if nCtx == nil {
 		return nil, 0, base.ErrInvalidContext()
 	}
 
-	deployPolicies, total, err := s.daoDeployPolicy.List(nCtx, page)
+	optFns := make([]daoDeployPolicy.OptFn, 0)
+	if condition != nil {
+		optFns = append(optFns, convDeployPolicyConditionsToOptions(condition)...)
+	}
+
+	deployPolicies, total, err := s.daoDeployPolicy.List(nCtx, page, optFns...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list deploy policies: %w", err)
 	}
@@ -57,13 +70,17 @@ func (s *Storage) getDeployPolicyByID(nCtx contextx.IContext, deployPolicyID int
 	return deployPolicy, nil
 }
 
-func (s *Storage) updateDeployPolicy(nCtx contextx.IContext, deployPolicyID int64, deployPolicy *types.DeployPolicy) error {
+func (s *Storage) updateDeployPolicyFields(nCtx contextx.IContext, fields types.DeployPolicyFields, deployPolicy ...*types.DeployPolicy) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
-	if err := s.daoDeployPolicy.Update(nCtx, deployPolicyID, deployPolicy); err != nil {
-		return fmt.Errorf("failed to update deploy policy: %w", err)
+	if len(deployPolicy) == 0 {
+		return base.ErrInvalidParam(errors.New("deploy policy list is empty"))
+	}
+
+	if err := s.daoDeployPolicy.UpdateFields(nCtx, fields, deployPolicy...); err != nil {
+		return fmt.Errorf("failed to update deploy policy fields: %w", err)
 	}
 
 	return nil
@@ -81,15 +98,55 @@ func (s *Storage) deleteDeployPolicy(nCtx contextx.IContext, deployPolicyID int6
 	return nil
 }
 
-func (s *Storage) existDeployPolicy(nCtx contextx.IContext, deployPolicyID int64) (bool, error) {
+func (s *Storage) existDeployPolicy(nCtx contextx.IContext, condition *types.DeployPolicyCondition) (bool, error) {
 	if nCtx == nil {
 		return false, base.ErrInvalidContext()
 	}
 
-	exist, err := s.daoDeployPolicy.Exist(nCtx, deployPolicyID)
+	optFns := make([]daoDeployPolicy.OptFn, 0)
+	if condition != nil {
+		optFns = append(optFns, convDeployPolicyConditionsToOptions(condition)...)
+	}
+
+	exist, err := s.daoDeployPolicy.Exist(nCtx, optFns...)
 	if err != nil {
 		return false, fmt.Errorf("failed to check deploy policy exist: %w", err)
 	}
 
 	return exist, nil
+}
+
+// convDeployPolicyConditionsToOptions converts deploy policy conditions to options.
+func convDeployPolicyConditionsToOptions(condition *types.DeployPolicyCondition) []daoDeployPolicy.OptFn {
+	opts := make([]daoDeployPolicy.OptFn, 0)
+
+	if condition == nil {
+		return opts
+	}
+
+	if condition.ExactInclude != nil {
+		opts = append(opts, daoDeployPolicy.WithDeployPolicyID(condition.ExactInclude.DeployPolicyID...))
+		opts = append(opts, daoDeployPolicy.WithEnabled(condition.ExactInclude.Enabled...))
+		opts = append(opts, daoDeployPolicy.WithMetaName(condition.ExactInclude.DeployPolicyName...))
+		opts = append(opts, daoDeployPolicy.WithOperator(condition.ExactInclude.Operator...))
+	}
+
+	if condition.ExactExclude != nil {
+		opts = append(opts, daoDeployPolicy.WithoutDeployPolicyID(condition.ExactExclude.DeployPolicyID...))
+		opts = append(opts, daoDeployPolicy.WithoutEnabled(condition.ExactExclude.Enabled...))
+		opts = append(opts, daoDeployPolicy.WithoutMetaName(condition.ExactExclude.DeployPolicyName...))
+		opts = append(opts, daoDeployPolicy.WithoutOperator(condition.ExactExclude.Operator...))
+	}
+
+	if condition.FuzzyInclude != nil {
+		opts = append(opts, daoDeployPolicy.WithFuzzyMetaName(condition.FuzzyInclude.DeployPolicyName...))
+		opts = append(opts, daoDeployPolicy.WithFuzzyOperator(condition.FuzzyInclude.Operator...))
+	}
+
+	if condition.FuzzyExclude != nil {
+		opts = append(opts, daoDeployPolicy.WithoutFuzzyMetaName(condition.FuzzyExclude.DeployPolicyName...))
+		opts = append(opts, daoDeployPolicy.WithoutFuzzyOperator(condition.FuzzyExclude.Operator...))
+	}
+
+	return opts
 }
