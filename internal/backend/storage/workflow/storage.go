@@ -900,6 +900,24 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByTriggerID(nCtx context
 	return results, num, nil
 }
 
+// GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger ID.
+func (s *Storage) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (
+	map[string]map[string]int64, error) {
+
+	var (
+		distribution map[string]map[string]int64
+		err          error
+	)
+
+	// record metric.
+	metric := s.metric().Start("get_latest_operation_instance_status_distribution_by_trigger_id")
+	defer metric.End(err)
+
+	distribution, err = s.getLatestOperationInstanceStatusDistributionByTriggerID(nCtx, triggerID...)
+
+	return distribution, err
+}
+
 // UpsertOperationInstanceData upserts operation instance data.
 func (s *Storage) UpsertOperationInstanceData(
 	nCtx contextx.IContext, operInstData *workoper.InstanceData) error {

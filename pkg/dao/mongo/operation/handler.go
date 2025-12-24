@@ -43,6 +43,9 @@ type IHandler interface {
 
 	// UpdateLatestInstBriefData updates an operation's latest instance brief data.
 	UpdateLatestInstBriefData(nCtx contextx.IContext, operationID string, briefData *operation.InstanceBriefData) error
+
+	// GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger id.
+	GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (map[string]map[string]int64, error)
 }
 
 type handler struct {
@@ -168,6 +171,40 @@ func (h *handler) UpdateLatestInstBriefData(nCtx contextx.IContext, operationID 
 	}
 
 	return nil
+}
+
+// GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger id.
+func (h *handler) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (map[string]map[string]int64, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if len(triggerID) == 0 {
+		return make(map[string]map[string]int64), nil
+	}
+
+	filter := base.AliveFilter()
+	filter = WithTriggerID(triggerID...)(filter)
+
+	results, err := h.dao.getLatestOperationInstStatusDistribution(nCtx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	// build the result map: trigger_id -> status -> count
+	distribution := make(map[string]map[string]int64)
+	for _, result := range results {
+		triggerID := result.GroupKey.TriggerID
+		status := result.GroupKey.Status
+		count := result.Count
+
+		if _, exists := distribution[triggerID]; !exists {
+			distribution[triggerID] = make(map[string]int64)
+		}
+		distribution[triggerID][status] = count
+	}
+
+	return distribution, nil
 }
 
 func convertOperationFromDB(dbOp *Operation) *operation.Operation {

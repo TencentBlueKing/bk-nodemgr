@@ -168,3 +168,24 @@ func (s *Storage) updateLatestInstBriefData(nCtx contextx.IContext, operationID 
 
 	return s.daoOperation.UpdateLatestInstBriefData(nCtx, operationID, briefData)
 }
+
+// getLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger ID.
+func (s *Storage) getLatestOperationInstanceStatusDistributionByTriggerID(
+	nCtx contextx.IContext, triggerID ...string) (
+	map[string]map[string]int64, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	if len(triggerID) == 0 {
+		return nil, basestorage.ErrEmptyTriggerID()
+	}
+
+	distribution, err := s.daoOperation.GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx, triggerID...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get latest operation instance status distribution by trigger id: %v", err)
+	}
+
+	return distribution, nil
+}

@@ -26,4 +26,7 @@ const (
 
 	// FieldKeyLatestInstBriefData the latest_inst_brief_data field key.
 	FieldKeyLatestInstBriefData = "data.latest_inst_brief_data"
+
+	// FieldKeyLatestInstState the latest_inst_state field key.
+	FieldKeyLatestInstState = "data.latest_inst_brief_data.life_cycle.state"
 )

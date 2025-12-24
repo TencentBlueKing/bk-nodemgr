@@ -139,3 +139,55 @@ func (d *dao) pullField(nCtx contextx.IContext, operID, field string, value any)
 
 	return nil
 }
+
+// getLatestOperationInstStatusDistribution gets the operation latest instance status distribution.
+func (d *dao) getLatestOperationInstStatusDistribution(nCtx contextx.IContext, filter bson.D, aggregateOptions ...*mongoOptions.AggregateOptions) (
+	[]operationLatestInstStatusDistribution, error) {
+
+	pipeline := mongo.Pipeline{}
+
+	if len(filter) > 0 {
+		pipeline = append(pipeline, bson.D{
+			{Key: "$match", Value: filter},
+		})
+	}
+
+	// group by trigger_id and latest instance status
+	pipeline = append(pipeline,
+		bson.D{
+			{Key: "$group", Value: bson.D{
+				{Key: "_id", Value: bson.D{
+					{Key: "trigger_id", Value: "$" + FieldKeyTriggerID},
+					{Key: "status", Value: "$" + FieldKeyLatestInstState},
+				}},
+				{Key: "count", Value: bson.D{{Key: "$sum", Value: 1}}},
+			}},
+		},
+	)
+
+	cursor, err := d.client.Aggregate(nCtx, pipeline, aggregateOptions...)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if closeErr := cursor.Close(nCtx); closeErr != nil {
+			logger.G.Sys().WithErr(closeErr).With("filter", filter).
+				Error("failed to close cursor of status distribution")
+		}
+	}()
+
+	var results []operationLatestInstStatusDistribution
+	if err := cursor.All(nCtx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+type operationLatestInstStatusDistribution struct {
+	GroupKey struct {
+		TriggerID string `bson:"trigger_id"`
+		Status    string `bson:"status"`
+	} `bson:"_id"`
+	Count int64 `bson:"count"`
+}

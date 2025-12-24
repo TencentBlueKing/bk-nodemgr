@@ -130,6 +130,10 @@ type IStorageOperationInstance interface {
 
 	// DeleteOperationInstancesByTriggerID deletes operation instances by trigger ID.
 	DeleteOperationInstancesByTriggerID(ctx contextx.IContext, triggerID ...string) error
+
+	// GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger id.
+	GetLatestOperationInstanceStatusDistributionByTriggerID(ctx contextx.IContext, triggerID ...string) (
+		map[string]map[string]int64, error)
 }
 
 // IStorageTrigger defines the storage handler for trigger.
