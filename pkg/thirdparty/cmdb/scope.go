@@ -301,7 +301,7 @@ func (h *Handler) getServiceTargetByScopeInstance(nCtx contextx.IContext, scope 
 		return nil, fmt.Errorf("failed to find hosts: %w", err)
 	}
 
-	// Step 4: Convert service instance details and hosts to targets
+	// Convert service instance details and hosts to targets
 	targets, err := convServiceInstanceDetailToTarget(detailResult.Items, hosts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert service instance detail to target: %w", err)
@@ -494,6 +494,10 @@ func (h *Handler) GetTargetByScopeDynamicGroup(nCtx contextx.IContext, scope *ty
 		return nil, fmt.Errorf("failed to get target by scope dynamic group, scope is nil")
 	}
 
+	if err := scope.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to get target by scope dynamic group: %w", err)
+	}
+
 	var (
 		targets []*types.Target
 		err     error
@@ -663,11 +667,6 @@ func (h *Handler) getModuleIDsBySetIDs(nCtx contextx.IContext, bizID int64, setI
 	// Query modules for each set
 	moduleExecutor := pageexecutor.NewPageExecutor[*ModuleInfo](CCPageSizeLimit, ccQueryTimeout)
 	allModules := make([]*ModuleInfo, 0)
-
-	setIDSet := make(map[int64]struct{}, len(setIDs))
-	for _, id := range setIDs {
-		setIDSet[id] = struct{}{}
-	}
 
 	for _, setID := range setIDs {
 		moduleFn := func(nCtx contextx.IContext, p types.Page) ([]*ModuleInfo, error) {
