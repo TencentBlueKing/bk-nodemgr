@@ -76,13 +76,6 @@ type IHandlerNodeWorkflow interface {
 	// @return the node-workflow distinct result.
 	GetNodeWorkflowOperationInstanceLog(ctx contextx.IContext, instanceID string) (*operation.InstanceData, error)
 
-	// ListNodeWorkflowOperationInstanceStatus list node workflow operation instance status.
-	// @param ctx contextx, contains tenant-id.
-	// @param triggerID the trigger id.
-	// @return the operation instance status list.
-	ListNodeWorkflowOperationInstanceStatus(ctx contextx.IContext,
-		condition *types.NodeWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error)
-
 	// TerminateNodeWorkflowOperation terminate node operation.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param param the terminate param.
@@ -101,6 +94,12 @@ type IHandlerNodeWorkflow interface {
 	// @param operationID the operation id.
 	// @return the manual info.
 	GetNodeWorkflowOperationManualInfo(ctx contextx.IContext, workflowID, operationID string) (*types.NodeWorkflowOperationManualInfo, error)
+
+	// ListNodeWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
+	// @param ctx contextx.IContext, contains tenant-id.
+	// @param triggerIDs the trigger ids.
+	// @return the latest operation instance status distribution: map[trigger-id]map[state]count and the error.
+	ListNodeWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, triggerIDs []string) (map[string]map[string]int64, error)
 }
 
 // ListNodeWorkflow list node workflow within specified tenant in contextx.
@@ -251,28 +250,6 @@ func (h *Handler) GetNodeWorkflowOperationInstanceLog(ctx contextx.IContext, ins
 	return operations, nil
 }
 
-// ListNodeWorkflowOperationInstanceStatus list workflow operation instance status.
-func (h *Handler) ListNodeWorkflowOperationInstanceStatus(ctx contextx.IContext,
-	conditions *types.NodeWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error) {
-
-	req := &protoBackend.NodeWorkflowOperationInstanceListStatusReq{
-		Page: &protoBackend.Page{},
-	}
-
-	if err := req.ConvertConditionsFromTypes(conditions); err != nil {
-		return nil, err
-	}
-
-	resp, err := h.cli.listNodeWorkflowOperationInstanceStatus(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	instanceStatus := resp.ConvertWorkflowOperationInstanceStatusToTypes()
-
-	return instanceStatus, nil
-}
-
 // RetryNodeWorkflowOperation retry node workflow operation.
 func (h *Handler) RetryNodeWorkflowOperation(ctx contextx.IContext, retryParam *types.NodeWorkflowOperationRetryParam) error {
 	req := &protoBackend.NodeWorkflowOperationRetryReq{}
@@ -316,4 +293,20 @@ func (h *Handler) GetNodeWorkflowOperationManualInfo(ctx contextx.IContext, work
 	}
 
 	return resp.ConvertManualInfoToTypes(), nil
+}
+
+// ListNodeWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
+func (h *Handler) ListNodeWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, triggerIDs []string) (
+	map[string]map[string]int64, error) {
+
+	req := &protoBackend.NodeWorkflowOperationInstanceStatusDistributionListReq{
+		TriggerId: triggerIDs,
+	}
+
+	resp, err := h.cli.listNodeWorkflowOperationInstanceStatusDistribution(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertDistributionToTypes(), nil
 }

@@ -400,31 +400,6 @@ type NodeWorkflowCondition struct {
 	FuzzyExclude *NodeWorkflowFuzzyFields
 }
 
-// NodeWorkflowOperInstanceStatusExactFields defines the node workflow instance status exact fields.
-type NodeWorkflowOperInstanceStatusExactFields struct {
-	TriggerID []string
-}
-
-// NodeWorkflowOperInstanceStatusFuzzyFields defines the node workflow  instance status fuzzy fields.
-type NodeWorkflowOperInstanceStatusFuzzyFields struct {
-}
-
-// NodeWorkflowOperInstanceStatusCondition defines the node workflow instance status condition.
-type NodeWorkflowOperInstanceStatusCondition struct {
-
-	// will be used when condition type is included in exact mode.
-	ExactInclude *NodeWorkflowOperInstanceStatusExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *NodeWorkflowOperInstanceStatusFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *NodeWorkflowOperInstanceStatusExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *NodeWorkflowOperInstanceStatusFuzzyFields
-}
-
 // NodeWorkflowOperationExactFields defines the condition of list operation.
 type NodeWorkflowOperationExactFields struct {
 	TriggerID     string
@@ -514,31 +489,6 @@ type PluginWorkflowOperationCondition struct {
 
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *PluginWorkflowOperationFuzzyFields
-}
-
-// PluginWorkflowOperInstanceStatusExactFields defines the plugin workflow instance status exact fields.
-type PluginWorkflowOperInstanceStatusExactFields struct {
-	TriggerID []string
-}
-
-// PluginWorkflowOperInstanceStatusFuzzyFields defines the plugin workflow  instance status fuzzy fields.
-type PluginWorkflowOperInstanceStatusFuzzyFields struct {
-}
-
-// PluginWorkflowOperInstanceStatusCondition defines the plugin workflow instance status condition.
-type PluginWorkflowOperInstanceStatusCondition struct {
-
-	// will be used when condition type is included in exact mode.
-	ExactInclude *PluginWorkflowOperInstanceStatusExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *PluginWorkflowOperInstanceStatusFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *PluginWorkflowOperInstanceStatusExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *PluginWorkflowOperInstanceStatusFuzzyFields
 }
 
 // ScheduledWorkflowExactFields defines the scheduled workflow exact fields.

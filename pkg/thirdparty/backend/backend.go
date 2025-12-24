@@ -1026,40 +1026,6 @@ func (c *cli) getNodeWorkflowOperationInstanceLog(
 	return resp, nil
 }
 
-func (c *cli) listNodeWorkflowOperationInstanceStatus(
-	ctx contextx.IContext,
-	req *protoBackend.NodeWorkflowOperationInstanceListStatusReq,
-) (*protoBackend.NodeWorkflowOperationInstanceListStatusResp, error) {
-
-	resp := new(protoBackend.NodeWorkflowOperationInstanceListStatusResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/node/workflow/operation/instance/status/list").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("get workflow operation instance logs failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	if resp.GetData() == nil {
-		return nil,
-			fmt.Errorf("get workflow operation instance logs failed, get empty data. code(%d), message(%s), request-id(%s)",
-				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
 func (c *cli) retryNodeWorkflowOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationRetryReq,
 ) (*protoBackend.NodeWorkflowOperationRetryResp, error) {
 
@@ -1139,6 +1105,39 @@ func (c *cli) getNodeWorkflowManualInfo(
 	if resp.GetData() == nil {
 		return nil,
 			fmt.Errorf("get workflow operation manual info failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) listNodeWorkflowOperationInstanceStatusDistribution(
+	ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationInstanceStatusDistributionListReq,
+) (*protoBackend.NodeWorkflowOperationInstanceStatusDistributionListResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationInstanceStatusDistributionListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/workflow/operation/instance/status_distribution/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list operation instance status distribution failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list operation instance status distribution failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
@@ -2992,14 +2991,14 @@ func (c *cli) getPluginWorkflowOperationInstanceLog(ctx contextx.IContext, req *
 	return resp, nil
 }
 
-func (c *cli) listPluginWorkflowOperationInstanceStatus(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationInstanceListStatusReq) (
-	*protoBackend.PluginWorkflowOperationInstanceListStatusResp, error) {
+func (c *cli) listPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationInstanceStatusDistributionListReq) (
+	*protoBackend.PluginWorkflowOperationInstanceStatusDistributionListResp, error) {
 
-	resp := new(protoBackend.PluginWorkflowOperationInstanceListStatusResp)
+	resp := new(protoBackend.PluginWorkflowOperationInstanceStatusDistributionListResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/plugin/workflow/operation/instance/status/list").
+		SubResourcef("/plugin/workflow/operation/instance/status_distribution/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -3011,13 +3010,13 @@ func (c *cli) listPluginWorkflowOperationInstanceStatus(ctx contextx.IContext, r
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list plugin workflow operation instance status failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return nil, fmt.Errorf("list plugin workflow operation instance status distribution failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
 		return nil,
-			fmt.Errorf("list plugin workflow operation instance status failed, get empty data. code(%d), message(%s), request-id(%s)",
+			fmt.Errorf("list plugin workflow operation instance status distribution failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 

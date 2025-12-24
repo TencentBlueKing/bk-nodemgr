@@ -407,88 +407,6 @@ func (x *NodeWorkflowOperationInstanceListResp) ConvertWorkflowOperationInstance
 }
 
 // Validate check body.
-func (x *NodeWorkflowOperationInstanceListStatusReq) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *NodeWorkflowOperationInstanceListStatusReq) AutoConvert() {
-}
-
-// ConvertPageToTypes convert page to types.
-func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
-}
-
-// ConvertListStatusConditionsToTypes convert list status conditions to types.
-func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertListStatusConditionsToTypes() *types.OperInstDataCondition {
-	return &types.OperInstDataCondition{
-		ExactInclude: &types.OperInstDataExactFields{
-			TriggerID: x.GetExactIncludeConditions().GetTriggerId(),
-			State:     operation.GetAllStates(),
-		},
-	}
-}
-
-// ConvertWorkflowOperInstanceStatusFromTypes convert workflow operation instance status from types.
-func (x *NodeWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperInstanceStatusFromTypes(
-	result []*operation.InstanceBriefData) {
-
-	items := make([]*WorkflowOperationInstanceStatus, len(result))
-	for idx, opinstance := range result {
-		items[idx] = &WorkflowOperationInstanceStatus{
-			Index:               int64(opinstance.Metadata.Index),
-			Status:              string(opinstance.Lifecycle.State),
-			OperationId:         opinstance.Metadata.OperationID,
-			TriggerId:           opinstance.Metadata.TriggerID,
-			OperationInstanceId: opinstance.Metadata.OperationInstanceID,
-		}
-	}
-
-	x.Data = &NodeWorkflowOperationInstanceListStatusResp_Data{
-		Items: items,
-	}
-}
-
-// ConvertWorkflowOperationInstanceStatusToTypes convert workflow operation instance status to types.
-func (x *NodeWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperationInstanceStatusToTypes() []*operation.InstanceStatus {
-	data := x.GetData()
-	if data == nil {
-		return nil
-	}
-
-	items := data.GetItems()
-
-	result := make([]*operation.InstanceStatus, len(items))
-	for idx, value := range items {
-		result[idx] = &operation.InstanceStatus{
-			TriggerID:           value.GetTriggerId(),
-			State:               operation.State(value.GetStatus()),
-			Index:               int(value.GetIndex()),
-			OperationID:         value.GetOperationId(),
-			OperationInstanceID: value.GetOperationInstanceId(),
-		}
-	}
-
-	return result
-}
-
-// ConvertConditionsFromTypes ...
-func (x *NodeWorkflowOperationInstanceListStatusReq) ConvertConditionsFromTypes(
-	condition *types.NodeWorkflowOperInstanceStatusCondition) error {
-
-	exactCond, fuzzyCond, err := convertNodeWorkOperaInstanceStatusConditionsFromTypes(condition)
-	if err != nil {
-		return err
-	}
-
-	x.ExactIncludeConditions = exactCond
-	x.FuzzyIncludeConditions = fuzzyCond
-
-	return nil
-}
-
-// Validate check body.
 func (x *NodeWorkflowOperationInstanceLogGetReq) Validate() error {
 	if x.GetOperInstId() == "" {
 		return errors.New("workflow_id is required and cannot be empty")
@@ -743,6 +661,53 @@ func (x *NodeWorkflowOperationManualInfoGetResp) ConvertManualInfoToTypes() *typ
 	}
 }
 
+// Validate validates the request.
+func (x *NodeWorkflowOperationInstanceStatusDistributionListReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto converts the request.
+func (x *NodeWorkflowOperationInstanceStatusDistributionListReq) AutoConvert() {
+}
+
+// ConvertDistributionFromTypes converts distribution from types.
+func (x *NodeWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionFromTypes(
+	distribution map[string]map[string]int64) {
+
+	if distribution == nil {
+		return
+	}
+
+	items := make(map[string]*NodeWorkflowOperationInstanceStatusDistributionListResp_StatusDistribution)
+	for triggerID, stateMap := range distribution {
+		items[triggerID] = &NodeWorkflowOperationInstanceStatusDistributionListResp_StatusDistribution{
+			StateCounts: stateMap,
+		}
+	}
+
+	x.Data = &NodeWorkflowOperationInstanceStatusDistributionListResp_Data{
+		Items: items,
+	}
+}
+
+// ConvertDistributionToTypes converts distribution to types.
+func (x *NodeWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionToTypes() map[string]map[string]int64 {
+	data := x.GetData()
+	if data == nil {
+		return make(map[string]map[string]int64)
+	}
+
+	result := make(map[string]map[string]int64)
+	for triggerID, statusDist := range data.GetItems() {
+		if statusDist == nil {
+			continue
+		}
+		result[triggerID] = statusDist.GetStateCounts()
+	}
+
+	return result
+}
+
 func convertNodeWorkflowConditionsToTypes(
 	exactCond *NodeWorkflowExactConditions,
 	_ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) *types.NodeWorkflowCondition {
@@ -843,29 +808,6 @@ func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperati
 			BkHostInnerip:   condition.ExactInclude.InnerIP,
 			BkHostInneripV6: condition.ExactInclude.InnerIPv6,
 			NodeVersion:     condition.ExactInclude.NodeVersion,
-		}
-	}
-
-	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
-	}
-
-	return exactCond, fuzzyCond, nil
-}
-
-func convertNodeWorkOperaInstanceStatusConditionsFromTypes(condition *types.NodeWorkflowOperInstanceStatusCondition) (
-	*NodeWorkflowInstanceStatusExactConditions, *NodeWorkflowInstanceStatusFuzzyConditions, error) {
-
-	if condition == nil {
-		return nil, nil, nil
-	}
-
-	var exactCond *NodeWorkflowInstanceStatusExactConditions
-	var fuzzyCond *NodeWorkflowInstanceStatusFuzzyConditions
-
-	if condition.ExactInclude != nil {
-		exactCond = &NodeWorkflowInstanceStatusExactConditions{
-			TriggerId: condition.ExactInclude.TriggerID,
 		}
 	}
 

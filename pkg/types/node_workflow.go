@@ -184,6 +184,22 @@ const (
 	NodeWorkflowOperationStateTerminated NodeWorkflowOperationState = "terminated"
 )
 
+// Validate validates the node workflow operation state.
+func (state NodeWorkflowOperationState) Validate() error {
+	switch state {
+	case NodeWorkflowOperationStateInit,
+		NodeWorkflowOperationStateLaunched,
+		NodeWorkflowOperationStateRunning,
+		NodeWorkflowOperationStateSuccess,
+		NodeWorkflowOperationStateFailed,
+		NodeWorkflowOperationStateTimeout,
+		NodeWorkflowOperationStateTerminated:
+		return nil
+	default:
+		return fmt.Errorf("invalid node workflow operation state. state(%s)", state)
+	}
+}
+
 // NodeWorkflowOperationStatusListToStringList converts a node status list to a string list.
 func NodeWorkflowOperationStatusListToStringList(operationStatusList []NodeWorkflowOperationState) []string {
 	data := make([]string, len(operationStatusList))

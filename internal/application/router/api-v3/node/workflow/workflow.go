@@ -117,39 +117,41 @@ func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	var instanceStatus []*operation.InstanceStatus
-	if len(workflows) > 0 {
-		instanceStatus, err = h.backendHandler.ListNodeWorkflowOperationInstanceStatus(
-			rCtx, convertWorkflowToTriggerID(workflows))
-		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow instance status: %v", err)
-			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	// if no workflow, return empty result.
+	if len(workflows) == 0 {
+		resp := new(protoApplication.NodeWorkflowStatisticsResp)
+		if err := resp.ConvertNodeWorkflowsFromDistribution(req.GetWorkflowId(), nil, nil); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to convert distribution")
+
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
+
+		return resp.GetData(), nil
 	}
 
-	workflowStatusMap := make(map[string]map[string]*types.NodeWorkflowOperationStatus)
-	for _, instatus := range instanceStatus {
-		innerMap, exists := workflowStatusMap[instatus.TriggerID]
-		if !exists {
-			innerMap = make(map[string]*types.NodeWorkflowOperationStatus)
-			workflowStatusMap[instatus.TriggerID] = innerMap
-		}
-
-		current, exists := innerMap[instatus.OperationID]
-		if !exists || current.Index < instatus.Index {
-			innerMap[instatus.OperationID] = &types.NodeWorkflowOperationStatus{
-				OperationID: instatus.OperationID,
-				Index:       instatus.Index,
-				TriggerID:   instatus.TriggerID,
-				State:       types.NodeWorkflowOperationState(instatus.State),
-			}
-		}
+	triggerIDs := make([]string, len(workflows))
+	triggerToWorkflowMap := make(map[string]string, len(workflows))
+	for idx, wf := range workflows {
+		triggerIDs[idx] = wf.TriggerID
+		triggerToWorkflowMap[wf.TriggerID] = wf.WorkflowID
 	}
 
-	result := calculateStats(workflows, workflowStatusMap, req.GetWorkflowId())
+	// get latest operation instance status distribution by trigger id.
+	distribution, err := h.backendHandler.ListNodeWorkflowOperationInstanceStatusDistribution(
+		rCtx, triggerIDs)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to get latest operation instance status distribution")
 
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	// convert distribution to response.
 	resp := new(protoApplication.NodeWorkflowStatisticsResp)
-	resp.ConvertNodeWorkflowsFromTypes(result)
+	if err := resp.ConvertNodeWorkflowsFromDistribution(req.GetWorkflowId(), distribution, triggerToWorkflowMap); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow,failed to connvert distribution")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 
 	return resp.GetData(), nil
 }
@@ -375,65 +377,6 @@ func (h *handler) GetManualSolution(rCtx restserver.IContext) (interface{}, erro
 	resp.ConvertResultFromTypes(manualInfo)
 
 	return resp.GetData(), nil
-}
-
-func convertWorkflowToTriggerID(workflows []*types.NodeWorkflow) *types.NodeWorkflowOperInstanceStatusCondition {
-	triggerIDs := make([]string, len(workflows))
-	for i, workflow := range workflows {
-		triggerIDs[i] = workflow.TriggerID
-	}
-
-	return &types.NodeWorkflowOperInstanceStatusCondition{
-		ExactInclude: &types.NodeWorkflowOperInstanceStatusExactFields{
-			TriggerID: triggerIDs,
-		},
-	}
-}
-
-func calculateStats(workflows []*types.NodeWorkflow, statusMap map[string]map[string]*types.NodeWorkflowOperationStatus,
-	reqIDs []string) []*protoApplication.NodeWorkflowStatistics {
-
-	idIndexMap := make(map[string]int)
-	for i, id := range reqIDs {
-		idIndexMap[id] = i
-	}
-
-	result := make([]*protoApplication.NodeWorkflowStatistics, len(reqIDs))
-	for i, id := range reqIDs {
-		result[i] = &protoApplication.NodeWorkflowStatistics{WorkflowID: id}
-	}
-
-	for _, workflow := range workflows {
-		idx, exists := idIndexMap[workflow.WorkflowID]
-		if !exists {
-			continue
-		}
-
-		if innerMap, exists := statusMap[workflow.TriggerID]; exists {
-			statusList := result[idx]
-			for _, inst := range innerMap {
-				statusList.TotalCount++
-				switch inst.State {
-				case types.NodeWorkflowOperationStateInit:
-					statusList.InitCount++
-				case types.NodeWorkflowOperationStateRunning:
-					statusList.RunningCount++
-				case types.NodeWorkflowOperationStateLaunched:
-					statusList.LaunchedCount++
-				case types.NodeWorkflowOperationStateSuccess:
-					statusList.SuccessCount++
-				case types.NodeWorkflowOperationStateFailed:
-					statusList.FailedCount++
-				case types.NodeWorkflowOperationStateTimeout:
-					statusList.TimeoutCount++
-				case types.NodeWorkflowOperationStateTerminated:
-					statusList.TerminatedCount++
-				}
-			}
-		}
-	}
-
-	return result
 }
 
 func (h *handler) listAllBusiness(rCtx restserver.IContext) (map[int64]string, error) {
