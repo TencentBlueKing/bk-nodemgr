@@ -141,7 +141,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	// handle extra execution before action executed. if retry happens, action maybe not first
 	if execErr := mgr.doOperExtraExecution(nCtx, operInstBriefData); execErr != nil {
 		operInstBriefData.Lifecycle.End(action.StateFailed)
-		err = mgr.updateOperationInstanceLifecycleAndLatestBriefData(nCtx, operInstBriefData)
+		err = mgr.refreshOperationInstanceState(nCtx, operInstBriefData)
 		if err != nil {
 			return fmt.Errorf("update operation instance lifecycle failed: %w, start execution failed: %w",
 				err, execErr)
@@ -153,7 +153,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 	// handle operation instance lifecycle.
 	if !operInstBriefData.Lifecycle.IsRunning() {
 		operInstBriefData.Lifecycle.Start()
-		if err = mgr.updateOperationInstanceLifecycleAndLatestBriefData(nCtx, operInstBriefData); err != nil {
+		if err = mgr.refreshOperationInstanceState(nCtx, operInstBriefData); err != nil {
 			return err
 		}
 	}
@@ -211,7 +211,7 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		defer metric.OperationInstanceProcessed(operInstBriefData)
 
 		operInstBriefData.Lifecycle.End(actionInstData.Lifecycle.State)
-		if err = mgr.updateOperationInstanceLifecycleAndLatestBriefData(nCtx, operInstBriefData); err != nil {
+		if err = mgr.refreshOperationInstanceState(nCtx, operInstBriefData); err != nil {
 			return fmt.Errorf("failed to update operation instance lifecycle. err: %v, execution-error(%v)",
 				err, executeErr)
 		}
@@ -257,8 +257,8 @@ func (mgr *manager) updateActionContent(
 	return nil
 }
 
-// updateOperationInstanceLifecycleAndLatestBriefData updates operation instance lifecycle and operation's latest instance brief data.
-func (mgr *manager) updateOperationInstanceLifecycleAndLatestBriefData(
+// refreshOperationInstanceState refreshes operation instance state and latest instance brief data.
+func (mgr *manager) refreshOperationInstanceState(
 	ctx contextx.IContext,
 	operInstBriefData *operation.InstanceBriefData) error {
 
