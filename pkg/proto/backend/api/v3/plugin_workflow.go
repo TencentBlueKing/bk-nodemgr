@@ -623,113 +623,6 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInst
 	return result
 }
 
-// Validate check body.
-func (x *PluginWorkflowOperationInstanceListStatusReq) Validate() error {
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PluginWorkflowOperationInstanceListStatusReq) AutoConvert() {
-}
-
-// ConvertPageToTypes convert page to types.
-func (x *PluginWorkflowOperationInstanceListStatusReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
-}
-
-// ConvertListStatusConditionsToTypes ...
-func (x *PluginWorkflowOperationInstanceListStatusReq) ConvertListStatusConditionsToTypes() *types.OperInstDataCondition {
-	return &types.OperInstDataCondition{
-		ExactInclude: &types.OperInstDataExactFields{
-			TriggerID: x.GetExactIncludeConditions().GetTriggerId(),
-			State:     operation.GetAllStates(),
-		},
-	}
-}
-
-// ConvertConditionsFromTypes ...
-func (x *PluginWorkflowOperationInstanceListStatusReq) ConvertConditionsFromTypes(
-	condition *types.PluginWorkflowOperInstanceStatusCondition) error {
-
-	exactCond, fuzzyCond, err := convertPluginWorkOperaInstanceStatusConditionsFromTypes(condition)
-	if err != nil {
-		return err
-	}
-
-	x.ExactIncludeConditions = exactCond
-	x.FuzzyIncludeConditions = fuzzyCond
-
-	return nil
-}
-
-// ConvertWorkflowOperInstanceStatusFromTypes ...
-func (x *PluginWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperInstanceStatusFromTypes(
-	result []*operation.InstanceBriefData) {
-
-	items := make([]*WorkflowOperationInstanceStatus, 0)
-	for _, opinstance := range result {
-		item := &WorkflowOperationInstanceStatus{
-			Index:               int64(opinstance.Metadata.Index),
-			Status:              string(opinstance.Lifecycle.State),
-			OperationId:         opinstance.Metadata.OperationID,
-			TriggerId:           opinstance.Metadata.TriggerID,
-			OperationInstanceId: opinstance.Metadata.OperationInstanceID,
-		}
-
-		items = append(items, item)
-	}
-
-	x.Data = &PluginWorkflowOperationInstanceListStatusResp_Data{
-		Items: items,
-	}
-}
-
-// ConvertWorkflowOperationInstanceStatusToTypes convert workflow operation instance status to types.
-func (x *PluginWorkflowOperationInstanceListStatusResp) ConvertWorkflowOperationInstanceStatusToTypes() []*operation.InstanceStatus {
-	data := x.GetData()
-	if data == nil {
-		return nil
-	}
-
-	items := data.GetItems()
-
-	result := make([]*operation.InstanceStatus, 0)
-	for _, value := range items {
-		result = append(result, &operation.InstanceStatus{
-			TriggerID:           value.GetTriggerId(),
-			State:               operation.State(value.GetStatus()),
-			Index:               int(value.GetIndex()),
-			OperationID:         value.GetOperationId(),
-			OperationInstanceID: value.GetOperationInstanceId(),
-		})
-	}
-
-	return result
-}
-
-func convertPluginWorkOperaInstanceStatusConditionsFromTypes(condition *types.PluginWorkflowOperInstanceStatusCondition) (
-	*PluginWorkflowInstanceStatusExactConditions, *PluginWorkflowInstanceStatusFuzzyConditions, error) {
-
-	if condition == nil {
-		return nil, nil, nil
-	}
-
-	var exactCond *PluginWorkflowInstanceStatusExactConditions
-	var fuzzyCond *PluginWorkflowInstanceStatusFuzzyConditions
-
-	if condition.ExactInclude != nil {
-		exactCond = &PluginWorkflowInstanceStatusExactConditions{
-			TriggerId: condition.ExactInclude.TriggerID,
-		}
-	}
-
-	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
-	}
-
-	return exactCond, fuzzyCond, nil
-}
-
 // AutoConvert auto convert.
 func (x *PluginWorkflowOperationRetryReq) AutoConvert() {
 }
@@ -781,4 +674,51 @@ func (x *PluginWorkflowOperationTerminateReq) Validate() error {
 func (x *PluginWorkflowOperationTerminateReq) ConvertOperationTerminateParamFromTypes(terminateParam *types.PluginWorkflowOperationTerminateParam) {
 	x.WorkflowId = terminateParam.WorkflowID
 	x.OperationIds = terminateParam.OperationIDs
+}
+
+// Validate validates the request.
+func (x *PluginWorkflowOperationInstanceStatusDistributionListReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto converts the request.
+func (x *PluginWorkflowOperationInstanceStatusDistributionListReq) AutoConvert() {
+}
+
+// ConvertDistributionFromTypes converts distribution from types.
+func (x *PluginWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionFromTypes(
+	distribution map[string]map[string]int64) {
+
+	if distribution == nil {
+		return
+	}
+
+	items := make(map[string]*PluginWorkflowOperationInstanceStatusDistributionListResp_StatusDistribution)
+	for triggerID, stateMap := range distribution {
+		items[triggerID] = &PluginWorkflowOperationInstanceStatusDistributionListResp_StatusDistribution{
+			StateCounts: stateMap,
+		}
+	}
+
+	x.Data = &PluginWorkflowOperationInstanceStatusDistributionListResp_Data{
+		Items: items,
+	}
+}
+
+// ConvertDistributionToTypes converts distribution to types.
+func (x *PluginWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionToTypes() map[string]map[string]int64 {
+	data := x.GetData()
+	if data == nil {
+		return make(map[string]map[string]int64)
+	}
+
+	result := make(map[string]map[string]int64)
+	for triggerID, statusDist := range data.GetItems() {
+		if statusDist == nil {
+			continue
+		}
+		result[triggerID] = statusDist.GetStateCounts()
+	}
+
+	return result
 }

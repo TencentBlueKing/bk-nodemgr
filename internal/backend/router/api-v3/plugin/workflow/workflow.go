@@ -66,7 +66,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
 	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
-	h.rg.POST("/operation/instance/status/list", restserver.Handler(h.ListOperationInstanceStatus))
+	h.rg.POST("/operation/instance/status_distribution/list", restserver.Handler(h.ListOperationInstanceStatusDistribution))
 	h.rg.POST("/operation/instance/log/get", restserver.Handler(h.GetOperationInstanceLog))
 }
 
@@ -299,22 +299,22 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 	return resp.GetData(), nil
 }
 
-// ListOperationInstanceStatus list workflow operation instance status.
-func (h *handler) ListOperationInstanceStatus(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.PluginWorkflowOperationInstanceListStatusReq)
+// ListOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
+func (h *handler) ListOperationInstanceStatusDistribution(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginWorkflowOperationInstanceStatusDistributionListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance status, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance status distribution, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, _, err := h.storageWorkflow.ListOperationInstanceBriefDataWithoutActionInst(rCtx, types.UnlimitedPage(),
-		req.ConvertListStatusConditionsToTypes())
+	result, err := h.storageWorkflow.GetLatestOperationInstanceStatusDistributionByTriggerID(rCtx, req.GetTriggerId()...)
 	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance status distribution")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	resp := new(protoBackend.PluginWorkflowOperationInstanceListStatusResp)
-	resp.ConvertWorkflowOperInstanceStatusFromTypes(result)
+	resp := new(protoBackend.PluginWorkflowOperationInstanceStatusDistributionListResp)
+	resp.ConvertDistributionFromTypes(result)
 
 	return resp.GetData(), nil
 }

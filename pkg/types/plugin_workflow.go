@@ -168,6 +168,22 @@ const (
 	PluginWorkflowOperationStateTerminated PluginWorkflowOperationState = "terminated"
 )
 
+// Validate validates the plugin workflow operation state.
+func (state PluginWorkflowOperationState) Validate() error {
+	switch state {
+	case PluginWorkflowOperationStateInit,
+		PluginWorkflowOperationStateLaunched,
+		PluginWorkflowOperationStateRunning,
+		PluginWorkflowOperationStateSuccess,
+		PluginWorkflowOperationStateFailed,
+		PluginWorkflowOperationStateTimeout,
+		PluginWorkflowOperationStateTerminated:
+		return nil
+	default:
+		return fmt.Errorf("invalid plugin workflow operation state. state(%s)", state)
+	}
+}
+
 // PluginWorkflowOperationStatusListToStringList converts a plugin status list to a string list.
 func PluginWorkflowOperationStatusListToStringList(operationStatusList []PluginWorkflowOperationState) []string {
 	data := make([]string, len(operationStatusList))

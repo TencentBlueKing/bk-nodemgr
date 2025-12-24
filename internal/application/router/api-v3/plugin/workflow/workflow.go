@@ -108,38 +108,39 @@ func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	var instanceStatus []*operation.InstanceStatus
-	if len(workflows) > 0 {
-		instanceStatus, err = h.backendHandler.ListPluginWorkflowOperationInstanceStatus(rCtx, convertWorkflowToTriggerID(workflows))
-		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow instance status: %v", err)
-			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	if len(workflows) == 0 {
+		resp := new(protoApplication.PluginWorkflowStatisticsResp)
+		if err := resp.ConvertPluginWorkflowsFromDistribution(req.GetWorkflowId(), nil, nil); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to convert distribution")
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
+
+		return resp.GetData(), nil
 	}
 
-	workflowStatusMap := make(map[string]map[string]*types.PluginWorkflowOperationStatus)
-	for _, instatus := range instanceStatus {
-		innerMap, exists := workflowStatusMap[instatus.TriggerID]
-		if !exists {
-			innerMap = make(map[string]*types.PluginWorkflowOperationStatus)
-			workflowStatusMap[instatus.TriggerID] = innerMap
-		}
-
-		current, exists := innerMap[instatus.OperationID]
-		if !exists || current.Index < instatus.Index {
-			innerMap[instatus.OperationID] = &types.PluginWorkflowOperationStatus{
-				OperationID: instatus.OperationID,
-				Index:       instatus.Index,
-				TriggerID:   instatus.TriggerID,
-				State:       types.PluginWorkflowOperationState(instatus.State),
-			}
-		}
+	triggerIDs := make([]string, len(workflows))
+	triggerToWorkflowMap := make(map[string]string, len(workflows))
+	for idx, wf := range workflows {
+		triggerIDs[idx] = wf.TriggerID
+		triggerToWorkflowMap[wf.TriggerID] = wf.WorkflowID
 	}
 
-	result := calculateStats(workflows, workflowStatusMap, req.GetWorkflowId())
+	// get latest operation instance status distribution by trigger id.
+	distribution, err := h.backendHandler.ListPluginWorkflowOperationInstanceStatusDistribution(
+		rCtx, triggerIDs)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to get latest operation instance status distribution")
 
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	// convert distribution to response.
 	resp := new(protoApplication.PluginWorkflowStatisticsResp)
-	resp.ConvertPluginWorkflowsFromTypes(result)
+	if err := resp.ConvertPluginWorkflowsFromDistribution(req.GetWorkflowId(), distribution, triggerToWorkflowMap); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to convert distribution")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 
 	return resp.GetData(), nil
 }
@@ -338,65 +339,6 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 	resp := new(protoApplication.PluginWorkflowOperationTerminateResp)
 
 	return resp.GetData(), nil
-}
-
-func convertWorkflowToTriggerID(workflows []*types.PluginWorkflow) *types.PluginWorkflowOperInstanceStatusCondition {
-	triggerIDs := make([]string, len(workflows))
-	for i, workflow := range workflows {
-		triggerIDs[i] = workflow.TriggerID
-	}
-
-	return &types.PluginWorkflowOperInstanceStatusCondition{
-		ExactInclude: &types.PluginWorkflowOperInstanceStatusExactFields{
-			TriggerID: triggerIDs,
-		},
-	}
-}
-
-func calculateStats(workflows []*types.PluginWorkflow, statusMap map[string]map[string]*types.PluginWorkflowOperationStatus,
-	reqIDs []string) []*protoApplication.PluginWorkflowStatistics {
-
-	idIndexMap := make(map[string]int)
-	for i, id := range reqIDs {
-		idIndexMap[id] = i
-	}
-
-	result := make([]*protoApplication.PluginWorkflowStatistics, len(reqIDs))
-	for i, id := range reqIDs {
-		result[i] = &protoApplication.PluginWorkflowStatistics{WorkflowID: id}
-	}
-
-	for _, workflow := range workflows {
-		idx, exists := idIndexMap[workflow.WorkflowID]
-		if !exists {
-			continue
-		}
-
-		if innerMap, exists := statusMap[workflow.TriggerID]; exists {
-			statusList := result[idx]
-			for _, inst := range innerMap {
-				statusList.TotalCount++
-				switch inst.State {
-				case types.PluginWorkflowOperationStateInit:
-					statusList.InitCount++
-				case types.PluginWorkflowOperationStateRunning:
-					statusList.RunningCount++
-				case types.PluginWorkflowOperationStateLaunched:
-					statusList.LaunchedCount++
-				case types.PluginWorkflowOperationStateSuccess:
-					statusList.SuccessCount++
-				case types.PluginWorkflowOperationStateFailed:
-					statusList.FailedCount++
-				case types.PluginWorkflowOperationStateTimeout:
-					statusList.TimeoutCount++
-				case types.PluginWorkflowOperationStateTerminated:
-					statusList.TerminatedCount++
-				}
-			}
-		}
-	}
-
-	return result
 }
 
 func groupInstancesByOperationID(

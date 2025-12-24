@@ -76,12 +76,11 @@ type IHandlerPluginWorkflow interface {
 	// @return the plugin-workflow distinct result.
 	GetPluginWorkflowOperationInstanceLog(ctx contextx.IContext, instanceID string) (*operation.InstanceData, error)
 
-	// ListPluginWorkflowOperationInstanceStatus list plugin workflow operation instance status.
-	// @param ctx contextx, contains tenant-id.
-	// @param triggerID the trigger id.
-	// @return the operation instance status list.
-	ListPluginWorkflowOperationInstanceStatus(ctx contextx.IContext,
-		condition *types.PluginWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error)
+	// ListPluginWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
+	// @param ctx contextx.IContext, contains tenant-id.
+	// @param triggerIDs the trigger ids.
+	// @return the latest operation instance status distribution: map[trigger-id]map[state]count and the error.
+	ListPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, triggerIDs []string) (map[string]map[string]int64, error)
 
 	// RetryPluginWorkflowOperation retry plugin operation.
 	// @param ctx contextx.IContext, contains tenant-id and username.
@@ -244,26 +243,20 @@ func (h *Handler) GetPluginWorkflowOperationInstanceLog(ctx contextx.IContext, i
 	return operations, nil
 }
 
-// ListPluginWorkflowOperationInstanceStatus list workflow operation instance status.
-func (h *Handler) ListPluginWorkflowOperationInstanceStatus(ctx contextx.IContext,
-	conditions *types.PluginWorkflowOperInstanceStatusCondition) ([]*operation.InstanceStatus, error) {
-
-	req := &protoBackend.PluginWorkflowOperationInstanceListStatusReq{
-		Page: &protoBackend.Page{},
+// ListPluginWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
+func (h *Handler) ListPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, triggerIDs []string) (map[string]map[string]int64, error) {
+	req := &protoBackend.PluginWorkflowOperationInstanceStatusDistributionListReq{
+		TriggerId: triggerIDs,
 	}
 
-	if err := req.ConvertConditionsFromTypes(conditions); err != nil {
-		return nil, err
-	}
-
-	resp, err := h.cli.listPluginWorkflowOperationInstanceStatus(ctx, req)
+	resp, err := h.cli.listPluginWorkflowOperationInstanceStatusDistribution(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	instanceStatus := resp.ConvertWorkflowOperationInstanceStatusToTypes()
+	distribution := resp.ConvertDistributionToTypes()
 
-	return instanceStatus, nil
+	return distribution, nil
 }
 
 // RetryPluginWorkflowOperation retry node workflow operation.
