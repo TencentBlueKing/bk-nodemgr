@@ -22,7 +22,7 @@ export interface AgentInstallInfo {
 export interface NodeAgentInstallReq {
   info: AgentInstallInfo[];
   target_version: TargetVersion[];
-  disable_default_target_version: boolean;
+  is_manual: boolean;
 }
 
 // NodeAgentInstallResp describes the node agent install response.

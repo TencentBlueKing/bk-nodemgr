@@ -334,6 +334,116 @@ export interface TopoHostListRespData {
   items: Host[];
 }
 
+// TopoHostSelectHostIDReq describes the HTTP request body when select host
+// id in topo service.
+export interface TopoHostSelectHostIDReq {
+  exact_include_conditions: TopoHostExactConditions;
+  fuzzy_include_conditions: TopoHostFuzzyConditions;
+  exact_exclude_conditions: TopoHostExactConditions;
+}
+
+// TopoHostSelectHostIDResp  describes the HTTP response body when select
+// host id in topo service.
+export interface TopoHostSelectHostIDResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: TopoHostSelectHostIDRespData;
+}
+
+export interface TopoHostSelectHostIDRespData {
+  items: number[];
+}
+
+// TopoHostSelectInnerIPReq describes the HTTP request body when select host
+// inner ip in topo service.
+export interface TopoHostSelectInnerIPReq {
+  exact_include_conditions: TopoHostExactConditions;
+  fuzzy_include_conditions: TopoHostFuzzyConditions;
+  exact_exclude_conditions: TopoHostExactConditions;
+}
+
+// TopoHostSelectInnerIPResp  describes the HTTP response body when select
+// host inner ip in topo service.
+export interface TopoHostSelectInnerIPResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: TopoHostSelectInnerIPRespData;
+}
+
+export interface TopoHostSelectInnerIPRespData {
+  items: string[];
+}
+
+// TopoHostSelectInnerIPV6Req describes the HTTP request body when select host
+// inner ipv6 in topo service.
+export interface TopoHostSelectInnerIPV6Req {
+  exact_include_conditions: TopoHostExactConditions;
+  fuzzy_include_conditions: TopoHostFuzzyConditions;
+  exact_exclude_conditions: TopoHostExactConditions;
+}
+
+// TopoHostSelectInnerIPV6Resp  describes the HTTP response body when select
+// host inner ipv6 in topo service.
+export interface TopoHostSelectInnerIPV6Resp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: TopoHostSelectInnerIPV6RespData;
+}
+
+export interface TopoHostSelectInnerIPV6RespData {
+  items: string[];
+}
+
+// TopoHostSelectNetWorkareaIDAndInnerIPReq describes the HTTP request body when
+// select host networkarea id and inner ip in topo service.
+export interface TopoHostSelectNetWorkareaIDAndInnerIPReq {
+  exact_include_conditions: TopoHostExactConditions;
+  fuzzy_include_conditions: TopoHostFuzzyConditions;
+  exact_exclude_conditions: TopoHostExactConditions;
+}
+
+// TopoHostSelectNetWorkareaIDAndInnerIPResp  describes the HTTP response body
+// when select host networkarea id and inner ip in topo service.
+export interface TopoHostSelectNetWorkareaIDAndInnerIPResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: TopoHostSelectNetWorkareaIDAndInnerIPRespData;
+}
+
+export interface TopoHostSelectNetWorkareaIDAndInnerIPRespData {
+  items: string[];
+}
+
+// TopoHostSelectNetWorkareaIDAndInnerIPV6Req describes the HTTP request body
+// when select host networkarea id and inner ipv6 in topo service.
+export interface TopoHostSelectNetWorkareaIDAndInnerIPV6Req {
+  exact_include_conditions: TopoHostExactConditions;
+  fuzzy_include_conditions: TopoHostFuzzyConditions;
+  exact_exclude_conditions: TopoHostExactConditions;
+}
+
+// TopoHostSelectNetWorkareaIDAndInnerIPV6Resp  describes the HTTP response body
+// when select host networkarea id and inner ipv6 in topo service.
+export interface TopoHostSelectNetWorkareaIDAndInnerIPV6Resp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: TopoHostSelectNetWorkareaIDAndInnerIPV6RespData;
+}
+
+export interface TopoHostSelectNetWorkareaIDAndInnerIPV6RespData {
+  items: string[];
+}
+
 // TopoHostDistinctReq describes the HTTP request body when distinct host in
 // topp service.
 export interface TopoHostDistinctReq {

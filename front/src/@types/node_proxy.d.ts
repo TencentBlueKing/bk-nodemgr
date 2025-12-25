@@ -16,7 +16,9 @@ export interface NodeProxyInstallHost {
   login_password: string;
   login_key_file: string;
   export_ip: string;
+  export_ip_v6: string;
   advertise_ip: string;
+  advertise_ip_v6: string;
   re_register: boolean;
   proxy_tags: string[];
   proxy_install_origin_unit_id: number;
@@ -28,6 +30,7 @@ export interface NodeProxyInstallHost {
 export interface NodeProxyInstallReq {
   host: NodeProxyInstallHost[];
   target_version: TargetVersion[];
+  is_manual: boolean;
 }
 
 // NodeProxyInstallResp describes the node proxy install response.
@@ -127,7 +130,9 @@ export interface NodeProxyUpdateHost {
   login_password: string;
   login_key_file: string;
   export_ip: string;
+  export_ip_v6: string;
   advertise_ip: string;
+  advertise_ip_v6: string;
   proxy_tags: string[];
 }
 

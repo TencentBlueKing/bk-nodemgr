@@ -95,7 +95,7 @@
 <script lang="ts" setup>
 // 排序类型
 import { Button, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
-import { AngleDown, AngleRight,EditLine } from 'bkui-vue/lib/icon';
+import { AngleDown, AngleRight, EditLine } from 'bkui-vue/lib/icon';
 import { isArray } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -270,34 +270,65 @@ const handleUpload = () => {
   isShow.value = true;
 };
 
+// 根据类型获取对应的列表服务方法
+const getListServiceMethod = () => {
+  const type = currentType.value;
+  const serviceMap = {
+    cert: PackageService.ListReleaseCert,
+    bintool: PackageService.ListReleaseBinTool,
+    plugin_bintool: PackageService.ListReleasePluginBinTool,
+  };
+  return serviceMap[type as keyof typeof serviceMap] || serviceMap.cert;
+};
+
 const getPackages = async () => {
   loading.value = true;
-  const res = await PackageService.ListRelease({
-    release_type: currentType.value,
-    generation: 2,
-  }).catch(() => ({
-    items: [],
-  }));
-  const items = res.items.map((item, index) => ({
-    ...item,
-    labels: item.labels || [],
-  }));
-  originPackageList.value = items;
-  packageList.value = items;
-  loading.value = false;
+
+  try {
+    const serviceMethod = getListServiceMethod();
+    const res = await serviceMethod({ generation: 2 });
+    const list = res.items.map(item => ({
+      ...item.release,
+    }));
+    originPackageList.value = list;
+    packageList.value = list;
+  } catch (error) {
+    console.error('获取包列表失败:', error);
+    originPackageList.value = [];
+    packageList.value = [];
+  } finally {
+    loading.value = false;
+  }
 };
 const getParams = (row: Release) => ({
   generation: row.generation,
-  release_type: row.release_type,
-  platform: {
-    os_type: row.os_type,
-    cpu_arch: row.cpu_arch,
-  },
-  version: row.version,
+  name: row.name,
 });
+
+// 根据类型获取对应的删除服务方法
+const getDeleteServiceMethod = () => {
+  const type = currentType.value;
+  const serviceMap = {
+    cert: PackageService.DeleteReleaseCert,
+    bintool: PackageService.DeleteReleaseBinTool,
+    plugin_bintool: PackageService.DeleteReleasePluginBinTool,
+  };
+  return serviceMap[type as keyof typeof serviceMap] || serviceMap.cert;
+};
+
+// 通用操作处理函数
+const handleOperation = async (row: Release, serviceMethod: (params: any) => Promise<any>) => {
+  try {
+    await serviceMethod(getParams(row));
+    await getPackages();
+  } catch (error) {
+    console.error('操作失败:', error);
+    // 可以在这里添加错误提示或重试逻辑
+  }
+};
+
 const handleDelete = async (row: Release) => {
-  await PackageService.DeleteRelease(getParams(row));
-  await getPackages();
+  await handleOperation(row, getDeleteServiceMethod());
 };
 const handleConfirm = async () => {
   await getPackages();
@@ -313,15 +344,14 @@ watch(
     originPackageList,
   ],
   () => {
-    packageList.value = originPackageList.value.filter((row: Release) =>
-      searchSelectValue.value.every((searchItem: any) => {
-        const { id: searchField, values } = searchItem;
-        const searchIds = values?.map((value: {id: string}) => value.id);
-        if (isArray(row[searchField])) {
-          return !!row[searchField].find((el: string) => searchIds.includes(el));
-        }
-        return searchIds.includes(row[searchField]);
-      }));
+    packageList.value = originPackageList.value.filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
+      const { id: searchField, values } = searchItem;
+      const searchIds = values?.map((value: {id: string}) => value.id);
+      if (isArray(row[searchField])) {
+        return !!row[searchField].find((el: string) => searchIds.includes(el));
+      }
+      return searchIds.includes(row[searchField]);
+    }));
   },
   { immediate: true, deep: true },
 );

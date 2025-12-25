@@ -384,8 +384,6 @@ export interface PackagePublishReleasePluginBinToolRespData {
 
 // PackageReleaseExactConditions describes release exact conditions.
 export interface PackageReleaseExactConditions {
-  generation: number[];
-  release_type: string[];
   platform: Platform[];
   version: string[];
   as_default: boolean[];
@@ -394,32 +392,19 @@ export interface PackageReleaseExactConditions {
   file_name: string[];
 }
 
-// PackageReleaseListReq describes the HTTP request body when list package
-// release.
-export interface PackageReleaseListReq {
-  page: Page;
-  release_type: string;
-  generation: number;
-  only_count: boolean;
-  exact_include_conditions: PackageReleaseExactConditions;
+// PackageReleaseDistinctField describes the release distinct field.
+export interface PackageReleaseDistinctField {
+  os_type: boolean;
+  cpu_arch: boolean;
 }
 
-// PackageReleaseListResp describes the HTTP response body when list package
-// release.
-export interface PackageReleaseListResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: PackageReleaseListRespData;
+// PackageReleaseDistinctData describes the release distinct data.
+export interface PackageReleaseDistinctData {
+  os_type: string[];
+  cpu_arch: string[];
 }
 
-export interface PackageReleaseListRespData {
-  total: number;
-  items: Release[];
-}
-
-// PackageReleaseAgentListReq describes the HTTP request body when list package
+// PackageReleaseAgentListReq describes the HTTP request body when list agent
 // release.
 export interface PackageReleaseAgentListReq {
   page: Page;
@@ -428,8 +413,8 @@ export interface PackageReleaseAgentListReq {
   exact_include_conditions: PackageReleaseExactConditions;
 }
 
-// PackageReleaseAgentListResp describes the HTTP response body when list
-// package release.
+// PackageReleaseAgentListResp describes the HTTP response body when list agent
+// release.
 export interface PackageReleaseAgentListResp {
   code: number;
   message: string;
@@ -443,7 +428,189 @@ export interface PackageReleaseAgentListRespData {
   items: ReleaseAgent[];
 }
 
-// PackageReleaseProxyListReq describes the HTTP request body when list package
+// PackageReleaseAgentDistinctReq describes the HTTP request body when distinct
+// agent release.
+export interface PackageReleaseAgentDistinctReq {
+  generation: number;
+  exact_include_conditions: PackageReleaseExactConditions;
+  distinct_field: PackageReleaseDistinctField;
+}
+
+// PackageReleaseAgentDistinctResp describes the HTTP response body when
+// distinct agent release.
+export interface PackageReleaseAgentDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseDistinctData;
+}
+
+// PackageReleaseAgentSetLabelsManyReq describes the HTTP request body when set
+// many labels to agent release.
+export interface PackageReleaseAgentSetLabelsManyReq {
+  generation: number;
+  exact_include_conditions: PackageReleaseExactConditions;
+  labels: string[];
+}
+
+// PackageReleaseAgentSetLabelsManyResp describes the HTTP response body when
+// set many labels to agent release.
+export interface PackageReleaseAgentSetLabelsManyResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseAgentSetLabelsManyRespData;
+}
+
+export interface PackageReleaseAgentSetLabelsManyRespData {
+}
+
+// PackageReleaseAgentEnableReq describes the HTTP request body when enable
+// agent release.
+export interface PackageReleaseAgentEnableReq {
+  generation: number;
+  release_type: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseAgentEnableResp describes the HTTP response body when enable
+// agent release.
+export interface PackageReleaseAgentEnableResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseAgentEnableRespData;
+}
+
+export interface PackageReleaseAgentEnableRespData {
+}
+
+// PackageReleaseAgentDisableReq describes the HTTP request body when disable
+// agent release.
+export interface PackageReleaseAgentDisableReq {
+  generation: number;
+  release_type: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseAgentDisableResp describes the HTTP response body when disable
+// agent release.
+export interface PackageReleaseAgentDisableResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseAgentDisableRespData;
+}
+
+export interface PackageReleaseAgentDisableRespData {
+}
+
+// PackageReleaseAgentSetAsDefaultReq describes the HTTP request body when set
+// default agent release.
+export interface PackageReleaseAgentSetAsDefaultReq {
+  generation: number;
+  release_type: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseAgentSetAsDefaultResp describes the HTTP response body when set
+// default agent release.
+export interface PackageReleaseAgentSetAsDefaultResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseAgentSetAsDefaultRespData;
+}
+
+export interface PackageReleaseAgentSetAsDefaultRespData {
+}
+
+// PackageReleaseAgentCancelAsDefaultReq describes the HTTP request body when
+// cancel default agent release.
+export interface PackageReleaseAgentCancelAsDefaultReq {
+  generation: number;
+  release_type: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseAgentCancelAsDefaultResp describes the HTTP response body when
+// cancel default agent release.
+export interface PackageReleaseAgentCancelAsDefaultResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseAgentCancelAsDefaultRespData;
+}
+
+export interface PackageReleaseAgentCancelAsDefaultRespData {
+}
+
+// PackageReleaseAgentDeleteReq describes the HTTP request body when delete
+// agent release.
+export interface PackageReleaseAgentDeleteReq {
+  generation: number;
+  release_type: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseAgentDeleteResp describes the HTTP response body when delete
+// agent release.
+export interface PackageReleaseAgentDeleteResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseAgentDeleteRespData;
+}
+
+export interface PackageReleaseAgentDeleteRespData {
+}
+
+// PackageReleaseAgentCountDeployedReq describes the HTTP request body when
+// count agent deployed.
+export interface PackageReleaseAgentCountDeployedReq {
+  items: Item[];
+}
+
+export interface PackageReleaseAgentCountDeployedReqItem {
+  generation: number;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseAgentCountDeployedResp describes the HTTP response body when
+// count agent deployed.
+export interface PackageReleaseAgentCountDeployedResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseAgentCountDeployedRespData;
+}
+
+export interface PackageReleaseAgentCountDeployedRespData {
+  counts: number[];
+}
+
+// PackageReleaseAgentDownloadReq is the request for download agent pkg.
+export interface PackageReleaseAgentDownloadReq {
+  generation: number;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleaseProxyListReq describes the HTTP request body when list proxy
 // release.
 export interface PackageReleaseProxyListReq {
   page: Page;
@@ -452,8 +619,8 @@ export interface PackageReleaseProxyListReq {
   exact_include_conditions: PackageReleaseExactConditions;
 }
 
-// PackageReleaseProxyListResp describes the HTTP response body when list
-// package release.
+// PackageReleaseProxyListResp describes the HTTP response body when list proxy
+// release.
 export interface PackageReleaseProxyListResp {
   code: number;
   message: string;
@@ -467,200 +634,179 @@ export interface PackageReleaseProxyListRespData {
   items: ReleaseProxy[];
 }
 
-// PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
-export interface PackageReleaseSetLabelsReq {
+// PackageReleaseProxyDistinctReq describes the HTTP request body when distinct
+// proxy release.
+export interface PackageReleaseProxyDistinctReq {
   generation: number;
-  release_type: string;
-  platform: Platform;
-  version: string;
+  exact_include_conditions: PackageReleaseExactConditions;
+  distinct_field: PackageReleaseDistinctField;
+}
+
+// PackageReleaseProxyDistinctResp describes the HTTP response body when
+// distinct proxy release.
+export interface PackageReleaseProxyDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseDistinctData;
+}
+
+// PackageReleaseProxySetLabelsManyReq describes the HTTP request body when set
+// many labels to proxy release.
+export interface PackageReleaseProxySetLabelsManyReq {
+  generation: number;
+  exact_include_conditions: PackageReleaseExactConditions;
   labels: string[];
 }
 
-// PackageReleaseSetLabelsResp describes the HTTP response body when set
-// labels.
-export interface PackageReleaseSetLabelsResp {
+// PackageReleaseProxySetLabelsManyResp describes the HTTP response body when
+// set many labels to proxy release.
+export interface PackageReleaseProxySetLabelsManyResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
-  data: PackageReleaseSetLabelsRespData;
+  data: PackageReleaseProxySetLabelsManyRespData;
 }
 
-export interface PackageReleaseSetLabelsRespData {
+export interface PackageReleaseProxySetLabelsManyRespData {
 }
 
-// PackageReleaseSetLabelsManyIdentity describes the HTTP request body.
-export interface PackageReleaseSetLabelsManyIdentity {
-  generation: number;
-  platform: Platform;
-  version: string;
-}
-
-// PackageReleaseSetLabelsManyReq describes the HTTP request body when set many
-// labels.
-export interface PackageReleaseSetLabelsManyReq {
-  release_type: string;
-  identify: PackageReleaseSetLabelsManyIdentity[];
-  labels: string[];
-}
-
-// PackageReleaseSetLabelsManyResp describes the HTTP response body when set
-// many labels.
-export interface PackageReleaseSetLabelsManyResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: PackageReleaseSetLabelsManyRespData;
-}
-
-export interface PackageReleaseSetLabelsManyRespData {
-}
-
-// PackageReleaseEnableReq describes the HTTP request body when enable package
-// release.
-export interface PackageReleaseEnableReq {
+// PackageReleaseProxyEnableReq describes the HTTP request body when enable
+// proxy release.
+export interface PackageReleaseProxyEnableReq {
   generation: number;
   release_type: string;
   platform: Platform;
   version: string;
 }
 
-// PackageReleaseEnableResp describes the HTTP response body when enable package
-// release.
-export interface PackageReleaseEnableResp {
+// PackageReleaseProxyEnableResp describes the HTTP response body when enable
+// proxy release.
+export interface PackageReleaseProxyEnableResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
-  data: PackageReleaseEnableRespData;
+  data: PackageReleaseProxyEnableRespData;
 }
 
-export interface PackageReleaseEnableRespData {
+export interface PackageReleaseProxyEnableRespData {
 }
 
-// PackageReleaseDisableReq describes the HTTP request body when disable package
-// release.
-export interface PackageReleaseDisableReq {
+// PackageReleaseProxyDisableReq describes the HTTP request body when disable
+// proxy release.
+export interface PackageReleaseProxyDisableReq {
   generation: number;
   release_type: string;
   platform: Platform;
   version: string;
 }
 
-// PackageReleaseDisableResp describes the HTTP response body when disable
-// package release.
-export interface PackageReleaseDisableResp {
+// PackageReleaseProxyDisableResp describes the HTTP response body when disable
+// proxy release.
+export interface PackageReleaseProxyDisableResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
-  data: PackageReleaseDisableRespData;
+  data: PackageReleaseProxyDisableRespData;
 }
 
-export interface PackageReleaseDisableRespData {
+export interface PackageReleaseProxyDisableRespData {
 }
 
-// PackageReleaseSetAsDefaultReq describes the HTTP request body when set
-// default package release.
-export interface PackageReleaseSetAsDefaultReq {
+// PackageReleaseProxySetAsDefaultReq describes the HTTP request body when set
+// default proxy release.
+export interface PackageReleaseProxySetAsDefaultReq {
   generation: number;
   release_type: string;
   platform: Platform;
   version: string;
 }
 
-// PackageReleaseSetAsDefaultResp describes the HTTP response body when set
-// default package release.
-export interface PackageReleaseSetAsDefaultResp {
+// PackageReleaseProxySetAsDefaultResp describes the HTTP response body when set
+// default proxy release.
+export interface PackageReleaseProxySetAsDefaultResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
-  data: PackageReleaseSetAsDefaultRespData;
+  data: PackageReleaseProxySetAsDefaultRespData;
 }
 
-export interface PackageReleaseSetAsDefaultRespData {
+export interface PackageReleaseProxySetAsDefaultRespData {
 }
 
-// PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel
-// default package release.
-export interface PackageReleaseCancelAsDefaultReq {
+// PackageReleaseProxyCancelAsDefaultReq describes the HTTP request body when
+// cancel default proxy release.
+export interface PackageReleaseProxyCancelAsDefaultReq {
   generation: number;
   release_type: string;
   platform: Platform;
   version: string;
 }
 
-// PackageReleaseCancelAsDefaultResp describes the HTTP response body when
-// cancel default package release.
-export interface PackageReleaseCancelAsDefaultResp {
+// PackageReleaseProxyCancelAsDefaultResp describes the HTTP response body when
+// cancel default proxy release.
+export interface PackageReleaseProxyCancelAsDefaultResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
-  data: PackageReleaseCancelAsDefaultRespData;
+  data: PackageReleaseProxyCancelAsDefaultRespData;
 }
 
-export interface PackageReleaseCancelAsDefaultRespData {
+export interface PackageReleaseProxyCancelAsDefaultRespData {
 }
 
-// PackageReleaseDeleteReq describes the HTTP request body when delete release.
-export interface PackageReleaseDeleteReq {
+// PackageReleaseProxyDeleteReq describes the HTTP request body when delete
+// proxy release.
+export interface PackageReleaseProxyDeleteReq {
   generation: number;
   release_type: string;
   platform: Platform;
   version: string;
 }
 
-// PackageReleaseDeleteResp describes the HTTP response body when delete
-// release.
-export interface PackageReleaseDeleteResp {
+// PackageReleaseProxyDeleteResp describes the HTTP response body when delete
+// proxy release.
+export interface PackageReleaseProxyDeleteResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
-  data: PackageReleaseDeleteRespData;
+  data: PackageReleaseProxyDeleteRespData;
 }
 
-export interface PackageReleaseDeleteRespData {
+export interface PackageReleaseProxyDeleteRespData {
 }
 
-// CountRequestItem describes  the HTTP request body when count release
-// deployed_host.
-export interface CountRequestItem {
+// PackageReleaseProxyCountDeployedReq describes the HTTP request body when
+// count agent deployed.
+export interface PackageReleaseProxyCountDeployedReq {
+  items: Item[];
+}
+
+export interface PackageReleaseProxyCountDeployedReqItem {
   generation: number;
-  release_type: string;
   platform: Platform;
   version: string;
 }
 
-// PackageReleaseDeployedHostCountReq describes the HTTP request body when count
-// deployed host.
-export interface PackageReleaseDeployedHostCountReq {
-  request_items: CountRequestItem[];
-}
-
-// PackageReleaseDeployedHostCountResp describes the HTTP response body when
-// count deployed host.
-export interface PackageReleaseDeployedHostCountResp {
+// PackageReleaseProxyCountDeployedResp describes the HTTP response body when
+// count agent deployed.
+export interface PackageReleaseProxyCountDeployedResp {
   code: number;
   message: string;
   request_id: string;
   error: Error;
-  data: PackageReleaseDeployedHostCountRespData;
+  data: PackageReleaseProxyCountDeployedRespData;
 }
 
-export interface PackageReleaseDeployedHostCountRespData {
-  total: number;
-  items: number[];
-}
-
-// PackageReleaseAgentDownloadReq is the request for download agent pkg.
-export interface PackageReleaseAgentDownloadReq {
-  generation: number;
-  platform: Platform;
-  version: string;
+export interface PackageReleaseProxyCountDeployedRespData {
+  counts: number[];
 }
 
 // PackageReleaseProxyDownloadReq is the request for download proxy pkg.
@@ -670,11 +816,266 @@ export interface PackageReleaseProxyDownloadReq {
   version: string;
 }
 
+// PackageReleasePluginListReq describes the HTTP request body when list plugin
+// release.
+export interface PackageReleasePluginListReq {
+  page: Page;
+  generation: number;
+  only_count: boolean;
+  exact_include_conditions: PackageReleaseExactConditions;
+}
+
+// PackageReleasePluginListResp describes the HTTP response body when list
+// plugin release.
+export interface PackageReleasePluginListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginListRespData;
+}
+
+export interface PackageReleasePluginListRespData {
+  total: number;
+  items: ReleasePlugin[];
+}
+
+// PackageReleasePluginEnableReq describes the HTTP request body when enable
+// plugin release.
+export interface PackageReleasePluginEnableReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginEnableResp describes the HTTP response body when enable
+// plugin release.
+export interface PackageReleasePluginEnableResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginEnableRespData;
+}
+
+export interface PackageReleasePluginEnableRespData {
+}
+
+// PackageReleasePluginDisableReq describes the HTTP request body when disable
+// plugin release.
+export interface PackageReleasePluginDisableReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginDisableResp describes the HTTP response body when disable
+// plugin release.
+export interface PackageReleasePluginDisableResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginDisableRespData;
+}
+
+export interface PackageReleasePluginDisableRespData {
+}
+
+// PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set
+// default plugin release.
+export interface PackageReleasePluginSetAsDefaultReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginSetAsDefaultResp describes the HTTP response body when
+// set default plugin release.
+export interface PackageReleasePluginSetAsDefaultResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginSetAsDefaultRespData;
+}
+
+export interface PackageReleasePluginSetAsDefaultRespData {
+}
+
+// PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when
+// cancel default plugin release.
+export interface PackageReleasePluginCancelAsDefaultReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when
+// cancel default plugin release.
+export interface PackageReleasePluginCancelAsDefaultResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginCancelAsDefaultRespData;
+}
+
+export interface PackageReleasePluginCancelAsDefaultRespData {
+}
+
+// PackageReleasePluginDeleteReq describes the HTTP request body when delete
+// plugin release.
+export interface PackageReleasePluginDeleteReq {
+  generation: number;
+  name: string;
+  platform: Platform;
+  version: string;
+}
+
+// PackageReleasePluginDeleteResp describes the HTTP response body when delete
+// plugin release.
+export interface PackageReleasePluginDeleteResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginDeleteRespData;
+}
+
+export interface PackageReleasePluginDeleteRespData {
+}
+
 // PackageReleasePluginDownloadReq is the request for download plugin pkg.
 export interface PackageReleasePluginDownloadReq {
   name: string;
   platform: Platform;
   version: string;
+}
+
+// PackageReleaseCertListReq describes the HTTP request body when list cert
+// release.
+export interface PackageReleaseCertListReq {
+  generation: number;
+}
+
+// PackageReleaseCertListResp describes the HTTP response body when list cert
+// release.
+export interface PackageReleaseCertListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseCertListRespData;
+}
+
+export interface PackageReleaseCertListRespData {
+  total: number;
+  items: ReleaseCert[];
+}
+
+// PackageReleaseCertDeleteReq describes the HTTP request body when delete
+// cert release.
+export interface PackageReleaseCertDeleteReq {
+  generation: number;
+}
+
+// PackageReleaseCertDeleteResp describes the HTTP response body when delete
+// cert release.
+export interface PackageReleaseCertDeleteResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseCertDeleteRespData;
+}
+
+export interface PackageReleaseCertDeleteRespData {
+}
+
+// PackageReleaseBinToolListReq describes the HTTP request body when list
+// bintool release.
+export interface PackageReleaseBinToolListReq {
+  generation: number;
+}
+
+// PackageReleaseBinToolListResp describes the HTTP response body when list
+// bintool release.
+export interface PackageReleaseBinToolListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseBinToolListRespData;
+}
+
+export interface PackageReleaseBinToolListRespData {
+  total: number;
+  items: ReleaseBinTool[];
+}
+
+// PackageReleaseBinToolDeleteReq describes the HTTP request body when delete
+// bintool release.
+export interface PackageReleaseBinToolDeleteReq {
+  generation: number;
+}
+
+// PackageReleaseBinToolDeleteResp describes the HTTP response body when delete
+// bintool release.
+export interface PackageReleaseBinToolDeleteResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleaseBinToolDeleteRespData;
+}
+
+export interface PackageReleaseBinToolDeleteRespData {
+}
+
+// PackageReleasePluginBinToolListReq describes the HTTP request body when list
+// plugin-bintool release.
+export interface PackageReleasePluginBinToolListReq {
+  generation: number;
+}
+
+// PackageReleasePluginBinToolListResp describes the HTTP response body when
+// list plugin-bintool release.
+export interface PackageReleasePluginBinToolListResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginBinToolListRespData;
+}
+
+export interface PackageReleasePluginBinToolListRespData {
+  total: number;
+  items: ReleasePluginBinTool[];
+}
+
+// PackageReleasePluginBinToolDeleteReq describes the HTTP request body when
+// delete plugin-bintool release.
+export interface PackageReleasePluginBinToolDeleteReq {
+  generation: number;
+  name: string;
+}
+
+// PackageReleasePluginBinToolDeleteResp describes the HTTP response body when
+// delete plugin-bintool release.
+export interface PackageReleasePluginBinToolDeleteResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageReleasePluginBinToolDeleteRespData;
+}
+
+export interface PackageReleasePluginBinToolDeleteRespData {
 }
 
 // FileChunk describes the file chunk data.
@@ -747,144 +1148,5 @@ export interface PackageEventDistinctRespData {
   cpu_arch: string[];
   version: string[];
   operator: string[];
-}
-
-// ReleasePlugin describes the package release plugin information.
-export interface ReleasePlugin {
-  release: Release;
-}
-
-// PackageReleasePluginListReq describes the HTTP request body when list package
-// release.
-export interface PackageReleasePluginListReq {
-  page: Page;
-  generation: number;
-  only_count: boolean;
-  exact_include_conditions: PackageReleaseExactConditions;
-}
-
-// PackageReleasePluginListResp describes the HTTP response body when list
-// package release.
-export interface PackageReleasePluginListResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: PackageReleasePluginListRespData;
-}
-
-export interface PackageReleasePluginListRespData {
-  total: number;
-  items: ReleasePlugin[];
-}
-
-// PackageReleasePluginEnableReq describes the HTTP request body when enable
-// package release.
-export interface PackageReleasePluginEnableReq {
-  generation: number;
-  name: string;
-  platform: Platform;
-  version: string;
-}
-
-// PackageReleasePluginEnableResp describes the HTTP response body when enable
-// package release.
-export interface PackageReleasePluginEnableResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: PackageReleasePluginEnableRespData;
-}
-
-export interface PackageReleasePluginEnableRespData {
-}
-
-// PackageReleasePluginDisableReq describes the HTTP request body when disable
-// package release.
-export interface PackageReleasePluginDisableReq {
-  generation: number;
-  name: string;
-  platform: Platform;
-  version: string;
-}
-
-// PackageReleasePluginDisableResp describes the HTTP response body when disable
-// package release.
-export interface PackageReleasePluginDisableResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: PackageReleasePluginDisableRespData;
-}
-
-export interface PackageReleasePluginDisableRespData {
-}
-
-// PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set
-// default package release.
-export interface PackageReleasePluginSetAsDefaultReq {
-  generation: number;
-  name: string;
-  platform: Platform;
-  version: string;
-}
-
-// PackageReleasePluginSetAsDefaultResp describes the HTTP response body when
-// set default package release.
-export interface PackageReleasePluginSetAsDefaultResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: PackageReleasePluginSetAsDefaultRespData;
-}
-
-export interface PackageReleasePluginSetAsDefaultRespData {
-}
-
-// PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when
-// cancel default package release.
-export interface PackageReleasePluginCancelAsDefaultReq {
-  generation: number;
-  name: string;
-  platform: Platform;
-  version: string;
-}
-
-// PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when
-// cancel default package release.
-export interface PackageReleasePluginCancelAsDefaultResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: PackageReleasePluginCancelAsDefaultRespData;
-}
-
-export interface PackageReleasePluginCancelAsDefaultRespData {
-}
-
-// PackageReleasePluginDeleteReq describes the HTTP request body when delete
-// release.
-export interface PackageReleasePluginDeleteReq {
-  generation: number;
-  name: string;
-  platform: Platform;
-  version: string;
-}
-
-// PackageReleasePluginDeleteResp describes the HTTP response body when delete
-// release.
-export interface PackageReleasePluginDeleteResp {
-  code: number;
-  message: string;
-  request_id: string;
-  error: Error;
-  data: PackageReleasePluginDeleteRespData;
-}
-
-export interface PackageReleasePluginDeleteRespData {
 }
 

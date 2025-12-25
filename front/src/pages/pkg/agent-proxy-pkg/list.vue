@@ -733,19 +733,23 @@ const updateQuickOptToSearch = (ids: Set<string>, dimension: PkgQuickType) => {
     });
   }
 };
+
+// 根据类型获取对应的服务方法
+const getServiceMethod = (baseName: string) => {
+  const suffix = currentType.value === 'agent' ? 'Agent' : 'Proxy';
+  return PackageService[`${baseName}${suffix}` as keyof typeof PackageService];
+};
+
 // 标签信息批量编辑
 const selectTag = ref<string[]>([]);
 const batchUpdateTag = async () => {
-  await PackageService.SetReleaseLabelsMany({
-    release_type: currentType.value,
-    identify: packageList.value.map(item => ({
-      generation: item.generation,
-      platform: {
-        os_type: item.os_type,
-        cpu_arch: item.cpu_arch,
-      },
-      version: item.version,
-    })),
+  const serviceMethod = currentType.value === 'agent' ? PackageService.SetReleaseAgentLabelsMany : PackageService.SetReleaseProxyLabelsMany;
+  await serviceMethod({
+    exact_include_conditions: {
+      platform: packageList.value.map(item => item.platform),
+      version: packageList.value.map(item => item.version),
+    },
+    generation: 2,
     labels: [...Array.from(new Set(selectTag.value))],
   });
   await getPackages();
@@ -781,90 +785,109 @@ const handleUpload = () => {
 const tagList = ref<{value: string, label: string}[]>([]);
 const getPackages = async () => {
   loading.value = true;
-  let res;
-  if (currentType.value === 'agent') {
-    res = await PackageService.ListReleaseAgent({
+
+  try {
+    // 并行执行API调用
+    const [listApi, countApi] = currentType.value === 'agent'
+      ? [PackageService.ListReleaseAgent, PackageService.CountDeployedReleasedAgent]
+      : [PackageService.ListReleaseProxy, PackageService.CountDeployedReleasedProxy];
+
+    // 先获取列表数据
+    const listData = await listApi({
       generation: 2,
-      exact_include_conditions: {
-        release_type: [currentType.value],
-      },
-    }).catch(() => ({
-      total: 0,
-      items: [],
+      exact_include_conditions: {},
+    }).catch(() => ({ total: 0, items: [] }));
+
+    // 如果有列表数据，则并行调用计数API
+    const countData = listData.items?.length
+      ? await countApi({
+        items: listData.items.map(item => ({
+          generation: item.release.generation,
+          version: item.release.version,
+          platform: {
+            os_type: item.release.os_type,
+            cpu_arch: item.release.cpu_arch,
+          },
+        })),
+      }).catch(() => ({ total: 0, counts: [] }))
+      : { total: 0, counts: [] };
+
+    // 处理标签数据
+    const allLabels = listData.items.flatMap(item => item.release.labels || []);
+    const uniqueLabels = Array.from(new Set(allLabels));
+
+    tagList.value = uniqueLabels.map((tag: string) => ({
+      value: tag,
+      label: tag,
     }));
-  } else {
-    res = await PackageService.ListReleaseProxy({
-      generation: 2,
-      exact_include_conditions: {
-        release_type: [currentType.value],
-      },
-    }).catch(() => ({
-      total: 0,
-      items: [],
-    }));
-  }
-  const allLabels = res.items.flatMap(item => item.release.labels || []);
-  const list = Array.from(new Set(allLabels));
-  tagList.value = list.map((tag: string) => ({
-    value: tag,
-    label: tag,
-  }));
-  packageStore.updateTagList(list);
-  const hostList = await PackageService.DeployedHostCount({
-    request_items: res.items.map(item => ({
-      generation: item.release.generation,
-      release_type: item.release.release_type,
-      version: item.release.version,
+
+    packageStore.updateTagList(uniqueLabels);
+
+    // 处理包列表数据
+    const processedItems = listData.items.map((item, index) => ({
+      ...item.release,
       platform: {
         os_type: item.release.os_type,
         cpu_arch: item.release.cpu_arch,
       },
-    })),
-  }).catch(() => ({
-    total: 0,
-    items: [],
-  }));
-  const items = res.items.map((item, index) => ({
-    ...item.release,
-    labels: item.release.labels || [],
-    os_cpu_arch: `${item.release.os_type}_${item.release.cpu_arch}`,
-    host: hostList.items[index],
-    isShowTagInput: false,
-    createPopShow: false,
-  }))
-    .sort((a, b) => compareVersions(a.version, b.version));
-  originPackageList.value = items;
-  packageList.value = items;
-  loading.value = false;
+      labels: item.release.labels || [],
+      os_cpu_arch: `${item.release.os_type}_${item.release.cpu_arch}`,
+      host: countData.counts?.[index] || 0,
+      isShowTagInput: false,
+      createPopShow: false,
+    })).sort((a, b) => compareVersions(a.version, b.version));
+
+    originPackageList.value = processedItems;
+    packageList.value = processedItems;
+  } catch (error) {
+    console.error('获取包列表失败:', error);
+    // 确保在错误情况下也清空数据
+    originPackageList.value = [];
+    packageList.value = [];
+    tagList.value = [];
+  } finally {
+    loading.value = false;
+  }
 };
 const getParams = (row: Release) => ({
   generation: row.generation,
-  release_type: row.release_type,
   platform: {
     os_type: row.os_type,
     cpu_arch: row.cpu_arch,
   },
   version: row.version,
 });
+
+// 通用操作处理函数
+const handleOperation = async (row: Release, serviceMethod: (params: any) => Promise<any>) => {
+  try {
+    await serviceMethod(getParams(row));
+    await getPackages();
+  } catch (error) {
+    console.error('操作失败:', error);
+    // 可以在这里添加错误提示或重试逻辑
+  }
+};
+
+// 简化的操作函数
 const handleSetDefaultVersion = async (row: Release) => {
-  await PackageService.SetAsDefaultRelease(getParams(row));
-  await getPackages();
+  await handleOperation(row, getServiceMethod('SetAsDefaultRelease'));
 };
+
 const handleCancelAsDefaultVersion = async (row: Release) => {
-  await PackageService.CancelAsDefaultRelease(getParams(row));
-  await getPackages();
+  await handleOperation(row, getServiceMethod('CancelAsDefaultRelease'));
 };
+
 const handleDisabled = async (row: Release) => {
-  await PackageService.DisableRelease(getParams(row));
-  await getPackages();
+  await handleOperation(row, getServiceMethod('DisableRelease'));
 };
+
 const handleEnabled = async (row: Release) => {
-  await PackageService.EnableRelease(getParams(row));
-  await getPackages();
+  await handleOperation(row, getServiceMethod('EnableRelease'));
 };
+
 const handleDelete = async (row: Release) => {
-  await PackageService.DeleteRelease(getParams(row));
-  await getPackages();
+  await handleOperation(row, getServiceMethod('DeleteRelease'));
 };
 const handleConfirm = async () => {
   await getPackages();
@@ -883,15 +906,14 @@ watch(
     originPackageList,
   ],
   () => {
-    packageList.value = originPackageList.value.filter((row: Release) =>
-      searchSelectValue.value.every((searchItem: any) => {
-        const { id: searchField, values } = searchItem;
-        const searchIds = values?.map((value: {id: string}) => value.id);
-        if (isArray(row[searchField])) {
-          return !!row[searchField].find((el: string) => searchIds.includes(el));
-        }
-        return searchIds.includes(row[searchField]);
-      }));
+    packageList.value = originPackageList.value.filter((row: Release) => searchSelectValue.value.every((searchItem: any) => {
+      const { id: searchField, values } = searchItem;
+      const searchIds = values?.map((value: {id: string}) => value.id);
+      if (isArray(row[searchField])) {
+        return !!row[searchField].find((el: string) => searchIds.includes(el));
+      }
+      return searchIds.includes(row[searchField]);
+    }));
   },
   { immediate: true, deep: true },
 );

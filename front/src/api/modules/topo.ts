@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { TopoBusinessListReq, TopoBusinessListResp, TopoNetworkAreaListReq, TopoNetworkAreaListResp, TopoNetworkAreaStatisticsReq, TopoNetworkAreaStatisticsResp, TopoNetworkAreaCreateReq, TopoNetworkAreaCreateResp, TopoNetworkAreaGetReq, TopoNetworkAreaGetResp, TopoNetworkAreaUpdateReq, TopoNetworkAreaUpdateResp, TopoNetworkAreaDeleteReq, TopoNetworkAreaDeleteResp, TopoNetworkUnitListReq, TopoNetworkUnitListResp, TopoNetworkUnitCreateReq, TopoNetworkUnitCreateResp, TopoNetworkUnitGetReq, TopoNetworkUnitGetResp, TopoNetworkUnitUpdateReq, TopoNetworkUnitUpdateResp, TopoNetworkUnitDeleteReq, TopoNetworkUnitDeleteResp, TopoHostListReq, TopoHostListResp, TopoHostDistinctReq, TopoHostDistinctResp, TopoGraphGetReq, TopoGraphGetResp, TopoGraphNodeCountReq, TopoGraphNodeCountResp, TopoEventListReq, TopoEventListResp, TopoEventDistinctReq, TopoEventDistinctResp, TopoConstantGetReq, TopoConstantGetResp, TopoGraphNodeGetResp } from '@/@types/topo';
+import type { TopoBusinessListReq, TopoBusinessListResp, TopoNetworkAreaListReq, TopoNetworkAreaListResp, TopoNetworkAreaStatisticsReq, TopoNetworkAreaStatisticsResp, TopoNetworkAreaCreateReq, TopoNetworkAreaCreateResp, TopoNetworkAreaGetReq, TopoNetworkAreaGetResp, TopoNetworkAreaUpdateReq, TopoNetworkAreaUpdateResp, TopoNetworkAreaDeleteReq, TopoNetworkAreaDeleteResp, TopoNetworkUnitListReq, TopoNetworkUnitListResp, TopoNetworkUnitCreateReq, TopoNetworkUnitCreateResp, TopoNetworkUnitGetReq, TopoNetworkUnitGetResp, TopoNetworkUnitUpdateReq, TopoNetworkUnitUpdateResp, TopoNetworkUnitDeleteReq, TopoNetworkUnitDeleteResp, TopoHostListReq, TopoHostListResp, TopoHostSelectHostIDReq, TopoHostSelectHostIDResp, TopoHostSelectInnerIPReq, TopoHostSelectInnerIPResp, TopoHostSelectInnerIPV6Req, TopoHostSelectInnerIPV6Resp, TopoHostSelectNetWorkareaIDAndInnerIPReq, TopoHostSelectNetWorkareaIDAndInnerIPResp, TopoHostSelectNetWorkareaIDAndInnerIPV6Req, TopoHostSelectNetWorkareaIDAndInnerIPV6Resp, TopoHostDistinctReq, TopoHostDistinctResp, TopoGraphGetReq, TopoGraphGetResp, TopoGraphNodeCountReq, TopoGraphNodeCountResp, TopoEventListReq, TopoEventListResp, TopoEventDistinctReq, TopoEventDistinctResp, TopoConstantGetReq, TopoConstantGetResp, TopoGraphNodeGetResp } from '@/@types/topo';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -35,6 +35,18 @@ export const TopoService = {
   NetworkUnitDelete: async <Request = TopoNetworkUnitDeleteReq, ResponseData = TopoNetworkUnitDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/networkunit/delete')(params, config),
   // HostList provides host listing.
   HostList: async <Request = TopoHostListReq, ResponseData = TopoHostListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/host/list')(params, config),
+  // HostSelectHostID provides host id selecting.
+  HostSelectHostID: async <Request = TopoHostSelectHostIDReq, ResponseData = TopoHostSelectHostIDResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/host/scenario/select_host_id')(params, config),
+  // HostSelectInnerIP provides host inner ip selecting.
+  HostSelectInnerIP: async <Request = TopoHostSelectInnerIPReq, ResponseData = TopoHostSelectInnerIPResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/host/scenario/select_inner_ip')(params, config),
+  // HostSelectInnerIPV6 provides host inner ipv6 selecting.
+  HostSelectInnerIPV6: async <Request = TopoHostSelectInnerIPV6Req, ResponseData = TopoHostSelectInnerIPV6Resp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/host/scenario/select_inner_ipv6')(params, config),
+  // HostSelectNetWorkareaIDAndInnerIP provides host networkarea id and inner ip
+  // selecting.
+  HostSelectNetWorkareaIDAndInnerIP: async <Request = TopoHostSelectNetWorkareaIDAndInnerIPReq, ResponseData = TopoHostSelectNetWorkareaIDAndInnerIPResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/host/scenario/select_networkarea_id_and_inner_ip')(params, config),
+  // HostSelectNetWorkareaIDAndInnerIPV6 provides host networkarea id and inner
+  // ipv6 selecting.
+  HostSelectNetWorkareaIDAndInnerIPV6: async <Request = TopoHostSelectNetWorkareaIDAndInnerIPV6Req, ResponseData = TopoHostSelectNetWorkareaIDAndInnerIPV6Resp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/host/scenario/select_networkarea_id_and_inner_ipv6')(params, config),
   // HostDistinct provides host distincting.
   HostDistinct: async <Request = TopoHostDistinctReq, ResponseData = TopoHostDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/topo/host/distinct')(params, config),
   // GraphGet provides getting graph nodes and edges.

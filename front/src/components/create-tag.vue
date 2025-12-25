@@ -17,6 +17,7 @@
   <div class="w-full edit-tag" v-else>
     <TagInput
       class="w-full max-w-[300px]"
+      ref="tagInputRef"
       v-model="localTags"
       :list="tagList"
       allow-create
@@ -43,7 +44,8 @@
 </template>
 <script lang="ts" setup>
 import { Tag, TagInput } from 'bkui-vue';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 
 import { PackageService } from '@/api/modules/pkg';
 import { usePackageStore } from '@/stores/package';
@@ -62,13 +64,21 @@ const tagList = computed(() => packageStore.tagList.map((tag: string) => ({
 })));
 const localTags = ref<string[]>([]);
 
+const route = useRoute();
+const currentType = computed(() => String(route.name).split('PackageMng')[0]);
+
 const popShow = ref(false);
 const createTag = ref('');
 const isEditing = ref(false);
+const tagInputRef = ref();
 const handleEdit = () => {
   // 关闭其他弹框
   document.body.click();
   isEditing.value = true;
+
+  nextTick(() => {
+    tagInputRef.value?.focusInputTrigger();
+  });
 };
 
 const handleInputchange = (value: string) => {
@@ -91,15 +101,15 @@ const handleCreateTag = async () => {
   localTags.value.push(createTag.value);
 };
 const handleBlur = async () => {
+  const serviceMethod = currentType.value === 'agent' ? PackageService.SetReleaseAgentLabelsMany : PackageService.SetReleaseProxyLabelsMany;
+
   // 标签输入框更新标签
-  await PackageService.SetReleaseLabels({
+  await serviceMethod({
     generation: 2,
-    release_type: props.data.release_type,
-    platform: {
-      os_type: props.data.os_type,
-      cpu_arch: props.data.cpu_arch,
+    exact_include_conditions: {
+      platform: [props.data.platform],
+      version: [props.data.version],
     },
-    version: props.data.version,
     labels: [...localTags.value],
   });
   // 用于更新标签信息

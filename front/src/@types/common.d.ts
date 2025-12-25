@@ -109,7 +109,9 @@ interface HostInfo {
   login_mode: string;
   login_credit_valid: boolean;
   export_ip: string;
+  export_ip_v6: string;
   advertise_ip: string;
+  advertise_ip_v6: string;
 }
 
 // Host describes the host informations.
@@ -186,6 +188,26 @@ interface ReleaseProxy {
   release: Release;
   change_log_en: string;
   change_log_zh: string;
+}
+
+// ReleasePlugin describes the release plugin.
+interface ReleasePlugin {
+  release: Release;
+}
+
+// ReleaseCert describes the release cert.
+interface ReleaseCert {
+  release: Release;
+}
+
+// ReleaseBinTool describes the release bin tool.
+interface ReleaseBinTool {
+  release: Release;
+}
+
+// ReleasePluginBinTool describes the release plugin bin tool.
+interface ReleasePluginBinTool {
+  release: Release;
 }
 
 // Platform describes the platform informations.

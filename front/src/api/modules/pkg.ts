@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PackageUploadOriginAgentReq, PackageUploadOriginAgentResp, PackageUploadOriginServerReq, PackageUploadOriginServerResp, PackageUploadOriginCertReq, PackageUploadOriginCertResp, PackageUploadOriginBinToolReq, PackageUploadOriginBinToolResp, PackageUploadOriginPluginBinToolReq, PackageUploadOriginPluginBinToolResp, PackagePublishReleaseAgentReq, PackagePublishReleaseAgentResp, PackagePublishReleaseProxyReq, PackagePublishReleaseProxyResp, PackagePublishReleaseCertReq, PackagePublishReleaseCertResp, PackagePublishReleaseBinToolReq, PackagePublishReleaseBinToolResp, PackagePublishReleasePluginBinToolReq, PackagePublishReleasePluginBinToolResp, PackageReleaseListReq, PackageReleaseListResp, PackageReleaseSetLabelsReq, PackageReleaseSetLabelsResp, PackageReleaseSetLabelsManyReq, PackageReleaseSetLabelsManyResp, PackageReleaseEnableReq, PackageReleaseEnableResp, PackageReleaseDisableReq, PackageReleaseDisableResp, PackageReleaseSetAsDefaultReq, PackageReleaseSetAsDefaultResp, PackageReleaseCancelAsDefaultReq, PackageReleaseCancelAsDefaultResp, PackageReleaseDeleteReq, PackageReleaseDeleteResp, PackageReleaseDeployedHostCountReq, PackageReleaseDeployedHostCountResp, PackageReleaseAgentDownloadReq, FileChunk, PackageReleaseProxyDownloadReq, PackageReleasePluginDownloadReq, PackageEventListReq, PackageEventListResp, PackageEventDistinctReq, PackageEventDistinctResp, PackageReleaseAgentListReq, PackageReleaseAgentListResp, PackageReleaseProxyListReq, PackageReleaseProxyListResp, PackageUploadOriginPluginV2Req, PackageUploadOriginPluginV2Resp, PackageUploadOriginExternalPluginV2Req, PackageUploadOriginExternalPluginV2Resp, PackageUploadOriginPluginV3Req, PackageUploadOriginPluginV3Resp, PackagePublishReleasePluginV2Req, PackagePublishReleasePluginV2Resp, PackagePublishReleaseExternalPluginV2Req, PackagePublishReleaseExternalPluginV2Resp, PackagePublishReleasePluginV3Req, PackagePublishReleasePluginV3Resp, PackageReleasePluginListReq, PackageReleasePluginListResp, PackageReleasePluginEnableReq, PackageReleasePluginEnableResp, PackageReleasePluginDisableReq, PackageReleasePluginDisableResp, PackageReleasePluginSetAsDefaultReq, PackageReleasePluginSetAsDefaultResp, PackageReleasePluginCancelAsDefaultReq, PackageReleasePluginCancelAsDefaultResp, PackageReleasePluginDeleteReq, PackageReleasePluginDeleteResp } from '@/@types/pkg';
+import type { PackageUploadOriginAgentReq, PackageUploadOriginAgentResp, PackageUploadOriginServerReq, PackageUploadOriginServerResp, PackageUploadOriginCertReq, PackageUploadOriginCertResp, PackageUploadOriginBinToolReq, PackageUploadOriginBinToolResp, PackageUploadOriginPluginBinToolReq, PackageUploadOriginPluginBinToolResp, PackagePublishReleaseAgentReq, PackagePublishReleaseAgentResp, PackagePublishReleaseProxyReq, PackagePublishReleaseProxyResp, PackagePublishReleaseCertReq, PackagePublishReleaseCertResp, PackagePublishReleaseBinToolReq, PackagePublishReleaseBinToolResp, PackagePublishReleasePluginBinToolReq, PackagePublishReleasePluginBinToolResp, PackageEventListReq, PackageEventListResp, PackageEventDistinctReq, PackageEventDistinctResp, PackageUploadOriginPluginV2Req, PackageUploadOriginPluginV2Resp, PackageUploadOriginExternalPluginV2Req, PackageUploadOriginExternalPluginV2Resp, PackageUploadOriginPluginV3Req, PackageUploadOriginPluginV3Resp, PackagePublishReleasePluginV2Req, PackagePublishReleasePluginV2Resp, PackagePublishReleaseExternalPluginV2Req, PackagePublishReleaseExternalPluginV2Resp, PackagePublishReleasePluginV3Req, PackagePublishReleasePluginV3Resp, PackageReleaseAgentListReq, PackageReleaseAgentListResp, PackageReleaseAgentDistinctReq, PackageReleaseAgentDistinctResp, PackageReleaseAgentSetLabelsManyReq, PackageReleaseAgentSetLabelsManyResp, PackageReleaseAgentEnableReq, PackageReleaseAgentEnableResp, PackageReleaseAgentDisableReq, PackageReleaseAgentDisableResp, PackageReleaseAgentSetAsDefaultReq, PackageReleaseAgentSetAsDefaultResp, PackageReleaseAgentCancelAsDefaultReq, PackageReleaseAgentCancelAsDefaultResp, PackageReleaseAgentDeleteReq, PackageReleaseAgentDeleteResp, PackageReleaseAgentCountDeployedReq, PackageReleaseAgentCountDeployedResp, PackageReleaseAgentDownloadReq, FileChunk, PackageReleaseProxyListReq, PackageReleaseProxyListResp, PackageReleaseProxyDistinctReq, PackageReleaseProxyDistinctResp, PackageReleaseProxySetLabelsManyReq, PackageReleaseProxySetLabelsManyResp, PackageReleaseProxyEnableReq, PackageReleaseProxyEnableResp, PackageReleaseProxyDisableReq, PackageReleaseProxyDisableResp, PackageReleaseProxySetAsDefaultReq, PackageReleaseProxySetAsDefaultResp, PackageReleaseProxyCancelAsDefaultReq, PackageReleaseProxyCancelAsDefaultResp, PackageReleaseProxyDeleteReq, PackageReleaseProxyDeleteResp, PackageReleaseProxyCountDeployedReq, PackageReleaseProxyCountDeployedResp, PackageReleaseProxyDownloadReq, PackageReleasePluginListReq, PackageReleasePluginListResp, PackageReleasePluginEnableReq, PackageReleasePluginEnableResp, PackageReleasePluginDisableReq, PackageReleasePluginDisableResp, PackageReleasePluginSetAsDefaultReq, PackageReleasePluginSetAsDefaultResp, PackageReleasePluginCancelAsDefaultReq, PackageReleasePluginCancelAsDefaultResp, PackageReleasePluginDeleteReq, PackageReleasePluginDeleteResp, PackageReleasePluginDownloadReq, PackageReleaseCertListReq, PackageReleaseCertListResp, PackageReleaseCertDeleteReq, PackageReleaseCertDeleteResp, PackageReleaseBinToolListReq, PackageReleaseBinToolListResp, PackageReleaseBinToolDeleteReq, PackageReleaseBinToolDeleteResp, PackageReleasePluginBinToolListReq, PackageReleasePluginBinToolListResp, PackageReleasePluginBinToolDeleteReq, PackageReleasePluginBinToolDeleteResp } from '@/@types/pkg';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -29,38 +29,10 @@ export const PackageService = {
   PublishReleaseBinTool: async <Request = PackagePublishReleaseBinToolReq, ResponseData = PackagePublishReleaseBinToolResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/publish/release/bintool')(params, config),
   // PublishReleaseBinTool provides release bintool publish.
   PublishReleasePluginBinTool: async <Request = PackagePublishReleasePluginBinToolReq, ResponseData = PackagePublishReleasePluginBinToolResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/publish/release/plugin_bintool')(params, config),
-  // ListRelease lists releases.
-  ListRelease: async <Request = PackageReleaseListReq, ResponseData = PackageReleaseListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/list')(params, config),
-  // SetReleaseLabels sets release labels.
-  SetReleaseLabels: async <Request = PackageReleaseSetLabelsReq, ResponseData = PackageReleaseSetLabelsResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/set_labels')(params, config),
-  // SetReleaseLabeslMany sets many release labels.
-  SetReleaseLabelsMany: async <Request = PackageReleaseSetLabelsManyReq, ResponseData = PackageReleaseSetLabelsManyResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/set_labels_many')(params, config),
-  // EnableRelease enables release.
-  EnableRelease: async <Request = PackageReleaseEnableReq, ResponseData = PackageReleaseEnableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/enable')(params, config),
-  // DisableRelease disables release.
-  DisableRelease: async <Request = PackageReleaseDisableReq, ResponseData = PackageReleaseDisableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/disable')(params, config),
-  // SetAsDefaultRelease sets release as default.
-  SetAsDefaultRelease: async <Request = PackageReleaseSetAsDefaultReq, ResponseData = PackageReleaseSetAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/set_as_default')(params, config),
-  // CancelAsDefaultRelease cancels release as default.
-  CancelAsDefaultRelease: async <Request = PackageReleaseCancelAsDefaultReq, ResponseData = PackageReleaseCancelAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/cancel_as_default')(params, config),
-  // DeleteRelease deletes release.
-  DeleteRelease: async <Request = PackageReleaseDeleteReq, ResponseData = PackageReleaseDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/delete')(params, config),
-  // DeployedHostCount count deployed host.
-  DeployedHostCount: async <Request = PackageReleaseDeployedHostCountReq, ResponseData = PackageReleaseDeployedHostCountResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/deployed_host/count')(params, config),
-  // DownloadAgent download release agent package.
-  DownloadAgent: async <Request = PackageReleaseAgentDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/download')(params, config),
-  // DownloadProxy download release proxy package.
-  DownloadProxy: async <Request = PackageReleaseProxyDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/download')(params, config),
-  // DownloadPlugin download release plugin package.
-  DownloadPlugin: async <Request = PackageReleasePluginDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin/download')(params, config),
   // PackageEventList provides package event listing.
   PackageEventList: async <Request = PackageEventListReq, ResponseData = PackageEventListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/event/list')(params, config),
   // PackageEventDistinct provides package event distincting.
   PackageEventDistinct: async <Request = PackageEventDistinctReq, ResponseData = PackageEventDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/event/distinct')(params, config),
-  // ListReleaseAgent lists releases.
-  ListReleaseAgent: async <Request = PackageReleaseAgentListReq, ResponseData = PackageReleaseAgentListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/list')(params, config),
-  // ListReleaseProxy lists releases.
-  ListReleaseProxy: async <Request = PackageReleaseProxyListReq, ResponseData = PackageReleaseProxyListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/list')(params, config),
   // UploadOriginPluginV2 provides origin plugin v2 upload.
   UploadOriginPluginV2: async <Request = PackageUploadOriginPluginV2Req, ResponseData = PackageUploadOriginPluginV2Resp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/upload/origin/v2/plugin')(params, config),
   // UploadOriginExternalPluginV2 provides origin external plugin v2 upload.
@@ -73,17 +45,71 @@ export const PackageService = {
   PublishReleaseExternalPluginV2: async <Request = PackagePublishReleaseExternalPluginV2Req, ResponseData = PackagePublishReleaseExternalPluginV2Resp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/publish/release/v2/external_plugin')(params, config),
   // PublishReleasePluginV3 provides release plugin v3 publish.
   PublishReleasePluginV3: async <Request = PackagePublishReleasePluginV3Req, ResponseData = PackagePublishReleasePluginV3Resp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/publish/release/v3/plugin')(params, config),
-  // ListReleasePlugin lists releases.
+  // ListReleaseAgent lists agent releases.
+  ListReleaseAgent: async <Request = PackageReleaseAgentListReq, ResponseData = PackageReleaseAgentListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/list')(params, config),
+  // DistinctReleaseAgent distincts agent releases.
+  DistinctReleaseAgent: async <Request = PackageReleaseAgentDistinctReq, ResponseData = PackageReleaseAgentDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/distinct')(params, config),
+  // SetReleaseAgentLabelsMany sets many agent releases labels.
+  SetReleaseAgentLabelsMany: async <Request = PackageReleaseAgentSetLabelsManyReq, ResponseData = PackageReleaseAgentSetLabelsManyResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/set_labels_many')(params, config),
+  // EnableReleaseAgent enables agent release.
+  EnableReleaseAgent: async <Request = PackageReleaseAgentEnableReq, ResponseData = PackageReleaseAgentEnableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/enable')(params, config),
+  // DisableReleaseAgent disables agent release.
+  DisableReleaseAgent: async <Request = PackageReleaseAgentDisableReq, ResponseData = PackageReleaseAgentDisableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/disable')(params, config),
+  // SetAsDefaultReleaseAgent sets agent release as default.
+  SetAsDefaultReleaseAgent: async <Request = PackageReleaseAgentSetAsDefaultReq, ResponseData = PackageReleaseAgentSetAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/set_as_default')(params, config),
+  // CancelAsDefaultReleaseAgent cancels agent release as default.
+  CancelAsDefaultReleaseAgent: async <Request = PackageReleaseAgentCancelAsDefaultReq, ResponseData = PackageReleaseAgentCancelAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/cancel_as_default')(params, config),
+  // DeleteReleaseAgent deletes agent release.
+  DeleteReleaseAgent: async <Request = PackageReleaseAgentDeleteReq, ResponseData = PackageReleaseAgentDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/delete')(params, config),
+  // CountDeployedReleasedAgent count deployed for release agent.
+  CountDeployedReleasedAgent: async <Request = PackageReleaseAgentCountDeployedReq, ResponseData = PackageReleaseAgentCountDeployedResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/count_deployed')(params, config),
+  // DownloadReleaseAgent download release agent package.
+  DownloadReleaseAgent: async <Request = PackageReleaseAgentDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/agent/download')(params, config),
+  // ListReleaseProxy lists proxy releases.
+  ListReleaseProxy: async <Request = PackageReleaseProxyListReq, ResponseData = PackageReleaseProxyListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/list')(params, config),
+  // DistinctReleaseProxy distincts proxy releases.
+  DistinctReleaseProxy: async <Request = PackageReleaseProxyDistinctReq, ResponseData = PackageReleaseProxyDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/distinct')(params, config),
+  // SetReleaseProxyLabelsMany sets many proxy releases labels.
+  SetReleaseProxyLabelsMany: async <Request = PackageReleaseProxySetLabelsManyReq, ResponseData = PackageReleaseProxySetLabelsManyResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/set_labels_many')(params, config),
+  // EnableReleaseProxy enables proxy release.
+  EnableReleaseProxy: async <Request = PackageReleaseProxyEnableReq, ResponseData = PackageReleaseProxyEnableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/enable')(params, config),
+  // DisableReleaseProxy disables proxy release.
+  DisableReleaseProxy: async <Request = PackageReleaseProxyDisableReq, ResponseData = PackageReleaseProxyDisableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/disable')(params, config),
+  // SetAsDefaultReleaseProxy sets proxy release as default.
+  SetAsDefaultReleaseProxy: async <Request = PackageReleaseProxySetAsDefaultReq, ResponseData = PackageReleaseProxySetAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/set_as_default')(params, config),
+  // CancelAsDefaultReleaseProxy cancels proxy release as default.
+  CancelAsDefaultReleaseProxy: async <Request = PackageReleaseProxyCancelAsDefaultReq, ResponseData = PackageReleaseProxyCancelAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/cancel_as_default')(params, config),
+  // DeleteReleaseProxy deletes proxy release.
+  DeleteReleaseProxy: async <Request = PackageReleaseProxyDeleteReq, ResponseData = PackageReleaseProxyDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/delete')(params, config),
+  // CountDeployedReleasedProxy count deployed for release proxy.
+  CountDeployedReleasedProxy: async <Request = PackageReleaseProxyCountDeployedReq, ResponseData = PackageReleaseProxyCountDeployedResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/count_deployed')(params, config),
+  // DownloadReleaseProxy download release proxy package.
+  DownloadReleaseProxy: async <Request = PackageReleaseProxyDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/proxy/download')(params, config),
+  // ListReleasePlugin lists plugin releases.
   ListReleasePlugin: async <Request = PackageReleasePluginListReq, ResponseData = PackageReleasePluginListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin/list')(params, config),
-  // EnableReleasePlugin enables release.
+  // EnableReleasePlugin enables plugin release.
   EnableReleasePlugin: async <Request = PackageReleasePluginEnableReq, ResponseData = PackageReleasePluginEnableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin/enable')(params, config),
-  // DisableReleasePlugin disables release.
+  // DisableReleasePlugin disables plugin release.
   DisableReleasePlugin: async <Request = PackageReleasePluginDisableReq, ResponseData = PackageReleasePluginDisableResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin/disable')(params, config),
-  // SetAsDefaultReleasePlugin sets release as default.
+  // SetAsDefaultReleasePlugin sets plugin release as default.
   SetAsDefaultReleasePlugin: async <Request = PackageReleasePluginSetAsDefaultReq, ResponseData = PackageReleasePluginSetAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin/set_as_default')(params, config),
-  // CancelAsDefaultReleasePlugin cancels release as default.
+  // CancelAsDefaultReleasePlugin cancels plugin release as default.
   CancelAsDefaultReleasePlugin: async <Request = PackageReleasePluginCancelAsDefaultReq, ResponseData = PackageReleasePluginCancelAsDefaultResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin/cancel_as_default')(params, config),
-  // DeleteReleasePlugin deletes release.
+  // DeleteReleasePlugin deletes plugin release.
   DeleteReleasePlugin: async <Request = PackageReleasePluginDeleteReq, ResponseData = PackageReleasePluginDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin/delete')(params, config),
+  // DownloadReleasePlugin download release plugin package.
+  DownloadReleasePlugin: async <Request = PackageReleasePluginDownloadReq, ResponseData = FileChunk['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin/download')(params, config),
+  // ListReleaseCert lists cert releases.
+  ListReleaseCert: async <Request = PackageReleaseCertListReq, ResponseData = PackageReleaseCertListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/cert/list')(params, config),
+  // DeleteReleaseCert deletes cert release.
+  DeleteReleaseCert: async <Request = PackageReleaseCertDeleteReq, ResponseData = PackageReleaseCertDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/cert/delete')(params, config),
+  // ListReleaseBinTool lists bintool releases.
+  ListReleaseBinTool: async <Request = PackageReleaseBinToolListReq, ResponseData = PackageReleaseBinToolListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/bintool/list')(params, config),
+  // DeleteReleaseBinTool deletes bintool release.
+  DeleteReleaseBinTool: async <Request = PackageReleaseBinToolDeleteReq, ResponseData = PackageReleaseBinToolDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/bintool/delete')(params, config),
+  // ListReleasePluginBinTool lists plugin-bintool releases.
+  ListReleasePluginBinTool: async <Request = PackageReleasePluginBinToolListReq, ResponseData = PackageReleasePluginBinToolListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin_bintool/list')(params, config),
+  // DeleteReleasePluginBinTool deletes plugin-bintool release.
+  DeleteReleasePluginBinTool: async <Request = PackageReleasePluginBinToolDeleteReq, ResponseData = PackageReleasePluginBinToolDeleteResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/package/release/plugin_bintool/delete')(params, config),
 };
 

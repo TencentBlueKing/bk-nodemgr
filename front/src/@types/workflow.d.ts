@@ -21,6 +21,7 @@ export interface WorflowOperationInstanceData {
   parent_operation_id: string;
   action_names: string[];
   life_cycle: WorkflowLifeCycle;
+  latest_action_inst_brief_data: WorkflowActionInstBriefData;
 }
 
 // WorkflowLifeCycle describes the workflow life cycle.
@@ -41,6 +42,13 @@ export interface WorkflowActionMessageMessage {
   time: number;
   text: string;
   level: string;
+}
+
+// WorkflowActionInstBriefData describes the workflow action instance brief
+// data.
+export interface WorkflowActionInstBriefData {
+  name: string;
+  tags: string[];
 }
 
 // WorkflowActionData describes the workflow action data.

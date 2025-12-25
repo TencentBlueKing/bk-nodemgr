@@ -106,6 +106,7 @@ export interface NodeWorkflowOperation {
   instance_ids: string[];
   param: NodeWorkflowOperationParam;
   status: NodeWorkflowOperationStatus;
+  latest_action_inst_brief_data: WorkflowActionInstBriefData;
 }
 
 export interface NodeWorkflowOperationStatus {
@@ -229,5 +230,39 @@ export interface NodeWorkflowOperationTerminateResp {
 }
 
 export interface NodeWorkflowOperationTerminateRespData {
+}
+
+// ManualSolutionStep describes the step of manual solution.
+export interface ManualSolutionStep {
+  type: string;
+  name_en: string;
+  name_zh: string;
+  content_en: string;
+  content_zh: string;
+}
+
+// ManualSolution describes the manual solution.
+export interface ManualSolution {
+  type: string;
+  description_en: string;
+  description_zh: string;
+  steps: ManualSolutionStep[];
+}
+
+// NodeWorkflowOperationManualSolutionGetReq describes the node workflow
+// operation get manual solution request.
+export interface NodeWorkflowOperationManualSolutionGetReq {
+  workflow_id: string;
+  operation_id: string;
+}
+
+// NodeWorkflowOperationManualSolutionGetResp describes the node workflow
+// operation get manual solution response.
+export interface NodeWorkflowOperationManualSolutionGetResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: ManualSolution[];
 }
 

@@ -48,6 +48,7 @@ export function formatTimestamp(
   timestamp: number,
   format = "YYYY-MM-DD HH:mm:ss"
 ) {
+  if (!timestamp) return '';
   // 将时间戳转换为字符串以检查其长度
   const timestampString = timestamp.toString();
 
