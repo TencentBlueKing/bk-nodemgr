@@ -14,6 +14,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -187,13 +188,8 @@ func (x *PluginWorkflowStatisticsResp) ConvertPluginWorkflowsFromDistribution(
 		}
 	}
 
-	items := make([]*WorkflowStatisticsInfo, 0, len(result))
-	for _, info := range result {
-		items = append(items, info)
-	}
-
 	x.Data = &PluginWorkflowStatisticsResp_Data{
-		Items: items,
+		Items: conv.MapValueToSlice(result),
 	}
 
 	return nil

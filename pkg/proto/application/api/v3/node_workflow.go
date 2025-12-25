@@ -200,13 +200,8 @@ func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromDistribution(
 		}
 	}
 
-	items := make([]*WorkflowStatisticsInfo, 0, len(result))
-	for _, info := range result {
-		items = append(items, info)
-	}
-
 	x.Data = &NodeWorkflowStatisticsResp_Data{
-		Items: items,
+		Items: conv.MapValueToSlice(result),
 	}
 	return nil
 }
