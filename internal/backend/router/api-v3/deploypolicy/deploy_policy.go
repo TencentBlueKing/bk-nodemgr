@@ -12,6 +12,7 @@
 package deploypolicy
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
@@ -28,6 +29,7 @@ type handler struct {
 	rg              *gin.RouterGroup
 	daoDeployPolicy deploypolicy.IDaoDeployPolicy
 	goAsyncPool     goasync.IHandler
+	deployPolicyMgr dpmgr.IHandler
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -37,11 +39,20 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
 	})
 
+	deployPolicyMgr := dpmgr.NewHandler(&dpmgr.Config{
+		DaoProcess:    capability.StoragePlugin,
+		DaoHost:       capability.StorageTopo,
+		CmdbHandler:   capability.CmdbHandler,
+		NodeManager:   capability.Manager,
+		PluginManager: capability.Manager,
+	})
+
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
 		rg:              rg.Group("/deploy_policy"),
 		daoDeployPolicy: capability.StorageDeployPolicy,
 		goAsyncPool:     goAsyncPool,
+		deployPolicyMgr: deployPolicyMgr,
 	}
 }
 
@@ -52,4 +63,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/create", restserver.Handler(h.Create))
 	h.rg.POST("/list", restserver.Handler(h.List))
 	h.rg.POST("/update", restserver.Handler(h.Update))
+	h.rg.POST("/execute", restserver.Handler(h.Execute))
 }

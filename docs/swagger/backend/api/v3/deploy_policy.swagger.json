@@ -50,6 +50,40 @@
         ]
       }
     },
+    "/api/v3/deploy_policy/execute": {
+      "post": {
+        "summary": "Execute executes deploy policy.",
+        "operationId": "DeployPolicySvc_Execute",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyExecuteResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DeployPolicyExecuteReq"
+            }
+          }
+        ],
+        "tags": [
+          "DeployPolicySvc"
+        ]
+      }
+    },
     "/api/v3/deploy_policy/list": {
       "post": {
         "summary": "List lists deploy policy.",
@@ -290,6 +324,41 @@
         }
       },
       "description": "DeployPolicyExactConditions describes exact conditions of deploy policy."
+    },
+    "v3DeployPolicyExecuteReq": {
+      "type": "object",
+      "properties": {
+        "deploy_policy_id": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "DeployPolicyExecuteReq describes HTTP request body when execute deploy\npolicy."
+    },
+    "v3DeployPolicyExecuteResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3DeployPolicyExecuteRespData"
+        }
+      },
+      "description": "DeployPolicyExecuteResp describes HTTP response body when execute deploy\npolicy."
+    },
+    "v3DeployPolicyExecuteRespData": {
+      "type": "object"
     },
     "v3DeployPolicyFields": {
       "type": "object",

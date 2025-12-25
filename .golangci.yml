@@ -789,3 +789,5 @@ linters-settings:
         alias: semconv
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface
         alias: managerIface
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr
+        alias: dpmgr

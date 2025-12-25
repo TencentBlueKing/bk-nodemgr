@@ -163,4 +163,12 @@ service DeployPolicySvc {
       body : "*"
     };
   }
+
+  // Execute executes deploy policy.
+  rpc Execute(DeployPolicyExecuteReq) returns (DeployPolicyExecuteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/deploy_policy/execute"
+      body : "*"
+    };
+  }
 }

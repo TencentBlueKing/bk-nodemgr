@@ -1,0 +1,104 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+// Package dpmgr provides the deploy policy manager.
+package dpmgr
+
+import (
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+// IHandler defines the handler interface.
+type IHandler interface {
+	Do(nCtx contextx.IContext, deployPolicies ...*types.DeployPolicy) error
+}
+
+var _ IHandler = &Handler{}
+
+// Handler define the handler.
+type Handler struct {
+	_ struct{}
+
+	calculator       IScopeCalculator
+	conflictResolver IConflictResolver
+
+	analyzer IAnalyzer
+	executor IExecutor
+}
+
+const (
+	defaultCalculateConcurrency = 10
+)
+
+// NewHandler creates a new handler.
+func NewHandler(conf *Config) *Handler {
+	calculator := NewScopeCalculator(&CalculatorConfig{
+		CmdbClient:           conf.CmdbHandler,
+		CalculateConcurrency: defaultCalculateConcurrency,
+	})
+	conflictResolver := NewConflictResolver()
+
+	analyzer := NewAnalyzer(&AnalyzerConfig{
+		DaoProcess: conf.DaoProcess,
+		DaoHost:    conf.DaoHost,
+	})
+	executor := NewExecutor(&ExecutorConfig{
+		NodeManager:   conf.NodeManager,
+		PluginManager: conf.PluginManager,
+	})
+
+	return &Handler{
+		calculator:       calculator,
+		conflictResolver: conflictResolver,
+		analyzer:         analyzer,
+		executor:         executor,
+	}
+}
+
+// Do does the handler.
+func (h *Handler) Do(nCtx contextx.IContext, deployPolicies ...*types.DeployPolicy) error {
+	originDeployWorkUnits := make([]*DeployUnit, len(deployPolicies))
+
+	// 1. convert scope to Targets and spec
+	for idx, deployPolicy := range deployPolicies {
+		targets, err := h.calculator.Calculate(nCtx, deployPolicy.Scopes...)
+		if err != nil {
+			return fmt.Errorf("failed to calculate targets for policy, deploy-policy(%v): %w", deployPolicy, err)
+		}
+
+		originDeployWorkUnits[idx] = &DeployUnit{
+			LifeCycle: deployPolicy.LifeCycle,
+			Targets:   targets,
+			Specs:     deployPolicy.Specs,
+		}
+	}
+
+	// 2. resolve the conflict of work units.
+	unConflictDeployWorkUnis, err := h.conflictResolver.ResolveConflict(originDeployWorkUnits)
+	if err != nil {
+		return fmt.Errorf("failed to resolve conflict: %w", err)
+	}
+
+	// 3. analyze the work units and design the change tasks.
+	changeTasks, err := h.analyzer.Analyze(nCtx, unConflictDeployWorkUnis...)
+	if err != nil {
+		return fmt.Errorf("failed to analyze work units: %w", err)
+	}
+
+	// 4. executor and execute the change tasks.
+	if err := h.executor.Execute(nCtx, changeTasks...); err != nil {
+		return fmt.Errorf("failed to execute change tasks: %w", err)
+	}
+
+	return nil
+}
