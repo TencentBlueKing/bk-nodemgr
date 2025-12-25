@@ -1970,7 +1970,7 @@ func (c *cli) listReleasePlugin(ctx contextx.IContext, req *protoBackend.Package
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release_plugin/list").
+		SubResourcef("/package/release/plugin/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1999,7 +1999,7 @@ func (c *cli) enableReleasePlugin(ctx contextx.IContext, req *protoBackend.Packa
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release_plugin/enable").
+		SubResourcef("/package/release/plugin/enable").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -2023,7 +2023,7 @@ func (c *cli) disableReleasePlugin(ctx contextx.IContext, req *protoBackend.Pack
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release_plugin/disable").
+		SubResourcef("/package/release/plugin/disable").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -2047,7 +2047,7 @@ func (c *cli) setAsDefaultReleasePlugin(ctx contextx.IContext, req *protoBackend
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release_plugin/set_as_default").
+		SubResourcef("/package/release/plugin/set_as_default").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -2071,7 +2071,7 @@ func (c *cli) cancelAsDefaultReleasePlugin(ctx contextx.IContext, req *protoBack
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release_plugin/cancel_as_default").
+		SubResourcef("/package/release/plugin/cancel_as_default").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -2095,7 +2095,7 @@ func (c *cli) deleteReleasePlugin(ctx contextx.IContext, req *protoBackend.Packa
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release_plugin/delete").
+		SubResourcef("/package/release/plugin/delete").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
