@@ -1320,8 +1320,8 @@ service Package {
     };
   }
 
-  // CounntDeployedReleasedAgent count deployed for release agent.
-  rpc CounntDeployedReleasedAgent(PackageReleaseAgentCountDeployedReq)
+  // CountDeployedReleasedAgent count deployed for release agent.
+  rpc CountDeployedReleasedAgent(PackageReleaseAgentCountDeployedReq)
       returns (PackageReleaseAgentCountDeployedResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/agent/count_deployed"
@@ -1409,8 +1409,8 @@ service Package {
     };
   }
 
-  // CounntDeployedReleasedProxy count deployed for release proxy.
-  rpc CounntDeployedReleasedProxy(PackageReleaseProxyCountDeployedReq)
+  // CountDeployedReleasedProxy count deployed for release proxy.
+  rpc CountDeployedReleasedProxy(PackageReleaseProxyCountDeployedReq)
       returns (PackageReleaseProxyCountDeployedResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/proxy/count_deployed"

@@ -392,8 +392,8 @@
     },
     "/api/v3/package/release/agent/count_deployed": {
       "post": {
-        "summary": "CounntDeployedReleasedAgent count deployed for release agent.",
-        "operationId": "Package_CounntDeployedReleasedAgent",
+        "summary": "CountDeployedReleasedAgent count deployed for release agent.",
+        "operationId": "Package_CountDeployedReleasedAgent",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -1174,8 +1174,8 @@
     },
     "/api/v3/package/release/proxy/count_deployed": {
       "post": {
-        "summary": "CounntDeployedReleasedProxy count deployed for release proxy.",
-        "operationId": "Package_CounntDeployedReleasedProxy",
+        "summary": "CountDeployedReleasedProxy count deployed for release proxy.",
+        "operationId": "Package_CountDeployedReleasedProxy",
         "responses": {
           "200": {
             "description": "A successful response.",
