@@ -7,18 +7,22 @@ import "common.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/struct.proto";
 
+// DeployPolicyMeta describes the meta of deploy policy.
 message DeployPolicyMeta {
   string name = 1;
   string description = 2;
 }
 
+// DeploySpec describes the spec of deploy policy.
 message DeploySpec {
-  string spec_type = 1;
-  google.protobuf.Struct spec_param = 2;
+  string type = 1;
+  google.protobuf.Struct param = 2;
 }
 
+// TargetFilter describes the target filter of deploy policy.
 message TargetFilter {}
 
+// Scope describes the scope of deploy policy.
 message Scope {
   int64 bk_biz_id = 1;
   string type = 2;
@@ -27,6 +31,7 @@ message Scope {
   repeated google.protobuf.Struct items = 5;
 }
 
+// DeployPolicy describes the deploy policy.
 message DeployPolicy {
   int64 deploy_policy_id = 1;
   DeployPolicyMeta meta = 2;
@@ -37,6 +42,7 @@ message DeployPolicy {
   bool enabled = 6;
 }
 
+// DeployPolicyExactConditions describes exact conditions of deploy policy.
 message DeployPolicyExactConditions {
   repeated int64 deploy_policy_id = 1;
   repeated string deploy_policy_name = 2;
@@ -44,11 +50,13 @@ message DeployPolicyExactConditions {
   repeated bool enabled = 4;
 }
 
+// DeployPolicyFuzzyConditions describes fuzzy conditions of deploy policy.
 message DeployPolicyFuzzyConditions {
   repeated string deploy_policy_name = 1;
   repeated string operator = 2;
 }
 
+// DeployPolicyListReq describes HTTP request body when list deploy policy.
 message DeployPolicyListReq {
   Page page = 1;
   bool only_count = 2;
@@ -56,6 +64,7 @@ message DeployPolicyListReq {
   DeployPolicyFuzzyConditions fuzzy_include_conditions = 4;
 }
 
+// DeployPolicyListResp describes HTTP response body when list deploy policy.
 message DeployPolicyListResp {
   int32 code = 1;
   string message = 2;
@@ -68,6 +77,7 @@ message DeployPolicyListResp {
   Data data = 5;
 }
 
+// DeployPolicyCreateReq describes HTTP request body when create deploy policy.
 message DeployPolicyCreateReq {
   string name = 1;
   string description = 2;
@@ -76,6 +86,8 @@ message DeployPolicyCreateReq {
   repeated Scope scopes = 5;
 }
 
+// DeployPolicyCreateResp describes HTTP response body when create deploy
+// policy.
 message DeployPolicyCreateResp {
   int32 code = 1;
   string message = 2;
@@ -85,6 +97,7 @@ message DeployPolicyCreateResp {
   Data data = 5;
 }
 
+// DeployPolicyFields describes the fields of deploy policy.
 message DeployPolicyFields {
   bool meta = 1;
   bool scopes = 2;
@@ -92,11 +105,14 @@ message DeployPolicyFields {
   bool enabled = 4;
 }
 
+// DeployPolicyUpdateReq describes HTTP request body when update deploy policy.
 message DeployPolicyUpdateReq {
   repeated DeployPolicy deploy_policies = 1;
   DeployPolicyFields fields = 2;
 }
 
+// DeployPolicyUpdateResp describes HTTP response body when update deploy
+// policy.
 message DeployPolicyUpdateResp {
   int32 code = 1;
   string message = 2;
@@ -106,6 +122,23 @@ message DeployPolicyUpdateResp {
   Data data = 5;
 }
 
+// DeployPolicyExecuteReq describes HTTP request body when execute deploy
+// policy.
+message DeployPolicyExecuteReq { optional int64 deploy_policy_id = 1; }
+
+// DeployPolicyExecuteResp describes HTTP response body when execute deploy
+// policy.
+message DeployPolicyExecuteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// DeployPolicySvc describes the service of deploy policy.
 service DeployPolicySvc {
   // List lists deploy policy.
   rpc List(DeployPolicyListReq) returns (DeployPolicyListResp) {

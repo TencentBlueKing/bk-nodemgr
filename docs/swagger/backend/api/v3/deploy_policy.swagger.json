@@ -37,6 +37,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "DeployPolicyCreateReq describes HTTP request body when create deploy policy.",
             "in": "body",
             "required": true,
             "schema": {
@@ -70,6 +71,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "DeployPolicyListReq describes HTTP request body when list deploy policy.",
             "in": "body",
             "required": true,
             "schema": {
@@ -103,6 +105,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "DeployPolicyUpdateReq describes HTTP request body when update deploy policy.",
             "in": "body",
             "required": true,
             "schema": {
@@ -194,7 +197,8 @@
         "enabled": {
           "type": "boolean"
         }
-      }
+      },
+      "description": "DeployPolicy describes the deploy policy."
     },
     "v3DeployPolicyCreateReq": {
       "type": "object",
@@ -222,7 +226,8 @@
             "$ref": "#/definitions/v3Scope"
           }
         }
-      }
+      },
+      "description": "DeployPolicyCreateReq describes HTTP request body when create deploy policy."
     },
     "v3DeployPolicyCreateResp": {
       "type": "object",
@@ -243,7 +248,8 @@
         "data": {
           "$ref": "#/definitions/v3DeployPolicyCreateRespData"
         }
-      }
+      },
+      "description": "DeployPolicyCreateResp describes HTTP response body when create deploy\npolicy."
     },
     "v3DeployPolicyCreateRespData": {
       "type": "object",
@@ -282,7 +288,8 @@
             "type": "boolean"
           }
         }
-      }
+      },
+      "description": "DeployPolicyExactConditions describes exact conditions of deploy policy."
     },
     "v3DeployPolicyFields": {
       "type": "object",
@@ -299,7 +306,8 @@
         "enabled": {
           "type": "boolean"
         }
-      }
+      },
+      "description": "DeployPolicyFields describes the fields of deploy policy."
     },
     "v3DeployPolicyFuzzyConditions": {
       "type": "object",
@@ -316,7 +324,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "description": "DeployPolicyFuzzyConditions describes fuzzy conditions of deploy policy."
     },
     "v3DeployPolicyListReq": {
       "type": "object",
@@ -333,7 +342,8 @@
         "fuzzy_include_conditions": {
           "$ref": "#/definitions/v3DeployPolicyFuzzyConditions"
         }
-      }
+      },
+      "description": "DeployPolicyListReq describes HTTP request body when list deploy policy."
     },
     "v3DeployPolicyListResp": {
       "type": "object",
@@ -354,7 +364,8 @@
         "data": {
           "$ref": "#/definitions/v3DeployPolicyListRespData"
         }
-      }
+      },
+      "description": "DeployPolicyListResp describes HTTP response body when list deploy policy."
     },
     "v3DeployPolicyListRespData": {
       "type": "object",
@@ -381,7 +392,8 @@
         "description": {
           "type": "string"
         }
-      }
+      },
+      "description": "DeployPolicyMeta describes the meta of deploy policy."
     },
     "v3DeployPolicyUpdateReq": {
       "type": "object",
@@ -396,7 +408,8 @@
         "fields": {
           "$ref": "#/definitions/v3DeployPolicyFields"
         }
-      }
+      },
+      "description": "DeployPolicyUpdateReq describes HTTP request body when update deploy policy."
     },
     "v3DeployPolicyUpdateResp": {
       "type": "object",
@@ -417,7 +430,8 @@
         "data": {
           "$ref": "#/definitions/v3DeployPolicyUpdateRespData"
         }
-      }
+      },
+      "description": "DeployPolicyUpdateResp describes HTTP response body when update deploy\npolicy."
     },
     "v3DeployPolicyUpdateRespData": {
       "type": "object",
@@ -431,13 +445,14 @@
     "v3DeploySpec": {
       "type": "object",
       "properties": {
-        "spec_type": {
+        "type": {
           "type": "string"
         },
-        "spec_param": {
+        "param": {
           "type": "object"
         }
-      }
+      },
+      "description": "DeploySpec describes the spec of deploy policy."
     },
     "v3Error": {
       "type": "object",
@@ -493,10 +508,12 @@
             "type": "object"
           }
         }
-      }
+      },
+      "description": "Scope describes the scope of deploy policy."
     },
     "v3TargetFilter": {
-      "type": "object"
+      "type": "object",
+      "description": "TargetFilter describes the target filter of deploy policy."
     }
   }
 }

@@ -12,6 +12,7 @@ package deploypolicy
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
@@ -28,13 +29,14 @@ var _ base.IData = &DeployPolicy{}
 // DeployPolicy represents the table of deploy policy deployment.
 // DeployPolicyID should be the unique key.
 type DeployPolicy struct {
-	TenantID       string   `json:"tenant_id" bson:"tenant_id"`
-	DeployPolicyID int64    `json:"deploy_policy_id" bson:"deploy_policy_id"`
-	Meta           Meta     `json:"meta" bson:"meta"`
-	Specs          []*Spec  `json:"specs" bson:"specs"`
-	Scopes         []*Scope `json:"scopes" bson:"scopes"`
-	Enabled        bool     `json:"enabled" bson:"enabled"`
-	Operator       string   `json:"operator" bson:"operator"`
+	TenantID       string    `json:"tenant_id" bson:"tenant_id"`
+	DeployPolicyID int64     `json:"deploy_policy_id" bson:"deploy_policy_id"`
+	Meta           Meta      `json:"meta" bson:"meta"`
+	Specs          []*Spec   `json:"specs" bson:"specs"`
+	Scopes         []*Scope  `json:"scopes" bson:"scopes"`
+	Enabled        bool      `json:"enabled" bson:"enabled"`
+	LifeCycle      LifeCycle `json:"life_cycle" bson:"life_cycle"`
+	Operator       string    `json:"operator" bson:"operator"`
 }
 
 // UniqueFields unique fields of the table.
@@ -69,6 +71,12 @@ type Scope struct {
 	Granularity string           `json:"granularity" bson:"granularity"`
 	Filter      *TargetFilter    `json:"filter" bson:"filter"`
 	Items       []map[string]any `json:"items" bson:"items"`
+}
+
+// LifeCycle represents the life cycle of deploy policy.
+type LifeCycle struct {
+	CreateAt time.Time `json:"create_at" bson:"create_at"`
+	UpdateAt time.Time `json:"update_at" bson:"update_at"`
 }
 
 // TargetFilter represents the target filter of deploy policy.

@@ -92,6 +92,57 @@ type Scope struct {
 	Items       []map[string]any
 }
 
+// Validate validates the scope.
+func (scope *Scope) Validate() error {
+	if err := scope.Type.Validate(); err != nil {
+		return fmt.Errorf("failed to validate scope type: %w", err)
+	}
+
+	if err := scope.Granularity.Validate(); err != nil {
+		return fmt.Errorf("failed to validate scope granularity: %w", err)
+	}
+
+	switch scope.Type {
+	case ScopeTypeServiceTemplate:
+		scopeServiceTemplate, err := scope.ToScopeServiceTemplate()
+		if err != nil {
+			return fmt.Errorf("failed to convert scope to scope service template: %w", err)
+		}
+
+		return scopeServiceTemplate.Validate()
+	case ScopeTypeSetTemplate:
+		scopeSetTemplate, err := scope.ToScopeSetTemplate()
+		if err != nil {
+			return fmt.Errorf("failed to convert scope to scope set template: %w", err)
+		}
+
+		return scopeSetTemplate.Validate()
+	case ScopeTypeInstance:
+		scopeInstance, err := scope.ToScopeInstance()
+		if err != nil {
+			return fmt.Errorf("failed to convert scope to scope instance: %w", err)
+		}
+
+		return scopeInstance.Validate()
+	case ScopeTypeTopo:
+		scopeTopo, err := scope.ToScopeTopo()
+		if err != nil {
+			return fmt.Errorf("failed to convert scope to scope topo: %w", err)
+		}
+
+		return scopeTopo.Validate()
+	case ScopeTypeDynamicGroup:
+		scopeDynamicGroup, err := scope.ToScopeDynamicGroup()
+		if err != nil {
+			return fmt.Errorf("failed to convert scope to scope dynamic group: %w", err)
+		}
+
+		return scopeDynamicGroup.Validate()
+	default:
+		return fmt.Errorf("invalid scope type, scope-type(%s)", scope.Type)
+	}
+}
+
 type scopeItemServiceTemplate struct {
 	ServiceTemplateID int64
 	ServiceID         int64

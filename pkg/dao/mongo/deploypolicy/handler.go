@@ -13,6 +13,7 @@ package deploypolicy
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -99,6 +100,8 @@ func (h *Handler) Create(nCtx contextx.IContext, deployPolicy *types.DeployPolic
 	}
 	data.DeployPolicyID = deployPolicyID
 	data.Operator = nCtx.BKUsername()
+	data.LifeCycle.CreateAt = time.Now()
+	data.LifeCycle.UpdateAt = time.Now()
 
 	if err := h.tenantDao(nCtx.TenantID()).Create(nCtx, data); err != nil {
 		return -1, fmt.Errorf("failed to create deploy policy, err: %w", err)
@@ -120,6 +123,7 @@ func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy, tenantID string
 		Scopes:         convScopesFromTypes(deployPolicy.Scopes),
 		Operator:       deployPolicy.Operator,
 		Enabled:        deployPolicy.Enabled,
+		LifeCycle:      convDeployPolicyLifeCycleFromTypes(deployPolicy.LifeCycle),
 	}
 
 	return data
@@ -162,6 +166,13 @@ func convScopeFromTypes(scope *types.Scope) *Scope {
 		Granularity: string(scope.Granularity),
 		Filter:      convTargetFilterFromTypes(scope.Filter),
 		Items:       scope.Items,
+	}
+}
+
+func convDeployPolicyLifeCycleFromTypes(deployPolicyLifeCycle types.DeployPolicyLifeCycle) LifeCycle {
+	return LifeCycle{
+		CreateAt: deployPolicyLifeCycle.CreateAt,
+		UpdateAt: deployPolicyLifeCycle.UpdateAt,
 	}
 }
 
@@ -243,6 +254,7 @@ func convDeployPolicyToTypes(data *DeployPolicy) *types.DeployPolicy {
 		DeployPolicyID: data.DeployPolicyID,
 		Operator:       data.Operator,
 		Enabled:        data.Enabled,
+		LifeCycle:      convDeployPolicyLifeCycleToTypes(data.LifeCycle),
 	}
 
 	deployPolicy.Meta = types.DeployPolicyMeta{
@@ -272,6 +284,13 @@ func convScopeToTypes(data *Scope) *types.Scope {
 		Granularity: types.TargetGranularity(data.Granularity),
 		Filter:      convTargetFilterToTypes(data.Filter),
 		Items:       data.Items,
+	}
+}
+
+func convDeployPolicyLifeCycleToTypes(data LifeCycle) types.DeployPolicyLifeCycle {
+	return types.DeployPolicyLifeCycle{
+		CreateAt: data.CreateAt,
+		UpdateAt: data.UpdateAt,
 	}
 }
 
@@ -370,6 +389,7 @@ func (h *Handler) UpdateFields(nCtx contextx.IContext, fields types.DeployPolicy
 		}
 
 		updates[FieldKeyOperator] = nCtx.BKUsername()
+		updates[FieldKeyLifeCycleUpdateAt] = time.Now()
 
 		docs = append(docs, &base.DocumentFieldUpdate{
 			Filter: func() bson.D {
@@ -398,15 +418,15 @@ func generateDeployPolicyUpdates(fields types.DeployPolicyFields, deployPolicy *
 	updates := make(map[string]any)
 
 	if fields.Meta {
-		updates[FieldKeyMeta] = deployPolicy.Meta
+		updates[FieldKeyMeta] = convDeployPolicyMetaFromTypes(deployPolicy.Meta)
 	}
 
 	if fields.Scopes {
-		updates[FieldKeyScopes] = deployPolicy.Scopes
+		updates[FieldKeyScopes] = convScopesFromTypes(deployPolicy.Scopes)
 	}
 
 	if fields.Specs {
-		updates[FieldKeySpecs] = deployPolicy.Specs
+		updates[FieldKeySpecs] = convSpecsFromTypes(deployPolicy.Specs)
 	}
 
 	if fields.Enabled {

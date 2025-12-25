@@ -141,8 +141,8 @@ func convSpecFromTypes(spec *types.DeploySpec) (*DeploySpec, error) {
 	}
 
 	return &DeploySpec{
-		SpecType:  string(spec.Type),
-		SpecParam: param,
+		Type:  string(spec.Type),
+		Param: param,
 	}, nil
 }
 
@@ -269,7 +269,7 @@ func convScopeToTypes(scope *Scope) (*types.Scope, error) {
 		return nil, err
 	}
 
-	return &types.Scope{
+	result := &types.Scope{
 		BizID:       scope.GetBkBizId(),
 		Type:        scopeType,
 		Granularity: targetGranularity,
@@ -277,7 +277,13 @@ func convScopeToTypes(scope *Scope) (*types.Scope, error) {
 		Items: conv.SliceToSlice[*structpb.Struct, map[string]any](scope.GetItems(), func(s *structpb.Struct) map[string]any {
 			return s.AsMap()
 		}),
-	}, nil
+	}
+
+	if err := result.Validate(); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func convTargetFilterToTypes(_ *TargetFilter) *types.TargetFilter {
@@ -286,14 +292,14 @@ func convTargetFilterToTypes(_ *TargetFilter) *types.TargetFilter {
 }
 
 func convSpecToTypes(spec *DeploySpec) (*types.DeploySpec, error) {
-	specType := types.DeploySpecType(spec.GetSpecType())
+	specType := types.DeploySpecType(spec.GetType())
 	if err := specType.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid spec type(%s): %w", spec.GetSpecType(), err)
+		return nil, fmt.Errorf("invalid spec type(%s): %w", spec.GetType(), err)
 	}
 
 	return &types.DeploySpec{
 		Type:  specType,
-		Param: spec.SpecParam.AsMap(),
+		Param: spec.Param.AsMap(),
 	}, nil
 }
 
@@ -337,4 +343,21 @@ func (x *DeployPolicyUpdateReq) ConvertFieldsToTypes() types.DeployPolicyFields 
 // ConvertDeployPoliciesToTypes convert deploy policies to types.
 func (x *DeployPolicyUpdateReq) ConvertDeployPoliciesToTypes() ([]*types.DeployPolicy, error) {
 	return conv.SliceToSliceWithError[*DeployPolicy, *types.DeployPolicy](x.GetDeployPolicies(), convDeployPolicyToTypes)
+}
+
+// Validate check body.
+func (x *DeployPolicyExecuteReq) Validate() error {
+	if x.GetDeployPolicyId() <= 0 {
+		return fmt.Errorf("deploy policy id is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *DeployPolicyExecuteReq) AutoConvert() {
+	if x.DeployPolicyId == nil {
+		x.DeployPolicyId = new(int64)
+		*x.DeployPolicyId = -1
+	}
 }

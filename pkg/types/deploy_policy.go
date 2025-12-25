@@ -12,6 +12,7 @@ package types
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
@@ -27,12 +28,20 @@ type DeployPolicy struct {
 
 	Operator string
 	Enabled  bool
+
+	LifeCycle DeployPolicyLifeCycle
 }
 
 // DeployPolicyMeta defines the deploy policy meta.
 type DeployPolicyMeta struct {
 	Name        string
 	Description string
+}
+
+// DeployPolicyLifeCycle defines the deploy policy life cycle.
+type DeployPolicyLifeCycle struct {
+	CreateAt time.Time
+	UpdateAt time.Time
 }
 
 // DeploySpecType defines the deploy spec type.
@@ -42,14 +51,20 @@ const (
 	// DeploySpecTypeSpecifyAgent defines specify agent.
 	DeploySpecTypeSpecifyAgent DeploySpecType = "specify_agent"
 
+	// DeploySpecTypeSpecifyProxy defines specify proxy.
+	DeploySpecTypeSpecifyProxy DeploySpecType = "specify_proxy"
+
 	// DeploySpecTypeSpecifyPlugin defines specify plugin.
 	DeploySpecTypeSpecifyPlugin DeploySpecType = "specify_plugin"
+
+	// DeploySpecTypeSpecifyPluginPkg defines specify plugin.
+	DeploySpecTypeSpecifyPluginPkg DeploySpecType = "specify_plugin_pkg"
 )
 
 // Validate validates the deploy spec type.
 func (deploySpecType DeploySpecType) Validate() error {
 	switch deploySpecType {
-	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyPlugin:
+	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyPlugin, DeploySpecTypeSpecifyPluginPkg:
 		return nil
 	default:
 		return fmt.Errorf("invalid deploy spec type(%s)", deploySpecType)
@@ -58,8 +73,13 @@ func (deploySpecType DeploySpecType) Validate() error {
 
 func conflictDeploySpecTypes(specType DeploySpecType) []DeploySpecType {
 	switch specType {
-	// TODO: 补充 proxy 的冲突
 	case DeploySpecTypeSpecifyAgent:
+		return []DeploySpecType{DeploySpecTypeSpecifyProxy}
+	case DeploySpecTypeSpecifyPlugin:
+		return []DeploySpecType{DeploySpecTypeSpecifyPluginPkg}
+	case DeploySpecTypeSpecifyProxy:
+		return []DeploySpecType{}
+	case DeploySpecTypeSpecifyPluginPkg:
 		return []DeploySpecType{}
 	default:
 		return nil
@@ -97,7 +117,6 @@ func (spec DeploySpec) UniqueID() (string, error) {
 			return "", fmt.Errorf("failed to get specify plugin param: %w", err)
 		}
 
-		// TODO: 继续补充此处代码
 		return param.PluginName, nil
 	default:
 		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.Type)
