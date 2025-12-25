@@ -17,6 +17,7 @@ import (
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -42,70 +43,57 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/list", restserver.Handler(h.ListRelease))
-	h.rg.POST("/set_labels", restserver.Handler(h.SetReleaseLabels))
-	h.rg.POST("/set_labels_many", restserver.Handler(h.SetReleaseLabelsMany))
-	h.rg.POST("/enable", restserver.Handler(h.EnableRelease))
-	h.rg.POST("/disable", restserver.Handler(h.DisableRelease))
-	h.rg.POST("/set_as_default", restserver.Handler(h.SetAsDefaultRelease))
-	h.rg.POST("/cancel_as_default", restserver.Handler(h.CancelAsDefaultRelease))
-	h.rg.POST("/delete", restserver.Handler(h.DeleteRelease))
-	h.rg.POST("/deployed_host/count", restserver.Handler(h.CountDeployedHost))
+	// release agent.
 	h.rg.POST("/agent/list", restserver.Handler(h.ListReleaseAgent))
+	h.rg.POST("/agent/distinct", restserver.Handler(h.DistinctReleaseAgent))
+	h.rg.POST("/agent/set_labels_many", restserver.Handler(h.SetReleaseAgentLabelsMany))
+	h.rg.POST("/agent/enable", restserver.Handler(h.EnableReleaseAgent))
+	h.rg.POST("/agent/disable", restserver.Handler(h.DisableReleaseAgent))
+	h.rg.POST("/agent/set_as_default", restserver.Handler(h.SetAsDefaultReleaseAgent))
+	h.rg.POST("/agent/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleaseAgent))
+	h.rg.POST("/agent/delete", restserver.Handler(h.DeleteReleaseAgent))
+	h.rg.POST("/agent/count_deployed", restserver.Handler(h.CountDeployedReleaseAgent))
+	h.rg.POST("/agent/download", restserver.StreamHandler(h.DownloadReleaseAgent))
+
+	// release proxy.
 	h.rg.POST("/proxy/list", restserver.Handler(h.ListReleaseProxy))
+	h.rg.POST("/proxy/distinct", restserver.Handler(h.DistinctReleaseProxy))
+	h.rg.POST("/proxy/set_labels_many", restserver.Handler(h.SetReleaseProxyLabelsMany))
+	h.rg.POST("/proxy/enable", restserver.Handler(h.EnableReleaseProxy))
+	h.rg.POST("/proxy/disable", restserver.Handler(h.DisableReleaseProxy))
+	h.rg.POST("/proxy/set_as_default", restserver.Handler(h.SetAsDefaultReleaseProxy))
+	h.rg.POST("/proxy/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleaseProxy))
+	h.rg.POST("/proxy/delete", restserver.Handler(h.DeleteReleaseProxy))
+	h.rg.POST("/proxy/count_deployed", restserver.Handler(h.CountDeployedReleaseProxy))
+	h.rg.POST("/proxy/download", restserver.StreamHandler(h.DownloadReleaseProxy))
 
-	h.rg.POST("/agent/download", restserver.StreamHandler(h.AgentDownload))
-	h.rg.POST("/proxy/download", restserver.StreamHandler(h.ProxyDownload))
-	h.rg.POST("/plugin/download", restserver.StreamHandler(h.PluginDownload))
-
+	// release plugin.
 	h.rg.POST("/plugin/list", restserver.Handler(h.ListReleasePlugin))
 	h.rg.POST("/plugin/enable", restserver.Handler(h.EnableReleasePlugin))
 	h.rg.POST("/plugin/disable", restserver.Handler(h.DisableReleasePlugin))
 	h.rg.POST("/plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))
 	h.rg.POST("/plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
 	h.rg.POST("/plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
+	h.rg.POST("/plugin/download", restserver.StreamHandler(h.DownloadReleasePlugin))
+
+	// release cert.
+	h.rg.POST("/cert/list", restserver.Handler(h.ListReleaseCert))
+	h.rg.POST("/cert/delete", restserver.Handler(h.DeleteReleaseCert))
+
+	// release bintool.
+	h.rg.POST("/bintool/list", restserver.Handler(h.ListReleaseBinTool))
+	h.rg.POST("/bintool/delete", restserver.Handler(h.DeleteReleaseBinTool))
+
+	// release plugin bintool.
+	h.rg.POST("/plugin_bintool/list", restserver.Handler(h.ListReleasePluginBinTool))
+	h.rg.POST("/plugin_bintool/delete", restserver.Handler(h.DeleteReleasePluginBinTool))
 }
 
 const (
 	maxReleaseLimit = 1000
 )
 
-// ListRelease lists releases with page and conditions.
-func (h *handler) ListRelease(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseListReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	releaseType := types.ReleaseType(req.GetReleaseType())
-	gen := types.Generation(req.GetGeneration())
-
-	// only count.
-	if req.GetOnlyCount() {
-		num, err := h.backendHandler.CountRelease(rCtx, releaseType, gen, req.ConvertConditionsToTypes())
-		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to list release. failed to count host")
-			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-		}
-
-		resp := new(protoApplication.PackageReleaseListResp)
-		resp.ConvertReleasesFromTypes(num, nil)
-
-		return resp.GetData(), nil
-	}
-
-	releases, num, err := h.backendHandler.ListRelease(rCtx, releaseType, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release")
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	resp := new(protoApplication.PackageReleaseListResp)
-	resp.ConvertReleasesFromTypes(num, releases)
-
-	return resp.GetData(), nil
-}
+// ==================== Release Agent ====================
 
 // ListReleaseAgent lists release agent with page and conditions.
 func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
@@ -143,6 +131,255 @@ func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error
 	return resp.GetData(), nil
 }
 
+// DistinctReleaseAgent distincts release agent by conditions.
+func (h *handler) DistinctReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	distinctField := req.ConvertDistinctFieldToTypes()
+	condition := req.ConvertConditionsToTypes()
+
+	result, err := h.backendHandler.DistinctReleaseAgent(rCtx, gen, distinctField, condition)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct release agent")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.PackageReleaseAgentDistinctResp)
+	resp.ConvertResultFromTypes(result)
+
+	return resp.GetData(), nil
+}
+
+// SetReleaseAgentLabelsMany sets many agent release labels.
+func (h *handler) SetReleaseAgentLabelsMany(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentSetLabelsManyReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set many agent release labels, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	labels := req.GetLabels()
+	condition := req.ConvertConditionsToTypes()
+
+	if err := h.backendHandler.SetReleaseAgentLabelsMany(rCtx, gen, labels, condition); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", gen, "labels", labels).Error("failed to set many agent release labels")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen, "labels", labels).Info("set many agent release labels")
+
+	resp := new(protoApplication.PackageReleaseAgentSetLabelsManyResp)
+
+	return resp.GetData(), nil
+}
+
+// EnableReleaseAgent enables agent release.
+func (h *handler) EnableReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentEnableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseAgentKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.EnableReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to enable release agent")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("enabled release agent")
+
+	resp := new(protoApplication.PackageReleaseAgentEnableResp)
+
+	return resp.GetData(), nil
+}
+
+// DisableReleaseAgent disables agent release.
+func (h *handler) DisableReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentDisableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseAgentKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.DisableReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to disable release agent")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("disabled release agent")
+
+	resp := new(protoApplication.PackageReleaseAgentDisableResp)
+
+	return resp.GetData(), nil
+}
+
+// SetAsDefaultReleaseAgent sets agent release as default.
+func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentSetAsDefaultReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseAgentKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.SetAsDefaultReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to set default release agent")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("set default release agent")
+
+	resp := new(protoApplication.PackageReleaseAgentSetAsDefaultResp)
+
+	return resp.GetData(), nil
+}
+
+// CancelAsDefaultReleaseAgent cancels agent release as default.
+func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentCancelAsDefaultReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseAgentKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.CancelAsDefaultReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to cancel default release agent")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("canceled default release agent")
+
+	resp := new(protoApplication.PackageReleaseAgentCancelAsDefaultResp)
+
+	return resp.GetData(), nil
+}
+
+// DeleteReleaseAgent deletes agent release.
+func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentDeleteReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseAgentKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.DeleteReleaseAgent(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to delete release agent")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("deleted release agent")
+
+	resp := new(protoApplication.PackageReleaseAgentDeleteResp)
+
+	return resp.GetData(), nil
+}
+
+// CountDeployedReleaseAgent count deployed release agent.
+func (h *handler) CountDeployedReleaseAgent(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseAgentCountDeployedReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed agent release, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	conditions, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed agent release, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	results := make([]int64, len(conditions))
+
+	gp := gopool.NewPool()
+	for i := range conditions {
+		index := i
+		condition := conditions[i]
+
+		gp.Go(func() error {
+			count, err := h.backendHandler.CountHost(rCtx, condition)
+			if err != nil {
+				logger.G.Biz(rCtx).WithErr(err).Error("failed to count host")
+
+				return err
+			}
+
+			results[index] = count
+
+			return nil
+		})
+	}
+	if err := gp.Wait(); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed agent release")
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).Info("count deployed agent release")
+
+	resp := new(protoApplication.PackageReleaseAgentCountDeployedResp)
+	resp.ConvertResultFromTypes(results)
+
+	return resp.GetData(), nil
+}
+
+// DownloadReleaseAgent download release agent.
+func (h *handler) DownloadReleaseAgent(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	req := new(protoApplication.PackageReleaseAgentDownloadReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen, plat, version := req.GetIdentifier()
+	resp, err := h.fileHandler.DownloadReleaseAgent(rCtx, gen, plat, version)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen, "plat", plat, "version", version).Info("downloaded release agent")
+
+	return resp, nil
+}
+
+// ==================== Release Proxy ====================
+
 // ListReleaseProxy lists release proxy with page and conditions.
 func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PackageReleaseProxyListReq)
@@ -179,234 +416,234 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 	return resp.GetData(), nil
 }
 
-// SetReleaseLabels set release labels.
-func (h *handler) SetReleaseLabels(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseSetLabelsReq)
+// DistinctReleaseProxy distincts release proxy by conditions.
+func (h *handler) DistinctReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyDistinctReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to set release labels, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct release proxy, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.SetReleaseLabels(rCtx, gen, rt, plat, version, req.GetLabels()); err != nil {
-		logger.G.Biz(rCtx).
-			WithErr(err).
-			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
-			Error("failed to set release labels")
+	gen := types.Generation(req.GetGeneration())
+	distinctField := req.ConvertDistinctFieldToTypes()
+	condition := req.ConvertConditionsToTypes()
 
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version, "labels", req.GetLabels()).Info("set release labels")
-
-	resp := new(protoApplication.PackageReleaseSetLabelsResp)
-
-	return resp.GetData(), nil
-}
-
-// SetReleaseLabelsMany set release labels.
-func (h *handler) SetReleaseLabelsMany(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseSetLabelsManyReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to set many release labels, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	rt, gen, plat, version := req.GetIdentifiers()
-	if err := h.backendHandler.SetReleaseLabelsMany(rCtx, rt, gen, plat, version, req.GetLabels()); err != nil {
-		logger.G.Biz(rCtx).
-			WithErr(err).
-			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
-			Error("failed to set many release labels")
-
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version, "labels", req.GetLabels()).Info("set many release labels")
-
-	resp := new(protoApplication.PackageReleaseSetLabelsResp)
-
-	return resp.GetData(), nil
-}
-
-// EnableRelease enable release.
-func (h *handler) EnableRelease(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseEnableReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable release, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.EnableRelease(rCtx, gen, rt, plat, version); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
-			gen, rt, plat, version, err)
-
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("enabled release")
-
-	resp := new(protoApplication.PackageReleaseEnableResp)
-
-	return resp.GetData(), nil
-}
-
-// DisableRelease disable release.
-func (h *handler) DisableRelease(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseDisableReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable release, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.DisableRelease(rCtx, gen, rt, plat, version); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable release. gen(%d), release-type(%s), platform(%s), version(%s): %v",
-			gen, rt, plat, version, err)
-
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("disabled release")
-
-	resp := new(protoApplication.PackageReleaseDisableResp)
-
-	return resp.GetData(), nil
-}
-
-// SetAsDefaultRelease set default release.
-func (h *handler) SetAsDefaultRelease(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseSetAsDefaultReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default release, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.SetAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
-		logger.G.Biz(rCtx).
-			WithErr(err).
-			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
-			Error("failed to set default release")
-
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("set default release")
-
-	resp := new(protoApplication.PackageReleaseSetAsDefaultResp)
-
-	return resp.GetData(), nil
-}
-
-// CancelAsDefaultRelease cancel default release.
-func (h *handler) CancelAsDefaultRelease(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseCancelAsDefaultReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default release, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.CancelAsDefaultRelease(rCtx, gen, rt, plat, version); err != nil {
-		logger.G.Biz(rCtx).
-			WithErr(err).
-			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
-			Error("failed to cancel default release")
-
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("canceled default release")
-
-	resp := new(protoApplication.PackageReleaseCancelAsDefaultResp)
-
-	return resp.GetData(), nil
-}
-
-// DeleteRelease delete release.
-func (h *handler) DeleteRelease(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseDeleteReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete release, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	gen, rt, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.DeleteRelease(rCtx, gen, rt, plat, version); err != nil {
-		logger.G.Biz(rCtx).
-			WithErr(err).
-			With("gen", gen, "release-type", rt, "plat", plat, "version", version).
-			Error("failed to delete default release")
-
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("gen", gen, "release-type", rt, "plat", plat, "version", version).Info("deleted default release")
-
-	resp := new(protoApplication.PackageReleaseDeleteResp)
-
-	return resp.GetData(), nil
-}
-
-// CountDeployedHost count deployed host.
-func (h *handler) CountDeployedHost(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoApplication.PackageReleaseDeployedHostCountReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed host, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	condition, err := req.ConvertConditionsToHostTypes()
+	result, err := h.backendHandler.DistinctReleaseProxy(rCtx, gen, distinctField, condition)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed host, failed to convert conditions to host types")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	hosts, _, err := h.backendHandler.ListHost(rCtx, types.UnlimitedPage(), condition)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed host, failed to list host")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct release proxy")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	result, pair, err := req.CountHostsByOsTypeAndArch(hosts)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to count hosts")
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("pair", pair).Info("count deployed hosts for release")
-
-	resp := new(protoApplication.PackageReleaseDeployedHostCountResp)
-	resp.ConvertResultFromTypes(result, pair)
+	resp := new(protoApplication.PackageReleaseProxyDistinctResp)
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }
 
-// AgentDownload download release agent.
-func (h *handler) AgentDownload(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
-	req := new(protoApplication.PackageReleaseAgentDownloadReq)
+// SetReleaseProxyLabelsMany sets many proxy release labels.
+func (h *handler) SetReleaseProxyLabelsMany(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxySetLabelsManyReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set many proxy release labels, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	gen, plat, version := req.GetIdentifier()
-	resp, err := h.fileHandler.DownloadReleaseAgent(rCtx, gen, plat, version)
+	gen := types.Generation(req.GetGeneration())
+	labels := req.GetLabels()
+	condition := req.ConvertConditionsToTypes()
+
+	if err := h.backendHandler.SetReleaseProxyLabelsMany(rCtx, gen, labels, condition); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", gen, "labels", labels).Error("failed to set many proxy release labels")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen, "labels", labels).Info("set many proxy release labels")
+
+	resp := new(protoApplication.PackageReleaseProxySetLabelsManyResp)
+
+	return resp.GetData(), nil
+}
+
+// EnableReleaseProxy enables proxy release.
+func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyEnableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to enable release proxy, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseProxyKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.EnableReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to enable release proxy")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("enabled release proxy")
+
+	resp := new(protoApplication.PackageReleaseProxyEnableResp)
+
+	return resp.GetData(), nil
+}
+
+// DisableReleaseProxy disables proxy release.
+func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyDisableReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to disable release proxy, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseProxyKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.DisableReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to disable release proxy")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("disabled release proxy")
+
+	resp := new(protoApplication.PackageReleaseProxyDisableResp)
+
+	return resp.GetData(), nil
+}
+
+// SetAsDefaultReleaseProxy sets proxy release as default.
+func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxySetAsDefaultReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to set default release proxy, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseProxyKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.SetAsDefaultReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to set default release proxy")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("set default release proxy")
+
+	resp := new(protoApplication.PackageReleaseProxySetAsDefaultResp)
+
+	return resp.GetData(), nil
+}
+
+// CancelAsDefaultReleaseProxy cancels proxy release as default.
+func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyCancelAsDefaultReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to cancel default release proxy, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseProxyKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.CancelAsDefaultReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to cancel default release proxy")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("canceled default release proxy")
+
+	resp := new(protoApplication.PackageReleaseProxyCancelAsDefaultResp)
+
+	return resp.GetData(), nil
+}
+
+// DeleteReleaseProxy deletes proxy release.
+func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyDeleteReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete release proxy, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseProxyKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Platform:   protoApplication.ConvertPlatformToTypes(req.GetPlatform()),
+		Version:    req.GetVersion(),
+	}
+
+	if err := h.backendHandler.DeleteReleaseProxy(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to delete release proxy")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Info("deleted release proxy")
+
+	resp := new(protoApplication.PackageReleaseProxyDeleteResp)
+
+	return resp.GetData(), nil
+}
+
+// CountDeployedReleaseProxy count deployed release proxy.
+func (h *handler) CountDeployedReleaseProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseProxyCountDeployedReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed proxy release, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	conditions, err := req.ConvertConditionsToTypes()
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed proxy release, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	results := make([]int64, len(conditions))
+
+	gp := gopool.NewPool()
+	for i := range conditions {
+		index := i
+		condition := conditions[i]
+
+		gp.Go(func() error {
+			count, err := h.backendHandler.CountHost(rCtx, condition)
+			if err != nil {
+				logger.G.Biz(rCtx).WithErr(err).Error("failed to count host")
+
+				return err
+			}
+
+			results[index] = count
+
+			return nil
+		})
+	}
+	if err := gp.Wait(); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to count deployed proxy release")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	logger.G.Biz(rCtx).With("gen", gen, "plat", plat, "version", version).Info("downloaded release agent")
+	logger.G.Biz(rCtx).Info("count deployed proxy release")
 
-	return resp, nil
+	resp := new(protoApplication.PackageReleaseProxyCountDeployedResp)
+	resp.ConvertResultFromTypes(results)
+
+	return resp.GetData(), nil
 }
 
-// ProxyDownload download release proxy.
-func (h *handler) ProxyDownload(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+// DownloadReleaseProxy download release proxy.
+func (h *handler) DownloadReleaseProxy(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
 	req := new(protoApplication.PackageReleaseProxyDownloadReq)
 	if err := rCtx.BindJSON(req); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release proxy, failed to decode request body")
@@ -426,26 +663,7 @@ func (h *handler) ProxyDownload(rCtx restserver.IContext) (*restserver.StreamRes
 	return resp, nil
 }
 
-// PluginDownload download release plugin.
-func (h *handler) PluginDownload(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
-	req := new(protoApplication.PackageReleasePluginDownloadReq)
-	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin, failed to decode request body")
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	name, plat, version := req.GetIdentifier()
-	resp, err := h.fileHandler.DownloadReleasePlugin(rCtx, name, plat, version)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin: %v", err)
-
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	logger.G.Biz(rCtx).With("plugin_name", name, "plat", plat, "version", version).Info("downloaded release plugin")
-
-	return resp, nil
-}
+// ==================== Release Plugin ====================
 
 // ListReleasePlugin lists release plugin with page and conditions.
 func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, error) {
@@ -492,7 +710,12 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.EnableReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	if err := h.backendHandler.EnableReleasePlugin(rCtx, types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("name", name, "gen", gen, "plat", plat, "version", version).Error("failed to enable release plugin")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -514,7 +737,12 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.DisableReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	if err := h.backendHandler.DisableReleasePlugin(rCtx, types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("name", name, "gen", gen, "plat", plat, "version", version).Error("failed to disable release plugin.")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -536,7 +764,12 @@ func (h *handler) SetAsDefaultReleasePlugin(rCtx restserver.IContext) (interface
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.SetAsDefaultReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	if err := h.backendHandler.SetAsDefaultReleasePlugin(rCtx, types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("name", name, "gen", gen, "plat", plat, "version", version).Error("failed to set default release plugin")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -558,7 +791,12 @@ func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interf
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.CancelAsDefaultReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	if err := h.backendHandler.CancelAsDefaultReleasePlugin(rCtx, types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("name", name, "gen", gen, "plat", plat, "version", version).
 			Error("failed to cancel default release plugin")
 
@@ -581,7 +819,12 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.backendHandler.DeleteReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	if err := h.backendHandler.DeleteReleasePlugin(rCtx, types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("name", name, "gen", gen, "plat", plat, "version", version).
 			Error("failed to delete default release plugin")
 
@@ -591,6 +834,172 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	logger.G.Biz(rCtx).With("name", name, "gen", gen, "plat", plat, "version", version).Info("deleted default release plugin")
 
 	resp := new(protoApplication.PackageReleasePluginDeleteResp)
+
+	return resp.GetData(), nil
+}
+
+// DownloadReleasePlugin download release plugin.
+func (h *handler) DownloadReleasePlugin(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	req := new(protoApplication.PackageReleasePluginDownloadReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	name, plat, version := req.GetIdentifier()
+	resp, err := h.fileHandler.DownloadReleasePlugin(rCtx, name, plat, version)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("plugin_name", name, "plat", plat, "version", version).Info("downloaded release plugin")
+
+	return resp, nil
+}
+
+// ==================== Release Cert ====================
+
+// ListReleaseCert lists cert releases.
+func (h *handler) ListReleaseCert(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseCertListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release cert, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+
+	releases, num, err := h.backendHandler.ListReleaseCert(rCtx, gen)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release cert")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.PackageReleaseCertListResp)
+	resp.ConvertReleasesFromTypes(num, releases)
+
+	return resp.GetData(), nil
+}
+
+// DeleteReleaseCert deletes cert release.
+func (h *handler) DeleteReleaseCert(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseCertDeleteReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete release cert, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseCertKey{
+		Generation: types.Generation(req.GetGeneration()),
+	}
+
+	if err := h.backendHandler.DeleteReleaseCert(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation).Error("failed to delete release cert")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation).Info("deleted release cert")
+
+	resp := new(protoApplication.PackageReleaseCertDeleteResp)
+
+	return resp.GetData(), nil
+}
+
+// ==================== Release BinTool ====================
+
+// ListReleaseBinTool lists bintool releases.
+func (h *handler) ListReleaseBinTool(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseBinToolListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release bintool, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+
+	releases, num, err := h.backendHandler.ListReleaseBinTool(rCtx, gen)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release bintool")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.PackageReleaseBinToolListResp)
+	resp.ConvertReleasesFromTypes(num, releases)
+
+	return resp.GetData(), nil
+}
+
+// DeleteReleaseBinTool deletes bintool release.
+func (h *handler) DeleteReleaseBinTool(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleaseBinToolDeleteReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete release bintool, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleaseBinToolKey{
+		Generation: types.Generation(req.GetGeneration()),
+	}
+
+	if err := h.backendHandler.DeleteReleaseBinTool(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation).Error("failed to delete release bintool")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation).Info("deleted release bintool")
+
+	resp := new(protoApplication.PackageReleaseBinToolDeleteResp)
+
+	return resp.GetData(), nil
+}
+
+// ==================== Release Plugin BinTool ====================
+
+// ListReleasePluginBinTool lists plugin bintool releases.
+func (h *handler) ListReleasePluginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleasePluginBinToolListReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release plugin bintool, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+
+	releases, num, err := h.backendHandler.ListReleasePluginBinTool(rCtx, gen)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release plugin bintool")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.PackageReleasePluginBinToolListResp)
+	resp.ConvertReleasesFromTypes(num, releases)
+
+	return resp.GetData(), nil
+}
+
+// DeleteReleasePluginBinTool deletes plugin bintool release.
+func (h *handler) DeleteReleasePluginBinTool(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageReleasePluginBinToolDeleteReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to delete release plugin bintool, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	key := types.ReleasePluginBinToolKey{
+		Generation: types.Generation(req.GetGeneration()),
+		Name:       req.GetName(),
+	}
+
+	if err := h.backendHandler.DeleteReleasePluginBinTool(rCtx, key); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("gen", key.Generation, "name", key.Name).Error("failed to delete release plugin bintool")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", key.Generation, "name", key.Name).Info("deleted release plugin bintool")
+
+	resp := new(protoApplication.PackageReleasePluginBinToolDeleteResp)
 
 	return resp.GetData(), nil
 }

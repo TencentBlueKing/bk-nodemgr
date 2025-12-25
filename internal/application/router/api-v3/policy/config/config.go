@@ -163,10 +163,25 @@ func (h *handler) ListConfigPolicyPlatform(rCtx restserver.IContext) (interface{
 
 	gen := types.Generation(req.GetGeneration())
 
-	result, err := h.backendHandler.DistinctRelease(rCtx, releaseType, gen, types.ReleaseDistinctFieldAllSet(), req.ConvertConditionsToTypes())
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy platform, failed to distinct release")
-		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+	var result *types.ReleaseDistinctResult
+	switch releaseType {
+	case types.ReleaseTypeAgent:
+		result, err = h.backendHandler.DistinctReleaseAgent(rCtx, gen, types.ReleaseDistinctFieldAllSet(), req.ConvertConditionsToTypes())
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy platform, failed to distinct release")
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
+
+	case types.ReleaseTypeProxy:
+		result, err = h.backendHandler.DistinctReleaseProxy(rCtx, gen, types.ReleaseDistinctFieldAllSet(), req.ConvertConditionsToTypes())
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy platform, failed to distinct release")
+			return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
+		}
+
+	default:
+		logger.G.Biz(rCtx).WithErr(err).With("type", releaseType).Error("failed to list config policy platform, failed to convert release type")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
 	}
 
 	resp := new(protoApplication.ConfigPolicyListPlatformResp)

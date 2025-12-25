@@ -193,6 +193,18 @@ message ReleaseProxy {
   optional string change_log_zh = 3;
 }
 
+// ReleasePlugin describes the release plugin.
+message ReleasePlugin { Release release = 1; }
+
+// ReleaseCert describes the release cert.
+message ReleaseCert { Release release = 1; }
+
+// ReleaseBinTool describes the release bin tool.
+message ReleaseBinTool { Release release = 1; }
+
+// ReleasePluginBinTool describes the release plugin bin tool.
+message ReleasePluginBinTool { Release release = 1; }
+
 // Platform describes the platform informations.
 message Platform {
   string os_type = 1;

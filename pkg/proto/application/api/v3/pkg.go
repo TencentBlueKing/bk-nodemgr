@@ -384,15 +384,6 @@ func (x *PackageReleasePluginDownloadReq) Validate() error {
 func (x *PackageReleasePluginDownloadReq) AutoConvert() {
 }
 
-// Validate check body.
-func (x *PackageReleaseAgentListReq) Validate() error {
-	if err := types.Generation(x.GetGeneration()).Validate(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Validate check request body.
 func (x *PackageUploadOriginPluginV2Req) Validate() error {
 	return nil
