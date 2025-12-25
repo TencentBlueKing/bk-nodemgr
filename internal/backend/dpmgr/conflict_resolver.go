@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// IConflictResolver define the conflict resolver
+// IConflictResolver define the conflict resolver.
 type IConflictResolver interface {
 	ResolveConflict(originalUnits []*DeployUnit) ([]*DeployUnit, error)
 }
@@ -29,12 +29,12 @@ var _ IConflictResolver = &ConflictResolver{}
 type ConflictResolver struct {
 }
 
-// NewConflictResolver create a new conflict resolver
+// NewConflictResolver create a new conflict resolver.
 func NewConflictResolver() *ConflictResolver {
 	return &ConflictResolver{}
 }
 
-// ResolveConflict resolve the conflict
+// ResolveConflict resolve the conflict.
 func (resolver *ConflictResolver) ResolveConflict(originalUnits []*DeployUnit) ([]*DeployUnit, error) {
 	// sort by create time
 	sort.Slice(originalUnits, func(i, j int) bool {
