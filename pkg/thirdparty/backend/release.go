@@ -11,254 +11,133 @@
 package backend
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // IHandlerRelease defines the backend Handler for release.
 // nolint: interfacebloat
 type IHandlerRelease interface {
-	// ListRelease lists release by page and conditions.
-	ListRelease(
-		ctx contextx.IContext,
-		releaseType types.ReleaseType,
-		gen types.Generation,
-		page types.Page,
-		condition *types.ReleaseCondition,
-	) ([]*types.Release, int64, error)
 
-	// CountRelease counts release by conditions.
-	CountRelease(
-		ctx contextx.IContext,
-		releaseType types.ReleaseType,
-		gen types.Generation,
-		condition *types.ReleaseCondition,
-	) (int64, error)
+	// ==================== Agent Methods ====================
 
-	// ListReleaseAgent lists release by page and conditions.
-	ListReleaseAgent(
-		ctx contextx.IContext,
-		gen types.Generation,
-		page types.Page,
-		condition *types.ReleaseCondition,
-	) ([]*types.ReleaseAgent, int64, error)
+	// ListReleaseAgent lists agent releases by page and conditions.
+	ListReleaseAgent(ctx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+		[]*types.ReleaseAgent, int64, error)
 
-	// CountReleaseAgent counts release by conditions.
-	CountReleaseAgent(
-		ctx contextx.IContext,
-		gen types.Generation,
-		condition *types.ReleaseCondition,
-	) (int64, error)
+	// CountReleaseAgent counts agent releases by conditions.
+	CountReleaseAgent(ctx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error)
 
-	// ListReleaseProxy lists release proxy by page and conditions.
-	ListReleaseProxy(
-		ctx contextx.IContext,
-		gen types.Generation,
-		page types.Page,
-		condition *types.ReleaseCondition,
-	) ([]*types.ReleaseProxy, int64, error)
+	// DistinctReleaseAgent distincts agent releases by conditions.
+	DistinctReleaseAgent(ctx contextx.IContext, gen types.Generation, distinctField types.ReleaseDistinctField, condition *types.ReleaseCondition) (
+		*types.ReleaseDistinctResult, error)
 
-	// CountReleaseProxy counts release by conditions.
-	CountReleaseProxy(
-		ctx contextx.IContext,
-		gen types.Generation,
-		condition *types.ReleaseCondition,
-	) (int64, error)
+	// SetReleaseAgentLabelsMany sets many agent release labels.
+	SetReleaseAgentLabelsMany(ctx contextx.IContext, gen types.Generation, labels []string, condition *types.ReleaseCondition) error
 
-	// DistinctRelease distincts release by conditions.
-	DistinctRelease(
-		ctx contextx.IContext,
-		releaseType types.ReleaseType,
-		gen types.Generation,
-		distinctField types.ReleaseDistinctField,
-		condition *types.ReleaseCondition,
-	) (*types.ReleaseDistinctResult, error)
+	// EnableReleaseAgent enables agent release.
+	EnableReleaseAgent(ctx contextx.IContext, key types.ReleaseAgentKey) error
 
-	// SetReleaseLabels sets release labels.
-	SetReleaseLabels(
-		ctx contextx.IContext,
-		gen types.Generation,
-		releaseType types.ReleaseType,
-		plat platfmt.Platform,
-		version string,
-		labels []string,
-	) error
+	// DisableReleaseAgent disables agent release.
+	DisableReleaseAgent(ctx contextx.IContext, key types.ReleaseAgentKey) error
 
-	// SetReleaseLabelsMany sets many release labels.
-	SetReleaseLabelsMany(
-		ctx contextx.IContext,
-		releaseType types.ReleaseType,
-		gen []types.Generation,
-		plat []platfmt.Platform,
-		version []string,
-		labels []string,
-	) error
+	// SetAsDefaultReleaseAgent sets agent release as default.
+	SetAsDefaultReleaseAgent(ctx contextx.IContext, key types.ReleaseAgentKey) error
 
-	// EnableRelease enables release active by generation, release type, platform and version.
-	EnableRelease(
-		ctx contextx.IContext,
-		gen types.Generation,
-		releaseType types.ReleaseType,
-		plat platfmt.Platform,
-		version string,
-	) error
+	// CancelAsDefaultReleaseAgent cancels agent release as default.
+	CancelAsDefaultReleaseAgent(ctx contextx.IContext, key types.ReleaseAgentKey) error
 
-	// DisableRelease disables release disactive by generation, release type, platform and version.
-	DisableRelease(
-		ctx contextx.IContext,
-		gen types.Generation,
-		releaseType types.ReleaseType,
-		plat platfmt.Platform,
-		version string,
-	) error
+	// DeleteReleaseAgent deletes agent release.
+	DeleteReleaseAgent(ctx contextx.IContext, key types.ReleaseAgentKey) error
 
-	// SetAsDefaultRelease sets the release as default.
-	SetAsDefaultRelease(
-		ctx contextx.IContext,
-		gen types.Generation,
-		releaseType types.ReleaseType,
-		plat platfmt.Platform,
-		version string,
-	) error
+	// ==================== Proxy Methods ====================
 
-	// CancelAsDefaultRelease cancels the release as default.
-	CancelAsDefaultRelease(
-		ctx contextx.IContext,
-		gen types.Generation,
-		releaseType types.ReleaseType,
-		plat platfmt.Platform,
-		version string,
-	) error
+	// ListReleaseProxy lists proxy releases by page and conditions.
+	ListReleaseProxy(ctx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+		[]*types.ReleaseProxy, int64, error)
 
-	// 	DeleteRelease deletes release by generation, release type, platform and version.
-	DeleteRelease(
-		ctx contextx.IContext,
-		gen types.Generation,
-		releaseType types.ReleaseType,
-		plat platfmt.Platform,
-		version string,
-	) error
+	// CountReleaseProxy counts proxy releases by conditions.
+	CountReleaseProxy(ctx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error)
+
+	// DistinctReleaseProxy distincts proxy releases by conditions.
+	DistinctReleaseProxy(ctx contextx.IContext, gen types.Generation, distinctField types.ReleaseDistinctField, condition *types.ReleaseCondition) (
+		*types.ReleaseDistinctResult, error)
+
+	// SetReleaseProxyLabelsMany sets many proxy release labels.
+	SetReleaseProxyLabelsMany(ctx contextx.IContext, gen types.Generation, labels []string, condition *types.ReleaseCondition) error
+
+	// EnableReleaseProxy enables proxy release.
+	EnableReleaseProxy(ctx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// DisableReleaseProxy disables proxy release.
+	DisableReleaseProxy(ctx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// SetAsDefaultReleaseProxy sets proxy release as default.
+	SetAsDefaultReleaseProxy(ctx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// CancelAsDefaultReleaseProxy cancels proxy release as default.
+	CancelAsDefaultReleaseProxy(ctx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// DeleteReleaseProxy deletes proxy release.
+	DeleteReleaseProxy(ctx contextx.IContext, key types.ReleaseProxyKey) error
+
+	// ==================== Plugin Methods ====================
+
+	// ListReleasePlugin lists plugin releases by page and conditions.
+	ListReleasePlugin(ctx contextx.IContext, gen types.Generation, page types.Page, condition *types.ReleaseCondition) (
+		[]*types.ReleasePlugin, int64, error)
+
+	// CountReleasePlugin counts plugin releases by conditions.
+	CountReleasePlugin(ctx contextx.IContext, gen types.Generation, condition *types.ReleaseCondition) (int64, error)
+
+	// EnableReleasePlugin enables plugin release.
+	EnableReleasePlugin(ctx contextx.IContext, key types.ReleasePluginKey) error
+
+	// DisableReleasePlugin disables plugin release.
+	DisableReleasePlugin(ctx contextx.IContext, key types.ReleasePluginKey) error
+
+	// SetAsDefaultReleasePlugin sets plugin release as default.
+	SetAsDefaultReleasePlugin(ctx contextx.IContext, key types.ReleasePluginKey) error
+
+	// CancelAsDefaultReleasePlugin cancels plugin release as default.
+	CancelAsDefaultReleasePlugin(ctx contextx.IContext, key types.ReleasePluginKey) error
+
+	// DeleteReleasePlugin deletes plugin release.
+	DeleteReleasePlugin(ctx contextx.IContext, key types.ReleasePluginKey) error
+
+	// ==================== Cert Methods ====================
+
+	// ListReleaseCert lists cert releases by page and conditions.
+	ListReleaseCert(ctx contextx.IContext, gen types.Generation) ([]*types.ReleaseCert, int64, error)
+
+	// DeleteReleaseCert deletes cert release.
+	DeleteReleaseCert(ctx contextx.IContext, key types.ReleaseCertKey) error
+
+	// ==================== BinTool Methods ====================
+
+	// ListReleaseBinTool lists bintool releases by page and conditions.
+	ListReleaseBinTool(ctx contextx.IContext, gen types.Generation) ([]*types.ReleaseBinTool, int64, error)
+
+	// DeleteReleaseBinTool deletes bintool release.
+	DeleteReleaseBinTool(ctx contextx.IContext, key types.ReleaseBinToolKey) error
+
+	// ==================== PluginBinTool Methods ====================
+
+	// ListReleasePluginBinTool lists plugin-bintool releases by page and conditions.
+	ListReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) ([]*types.ReleasePluginBinTool, int64, error)
+
+	// DeleteReleasePluginBinTool deletes plugin-bintool release.
+	DeleteReleasePluginBinTool(ctx contextx.IContext, key types.ReleasePluginBinToolKey) error
 }
 
-// IHandlerReleasePlugin defines the backend Handler for release plugin.
-type IHandlerReleasePlugin interface {
-	// ListReleasePlugin lists release plugin by page and conditions.
-	ListReleasePlugin(
-		ctx contextx.IContext,
-		gen types.Generation,
-		page types.Page,
-		condition *types.ReleaseCondition,
-	) ([]*types.ReleasePlugin, int64, error)
+// ==================== Agent Methods ====================
 
-	// CountReleasePlugin counts release plugin by conditions.
-	CountReleasePlugin(
-		ctx contextx.IContext,
-		gen types.Generation,
-		condition *types.ReleaseCondition,
-	) (int64, error)
-
-	// EnableReleasePlugin enables release plugin active by name, generation, platform and version.
-	EnableReleasePlugin(
-		ctx contextx.IContext,
-		name string,
-		gen types.Generation,
-		plat platfmt.Platform,
-		version string,
-	) error
-
-	// DisableReleasePlugin disables release plugin disactive by name, generation, platform and version.
-	DisableReleasePlugin(
-		ctx contextx.IContext,
-		name string,
-		gen types.Generation,
-		plat platfmt.Platform,
-		version string,
-	) error
-
-	// SetAsDefaultReleasePlugin sets the release plugin as default.
-	SetAsDefaultReleasePlugin(
-		ctx contextx.IContext,
-		name string,
-		gen types.Generation,
-		plat platfmt.Platform,
-		version string,
-	) error
-
-	// CancelAsDefaultReleasePlugin cancels the release plugin as default.
-	CancelAsDefaultReleasePlugin(
-		ctx contextx.IContext,
-		name string,
-		gen types.Generation,
-		plat platfmt.Platform,
-		version string,
-	) error
-
-	// DeleteReleasePlugin deletes release plugin by name, generation, platform and version.
-	DeleteReleasePlugin(
-		ctx contextx.IContext,
-		name string,
-		gen types.Generation,
-		plat platfmt.Platform,
-		version string,
-	) error
-}
-
-// ListRelease lists release by page and conditions.
-func (h *Handler) ListRelease(
-	ctx contextx.IContext,
-	releaseType types.ReleaseType,
-	gen types.Generation,
-	page types.Page,
-	condition *types.ReleaseCondition,
-) ([]*types.Release, int64, error) {
-
-	req := &protoBackend.PackageReleaseListReq{
-		Page:        convertPage(page),
-		ReleaseType: string(releaseType),
-		Generation:  int64(gen),
-	}
-	if err := req.ConvertConditionsFromTypes(condition); err != nil {
-		return nil, 0, err
-	}
-
-	resp, err := h.cli.listRelease(ctx, req)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	total, releases := resp.ConvertReleasesToTypes()
-
-	return releases, total, nil
-}
-
-// CountRelease counts release by conditions.
-func (h *Handler) CountRelease(
-	ctx contextx.IContext,
-	releaseType types.ReleaseType,
-	gen types.Generation,
-	condition *types.ReleaseCondition,
-) (int64, error) {
-
-	req := &protoBackend.PackageReleaseListReq{
-		ReleaseType: string(releaseType),
-		Generation:  int64(gen),
-		OnlyCount:   true,
-	}
-	if err := req.ConvertConditionsFromTypes(condition); err != nil {
-		return 0, err
-	}
-
-	resp, err := h.cli.listRelease(ctx, req)
-	if err != nil {
-		return 0, err
-	}
-
-	return resp.GetData().GetTotal(), nil
-}
-
-// ListReleaseAgent lists release by page and conditions.
+// ListReleaseAgent lists agent releases by page and conditions.
 func (h *Handler) ListReleaseAgent(
 	ctx contextx.IContext,
 	gen types.Generation,
@@ -279,12 +158,12 @@ func (h *Handler) ListReleaseAgent(
 		return nil, 0, err
 	}
 
-	total, releases := resp.ConvertReleasesAgentToTypes()
+	total, releases := resp.ConvertReleasesToTypes()
 
 	return releases, total, nil
 }
 
-// CountReleaseAgent counts release by conditions.
+// CountReleaseAgent counts agent releases by conditions.
 func (h *Handler) CountReleaseAgent(
 	ctx contextx.IContext,
 	gen types.Generation,
@@ -304,10 +183,135 @@ func (h *Handler) CountReleaseAgent(
 		return 0, err
 	}
 
-	return resp.GetData().GetTotal(), nil
+	total, _ := resp.ConvertReleasesToTypes()
+
+	return total, nil
 }
 
-// ListReleaseProxy lists release by page and conditions.
+// DistinctReleaseAgent distincts agent releases by conditions.
+func (h *Handler) DistinctReleaseAgent(
+	ctx contextx.IContext,
+	gen types.Generation,
+	distinctField types.ReleaseDistinctField,
+	condition *types.ReleaseCondition,
+) (*types.ReleaseDistinctResult, error) {
+
+	req := &protoBackend.PackageReleaseAgentDistinctReq{
+		Generation: int64(gen),
+		DistinctField: &protoBackend.PackageReleaseDistinctField{
+			OsType:  distinctField.OSType,
+			CpuArch: distinctField.CPUArch,
+		},
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return nil, err
+	}
+
+	resp, err := h.cli.distinctReleaseAgent(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.ConvertResultToTypes(), nil
+}
+
+// SetReleaseAgentLabelsMany sets many agent release labels.
+func (h *Handler) SetReleaseAgentLabelsMany(
+	ctx contextx.IContext,
+	gen types.Generation,
+	labels []string,
+	condition *types.ReleaseCondition,
+) error {
+
+	req := &protoBackend.PackageReleaseAgentSetLabelsManyReq{
+		Generation: int64(gen),
+		Labels:     labels,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return err
+	}
+
+	return h.cli.setReleaseAgentLabelsMany(ctx, req)
+}
+
+// EnableReleaseAgent enables agent release.
+func (h *Handler) EnableReleaseAgent(
+	ctx contextx.IContext,
+	key types.ReleaseAgentKey,
+) error {
+
+	req := &protoBackend.PackageReleaseAgentEnableReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.enableReleaseAgent(ctx, req)
+}
+
+// DisableReleaseAgent disables agent release.
+func (h *Handler) DisableReleaseAgent(
+	ctx contextx.IContext,
+	key types.ReleaseAgentKey,
+) error {
+
+	req := &protoBackend.PackageReleaseAgentDisableReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.disableReleaseAgent(ctx, req)
+}
+
+// SetAsDefaultReleaseAgent sets agent release as default.
+func (h *Handler) SetAsDefaultReleaseAgent(
+	ctx contextx.IContext,
+	key types.ReleaseAgentKey,
+) error {
+
+	req := &protoBackend.PackageReleaseAgentSetAsDefaultReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.setAsDefaultReleaseAgent(ctx, req)
+}
+
+// CancelAsDefaultReleaseAgent cancels agent release as default.
+func (h *Handler) CancelAsDefaultReleaseAgent(
+	ctx contextx.IContext,
+	key types.ReleaseAgentKey,
+) error {
+
+	req := &protoBackend.PackageReleaseAgentCancelAsDefaultReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.cancelAsDefaultReleaseAgent(ctx, req)
+}
+
+// DeleteReleaseAgent deletes agent release.
+func (h *Handler) DeleteReleaseAgent(
+	ctx contextx.IContext,
+	key types.ReleaseAgentKey,
+) error {
+
+	req := &protoBackend.PackageReleaseAgentDeleteReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
+
+	return h.cli.deleteReleaseAgent(ctx, req)
+}
+
+// ==================== Proxy Methods ====================
+
+// ListReleaseProxy lists proxy releases by page and conditions.
 func (h *Handler) ListReleaseProxy(
 	ctx contextx.IContext,
 	gen types.Generation,
@@ -328,12 +332,12 @@ func (h *Handler) ListReleaseProxy(
 		return nil, 0, err
 	}
 
-	total, releases := resp.ConvertReleasesProxyToTypes()
+	total, releases := resp.ConvertReleasesToTypes()
 
 	return releases, total, nil
 }
 
-// CountReleaseProxy counts release by conditions.
+// CountReleaseProxy counts proxy releases by conditions.
 func (h *Handler) CountReleaseProxy(
 	ctx contextx.IContext,
 	gen types.Generation,
@@ -353,46 +357,31 @@ func (h *Handler) CountReleaseProxy(
 		return 0, err
 	}
 
-	return resp.GetData().GetTotal(), nil
+	total, _ := resp.ConvertReleasesToTypes()
+
+	return total, nil
 }
 
-// DistinctRelease distincts release by conditions.
-func (h *Handler) DistinctRelease(
+// DistinctReleaseProxy distincts proxy releases by conditions.
+func (h *Handler) DistinctReleaseProxy(
 	ctx contextx.IContext,
-	releaseType types.ReleaseType,
 	gen types.Generation,
 	distinctField types.ReleaseDistinctField,
 	condition *types.ReleaseCondition,
 ) (*types.ReleaseDistinctResult, error) {
 
-	req := &protoBackend.PackageReleaseDistinctReq{
-		ReleaseType: string(releaseType),
-		Generation:  int64(gen),
-		DistinctField: &protoBackend.PackageReleaseDistinctReq_DistinctField{
+	req := &protoBackend.PackageReleaseProxyDistinctReq{
+		Generation: int64(gen),
+		DistinctField: &protoBackend.PackageReleaseDistinctField{
 			OsType:  distinctField.OSType,
 			CpuArch: distinctField.CPUArch,
 		},
 	}
-
-	if condition != nil && condition.ExactExclude != nil {
-		exactIncludeConditions := &protoBackend.PackageReleaseExactConditions{
-			Version:   condition.ExactExclude.Version,
-			AsDefault: condition.ExactExclude.AsDefault,
-			Enabled:   condition.ExactExclude.Enabled,
-		}
-
-		for _, item := range condition.ExactExclude.Platform {
-			exactIncludeConditions.Platform = append(exactIncludeConditions.Platform, protoBackend.ConvertPlatformFromTypes(item))
-		}
-
-		req.ExactIncludeConditions = exactIncludeConditions
-	}
-
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.distinctRelease(ctx, req)
+	resp, err := h.cli.distinctReleaseProxy(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -400,114 +389,103 @@ func (h *Handler) DistinctRelease(
 	return resp.ConvertResultToTypes(), nil
 }
 
-// SetReleaseLabels sets release labels.
-func (h *Handler) SetReleaseLabels(
+// SetReleaseProxyLabelsMany sets many proxy release labels.
+func (h *Handler) SetReleaseProxyLabelsMany(
 	ctx contextx.IContext,
 	gen types.Generation,
-	releaseType types.ReleaseType,
-	plat platfmt.Platform,
-	version string,
 	labels []string,
+	condition *types.ReleaseCondition,
 ) error {
 
-	req := &protoBackend.PackageReleaseSetLabelsReq{Labels: labels}
-	req.SetIdentifer(gen, releaseType, plat, version)
+	req := &protoBackend.PackageReleaseProxySetLabelsManyReq{
+		Generation: int64(gen),
+		Labels:     labels,
+	}
+	if err := req.ConvertConditionsFromTypes(condition); err != nil {
+		return err
+	}
 
-	return h.cli.setReleaseLabels(ctx, req)
+	return h.cli.setReleaseProxyLabelsMany(ctx, req)
 }
 
-// SetReleaseLabelsMany sets many release labels.
-func (h *Handler) SetReleaseLabelsMany(
+// EnableReleaseProxy enables proxy release.
+func (h *Handler) EnableReleaseProxy(
 	ctx contextx.IContext,
-	releaseType types.ReleaseType,
-	gen []types.Generation,
-	plat []platfmt.Platform,
-	version []string,
-	labels []string,
+	key types.ReleaseProxyKey,
 ) error {
 
-	req := &protoBackend.PackageReleaseSetLabelsManyReq{Labels: labels}
-	req.SetIdentifers(releaseType, gen, plat, version)
+	req := &protoBackend.PackageReleaseProxyEnableReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
 
-	return h.cli.setReleaseLabelsMany(ctx, req)
+	return h.cli.enableReleaseProxy(ctx, req)
 }
 
-// EnableRelease enables release active by generation, release type, platform and version.
-func (h *Handler) EnableRelease(
+// DisableReleaseProxy disables proxy release.
+func (h *Handler) DisableReleaseProxy(
 	ctx contextx.IContext,
-	gen types.Generation,
-	releaseType types.ReleaseType,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleaseProxyKey,
 ) error {
 
-	req := &protoBackend.PackageReleaseEnableReq{}
-	req.SetIdentifer(gen, releaseType, plat, version)
+	req := &protoBackend.PackageReleaseProxyDisableReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
 
-	return h.cli.enableRelease(ctx, req)
+	return h.cli.disableReleaseProxy(ctx, req)
 }
 
-// DisableRelease disables release disactive by generation, release type, platform and version.
-func (h *Handler) DisableRelease(
+// SetAsDefaultReleaseProxy sets proxy release as default.
+func (h *Handler) SetAsDefaultReleaseProxy(
 	ctx contextx.IContext,
-	gen types.Generation,
-	releaseType types.ReleaseType,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleaseProxyKey,
 ) error {
 
-	req := &protoBackend.PackageReleaseDisableReq{}
-	req.SetIdentifer(gen, releaseType, plat, version)
+	req := &protoBackend.PackageReleaseProxySetAsDefaultReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
 
-	return h.cli.disableRelease(ctx, req)
+	return h.cli.setAsDefaultReleaseProxy(ctx, req)
 }
 
-// SetAsDefaultRelease sets the release as default.
-func (h *Handler) SetAsDefaultRelease(
+// CancelAsDefaultReleaseProxy cancels proxy release as default.
+func (h *Handler) CancelAsDefaultReleaseProxy(
 	ctx contextx.IContext,
-	gen types.Generation,
-	releaseType types.ReleaseType,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleaseProxyKey,
 ) error {
 
-	req := &protoBackend.PackageReleaseSetAsDefaultReq{}
-	req.SetIdentifer(gen, releaseType, plat, version)
+	req := &protoBackend.PackageReleaseProxyCancelAsDefaultReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
 
-	return h.cli.setAsDefaultRelease(ctx, req)
+	return h.cli.cancelAsDefaultReleaseProxy(ctx, req)
 }
 
-// CancelAsDefaultRelease cancels the release as default.
-func (h *Handler) CancelAsDefaultRelease(
+// DeleteReleaseProxy deletes proxy release.
+func (h *Handler) DeleteReleaseProxy(
 	ctx contextx.IContext,
-	gen types.Generation,
-	releaseType types.ReleaseType,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleaseProxyKey,
 ) error {
 
-	req := &protoBackend.PackageReleaseCancelAsDefaultReq{}
-	req.SetIdentifer(gen, releaseType, plat, version)
+	req := &protoBackend.PackageReleaseProxyDeleteReq{
+		Generation: int64(key.Generation),
+		Platform:   protoBackend.ConvertPlatformFromTypes(key.Platform),
+		Version:    key.Version,
+	}
 
-	return h.cli.cancelAsDefaultRelease(ctx, req)
+	return h.cli.deleteReleaseProxy(ctx, req)
 }
 
-// DeleteRelease deletes release by generation, release type, platform and version.
-func (h *Handler) DeleteRelease(
-	ctx contextx.IContext,
-	gen types.Generation,
-	releaseType types.ReleaseType,
-	plat platfmt.Platform,
-	version string,
-) error {
+// ==================== Plugin Methods ====================
 
-	req := &protoBackend.PackageReleaseDeleteReq{}
-	req.SetIdentifer(gen, releaseType, plat, version)
-
-	return h.cli.deleteRelease(ctx, req)
-}
-
-// ListReleasePlugin lists release plugin by page and conditions.
+// ListReleasePlugin lists plugin releases by page and conditions.
 func (h *Handler) ListReleasePlugin(
 	ctx contextx.IContext,
 	gen types.Generation,
@@ -533,9 +511,8 @@ func (h *Handler) ListReleasePlugin(
 	return releases, total, nil
 }
 
-// CountReleasePlugin counts release plugin by conditions.
-func (h *Handler) CountReleasePlugin(
-	ctx contextx.IContext,
+// CountReleasePlugin counts plugin releases by conditions.
+func (h *Handler) CountReleasePlugin(ctx contextx.IContext,
 	gen types.Generation,
 	condition *types.ReleaseCondition,
 ) (int64, error) {
@@ -553,80 +530,272 @@ func (h *Handler) CountReleasePlugin(
 		return 0, err
 	}
 
-	return resp.GetData().GetTotal(), nil
+	total, _ := resp.ConvertReleasePluginsToTypes()
+
+	return total, nil
 }
 
-// EnableReleasePlugin enables release plugin active by name, generation, platform and version.
+// EnableReleasePlugin enables plugin release.
 func (h *Handler) EnableReleasePlugin(
 	ctx contextx.IContext,
-	name string,
-	gen types.Generation,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleasePluginKey,
 ) error {
 
 	req := &protoBackend.PackageReleasePluginEnableReq{}
-	req.SetIdentifer(name, gen, plat, version)
+	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
 	return h.cli.enableReleasePlugin(ctx, req)
 }
 
-// DisableReleasePlugin disables release plugin disactive by name, generation, platform and version.
+// DisableReleasePlugin disables plugin release.
 func (h *Handler) DisableReleasePlugin(
 	ctx contextx.IContext,
-	name string,
-	gen types.Generation,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleasePluginKey,
 ) error {
 
 	req := &protoBackend.PackageReleasePluginDisableReq{}
-	req.SetIdentifer(name, gen, plat, version)
+	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
 	return h.cli.disableReleasePlugin(ctx, req)
 }
 
-// SetAsDefaultReleasePlugin sets the release plugin as default.
+// SetAsDefaultReleasePlugin sets plugin release as default.
 func (h *Handler) SetAsDefaultReleasePlugin(
 	ctx contextx.IContext,
-	name string,
-	gen types.Generation,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleasePluginKey,
 ) error {
 
 	req := &protoBackend.PackageReleasePluginSetAsDefaultReq{}
-	req.SetIdentifer(name, gen, plat, version)
+	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
 	return h.cli.setAsDefaultReleasePlugin(ctx, req)
 }
 
-// CancelAsDefaultReleasePlugin cancels the release plugin as default.
+// CancelAsDefaultReleasePlugin cancels plugin release as default.
 func (h *Handler) CancelAsDefaultReleasePlugin(
 	ctx contextx.IContext,
-	name string,
-	gen types.Generation,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleasePluginKey,
 ) error {
 
 	req := &protoBackend.PackageReleasePluginCancelAsDefaultReq{}
-	req.SetIdentifer(name, gen, plat, version)
+	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
 	return h.cli.cancelAsDefaultReleasePlugin(ctx, req)
 }
 
-// DeleteReleasePlugin deletes release plugin by name, generation, platform and version.
+// DeleteReleasePlugin deletes plugin release.
 func (h *Handler) DeleteReleasePlugin(
 	ctx contextx.IContext,
-	name string,
-	gen types.Generation,
-	plat platfmt.Platform,
-	version string,
+	key types.ReleasePluginKey,
 ) error {
 
 	req := &protoBackend.PackageReleasePluginDeleteReq{}
-	req.SetIdentifer(name, gen, plat, version)
+	req.SetIdentifer(key.Name, key.Generation, key.Platform, key.Version)
 
 	return h.cli.deleteReleasePlugin(ctx, req)
+}
+
+// ==================== Cert Methods ====================
+
+// ListReleaseCert lists cert releases by page and conditions.
+func (h *Handler) ListReleaseCert(
+	ctx contextx.IContext,
+	gen types.Generation,
+) ([]*types.ReleaseCert, int64, error) {
+
+	req := &protoBackend.PackageReleaseCertListReq{
+		Generation: int64(gen),
+	}
+
+	resp, err := h.cli.listReleaseCert(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, 0, nil
+	}
+
+	items := data.GetItems()
+	releases := make([]*types.ReleaseCert, len(items))
+	for idx, item := range items {
+		releases[idx] = convertReleaseCertFromProto(item)
+	}
+
+	return releases, data.GetTotal(), nil
+}
+
+// DeleteReleaseCert deletes cert release.
+func (h *Handler) DeleteReleaseCert(
+	ctx contextx.IContext,
+	key types.ReleaseCertKey,
+) error {
+
+	req := &protoBackend.PackageReleaseCertDeleteReq{
+		Generation: int64(key.Generation),
+	}
+
+	return h.cli.deleteReleaseCert(ctx, req)
+}
+
+// ==================== BinTool Methods ====================
+
+// ListReleaseBinTool lists bintool releases by page and conditions.
+func (h *Handler) ListReleaseBinTool(
+	ctx contextx.IContext,
+	gen types.Generation,
+) ([]*types.ReleaseBinTool, int64, error) {
+
+	req := &protoBackend.PackageReleaseBinToolListReq{
+		Generation: int64(gen),
+	}
+
+	resp, err := h.cli.listReleaseBinTool(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, 0, nil
+	}
+
+	items := data.GetItems()
+	releases := make([]*types.ReleaseBinTool, len(items))
+	for idx, item := range items {
+		releases[idx] = convertReleaseBinToolFromProto(item)
+	}
+
+	return releases, data.GetTotal(), nil
+}
+
+// DeleteReleaseBinTool deletes bintool release.
+func (h *Handler) DeleteReleaseBinTool(
+	ctx contextx.IContext,
+	key types.ReleaseBinToolKey,
+) error {
+
+	req := &protoBackend.PackageReleaseBinToolDeleteReq{
+		Generation: int64(key.Generation),
+	}
+
+	return h.cli.deleteReleaseBinTool(ctx, req)
+}
+
+// ==================== PluginBinTool Methods ====================
+
+// ListReleasePluginBinTool lists plugin-bintool releases by page and conditions.
+func (h *Handler) ListReleasePluginBinTool(
+	ctx contextx.IContext,
+	gen types.Generation,
+) ([]*types.ReleasePluginBinTool, int64, error) {
+
+	req := &protoBackend.PackageReleasePluginBinToolListReq{
+		Generation: int64(gen),
+	}
+
+	resp, err := h.cli.listReleasePluginBinTool(ctx, req)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, 0, nil
+	}
+
+	items := data.GetItems()
+	releases := make([]*types.ReleasePluginBinTool, len(items))
+	for idx, item := range items {
+		releases[idx] = convertReleasePluginBinToolFromProto(item)
+	}
+
+	return releases, data.GetTotal(), nil
+}
+
+// DeleteReleasePluginBinTool deletes plugin-bintool release.
+func (h *Handler) DeleteReleasePluginBinTool(
+	ctx contextx.IContext,
+	key types.ReleasePluginBinToolKey,
+) error {
+
+	req := &protoBackend.PackageReleasePluginBinToolDeleteReq{
+		Generation: int64(key.Generation),
+		Name:       key.Name,
+	}
+
+	return h.cli.deleteReleasePluginBinTool(ctx, req)
+}
+
+// convertReleaseCertFromProto converts proto ReleaseCert to types.ReleaseCert.
+func convertReleaseCertFromProto(item *protoBackend.ReleaseCert) *types.ReleaseCert {
+	release := item.GetRelease()
+	return &types.ReleaseCert{
+		Release: types.Release{
+			Name:       release.GetName(),
+			Generation: types.Generation(release.GetGeneration()),
+			Type:       types.ReleaseType(release.GetReleaseType()),
+			Version:    release.GetVersion(),
+			Platform: platfmt.Platform{
+				OS:   criteria.OSType(release.GetOsType()),
+				Arch: criteria.CPUArch(release.GetCpuArch()),
+			},
+			Labels:    release.GetLabels(),
+			FileName:  release.GetFileName(),
+			MD5:       release.GetMd5(),
+			Enabled:   release.GetEnabled(),
+			AsDefault: release.GetAsDefault(),
+			UpdatedAt: time.UnixMilli(int64(release.GetUpdatedAt())).Local(),
+			Operator:  release.GetOperator(),
+		},
+	}
+}
+
+// convertReleaseBinToolFromProto converts proto ReleaseBinTool to types.ReleaseBinTool.
+func convertReleaseBinToolFromProto(item *protoBackend.ReleaseBinTool) *types.ReleaseBinTool {
+	release := item.GetRelease()
+	return &types.ReleaseBinTool{
+		Release: types.Release{
+			Name:       release.GetName(),
+			Generation: types.Generation(release.GetGeneration()),
+			Type:       types.ReleaseType(release.GetReleaseType()),
+			Version:    release.GetVersion(),
+			Platform: platfmt.Platform{
+				OS:   criteria.OSType(release.GetOsType()),
+				Arch: criteria.CPUArch(release.GetCpuArch()),
+			},
+			Labels:    release.GetLabels(),
+			FileName:  release.GetFileName(),
+			MD5:       release.GetMd5(),
+			Enabled:   release.GetEnabled(),
+			AsDefault: release.GetAsDefault(),
+			UpdatedAt: time.UnixMilli(int64(release.GetUpdatedAt())).Local(),
+			Operator:  release.GetOperator(),
+		},
+	}
+}
+
+// convertReleasePluginBinToolFromProto converts proto ReleasePluginBinTool to types.ReleasePluginBinTool.
+func convertReleasePluginBinToolFromProto(item *protoBackend.ReleasePluginBinTool) *types.ReleasePluginBinTool {
+	release := item.GetRelease()
+	return &types.ReleasePluginBinTool{
+		Release: types.Release{
+			Name:       release.GetName(),
+			Generation: types.Generation(release.GetGeneration()),
+			Type:       types.ReleaseType(release.GetReleaseType()),
+			Version:    release.GetVersion(),
+			Platform: platfmt.Platform{
+				OS:   criteria.OSType(release.GetOsType()),
+				Arch: criteria.CPUArch(release.GetCpuArch()),
+			},
+			Labels:    release.GetLabels(),
+			FileName:  release.GetFileName(),
+			MD5:       release.GetMd5(),
+			Enabled:   release.GetEnabled(),
+			AsDefault: release.GetAsDefault(),
+			UpdatedAt: time.UnixMilli(int64(release.GetUpdatedAt())).Local(),
+			Operator:  release.GetOperator(),
+		},
+	}
 }

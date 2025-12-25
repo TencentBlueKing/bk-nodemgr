@@ -27,7 +27,6 @@ type IHandler interface {
 	IHandlerNodeProxy
 	IHandlerNodeWorkflow
 	IHandlerRelease
-	IHandlerReleasePlugin
 	IHandlerPackage
 	IHandlerConfigPolicy
 	IHandlerPlugin

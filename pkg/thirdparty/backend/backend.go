@@ -1541,38 +1541,6 @@ func (c *cli) uninstallNodeProxy(ctx contextx.IContext, req *protoBackend.NodePr
 // Package Release Related Interfaces
 // ===============================================================================
 
-func (c *cli) listRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseListReq,
-) (*protoBackend.PackageReleaseListResp, error) {
-
-	resp := new(protoBackend.PackageReleaseListResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/package/release/list").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list release failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	if resp.GetData() == nil {
-		return nil,
-			fmt.Errorf("list release failed, get empty data. code(%d), message(%s), request-id(%s)",
-				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
 func (c *cli) listReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentListReq,
 ) (*protoBackend.PackageReleaseAgentListResp, error) {
 
@@ -1580,7 +1548,7 @@ func (c *cli) listReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageR
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release_agent/list").
+		SubResourcef("/package/release/agent/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1592,17 +1560,196 @@ func (c *cli) listReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageR
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("list release agent failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return nil, fmt.Errorf("list agent release failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
 		return nil,
-			fmt.Errorf("list release agent failed, get empty data. code(%d), message(%s), request-id(%s)",
+			fmt.Errorf("list agent release failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
 	return resp, nil
+}
+
+func (c *cli) distinctReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentDistinctReq) (
+	*protoBackend.PackageReleaseAgentDistinctResp, error) {
+
+	resp := new(protoBackend.PackageReleaseAgentDistinctResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct agent release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("distinct agent release failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) setReleaseAgentLabelsMany(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentSetLabelsManyReq) error {
+	resp := new(protoBackend.PackageReleaseAgentSetLabelsManyResp)
+
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/set_labels_many").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("set many agent release labels failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) enableReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentEnableReq) error {
+	resp := new(protoBackend.PackageReleaseAgentEnableResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/enable").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("enable agent release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) disableReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentDisableReq) error {
+	resp := new(protoBackend.PackageReleaseAgentDisableResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/disable").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("disable agent release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) setAsDefaultReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentSetAsDefaultReq) error {
+	resp := new(protoBackend.PackageReleaseAgentSetAsDefaultResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/set_as_default").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("set agent release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) cancelAsDefaultReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentCancelAsDefaultReq,
+) error {
+
+	resp := new(protoBackend.PackageReleaseAgentCancelAsDefaultResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/cancel_as_default").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("cancel agent release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) deleteReleaseAgent(ctx contextx.IContext, req *protoBackend.PackageReleaseAgentDeleteReq) error {
+	resp := new(protoBackend.PackageReleaseAgentDeleteResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/agent/delete").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("delete agent release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
 }
 
 func (c *cli) listReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyListReq,
@@ -1612,7 +1759,7 @@ func (c *cli) listReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageR
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release_proxy/list").
+		SubResourcef("/package/release/proxy/list").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1637,14 +1784,14 @@ func (c *cli) listReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageR
 	return resp, nil
 }
 
-func (c *cli) distinctRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDistinctReq) (
-	*protoBackend.PackageReleaseDistinctResp, error) {
+func (c *cli) distinctReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyDistinctReq) (
+	*protoBackend.PackageReleaseProxyDistinctResp, error) {
 
-	resp := new(protoBackend.PackageReleaseDistinctResp)
+	resp := new(protoBackend.PackageReleaseProxyDistinctResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release/distinct").
+		SubResourcef("/package/release/proxy/distinct").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1656,26 +1803,26 @@ func (c *cli) distinctRelease(ctx contextx.IContext, req *protoBackend.PackageRe
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("distinct release failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return nil, fmt.Errorf("distinct release proxy failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
 		return nil,
-			fmt.Errorf("distinct release failed, get empty data. code(%d), message(%s), request-id(%s)",
+			fmt.Errorf("distinct release proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
 	return resp, nil
 }
 
-func (c *cli) setReleaseLabels(ctx contextx.IContext, req *protoBackend.PackageReleaseSetLabelsReq) error {
-	resp := new(protoBackend.PackageReleaseSetLabelsResp)
+func (c *cli) setReleaseProxyLabelsMany(ctx contextx.IContext, req *protoBackend.PackageReleaseProxySetLabelsManyReq) error {
+	resp := new(protoBackend.PackageReleaseProxySetLabelsManyResp)
 
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release/set_labels").
+		SubResourcef("/package/release/proxy/set_labels_many").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1687,20 +1834,19 @@ func (c *cli) setReleaseLabels(ctx contextx.IContext, req *protoBackend.PackageR
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("set release labels failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return fmt.Errorf("set many proxy release labels failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) setReleaseLabelsMany(ctx contextx.IContext, req *protoBackend.PackageReleaseSetLabelsManyReq) error {
-	resp := new(protoBackend.PackageReleaseSetLabelsManyResp)
-
+func (c *cli) enableReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyEnableReq) error {
+	resp := new(protoBackend.PackageReleaseProxyEnableResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release/set_labels_many").
+		SubResourcef("/package/release/proxy/enable").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1712,19 +1858,19 @@ func (c *cli) setReleaseLabelsMany(ctx contextx.IContext, req *protoBackend.Pack
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("set many release labels failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return fmt.Errorf("enable proxy release failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) enableRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseEnableReq) error {
-	resp := new(protoBackend.PackageReleaseEnableResp)
+func (c *cli) disableReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyDisableReq) error {
+	resp := new(protoBackend.PackageReleaseProxyDisableResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release/enable").
+		SubResourcef("/package/release/proxy/disable").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1736,19 +1882,19 @@ func (c *cli) enableRelease(ctx contextx.IContext, req *protoBackend.PackageRele
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("enable release failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return fmt.Errorf("disable proxy release failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) disableRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDisableReq) error {
-	resp := new(protoBackend.PackageReleaseDisableResp)
+func (c *cli) setAsDefaultReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxySetAsDefaultReq) error {
+	resp := new(protoBackend.PackageReleaseProxySetAsDefaultResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release/disable").
+		SubResourcef("/package/release/proxy/set_as_default").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1760,45 +1906,21 @@ func (c *cli) disableRelease(ctx contextx.IContext, req *protoBackend.PackageRel
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("disable release failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return fmt.Errorf("set proxy release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) setAsDefaultRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseSetAsDefaultReq) error {
-	resp := new(protoBackend.PackageReleaseSetAsDefaultResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/package/release/set_as_default").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("set release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	return nil
-}
-
-func (c *cli) cancelAsDefaultRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseCancelAsDefaultReq,
+func (c *cli) cancelAsDefaultReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyCancelAsDefaultReq,
 ) error {
 
-	resp := new(protoBackend.PackageReleaseCancelAsDefaultResp)
+	resp := new(protoBackend.PackageReleaseProxyCancelAsDefaultResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release/cancel_as_default").
+		SubResourcef("/package/release/proxy/cancel_as_default").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1810,19 +1932,19 @@ func (c *cli) cancelAsDefaultRelease(ctx contextx.IContext, req *protoBackend.Pa
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("cancel release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return fmt.Errorf("cancel proxy release as default failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	return nil
 }
 
-func (c *cli) deleteRelease(ctx contextx.IContext, req *protoBackend.PackageReleaseDeleteReq) error {
-	resp := new(protoBackend.PackageReleaseDeleteResp)
+func (c *cli) deleteReleaseProxy(ctx contextx.IContext, req *protoBackend.PackageReleaseProxyDeleteReq) error {
+	resp := new(protoBackend.PackageReleaseProxyDeleteResp)
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/package/release/delete").
+		SubResourcef("/package/release/proxy/delete").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).
@@ -1834,7 +1956,7 @@ func (c *cli) deleteRelease(ctx contextx.IContext, req *protoBackend.PackageRele
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return fmt.Errorf("delete release failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return fmt.Errorf("delete proxy release failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
@@ -1986,6 +2108,174 @@ func (c *cli) deleteReleasePlugin(ctx contextx.IContext, req *protoBackend.Packa
 
 	if code := resp.GetCode(); code != CodeOK {
 		return fmt.Errorf("delete release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) listReleaseCert(ctx contextx.IContext, req *protoBackend.PackageReleaseCertListReq,
+) (*protoBackend.PackageReleaseCertListResp, error) {
+
+	resp := new(protoBackend.PackageReleaseCertListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/cert/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list cert release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list cert release failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) deleteReleaseCert(ctx contextx.IContext, req *protoBackend.PackageReleaseCertDeleteReq) error {
+	resp := new(protoBackend.PackageReleaseCertDeleteResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/cert/delete").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("delete cert release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) listReleaseBinTool(ctx contextx.IContext, req *protoBackend.PackageReleaseBinToolListReq,
+) (*protoBackend.PackageReleaseBinToolListResp, error) {
+
+	resp := new(protoBackend.PackageReleaseBinToolListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/bintool/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list bintool release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list bintool release failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) deleteReleaseBinTool(ctx contextx.IContext, req *protoBackend.PackageReleaseBinToolDeleteReq) error {
+	resp := new(protoBackend.PackageReleaseBinToolDeleteResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/bintool/delete").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("delete bintool release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	return nil
+}
+
+func (c *cli) listReleasePluginBinTool(ctx contextx.IContext, req *protoBackend.PackageReleasePluginBinToolListReq,
+) (*protoBackend.PackageReleasePluginBinToolListResp, error) {
+
+	resp := new(protoBackend.PackageReleasePluginBinToolListResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/plugin_bintool/list").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("list plugin bintool release failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("list plugin bintool release failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) deleteReleasePluginBinTool(ctx contextx.IContext, req *protoBackend.PackageReleasePluginBinToolDeleteReq) error {
+	resp := new(protoBackend.PackageReleasePluginBinToolDeleteResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/package/release/plugin_bintool/delete").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return fmt.Errorf("delete plugin bintool release failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
