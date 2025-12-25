@@ -390,6 +390,7 @@ func (h *Handler) getHostTargetByScopeTopo(nCtx contextx.IContext, scope *types.
 	return targets, nil
 }
 
+// nolint: gocognit
 func (h *Handler) getServiceTargetByScopeTopo(nCtx contextx.IContext, scope *types.ScopeTopo) ([]*types.Target, error) {
 	executor := pageexecutor.NewPageExecutor[*ServiceInstanceDetailInfo](CCPageSizeLimit, ccQueryTimeout)
 
@@ -669,49 +670,6 @@ func (h *Handler) getModuleIDsBySetTemplateIDs(nCtx contextx.IContext, bizID int
 			}
 		}
 	}
-
-	return conv.SliceUnique(moduleIDs), nil
-}
-
-// getModuleIDsBySetIDs gets module IDs by set IDs.
-func (h *Handler) getModuleIDsBySetIDs(nCtx contextx.IContext, bizID int64, setIDs []int64) ([]int64, error) {
-	if len(setIDs) == 0 {
-		return []int64{}, nil
-	}
-
-	// Query modules for each set
-	moduleExecutor := pageexecutor.NewPageExecutor[*ModuleInfo](CCPageSizeLimit, ccQueryTimeout)
-	allModules := make([]*ModuleInfo, 0)
-
-	for _, setID := range setIDs {
-		moduleFn := func(nCtx contextx.IContext, p types.Page) ([]*ModuleInfo, error) {
-			req := &SearchModuleReq{
-				BKBizID: bizID,
-				BKSetID: setID,
-				Page: Page{
-					Start: p.Offset,
-					Limit: p.Limit,
-					Sort:  p.Sort,
-				},
-			}
-			resp, err := h.cli.searchModule(nCtx, req)
-			if err != nil {
-				return nil, err
-			}
-
-			return resp.Info, nil
-		}
-
-		moduleResult, err := moduleExecutor.Execute(nCtx, types.UnlimitedPage(), moduleFn)
-		if err != nil {
-			return nil, fmt.Errorf("failed to search modules for set %d: %w", setID, err)
-		}
-		allModules = append(allModules, moduleResult.Items...)
-	}
-
-	moduleIDs := conv.SliceToSlice(allModules, func(module *ModuleInfo) int64 {
-		return module.BKModuleID
-	})
 
 	return conv.SliceUnique(moduleIDs), nil
 }

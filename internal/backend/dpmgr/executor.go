@@ -51,7 +51,8 @@ func NewExecutor(conf *ExecutorConfig) *Executor {
 }
 
 // Execute execute the change tasks.
-func (s *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) error {
+// nolint: gocognit,gocyclo,cyclop
+func (executor *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) error {
 	m := make(map[ChangeAction][]*ChangeTask)
 	for _, changeTask := range changeTasks {
 		m[changeTask.Action] = append(m[changeTask.Action], changeTask)
@@ -63,17 +64,17 @@ func (s *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) e
 		// Agent Related Change Actions
 		// ===============================================================================
 		case ChangeActionAgentInstall:
-			err := s.executeChangeActionAgentInstall(nCtx, tasks)
+			err := executor.executeChangeActionAgentInstall(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
 		case ChangeActionAgentUninstall:
-			err := s.executeChangeActionAgentUninstall(nCtx, tasks)
+			err := executor.executeChangeActionAgentUninstall(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
 		case ChangeActionAgentUpgrade:
-			err := s.executeChangeActionAgentUpgrade(nCtx, tasks)
+			err := executor.executeChangeActionAgentUpgrade(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
@@ -81,17 +82,17 @@ func (s *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) e
 		// Plugin Related Change Actions
 		// ===============================================================================
 		case ChangeActionPluginInstall:
-			err := s.executeChangeActionPluginInstall(nCtx, tasks)
+			err := executor.executeChangeActionPluginInstall(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
 		case ChangeActionPluginUninstall:
-			err := s.executeChangeActionPluginUninstall(nCtx, tasks)
+			err := executor.executeChangeActionPluginUninstall(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
 		case ChangeActionPluginUpgrade:
-			err := s.executeChangeActionPluginUpgrade(nCtx, tasks)
+			err := executor.executeChangeActionPluginUpgrade(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
@@ -99,12 +100,12 @@ func (s *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) e
 		// Plugin Sub Config Related Change Actions
 		// ===============================================================================
 		case ChangeActionPluginApplySubConfig:
-			err := s.executeChangeActionPluginApplySubConfig(nCtx, tasks)
+			err := executor.executeChangeActionPluginApplySubConfig(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
 		case ChangeActionPluginDeleteSubConfig:
-			err := s.executeChangeActionPluginDeleteSubConfig(nCtx, tasks)
+			err := executor.executeChangeActionPluginDeleteSubConfig(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
@@ -112,17 +113,17 @@ func (s *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) e
 		// Proxy Related Change Actions
 		// ===============================================================================
 		case ChangeActionProxyInstall:
-			err := s.executeChangeActionProxyInstall(nCtx, tasks)
+			err := executor.executeChangeActionProxyInstall(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
 		case ChangeActionProxyUninstall:
-			err := s.executeChangeActionProxyUninstall(nCtx, tasks)
+			err := executor.executeChangeActionProxyUninstall(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
 		case ChangeActionProxyUpgrade:
-			err := s.executeChangeActionProxyUpgrade(nCtx, tasks)
+			err := executor.executeChangeActionProxyUpgrade(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
@@ -134,7 +135,7 @@ func (s *Executor) Execute(nCtx contextx.IContext, changeTasks ...*ChangeTask) e
 	return nil
 }
 
-func (s *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+func (executor *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
 	nodeDeployments := make([]*types.NodeDeployment, len(tasks))
 	bizMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -173,7 +174,7 @@ func (s *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext, tasks
 	}
 
 	bizIDs := conv.MapKeyToSlice(bizMap)
-	workflowID, err := s.nodeManager.LaunchInstallNode(nCtx, types.InstallNodeParam{
+	workflowID, err := executor.nodeManager.LaunchInstallNode(nCtx, types.InstallNodeParam{
 		Type:            types.NodeWorkflowTypeInstallAgent,
 		BizIDs:          bizIDs,
 		Operator:        access.GetVirtualUser(),
@@ -189,7 +190,7 @@ func (s *Executor) executeChangeActionAgentInstall(nCtx contextx.IContext, tasks
 	return nil
 }
 
-func (s *Executor) executeChangeActionAgentUninstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+func (executor *Executor) executeChangeActionAgentUninstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
 	nodeDeployments := make([]*types.NodeDeployment, len(tasks))
 	bizMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -228,7 +229,7 @@ func (s *Executor) executeChangeActionAgentUninstall(nCtx contextx.IContext, tas
 	}
 
 	bizIDs := conv.MapKeyToSlice(bizMap)
-	workflowID, err := s.nodeManager.LaunchUninstallNode(nCtx, types.UninstallNodeParam{
+	workflowID, err := executor.nodeManager.LaunchUninstallNode(nCtx, types.UninstallNodeParam{
 		Type:            types.NodeWorkflowTypeUninstallAgent,
 		BizIDs:          bizIDs,
 		Operator:        access.GetVirtualUser(),
@@ -244,7 +245,7 @@ func (s *Executor) executeChangeActionAgentUninstall(nCtx contextx.IContext, tas
 	return nil
 }
 
-func (s *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext, tasks []*ChangeTask) error {
+func (executor *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext, tasks []*ChangeTask) error {
 	nodeDeployments := make([]*types.NodeDeployment, len(tasks))
 	bizMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -283,7 +284,7 @@ func (s *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext, tasks
 	}
 
 	bizIDs := conv.MapKeyToSlice(bizMap)
-	workflowID, err := s.nodeManager.LaunchUpgradeNode(nCtx, types.UpgradeNodeParam{
+	workflowID, err := executor.nodeManager.LaunchUpgradeNode(nCtx, types.UpgradeNodeParam{
 		Type:            types.NodeWorkflowTypeUpgradeAgent,
 		BizIDs:          bizIDs,
 		Operator:        access.GetVirtualUser(),
@@ -303,7 +304,7 @@ func (s *Executor) executeChangeActionAgentUpgrade(nCtx contextx.IContext, tasks
 // Plugin Related Change Actions
 // ===============================================================================
 
-func (s *Executor) executeChangeActionPluginInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -329,7 +330,7 @@ func (s *Executor) executeChangeActionPluginInstall(nCtx contextx.IContext, task
 	}
 
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	workflowID, err := s.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
+	workflowID, err := executor.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
 		Type:              types.PluginWorkflowTypeInstall,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
@@ -345,11 +346,11 @@ func (s *Executor) executeChangeActionPluginInstall(nCtx contextx.IContext, task
 	return nil
 }
 
-func (s *Executor) executeChangeActionPluginUninstall(_ contextx.IContext, _ []*ChangeTask) error {
+func (executor *Executor) executeChangeActionPluginUninstall(_ contextx.IContext, _ []*ChangeTask) error {
 	return errors.New("not implemented")
 }
 
-func (s *Executor) executeChangeActionPluginUpgrade(_ contextx.IContext, _ []*ChangeTask) error {
+func (executor *Executor) executeChangeActionPluginUpgrade(_ contextx.IContext, _ []*ChangeTask) error {
 	return errors.New("not implemented")
 }
 
@@ -357,7 +358,7 @@ func (s *Executor) executeChangeActionPluginUpgrade(_ contextx.IContext, _ []*Ch
 // Plugin Sub Config Related Change Actions
 // ===============================================================================
 
-func (s *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.IContext, tasks []*ChangeTask) error {
+func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.IContext, tasks []*ChangeTask) error {
 	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
 	hostMap := make(map[int64]struct{})
 	for idx, task := range tasks {
@@ -381,7 +382,7 @@ func (s *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.IContex
 	}
 
 	hostIDs := conv.MapKeyToSlice(hostMap)
-	workflowID, err := s.pluginManager.LaunchApplyPluginSubConfig(nCtx, types.ApplyPluginSubConfigParam{
+	workflowID, err := executor.pluginManager.LaunchApplyPluginSubConfig(nCtx, types.ApplyPluginSubConfigParam{
 		Type:              types.PluginWorkflowTypeApplyPluginSubConfig,
 		HostIDs:           hostIDs,
 		Operator:          access.GetVirtualUser(),
@@ -397,7 +398,7 @@ func (s *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.IContex
 	return nil
 }
 
-func (s *Executor) executeChangeActionPluginDeleteSubConfig(_ contextx.IContext, _ []*ChangeTask) error {
+func (executor *Executor) executeChangeActionPluginDeleteSubConfig(_ contextx.IContext, _ []*ChangeTask) error {
 	// TODO: implement me.
 	return errors.New("not implemented")
 }
@@ -406,14 +407,14 @@ func (s *Executor) executeChangeActionPluginDeleteSubConfig(_ contextx.IContext,
 // Proxy Related Change Actions
 // ===============================================================================
 
-func (s *Executor) executeChangeActionProxyInstall(_ contextx.IContext, _ []*ChangeTask) error {
+func (executor *Executor) executeChangeActionProxyInstall(_ contextx.IContext, _ []*ChangeTask) error {
 	return errors.New("not implemented")
 }
 
-func (s *Executor) executeChangeActionProxyUninstall(_ contextx.IContext, _ []*ChangeTask) error {
+func (executor *Executor) executeChangeActionProxyUninstall(_ contextx.IContext, _ []*ChangeTask) error {
 	return errors.New("not implemented")
 }
 
-func (s *Executor) executeChangeActionProxyUpgrade(_ contextx.IContext, _ []*ChangeTask) error {
+func (executor *Executor) executeChangeActionProxyUpgrade(_ contextx.IContext, _ []*ChangeTask) error {
 	return errors.New("not implemented")
 }

@@ -12,6 +12,7 @@ package dpmgr
 
 import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
+// DeployUnit define the deploy unit.
 type DeployUnit struct {
 	LifeCycle types.DeployPolicyLifeCycle
 	Targets   []*types.Target
