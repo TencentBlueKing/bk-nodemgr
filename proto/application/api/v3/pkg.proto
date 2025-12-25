@@ -372,6 +372,7 @@ message PackageReleaseDistinctData {
   repeated string os_type = 1;
   repeated string cpu_arch = 2;
 }
+
 // PackageReleaseAgentListReq describes the HTTP request body when list agent
 // release.
 message PackageReleaseAgentListReq {
