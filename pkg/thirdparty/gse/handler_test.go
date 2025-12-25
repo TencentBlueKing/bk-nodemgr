@@ -792,7 +792,7 @@ func Test_Handler_ReloadProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.ReloadProcess(tt.args.nCtx, tt.args.processSpec)
+			got, err := h.TrusteeshipAndReloadProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ReloadProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -857,7 +857,7 @@ func Test_Handler_RestartProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.RestartProcess(tt.args.nCtx, tt.args.processSpec)
+			got, err := h.TrusteeshipAndRestartProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RestartProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -922,7 +922,7 @@ func Test_Handler_StartProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.StartProcess(tt.args.nCtx, tt.args.processSpec)
+			got, err := h.TrusteeshipAndStartProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StartProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -987,7 +987,7 @@ func Test_Handler_StopProcess(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.StopProcess(tt.args.nCtx, tt.args.processSpec)
+			got, err := h.UnTrusteeshipAndStopProcess(tt.args.nCtx, tt.args.processSpec)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StopProcess() error = %v, wantErr %v", err, tt.wantErr)
 				return

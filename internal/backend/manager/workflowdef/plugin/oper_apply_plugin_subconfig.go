@@ -50,7 +50,7 @@ func (oper *operApplyPluginSubConfig) ActionDefNames() []string {
 		ActionNameEnsureAndUpdatePluginConfigDetails,
 		ActionNameRenderPluginConfig,
 		ActionNamePushPluginConfig,
-		ActionNameRestartProcess,
+		ActionNameReloadProcess,
 		ActionNameUpdateProcess,
 	}
 }
@@ -66,7 +66,7 @@ func (oper *operApplyPluginSubConfig) DefaultParameters() operation.Param {
 			ActionNameEnsureAndUpdatePluginConfigDetails: true,
 			ActionNameRenderPluginConfig:                 true,
 			ActionNamePushPluginConfig:                   true,
-			ActionNameRestartProcess:                     true,
+			ActionNameReloadProcess:                      true,
 			ActionNameUpdateProcess:                      true,
 		},
 	}

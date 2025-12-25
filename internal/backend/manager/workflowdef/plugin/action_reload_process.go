@@ -109,7 +109,7 @@ func (act *actionReloadProcess) Do(ctx *action.InstanceContext) error {
 
 	nCtx := std.Context()
 	processSpec := std.DeployInfo().Process.ToProcessSpec()
-	result, err := act.gseHandlerProc.ReloadProcess(nCtx, processSpec)
+	result, err := act.gseHandlerProc.TrusteeshipAndReloadProcess(nCtx, processSpec)
 	if err != nil {
 		return fmt.Errorf("failed to reload plugin process: %w", err)
 	}

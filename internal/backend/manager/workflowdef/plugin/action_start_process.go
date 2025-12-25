@@ -110,7 +110,7 @@ func (act *actStartProcess) Do(ctx *action.InstanceContext) error {
 	nCtx := std.Context()
 	processSpec := std.DeployInfo().Process.ToProcessSpec()
 
-	result, err := act.gseHandlerProc.StartProcess(nCtx, processSpec)
+	result, err := act.gseHandlerProc.TrusteeshipAndStartProcess(nCtx, processSpec)
 	if err != nil {
 		return fmt.Errorf("failed to start plugin process: %w", err)
 	}

@@ -109,7 +109,7 @@ func (act *actionRestartProcess) Do(ctx *action.InstanceContext) error {
 
 	nCtx := std.Context()
 	processSpec := std.DeployInfo().Process.ToProcessSpec()
-	result, err := act.gseHandlerProc.RestartProcess(nCtx, processSpec)
+	result, err := act.gseHandlerProc.TrusteeshipAndRestartProcess(nCtx, processSpec)
 	if err != nil {
 		return fmt.Errorf("failed to restart plugin process: %w", err)
 	}

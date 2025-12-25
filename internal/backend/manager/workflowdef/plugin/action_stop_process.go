@@ -112,7 +112,7 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 	nCtx := std.Context()
 	processSpec := std.DeployInfo().Process.ToProcessSpec()
 
-	result, err := act.gseHandlerProc.StopProcess(nCtx, processSpec)
+	result, err := act.gseHandlerProc.UnTrusteeshipAndStopProcess(nCtx, processSpec)
 	if err != nil {
 		return fmt.Errorf("failed to stop plugin process: %w", err)
 	}

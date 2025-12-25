@@ -124,17 +124,17 @@ type IHandlerProc interface {
 	// UnTrusteeshipProcess order the gse_agent to stop trusteeship the process.
 	UnTrusteeshipProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
 
-	// StartProcess order the gse_agent to start the process.
-	StartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+	// TrusteeshipAndStartProcess order the gse_agent to trusteeship and start the process.
+	TrusteeshipAndStartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
 
-	// StopProcess order the gse_agent to stop the process.
-	StopProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+	// UnTrusteeshipAndStopProcess order the gse_agent to untrusteeship and stop the process.
+	UnTrusteeshipAndStopProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
 
-	// RestartProcess order the gse_agent to restart the process.
-	RestartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+	// TrusteeshipAndRestartProcess order the gse_agent to trusteeship and restart the process.
+	TrusteeshipAndRestartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
 
-	// ReloadProcess order the gse_agent to reload the process.
-	ReloadProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
+	// TrusteeshipAndReloadProcess order the gse_agent to trusteeship and reload the process.
+	TrusteeshipAndReloadProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error)
 }
 
 // Handler this define the gse handler.
@@ -983,8 +983,8 @@ func (h *Handler) UnTrusteeshipProcess(nCtx contextx.IContext, processSpec types
 	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
-// StartProcess starts the process.
-func (h *Handler) StartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+// TrusteeshipAndStartProcess starts the process.
+func (h *Handler) TrusteeshipAndStartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
 	// The lower level will be based on the value issued by the upper level, so it must be checked here.
 	if err := processSpec.Validate(); err != nil {
 		return "", fmt.Errorf("failed to start process: %w", err)
@@ -1026,8 +1026,8 @@ func (h *Handler) StartProcess(nCtx contextx.IContext, processSpec types.Process
 	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
-// StopProcess stops the process.
-func (h *Handler) StopProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+// UnTrusteeshipAndStopProcess stops the process.
+func (h *Handler) UnTrusteeshipAndStopProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
 	// The lower level will be based on the value issued by the upper level, so it must be checked here.
 	if err := processSpec.Validate(); err != nil {
 		return "", fmt.Errorf("failed to stop process: %w", err)
@@ -1069,8 +1069,8 @@ func (h *Handler) StopProcess(nCtx contextx.IContext, processSpec types.ProcessS
 	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
-// RestartProcess restarts the process.
-func (h *Handler) RestartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+// TrusteeshipAndRestartProcess restarts the process.
+func (h *Handler) TrusteeshipAndRestartProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
 	// The lower level will be based on the value issued by the upper level, so it must be checked here.
 	if err := processSpec.Validate(); err != nil {
 		return "", fmt.Errorf("failed to restart process: %w", err)
@@ -1112,8 +1112,8 @@ func (h *Handler) RestartProcess(nCtx contextx.IContext, processSpec types.Proce
 	return controlProcResult.CmdOut, controlProcResult.Err
 }
 
-// ReloadProcess reload the process.
-func (h *Handler) ReloadProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
+// TrusteeshipAndReloadProcess reload the process.
+func (h *Handler) TrusteeshipAndReloadProcess(nCtx contextx.IContext, processSpec types.ProcessSpec) (string, error) {
 	// The lower level will be based on the value issued by the upper level, so it must be checked here.
 	if err := processSpec.Validate(); err != nil {
 		return "", fmt.Errorf("failed to reload process: %w", err)
