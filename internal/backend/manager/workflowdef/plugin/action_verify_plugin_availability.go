@@ -36,6 +36,7 @@ func NewActionVerifyPluginAvailability(capability *Capability) action.Definition
 		daoPluginDeployment: capability.StoragePlugin,
 		daoReleasePlugin:    capability.StorageRelease,
 		daoHost:             capability.StorageTopo,
+		daoPlugin:           capability.StoragePlugin,
 	}
 }
 
@@ -48,6 +49,7 @@ type actionVerifyPluginAvailability struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	daoReleasePlugin    releaseStg.IPlugin
 	daoHost             topoStg.IStorageHost
+	daoPlugin           pluginStg.IDaoPlugin
 }
 
 // Name returns the name of the action.
@@ -114,29 +116,36 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 		return err
 	}
 
-	plugin, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
+	plugin, err := act.daoPlugin.GetPlugin(nCtx, deployInfo.Process.PluginName)
+	if err != nil {
+		return err
+	}
+
+	pluginPkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: host.Dynamic.NodeGeneration,
 		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
 		Version:    deployInfo.InstallOptions.Version,
-		Name:       deployInfo.Process.PluginName,
+		Name:       plugin.PkgName,
 	})
 	if err != nil {
 		return err
 	}
 
-	if !plugin.ReleaseAdditionInfoPlugin.LaunchNodeType.IsLaunchNode(host.Dynamic.NodeRole) {
+	if !pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType.IsLaunchNode(host.Dynamic.NodeRole) {
 		std.InstanceData().LogE(
-			fmt.Sprintf("plugin launch node type not match host node role, plugin-name(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
-				deployInfo.Process.PluginName, deployInfo.Process.HostID,
-				plugin.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole))
+			fmt.Sprintf("plugin pkg launch node type not match host node role, "+
+				"plugin-name(%s), plugin-pkg-name(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
+				plugin.Name, pluginPkg.Name, host.HostID,
+				pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole))
 
-		return errors.New("plugin launch node type not match host node role")
+		return errors.New("plugin pkg launch node type not match host node role")
 	}
 
 	std.InstanceData().LogI(
-		fmt.Sprintf("plugin launch node type match host node role, plugin-name(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID,
-			plugin.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole))
+		fmt.Sprintf("plugin pkg launch node type match host node role, plugin-name(%s), plugin-pkg-name(%s), "+
+			"host-id(%d), launch-node-type(%s), host-node-role(%s)",
+			plugin.Name, pluginPkg.Name, deployInfo.Process.HostID,
+			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole))
 
 	return nil
 }

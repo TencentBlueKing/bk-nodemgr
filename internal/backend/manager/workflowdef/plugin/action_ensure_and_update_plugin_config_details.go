@@ -132,7 +132,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) Do(ctx *action.InstanceCont
 		Generation: std.DeployInfo().Process.Generation,
 		Platform:   std.DeployInfo().Process.Platform,
 		Version:    std.DeployInfo().Process.Info.Version,
-		Name:       std.DeployInfo().Process.PluginName,
+		Name:       std.DeployInfo().Process.PluginPkgName,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to get plugin release info: %w", err)
