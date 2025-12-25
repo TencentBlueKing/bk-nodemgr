@@ -24,6 +24,7 @@ import (
 const (
 	// RSADefaultLabel is the default label used for RSA-OAEP.
 	RSADefaultLabel = "com.example.crypto.rsa.v1"
+
 	// RSAVersion is the version prefix for RSA ciphertext.
 	RSAVersion = 1
 
@@ -144,9 +145,7 @@ func (r *RSA) Encrypt(plaintext []byte) ([]byte, error) {
 		return nil, errors.New("rsa public key is not set")
 	}
 
-	h := sha256.New()
-
-	ciphertext, err := rsa.EncryptOAEP(h, rand.Reader, r.pub, plaintext, r.label)
+	ciphertext, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, r.pub, plaintext, r.label)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt with rsa-oaep: %w", err)
 	}
@@ -174,10 +173,8 @@ func (r *RSA) Decrypt(ciphertext []byte) ([]byte, error) {
 		return nil, fmt.Errorf("unsupported rsa version: %d", ciphertext[0])
 	}
 
-	h := sha256.New()
 	actualCiphertext := ciphertext[1:]
-
-	plaintext, err := rsa.DecryptOAEP(h, rand.Reader, r.priv, actualCiphertext, r.label)
+	plaintext, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, r.priv, actualCiphertext, r.label)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt with rsa-oaep: %w", err)
 	}
@@ -254,7 +251,7 @@ func GenerateRSAKeyPairPEM(bits RSAKeySize) ([]byte, []byte, error) {
 		return nil, nil, fmt.Errorf("failed to marshal rsa public key: %w", err)
 	}
 
-	pubPEM := pem.EncodeToMemory(&pem.Block{Type: PEMBlockTypePrivateKeyType, Bytes: pubBytes})
+	pubPEM := pem.EncodeToMemory(&pem.Block{Type: PEMBlockTypePublicKeyType, Bytes: pubBytes})
 
 	return privPEM, pubPEM, nil
 }
