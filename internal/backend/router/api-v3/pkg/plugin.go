@@ -82,8 +82,14 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	}
 
 	pluginPkgName, gen, plat, version := req.GetIdentifier()
+	key := types.ReleasePluginKey{
+		Name:       pluginPkgName,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
 
-	exist, err := h.daoReleasePlugin.ExistReleasePlugin(rCtx, pluginPkgName, gen, plat, version)
+	exist, err := h.daoReleasePlugin.ExistReleasePlugin(rCtx, key)
 	if err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
@@ -101,7 +107,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, errors.New("plugin not exist"))
 	}
 
-	if err := h.daoReleasePlugin.EnableReleasePlugin(rCtx, pluginPkgName, gen, plat, version); err != nil {
+	if err := h.daoReleasePlugin.EnableReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -110,7 +116,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	if err := h.initDefaultPluginForAllTenants(rCtx, pluginPkgName, gen, plat, version); err != nil {
+	if err := h.initDefaultPluginForAllTenants(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).With("gen", gen, "platform", plat, "version", version).
 			Error("failed to check and create default plugin for all tenants")
 
@@ -129,8 +135,7 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	return resp.GetData(), nil
 }
 
-func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, pluginPkgName string, gen types.Generation, plat platfmt.Platform,
-	version string) error {
+func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, key types.ReleasePluginKey) error {
 
 	tenants, err := h.daoTenant.ListAllEnabledTenants(rCtx)
 	if err != nil {
@@ -144,7 +149,7 @@ func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, plugi
 		nCtx := contextx.New(rCtx, contextx.WithTenantID(tenant.ID))
 
 		gp.Go(func() error {
-			return h.createDefaultPluginForTenant(nCtx, tenant.ID, pluginPkgName, gen, plat, version)
+			return h.createDefaultPluginForTenant(nCtx, tenant.ID, key)
 		})
 	}
 
@@ -156,45 +161,43 @@ func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, plugi
 }
 
 // createDefaultPluginForTenant creates default plugin for a single tenant.
-func (h *handler) createDefaultPluginForTenant(nCtx contextx.IContext, tenantID, pluginPkgName string, gen types.Generation, plat platfmt.Platform,
-	version string) error {
+func (h *handler) createDefaultPluginForTenant(nCtx contextx.IContext, tenantID string, key types.ReleasePluginKey) error {
 
-	exist, err := h.daoPlugin.ExistDefaultPluginByPluginPkgName(nCtx, pluginPkgName)
+	exist, err := h.daoPlugin.ExistDefaultPluginByPluginPkgName(nCtx, key.Name)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "plugin_pkg_name", pluginPkgName).
+		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "plugin_pkg_name", key.Name).
 			Error("failed to check plugin exist for tenant")
 
-		return fmt.Errorf("failed to check plugin exist, tenant-id(%s) plugin(%s): %w", tenantID, pluginPkgName, err)
+		return fmt.Errorf("failed to check plugin exist, tenant-id(%s) plugin(%s): %w", tenantID, key.Name, err)
 	}
 
 	if exist {
 		return nil
 	}
 
-	plugin, err := h.daoReleasePlugin.GetReleasePlugin(nCtx, pluginPkgName, gen, plat, version)
+	plugin, err := h.daoReleasePlugin.GetReleasePlugin(nCtx, key)
 	if err != nil {
 		logger.G.Biz(nCtx).
 			WithErr(err).
-			With("tenant_id", tenantID, "plugin_pkg_name", pluginPkgName, "gen", gen, "platform", plat, "version", version).
+			With("tenant_id", tenantID, "key", key).
 			Error("failed to get release plugin")
 
-		return fmt.Errorf("failed to get release plugin, plugin-pkg-name(%s), gen(%d), platform(%s), version(%s): %w",
-			pluginPkgName, gen, plat.String(), version, err)
+		return fmt.Errorf("failed to get release plugin, key(%v): %w", key, err)
 	}
 
 	defaultPlugin := &types.Plugin{
 		TenantID: tenantID,
-		Name:     pluginPkgName,
-		PkgName:  pluginPkgName,
+		Name:     key.Name,
+		PkgName:  key.Name,
 		Group:    types.PluginGroupDefault,
 		Memo:     buildPluginMemo(plugin),
 	}
 
 	if err := h.daoPlugin.CreatePlugin(nCtx, defaultPlugin); err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "plugin_pkg_name", pluginPkgName).
+		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "key", key).
 			Error("failed to create default plugin for tenant")
 
-		return fmt.Errorf("failed to create default plugin for tenant(%s) by plugin-pkg-name(%s): %w", tenantID, pluginPkgName, err)
+		return fmt.Errorf("failed to create default plugin for tenant(%s) by plugin-pkg-name(%s): %w", tenantID, key.Name, err)
 	}
 
 	return nil
@@ -228,7 +231,13 @@ func (h *handler) DisableReleasePlugin(rCtx restserver.IContext) (interface{}, e
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.daoReleasePlugin.DisableReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	key := types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
+	if err := h.daoReleasePlugin.DisableReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -257,7 +266,13 @@ func (h *handler) SetAsDefaultReleasePlugin(rCtx restserver.IContext) (interface
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.daoReleasePlugin.SetAsDefaultReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	key := types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
+	if err := h.daoReleasePlugin.SetAsDefaultReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -286,7 +301,13 @@ func (h *handler) CancelAsDefaultReleasePlugin(rCtx restserver.IContext) (interf
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.daoReleasePlugin.CancelAsDefaultReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	key := types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
+	if err := h.daoReleasePlugin.CancelAsDefaultReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).
@@ -315,7 +336,13 @@ func (h *handler) DeleteReleasePlugin(rCtx restserver.IContext) (interface{}, er
 	}
 
 	name, gen, plat, version := req.GetIdentifier()
-	if err := h.daoReleasePlugin.DeleteReleasePlugin(rCtx, name, gen, plat, version); err != nil {
+	key := types.ReleasePluginKey{
+		Name:       name,
+		Generation: gen,
+		Platform:   plat,
+		Version:    version,
+	}
+	if err := h.daoReleasePlugin.DeleteReleasePlugin(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).
 			WithErr(err).
 			With("gen", gen, "platform", plat, "version", version).

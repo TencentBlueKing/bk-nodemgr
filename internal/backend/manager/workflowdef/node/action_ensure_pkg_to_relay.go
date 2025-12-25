@@ -23,7 +23,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -323,48 +322,40 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportFile(
 	return results, fileStorageDir, nil
 }
 
-func (act *actionEnsurePkgToRelay) getReleasePackageInfo(
-	nCtx contextx.IContext, std *nodeUtils.NodeActionStandarder) (*types.Release, error) {
+func (act *actionEnsurePkgToRelay) getReleasePackageInfo(nCtx contextx.IContext, std *nodeUtils.NodeActionStandarder) (*types.Release, error) {
+	var release *types.Release
+	switch std.DeployInfo().Host.Dynamic.NodeRole {
+	case types.NodeRoleAgent:
+		r, err := act.storageRelease.GetReleaseAgent(nCtx, types.ReleaseAgentKey{
+			Generation: std.DeployInfo().Host.Dynamic.NodeGeneration,
+			Platform:   platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
+			Version:    std.DeployInfo().Host.Dynamic.NodeVersion,
+		})
+		if err != nil {
+			return nil, err
+		}
 
-	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
-	if err != nil {
-		return nil, fmt.Errorf("convert node role to release type failed: %w", err)
+		release = &r.Release
+
+	case types.NodeRoleProxy:
+		r, err := act.storageRelease.GetReleaseProxy(nCtx, types.ReleaseProxyKey{
+			Generation: std.DeployInfo().Host.Dynamic.NodeGeneration,
+			Platform:   platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
+			Version:    std.DeployInfo().Host.Dynamic.NodeVersion,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		release = &r.Release
+
+	default:
+		return nil, fmt.Errorf("invalid node role. role(%s)", std.DeployInfo().Host.Dynamic.NodeRole)
 	}
 
-	gen := std.DeployInfo().Host.Dynamic.NodeGeneration
+	std.InstanceData().LogI(fmt.Sprintf("get release package info. file-name(%s)", release.FileName))
 
-	filename, err := nodepkg.FormatPkgFileName(
-		gen,
-		releaseType,
-		platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
-		std.DeployInfo().Host.Dynamic.NodeVersion,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	cond := &types.ReleaseCondition{
-		ExactInclude: &types.ReleaseExactFields{
-			FileName:   []string{filename},
-			Generation: []types.Generation{gen},
-		},
-	}
-	releases, _, err := act.storageRelease.ListRelease(nCtx, releaseType, types.UnlimitedPage(), cond)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(releases) == 0 {
-		return nil, fmt.Errorf("release package not found. file-name(%s)", filename)
-	}
-
-	if len(releases) > 1 {
-		return nil, fmt.Errorf("release package not unique. file-name(%s)", filename)
-	}
-
-	std.InstanceData().LogI(fmt.Sprintf("get release package info. file-name(%s)", filename))
-
-	return releases[0], nil
+	return release, nil
 }
 
 func (act *actionEnsurePkgToRelay) getInstallerFile(

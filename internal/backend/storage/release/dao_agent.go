@@ -23,7 +23,7 @@ import (
 func (s *Storage) getReleaseAgent(
 	nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseAgent, error) {
 
-	rls, err := s.getRelease(nCtx, types.ReleaseTypeAgent, gen, types.ReleaseNameAgent, plat, version)
+	rls, err := s.getRelease(nCtx, types.ReleaseTypeAgent, gen, plat, version, types.ReleaseNameAgent)
 	if err != nil {
 		return nil, err
 	}
@@ -65,19 +65,4 @@ func (s *Storage) listReleaseAgent(
 	}
 
 	return releaseAgents, total, nil
-}
-
-// countReleaseAgent counts release by conditions.
-func (s *Storage) countReleaseAgent(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) (int64, error) {
-	opts, err := convertReleaseConditionsToOptions(conditions...)
-	if err != nil {
-		return 0, fmt.Errorf("failed to convert release conditions to options: %w", err)
-	}
-
-	num, err := s.daoRelease.Count(nCtx, types.ReleaseTypeAgent, opts...)
-	if err != nil {
-		return 0, fmt.Errorf("failed to count release agent: %w", err)
-	}
-
-	return num, nil
 }

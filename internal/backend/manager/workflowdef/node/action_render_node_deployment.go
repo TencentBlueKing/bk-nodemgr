@@ -138,14 +138,11 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 
 	switch releaseType {
 	case types.ReleaseTypeAgent:
-		rlsAgent, err := act.storageRelease.GetReleaseAgent(std.Context(),
-			std.DeployInfo().Host.Dynamic.NodeGeneration,
-			platfmt.Platform{
-				OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
-				Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
-			},
-			std.DeployInfo().Host.Dynamic.NodeVersion,
-		)
+		rlsAgent, err := act.storageRelease.GetReleaseAgent(std.Context(), types.ReleaseAgentKey{
+			Generation: std.DeployInfo().Host.Dynamic.NodeGeneration,
+			Platform:   platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
+			Version:    std.DeployInfo().Host.Dynamic.NodeVersion,
+		})
 		if err != nil {
 			return fmt.Errorf("failed to get release agent: %w", err)
 		}
@@ -153,14 +150,11 @@ func (act *actionRenderNodeDeployment) Do(ctx *action.InstanceContext) error {
 		nodeConf.PreSetting = rlsAgent.ReleaseAdditionInfoAgent.ConfigEnviron
 		nodeConf.ConfigTemplate = rlsAgent.ReleaseAdditionInfoAgent.ConfigTemplate
 	case types.ReleaseTypeProxy:
-		rlsProxy, err := act.storageRelease.GetReleaseProxy(std.Context(),
-			std.DeployInfo().Host.Dynamic.NodeGeneration,
-			platfmt.Platform{
-				OS:   std.DeployInfo().Host.Dynamic.NodeOsType,
-				Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch,
-			},
-			std.DeployInfo().Host.Dynamic.NodeVersion,
-		)
+		rlsProxy, err := act.storageRelease.GetReleaseProxy(std.Context(), types.ReleaseProxyKey{
+			Generation: std.DeployInfo().Host.Dynamic.NodeGeneration,
+			Platform:   platfmt.Platform{OS: std.DeployInfo().Host.Dynamic.NodeOsType, Arch: std.DeployInfo().Host.Dynamic.NodeCPUArch},
+			Version:    std.DeployInfo().Host.Dynamic.NodeVersion,
+		})
 		if err != nil {
 			return fmt.Errorf("failed to get release proxy: %w", err)
 		}

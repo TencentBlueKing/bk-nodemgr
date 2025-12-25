@@ -36,12 +36,7 @@ type IHandler interface {
 	List(nCtx contextx.IContext, releaseType types.ReleaseType, page types.Page, opts ...OptFn) ([]*types.Release, int64, error)
 
 	// SetLabels sets a release's labels.
-	SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType,
-		gen types.Generation, plat platfmt.Platform, version string, labels ...string) error
-
-	// SetLabelsMany sets many release's labels.
-	SetLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType,
-		gens []types.Generation, plats []platfmt.Platform, versions []string, labels ...string) error
+	SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType, labels []string, opts ...OptFn) error
 
 	// Count counts releases.
 	Count(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) (int64, error)
@@ -180,46 +175,14 @@ func (h *Handler) List(nCtx contextx.IContext, releaseType types.ReleaseType, pa
 }
 
 // SetLabels sets a release's labels.
-func (h *Handler) SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string,
-	labels ...string) error {
-
+func (h *Handler) SetLabels(nCtx contextx.IContext, releaseType types.ReleaseType, labels []string, opts ...OptFn) error {
 	if nCtx == nil {
 		return errors.New("nCtx is nil")
 	}
 
-	conditions := []OptFn{
-		WithGeneration(gen),
-		WithType(releaseType),
-		WithCPUArch(string(plat.Arch)),
-		WithOSType(string(plat.OS)),
-		WithVersion(version),
-	}
+	opts = append(opts, WithType(releaseType))
 	filter := base.AliveFilter()
-	for _, opt := range conditions {
-		filter = opt(filter)
-	}
-
-	return h.releaseTypeDao(releaseType).UpdateField(nCtx, filter, FieldKeyLabels, labels)
-}
-
-// SetLabelsMany sets mamy release's labels.
-func (h *Handler) SetLabelsMany(nCtx contextx.IContext, releaseType types.ReleaseType,
-	gens []types.Generation, plats []platfmt.Platform, versions []string,
-	labels ...string) error {
-
-	if nCtx == nil {
-		return errors.New("nCtx is nil")
-	}
-
-	conditions := []OptFn{
-		WithGeneration(gens...),
-		WithType(releaseType),
-		WithVersion(versions...),
-		WithPlatform(plats...),
-	}
-
-	filter := base.AliveFilter()
-	for _, opt := range conditions {
+	for _, opt := range opts {
 		filter = opt(filter)
 	}
 

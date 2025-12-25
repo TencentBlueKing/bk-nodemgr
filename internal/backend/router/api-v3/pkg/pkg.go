@@ -21,27 +21,36 @@ import (
 )
 
 type handler struct {
-	rg               *gin.RouterGroup
-	daoPackageEvent  release.IPackageEvent
-	daoReleasePlugin release.IPlugin
-	daoRelease       release.IRelease
-	daoReleaseAgent  release.IAgent
-	daoReleaseProxy  release.IProxy
-	daoPlugin        plugin.IDaoPlugin
-	daoTenant        tenant.IStorage
+	rg                      *gin.RouterGroup
+	daoPackageEvent         release.IPackageEvent
+	daoReleasePlugin        release.IPlugin
+	daoReleaseAgent         release.IAgent
+	daoReleaseProxy         release.IProxy
+	daoReleaseCert          release.ICert
+	daoReleaseBinTool       release.IBinTool
+	daoReleasePluginBinTool release.IPluginBinTool
+	daoPlugin               plugin.IDaoPlugin
+
+	daoTenant tenant.IStorage
 }
+
+const (
+	maxReleaseLimit = 1000
+)
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:               rg.Group("/package"),
-		daoPackageEvent:  capability.StorageRelease,
-		daoReleasePlugin: capability.StorageRelease,
-		daoReleaseAgent:  capability.StorageRelease,
-		daoReleaseProxy:  capability.StorageRelease,
-		daoRelease:       capability.StorageRelease,
-		daoPlugin:        capability.StoragePlugin,
-		daoTenant:        capability.StorageTenant,
+		rg:                      rg.Group("/package"),
+		daoPackageEvent:         capability.StorageRelease,
+		daoReleasePlugin:        capability.StorageRelease,
+		daoReleaseAgent:         capability.StorageRelease,
+		daoReleaseProxy:         capability.StorageRelease,
+		daoReleaseCert:          capability.StorageRelease,
+		daoReleaseBinTool:       capability.StorageRelease,
+		daoReleasePluginBinTool: capability.StorageRelease,
+		daoPlugin:               capability.StoragePlugin,
+		daoTenant:               capability.StorageTenant,
 	}
 }
 
@@ -49,24 +58,47 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/release/list", restserver.Handler(h.ListRelease))
-	h.rg.POST("/release/distinct", restserver.Handler(h.DistinctRelease))
-	h.rg.POST("/release/set_labels", restserver.Handler(h.SetReleaseLabels))
-	h.rg.POST("/release/set_labels_many", restserver.Handler(h.SetReleaseLabelsMany))
-	h.rg.POST("/release/enable", restserver.Handler(h.EnableRelease))
-	h.rg.POST("/release/disable", restserver.Handler(h.DisableRelease))
-	h.rg.POST("/release/set_as_default", restserver.Handler(h.SetAsDefaultRelease))
-	h.rg.POST("/release/cancel_as_default", restserver.Handler(h.CancelAsDefaultRelease))
-	h.rg.POST("/release/delete", restserver.Handler(h.DeleteRelease))
-	h.rg.POST("/release_plugin/list", restserver.Handler(h.ListReleasePlugin))
-	h.rg.POST("/release_plugin/enable", restserver.Handler(h.EnableReleasePlugin))
-	h.rg.POST("/release_plugin/disable", restserver.Handler(h.DisableReleasePlugin))
-	h.rg.POST("/release_plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))
-	h.rg.POST("/release_plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
-	h.rg.POST("/release_plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
-	h.rg.POST("/release_agent/list", restserver.Handler(h.ListReleaseAgent))
-	h.rg.POST("/release_proxy/list", restserver.Handler(h.ListReleaseProxy))
-	
+	// release agent.
+	h.rg.POST("/release/agent/list", restserver.Handler(h.ListReleaseAgent))
+	h.rg.POST("/release/agent/distinct", restserver.Handler(h.DistinctReleaseAgent))
+	h.rg.POST("/release/agent/set_labels_many", restserver.Handler(h.SetReleaseAgentLabelsMany))
+	h.rg.POST("/release/agent/enable", restserver.Handler(h.EnableReleaseAgent))
+	h.rg.POST("/release/agent/disable", restserver.Handler(h.DisableReleaseAgent))
+	h.rg.POST("/release/agent/set_as_default", restserver.Handler(h.SetAsDefaultReleaseAgent))
+	h.rg.POST("/release/agent/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleaseAgent))
+	h.rg.POST("/release/agent/delete", restserver.Handler(h.DeleteReleaseAgent))
+
+	// release proxy.
+	h.rg.POST("/release/proxy/list", restserver.Handler(h.ListReleaseProxy))
+	h.rg.POST("/release/proxy/distinct", restserver.Handler(h.DistinctReleaseProxy))
+	h.rg.POST("/release/proxy/set_labels_many", restserver.Handler(h.SetReleaseProxyLabelsMany))
+	h.rg.POST("/release/proxy/enable", restserver.Handler(h.EnableReleaseProxy))
+	h.rg.POST("/release/proxy/disable", restserver.Handler(h.DisableReleaseProxy))
+	h.rg.POST("/release/proxy/set_as_default", restserver.Handler(h.SetAsDefaultReleaseProxy))
+	h.rg.POST("/release/proxy/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleaseProxy))
+	h.rg.POST("/release/proxy/delete", restserver.Handler(h.DeleteReleaseProxy))
+
+	// release plugin.
+	h.rg.POST("/release/plugin/list", restserver.Handler(h.ListReleasePlugin))
+	h.rg.POST("/release/plugin/enable", restserver.Handler(h.EnableReleasePlugin))
+	h.rg.POST("/release/plugin/disable", restserver.Handler(h.DisableReleasePlugin))
+	h.rg.POST("/release/plugin/set_as_default", restserver.Handler(h.SetAsDefaultReleasePlugin))
+	h.rg.POST("/release/plugin/cancel_as_default", restserver.Handler(h.CancelAsDefaultReleasePlugin))
+	h.rg.POST("/release/plugin/delete", restserver.Handler(h.DeleteReleasePlugin))
+
+	// release cert.
+	h.rg.POST("/release/cert/list", restserver.Handler(h.ListReleaseCert))
+	h.rg.POST("/release/cert/delete", restserver.Handler(h.DeleteReleaseCert))
+
+	// release bintool.
+	h.rg.POST("/release/bintool/list", restserver.Handler(h.ListReleaseBinTool))
+	h.rg.POST("/release/bintool/delete", restserver.Handler(h.DeleteReleaseBinTool))
+
+	// release plugin bintool.
+	h.rg.POST("/release/plugin_bintool/list", restserver.Handler(h.ListReleasePluginBinTool))
+	h.rg.POST("/release/plugin_bintool/delete", restserver.Handler(h.DeleteReleasePluginBinTool))
+
+	// event
 	h.rg.POST("/event/list", restserver.Handler(h.ListPackageEvent))
 	h.rg.POST("/event/distinct", restserver.Handler(h.DistinctPackageEvent))
 }

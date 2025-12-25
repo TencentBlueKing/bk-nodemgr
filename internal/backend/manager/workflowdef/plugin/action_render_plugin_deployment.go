@@ -151,13 +151,12 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 
 	// setting process by plugin pkg.
 
-	pluginPkg, err := act.daoPluginPkg.GetReleasePlugin(
-		nCtx,
-		pluginPkgName,
-		nodeGeneration,
-		nodePlatform,
-		version,
-	)
+	pluginPkg, err := act.daoPluginPkg.GetReleasePlugin(nCtx, types.ReleasePluginKey{
+		Generation: nodeGeneration,
+		Platform:   nodePlatform,
+		Version:    version,
+		Name:       pluginPkgName,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to get plugin pkg by name, plugin-pkg-name(%s): %w", pluginPkgName, err)
 	}

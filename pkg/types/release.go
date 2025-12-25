@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 )
@@ -163,6 +164,13 @@ type ReleaseAdditionInfoAgent struct {
 	ChangeLogZH    string
 }
 
+// ReleaseAgentKey defines the release agent key.
+type ReleaseAgentKey struct {
+	Generation Generation
+	Platform   platform.Platform
+	Version    string
+}
+
 // ReleaseProxy defines the proxy, it is kind of Release.
 type ReleaseProxy struct {
 	Release
@@ -177,9 +185,21 @@ type ReleaseAdditionInfoProxy struct {
 	ChangeLogZH    string
 }
 
+// ReleaseProxyKey defines the release proxy key.
+type ReleaseProxyKey struct {
+	Generation Generation
+	Platform   platform.Platform
+	Version    string
+}
+
 // ReleaseCert defines the cert, it is kind of Release.
 type ReleaseCert struct {
 	Release
+}
+
+// ReleaseCertKey defines the release cert key.
+type ReleaseCertKey struct {
+	Generation Generation
 }
 
 // ReleaseBinTool defines the bin tool, it is kind of Release.
@@ -187,15 +207,34 @@ type ReleaseBinTool struct {
 	Release
 }
 
+// ReleaseBinToolKey defines the release bintool key.
+type ReleaseBinToolKey struct {
+	Generation Generation
+}
+
 // ReleasePluginBinTool defines the plugin bin tool, it is kind of Release.
 type ReleasePluginBinTool struct {
 	Release
+}
+
+// ReleasePluginBinToolKey defines the release plugin bintool key.
+type ReleasePluginBinToolKey struct {
+	Generation Generation
+	Name       string
 }
 
 // ReleasePlugin defines the plugin, it is kind of Release.
 type ReleasePlugin struct {
 	Release
 	ReleaseAdditionInfoPlugin
+}
+
+// ReleasePluginKey defines the release plugin key.
+type ReleasePluginKey struct {
+	Generation Generation
+	Platform   platform.Platform
+	Version    string
+	Name       string
 }
 
 // ReleaseAdditionInfoPlugin defines the addition info of release plugin.

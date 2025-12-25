@@ -16,44 +16,30 @@ message PackageReleaseExactConditions {
   repeated string file_name = 6;
 }
 
-// PackageReleaseListReq describes the HTTP request body when list package
-// release.
-message PackageReleaseListReq {
-  Page page = 1;
-  string release_type = 2;
-  int64 generation = 3;
-  bool only_count = 4;
-
-  PackageReleaseExactConditions exact_include_conditions = 5;
+// PackageReleaseDistinctField describes the release distinct field.
+message PackageReleaseDistinctField {
+  bool os_type = 1;
+  bool cpu_arch = 2;
 }
 
-// PackageReleaseListResp describes the HTTP response body when list package
-// release.
-message PackageReleaseListResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {
-    int64 total = 1;
-    repeated Release items = 2;
-  }
-  Data data = 5;
+// PackageReleaseDistinctData describes the release distinct data.
+message PackageReleaseDistinctData {
+  repeated string os_type = 1;
+  repeated string cpu_arch = 2;
 }
 
-// PackageReleaseAgentListReq describes the HTTP request body when list package
+// PackageReleaseAgentListReq describes the HTTP request body when list agent
 // release.
 message PackageReleaseAgentListReq {
   Page page = 1;
   int64 generation = 2;
   bool only_count = 3;
 
-  PackageReleaseExactConditions exact_include_conditions = 5;
+  PackageReleaseExactConditions exact_include_conditions = 4;
 }
 
-// PackageReleaseAgentListResp describes the HTTP response body when list
-// package release.
+// PackageReleaseAgentListResp describes the HTTP response body when list agent
+// release.
 message PackageReleaseAgentListResp {
   int32 code = 1;
   string message = 2;
@@ -67,18 +53,161 @@ message PackageReleaseAgentListResp {
   Data data = 5;
 }
 
-// PackageReleaseProxyListReq describes the HTTP request body when list package
+// PackageReleaseAgentDistinctReq describes the HTTP request body when distinct
+// agent release.
+message PackageReleaseAgentDistinctReq {
+  int64 generation = 1;
+  PackageReleaseExactConditions exact_include_conditions = 2;
+  PackageReleaseDistinctField distinct_field = 3;
+}
+
+// PackageReleaseAgentDistinctResp describes the HTTP response body when
+// distinct agent release.
+message PackageReleaseAgentDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  PackageReleaseDistinctData data = 5;
+}
+
+// PackageReleaseAgentSetLabelsManyReq describes the HTTP request body when set
+// many labels to agent release.
+message PackageReleaseAgentSetLabelsManyReq {
+  int64 generation = 1;
+  PackageReleaseExactConditions exact_include_conditions = 2;
+  repeated string labels = 3;
+}
+
+// PackageReleaseAgentSetLabelsManyResp describes the HTTP response body when
+// set many labels to agent release.
+message PackageReleaseAgentSetLabelsManyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseAgentEnableReq describes the HTTP request body when enable
+// agent release.
+message PackageReleaseAgentEnableReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseAgentEnableResp describes the HTTP response body when enable
+// agent release.
+message PackageReleaseAgentEnableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseAgentDisableReq describes the HTTP request body when disable
+// agent release.
+message PackageReleaseAgentDisableReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseAgentDisableResp describes the HTTP response body when disable
+// agent release.
+message PackageReleaseAgentDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseAgentSetAsDefaultReq describes the HTTP request body when set
+// default agent release.
+message PackageReleaseAgentSetAsDefaultReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseAgentSetAsDefaultResp describes the HTTP response body when set
+// default agent release.
+message PackageReleaseAgentSetAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseAgentCancelAsDefaultReq describes the HTTP request body when
+// cancel default agent release.
+message PackageReleaseAgentCancelAsDefaultReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseAgentCancelAsDefaultResp describes the HTTP response body when
+// cancel default agent release.
+message PackageReleaseAgentCancelAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseAgentDeleteReq describes the HTTP request body when delete
+// agent release.
+message PackageReleaseAgentDeleteReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseAgentDeleteResp describes the HTTP response body when delete
+// agent release.
+message PackageReleaseAgentDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseProxyListReq describes the HTTP request body when list proxy
 // release.
 message PackageReleaseProxyListReq {
   Page page = 1;
   int64 generation = 2;
   bool only_count = 3;
 
-  PackageReleaseExactConditions exact_include_conditions = 5;
+  PackageReleaseExactConditions exact_include_conditions = 4;
 }
 
-// PackageReleaseProxyListResp describes the HTTP response body when list
-// package release.
+// PackageReleaseProxyListResp describes the HTTP response body when list proxy
+// release.
 message PackageReleaseProxyListResp {
   int32 code = 1;
   string message = 2;
@@ -92,48 +221,186 @@ message PackageReleaseProxyListResp {
   Data data = 5;
 }
 
-// PackageReleaseDistinctReq describes the HTTP request body when distinct
-// release.
-message PackageReleaseDistinctReq {
-  string release_type = 1;
-  int64 generation = 2;
-  PackageReleaseExactConditions exact_include_conditions = 3;
-
-  message DistinctField {
-    bool os_type = 1;
-    bool cpu_arch = 2;
-  }
-
-  DistinctField distinctField = 4;
+// PackageReleaseProxyDistinctReq describes the HTTP request body when distinct
+// proxy release.
+message PackageReleaseProxyDistinctReq {
+  int64 generation = 1;
+  PackageReleaseExactConditions exact_include_conditions = 2;
+  PackageReleaseDistinctField distinct_field = 3;
 }
 
-// PackageReleaseDistinctResp describes the HTTP response body when distinct
+// PackageReleaseProxyDistinctResp describes the HTTP response body when
+// distinct proxy release.
+message PackageReleaseProxyDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+  PackageReleaseDistinctData data = 5;
+}
+
+// PackageReleaseProxySetLabelsManyReq describes the HTTP request body when set
+// many labels to proxy release.
+message PackageReleaseProxySetLabelsManyReq {
+  int64 generation = 1;
+  PackageReleaseExactConditions exact_include_conditions = 2;
+  repeated string labels = 3;
+}
+
+// PackageReleaseProxySetLabelsManyResp describes the HTTP response body when
+// set many labels to proxy release.
+message PackageReleaseProxySetLabelsManyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseProxyEnableReq describes the HTTP request body when enable
+// proxy release.
+message PackageReleaseProxyEnableReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseProxyEnableResp describes the HTTP response body when enable
+// proxy release.
+message PackageReleaseProxyEnableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseProxyDisableReq describes the HTTP request body when disable
+// proxy release.
+message PackageReleaseProxyDisableReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseProxyDisableResp describes the HTTP response body when disable
+// proxy release.
+message PackageReleaseProxyDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseProxySetAsDefaultReq describes the HTTP request body when set
+// default proxy release.
+message PackageReleaseProxySetAsDefaultReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseProxySetAsDefaultResp describes the HTTP response body when set
+// default proxy release.
+message PackageReleaseProxySetAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseProxyCancelAsDefaultReq describes the HTTP request body when
+// cancel default proxy release.
+message PackageReleaseProxyCancelAsDefaultReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseProxyCancelAsDefaultResp describes the HTTP response body when
+// cancel default proxy release.
+message PackageReleaseProxyCancelAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseProxyDeleteReq describes the HTTP request body when delete
+// proxy release.
+message PackageReleaseProxyDeleteReq {
+  int64 generation = 1;
+  string release_type = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleaseProxyDeleteResp describes the HTTP response body when delete
+// proxy release.
+message PackageReleaseProxyDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginListReq describes the HTTP request body when list plugin
 // release.
-message PackageReleaseDistinctResp {
+message PackageReleasePluginListReq {
+  Page page = 1;
+  int64 generation = 2;
+  bool only_count = 3;
+
+  PackageReleaseExactConditions exact_include_conditions = 4;
+}
+
+// PackageReleasePluginListResp describes the HTTP response body when list
+// plugin release.
+message PackageReleasePluginListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
   Error error = 4;
 
   message Data {
-    repeated string os_type = 1;
-    repeated string cpu_arch = 2;
+    int64 total = 1;
+    repeated ReleasePlugin items = 2;
   }
   Data data = 5;
 }
 
-// PackageReleaseSetLabelsReq describes the HTTP request body when set labels.
-message PackageReleaseSetLabelsReq {
+// PackageReleasePluginEnableReq describes the HTTP request body when enable
+// plugin release.
+message PackageReleasePluginEnableReq {
   int64 generation = 1;
-  string release_type = 2;
+  string name = 2;
   Platform platform = 3;
   string version = 4;
-  repeated string labels = 5;
 }
 
-// PackageReleaseSetLabelsResp describes the HTTP response body when set
-// labels.
-message PackageReleaseSetLabelsResp {
+// PackageReleasePluginEnableResp describes the HTTP response body when enable
+// plugin release.
+message PackageReleasePluginEnableResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -143,22 +410,116 @@ message PackageReleaseSetLabelsResp {
   Data data = 5;
 }
 
-// PackageReleaseSetLabelsManyReq describes the HTTP request body when set many
-// labels.
-message PackageReleaseSetLabelsManyReq {
-  message Identity {
-    int64 generation = 1;
-    Platform platform = 2;
-    string version = 3;
+// PackageReleasePluginDisableReq describes the HTTP request body when disable
+// plugin release.
+message PackageReleasePluginDisableReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginDisableResp describes the HTTP response body when disable
+// plugin release.
+message PackageReleasePluginDisableResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set
+// default plugin release.
+message PackageReleasePluginSetAsDefaultReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginSetAsDefaultResp describes the HTTP response body when
+// set default plugin release.
+message PackageReleasePluginSetAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when
+// cancel default plugin release.
+message PackageReleasePluginCancelAsDefaultReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when
+// cancel default plugin release.
+message PackageReleasePluginCancelAsDefaultResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleasePluginDeleteReq describes the HTTP request body when delete
+// plugin release.
+message PackageReleasePluginDeleteReq {
+  int64 generation = 1;
+  string name = 2;
+  Platform platform = 3;
+  string version = 4;
+}
+
+// PackageReleasePluginDeleteResp describes the HTTP response body when delete
+// plugin release.
+message PackageReleasePluginDeleteResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {}
+  Data data = 5;
+}
+
+// PackageReleaseCertListReq describes the HTTP request body when list cert
+// release.
+message PackageReleaseCertListReq { int64 generation = 1; }
+
+// PackageReleaseCertListResp describes the HTTP response body when list cert
+// release.
+message PackageReleaseCertListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated ReleaseCert items = 2;
   }
-  string release_type = 1;
-  repeated Identity identify = 2;
-  repeated string labels = 3;
+  Data data = 5;
 }
 
-// PackageReleaseSetLabelsManyResp describes the HTTP response body when set
-// many labels.
-message PackageReleaseSetLabelsManyResp {
+// PackageReleaseCertDeleteReq describes the HTTP request body when delete
+// cert release.
+message PackageReleaseCertDeleteReq { int64 generation = 1; }
+
+// PackageReleaseCertDeleteResp describes the HTTP response body when delete
+// cert release.
+message PackageReleaseCertDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -168,18 +529,32 @@ message PackageReleaseSetLabelsManyResp {
   Data data = 5;
 }
 
-// PackageReleaseEnableReq describes the HTTP request body when enable package
-// release.
-message PackageReleaseEnableReq {
-  int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
+// PackageReleaseBinToolListReq describes the HTTP request body when list
+// bintool release.
+message PackageReleaseBinToolListReq { int64 generation = 1; }
+
+// PackageReleaseBinToolListResp describes the HTTP response body when list
+// bintool release.
+message PackageReleaseBinToolListResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data {
+    int64 total = 1;
+    repeated ReleaseBinTool items = 2;
+  }
+  Data data = 5;
 }
 
-// PackageReleaseEnableResp describes the HTTP response body when enable package
-// release.
-message PackageReleaseEnableResp {
+// PackageReleaseBinToolDeleteReq describes the HTTP request body when delete
+// bintool release.
+message PackageReleaseBinToolDeleteReq { int64 generation = 1; }
+
+// PackageReleaseBinToolDeleteResp describes the HTTP response body when delete
+// bintool release.
+message PackageReleaseBinToolDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -189,80 +564,35 @@ message PackageReleaseEnableResp {
   Data data = 5;
 }
 
-// PackageReleaseDisableReq describes the HTTP request body when disable package
-// release.
-message PackageReleaseDisableReq {
-  int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
-}
+// PackageReleasePluginBinToolListReq describes the HTTP request body when list
+// plugin-bintool release.
+message PackageReleasePluginBinToolListReq { int64 generation = 1; }
 
-// PackageReleaseDisableResp describes the HTTP response body when disable
-// package release.
-message PackageReleaseDisableResp {
+// PackageReleasePluginBinToolListResp describes the HTTP response body when
+// list plugin-bintool release.
+message PackageReleasePluginBinToolListResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
   Error error = 4;
 
-  message Data {}
+  message Data {
+    int64 total = 1;
+    repeated ReleasePluginBinTool items = 2;
+  }
   Data data = 5;
 }
 
-// PackageReleaseSetAsDefaultReq describes the HTTP request body when set
-// default package release.
-message PackageReleaseSetAsDefaultReq {
+// PackageReleasePluginBinToolDeleteReq describes the HTTP request body when
+// delete plugin-bintool release.
+message PackageReleasePluginBinToolDeleteReq {
   int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
+  string name = 2;
 }
 
-// PackageReleaseSetAsDefaultResp describes the HTTP response body when set
-// default package release.
-message PackageReleaseSetAsDefaultResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {}
-  Data data = 5;
-}
-
-// PackageReleaseCancelAsDefaultReq describes the HTTP request body when cancel
-// default package release.
-message PackageReleaseCancelAsDefaultReq {
-  int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-// PackageReleaseCancelAsDefaultResp describes the HTTP response body when
-// cancel default package release.
-message PackageReleaseCancelAsDefaultResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {}
-  Data data = 5;
-}
-
-// PackageReleaseDeleteReq describes the HTTP request body when delete release.
-message PackageReleaseDeleteReq {
-  int64 generation = 1;
-  string release_type = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-// PackageReleaseDeleteResp describes the HTTP response body when delete
-// release.
-message PackageReleaseDeleteResp {
+// PackageReleasePluginBinToolDeleteResp describes the HTTP response body when
+// delete plugin-bintool release.
+message PackageReleasePluginBinToolDeleteResp {
   int32 code = 1;
   string message = 2;
   string request_id = 3;
@@ -313,7 +643,7 @@ message PackageEventListResp {
 }
 
 // PackageEventDistinctReq describes the HTTP request body when distinct
-// packageevent in package service.
+// package event in package service.
 message PackageEventDistinctReq {
   PackageEventExactConditions exact_include_conditions = 1;
   PackageEventFuzzyConditions fuzzy_include_conditions = 2;
@@ -321,7 +651,7 @@ message PackageEventDistinctReq {
 }
 
 // PackageEventDistinctResp describes the HTTP response body when distinct
-// packageevent in package service.
+// package event in package service.
 message PackageEventDistinctResp {
   int32 code = 1;
   string message = 2;
@@ -339,216 +669,256 @@ message PackageEventDistinctResp {
   Data data = 5;
 }
 
-// ReleasePlugin describes the package release plugin information.
-message ReleasePlugin { Release release = 1; }
-
-// PackageReleasePluginListReq describes the HTTP request body when list package
-// release.
-message PackageReleasePluginListReq {
-  Page page = 1;
-  int64 generation = 2;
-  bool only_count = 3;
-
-  PackageReleaseExactConditions exact_include_conditions = 4;
-}
-
-// PackageReleasePluginListResp describes the HTTP response body when list
-// package release.
-message PackageReleasePluginListResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {
-    int64 total = 1;
-    repeated ReleasePlugin items = 2;
-  }
-  Data data = 5;
-}
-
-// PackageReleasePluginEnableReq describes the HTTP request body when enable
-// package release.
-message PackageReleasePluginEnableReq {
-  int64 generation = 1;
-  string name = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-// PackageReleasePluginEnableResp describes the HTTP response body when enable
-// package release.
-message PackageReleasePluginEnableResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {}
-  Data data = 5;
-}
-
-// PackageReleasePluginDisableReq describes the HTTP request body when disable
-// package release.
-message PackageReleasePluginDisableReq {
-  int64 generation = 1;
-  string name = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-// PackageReleasePluginDisableResp describes the HTTP response body when disable
-// package release.
-message PackageReleasePluginDisableResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {}
-  Data data = 5;
-}
-
-// PackageReleasePluginSetAsDefaultReq describes the HTTP request body when set
-// default package release.
-message PackageReleasePluginSetAsDefaultReq {
-  int64 generation = 1;
-  string name = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-// PackageReleasePluginSetAsDefaultResp describes the HTTP response body when
-// set default package release.
-message PackageReleasePluginSetAsDefaultResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {}
-  Data data = 5;
-}
-
-// PackageReleasePluginCancelAsDefaultReq describes the HTTP request body when
-// cancel default package release.
-message PackageReleasePluginCancelAsDefaultReq {
-  int64 generation = 1;
-  string name = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-// PackageReleasePluginCancelAsDefaultResp describes the HTTP response body when
-// cancel default package release.
-message PackageReleasePluginCancelAsDefaultResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {}
-  Data data = 5;
-}
-
-// PackageReleasePluginDeleteReq describes the HTTP request body when delete
-// release.
-message PackageReleasePluginDeleteReq {
-  int64 generation = 1;
-  string name = 2;
-  Platform platform = 3;
-  string version = 4;
-}
-
-// PackageReleasePluginDeleteResp describes the HTTP response body when delete
-// release.
-message PackageReleasePluginDeleteResp {
-  int32 code = 1;
-  string message = 2;
-  string request_id = 3;
-  Error error = 4;
-
-  message Data {}
-  Data data = 5;
-}
-
+// Package defines the package service.
 service Package {
-  // ListRelease lists releases.
-  rpc ListRelease(PackageReleaseListReq) returns (PackageReleaseListResp) {
+  // ListReleaseAgent lists agent releases.
+  rpc ListReleaseAgent(PackageReleaseAgentListReq)
+      returns (PackageReleaseAgentListResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/list"
+      post : "/api/v3/package/release/agent/list"
       body : "*"
     };
   }
 
-  // PackageReleaseDistinct distincts releases.
-  rpc DistinctRelease(PackageReleaseDistinctReq)
-      returns (PackageReleaseDistinctResp) {
+  // DistinctReleaseAgent distincts agent releases.
+  rpc DistinctReleaseAgent(PackageReleaseAgentDistinctReq)
+      returns (PackageReleaseAgentDistinctResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/distinct"
+      post : "/api/v3/package/release/agent/distinct"
       body : "*"
     };
   }
 
-  // SetReleaseLabels sets release labels.
-  rpc SetReleaseLabels(PackageReleaseSetLabelsReq)
-      returns (PackageReleaseSetLabelsResp) {
+  // SetReleaseAgentLabelsMany sets many agent releases labels.
+  rpc SetReleaseAgentLabelsMany(PackageReleaseAgentSetLabelsManyReq)
+      returns (PackageReleaseAgentSetLabelsManyResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/set_labels"
+      post : "/api/v3/package/release/agent/set_labels_many"
       body : "*"
     };
   }
 
-  // SetReleaseLabeslMany sets many release labels.
-  rpc SetReleaseLabelsMany(PackageReleaseSetLabelsManyReq)
-      returns (PackageReleaseSetLabelsManyResp) {
+  // EnableReleaseAgent enables agent release.
+  rpc EnableReleaseAgent(PackageReleaseAgentEnableReq)
+      returns (PackageReleaseAgentEnableResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/set_labels_many"
+      post : "/api/v3/package/release/agent/enable"
       body : "*"
     };
   }
 
-  // EnableRelease enables release.
-  rpc EnableRelease(PackageReleaseEnableReq)
-      returns (PackageReleaseEnableResp) {
+  // DisableReleaseAgent disables agent release.
+  rpc DisableReleaseAgent(PackageReleaseAgentDisableReq)
+      returns (PackageReleaseAgentDisableResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/enable"
+      post : "/api/v3/package/release/agent/disable"
       body : "*"
     };
   }
 
-  // DisableRelease disables release.
-  rpc DisableRelease(PackageReleaseDisableReq)
-      returns (PackageReleaseDisableResp) {
+  // SetAsDefaultReleaseAgent sets agent release as default.
+  rpc SetAsDefaultReleaseAgent(PackageReleaseAgentSetAsDefaultReq)
+      returns (PackageReleaseAgentSetAsDefaultResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/disable"
+      post : "/api/v3/package/release/agent/set_as_default"
       body : "*"
     };
   }
 
-  // SetAsDefaultRelease sets release as default.
-  rpc SetAsDefaultRelease(PackageReleaseSetAsDefaultReq)
-      returns (PackageReleaseSetAsDefaultResp) {
+  // CancelAsDefaultReleaseAgent cancels agent release as default.
+  rpc CancelAsDefaultReleaseAgent(PackageReleaseAgentCancelAsDefaultReq)
+      returns (PackageReleaseAgentCancelAsDefaultResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/set_as_default"
+      post : "/api/v3/package/release/agent/cancel_as_default"
       body : "*"
     };
   }
 
-  // CancelAsDefaultRelease cancels release as default.
-  rpc CancelAsDefaultRelease(PackageReleaseCancelAsDefaultReq)
-      returns (PackageReleaseCancelAsDefaultResp) {
+  // DeleteReleaseAgent deletes agent release.
+  rpc DeleteReleaseAgent(PackageReleaseAgentDeleteReq)
+      returns (PackageReleaseAgentDeleteResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/cancel_as_default"
+      post : "/api/v3/package/release/agent/delete"
       body : "*"
     };
   }
 
-  // DeleteRelease deletes release.
-  rpc DeleteRelease(PackageReleaseDeleteReq)
-      returns (PackageReleaseDeleteResp) {
+  // ListReleaseProxy lists proxy releases.
+  rpc ListReleaseProxy(PackageReleaseProxyListReq)
+      returns (PackageReleaseProxyListResp) {
     option (google.api.http) = {
-      post : "/api/v3/package/release/delete"
+      post : "/api/v3/package/release/proxy/list"
+      body : "*"
+    };
+  }
+
+  // DistinctReleaseProxy distincts proxy releases.
+  rpc DistinctReleaseProxy(PackageReleaseProxyDistinctReq)
+      returns (PackageReleaseProxyDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/distinct"
+      body : "*"
+    };
+  }
+
+  // SetReleaseProxyLabelsMany sets many proxy releases labels.
+  rpc SetReleaseProxyLabelsMany(PackageReleaseProxySetLabelsManyReq)
+      returns (PackageReleaseProxySetLabelsManyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/set_labels_many"
+      body : "*"
+    };
+  }
+
+  // EnableReleaseProxy enables proxy release.
+  rpc EnableReleaseProxy(PackageReleaseProxyEnableReq)
+      returns (PackageReleaseProxyEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/enable"
+      body : "*"
+    };
+  }
+
+  // DisableReleaseProxy disables proxy release.
+  rpc DisableReleaseProxy(PackageReleaseProxyDisableReq)
+      returns (PackageReleaseProxyDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/disable"
+      body : "*"
+    };
+  }
+
+  // SetAsDefaultReleaseProxy sets proxy release as default.
+  rpc SetAsDefaultReleaseProxy(PackageReleaseProxySetAsDefaultReq)
+      returns (PackageReleaseProxySetAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/set_as_default"
+      body : "*"
+    };
+  }
+
+  // CancelAsDefaultReleaseProxy cancels proxy release as default.
+  rpc CancelAsDefaultReleaseProxy(PackageReleaseProxyCancelAsDefaultReq)
+      returns (PackageReleaseProxyCancelAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/cancel_as_default"
+      body : "*"
+    };
+  }
+
+  // DeleteReleaseProxy deletes proxy release.
+  rpc DeleteReleaseProxy(PackageReleaseProxyDeleteReq)
+      returns (PackageReleaseProxyDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/proxy/delete"
+      body : "*"
+    };
+  }
+
+  // ListReleasePlugin lists plugin releases.
+  rpc ListReleasePlugin(PackageReleasePluginListReq)
+      returns (PackageReleasePluginListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/list"
+      body : "*"
+    };
+  }
+
+  // EnableReleasePlugin enables plugin release.
+  rpc EnableReleasePlugin(PackageReleasePluginEnableReq)
+      returns (PackageReleasePluginEnableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/enable"
+      body : "*"
+    };
+  }
+
+  // DisableReleasePlugin disables plugin release.
+  rpc DisableReleasePlugin(PackageReleasePluginDisableReq)
+      returns (PackageReleasePluginDisableResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/disable"
+      body : "*"
+    };
+  }
+
+  // SetAsDefaultReleasePlugin sets plugin release as default.
+  rpc SetAsDefaultReleasePlugin(PackageReleasePluginSetAsDefaultReq)
+      returns (PackageReleasePluginSetAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/set_as_default"
+      body : "*"
+    };
+  }
+
+  // CancelAsDefaultReleasePlugin cancels plugin release as default.
+  rpc CancelAsDefaultReleasePlugin(PackageReleasePluginCancelAsDefaultReq)
+      returns (PackageReleasePluginCancelAsDefaultResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/cancel_as_default"
+      body : "*"
+    };
+  }
+
+  // DeleteReleasePlugin deletes plugin release.
+  rpc DeleteReleasePlugin(PackageReleasePluginDeleteReq)
+      returns (PackageReleasePluginDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin/delete"
+      body : "*"
+    };
+  }
+
+  // ListReleaseCert lists cert releases.
+  rpc ListReleaseCert(PackageReleaseCertListReq)
+      returns (PackageReleaseCertListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/cert/list"
+      body : "*"
+    };
+  }
+
+  // DeleteReleaseCert deletes cert release.
+  rpc DeleteReleaseCert(PackageReleaseCertDeleteReq)
+      returns (PackageReleaseCertDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/cert/delete"
+      body : "*"
+    };
+  }
+
+  // ListReleaseBinTool lists bintool releases.
+  rpc ListReleaseBinTool(PackageReleaseBinToolListReq)
+      returns (PackageReleaseBinToolListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/bintool/list"
+      body : "*"
+    };
+  }
+
+  // DeleteReleaseBinTool deletes bintool release.
+  rpc DeleteReleaseBinTool(PackageReleaseBinToolDeleteReq)
+      returns (PackageReleaseBinToolDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/bintool/delete"
+      body : "*"
+    };
+  }
+
+  // ListReleasePluginBinTool lists plugin-bintool releases.
+  rpc ListReleasePluginBinTool(PackageReleasePluginBinToolListReq)
+      returns (PackageReleasePluginBinToolListResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin_bintool/list"
+      body : "*"
+    };
+  }
+
+  // DeleteReleasePluginBinTool deletes plugin-bintool release.
+  rpc DeleteReleasePluginBinTool(PackageReleasePluginBinToolDeleteReq)
+      returns (PackageReleasePluginBinToolDeleteResp) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin_bintool/delete"
       body : "*"
     };
   }
@@ -566,78 +936,6 @@ service Package {
       returns (PackageEventDistinctResp) {
     option (google.api.http) = {
       post : "/api/v3/package/event/distinct"
-      body : "*"
-    };
-  }
-
-  // ListReleasePlugin lists releases.
-  rpc ListReleasePlugin(PackageReleasePluginListReq)
-      returns (PackageReleasePluginListResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release_plugin/list"
-      body : "*"
-    };
-  }
-
-  // EnableReleasePlugin enables release.
-  rpc EnableReleasePlugin(PackageReleasePluginEnableReq)
-      returns (PackageReleasePluginEnableResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release_plugin/enable"
-      body : "*"
-    };
-  }
-
-  // DisableReleasePlugin disables release.
-  rpc DisableReleasePlugin(PackageReleasePluginDisableReq)
-      returns (PackageReleasePluginDisableResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release_plugin/disable"
-      body : "*"
-    };
-  }
-
-  // SetAsDefaultReleasePlugin sets release as default.
-  rpc SetAsDefaultReleasePlugin(PackageReleasePluginSetAsDefaultReq)
-      returns (PackageReleasePluginSetAsDefaultResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release_plugin/set_as_default"
-      body : "*"
-    };
-  }
-
-  // CancelAsDefaultReleasePlugin cancels release as default.
-  rpc CancelAsDefaultReleasePlugin(PackageReleasePluginCancelAsDefaultReq)
-      returns (PackageReleasePluginCancelAsDefaultResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release_plugin/cancel_as_default"
-      body : "*"
-    };
-  }
-
-  // DeleteReleasePlugin deletes release.
-  rpc DeleteReleasePlugin(PackageReleasePluginDeleteReq)
-      returns (PackageReleasePluginDeleteResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release_plugin/delete"
-      body : "*"
-    };
-  }
-
-  // ListReleaseAgent lists releases.
-  rpc ListReleaseAgent(PackageReleaseAgentListReq)
-      returns (PackageReleaseAgentListResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release_agent/list"
-      body : "*"
-    };
-  }
-
-  // ListReleaseProxy lists releases.
-  rpc ListReleaseProxy(PackageReleaseProxyListReq)
-      returns (PackageReleaseProxyListResp) {
-    option (google.api.http) = {
-      post : "/api/v3/package/release_proxy/list"
       body : "*"
     };
   }

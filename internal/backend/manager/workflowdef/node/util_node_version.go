@@ -31,34 +31,58 @@ type CheckAndSelectVersionParam struct {
 }
 
 func autoSelectVersion(nCtx contextx.IContext, versionParam CheckAndSelectVersionParam) (string, error) {
-	plat := platfmt.NewPlatform(versionParam.OSType, versionParam.CPUArch)
-
-	releaseType := versionParam.ReleaseType
-	gen := versionParam.Generation
+	plat, err := platfmt.Normalize(string(versionParam.OSType), string(versionParam.CPUArch))
+	if err != nil {
+		return "", fmt.Errorf("invalid platform: %w", err)
+	}
 
 	cond := &types.ReleaseCondition{
 		ExactInclude: &types.ReleaseExactFields{
 			Platform:   []platfmt.Platform{plat},
-			Generation: []types.Generation{gen},
+			Generation: []types.Generation{versionParam.Generation},
 			AsDefault:  []bool{true},
 			Enabled:    []bool{true},
 		},
 	}
 
-	releases, num, err := versionParam.daoRelease.ListRelease(nCtx, releaseType, types.UnlimitedPage(), cond)
-	if err != nil {
-		return "", fmt.Errorf("failed to list default releases: %w", err)
-	}
-	if num == 0 {
-		return "", fmt.Errorf("failed to list default releases for platform. no default release found. platform(%v)", plat)
-	}
+	switch versionParam.ReleaseType {
+	case types.ReleaseTypeAgent:
+		r, _, err := versionParam.daoRelease.ListReleaseAgent(nCtx, types.UnlimitedPage(), cond)
+		if err != nil {
+			return "", fmt.Errorf("failed to list default agent releases: %w", err)
+		}
 
-	if num > 1 {
-		return "", fmt.Errorf(
-			"failed to list default releases for platform. multiple default releases found. platform(%v)", plat)
-	}
+		if len(r) == 0 {
+			return "", fmt.Errorf("failed to list default agent releases for platform. no default agent release found. platform(%v)", plat)
+		}
 
-	return releases[0].Version, nil
+		if len(r) > 1 {
+			return "", fmt.Errorf(
+				"failed to list default agent releases for platform. multiple default agent releases found. platform(%v)", plat)
+		}
+
+		return r[0].Version, nil
+
+	case types.ReleaseTypeProxy:
+		r, _, err := versionParam.daoRelease.ListReleaseProxy(nCtx, types.UnlimitedPage(), cond)
+		if err != nil {
+			return "", fmt.Errorf("failed to list default proxy releases: %w", err)
+		}
+
+		if len(r) == 0 {
+			return "", fmt.Errorf("failed to list default proxy releases for platform. no default proxy release found. platform(%v)", plat)
+		}
+
+		if len(r) > 1 {
+			return "", fmt.Errorf(
+				"failed to list default proxy releases for platform. multiple default proxy releases found. platform(%v)", plat)
+		}
+
+		return r[0].Version, nil
+
+	default:
+		return "", fmt.Errorf("invalid release type: %v", versionParam.ReleaseType)
+	}
 }
 
 func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelectVersionParam) error {
@@ -75,20 +99,43 @@ func checkVersionAvailability(nCtx contextx.IContext, versionParam CheckAndSelec
 			Enabled:    []bool{true},
 		},
 	}
-	num, err := versionParam.daoRelease.CountRelease(nCtx, versionParam.ReleaseType, cond)
-	if err != nil {
-		return fmt.Errorf("failed to check release version,err: %w", err)
-	}
 
-	if num == 0 {
-		return fmt.Errorf(
-			"failed to check release version. no release found. version(%v)", versionParam.Version)
-	}
+	switch versionParam.ReleaseType {
+	case types.ReleaseTypeAgent:
+		r, _, err := versionParam.daoRelease.ListReleaseAgent(nCtx, types.UnlimitedPage(), cond)
+		if err != nil {
+			return fmt.Errorf("failed to list default agent releases: %w", err)
+		}
 
-	if num > 1 {
-		return fmt.Errorf(
-			"failed to check release version. multiple releases found. version(%v)", versionParam.Version)
-	}
+		if len(r) == 0 {
+			return fmt.Errorf("failed to list default agent releases for platform. no default agent release found. platform(%v)", plat)
+		}
 
-	return nil
+		if len(r) > 1 {
+			return fmt.Errorf(
+				"failed to list default agent releases for platform. multiple default agent releases found. platform(%v)", plat)
+		}
+
+		return nil
+
+	case types.ReleaseTypeProxy:
+		r, _, err := versionParam.daoRelease.ListReleaseProxy(nCtx, types.UnlimitedPage(), cond)
+		if err != nil {
+			return fmt.Errorf("failed to list default proxy releases: %w", err)
+		}
+
+		if len(r) == 0 {
+			return fmt.Errorf("failed to list default proxy releases for platform. no default proxy release found. platform(%v)", plat)
+		}
+
+		if len(r) > 1 {
+			return fmt.Errorf(
+				"failed to list default proxy releases for platform. multiple default proxy releases found. platform(%v)", plat)
+		}
+
+		return nil
+
+	default:
+		return fmt.Errorf("invalid release type: %v", versionParam.ReleaseType)
+	}
 }

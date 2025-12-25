@@ -23,13 +23,8 @@ import (
 
 // getRelease gets release by generation, release type, platform and version.
 func (s *Storage) getRelease(
-	nCtx contextx.IContext,
-	releaseType types.ReleaseType,
-	gen types.Generation,
-	name string,
-	plat platfmt.Platform,
-	version string,
-) (*types.Release, error) {
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version, name string) (
+	*types.Release, error) {
 
 	return s.daoRelease.Get(nCtx, releaseType,
 		release.WithName(name),
@@ -101,103 +96,146 @@ func (s *Storage) countRelease(
 	return s.daoRelease.Count(nCtx, releaseType, opts...)
 }
 
-// setReleaseLabels sets release labels.
-func (s *Storage) setReleaseLabels(
-	nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platfmt.Platform, version string, labels []string) error {
-
-	return s.daoRelease.SetLabels(nCtx, releaseType, gen, plat, version, labels...)
-}
-
 // setReleaseLabelsMany sets release labels.
 func (s *Storage) setReleaseLabelsMany(
-	nCtx contextx.IContext, releaseType types.ReleaseType, gens []types.Generation,
-	plats []platfmt.Platform, versions []string, labels []string) error {
+	nCtx contextx.IContext, releaseType types.ReleaseType, labels []string, conditions ...*types.ReleaseCondition) error {
 
-	return s.daoRelease.SetLabelsMany(nCtx, releaseType, gens, plats, versions, labels...)
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	return s.daoRelease.SetLabels(nCtx, releaseType, labels, opts...)
 }
 
-// enableRelease enables release active by generation, release type, platform and version.
-func (s *Storage) enableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platfmt.Platform, version string) error {
+// enableRelease enables release active.
+func (s *Storage) enableRelease(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version, name string) error {
 
-	return s.daoRelease.SetEnabled(nCtx, releaseType, true,
+	opts := []release.OptFn{
+		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
-	)
+	}
+
+	if err := s.daoRelease.SetEnabled(nCtx, releaseType, true, opts...); err != nil {
+		return fmt.Errorf("failed to enable release: %w", err)
+	}
+
+	return nil
 }
 
 // disableRelease disables release active by generation, release type, platform and version.
-func (s *Storage) disableRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platfmt.Platform, version string) error {
+func (s *Storage) disableRelease(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version, name string) error {
 
-	// cancel this release as default.
-	if err := s.daoRelease.SetAsDefault(nCtx, releaseType, false,
-		release.WithVersion(version),
+	opts := []release.OptFn{
+		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
-	); err != nil {
-		return fmt.Errorf("failed to cancel this platform(%s) and version(%s) release as default: %w",
-			plat.String(), version, err)
+		release.WithVersion(version),
 	}
 
-	if err := s.daoRelease.SetEnabled(nCtx, releaseType, false,
-		release.WithGeneration(gen),
-		release.WithPlatform(plat),
-		release.WithVersion(version),
-	); err != nil {
-		return fmt.Errorf("failed to disable platform(%s) and version(%s) release: %w",
-			plat.String(), version, err)
+	// cancel this release as default.
+	if err := s.daoRelease.SetAsDefault(nCtx, releaseType, false, opts...); err != nil {
+		return fmt.Errorf("failed to cancel release as default: %w", err)
+	}
+
+	if err := s.daoRelease.SetEnabled(nCtx, releaseType, false, opts...); err != nil {
+		return fmt.Errorf("failed to disable release: %w", err)
 	}
 
 	return nil
 }
 
 // setAsDefaultRelease sets the release as default.
-func (s *Storage) setAsDefaultRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platfmt.Platform, version string) error {
+func (s *Storage) setAsDefaultRelease(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version, name string) error {
 
 	// cancel all version as-default in this platform.
 	if err := s.daoRelease.CancelPlatformDefault(nCtx, releaseType,
+		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 	); err != nil {
-		return fmt.Errorf("failed to cancel all version in this platform(%s) as default: %w", plat.String(), err)
+		return fmt.Errorf("failed to cancel all version in platform(%s) as default: %w", plat.String(), err)
 	}
 
 	if err := s.daoRelease.SetAsDefault(nCtx, releaseType, true,
+		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
 	); err != nil {
-		return fmt.Errorf("failed to set platform(%s) and version(%s) release as default: %w",
-			plat.String(), version, err)
+		return fmt.Errorf("failed to set release as default: %w", err)
 	}
 
 	return nil
 }
 
 // cancelAsDefaultRelease cancels the release as default.
-func (s *Storage) cancelAsDefaultRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platfmt.Platform, version string) error {
+func (s *Storage) cancelAsDefaultRelease(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version, name string) error {
 
-	return s.daoRelease.SetAsDefault(nCtx, releaseType, false,
+	if err := s.daoRelease.SetAsDefault(nCtx, releaseType, false,
+		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
-	)
+	); err != nil {
+		return fmt.Errorf("failed to cancel release as default: %w", err)
+	}
+
+	return nil
 }
 
 // deleteRelease deletes the release.
-func (s *Storage) deleteRelease(nCtx contextx.IContext, gen types.Generation, releaseType types.ReleaseType,
-	plat platfmt.Platform, version string) error {
+func (s *Storage) deleteRelease(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version, name string) error {
 
-	return s.daoRelease.Delete(nCtx, releaseType,
+	if err := s.daoRelease.Delete(nCtx, releaseType,
+		release.WithName(name),
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithVersion(version),
+	); err != nil {
+		return fmt.Errorf("failed to delete release: %w", err)
+	}
+
+	return nil
+}
+
+func (s *Storage) existRelease(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, version string, name string) (bool, error) {
+
+	exist, err := s.daoRelease.Exist(nCtx, releaseType,
+		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
 	)
+	if err != nil {
+		return false, fmt.Errorf("failed to check release exist: %w", err)
+	}
+
+	return exist, nil
+}
+
+func (s *Storage) getReleaseDefaultVersion(
+	nCtx contextx.IContext, releaseType types.ReleaseType, gen types.Generation, plat platfmt.Platform, name string) (string, error) {
+
+	rls, err := s.daoRelease.Get(nCtx, releaseType,
+		release.WithName(name),
+		release.WithGeneration(gen),
+		release.WithPlatform(plat),
+		release.WithAsDefault(true),
+	)
+	if err != nil {
+		return "", fmt.Errorf("failed to get release default: %w", err)
+	}
+
+	return rls.Version, nil
 }
 
 func convertReleaseConditionsToOptions(conditions ...*types.ReleaseCondition) ([]release.OptFn, error) {
@@ -209,6 +247,7 @@ func convertReleaseConditionsToOptions(conditions ...*types.ReleaseCondition) ([
 
 		if condition.ExactInclude != nil {
 			opts = append(opts,
+				release.WithName(condition.ExactInclude.Name...),
 				release.WithFileName(condition.ExactInclude.FileName...),
 				release.WithGeneration(condition.ExactInclude.Generation...),
 				release.WithVersion(condition.ExactInclude.Version...),

@@ -21,6 +21,7 @@ import (
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
 
@@ -113,12 +114,12 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 		return err
 	}
 
-	plugin, err := act.daoReleasePlugin.GetReleasePlugin(
-		nCtx,
-		deployInfo.Process.PluginName,
-		host.Dynamic.NodeGeneration,
-		platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
-		deployInfo.InstallOptions.Version)
+	plugin, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
+		Generation: host.Dynamic.NodeGeneration,
+		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
+		Version:    deployInfo.InstallOptions.Version,
+		Name:       deployInfo.Process.PluginName,
+	})
 	if err != nil {
 		return err
 	}
