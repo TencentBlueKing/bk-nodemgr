@@ -19,6 +19,7 @@ import (
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -118,6 +119,7 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 		TenantID:   nCtx.TenantID(),
 		HostID:     std.DeployInfo().Process.HostID,
 		PluginName: std.DeployInfo().Process.PluginName,
+		Platform:   platfmt.UnknownPlatform(),
 		Info: types.ProcessInfo{
 			Version: std.DeployInfo().InstallOptions.Version,
 			Status:  types.ProcessStatusInit,
