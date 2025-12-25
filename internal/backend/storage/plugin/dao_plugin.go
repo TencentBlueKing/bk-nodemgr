@@ -161,3 +161,19 @@ func (s *Storage) setPluginMemo(nCtx contextx.IContext, pluginName string, memo 
 
 	return nil
 }
+
+func (s *Storage) upsertManyPlugins(nCtx contextx.IContext, plugins ...*types.Plugin) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if len(plugins) == 0 {
+		return nil
+	}
+
+	if err := s.daoPlugin.UpsertMany(nCtx, plugins...); err != nil {
+		return fmt.Errorf("failed to upsert many plugins: %w", err)
+	}
+
+	return nil
+}

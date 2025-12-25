@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -40,6 +41,9 @@ type IHandler interface {
 
 	// UpdateMemo update plugin memo by name.
 	UpdateMemo(nCtx contextx.IContext, pluginName string, memo string) error
+
+	// UpsertMany upsert many plugins.
+	UpsertMany(nCtx contextx.IContext, plugins ...*types.Plugin) error
 }
 
 var _ IHandler = &Handler{}
@@ -216,6 +220,23 @@ func (h *Handler) UpdateMemo(nCtx contextx.IContext, pluginName string, memo str
 
 	if err := h.tenantDao(nCtx.TenantID()).UpdateField(nCtx, filter, FieldKeyMemo, memo); err != nil {
 		return fmt.Errorf("failed to update plugin memo, err: %w", err)
+	}
+
+	return nil
+}
+
+// UpsertMany upsert many plugins.
+func (h *Handler) UpsertMany(nCtx contextx.IContext, plugins ...*types.Plugin) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return err
+	}
+
+	datas := conv.SliceToSlice(plugins, func(plugin *types.Plugin) *Plugin {
+		return convPluginFromTypes(plugin)
+	})
+
+	if err := h.tenantDao(nCtx.TenantID()).upsertMany(nCtx, datas...); err != nil {
+		return fmt.Errorf("failed to upsert many plugins: %w", err)
 	}
 
 	return nil

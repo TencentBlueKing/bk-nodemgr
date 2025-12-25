@@ -76,6 +76,7 @@ const (
 	metricOperationGetPluginDeploymentPluginConf                  = "get_plugin_deployment_plugin_conf"
 	metricOperationUpdatePluginDeploymentPluginConf               = "update_plugin_deployment_plugin_conf"
 	metricOperationGetPluginDeploymentPluginConfConfigFilesDetail = "get_plugin_deployment_plugin_conf_config_files_detail"
+	metricOperationUpsertManyPlugins                              = "upsert_many_plugins"
 )
 
 // NewStorage ...
@@ -1013,4 +1014,21 @@ func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessD
 	}
 
 	return result, nil
+}
+
+// UpsertManyPlugins upsert many plugins.
+func (s *Storage) UpsertManyPlugins(nCtx contextx.IContext, plugins ...*types.Plugin) error {
+	var (
+		err error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationUpsertManyPlugins, func(nCtx contextx.IContext) error {
+		err = s.upsertManyPlugins(nCtx, plugins...)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

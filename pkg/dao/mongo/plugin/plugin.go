@@ -12,7 +12,10 @@
 package plugin
 
 import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -49,4 +52,38 @@ func (d *dao) GetIndexes() []mongo.IndexModel {
 	var indexes []mongo.IndexModel
 
 	return indexes
+}
+
+func (d *dao) upsertMany(nCtx contextx.IContext, plugins ...*Plugin) error {
+	models := buildUpsertManyParams(plugins)
+
+	result, err := d.client.BulkWrite(nCtx, models)
+	if err != nil {
+		return err
+	}
+
+	if result.UpsertedCount > 0 {
+		logger.G.Sys().With("inserted-count", result.UpsertedCount).Info("upserted config policy template")
+	}
+
+	if result.MatchedCount > 0 {
+		logger.G.Sys().With("matched-count", result.MatchedCount).Info("upserted config policy template")
+	}
+
+	return nil
+}
+
+func buildUpsertManyParams(plugins []*Plugin) []mongo.WriteModel {
+	models := make([]mongo.WriteModel, 0, len(plugins))
+	for _, plugin := range plugins {
+		filter := bson.D{
+			bson.E{Key: FieldKeyName, Value: plugin.Name},
+		}
+
+		update := base.BuildUpsertParam(plugin)
+
+		models = append(models, mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update).SetUpsert(true))
+	}
+
+	return models
 }
