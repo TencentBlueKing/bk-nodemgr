@@ -48,9 +48,9 @@ func TestRSA_Crypter(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				plaintext: []byte("cQtyA*3862zrGk"),
+				plaintext: []byte("example_test"),
 			},
-			want:    []byte("cQtyA*3862zrGk"),
+			want:    []byte("example_test"),
 			wantErr: false,
 		},
 	}
