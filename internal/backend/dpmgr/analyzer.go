@@ -45,7 +45,12 @@ func (analyzer *Analyzer) Analyze(nCtx contextx.IContext, units ...*DeployUnit) 
 
 	for _, unit := range units {
 		for _, spec := range unit.Specs {
-			unitChangeTasks, err := analyzer.analyze(nCtx, spec, unit.Targets)
+			params := &AnalyzeParams{
+				DeployPolicyID: unit.DeployPolicyID,
+				Spec:           spec,
+				Targets:        unit.Targets,
+			}
+			unitChangeTasks, err := analyzer.analyze(nCtx, params)
 			if err != nil {
 				return nil, fmt.Errorf("failed to analyze deploy unit, deploy-unit(%+v): %w", unit, err)
 			}
@@ -66,26 +71,33 @@ func NewAnalyzer(conf *AnalyzerConfig) *Analyzer {
 }
 
 // analyze analyzes the deploy unit and design the change task.
-func (analyzer *Analyzer) analyze(nCtx contextx.IContext, spec *types.DeploySpec, targets []*types.Target) ([]*ChangeTask, error) {
-	switch spec.Type {
+func (analyzer *Analyzer) analyze(nCtx contextx.IContext, params *AnalyzeParams) (
+	[]*ChangeTask, error) {
+
+	switch params.Spec.Type {
 	case types.DeploySpecTypeSpecifyPlugin:
-		return analyzer.analyzeSpecifyPlugin(nCtx, spec, targets)
+		return analyzer.analyzeSpecifyPlugin(nCtx, params)
+	case types.DeploySpecTypeSpecifyPluginPkg:
+		return analyzer.analyzeSpecifyPluginPkg(nCtx, params)
 	default:
-		return nil, fmt.Errorf("failed to analyze deploy unit, spec(%+v)", spec)
+		return nil, fmt.Errorf("failed to analyze deploy unit, spec(%+v)", params.Spec)
 	}
 }
 
 // analyzeSpecifyPlugin analyze specify plugin.
-func (analyzer *Analyzer) analyzeSpecifyPlugin(nCtx contextx.IContext, spec *types.DeploySpec, targets []*types.Target) ([]*ChangeTask, error) {
-	param, err := spec.GetSpecifyPluginParam()
+func (analyzer *Analyzer) analyzeSpecifyPlugin(nCtx contextx.IContext, params *AnalyzeParams) (
+	[]*ChangeTask, error) {
+
+	param, err := params.Spec.GetSpecifyPluginParam()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get specify plugin param, spec(%+v): %w", spec, err)
+		return nil, fmt.Errorf("failed to get specify plugin param, spec(%+v): %w", params.Spec, err)
 	}
 
-	hostIDs := make([]int64, len(targets))
-	for i, target := range targets {
-		hostIDs[i] = target.Host.HostID
-	}
+	hostIDs := conv.SliceToSlice(params.Targets, func(target *types.Target) int64 {
+		return target.Host.HostID
+	})
+
+	hostIDs = conv.SliceUnique(hostIDs)
 
 	cond := &types.ProcessCondition{
 		ExactInclude: &types.ProcessExactFields{
@@ -100,34 +112,105 @@ func (analyzer *Analyzer) analyzeSpecifyPlugin(nCtx contextx.IContext, spec *typ
 		return nil, fmt.Errorf("failed to list processes, cond(%+v): %w", cond, err)
 	}
 
-	processMap, err := conv.SliceToMap[int64, *types.Process](processes, func(process *types.Process) int64 {
-		return process.HostID
+	processMap, err := conv.SliceToMap[string, *types.Process](processes, func(process *types.Process) string {
+		return genProcessUniqueID(process.HostID, process.PluginName)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert processes to map, processes(%+v): %w", processes, err)
 	}
 
 	changeTasks := make([]*ChangeTask, 0)
-	for _, target := range targets {
+	for _, target := range params.Targets {
 		//  Only one process with the same name will be used on a host.
-		process, ok := processMap[target.Host.HostID]
+		process, ok := processMap[genProcessUniqueID(target.Host.HostID, param.PluginName)]
 		// if process not exist, install it.
 		if !ok {
 			changeTasks = append(changeTasks, &ChangeTask{
-				Action: ChangeActionPluginInstall,
-				Spec:   spec,
-				Target: target,
+				DeployPolicyID: params.DeployPolicyID,
+				Action:         ChangeActionPluginInstall,
+				Spec:           params.Spec,
+				Target:         target,
 			})
 
 			continue
 		}
 
 		// if process version not match, upgrade it.
-		if process.Info.Version != param.PluginVersion {
+		if process.Info.Version != param.Version {
 			changeTasks = append(changeTasks, &ChangeTask{
-				Action: ChangeActionPluginUpgrade,
-				Spec:   spec,
-				Target: target,
+				DeployPolicyID: params.DeployPolicyID,
+				Action:         ChangeActionPluginUpgrade,
+				Spec:           params.Spec,
+				Target:         target,
+			})
+
+			continue
+		}
+
+		// everything ok, do nothing.
+	}
+
+	return changeTasks, nil
+}
+
+// analyzeSpecifyPluginPkg analyze specify plugin pkg.
+func (analyzer *Analyzer) analyzeSpecifyPluginPkg(nCtx contextx.IContext, params *AnalyzeParams) ([]*ChangeTask, error) {
+	param, err := params.Spec.GetSpecifyPluginPkgParam()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get specify plugin pkg param, spec(%+v): %w", params.Spec, err)
+	}
+
+	hostIDs := conv.SliceToSlice(params.Targets, func(target *types.Target) int64 {
+		return target.Host.HostID
+	})
+
+	hostIDs = conv.SliceUnique(hostIDs)
+
+	cond := &types.ProcessCondition{
+		ExactInclude: &types.ProcessExactFields{
+			HostID:        hostIDs,
+			PluginPkgName: []string{param.PluginPkgName},
+			InfoStatus:    []types.ProcessStatus{types.ProcessStatusRunning},
+		},
+	}
+
+	processes, _, err := analyzer.daoProcess.ListProcesses(nCtx, types.UnlimitedPage(), cond)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list processes, cond(%+v): %w", cond, err)
+	}
+
+	processMap, err := conv.SliceToMap[string, *types.Process](processes, func(process *types.Process) string {
+		return genProcessUniqueID(process.HostID, process.PluginName)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert processes to map, processes(%+v): %w", processes, err)
+	}
+
+	changeTasks := make([]*ChangeTask, 0)
+	for _, target := range params.Targets {
+		pluginName := genPluginNameForSpecifyPluginPkg(param.PluginPkgName, params.DeployPolicyID, target.ServiceInstance.ModuleID)
+
+		//  Only one process with the same name will be used on a host.
+		process, ok := processMap[genProcessUniqueID(target.Host.HostID, pluginName)]
+		// if process not exist, install it.
+		if !ok {
+			changeTasks = append(changeTasks, &ChangeTask{
+				DeployPolicyID: params.DeployPolicyID,
+				Action:         ChangeActionPluginPkgInstall,
+				Spec:           params.Spec,
+				Target:         target,
+			})
+
+			continue
+		}
+
+		// if process version not match, upgrade it.
+		if process.Info.Version != param.Version {
+			changeTasks = append(changeTasks, &ChangeTask{
+				DeployPolicyID: params.DeployPolicyID,
+				Action:         ChangeActionPluginPkgUpgrade,
+				Spec:           params.Spec,
+				Target:         target,
 			})
 
 			continue

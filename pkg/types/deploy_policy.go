@@ -116,8 +116,13 @@ func (spec DeploySpec) UniqueID() (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to get specify plugin param: %w", err)
 		}
-
 		return param.PluginName, nil
+	case DeploySpecTypeSpecifyPluginPkg:
+		param, err := spec.GetSpecifyPluginPkgParam()
+		if err != nil {
+			return "", fmt.Errorf("failed to get specify plugin pkg param: %w", err)
+		}
+		return param.PluginPkgName, nil
 	default:
 		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.Type)
 	}
@@ -126,7 +131,7 @@ func (spec DeploySpec) UniqueID() (string, error) {
 // SpecifyPluginParam defines the specify plugin version param.
 type SpecifyPluginParam struct {
 	PluginName          string
-	PluginVersion       string
+	Version             string
 	CustomConfigContext map[string]any
 }
 
@@ -167,6 +172,23 @@ func (spec DeploySpec) GetSpecifyPluginSubConfigParam() (*SpecifyPluginSubConfig
 	param := &SpecifyPluginSubConfigParam{}
 	if err := conv.MapToStruct(spec.Param, param); err != nil {
 		return nil, fmt.Errorf("failed to convert param to specify plugin param: %w", err)
+	}
+
+	return param, nil
+}
+
+// SpecifyPluginPkgParam defines the specify plugin pkg param.
+type SpecifyPluginPkgParam struct {
+	PluginPkgName       string
+	Version             string
+	CustomConfigContext map[string]any
+}
+
+// GetSpecifyPluginPkgParam returns the specify plugin pkg param.
+func (spec DeploySpec) GetSpecifyPluginPkgParam() (*SpecifyPluginPkgParam, error) {
+	param := &SpecifyPluginPkgParam{}
+	if err := conv.MapToStruct(spec.Param, param); err != nil {
+		return nil, fmt.Errorf("failed to convert param to specify plugin pkg param: %w", err)
 	}
 
 	return param, nil

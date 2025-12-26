@@ -41,6 +41,7 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 
 	deployPolicyMgr := dpmgr.NewHandler(&dpmgr.Config{
 		DaoProcess:    capability.StoragePlugin,
+		DaoPlugin:     capability.StoragePlugin,
 		DaoHost:       capability.StorageTopo,
 		CmdbHandler:   capability.CmdbHandler,
 		NodeManager:   capability.Manager,

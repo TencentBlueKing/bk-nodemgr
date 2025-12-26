@@ -14,16 +14,25 @@ import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
 // DeployUnit define the deploy unit.
 type DeployUnit struct {
-	LifeCycle types.DeployPolicyLifeCycle
-	Targets   []*types.Target
-	Specs     []*types.DeploySpec
+	DeployPolicyID int64
+	LifeCycle      types.DeployPolicyLifeCycle
+	Targets        []*types.Target
+	Specs          []*types.DeploySpec
+}
+
+// AnalyzeParams defines the parameters for analyze method.
+type AnalyzeParams struct {
+	DeployPolicyID int64
+	Spec           *types.DeploySpec
+	Targets        []*types.Target
 }
 
 // ChangeTask define the final change task.
 type ChangeTask struct {
-	Action ChangeAction
-	Spec   *types.DeploySpec
-	Target *types.Target
+	DeployPolicyID int64
+	Action         ChangeAction
+	Spec           *types.DeploySpec
+	Target         *types.Target
 }
 
 // ChangeAction defines the change action.
@@ -36,6 +45,13 @@ const (
 	ChangeActionPluginUninstall ChangeAction = "plugin_uninstall"
 	// ChangeActionPluginUpgrade plugin upgrade.
 	ChangeActionPluginUpgrade ChangeAction = "plugin_upgrade"
+
+	// ChangeActionPluginPkgInstall plugin pkg install.
+	ChangeActionPluginPkgInstall ChangeAction = "plugin_pkg_install"
+	// ChangeActionPluginPkgUpgrade plugin pkg upgrade.
+	ChangeActionPluginPkgUpgrade ChangeAction = "plugin_pkg_upgrade"
+	// ChangeActionPluginPkgUninstall plugin pkg uninstall.
+	ChangeActionPluginPkgUninstall ChangeAction = "plugin_pkg_uninstall"
 
 	// ChangeActionPluginApplySubConfig plugin apply sub config.
 	ChangeActionPluginApplySubConfig ChangeAction = "apply_sub_config"

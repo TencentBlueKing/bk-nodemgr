@@ -77,8 +77,10 @@ func (resolver *ConflictResolver) ResolveConflict(originalUnits []*DeployUnit) (
 		}
 
 		resultUnit := &DeployUnit{
-			Targets: availableTargets,
-			Specs:   currentUnit.Specs,
+			DeployPolicyID: currentUnit.DeployPolicyID,
+			LifeCycle:      currentUnit.LifeCycle,
+			Targets:        availableTargets,
+			Specs:          currentUnit.Specs,
 		}
 
 		resultUnits[idx] = resultUnit

@@ -10,19 +10,12 @@
 
 package dpmgr
 
-import (
-	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
-)
+import "fmt"
 
-// Config defines the config of dstrategy.
-type Config struct {
-	DaoProcess    plugin.IDaoProcess
-	DaoPlugin     plugin.IDaoPlugin
-	DaoHost       topo.IStorageHost
-	CmdbHandler   cmdb.IHandler
-	NodeManager   managerIface.INodeManager
-	PluginManager managerIface.IPluginManager
+func genPluginNameForSpecifyPluginPkg(pluginPkgName string, deployPolicyID int64, moduleID int64) string {
+	return fmt.Sprintf("%s_%d_%d", pluginPkgName, deployPolicyID, moduleID)
+}
+
+func genProcessUniqueID(hostID int64, pluginName string) string {
+	return fmt.Sprintf("%d_%s", hostID, pluginName)
 }

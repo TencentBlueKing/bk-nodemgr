@@ -55,6 +55,7 @@ func NewHandler(conf *Config) *Handler {
 	executor := NewExecutor(&ExecutorConfig{
 		NodeManager:   conf.NodeManager,
 		PluginManager: conf.PluginManager,
+		DaoPlugin:     conf.DaoPlugin,
 	})
 
 	return &Handler{
@@ -77,9 +78,10 @@ func (h *Handler) Do(nCtx contextx.IContext, deployPolicies ...*types.DeployPoli
 		}
 
 		originDeployWorkUnits[idx] = &DeployUnit{
-			LifeCycle: deployPolicy.LifeCycle,
-			Targets:   targets,
-			Specs:     deployPolicy.Specs,
+			DeployPolicyID: deployPolicy.DeployPolicyID,
+			LifeCycle:      deployPolicy.LifeCycle,
+			Targets:        targets,
+			Specs:          deployPolicy.Specs,
 		}
 	}
 

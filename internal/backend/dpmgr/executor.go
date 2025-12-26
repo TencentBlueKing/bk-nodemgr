@@ -15,6 +15,7 @@ import (
 	"fmt"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/access"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -34,12 +35,14 @@ var _ IExecutor = &Executor{}
 type Executor struct {
 	nodeManager   managerIface.INodeManager
 	pluginManager managerIface.IPluginManager
+	daoPlugin     plugin.IDaoPlugin
 }
 
 // ExecutorConfig defines the config of executor.
 type ExecutorConfig struct {
 	NodeManager   managerIface.INodeManager
 	PluginManager managerIface.IPluginManager
+	DaoPlugin     plugin.IDaoPlugin
 }
 
 // NewExecutor create a new executor.
@@ -47,6 +50,7 @@ func NewExecutor(conf *ExecutorConfig) *Executor {
 	return &Executor{
 		nodeManager:   conf.NodeManager,
 		pluginManager: conf.PluginManager,
+		daoPlugin:     conf.DaoPlugin,
 	}
 }
 
@@ -106,6 +110,24 @@ func (executor *Executor) Execute(nCtx contextx.IContext, changeTasks ...*Change
 			}
 		case ChangeActionPluginDeleteSubConfig:
 			err := executor.executeChangeActionPluginDeleteSubConfig(nCtx, tasks)
+			if err != nil {
+				return fmt.Errorf("failed to schedule and execute change action: %w", err)
+			}
+		// ===============================================================================
+		// Plugin Pkg Sub Config Related Change Actions
+		// ===============================================================================
+		case ChangeActionPluginPkgInstall:
+			err := executor.executeChangeActionPluginPkgInstall(nCtx, tasks)
+			if err != nil {
+				return fmt.Errorf("failed to schedule and execute change action: %w", err)
+			}
+		case ChangeActionPluginPkgUpgrade:
+			err := executor.executeChangeActionPluginPkgUpgrade(nCtx, tasks)
+			if err != nil {
+				return fmt.Errorf("failed to schedule and execute change action: %w", err)
+			}
+		case ChangeActionPluginPkgUninstall:
+			err := executor.executeChangeActionPluginPkgUninstall(nCtx, tasks)
 			if err != nil {
 				return fmt.Errorf("failed to schedule and execute change action: %w", err)
 			}
@@ -320,7 +342,7 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 				PluginName: param.PluginName,
 			},
 			InstallOptions: types.PluginDeploymentInstallOptions{
-				Version: param.PluginVersion,
+				Version: param.Version,
 			},
 		}, &types.PluginDeploymentPluginConf{
 			CustomConfigContext: param.CustomConfigContext,
@@ -400,6 +422,78 @@ func (executor *Executor) executeChangeActionPluginApplySubConfig(nCtx contextx.
 
 func (executor *Executor) executeChangeActionPluginDeleteSubConfig(_ contextx.IContext, _ []*ChangeTask) error {
 	// TODO: implement me.
+	return errors.New("not implemented")
+}
+
+// ===============================================================================
+// Plugin Pkg Sub Config Related Change Actions
+// ===============================================================================
+
+func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	// 1. convert tasks to plugins.
+	plugins := make([]*types.Plugin, len(tasks))
+	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
+	hostMap := make(map[int64]struct{})
+	for idx, task := range tasks {
+		param, err := task.Spec.GetSpecifyPluginPkgParam()
+		if err != nil {
+			return fmt.Errorf("failed to get specify plugin pkg param for task: %w", err)
+		}
+
+		plugins[idx] = &types.Plugin{
+			TenantID: nCtx.TenantID(),
+			Name:     genPluginNameForSpecifyPluginPkg(param.PluginPkgName, task.DeployPolicyID, task.Target.ServiceInstance.ModuleID),
+			PkgName:  param.PluginPkgName,
+			Group:    fmt.Sprintf("%d", task.DeployPolicyID),
+			Memo:     fmt.Sprintf("this plugin is created by deploy policy %d", task.DeployPolicyID),
+		}
+
+		pluginDeployments[idx] = types.NewPluginDeployment(&types.PluginDeploymentInfo{
+			Process: types.Process{
+				TenantID:   nCtx.TenantID(),
+				HostID:     task.Target.Host.HostID,
+				PluginName: plugins[idx].Name,
+			},
+			InstallOptions: types.PluginDeploymentInstallOptions{
+				Version: param.Version,
+			},
+		}, &types.PluginDeploymentPluginConf{
+			CustomConfigContext: param.CustomConfigContext,
+		})
+
+		hostMap[task.Target.Host.HostID] = struct{}{}
+	}
+
+	// 2. upsert plugins.
+	if err := executor.daoPlugin.UpsertManyPlugins(nCtx, plugins...); err != nil {
+		return fmt.Errorf("failed to upsert plugins: %w", err)
+	}
+
+	// 3. build plugin deployments.
+	hostIDs := conv.MapKeyToSlice(hostMap)
+	workflowID, err := executor.pluginManager.LaunchInstallPlugin(nCtx, types.InstallPluginParam{
+		Type:              types.PluginWorkflowTypeInstall,
+		HostIDs:           hostIDs,
+		Operator:          access.GetVirtualUser(),
+		PluginDeployments: pluginDeployments,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg install: %w", err)
+	}
+
+	logger.G.Sys().With("workflow-id", workflowID).
+		Info("successful to execute change action plugin pkg install")
+
+	return nil
+}
+
+// TODO: implement plugin pkg upgrade logic
+func (executor *Executor) executeChangeActionPluginPkgUpgrade(_ contextx.IContext, _ []*ChangeTask) error {
+	return errors.New("not implemented")
+}
+
+// TODO: implement plugin pkg uninstall logic
+func (executor *Executor) executeChangeActionPluginPkgUninstall(_ contextx.IContext, _ []*ChangeTask) error {
 	return errors.New("not implemented")
 }
 
