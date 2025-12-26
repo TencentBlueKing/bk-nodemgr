@@ -62,3 +62,9 @@ message WorkflowActionData {
   WorkflowLifeCycle life_cycle = 1;
   WorkflowActionMessage message = 2;
 }
+
+// WorkflowOperInstBriefData describes the brief data of operation instance.
+message WorkflowOperInstBriefData {
+  WorkflowLifeCycle life_cycle = 1;
+  WorkflowActionInstBriefData latest_action_inst_brief_data = 5;
+}

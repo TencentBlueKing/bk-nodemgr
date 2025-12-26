@@ -94,23 +94,25 @@ message NodeWorkflowDistinctResp {
   Data data = 5;
 }
 
-message NodeWorkflowOperationParam {
+// NodeDeploymentInfo describes the node workflow operation information.
+message NodeDeploymentInfo {
   int64 bk_host_id = 1;
   int64 bk_biz_id = 2;
-  int64 bk_networkarea_id = 3;
-  int64 bk_networkunit_id = 4;
-  repeated string bk_host_inner_list = 5;
-  repeated string bk_host_innerip_v6_list = 6;
+  repeated string bk_host_innerip_list = 3;
+  repeated string bk_host_innerip_v6_list = 4;
+  int64 bk_networkarea_id = 5;
+  int64 bk_networkunit_id = 6;
   string node_version = 7;
-  string operator = 8;
 }
 
+// NodeWorkflowOperation describes the node workflow operation.
 message NodeWorkflowOperation {
   string operation_id = 1;
   repeated string instance_ids = 2;
-  NodeWorkflowOperationParam param = 3;
-  NodeWorkflowOperationStatus status = 4;
-  WorkflowActionInstBriefData latest_action_inst_brief_data = 5;
+  string operator = 3;
+  int64 create_time = 4;
+  NodeDeploymentInfo node_deployment_info = 5;
+  WorkflowOperInstBriefData latest_oper_inst_brief_data = 6;
 }
 
 message NodeWorkflowOperationStatus {
@@ -121,14 +123,13 @@ message NodeWorkflowOperationStatus {
 // NodeWorkflowOperationExactConditions describes the exact conditions of node
 // workflow operation list request.
 message NodeWorkflowOperationExactConditions {
-  string workflow_id = 1;
-  repeated string node_version = 2;
-  repeated string bk_host_innerip = 3;
-  repeated string bk_host_innerip_v6 = 4;
-  repeated int64 bk_biz_id = 5;
-  repeated int64 bk_networkarea_id = 6;
-  repeated int64 bk_networkunit_id = 7;
-  repeated string state = 8;
+  repeated string node_version = 1;
+  repeated string bk_host_innerip = 2;
+  repeated string bk_host_innerip_v6 = 3;
+  repeated int64 bk_biz_id = 4;
+  repeated int64 bk_networkarea_id = 5;
+  repeated int64 bk_networkunit_id = 6;
+  repeated string state = 7;
 }
 
 // NodeWorkflowOperationFuzzyConditions describes the fuzzy conditions of node
@@ -140,8 +141,9 @@ message NodeWorkflowOperationFuzzyConditions {}
 message NodeWorkflowOperationListReq {
   bool only_count = 1;
   Page page = 2;
-  NodeWorkflowOperationExactConditions exact_include_conditions = 3;
-  NodeWorkflowOperationFuzzyConditions fuzzy_include_conditions = 4;
+  string workflow_id = 3;
+  NodeWorkflowOperationExactConditions exact_include_conditions = 4;
+  NodeWorkflowOperationFuzzyConditions fuzzy_include_conditions = 5;
 }
 
 // NodeWorkflowOperationListResp describes the node operation list by
