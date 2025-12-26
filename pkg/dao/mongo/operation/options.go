@@ -38,7 +38,7 @@ func WithInstantiated(isInitantiated ...bool) OptFn {
 	return base.WithValues(FieldKeyOperationInstantiated, isInitantiated...)
 }
 
-// WithState filter by operation last inst state.
+// WithLatestInstState filter by operation last inst state.
 func WithLatestInstState(state ...string) OptFn {
 	return base.WithValues(FieldKeyLatestInstState, state...)
 }

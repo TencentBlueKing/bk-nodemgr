@@ -47,6 +47,7 @@ type IStorageActionInstance interface {
 }
 
 // IStorageOperation defines the storage handler for operation.
+// nolint: interfacebloat
 type IStorageOperation interface {
 	// UpsertOperation upserts operation.
 	UpsertOperation(ctx contextx.IContext, oper *operation.Operation) error

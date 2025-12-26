@@ -193,7 +193,9 @@ func (s *Storage) getLatestOperationInstanceStatusDistributionByTriggerID(
 }
 
 // listOperation lists operation by page and condition.
-func (s *Storage) listOperation(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowOperationCondition) ([]*workoper.Operation, int64, error) {
+func (s *Storage) listOperation(nCtx contextx.IContext, page types.Page,
+	conditions ...*types.NodeWorkflowOperationCondition) ([]*workoper.Operation, int64, error) {
+
 	if nCtx == nil {
 		return nil, 0, basestorage.ErrNilContent()
 	}
@@ -202,6 +204,7 @@ func (s *Storage) listOperation(nCtx contextx.IContext, page types.Page, conditi
 	if err != nil {
 		return nil, 0, err
 	}
+
 	return s.daoOperation.List(nCtx, page, opts...)
 }
 

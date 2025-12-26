@@ -19,7 +19,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -197,7 +196,8 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	operation, cnt, err := h.backendHandler.ListNodeWorkflowOperation(rCtx, req.ConvertPageToTypes(maxOperationLimit), req.WorkflowId, req.ConvertConditionsToTypes())
+	operation, cnt, err := h.backendHandler.ListNodeWorkflowOperation(rCtx,
+		req.ConvertPageToTypes(maxOperationLimit), req.GetWorkflowID(), req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to list operation")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -342,16 +342,4 @@ func (h *handler) listAllBusiness(rCtx restserver.IContext) (map[int64]string, e
 	}
 
 	return bizNameMap, nil
-}
-
-func groupInstancesByOperationID(
-	instances []*operation.InstanceBriefData) map[string][]*operation.InstanceBriefData {
-
-	grouped := make(map[string][]*operation.InstanceBriefData)
-	for _, instance := range instances {
-		opID := instance.Metadata.OperationID
-		grouped[opID] = append(grouped[opID], instance)
-	}
-
-	return grouped
 }

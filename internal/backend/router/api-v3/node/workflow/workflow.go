@@ -144,7 +144,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	operations, _, err := h.storageWorkflow.ListOperation(rCtx, req.ConvertPageToTypes(maxNodeWorkflowLimit),
+	operations, _, err := h.storageWorkflow.ListOperation(rCtx, types.UnlimitedPage(),
 		req.ConvertConditionsToOperationTypes(workflow.TriggerID))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation")
