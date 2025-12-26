@@ -599,7 +599,10 @@ const setError = (rowIndex: number, field: string, msg: string) => {
 const clearError = (rowIndex: number, field: string) => {
   if (errorMap[rowIndex]) delete errorMap[rowIndex][field];
 };
-
+// 清除所有错误标记的方法
+const clearAllErrors = () => {
+  for (const key in errorMap) delete errorMap[key];
+};
 function getInitData() {
   return cloneDeep(initData);
 }
@@ -949,6 +952,10 @@ defineExpose({ tableValidate, showSetting });
 onMounted(async () => {
   await getHostDistinct();
 });
+
+watch(() => type.value, () => {
+  clearAllErrors();
+}, { immediate: true });
 </script>
 <style lang="postcss" scoped>
 ::v-deep(.vxe-body--column) {

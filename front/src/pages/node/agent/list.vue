@@ -4,7 +4,7 @@
     <!-- agnet操作及搜索 -->
     <section class="flex justify-between mb-[15px]">
       <div class="flex gap-[8px]">
-        <Dropdown
+        <!-- <Dropdown
           theme="light"
           trigger="click"
           placement="bottom-start"
@@ -27,14 +27,17 @@
               </Dropdown.DropdownItem>
             </Dropdown.DropdownMenu>
           </template>
-        </Dropdown>
+        </Dropdown> -->
+        <Button class="w-[130px]" theme="primary" @click="triggerHandler('setup')">{{
+          $t("platform.nodeMan.installAgent")
+        }}</Button>
         <Dropdown
           theme="light"
           trigger="click"
           :popover-options="{
             clickContentAutoHide: true,
           }">
-          <Button :disabled="!selection.length">
+          <Button :disabled="!selection.length" :loading="crossPageSelectLoading">
             <span>{{ $t("platform.nodeMan.batchOperate") }}</span>
             <i
               class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
@@ -54,9 +57,11 @@
         </Dropdown>
         <copy-ip-dropdown
           :type="'agent'"
-          :disabled="!selection.length"
+          :disabled="!hasSelection"
           :data="tableData"
           :list="[]"
+          :is-cross-page-selection="isCrossPageSelection"
+          :cross-page-query-params="crossPageQueryParams"
         ></copy-ip-dropdown>
       </div>
       <div class="flex gap-[8px]">
@@ -84,7 +89,7 @@
         </SearchSelect>
       </div>
     </section>
-    <bk-loading
+    <Loading
       :title="$t('table.loading')"
       :loading="loading"
       class="w-full overflow-auto"
@@ -105,7 +110,48 @@
         @page-limit-change="pageLimitChange"
         @page-value-change="pageValueChange"
       >
-        <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
+        <template #prepend>
+          <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
+            <template v-if="isCrossPageSelection">
+              已跨页全选 <span class="font-bold mx-1">{{ total - excludedIds.size }}</span> 条，
+              <Button text theme="primary" @click="handleClearSelection">取消选择</Button>
+            </template>
+            <template v-else>
+              已选择 <span class="font-bold mx-1">{{ selection.length }}</span> 条，
+              <Button
+                v-if="total > pagination.limit"
+                text theme="primary" @click="handleSelectAllCrossPage">
+                选择所有页共 {{ total }} 条
+              </Button>
+              <Button v-else text theme="primary" @click="handleClearSelection">取消选择</Button>
+            </template>
+          </div>
+        </template>
+
+        <TableColumn width="80" fixed="left">
+          <template #header>
+            <Button text class="flex items-center justify-start">
+              <Checkbox
+                :model-value="isCurrentPageAllChecked"
+                :indeterminate="isIndeterminate"
+                @change="handleHeaderClick" />
+              <Dropdown trigger="click" placement="bottom-start">
+                <i class="nodeman-icon nc-arrow-down ml-1 text-[18px]"></i>
+                <template #content>
+                  <Dropdown.DropdownMenu>
+                    <Dropdown.DropdownItem @click="handleSelectCurrentPage">本页全选</Dropdown.DropdownItem>
+                    <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
+                      <Button text :disabled="total <= pagination.limit">跨页全选</Button>
+                    </Dropdown.DropdownItem>
+                  </Dropdown.DropdownMenu>
+                </template>
+              </Dropdown>
+            </Button>
+          </template>
+          <template #default="{ row }">
+            <Checkbox class="mt-[6px]" :model-value="row.checked" @change="(val) => handleRowCheck(val, row)" />
+          </template>
+        </TableColumn>
         <TableColumn
           field="bk_host_id"
           title="Host ID"
@@ -236,15 +282,18 @@
           </template>
         </TableColumn>
       </Table>
-    </bk-loading>
+    </Loading>
+
     <choose-version-dialog
       v-model:is-show="chooseVersionData.isShow"
       :title="chooseVersionData.title"
       :data="chooseVersionData.data"
       :batch="chooseVersionData.batch"
+      :is-cross-page-selection="isCrossPageSelection"
       @confirm="handleUpgrade"
     >
     </choose-version-dialog>
+
     <operate-dialog
       v-model:is-show="operateDialogIsShow"
       :title="operateDialogData.title"
@@ -262,10 +311,10 @@
   </div>
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, InfoBox, SearchSelect } from 'bkui-vue';
+import { Button, Checkbox, Dropdown, InfoBox, Loading, SearchSelect } from 'bkui-vue';
 // 引入lodash的debounce来处理防抖，解决重复请求问题
 import { debounce } from 'lodash';
-import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch, watchEffect } from 'vue';
+import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -318,7 +367,7 @@ const filterOptionSource: Record<string, FilterOption> = reactive({
 });
 
 // 其他UI相关响应式数据
-const chooseVersionData = reactive({ title: '', isShow: false, data: null, batch: false });
+const chooseVersionData = reactive({ title: '', isShow: false, data: [], batch: false });
 const operateDialogIsShow = ref(false);
 const operateDialogData = { type: '', title: '', subTitle: '' };
 const dropdownShow = ref(false);
@@ -343,6 +392,7 @@ const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_nam
 // ---------- 计算属性 ----------
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
+const total = computed(() => pagination.count);
 const networkAreaListMap = ref(new Map<number, string | number>([[-1, -1]]));
 const networkUnitListMap = ref(new Map<number, string | number>([[-1, -1]]));
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
@@ -400,6 +450,88 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   disabled: ['action'],
 }, 'nodeMng-agent');
 
+// --- 跨页全选核心状态 ---
+const isCrossPageSelection = ref(false); // 是否开启跨页全选模式
+const excludedIds = ref<Set<number>>(new Set()); // 全选模式下，用户手动“取消勾选”的 ID 集合
+const crossPageQueryParams = computed(() => ({
+  exact_include_conditions: getParams().exact_include_conditions,
+  fuzzy_include_conditions: getParams().fuzzy_include_conditions,
+  exact_exclude_conditions: {
+    bk_host_id: [...excludedIds.value],
+  },
+}));
+
+// 计算属性：是否有任何选中（用于禁用批量按钮）
+const hasSelection = computed(() => tableData.value.some(item => item.checked) || isCrossPageSelection.value);
+
+// 计算属性：当前页是否全选（用于表头 Checkbox 状态）
+// eslint-disable-next-line max-len
+const isCurrentPageAllChecked = computed(() => tableData.value.length > 0 && tableData.value.every(item => item.checked));
+const isIndeterminate = computed(() => {
+  const selectedCount = tableData.value.filter(item => item.checked).length;
+  return selectedCount > 0 && selectedCount < tableData.value.length;
+});
+
+// 1. 处理单行勾选
+const handleRowCheck = (checked: boolean, row: any) => {
+  row.checked = checked;
+  if (isCrossPageSelection.value) {
+    if (!checked) {
+      excludedIds.value.add(row.bk_host_id);
+    } else {
+      excludedIds.value.delete(row.bk_host_id);
+    }
+  }
+};
+
+// 2. 跨页全选
+const handleSelectAllCrossPage = async () => {
+  isCrossPageSelection.value = true;
+  excludedIds.value.clear();
+
+  // 更新当前页面的选中状态
+  tableData.value.forEach(item => (item.checked = true));
+};
+
+// 3. 取消选择
+const handleClearSelection = () => {
+  isCrossPageSelection.value = false;
+  excludedIds.value.clear();
+  tableData.value.forEach(item => (item.checked = false));
+};
+
+// 4. 本页全选
+const handleSelectCurrentPage = () => {
+  isCrossPageSelection.value = false;
+  tableData.value.forEach(item => (item.checked = true));
+};
+
+// 5. 表头 Checkbox 快速切换
+const handleHeaderClick = () => {
+  isCurrentPageAllChecked.value ? handleClearSelection() : handleSelectCurrentPage();
+};
+
+// 获取跨页全选的host_id数据
+const crossPageSelectLoading = ref(false);
+const crossPageHostIdData = ref<number[]>([]);
+const getCorssPageHostIds = async () => {
+  try {
+    crossPageSelectLoading.value = true;
+    const res = await TopoService.HostSelectHostID({
+      exact_include_conditions: getParams().exact_include_conditions,
+      fuzzy_include_conditions: getParams().fuzzy_include_conditions,
+      exact_exclude_conditions: {
+        bk_host_id: [...excludedIds.value],
+      },
+    });
+    crossPageHostIdData.value = res.items;
+  } catch (error) {
+    console.error('获取跨页全选数据失败:', error);
+  } finally {
+    crossPageSelectLoading.value = false;
+  }
+};
+
 // ---------- 辅助函数 ----------
 function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
   prop: K,
@@ -437,7 +569,7 @@ const getParams = () => {
 const getNetworkAreaList = async (data: {bk_networkarea_id: number[]} | null) => {
   const res = await TopoService.NetworkAreaList({
     page: { limit: 0 },
-    exact_include_conditions: { bk_networkarea_id: data?.bk_networkarea_id || []},
+    exact_include_conditions: { bk_networkarea_id: data?.bk_networkarea_id || [] },
   }).catch((err: any) => {
     console.error('获取管控区域列表失败:', err);
     return { total: 0, items: [] };
@@ -539,14 +671,22 @@ const getAgentList = async () => {
       console.error('获取插件数量失败:', err);
       return {} as Record<number, number>;
     });
-    tableData.value = res.items.map((item: any) => ({
-      ...item.state,
-      ...item.info,
-      ...item,
-      bk_host_innerip: item.info.bk_host_innerip_list?.join(','),
-      bk_host_innerip_v6: item.info.bk_host_innerip_v6_list?.join(','),
-      pluginNum: pluginNumMap[item.bk_host_id] || 0,
-    }));
+    tableData.value = res.items.map((item: any) => {
+      let isChecked = false;
+      if (isCrossPageSelection.value) {
+        // 如果是跨页模式，只要不在排除名单里就是选中
+        isChecked = !excludedIds.value.has(item.bk_host_id);
+      }
+      return {
+        ...item.state,
+        ...item.info,
+        ...item,
+        bk_host_innerip: item.info.bk_host_innerip_list?.join(','),
+        bk_host_innerip_v6: item.info.bk_host_innerip_v6_list?.join(','),
+        pluginNum: pluginNumMap[item.bk_host_id] || 0,
+        checked: isChecked,
+      };
+    });
     agentList.value = tableData.value;
   } catch (err) {
     console.error('获取Agent列表失败:', err);
@@ -621,14 +761,14 @@ const pageValueChange = async (current: number) => {
   await getAgentList(); // 分页变化不防抖，立即执行
 };
 
-const handleInstall = () => {
-  if (selection.value.length) {
-    dropdownShow.value = false;
-    triggerHandler('reinstall');
-  } else {
-    dropdownShow.value = !dropdownShow.value;
-  }
-};
+// const handleInstall = () => {
+//   if (selection.value.length) {
+//     dropdownShow.value = false;
+//     triggerHandler('reinstall');
+//   } else {
+//     dropdownShow.value = !dropdownShow.value;
+//   }
+// };
 
 const triggerHandler = (type: string, setupType = 'setup') => {
   switch (type) {
@@ -652,33 +792,36 @@ const getOperateShow = (row: Host, config: any) => {
   return config.show;
 };
 
-const handleOperate = (type: string, data: Host[], batch = false) => {
-  let jobType = '';
+const handleOperate = async (type: string, data: Host[], batch = false) => {
+  // 如果是跨页全选模式，获取所有数据
+  let operateData = data;
+  if (isCrossPageSelection.value && type !== 'reinstall') {
+    await getCorssPageHostIds();
+    operateData = crossPageHostIdData.value;
+    batch = true; // 强制设置为批量模式
+  }
 
   switch (type) {
     case 'restart':
-      handleOperatetHost(data, batch, 'restart');
-      break;
-    case 'reinstall':
-      jobType = 'reinstall';
+      handleOperatetHost(operateData, batch, 'restart');
       break;
     case 'uninstall':
-      handleOperatetHost(data, batch, 'uninstall');
+      handleOperatetHost(operateData, batch, 'uninstall');
       break;
     case 'upgrade':
-      handleOperatetHost(data, batch, 'upgrade');
+      handleOperatetHost(operateData, batch, 'upgrade');
       break;
   }
-  if (!jobType) return;
-
-  router.push({ name: 'agentEdit' });
+  if (type !== 'reinstall') return;
   const params = {
-    tableData: data.map((item: any) => ({ ...item })),
-    type: jobType,
+    tableData: operateData.map((item: any) => ({ ...item })),
+    type: 'reinstall',
+    isCrossPageSelection: isCrossPageSelection.value,
+    queryParams: crossPageQueryParams.value,
   };
   nodeManageStore.updateAgentEditRowData(params);
+  router.push({ name: 'agentEdit' });
 };
-
 const handleSelectChange = ({ checked, row }: { checked: boolean; row: any }) => {
   row.checked = checked;
 };
@@ -754,7 +897,7 @@ const handleUninstall = async () => {
 
 const handleOperatetHost = async (data: Host[], batch: boolean, operateType: string) => {
   const titleObj = {
-    firstIp: data[0].info.bk_host_innerip_list?.join(','),
+    firstIp: isCrossPageSelection.value ? selection.value[0].bk_host_innerip : data[0].bk_host_innerip,
     num: data.length,
   };
   let type = '';

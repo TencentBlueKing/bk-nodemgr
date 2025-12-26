@@ -66,14 +66,14 @@
         <copy-ip-dropdown
           type="agent"
           :list="list"
-          :data="tableData"
+          :data="filterTableData"
           filter-prop="state"
-          :disabled="!selection.length"
+          :disabled="!hasSelection"
         ></copy-ip-dropdown>
         <div
           class="h-[32px] bg-[#EAEBF0] rounded-[2px] flex items-center text-[12px] mr-[12px]"
         >
-          <Radio.Group v-model="radioGroupValue" type="capsule">
+          <Radio.Group v-model="radioGroupValue" type="capsule" @change="handleChangeRadio">
             <Radio.Button
               v-for="item in radioGroup"
               :label="item.name"
@@ -104,8 +104,6 @@
         :pagination="pagination"
         show-overflow-tooltip
         :max-height="maxHeight"
-        @checkbox-change="handleSelectChange"
-        @checkbox-all="handleSelectAllChange"
         :show-settings="isShowSetting"
         :settings="settings"
         @setting-change="handleSettingChange"
@@ -113,7 +111,44 @@
         @page-limit-change="pageLimitChange"
         @page-value-change="pageValueChange"
       >
-        <TableColumn type="checkbox" width="80" fixed="left"></TableColumn>
+        <template #prepend>
+          <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
+            <template v-if="isCrossPageSelection">
+              已跨页全选 <span class="font-bold mx-1">{{ pagination.count - excludedIds.size }}</span> 条，
+              <Button text theme="primary" @click="handleClearSelection">取消选择</Button>
+            </template>
+            <template v-else>
+              已选择 <span class="font-bold mx-1">{{ selection.length }}</span> 条，
+              <Button
+                text theme="primary" @click="handleSelectAllCrossPage">
+                选择所有页共 {{ pagination.count }} 条
+              </Button>
+            </template>
+          </div>
+        </template>
+
+        <TableColumn width="80" fixed="left">
+          <template #header>
+            <div class="flex items-center justify-start">
+              <Checkbox
+                :model-value="isCurrentPageAllChecked"
+                :indeterminate="isIndeterminate"
+                @change="handleHeaderClick" />
+              <Dropdown trigger="click" placement="bottom-start">
+                <i class="nodeman-icon nc-arrow-down ml-1 text-[18px]"></i>
+                <template #content>
+                  <Dropdown.DropdownMenu>
+                    <Dropdown.DropdownItem @click="handleSelectCurrentPage">本页全选</Dropdown.DropdownItem>
+                    <Dropdown.DropdownItem @click="handleSelectAllCrossPage">跨页全选</Dropdown.DropdownItem>
+                  </Dropdown.DropdownMenu>
+                </template>
+              </Dropdown>
+            </div>
+          </template>
+          <template #default="{ row }">
+            <Checkbox class="mt-[6px]" :model-value="row.checked" @change="(val) => handleRowCheck(val, row)" />
+          </template>
+        </TableColumn>
         <TableColumn
           v-if="route.query.active === 'plugin'"
           field="plugin_name"
@@ -253,6 +288,7 @@
 <script setup lang="ts">
 import {
   Button,
+  Checkbox,
   Dropdown,
   Input,
   Radio,
@@ -667,24 +703,67 @@ const list = [
     ],
   },
 ];
+
 // 表格勾选
-const selection = computed(() => tableData.value.filter((item: any) => item.checked));
+const selection = computed(() => filterTableData.value.filter((item: any) => item.checked));
 const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout', 'terminated'].includes(item.state)));
 const runningSelection = computed(() => selection.value.filter((item: any) => ['running'].includes(item.state)));
-const handleSelectChange = ({
-  checked,
-  row,
-}: {
-  checked: boolean;
-  row: any;
-}) => {
+
+// --- 跨页全选核心状态 ---
+const isCrossPageSelection = ref(false); // 是否开启跨页全选模式
+const excludedIds = ref<Set<number>>(new Set()); // 全选模式下，用户手动“取消勾选”的 ID 集合
+
+// 计算属性：是否有任何选中（用于禁用批量按钮）
+const hasSelection = computed(() => filterTableData.value.some(item => item.checked) || isCrossPageSelection.value);
+
+// 计算属性：当前页是否全选（用于表头 Checkbox 状态）
+// eslint-disable-next-line max-len
+const isCurrentPageAllChecked = computed(() => filterTableData.value.length > 0 && filterTableData.value.every(item => item.checked));
+const isIndeterminate = computed(() => {
+  const selectedCount = filterTableData.value.filter(item => item.checked).length;
+  return selectedCount > 0 && selectedCount < filterTableData.value.length;
+});
+
+// 1. 处理单行勾选
+const handleRowCheck = (checked: boolean, row: any) => {
   row.checked = checked;
+  if (isCrossPageSelection.value) {
+    if (!checked) excludedIds.value.add(row.bk_host_id);
+    else excludedIds.value.delete(row.bk_host_id);
+  }
 };
 
-// 表格全选
-const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
-  tableData.value.forEach((item: any) => (item.checked = checked));
+// 2. 跨页全选
+const handleSelectAllCrossPage = () => {
+  isCrossPageSelection.value = true;
+  excludedIds.value.clear();
+  filterTableData.value.forEach(item => (item.checked = true));
 };
+
+// 3. 取消选择
+const handleClearSelection = () => {
+  isCrossPageSelection.value = false;
+  excludedIds.value.clear();
+  filterTableData.value.forEach(item => (item.checked = false));
+};
+
+// 4. 本页全选
+const handleSelectCurrentPage = () => {
+  isCrossPageSelection.value = false;
+  filterTableData.value.forEach(item => (item.checked = true));
+};
+
+// 5. 表头 Checkbox 快速切换
+const handleHeaderClick = () => {
+  isCurrentPageAllChecked.value ? handleClearSelection() : handleSelectCurrentPage();
+};
+
+const handleChangeRadio = (value: string) => {
+  isCrossPageSelection.value = false;
+  excludedIds.value.clear();
+  filterTableData.value.forEach(item => (item.checked = false));
+};
+
 // 表格设置
 const { isShowSetting, settings, handleSettingChange } = useTableSetting(
   {
@@ -918,6 +997,8 @@ const getOperateList = async () => {
     return {
       ...item.param,
       ...item.status,
+      bk_host_innerip: item.param.bk_host_inner_list?.join(',') || item.param.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6: item.param.bk_host_innerip_v6_list?.join(',') || item.param.bk_host_innerip_v6_list?.join(','),
       bk_host_inner_list: item.param.bk_host_inner_list?.join(',') || item.param.bk_host_innerip_list?.join(','),
       bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(',') || item.param.bk_host_innerip_v6_list?.join(','),
       bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.param.bk_biz_id)?.bk_biz_name
@@ -938,6 +1019,14 @@ const getOperateList = async () => {
   }
   if (!isEqual) {
     tableData.value = mapList;
+    tableData.value.forEach((item) => {
+      let isChecked = false;
+      if (isCrossPageSelection.value) {
+        // 如果是跨页模式，只要不在排除名单里就是选中
+        isChecked = !excludedIds.value.has(item.bk_host_id);
+      }
+      item.checked = isChecked;
+    });
   }
 };
 const handleViewLog = async (row: any) => {

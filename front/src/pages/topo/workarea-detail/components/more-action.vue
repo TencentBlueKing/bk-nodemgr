@@ -3,14 +3,12 @@
     <Dropdown
       trigger="click"
       :placement="placement"
-      :is-show="isShowDropdown"
       :popover-options="{
         clickContentAutoHide: true,
       }">
       <Button
         text
-        @click="isShowDropdown = true"
-        @blur="isShowDropdown = false">
+        :loading="crossPageSelectLoading">
         <slot></slot>
       </Button>
       <template #content>
@@ -52,13 +50,14 @@
  *    搭配focusout能轻松关闭上一个open的DropMenu，实在巧妙！
  */
 
-import { Button, Dropdown, InfoBox } from 'bkui-vue';
+ import { Button, Dropdown, InfoBox } from 'bkui-vue';
 import type { PropType } from 'vue';
 import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { NodeProxyService } from '@/api/modules/node_proxy';
+import { TopoService } from '@/api/modules/topo';
 
 interface DialogProps {
   title: string
@@ -85,6 +84,14 @@ const props = defineProps({
   batch: {
     type: Boolean,
     default: false,
+  },
+  isCrossPageSelection: {
+    type: Boolean,
+    default: false,
+  },
+  crossPageQueryParams: {
+    type: Object,
+    default: () => ({}),
   },
 });
 const emit = defineEmits(['reinstall']);
@@ -143,34 +150,53 @@ const confirmConfigMap = {
   },
 } as const;
 
-// show dropMenu
-const isShowDropdown = ref(false);
+// 获取跨页全选的host_id数据
+const crossPageSelectLoading = ref(false);
+const crossPageHostIdData = ref<number[]>([]);
+const getCorssPageHostIds = async () => {
+  try {
+    crossPageSelectLoading.value = true;
+    const res = await TopoService.HostSelectHostID(props.crossPageQueryParams);
+    crossPageHostIdData.value = res.items;
+  } catch (error) {
+    console.error('获取跨页全选数据失败:', error);
+  } finally {
+    crossPageSelectLoading.value = false;
+  }
+};
 
 // 选择dropMenuItem，打开对应的action dialog，关闭dropdown
-const handleClickDropMenu = (action: keyof typeof confirmConfigMap) => {
+const handleClickDropMenu = async (action: keyof typeof confirmConfigMap) => {
   if (action === 'reinstall') {
     emit('reinstall');
   } else {
+    let operateData = props.data;
+    let batch = props.batch;
+    if (props.isCrossPageSelection) {
+      await getCorssPageHostIds();
+      operateData = crossPageHostIdData.value;
+      batch = true; // 强制设置为批量模式
+    }
     const titleObj = {
-      firstIp: props.data[0].info.bk_host_innerip,
-      num: props.data.length,
+      firstIp: props.data[0].bk_host_innerip,
+      num: operateData.length,
     };
     if (action === 'upgrade') {
       chooseVersionData.title = 'Proxy 升级/回退';
       chooseVersionData.isShow = true;
-      chooseVersionData.data = props.data;
-      chooseVersionData.batch = props.batch;
+      chooseVersionData.data = operateData;
+      chooseVersionData.batch = batch;
     } else if (action === 'restart') {
       operateDialogIsShow.value = true;
       operateDialogData.type = action;
-      operateDialogData.title = props.batch ? '请确认是否批量重启' : '请确认是否重启';
-      operateDialogData.subTitle = props.batch
+      operateDialogData.title = batch ? '请确认是否批量重启' : '请确认是否重启';
+      operateDialogData.subTitle = batch
         ? `重启 ${titleObj.firstIp} 等${titleObj.num}个IP的Proxy`
         : `重启 ${titleObj.firstIp} 的Proxy`;
     } else if (action === 'unload') {
       InfoBox({
-        title: props.batch ? '请确认是否批量卸载' : '请确认是否卸载',
-        subTitle: props.batch
+        title: batch ? '请确认是否批量卸载' : '请确认是否卸载',
+        subTitle: batch
           ? `卸载 ${titleObj.firstIp} 等${titleObj.num}个IP的Agent`
           : `卸载 ${titleObj.firstIp} 的Agent`,
         onConfirm: () => {
@@ -179,12 +205,8 @@ const handleClickDropMenu = (action: keyof typeof confirmConfigMap) => {
       });
     }
   }
-  // 隐藏dropdown
-  isShowDropdown.value = false;
 };
 
-// dialog action loading
-const loading = ref(false);
 // dialog width
 const curWidth = computed(() => (actionConfirmProps.value.theme === 'primary' ? 400 : 480));
 const chooseVersionData = reactive({
@@ -201,15 +223,17 @@ const operateDialogData = {
 };
 // 卸载
 const handleUninstall = async () => {
-  loading.value = true;
+  let operateData = props.data;
+  if (props.isCrossPageSelection) {
+    operateData = crossPageHostIdData.value;
+  }
   const result = await NodeProxyService.NodeProxyUninstall({
-    host: props.data?.map((item: any) => ({
+    host: operateData?.map((item: any) => ({
       bk_host_id: item.bk_host_id,
     })),
   }).catch(() => ({
     workflow_id: '',
   }));
-  loading.value = false;
   if (result.workflow_id) {
     router.push({
       name: 'taskDetail',
@@ -221,9 +245,12 @@ const handleUninstall = async () => {
   }
 };
 const operateJob = async (extraData: any = {}) => {
-  loading.value = true;
+  let operateData = props.data;
+  if (props.isCrossPageSelection) {
+    operateData = crossPageHostIdData.value;
+  }
   const params = {
-    host: props.data?.map((item: any) => ({
+    host: operateData?.map((item: any) => ({
       bk_host_id: item.bk_host_id,
       force: extraData.isForce,
       graceful_restart_timeout_sec: extraData.time,
@@ -241,7 +268,6 @@ const operateJob = async (extraData: any = {}) => {
       workflow_id: '',
     }));
   }
-  loading.value = false;
   if (result.workflow_id) {
     router.push({
       name: 'taskDetail',
@@ -254,9 +280,12 @@ const operateJob = async (extraData: any = {}) => {
 };
 // 升级回退
 const handleUpgrade = async (versionList: any[]) => {
-  loading.value = true;
+  let operateData = props.data;
+  if (props.isCrossPageSelection) {
+    operateData = crossPageHostIdData.value;
+  }
   const params = {
-    host: props.data.map(item => ({
+    host: operateData?.map(item => ({
       bk_host_id: item.bk_host_id,
       force: false,
       graceful_restart_timeout_sec: 0,
@@ -266,7 +295,6 @@ const handleUpgrade = async (versionList: any[]) => {
   const result = await NodeProxyService.NodeProxyUpgrade(params).catch(() => ({
     workflow_id: '',
   }));
-  loading.value = false;
   if (result.workflow_id) {
     router.push({
       name: 'taskDetail',

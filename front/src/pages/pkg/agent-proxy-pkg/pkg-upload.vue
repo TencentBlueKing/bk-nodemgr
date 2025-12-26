@@ -155,11 +155,9 @@ const handleUpload = () => {
   // 添加元数据
   const metadata = JSON.stringify({ generation: 2, overwrite: true });
   formData.append('metadata', metadata);
-  if (overwrite.value) {
-    curFile.status = '';
-    curFile.progress = 0;
-    curFile.data = null;
-  }
+  curFile.status = '';
+  curFile.progress = 0;
+  curFile.data = null;
   formData.append('file', curFile.file as File);
   formData.append('filename', curFile.file?.name as string);
 

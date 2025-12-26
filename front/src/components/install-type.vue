@@ -9,9 +9,12 @@
       <div class="prefix">
         <i :class="['text-[18px]', 'nodeman-icon', item.icon]"></i>
       </div>
-      <div class="text">
-        <p>{{ item.name }}</p>
-        <OverflowTitle class="overflow-title" type="tips">{{ item.desc }}</OverflowTitle>
+      <div
+        class="text-[14px] text-[#313238] leading-[19px] ml-[12px] content"
+        v-bk-tooltips="{
+          content: item.desc,
+        }">
+        {{ item.name }}
       </div>
       <div class="checked" v-show="activeType === item.type">
         <i class="nodeman-icon nc-check-small"></i>
@@ -20,8 +23,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { OverflowTitle } from 'bkui-vue';
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 
 import { useMainStore } from '@/stores/main';
 
@@ -31,20 +33,21 @@ const props = defineProps({
     default: () => ['setup', 'import', 'manual'],
   },
 });
+const emit = defineEmits(['change']);
 const mainStore = useMainStore();
 const installTypeConfig = [
   {
     type: 'setup',
-    name: '普通远程安装',
+    name: '远程安装',
     icon: 'nc-monitor',
     desc: '线上表单填写，需要提供登录信息',
   },
-  {
-    type: 'import',
-    name: 'Excel 导入远程安装',
-    icon: 'nc-excel',
-    desc: 'Excel 导入填写， 需要提供登录信息',
-  },
+  // {
+  //   type: 'import',
+  //   name: 'Excel 导入远程安装',
+  //   icon: 'nc-excel',
+  //   desc: 'Excel 导入填写， 需要提供登录信息',
+  // },
   {
     type: 'manual',
     name: '手动安装',
@@ -55,6 +58,7 @@ const installTypeConfig = [
 const installTypeList = computed(() => installTypeConfig.filter(item => props.needTypeList.includes(item.type)));
 const activeType = computed(() => mainStore.agentSetupType);
 const handleClick = (type: string) => {
+  emit('change', type);
   mainStore.updateAgentSetupType(type);
 };
 </script>
@@ -63,6 +67,7 @@ const handleClick = (type: string) => {
     display: flex;
     align-items: center;
     gap: 8px;
+    width: 568px;
     .active {
         &.type {
           border-color: none;
@@ -92,8 +97,8 @@ const handleClick = (type: string) => {
     }
     .type {
       position: relative;
-      min-width: 280px;
-      height: 56px;
+      width: 50%;
+      height: 32px;
       background: #FFFFFF;
       border: 1px solid #C4C6CC;
       border-radius: 2px;
@@ -104,7 +109,7 @@ const handleClick = (type: string) => {
         border-color: #3A84FF;
       }
       .prefix {
-        min-width: 48px;
+        min-width: 40px;
         height: 100%;
         border-right: 1px solid #C4C6CC;
         background: #F5F7FA;
@@ -114,24 +119,8 @@ const handleClick = (type: string) => {
         font-size: 21px;
         color: #979BA5;
       }
-
-      .text {
-        padding: 6px 8px;
-        min-width: 232px;
-        height: 100%;
-        p {
-            font-size: 14px;
-            color: #313238;
-            height: 22px;
-            line-height: 22px
-        }
-
-        .overflow-title {
-            font-size: 12px;
-            color: #4D4F56;
-            height: 20px;
-            line-height: 20px;
-        }
+      .content {
+        border-bottom: 1px dashed #c4c6cc;
       }
     }
 }

@@ -339,6 +339,10 @@ const props = defineProps({
     type: Object,
     default: () => {},
   },
+  isManual: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const { t } = useI18n();
@@ -599,6 +603,7 @@ const handleSetup = async () => {
     info: filteredData,
     target_version: props.data.target_version,
     disable_default_target_version: props.data.disable_default_target_version,
+    is_manual: props.isManual,
   }).catch(() => ({
     workflow_id: '',
   }));

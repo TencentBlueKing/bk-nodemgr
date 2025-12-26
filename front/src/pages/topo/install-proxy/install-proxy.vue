@@ -15,8 +15,7 @@
           label-width="90"
           required
         >
-          <SelectItemGroup :list="installMethodList" @change="handleChange">
-          </SelectItemGroup>
+          <install-type @change="handleChange"></install-type>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.info')"
@@ -24,6 +23,10 @@
           label-width="90"
           required
         >
+          <!-- <template #label>
+            <div class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.info') }}</div>
+            <Button text theme="primary" @click="handleExcelImport">导入</Button>
+          </template> -->
           <install-table
             ref="installTableRef"
             v-model:data="form.info"
@@ -208,13 +211,13 @@
           </div>
         </Form.FormItem>
         <div class="flex mt-[32px] ml-[90px] gap-[8px]">
-          <Button
+          <!-- <Button
             v-if="excelImportData.length && form.info.length === 0"
             class="w-[100px]"
             theme="primary"
             @click="handleImport">
             {{ '导入' }}
-          </Button>
+          </Button> -->
           <Button
             theme="primary"
             class="w-[120px]"
@@ -234,12 +237,12 @@
               {{ form.info.length }}
             </span>
           </Button>
-          <Button
+          <!-- <Button
             v-if="excelImportData.length && form.method === '1' && form.info.length > 0"
             class="w-[88px]"
             @click="handleSetpBack">
             {{ '上一步' }}
-          </Button>
+          </Button> -->
           <Button @click="handleBeforeClose">
             {{ $t("action.cancel") }}
           </Button>
@@ -252,11 +255,28 @@
       :release-type="'proxy'"
       @confirm="handleComfirmVerion"
     ></choose-version-dialog>
+    <Dialog
+      :is-show="isShowExcelImport"
+      :width="1048"
+      :title="'Excel 导入'"
+      @closed="handleExcelImportCancel">
+      <UploadExcel ref="uploadExcelRef" @upload="handleUpload"></UploadExcel>
+      <template #footer>
+        <Button
+          :disabled="!uploadExcelRef?.curFile?.data"
+          theme="primary"
+          class="mr-[8px]"
+          @click="handleExcelImportConfirm">
+          {{ $t("action.confirm") }}
+        </Button>
+        <Button class="" @click="handleExcelImportCancel">{{ $t("action.cancel") }}</Button>
+      </template>
+    </Dialog>
   </Sideslider>
 </template>
 
 <script lang="ts" setup>
-import { Button, Cascader, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
+import { Button, Cascader, Dialog, Form, InfoBox, Input, Message, Radio, Select, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
 import type { PropType } from 'vue';
@@ -308,7 +328,7 @@ const initData = {
   proxy_tags: [] as string[],
 };
 const form = reactive({
-  method: '0', // 安装方式
+  method: 'setup', // 安装方式
   info: [cloneDeep(initData)], // 安装信息
   saveTime: 1, // 密钥/密码保存时间
   os_type: 'linux', // 操作系统
@@ -337,6 +357,7 @@ const settings = reactive({
   ],
   checked: [
     'bk_host_innerip',
+    'bk_host_innerip_v6',
     'export_ip',
     'login_ip',
     'login_mode',
@@ -361,27 +382,6 @@ const systemData = ref([
     cpu_arch: 'arm64',
     os_type: 'linux',
     version: '',
-  },
-]);
-// 安装方式列表
-const installMethodList = ref([
-  {
-    icon: 'nodeman-icon nc-remote-install',
-    title: t('topoManager.installProxy.installMethodList.remote.title'),
-    content: t('topoManager.installProxy.installMethodList.remote.content'),
-    value: '0',
-  },
-  {
-    icon: 'nodeman-icon nc-excel-2',
-    title: t('topoManager.installProxy.installMethodList.excel.title'),
-    content: t('topoManager.installProxy.installMethodList.excel.content'),
-    value: '1',
-  },
-  {
-    icon: 'nodeman-icon nc-custom-install',
-    title: t('topoManager.installProxy.installMethodList.manual.title'),
-    content: t('topoManager.installProxy.installMethodList.manual.content'),
-    value: '2',
   },
 ]);
 const networkAreaList = ref<NetworkArea[]>([]);
@@ -481,14 +481,8 @@ const handleChooseVersion = (row: { version: string; os: string }) => {
 const handleComfirmVerion = (data: any[]) => {
   dialogData.value[0].version = data[0]?.version;
 };
-const handleChange = (values: Array<string | number>) => {
-  form.method = values[0] as string;
-  excelImportData.value = [];
-  if (form.method === '1') {
-    form.info = [];
-  } else {
-    form.info = [cloneDeep(initData)];
-  }
+const handleChange = (value: string) => {
+  form.method = value;
   formRef.value?.clearValidate();
 };
 
@@ -583,6 +577,7 @@ const handleConfirm = async () => {
         };
       }),
       target_version: form.target_version,
+      is_manual: form.method === 'manual',
     };
     const res = await NodeProxyService.NodeProxyInstall(params).catch((err) => {
       console.log(err);
@@ -610,14 +605,27 @@ const handleConfirm = async () => {
     });
   }
 };
+
+// excel 导入弹窗
+const isShowExcelImport = ref(false);
 const excelImportData = ref([]);
-// excel 导入
+const uploadExcelRef = ref();
+const handleExcelImport = () => {
+  isShowExcelImport.value = true;
+};
+const handleExcelImportConfirm = () => {
+  form.info = excelImportData.value;
+  isShowExcelImport.value = false;
+  uploadExcelRef.value?.handleDelete();
+};
+const handleExcelImportCancel = () => {
+  isShowExcelImport.value = false;
+  uploadExcelRef.value?.handleDelete();
+};
 const handleUpload = (data: any) => {
   excelImportData.value = data.info;
 };
-const handleImport = () => {
-  form.info = excelImportData.value;
-};
+
 const handleSetpBack = () => {
   form.info = [];
 };
@@ -660,7 +668,7 @@ watch(() => isShow.value, async () => {
     formRef.value?.clearValidate();
     // 重置数据
     Object.assign(form, {
-      method: '0', // 安装方式
+      method: 'setup', // 安装方式
       info: [cloneDeep(initData)], // 安装信息
       saveTime: 1, // 密钥/密码保存时间
       os_type: 'linux', // 操作系统

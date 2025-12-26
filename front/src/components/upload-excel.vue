@@ -119,6 +119,12 @@ const handleCancel = () => {
   emit('cancel');
 };
 const handleDelete = () => {
+  curFile.data = null;
   uploader.value?.handleRemove(curFile);
 };
+
+defineExpose({
+  curFile,
+  handleDelete,
+});
 </script>

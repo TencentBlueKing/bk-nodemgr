@@ -8,7 +8,7 @@
     @toggle="handleToggle"
   >
     <template #trigger>
-      <Button>
+      <Button :loading="crossPageSelectLoading">
         <span>{{ $t('components.copyIpDropdown.copy') }}</span>
         <i
           class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
@@ -25,6 +25,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useClipboard } from '@vueuse/core';
+
+import { TopoService } from '@/api/modules/topo';
 
 const props = defineProps({
   type: {
@@ -46,6 +48,14 @@ const props = defineProps({
   list: {
     type: Array,
     default: () => [],
+  },
+  isCrossPageSelection: {
+    type: Boolean,
+    default: false,
+  },
+  crossPageQueryParams: {
+    type: Object,
+    default: () => ({}),
   },
 });
 
@@ -103,15 +113,72 @@ const copylist = computed(() => {
   return list;
 });
 const area = ref([]); // ['all', 'ipv4']
+
+// 跨页全选的数据
+const crossPageSelectionData = ref<any[]>([]);
+const crossPageSelectLoading = ref(false);
+const getCorssPageIps = async (type: string) => {
+  let serve = TopoService.HostSelectInnerIP;
+  switch (type) {
+    case 'ipv4':
+      serve = TopoService.HostSelectInnerIP;
+      break;
+    case 'ipv6':
+      serve = TopoService.HostSelectInnerIPV6;
+      break;
+    case 'workarea+ipv4':
+      serve = TopoService.HostSelectNetWorkareaIDAndInnerIP;
+      break;
+    case 'workarea+ipv6':
+      serve = TopoService.HostSelectNetWorkareaIDAndInnerIPV6;
+      break;
+  }
+  try {
+    crossPageSelectLoading.value = true;
+    const res = await serve(props.crossPageQueryParams);
+    crossPageSelectionData.value = res.items.filter(item => !!(type.includes('workarea') ? item.split(':')[1] : item)).map((item: string) => {
+      let bk_host_innerip = '';
+      let bk_host_innerip_v6 = '';
+      let bk_networkarea_id = '';
+      if (type === 'ipv4') {
+        bk_host_innerip = item;
+      } else if (type === 'ipv6') {
+        bk_host_innerip_v6 = item;
+      } else if (type === 'workarea+ipv4') {
+        bk_networkarea_id = item.split(':')[0];
+        bk_host_innerip = item.split(':')[1];
+      } else if (type === 'workarea+ipv6') {
+        bk_networkarea_id = item.split(':')[0];
+        bk_host_innerip_v6 = item.split(':')[1];
+      }
+      return {
+        checked: true,
+        bk_host_innerip,
+        bk_host_innerip_v6,
+        bk_networkarea_id,
+      };
+    });
+  } catch (error) {
+    console.error('获取跨页全选数据失败:', error);
+  } finally {
+    crossPageSelectLoading.value = false;
+  }
+};
+
 // 使用 useClipboard 处理剪贴板操作
 const { copy, isSupported } = useClipboard({ legacy: true });
 // 更换选择项
 const handleChange = async () => {
   if (area.value.length === 0) return;
+
   const type = area.value[1];
+  if (props.isCrossPageSelection) {
+    await getCorssPageIps(type);
+  }
+  const copyData = props.isCrossPageSelection ? crossPageSelectionData.value : props.data;
   const list = area.value[0] === 'all'
-    ? props.data
-    : props.data.filter((item: any) => item.checked
+    ? copyData
+    : copyData.filter((item: any) => item.checked
             && (!props.filterProp || item[props.filterProp] === area.value[0]));
   if (
     list.every((item: any) => (['ipv4', 'workarea+ipv4'].includes(type)
@@ -141,7 +208,7 @@ const handleChange = async () => {
       await copy(copyContent.join(',\n'));
       Message({
         theme: 'success',
-        message: t('components.copyIpDropdown.success'),
+        message: `${t('components.copyIpDropdown.success')}（${copyContent.length} 个${type?.includes('ipv4') ? 'IPv4' : 'IPv6'}）`,
       });
     } catch (error) {
       Message({

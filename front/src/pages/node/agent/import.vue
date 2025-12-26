@@ -13,12 +13,14 @@
           :label="$t('platform.nodeMan.installAgentPage.info')"
           required
         >
-          <install-table
-            ref="installTableRef"
-            v-model:data="formData.info"
-            :is-reinstall="true"
-            :max-height="640"
-          ></install-table>
+          <Loading :loading="loading">
+            <install-table
+              ref="installTableRef"
+              v-model:data="formData.info"
+              :is-reinstall="true"
+              :max-height="640"
+            ></install-table>
+          </Loading>
         </Form.FormItem>
       </Form>
     </div>
@@ -40,11 +42,12 @@
     <preview
       v-model:is-show="previewData.isShow"
       :data="previewData.data"
+      :is-manual="activeInstallType === 'manual'"
     ></preview>
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Form, Input, Message, Select, Upload } from 'bkui-vue';
+import { Button, Form, Input, Loading, Select, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, debounce  } from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
@@ -55,6 +58,7 @@ import { Table, TableColumn } from '@blueking/table';
 import Preview from './preview.vue';
 
 import type { AgentInstallInfo } from '@/@types/node_agent.d';
+import { TopoService } from '@/api/modules/topo';
 import { scrollToFirstErrorByClassNames } from '@/common/util';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -101,6 +105,7 @@ const isAtBottom = ref(false);
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);
 
+const loading = ref(false);
 // 显示侧边栏安装策略
 const handleShowPanel = () => {
   showRightPanel.value = true;
@@ -163,12 +168,53 @@ onMounted(async () => {
     window.addEventListener('resize', debouncedCheck);
     checkIfAtBottom();
   }
-  formData.info = nodeManageStore.agentEditParams.tableData.map(({ info, state, ...rest }) => ({
-    target_version: state.node_version,
-    ...rest,
-    bk_host_innerip: info.bk_host_innerip_list?.[0],
-    bk_host_innerip_v6: info.bk_host_innerip_v6_list?.[0],
-  }));
+  // 使用TopoService.HostList接口进行切片查询获取数据
+  if (nodeManageStore.agentEditParams.isCrossPageSelection) {
+    // 跨页全选模式：使用HostList接口分页获取所有数据
+    const allHosts = [];
+    const pageSize = 1000; // 每页大小
+    let offset = 0;
+    let hasMore = true;
+    loading.value = true;
+
+    while (hasMore) {
+      const hostListData = await TopoService.HostList({
+        page: { offset, limit: pageSize },
+        only_count: false,
+        exact_include_conditions: nodeManageStore.agentEditParams.queryParams.exact_include_conditions || {},
+        exact_exclude_conditions: nodeManageStore.agentEditParams.queryParams.exact_exclude_conditions || {},
+      }).catch(() => ({ total: 0, items: [] }));
+
+      if (hostListData.items && hostListData.items.length > 0) {
+        allHosts.push(...hostListData.items);
+        offset += pageSize;
+
+        // 如果返回的数据少于pageSize，说明没有更多数据了
+        if (hostListData.items.length < pageSize) {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    formData.info = allHosts.map((host: any) => ({
+      ...host.state,
+      ...host.info,
+      ...host,
+      bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
+    }));
+    loading.value = false;
+  } else {
+    // 本页选择模式：使用原有数据
+    formData.info = nodeManageStore.agentEditParams.tableData.map(({ info, state, ...rest }) => ({
+      target_version: state?.node_version,
+      ...rest,
+      bk_host_innerip: info.bk_host_innerip_list?.[0],
+      bk_host_innerip_v6: info.bk_host_innerip_v6_list?.[0],
+    }));
+  }
 });
 onUnmounted(() => {
   if (footerRef.value) {

@@ -15,8 +15,7 @@
           label-width="90"
           required
         >
-          <SelectItemGroup :list="installMethodList" @change="handleChange">
-          </SelectItemGroup>
+          <install-type @change="handleChange"></install-type>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.info')"
@@ -24,15 +23,16 @@
           label-width="90"
           required
         >
-          <install-table
-            ref="installTableRef"
-            v-model:data="form.info"
-            release-type="proxy"
-            :is-reinstall="true"
-            :method="form.method"
-            :current-settings="settings"
-            :max-height="520"
-          ></install-table>
+          <Loading :loading="loading">
+            <install-table
+              ref="installTableRef"
+              v-model:data="form.info"
+              release-type="proxy"
+              :is-reinstall="true"
+              :current-settings="settings"
+              :max-height="520"
+            ></install-table>
+          </Loading>
         </Form.FormItem>
         <Form.FormItem
           label-width="90">
@@ -126,7 +126,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Cascader, Form, InfoBox, Input, Message, Sideslider } from 'bkui-vue';
+import { Button, Cascader, Form, InfoBox, Input, Loading, Message, Sideslider } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
 import type { PropType } from 'vue';
@@ -149,6 +149,14 @@ const props = defineProps({
   data: {
     type: Array as PropType<Host[]>,
     default: [],
+  },
+  isCrossPageSelection: {
+    type: Boolean,
+    default: false,
+  },
+  params: {
+    type: Object,
+    default: () => ({}),
   },
 });
 const router = useRouter();
@@ -210,7 +218,7 @@ const initData = {
   proxy_tags: [] as string[],
 };
 const form = reactive({
-  method: '0', // 安装方式
+  method: 'setup', // 安装方式
   info: [
     cloneDeep(initData),
   ],
@@ -232,21 +240,6 @@ const systemData = ref([
     cpu_arch: 'arm64',
     os_type: 'linux',
     version: '',
-  },
-]);
-// 安装方式列表
-const installMethodList = ref([
-  {
-    icon: 'nodeman-icon nc-remote-install',
-    title: t('topoManager.installProxy.installMethodList.remote.title'),
-    content: t('topoManager.installProxy.installMethodList.remote.content'),
-    value: '0',
-  },
-  {
-    icon: 'nodeman-icon nc-custom-install',
-    title: t('topoManager.installProxy.installMethodList.manual.title'),
-    content: t('topoManager.installProxy.installMethodList.manual.content'),
-    value: '2',
   },
 ]);
 
@@ -303,9 +296,6 @@ const handleChooseVersion = (row: { version: string; os: string }) => {
 };
 const handleComfirmVerion = (data: any[]) => {
   dialogData.value[0].version = data[0]?.version;
-};
-const handleChange = (values: Array<string | number>) => {
-  form.method = values[0] as string;
 };
 
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
@@ -392,6 +382,7 @@ const handleConfirm = async () => {
         };
       }),
       target_version: form.target_version,
+      is_manual: form.method === 'manual',
     };
     const res = await NodeProxyService.NodeProxyInstall(params).catch((err) => {
       console.log(err);
@@ -438,6 +429,11 @@ const assign = (data1: any, data2: any, data3?: any) => {
   });
 };
 
+const handleChange = (value: string) => {
+  form.method = value;
+  formRef.value?.clearValidate();
+};
+
 // 获取版本，用来检查是否有对应架构的包版本去安装
 const getVersions = async () => {
   const res = await PackageService.ListReleaseProxy({
@@ -468,14 +464,55 @@ const getVersions = async () => {
   });
   systemData.value = systemData.value.filter(item => !!osMap[item.os]?.enableVersions.length);
 };
+const loading = ref(false);
 
 watch(() => isShow.value, async () => {
   if (isShow.value && props.data.length) {
-    form.info = props.data.map((item: Host) => {
-      const data = cloneDeep(initData);
-      assign(data, item, item.info);
-      return data;
-    });
+    // 使用TopoService.HostList接口进行切片查询获取数据
+    if (props.isCrossPageSelection) {
+      // 跨页全选模式：使用HostList接口分页获取所有数据
+      const allHosts = [];
+      const pageSize = 1000; // 每页大小
+      let offset = 0;
+      let hasMore = true;
+      loading.value = true;
+
+      while (hasMore) {
+        const hostListData = await TopoService.HostList({
+          page: { offset, limit: pageSize },
+          only_count: false,
+          ...props.params,
+        }).catch(() => ({ total: 0, items: [] }));
+
+        if (hostListData.items && hostListData.items.length > 0) {
+          allHosts.push(...hostListData.items);
+          offset += pageSize;
+
+          // 如果返回的数据少于pageSize，说明没有更多数据了
+          if (hostListData.items.length < pageSize) {
+            hasMore = false;
+          }
+        } else {
+          hasMore = false;
+        }
+      }
+
+      form.info = allHosts.map((host: any) => ({
+        ...host.state,
+        ...host.info,
+        ...host,
+        bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
+        bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
+      }));
+      loading.value = false;
+    } else {
+      // 本页选择模式：使用原有数据
+      form.info = props.data.map((item: Host) => {
+        const data = cloneDeep(initData);
+        assign(data, item, item.info);
+        return data;
+      });
+    }
     await getVersions();
     await getNetworkUnitList();
   }

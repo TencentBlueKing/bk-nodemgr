@@ -146,6 +146,10 @@ const props = defineProps({
     type: String,
     default: 'agent',
   },
+  isCrossPageSelection: {
+    type: Boolean,
+    default: false,
+  },
 });
 const emit = defineEmits(['confirm', 'cancel']);
 const { t } = useI18n();
@@ -225,7 +229,7 @@ const getVersions = async () => {
     }));
   }
   const osMap: any = {};
-  const filterOs = props.data.map((el: any) => (el.os ? el.os : `${el.os_type}_${el.cpu_arch}`));
+  const filterOs = props.isCrossPageSelection ? ['_'] : props.data.map((el: any) => (el.os ? el.os : `${el.os_type}_${el.cpu_arch}`));
   res.items
     .filter(item => filterOs?.some(os => `${item.release.os_type}_${item.release.cpu_arch}`.includes(os)))
     .forEach((item) => {
@@ -274,8 +278,10 @@ watch(
       } else {
         selectedVersion.value = selectedOs.value?.versions.find(item => item.as_default) || selectedOs.value?.versions[0];
       }
-      selectedOs.value.selected = true;
-      selectedOs.value.selectedVersion = selectedVersion.value;
+      if (selectedOs.value) {
+        selectedOs.value.selected = true;
+        selectedOs.value.selectedVersion = selectedVersion.value;
+      }
     }
   },
   { immediate: true, deep: true },

@@ -79,6 +79,11 @@
           :label="$t('platform.nodeMan.installAgentPage.info')"
           required
         >
+          <template #label>
+            <div class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.info') }}</div>
+            <!-- 导入弹窗 -->
+            <Button text theme="primary" @click="handleExcelImport">导入</Button>
+          </template>
           <install-table
             ref="installTableRef"
             :max-height="520"
@@ -146,14 +151,14 @@
       ]"
       ref="footerRef"
     >
-      <Button
+      <!-- <Button
         v-show="activeInstallType === 'import' && !isEqual(formData.info, excelImportData)"
         class="w-[100px]"
         theme="primary"
         :disabled="!excelImportData.length"
         @click="handleImport">
         {{ '导入' }}
-      </Button>
+      </Button> -->
       <Button
         v-show="activeInstallType !== 'import'
           || (excelImportData.length > 0 && isEqual(formData.info, excelImportData))"
@@ -185,6 +190,7 @@
     <preview
       v-model:is-show="previewData.isShow"
       :data="previewData.data"
+      :is-manual="activeInstallType === 'manual'"
     ></preview>
     <choose-version-dialog
       v-model:is-show="isShowDialog"
@@ -193,10 +199,27 @@
       :release-type="'agent'"
       @confirm="handleConfirmVersion"
     ></choose-version-dialog>
+    <Dialog
+      :is-show="isShowExcelImport"
+      :width="1048"
+      :title="'Excel 导入'"
+      @closed="handleExcelImportCancel">
+      <UploadExcel ref="uploadExcelRef" @upload="handleUpload"></UploadExcel>
+      <template #footer>
+        <Button
+          :disabled="!uploadExcelRef?.curFile?.data"
+          theme="primary"
+          class="mr-[8px]"
+          @click="handleExcelImportConfirm">
+          {{ $t("action.confirm") }}
+        </Button>
+        <Button class="" @click="handleExcelImportCancel">{{ $t("action.cancel") }}</Button>
+      </template>
+    </Dialog>
   </div>
 </template>
 <script lang="ts" setup>
-import { Button, Form, Input, Message, Select, Upload } from 'bkui-vue';
+import { Button, Dialog, Form, Input, Message, Select, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, debounce, isEqual  } from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
@@ -290,6 +313,29 @@ const handleBatchEditVersion = () => {
   isBatch.value = true;
 };
 
+// excel 导入弹窗
+const isShowExcelImport = ref(false);
+const excelImportData = ref([]);
+const uploadExcelRef = ref();
+const handleExcelImport = () => {
+  isShowExcelImport.value = true;
+};
+const handleExcelImportConfirm = () => {
+  formData.info = excelImportData.value;
+  isShowExcelImport.value = false;
+  uploadExcelRef.value?.handleDelete();
+};
+const handleExcelImportCancel = () => {
+  isShowExcelImport.value = false;
+  uploadExcelRef.value?.handleDelete();
+};
+const handleUpload = (data: any) => {
+  excelImportData.value = data.info;
+};
+const handleImport = () => {
+  formData.info = excelImportData.value;
+};
+
 const handleConfirmVersion = (data: any[]) => {
   systemData.value.forEach((sys: { version: string; os: string }) => {
     const find = data.find((item) => sys.os === `${item.os_type}_${item.cup_arch}`);
@@ -333,14 +379,6 @@ const getNetworkUnitList = async () => {
     };
   });
   networkUnitList.value = res.items;
-};
-const excelImportData = ref([]);
-// excel 导入
-const handleUpload = (data: any) => {
-  excelImportData.value = data.info;
-};
-const handleImport = () => {
-  formData.info = excelImportData.value;
 };
 
 const formRef = ref(null);
