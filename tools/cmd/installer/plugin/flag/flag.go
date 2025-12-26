@@ -55,4 +55,7 @@ const (
 
 	// PluginVersion defines the plugin version flag.
 	PluginVersion = "plugin_version"
+
+	// PluginPkgName defines the plugin package name flag.
+	PluginPkgName = "plugin_pkg_name"
 )

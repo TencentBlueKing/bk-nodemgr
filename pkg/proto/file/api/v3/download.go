@@ -66,8 +66,8 @@ func (x *DownloadProxyReq) AutoConvert() {
 
 // Validate check request body.
 func (x *DownloadPluginReq) Validate() error {
-	if x.GetPluginName() == "" {
-		return errors.New("plugin_name is required")
+	if x.GetPluginPkgName() == "" {
+		return errors.New("plugin_pkg_name is required")
 	}
 
 	if x.GetCpuArch() == "" {

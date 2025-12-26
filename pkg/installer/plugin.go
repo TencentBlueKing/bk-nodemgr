@@ -66,6 +66,9 @@ const (
 
 	// pluginFlagPluginVersion plugin flag name defines the plugin version.
 	pluginFlagPluginVersion pluginFlagName = "plugin_version"
+
+	// pluginFlagPluginPkgName plugin flag name defines the plugin package name.
+	pluginFlagPluginPkgName pluginFlagName = "plugin_pkg_name"
 )
 
 // PluginCommonParams defines the common params of installer.
@@ -111,6 +114,7 @@ type PluginInstallParams struct {
 	PluginGroup   string
 	PluginName    string
 	PluginVersion string
+	PluginPkgName string
 
 	DownloadSvrAddr string
 	CallbackSvrAddr string
@@ -132,6 +136,7 @@ func (params *PluginInstallParams) buildArgs() []string {
 		fmt.Sprintf("--%s %s", pluginFlagPluginGroup, params.PluginGroup),
 		fmt.Sprintf("--%s %s", pluginFlagPluginName, params.PluginName),
 		fmt.Sprintf("--%s %s", pluginFlagPluginVersion, params.PluginVersion),
+		fmt.Sprintf("--%s %s", pluginFlagPluginPkgName, params.PluginPkgName),
 		fmt.Sprintf("--%s %s", pluginFlagDeployEnv, params.DeployEnv),
 		fmt.Sprintf("--%s %s", pluginFlagDownloadSvrAdd, params.DownloadSvrAddr),
 		fmt.Sprintf("--%s %s", pluginFlagCallbackSvrAdd, params.CallbackSvrAddr),

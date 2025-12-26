@@ -30,8 +30,9 @@ type Variables struct {
 	DeployEnv string
 
 	// optional flags.
-	PluginName  string
-	PluginGroup string
+	PluginName    string
+	PluginGroup   string
+	PluginPkgName string
 
 	// generates.
 	DeployDir string
@@ -77,6 +78,11 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 		return nil, err
 	}
 
+	pluginPkgName, err := cmd.Flags().GetString(pluginflag.PluginPkgName)
+	if err != nil {
+		return nil, err
+	}
+
 	baseDeployDir, err := cmd.Flags().GetString(pluginflag.BaseDeployDir)
 	if err != nil {
 		return nil, err
@@ -94,12 +100,13 @@ func GetVariables(cmd *cobra.Command) (*Variables, error) {
 	}
 
 	return &Variables{
-		PluginName:  pluginName,
-		PluginGroup: pluginGroup,
-		DeployEnv:   deployEnv,
-		DeployDir:   filepath.Join(baseDeployDir, deployEnv),
-		WorkDir:     filepath.Join(baseWorkDir, deployEnv),
-		DataDir:     filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName),
-		ConfigDir:   filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName, "config"),
+		PluginName:    pluginName,
+		PluginGroup:   pluginGroup,
+		PluginPkgName: pluginPkgName,
+		DeployEnv:     deployEnv,
+		DeployDir:     filepath.Join(baseDeployDir, deployEnv),
+		WorkDir:       filepath.Join(baseWorkDir, deployEnv),
+		DataDir:       filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName),
+		ConfigDir:     filepath.Join(baseWorkDir, deployEnv, "data", "plugin", pluginName, "config"),
 	}, nil
 }

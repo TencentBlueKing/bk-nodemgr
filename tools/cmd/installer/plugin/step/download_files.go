@@ -54,6 +54,7 @@ func NewDownloadFiles() *cobra.Command {
 				CallbackSvrAddr:              callbackSvrAddr,
 				PluginGroup:                  persistentVars.PluginGroup,
 				PluginName:                   persistentVars.PluginName,
+				PluginPkgName:                persistentVars.PluginPkgName,
 				DeployToken:                  deployToken,
 				PkgVersion:                   pluginVersion,
 				PkgSavedPath:                 filepath.Join(persistentVars.DataDir, GenReleasePkgName(persistentVars.PluginName, pluginVersion)),

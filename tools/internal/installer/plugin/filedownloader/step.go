@@ -38,6 +38,7 @@ type StepArgs struct {
 
 	PluginGroup    string
 	PluginName     string
+	PluginPkgName  string
 	DeployToken    string
 	PkgVersion     string
 	PkgSavedPath   string
@@ -52,8 +53,8 @@ type StepArgs struct {
 
 // String step args string message.
 func (args StepArgs) String() string {
-	return fmt.Sprintf("plugin-type(%s), plugin-name(%s), deploy-token(%s), pkg-version(%s)",
-		args.PluginGroup, args.PluginName, args.DeployToken, args.PkgVersion)
+	return fmt.Sprintf("plugin-type(%s), plugin-name(%s), plugin-pkg-name(%s), deploy-token(%s), pkg-version(%s)",
+		args.PluginGroup, args.PluginName, args.PluginPkgName, args.DeployToken, args.PkgVersion)
 }
 
 // NewStep new a step to download package.
@@ -162,7 +163,7 @@ func (step *Step) downloadPluginConfig(ctx context.Context) error {
 		Token:   step.args.DeployToken,
 	}
 
-	savedPath := filepath.Join(step.args.ConfigSavedDir, pluginConfName(step.args.PluginName))
+	savedPath := filepath.Join(step.args.ConfigSavedDir, pluginConfName(step.args.PluginPkgName))
 	if err := step.downloadFile(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
@@ -180,17 +181,17 @@ func (step *Step) downloadPluginConfig(ctx context.Context) error {
 
 func (step *Step) downloadReleasePackage(ctx context.Context) error {
 	type getReleasePackageReq struct {
-		OSType     string `json:"os_type"`
-		CPUArch    string `json:"cpu_arch"`
-		Version    string `json:"version"`
-		PluginName string `json:"plugin_name"`
+		OSType        string `json:"os_type"`
+		CPUArch       string `json:"cpu_arch"`
+		Version       string `json:"version"`
+		PluginPkgName string `json:"plugin_pkg_name"`
 	}
 
 	requestBody := getReleasePackageReq{
-		OSType:     runtime.GOOS,
-		CPUArch:    runtime.GOARCH,
-		PluginName: step.args.PluginName,
-		Version:    step.args.PkgVersion,
+		OSType:        runtime.GOOS,
+		CPUArch:       runtime.GOARCH,
+		PluginPkgName: step.args.PluginPkgName,
+		Version:       step.args.PkgVersion,
 	}
 
 	if err := step.downloadFile(ctx,

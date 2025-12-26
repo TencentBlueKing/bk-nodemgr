@@ -224,6 +224,7 @@ func (act *actionInstallPlugin) buildInstallParams(
 			PluginGroup:     targetPlugin.Group,
 			PluginName:      targetPlugin.Name,
 			PluginVersion:   std.DeployInfo().Process.Info.Version,
+			PluginPkgName:   targetPlugin.PkgName,
 			CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
 			DownloadSvrAddr: "http://" + downloadSvrEndpoint.GetIPV4Address(),
 			DeployToken:     std.Token(),

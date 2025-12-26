@@ -140,7 +140,7 @@ type IPkgDownloadHandler interface {
 	DownloadReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
 
 	// DownloadReleasePlugin download release plugin.
-	DownloadReleasePlugin(nCtx contextx.IContext, pluginName string, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
+	DownloadReleasePlugin(nCtx contextx.IContext, pluginPkgName string, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
 }
 
 const (
@@ -354,7 +354,7 @@ func (h *handler) DownloadReleaseProxy(nCtx contextx.IContext,
 
 // DownloadReleasePlugin download release plugin.
 func (h *handler) DownloadReleasePlugin(nCtx contextx.IContext,
-	pluginName string, plat platfmt.Platform, version string) (*restserver.StreamResponse, error) {
+	pluginPkgName string, plat platfmt.Platform, version string) (*restserver.StreamResponse, error) {
 
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
@@ -362,10 +362,10 @@ func (h *handler) DownloadReleasePlugin(nCtx contextx.IContext,
 
 	tenantID := nCtx.TenantID()
 	params := &protoFile.DownloadPluginReq{
-		OsType:     string(plat.OS),
-		CpuArch:    string(plat.Arch),
-		Version:    version,
-		PluginName: pluginName,
+		OsType:        string(plat.OS),
+		CpuArch:       string(plat.Arch),
+		Version:       version,
+		PluginPkgName: pluginPkgName,
 	}
 	resp, err := h.cli.downloadReleasePlugin(nCtx, tenantID, params)
 	if err != nil {

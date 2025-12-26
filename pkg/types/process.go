@@ -62,6 +62,7 @@ type ProcessInfo struct {
 
 // ProcessIdentity defines the identity of process.
 type ProcessIdentity struct {
+	// Name is the actual name of process binary file.
 	Name       string
 	SetupPath  string
 	PidPath    string
@@ -167,6 +168,7 @@ func (monitorPolicy ProcessMonitorPolicy) Validate() error {
 
 // ProcessSpec defines the spec of process.
 type ProcessSpec struct {
+	// PluginName is the name for GSE metadata.
 	PluginName    string
 	AgentID       string
 	Identity      ProcessIdentity
@@ -238,9 +240,12 @@ type Process struct {
 	TenantID string
 	HostID   int64
 
-	PluginName    string
+	// PluginName is the name of plugin, no actually the process name.
+	PluginName string
+	// PluginPkgName is the name of plugin release package.
 	PluginPkgName string
-	PluginGroup   string
+	// PluginGroup is the group of plugin.
+	PluginGroup string
 
 	Platform   platform.Platform
 	Generation Generation

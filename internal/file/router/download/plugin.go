@@ -31,7 +31,7 @@ func (h *handler) Plugin(rCtx restserver.IContext) (*restserver.FileResponse, er
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginName := req.GetPluginName()
+	pluginPkgName := req.GetPluginPkgName()
 
 	os, err := platfmt.NormalizeOS(req.GetOsType())
 	if err != nil {
@@ -46,7 +46,7 @@ func (h *handler) Plugin(rCtx restserver.IContext) (*restserver.FileResponse, er
 	version := req.GetVersion()
 	platform := platfmt.Platform{OS: os, Arch: arch}
 
-	file, _, err := h.manager.EnsurePluginToLocal(rCtx, pluginName, types.Generation2, platform, version)
+	file, _, err := h.manager.EnsurePluginToLocal(rCtx, pluginPkgName, types.Generation2, platform, version)
 	if err != nil {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("get file failed: %w", err))
 	}

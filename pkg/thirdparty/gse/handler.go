@@ -907,9 +907,9 @@ func (h *Handler) TrusteeshipProcess(nCtx contextx.IContext, processSpec types.P
 	operateProcReq := operateProcV2Req{
 		Meta: procMeta{
 			Namespace: procNameSpace,
-			Name:      processSpec.Identity.Name,
+			Name:      processSpec.PluginName,
 			Labels: procInfoMetaLabels{
-				ProcName: processSpec.Identity.Name,
+				ProcName: processSpec.PluginName,
 			},
 		},
 		OpType:      procOperateCodeTrusteeship,
@@ -950,9 +950,9 @@ func (h *Handler) UnTrusteeshipProcess(nCtx contextx.IContext, processSpec types
 	operateProcReq := operateProcV2Req{
 		Meta: procMeta{
 			Namespace: procNameSpace,
-			Name:      processSpec.Identity.Name,
+			Name:      processSpec.PluginName,
 			Labels: procInfoMetaLabels{
-				ProcName: processSpec.Identity.Name,
+				ProcName: processSpec.PluginName,
 			},
 		},
 		OpType:      procOperateCodeUnTrusteeship,
@@ -993,9 +993,9 @@ func (h *Handler) TrusteeshipAndStartProcess(nCtx contextx.IContext, processSpec
 	operateProcReq := operateProcV2Req{
 		Meta: procMeta{
 			Namespace: procNameSpace,
-			Name:      processSpec.Identity.Name,
+			Name:      processSpec.PluginName,
 			Labels: procInfoMetaLabels{
-				ProcName: processSpec.Identity.Name,
+				ProcName: processSpec.PluginName,
 			},
 		},
 		OpType:      procOperateCodeStart,
@@ -1036,9 +1036,9 @@ func (h *Handler) UnTrusteeshipAndStopProcess(nCtx contextx.IContext, processSpe
 	operateProcReq := operateProcV2Req{
 		Meta: procMeta{
 			Namespace: procNameSpace,
-			Name:      processSpec.Identity.Name,
+			Name:      processSpec.PluginName,
 			Labels: procInfoMetaLabels{
-				ProcName: processSpec.Identity.Name,
+				ProcName: processSpec.PluginName,
 			},
 		},
 		OpType:      procOperateCodeStop,
@@ -1079,9 +1079,9 @@ func (h *Handler) TrusteeshipAndRestartProcess(nCtx contextx.IContext, processSp
 	operateProcReq := operateProcV2Req{
 		Meta: procMeta{
 			Namespace: procNameSpace,
-			Name:      processSpec.Identity.Name,
+			Name:      processSpec.PluginName,
 			Labels: procInfoMetaLabels{
-				ProcName: processSpec.Identity.Name,
+				ProcName: processSpec.PluginName,
 			},
 		},
 		OpType:      procOperateCodeRestart,
@@ -1122,9 +1122,9 @@ func (h *Handler) TrusteeshipAndReloadProcess(nCtx contextx.IContext, processSpe
 	operateProcReq := operateProcV2Req{
 		Meta: procMeta{
 			Namespace: procNameSpace,
-			Name:      processSpec.Identity.Name,
+			Name:      processSpec.PluginName,
 			Labels: procInfoMetaLabels{
-				ProcName: processSpec.Identity.Name,
+				ProcName: processSpec.PluginName,
 			},
 		},
 		OpType:      procOperateCodeReload,

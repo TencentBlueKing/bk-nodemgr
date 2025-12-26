@@ -44,6 +44,7 @@ func NewPluginCommand() *cobra.Command {
 	 */
 	pluginCommand.PersistentFlags().String(pluginflag.PluginName, "", "plugin name")
 	pluginCommand.PersistentFlags().String(pluginflag.PluginGroup, "", "plugin group, this will be used to build the plugin directory")
+	pluginCommand.PersistentFlags().String(pluginflag.PluginPkgName, "", "plugin package name, this will be used to download the plugin package")
 	pluginCommand.PersistentFlags().String(pluginflag.BaseDeployDir, defaultBaseDeployDir(), "base deployed directory of this node, the deploy dir will be created under this directory with deploy-env")
 	pluginCommand.PersistentFlags().String(pluginflag.BaseWorkDir, defaultBaseWorkDir(), "base work directory of this node, the work dir will be created under this directory with deploy-env")
 
