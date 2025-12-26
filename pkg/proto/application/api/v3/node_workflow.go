@@ -238,38 +238,36 @@ func (x *NodeWorkflowDistinctResp) ConvertResultFromTypes(result *types.NodeWork
 
 // Validate check body.
 func (x *NodeWorkflowOperationListReq) Validate() error {
-	if x.GetExactIncludeConditions() == nil || x.GetExactIncludeConditions().GetWorkflowId() == "" {
-		return errors.New("workflow_id is required")
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id can not be empty")
 	}
 
 	return validatePage(x.GetPage())
 }
 
-// ConvertConditionsToComm convert conditions to comm.
-func (x *NodeWorkflowOperationListReq) ConvertConditionsToComm() string {
-	return x.GetExactIncludeConditions().GetWorkflowId()
+// GetWorkflowID get workflow id.
+func (x *NodeWorkflowOperationListReq) GetWorkflowID() string {
+	return x.GetWorkflowId()
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
 func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(
-	condition *types.NodeWorkflowOperationCondition) error {
+	condition *types.ApplicationOperationListCondition) error {
 
-	exactCond, fuzzyCond, err := convertNodeWorkOperConditionsFromTypes(condition)
+	exactCond, err := convertNodeWorkOperConditionsFromTypes(condition)
 	if err != nil {
 		return err
 	}
 
 	x.ExactIncludeConditions = exactCond
-	x.FuzzyIncludeConditions = fuzzyCond
 
 	return nil
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes() *types.NodeWorkflowOperationCondition {
+func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes() *types.ApplicationOperationListCondition {
 	return convertNodeWorkflowOperationConditionsToTypes(
-		x.GetExactIncludeConditions(),
-		x.GetFuzzyIncludeConditions())
+		x.GetExactIncludeConditions())
 }
 
 // ConvertPageToTypes convert page to types.
@@ -283,7 +281,7 @@ func (x *NodeWorkflowOperationListReq) AutoConvert() {
 
 // ConvertResultFromTypes convert workflow id to types.
 func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
-	total int64, result []*types.NodeWorkflowListOperationResult, operationsSummary []*types.NodeWorkflowOperationSummary) {
+	total int64, result []*types.NodeWorkflowListOperationResult) {
 
 	items := make([]*NodeWorkflowOperation, len(result))
 	for idx, op := range result {
@@ -294,21 +292,18 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 		items[idx] = &NodeWorkflowOperation{
 			OperationId: op.OperationID,
 			InstanceIds: op.OperInstanceIDs,
-			Param: &NodeWorkflowOperationParam{
-				Operator:            op.Operator,
+			Operator:    op.Operator,
+			CreateTime:  op.CreateTime.Unix(),
+			NodeDeploymentInfo: &NodeDeploymentInfo{
+				BkHostId:            op.HostID,
+				BkBizId:             op.BizID,
+				BkHostInneripList:   op.InnerIPList,
+				BkHostInneripV6List: op.InnerIPV6List,
 				BkNetworkareaId:     op.NetworkAreaID,
 				BkNetworkunitId:     op.NetworkUnitID,
-				BkBizId:             op.BizID,
-				BkHostId:            op.HostID,
-				BkHostInnerList:     op.InnerIPList,
-				BkHostInneripV6List: op.InnerIPV6List,
 				NodeVersion:         op.NodeVersion,
 			},
-			Status: &NodeWorkflowOperationStatus{
-				State:           string(operationsSummary[idx].LastStatus),
-				TotalTimeSecond: operationsSummary[idx].TotalDuration,
-			},
-			LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(operationsSummary[idx].LatestActionInstBriefData),
+			LatestOperInstBriefData: convertNodeWorkflowOperInstBriefDataFromTypes(op),
 		}
 	}
 
@@ -316,15 +311,6 @@ func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(
 		Total:      total,
 		Operations: items,
 	}
-}
-
-// GetCountOnly get count only.
-func (x *NodeWorkflowOperationListResp) GetCountOnly() interface{} {
-	if x.GetData() == nil {
-		return nil
-	}
-
-	return x.GetData()
 }
 
 // Validate check body.
@@ -612,54 +598,58 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 	return exactCond, fuzzyCond, timeRange, nil
 }
 
-func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperationCondition) (
-	*NodeWorkflowOperationExactConditions, *NodeWorkflowOperationFuzzyConditions, error) {
-
-	if condition == nil {
-		return nil, nil, nil
-	}
+func convertNodeWorkOperConditionsFromTypes(condition *types.ApplicationOperationListCondition) (
+	*NodeWorkflowOperationExactConditions, error) {
 
 	var exactCond *NodeWorkflowOperationExactConditions
-	var fuzzyCond *NodeWorkflowOperationFuzzyConditions
 
 	if condition.ExactInclude != nil {
 		exactCond = &NodeWorkflowOperationExactConditions{
 			BkBizId:         condition.ExactInclude.BizID,
-			WorkflowId:      condition.ExactInclude.WorkflowID,
 			State:           types.NodeWorkflowOperationStatusListToStringList(condition.ExactInclude.State),
 			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
-			BkHostInnerip:   condition.ExactInclude.InnerIP,
-			BkHostInneripV6: condition.ExactInclude.InnerIPv6,
+			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
+			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
+			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
 			NodeVersion:     condition.ExactInclude.NodeVersion,
 		}
 	}
 
 	if condition.FuzzyInclude != nil || condition.ExactExclude != nil || condition.FuzzyExclude != nil {
-		return nil, nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
+		return nil, errors.New("fuzzy-include, exact-exclude and fuzzy-exclude not supported")
 	}
 
-	return exactCond, fuzzyCond, nil
+	return exactCond, nil
 }
 
 func convertNodeWorkflowOperationConditionsToTypes(
-	exactCond *NodeWorkflowOperationExactConditions,
-	_ *NodeWorkflowOperationFuzzyConditions) *types.NodeWorkflowOperationCondition {
+	exactCond *NodeWorkflowOperationExactConditions) *types.ApplicationOperationListCondition {
 
-	condition := &types.NodeWorkflowOperationCondition{}
+	condition := &types.ApplicationOperationListCondition{}
 	// exact conditions.
 	if exactCond != nil {
-		condition.ExactInclude = &types.NodeWorkflowOperationExactFields{
-			WorkflowID:    exactCond.GetWorkflowId(),
-			State:         types.StringListToNodeWorkflowOperationStatusList(exactCond.GetState()),
-			InnerIP:       exactCond.GetBkHostInnerip(),
-			InnerIPv6:     exactCond.GetBkHostInneripV6(),
-			BizID:         exactCond.GetBkBizId(),
-			NetworkAreaID: exactCond.GetBkNetworkareaId(),
-			NodeVersion:   exactCond.GetNodeVersion(),
+		condition.ExactInclude = &types.ApplicationOperationListExactFields{
+			BizID:          exactCond.GetBkBizId(),
+			HostInnerIP:    exactCond.GetBkHostInnerip(),
+			HostInnerIPV6:  exactCond.GetBkHostInneripV6(),
+			NetworkAreaID:  exactCond.GetBkNetworkareaId(),
+			NetworkUnitID:  exactCond.GetBkNetworkunitId(),
+			State:          types.StringListToNodeWorkflowOperationStatusList(exactCond.GetState()),
 		}
 	}
 
 	return condition
+}
+
+func convertNodeWorkflowOperInstBriefDataFromTypes(data *types.NodeWorkflowListOperationResult) *WorkflowOperInstBriefData {
+	if data == nil {
+		return nil
+	}
+
+	return &WorkflowOperInstBriefData{
+		LifeCycle:                 convertNodeWorkflowOperInstLifeCycleFromTypes(data.LastInstanceBriefData.Lifecycle),
+		LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(data.LastInstanceBriefData.LatestActionInstBriefData),
+	}
 }
 
 func convertNodeWorkflowActionInstBriefDataFromTypes(data *action.InstanceBriefData) *WorkflowActionInstBriefData {
@@ -670,6 +660,20 @@ func convertNodeWorkflowActionInstBriefDataFromTypes(data *action.InstanceBriefD
 	return &WorkflowActionInstBriefData{
 		Name: data.Name,
 		Tags: conv.SliceToSlice(data.Tags, func(tag action.Tag) string { return string(tag) }),
+	}
+}
+
+func convertNodeWorkflowOperInstLifeCycleFromTypes(data *operation.Lifecycle) *WorkflowLifeCycle {
+	if data == nil {
+		return &WorkflowLifeCycle{}
+	}
+
+	return &WorkflowLifeCycle{
+		State:      string(data.State),
+		CreateTime: data.CreatedAt.Unix(),
+		StartTime:  data.StartedAt.Unix(),
+		EndTime:    data.EndedAt.Unix(),
+		StopTime:   data.StoppedAt.Unix(),
 	}
 }
 

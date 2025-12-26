@@ -172,7 +172,7 @@ func (x *NodeWorkflowDistinctResp) ConvertWorkflowDistinctToTypes() *types.NodeW
 
 // Validate check body.
 func (x *NodeWorkflowOperationListReq) Validate() error {
-	if x.GetExactIncludeConditions() == nil || x.GetExactIncludeConditions().GetWorkflowId() == "" {
+	if x.GetWorkflowId() == "" {
 		return errors.New("workflow_id is required")
 	}
 
@@ -181,7 +181,7 @@ func (x *NodeWorkflowOperationListReq) Validate() error {
 
 // GetWorkflowID get workflow id.
 func (x *NodeWorkflowOperationListReq) GetWorkflowID() string {
-	return x.GetExactIncludeConditions().GetWorkflowId()
+	return x.GetWorkflowId()
 }
 
 // ConvertConditionsToDeploymentTypes convert conditions to deployment types.
@@ -192,33 +192,29 @@ func (x *NodeWorkflowOperationListReq) ConvertConditionsToDeploymentTypes(tokens
 }
 
 func convertNodeWorkflowOperationConditionsToNodeDeploymentTypes(tokens []string,
-	exactCond *NodeWorkflowOperationExactConditions) *types.NodeDeploymentCondition {
+	exactCond *NodeWorkflowOperationListReq_ExactConditions) *types.NodeDeploymentCondition {
 
 	condition := &types.NodeDeploymentCondition{
-		ExactInclude: &types.NodeDeploymentExactFields{},
+		ExactInclude: &types.NodeDeploymentExactFields{
+			Token: tokens,
+		},
 	}
 
-	// exact conditions.
 	if exactCond != nil {
-		condition.ExactInclude = &types.NodeDeploymentExactFields{
-			InnerIP:       exactCond.GetBkHostInnerip(),
-			InnerIPv6:     exactCond.GetBkHostInneripV6(),
-			BizID:         exactCond.GetBkBizId(),
-			NetworkAreaID: exactCond.GetBkNetworkareaId(),
-			NetworkUnitID: exactCond.GetBkNetworkunitId(),
-			NodeVersion:   exactCond.GetNodeVersion(),
-		}
+		condition.ExactInclude.InnerIP = exactCond.GetBkHostInnerip()
+		condition.ExactInclude.InnerIPv6 = exactCond.GetBkHostInneripV6()
+		condition.ExactInclude.BizID = exactCond.GetBkBizId()
+		condition.ExactInclude.NetworkAreaID = exactCond.GetBkNetworkareaId()
+		condition.ExactInclude.NetworkUnitID = exactCond.GetBkNetworkunitId()
+		condition.ExactInclude.NodeVersion = exactCond.GetNodeVersion()
 	}
-
-	// exact conditions token
-	condition.ExactInclude.Token = tokens
 
 	return condition
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
 func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(
-	condition *types.NodeWorkflowOperationCondition) error {
+	condition *types.ApplicationOperationListCondition) error {
 
 	exactCond, fuzzyCond, err := convertNodeWorkOperConditionsFromTypes(condition)
 	if err != nil {
@@ -236,8 +232,15 @@ func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes(
 	triggerID string) *types.NodeWorkflowOperationCondition {
 
 	return convertNodeWorkflowOperationConditionsToTypes(
-		x.GetExactIncludeConditions(),
-		x.GetFuzzyIncludeConditions(), triggerID)
+		x.GetExactIncludeConditions(), triggerID)
+}
+
+// ConvertConditionsToOperationTypes convert conditions to operation types.
+func (x *NodeWorkflowOperationListReq) ConvertConditionsToOperationTypes(
+	triggerID string) *types.NodeWorkflowOperationCondition {
+
+	return convertNodeWorkflowOperationConditionsToTypes(
+		x.GetExactIncludeConditions(), triggerID)
 }
 
 // AutoConvert auto convert.
@@ -251,57 +254,81 @@ func (x *NodeWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) types.Pa
 
 // ConvertResultFromTypes convert workflow id to types.
 func (x *NodeWorkflowOperationListResp) ConvertResultFromTypes(total int64, result []*types.NodeWorkflowListOperationResult) {
-	items := make([]*NodeWorkflowOperation, len(result))
+	items := make([]*NodeWorkflowOperationListResp_NodeWorkflowOperation, len(result))
 	for idx, op := range result {
-		item := &NodeWorkflowOperation{
-			OperationId:         op.OperationID,
-			InstanceIds:         op.OperInstanceIDs,
-			BkNetworkareaId:     op.NetworkAreaID,
-			BkNetworkunitId:     op.NetworkUnitID,
-			BkBizId:             op.BizID,
-			BkHostId:            op.HostID,
-			BkHostInneripList:   op.InnerIPList,
-			BkHostInneripV6List: op.InnerIPV6List,
-			NodeVersion:         op.NodeVersion,
-			Operator:            op.Operator,
+		item := &NodeWorkflowOperationListResp_NodeWorkflowOperation{
+			OperationId: op.OperationID,
+			InstanceIds: op.OperInstanceIDs,
+			Operator:    op.Operator,
+			CreateTime:  op.CreateTime.UnixMilli(),
+			NodeDeploymentInfo: &NodeWorkflowOperationListResp_NodeDeploymentInfo{
+				BkHostId:            op.HostID,
+				BkBizId:             op.BizID,
+				BkHostInneripList:   op.InnerIPList,
+				BkHostInneripV6List: op.InnerIPV6List,
+				BkNetworkareaId:     op.NetworkAreaID,
+				BkNetworkunitId:     op.NetworkUnitID,
+				NodeVersion:         op.NodeVersion,
+			},
 		}
+
+		if op.LastInstanceBriefData != nil {
+			item.LatestOperInstBriefData = &NodeWorkflowOperationListResp_LatestOperInstBriefData{
+				LifeCycle:                 convertNodeWorkflowOperInstLifeCycleFromTypes(op.LastInstanceBriefData.Lifecycle),
+				LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataFromTypes(op.LastInstanceBriefData.LatestActionInstBriefData),
+			}
+		}
+
 		items[idx] = item
 	}
 
-	x.Data = &NodeWorkflowOperationListResp_Data{
+	data := &NodeWorkflowOperationListResp_Data{
 		Total:      total,
 		Operations: items,
 	}
+	x.Data = data
 }
 
 // ConvertWorkflowOperationToTypes convert workflow operation to types.
 func (x *NodeWorkflowOperationListResp) ConvertWorkflowOperationToTypes() ([]*types.NodeWorkflowListOperationResult, int64) {
-	data := x.GetData()
-	if data == nil {
+	if x.Data == nil {
 		return nil, 0
 	}
 
-	items := data.GetOperations()
+	items := x.Data.GetOperations()
 	result := make([]*types.NodeWorkflowListOperationResult, len(items))
 
 	for idx, item := range items {
-		operation := &types.NodeWorkflowListOperationResult{
+		deployInfo := item.GetNodeDeploymentInfo()
+		operResult := &types.NodeWorkflowListOperationResult{
 			OperationID:     item.GetOperationId(),
-			Operator:        item.GetOperator(),
 			OperInstanceIDs: item.GetInstanceIds(),
-			NetworkAreaID:   item.GetBkNetworkareaId(),
-			NetworkUnitID:   item.GetBkNetworkunitId(),
-			BizID:           item.GetBkBizId(),
-			HostID:          item.GetBkHostId(),
-			InnerIPList:     item.GetBkHostInneripList(),
-			InnerIPV6List:   item.GetBkHostInneripV6List(),
-			NodeVersion:     item.GetNodeVersion(),
+			Operator:        item.GetOperator(),
+			CreateTime:      time.UnixMilli(item.GetCreateTime()),
 		}
 
-		result[idx] = operation
+		if deployInfo != nil {
+			operResult.NetworkAreaID = deployInfo.GetBkNetworkareaId()
+			operResult.NetworkUnitID = deployInfo.GetBkNetworkunitId()
+			operResult.BizID = deployInfo.GetBkBizId()
+			operResult.HostID = deployInfo.GetBkHostId()
+			operResult.InnerIPList = deployInfo.GetBkHostInneripList()
+			operResult.InnerIPV6List = deployInfo.GetBkHostInneripV6List()
+			operResult.NodeVersion = deployInfo.GetNodeVersion()
+		}
+
+		latestOperInstBriefData := item.GetLatestOperInstBriefData()
+		if latestOperInstBriefData != nil {
+			operResult.LastInstanceBriefData = &operation.InstanceBriefData{
+				Lifecycle:                 convertNodeWorkflowOperInstLifeCycleToTypes(latestOperInstBriefData.GetLifeCycle()),
+				LatestActionInstBriefData: convertNodeWorkflowActionInstBriefDataToTypes(latestOperInstBriefData.GetLatestActionInstBriefData()),
+			}
+		}
+
+		result[idx] = operResult
 	}
 
-	return result, data.GetTotal()
+	return result, x.Data.GetTotal()
 }
 
 // Validate check body.
@@ -736,20 +763,16 @@ func convertNodeWorkflowConditionsToTypes(
 }
 
 func convertNodeWorkflowOperationConditionsToTypes(
-	exactCond *NodeWorkflowOperationExactConditions,
-	_ *NodeWorkflowOperationFuzzyConditions, triggerID string) *types.NodeWorkflowOperationCondition {
+	exactCond *NodeWorkflowOperationListReq_ExactConditions, triggerID string) *types.NodeWorkflowOperationCondition {
 
-	condition := &types.NodeWorkflowOperationCondition{}
-	// exact conditions.
+	condition := &types.NodeWorkflowOperationCondition{
+		ExactInclude: &types.NodeWorkflowOperationExactFields{
+			TriggerID: []string{triggerID},
+		},
+	}
+
 	if exactCond != nil {
-		condition.ExactInclude = &types.NodeWorkflowOperationExactFields{
-			TriggerID:     triggerID,
-			InnerIP:       exactCond.GetBkHostInnerip(),
-			InnerIPv6:     exactCond.GetBkHostInneripV6(),
-			BizID:         exactCond.GetBkBizId(),
-			NetworkAreaID: exactCond.GetBkNetworkareaId(),
-			NodeVersion:   exactCond.GetNodeVersion(),
-		}
+		condition.ExactInclude.State = types.StringListToNodeWorkflowOperationStatusList(exactCond.GetState())
 	}
 
 	return condition
@@ -790,24 +813,19 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 	return exactCond, fuzzyCond, timeRange, nil
 }
 
-func convertNodeWorkOperConditionsFromTypes(condition *types.NodeWorkflowOperationCondition) (
-	*NodeWorkflowOperationExactConditions, *NodeWorkflowOperationFuzzyConditions, error) {
+func convertNodeWorkOperConditionsFromTypes(condition *types.ApplicationOperationListCondition) (
+	*NodeWorkflowOperationListReq_ExactConditions, *NodeWorkflowOperationListReq_FuzzyConditions, error) {
 
 	if condition == nil {
 		return nil, nil, nil
 	}
 
-	var exactCond *NodeWorkflowOperationExactConditions
-	var fuzzyCond *NodeWorkflowOperationFuzzyConditions
+	var exactCond *NodeWorkflowOperationListReq_ExactConditions
+	var fuzzyCond *NodeWorkflowOperationListReq_FuzzyConditions
 
 	if condition.ExactInclude != nil {
-		exactCond = &NodeWorkflowOperationExactConditions{
-			BkBizId:         condition.ExactInclude.BizID,
-			WorkflowId:      condition.ExactInclude.WorkflowID,
-			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
-			BkHostInnerip:   condition.ExactInclude.InnerIP,
-			BkHostInneripV6: condition.ExactInclude.InnerIPv6,
-			NodeVersion:     condition.ExactInclude.NodeVersion,
+		exactCond = &NodeWorkflowOperationListReq_ExactConditions{
+			State: types.NodeWorkflowOperationStatusListToStringList(condition.ExactInclude.State),
 		}
 	}
 

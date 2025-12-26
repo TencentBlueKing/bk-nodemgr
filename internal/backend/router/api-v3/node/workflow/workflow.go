@@ -12,6 +12,8 @@
 package workflow
 
 import (
+	"fmt"
+
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
@@ -23,6 +25,7 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -128,7 +131,6 @@ func (h *handler) DistinctNodeWorkflow(rCtx restserver.IContext) (interface{}, e
 }
 
 // ListOperation list workflow operation.
-// nolint: funlen
 func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.NodeWorkflowOperationListReq)
 	if err := rCtx.BindJSON(req); err != nil {
@@ -142,76 +144,73 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	// list all operations by trigger id.
-	operations, _, err := h.storageWorkflow.ListOperationByTriggerID(rCtx, types.UnlimitedPage(), workflow.TriggerID)
+	operations, _, err := h.storageWorkflow.ListOperation(rCtx, req.ConvertPageToTypes(maxNodeWorkflowLimit),
+		req.ConvertConditionsToOperationTypes(workflow.TriggerID))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
 	tokens := make([]string, len(operations))
-	operationMaps := make(map[string]*struct {
-		operationID     string
-		operator        string
-		operInstanceIDs []string
+	operationMap := make(map[string]*struct {
+		operation *operation.Operation
+		operator  string
 	}, len(operations))
 
 	for idx, op := range operations {
 		param := new(utils.NodeActionStandardParam)
-
 		if err := conv.MapToStruct(op.Param.InitContent, param); err != nil {
 			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 		}
 
 		tokens[idx] = param.Token
-		operationMaps[param.Token] = &struct {
-			operationID     string
-			operator        string
-			operInstanceIDs []string
+		operationMap[param.Token] = &struct {
+			operation *operation.Operation
+			operator  string
 		}{
-			operationID:     op.OperationID,
-			operator:        param.Operator,
-			operInstanceIDs: op.InstanceIDs,
+			operation: op,
+			operator:  param.Operator,
 		}
 	}
 
-	// list all deployments by condition.
-	deployments, num, err := h.daoNodeDeployment.ListNodeDeployment(rCtx, types.UnlimitedPage(), req.ConvertConditionsToDeploymentTypes(tokens))
+	deployments, num, err := h.daoNodeDeployment.ListNodeDeployment(rCtx, req.ConvertPageToTypes(maxNodeWorkflowLimit),
+		req.ConvertConditionsToDeploymentTypes(tokens))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node deployment")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
-	result := make([]*types.NodeWorkflowListOperationResult, len(deployments))
-	for idx, dep := range deployments {
-		op, exists := operationMaps[dep.Token]
-		if !exists {
-			continue
-		}
-
-		result[idx] = &types.NodeWorkflowListOperationResult{
-			Operator:        op.operator,
-			OperationID:     op.operationID,
-			OperInstanceIDs: op.operInstanceIDs,
-			NetworkAreaID:   dep.Info.Host.Static.NetworkAreaID,
-			NetworkUnitID:   dep.Info.Host.Dynamic.NetworkUnitID,
-			InnerIPList:     dep.Info.Host.Static.InnerIPList,
-			InnerIPV6List:   dep.Info.Host.Static.InnerIPV6List,
-			BizID:           dep.Info.Host.Static.BizID,
-			HostID:          dep.Info.Host.HostID,
-			NodeVersion:     dep.Info.Host.Dynamic.NodeVersion,
-		}
-	}
-
-	resp := new(protoBackend.NodeWorkflowOperationListResp)
-
-	// only count.
 	if req.GetOnlyCount() {
+		resp := new(protoBackend.NodeWorkflowOperationListResp)
 		resp.ConvertResultFromTypes(num, nil)
 
 		return resp.GetData(), nil
 	}
 
+	result := make([]*types.NodeWorkflowListOperationResult, len(deployments))
+	for idx, deployment := range deployments {
+		op, exist := operationMap[deployment.Token]
+		if !exist {
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("invalid token. token(%s)", deployment.Token))
+		}
+
+		result[idx] = &types.NodeWorkflowListOperationResult{
+			OperationID:           op.operation.OperationID,
+			Operator:              op.operator,
+			OperInstanceIDs:       op.operation.InstanceIDs,
+			HostID:                deployment.Info.Host.HostID,
+			BizID:                 deployment.Info.Host.Static.BizID,
+			InnerIPList:           deployment.Info.Host.Static.InnerIPList,
+			InnerIPV6List:         deployment.Info.Host.Static.InnerIPV6List,
+			NetworkAreaID:         deployment.Info.Host.Static.NetworkAreaID,
+			NetworkUnitID:         deployment.Info.Host.Dynamic.NetworkUnitID,
+			NodeVersion:           deployment.Info.Host.Dynamic.NodeVersion,
+			CreateTime:            op.operation.CreateTime,
+			LastInstanceBriefData: op.operation.LatestInstBriefData,
+		}
+	}
+
+	resp := new(protoBackend.NodeWorkflowOperationListResp)
 	resp.ConvertResultFromTypes(num, result)
 
 	return resp.GetData(), nil
