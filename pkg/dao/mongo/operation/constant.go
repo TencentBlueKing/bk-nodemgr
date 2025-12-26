@@ -29,4 +29,7 @@ const (
 
 	// FieldKeyLatestInstState the latest_inst_state field key.
 	FieldKeyLatestInstState = "data.latest_inst_brief_data.life_cycle.state"
+
+	// FieldKeyCreateTime the create_time field key.
+	FieldKeyCreateTime = "data.create_time"
 )

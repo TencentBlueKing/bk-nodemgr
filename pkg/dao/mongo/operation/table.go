@@ -33,6 +33,7 @@ type Operation struct {
 	RetryFlags          []RetryFlag    `json:"retry_flags" bson:"retry_flags"`
 	Instantiated        bool           `json:"instantiated" bson:"instantiated"`
 	LatestInstBriefData *InstBriefData `json:"latest_inst_brief_data" bson:"latest_inst_brief_data"`
+	CreateTime          time.Time      `json:"create_time" bson:"create_time"`
 }
 
 // DefSnapshot represents the snapshot of the operation definition.
@@ -60,8 +61,15 @@ type RetryFlag struct {
 
 // InstBriefData represents the brief data of an operation instance.
 type InstBriefData struct {
-	OperInstID string     `json:"oper_inst_id" bson:"oper_inst_id"`
-	LifeCycle  *LifeCycle `json:"life_cycle" bson:"life_cycle"`
+	OperInstID                string                   `json:"oper_inst_id" bson:"oper_inst_id"`
+	LifeCycle                 *LifeCycle               `json:"life_cycle" bson:"life_cycle"`
+	LatestActionInstBriefData *ActionInstBriefData     `json:"latest_action_inst_brief_data" bson:"latest_action_inst_brief_data"`
+}
+
+// ActionInstBriefData represents the brief data of an action instance.
+type ActionInstBriefData struct {
+	Name string   `json:"name" bson:"name"`
+	Tags []string `json:"tags" bson:"tags"`
 }
 
 // LifeCycle is the lifecycle of an operation instance.

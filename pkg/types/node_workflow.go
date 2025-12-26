@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
@@ -231,23 +230,22 @@ func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 
 // NodeWorkflowListOperationResult operation list result.
 type NodeWorkflowListOperationResult struct {
-	NodeVersion     string
-	NetworkAreaID   int64
-	NetworkUnitID   int64
-	InnerIPList     []string
-	InnerIPV6List   []string
-	BizID           int64
-	HostID          int64
-	Operator        string
+	HostID        int64
+	BizID         int64
+	NetworkAreaID int64
+	NetworkUnitID int64
+	InnerIPList   []string
+	InnerIPV6List []string
+	NodeVersion   string
+
 	OperationID     string
 	OperInstanceIDs []string
-}
+	Operator        string
+	CreateTime      time.Time
 
-// NodeWorkflowOperationSummary defines the summary of node workflow operation.
-type NodeWorkflowOperationSummary struct {
-	TotalDuration             int64
-	LastStatus                NodeWorkflowOperationState
-	LatestActionInstBriefData *action.InstanceBriefData
+	// LastInstanceBriefData is the last instance brief data.
+	// currently support life-cycle and latest action.
+	LastInstanceBriefData *operation.InstanceBriefData
 }
 
 // InstanceStatusToNodeWorkflowOperationState converts the instance status to operation state.

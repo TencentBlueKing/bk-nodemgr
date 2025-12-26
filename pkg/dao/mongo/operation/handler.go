@@ -15,7 +15,9 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,6 +30,9 @@ type IHandler interface {
 
 	// List list operation by page and opts.
 	List(nCtx contextx.IContext, page types.Page, opts ...OptFn) ([]*operation.Operation, int64, error)
+
+	// Count count process by conditions.
+	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
 
 	// Exist check operation whether exists by opts.
 	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
@@ -94,6 +99,16 @@ func (h *handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 	}
 
 	return operations, num, nil
+}
+
+// Count count operation by conditions.
+func (h *handler) Count(nCtx contextx.IContext, opts ...OptFn) (int64, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.dao.Count(nCtx, filter)
 }
 
 // Exist check operation whether exists by opts.
@@ -227,6 +242,7 @@ func convertOperationFromDB(dbOp *Operation) *operation.Operation {
 		Param:               param,
 		RetryFlags:          retryFlags,
 		LatestInstBriefData: latestInstBriefData,
+		CreateTime:          dbOp.CreateTime,
 	}
 }
 
@@ -247,6 +263,7 @@ func convertOperationToDB(oper *operation.Operation) *Operation {
 		Parameters:          convertParamToDB(oper.Param),
 		RetryFlags:          convertRetryFlagsToDB(oper.RetryFlags),
 		LatestInstBriefData: convertInstBriefDataToDB(oper.LatestInstBriefData),
+		CreateTime:          oper.CreateTime,
 	}
 
 	if len(oper.InstanceIDs) == 0 || (len(oper.RetryFlags) > 0 && oper.RetryFlags[len(oper.RetryFlags)-1].RetryInstanceID == "") {
@@ -326,8 +343,9 @@ func convertInstBriefDataToDB(briefData *operation.InstanceBriefData) *InstBrief
 	}
 
 	return &InstBriefData{
-		OperInstID: briefData.Metadata.OperationInstanceID,
-		LifeCycle:  convertLifeCycleToDB(briefData.Lifecycle),
+		OperInstID:                briefData.Metadata.OperationInstanceID,
+		LifeCycle:                 convertLifeCycleToDB(briefData.Lifecycle),
+		LatestActionInstBriefData: convertActionInstBriefDataToDB(briefData.LatestActionInstBriefData),
 	}
 }
 
@@ -355,7 +373,8 @@ func convertInstBriefDataFromDB(briefData *InstBriefData) *operation.InstanceBri
 		Metadata: &operation.InstanceMetadata{
 			OperationInstanceID: briefData.OperInstID,
 		},
-		Lifecycle: convertLifeCycleFromDB(briefData.LifeCycle),
+		Lifecycle:                 convertLifeCycleFromDB(briefData.LifeCycle),
+		LatestActionInstBriefData: convertActionInstBriefDataFromDB(briefData.LatestActionInstBriefData),
 	}
 }
 
@@ -370,5 +389,33 @@ func convertLifeCycleFromDB(lifecycle *LifeCycle) *operation.Lifecycle {
 		StartedAt: lifecycle.StartedAt,
 		EndedAt:   lifecycle.EndedAt,
 		StoppedAt: lifecycle.StoppedAt,
+	}
+}
+
+// convertActionInstBriefDataToDB converts action instance brief data to db format.
+func convertActionInstBriefDataToDB(briefData *action.InstanceBriefData) *ActionInstBriefData {
+	if briefData == nil {
+		return nil
+	}
+
+	return &ActionInstBriefData{
+		Name: briefData.Name,
+		Tags: conv.SliceToSlice(briefData.Tags, func(tag action.Tag) string {
+			return string(tag)
+		}),
+	}
+}
+
+// convertActionInstBriefDataFromDB converts action instance brief data from db format.
+func convertActionInstBriefDataFromDB(briefData *ActionInstBriefData) *action.InstanceBriefData {
+	if briefData == nil {
+		return nil
+	}
+
+	return &action.InstanceBriefData{
+		Name: briefData.Name,
+		Tags: conv.SliceToSlice(briefData.Tags, func(tag string) action.Tag {
+			return action.Tag(tag)
+		}),
 	}
 }

@@ -11,11 +11,13 @@
 package workflow
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -188,4 +190,55 @@ func (s *Storage) getLatestOperationInstanceStatusDistributionByTriggerID(
 	}
 
 	return distribution, nil
+}
+
+// listOperation lists operation by page and condition.
+func (s *Storage) listOperation(nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowOperationCondition) ([]*workoper.Operation, int64, error) {
+	if nCtx == nil {
+		return nil, 0, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertOperationConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, 0, err
+	}
+	return s.daoOperation.List(nCtx, page, opts...)
+}
+
+// countOperation counts operation by condition.
+func (s *Storage) countOperation(nCtx contextx.IContext, conditions ...*types.NodeWorkflowOperationCondition) (int64, error) {
+	if nCtx == nil {
+		return 0, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertOperationConditionsToOptions(conditions...)
+	if err != nil {
+		return 0, err
+	}
+
+	return s.daoOperation.Count(nCtx, opts...)
+}
+
+func convertOperationConditionsToOptions(conditions ...*types.NodeWorkflowOperationCondition) ([]operation.OptFn, error) {
+	opts := make([]operation.OptFn, 0)
+
+	for _, condition := range conditions {
+		if condition == nil {
+			continue
+		}
+
+		if condition.ExactInclude != nil {
+			opts = append(opts, operation.WithTriggerID(condition.ExactInclude.TriggerID...))
+			opts = append(opts, operation.WithLatestInstState(
+				conv.SliceToSlice(condition.ExactInclude.State, func(status types.NodeWorkflowOperationState) string {
+					return string(status)
+				})...))
+		}
+
+		if condition.ExactExclude != nil || condition.FuzzyExclude != nil || condition.FuzzyInclude != nil {
+			return nil, errors.New("exact exclude, fuzzy exclude, fuzzy include is not supported")
+		}
+	}
+
+	return opts, nil
 }

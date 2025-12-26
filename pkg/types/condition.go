@@ -402,14 +402,8 @@ type NodeWorkflowCondition struct {
 
 // NodeWorkflowOperationExactFields defines the condition of list operation.
 type NodeWorkflowOperationExactFields struct {
-	TriggerID     string
-	WorkflowID    string
-	State         []NodeWorkflowOperationState
-	InnerIP       []string
-	InnerIPv6     []string
-	BizID         []int64
-	NetworkAreaID []int64
-	NodeVersion   []string
+	TriggerID []string
+	State     []NodeWorkflowOperationState
 }
 
 // NodeWorkflowOperationFuzzyFields defines the node workflow operation fuzzy fields.
@@ -429,6 +423,36 @@ type NodeWorkflowOperationCondition struct {
 
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *NodeWorkflowOperationFuzzyFields
+}
+
+// ApplicationOperationListExactFields defines the exact fields for application operation list.
+type ApplicationOperationListExactFields struct {
+	BizID         []int64
+	HostInnerIP   []string
+	HostInnerIPV6 []string
+	NetworkAreaID []int64
+	NetworkUnitID []int64
+	NodeVersion   []string
+	State         []NodeWorkflowOperationState
+}
+
+// ApplicationOperationListFuzzyFields defines the fuzzy fields for application operation list.
+type ApplicationOperationListFuzzyFields struct {
+}
+
+// ApplicationOperationListCondition defines the application operation list condition.
+type ApplicationOperationListCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ApplicationOperationListExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ApplicationOperationListFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *ApplicationOperationListExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *ApplicationOperationListFuzzyFields
 }
 
 // PluginWorkflowExactFields defines the plugin workflow exact fields.

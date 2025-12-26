@@ -45,7 +45,9 @@ type Operation struct {
 	InstanceIDs []string
 	Param       Param
 	RetryFlags  []RetryFlag
-	// the latest instance brief data. currently support lifecycle and instance-id.
+	CreateTime  time.Time
+	// the latest instance brief data.
+	// currently support lifecycle, last inst action and instance-id.
 	LatestInstBriefData *InstanceBriefData
 }
 

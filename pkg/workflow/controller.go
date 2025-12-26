@@ -229,6 +229,7 @@ func (ctl *controller) CreateOperation(nCtx contextx.IContext, operationDef oper
 		TriggerID:   ctl.trig.TriggerID,
 		Definition:  operationDef,
 		Param:       param,
+		CreateTime:  time.Now(),
 	}
 
 	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, oper); err != nil {
