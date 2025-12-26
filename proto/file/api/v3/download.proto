@@ -34,6 +34,18 @@ message DownloadInstallerReq {
   string cpu_arch = 2;
 }
 
+// DownloadCertReq is the request for download cert pkg.
+message DownloadCertReq { int64 generation = 1; }
+
+// DownloadBinToolReq is the request for download bintool pkg.
+message DownloadBinToolReq { int64 generation = 1; }
+
+// DownloadPluginBinToolReq is the request for download plugin bintool pkg.
+message DownloadPluginBinToolReq {
+  int64 generation = 1;
+  string name = 2;
+}
+
 // FileChunk describes the file chunk data.
 message FileChunk { bytes content = 1; }
 
@@ -67,6 +79,31 @@ service Download {
   rpc DownloadInstaller(DownloadInstallerReq) returns (stream FileChunk) {
     option (google.api.http) = {
       post : "/download/installer"
+      body : "*"
+    };
+  }
+
+  // DownloadCert provides downloading cert.
+  rpc DownloadCert(DownloadCertReq) returns (stream FileChunk) {
+    option (google.api.http) = {
+      post : "/download/cert"
+      body : "*"
+    };
+  }
+
+  // DownloadBinTool provides downloading bintool.
+  rpc DownloadBinTool(DownloadBinToolReq) returns (stream FileChunk) {
+    option (google.api.http) = {
+      post : "/download/bintool"
+      body : "*"
+    };
+  }
+
+  // DownloadPluginBinTool provides downloading plugin bintool.
+  rpc DownloadPluginBinTool(DownloadPluginBinToolReq)
+      returns (stream FileChunk) {
+    option (google.api.http) = {
+      post : "/download/plugin_bintool"
       body : "*"
     };
   }

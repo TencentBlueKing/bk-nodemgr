@@ -943,6 +943,9 @@ message PackageReleaseCertDeleteResp {
   Data data = 5;
 }
 
+// PackageReleaseCertDownloadReq is the request for download cert pkg.
+message PackageReleaseCertDownloadReq { int64 generation = 1; }
+
 // PackageReleaseBinToolListReq describes the HTTP request body when list
 // bintool release.
 message PackageReleaseBinToolListReq { int64 generation = 1; }
@@ -977,6 +980,9 @@ message PackageReleaseBinToolDeleteResp {
   message Data {}
   Data data = 5;
 }
+
+// PackageReleaseBinToolDownloadReq is the request for download bintool pkg.
+message PackageReleaseBinToolDownloadReq { int64 generation = 1; }
 
 // PackageReleasePluginBinToolListReq describes the HTTP request body when list
 // plugin-bintool release.
@@ -1014,6 +1020,13 @@ message PackageReleasePluginBinToolDeleteResp {
 
   message Data {}
   Data data = 5;
+}
+
+// PackageReleasePluginBinToolDownloadReq is the request for download plugin
+// bintool pkg.
+message PackageReleasePluginBinToolDownloadReq {
+  int64 generation = 1;
+  string name = 2;
 }
 
 // FileChunk describes the file chunk data.

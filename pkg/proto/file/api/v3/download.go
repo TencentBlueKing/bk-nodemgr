@@ -105,3 +105,46 @@ func (x *DownloadInstallerReq) Validate() error {
 // AutoConvert auto convert.
 func (x *DownloadInstallerReq) AutoConvert() {
 }
+
+// Validate check request body.
+func (x *DownloadCertReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *DownloadCertReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *DownloadBinToolReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *DownloadBinToolReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *DownloadPluginBinToolReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	if x.GetName() == "" {
+		return errors.New("name is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *DownloadPluginBinToolReq) AutoConvert() {
+}

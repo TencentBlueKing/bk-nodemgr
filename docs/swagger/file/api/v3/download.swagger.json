@@ -59,6 +59,92 @@
         ]
       }
     },
+    "/download/bintool": {
+      "post": {
+        "summary": "DownloadBinTool provides downloading bintool.",
+        "operationId": "Download_DownloadBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3FileChunk"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadBinToolReq is the request for download bintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadBinToolReq"
+            }
+          }
+        ],
+        "tags": [
+          "Download"
+        ]
+      }
+    },
+    "/download/cert": {
+      "post": {
+        "summary": "DownloadCert provides downloading cert.",
+        "operationId": "Download_DownloadCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3FileChunk"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadCertReq is the request for download cert pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadCertReq"
+            }
+          }
+        ],
+        "tags": [
+          "Download"
+        ]
+      }
+    },
     "/download/installer": {
       "post": {
         "summary": "DownloadInstaller provides downloading installer.",
@@ -137,6 +223,49 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3DownloadAgentReq"
+            }
+          }
+        ],
+        "tags": [
+          "Download"
+        ]
+      }
+    },
+    "/download/plugin_bintool": {
+      "post": {
+        "summary": "DownloadPluginBinTool provides downloading plugin bintool.",
+        "operationId": "Download_DownloadPluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v3FileChunk"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "DownloadPluginBinToolReq is the request for download plugin bintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3DownloadPluginBinToolReq"
             }
           }
         ],
@@ -237,6 +366,26 @@
       },
       "description": "DownloadAgentReq is the request for download agent pkg."
     },
+    "v3DownloadBinToolReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "DownloadBinToolReq is the request for download bintool pkg."
+    },
+    "v3DownloadCertReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "DownloadCertReq is the request for download cert pkg."
+    },
     "v3DownloadInstallerReq": {
       "type": "object",
       "properties": {
@@ -248,6 +397,19 @@
         }
       },
       "description": "DownloadInstallerReq is the request for download installer."
+    },
+    "v3DownloadPluginBinToolReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "description": "DownloadPluginBinToolReq is the request for download plugin bintool pkg."
     },
     "v3DownloadProxyReq": {
       "type": "object",

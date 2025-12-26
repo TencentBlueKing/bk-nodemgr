@@ -385,6 +385,49 @@ func (x *PackageReleasePluginDownloadReq) AutoConvert() {
 }
 
 // Validate check request body.
+func (x *PackageReleaseCertDownloadReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleaseCertDownloadReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *PackageReleaseBinToolDownloadReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleaseBinToolDownloadReq) AutoConvert() {
+}
+
+// Validate check request body.
+func (x *PackageReleasePluginBinToolDownloadReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	if x.GetName() == "" {
+		return errors.New("name is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageReleasePluginBinToolDownloadReq) AutoConvert() {
+}
+
+// Validate check request body.
 func (x *PackageUploadOriginPluginV2Req) Validate() error {
 	return nil
 }
