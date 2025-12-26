@@ -79,14 +79,17 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	// release cert.
 	h.rg.POST("/cert/list", restserver.Handler(h.ListReleaseCert))
 	h.rg.POST("/cert/delete", restserver.Handler(h.DeleteReleaseCert))
+	h.rg.POST("/cert/download", restserver.StreamHandler(h.DownloadReleaseCert))
 
 	// release bintool.
 	h.rg.POST("/bintool/list", restserver.Handler(h.ListReleaseBinTool))
 	h.rg.POST("/bintool/delete", restserver.Handler(h.DeleteReleaseBinTool))
+	h.rg.POST("/bintool/download", restserver.StreamHandler(h.DownloadReleaseBinTool))
 
 	// release plugin bintool.
 	h.rg.POST("/plugin_bintool/list", restserver.Handler(h.ListReleasePluginBinTool))
 	h.rg.POST("/plugin_bintool/delete", restserver.Handler(h.DeleteReleasePluginBinTool))
+	h.rg.POST("/plugin_bintool/download", restserver.StreamHandler(h.DownloadReleasePluginBinTool))
 }
 
 const (
@@ -915,6 +918,27 @@ func (h *handler) DeleteReleaseCert(rCtx restserver.IContext) (interface{}, erro
 	return resp.GetData(), nil
 }
 
+// DownloadReleaseCert download release cert.
+func (h *handler) DownloadReleaseCert(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	req := new(protoApplication.PackageReleaseCertDownloadReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release cert, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	resp, err := h.fileHandler.DownloadReleaseCert(rCtx, gen)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release cert: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen).Info("downloaded release cert")
+
+	return resp, nil
+}
+
 // ==================== Release BinTool ====================
 
 // ListReleaseBinTool lists bintool releases.
@@ -961,6 +985,27 @@ func (h *handler) DeleteReleaseBinTool(rCtx restserver.IContext) (interface{}, e
 	resp := new(protoApplication.PackageReleaseBinToolDeleteResp)
 
 	return resp.GetData(), nil
+}
+
+// DownloadReleaseBinTool download release bintool.
+func (h *handler) DownloadReleaseBinTool(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	req := new(protoApplication.PackageReleaseBinToolDownloadReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release bintool, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	resp, err := h.fileHandler.DownloadReleaseBinTool(rCtx, gen)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release bintool: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen).Info("downloaded release bintool")
+
+	return resp, nil
 }
 
 // ==================== Release Plugin BinTool ====================
@@ -1010,4 +1055,26 @@ func (h *handler) DeleteReleasePluginBinTool(rCtx restserver.IContext) (interfac
 	resp := new(protoApplication.PackageReleasePluginBinToolDeleteResp)
 
 	return resp.GetData(), nil
+}
+
+// DownloadReleasePluginBinTool download release plugin bintool.
+func (h *handler) DownloadReleasePluginBinTool(rCtx restserver.IContext) (*restserver.StreamResponse, error) {
+	req := new(protoApplication.PackageReleasePluginBinToolDownloadReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin bintool, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	gen := types.Generation(req.GetGeneration())
+	name := req.GetName()
+	resp, err := h.fileHandler.DownloadReleasePluginBinTool(rCtx, gen, name)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin bintool: %v", err)
+
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", gen, "name", name).Info("downloaded release plugin bintool")
+
+	return resp, nil
 }
