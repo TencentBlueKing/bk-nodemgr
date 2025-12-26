@@ -39,6 +39,7 @@ func (h *handler) GetMainConfig(rCtx restserver.IContext) (*restserver.FileRespo
 
 	var data io.ReadCloser
 	var size int64
+	var fileName string
 	for _, config := range configDetails {
 		if !config.IsMainConfig {
 			continue
@@ -46,6 +47,7 @@ func (h *handler) GetMainConfig(rCtx restserver.IContext) (*restserver.FileRespo
 
 		data = io.NopCloser(strings.NewReader(config.Content))
 		size = int64(len(config.Content))
+		fileName = config.Name
 		logger.G.Biz(rCtx).With("file", config.Name, "size", size).Info("got main config")
 
 		break
@@ -55,7 +57,7 @@ func (h *handler) GetMainConfig(rCtx restserver.IContext) (*restserver.FileRespo
 		Data:        data,
 		Size:        size,
 		FilePath:    "",
-		FileName:    "",
+		FileName:    fileName,
 		ContentType: restserver.MIMETypeText,
 		Headers:     nil,
 	}
