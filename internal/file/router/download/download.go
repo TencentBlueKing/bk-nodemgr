@@ -41,4 +41,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 	h.rg.POST("/agent", restserver.FileHandler(h.Agent))
 	h.rg.POST("/proxy", restserver.FileHandler(h.Proxy))
 	h.rg.POST("/plugin", restserver.FileHandler(h.Plugin))
+	h.rg.POST("/cert", restserver.FileHandler(h.Cert))
+	h.rg.POST("/bintool", restserver.FileHandler(h.BinTool))
+	h.rg.POST("/plugin_bintool", restserver.FileHandler(h.PluginBinTool))
 }

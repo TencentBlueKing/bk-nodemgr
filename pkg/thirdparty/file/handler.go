@@ -141,6 +141,15 @@ type IPkgDownloadHandler interface {
 
 	// DownloadReleasePlugin download release plugin.
 	DownloadReleasePlugin(nCtx contextx.IContext, pluginPkgName string, plat platfmt.Platform, version string) (*restserver.StreamResponse, error)
+
+	// DownloadReleaseCert download release cert.
+	DownloadReleaseCert(nCtx contextx.IContext, gen types.Generation) (*restserver.StreamResponse, error)
+
+	// DownloadReleaseBinTool download release bintool.
+	DownloadReleaseBinTool(nCtx contextx.IContext, gen types.Generation) (*restserver.StreamResponse, error)
+
+	// DownloadReleasePluginBinTool download release plugin bintool.
+	DownloadReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (*restserver.StreamResponse, error)
 }
 
 const (
@@ -370,6 +379,61 @@ func (h *handler) DownloadReleasePlugin(nCtx contextx.IContext,
 	resp, err := h.cli.downloadReleasePlugin(nCtx, tenantID, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download release plugin: %w", err)
+	}
+
+	return resp, nil
+}
+
+// DownloadReleaseCert download release cert.
+func (h *handler) DownloadReleaseCert(nCtx contextx.IContext, gen types.Generation) (*restserver.StreamResponse, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.DownloadCertReq{
+		Generation: int64(gen),
+	}
+	resp, err := h.cli.downloadReleaseCert(nCtx, tenantID, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download release cert: %w", err)
+	}
+
+	return resp, nil
+}
+
+// DownloadReleaseBinTool download release bintool.
+func (h *handler) DownloadReleaseBinTool(nCtx contextx.IContext, gen types.Generation) (*restserver.StreamResponse, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.DownloadBinToolReq{
+		Generation: int64(gen),
+	}
+	resp, err := h.cli.downloadReleaseBinTool(nCtx, tenantID, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download release bintool: %w", err)
+	}
+
+	return resp, nil
+}
+
+// DownloadReleasePluginBinTool download release plugin bintool.
+func (h *handler) DownloadReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (*restserver.StreamResponse, error) {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.DownloadPluginBinToolReq{
+		Generation: int64(gen),
+		Name:       name,
+	}
+	resp, err := h.cli.downloadReleasePluginBinTool(nCtx, tenantID, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download release plugin bintool: %w", err)
 	}
 
 	return resp, nil

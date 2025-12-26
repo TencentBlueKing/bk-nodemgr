@@ -12,6 +12,7 @@ package manager
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"time"
 
@@ -32,6 +33,9 @@ type IPluginBinTool interface {
 
 	// PublishReleasePluginBinTool generate release plugin bintool package.
 	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error
+
+	// EnsurePluginBinToolToLocal ensure plugin bintool to local.
+	EnsurePluginBinToolToLocal(nCtx contextx.IContext, gen types.Generation, name string) (fileiface.File, string, error)
 }
 
 const (
@@ -340,6 +344,17 @@ func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile f
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release plugin bintool v3")
 
 	return nil
+}
+
+// EnsurePluginBinToolToLocal ensure plugin bintool to local.
+func (m *Manager) EnsurePluginBinToolToLocal(nCtx contextx.IContext, gen types.Generation, name string) (fileiface.File, string, error) {
+	// get plugin bintool from storage.
+	pluginBinTool, err := m.storageRelease.GetReleasePluginBinTool(nCtx, gen, name)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get release plugin bintool: %w", err)
+	}
+
+	return m.ensureReleaseToLocal(nCtx, pluginBinTool.Release)
 }
 
 // nolint: lll

@@ -12,6 +12,7 @@ package manager
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"time"
 
@@ -34,6 +35,9 @@ type ICert interface {
 
 	// PublishReleaseCert generates release cert by upload-id.
 	PublishReleaseCert(nCtx contextx.IContext, uploadID string) error
+
+	// EnsureCertToLocal ensure cert to local.
+	EnsureCertToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error)
 }
 
 // UploadOriginCert uploads origin cert.
@@ -314,6 +318,17 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release cert")
 
 	return nil
+}
+
+// EnsureCertToLocal ensure cert to local.
+func (m *Manager) EnsureCertToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error) {
+	// get cert from storage.
+	cert, err := m.storageRelease.GetReleaseCert(nCtx)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get release cert: %w", err)
+	}
+
+	return m.ensureReleaseToLocal(nCtx, cert.Release)
 }
 
 func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadCloser) (io.ReadCloser, error) {

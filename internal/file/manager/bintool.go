@@ -12,6 +12,7 @@ package manager
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"time"
 
@@ -31,6 +32,9 @@ type IBinTool interface {
 
 	// PublishReleaseBinTool generate release bintool package.
 	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error
+
+	// EnsureBinToolToLocal ensure bintool to local.
+	EnsureBinToolToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error)
 }
 
 const (
@@ -256,6 +260,17 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release bintool")
 
 	return nil
+}
+
+// EnsureBinToolToLocal ensure bintool to local.
+func (m *Manager) EnsureBinToolToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error) {
+	// get bintool from storage.
+	bintool, err := m.storageRelease.GetReleaseBinTool(nCtx, gen)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to get release bintool: %w", err)
+	}
+
+	return m.ensureReleaseToLocal(nCtx, bintool.Release)
 }
 
 const (

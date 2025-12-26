@@ -394,6 +394,84 @@ func (c *cli) downloadReleasePlugin(nCtx contextx.IContext, tenantID string, req
 	}, nil
 }
 
+func (c *cli) downloadReleaseCert(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadCertReq) (
+	*restserver.StreamResponse, error) {
+
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := c.client.Post().
+		SubResourcef("/download/cert").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do()
+	reader, err := result.RawStream()
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	return &restserver.StreamResponse{
+		Data:       reader,
+		StatusCode: result.StatusCode,
+		Headers:    result.Header,
+	}, nil
+}
+
+func (c *cli) downloadReleaseBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadBinToolReq) (
+	*restserver.StreamResponse, error) {
+
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := c.client.Post().
+		SubResourcef("/download/bintool").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do()
+	reader, err := result.RawStream()
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	return &restserver.StreamResponse{
+		Data:       reader,
+		StatusCode: result.StatusCode,
+		Headers:    result.Header,
+	}, nil
+}
+
+func (c *cli) downloadReleasePluginBinTool(nCtx contextx.IContext, tenantID string, req *protoFile.DownloadPluginBinToolReq) (
+	*restserver.StreamResponse, error) {
+
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := c.client.Post().
+		SubResourcef("/download/plugin_bintool").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Body(req).
+		Do()
+	reader, err := result.RawStream()
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	return &restserver.StreamResponse{
+		Data:       reader,
+		StatusCode: result.StatusCode,
+		Headers:    result.Header,
+	}, nil
+}
+
 func (c *cli) publishReleaseProxy(nCtx contextx.IContext, tenantID string, req *protoFile.PublishReleaseProxyReq) (
 	*protoFile.PublishReleaseProxyResp_Data, error) {
 

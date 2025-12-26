@@ -62,7 +62,7 @@ func (h *handler) Plugin(rCtx restserver.IContext) (*restserver.FileResponse, er
 		Size:        info.Size,
 		FilePath:    filepath.Join(".", info.Name),
 		FileName:    info.Name,
-		ContentType: "application/octet-stream",
+		ContentType: restserver.MIMETypeBin,
 	}
 
 	return resp, nil

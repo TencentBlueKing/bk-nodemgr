@@ -77,7 +77,7 @@ func (h *handler) Agent(rCtx restserver.IContext) (*restserver.FileResponse, err
 		Size:        info.Size,
 		FilePath:    filepath.Join(".", info.Name),
 		FileName:    info.Name,
-		ContentType: "application/octet-stream",
+		ContentType: restserver.MIMETypeBin,
 	}
 
 	return resp, nil
@@ -127,7 +127,7 @@ func (h *handler) Proxy(rCtx restserver.IContext) (*restserver.FileResponse, err
 		Size:        info.Size,
 		FilePath:    filepath.Join(".", info.Name),
 		FileName:    info.Name,
-		ContentType: "application/octet-stream",
+		ContentType: restserver.MIMETypeBin,
 	}
 
 	return resp, nil
@@ -181,7 +181,7 @@ func (h *handler) Installer(rCtx restserver.IContext) (*restserver.FileResponse,
 		Size:        info.Size,
 		FilePath:    filepath.Join(".", info.Name),
 		FileName:    info.Name,
-		ContentType: "application/octet-stream",
+		ContentType: restserver.MIMETypeBin,
 	}
 
 	return resp, nil
