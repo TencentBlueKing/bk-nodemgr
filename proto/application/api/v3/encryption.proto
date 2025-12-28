@@ -1,0 +1,31 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// GetRSAPublicKeyReq get rsa public key request message.
+message GetRSAPublicKeyReq {}
+
+// GetRSAPublicKeyResp get rsa public key response message.
+message GetRSAPublicKeyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string public_key = 1; }
+  Data data = 5;
+}
+
+service Encryption {
+  // GetRSAPublicKey get rsa public key.
+  rpc GetRSAPublicKey(GetRSAPublicKeyReq) returns (GetRSAPublicKeyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/encryption/rsa/get_public_key"
+      body : "*"
+    };
+  }
+}

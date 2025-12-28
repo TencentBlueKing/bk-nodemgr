@@ -269,3 +269,20 @@ func generateRSAKeyPair(bits RSAKeySize) (*rsa.PrivateKey, error) {
 
 	return priv, nil
 }
+
+// GetRSAPublicKeyPEMByPrivateKeyPEM extracts the public key PEM from the given private key PEM.
+func GetRSAPublicKeyPEMByPrivateKeyPEM(privPEM []byte) ([]byte, error) {
+	priv, err := parseRSAPrivateKeyFromPEM(privPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse rsa private key: %w", err)
+	}
+
+	pubBytes, err := x509.MarshalPKIXPublicKey(priv.Public())
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal rsa public key: %w", err)
+	}
+
+	pubPEM := pem.EncodeToMemory(&pem.Block{Type: PEMBlockTypePublicKeyType, Bytes: pubBytes})
+
+	return pubPEM, nil
+}

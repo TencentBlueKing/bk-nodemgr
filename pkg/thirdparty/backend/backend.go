@@ -3095,3 +3095,37 @@ func (c *cli) setPluginMemo(ctx contextx.IContext, req *protoBackend.PluginSetMe
 
 	return nil
 }
+
+// ===============================================================================
+// Encryption Related Interfaces
+// ===============================================================================
+
+func (c *cli) getRSAPublicKey(ctx contextx.IContext, req *protoBackend.GetRSAPublicKeyReq) (*protoBackend.GetRSAPublicKeyResp, error) {
+	resp := new(protoBackend.GetRSAPublicKeyResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/encryption/rsa/get_public_key").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("get RSA public key failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("get RSA public key failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}

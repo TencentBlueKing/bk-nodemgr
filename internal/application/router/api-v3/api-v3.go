@@ -13,6 +13,7 @@ package apiv3
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/encryption"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/plugin"
@@ -47,4 +48,5 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 	pkg.Load(h.rg, capability)
 	plugin.Load(h.rg, capability)
 	process.Load(h.rg, capability)
+	encryption.Load(h.rg, capability)
 }
