@@ -47,6 +47,9 @@ type IHandler interface {
 
 	// Exist check a deploy policy exist by conditions.
 	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
+
+	// UpdateExecuteAt update deploy policies execute at.
+	UpdateExecuteAt(nCtx contextx.IContext, filterOpts []OptFn, executeAt time.Time) error
 }
 
 var _ IHandler = &Handler{}
@@ -462,7 +465,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 // Delete delete deploy policy.
 func (h *Handler) Delete(nCtx contextx.IContext, deployPolicyID int64) error {
 	if err := nCtx.CheckTenantID(); err != nil {
-		return fmt.Errorf("failed to check tenant id: %v", err)
+		return fmt.Errorf("failed to check tenant id: %w", err)
 	}
 
 	filter := base.AliveFilter()
@@ -585,4 +588,40 @@ func generateDeployPolicyUpdates(fields types.DeployPolicyFields, deployPolicy *
 	}
 
 	return updates, nil
+}
+
+// UpdateExecuteAt update deploy policies execute at.
+func (h *Handler) UpdateExecuteAt(nCtx contextx.IContext, opts []OptFn, executeAt time.Time) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %v", err)
+	}
+
+	// Validate executeAt is set
+	if executeAt.IsZero() {
+		return base.ErrInvalidParam(fmt.Errorf("execute at time is required"))
+	}
+
+	tenantID := nCtx.TenantID()
+
+	// Parse filter options
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	// Build update document
+	docs := []*base.DocumentFieldUpdate{
+		{
+			Filter: filter,
+			Fields: map[string]any{
+				FieldKeyLifeCycleExecuteAt: executeAt,
+			},
+		},
+	}
+
+	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
+		return fmt.Errorf("failed to update deploy policies execute at: %v", err)
+	}
+
+	return nil
 }

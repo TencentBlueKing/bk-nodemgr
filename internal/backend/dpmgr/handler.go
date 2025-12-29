@@ -13,8 +13,11 @@ package dpmgr
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -36,6 +39,8 @@ type Handler struct {
 
 	analyzer IAnalyzer
 	executor IExecutor
+
+	domainDeployPolicyMgr deploypolicy.IDomainDeployPolicyMgr
 }
 
 const (
@@ -45,7 +50,7 @@ const (
 // NewHandler creates a new handler.
 func NewHandler(conf *Config) *Handler {
 	policyDiscovery := NewPolicyDiscovery(&PolicyDiscoveryConfig{
-		DomainDeployPolicyDiscover: conf.DomainDeployPolicyDiscover,
+		DomainDeployPolicyMgr: conf.DomainDeployPolicyMgr,
 	})
 
 	calculator := NewScopeCalculator(&CalculatorConfig{
@@ -65,11 +70,12 @@ func NewHandler(conf *Config) *Handler {
 	})
 
 	return &Handler{
-		policyDiscovery:  policyDiscovery,
-		calculator:       calculator,
-		conflictResolver: conflictResolver,
-		analyzer:         analyzer,
-		executor:         executor,
+		domainDeployPolicyMgr: conf.DomainDeployPolicyMgr,
+		policyDiscovery:       policyDiscovery,
+		calculator:            calculator,
+		conflictResolver:      conflictResolver,
+		analyzer:              analyzer,
+		executor:              executor,
 	}
 }
 
@@ -113,6 +119,16 @@ func (h *Handler) Do(nCtx contextx.IContext, originDeployPolicies ...*types.Depl
 	// 5. executor and execute the change tasks.
 	if err := h.executor.Execute(nCtx, changeTasks...); err != nil {
 		return fmt.Errorf("failed to execute change tasks: %w", err)
+	}
+
+	// 6. update the deploy policy status.
+	deployPoliciesIDs := conv.SliceToSlice(relatedDeployPolicies, func(policy *types.DeployPolicy) int64 {
+		return policy.DeployPolicyID
+	})
+
+	err = h.domainDeployPolicyMgr.UpdateDeployPoliciesExecuteAt(nCtx, deployPoliciesIDs, time.Now())
+	if err != nil {
+		return fmt.Errorf("failed to update deploy policy status: %w", err)
 	}
 
 	return nil

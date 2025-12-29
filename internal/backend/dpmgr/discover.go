@@ -28,18 +28,18 @@ var _ IPolicyDiscovery = &PolicyDiscovery{}
 
 // PolicyDiscovery defines the policy discovery.
 type PolicyDiscovery struct {
-	domainDeployPolicyDiscover deploypolicy.IDomainDeployPolicyDiscover
+	domainDeployPolicyMgr deploypolicy.IDomainDeployPolicyMgr
 }
 
 // PolicyDiscoveryConfig defines the config of policy discovery.
 type PolicyDiscoveryConfig struct {
-	DomainDeployPolicyDiscover deploypolicy.IDomainDeployPolicyDiscover
+	DomainDeployPolicyMgr deploypolicy.IDomainDeployPolicyMgr
 }
 
 // NewPolicyDiscovery creates a new policy discovery.
 func NewPolicyDiscovery(conf *PolicyDiscoveryConfig) *PolicyDiscovery {
 	return &PolicyDiscovery{
-		domainDeployPolicyDiscover: conf.DomainDeployPolicyDiscover,
+		domainDeployPolicyMgr: conf.DomainDeployPolicyMgr,
 	}
 }
 
@@ -188,7 +188,7 @@ func (discover *PolicyDiscovery) discoverPoliciesBySpec(nCtx contextx.IContext, 
 			return nil, fmt.Errorf("failed to get spec specify plugin param: %w", err)
 		}
 
-		policies, err := discover.domainDeployPolicyDiscover.DiscoverPoliciesBySpecifyPlugin(nCtx, param)
+		policies, err := discover.domainDeployPolicyMgr.DiscoverPoliciesBySpecifyPlugin(nCtx, param)
 		if err != nil {
 			return nil, fmt.Errorf("failed to discover policies by specify plugin: %w", err)
 		}

@@ -14,6 +14,7 @@ package deploypolicy
 
 import (
 	"errors"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -75,13 +76,16 @@ func (s *Storage) check() error {
 }
 
 const (
-	metricCreateDeployPolicy              = "create_deploy_policy"
-	metricListDeployPolicies              = "list_deploy_policies"
-	metricGetDeployPolicyByID             = "get_deploy_policy_by_id"
-	metricUpdateDeployPolicyFields        = "update_deploy_policy_fields"
-	metricDeleteDeployPolicy              = "delete_deploy_policy"
-	metricExistDeployPolicy               = "exist_deploy_policy"
+	metricCreateDeployPolicy       = "create_deploy_policy"
+	metricListDeployPolicies       = "list_deploy_policies"
+	metricGetDeployPolicyByID      = "get_deploy_policy_by_id"
+	metricUpdateDeployPolicyFields = "update_deploy_policy_fields"
+	metricDeleteDeployPolicy       = "delete_deploy_policy"
+	metricExistDeployPolicy        = "exist_deploy_policy"
+
+	// ==================== IDomainDeployPolicyMgr Functions ====================
 	metricDiscoverPoliciesBySpecifyPlugin = "discover_policies_by_specify_plugin"
+	metricUpdateDeployPoliciesExecuteAt   = "update_deploy_policies_execute_at"
 )
 
 // CreateDeployPolicy create deploy policy.
@@ -97,7 +101,7 @@ func (s *Storage) CreateDeployPolicy(nCtx contextx.IContext, deployPolicy *types
 		return err
 	})
 	if err != nil {
-		return 0, err
+		return -1, err
 	}
 
 	return deployPolicyID, nil
@@ -153,9 +157,7 @@ func (s *Storage) UpdateDeployPolicyFields(nCtx contextx.IContext, fields types.
 	)
 
 	err = s.WrapFn(nCtx, metricUpdateDeployPolicyFields, func(nCtx contextx.IContext) error {
-		err = s.updateDeployPolicyFields(nCtx, fields, deployPolicy...)
-
-		return err
+		return s.updateDeployPolicyFields(nCtx, fields, deployPolicy...)
 	})
 	if err != nil {
 		return err
@@ -201,6 +203,8 @@ func (s *Storage) ExistDeployPolicy(nCtx contextx.IContext, condition *types.Dep
 	return exist, nil
 }
 
+// ==================== IDomainDeployPolicyMgr Functions ====================
+
 // DiscoverPoliciesBySpecifyPlugin discover policies by specify plugin.
 func (s *Storage) DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error) {
 	var (
@@ -218,4 +222,22 @@ func (s *Storage) DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param 
 	}
 
 	return policies, nil
+}
+
+// UpdateDeployPoliciesExecuteAt update deploy policies execute at.
+func (s *Storage) UpdateDeployPoliciesExecuteAt(nCtx contextx.IContext, deployPolicyIDs []int64, executeAt time.Time) error {
+	var (
+		err error
+	)
+
+	err = s.WrapFn(nCtx, metricUpdateDeployPoliciesExecuteAt, func(nCtx contextx.IContext) error {
+		err = s.updateDeployPoliciesExecuteAt(nCtx, deployPolicyIDs, executeAt)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

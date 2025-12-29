@@ -11,6 +11,8 @@
 package deploypolicy
 
 import (
+	"time"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -21,7 +23,7 @@ type IStorage interface {
 	basestorage.Interface
 
 	IDaoDeployPolicy
-	IDomainDeployPolicyDiscover
+	IDomainDeployPolicyMgr
 }
 
 // IDaoDeployPolicy defines the deploy policy dao interface.
@@ -45,8 +47,11 @@ type IDaoDeployPolicy interface {
 	ExistDeployPolicy(nCtx contextx.IContext, condition *types.DeployPolicyCondition) (bool, error)
 }
 
-// IDomainDeployPolicyDiscover defines the deploy policy discover interface.
-type IDomainDeployPolicyDiscover interface {
+// IDomainDeployPolicyMgr defines the deploy policy manager interface.
+type IDomainDeployPolicyMgr interface {
 	// DiscoverPoliciesBySpecifyPlugin discover policies by specify plugin.
 	DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error)
+
+	// UpdateDeployPoliciesExecuteAt update deploy policies execute at.
+	UpdateDeployPoliciesExecuteAt(nCtx contextx.IContext, deployPolicyIDs []int64, executeAt time.Time) error
 }
