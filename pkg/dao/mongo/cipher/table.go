@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package asymmetricencryption provides the dao layer for asymmetric encryption table.
-package asymmetricencryption
+// Package cipher provides the dao layer for cipher table.
+package cipher
 
 import (
 	"fmt"
@@ -18,29 +18,30 @@ import (
 )
 
 // TableName accesspoint table name.
-func TableName() string {
-	return "asymmetricencryption"
+func TableName(tenantID string) string {
+	return fmt.Sprintf("cipher_%s", tenantID)
 }
 
-var _ base.IData = &AsymmetricEncryption{}
+var _ base.IData = &Cipher{}
 
-// AsymmetricEncryption represents an access point for asymmetric encryption.
-type AsymmetricEncryption struct {
-	CipherType  string `json:"cipher_type" bson:"cipher_type"`
+// Cipher represents an access point for cipher storage.
+type Cipher struct {
+	Name        string `json:"name" bson:"name"`
 	KeyType     string `json:"key_type" bson:"key_type"`
 	Description string `json:"description" bson:"description"`
-	Content     []byte `json:"content" bson:"content"`
+	PrivateKey  []byte `json:"private_key" bson:"private_key"`
+	PublicKey   []byte `json:"public_key" bson:"public_key"`
 }
 
 // UniqueFields unique fields of the table.
-func (a *AsymmetricEncryption) UniqueFields() []string {
-	return []string{FieldKeyCipherType, FieldKeyKeyType}
+func (a *Cipher) UniqueFields() []string {
+	return []string{FieldKeyName}
 }
 
 // UniqueKey unique key of the table.
-func (a *AsymmetricEncryption) UniqueKey() string {
-	return fmt.Sprintf("%s_%s", a.CipherType, a.KeyType)
+func (a *Cipher) UniqueKey() string {
+	return a.Name
 }
 
 // TableAccessPoint represent the complete db structures of a access point.
-type TableAccessPoint base.TableBroker[*AsymmetricEncryption]
+type TableAccessPoint base.TableBroker[*Cipher]

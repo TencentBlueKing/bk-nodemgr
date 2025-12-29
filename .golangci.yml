@@ -791,7 +791,7 @@ linters-settings:
         alias: managerIface
       - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr
         alias: dpmgr
-      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/asymmetricencryption
-        alias: asymmetricencryptionStg
-      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/asymmetric-encryption
-        alias: daoAsymmetricEncryption
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher
+        alias: cipherStg
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/cipher
+        alias: daoCipher

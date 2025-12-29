@@ -27,7 +27,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
-	asymmetricencryptionStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/asymmetricencryption"
+	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
@@ -551,10 +551,9 @@ func (svc *Service) initialStorages() error {
 		return fmt.Errorf("failed to create tenant storage: %w", err)
 	}
 
-	svc.Cap.StorageAsymmetricEncryption, err = asymmetricencryptionStg.NewStorage(
+	svc.Cap.StorageCipher, err = cipherStg.NewStorage(
 		svc.Cap.MongoClient,
 		svc.conf.MongoDB.Database,
-		rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create asymmetric encryption storage: %w", err)

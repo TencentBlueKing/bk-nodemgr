@@ -81,29 +81,3 @@ func TestRSA_Crypter(t *testing.T) {
 		})
 	}
 }
-
-// TestRSA_GenerateKeyPairPEMAndParse verifies PEM generation and parsing helpers.
-func TestRSA_GenerateKeyPairPEMAndParse(t *testing.T) {
-	privPEM, pubPEM, err := GenerateRSAKeyPairPEM(RSAKeySize2048)
-	if err != nil {
-		t.Fatalf("GenerateRSAKeyPairPEM() error = %v", err)
-	}
-
-	if len(privPEM) == 0 || len(pubPEM) == 0 {
-		t.Fatalf("generated PEM data should not be empty")
-	}
-
-	priv, err := parseRSAPrivateKeyFromPEM(privPEM)
-	if err != nil {
-		t.Fatalf("ParseRSAPrivateKeyFromPEM() error = %v", err)
-	}
-
-	pub, err := parseRSAPublicKeyFromPEM(pubPEM)
-	if err != nil {
-		t.Fatalf("ParseRSAPublicKeyFromPEM() error = %v", err)
-	}
-
-	if priv.PublicKey.N.Cmp(pub.N) != 0 || priv.PublicKey.E != pub.E {
-		t.Fatalf("parsed public key does not match private key's public part")
-	}
-}

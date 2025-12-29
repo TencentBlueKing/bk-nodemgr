@@ -8,15 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package asymmetricencryption
+package cipher
 
 const (
+	// FieldKeyName the name field key.
+	FieldKeyName = "data.name"
+
 	// FieldKeyKeyType the key-type field key.
 	FieldKeyKeyType = "data.key_type"
-
-	// FieldKeyCipherType the cipher-type field key.
-	FieldKeyCipherType = "data.cipher_type"
-
-	// FieldKeyContent the content field key.
-	FieldKeyContent = "data.content"
 )

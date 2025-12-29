@@ -8,12 +8,22 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package asymmetricencryption
+package cipher
 
 import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 
 // OptFn provides filtering options.
 type OptFn = base.OptFn
+
+// WithName filters by name.
+func WithName(names ...string) OptFn {
+	return base.WithValues(FieldKeyName, names...)
+}
+
+// WithoutName filters by not contains name.
+func WithoutName(names ...string) OptFn {
+	return base.WithoutValues(FieldKeyName, names...)
+}
 
 // WithKeyType filters by key-type.
 func WithKeyType(keyTypes ...string) OptFn {
@@ -23,14 +33,4 @@ func WithKeyType(keyTypes ...string) OptFn {
 // WithoutKeyType filters by not contains key-type.
 func WithoutKeyType(keyTypes ...string) OptFn {
 	return base.WithoutValues(FieldKeyKeyType, keyTypes...)
-}
-
-// WithCipherType filters by cipher-type.
-func WithCipherType(cipherTypes ...string) OptFn {
-	return base.WithValues(FieldKeyCipherType, cipherTypes...)
-}
-
-// WithoutCipherType filters by not contains cipher-type.
-func WithoutCipherType(cipherTypes ...string) OptFn {
-	return base.WithoutValues(FieldKeyCipherType, cipherTypes...)
 }

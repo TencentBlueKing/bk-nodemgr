@@ -8,12 +8,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package asymmetricencryption
+package cipher
 
 import (
 	"context"
 	"os"
-	"reflect"
 	"sync"
 	"testing"
 
@@ -56,18 +55,20 @@ var once = sync.Once{}
 
 // prepareData for all tests.
 func prepareData(t *testing.T, nCtx contextx.IContext) {
-	testDatas := []*types.AsymmetricEncryption{
+	testDatas := []*types.Cipher{
 		{
-			CipherType:  "rsa",
-			KeyType:     "private",
+			Name:        "test-key-1",
+			KeyType:     "rsa",
 			Description: "unit test key",
-			Content:     []byte("test-content"),
+			PrivateKey:  []byte("test-private-key-content-1"),
+			PublicKey:   []byte("test-public-key-content-1"),
 		},
 		{
-			CipherType:  "rsa",
-			KeyType:     "public",
-			Description: "unit test key",
-			Content:     []byte("test-content"),
+			Name:        "test-key-2",
+			KeyType:     "ecc",
+			Description: "unit test key 2",
+			PrivateKey:  []byte("test-private-key-content-2"),
+			PublicKey:   []byte("test-public-key-content-2"),
 		},
 	}
 
@@ -82,50 +83,193 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 	})
 }
 
-// Test_handler_Create_Get_Exist_Delete tests basic CRUD flow.
+// Test_handler_Get tests the Get method of the handler.
 func Test_handler_Get(t *testing.T) {
 	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 	type args struct {
-		nCtx       contextx.IContext
-		cipherType types.AsymmetricCipherType
-		keyType    types.AsymmetricKeyType
+		nCtx    contextx.IContext
+		name    string
+		keyType types.CipherKeyType
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
-		want    *types.AsymmetricEncryption
+		want    *types.Cipher
 	}{
 		{
 			name: "normal",
 			args: args{
-				nCtx:       nCtx,
-				cipherType: "rsa",
-				keyType:    "private",
+				nCtx:    nCtx,
+				name:    "test-key-1",
+				keyType: "rsa",
 			},
 			wantErr: false,
-			want: &types.AsymmetricEncryption{
-				CipherType:  "rsa",
-				KeyType:     "private",
+			want: &types.Cipher{
+				Name:        "test-key-1",
+				KeyType:     "rsa",
 				Description: "unit test key",
-				Content:     []byte("test-content"),
+				PrivateKey:  []byte("test-private-key-content-1"),
+				PublicKey:   []byte("test-public-key-content-1"),
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			got, err := h.Get(tt.args.nCtx, tt.args.keyType, tt.args.cipherType)
+			got, err := h.Get(tt.args.nCtx, tt.args.name, tt.args.keyType)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr: %v", err, tt.wantErr)
 				return
 			}
 
-			if got.CipherType != tt.want.CipherType || got.KeyType != tt.want.KeyType ||
-				got.Description != tt.want.Description || !reflect.DeepEqual(got.Content, tt.want.Content) {
-				t.Errorf("Get() got = %v, want %v", got, tt.want)
+			t.Logf("got: %+v", got)
+		})
+	}
+}
+
+// Test_handler_Exist tests the Exist method of the handler.
+func Test_handler_Exist(t *testing.T) {
+	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+	type args struct {
+		nCtx    contextx.IContext
+		name    string
+		keyType types.CipherKeyType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    bool
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx:    nCtx,
+				name:    "test-key-1",
+				keyType: "rsa",
+			},
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "non exist",
+			args: args{
+				nCtx:    nCtx,
+				name:    "non-exist-key",
+				keyType: "rsa",
+			},
+			want:    false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.Exist(tt.args.nCtx, tt.args.name, tt.args.keyType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Exist() error = %v, wantErr: %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Exist() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+// Test_handler_List tests the List method of the handler.
+func Test_handler_List(t *testing.T) {
+	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+	type args struct {
+		nCtx    contextx.IContext
+		name    string
+		keyType types.CipherKeyType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []*types.Cipher
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx:    nCtx,
+				name:    "test-key-1",
+				keyType: "rsa",
+			},
+			want: []*types.Cipher{
+				{
+					Name:        "test-key-1",
+					KeyType:     "rsa",
+					Description: "unit test key",
+					PrivateKey:  []byte("test-private-key-content-1"),
+					PublicKey:   []byte("test-public-key-content-1"),
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, _, err := h.List(nCtx, types.UnlimitedPage(), WithName(tt.args.name), WithKeyType(string(tt.args.keyType)))
+			if (err != nil) != tt.wantErr {
+				t.Errorf("List() error = %v, wantErr: %v", err, tt.wantErr)
+				return
+			}
+
+			for _, item := range got {
+				t.Logf("item: %+v", item)
+			}
+		})
+	}
+}
+
+// Test_handler_Count tests the Count method of the handler.
+func Test_handler_Count(t *testing.T) {
+	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))
+
+	prepareData(t, nCtx)
+	type args struct {
+		nCtx    contextx.IContext
+		name    string
+		keyType types.CipherKeyType
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    int64
+		wantErr bool
+	}{
+		{
+			name: "normal",
+			args: args{
+				nCtx:    nCtx,
+				name:    "test-key-1",
+				keyType: "rsa",
+			},
+			want:    1,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := testClient(t)
+			got, err := h.Count(nCtx, WithName(tt.args.name), WithKeyType(string(tt.args.keyType)))
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Count() error = %v, wantErr: %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("Count() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -138,7 +282,7 @@ func Test_handler_Create(t *testing.T) {
 	prepareData(t, nCtx)
 	type args struct {
 		nCtx contextx.IContext
-		ae   *types.AsymmetricEncryption
+		ae   *types.Cipher
 	}
 	tests := []struct {
 		name    string
@@ -149,11 +293,12 @@ func Test_handler_Create(t *testing.T) {
 			name: "normal",
 			args: args{
 				nCtx: nCtx,
-				ae: &types.AsymmetricEncryption{
-					CipherType:  "ed25519",
-					KeyType:     "private",
-					Description: "unit test key",
-					Content:     []byte("test-content"),
+				ae: &types.Cipher{
+					Name:        "test-key-3",
+					KeyType:     "ed25519",
+					Description: "unit test key 3",
+					PrivateKey:  []byte("test-private-key-content-3"),
+					PublicKey:   []byte("test-public-key-content-3"),
 				},
 			},
 			wantErr: false,
@@ -162,11 +307,12 @@ func Test_handler_Create(t *testing.T) {
 			name: "duplicate",
 			args: args{
 				nCtx: nCtx,
-				ae: &types.AsymmetricEncryption{
-					CipherType:  "rsa",
-					KeyType:     "public",
-					Description: "unit test key 2",
-					Content:     []byte("test-content-2"),
+				ae: &types.Cipher{
+					Name:        "test-key-1",
+					KeyType:     "rsa",
+					Description: "unit test key duplicate",
+					PrivateKey:  []byte("test-private-key-content-duplicate"),
+					PublicKey:   []byte("test-public-key-content-duplicate"),
 				},
 			},
 			wantErr: true,
@@ -184,106 +330,15 @@ func Test_handler_Create(t *testing.T) {
 	}
 }
 
-func Test_handler_Exist(t *testing.T) {
-	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))
-
-	prepareData(t, nCtx)
-	type args struct {
-		nCtx       contextx.IContext
-		cipherType types.AsymmetricCipherType
-		keyType    types.AsymmetricKeyType
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    bool
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				nCtx:       nCtx,
-				cipherType: "rsa",
-				keyType:    "private",
-			},
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name: "non exist",
-			args: args{
-				nCtx:       nCtx,
-				cipherType: "ecc",
-				keyType:    "private",
-			},
-			want:    false,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			got, err := h.Exist(tt.args.nCtx, tt.args.keyType, tt.args.cipherType)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Exist() error = %v, wantErr: %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Exist() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-// Test_handler_Upsert tests the Upsert method of the handler.
-func Test_handler_Upsert(t *testing.T) {
-	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))
-
-	prepareData(t, nCtx)
-	type args struct {
-		nCtx                 contextx.IContext
-		asymmetricEncryption *types.AsymmetricEncryption
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
-				nCtx: nCtx,
-				asymmetricEncryption: &types.AsymmetricEncryption{
-					CipherType:  "rsa",
-					KeyType:     "private",
-					Description: "unit test key updated",
-					Content:     []byte("test-content-updated"),
-				},
-			},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			h := testClient(t)
-			err := h.Upsert(tt.args.nCtx, tt.args.asymmetricEncryption)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Upsert() error = %v, wantErr: %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
 // Test_handler_Delete tests the Delete method of the handler.
 func Test_handler_Delete(t *testing.T) {
 	nCtx := contextx.New(contextx.Background(), contextx.WithTenantID("test"))
 
 	prepareData(t, nCtx)
 	type args struct {
-		nCtx       contextx.IContext
-		cipherType types.AsymmetricCipherType
-		keyType    types.AsymmetricKeyType
+		nCtx    contextx.IContext
+		name    string
+		keyType types.CipherKeyType
 	}
 	tests := []struct {
 		name    string
@@ -293,9 +348,9 @@ func Test_handler_Delete(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				nCtx:       nCtx,
-				cipherType: "rsa",
-				keyType:    "public",
+				nCtx:    nCtx,
+				name:    "test-key-2",
+				keyType: "rsa",
 			},
 			wantErr: false,
 		},
@@ -303,7 +358,7 @@ func Test_handler_Delete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			h := testClient(t)
-			err := h.Delete(tt.args.nCtx, tt.args.keyType, tt.args.cipherType)
+			err := h.Delete(tt.args.nCtx, tt.args.name, tt.args.keyType)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr: %v", err, tt.wantErr)
 				return

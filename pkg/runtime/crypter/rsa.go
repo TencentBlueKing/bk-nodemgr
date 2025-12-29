@@ -110,30 +110,6 @@ func NewRSACrypterFromPrivateKey(pemBytes []byte, opts ...RSAOption) (Crypter, e
 	return r, nil
 }
 
-// NewRSACrypterFromPublicKey creates a new RSA crypter from a public key.
-// It only supports encryption.
-func NewRSACrypterFromPublicKey(pemBytes []byte, opts ...RSAOption) (Crypter, error) {
-	if pemBytes == nil {
-		return nil, errors.New("rsa pem public key cannot be nil")
-	}
-
-	pub, err := parseRSAPublicKeyFromPEM(pemBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse rsa public key: %w", err)
-	}
-
-	r := &RSA{
-		pub:   pub,
-		label: []byte(RSADefaultLabel),
-	}
-
-	for _, opt := range opts {
-		opt(r)
-	}
-
-	return r, nil
-}
-
 // Encrypt encrypts the plaintext using RSA-OAEP.
 // The output layout is: RSAVersion(1) + raw RSA ciphertext.
 func (r *RSA) Encrypt(plaintext []byte) ([]byte, error) {
@@ -207,33 +183,6 @@ func parseRSAPrivateKeyFromPEM(pemBytes []byte) (*rsa.PrivateKey, error) {
 	}
 
 	return priv, nil
-}
-
-// parseRSAPublicKeyFromPEM parses an RSA public key from a PEM-encoded block.
-// It supports PKCS#1 and PKIX public key formats.
-func parseRSAPublicKeyFromPEM(pemBytes []byte) (*rsa.PublicKey, error) {
-	block, _ := pem.Decode(pemBytes)
-	if block == nil {
-		return nil, errors.New("invalid pem data for rsa public key")
-	}
-
-	// PKCS1 first if possible
-	if pub, err := x509.ParsePKCS1PublicKey(block.Bytes); err == nil {
-		return pub, nil
-	}
-
-	// then try PKIX
-	key, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse rsa public key: %w", err)
-	}
-
-	pub, ok := key.(*rsa.PublicKey)
-	if !ok {
-		return nil, errors.New("parsed public key is not RSA")
-	}
-
-	return pub, nil
 }
 
 // GenerateRSAKeyPairPEM generates an RSA key pair and returns the PEM-encoded private key and public key.

@@ -8,31 +8,44 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package cipher provides the cipher related API handlers.
 package cipher
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/cipher/rsa"
-	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
-	"github.com/gin-gonic/gin"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type handler struct {
-	rg        *gin.RouterGroup
-	daoCipher cipherStg.IStorage
-}
-
-func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
-	return &handler{
-		rg:        rg.Group("/cipher"),
-		daoCipher: capability.StorageCipher,
+func newDao(tenantID string, client *mongo.Database) *dao {
+	tableName := TableName(tenantID)
+	d := &dao{
+		client:    client.Collection(tableName),
+		tableName: tableName,
 	}
+
+	d.IOrm = base.NewOrm[*Cipher, Cipher](d)
+
+	return d
 }
 
-// Load loads deploy policy handler.
-func Load(rg *gin.RouterGroup, capability *options.Capability) {
-	h := newHandler(rg, capability)
+type dao struct {
+	client    *mongo.Collection
+	tableName string
+	base.IOrm[*Cipher, Cipher]
+}
 
-	rsa.Load(h.rg, capability)
+// GetClient get the dao's client.
+func (d *dao) GetClient() *mongo.Collection {
+	return d.client
+}
+
+// GetTableName get the dao's table name.
+func (d *dao) GetTableName() string {
+	return d.tableName
+}
+
+// GetIndexes get the dao's indexes.
+func (d *dao) GetIndexes() []mongo.IndexModel {
+	var indexes []mongo.IndexModel
+
+	return indexes
 }
