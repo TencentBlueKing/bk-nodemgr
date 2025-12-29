@@ -74,7 +74,7 @@ func NewAnalyzer(conf *AnalyzerConfig) *Analyzer {
 func (analyzer *Analyzer) analyze(nCtx contextx.IContext, params *AnalyzeParams) (
 	[]*ChangeTask, error) {
 
-	switch params.Spec.Type {
+	switch params.Spec.Type() {
 	case types.DeploySpecTypeSpecifyPlugin:
 		return analyzer.analyzeSpecifyPlugin(nCtx, params)
 	case types.DeploySpecTypeSpecifyPluginPkg:

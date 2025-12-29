@@ -21,6 +21,7 @@ type IStorage interface {
 	basestorage.Interface
 
 	IDaoDeployPolicy
+	IDomainDeployPolicyDiscover
 }
 
 // IDaoDeployPolicy defines the deploy policy dao interface.
@@ -42,4 +43,10 @@ type IDaoDeployPolicy interface {
 
 	// ExistDeployPolicy check deploy policy exist.
 	ExistDeployPolicy(nCtx contextx.IContext, condition *types.DeployPolicyCondition) (bool, error)
+}
+
+// IDomainDeployPolicyDiscover defines the deploy policy discover interface.
+type IDomainDeployPolicyDiscover interface {
+	// DiscoverPoliciesBySpecifyPlugin discover policies by specify plugin.
+	DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error)
 }

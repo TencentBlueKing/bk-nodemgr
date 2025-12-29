@@ -150,3 +150,37 @@ func convDeployPolicyConditionsToOptions(condition *types.DeployPolicyCondition)
 
 	return opts
 }
+
+func (s *Storage) discoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if param == nil {
+		return nil, base.ErrInvalidParam(errors.New("specify plugin param is nil"))
+	}
+
+	opts := convSpecifyPluginParamToOptions(param)
+	policies, _, err := s.daoDeployPolicy.List(nCtx, types.UnlimitedPage(), opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list deploy policies: %w", err)
+	}
+
+	return policies, nil
+}
+
+func convSpecifyPluginParamToOptions(param *types.SpecifyPluginParam) []daoDeployPolicy.OptFn {
+	opts := make([]daoDeployPolicy.OptFn, 0)
+
+	if param == nil {
+		return opts
+	}
+
+	opts = append(opts, daoDeployPolicy.WithDeploySpecType(types.DeploySpecTypeSpecifyPlugin))
+
+	if param.PluginName != "" {
+		opts = append(opts, daoDeployPolicy.WithDeploySpecPluginName(param.PluginName))
+	}
+
+	return opts
+}

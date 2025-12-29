@@ -13,9 +13,68 @@ message DeployPolicyMeta {
   string description = 2;
 }
 
+// PluginConfigDetail describes the plugin config detail.
+// This message defines the structure for plugin config detail, used as
+// documentation to help users understand the expected structure of
+// config_files_detail in param.
+message PluginConfigDetail {
+  string name = 1;
+  string content = 2;
+  bool is_main_config = 3;
+}
+
+// SpecifyAgentParam describes the specify agent param structure.
+// This message defines the expected structure for param when type is
+// "specify_agent". It serves as documentation to help users understand the
+// param structure.
+message SpecifyAgentParam { string node_version = 1; }
+
+// SpecifyProxyParam describes the specify proxy param structure.
+// This message defines the expected structure for param when type is
+// "specify_proxy". It serves as documentation to help users understand the
+// param structure.
+message SpecifyProxyParam { string node_version = 1; }
+
+// SpecifyPluginParam describes the specify plugin param structure.
+// This message defines the expected structure for param when type is
+// "specify_plugin". It serves as documentation to help users understand the
+// param structure.
+message SpecifyPluginParam {
+  string plugin_name = 1;
+  string version = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
+// SpecifyPluginPkgParam describes the specify plugin pkg param structure.
+// This message defines the expected structure for param when type is
+// "specify_plugin_pkg". It serves as documentation to help users understand the
+// param structure.
+message SpecifyPluginPkgParam {
+  string plugin_pkg_name = 1;
+  string version = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
+// SpecifyPluginSubConfigParam describes the specify plugin sub config param
+// structure. This message defines the expected structure for param when type is
+// "specify_plugin_sub_config". It serves as documentation to help users
+// understand the param structure.
+message SpecifyPluginSubConfigParam {
+  string plugin_name = 1;
+  repeated PluginConfigDetail config_files_detail = 2;
+  google.protobuf.Struct custom_config_context = 3;
+}
+
 // DeploySpec describes the spec of deploy policy.
 message DeploySpec {
   string type = 1;
+  // param is a google.protobuf.Struct that contains the parameters for the
+  // deploy spec. The structure of param depends on the type field:
+  // - For "specify_agent": see SpecifyAgentParam
+  // - For "specify_proxy": see SpecifyProxyParam
+  // - For "specify_plugin": see SpecifyPluginParam
+  // - For "specify_plugin_pkg": see SpecifyPluginPkgParam
+  // - For "specify_plugin_sub_config": see SpecifyPluginSubConfigParam
   google.protobuf.Struct param = 2;
 }
 

@@ -32,6 +32,30 @@ const (
 	// FieldKeySpecs the specs field key.
 	FieldKeySpecs = "data.specs"
 
+	// fieldSubKeySpecsType the specs type sub key.
+	fieldSubKeySpecsType = "type"
+
+	// fieldSubKeySpecsParamSpecifyPlugin the specs param specify plugin sub key.
+	fieldSubKeySpecsParamSpecifyPlugin = "param_specify_plugin"
+
+	// fieldSubKeySpecsParamSpecifyPluginPluginName the specs param specify plugin plugin name sub key.
+	fieldSubKeySpecsParamSpecifyPluginPluginName = "param_specify_plugin.plugin_name"
+
+	// FieldSubKeySpecsParamSpecifyPluginPkg the specs param specify plugin pkg sub key.
+	fieldSubKeySpecsParamSpecifyPluginPkg = "param_specify_plugin_pkg"
+
+	// FieldSubKeySpecsParamSpecifyPluginSubConfig the specs param specify plugin sub config sub key.
+	fieldSubKeySpecsParamSpecifyPluginSubConfig = "param_specify_plugin_sub_config"
+
+	// fieldSubKeySpecsParamSpecifyPluginSubConfigPluginName the specs param specify plugin sub config plugin name sub key.
+	fieldSubKeySpecsParamSpecifyPluginSubConfigPluginName = "param_specify_plugin_sub_config.plugin_name"
+
+	// fieldSubKeySpecsParamSpecifyAgent the specs param specify agent sub key.
+	fieldSubKeySpecsParamSpecifyAgent = "param_specify_agent"
+
+	// fieldSubKeySpecsParamSpecifyProxy the specs param specify proxy sub key.
+	fieldSubKeySpecsParamSpecifyProxy = "param_specify_proxy"
+
 	// FieldKeyScopes the scopes field key.
 	FieldKeyScopes = "data.scopes"
 )

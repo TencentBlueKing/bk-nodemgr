@@ -91,7 +91,10 @@ func (h *Handler) Create(nCtx contextx.IContext, deployPolicy *types.DeployPolic
 		return -1, err
 	}
 
-	data := convDeployPolicyFromTypes(deployPolicy, nCtx.TenantID())
+	data, err := convDeployPolicyFromTypes(deployPolicy, nCtx.TenantID())
+	if err != nil {
+		return -1, fmt.Errorf("failed to convert deploy policy: %w", err)
+	}
 
 	// generate deploy policy id.
 	deployPolicyID, err := h.tenantDao(nCtx.TenantID()).counter.Generate(nCtx, tableNamePrefix)
@@ -110,23 +113,28 @@ func (h *Handler) Create(nCtx contextx.IContext, deployPolicy *types.DeployPolic
 	return deployPolicyID, nil
 }
 
-func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy, tenantID string) *DeployPolicy {
+func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy, tenantID string) (*DeployPolicy, error) {
 	if deployPolicy == nil {
-		return nil
+		return nil, nil
+	}
+
+	specs, err := convSpecsFromTypes(deployPolicy.Specs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert specs: %w", err)
 	}
 
 	data := &DeployPolicy{
 		TenantID:       tenantID,
 		DeployPolicyID: deployPolicy.DeployPolicyID,
 		Meta:           convDeployPolicyMetaFromTypes(deployPolicy.Meta),
-		Specs:          convSpecsFromTypes(deployPolicy.Specs),
+		Specs:          specs,
 		Scopes:         convScopesFromTypes(deployPolicy.Scopes),
 		Operator:       deployPolicy.Operator,
 		Enabled:        deployPolicy.Enabled,
 		LifeCycle:      convDeployPolicyLifeCycleFromTypes(deployPolicy.LifeCycle),
 	}
 
-	return data
+	return data, nil
 }
 
 func convDeployPolicyMetaFromTypes(deployPolicyMeta types.DeployPolicyMeta) Meta {
@@ -136,19 +144,84 @@ func convDeployPolicyMetaFromTypes(deployPolicyMeta types.DeployPolicyMeta) Meta
 	}
 }
 
-func convSpecsFromTypes(specs []*types.DeploySpec) []*Spec {
-	return conv.SliceToSlice[*types.DeploySpec, *Spec](specs, convSpecFromTypes)
+func convSpecsFromTypes(specs []*types.DeploySpec) ([]*Spec, error) {
+	return conv.SliceToSliceWithError[*types.DeploySpec, *Spec](specs, convSpecFromTypes)
 }
 
-func convSpecFromTypes(spec *types.DeploySpec) *Spec {
+func convSpecFromTypes(spec *types.DeploySpec) (*Spec, error) {
 	if spec == nil {
-		return nil
+		return nil, nil
 	}
 
-	return &Spec{
-		Type:  string(spec.Type),
-		Param: spec.Param,
+	dbSpec := &Spec{
+		Type: string(spec.Type()),
 	}
+
+	switch spec.Type() {
+	case types.DeploySpecTypeSpecifyAgent:
+		param, err := spec.GetSpecifyAgentParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify agent param: %w", err)
+		}
+		dbSpec.ParamSpecifyAgent = &SpecParamSpecifyAgent{
+			NodeVersion: param.NodeVersion,
+		}
+
+	case types.DeploySpecTypeSpecifyPlugin:
+		param, err := spec.GetSpecifyPluginParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin param: %w", err)
+		}
+		dbSpec.ParamSpecifyPlugin = &SpecParamSpecifyPlugin{
+			PluginName:          param.PluginName,
+			Version:             param.Version,
+			CustomConfigContext: param.CustomConfigContext,
+		}
+
+	case types.DeploySpecTypeSpecifyPluginPkg:
+		param, err := spec.GetSpecifyPluginPkgParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin pkg param: %w", err)
+		}
+		dbSpec.ParamSpecifyPluginPkg = &SpecParamSpecifyPluginPkg{
+			PluginPkgName:       param.PluginPkgName,
+			Version:             param.Version,
+			CustomConfigContext: param.CustomConfigContext,
+		}
+
+	case types.DeploySpecTypeSpecifyPluginSubConfig:
+		param, err := spec.GetSpecifyPluginSubConfigParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin sub config param: %w", err)
+		}
+		configFilesDetail := make([]*SpecPluginConfigDetail, 0, len(param.ConfigFilesDetail))
+		for _, detail := range param.ConfigFilesDetail {
+			configFilesDetail = append(configFilesDetail, &SpecPluginConfigDetail{
+				Name:         detail.Name,
+				Content:      detail.Content,
+				IsMainConfig: detail.IsMainConfig,
+			})
+		}
+		dbSpec.ParamSpecifyPluginSubConfig = &SpecParamSpecifyPluginSubConfig{
+			PluginName:          param.PluginName,
+			ConfigFilesDetail:   configFilesDetail,
+			CustomConfigContext: param.CustomConfigContext,
+		}
+
+	case types.DeploySpecTypeSpecifyProxy:
+		param, err := spec.GetSpecifyProxyParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify proxy param: %w", err)
+		}
+		dbSpec.ParamSpecifyProxy = &SpecParamSpecifyProxy{
+			NodeVersion: param.NodeVersion,
+		}
+
+	default:
+		return nil, fmt.Errorf("unknown deploy spec type: %s", spec.Type())
+	}
+
+	return dbSpec, nil
 }
 
 func convScopesFromTypes(scopes []*types.Scope) []*Scope {
@@ -221,7 +294,10 @@ func (h *Handler) List(nCtx contextx.IContext, page types.Page, opts ...OptFn) (
 		return nil, 0, err
 	}
 
-	deployPolicies := conv.SliceToSlice[*DeployPolicy, *types.DeployPolicy](data, convDeployPolicyToTypes)
+	deployPolicies, err := conv.SliceToSliceWithError[*DeployPolicy, *types.DeployPolicy](data, convDeployPolicyToTypes)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to convert deploy policies: %w", err)
+	}
 
 	return deployPolicies, num, nil
 }
@@ -242,12 +318,12 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.DeployPolic
 		return nil, err
 	}
 
-	return convDeployPolicyToTypes(data), nil
+	return convDeployPolicyToTypes(data)
 }
 
-func convDeployPolicyToTypes(data *DeployPolicy) *types.DeployPolicy {
+func convDeployPolicyToTypes(data *DeployPolicy) (*types.DeployPolicy, error) {
 	if data == nil {
-		return nil
+		return nil, nil
 	}
 
 	deployPolicy := &types.DeployPolicy{
@@ -267,10 +343,14 @@ func convDeployPolicyToTypes(data *DeployPolicy) *types.DeployPolicy {
 	}
 
 	if len(data.Specs) > 0 {
-		deployPolicy.Specs = conv.SliceToSlice[*Spec, *types.DeploySpec](data.Specs, convSpecToTypes)
+		specs, err := conv.SliceToSliceWithError[*Spec, *types.DeploySpec](data.Specs, convSpecToTypes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert specs: %w", err)
+		}
+		deployPolicy.Specs = specs
 	}
 
-	return deployPolicy
+	return deployPolicy, nil
 }
 
 func convScopeToTypes(data *Scope) *types.Scope {
@@ -304,14 +384,70 @@ func convTargetFilterToTypes(data *TargetFilter) *types.TargetFilter {
 	return &types.TargetFilter{}
 }
 
-func convSpecToTypes(data *Spec) *types.DeploySpec {
+func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 	if data == nil {
-		return nil
+		return nil, nil
 	}
 
-	return &types.DeploySpec{
-		Type:  types.DeploySpecType(data.Type),
-		Param: data.Param,
+	specType := types.DeploySpecType(data.Type)
+
+	switch specType {
+	case types.DeploySpecTypeSpecifyAgent:
+		if data.ParamSpecifyAgent == nil {
+			return nil, fmt.Errorf("param_specify_agent is required for type %s", data.Type)
+		}
+		return types.NewDeploySpecWithSpecifyAgent(&types.SpecifyAgentParam{
+			NodeVersion: data.ParamSpecifyAgent.NodeVersion,
+		})
+
+	case types.DeploySpecTypeSpecifyPlugin:
+		if data.ParamSpecifyPlugin == nil {
+			return nil, fmt.Errorf("param_specify_plugin is required for type %s", data.Type)
+		}
+		return types.NewDeploySpecWithSpecifyPlugin(&types.SpecifyPluginParam{
+			PluginName:          data.ParamSpecifyPlugin.PluginName,
+			Version:             data.ParamSpecifyPlugin.Version,
+			CustomConfigContext: data.ParamSpecifyPlugin.CustomConfigContext,
+		})
+
+	case types.DeploySpecTypeSpecifyPluginPkg:
+		if data.ParamSpecifyPluginPkg == nil {
+			return nil, fmt.Errorf("param_specify_plugin_pkg is required for type %s", data.Type)
+		}
+		return types.NewDeploySpecWithSpecifyPluginPkg(&types.SpecifyPluginPkgParam{
+			PluginPkgName:       data.ParamSpecifyPluginPkg.PluginPkgName,
+			Version:             data.ParamSpecifyPluginPkg.Version,
+			CustomConfigContext: data.ParamSpecifyPluginPkg.CustomConfigContext,
+		})
+
+	case types.DeploySpecTypeSpecifyPluginSubConfig:
+		if data.ParamSpecifyPluginSubConfig == nil {
+			return nil, fmt.Errorf("param_specify_plugin_sub_config is required for type %s", data.Type)
+		}
+		configFilesDetail := make([]*types.PluginConfigDetail, 0, len(data.ParamSpecifyPluginSubConfig.ConfigFilesDetail))
+		for _, detail := range data.ParamSpecifyPluginSubConfig.ConfigFilesDetail {
+			configFilesDetail = append(configFilesDetail, &types.PluginConfigDetail{
+				Name:         detail.Name,
+				Content:      detail.Content,
+				IsMainConfig: detail.IsMainConfig,
+			})
+		}
+		return types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
+			PluginName:          data.ParamSpecifyPluginSubConfig.PluginName,
+			ConfigFilesDetail:   configFilesDetail,
+			CustomConfigContext: data.ParamSpecifyPluginSubConfig.CustomConfigContext,
+		})
+
+	case types.DeploySpecTypeSpecifyProxy:
+		if data.ParamSpecifyProxy == nil {
+			return nil, fmt.Errorf("param_specify_proxy is required for type %s", data.Type)
+		}
+		return types.NewDeploySpecWithSpecifyProxy(&types.SpecifyProxyParam{
+			NodeVersion: data.ParamSpecifyProxy.NodeVersion,
+		})
+
+	default:
+		return nil, fmt.Errorf("unknown deploy spec type: %s", data.Type)
 	}
 }
 
@@ -383,7 +519,10 @@ func (h *Handler) UpdateFields(nCtx contextx.IContext, fields types.DeployPolicy
 			return base.ErrInvalidItemInParamList()
 		}
 
-		updates := generateDeployPolicyUpdates(fields, policy)
+		updates, err := generateDeployPolicyUpdates(fields, policy)
+		if err != nil {
+			return fmt.Errorf("failed to generate deploy policy updates: %w", err)
+		}
 		if len(updates) == 0 {
 			continue
 		}
@@ -414,7 +553,7 @@ func (h *Handler) UpdateFields(nCtx contextx.IContext, fields types.DeployPolicy
 }
 
 // generateDeployPolicyUpdates generate deploy policy updates.
-func generateDeployPolicyUpdates(fields types.DeployPolicyFields, deployPolicy *types.DeployPolicy) map[string]any {
+func generateDeployPolicyUpdates(fields types.DeployPolicyFields, deployPolicy *types.DeployPolicy) (map[string]any, error) {
 	updates := make(map[string]any)
 
 	if fields.Meta {
@@ -426,12 +565,16 @@ func generateDeployPolicyUpdates(fields types.DeployPolicyFields, deployPolicy *
 	}
 
 	if fields.Specs {
-		updates[FieldKeySpecs] = convSpecsFromTypes(deployPolicy.Specs)
+		specs, err := convSpecsFromTypes(deployPolicy.Specs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert specs: %w", err)
+		}
+		updates[FieldKeySpecs] = specs
 	}
 
 	if fields.Enabled {
 		updates[FieldKeyEnabled] = deployPolicy.Enabled
 	}
 
-	return updates
+	return updates, nil
 }

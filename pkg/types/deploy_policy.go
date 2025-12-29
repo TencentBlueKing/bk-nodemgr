@@ -13,8 +13,6 @@ package types
 import (
 	"fmt"
 	"time"
-
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 )
 
 // DeployPolicy defines the deploy policy.
@@ -57,14 +55,17 @@ const (
 	// DeploySpecTypeSpecifyPlugin defines specify plugin.
 	DeploySpecTypeSpecifyPlugin DeploySpecType = "specify_plugin"
 
-	// DeploySpecTypeSpecifyPluginPkg defines specify plugin.
+	// DeploySpecTypeSpecifyPluginPkg defines specify plugin pkg.
 	DeploySpecTypeSpecifyPluginPkg DeploySpecType = "specify_plugin_pkg"
+
+	// DeploySpecTypeSpecifyPluginSubConfig defines specify plugin sub config.
+	DeploySpecTypeSpecifyPluginSubConfig DeploySpecType = "specify_plugin_sub_config"
 )
 
 // Validate validates the deploy spec type.
 func (deploySpecType DeploySpecType) Validate() error {
 	switch deploySpecType {
-	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyPlugin, DeploySpecTypeSpecifyPluginPkg:
+	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyProxy, DeploySpecTypeSpecifyPlugin, DeploySpecTypeSpecifyPluginPkg, DeploySpecTypeSpecifyPluginSubConfig:
 		return nil
 	default:
 		return fmt.Errorf("invalid deploy spec type(%s)", deploySpecType)
@@ -80,6 +81,8 @@ func conflictDeploySpecTypes(specType DeploySpecType) []DeploySpecType {
 	case DeploySpecTypeSpecifyProxy:
 		return []DeploySpecType{}
 	case DeploySpecTypeSpecifyPluginPkg:
+		return []DeploySpecType{}
+	case DeploySpecTypeSpecifyPluginSubConfig:
 		return []DeploySpecType{}
 	default:
 		return nil
@@ -104,27 +107,89 @@ func (deploySpecType DeploySpecType) IsConflict(other DeploySpecType) bool {
 
 // DeploySpec defines the deploy spec of the deploy policy.
 type DeploySpec struct {
-	Type  DeploySpecType
-	Param map[string]any
+	specType                    DeploySpecType
+	paramSpecifyAgent           *SpecifyAgentParam
+	paramSpecifyProxy           *SpecifyProxyParam
+	paramSpecifyPlugin          *SpecifyPluginParam
+	paramSpecifyPluginPkg       *SpecifyPluginPkgParam
+	paramSpecifyPluginSubConfig *SpecifyPluginSubConfigParam
+}
+
+// Type returns the deploy spec type.
+func (spec *DeploySpec) Type() DeploySpecType {
+	return spec.specType
+}
+
+// NewDeploySpecWithSpecifyAgent creates a new DeploySpec with SpecifyAgent type.
+func NewDeploySpecWithSpecifyAgent(param *SpecifyAgentParam) (*DeploySpec, error) {
+	if param == nil {
+		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyAgent")
+	}
+	return &DeploySpec{
+		specType:          DeploySpecTypeSpecifyAgent,
+		paramSpecifyAgent: param,
+	}, nil
+}
+
+// NewDeploySpecWithSpecifyPlugin creates a new DeploySpec with SpecifyPlugin type.
+func NewDeploySpecWithSpecifyPlugin(param *SpecifyPluginParam) (*DeploySpec, error) {
+	if param == nil {
+		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyPlugin")
+	}
+	return &DeploySpec{
+		specType:           DeploySpecTypeSpecifyPlugin,
+		paramSpecifyPlugin: param,
+	}, nil
+}
+
+// NewDeploySpecWithSpecifyPluginPkg creates a new DeploySpec with SpecifyPluginPkg type.
+func NewDeploySpecWithSpecifyPluginPkg(param *SpecifyPluginPkgParam) (*DeploySpec, error) {
+	if param == nil {
+		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyPluginPkg")
+	}
+	return &DeploySpec{
+		specType:              DeploySpecTypeSpecifyPluginPkg,
+		paramSpecifyPluginPkg: param,
+	}, nil
+}
+
+// NewDeploySpecWithSpecifyPluginSubConfig creates a new DeploySpec with SpecifyPluginSubConfig type.
+func NewDeploySpecWithSpecifyPluginSubConfig(param *SpecifyPluginSubConfigParam) (*DeploySpec, error) {
+	if param == nil {
+		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyPluginSubConfig")
+	}
+	return &DeploySpec{
+		specType:                    DeploySpecTypeSpecifyPluginSubConfig,
+		paramSpecifyPluginSubConfig: param,
+	}, nil
+}
+
+// NewDeploySpecWithSpecifyProxy creates a new DeploySpec with SpecifyProxy type.
+func NewDeploySpecWithSpecifyProxy(param *SpecifyProxyParam) (*DeploySpec, error) {
+	if param == nil {
+		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyProxy")
+	}
+	return &DeploySpec{
+		specType:          DeploySpecTypeSpecifyProxy,
+		paramSpecifyProxy: param,
+	}, nil
 }
 
 // UniqueID returns the unique id of the deploy spec.
-func (spec DeploySpec) UniqueID() (string, error) {
-	switch spec.Type {
+func (spec *DeploySpec) UniqueID() (string, error) {
+	switch spec.specType {
 	case DeploySpecTypeSpecifyPlugin:
-		param, err := spec.GetSpecifyPluginParam()
-		if err != nil {
-			return "", fmt.Errorf("failed to get specify plugin param: %w", err)
+		if spec.paramSpecifyPlugin == nil {
+			return "", fmt.Errorf("param_specify_plugin is nil")
 		}
-		return param.PluginName, nil
+		return spec.paramSpecifyPlugin.PluginName, nil
 	case DeploySpecTypeSpecifyPluginPkg:
-		param, err := spec.GetSpecifyPluginPkgParam()
-		if err != nil {
-			return "", fmt.Errorf("failed to get specify plugin pkg param: %w", err)
+		if spec.paramSpecifyPluginPkg == nil {
+			return "", fmt.Errorf("param_specify_plugin_pkg is nil")
 		}
-		return param.PluginPkgName, nil
+		return spec.paramSpecifyPluginPkg.PluginPkgName, nil
 	default:
-		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.Type)
+		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.specType)
 	}
 }
 
@@ -136,13 +201,29 @@ type SpecifyPluginParam struct {
 }
 
 // GetSpecifyPluginParam returns the specify plugin param.
-func (spec DeploySpec) GetSpecifyPluginParam() (*SpecifyPluginParam, error) {
-	param := &SpecifyPluginParam{}
-	if err := conv.MapToStruct(spec.Param, param); err != nil {
-		return nil, fmt.Errorf("failed to convert param to specify plugin param: %w", err)
+func (spec *DeploySpec) GetSpecifyPluginParam() (*SpecifyPluginParam, error) {
+	if spec.paramSpecifyPlugin == nil {
+		return nil, fmt.Errorf("param_specify_plugin is nil")
 	}
 
-	return param, nil
+	if err := spec.paramSpecifyPlugin.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate specify plugin param: %w", err)
+	}
+
+	return spec.paramSpecifyPlugin, nil
+}
+
+// Validate validates the specify plugin param.
+func (param *SpecifyPluginParam) Validate() error {
+	if param.PluginName == "" {
+		return fmt.Errorf("plugin_name is required")
+	}
+
+	if param.Version == "" {
+		return fmt.Errorf("version is required")
+	}
+
+	return nil
 }
 
 // SpecifyAgentParam defines the specify plugin version param.
@@ -151,13 +232,52 @@ type SpecifyAgentParam struct {
 }
 
 // GetSpecifyAgentParam returns the specify agent param.
-func (spec DeploySpec) GetSpecifyAgentParam() (*SpecifyAgentParam, error) {
-	param := &SpecifyAgentParam{}
-	if err := conv.MapToStruct(spec.Param, param); err != nil {
-		return nil, fmt.Errorf("failed to convert param to specify agent param: %w", err)
+func (spec *DeploySpec) GetSpecifyAgentParam() (*SpecifyAgentParam, error) {
+	if spec.paramSpecifyAgent == nil {
+		return nil, fmt.Errorf("param_specify_agent is nil")
 	}
 
-	return param, nil
+	if err := spec.paramSpecifyAgent.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate specify agent param: %w", err)
+	}
+
+	return spec.paramSpecifyAgent, nil
+}
+
+// Validate validates the specify agent param.
+func (param *SpecifyAgentParam) Validate() error {
+	if param.NodeVersion == "" {
+		return fmt.Errorf("node_version is required")
+	}
+
+	return nil
+}
+
+// SpecifyProxyParam defines the specify proxy param.
+type SpecifyProxyParam struct {
+	NodeVersion string
+}
+
+// GetSpecifyProxyParam returns the specify proxy param.
+func (spec *DeploySpec) GetSpecifyProxyParam() (*SpecifyProxyParam, error) {
+	if spec.paramSpecifyProxy == nil {
+		return nil, fmt.Errorf("param_specify_proxy is nil")
+	}
+
+	if err := spec.paramSpecifyProxy.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate specify proxy param: %w", err)
+	}
+
+	return spec.paramSpecifyProxy, nil
+}
+
+// Validate validates the specify proxy param.
+func (param *SpecifyProxyParam) Validate() error {
+	if param.NodeVersion == "" {
+		return fmt.Errorf("node_version is required")
+	}
+
+	return nil
 }
 
 // SpecifyPluginSubConfigParam defines the specify plugin sub config param.
@@ -168,13 +288,25 @@ type SpecifyPluginSubConfigParam struct {
 }
 
 // GetSpecifyPluginSubConfigParam returns the specify plugin param.
-func (spec DeploySpec) GetSpecifyPluginSubConfigParam() (*SpecifyPluginSubConfigParam, error) {
-	param := &SpecifyPluginSubConfigParam{}
-	if err := conv.MapToStruct(spec.Param, param); err != nil {
-		return nil, fmt.Errorf("failed to convert param to specify plugin param: %w", err)
+func (spec *DeploySpec) GetSpecifyPluginSubConfigParam() (*SpecifyPluginSubConfigParam, error) {
+	if spec.paramSpecifyPluginSubConfig == nil {
+		return nil, fmt.Errorf("param_specify_plugin_sub_config is nil")
 	}
 
-	return param, nil
+	if err := spec.paramSpecifyPluginSubConfig.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate specify plugin sub config param: %w", err)
+	}
+
+	return spec.paramSpecifyPluginSubConfig, nil
+}
+
+// Validate validates the specify plugin sub config param.
+func (param *SpecifyPluginSubConfigParam) Validate() error {
+	if param.PluginName == "" {
+		return fmt.Errorf("plugin_name is required")
+	}
+
+	return nil
 }
 
 // SpecifyPluginPkgParam defines the specify plugin pkg param.
@@ -185,13 +317,29 @@ type SpecifyPluginPkgParam struct {
 }
 
 // GetSpecifyPluginPkgParam returns the specify plugin pkg param.
-func (spec DeploySpec) GetSpecifyPluginPkgParam() (*SpecifyPluginPkgParam, error) {
-	param := &SpecifyPluginPkgParam{}
-	if err := conv.MapToStruct(spec.Param, param); err != nil {
-		return nil, fmt.Errorf("failed to convert param to specify plugin pkg param: %w", err)
+func (spec *DeploySpec) GetSpecifyPluginPkgParam() (*SpecifyPluginPkgParam, error) {
+	if spec.paramSpecifyPluginPkg == nil {
+		return nil, fmt.Errorf("param_specify_plugin_pkg is nil")
 	}
 
-	return param, nil
+	if err := spec.paramSpecifyPluginPkg.Validate(); err != nil {
+		return nil, fmt.Errorf("failed to validate specify plugin pkg param: %w", err)
+	}
+
+	return spec.paramSpecifyPluginPkg, nil
+}
+
+// Validate validates the specify plugin pkg param.
+func (param *SpecifyPluginPkgParam) Validate() error {
+	if param.PluginPkgName == "" {
+		return fmt.Errorf("plugin_pkg_name is required")
+	}
+
+	if param.Version == "" {
+		return fmt.Errorf("version is required")
+	}
+
+	return nil
 }
 
 // DeployPolicyFields represents the fields of DeployPolicy.

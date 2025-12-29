@@ -15,6 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -135,15 +136,100 @@ func convSpecFromTypes(spec *types.DeploySpec) (*DeploySpec, error) {
 		return nil, fmt.Errorf("spec is nil")
 	}
 
-	param, err := structpb.NewStruct(spec.Param)
-	if err != nil {
-		return nil, err
+	specType := spec.Type()
+	result := &DeploySpec{
+		Type: string(specType),
 	}
 
-	return &DeploySpec{
-		Type:  string(spec.Type),
-		Param: param,
-	}, nil
+	// Convert param to protobuf message based on type, then to structpb.Struct
+	var paramProto interface{}
+
+	switch specType {
+	case types.DeploySpecTypeSpecifyAgent:
+		param, err := spec.GetSpecifyAgentParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify agent param: %w", err)
+		}
+		paramProto = &SpecifyAgentParam{
+			NodeVersion: param.NodeVersion,
+		}
+
+	case types.DeploySpecTypeSpecifyProxy:
+		param, err := spec.GetSpecifyProxyParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify proxy param: %w", err)
+		}
+		paramProto = &SpecifyProxyParam{
+			NodeVersion: param.NodeVersion,
+		}
+
+	case types.DeploySpecTypeSpecifyPlugin:
+		param, err := spec.GetSpecifyPluginParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin param: %w", err)
+		}
+		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
+		}
+		paramProto = &SpecifyPluginParam{
+			PluginName:          param.PluginName,
+			Version:             param.Version,
+			CustomConfigContext: customConfigContext,
+		}
+
+	case types.DeploySpecTypeSpecifyPluginPkg:
+		param, err := spec.GetSpecifyPluginPkgParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin pkg param: %w", err)
+		}
+		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
+		}
+		paramProto = &SpecifyPluginPkgParam{
+			PluginPkgName:       param.PluginPkgName,
+			Version:             param.Version,
+			CustomConfigContext: customConfigContext,
+		}
+
+	case types.DeploySpecTypeSpecifyPluginSubConfig:
+		param, err := spec.GetSpecifyPluginSubConfigParam()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get specify plugin sub config param: %w", err)
+		}
+		configFilesDetail := make([]*PluginConfigDetail, 0, len(param.ConfigFilesDetail))
+		for _, detail := range param.ConfigFilesDetail {
+			configFilesDetail = append(configFilesDetail, &PluginConfigDetail{
+				Name:         detail.Name,
+				Content:      detail.Content,
+				IsMainConfig: detail.IsMainConfig,
+			})
+		}
+		customConfigContext, err := structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert custom config context: %w", err)
+		}
+		paramProto = &SpecifyPluginSubConfigParam{
+			PluginName:          param.PluginName,
+			ConfigFilesDetail:   configFilesDetail,
+			CustomConfigContext: customConfigContext,
+		}
+
+	default:
+		return nil, fmt.Errorf("unknown deploy spec type: %s", specType)
+	}
+
+	paramMap, err := conv.StructToMap(paramProto)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert param to map: %w", err)
+	}
+	result.Param, err = structpb.NewStruct(paramMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert param to struct: %w", err)
+	}
+
+	return result, nil
 }
 
 func convScopesFromTypes(scopes []*types.Scope) ([]*Scope, error) {
@@ -297,10 +383,94 @@ func convSpecToTypes(spec *DeploySpec) (*types.DeploySpec, error) {
 		return nil, fmt.Errorf("invalid spec type(%s): %w", spec.GetType(), err)
 	}
 
-	return &types.DeploySpec{
-		Type:  specType,
-		Param: spec.Param.AsMap(),
-	}, nil
+	// Get param as structpb.Struct
+	paramStruct := spec.GetParam()
+	if paramStruct == nil {
+		return nil, fmt.Errorf("param is required for type %s", specType)
+	}
+
+	// Convert structpb.Struct to JSON, then unmarshal to protobuf message
+	paramJSON, err := paramStruct.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal param struct to JSON: %w", err)
+	}
+
+	// Unmarshal to corresponding protobuf message based on type
+	switch specType {
+	case types.DeploySpecTypeSpecifyAgent:
+		var paramProto SpecifyAgentParam
+		if err := protojson.Unmarshal(paramJSON, &paramProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal param for type %s: %w", specType, err)
+		}
+		return types.NewDeploySpecWithSpecifyAgent(&types.SpecifyAgentParam{
+			NodeVersion: paramProto.NodeVersion,
+		})
+
+	case types.DeploySpecTypeSpecifyProxy:
+		var paramProto SpecifyProxyParam
+		if err := protojson.Unmarshal(paramJSON, &paramProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal param for type %s: %w", specType, err)
+		}
+		return types.NewDeploySpecWithSpecifyProxy(&types.SpecifyProxyParam{
+			NodeVersion: paramProto.NodeVersion,
+		})
+
+	case types.DeploySpecTypeSpecifyPlugin:
+		var paramProto SpecifyPluginParam
+		if err := protojson.Unmarshal(paramJSON, &paramProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal param for type %s: %w", specType, err)
+		}
+		customConfigContext := make(map[string]any)
+		if paramProto.CustomConfigContext != nil {
+			customConfigContext = paramProto.CustomConfigContext.AsMap()
+		}
+		return types.NewDeploySpecWithSpecifyPlugin(&types.SpecifyPluginParam{
+			PluginName:          paramProto.PluginName,
+			Version:             paramProto.Version,
+			CustomConfigContext: customConfigContext,
+		})
+
+	case types.DeploySpecTypeSpecifyPluginPkg:
+		var paramProto SpecifyPluginPkgParam
+		if err := protojson.Unmarshal(paramJSON, &paramProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal param for type %s: %w", specType, err)
+		}
+		customConfigContext := make(map[string]any)
+		if paramProto.CustomConfigContext != nil {
+			customConfigContext = paramProto.CustomConfigContext.AsMap()
+		}
+		return types.NewDeploySpecWithSpecifyPluginPkg(&types.SpecifyPluginPkgParam{
+			PluginPkgName:       paramProto.PluginPkgName,
+			Version:             paramProto.Version,
+			CustomConfigContext: customConfigContext,
+		})
+
+	case types.DeploySpecTypeSpecifyPluginSubConfig:
+		var paramProto SpecifyPluginSubConfigParam
+		if err := protojson.Unmarshal(paramJSON, &paramProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal param for type %s: %w", specType, err)
+		}
+		configFilesDetail := make([]*types.PluginConfigDetail, 0, len(paramProto.ConfigFilesDetail))
+		for _, detailProto := range paramProto.ConfigFilesDetail {
+			configFilesDetail = append(configFilesDetail, &types.PluginConfigDetail{
+				Name:         detailProto.Name,
+				Content:      detailProto.Content,
+				IsMainConfig: detailProto.IsMainConfig,
+			})
+		}
+		customConfigContext := make(map[string]any)
+		if paramProto.CustomConfigContext != nil {
+			customConfigContext = paramProto.CustomConfigContext.AsMap()
+		}
+		return types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
+			PluginName:          paramProto.PluginName,
+			ConfigFilesDetail:   configFilesDetail,
+			CustomConfigContext: customConfigContext,
+		})
+
+	default:
+		return nil, fmt.Errorf("unknown deploy spec type: %s", specType)
+	}
 }
 
 // ConvertDeployPolicyID convert deploy policy id.

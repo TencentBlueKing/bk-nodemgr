@@ -195,3 +195,21 @@ func WithRegexMatch(key string, patterns ...string) OptFn {
 		return append(f, bson.E{Key: "$or", Value: orConditions})
 	}
 }
+
+// WithElemMatch filters by elem match.
+func WithElemMatch(key string, optFn ...OptFn) OptFn {
+	if len(optFn) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+
+	return func(f bson.D) bson.D {
+		elemFilter := bson.D{}
+		for _, fn := range optFn {
+			elemFilter = fn(elemFilter)
+		}
+
+		return append(f, bson.E{Key: key, Value: bson.M{"$elemMatch": elemFilter}})
+	}
+}

@@ -60,8 +60,50 @@ type Meta struct {
 
 // Spec represents the spec of deploy policy.
 type Spec struct {
-	Type  string         `json:"type" bson:"type"`
-	Param map[string]any `json:"param" bson:"param"`
+	Type                        string                           `json:"type" bson:"type"`
+	ParamSpecifyAgent           *SpecParamSpecifyAgent           `json:"param_specify_agent,omitempty" bson:"param_specify_agent,omitempty"`
+	ParamSpecifyProxy           *SpecParamSpecifyProxy           `json:"param_specify_proxy,omitempty" bson:"param_specify_proxy,omitempty"`
+	ParamSpecifyPlugin          *SpecParamSpecifyPlugin          `json:"param_specify_plugin,omitempty" bson:"param_specify_plugin,omitempty"`
+	ParamSpecifyPluginPkg       *SpecParamSpecifyPluginPkg       `json:"param_specify_plugin_pkg,omitempty" bson:"param_specify_plugin_pkg,omitempty"`
+	ParamSpecifyPluginSubConfig *SpecParamSpecifyPluginSubConfig `json:"param_specify_plugin_sub_config,omitempty" bson:"param_specify_plugin_sub_config,omitempty"`
+}
+
+// SpecParamSpecifyAgent represents the parameter for specify agent spec.
+type SpecParamSpecifyAgent struct {
+	NodeVersion string `json:"node_version" bson:"node_version"`
+}
+
+// SpecParamSpecifyProxy represents the parameter for specify proxy spec.
+type SpecParamSpecifyProxy struct {
+	NodeVersion string `json:"node_version" bson:"node_version"`
+}
+
+// SpecParamSpecifyPlugin represents the parameter for specify plugin spec.
+type SpecParamSpecifyPlugin struct {
+	PluginName          string         `json:"plugin_name" bson:"plugin_name"`
+	Version             string         `json:"version" bson:"version"`
+	CustomConfigContext map[string]any `json:"custom_config_context,omitempty" bson:"custom_config_context,omitempty"`
+}
+
+// SpecParamSpecifyPluginPkg represents the parameter for specify plugin pkg spec.
+type SpecParamSpecifyPluginPkg struct {
+	PluginPkgName       string         `json:"plugin_pkg_name" bson:"plugin_pkg_name"`
+	Version             string         `json:"version" bson:"version"`
+	CustomConfigContext map[string]any `json:"custom_config_context,omitempty" bson:"custom_config_context,omitempty"`
+}
+
+// SpecParamSpecifyPluginSubConfig represents the parameter for specify plugin sub config spec.
+type SpecParamSpecifyPluginSubConfig struct {
+	PluginName          string                    `json:"plugin_name" bson:"plugin_name"`
+	ConfigFilesDetail   []*SpecPluginConfigDetail `json:"config_files_detail,omitempty" bson:"config_files_detail,omitempty"`
+	CustomConfigContext map[string]any            `json:"custom_config_context,omitempty" bson:"custom_config_context,omitempty"`
+}
+
+// SpecPluginConfigDetail represents the plugin config detail in database.
+type SpecPluginConfigDetail struct {
+	Name         string `json:"name" bson:"name"`
+	Content      string `json:"content" bson:"content"`
+	IsMainConfig bool   `json:"is_main_config" bson:"is_main_config"`
 }
 
 // Scope represents the scope of deploy policy.

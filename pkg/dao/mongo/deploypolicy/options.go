@@ -10,7 +10,11 @@
 
 package deploypolicy
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"go.mongodb.org/mongo-driver/bson"
+)
 
 // OptFn provides filtering options.
 type OptFn = base.OptFn
@@ -73,4 +77,20 @@ func WithFuzzyOperator(operators ...string) OptFn {
 // WithoutFuzzyOperator filters by not contains fuzzy operator.
 func WithoutFuzzyOperator(operators ...string) OptFn {
 	return base.WithoutFuzzyValues(FieldKeyOperator, operators...)
+}
+
+// WithDeploySpecType filters by deploy spec type.
+func WithDeploySpecType(specType ...types.DeploySpecType) OptFn {
+	return base.WithElemMatch(FieldKeySpecs, base.WithValues(fieldSubKeySpecsType, specType...))
+}
+
+// WithDeploySpecPluginName filters by deploy spec plugin name.
+func WithDeploySpecPluginName(pluginNames ...string) OptFn {
+	if len(pluginNames) == 0 {
+		return func(f bson.D) bson.D {
+			return f
+		}
+	}
+
+	return base.WithElemMatch(FieldKeySpecs, base.WithValues(fieldSubKeySpecsParamSpecifyPluginPluginName, pluginNames...))
 }

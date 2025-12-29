@@ -58,7 +58,7 @@ func (resolver *ConflictResolver) ResolveConflict(originalUnits []*DeployUnit) (
 			if !ok {
 				conflictGroup = &DeployUnitGroup{
 					groupID:  groupID,
-					specType: spec.Type,
+					specType: spec.Type(),
 					items:    make([]*DeployUnitGroupItem, 0),
 				}
 			}
@@ -100,7 +100,7 @@ func getAvailableTargets(conflictGroup *DeployUnitGroup, spec *types.DeploySpec,
 
 	for idx := range conflictGroup.items {
 		item := conflictGroup.items[idx]
-		if !item.spec.Type.IsConflict(spec.Type) {
+		if !item.spec.Type().IsConflict(spec.Type()) {
 			// no conflict, we can use this target directly.
 			continue
 		}

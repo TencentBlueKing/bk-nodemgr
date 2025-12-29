@@ -75,12 +75,13 @@ func (s *Storage) check() error {
 }
 
 const (
-	metricCreateDeployPolicy       = "create_deploy_policy"
-	metricListDeployPolicies       = "list_deploy_policies"
-	metricGetDeployPolicyByID      = "get_deploy_policy_by_id"
-	metricUpdateDeployPolicyFields = "update_deploy_policy_fields"
-	metricDeleteDeployPolicy       = "delete_deploy_policy"
-	metricExistDeployPolicy        = "exist_deploy_policy"
+	metricCreateDeployPolicy              = "create_deploy_policy"
+	metricListDeployPolicies              = "list_deploy_policies"
+	metricGetDeployPolicyByID             = "get_deploy_policy_by_id"
+	metricUpdateDeployPolicyFields        = "update_deploy_policy_fields"
+	metricDeleteDeployPolicy              = "delete_deploy_policy"
+	metricExistDeployPolicy               = "exist_deploy_policy"
+	metricDiscoverPoliciesBySpecifyPlugin = "discover_policies_by_specify_plugin"
 )
 
 // CreateDeployPolicy create deploy policy.
@@ -198,4 +199,23 @@ func (s *Storage) ExistDeployPolicy(nCtx contextx.IContext, condition *types.Dep
 	}
 
 	return exist, nil
+}
+
+// DiscoverPoliciesBySpecifyPlugin discover policies by specify plugin.
+func (s *Storage) DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error) {
+	var (
+		policies []*types.DeployPolicy
+		err      error
+	)
+
+	err = s.WrapFn(nCtx, metricDiscoverPoliciesBySpecifyPlugin, func(nCtx contextx.IContext) error {
+		policies, err = s.discoverPoliciesBySpecifyPlugin(nCtx, param)
+
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return policies, nil
 }
