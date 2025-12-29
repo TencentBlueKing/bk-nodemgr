@@ -166,7 +166,7 @@ func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
 		req.ConvertConditionsToTypes())
 	resp := new(protoApplication.NodeWorkflowDistinctResp)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct workflow: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -179,7 +179,7 @@ func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -213,7 +213,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationInstanceListReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -221,7 +221,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 		num, err := h.backendHandler.CountNodeWorkflowOperationInstance(
 			rCtx, req.ConvertConditionsToTypes())
 		if err != nil {
-			logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to count operation instance: %v", err)
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance, failed to count operation instance")
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 		}
 
@@ -234,7 +234,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 	instances, num, err := h.backendHandler.ListNodeWorkflowOperationInstance(
 		rCtx, req.ConvertConditionsToTypes())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 	resp := new(protoApplication.NodeWorkflowOperationInstanceListResp)
@@ -248,7 +248,7 @@ func (h *handler) ListOperationInstance(rCtx restserver.IContext) (interface{}, 
 func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationInstanceLogGetReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -256,7 +256,7 @@ func (h *handler) GetOperationInstanceLog(rCtx restserver.IContext) (interface{}
 		rCtx,
 		req.GetOperInstId())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get operation instance log")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -308,7 +308,7 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 func (h *handler) GetManualSolution(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.NodeWorkflowOperationManualSolutionGetReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get manual solution, failed to decode request body: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get manual solution, failed to decode request body")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
@@ -317,7 +317,7 @@ func (h *handler) GetManualSolution(rCtx restserver.IContext) (interface{}, erro
 		req.GetWorkflowId(),
 		req.GetOperationId())
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get manual info: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to get manual info")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -332,7 +332,7 @@ func (h *handler) GetManualSolution(rCtx restserver.IContext) (interface{}, erro
 func (h *handler) listAllBusiness(rCtx restserver.IContext) (map[int64]string, error) {
 	businesses, num, err := h.backendHandler.ListBusiness(rCtx, types.UnlimitedPage(), nil)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

@@ -374,7 +374,7 @@ func (h *handler) DownloadReleaseAgent(rCtx restserver.IContext) (*restserver.St
 	gen, plat, version := req.GetIdentifier()
 	resp, err := h.fileHandler.DownloadReleaseAgent(rCtx, gen, plat, version)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release agent")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
@@ -664,7 +664,7 @@ func (h *handler) DownloadReleaseProxy(rCtx restserver.IContext) (*restserver.St
 	gen, plat, version := req.GetIdentifier()
 	resp, err := h.fileHandler.DownloadReleaseProxy(rCtx, gen, plat, version)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release proxy: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release proxy")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
@@ -860,7 +860,7 @@ func (h *handler) DownloadReleasePlugin(rCtx restserver.IContext) (*restserver.S
 	name, plat, version := req.GetIdentifier()
 	resp, err := h.fileHandler.DownloadReleasePlugin(rCtx, name, plat, version)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
@@ -929,7 +929,7 @@ func (h *handler) DownloadReleaseCert(rCtx restserver.IContext) (*restserver.Str
 	gen := types.Generation(req.GetGeneration())
 	resp, err := h.fileHandler.DownloadReleaseCert(rCtx, gen)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release cert: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release cert")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
@@ -998,7 +998,7 @@ func (h *handler) DownloadReleaseBinTool(rCtx restserver.IContext) (*restserver.
 	gen := types.Generation(req.GetGeneration())
 	resp, err := h.fileHandler.DownloadReleaseBinTool(rCtx, gen)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release bintool: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release bintool")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
@@ -1069,7 +1069,7 @@ func (h *handler) DownloadReleasePluginBinTool(rCtx restserver.IContext) (*rests
 	name := req.GetName()
 	resp, err := h.fileHandler.DownloadReleasePluginBinTool(rCtx, gen, name)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin bintool: %v", err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to download release plugin bintool")
 
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
