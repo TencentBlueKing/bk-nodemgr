@@ -70,6 +70,7 @@ func (discover *PolicyDiscovery) Discover(nCtx contextx.IContext, originPolicies
 	return relatedPolicies, nil
 }
 
+// nolint: gocognit
 func (discover *PolicyDiscovery) discoverRelatedDeployPolicy(nCtx contextx.IContext, policy *types.DeployPolicy) ([]*types.DeployPolicy, error) {
 	result := []*types.DeployPolicy{policy}
 
@@ -156,6 +157,7 @@ func (state *bfsState) isVisitedSpec(spec *types.DeploySpec) (bool, error) {
 		return false, fmt.Errorf("failed to get spec unique ID: %w", err)
 	}
 	_, ok := state.visitedSpecs[uniqueID]
+
 	return ok, nil
 }
 
@@ -165,6 +167,7 @@ func (state *bfsState) markSpecAsVisited(spec *types.DeploySpec) error {
 		return fmt.Errorf("failed to get spec unique ID: %w", err)
 	}
 	state.visitedSpecs[uniqueID] = struct{}{}
+
 	return nil
 }
 
