@@ -1521,6 +1521,14 @@ service Package {
     };
   }
 
+  // DownloadReleaseCert download release cert package.
+  rpc DownloadReleaseCert(PackageReleaseCertDownloadReq) returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/cert/download"
+      body : "*"
+    };
+  }
+
   // ListReleaseBinTool lists bintool releases.
   rpc ListReleaseBinTool(PackageReleaseBinToolListReq)
       returns (PackageReleaseBinToolListResp) {
@@ -1539,6 +1547,15 @@ service Package {
     };
   }
 
+  // DownloadReleaseBinTool download release bintool package.
+  rpc DownloadReleaseBinTool(PackageReleaseBinToolDownloadReq)
+      returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/bintool/download"
+      body : "*"
+    };
+  }
+
   // ListReleasePluginBinTool lists plugin-bintool releases.
   rpc ListReleasePluginBinTool(PackageReleasePluginBinToolListReq)
       returns (PackageReleasePluginBinToolListResp) {
@@ -1553,6 +1570,15 @@ service Package {
       returns (PackageReleasePluginBinToolDeleteResp) {
     option (google.api.http) = {
       post : "/api/v3/package/release/plugin_bintool/delete"
+      body : "*"
+    };
+  }
+
+  // DownloadReleasePluginBinTool download release plugin bintool package.
+  rpc DownloadReleasePluginBinTool(PackageReleasePluginBinToolDownloadReq)
+      returns (FileChunk) {
+    option (google.api.http) = {
+      post : "/api/v3/package/release/plugin_bintool/download"
       body : "*"
     };
   }

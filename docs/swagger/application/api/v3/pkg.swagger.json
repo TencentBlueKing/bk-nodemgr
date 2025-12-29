@@ -730,6 +730,40 @@
         ]
       }
     },
+    "/api/v3/package/release/bintool/download": {
+      "post": {
+        "summary": "DownloadReleaseBinTool download release bintool package.",
+        "operationId": "Package_DownloadReleaseBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseBinToolDownloadReq is the request for download bintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseBinToolDownloadReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
     "/api/v3/package/release/bintool/list": {
       "post": {
         "summary": "ListReleaseBinTool lists bintool releases.",
@@ -790,6 +824,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleaseCertDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/cert/download": {
+      "post": {
+        "summary": "DownloadReleaseCert download release cert package.",
+        "operationId": "Package_DownloadReleaseCert",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleaseCertDownloadReq is the request for download cert pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleaseCertDownloadReq"
             }
           }
         ],
@@ -1096,6 +1164,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v3PackageReleasePluginBinToolDeleteReq"
+            }
+          }
+        ],
+        "tags": [
+          "Package"
+        ]
+      }
+    },
+    "/api/v3/package/release/plugin_bintool/download": {
+      "post": {
+        "summary": "DownloadReleasePluginBinTool download release plugin bintool package.",
+        "operationId": "Package_DownloadReleasePluginBinTool",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3FileChunk"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PackageReleasePluginBinToolDownloadReq is the request for download plugin\nbintool pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PackageReleasePluginBinToolDownloadReq"
             }
           }
         ],
@@ -2809,6 +2911,16 @@
     "v3PackageReleaseBinToolDeleteRespData": {
       "type": "object"
     },
+    "v3PackageReleaseBinToolDownloadReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "PackageReleaseBinToolDownloadReq is the request for download bintool pkg."
+    },
     "v3PackageReleaseBinToolListReq": {
       "type": "object",
       "properties": {
@@ -2891,6 +3003,16 @@
     },
     "v3PackageReleaseCertDeleteRespData": {
       "type": "object"
+    },
+    "v3PackageReleaseCertDownloadReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "PackageReleaseCertDownloadReq is the request for download cert pkg."
     },
     "v3PackageReleaseCertListReq": {
       "type": "object",
@@ -3050,6 +3172,19 @@
     },
     "v3PackageReleasePluginBinToolDeleteRespData": {
       "type": "object"
+    },
+    "v3PackageReleasePluginBinToolDownloadReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "description": "PackageReleasePluginBinToolDownloadReq is the request for download plugin\nbintool pkg."
     },
     "v3PackageReleasePluginBinToolListReq": {
       "type": "object",
