@@ -29,6 +29,8 @@ var _ IHandler = &Handler{}
 type Handler struct {
 	_ struct{}
 
+	policyDiscovery IPolicyDiscovery
+
 	calculator       IScopeCalculator
 	conflictResolver IConflictResolver
 
@@ -42,6 +44,10 @@ const (
 
 // NewHandler creates a new handler.
 func NewHandler(conf *Config) *Handler {
+	policyDiscovery := NewPolicyDiscovery(&PolicyDiscoveryConfig{
+		DomainDeployPolicyDiscover: conf.DomainDeployPolicyDiscover,
+	})
+
 	calculator := NewScopeCalculator(&CalculatorConfig{
 		CmdbClient:           conf.CmdbHandler,
 		CalculateConcurrency: defaultCalculateConcurrency,
@@ -59,6 +65,7 @@ func NewHandler(conf *Config) *Handler {
 	})
 
 	return &Handler{
+		policyDiscovery:  policyDiscovery,
 		calculator:       calculator,
 		conflictResolver: conflictResolver,
 		analyzer:         analyzer,
@@ -67,11 +74,17 @@ func NewHandler(conf *Config) *Handler {
 }
 
 // Do does the handler.
-func (h *Handler) Do(nCtx contextx.IContext, deployPolicies ...*types.DeployPolicy) error {
-	originDeployWorkUnits := make([]*DeployUnit, len(deployPolicies))
+func (h *Handler) Do(nCtx contextx.IContext, originDeployPolicies ...*types.DeployPolicy) error {
+	// 1. discover these deploy policies's related deploy policies.
+	relatedDeployPolicies, err := h.policyDiscovery.Discover(nCtx, originDeployPolicies...)
+	if err != nil {
+		return fmt.Errorf("failed to discover related deploy policies: %w", err)
+	}
 
-	// 1. convert scope to Targets and spec
-	for idx, deployPolicy := range deployPolicies {
+	originDeployWorkUnits := make([]*DeployUnit, len(relatedDeployPolicies))
+
+	// 2. convert scope to Targets and spec
+	for idx, deployPolicy := range relatedDeployPolicies {
 		targets, err := h.calculator.Calculate(nCtx, deployPolicy.Scopes...)
 		if err != nil {
 			return fmt.Errorf("failed to calculate targets for policy, deploy-policy(%v): %w", deployPolicy, err)
@@ -85,19 +98,19 @@ func (h *Handler) Do(nCtx contextx.IContext, deployPolicies ...*types.DeployPoli
 		}
 	}
 
-	// 2. resolve the conflict of work units.
-	unConflictDeployWorkUnis, err := h.conflictResolver.ResolveConflict(originDeployWorkUnits)
+	// 3. resolve the conflict of work units.
+	unConflictDeployWorkUnits, err := h.conflictResolver.ResolveConflict(originDeployWorkUnits)
 	if err != nil {
 		return fmt.Errorf("failed to resolve conflict: %w", err)
 	}
 
-	// 3. analyze the work units and design the change tasks.
-	changeTasks, err := h.analyzer.Analyze(nCtx, unConflictDeployWorkUnis...)
+	// 4. analyze the work units and design the change tasks.
+	changeTasks, err := h.analyzer.Analyze(nCtx, unConflictDeployWorkUnits...)
 	if err != nil {
 		return fmt.Errorf("failed to analyze work units: %w", err)
 	}
 
-	// 4. executor and execute the change tasks.
+	// 5. executor and execute the change tasks.
 	if err := h.executor.Execute(nCtx, changeTasks...); err != nil {
 		return fmt.Errorf("failed to execute change tasks: %w", err)
 	}

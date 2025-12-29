@@ -12,6 +12,7 @@ package dpmgr
 
 import (
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
@@ -19,10 +20,11 @@ import (
 
 // Config defines the config of dstrategy.
 type Config struct {
-	DaoProcess    plugin.IDaoProcess
-	DaoPlugin     plugin.IDaoPlugin
-	DaoHost       topo.IStorageHost
-	CmdbHandler   cmdb.IHandler
-	NodeManager   managerIface.INodeManager
-	PluginManager managerIface.IPluginManager
+	DaoProcess                 plugin.IDaoProcess
+	DaoPlugin                  plugin.IDaoPlugin
+	DaoHost                    topo.IStorageHost
+	DomainDeployPolicyDiscover deploypolicy.IDomainDeployPolicyDiscover
+	CmdbHandler                cmdb.IHandler
+	NodeManager                managerIface.INodeManager
+	PluginManager              managerIface.IPluginManager
 }
