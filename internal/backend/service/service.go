@@ -973,6 +973,12 @@ func (svc *Service) Start() error {
 		return err
 	}
 
+	// after all servers brings up, initial default cipher.
+	if err := svc.initialCipher(); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to initial default cipher")
+		return err
+	}
+
 	// wait until all servers stopped or backend error.
 	if err := gp.Wait(); err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to start servers")
@@ -1024,6 +1030,68 @@ func (svc *Service) initTracing() error {
 
 	if err := tracing.Init(tracingConf); err != nil {
 		return fmt.Errorf("failed to init tracing: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *Service) initialCipher() error {
+	tenantIDs := make([]string, 0)
+	switch tenant.GetMode() {
+	case tenant.ModeSingle:
+		tenantIDs = append(tenantIDs, tenant.SingleModeTenantID)
+	case tenant.ModeMultiple:
+		allTenant, err := svc.Cap.UserManagerHandler.ListALLTenants(svc.ctx)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to get rsa public key, failed to list all tenants")
+			return err
+		}
+
+		conv.SliceToSlice(allTenant, func(tenantInfo *types.Tenant) string {
+			return tenantInfo.ID
+		})
+	default:
+		return fmt.Errorf("unsupported tenant mode: %s", tenant.GetMode())
+	}
+
+	for _, tenantID := range tenantIDs {
+		nCtx := contextx.From(svc.ctx, contextx.WithTenantID(tenantID))
+		exist, err := svc.Cap.StorageCipher.ExistCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to get rsa public key, failed to check cipher existence")
+			return err
+		}
+
+		if exist {
+			return nil
+		}
+
+		priv, pub, err := crypter.GenerateRSAKeyPairPEM(crypter.RSAKeySize4096)
+		if err != nil {
+			return err
+		}
+
+		if err := svc.Cap.StorageCipher.CreateCipher(nCtx, &types.Cipher{
+			Name:        types.DefaultCipherName,
+			KeyType:     types.CipherKeyTypeRSA4096,
+			Description: types.DefaultCipherDescription,
+			PrivateKey:  priv,
+			PublicKey:   pub,
+		}); err != nil {
+			exist, err := svc.Cap.StorageCipher.ExistCipher(nCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
+			if err != nil {
+				logger.G.Sys().WithErr(err).Error("failed to get rsa public key, failed to check cipher existence")
+				return err
+			}
+
+			if exist {
+				return nil
+			}
+
+			logger.G.Sys().WithErr(err).Error("failed to create rsa cipher")
+
+			return err
+		}
 	}
 
 	return nil

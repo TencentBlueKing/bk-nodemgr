@@ -35,12 +35,12 @@ type Cipher struct {
 
 // UniqueFields unique fields of the table.
 func (a *Cipher) UniqueFields() []string {
-	return []string{FieldKeyName}
+	return []string{FieldKeyName, FieldKeyKeyType}
 }
 
 // UniqueKey unique key of the table.
 func (a *Cipher) UniqueKey() string {
-	return a.Name
+	return fmt.Sprintf("%s_%s", a.Name, a.KeyType)
 }
 
 // TableAccessPoint represent the complete db structures of a access point.

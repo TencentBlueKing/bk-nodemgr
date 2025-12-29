@@ -18,7 +18,6 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/crypter"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/gin-gonic/gin"
 )
@@ -49,30 +48,6 @@ func (h *handler) GetRSAPublicKey(rCtx restserver.IContext) (interface{}, error)
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get rsa public key, failed to decode request body")
 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
-	}
-
-	exist, err := h.daoCipher.ExistCipher(rCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to get rsa public key, failed to check cipher existence")
-
-		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
-	}
-
-	if !exist {
-		priv, pub, err := crypter.GenerateRSAKeyPairPEM(crypter.RSAKeySize4096)
-		if err != nil {
-			return nil, resterrf.ErrWrap(resterrf.Aborted, err)
-		}
-
-		if err := h.daoCipher.CreateCipher(rCtx, &types.Cipher{
-			Name:        types.DefaultCipherName,
-			KeyType:     types.CipherKeyTypeRSA4096,
-			Description: types.DefaultCipherDescription,
-			PrivateKey:  priv,
-			PublicKey:   pub,
-		}); err != nil {
-			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
-		}
 	}
 
 	cipher, err := h.daoCipher.GetCipher(rCtx, types.DefaultCipherName, types.CipherKeyTypeRSA4096)
