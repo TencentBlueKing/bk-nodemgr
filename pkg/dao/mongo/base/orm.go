@@ -521,7 +521,7 @@ func (orm *Orm[P, T]) UpdateFieldsBulk(nCtx contextx.IContext, updates []*Docume
 		}
 
 		updateDoc := buildUpdateFields(update.Fields)
-		model := mongo.NewUpdateOneModel().
+		model := mongo.NewUpdateManyModel().
 			SetFilter(update.Filter).
 			SetUpdate(updateDoc).
 			SetUpsert(false)
