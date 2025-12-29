@@ -3105,7 +3105,7 @@ func (c *cli) getRSAPublicKey(ctx contextx.IContext, req *protoBackend.GetRSAPub
 	header := c.getHeader(ctx)
 
 	err := c.client.Post().
-		SubResourcef("/encryption/rsa/get_public_key").
+		SubResourcef("/cipher/rsa/get_public_key").
 		WithContext(ctx).
 		WithHeaders(header).
 		Body(req).

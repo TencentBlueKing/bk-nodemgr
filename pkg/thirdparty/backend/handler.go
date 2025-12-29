@@ -34,7 +34,7 @@ type IHandler interface {
 	IHandlerProcess
 	IHandlerConfigPolicyEvent
 	IHandlerGraph
-	IHandlerEncryption
+	IHandlerCipher
 
 	// ListBusiness list business within specified tenant in contextx.
 	// @param ctx contextx.IContext, contains tenant-id and username.

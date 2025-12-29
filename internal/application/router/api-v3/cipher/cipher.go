@@ -8,12 +8,12 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package encryption provides the encryption related API handlers.
-package encryption
+// Package cipher provides the cipher related API handlers.
+package cipher
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/encryption/rsa"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/application/router/api-v3/cipher/rsa"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/gin-gonic/gin"
 )
@@ -26,7 +26,7 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:             rg.Group("/encryption"),
+		rg:             rg.Group("/cipher"),
 		backendHandler: capability.BackendHandler,
 	}
 }

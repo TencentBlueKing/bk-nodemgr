@@ -20,11 +20,12 @@ message GetRSAPublicKeyResp {
   Data data = 5;
 }
 
-service Encryption {
+// Cipher service definition.
+service Cipher {
   // GetRSAPublicKey get rsa public key.
   rpc GetRSAPublicKey(GetRSAPublicKeyReq) returns (GetRSAPublicKeyResp) {
     option (google.api.http) = {
-      post : "/api/v3/encryption/rsa/get_public_key"
+      post : "/api/v3/cipher/rsa/get_public_key"
       body : "*"
     };
   }

@@ -553,7 +553,9 @@ func (svc *Service) initialStorages() error {
 
 	svc.Cap.StorageAsymmetricEncryption, err = asymmetricencryptionStg.NewStorage(
 		svc.Cap.MongoClient,
-		svc.conf.MongoDB.Database)
+		svc.conf.MongoDB.Database,
+		rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create asymmetric encryption storage: %w", err)
 	}
@@ -972,12 +974,6 @@ func (svc *Service) Start() error {
 		return err
 	}
 
-	// initial asymmetric encryption key pairs.
-	if err := svc.initialAsymmetricEncryption(); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to initial asymmetric encryption")
-		return err
-	}
-
 	// wait until all servers stopped or backend error.
 	if err := gp.Wait(); err != nil {
 		logger.G.Sys().WithErr(err).Error("failed to start servers")
@@ -1029,52 +1025,6 @@ func (svc *Service) initTracing() error {
 
 	if err := tracing.Init(tracingConf); err != nil {
 		return fmt.Errorf("failed to init tracing: %w", err)
-	}
-
-	return nil
-}
-
-func (svc *Service) initialAsymmetricEncryption() error {
-	// load asymmetric encryption key pairs from storage.
-	exist, err := svc.Cap.StorageAsymmetricEncryption.ExistAsymmetricEncryption(
-		svc.ctx, types.AsymmetricKeyTypeRSA, types.AsymmetricCipherTypePrivate)
-	if err != nil {
-		return fmt.Errorf("failed to get private key existence: %w", err)
-	}
-
-	if !exist {
-		logger.G.Sys().Info("asymmetric encryption private key not exist, generate a new one")
-
-		// generate asymmetric encryption key pairs.
-		priv, pub, err := crypter.GenerateRSAKeyPairPEM(crypter.RSAKeySize4096)
-		if err != nil {
-			return fmt.Errorf("failed to generate asymmetric encryption key pairs: %w", err)
-		}
-
-		if err := svc.Cap.StorageAsymmetricEncryption.CreateAsymmetricEncryption(svc.ctx, types.NewDefaultRSAPrivateEncryption(priv)); err != nil {
-			return fmt.Errorf("failed to create asymmetric encryption private key: %w", err)
-		}
-
-		if err := svc.Cap.StorageAsymmetricEncryption.CreateAsymmetricEncryption(svc.ctx, types.NewDefaultRSAPublicEncryption(pub)); err != nil {
-			return fmt.Errorf("failed to create asymmetric encryption public key: %w", err)
-		}
-
-		return nil
-	}
-
-	priv, err := svc.Cap.StorageAsymmetricEncryption.GetAsymmetricEncryption(
-		svc.ctx, types.AsymmetricKeyTypeRSA, types.AsymmetricCipherTypePrivate)
-	if err != nil {
-		return fmt.Errorf("failed to get asymmetric encryption private key: %w", err)
-	}
-
-	pub, err := crypter.GetRSAPublicKeyPEMByPrivateKeyPEM(priv.Content)
-	if err != nil {
-		return fmt.Errorf("failed to get asymmetric encryption public key by private key: %w", err)
-	}
-
-	if err := svc.Cap.StorageAsymmetricEncryption.UpsertAsymmetricEncryption(svc.ctx, types.NewDefaultRSAPublicEncryption(pub)); err != nil {
-		return fmt.Errorf("failed to upsert asymmetric encryption public key: %w", err)
 	}
 
 	return nil

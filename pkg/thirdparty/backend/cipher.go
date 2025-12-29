@@ -15,8 +15,8 @@ import (
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 )
 
-// IHandlerEncryption encryption handler interface.
-type IHandlerEncryption interface {
+// IHandlerCipher cipher handler interface.
+type IHandlerCipher interface {
 	// GetRSAPublicKey get rsa public key.
 	GetRSAPublicKey(ctx contextx.IContext) (string, error)
 }
