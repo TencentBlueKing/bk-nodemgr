@@ -38,7 +38,7 @@ func NewConflictResolver() *ConflictResolver {
 func (resolver *ConflictResolver) ResolveConflict(originalUnits []*DeployUnit) ([]*DeployUnit, error) {
 	// sort by create time
 	sort.Slice(originalUnits, func(i, j int) bool {
-		return originalUnits[i].LifeCycle.CreateAt.Before(originalUnits[j].LifeCycle.CreateAt)
+		return originalUnits[i].LifeCycle.CreatedAt.Before(originalUnits[j].LifeCycle.CreatedAt)
 	})
 
 	resultUnits := make([]*DeployUnit, len(originalUnits))

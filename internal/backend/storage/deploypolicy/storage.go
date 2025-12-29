@@ -76,16 +76,14 @@ func (s *Storage) check() error {
 }
 
 const (
-	metricCreateDeployPolicy       = "create_deploy_policy"
-	metricListDeployPolicies       = "list_deploy_policies"
-	metricGetDeployPolicyByID      = "get_deploy_policy_by_id"
-	metricUpdateDeployPolicyFields = "update_deploy_policy_fields"
-	metricDeleteDeployPolicy       = "delete_deploy_policy"
-	metricExistDeployPolicy        = "exist_deploy_policy"
-
-	// ==================== IDomainDeployPolicyMgr Functions ====================
+	metricCreateDeployPolicy              = "create_deploy_policy"
+	metricListDeployPolicies              = "list_deploy_policies"
+	metricGetDeployPolicyByID             = "get_deploy_policy_by_id"
+	metricUpdateDeployPolicyFields        = "update_deploy_policy_fields"
+	metricDeleteDeployPolicy              = "delete_deploy_policy"
+	metricExistDeployPolicy               = "exist_deploy_policy"
 	metricDiscoverPoliciesBySpecifyPlugin = "discover_policies_by_specify_plugin"
-	metricUpdateDeployPoliciesExecuteAt   = "update_deploy_policies_execute_at"
+	metricUpdateDeployPoliciesExecutedAt  = "update_deploy_policies_executed_at"
 )
 
 // CreateDeployPolicy create deploy policy.
@@ -224,14 +222,14 @@ func (s *Storage) DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param 
 	return policies, nil
 }
 
-// UpdateDeployPoliciesExecuteAt update deploy policies execute at.
-func (s *Storage) UpdateDeployPoliciesExecuteAt(nCtx contextx.IContext, deployPolicyIDs []int64, executeAt time.Time) error {
+// UpdateDeployPoliciesExecutedAt update deploy policies executed at.
+func (s *Storage) UpdateDeployPoliciesExecutedAt(nCtx contextx.IContext, deployPolicyIDs []int64, executedAt time.Time) error {
 	var (
 		err error
 	)
 
-	err = s.WrapFn(nCtx, metricUpdateDeployPoliciesExecuteAt, func(nCtx contextx.IContext) error {
-		err = s.updateDeployPoliciesExecuteAt(nCtx, deployPolicyIDs, executeAt)
+	err = s.WrapFn(nCtx, metricUpdateDeployPoliciesExecutedAt, func(nCtx contextx.IContext) error {
+		err = s.updateDeployPoliciesExecutedAt(nCtx, deployPolicyIDs, executedAt)
 
 		return err
 	})

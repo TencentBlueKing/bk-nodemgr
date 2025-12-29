@@ -26,11 +26,14 @@ const (
 	// FieldKeyOperator the operator field key.
 	FieldKeyOperator = "data.operator"
 
-	// FieldKeyLifeCycleUpdateAt the life cycle update at field key.
-	FieldKeyLifeCycleUpdateAt = "data.life_cycle.update_at"
+	// FieldKeyLifeCycleCreatedAt the life cycle created at field key.
+	FieldKeyLifeCycleCreatedAt = "data.life_cycle.created_at"
 
-	// FieldKeyLifeCycleExecuteAt the life cycle execute at field key.
-	FieldKeyLifeCycleExecuteAt = "data.life_cycle.execute_at"
+	// FieldKeyLifeCycleUpdatedAt the life cycle updated at field key.
+	FieldKeyLifeCycleUpdatedAt = "data.life_cycle.updated_at"
+
+	// FieldKeyLifeCycleExecutedAt the life cycle executed at field key.
+	FieldKeyLifeCycleExecutedAt = "data.life_cycle.executed_at"
 
 	// FieldKeySpecs the specs field key.
 	FieldKeySpecs = "data.specs"

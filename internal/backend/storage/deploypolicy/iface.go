@@ -52,6 +52,6 @@ type IDomainDeployPolicyMgr interface {
 	// DiscoverPoliciesBySpecifyPlugin discover policies by specify plugin.
 	DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error)
 
-	// UpdateDeployPoliciesExecuteAt update deploy policies execute at.
-	UpdateDeployPoliciesExecuteAt(nCtx contextx.IContext, deployPolicyIDs []int64, executeAt time.Time) error
+	// UpdateDeployPoliciesExecutedAt update deploy policies executed at.
+	UpdateDeployPoliciesExecutedAt(nCtx contextx.IContext, deployPolicyIDs []int64, executedAt time.Time) error
 }

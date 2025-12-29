@@ -55,7 +55,7 @@ func convSpecifyPluginParamToOptions(param *types.SpecifyPluginParam) []daoDeplo
 	return opts
 }
 
-func (s *Storage) updateDeployPoliciesExecuteAt(nCtx contextx.IContext, deployPolicyIDs []int64, executeAt time.Time) error {
+func (s *Storage) updateDeployPoliciesExecutedAt(nCtx contextx.IContext, deployPolicyIDs []int64, executedAt time.Time) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
@@ -68,8 +68,8 @@ func (s *Storage) updateDeployPoliciesExecuteAt(nCtx contextx.IContext, deployPo
 		daoDeployPolicy.WithDeployPolicyID(deployPolicyIDs...),
 	}
 
-	if err := s.daoDeployPolicy.UpdateExecuteAt(nCtx, filterOpts, executeAt); err != nil {
-		return fmt.Errorf("failed to update deploy policies execute at: %w", err)
+	if err := s.daoDeployPolicy.UpdateExecutedAt(nCtx, filterOpts, executedAt); err != nil {
+		return fmt.Errorf("failed to update deploy policies executed at: %w", err)
 	}
 
 	return nil

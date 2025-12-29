@@ -126,7 +126,7 @@ func (h *Handler) Do(nCtx contextx.IContext, originDeployPolicies ...*types.Depl
 		return policy.DeployPolicyID
 	})
 
-	err = h.domainDeployPolicyMgr.UpdateDeployPoliciesExecuteAt(nCtx, deployPoliciesIDs, time.Now())
+	err = h.domainDeployPolicyMgr.UpdateDeployPoliciesExecutedAt(nCtx, deployPoliciesIDs, time.Now())
 	if err != nil {
 		return fmt.Errorf("failed to update deploy policy status: %w", err)
 	}
