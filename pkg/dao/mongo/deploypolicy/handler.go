@@ -11,6 +11,7 @@
 package deploypolicy
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -115,7 +116,7 @@ func (h *Handler) Create(nCtx contextx.IContext, deployPolicy *types.DeployPolic
 
 func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy, tenantID string) (*DeployPolicy, error) {
 	if deployPolicy == nil {
-		return nil, nil
+		return nil, errors.New("deploy policy is nil")
 	}
 
 	specs, err := convSpecsFromTypes(deployPolicy.Specs)
@@ -150,7 +151,7 @@ func convSpecsFromTypes(specs []*types.DeploySpec) ([]*Spec, error) {
 
 func convSpecFromTypes(spec *types.DeploySpec) (*Spec, error) {
 	if spec == nil {
-		return nil, nil
+		return nil, errors.New("deploy spec is nil")
 	}
 
 	dbSpec := &Spec{
@@ -323,7 +324,7 @@ func (h *Handler) Get(nCtx contextx.IContext, opts ...OptFn) (*types.DeployPolic
 
 func convDeployPolicyToTypes(data *DeployPolicy) (*types.DeployPolicy, error) {
 	if data == nil {
-		return nil, nil
+		return nil, errors.New("deploy policy data is nil")
 	}
 
 	deployPolicy := &types.DeployPolicy{
@@ -386,7 +387,7 @@ func convTargetFilterToTypes(data *TargetFilter) *types.TargetFilter {
 
 func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 	if data == nil {
-		return nil, nil
+		return nil, errors.New("spec data is nil")
 	}
 
 	specType := types.DeploySpecType(data.Type)
@@ -396,6 +397,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		if data.ParamSpecifyAgent == nil {
 			return nil, fmt.Errorf("param_specify_agent is required for type %s", data.Type)
 		}
+
 		return types.NewDeploySpecWithSpecifyAgent(&types.SpecifyAgentParam{
 			NodeVersion: data.ParamSpecifyAgent.NodeVersion,
 		})
@@ -404,6 +406,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		if data.ParamSpecifyPlugin == nil {
 			return nil, fmt.Errorf("param_specify_plugin is required for type %s", data.Type)
 		}
+
 		return types.NewDeploySpecWithSpecifyPlugin(&types.SpecifyPluginParam{
 			PluginName:          data.ParamSpecifyPlugin.PluginName,
 			Version:             data.ParamSpecifyPlugin.Version,
@@ -414,6 +417,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		if data.ParamSpecifyPluginPkg == nil {
 			return nil, fmt.Errorf("param_specify_plugin_pkg is required for type %s", data.Type)
 		}
+
 		return types.NewDeploySpecWithSpecifyPluginPkg(&types.SpecifyPluginPkgParam{
 			PluginPkgName:       data.ParamSpecifyPluginPkg.PluginPkgName,
 			Version:             data.ParamSpecifyPluginPkg.Version,
@@ -432,6 +436,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 				IsMainConfig: detail.IsMainConfig,
 			})
 		}
+
 		return types.NewDeploySpecWithSpecifyPluginSubConfig(&types.SpecifyPluginSubConfigParam{
 			PluginName:          data.ParamSpecifyPluginSubConfig.PluginName,
 			ConfigFilesDetail:   configFilesDetail,
@@ -442,6 +447,7 @@ func convSpecToTypes(data *Spec) (*types.DeploySpec, error) {
 		if data.ParamSpecifyProxy == nil {
 			return nil, fmt.Errorf("param_specify_proxy is required for type %s", data.Type)
 		}
+
 		return types.NewDeploySpecWithSpecifyProxy(&types.SpecifyProxyParam{
 			NodeVersion: data.ParamSpecifyProxy.NodeVersion,
 		})

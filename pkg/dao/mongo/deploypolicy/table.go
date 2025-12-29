@@ -65,7 +65,7 @@ type Spec struct {
 	ParamSpecifyProxy           *SpecParamSpecifyProxy           `json:"param_specify_proxy,omitempty" bson:"param_specify_proxy,omitempty"`
 	ParamSpecifyPlugin          *SpecParamSpecifyPlugin          `json:"param_specify_plugin,omitempty" bson:"param_specify_plugin,omitempty"`
 	ParamSpecifyPluginPkg       *SpecParamSpecifyPluginPkg       `json:"param_specify_plugin_pkg,omitempty" bson:"param_specify_plugin_pkg,omitempty"`
-	ParamSpecifyPluginSubConfig *SpecParamSpecifyPluginSubConfig `json:"param_specify_plugin_sub_config,omitempty" bson:"param_specify_plugin_sub_config,omitempty"`
+	ParamSpecifyPluginSubConfig *SpecParamSpecifyPluginSubConfig `json:"param_specify_plugin_sub_config,omitempty" bson:"param_specify_plugin_sub_config,omitempty"` //nolint:lll
 }
 
 // SpecParamSpecifyAgent represents the parameter for specify agent spec.

@@ -65,7 +65,8 @@ const (
 // Validate validates the deploy spec type.
 func (deploySpecType DeploySpecType) Validate() error {
 	switch deploySpecType {
-	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyProxy, DeploySpecTypeSpecifyPlugin, DeploySpecTypeSpecifyPluginPkg, DeploySpecTypeSpecifyPluginSubConfig:
+	case DeploySpecTypeSpecifyAgent, DeploySpecTypeSpecifyProxy, DeploySpecTypeSpecifyPlugin,
+		DeploySpecTypeSpecifyPluginPkg, DeploySpecTypeSpecifyPluginSubConfig:
 		return nil
 	default:
 		return fmt.Errorf("invalid deploy spec type(%s)", deploySpecType)
@@ -125,6 +126,7 @@ func NewDeploySpecWithSpecifyAgent(param *SpecifyAgentParam) (*DeploySpec, error
 	if param == nil {
 		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyAgent")
 	}
+
 	return &DeploySpec{
 		specType:          DeploySpecTypeSpecifyAgent,
 		paramSpecifyAgent: param,
@@ -136,6 +138,7 @@ func NewDeploySpecWithSpecifyPlugin(param *SpecifyPluginParam) (*DeploySpec, err
 	if param == nil {
 		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyPlugin")
 	}
+
 	return &DeploySpec{
 		specType:           DeploySpecTypeSpecifyPlugin,
 		paramSpecifyPlugin: param,
@@ -147,6 +150,7 @@ func NewDeploySpecWithSpecifyPluginPkg(param *SpecifyPluginPkgParam) (*DeploySpe
 	if param == nil {
 		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyPluginPkg")
 	}
+
 	return &DeploySpec{
 		specType:              DeploySpecTypeSpecifyPluginPkg,
 		paramSpecifyPluginPkg: param,
@@ -158,6 +162,7 @@ func NewDeploySpecWithSpecifyPluginSubConfig(param *SpecifyPluginSubConfigParam)
 	if param == nil {
 		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyPluginSubConfig")
 	}
+
 	return &DeploySpec{
 		specType:                    DeploySpecTypeSpecifyPluginSubConfig,
 		paramSpecifyPluginSubConfig: param,
@@ -169,6 +174,7 @@ func NewDeploySpecWithSpecifyProxy(param *SpecifyProxyParam) (*DeploySpec, error
 	if param == nil {
 		return nil, fmt.Errorf("param cannot be nil for DeploySpecTypeSpecifyProxy")
 	}
+
 	return &DeploySpec{
 		specType:          DeploySpecTypeSpecifyProxy,
 		paramSpecifyProxy: param,
@@ -182,11 +188,13 @@ func (spec *DeploySpec) UniqueID() (string, error) {
 		if spec.paramSpecifyPlugin == nil {
 			return "", fmt.Errorf("param_specify_plugin is nil")
 		}
+
 		return spec.paramSpecifyPlugin.PluginName, nil
 	case DeploySpecTypeSpecifyPluginPkg:
 		if spec.paramSpecifyPluginPkg == nil {
 			return "", fmt.Errorf("param_specify_plugin_pkg is nil")
 		}
+
 		return spec.paramSpecifyPluginPkg.PluginPkgName, nil
 	default:
 		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.specType)
