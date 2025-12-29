@@ -117,8 +117,9 @@ type Scope struct {
 
 // LifeCycle represents the life cycle of deploy policy.
 type LifeCycle struct {
-	CreateAt time.Time `json:"create_at" bson:"create_at"`
-	UpdateAt time.Time `json:"update_at" bson:"update_at"`
+	CreateAt  time.Time `json:"create_at" bson:"create_at"`
+	UpdateAt  time.Time `json:"update_at" bson:"update_at"`
+	ExecuteAt time.Time `json:"execute_at" bson:"execute_at"`
 }
 
 // TargetFilter represents the target filter of deploy policy.

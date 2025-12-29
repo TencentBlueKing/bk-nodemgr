@@ -245,8 +245,9 @@ func convScopeFromTypes(scope *types.Scope) *Scope {
 
 func convDeployPolicyLifeCycleFromTypes(deployPolicyLifeCycle types.DeployPolicyLifeCycle) LifeCycle {
 	return LifeCycle{
-		CreateAt: deployPolicyLifeCycle.CreateAt,
-		UpdateAt: deployPolicyLifeCycle.UpdateAt,
+		CreateAt:  deployPolicyLifeCycle.CreateAt,
+		UpdateAt:  deployPolicyLifeCycle.UpdateAt,
+		ExecuteAt: deployPolicyLifeCycle.ExecuteAt,
 	}
 }
 
@@ -370,8 +371,9 @@ func convScopeToTypes(data *Scope) *types.Scope {
 
 func convDeployPolicyLifeCycleToTypes(data LifeCycle) types.DeployPolicyLifeCycle {
 	return types.DeployPolicyLifeCycle{
-		CreateAt: data.CreateAt,
-		UpdateAt: data.UpdateAt,
+		CreateAt:  data.CreateAt,
+		UpdateAt:  data.UpdateAt,
+		ExecuteAt: data.ExecuteAt,
 	}
 }
 

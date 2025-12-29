@@ -38,8 +38,9 @@ type DeployPolicyMeta struct {
 
 // DeployPolicyLifeCycle defines the deploy policy life cycle.
 type DeployPolicyLifeCycle struct {
-	CreateAt time.Time
-	UpdateAt time.Time
+	CreateAt  time.Time
+	UpdateAt  time.Time
+	ExecuteAt time.Time
 }
 
 // DeploySpecType defines the deploy spec type.
