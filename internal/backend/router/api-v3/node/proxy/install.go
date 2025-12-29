@@ -78,6 +78,9 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 func (h *handler) generateInstallNodeDeployments(
 	nCtx contextx.IContext, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
 
+	// if this install is manual
+	isManual := req.GetIsManual()
+
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
 		targetVersions[idx] = types.TargetVersion{
@@ -101,9 +104,12 @@ func (h *handler) generateInstallNodeDeployments(
 	}
 
 	// fetch host.
-	existedHostMap, err := h.fetchExistedHosts(nCtx, req.GetHost())
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
+	existedHostMap := make(map[int64]*types.Host)
+	if !isManual {
+		existedHostMap, err = h.fetchExistedHosts(nCtx, req.GetHost())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
+		}
 	}
 
 	gp := gopool.NewPool()
@@ -124,9 +130,12 @@ func (h *handler) generateInstallNodeDeployments(
 			}
 
 			loginCreditID := ""
-			if existedHost, ok := existedHostMap[reqHost.GetBkHostId()]; ok {
+			existedHost, ok := existedHostMap[reqHost.GetBkHostId()]
+			if ok {
 				loginCreditID = existedHost.Dynamic.LoginCreditID
 			}
+			logger.G.Biz(nCtx).
+				With("host-id", reqHost.GetBkHostId(), "inner-ip", reqHost.GetBkHostInnerip(), "host-exited", ok).Info("generating node deployment")
 
 			nodeDeployment := types.NewNodeDeployment(
 				&types.DeploymentInfo{
@@ -163,7 +172,7 @@ func (h *handler) generateInstallNodeDeployments(
 					InstallOptions: types.DeploymentInstallOptions{
 						ReRegister:    reqHost.GetReRegister(),
 						DirectInstall: installOriginUnit.IsDirect,
-						IsManual:      req.GetIsManual(),
+						IsManual:      isManual,
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},
@@ -171,12 +180,14 @@ func (h *handler) generateInstallNodeDeployments(
 					TargetVersion:   targetVersions,
 				})
 
-			err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host,
-				reqHost.GetLoginPassword(),
-				reqHost.GetLoginKeyFile(),
-				reqHost.GetCreditExpiredIntervalSec())
-			if err != nil {
-				return fmt.Errorf("failed to process host credit: %w", err)
+			if !isManual {
+				err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host,
+					reqHost.GetLoginPassword(),
+					reqHost.GetLoginKeyFile(),
+					reqHost.GetCreditExpiredIntervalSec())
+				if err != nil {
+					return fmt.Errorf("failed to process host credit: %w", err)
+				}
 			}
 
 			nodeDeployments[idx] = nodeDeployment

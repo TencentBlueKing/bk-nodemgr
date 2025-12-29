@@ -71,9 +71,12 @@ func (h *handler) AgentInstall(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-// nolint: funlen
+// nolint: funlen, gocognit
 func (h *handler) generateInstallNodeDeployments(
 	nCtx contextx.IContext, req *protoBackend.NodeAgentInstallReq) ([]*types.NodeDeployment, []int64, error) {
+
+	// if this install is manual
+	isManual := req.GetIsManual()
 
 	targetVersions := make([]types.TargetVersion, len(req.GetTargetVersion()))
 	for idx, version := range req.GetTargetVersion() {
@@ -98,9 +101,12 @@ func (h *handler) generateInstallNodeDeployments(
 	}
 
 	// fetch host.
-	existedHostMap, err := h.fetchExistedHosts(nCtx, req.GetHost())
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
+	existedHostMap := make(map[int64]*types.Host)
+	if !isManual {
+		existedHostMap, err = h.fetchExistedHosts(nCtx, req.GetHost())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to fetch existed hosts: %w", err)
+		}
 	}
 
 	gp := gopool.NewPool()
@@ -153,7 +159,7 @@ func (h *handler) generateInstallNodeDeployments(
 					InstallOptions: types.DeploymentInstallOptions{
 						ReRegister:    reqHost.GetReRegister(),
 						DirectInstall: networkUnit.IsDirect,
-						IsManual:      req.GetIsManual(),
+						IsManual:      isManual,
 					},
 					UpgradeOptions:  types.DeploymentUpgradeOptions{},
 					RestartOptions:  types.DeploymentRestartOptions{},
@@ -161,8 +167,10 @@ func (h *handler) generateInstallNodeDeployments(
 					TargetVersion:   targetVersions,
 				})
 
-			if err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile()); err != nil {
-				return fmt.Errorf("failed to process host credit: %w", err)
+			if !isManual {
+				if err = h.processHostCredit(nCtx, &nodeDeployment.Info.Host, reqHost.GetLoginPassword(), reqHost.GetLoginKeyFile()); err != nil {
+					return fmt.Errorf("failed to process host credit: %w", err)
+				}
 			}
 
 			nodeDeployments[idx] = nodeDeployment
