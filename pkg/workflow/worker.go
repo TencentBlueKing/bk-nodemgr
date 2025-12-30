@@ -164,8 +164,8 @@ func (mgr *manager) do(ctx context.Context, actionName string, operationInstance
 		return err
 	}
 
-	// update latest action brief data.
-	if err = mgr.updateOperationLatestActionBriefData(nCtx, operationInstanceID, actionDef); err != nil {
+	// update latest action brief data to instance table and operation table.
+	if err = mgr.updateOperationLatestActionBriefData(nCtx, operationInstanceID, actionDef, operInstBriefData); err != nil {
 		return err
 	}
 
@@ -284,15 +284,27 @@ func (mgr *manager) refreshOperationInstanceState(
 func (mgr *manager) updateOperationLatestActionBriefData(
 	ctx contextx.IContext,
 	operationInstanceID string,
-	actionDef action.Definition) error {
+	actionDef action.Definition,
+	operInstBriefData *operation.InstanceBriefData) error {
 
+	latestActionBriefData := &action.InstanceBriefData{
+		Name: actionDef.Name(),
+		Tags: actionDef.Tags(),
+	}
+
+	// update instance table.
 	if err := mgr.stgOperationInstance.UpdateOperationLatestActionInstBriefData(ctx,
-		operationInstanceID, &action.InstanceBriefData{
-			Name: actionDef.Name(),
-			Tags: actionDef.Tags(),
-		}); err != nil {
-		return fmt.Errorf("failed to update latest action brief data. "+
+		operationInstanceID, latestActionBriefData); err != nil {
+		return fmt.Errorf("failed to update instance table latest action brief data. "+
 			"oper-inst-id(%s): %v", operationInstanceID, err)
+	}
+
+	operInstBriefData.LatestActionInstBriefData = latestActionBriefData
+	// update operation table.
+	if err := mgr.stgOperation.UpdateOperationLatestInstBriefData(ctx,
+		operInstBriefData.Metadata.OperationID, operInstBriefData); err != nil {
+		return fmt.Errorf("failed to update operation table latest inst brief data. "+
+			"operation-id(%s): %v", operInstBriefData.Metadata.OperationID, err)
 	}
 
 	return nil
