@@ -13,6 +13,8 @@ package types
 import (
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // DeployPolicy defines the deploy policy.
@@ -197,7 +199,8 @@ func (spec *DeploySpec) UniqueID() (string, error) {
 			return "", fmt.Errorf("param_specify_plugin_pkg is nil")
 		}
 
-		return spec.paramSpecifyPluginPkg.PluginPkgName, nil
+		// notice: pkg plugin has their own unique conflict group, so we use uuid to generate unique id.
+		return uuid.NewString(), nil
 	default:
 		return "", fmt.Errorf("unsupported deploy spec type(%s)", spec.specType)
 	}
