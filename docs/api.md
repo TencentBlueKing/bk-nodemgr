@@ -30,4 +30,3 @@
    - patch：部分更新资源。
    - upload：上传资源。
    - download：下载资源。
-

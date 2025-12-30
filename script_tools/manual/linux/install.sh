@@ -4,7 +4,7 @@
 # Manual Installation Script
 # 
 # Usage:
-#   /bin/bash -c "$(curl -fsSL http://your-server/api/v3/backend/callback/workflow/node_install/get_manual_script/linux/OPER_INST_ID?action=ACTION_NAME)"
+#   /bin/bash -c "$(curl -fsSL http://your-server/api/v3/callback/workflow/node_install/get_manual_script/linux/OPER_INST_ID?action=ACTION_NAME)"
 #
 # Note: Placeholders in the script will be replaced by the server with actual values
 #   - __BK_NODEMGR_OPERATION_INSTANCE_ID__: Operation instance ID
@@ -107,7 +107,7 @@ detect_system_info() {
 # Report detect information
 report_detect_info() {
     local action_name="${ACTION_NAME_REPORT_DETECT_INFO}"
-    local url="${CALLBACK_SERVER_URL}/callback/workflow/node_install/report_detect_info"
+    local url="${CALLBACK_SERVER_URL}/api/v3/callback/workflow/node_install/report_detect_info"
     
     # Build JSON request body (use high-compatibility method, avoid using jq)
     local json_body
@@ -154,7 +154,7 @@ EOF
 # Download installer to specified path
 download_installer() {
     local installer_path="$1"
-    local url="${DOWNLOAD_SERVER_URL}/download/installer"
+    local url="${DOWNLOAD_SERVER_URL}/api/v3/download/installer"
     
     # Extract directory from installer path
     local installer_dir
@@ -207,7 +207,7 @@ EOF
 # Get command from server
 get_command() {
     local action_name="${ACTION_NAME_GET_EXEC_COMMAND}"
-    local url="${CALLBACK_SERVER_URL}/callback/workflow/node_install/get_manual_install_exec_command"
+    local url="${CALLBACK_SERVER_URL}/api/v3/callback/workflow/node_install/get_manual_install_exec_command"
     
     # Build JSON request body
     local json_body

@@ -8,42 +8,31 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package basic is the basic router.
-package basic
+// Package callback ...
+package callback
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/version"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/callback/workflow"
 	"github.com/gin-gonic/gin"
 )
 
 // handler ...
 type handler struct {
-	rg      *gin.RouterGroup
-	manager manager.IManager
+	rg *gin.RouterGroup
 }
 
 // newHandler ...
-func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
+func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:      rg.Group("/basic"),
-		manager: capability.Manager,
+		rg: rg.Group("/callback"),
 	}
 }
 
-// Load ...
+// Load ter register the api v3 router.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.GET("/info", restserver.Handler(h.Info))
-}
-
-// Info ...
-func (h *handler) Info(_ restserver.IContext) (interface{}, error) {
-	resp := version.Version()
-
-	return resp, nil
+	workflow.Load(h.rg, capability)
 }

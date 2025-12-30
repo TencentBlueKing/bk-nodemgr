@@ -261,7 +261,7 @@ service Upload {
   // UploadOriginAgent provides origin agent upload.
   rpc UploadOriginAgent(UploadOriginAgentReq) returns (UploadOriginAgentResp) {
     option (google.api.http) = {
-      post : "/upload/origin/agent"
+      post : "/api/v3/upload/origin/agent"
       body : "*"
     };
   }
@@ -270,7 +270,7 @@ service Upload {
   rpc UploadOriginServer(UploadOriginServerReq)
       returns (UploadOriginServerResp) {
     option (google.api.http) = {
-      post : "/upload/origin/server"
+      post : "/api/v3/upload/origin/server"
       body : "*"
     };
   }
@@ -278,7 +278,7 @@ service Upload {
   // UploadOriginCert provides origin cert upload.
   rpc UploadOriginCert(UploadOriginCertReq) returns (UploadOriginCertResp) {
     option (google.api.http) = {
-      post : "/upload/origin/cert"
+      post : "/api/v3/upload/origin/cert"
       body : "*"
     };
   }
@@ -287,7 +287,7 @@ service Upload {
   rpc UploadOriginBinTool(UploadOriginBinToolReq)
       returns (UploadOriginBinToolResp) {
     option (google.api.http) = {
-      post : "/upload/origin/bintool"
+      post : "/api/v3/upload/origin/bintool"
       body : "*"
     };
   }
@@ -296,7 +296,7 @@ service Upload {
   rpc UploadOriginPluginBinToolV2(UploadOriginPluginBinToolReq)
       returns (UploadOriginPluginBinToolResp) {
     option (google.api.http) = {
-      post : "/upload/origin/plugin_bintool"
+      post : "/api/v3/upload/origin/plugin_bintool"
       body : "*"
     };
   }
@@ -305,7 +305,7 @@ service Upload {
   rpc UploadOriginPluginV2(UploadOriginPluginV2Req)
       returns (UploadOriginPluginV2Resp) {
     option (google.api.http) = {
-      post : "/upload/origin/v2/plugin"
+      post : "/api/v3/upload/origin/v2/plugin"
       body : "*"
     };
   }
@@ -314,7 +314,7 @@ service Upload {
   rpc UploadOriginExternalPlugin(UploadOriginExternalPluginV2Req)
       returns (UploadOriginExternalPluginV2Resp) {
     option (google.api.http) = {
-      post : "/upload/origin/v2/external_plugin"
+      post : "/api/v3/upload/origin/v2/external_plugin"
       body : "*"
     };
   }
@@ -323,7 +323,7 @@ service Upload {
   rpc UploadOriginPluginV3(UploadOriginPluginV3Req)
       returns (UploadOriginPluginV3Resp) {
     option (google.api.http) = {
-      post : "/upload/origin/v3/plugin"
+      post : "/api/v3/upload/origin/v3/plugin"
       body : "*"
     };
   }

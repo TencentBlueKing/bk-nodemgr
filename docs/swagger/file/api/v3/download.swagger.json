@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/download/agent": {
+    "/api/v3/download/agent": {
       "post": {
         "summary": "DownloadAgent provides downloading agent pkg.",
         "operationId": "Download_DownloadAgent",
@@ -59,7 +59,7 @@
         ]
       }
     },
-    "/download/bintool": {
+    "/api/v3/download/bintool": {
       "post": {
         "summary": "DownloadBinTool provides downloading bintool.",
         "operationId": "Download_DownloadBinTool",
@@ -102,7 +102,7 @@
         ]
       }
     },
-    "/download/cert": {
+    "/api/v3/download/cert": {
       "post": {
         "summary": "DownloadCert provides downloading cert.",
         "operationId": "Download_DownloadCert",
@@ -145,7 +145,7 @@
         ]
       }
     },
-    "/download/installer": {
+    "/api/v3/download/installer": {
       "post": {
         "summary": "DownloadInstaller provides downloading installer.",
         "operationId": "Download_DownloadInstaller",
@@ -188,7 +188,7 @@
         ]
       }
     },
-    "/download/plugin": {
+    "/api/v3/download/plugin": {
       "post": {
         "summary": "DownloadAgent provides downloading plugin.",
         "operationId": "Download_DownloadPlugin",
@@ -231,7 +231,7 @@
         ]
       }
     },
-    "/download/plugin_bintool": {
+    "/api/v3/download/plugin_bintool": {
       "post": {
         "summary": "DownloadPluginBinTool provides downloading plugin bintool.",
         "operationId": "Download_DownloadPluginBinTool",
@@ -274,7 +274,7 @@
         ]
       }
     },
-    "/download/proxy": {
+    "/api/v3/download/proxy": {
       "post": {
         "summary": "DownloadProxy provides downloading proxy pkg.",
         "operationId": "Download_DownloadProxy",

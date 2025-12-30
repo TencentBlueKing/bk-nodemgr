@@ -191,7 +191,7 @@ func (step *Step) downloadAgentConfig(ctx context.Context) error {
 	if err := step.downloadFile(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/callback/workflow/node_install/get_agent_config",
+		"/api/v3/callback/workflow/node_install/get_agent_config",
 		savedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get agent config: %v", err)
 
@@ -222,7 +222,7 @@ func (step *Step) downloadFileProxyConfig(ctx context.Context) error {
 	if err := step.downloadFile(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/callback/workflow/node_install/get_file_proxy_config",
+		"/api/v3/callback/workflow/node_install/get_file_proxy_config",
 		savedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get file proxy config: %v", err)
 
@@ -253,7 +253,7 @@ func (step *Step) downloadDataProxyConfig(ctx context.Context) error {
 	if err := step.downloadFile(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/callback/workflow/node_install/get_data_proxy_config",
+		"/api/v3/callback/workflow/node_install/get_data_proxy_config",
 		savedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get data proxy config: %v", err)
 
@@ -283,7 +283,7 @@ func (step *Step) downloadCheckList(ctx context.Context) error {
 	if err := step.downloadFile(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/callback/workflow/node_install/get_check_list",
+		"/api/v3/callback/workflow/node_install/get_check_list",
 		step.args.CheckListSavedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get check list: %v", err)
 
@@ -314,7 +314,7 @@ func (step *Step) downloadReleasePackage(ctx context.Context) error {
 	if err := step.downloadFile(ctx,
 		requestBody,
 		step.args.DownloadSvrAddr,
-		"/download/"+string(step.args.NodeRole),
+		"/api/v3/download/"+string(step.args.NodeRole),
 		step.args.PkgSavedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get release package: %v", err)
 

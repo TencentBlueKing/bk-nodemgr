@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/upload/origin/agent": {
+    "/api/v3/upload/origin/agent": {
       "post": {
         "summary": "UploadOriginAgent provides origin agent upload.",
         "operationId": "Upload_UploadOriginAgent",
@@ -50,7 +50,7 @@
         ]
       }
     },
-    "/upload/origin/bintool": {
+    "/api/v3/upload/origin/bintool": {
       "post": {
         "summary": "UploadOriginBinTool provides origin bintool upload.",
         "operationId": "Upload_UploadOriginBinTool",
@@ -84,7 +84,7 @@
         ]
       }
     },
-    "/upload/origin/cert": {
+    "/api/v3/upload/origin/cert": {
       "post": {
         "summary": "UploadOriginCert provides origin cert upload.",
         "operationId": "Upload_UploadOriginCert",
@@ -118,7 +118,7 @@
         ]
       }
     },
-    "/upload/origin/plugin_bintool": {
+    "/api/v3/upload/origin/plugin_bintool": {
       "post": {
         "summary": "UploadOriginPluginBinToolV2 provides origin bintool upload.",
         "operationId": "Upload_UploadOriginPluginBinToolV2",
@@ -152,7 +152,7 @@
         ]
       }
     },
-    "/upload/origin/server": {
+    "/api/v3/upload/origin/server": {
       "post": {
         "summary": "UploadOriginServer provides origin server upload.",
         "operationId": "Upload_UploadOriginServer",
@@ -186,7 +186,7 @@
         ]
       }
     },
-    "/upload/origin/v2/external_plugin": {
+    "/api/v3/upload/origin/v2/external_plugin": {
       "post": {
         "summary": "UploadOriginExternalPlugin provides origin external plugin upload.",
         "operationId": "Upload_UploadOriginExternalPlugin",
@@ -220,7 +220,7 @@
         ]
       }
     },
-    "/upload/origin/v2/plugin": {
+    "/api/v3/upload/origin/v2/plugin": {
       "post": {
         "summary": "UploadOriginPluginV2 provides origin plugin upload.",
         "operationId": "Upload_UploadOriginPluginV2",
@@ -254,7 +254,7 @@
         ]
       }
     },
-    "/upload/origin/v3/plugin": {
+    "/api/v3/upload/origin/v3/plugin": {
       "post": {
         "summary": "UploadOriginPluginV3 provides origin plugin upload.",
         "operationId": "Upload_UploadOriginPluginV3",

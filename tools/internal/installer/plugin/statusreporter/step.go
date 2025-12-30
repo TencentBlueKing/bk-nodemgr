@@ -94,7 +94,7 @@ func (step *Step) reportStatus(ctx context.Context) error {
 		return fmt.Errorf("failed to marshal status request: %w", err)
 	}
 
-	reportURL, err := url.JoinPath(step.args.CallbackSvrAddr, "/callback/workflow/plugin/report_status")
+	reportURL, err := url.JoinPath(step.args.CallbackSvrAddr, "/api/v3/callback/workflow/plugin/report_status")
 	if err != nil {
 		return fmt.Errorf("failed to format status URL: %w", err)
 	}

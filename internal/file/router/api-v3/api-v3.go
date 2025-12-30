@@ -8,12 +8,15 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package callback ...
-package callback
+// Package apiv3 defines the api v3 router.
+package apiv3
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/download"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/publish"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/transfer"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3/upload"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,15 +29,29 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/callback"),
+		rg: rg.Group("/api/v3"),
 	}
 }
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+// LoadBasicAPIs register the basic apis.
+func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
 	h := newHandler(rg, capability)
 
+	// enable middlewares.
 	h.rg.Use(middlewares...)
 
-	workflow.Load(h.rg, capability)
+	download.Load(h.rg, capability)
+	publish.Load(h.rg, capability)
+	transfer.Load(h.rg, capability)
+	upload.Load(h.rg, capability)
+}
+
+// LoadDownloadAPIs register the download apis.
+func LoadDownloadAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+	h := newHandler(rg, capability)
+
+	// enable middlewares.
+	h.rg.Use(middlewares...)
+
+	download.Load(h.rg, capability)
 }

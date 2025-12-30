@@ -2,7 +2,7 @@
 :: Manual Installation Script for Windows
 :: 
 :: Usage:
-::   powershell -ExecutionPolicy Bypass -Command "& {Invoke-WebRequest -Uri 'http://your-server/api/v3/backend/callback/workflow/node_install/get_manual_script/windows/OPER_INST_ID?action=ACTION_NAME' -OutFile install.bat; .\install.bat}"
+::   powershell -ExecutionPolicy Bypass -Command "& {Invoke-WebRequest -Uri 'http://your-server/api/v3/callback/workflow/node_install/get_manual_script/windows/OPER_INST_ID?action=ACTION_NAME' -OutFile install.bat; .\install.bat}"
 ::
 :: Note: Placeholders in the script will be replaced by the server with actual values
 ::   - __BK_NODEMGR_OPERATION_INSTANCE_ID__: Operation instance ID
@@ -166,7 +166,7 @@ call :main
 
 :: Report detect information
 :report_detect_info
-    set "url=!CALLBACK_SERVER_URL!/callback/workflow/node_install/report_detect_info"
+    set "url=!CALLBACK_SERVER_URL!/api/v3/callback/workflow/node_install/report_detect_info"
 
     :: Escape CONNECTION_DIR for JSON (escape backslashes manually)
     set "CONNECTION_DIR_ESCAPED=!CONNECTION_DIR!"
@@ -235,7 +235,7 @@ call :main
 :: Download installer to specified path
 :download_installer
     set "installer_path=%~1"
-    set "url=!DOWNLOAD_SERVER_URL!/download/installer"
+    set "url=!DOWNLOAD_SERVER_URL!/api/v3/download/installer"
 
     :: Extract directory from installer path
     set "installer_dir="
@@ -299,7 +299,7 @@ call :main
 
 :: Get command from server
 :get_command
-    set "url=!CALLBACK_SERVER_URL!/callback/workflow/node_install/get_manual_install_exec_command"
+    set "url=!CALLBACK_SERVER_URL!/api/v3/callback/workflow/node_install/get_manual_install_exec_command"
 
     :: Build JSON request body manually
     set "json_body={"oper_inst_id":"!OPER_INST_ID!","action_name":"!ACTION_NAME_GET_EXEC_COMMAND!"}"

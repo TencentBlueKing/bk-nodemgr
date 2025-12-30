@@ -13,6 +13,7 @@ package apiv3
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node"
@@ -20,18 +21,17 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/policy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/process"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/proxy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/schedule"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/sync"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/topo"
 	"github.com/gin-gonic/gin"
 )
 
-// handler ...
 type handler struct {
 	rg *gin.RouterGroup
 }
 
-// newHandler ...
 func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
@@ -39,10 +39,11 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	}
 }
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+// LoadBasicAPIs register the basic apis.
+func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
 	h := newHandler(rg, capability)
 
+	// enable middlewares.
 	h.rg.Use(middlewares...)
 
 	sync.Load(h.rg, capability)
@@ -55,4 +56,24 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 	process.Load(h.rg, capability)
 	deploypolicy.Load(h.rg, capability)
 	cipher.Load(h.rg, capability)
+}
+
+// LoadCallbackAPIs register the callback apis.
+func LoadCallbackAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+	h := newHandler(rg, capability)
+
+	// enable middlewares.
+	h.rg.Use(middlewares...)
+
+	callback.Load(h.rg, capability)
+}
+
+// LoadProxyAPIs register the proxy apis.
+func LoadProxyAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+	h := newHandler(rg, capability)
+
+	// enable middlewares.
+	h.rg.Use(middlewares...)
+
+	proxy.Load(h.rg, capability)
 }

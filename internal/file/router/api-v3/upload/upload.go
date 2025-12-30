@@ -8,40 +8,39 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package transfer provides the transfer file router.
-package transfer
+// Package upload provides the upload file router.
+package upload
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg          *gin.RouterGroup
-	manager     manager.IManager
-	storageTopo topo.IStorage
+	rg      *gin.RouterGroup
+	manager manager.IManager
 }
 
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:          rg.Group("/transfer"),
-		manager:     opt.Manager,
-		storageTopo: opt.StorageTopo,
+		rg:      rg.Group("/upload"),
+		manager: opt.Manager,
 	}
 }
 
 // Load enables web router into gin.Engine.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.Use(middlewares...)
-
-	h.rg.POST("/launch/node", restserver.Handler(h.TransferLaunchNode))
-	h.rg.POST("/launch/plugin", restserver.Handler(h.TransferLaunchPlugin))
-	h.rg.POST("/launch/installer", restserver.Handler(h.TransferLaunchInstaller))
-	h.rg.POST("/query", restserver.Handler(h.TransferQuery))
+	h.rg.POST("/origin/agent", restserver.Handler(h.UploadOriginAgent))
+	h.rg.POST("/origin/server", restserver.Handler(h.UploadOriginServer))
+	h.rg.POST("/origin/cert", restserver.Handler(h.UploadOriginCert))
+	h.rg.POST("/origin/bintool", restserver.Handler(h.UploadOriginBinTool))
+	h.rg.POST("/origin/plugin_bintool", restserver.Handler(h.UploadOriginPluginBinTool))
+	h.rg.POST("/origin/v2/plugin", restserver.Handler(h.UploadOriginPluginV2))
+	h.rg.POST("/origin/v2/external_plugin", restserver.Handler(h.UploadOriginExternalPluginV2))
+	h.rg.POST("/origin/v3/plugin", restserver.Handler(h.UploadOriginPluginV3))
 }

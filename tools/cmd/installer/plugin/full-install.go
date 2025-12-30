@@ -77,7 +77,7 @@ func NewFullInstall() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogUrl(callbackSvrAddr))
+			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogURL(callbackSvrAddr))
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
@@ -104,7 +104,7 @@ func NewFullInstall() *cobra.Command {
 				CallbackSvrAddr:              callbackSvrAddr,
 				PluginGroup:                  persistentVars.PluginGroup,
 				PluginName:                   persistentVars.PluginName,
-				PluginPkgName:         persistentVars.PluginPkgName,
+				PluginPkgName:                persistentVars.PluginPkgName,
 				DeployToken:                  deployToken,
 				PkgVersion:                   pluginVersion,
 				PkgSavedPath:                 pkgPath,

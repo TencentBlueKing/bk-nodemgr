@@ -396,7 +396,7 @@ func (svc *Service) registerBasicServer() error {
 		},
 		restserver.WithPing(),
 		withWeb(svc.Cap),
-		withAPIV3(svc.Cap,
+		withAPIV3Basic(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
@@ -435,10 +435,10 @@ func withWeb(capability *options.Capability, middleware ...gin.HandlerFunc) rest
 	}
 }
 
-// withApiV3 load api v3.
-func withAPIV3(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+// withAPIV3Basic load api v3 basic.
+func withAPIV3Basic(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		applicationapiv3.Load(rg, capability, middleware...)
+		applicationapiv3.LoadBasicAPIs(rg, capability, middleware...)
 	}
 }
 

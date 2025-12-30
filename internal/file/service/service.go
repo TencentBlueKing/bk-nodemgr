@@ -21,11 +21,8 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/admin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/download"
+	fileapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/file/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/healthz"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/publish"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/transfer"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/file/router/upload"
 	packageEventStg "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/packageevent"
 	storageRelease "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/release"
 	storageTopo "github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
@@ -508,16 +505,7 @@ func (svc *Service) registerBasicServer() error {
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withUpload(svc.Cap,
-			restserver.MiddlewareAuth(authIdentity),
-		),
-		withPublish(svc.Cap,
-			restserver.MiddlewareAuth(authIdentity),
-		),
-		withTransfer(svc.Cap,
-			restserver.MiddlewareAuth(authIdentity),
-		),
-		withDownload(svc.Cap,
+		withAPIV3Basic(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
@@ -557,7 +545,7 @@ func (svc *Service) registerDownloadServer() error {
 			TraceSampleRate:  svc.conf.DownloadServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withDownload(svc.Cap,
+		withAPIV3Download(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity),
 		),
 	)
@@ -639,31 +627,17 @@ func withMetrics(_ *options.Capability) restserver.OptionFunc {
 	}
 }
 
-// withDownload load download.
-func withDownload(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+// withAPIV3Basic load api v3 basic.
+func withAPIV3Basic(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		download.Load(rg, capability, middleware...)
+		fileapiv3.LoadBasicAPIs(rg, capability, middleware...)
 	}
 }
 
-// withUpload load upload.
-func withUpload(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+// withAPIV3Download load api v3 download.
+func withAPIV3Download(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		upload.Load(rg, capability, middleware...)
-	}
-}
-
-// withPublish load publish.
-func withPublish(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		publish.Load(rg, capability, middleware...)
-	}
-}
-
-// withTransfer load transfer.
-func withTransfer(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		transfer.Load(rg, capability, middleware...)
+		fileapiv3.LoadDownloadAPIs(rg, capability, middleware...)
 	}
 }
 

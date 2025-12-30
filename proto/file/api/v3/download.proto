@@ -54,7 +54,7 @@ service Download {
   // DownloadAgent provides downloading agent pkg.
   rpc DownloadAgent(DownloadAgentReq) returns (stream FileChunk) {
     option (google.api.http) = {
-      post : "/download/agent"
+      post : "/api/v3/download/agent"
       body : "*"
     };
   }
@@ -62,7 +62,7 @@ service Download {
   // DownloadProxy provides downloading proxy pkg.
   rpc DownloadProxy(DownloadProxyReq) returns (stream FileChunk) {
     option (google.api.http) = {
-      post : "/download/proxy"
+      post : "/api/v3/download/proxy"
       body : "*"
     };
   }
@@ -70,7 +70,7 @@ service Download {
   // DownloadAgent provides downloading plugin.
   rpc DownloadPlugin(DownloadAgentReq) returns (stream FileChunk) {
     option (google.api.http) = {
-      post : "/download/plugin"
+      post : "/api/v3/download/plugin"
       body : "*"
     };
   }
@@ -78,7 +78,7 @@ service Download {
   // DownloadInstaller provides downloading installer.
   rpc DownloadInstaller(DownloadInstallerReq) returns (stream FileChunk) {
     option (google.api.http) = {
-      post : "/download/installer"
+      post : "/api/v3/download/installer"
       body : "*"
     };
   }
@@ -86,7 +86,7 @@ service Download {
   // DownloadCert provides downloading cert.
   rpc DownloadCert(DownloadCertReq) returns (stream FileChunk) {
     option (google.api.http) = {
-      post : "/download/cert"
+      post : "/api/v3/download/cert"
       body : "*"
     };
   }
@@ -94,7 +94,7 @@ service Download {
   // DownloadBinTool provides downloading bintool.
   rpc DownloadBinTool(DownloadBinToolReq) returns (stream FileChunk) {
     option (google.api.http) = {
-      post : "/download/bintool"
+      post : "/api/v3/download/bintool"
       body : "*"
     };
   }
@@ -103,7 +103,7 @@ service Download {
   rpc DownloadPluginBinTool(DownloadPluginBinToolReq)
       returns (stream FileChunk) {
     option (google.api.http) = {
-      post : "/download/plugin_bintool"
+      post : "/api/v3/download/plugin_bintool"
       body : "*"
     };
   }

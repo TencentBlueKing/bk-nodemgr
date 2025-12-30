@@ -117,7 +117,7 @@ service Transfer {
   rpc TransferLaunchNode(TransferLaunchNodeReq)
       returns (stream TransferLaunchNodeResp) {
     option (google.api.http) = {
-      post : "/transfer/launch/node"
+      post : "/api/v3/transfer/launch/node"
       body : "*"
     };
   };
@@ -126,7 +126,7 @@ service Transfer {
   rpc TransferLaunchPlugin(TransferLaunchPluginReq)
       returns (stream TransferLaunchPluginResp) {
     option (google.api.http) = {
-      post : "/transfer/launch/plugin"
+      post : "/api/v3/transfer/launch/plugin"
       body : "*"
     };
   };
@@ -135,7 +135,7 @@ service Transfer {
   rpc TransferInstaller(TransferLaunchInstallerReq)
       returns (stream TransferLaunchInstallerResp) {
     option (google.api.http) = {
-      post : "/transfer/launch/installler"
+      post : "/api/v3/transfer/launch/installler"
       body : "*"
     };
   };
@@ -143,7 +143,7 @@ service Transfer {
   // TransferQuery provides querying transfer release.
   rpc TransferQuery(TransferQueryReq) returns (TransferQueryResp) {
     option (google.api.http) = {
-      get : "/transfer/query"
+      get : "/api/v3/transfer/query"
     };
   };
 }

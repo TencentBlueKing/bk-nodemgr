@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/transfer/launch/installler": {
+    "/api/v3/transfer/launch/installler": {
       "post": {
         "summary": "TransferInstaller provides transferring installer package.",
         "operationId": "Transfer_TransferInstaller",
@@ -59,7 +59,7 @@
         ]
       }
     },
-    "/transfer/launch/node": {
+    "/api/v3/transfer/launch/node": {
       "post": {
         "summary": "TransferLaunchNode provides transferring node package.",
         "operationId": "Transfer_TransferLaunchNode",
@@ -102,7 +102,7 @@
         ]
       }
     },
-    "/transfer/launch/plugin": {
+    "/api/v3/transfer/launch/plugin": {
       "post": {
         "summary": "TransferLaunchPlugin provides transferring plugin package.",
         "operationId": "Transfer_TransferLaunchPlugin",
@@ -145,7 +145,7 @@
         ]
       }
     },
-    "/transfer/query": {
+    "/api/v3/transfer/query": {
       "get": {
         "summary": "TransferQuery provides querying transfer release.",
         "operationId": "Transfer_TransferQuery",

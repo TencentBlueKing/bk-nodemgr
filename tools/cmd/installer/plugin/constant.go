@@ -12,8 +12,8 @@ package plugin
 
 import "net/url"
 
-func reportLogUrl(callbackSvrAddr string) string {
-	fullUrl, _ := url.JoinPath(callbackSvrAddr, "/callback/workflow/plugin/report_log")
+func reportLogURL(callbackSvrAddr string) string {
+	fullURL, _ := url.JoinPath(callbackSvrAddr, "/api/v3/callback/workflow/plugin/report_log")
 
-	return fullUrl
+	return fullURL
 }

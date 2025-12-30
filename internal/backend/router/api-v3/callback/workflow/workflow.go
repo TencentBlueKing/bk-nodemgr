@@ -8,11 +8,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package admin ...
-package admin
+// Package workflow ...
+package workflow
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/callback/workflow/node"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/callback/workflow/plugin"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,14 +27,14 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg: rg.Group("/admin"),
+		rg: rg.Group("/workflow"),
 	}
 }
 
 // Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	// enable middlewares.
-	h.rg.Use(middlewares...)
+	node.Load(h.rg, capability)
+	plugin.Load(h.rg, capability)
 }

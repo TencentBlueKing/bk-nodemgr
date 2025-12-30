@@ -24,9 +24,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/periodictask"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/admin"
 	backendapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/healthz"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/proxy"
 	cipherStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
@@ -757,7 +755,7 @@ func (svc *Service) registerBasicServer() error {
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withAPIV3(svc.Cap,
+		withAPIV3Basic(svc.Cap,
 			restserver.MiddlewareAuth(authIdentity)),
 	)
 	if err != nil {
@@ -787,7 +785,7 @@ func (svc *Service) registerCallbackServer() error {
 			TraceSampleRate:  svc.conf.CallbackServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withCallback(svc.Cap),
+		withAPIV3Callback(svc.Cap),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register callback server: %w", err)
@@ -816,7 +814,7 @@ func (svc *Service) registerProxyServer() error {
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 		},
 		restserver.WithPing(),
-		withProxy(svc.Cap),
+		withAPIV3Proxy(svc.Cap),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register proxy server: %w", err)
@@ -846,10 +844,24 @@ func withMetrics(_ *options.Capability) restserver.OptionFunc {
 	}
 }
 
-// withApiV3 load api v3.
-func withAPIV3(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+// withAPIV3Basic load api v3 basic.
+func withAPIV3Basic(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		backendapiv3.Load(rg, capability, middleware...)
+		backendapiv3.LoadBasicAPIs(rg, capability, middleware...)
+	}
+}
+
+// withAPIV3Callback load api v3 callback.
+func withAPIV3Callback(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		backendapiv3.LoadCallbackAPIs(rg, capability, middleware...)
+	}
+}
+
+// withAPIV3Proxy load api v3 basic.
+func withAPIV3Proxy(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
+	return func(rg *gin.RouterGroup) {
+		backendapiv3.LoadProxyAPIs(rg, capability, middleware...)
 	}
 }
 
@@ -857,20 +869,6 @@ func withAPIV3(capability *options.Capability, middleware ...gin.HandlerFunc) re
 func withAdmin(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
 		admin.Load(rg, capability, middleware...)
-	}
-}
-
-// withCallback load callback.
-func withCallback(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		callback.Load(rg, capability, middleware...)
-	}
-}
-
-// withProxy load proxy.
-func withProxy(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
-	return func(rg *gin.RouterGroup) {
-		proxy.Load(rg, capability, middleware...)
 	}
 }
 

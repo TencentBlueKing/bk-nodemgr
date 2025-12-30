@@ -50,7 +50,7 @@ type cli struct {
 
 // newClient initialize a new backend client.
 func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
-	restCli, err := restclient.NewClient(c, "/")
+	restCli, err := restclient.NewClient(c, "/api/v3")
 	if err != nil {
 		return nil, err
 	}

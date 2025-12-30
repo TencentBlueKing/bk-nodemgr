@@ -32,10 +32,8 @@ func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 }
 
 // Load enables web router into gin.Engine.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
-
-	h.rg.Use(middlewares...)
 
 	h.rg.POST("/installer", restserver.FileHandler(h.Installer))
 	h.rg.POST("/agent", restserver.FileHandler(h.Agent))

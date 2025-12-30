@@ -36,10 +36,11 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 	}
 }
 
-// Load ter register the api v3 router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+// LoadBasicAPIs register the basic apis.
+func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
 	h := newHandler(rg, capability)
 
+	// enable middlewares.
 	h.rg.Use(middlewares...)
 
 	topo.Load(h.rg, capability)

@@ -140,13 +140,13 @@ func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.No
 	switch osType {
 	case criteria.OSLinux, criteria.OSDarwin:
 		installCmd = "/bin/bash -c \"$(curl -fsSL " + callbackSvrAddress +
-			"/callback/workflow/node_install/get_manual_script/" +
+			"/api/v3/callback/workflow/node_install/get_manual_script/" +
 			std.DeployInfo().Host.Static.OSType + "/" +
 			std.InstanceData().OperationInstanceID + "?action=" + ActionNameGenManualBootstrapCommand + ")\""
 
 	case criteria.OSWindows:
 		installCmd = "powershell -ExecutionPolicy Bypass -Command \"& {Invoke-WebRequest -Uri '" + callbackSvrAddress +
-			"/callback/workflow/node_install/get_manual_script/" +
+			"/api/v3/callback/workflow/node_install/get_manual_script/" +
 			std.DeployInfo().Host.Static.OSType + "/" +
 			std.InstanceData().OperationInstanceID + "?action=" + ActionNameGenManualBootstrapCommand + "' -OutFile install.bat; .\\install.bat}\""
 

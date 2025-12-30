@@ -8,41 +8,38 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package publish provides the publish file router.
-package publish
+// Package transfer provides the transfer file router.
+package transfer
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/options"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/file/storage/topo"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/gin-gonic/gin"
 )
 
 type handler struct {
-	rg      *gin.RouterGroup
-	manager manager.IManager
+	rg          *gin.RouterGroup
+	manager     manager.IManager
+	storageTopo topo.IStorage
 }
 
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:      rg.Group("/publish"),
-		manager: opt.Manager,
+		rg:          rg.Group("/transfer"),
+		manager:     opt.Manager,
+		storageTopo: opt.StorageTopo,
 	}
 }
 
 // Load enables web router into gin.Engine.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.Use(middlewares...)
-
-	h.rg.POST("/release/agent", restserver.Handler(h.PublishReleaseAgent))
-	h.rg.POST("/release/proxy", restserver.Handler(h.PublishReleaseProxy))
-	h.rg.POST("/release/cert", restserver.Handler(h.PublishReleaseCert))
-	h.rg.POST("/release/bintool", restserver.Handler(h.PublishReleaseBinTool))
-	h.rg.POST("/release/plugin_bintool", restserver.Handler(h.PublishReleasePluginBinTool))
-	h.rg.POST("/release/v2/plugin", restserver.Handler(h.PublishReleasePluginV2))
-	h.rg.POST("/release/v2/external_plugin", restserver.Handler(h.PublishReleaseExternalPluginV2))
-	h.rg.POST("/release/v3/plugin", restserver.Handler(h.PublishReleasePluginV3))
+	h.rg.POST("/launch/node", restserver.Handler(h.TransferLaunchNode))
+	h.rg.POST("/launch/plugin", restserver.Handler(h.TransferLaunchPlugin))
+	h.rg.POST("/launch/installer", restserver.Handler(h.TransferLaunchInstaller))
+	h.rg.POST("/query", restserver.Handler(h.TransferQuery))
 }

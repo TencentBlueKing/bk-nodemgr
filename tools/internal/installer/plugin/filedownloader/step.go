@@ -167,7 +167,7 @@ func (step *Step) downloadPluginConfig(ctx context.Context) error {
 	if err := step.downloadFile(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/callback/workflow/plugin/get_main_config",
+		"/api/v3/callback/workflow/plugin/get_main_config",
 		savedPath); err != nil {
 		logger.Errorf(plugin.StepDownloadFiles, "failed to get config: %v", err)
 
@@ -197,7 +197,7 @@ func (step *Step) downloadReleasePackage(ctx context.Context) error {
 	if err := step.downloadFile(ctx,
 		requestBody,
 		step.args.DownloadSvrAddr,
-		"/download/plugin",
+		"/api/v3/download/plugin",
 		step.args.PkgSavedPath); err != nil {
 		logger.Errorf(plugin.StepDownloadFiles, "failed to get release package: %v", err)
 

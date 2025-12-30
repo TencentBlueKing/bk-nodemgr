@@ -32,7 +32,7 @@ import (
 // TODO: This url bind with the backend node install workflow.
 const (
 	// backendCallbackUrlPrefix is the prefix of the callback URL for the backend.
-	backendCallbackURLPrefix = "callback/workflow/node_install/"
+	backendCallbackURLPrefix = "api/v3/callback/workflow/node_install/"
 )
 
 type handler struct {
@@ -52,10 +52,8 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 }
 
 // Load ter register the proxy router.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
-
-	h.rg.Use(middlewares...)
 
 	h.rg.Any("", h.generalHandler)
 	h.rg.Any("/*path", h.generalHandler)

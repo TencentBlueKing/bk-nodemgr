@@ -76,7 +76,7 @@ type reportDataReq struct {
 const (
 	reportDataTimeout = 3 * time.Second
 
-	reportDataURLPath = "/callback/workflow/plugin/report_data"
+	reportDataURLPath = "/api/v3/callback/workflow/plugin/report_data"
 )
 
 // ReportData report data.

@@ -22,8 +22,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/admin"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/callback"
-	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/download"
+	relayapiv3 "github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/api-v3"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/router/healthz"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -235,7 +234,7 @@ func (svc *Service) registerCallbackServer() error {
 			TraceSampleRate:  svc.conf.CallbackServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withCallbackServer(svc.Cap),
+		withAPIV3Callback(svc.Cap),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register callback server: %w", err)
@@ -264,7 +263,7 @@ func (svc *Service) registerDownloadServer() error {
 			TraceSampleRate:  svc.conf.DownloadServer.TraceSampleRate,
 		},
 		restserver.WithPing(),
-		withDownload(svc.Cap),
+		withAPIV3Download(svc.Cap),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to register download server: %w", err)
@@ -295,17 +294,17 @@ func withMetrics() restserver.OptionFunc {
 	}
 }
 
-// withCallbackServer load callback api.
-func withCallbackServer(capability *options.Capability) restserver.OptionFunc {
+// withAPIV3Callback load api v3 callback.
+func withAPIV3Callback(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		callback.Load(rg, capability)
+		relayapiv3.LoadCallbackAPIs(rg, capability, middleware...)
 	}
 }
 
-// withDownload load download.
-func withDownload(capability *options.Capability) restserver.OptionFunc {
+// withAPIV3Download load api v3 download.
+func withAPIV3Download(capability *options.Capability, middleware ...gin.HandlerFunc) restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		download.Load(rg, capability)
+		relayapiv3.LoadDownloadAPIs(rg, capability, middleware...)
 	}
 }
 

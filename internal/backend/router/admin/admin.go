@@ -35,6 +35,7 @@ func newHandler(rg *gin.RouterGroup, _ *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
 	h := newHandler(rg, capability)
 
+	// enable middlewares.
 	h.rg.Use(middlewares...)
 
 	workflow.Load(h.rg, capability)

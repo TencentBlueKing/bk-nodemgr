@@ -16,7 +16,7 @@
     "application/json"
   ],
   "paths": {
-    "/publish/release/agent": {
+    "/api/v3/publish/release/agent": {
       "post": {
         "summary": "PublishReleaseAgent provides release agent publish.",
         "operationId": "Publish_PublishReleaseAgent",
@@ -50,7 +50,7 @@
         ]
       }
     },
-    "/publish/release/bintool": {
+    "/api/v3/publish/release/bintool": {
       "post": {
         "summary": "PublishReleaseBinTool provides release bintool publish.",
         "operationId": "Publish_PublishReleaseBinTool",
@@ -84,7 +84,7 @@
         ]
       }
     },
-    "/publish/release/cert": {
+    "/api/v3/publish/release/cert": {
       "post": {
         "summary": "PublishReleaseCert provides release cert publish.",
         "operationId": "Publish_PublishReleaseCert",
@@ -118,7 +118,7 @@
         ]
       }
     },
-    "/publish/release/plugin_bintool": {
+    "/api/v3/publish/release/plugin_bintool": {
       "post": {
         "summary": "PublishReleasePluginBinTool provides release plugin bintool publish.",
         "operationId": "Publish_PublishReleasePluginBinTool",
@@ -152,7 +152,7 @@
         ]
       }
     },
-    "/publish/release/server": {
+    "/api/v3/publish/release/server": {
       "post": {
         "summary": "PublishReleaseServer provides release server publish.",
         "operationId": "Publish_PublishReleaseProxy",
@@ -186,7 +186,7 @@
         ]
       }
     },
-    "/publish/release/v2/external_plugin": {
+    "/api/v3/publish/release/v2/external_plugin": {
       "post": {
         "summary": "PublishReleaseExternalPluginV2 provides release external plugin v2 publish.",
         "operationId": "Publish_PublishReleaseExternalPluginV2",
@@ -220,7 +220,7 @@
         ]
       }
     },
-    "/publish/release/v2/plugin": {
+    "/api/v3/publish/release/v2/plugin": {
       "post": {
         "summary": "PublishReleasePluginV2 provides release plugin v2 publish.",
         "operationId": "Publish_PublishReleasePluginV2",
@@ -254,7 +254,7 @@
         ]
       }
     },
-    "/publish/release/v3/plugin": {
+    "/api/v3/publish/release/v3/plugin": {
       "post": {
         "summary": "PublishReleasePluginV3 provides release plugin v3 publish.",
         "operationId": "Publish_PublishReleasePluginV3",

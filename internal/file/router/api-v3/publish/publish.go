@@ -8,8 +8,8 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package upload provides the upload file router.
-package upload
+// Package publish provides the publish file router.
+package publish
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/file/manager"
@@ -26,23 +26,21 @@ type handler struct {
 func newHandler(rg *gin.RouterGroup, opt *options.Capability) *handler {
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:      rg.Group("/upload"),
+		rg:      rg.Group("/publish"),
 		manager: opt.Manager,
 	}
 }
 
 // Load enables web router into gin.Engine.
-func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gin.HandlerFunc) {
+func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.Use(middlewares...)
-
-	h.rg.POST("/origin/agent", restserver.Handler(h.UploadOriginAgent))
-	h.rg.POST("/origin/server", restserver.Handler(h.UploadOriginServer))
-	h.rg.POST("/origin/cert", restserver.Handler(h.UploadOriginCert))
-	h.rg.POST("/origin/bintool", restserver.Handler(h.UploadOriginBinTool))
-	h.rg.POST("/origin/plugin_bintool", restserver.Handler(h.UploadOriginPluginBinTool))
-	h.rg.POST("/origin/v2/plugin", restserver.Handler(h.UploadOriginPluginV2))
-	h.rg.POST("/origin/v2/external_plugin", restserver.Handler(h.UploadOriginExternalPluginV2))
-	h.rg.POST("/origin/v3/plugin", restserver.Handler(h.UploadOriginPluginV3))
+	h.rg.POST("/release/agent", restserver.Handler(h.PublishReleaseAgent))
+	h.rg.POST("/release/proxy", restserver.Handler(h.PublishReleaseProxy))
+	h.rg.POST("/release/cert", restserver.Handler(h.PublishReleaseCert))
+	h.rg.POST("/release/bintool", restserver.Handler(h.PublishReleaseBinTool))
+	h.rg.POST("/release/plugin_bintool", restserver.Handler(h.PublishReleasePluginBinTool))
+	h.rg.POST("/release/v2/plugin", restserver.Handler(h.PublishReleasePluginV2))
+	h.rg.POST("/release/v2/external_plugin", restserver.Handler(h.PublishReleaseExternalPluginV2))
+	h.rg.POST("/release/v3/plugin", restserver.Handler(h.PublishReleasePluginV3))
 }
