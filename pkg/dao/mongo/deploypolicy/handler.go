@@ -130,6 +130,7 @@ func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy, tenantID string
 	data := &DeployPolicy{
 		TenantID:       tenantID,
 		DeployPolicyID: deployPolicy.DeployPolicyID,
+		DsuID:          deployPolicy.DsuID,
 		Meta:           convDeployPolicyMetaFromTypes(deployPolicy.Meta),
 		Specs:          specs,
 		Scopes:         convScopesFromTypes(deployPolicy.Scopes),
@@ -333,6 +334,7 @@ func convDeployPolicyToTypes(data *DeployPolicy) (*types.DeployPolicy, error) {
 
 	deployPolicy := &types.DeployPolicy{
 		DeployPolicyID: data.DeployPolicyID,
+		DsuID:          data.DsuID,
 		Operator:       data.Operator,
 		Enabled:        data.Enabled,
 		LifeCycle:      convDeployPolicyLifeCycleToTypes(data.LifeCycle),

@@ -46,4 +46,7 @@ const (
 
 	// FieldKeyScopes the scopes field key.
 	FieldKeyScopes = "data.scopes"
+
+	// FieldKeyDsuID the dsu id field key.
+	FieldKeyDsuID = "data.dsu_id"
 )

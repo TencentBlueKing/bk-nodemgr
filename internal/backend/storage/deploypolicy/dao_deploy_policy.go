@@ -130,6 +130,7 @@ func convDeployPolicyConditionsToOptions(condition *types.DeployPolicyCondition)
 
 	if condition.ExactInclude != nil {
 		opts = append(opts, daoDeployPolicy.WithDeployPolicyID(condition.ExactInclude.DeployPolicyID...))
+		opts = append(opts, daoDeployPolicy.WithDsuID(condition.ExactInclude.DsuID...))
 		opts = append(opts, daoDeployPolicy.WithEnabled(condition.ExactInclude.Enabled...))
 		opts = append(opts, daoDeployPolicy.WithMetaName(condition.ExactInclude.DeployPolicyName...))
 		opts = append(opts, daoDeployPolicy.WithOperator(condition.ExactInclude.Operator...))
@@ -137,6 +138,7 @@ func convDeployPolicyConditionsToOptions(condition *types.DeployPolicyCondition)
 
 	if condition.ExactExclude != nil {
 		opts = append(opts, daoDeployPolicy.WithoutDeployPolicyID(condition.ExactExclude.DeployPolicyID...))
+		opts = append(opts, daoDeployPolicy.WithoutDsuID(condition.ExactExclude.DsuID...))
 		opts = append(opts, daoDeployPolicy.WithoutEnabled(condition.ExactExclude.Enabled...))
 		opts = append(opts, daoDeployPolicy.WithoutMetaName(condition.ExactExclude.DeployPolicyName...))
 		opts = append(opts, daoDeployPolicy.WithoutOperator(condition.ExactExclude.Operator...))

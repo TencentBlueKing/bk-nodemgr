@@ -208,6 +208,10 @@
           "type": "integer",
           "format": "int64"
         },
+        "dsu_id": {
+          "type": "integer",
+          "format": "int64"
+        },
         "meta": {
           "$ref": "#/definitions/v3DeployPolicyMeta"
         },
@@ -298,6 +302,13 @@
       "type": "object",
       "properties": {
         "deploy_policy_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "dsu_id": {
           "type": "array",
           "items": {
             "type": "integer",

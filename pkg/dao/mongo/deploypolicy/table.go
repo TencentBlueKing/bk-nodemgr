@@ -31,6 +31,7 @@ var _ base.IData = &DeployPolicy{}
 type DeployPolicy struct {
 	TenantID       string    `json:"tenant_id" bson:"tenant_id"`
 	DeployPolicyID int64     `json:"deploy_policy_id" bson:"deploy_policy_id"`
+	DsuID          int64     `json:"dsu_id" bson:"dsu_id"`
 	Meta           Meta      `json:"meta" bson:"meta"`
 	Specs          []*Spec   `json:"specs" bson:"specs"`
 	Scopes         []*Scope  `json:"scopes" bson:"scopes"`

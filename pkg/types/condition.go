@@ -857,6 +857,7 @@ type DeployPolicyCondition struct {
 // DeployPolicyExactFields defines the deploy policy exact fields.
 type DeployPolicyExactFields struct {
 	DeployPolicyID   []int64
+	DsuID            []int64
 	Enabled          []bool
 	DeployPolicyName []string
 	Operator         []string

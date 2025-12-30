@@ -93,20 +93,22 @@ message Scope {
 // DeployPolicy describes the deploy policy.
 message DeployPolicy {
   int64 deploy_policy_id = 1;
-  DeployPolicyMeta meta = 2;
-  repeated DeploySpec specs = 3;
-  repeated Scope scopes = 4;
+  int64 dsu_id = 2;
+  DeployPolicyMeta meta = 3;
+  repeated DeploySpec specs = 4;
+  repeated Scope scopes = 5;
 
-  string operator = 5;
-  bool enabled = 6;
+  string operator = 6;
+  bool enabled = 7;
 }
 
 // DeployPolicyExactConditions describes exact conditions of deploy policy.
 message DeployPolicyExactConditions {
   repeated int64 deploy_policy_id = 1;
-  repeated string deploy_policy_name = 2;
-  repeated string operator = 3;
-  repeated bool enabled = 4;
+  repeated int64 dsu_id = 2;
+  repeated string deploy_policy_name = 3;
+  repeated string operator = 4;
+  repeated bool enabled = 5;
 }
 
 // DeployPolicyFuzzyConditions describes fuzzy conditions of deploy policy.

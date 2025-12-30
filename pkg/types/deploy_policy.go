@@ -18,6 +18,7 @@ import (
 // DeployPolicy defines the deploy policy.
 type DeployPolicy struct {
 	DeployPolicyID int64
+	DsuID          int64
 
 	Meta DeployPolicyMeta
 

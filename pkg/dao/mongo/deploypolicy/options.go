@@ -99,3 +99,13 @@ func WithDeploySpecPluginName(pluginNames ...string) OptFn {
 func WithExecutedAtTimeRange(timeRange types.TimeRange) OptFn {
 	return base.WithTimeRange(FieldKeyLifeCycleExecutedAt, timeRange.StartTime, timeRange.EndTime)
 }
+
+// WithDsuID filters by dsu-id.
+func WithDsuID(dsuIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyDsuID, dsuIDs...)
+}
+
+// WithoutDsuID filters by not contains dsu-id.
+func WithoutDsuID(dsuIDs ...int64) OptFn {
+	return base.WithoutValues(FieldKeyDsuID, dsuIDs...)
+}

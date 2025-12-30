@@ -63,6 +63,7 @@ func convertDeployPolicyExactConditionsToTypes(exactCond *DeployPolicyExactCondi
 
 	return &types.DeployPolicyExactFields{
 		DeployPolicyID:   exactCond.GetDeployPolicyId(),
+		DsuID:            exactCond.GetDsuId(),
 		Enabled:          exactCond.GetEnabled(),
 		DeployPolicyName: exactCond.GetDeployPolicyName(),
 		Operator:         exactCond.GetOperator(),
@@ -131,6 +132,7 @@ func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy) (*DeployPolicy,
 
 	return &DeployPolicy{
 		DeployPolicyId: deployPolicy.DeployPolicyID,
+		DsuId:          deployPolicy.DsuID,
 		Meta:           &meta,
 		Specs:          specs,
 		Scopes:         scopes,
@@ -336,6 +338,7 @@ func convDeployPolicyToTypes(deployPolicy *DeployPolicy) (*types.DeployPolicy, e
 
 	return &types.DeployPolicy{
 		DeployPolicyID: deployPolicy.GetDeployPolicyId(),
+		DsuID:          deployPolicy.GetDsuId(),
 		Meta:           convDeployPolicyMetaToTypes(deployPolicy.GetMeta()),
 		Scopes:         scopes,
 		Specs:          specs,
