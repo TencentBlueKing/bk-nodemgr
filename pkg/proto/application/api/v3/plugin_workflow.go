@@ -403,7 +403,7 @@ func (x *PluginWorkflowOperationListResp) ConvertResultFromTypes(total int64, re
 			OperationId: op.OperationID,
 			InstanceIds: op.OperInstanceIDs,
 			Operator:    op.Operator,
-			CreateTime:  op.CreateTime.Unix(),
+			CreateTime:  op.CreateTime.UnixMilli(),
 			PluginDeploymentInfo: &PluginDeploymentInfo{
 				BkHostId:            op.HostID,
 				BkBizId:             op.BizID,
@@ -453,10 +453,10 @@ func convertPluginWorkflowOperInstLifeCycleFromTypes(data *operation.Lifecycle) 
 
 	return &WorkflowLifeCycle{
 		State:      string(data.State),
-		CreateTime: data.CreatedAt.Unix(),
-		StartTime:  data.StartedAt.Unix(),
-		EndTime:    data.EndedAt.Unix(),
-		StopTime:   data.StoppedAt.Unix(),
+		CreateTime: data.CreatedAt.UnixMilli(),
+		StartTime:  data.StartedAt.UnixMilli(),
+		EndTime:    data.EndedAt.UnixMilli(),
+		StopTime:   data.StoppedAt.UnixMilli(),
 	}
 }
 
@@ -510,10 +510,10 @@ func (x *PluginWorkflowOperationInstanceListResp) ConvertResultFromTypes(total i
 			ActionNames:       opinstance.Metadata.ActionNames,
 			LifeCycle: &WorkflowLifeCycle{
 				State:      string(opinstance.Lifecycle.State),
-				CreateTime: opinstance.Lifecycle.CreatedAt.Unix(),
-				StartTime:  opinstance.Lifecycle.StartedAt.Unix(),
-				EndTime:    opinstance.Lifecycle.EndedAt.Unix(),
-				StopTime:   opinstance.Lifecycle.StoppedAt.Unix(),
+				CreateTime: opinstance.Lifecycle.CreatedAt.UnixMilli(),
+				StartTime:  opinstance.Lifecycle.StartedAt.UnixMilli(),
+				EndTime:    opinstance.Lifecycle.EndedAt.UnixMilli(),
+				StopTime:   opinstance.Lifecycle.StoppedAt.UnixMilli(),
 			},
 		}
 
@@ -554,15 +554,15 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(resul
 	for actionID, v := range result.ActionInstanceDataMap {
 		lifecycle := &WorkflowLifeCycle{
 			State:      string(v.Lifecycle.State),
-			CreateTime: v.Lifecycle.CreatedAt.Unix(),
-			StartTime:  v.Lifecycle.StartedAt.Unix(),
-			EndTime:    v.Lifecycle.EndedAt.Unix(),
+			CreateTime: v.Lifecycle.CreatedAt.UnixMilli(),
+			StartTime:  v.Lifecycle.StartedAt.UnixMilli(),
+			EndTime:    v.Lifecycle.EndedAt.UnixMilli(),
 		}
 
 		messages := make([]*WorkflowActionMessage_Message, 0, len(v.Messages))
 		for _, msg := range v.Messages {
 			messages = append(messages, &WorkflowActionMessage_Message{
-				Time:  msg.Time.Unix(),
+				Time:  msg.Time.UnixMilli(),
 				Text:  msg.Text,
 				Level: msg.Level,
 			})

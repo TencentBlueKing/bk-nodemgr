@@ -448,15 +448,15 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 	for actionID, v := range result.ActionInstanceDataMap {
 		lifecycle := &WorkflowLifeCycle{
 			State:      string(v.Lifecycle.State),
-			CreateTime: v.Lifecycle.CreatedAt.Unix(),
-			StartTime:  v.Lifecycle.StartedAt.Unix(),
-			EndTime:    v.Lifecycle.EndedAt.Unix(),
+			CreateTime: v.Lifecycle.CreatedAt.UnixMilli(),
+			StartTime:  v.Lifecycle.StartedAt.UnixMilli(),
+			EndTime:    v.Lifecycle.EndedAt.UnixMilli(),
 		}
 
 		messages := make([]*WorkflowActionMessage_Message, len(v.Messages))
 		for idx, msg := range v.Messages {
 			messages[idx] = &WorkflowActionMessage_Message{
-				Time:  msg.Time.Unix(),
+				Time:  msg.Time.UnixMilli(),
 				Text:  msg.Text,
 				Level: msg.Level,
 			}
@@ -492,9 +492,9 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 		instance := &action.InstanceData{
 			Lifecycle: &action.Lifecycle{
 				State:     action.State(actionData.GetLifeCycle().GetState()),
-				CreatedAt: time.Unix(actionData.GetLifeCycle().GetCreateTime(), 0),
-				StartedAt: time.Unix(actionData.GetLifeCycle().GetStartTime(), 0),
-				EndedAt:   time.Unix(actionData.GetLifeCycle().GetEndTime(), 0),
+				CreatedAt: time.UnixMilli(actionData.GetLifeCycle().GetCreateTime()),
+				StartedAt: time.UnixMilli(actionData.GetLifeCycle().GetStartTime()),
+				EndedAt:   time.UnixMilli(actionData.GetLifeCycle().GetEndTime()),
 			},
 		}
 
@@ -505,7 +505,7 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 					continue
 				}
 				instance.Messages = append(instance.Messages, common.Message{
-					Time:  time.Unix(msg.GetTime(), 0),
+					Time:  time.UnixMilli(msg.GetTime()),
 					Text:  msg.GetText(),
 					Level: msg.GetLevel(),
 				})
@@ -857,9 +857,9 @@ func convertNodeWorkflowOperInstLifeCycleFromTypes(data *operation.Lifecycle) *W
 
 	return &WorkflowLifeCycle{
 		State:      string(data.State),
-		CreateTime: data.CreatedAt.Unix(),
-		StartTime:  data.StartedAt.Unix(),
-		EndTime:    data.EndedAt.Unix(),
+		CreateTime: data.CreatedAt.UnixMilli(),
+		StartTime:  data.StartedAt.UnixMilli(),
+		EndTime:    data.EndedAt.UnixMilli(),
 	}
 }
 
@@ -870,9 +870,9 @@ func convertNodeWorkflowOperInstLifeCycleToTypes(data *WorkflowLifeCycle) *opera
 
 	return &operation.Lifecycle{
 		State:     operation.State(data.GetState()),
-		CreatedAt: time.Unix(data.GetCreateTime(), 0),
-		StartedAt: time.Unix(data.GetStartTime(), 0),
-		EndedAt:   time.Unix(data.GetEndTime(), 0),
+		CreatedAt: time.UnixMilli(data.GetCreateTime()),
+		StartedAt: time.UnixMilli(data.GetStartTime()),
+		EndedAt:   time.UnixMilli(data.GetEndTime()),
 	}
 }
 
