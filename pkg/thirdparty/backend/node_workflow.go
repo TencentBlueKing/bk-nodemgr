@@ -97,8 +97,9 @@ type IHandlerNodeWorkflow interface {
 	// ListNodeWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
 	// @param nCtx contextx.IContext, contains tenant-id.
 	// @param triggerIDs the trigger ids.
-	// @return the latest operation instance status distribution: map[trigger-id]map[state]count and the error.
-	ListNodeWorkflowOperationInstanceStatusDistribution(nCtx contextx.IContext, triggerIDs []string) (map[string]map[string]int64, error)
+	// @return the latest operation instance status distribution: map[trigger-id]*InstanceStatusDistribution and the error.
+	ListNodeWorkflowOperationInstanceStatusDistribution(nCtx contextx.IContext, triggerIDs []string) (
+		map[string]*operation.InstanceStatusDistribution, error)
 }
 
 // ListNodeWorkflow list node workflow within specified tenant in contextx.
@@ -296,7 +297,7 @@ func (h *Handler) GetNodeWorkflowOperationManualInfo(nCtx contextx.IContext, wor
 
 // ListNodeWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
 func (h *Handler) ListNodeWorkflowOperationInstanceStatusDistribution(nCtx contextx.IContext, triggerIDs []string) (
-	map[string]map[string]int64, error) {
+	map[string]*operation.InstanceStatusDistribution, error) {
 
 	req := &protoBackend.NodeWorkflowOperationInstanceStatusDistributionListReq{
 		TriggerId: triggerIDs,

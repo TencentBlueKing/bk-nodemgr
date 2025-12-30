@@ -149,76 +149,6 @@ func (nws NodeWorkflowStatus) Validate() error {
 	return fmt.Errorf("invalid node workflow status, status(%s)", nws)
 }
 
-// NodeWorkflowOperationStatus ...
-type NodeWorkflowOperationStatus struct {
-	Index       int
-	OperationID string
-	TriggerID   string
-	State       NodeWorkflowOperationState
-}
-
-// NodeWorkflowOperationState defines the state of node workflow operation.
-type NodeWorkflowOperationState string
-
-const (
-	// NodeWorkflowOperationStateInit node workflow operation state init.
-	NodeWorkflowOperationStateInit NodeWorkflowOperationState = "init"
-
-	// NodeWorkflowOperationStateLaunched node workflow operation state launched.
-	NodeWorkflowOperationStateLaunched NodeWorkflowOperationState = "launched"
-
-	// NodeWorkflowOperationStateRunning node workflow operation state running.
-	NodeWorkflowOperationStateRunning NodeWorkflowOperationState = "running"
-
-	// NodeWorkflowOperationStateSuccess node workflow operation state success.
-	NodeWorkflowOperationStateSuccess NodeWorkflowOperationState = "success"
-
-	// NodeWorkflowOperationStateFailed node workflow operation state failed.
-	NodeWorkflowOperationStateFailed NodeWorkflowOperationState = "failed"
-
-	// NodeWorkflowOperationStateTimeout node workflow operation state timeout.
-	NodeWorkflowOperationStateTimeout NodeWorkflowOperationState = "timeout"
-
-	// NodeWorkflowOperationStateTerminated node workflow operation state terminated.
-	NodeWorkflowOperationStateTerminated NodeWorkflowOperationState = "terminated"
-)
-
-// Validate validates the node workflow operation state.
-func (state NodeWorkflowOperationState) Validate() error {
-	switch state {
-	case NodeWorkflowOperationStateInit,
-		NodeWorkflowOperationStateLaunched,
-		NodeWorkflowOperationStateRunning,
-		NodeWorkflowOperationStateSuccess,
-		NodeWorkflowOperationStateFailed,
-		NodeWorkflowOperationStateTimeout,
-		NodeWorkflowOperationStateTerminated:
-		return nil
-	default:
-		return fmt.Errorf("invalid node workflow operation state. state(%s)", state)
-	}
-}
-
-// NodeWorkflowOperationStatusListToStringList converts a node status list to a string list.
-func NodeWorkflowOperationStatusListToStringList(operationStatusList []NodeWorkflowOperationState) []string {
-	data := make([]string, len(operationStatusList))
-	for idx, operationStatus := range operationStatusList {
-		data[idx] = string(operationStatus)
-	}
-
-	return data
-}
-
-// StringListToNodeWorkflowOperationStatusList converts a string list to a node status list.
-func StringListToNodeWorkflowOperationStatusList(stringList []string) []NodeWorkflowOperationState {
-	data := make([]NodeWorkflowOperationState, len(stringList))
-	for idx, operationStatus := range stringList {
-		data[idx] = NodeWorkflowOperationState(operationStatus)
-	}
-
-	return data
-}
-
 // GetFinishedNodeWorkflowStatus returns the finished node workflow status.
 func GetFinishedNodeWorkflowStatus() []NodeWorkflowStatus {
 	return []NodeWorkflowStatus{
@@ -246,28 +176,6 @@ type NodeWorkflowListOperationResult struct {
 	// LastInstanceBriefData is the last instance brief data.
 	// currently support life-cycle and latest action.
 	LastInstanceBriefData *operation.InstanceBriefData
-}
-
-// InstanceStatusToNodeWorkflowOperationState converts the instance status to operation state.
-func InstanceStatusToNodeWorkflowOperationState(status operation.State) (NodeWorkflowOperationState, error) {
-	switch status {
-	case operation.StateInit:
-		return NodeWorkflowOperationStateInit, nil
-	case operation.StateLaunched:
-		return NodeWorkflowOperationStateLaunched, nil
-	case operation.StateRunning:
-		return NodeWorkflowOperationStateRunning, nil
-	case operation.StateSuccess:
-		return NodeWorkflowOperationStateSuccess, nil
-	case operation.StateFailed:
-		return NodeWorkflowOperationStateFailed, nil
-	case operation.StateTimeout:
-		return NodeWorkflowOperationStateTimeout, nil
-	case operation.StateTerminated:
-		return NodeWorkflowOperationStateTerminated, nil
-	default:
-		return "", fmt.Errorf("invalid operation instance state. state(%s)", status)
-	}
 }
 
 // NodeWorkflowOperationRetryParam validates the retry param.

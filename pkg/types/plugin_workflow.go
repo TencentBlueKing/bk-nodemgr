@@ -134,76 +134,6 @@ func StringListToPluginWorkflowStatusList(strList []string) []PluginWorkflowStat
 	return statuses
 }
 
-// PluginWorkflowOperationStatus ...
-type PluginWorkflowOperationStatus struct {
-	Index       int
-	OperationID string
-	TriggerID   string
-	State       PluginWorkflowOperationState
-}
-
-// PluginWorkflowOperationState defines the state of plugin workflow operation.
-type PluginWorkflowOperationState string
-
-const (
-	// PluginWorkflowOperationStateInit plugin workflow operation state init.
-	PluginWorkflowOperationStateInit PluginWorkflowOperationState = "init"
-
-	// PluginWorkflowOperationStateLaunched plugin workflow operation state launched.
-	PluginWorkflowOperationStateLaunched PluginWorkflowOperationState = "launched"
-
-	// PluginWorkflowOperationStateRunning plugin workflow operation state running.
-	PluginWorkflowOperationStateRunning PluginWorkflowOperationState = "running"
-
-	// PluginWorkflowOperationStateSuccess plugin workflow operation state success.
-	PluginWorkflowOperationStateSuccess PluginWorkflowOperationState = "success"
-
-	// PluginWorkflowOperationStateFailed plugin workflow operation state failed.
-	PluginWorkflowOperationStateFailed PluginWorkflowOperationState = "failed"
-
-	// PluginWorkflowOperationStateTimeout plugin workflow operation state timeout.
-	PluginWorkflowOperationStateTimeout PluginWorkflowOperationState = "timeout"
-
-	// PluginWorkflowOperationStateTerminated plugin workflow operation state terminated.
-	PluginWorkflowOperationStateTerminated PluginWorkflowOperationState = "terminated"
-)
-
-// Validate validates the plugin workflow operation state.
-func (state PluginWorkflowOperationState) Validate() error {
-	switch state {
-	case PluginWorkflowOperationStateInit,
-		PluginWorkflowOperationStateLaunched,
-		PluginWorkflowOperationStateRunning,
-		PluginWorkflowOperationStateSuccess,
-		PluginWorkflowOperationStateFailed,
-		PluginWorkflowOperationStateTimeout,
-		PluginWorkflowOperationStateTerminated:
-		return nil
-	default:
-		return fmt.Errorf("invalid plugin workflow operation state. state(%s)", state)
-	}
-}
-
-// PluginWorkflowOperationStatusListToStringList converts a plugin status list to a string list.
-func PluginWorkflowOperationStatusListToStringList(operationStatusList []PluginWorkflowOperationState) []string {
-	data := make([]string, len(operationStatusList))
-	for idx, operationStatus := range operationStatusList {
-		data[idx] = string(operationStatus)
-	}
-
-	return data
-}
-
-// StringListToPluginWorkflowOperationStatusList converts a string list to a plugin status list.
-func StringListToPluginWorkflowOperationStatusList(stringList []string) []PluginWorkflowOperationState {
-	data := make([]PluginWorkflowOperationState, len(stringList))
-	for idx, operationStatus := range stringList {
-		data[idx] = PluginWorkflowOperationState(operationStatus)
-	}
-
-	return data
-}
-
 // GetFinishedPluginWorkflowStatus returns the finished plugin workflow status.
 func GetFinishedPluginWorkflowStatus() []PluginWorkflowStatus {
 	return []PluginWorkflowStatus{
@@ -233,34 +163,6 @@ type PluginWorkflowListOperationResult struct {
 	// LastInstanceBriefData is the last instance brief data.
 	// currently support life-cycle and latest action.
 	LastInstanceBriefData *operation.InstanceBriefData
-}
-
-// PluginWorkflowOperationSummary summary of plugin workflow operation.
-type PluginWorkflowOperationSummary struct {
-	TotalDuration int64
-	LastStatus    PluginWorkflowOperationState
-}
-
-// InstanceStatusToPluginWorkflowOperationState converts the instance status to operation state.
-func InstanceStatusToPluginWorkflowOperationState(status operation.State) (PluginWorkflowOperationState, error) {
-	switch status {
-	case operation.StateInit:
-		return PluginWorkflowOperationStateInit, nil
-	case operation.StateLaunched:
-		return PluginWorkflowOperationStateLaunched, nil
-	case operation.StateRunning:
-		return PluginWorkflowOperationStateRunning, nil
-	case operation.StateSuccess:
-		return PluginWorkflowOperationStateSuccess, nil
-	case operation.StateFailed:
-		return PluginWorkflowOperationStateFailed, nil
-	case operation.StateTimeout:
-		return PluginWorkflowOperationStateTimeout, nil
-	case operation.StateTerminated:
-		return PluginWorkflowOperationStateTerminated, nil
-	default:
-		return "", fmt.Errorf("invalid operation instance state. state(%s)", status)
-	}
 }
 
 // PluginWorkflowOperationRetryParam validates the retry param.

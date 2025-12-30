@@ -179,7 +179,7 @@ func (x *PluginWorkflowStatisticsResp) ConvertPluginWorkflowsFromTypes(result []
 	items := make([]*WorkflowStatisticsInfo, len(result))
 
 	for i, item := range result {
-		items[i] = newEmptyPluginWorkflowOperationStatus()
+		items[i] = newEmptyPluginWorkflowStatistics()
 		*items[i].WorkflowId = item.WorkflowID
 		*items[i].TotalCount = int64(item.TotalCount)
 		*items[i].InitCount = int64(item.InitCount)
@@ -199,17 +199,17 @@ func (x *PluginWorkflowStatisticsResp) ConvertPluginWorkflowsFromTypes(result []
 // ConvertPluginWorkflowsFromDistribution converts plugin workflows from distribution and trigger mapping.
 func (x *PluginWorkflowStatisticsResp) ConvertPluginWorkflowsFromDistribution(
 	workflowIDs []string,
-	distribution map[string]map[string]int64,
+	distribution map[string]*operation.InstanceStatusDistribution,
 	triggerToWorkflowMap map[string]string) error {
 
 	result := make(map[string]*WorkflowStatisticsInfo, len(workflowIDs))
 	for _, workflowID := range workflowIDs {
-		info := newEmptyPluginWorkflowOperationStatus()
+		info := newEmptyPluginWorkflowStatistics()
 		*info.WorkflowId = workflowID
 		result[workflowID] = info
 	}
 
-	for triggerID, stateMap := range distribution {
+	for triggerID, dist := range distribution {
 		workflowID, exists := triggerToWorkflowMap[triggerID]
 		if !exists {
 			continue
@@ -220,27 +220,30 @@ func (x *PluginWorkflowStatisticsResp) ConvertPluginWorkflowsFromDistribution(
 			continue
 		}
 
-		for stateStr, count := range stateMap {
-			state := types.PluginWorkflowOperationState(stateStr)
+		// add not inited count
+		*info.TotalCount += dist.NotInitedCount
+
+		for stateStr, count := range dist.StatusMap {
+			state := operation.State(stateStr)
 			if err := state.Validate(); err != nil {
 				return err
 			}
 
 			*info.TotalCount += count
 			switch state {
-			case types.PluginWorkflowOperationStateInit:
+			case operation.StateInit:
 				*info.InitCount += count
-			case types.PluginWorkflowOperationStateRunning:
+			case operation.StateRunning:
 				*info.RunningCount += count
-			case types.PluginWorkflowOperationStateLaunched:
+			case operation.StateLaunched:
 				*info.LaunchedCount += count
-			case types.PluginWorkflowOperationStateSuccess:
+			case operation.StateSuccess:
 				*info.SuccessCount += count
-			case types.PluginWorkflowOperationStateFailed:
+			case operation.StateFailed:
 				*info.FailedCount += count
-			case types.PluginWorkflowOperationStateTimeout:
+			case operation.StateTimeout:
 				*info.TimeoutCount += count
-			case types.PluginWorkflowOperationStateTerminated:
+			case operation.StateTerminated:
 				*info.TerminatedCount += count
 			}
 		}
@@ -251,20 +254,6 @@ func (x *PluginWorkflowStatisticsResp) ConvertPluginWorkflowsFromDistribution(
 	}
 
 	return nil
-}
-
-func newEmptyPluginWorkflowOperationStatus() *WorkflowStatisticsInfo {
-	return &WorkflowStatisticsInfo{
-		WorkflowId:      new(string),
-		TotalCount:      new(int64),
-		InitCount:       new(int64),
-		LaunchedCount:   new(int64),
-		RunningCount:    new(int64),
-		SuccessCount:    new(int64),
-		FailedCount:     new(int64),
-		TimeoutCount:    new(int64),
-		TerminatedCount: new(int64),
-	}
 }
 
 // ===============================================================================
@@ -348,10 +337,12 @@ func convertPluginWorkOperConditionsFromTypes(condition *types.ApplicationPlugin
 
 	if condition.ExactInclude != nil {
 		exactCond = &PluginWorkflowOperationExactConditions{
-			BkHostId:      condition.ExactInclude.HostID,
-			PluginName:    condition.ExactExclude.PluginName,
-			PluginVersion: condition.ExactInclude.PluginVersion,
-			State:         types.PluginWorkflowOperationStatusListToStringList(condition.ExactInclude.State),
+		BkHostId:      condition.ExactInclude.HostID,
+		PluginName:    condition.ExactExclude.PluginName,
+		PluginVersion: condition.ExactInclude.PluginVersion,
+		State: conv.SliceToSlice(condition.ExactInclude.State, func(s operation.State) string {
+			return string(s)
+		}),
 		}
 	}
 
@@ -379,7 +370,7 @@ func convertPluginWorkflowOperationConditionsToTypes(exactCond *PluginWorkflowOp
 			HostID:        exactCond.GetBkHostId(),
 			PluginName:    exactCond.GetPluginName(),
 			PluginVersion: exactCond.GetPluginVersion(),
-			State:         types.StringListToPluginWorkflowOperationStatusList(exactCond.GetState()),
+			State:         operation.StringListToStateList(exactCond.GetState()),
 		}
 	}
 
@@ -690,4 +681,18 @@ func convertPluginWorkflowConditionsToTypes(
 	}
 
 	return condition, nil
+}
+
+func newEmptyPluginWorkflowStatistics() *WorkflowStatisticsInfo {
+	return &WorkflowStatisticsInfo{
+		WorkflowId:      new(string),
+		TotalCount:      new(int64),
+		InitCount:       new(int64),
+		LaunchedCount:   new(int64),
+		RunningCount:    new(int64),
+		SuccessCount:    new(int64),
+		FailedCount:     new(int64),
+		TimeoutCount:    new(int64),
+		TerminatedCount: new(int64),
+	}
 }

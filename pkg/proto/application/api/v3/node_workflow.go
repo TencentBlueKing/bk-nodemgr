@@ -133,7 +133,7 @@ func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromTypes(result []*Nod
 	items := make([]*WorkflowStatisticsInfo, len(result))
 
 	for i, item := range result {
-		items[i] = newEmptyNodeWorkflowOperationStatus()
+		items[i] = newEmptyNodeWorkflowStatistics()
 		*items[i].WorkflowId = item.WorkflowID
 		*items[i].TotalCount = int64(item.TotalCount)
 		*items[i].InitCount = int64(item.InitCount)
@@ -153,17 +153,17 @@ func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromTypes(result []*Nod
 // ConvertNodeWorkflowsFromDistribution converts node workflows from distribution and trigger mapping.
 func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromDistribution(
 	workflowIDs []string,
-	distribution map[string]map[string]int64,
+	distribution map[string]*operation.InstanceStatusDistribution,
 	triggerToWorkflowMap map[string]string) error {
 
 	result := make(map[string]*WorkflowStatisticsInfo, len(workflowIDs))
 	for _, workflowID := range workflowIDs {
-		info := newEmptyNodeWorkflowOperationStatus()
+		info := newEmptyNodeWorkflowStatistics()
 		*info.WorkflowId = workflowID
 		result[workflowID] = info
 	}
 
-	for triggerID, stateMap := range distribution {
+	for triggerID, dist := range distribution {
 		workflowID, exists := triggerToWorkflowMap[triggerID]
 		if !exists {
 			continue
@@ -174,27 +174,30 @@ func (x *NodeWorkflowStatisticsResp) ConvertNodeWorkflowsFromDistribution(
 			continue
 		}
 
-		for stateStr, count := range stateMap {
-			state := types.NodeWorkflowOperationState(stateStr)
+		// add not inited count
+		*info.TotalCount += dist.NotInitedCount
+
+		for stateStr, count := range dist.StatusMap {
+			state := operation.State(stateStr)
 			if err := state.Validate(); err != nil {
 				return err
 			}
 
 			*info.TotalCount += count
 			switch state {
-			case types.NodeWorkflowOperationStateInit:
+			case operation.StateInit:
 				*info.InitCount += count
-			case types.NodeWorkflowOperationStateRunning:
+			case operation.StateRunning:
 				*info.RunningCount += count
-			case types.NodeWorkflowOperationStateLaunched:
+			case operation.StateLaunched:
 				*info.LaunchedCount += count
-			case types.NodeWorkflowOperationStateSuccess:
+			case operation.StateSuccess:
 				*info.SuccessCount += count
-			case types.NodeWorkflowOperationStateFailed:
+			case operation.StateFailed:
 				*info.FailedCount += count
-			case types.NodeWorkflowOperationStateTimeout:
+			case operation.StateTimeout:
 				*info.TimeoutCount += count
-			case types.NodeWorkflowOperationStateTerminated:
+			case operation.StateTerminated:
 				*info.TerminatedCount += count
 			}
 		}
@@ -604,8 +607,10 @@ func convertNodeWorkOperConditionsFromTypes(condition *types.ApplicationNodeOper
 
 	if condition.ExactInclude != nil {
 		exactCond = &NodeWorkflowOperationExactConditions{
-			BkBizId:         condition.ExactInclude.BizID,
-			State:           types.NodeWorkflowOperationStatusListToStringList(condition.ExactInclude.State),
+			BkBizId: condition.ExactInclude.BizID,
+			State: conv.SliceToSlice(condition.ExactInclude.State, func(s operation.State) string {
+				return string(s)
+			}),
 			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
 			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
 			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
@@ -633,7 +638,7 @@ func convertNodeWorkflowOperationConditionsToTypes(
 			HostInnerIPV6: exactCond.GetBkHostInneripV6(),
 			NetworkAreaID: exactCond.GetBkNetworkareaId(),
 			NetworkUnitID: exactCond.GetBkNetworkunitId(),
-			State:         types.StringListToNodeWorkflowOperationStatusList(exactCond.GetState()),
+			State:         operation.StringListToStateList(exactCond.GetState()),
 		}
 	}
 
@@ -690,7 +695,7 @@ func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 	}
 }
 
-func newEmptyNodeWorkflowOperationStatus() *WorkflowStatisticsInfo {
+func newEmptyNodeWorkflowStatistics() *WorkflowStatisticsInfo {
 	return &WorkflowStatisticsInfo{
 		WorkflowId:      new(string),
 		TotalCount:      new(int64),

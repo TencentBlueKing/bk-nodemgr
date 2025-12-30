@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -173,7 +174,7 @@ func (s *Storage) updateLatestInstBriefData(nCtx contextx.IContext, operationID 
 // getLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger ID.
 func (s *Storage) getLatestOperationInstanceStatusDistributionByTriggerID(
 	nCtx contextx.IContext, triggerID ...string) (
-	map[string]map[string]int64, error) {
+	map[string]*workoper.InstanceStatusDistribution, error) {
 
 	if nCtx == nil {
 		return nil, basestorage.ErrNilContent()
@@ -231,7 +232,9 @@ func convertOperationConditionsToOptions(conditions ...*types.OperationCondition
 
 		if condition.ExactInclude != nil {
 			opts = append(opts, operation.WithTriggerID(condition.ExactInclude.TriggerID...))
-			opts = append(opts, operation.WithLatestInstState(workoper.StateListToStringList(condition.ExactInclude.State)...))
+			opts = append(opts, operation.WithLatestInstState(conv.SliceToSlice(condition.ExactInclude.State, func(s workoper.State) string {
+				return string(s)
+			})...))
 		}
 
 		if condition.ExactExclude != nil || condition.FuzzyExclude != nil || condition.FuzzyInclude != nil {

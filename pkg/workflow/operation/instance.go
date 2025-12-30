@@ -12,6 +12,7 @@
 package operation
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -179,6 +180,17 @@ const (
 	// StateTerminated operation instance state terminated.
 	StateTerminated State = "terminated"
 )
+
+// Validate checks if the state is a valid operation instance state.
+func (state State) Validate() error {
+	switch state {
+	case StateInit, StateLaunched, StateRunning,
+		StateSuccess, StateFailed, StateTimeout, StateTerminated:
+		return nil
+	default:
+		return fmt.Errorf("invalid operation instance state. state(%s)", state)
+	}
+}
 
 // CheckStateFinished checks if the state is finished.
 func CheckStateFinished(state State) bool {

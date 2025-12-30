@@ -291,10 +291,12 @@ func convertPluginWorkOperConditionsFromTypes(condition *types.ApplicationPlugin
 
 	if condition.ExactInclude != nil {
 		exactCond = &PluginWorkflowOperationListReq_ExactConditions{
-			BkHostId:      condition.ExactInclude.HostID,
-			PluginName:    condition.ExactInclude.PluginName,
-			PluginVersion: condition.ExactInclude.PluginVersion,
-			State:         types.PluginWorkflowOperationStatusListToStringList(condition.ExactInclude.State),
+		BkHostId:      condition.ExactInclude.HostID,
+		PluginName:    condition.ExactInclude.PluginName,
+		PluginVersion: condition.ExactInclude.PluginVersion,
+		State: conv.SliceToSlice(condition.ExactInclude.State, func(s operation.State) string {
+			return string(s)
+		}),
 		}
 	}
 
@@ -747,16 +749,17 @@ func (x *PluginWorkflowOperationInstanceStatusDistributionListReq) AutoConvert()
 
 // ConvertDistributionFromTypes converts distribution from types.
 func (x *PluginWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionFromTypes(
-	distribution map[string]map[string]int64) {
+	distribution map[string]*operation.InstanceStatusDistribution) {
 
 	if distribution == nil {
 		return
 	}
 
 	items := make(map[string]*PluginWorkflowOperationInstanceStatusDistributionListResp_StatusDistribution)
-	for triggerID, stateMap := range distribution {
+	for triggerID, dist := range distribution {
 		items[triggerID] = &PluginWorkflowOperationInstanceStatusDistributionListResp_StatusDistribution{
-			StateCounts: stateMap,
+			NotInitedCount: dist.NotInitedCount,
+			StateCounts:    dist.StatusMap,
 		}
 	}
 
@@ -766,18 +769,21 @@ func (x *PluginWorkflowOperationInstanceStatusDistributionListResp) ConvertDistr
 }
 
 // ConvertDistributionToTypes converts distribution to types.
-func (x *PluginWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionToTypes() map[string]map[string]int64 {
+func (x *PluginWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionToTypes() map[string]*operation.InstanceStatusDistribution {
 	data := x.GetData()
 	if data == nil {
-		return make(map[string]map[string]int64)
+		return make(map[string]*operation.InstanceStatusDistribution)
 	}
 
-	result := make(map[string]map[string]int64)
+	result := make(map[string]*operation.InstanceStatusDistribution)
 	for triggerID, statusDist := range data.GetItems() {
 		if statusDist == nil {
 			continue
 		}
-		result[triggerID] = statusDist.GetStateCounts()
+		result[triggerID] = &operation.InstanceStatusDistribution{
+			NotInitedCount: statusDist.GetNotInitedCount(),
+			StatusMap:      statusDist.GetStateCounts(),
+		}
 	}
 
 	return result

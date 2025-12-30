@@ -50,7 +50,8 @@ type IHandler interface {
 	UpdateLatestInstBriefData(nCtx contextx.IContext, operationID string, briefData *operation.InstanceBriefData) error
 
 	// GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger id.
-	GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (map[string]map[string]int64, error)
+	GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (
+		map[string]*operation.InstanceStatusDistribution, error)
 }
 
 type handler struct {
@@ -190,14 +191,14 @@ func (h *handler) UpdateLatestInstBriefData(nCtx contextx.IContext, operationID 
 
 // GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger id.
 func (h *handler) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (
-	map[string]map[string]int64, error) {
+	map[string]*operation.InstanceStatusDistribution, error) {
 
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
 
 	if len(triggerID) == 0 {
-		return make(map[string]map[string]int64), nil
+		return make(map[string]*operation.InstanceStatusDistribution), nil
 	}
 
 	filter := base.AliveFilter()
@@ -208,17 +209,26 @@ func (h *handler) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx c
 		return nil, err
 	}
 
-	// build the result map: trigger_id -> status -> count
-	distribution := make(map[string]map[string]int64)
+	// build the result map: trigger_id -> distribution
+	distribution := make(map[string]*operation.InstanceStatusDistribution)
 	for _, result := range results {
 		triggerID := result.GroupKey.TriggerID
 		status := result.GroupKey.Status
 		count := result.Count
 
 		if _, exists := distribution[triggerID]; !exists {
-			distribution[triggerID] = make(map[string]int64)
+			distribution[triggerID] = &operation.InstanceStatusDistribution{
+				NotInitedCount: 0,
+				StatusMap:      make(map[string]int64),
+			}
 		}
-		distribution[triggerID][status] = count
+
+		if status == nil {
+			distribution[triggerID].NotInitedCount += count
+			continue
+		}
+
+		distribution[triggerID].StatusMap[*status] = count
 	}
 
 	return distribution, nil

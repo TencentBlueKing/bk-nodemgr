@@ -304,6 +304,10 @@
     "PluginWorkflowOperationInstanceStatusDistributionListRespStatusDistribution": {
       "type": "object",
       "properties": {
+        "not_inited_count": {
+          "type": "integer",
+          "format": "int64"
+        },
         "state_counts": {
           "type": "object",
           "additionalProperties": {

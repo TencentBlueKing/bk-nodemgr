@@ -140,7 +140,7 @@ type IStorageOperationInstance interface {
 
 	// GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger id.
 	GetLatestOperationInstanceStatusDistributionByTriggerID(ctx contextx.IContext, triggerID ...string) (
-		map[string]map[string]int64, error)
+		map[string]*operation.InstanceStatusDistribution, error)
 }
 
 // IStorageTrigger defines the storage handler for trigger.

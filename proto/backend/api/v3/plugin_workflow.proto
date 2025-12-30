@@ -233,7 +233,10 @@ message PluginWorkflowOperationInstanceStatusDistributionListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
-  message StatusDistribution { map<string, int64> state_counts = 1; }
+  message StatusDistribution {
+    int64 not_inited_count = 1;
+    map<string, int64> state_counts = 2;
+  }
   message Data { map<string, StatusDistribution> items = 1; }
   Data data = 5;
 }

@@ -591,6 +591,7 @@ func (ctl *controller) generateOperationInstance(nCtx contextx.IContext) (*opera
 	}
 
 	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, inst.InstanceBriefData.Metadata.OperationInstanceID)
+	ctl.oper.LatestInstBriefData = &inst.InstanceBriefData
 	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, ctl.oper); err != nil {
 		return nil, err
 	}
@@ -636,6 +637,7 @@ func (ctl *controller) generateRetryOperationInstance(nCtx contextx.IContext) (*
 
 	ctl.oper.InstanceIDs = append(ctl.oper.InstanceIDs, retryInstance.InstanceBriefData.Metadata.OperationInstanceID)
 	ctl.oper.RetryFlags[len(ctl.oper.RetryFlags)-1].RetryInstanceID = retryInstance.Metadata.OperationInstanceID
+	ctl.oper.LatestInstBriefData = &retryInstance.InstanceBriefData
 	if err := ctl.mgr.stgOperation.UpsertOperation(nCtx, ctl.oper); err != nil {
 		return nil, err
 	}

@@ -952,10 +952,10 @@ func (s *Storage) ListOperInstanceBriefWithoutActionInstByTriggerID(nCtx context
 
 // GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger ID.
 func (s *Storage) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (
-	map[string]map[string]int64, error) {
+	map[string]*workoper.InstanceStatusDistribution, error) {
 
 	var (
-		distribution map[string]map[string]int64
+		distribution map[string]*workoper.InstanceStatusDistribution
 		err          error
 	)
 

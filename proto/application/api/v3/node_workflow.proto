@@ -115,11 +115,6 @@ message NodeWorkflowOperation {
   WorkflowOperInstBriefData latest_oper_inst_brief_data = 6;
 }
 
-message NodeWorkflowOperationStatus {
-  string state = 1;
-  int64 total_time_second = 2;
-}
-
 // NodeWorkflowOperationExactConditions describes the exact conditions of node
 // workflow operation list request.
 message NodeWorkflowOperationExactConditions {

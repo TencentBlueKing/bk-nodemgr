@@ -94,3 +94,9 @@ type Param struct {
 	InitContent       map[string]any
 	RetryStartPoint   map[string]bool
 }
+
+// InstanceStatusDistribution represents the operation instance status distribution for a trigger.
+type InstanceStatusDistribution struct {
+	NotInitedCount int64            // not inited count
+	StatusMap      map[string]int64 // status -> count
+}

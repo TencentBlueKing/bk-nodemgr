@@ -467,7 +467,7 @@ type ApplicationNodeOperationListExactFields struct {
 	NetworkAreaID []int64
 	NetworkUnitID []int64
 	NodeVersion   []string
-	State         []NodeWorkflowOperationState
+	State         []operation.State
 }
 
 // ApplicationNodeOperationListFuzzyFields defines the fuzzy fields for node operation list.
@@ -525,7 +525,7 @@ type ApplicationPluginOperationListExactFields struct {
 	HostID        []int64
 	PluginName    []string
 	PluginVersion []string
-	State         []PluginWorkflowOperationState
+	State         []operation.State
 }
 
 // ApplicationPluginOperationListFuzzyFields defines the fuzzy fields for plugin workflow operation list.

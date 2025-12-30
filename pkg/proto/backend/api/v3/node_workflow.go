@@ -226,11 +226,6 @@ func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(condition *typ
 	return nil
 }
 
-// ConvertConditionsToTypes convert conditions to types.
-func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes(triggerID string) *types.OperationCondition {
-	return convertNodeWorkflowOperationConditionsToTypes(x.GetExactIncludeConditions(), triggerID)
-}
-
 // ConvertConditionsToOperationTypes convert conditions to operation types.
 func (x *NodeWorkflowOperationListReq) ConvertConditionsToOperationTypes(triggerID string) *types.OperationCondition {
 	return convertNodeWorkflowOperationConditionsToTypes(x.GetExactIncludeConditions(), triggerID)
@@ -692,16 +687,17 @@ func (x *NodeWorkflowOperationInstanceStatusDistributionListReq) AutoConvert() {
 
 // ConvertDistributionFromTypes converts distribution from types.
 func (x *NodeWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionFromTypes(
-	distribution map[string]map[string]int64) {
+	distribution map[string]*operation.InstanceStatusDistribution) {
 
 	if distribution == nil {
 		return
 	}
 
 	items := make(map[string]*NodeWorkflowOperationInstanceStatusDistributionListResp_StatusDistribution)
-	for triggerID, stateMap := range distribution {
+	for triggerID, dist := range distribution {
 		items[triggerID] = &NodeWorkflowOperationInstanceStatusDistributionListResp_StatusDistribution{
-			StateCounts: stateMap,
+			NotInitedCount: dist.NotInitedCount,
+			StateCounts:    dist.StatusMap,
 		}
 	}
 
@@ -711,18 +707,21 @@ func (x *NodeWorkflowOperationInstanceStatusDistributionListResp) ConvertDistrib
 }
 
 // ConvertDistributionToTypes converts distribution to types.
-func (x *NodeWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionToTypes() map[string]map[string]int64 {
+func (x *NodeWorkflowOperationInstanceStatusDistributionListResp) ConvertDistributionToTypes() map[string]*operation.InstanceStatusDistribution {
 	data := x.GetData()
 	if data == nil {
-		return make(map[string]map[string]int64)
+		return make(map[string]*operation.InstanceStatusDistribution)
 	}
 
-	result := make(map[string]map[string]int64)
+	result := make(map[string]*operation.InstanceStatusDistribution)
 	for triggerID, statusDist := range data.GetItems() {
 		if statusDist == nil {
 			continue
 		}
-		result[triggerID] = statusDist.GetStateCounts()
+		result[triggerID] = &operation.InstanceStatusDistribution{
+			NotInitedCount: statusDist.GetNotInitedCount(),
+			StatusMap:      statusDist.GetStateCounts(),
+		}
 	}
 
 	return result
@@ -819,7 +818,9 @@ func convertNodeWorkOperConditionsFromTypes(condition *types.ApplicationNodeOper
 
 	if condition.ExactInclude != nil {
 		exactCond = &NodeWorkflowOperationListReq_ExactConditions{
-			State: types.NodeWorkflowOperationStatusListToStringList(condition.ExactInclude.State),
+			State: conv.SliceToSlice(condition.ExactInclude.State, func(s operation.State) string {
+				return string(s)
+			}),
 		}
 	}
 

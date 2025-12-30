@@ -186,8 +186,8 @@ func (d *dao) getLatestOperationInstStatusDistribution(nCtx contextx.IContext, f
 
 type operationLatestInstStatusDistribution struct {
 	GroupKey struct {
-		TriggerID string `bson:"trigger_id"`
-		Status    string `bson:"status"`
+		TriggerID string  `bson:"trigger_id"`
+		Status    *string `bson:"status"`
 	} `bson:"_id"`
 	Count int64 `bson:"count"`
 }
