@@ -121,7 +121,7 @@
                     <div v-if="currentOperate.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script')
                       && last_oper_inst_step_key === row.stepKey">
                       等待手动操作，查看
-                      <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide(row)">操作指引</Button>
+                      <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide">操作指引</Button>
                     </div>
                     <span v-else :class="['ml-[5px]', { 'text-[#c4c6cc]': row.state === 'pending' }]">
                       {{ statusMap[row.state]?.text }}
@@ -155,7 +155,7 @@
             class="sticky top-0 z-10 h-[50px]
               flex flex-shrink-0 justify-between items-center px-[16px] bg-[#202024] text-[#C4C6CC]"
           >
-            <div>{{ t("执行日志") }}</div>
+            <div>执行日志</div>
             <div class="flex">
               <Dropdown
                 :popover-options="{
@@ -326,7 +326,7 @@ const logData = ref<{
 const tableData = ref<any[]>([]);
 const last_oper_inst_step_key = computed(() => {
   for (let i = 0; i < tableData.value.length; i++) {
-    if (tableData.value[i].status === 'pending') {
+    if (tableData.value[i].state === 'pending') {
       return tableData.value[i - 1].stepKey;
     }
   }
@@ -342,7 +342,7 @@ const statusMap = {
   },
   timeout: {
     text: '超时',
-    icon: 'terminated',
+    icon: 'warning',
   },
   success: {
     text: '执行成功',
@@ -417,12 +417,12 @@ const guideData = ref<{workflow_id: string, operation_id: string, bk_host_inneri
   operation_id: '',
   bk_host_innerip: '',
 });
-const handleOperateGuide = (row: any) => {
+const handleOperateGuide = () => {
   isGuideShow.value = true;
   guideData.value = {
     workflow_id: route.params.taskId as string,
-    operation_id: row.operation_id,
-    bk_host_innerip: row.bk_host_innerip,
+    operation_id: currentOperate.value.operation_id,
+    bk_host_innerip: currentOperate.value?.bk_host_inner_list,
   };
 };
 
@@ -632,10 +632,18 @@ async function getLog() {
   curSortNames.value.forEach((key: string, index: number) => {
     logData.value.oper_inst_logs[key] = res.oper_inst_logs[key];
     const { start_time, end_time, state } = res.oper_inst_logs[key].life_cycle || {};
+    let costTime = 0;
+    if (start_time && end_time) {
+      if (end_time <= 0 && state !== 'pending') {
+        costTime = new Date().getTime() - start_time;
+      } else if (end_time > 0) {
+        costTime = end_time - start_time;
+      }
+    }
     list.push({
       index: index + 1,
       stepKey: key,
-      costTime: start_time && end_time ? end_time - start_time : 0,
+      costTime,
       state: state || '未知',
     });
   });

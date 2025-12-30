@@ -90,8 +90,31 @@ export interface PluginWorkflowDistinctRespData {
   status: string[];
 }
 
-// PluginWorkflowOperationParam describes the plugin workflow operation
-export interface PluginWorkflowOperationParam {
+// PluginWorkflowOperationExactConditions describes the exact conditions of
+// plugin workflow operation list request.
+export interface PluginWorkflowOperationExactConditions {
+  bk_host_id: number[];
+  plugin_name: string[];
+  plugin_version: string[];
+  state: string[];
+}
+
+// PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of
+// plugin workflow operation list request.
+export interface PluginWorkflowOperationFuzzyConditions {
+}
+
+// PluginWorkflowOperationListReq describes the node operation list request.
+export interface PluginWorkflowOperationListReq {
+  only_count: boolean;
+  page: Page;
+  workflow_id: string;
+  exact_include_conditions: PluginWorkflowOperationExactConditions;
+  fuzzy_include_conditions: PluginWorkflowOperationFuzzyConditions;
+}
+
+// PluginDeploymentInfo describes the plugin deployment information.
+export interface PluginDeploymentInfo {
   bk_host_id: number;
   bk_biz_id: number;
   bk_networkarea_id: number;
@@ -100,46 +123,16 @@ export interface PluginWorkflowOperationParam {
   bk_host_innerip_v6_list: string[];
   plugin_name: string;
   plugin_version: string;
-  operator: string;
-}
-
-// PluginWorkflowOperationStatus describes the plugin workflow operation status.
-export interface PluginWorkflowOperationStatus {
-  state: string;
-  total_time_second: number;
 }
 
 // PluginWorkflowOperation describes the node workflow operation.
 export interface PluginWorkflowOperation {
   operation_id: string;
   instance_ids: string[];
-  param: PluginWorkflowOperationParam;
-  status: PluginWorkflowOperationStatus;
-}
-
-// PluginWorkflowOperationExactConditions describes the exact conditions of node
-// workflow operation list request.
-export interface PluginWorkflowOperationExactConditions {
-  workflow_id: string;
-  trigger_id: string;
-  bk_host_id: number[];
-  plugin_name: string[];
-  plugin_version: string[];
-  state: string[];
-}
-
-// PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of node
-// workflow list request.
-export interface PluginWorkflowOperationFuzzyConditions {
-}
-
-// PluginWorkflowOperationListReq describes the node operation list
-// request.
-export interface PluginWorkflowOperationListReq {
-  only_count: boolean;
-  page: Page;
-  exact_include_conditions: PluginWorkflowOperationExactConditions;
-  fuzzy_include_conditions: PluginWorkflowOperationFuzzyConditions;
+  operator: string;
+  create_time: number;
+  plugin_deployment_info: PluginDeploymentInfo;
+  latest_oper_inst_brief_data: WorkflowOperInstBriefData;
 }
 
 // PluginWorkflowOperationListResp describes the node operation list by

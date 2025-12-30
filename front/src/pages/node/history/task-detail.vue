@@ -206,7 +206,7 @@
           field="state"
           :title="'执行状态'"
           :filter="filterOptionSource.state"
-          min-width="120"
+          :min-width="stateMinWidth"
         >
           <template #default="{ row }">
             <div
@@ -222,7 +222,6 @@
                 ></i>
               </template>
               <div>
-                {{ console.log(row,12) }}
                 <!-- eslint-disable-next-line max-len -->
                 <div v-if="row.latest_action_inst_brief_data.tags.includes('need_manual_exec_install_script')">
                   等待手动操作，查看
@@ -367,6 +366,7 @@ const reTryType = [
 ];
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
+const stateMinWidth = computed(() => (tableData.value.some(item => item.latest_action_inst_brief_data.tags.includes('need_manual_exec_install_script')) ? 240 : 120));
 
 // 当前任务状态
 const currentTaskStatus = computed(() => nodeManageStore.taskHistoryTableRowData.status);
@@ -397,7 +397,7 @@ const statusMap = computed(() => ({
   },
   timeout: {
     text: '超时',
-    icon: 'terminated',
+    icon: 'warning',
     tagTheme: '',
   },
   init: {
@@ -1004,6 +1004,7 @@ const getOperateList = async () => {
   pagination.count = res.total;
   const mapList = res.operations.map((item) => {
     subTasksStatus.value?.push(item.latest_oper_inst_brief_data.life_cycle.state);
+    const endTime = item.latest_oper_inst_brief_data.life_cycle.end_time;
     return {
       ...item.node_deployment_info,
       ...item.latest_oper_inst_brief_data.life_cycle,
@@ -1017,7 +1018,7 @@ const getOperateList = async () => {
       operation_id: item.operation_id,
       reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
       node_version: route.query.active === 'node' ? item.node_deployment_info.node_version : item.node_deployment_info.plugin_version,
-      total_time_second: item.latest_oper_inst_brief_data.life_cycle.end_time - item.create_time,
+      total_time_second: endTime > 0 ? endTime - item.create_time : new Date().getTime() - item.create_time,
     };
   });
   const isEqual = tableData.value.length === mapList.length
@@ -1165,6 +1166,12 @@ onBeforeUnmount(() => {
   &::before {
     border-color: #ea3636;
     background: #ffdddd;
+  }
+}
+.nc-warning {
+  &::before {
+    border-color: #ff9c01;
+    background: #fce5c0;
   }
 }
 .dropdownCls {

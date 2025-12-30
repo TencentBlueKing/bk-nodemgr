@@ -39,6 +39,8 @@
         @column-filter="handleFilter"
         :sort-config="sortConfig"
         :empty-cell-text="'--'"
+        @page-limit-change="pageLimitChange"
+        @page-value-change="pageValueChange"
       >
         <TableColumn
           field="name"
@@ -131,7 +133,6 @@ import { Table, TableColumn } from '@blueking/table';
 import type { PackageEventDistinctRespData } from '@/@types/pkg';
 import { PackageService } from '@/api/modules/pkg';
 import { compareVersions  } from '@/common/util';
-import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -157,7 +158,17 @@ const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const tableData = ref<PackageEvent[]>([]);
 // 分页
-const { pagination } = usePage(tableData);
+const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
+const pageLimitChange = async (limit: number) => {
+  pagination.limit = limit;
+  pagination.current = 1; // 页码重置为1
+  await getTaskList(); // 分页变化不防抖，立即执行
+};
+
+const pageValueChange = async (current: number) => {
+  pagination.current = current;
+  await getTaskList(); // 分页变化不防抖，立即执行
+};
 
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const loading = ref(false);
@@ -331,8 +342,8 @@ const getTimestampInSeconds = (originalDate: number | Date) => {
 const getParams = () => {
   const params = {
     page: {
-      limit: 0,
-      offset: 0,
+      limit: pagination.limit,
+      offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {},
     fuzzy_include_conditions: {} as Record<string, string[]>,
@@ -353,6 +364,7 @@ const getTaskList = async () => {
     total: 0,
     items: [],
   }));
+  pagination.count = res.total;
   tableData.value = res.items.map(item => ({
     ...item,
     os_type: item.os_type === 'unknown' ? '' : item.os_type,
@@ -402,7 +414,16 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
   },
 });
 const getHostDistinct = async () => {
-  const res = await PackageService.PackageEventDistinct({}).catch(() => null);
+  const {
+    exact_include_conditions,
+    fuzzy_include_conditions,
+    operate_time_range,
+  } = getParams();
+  const res = await PackageService.PackageEventDistinct({
+    exact_include_conditions,
+    fuzzy_include_conditions,
+    operate_time_range,
+  }).catch(() => null);
   if (res) {
     hostDistinct.value = res;
     Object.keys(res).forEach((key: any) => {

@@ -94,7 +94,7 @@
           :width="60"
         >
           <template #default="{ row }">
-            <download-pkg :data="row" :url="downloadUrl">
+            <download-pkg :data="row" :url="downloadUrl" :current-type="currentType">
               <i class="nodeman-icon nc-xiazai"></i>
             </download-pkg>
           </template>

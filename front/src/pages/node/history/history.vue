@@ -163,8 +163,8 @@
               >/
               <a
                 class="text-[#ff9c01] pr-[4px] cursor-pointer"
-                @click.stop="detailHandle(row, 'ignored')"
-              >{{ row.statistics.ignored_count || 0 }}</a
+                @click.stop="detailHandle(row, 'timeout')"
+              >{{ row.statistics.timeout_count || 0 }}</a
               >
             </template>
             <span v-else>--</span>
