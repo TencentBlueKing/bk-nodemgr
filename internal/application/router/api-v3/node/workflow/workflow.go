@@ -66,9 +66,14 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	resp := new(protoApplication.NodeWorkflowListResp)
 	// only count.
 	if req.GetOnlyCount() {
+		cond, err := req.ConvertConditionsToTypes()
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow, failed to convert conditions")
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		}
 		num, err := h.backendHandler.CountNodeWorkflow(
 			rCtx,
-			req.ConvertConditionsToTypes())
+			cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow, failed to count workflow")
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -78,8 +83,13 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	workflows, num, err := h.backendHandler.ListNodeWorkflow(rCtx,
-		req.ConvertPageToTypes(maxWorkflowLimit), req.ConvertConditionsToTypes())
+		req.ConvertPageToTypes(maxWorkflowLimit), cond)
 
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow")
@@ -106,8 +116,13 @@ func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	cond, err := req.ConvertConditionsToWorkflowConditionTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	workflows, _, err := h.backendHandler.ListNodeWorkflow(
-		rCtx, types.UnlimitedPage(), req.ConvertConditionsToWorkflowConditionTypes())
+		rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to list workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -160,10 +175,15 @@ func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	result, err := h.backendHandler.DistinctNodeWorkflow(
 		rCtx,
 		types.NewNodeWorkflowDistinctRequestAllSet(),
-		req.ConvertConditionsToTypes())
+		cond)
 	resp := new(protoApplication.NodeWorkflowDistinctResp)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct workflow")

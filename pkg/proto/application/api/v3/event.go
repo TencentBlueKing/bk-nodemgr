@@ -53,7 +53,7 @@ func (x *TopoEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *TopoEventListReq) ConvertConditionsToTypes() *types.TopoEventCondition {
+func (x *TopoEventListReq) ConvertConditionsToTypes() (*types.TopoEventCondition, error) {
 	return convertTopoEventConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(),
@@ -136,7 +136,7 @@ func (x *TopoEventDistinctReq) AutoConvert() {
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *TopoEventDistinctReq) ConvertConditionsToTypes() *types.TopoEventCondition {
+func (x *TopoEventDistinctReq) ConvertConditionsToTypes() (*types.TopoEventCondition, error) {
 	return convertTopoEventConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(),
@@ -190,15 +190,16 @@ func newEmptyTopoEvent() *TopoEvent {
 func convertTopoEventConditionsToTypes(
 	exactCond *TopoEventExactConditions,
 	fuzzyCond *TopoEventFuzzyConditions,
-	timeRange *TimeRange) *types.TopoEventCondition {
+	timeRange *TimeRange) (*types.TopoEventCondition, error) {
 
 	condition := &types.TopoEventCondition{}
 
 	if timeRange != nil {
-		condition.OperateTimeRange = &types.TimeRange{
-			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
-			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		operateTimeRange, err := convertTimeRangeToTypes(timeRange)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert operate time range: %w", err)
 		}
+		condition.OperateTimeRange = operateTimeRange
 	}
 
 	// exact conditions.
@@ -220,7 +221,7 @@ func convertTopoEventConditionsToTypes(
 		}
 	}
 
-	return condition
+	return condition, nil
 }
 
 func convertTopoEventConditionsFromTypes(condition *types.TopoEventCondition) (
@@ -374,10 +375,11 @@ func convertPackageEventConditionsToTypes(
 	condition := &types.PackageEventCondition{}
 
 	if timeRange != nil {
-		condition.OperateTimeRange = &types.TimeRange{
-			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
-			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		operateTimeRange, err := convertTimeRangeToTypes(timeRange)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert operate time range: %w", err)
 		}
+		condition.OperateTimeRange = operateTimeRange
 	}
 
 	osTypeList, err := criteria.StringListToOSTypeList(exactCond.GetOsType())
@@ -635,10 +637,11 @@ func convertConfigPolicyEventConditionsToTypes(
 	condition := &types.ConfigPolicyEventCondition{}
 
 	if timeRange != nil {
-		condition.OperateTimeRange = &types.TimeRange{
-			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
-			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		operateTimeRange, err := convertTimeRangeToTypes(timeRange)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert operate time range: %w", err)
 		}
+		condition.OperateTimeRange = operateTimeRange
 	}
 
 	configPolicyTypeList, err := types.StringListToConfigPolicyTypeList(exactCond.GetConfigpolicyType())

@@ -80,7 +80,12 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoNodeWorkflow.CountNodeWorkflow(rCtx, req.ConvertConditionsToTypes())
+		cond, err := req.ConvertConditionsToTypes()
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to convert conditions")
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		}
+		num, err := h.daoNodeWorkflow.CountNodeWorkflow(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to count workflow")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -92,9 +97,14 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	workflows, num, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx,
 		req.ConvertPageToTypes(maxNodeWorkflowLimit),
-		req.ConvertConditionsToTypes())
+		cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -115,10 +125,15 @@ func (h *handler) DistinctNodeWorkflow(rCtx restserver.IContext) (interface{}, e
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct node workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	result, err := h.daoNodeWorkflow.DistinctNodeWorkflow(
 		rCtx,
 		types.NewNodeWorkflowDistinctRequestAllSet(),
-		req.ConvertConditionsToTypes())
+		cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct host. failed to distinct host fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

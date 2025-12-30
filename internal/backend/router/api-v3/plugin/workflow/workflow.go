@@ -82,7 +82,12 @@ func (h *handler) ListPluginWorkflow(rCtx restserver.IContext) (interface{}, err
 
 	// only count.
 	if req.GetOnlyCount() {
-		num, err := h.daoPluginWorkflow.CountPluginWorkflow(rCtx, req.ConvertConditionsToTypes())
+		cond, err := req.ConvertConditionsToTypes()
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to convert conditions")
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		}
+		num, err := h.daoPluginWorkflow.CountPluginWorkflow(rCtx, cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to count workflow")
 			return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -94,9 +99,14 @@ func (h *handler) ListPluginWorkflow(rCtx restserver.IContext) (interface{}, err
 		return resp.GetData(), nil
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	workflows, total, err := h.daoPluginWorkflow.ListPluginWorkflow(rCtx,
 		req.ConvertPageToTypes(maxPluginWorkflowLimit),
-		req.ConvertConditionsToTypes())
+		cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -117,10 +127,15 @@ func (h *handler) DistinctPluginWorkflow(rCtx restserver.IContext) (interface{},
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	result, err := h.daoPluginWorkflow.DistinctPluginWorkflow(
 		rCtx,
 		types.NewPluginWorkflowDistinctRequestAllSet(),
-		req.ConvertConditionsToTypes())
+		cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin workflow. failed to distinct plugin workflow fields: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

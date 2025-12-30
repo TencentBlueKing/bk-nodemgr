@@ -12,6 +12,7 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -51,7 +52,7 @@ func (x *NodeWorkflowListReq) ConvertConditionsFromTypes(condition *types.NodeWo
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *NodeWorkflowListReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
+func (x *NodeWorkflowListReq) ConvertConditionsToTypes() (*types.NodeWorkflowCondition, error) {
 	return convertNodeWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(),
@@ -132,7 +133,7 @@ func (x *NodeWorkflowDistinctReq) ConvertConditionsFromTypes(condition *types.No
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *NodeWorkflowDistinctReq) ConvertConditionsToTypes() *types.NodeWorkflowCondition {
+func (x *NodeWorkflowDistinctReq) ConvertConditionsToTypes() (*types.NodeWorkflowCondition, error) {
 	return convertNodeWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(),
@@ -729,15 +730,16 @@ func (x *NodeWorkflowOperationInstanceStatusDistributionListResp) ConvertDistrib
 
 func convertNodeWorkflowConditionsToTypes(
 	exactCond *NodeWorkflowExactConditions,
-	_ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) *types.NodeWorkflowCondition {
+	_ *NodeWorkflowFuzzyConditions, timeRange *TimeRange) (*types.NodeWorkflowCondition, error) {
 
 	condition := &types.NodeWorkflowCondition{}
 
 	if timeRange != nil {
-		condition.OperateTimeRange = &types.TimeRange{
-			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
-			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		operateTimeRange, err := convertTimeRangeToTypes(timeRange)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert operate time range: %w", err)
 		}
+		condition.OperateTimeRange = operateTimeRange
 	}
 
 	// exact conditions.
@@ -751,7 +753,7 @@ func convertNodeWorkflowConditionsToTypes(
 		}
 	}
 
-	return condition
+	return condition, nil
 }
 
 func convertNodeWorkflowOperationConditionsToTypes(

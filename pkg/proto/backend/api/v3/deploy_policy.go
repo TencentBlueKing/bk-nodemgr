@@ -12,7 +12,6 @@ package v3
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -39,12 +38,15 @@ func (x *DeployPolicyListReq) ConvertPageToTypes(maxLimit int) (types.Page, erro
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *DeployPolicyListReq) ConvertConditionsToTypes() *types.DeployPolicyCondition {
+func (x *DeployPolicyListReq) ConvertConditionsToTypes() (*types.DeployPolicyCondition, error) {
 	exactIncludeCond := convertDeployPolicyExactConditionsToTypes(x.GetExactIncludeConditions())
 	fuzzyIncludeCond := convertDeployPolicyFuzzyConditionsToTypes(x.GetFuzzyIncludeConditions())
 	exactExcludeCond := convertDeployPolicyExactConditionsToTypes(x.GetExactExcludeConditions())
 	fuzzyExcludeCond := convertDeployPolicyFuzzyConditionsToTypes(x.GetFuzzyExcludeConditions())
-	executedTimeRangeCond := convertTimeRangeToTypes(x.GetExecutedTimeRange())
+	executedTimeRangeCond, err := convertTimeRangeToTypes(x.GetExecutedTimeRange())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert executed time range: %w", err)
+	}
 
 	return &types.DeployPolicyCondition{
 		ExecutedTimeRange: executedTimeRangeCond,
@@ -52,7 +54,7 @@ func (x *DeployPolicyListReq) ConvertConditionsToTypes() *types.DeployPolicyCond
 		FuzzyInclude:      fuzzyIncludeCond,
 		ExactExclude:      exactExcludeCond,
 		FuzzyExclude:      fuzzyExcludeCond,
-	}
+	}, nil
 }
 
 // convertDeployPolicyExactConditionsToTypes convert deploy policy exact conditions to types.
@@ -78,18 +80,6 @@ func convertDeployPolicyFuzzyConditionsToTypes(fuzzyCond *DeployPolicyFuzzyCondi
 	return &types.DeployPolicyFuzzyFields{
 		DeployPolicyName: fuzzyCond.GetDeployPolicyName(),
 		Operator:         fuzzyCond.GetOperator(),
-	}
-}
-
-// convertTimeRangeToTypes convert time range to types.
-func convertTimeRangeToTypes(timeRange *TimeRange) *types.TimeRange {
-	if timeRange == nil {
-		return nil
-	}
-
-	return &types.TimeRange{
-		StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
-		EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
 	}
 }
 

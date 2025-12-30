@@ -31,11 +31,17 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, failed to convert conditions to types")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	// only count.
 	if req.GetOnlyCount() {
 		num, err := h.storage.CountTopoEvent(
 			rCtx,
-			req.ConvertConditionsToTypes())
+			cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, failed to count event")
 
@@ -51,7 +57,7 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 	events, num, err := h.storage.ListTopoEvent(
 		rCtx,
 		req.ConvertPageToTypes(maxEventLimit),
-		req.ConvertConditionsToTypes())
+		cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event")
 
@@ -74,10 +80,16 @@ func (h *handler) DistinctEvent(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct topoevent, failed to convert conditions to types")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	result, err := h.storage.DistinctTopoEvent(
 		rCtx,
 		types.NewTopoEventDistinctRequestAllSet(),
-		req.ConvertConditionsToTypes())
+		cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct topoevent, failed to distinct host fields")
 

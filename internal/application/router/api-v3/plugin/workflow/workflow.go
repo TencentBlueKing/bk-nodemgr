@@ -65,9 +65,14 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	resp := new(protoApplication.PluginWorkflowListResp)
 	// only count.
 	if req.GetOnlyCount() {
+		cond, err := req.ConvertConditionsToTypes()
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to convert conditions")
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+		}
 		num, err := h.backendHandler.CountPluginWorkflow(
 			rCtx,
-			req.ConvertConditionsToTypes())
+			cond)
 		if err != nil {
 			logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to count plugin workflow")
 			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -77,7 +82,12 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	workflows, num, err := h.backendHandler.ListPluginWorkflow(rCtx, req.ConvertPageToTypes(maxWorkflowLimit), req.ConvertConditionsToTypes())
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	workflows, num, err := h.backendHandler.ListPluginWorkflow(rCtx, req.ConvertPageToTypes(maxWorkflowLimit), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -97,8 +107,13 @@ func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	cond, err := req.ConvertConditionsToWorkflowConditionTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics plugin workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	workflows, _, err := h.backendHandler.ListPluginWorkflow(
-		rCtx, types.UnlimitedPage(), req.ConvertConditionsToWorkflowConditionTypes())
+		rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics plugin workflow, failed to list plugin workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -149,10 +164,15 @@ func (h *handler) Distinct(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	cond, err := req.ConvertConditionsToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin workflow, failed to convert conditions")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
 	result, err := h.backendHandler.DistinctPluginWorkflow(
 		rCtx,
 		types.NewPluginWorkflowDistinctRequestAllSet(),
-		req.ConvertConditionsToTypes())
+		cond)
 	resp := new(protoApplication.PluginWorkflowDistinctResp)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct plugin workflow: %v", err)

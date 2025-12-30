@@ -12,6 +12,7 @@ package v3
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -54,7 +55,7 @@ func (x *PluginWorkflowListReq) ConvertConditionsFromTypes(condition *types.Plug
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *PluginWorkflowListReq) ConvertConditionsToTypes() *types.PluginWorkflowCondition {
+func (x *PluginWorkflowListReq) ConvertConditionsToTypes() (*types.PluginWorkflowCondition, error) {
 	return convertPluginWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(),
@@ -152,7 +153,7 @@ func (x *PluginWorkflowDistinctReq) ConvertConditionsFromTypes(condition *types.
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *PluginWorkflowDistinctReq) ConvertConditionsToTypes() *types.PluginWorkflowCondition {
+func (x *PluginWorkflowDistinctReq) ConvertConditionsToTypes() (*types.PluginWorkflowCondition, error) {
 	return convertPluginWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(),
@@ -788,15 +789,16 @@ func (x *PluginWorkflowOperationInstanceStatusDistributionListResp) ConvertDistr
 
 func convertPluginWorkflowConditionsToTypes(
 	exactCond *PluginWorkflowExactConditions,
-	_ *PluginWorkflowFuzzyConditions, timeRange *TimeRange) *types.PluginWorkflowCondition {
+	_ *PluginWorkflowFuzzyConditions, timeRange *TimeRange) (*types.PluginWorkflowCondition, error) {
 
 	condition := &types.PluginWorkflowCondition{}
 
 	if timeRange != nil {
-		condition.OperateTimeRange = &types.TimeRange{
-			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
-			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		operateTimeRange, err := convertTimeRangeToTypes(timeRange)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert operate time range: %w", err)
 		}
+		condition.OperateTimeRange = operateTimeRange
 	}
 
 	// exact conditions.
@@ -810,7 +812,7 @@ func convertPluginWorkflowConditionsToTypes(
 		}
 	}
 
-	return condition
+	return condition, nil
 }
 
 func convertPluginWorkConditionsFromTypes(condition *types.PluginWorkflowCondition) (

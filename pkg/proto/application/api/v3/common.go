@@ -69,6 +69,35 @@ func formatRespSlice[T bool | string | int64](values []T) []T {
 	return values
 }
 
+// convertTimeRangeToTypes convert time range to types with validation.
+func convertTimeRangeToTypes(timeRange *TimeRange) (*types.TimeRange, error) {
+	if timeRange == nil {
+		return nil, nil
+	}
+
+	startTimestampSec := timeRange.GetStartTimestampSec()
+	endTimestampSec := timeRange.GetEndTimestampSec()
+
+	// Validate timestamp range: Unix timestamp should be non-negative for practical use cases
+	// Negative timestamps represent dates before 1970-01-01, which are typically not expected
+	if startTimestampSec < 0 || endTimestampSec < 0 {
+		return nil, fmt.Errorf("invalid time range: timestamps must be non-negative, got start=%d end=%d", startTimestampSec, endTimestampSec)
+	}
+
+	startTime := time.Unix(startTimestampSec, 0)
+	endTime := time.Unix(endTimestampSec, 0)
+
+	// Validate that start time is not after end time
+	if startTime.After(endTime) {
+		return nil, fmt.Errorf("invalid time range: start time (%v) must be before or equal to end time (%v)", startTime, endTime)
+	}
+
+	return &types.TimeRange{
+		StartTime: startTime,
+		EndTime:   endTime,
+	}, nil
+}
+
 // validateTimeRange validates the time range.
 func validateTimeRange(timeRange *TimeRange, maxDuration time.Duration) error {
 	// no limit.
@@ -80,8 +109,13 @@ func validateTimeRange(timeRange *TimeRange, maxDuration time.Duration) error {
 		return nil
 	}
 
-	timeDuration := time.Unix(timeRange.GetEndTimestampSec(), 0).
-		Sub(time.Unix(timeRange.GetStartTimestampSec(), 0))
+	// Use convertTimeRangeToTypes to ensure timestamp validity
+	validatedTimeRange, err := convertTimeRangeToTypes(timeRange)
+	if err != nil {
+		return err
+	}
+
+	timeDuration := validatedTimeRange.EndTime.Sub(validatedTimeRange.StartTime)
 
 	if timeDuration > maxDuration {
 		return fmt.Errorf("time range %s is too long, max allowed is %s", timeDuration.String(), maxDuration.String())

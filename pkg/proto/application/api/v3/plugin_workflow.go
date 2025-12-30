@@ -12,7 +12,7 @@ package v3
 
 import (
 	"errors"
-	"time"
+	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -88,7 +88,7 @@ func convertPluginWorkConditionsFromTypes(condition *types.PluginWorkflowConditi
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *PluginWorkflowListReq) ConvertConditionsToTypes() *types.PluginWorkflowCondition {
+func (x *PluginWorkflowListReq) ConvertConditionsToTypes() (*types.PluginWorkflowCondition, error) {
 	return convertPluginWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(),
@@ -167,7 +167,7 @@ func (x *PluginWorkflowStatisticsReq) AutoConvert() {
 }
 
 // ConvertConditionsToWorkflowConditionTypes convert conditions to types.
-func (x *PluginWorkflowStatisticsReq) ConvertConditionsToWorkflowConditionTypes() *types.PluginWorkflowCondition {
+func (x *PluginWorkflowStatisticsReq) ConvertConditionsToWorkflowConditionTypes() (*types.PluginWorkflowCondition, error) {
 	return convertPluginWorkflowConditionsToTypes(
 		&PluginWorkflowExactConditions{
 			WorkflowId: x.GetWorkflowId(),
@@ -281,7 +281,7 @@ func (x *PluginWorkflowDistinctReq) AutoConvert() {
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *PluginWorkflowDistinctReq) ConvertConditionsToTypes() *types.PluginWorkflowCondition {
+func (x *PluginWorkflowDistinctReq) ConvertConditionsToTypes() (*types.PluginWorkflowCondition, error) {
 	return convertPluginWorkflowConditionsToTypes(
 		x.GetExactIncludeConditions(),
 		x.GetFuzzyIncludeConditions(), nil)
@@ -666,15 +666,16 @@ func (x *PluginWorkflowOperationTerminateReq) ConvertPluginWorkflowOperationTerm
 
 func convertPluginWorkflowConditionsToTypes(
 	exactCond *PluginWorkflowExactConditions,
-	_ *PluginWorkflowFuzzyConditions, timeRange *TimeRange) *types.PluginWorkflowCondition {
+	_ *PluginWorkflowFuzzyConditions, timeRange *TimeRange) (*types.PluginWorkflowCondition, error) {
 
 	condition := &types.PluginWorkflowCondition{}
 
 	if timeRange != nil {
-		condition.OperateTimeRange = &types.TimeRange{
-			StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
-			EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
+		operateTimeRange, err := convertTimeRangeToTypes(timeRange)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert operate time range: %w", err)
 		}
+		condition.OperateTimeRange = operateTimeRange
 	}
 
 	// exact conditions.
@@ -688,5 +689,5 @@ func convertPluginWorkflowConditionsToTypes(
 		}
 	}
 
-	return condition
+	return condition, nil
 }
