@@ -81,7 +81,7 @@ const (
 	metricUpdateDeployPolicyFields               = "update_deploy_policy_fields"
 	metricDeleteDeployPolicy                     = "delete_deploy_policy"
 	metricExistDeployPolicy                      = "exist_deploy_policy"
-	metricDiscoverEnabledPoliciesBySpecifyPlugin = "discover_policies_by_specify_plugin"
+	metricDiscoverEnabledPoliciesBySpecifyPlugin = "discover_enabled_policies_by_specify_plugin"
 	metricRefreshExecuteInfo                     = "refresh_execute_info"
 )
 
