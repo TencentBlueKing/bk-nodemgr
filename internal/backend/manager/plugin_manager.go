@@ -35,6 +35,7 @@ func (mgr *Manager) LaunchInstallPlugin(nCtx contextx.IContext, param types.Inst
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:    nCtx.TenantID(),
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,
@@ -119,6 +120,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 
 	workflowID := identifier.GenWorkflowID()
 	if err = mgr.conf.StoragePlugin.CreatePluginWorkflow(nCtx, &types.PluginWorkflow{
+		TenantID:    nCtx.TenantID(),
 		WorkflowID:  workflowID,
 		TriggerID:   triggerCtl.GetTriggerID(),
 		Type:        param.Type,

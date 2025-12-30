@@ -26,6 +26,7 @@ var _ base.IData = &Data{}
 // Data represents the table of plugin workflow.
 // Token should be the unique key.
 type Data struct {
+	TenantID    string    `json:"tenant_id" bson:"tenant_id"`
 	WorkflowID  string    `json:"workflow_id" bson:"workflow_id"`
 	TriggerID   string    `json:"trigger_id" bson:"trigger_id"`
 	Type        string    `json:"type" bson:"type"`
