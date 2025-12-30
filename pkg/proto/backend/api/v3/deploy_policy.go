@@ -258,18 +258,108 @@ func convScopesFromTypes(scopes []*types.Scope) ([]*Scope, error) {
 }
 
 func convScopeFromTypes(scope *types.Scope) (*Scope, error) {
-	items, err := conv.SliceToSliceWithError[map[string]any, *structpb.Struct](scope.Items, structpb.NewStruct)
-	if err != nil {
-		return nil, err
+	if scope == nil {
+		return nil, fmt.Errorf("scope is nil")
 	}
 
-	return &Scope{
-		BkBizId:     scope.BizID,
-		Type:        string(scope.Type),
-		Granularity: string(scope.Granularity),
-		Filter:      convTargetFilterFromTypes(scope.Filter),
-		Items:       items,
-	}, nil
+	scopeType := scope.Type()
+	result := &Scope{
+		Type: string(scopeType),
+	}
+
+	// Convert param to protobuf message based on type, then to structpb.Struct
+	var scopeProto interface{}
+
+	switch scopeType {
+	case types.ScopeTypeServiceTemplate:
+		item, err := scope.GetServiceTemplateScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get service template scope: %w", err)
+		}
+
+		scopeProto = &ScopeServiceTemplate{
+			Granularity:        string(item.Granularity),
+			BkBizId:            item.BizID,
+			Filter:             convTargetFilterFromTypes(item.Filter),
+			ServiceTemplateIds: item.ServiceTemplateIDs,
+			ModuleIds:          item.ModuleIDs,
+		}
+
+	case types.ScopeTypeSetTemplate:
+		item, err := scope.GetSetTemplateScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get set template scope: %w", err)
+		}
+
+		scopeProto = &ScopeSetTemplate{
+			Granularity:    string(item.Granularity),
+			BkBizId:        item.BizID,
+			Filter:         convTargetFilterFromTypes(item.Filter),
+			SetTemplateIds: item.SetTemplateIDs,
+			SetIds:         item.SetIDs,
+		}
+
+	case types.ScopeTypeInstance:
+		item, err := scope.GetInstanceScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get instance scope: %w", err)
+		}
+
+		scopeProto = &ScopeInstance{
+			Granularity: string(item.Granularity),
+			BkBizId:     item.BizID,
+			Filter:      convTargetFilterFromTypes(item.Filter),
+			InstanceIds: item.InstanceIDs,
+		}
+
+	case types.ScopeTypeTopo:
+		item, err := scope.GetTopoScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get topo scope: %w", err)
+		}
+
+		paths := make([]*ScopeTopo_ScopeTopoNode, 0, len(item.Paths))
+		for _, p := range item.Paths {
+			paths = append(paths, &ScopeTopo_ScopeTopoNode{
+				TopoObjId:  p.TopoObjID,
+				TopoInstId: p.TopoInstID,
+			})
+		}
+
+		scopeProto = &ScopeTopo{
+			Granularity: string(item.Granularity),
+			BkBizId:     item.BizID,
+			Filter:      convTargetFilterFromTypes(item.Filter),
+			Paths:       paths,
+		}
+
+	case types.ScopeTypeDynamicGroup:
+		item, err := scope.GetDynamicGroupScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get dynamic group scope: %w", err)
+		}
+
+		scopeProto = &ScopeDynamicGroup{
+			Granularity:     string(item.Granularity),
+			BkBizId:         item.BizID,
+			Filter:          convTargetFilterFromTypes(item.Filter),
+			DynamicGroupIds: item.DynamicGroupIDs,
+		}
+
+	default:
+		return nil, fmt.Errorf("unknown scope type: %s", scopeType)
+	}
+
+	scopeMap, err := conv.StructToMap(scopeProto)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert param to map: %w", err)
+	}
+	result.Scope, err = structpb.NewStruct(scopeMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert param to struct: %w", err)
+	}
+
+	return result, nil
 }
 
 func convTargetFilterFromTypes(targetFilter *types.TargetFilter) *TargetFilter {
@@ -369,29 +459,100 @@ func convDeployPolicyMetaToTypes(deployPolicyMeta *DeployPolicyMeta) types.Deplo
 func convScopeToTypes(scope *Scope) (*types.Scope, error) {
 	scopeType := types.ScopeType(scope.GetType())
 	if err := scopeType.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid spec type(%s): %w", scope.GetType(), err)
 	}
 
-	targetGranularity := types.TargetGranularity(scope.GetGranularity())
-	if err := targetGranularity.Validate(); err != nil {
-		return nil, err
+	// Get scope as structpb.Struct
+	scopeStruct := scope.GetScope()
+	if scopeStruct == nil {
+		return nil, fmt.Errorf("scope is required for type %s", scopeType)
 	}
 
-	result := &types.Scope{
-		BizID:       scope.GetBkBizId(),
-		Type:        scopeType,
-		Granularity: targetGranularity,
-		Filter:      convTargetFilterToTypes(scope.GetFilter()),
-		Items: conv.SliceToSlice[*structpb.Struct, map[string]any](scope.GetItems(), func(s *structpb.Struct) map[string]any {
-			return s.AsMap()
-		}),
+	// Convert structpb.Struct to JSON, then unmarshal to protobuf message
+	scopeJSON, err := scopeStruct.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal scope struct to JSON: %w", err)
 	}
 
-	if err := result.Validate(); err != nil {
-		return nil, err
-	}
+	// Unmarshal to corresponding protobuf message based on type
+	switch scopeType {
+	case types.ScopeTypeServiceTemplate:
+		var scopeProto ScopeServiceTemplate
+		if err := protojson.Unmarshal(scopeJSON, &scopeProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal scope for type %s: %w", scopeType, err)
+		}
+		filter := convTargetFilterToTypes(scopeProto.Filter)
+		return types.NewScopeWithServiceTemplate(&types.ScopeServiceTemplate{
+			Granularity:        types.TargetGranularity(scopeProto.Granularity),
+			BizID:              scopeProto.BkBizId,
+			Filter:             filter,
+			ServiceTemplateIDs: scopeProto.ServiceTemplateIds,
+			ModuleIDs:          scopeProto.ModuleIds,
+		})
 
-	return result, nil
+	case types.ScopeTypeSetTemplate:
+		var scopeProto ScopeSetTemplate
+		if err := protojson.Unmarshal(scopeJSON, &scopeProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal scope for type %s: %w", scopeType, err)
+		}
+		filter := convTargetFilterToTypes(scopeProto.Filter)
+		return types.NewScopeWithSetTemplate(&types.ScopeSetTemplate{
+			Granularity:    types.TargetGranularity(scopeProto.Granularity),
+			BizID:          scopeProto.BkBizId,
+			Filter:         filter,
+			SetTemplateIDs: scopeProto.SetTemplateIds,
+			SetIDs:         scopeProto.SetIds,
+		})
+
+	case types.ScopeTypeInstance:
+		var scopeProto ScopeInstance
+		if err := protojson.Unmarshal(scopeJSON, &scopeProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal scope for type %s: %w", scopeType, err)
+		}
+		filter := convTargetFilterToTypes(scopeProto.Filter)
+		return types.NewScopeWithInstance(&types.ScopeInstance{
+			Granularity: types.TargetGranularity(scopeProto.Granularity),
+			BizID:       scopeProto.BkBizId,
+			Filter:      filter,
+			InstanceIDs: scopeProto.InstanceIds,
+		})
+
+	case types.ScopeTypeTopo:
+		var scopeProto ScopeTopo
+		if err := protojson.Unmarshal(scopeJSON, &scopeProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal scope for type %s: %w", scopeType, err)
+		}
+		filter := convTargetFilterToTypes(scopeProto.Filter)
+		paths := make([]*types.ScopeTopoNode, 0, len(scopeProto.Paths))
+		for _, p := range scopeProto.Paths {
+			paths = append(paths, &types.ScopeTopoNode{
+				TopoObjID:  p.TopoObjId,
+				TopoInstID: p.TopoInstId,
+			})
+		}
+		return types.NewScopeWithTopo(&types.ScopeTopo{
+			Granularity: types.TargetGranularity(scopeProto.Granularity),
+			BizID:       scopeProto.BkBizId,
+			Filter:      filter,
+			Paths:       paths,
+		})
+
+	case types.ScopeTypeDynamicGroup:
+		var scopeProto ScopeDynamicGroup
+		if err := protojson.Unmarshal(scopeJSON, &scopeProto); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal scope for type %s: %w", scopeType, err)
+		}
+		filter := convTargetFilterToTypes(scopeProto.Filter)
+		return types.NewScopeWithDynamicGroup(&types.ScopeDynamicGroup{
+			Granularity:     types.TargetGranularity(scopeProto.Granularity),
+			BizID:           scopeProto.BkBizId,
+			Filter:          filter,
+			DynamicGroupIDs: scopeProto.DynamicGroupIds,
+		})
+
+	default:
+		return nil, fmt.Errorf("unknown scope type: %s", scopeType)
+	}
 }
 
 func convTargetFilterToTypes(_ *TargetFilter) *types.TargetFilter {

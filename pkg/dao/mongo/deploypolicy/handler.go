@@ -127,13 +127,18 @@ func convDeployPolicyFromTypes(deployPolicy *types.DeployPolicy, tenantID string
 		return nil, fmt.Errorf("failed to convert specs: %w", err)
 	}
 
+	scopes, err := convScopesFromTypes(deployPolicy.Scopes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert scopes: %w", err)
+	}
+
 	data := &DeployPolicy{
 		TenantID:       tenantID,
 		DeployPolicyID: deployPolicy.DeployPolicyID,
 		DsuID:          deployPolicy.DsuID,
 		Meta:           convDeployPolicyMetaFromTypes(deployPolicy.Meta),
 		Specs:          specs,
-		Scopes:         convScopesFromTypes(deployPolicy.Scopes),
+		Scopes:         scopes,
 		Operator:       deployPolicy.Operator,
 		Enabled:        deployPolicy.Enabled,
 		LifeCycle:      convDeployPolicyLifeCycleFromTypes(deployPolicy.LifeCycle),
@@ -229,22 +234,100 @@ func convSpecFromTypes(spec *types.DeploySpec) (*Spec, error) {
 	return dbSpec, nil
 }
 
-func convScopesFromTypes(scopes []*types.Scope) []*Scope {
-	return conv.SliceToSlice[*types.Scope, *Scope](scopes, convScopeFromTypes)
+func convScopesFromTypes(scopes []*types.Scope) ([]*Scope, error) {
+	return conv.SliceToSliceWithError[*types.Scope, *Scope](scopes, convScopeFromTypes)
 }
 
-func convScopeFromTypes(scope *types.Scope) *Scope {
+func convScopeFromTypes(scope *types.Scope) (*Scope, error) {
 	if scope == nil {
-		return nil
+		return nil, errors.New("scope is nil")
 	}
 
-	return &Scope{
-		BizID:       scope.BizID,
-		Type:        string(scope.Type),
-		Granularity: string(scope.Granularity),
-		Filter:      convTargetFilterFromTypes(scope.Filter),
-		Items:       scope.Items,
+	dbScope := &Scope{
+		Type: string(scope.Type()),
 	}
+
+	switch scope.Type() {
+	case types.ScopeTypeServiceTemplate:
+		scopeItem, err := scope.GetServiceTemplateScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get service template scope: %w", err)
+		}
+
+		dbScope.ScopeServiceTemplate = &ScopeServiceTemplate{
+			Granularity:        string(scopeItem.Granularity),
+			BizID:              scopeItem.BizID,
+			Filter:             convTargetFilterFromTypes(scopeItem.Filter),
+			ServiceTemplateIDs: scopeItem.ServiceTemplateIDs,
+			ModuleIDs:          scopeItem.ModuleIDs,
+		}
+
+	case types.ScopeTypeSetTemplate:
+		scopeItem, err := scope.GetSetTemplateScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get set template scope: %w", err)
+		}
+
+		dbScope.ScopeSetTemplate = &ScopeSetTemplate{
+			Granularity:    string(scopeItem.Granularity),
+			BizID:          scopeItem.BizID,
+			Filter:         convTargetFilterFromTypes(scopeItem.Filter),
+			SetTemplateIDs: scopeItem.SetTemplateIDs,
+			SetIDs:         scopeItem.SetIDs,
+		}
+
+	case types.ScopeTypeInstance:
+		scopeItem, err := scope.GetInstanceScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get instance scope: %w", err)
+		}
+
+		dbScope.ScopeInstance = &ScopeInstance{
+			Granularity: string(scopeItem.Granularity),
+			BizID:       scopeItem.BizID,
+			Filter:      convTargetFilterFromTypes(scopeItem.Filter),
+			InstanceIDs: scopeItem.InstanceIDs,
+		}
+
+	case types.ScopeTypeTopo:
+		scopeItem, err := scope.GetTopoScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get topo scope: %w", err)
+		}
+
+		paths := make([]*ScopeTopoNode, 0, len(scopeItem.Paths))
+		for _, node := range scopeItem.Paths {
+			paths = append(paths, &ScopeTopoNode{
+				TopoObjID:  node.TopoObjID,
+				TopoInstID: node.TopoInstID,
+			})
+		}
+
+		dbScope.ScopeTopo = &ScopeTopo{
+			Granularity: string(scopeItem.Granularity),
+			BizID:       scopeItem.BizID,
+			Filter:      convTargetFilterFromTypes(scopeItem.Filter),
+			Paths:       paths,
+		}
+
+	case types.ScopeTypeDynamicGroup:
+		scopeItem, err := scope.GetDynamicGroupScope()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get dynamic group scope: %w", err)
+		}
+
+		dbScope.ScopeDynamicGroup = &ScopeDynamicGroup{
+			Granularity:     string(scopeItem.Granularity),
+			BizID:           scopeItem.BizID,
+			Filter:          convTargetFilterFromTypes(scopeItem.Filter),
+			DynamicGroupIDs: scopeItem.DynamicGroupIDs,
+		}
+
+	default:
+		return nil, fmt.Errorf("unknown scope type: %s", scope.Type())
+	}
+
+	return dbScope, nil
 }
 
 func convDeployPolicyLifeCycleFromTypes(deployPolicyLifeCycle types.DeployPolicyLifeCycle) LifeCycle {
@@ -346,7 +429,11 @@ func convDeployPolicyToTypes(data *DeployPolicy) (*types.DeployPolicy, error) {
 	}
 
 	if len(data.Scopes) > 0 {
-		deployPolicy.Scopes = conv.SliceToSlice[*Scope, *types.Scope](data.Scopes, convScopeToTypes)
+		scopes, err := conv.SliceToSliceWithError[*Scope, *types.Scope](data.Scopes, convScopeToTypes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert scopes: %w", err)
+		}
+		deployPolicy.Scopes = scopes
 	}
 
 	if len(data.Specs) > 0 {
@@ -360,17 +447,86 @@ func convDeployPolicyToTypes(data *DeployPolicy) (*types.DeployPolicy, error) {
 	return deployPolicy, nil
 }
 
-func convScopeToTypes(data *Scope) *types.Scope {
+func convScopeToTypes(data *Scope) (*types.Scope, error) {
 	if data == nil {
-		return nil
+		return nil, errors.New("scope data is nil")
 	}
 
-	return &types.Scope{
-		BizID:       data.BizID,
-		Type:        types.ScopeType(data.Type),
-		Granularity: types.TargetGranularity(data.Granularity),
-		Filter:      convTargetFilterToTypes(data.Filter),
-		Items:       data.Items,
+	scopeType := types.ScopeType(data.Type)
+
+	switch scopeType {
+	case types.ScopeTypeServiceTemplate:
+		if data.ScopeServiceTemplate == nil {
+			return nil, fmt.Errorf("scope_service_template is nil")
+		}
+
+		return types.NewScopeWithServiceTemplate(&types.ScopeServiceTemplate{
+			Granularity:        types.TargetGranularity(data.ScopeServiceTemplate.Granularity),
+			BizID:              data.ScopeServiceTemplate.BizID,
+			Filter:             convTargetFilterToTypes(data.ScopeServiceTemplate.Filter),
+			ServiceTemplateIDs: data.ScopeServiceTemplate.ServiceTemplateIDs,
+			ModuleIDs:          data.ScopeServiceTemplate.ModuleIDs,
+		})
+
+	case types.ScopeTypeSetTemplate:
+		if data.ScopeSetTemplate == nil {
+			return nil, fmt.Errorf("scope_set_template is nil")
+		}
+
+		return types.NewScopeWithSetTemplate(&types.ScopeSetTemplate{
+			Granularity:    types.TargetGranularity(data.ScopeSetTemplate.Granularity),
+			BizID:          data.ScopeSetTemplate.BizID,
+			Filter:         convTargetFilterToTypes(data.ScopeSetTemplate.Filter),
+			SetTemplateIDs: data.ScopeSetTemplate.SetTemplateIDs,
+			SetIDs:         data.ScopeSetTemplate.SetIDs,
+		})
+
+	case types.ScopeTypeInstance:
+		if data.ScopeInstance == nil {
+			return nil, fmt.Errorf("scope_instance is nil")
+		}
+
+		return types.NewScopeWithInstance(&types.ScopeInstance{
+			Granularity: types.TargetGranularity(data.ScopeInstance.Granularity),
+			BizID:       data.ScopeInstance.BizID,
+			Filter:      convTargetFilterToTypes(data.ScopeInstance.Filter),
+			InstanceIDs: data.ScopeInstance.InstanceIDs,
+		})
+
+	case types.ScopeTypeTopo:
+		if data.ScopeTopo == nil {
+			return nil, fmt.Errorf("scope_topo is nil")
+		}
+
+		paths := make([]*types.ScopeTopoNode, 0, len(data.ScopeTopo.Paths))
+		for _, node := range data.ScopeTopo.Paths {
+			paths = append(paths, &types.ScopeTopoNode{
+				TopoObjID:  node.TopoObjID,
+				TopoInstID: node.TopoInstID,
+			})
+		}
+
+		return types.NewScopeWithTopo(&types.ScopeTopo{
+			Granularity: types.TargetGranularity(data.ScopeTopo.Granularity),
+			BizID:       data.ScopeTopo.BizID,
+			Filter:      convTargetFilterToTypes(data.ScopeTopo.Filter),
+			Paths:       paths,
+		})
+
+	case types.ScopeTypeDynamicGroup:
+		if data.ScopeDynamicGroup == nil {
+			return nil, fmt.Errorf("scope_dynamic_group is nil")
+		}
+
+		return types.NewScopeWithDynamicGroup(&types.ScopeDynamicGroup{
+			Granularity:     types.TargetGranularity(data.ScopeDynamicGroup.Granularity),
+			BizID:           data.ScopeDynamicGroup.BizID,
+			Filter:          convTargetFilterToTypes(data.ScopeDynamicGroup.Filter),
+			DynamicGroupIDs: data.ScopeDynamicGroup.DynamicGroupIDs,
+		})
+
+	default:
+		return nil, fmt.Errorf("unknown scope type: %s", data.Type)
 	}
 }
 
@@ -574,7 +730,11 @@ func generateDeployPolicyUpdates(fields types.DeployPolicyFields, deployPolicy *
 	}
 
 	if fields.Scopes {
-		updates[FieldKeyScopes] = convScopesFromTypes(deployPolicy.Scopes)
+		scopes, err := convScopesFromTypes(deployPolicy.Scopes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert scopes: %w", err)
+		}
+		updates[FieldKeyScopes] = scopes
 	}
 
 	if fields.Specs {

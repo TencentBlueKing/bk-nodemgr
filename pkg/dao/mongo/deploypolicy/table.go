@@ -109,11 +109,60 @@ type SpecPluginConfigDetail struct {
 
 // Scope represents the scope of deploy policy.
 type Scope struct {
-	BizID       int64            `json:"biz_id" bson:"biz_id"`
-	Type        string           `json:"type" bson:"type"`
+	Type                 string                `json:"type" bson:"type"`
+	ScopeServiceTemplate *ScopeServiceTemplate `json:"scope_service_template,omitempty" bson:"scope_service_template,omitempty"`
+	ScopeSetTemplate     *ScopeSetTemplate     `json:"scope_set_template,omitempty" bson:"scope_set_template,omitempty"`
+	ScopeInstance        *ScopeInstance        `json:"scope_instance,omitempty" bson:"scope_instance,omitempty"`
+	ScopeTopo            *ScopeTopo            `json:"scope_topo,omitempty" bson:"scope_topo,omitempty"`
+	ScopeDynamicGroup    *ScopeDynamicGroup    `json:"scope_dynamic_group,omitempty" bson:"scope_dynamic_group,omitempty"`
+}
+
+// ScopeServiceTemplate represents the scope of service template.
+type ScopeServiceTemplate struct {
+	Granularity        string        `json:"granularity" bson:"granularity"`
+	BizID              int64         `json:"biz_id" bson:"biz_id"`
+	Filter             *TargetFilter `json:"filter" bson:"filter"`
+	ServiceTemplateIDs []int64       `json:"service_template_ids" bson:"service_template_ids"`
+	ModuleIDs          []int64       `json:"module_ids" bson:"module_ids"`
+}
+
+// ScopeSetTemplate represents the scope of set template.
+type ScopeSetTemplate struct {
+	Granularity    string        `json:"granularity" bson:"granularity"`
+	BizID          int64         `json:"biz_id" bson:"biz_id"`
+	Filter         *TargetFilter `json:"filter" bson:"filter"`
+	SetTemplateIDs []int64       `json:"set_template_ids" bson:"set_template_ids"`
+	SetIDs         []int64       `json:"set_ids" bson:"set_ids"`
+}
+
+// ScopeInstance represents the scope of instance.
+type ScopeInstance struct {
+	Granularity string        `json:"granularity" bson:"granularity"`
+	BizID       int64         `json:"biz_id" bson:"biz_id"`
+	Filter      *TargetFilter `json:"filter" bson:"filter"`
+	InstanceIDs []int64       `json:"instance_ids" bson:"instance_ids"`
+}
+
+// ScopeTopo represents the scope of topo.
+type ScopeTopo struct {
 	Granularity string           `json:"granularity" bson:"granularity"`
+	BizID       int64            `json:"biz_id" bson:"biz_id"`
 	Filter      *TargetFilter    `json:"filter" bson:"filter"`
-	Items       []map[string]any `json:"items" bson:"items"`
+	Paths       []*ScopeTopoNode `json:"paths" bson:"paths"`
+}
+
+// ScopeTopoNode represents the topo node in scope topo.
+type ScopeTopoNode struct {
+	TopoObjID  string `json:"topo_obj_id" bson:"topo_obj_id"`
+	TopoInstID int64  `json:"topo_inst_id" bson:"topo_inst_id"`
+}
+
+// ScopeDynamicGroup represents the scope of dynamic group.
+type ScopeDynamicGroup struct {
+	Granularity     string        `json:"granularity" bson:"granularity"`
+	BizID           int64         `json:"biz_id" bson:"biz_id"`
+	Filter          *TargetFilter `json:"filter" bson:"filter"`
+	DynamicGroupIDs []string      `json:"dynamic_group_ids" bson:"dynamic_group_ids"`
 }
 
 // LifeCycle represents the life cycle of deploy policy.

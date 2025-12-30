@@ -61,7 +61,7 @@ func (cal *Calculator) Calculate(nCtx contextx.IContext, scopes ...*types.Scope)
 		scope := scopes[idx]
 		fn := func() error {
 			var scopeCalFn func(nCtx contextx.IContext, scope *types.Scope) ([]*types.Target, error)
-			switch scope.Type {
+			switch scope.Type() {
 			case types.ScopeTypeTopo:
 				scopeCalFn = cal.convScopeTopoToTargets
 			case types.ScopeTypeServiceTemplate:
@@ -73,7 +73,7 @@ func (cal *Calculator) Calculate(nCtx contextx.IContext, scopes ...*types.Scope)
 			case types.ScopeTypeDynamicGroup:
 				scopeCalFn = cal.convScopeDynamicGroupToTargets
 			default:
-				return fmt.Errorf("failed to calculate, scope-type(%s) not support", scope.Type)
+				return fmt.Errorf("failed to calculate, scope-type(%s) not support", scope.Type())
 			}
 
 			targets, err := scopeCalFn(nCtx, scope)
@@ -115,11 +115,11 @@ func (cal *Calculator) Calculate(nCtx contextx.IContext, scopes ...*types.Scope)
 
 // convScopeSetTemplateToTargets conv scope set template to Targets.
 func (cal *Calculator) convScopeSetTemplateToTargets(nCtx contextx.IContext, scope *types.Scope) ([]*types.Target, error) {
-	if scope.Type != types.ScopeTypeSetTemplate {
-		return nil, fmt.Errorf("failed to conv scope set template to Targets, scope-type(%s)", scope.Type)
+	if scope.Type() != types.ScopeTypeSetTemplate {
+		return nil, fmt.Errorf("failed to conv scope set template to Targets, scope-type(%s)", scope.Type())
 	}
 
-	scopeSetTemplate, err := scope.ToScopeSetTemplate()
+	scopeSetTemplate, err := scope.GetSetTemplateScope()
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert scope to scope item, scope(%v): %w", scope, err)
 	}
@@ -134,11 +134,11 @@ func (cal *Calculator) convScopeSetTemplateToTargets(nCtx contextx.IContext, sco
 
 // convScopeServiceTemplateToTargets conv scope service template to Targets.
 func (cal *Calculator) convScopeServiceTemplateToTargets(nCtx contextx.IContext, scope *types.Scope) ([]*types.Target, error) {
-	if scope.Type != types.ScopeTypeServiceTemplate {
-		return nil, fmt.Errorf("failed to conv scope service template to Targets, scope-type(%s)", scope.Type)
+	if scope.Type() != types.ScopeTypeServiceTemplate {
+		return nil, fmt.Errorf("failed to conv scope service template to Targets, scope-type(%s)", scope.Type())
 	}
 
-	scopeServiceTemplate, err := scope.ToScopeServiceTemplate()
+	scopeServiceTemplate, err := scope.GetServiceTemplateScope()
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert scope to scope item, scope(%v): %w", scope, err)
 	}
@@ -153,11 +153,11 @@ func (cal *Calculator) convScopeServiceTemplateToTargets(nCtx contextx.IContext,
 
 // convScopeTopoToTargets conv scope topo to Targets.
 func (cal *Calculator) convScopeTopoToTargets(nCtx contextx.IContext, scope *types.Scope) ([]*types.Target, error) {
-	if scope.Type != types.ScopeTypeTopo {
-		return nil, fmt.Errorf("failed to conv scope topo to Targets, scope-type(%s)", scope.Type)
+	if scope.Type() != types.ScopeTypeTopo {
+		return nil, fmt.Errorf("failed to conv scope topo to Targets, scope-type(%s)", scope.Type())
 	}
 
-	scopeTopo, err := scope.ToScopeTopo()
+	scopeTopo, err := scope.GetTopoScope()
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert scope to scope item, scope(%v): %w", scope, err)
 	}
@@ -172,11 +172,11 @@ func (cal *Calculator) convScopeTopoToTargets(nCtx contextx.IContext, scope *typ
 
 // convScopeInstanceToTargets conv scope instance to Targets.
 func (cal *Calculator) convScopeInstanceToTargets(nCtx contextx.IContext, scope *types.Scope) ([]*types.Target, error) {
-	if scope.Type != types.ScopeTypeInstance {
-		return nil, fmt.Errorf("failed to conv scope instance to Targets, scope-type(%s)", scope.Type)
+	if scope.Type() != types.ScopeTypeInstance {
+		return nil, fmt.Errorf("failed to conv scope instance to Targets, scope-type(%s)", scope.Type())
 	}
 
-	scopeItemInstance, err := scope.ToScopeInstance()
+	scopeItemInstance, err := scope.GetInstanceScope()
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert scope to scope item, scope(%v): %w", scope, err)
 	}
@@ -191,11 +191,11 @@ func (cal *Calculator) convScopeInstanceToTargets(nCtx contextx.IContext, scope 
 
 // convScopeDynamicGroupToTargets conv scope dynamic group to Targets.
 func (cal *Calculator) convScopeDynamicGroupToTargets(nCtx contextx.IContext, scope *types.Scope) ([]*types.Target, error) {
-	if scope.Type != types.ScopeTypeDynamicGroup {
-		return nil, fmt.Errorf("failed to conv scope dynamic group to Targets, scope-type(%s)", scope.Type)
+	if scope.Type() != types.ScopeTypeDynamicGroup {
+		return nil, fmt.Errorf("failed to conv scope dynamic group to Targets, scope-type(%s)", scope.Type())
 	}
 
-	scopeDynamicGroup, err := scope.ToScopeDynamicGroup()
+	scopeDynamicGroup, err := scope.GetDynamicGroupScope()
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert scope to scope item, scope(%v): %w", scope, err)
 	}

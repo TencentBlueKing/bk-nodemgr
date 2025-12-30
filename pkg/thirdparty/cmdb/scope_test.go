@@ -34,11 +34,10 @@ func TestHandler_GetTargetByScopeSetTemplate(t *testing.T) {
 				nCtx: contextx.New(contextx.Background(), contextx.WithBKUsername("admin")),
 				scope: &types.ScopeSetTemplate{
 					Granularity:    types.TargetGranularityHost,
-					TenantID:       "default",
 					BizID:          2,
 					SetTemplateIDs: []int64{1},
 					SetIDs:         []int64{},
-					Filter:         types.TargetFilter{},
+					Filter:         &types.TargetFilter{},
 				},
 			},
 			wantErr: false,
@@ -49,11 +48,10 @@ func TestHandler_GetTargetByScopeSetTemplate(t *testing.T) {
 				nCtx: contextx.New(contextx.Background(), contextx.WithBKUsername("admin")),
 				scope: &types.ScopeSetTemplate{
 					Granularity:    types.TargetGranularityServiceInstance,
-					TenantID:       "default",
 					BizID:          2,
 					SetTemplateIDs: []int64{1},
 					SetIDs:         []int64{},
-					Filter:         types.TargetFilter{},
+					Filter:         &types.TargetFilter{},
 				},
 			},
 			wantErr: false,
@@ -93,8 +91,7 @@ func TestHandler_GetTargetByScopeServiceTemplate(t *testing.T) {
 				scope: &types.ScopeServiceTemplate{
 					Granularity:        types.TargetGranularityHost,
 					BizID:              2,
-					TenantID:           "default",
-					Filter:             types.TargetFilter{},
+					Filter:             &types.TargetFilter{},
 					ServiceTemplateIDs: []int64{1},
 					ModuleIDs:          []int64{},
 				},
@@ -108,8 +105,7 @@ func TestHandler_GetTargetByScopeServiceTemplate(t *testing.T) {
 				scope: &types.ScopeServiceTemplate{
 					Granularity:        types.TargetGranularityServiceInstance,
 					BizID:              2,
-					TenantID:           "default",
-					Filter:             types.TargetFilter{},
+					Filter:             &types.TargetFilter{},
 					ServiceTemplateIDs: []int64{1},
 					ModuleIDs:          []int64{},
 				},
@@ -152,9 +148,8 @@ func TestHandler_GetTargetByScopeInstance(t *testing.T) {
 				scope: &types.ScopeInstance{
 					Granularity: types.TargetGranularityHost,
 					BizID:       2,
-					TenantID:    "default",
 					InstanceIDs: []int64{2},
-					Filter:      types.TargetFilter{},
+					Filter:      &types.TargetFilter{},
 				},
 			},
 			wantErr: false,
@@ -195,11 +190,10 @@ func TestHandler_GetTargetByScopeDynamicGroup(t *testing.T) {
 				scope: &types.ScopeDynamicGroup{
 					Granularity: types.TargetGranularityHost,
 					BizID:       12,
-					TenantID:    "default",
 					DynamicGroupIDs: []string{
 						"xxxx",
 					},
-					Filter: types.TargetFilter{},
+					Filter: &types.TargetFilter{},
 				},
 			},
 			wantErr: false,
@@ -211,11 +205,10 @@ func TestHandler_GetTargetByScopeDynamicGroup(t *testing.T) {
 				scope: &types.ScopeDynamicGroup{
 					Granularity: types.TargetGranularityServiceInstance,
 					BizID:       12,
-					TenantID:    "default",
 					DynamicGroupIDs: []string{
 						"xxxx",
 					},
-					Filter: types.TargetFilter{},
+					Filter: &types.TargetFilter{},
 				},
 			},
 			wantErr: false,
@@ -257,14 +250,13 @@ func TestHandler_GetTargetByScopeTopo(t *testing.T) {
 				scope: &types.ScopeTopo{
 					Granularity: types.TargetGranularityHost,
 					BizID:       2,
-					TenantID:    "default",
 					Paths: []*types.ScopeTopoNode{
 						{
 							TopoObjID:  "set",
 							TopoInstID: 2,
 						},
 					},
-					Filter: types.TargetFilter{},
+					Filter: &types.TargetFilter{},
 				},
 			},
 			wantErr: false,
@@ -276,14 +268,13 @@ func TestHandler_GetTargetByScopeTopo(t *testing.T) {
 				scope: &types.ScopeTopo{
 					Granularity: types.TargetGranularityHost,
 					BizID:       12,
-					TenantID:    "default",
 					Paths: []*types.ScopeTopoNode{
 						{
 							TopoObjID:  "set",
 							TopoInstID: 96,
 						},
 					},
-					Filter: types.TargetFilter{},
+					Filter: &types.TargetFilter{},
 				},
 			},
 			wantErr: false,

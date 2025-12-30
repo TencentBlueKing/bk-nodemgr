@@ -579,31 +579,15 @@
     "v3Scope": {
       "type": "object",
       "properties": {
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        },
         "type": {
           "type": "string"
         },
-        "granularity": {
-          "type": "string"
-        },
-        "filter": {
-          "$ref": "#/definitions/v3TargetFilter"
-        },
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
+        "scope": {
+          "type": "object",
+          "title": "scope is a google.protobuf.Struct that contains the details for the scope.\nThe structure of scope depends on the type field:\n- For \"service_template\": see ScopeServiceTemplate\n- For \"set_template\": see ScopeSetTemplate\n- For \"instance\": see ScopeInstance\n- For \"topo\": see ScopeTopo\n- For \"dynamic_group\": see ScopeDynamicGroup"
         }
       },
       "description": "Scope describes the scope of deploy policy."
-    },
-    "v3TargetFilter": {
-      "type": "object",
-      "description": "TargetFilter describes the target filter of deploy policy."
     },
     "v3TimeRange": {
       "type": "object",
