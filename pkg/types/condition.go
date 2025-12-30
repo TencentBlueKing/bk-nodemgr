@@ -369,6 +369,57 @@ type ConfigPolicyEventCondition struct {
 // Workflow Related Conditions
 // ===============================================================================
 
+// OperInstDataExactFields defines the workflow operation instance data condition exact fields.
+type OperInstDataExactFields struct {
+	TriggerID   []string
+	OperationID []string
+	OperInstID  []string
+	State       []operation.State
+}
+
+// OperInstDataFuzzyFields defines the workflow operation instance data fuzzy fields.
+type OperInstDataFuzzyFields struct{}
+
+// OperInstDataCondition defines the workflow operation instance data condition.
+type OperInstDataCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *OperInstDataExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *OperInstDataFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *OperInstDataExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *OperInstDataFuzzyFields
+}
+
+// OperationExactFields defines the condition exact fields.
+type OperationExactFields struct {
+	TriggerID []string
+	State     []operation.State
+}
+
+// OperationFuzzyFields defines the operation fuzzy fields.
+type OperationFuzzyFields struct {
+}
+
+// OperationCondition defines the operation condition.
+type OperationCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *OperationExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *OperationFuzzyFields
+
+	// will be used when condition type is excluded in exact mode.
+	ExactExclude *OperationExactFields
+
+	// will be used when condition type is excluded in fuzzy mode.
+	FuzzyExclude *OperationFuzzyFields
+}
+
 // NodeWorkflowExactFields defines the node workflow exact fields.
 type NodeWorkflowExactFields struct {
 	WorkflowID []string
@@ -400,33 +451,8 @@ type NodeWorkflowCondition struct {
 	FuzzyExclude *NodeWorkflowFuzzyFields
 }
 
-// NodeWorkflowOperationExactFields defines the condition of list operation.
-type NodeWorkflowOperationExactFields struct {
-	TriggerID []string
-	State     []NodeWorkflowOperationState
-}
-
-// NodeWorkflowOperationFuzzyFields defines the node workflow operation fuzzy fields.
-type NodeWorkflowOperationFuzzyFields struct {
-}
-
-// NodeWorkflowOperationCondition defines the node workflow operation condition.
-type NodeWorkflowOperationCondition struct {
-	// will be used when condition type is included in exact mode.
-	ExactInclude *NodeWorkflowOperationExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *NodeWorkflowOperationFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *NodeWorkflowOperationExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *NodeWorkflowOperationFuzzyFields
-}
-
-// ApplicationOperationListExactFields defines the exact fields for application operation list.
-type ApplicationOperationListExactFields struct {
+// ApplicationNodeOperationListExactFields defines the exact fields for node workflow operation list.
+type ApplicationNodeOperationListExactFields struct {
 	BizID         []int64
 	HostInnerIP   []string
 	HostInnerIPV6 []string
@@ -436,23 +462,23 @@ type ApplicationOperationListExactFields struct {
 	State         []NodeWorkflowOperationState
 }
 
-// ApplicationOperationListFuzzyFields defines the fuzzy fields for application operation list.
-type ApplicationOperationListFuzzyFields struct {
+// ApplicationNodeOperationListFuzzyFields defines the fuzzy fields for node operation list.
+type ApplicationNodeOperationListFuzzyFields struct {
 }
 
-// ApplicationOperationListCondition defines the application operation list condition.
-type ApplicationOperationListCondition struct {
+// ApplicationNodeOperationListCondition defines the node workflow operation list condition.
+type ApplicationNodeOperationListCondition struct {
 	// will be used when condition type is included in exact mode.
-	ExactInclude *ApplicationOperationListExactFields
+	ExactInclude *ApplicationNodeOperationListExactFields
 
 	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *ApplicationOperationListFuzzyFields
+	FuzzyInclude *ApplicationNodeOperationListFuzzyFields
 
 	// will be used when condition type is excluded in exact mode.
-	ExactExclude *ApplicationOperationListExactFields
+	ExactExclude *ApplicationNodeOperationListExactFields
 
 	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *ApplicationOperationListFuzzyFields
+	FuzzyExclude *ApplicationNodeOperationListFuzzyFields
 }
 
 // PluginWorkflowExactFields defines the plugin workflow exact fields.
@@ -486,33 +512,30 @@ type PluginWorkflowCondition struct {
 	FuzzyExclude *PluginWorkflowFuzzyFields
 }
 
-// PluginWorkflowOperationExactFields defines the condition of list operation.
-type PluginWorkflowOperationExactFields struct {
-	TriggerID     string
-	WorkflowID    string
-	State         []PluginWorkflowOperationState
+// ApplicationPluginOperationListExactFields defines the exact fields for plugin workflow operation list.
+type ApplicationPluginOperationListExactFields struct {
 	HostID        []int64
 	PluginName    []string
 	PluginVersion []string
+	State         []PluginWorkflowOperationState
 }
 
-// PluginWorkflowOperationFuzzyFields defines the plugin workflow operation fuzzy fields.
-type PluginWorkflowOperationFuzzyFields struct {
-}
+// ApplicationPluginOperationListFuzzyFields defines the fuzzy fields for plugin workflow operation list.
+type ApplicationPluginOperationListFuzzyFields struct{}
 
-// PluginWorkflowOperationCondition defines the plugin workflow operation condition.
-type PluginWorkflowOperationCondition struct {
+// ApplicationPluginOperationListCondition defines the application plugin workflow operation list condition.
+type ApplicationPluginOperationListCondition struct {
 	// will be used when condition type is included in exact mode.
-	ExactInclude *PluginWorkflowOperationExactFields
+	ExactInclude *ApplicationPluginOperationListExactFields
 
 	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *PluginWorkflowOperationFuzzyFields
+	FuzzyInclude *ApplicationPluginOperationListFuzzyFields
 
 	// will be used when condition type is excluded in exact mode.
-	ExactExclude *PluginWorkflowOperationExactFields
+	ExactExclude *ApplicationPluginOperationListExactFields
 
 	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *PluginWorkflowOperationFuzzyFields
+	FuzzyExclude *ApplicationPluginOperationListFuzzyFields
 }
 
 // ScheduledWorkflowExactFields defines the scheduled workflow exact fields.
@@ -601,36 +624,6 @@ type ReleaseCondition struct {
 
 	// will be used when condition type is excluded in fuzzy mode.
 	FuzzyExclude *ReleaseFuzzyFields
-}
-
-// ===============================================================================
-// OperInstData Related Conditions
-// ===============================================================================
-
-// OperInstDataExactFields defines the workflow operation instance data condition exact fields.
-type OperInstDataExactFields struct {
-	TriggerID   []string
-	OperationID []string
-	OperInstID  []string
-	State       []operation.State
-}
-
-// OperInstDataFuzzyFields defines the workflow operation instance data fuzzy fields.
-type OperInstDataFuzzyFields struct{}
-
-// OperInstDataCondition defines the workflow operation instance data condition.
-type OperInstDataCondition struct {
-	// will be used when condition type is included in exact mode.
-	ExactInclude *OperInstDataExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *OperInstDataFuzzyFields
-
-	// will be used when condition type is excluded in exact mode.
-	ExactExclude *OperInstDataExactFields
-
-	// will be used when condition type is excluded in fuzzy mode.
-	FuzzyExclude *OperInstDataFuzzyFields
 }
 
 // ===============================================================================

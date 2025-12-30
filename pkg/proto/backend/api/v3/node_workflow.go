@@ -213,9 +213,7 @@ func convertNodeWorkflowOperationConditionsToNodeDeploymentTypes(tokens []string
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
-func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(
-	condition *types.ApplicationOperationListCondition) error {
-
+func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(condition *types.ApplicationNodeOperationListCondition) error {
 	exactCond, fuzzyCond, err := convertNodeWorkOperConditionsFromTypes(condition)
 	if err != nil {
 		return err
@@ -228,19 +226,13 @@ func (x *NodeWorkflowOperationListReq) ConvertConditionsFromTypes(
 }
 
 // ConvertConditionsToTypes convert conditions to types.
-func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes(
-	triggerID string) *types.NodeWorkflowOperationCondition {
-
-	return convertNodeWorkflowOperationConditionsToTypes(
-		x.GetExactIncludeConditions(), triggerID)
+func (x *NodeWorkflowOperationListReq) ConvertConditionsToTypes(triggerID string) *types.OperationCondition {
+	return convertNodeWorkflowOperationConditionsToTypes(x.GetExactIncludeConditions(), triggerID)
 }
 
 // ConvertConditionsToOperationTypes convert conditions to operation types.
-func (x *NodeWorkflowOperationListReq) ConvertConditionsToOperationTypes(
-	triggerID string) *types.NodeWorkflowOperationCondition {
-
-	return convertNodeWorkflowOperationConditionsToTypes(
-		x.GetExactIncludeConditions(), triggerID)
+func (x *NodeWorkflowOperationListReq) ConvertConditionsToOperationTypes(triggerID string) *types.OperationCondition {
+	return convertNodeWorkflowOperationConditionsToTypes(x.GetExactIncludeConditions(), triggerID)
 }
 
 // AutoConvert auto convert.
@@ -763,16 +755,16 @@ func convertNodeWorkflowConditionsToTypes(
 }
 
 func convertNodeWorkflowOperationConditionsToTypes(
-	exactCond *NodeWorkflowOperationListReq_ExactConditions, triggerID string) *types.NodeWorkflowOperationCondition {
+	exactCond *NodeWorkflowOperationListReq_ExactConditions, triggerID string) *types.OperationCondition {
 
-	condition := &types.NodeWorkflowOperationCondition{
-		ExactInclude: &types.NodeWorkflowOperationExactFields{
+	condition := &types.OperationCondition{
+		ExactInclude: &types.OperationExactFields{
 			TriggerID: []string{triggerID},
 		},
 	}
 
 	if exactCond != nil {
-		condition.ExactInclude.State = types.StringListToNodeWorkflowOperationStatusList(exactCond.GetState())
+		condition.ExactInclude.State = operation.StringListToStateList(exactCond.GetState())
 	}
 
 	return condition
@@ -813,7 +805,7 @@ func convertNodeWorkConditionsFromTypes(condition *types.NodeWorkflowCondition) 
 	return exactCond, fuzzyCond, timeRange, nil
 }
 
-func convertNodeWorkOperConditionsFromTypes(condition *types.ApplicationOperationListCondition) (
+func convertNodeWorkOperConditionsFromTypes(condition *types.ApplicationNodeOperationListCondition) (
 	*NodeWorkflowOperationListReq_ExactConditions, *NodeWorkflowOperationListReq_FuzzyConditions, error) {
 
 	if condition == nil {

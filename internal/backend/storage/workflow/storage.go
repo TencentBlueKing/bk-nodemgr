@@ -466,7 +466,7 @@ func (s *Storage) ListOperationByTriggerID(
 
 // ListOperation lists operation by page and condition.
 func (s *Storage) ListOperation(
-	nCtx contextx.IContext, page types.Page, conditions ...*types.NodeWorkflowOperationCondition) (
+	nCtx contextx.IContext, page types.Page, conditions ...*types.OperationCondition) (
 	[]*workoper.Operation, int64, error) {
 
 	var (
@@ -492,7 +492,7 @@ func (s *Storage) ListOperation(
 
 // CountOperation counts operation by condition.
 func (s *Storage) CountOperation(
-	nCtx contextx.IContext, conditions ...*types.NodeWorkflowOperationCondition) (int64, error) {
+	nCtx contextx.IContext, conditions ...*types.OperationCondition) (int64, error) {
 
 	var (
 		num int64

@@ -17,7 +17,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/operation"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	workoper "github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
@@ -193,8 +192,8 @@ func (s *Storage) getLatestOperationInstanceStatusDistributionByTriggerID(
 }
 
 // listOperation lists operation by page and condition.
-func (s *Storage) listOperation(nCtx contextx.IContext, page types.Page,
-	conditions ...*types.NodeWorkflowOperationCondition) ([]*workoper.Operation, int64, error) {
+func (s *Storage) listOperation(nCtx contextx.IContext, page types.Page, conditions ...*types.OperationCondition) (
+	[]*workoper.Operation, int64, error) {
 
 	if nCtx == nil {
 		return nil, 0, basestorage.ErrNilContent()
@@ -209,7 +208,7 @@ func (s *Storage) listOperation(nCtx contextx.IContext, page types.Page,
 }
 
 // countOperation counts operation by condition.
-func (s *Storage) countOperation(nCtx contextx.IContext, conditions ...*types.NodeWorkflowOperationCondition) (int64, error) {
+func (s *Storage) countOperation(nCtx contextx.IContext, conditions ...*types.OperationCondition) (int64, error) {
 	if nCtx == nil {
 		return 0, basestorage.ErrNilContent()
 	}
@@ -222,7 +221,7 @@ func (s *Storage) countOperation(nCtx contextx.IContext, conditions ...*types.No
 	return s.daoOperation.Count(nCtx, opts...)
 }
 
-func convertOperationConditionsToOptions(conditions ...*types.NodeWorkflowOperationCondition) ([]operation.OptFn, error) {
+func convertOperationConditionsToOptions(conditions ...*types.OperationCondition) ([]operation.OptFn, error) {
 	opts := make([]operation.OptFn, 0)
 
 	for _, condition := range conditions {
@@ -232,10 +231,7 @@ func convertOperationConditionsToOptions(conditions ...*types.NodeWorkflowOperat
 
 		if condition.ExactInclude != nil {
 			opts = append(opts, operation.WithTriggerID(condition.ExactInclude.TriggerID...))
-			opts = append(opts, operation.WithLatestInstState(
-				conv.SliceToSlice(condition.ExactInclude.State, func(status types.NodeWorkflowOperationState) string {
-					return string(status)
-				})...))
+			opts = append(opts, operation.WithLatestInstState(workoper.StateListToStringList(condition.ExactInclude.State)...))
 		}
 
 		if condition.ExactExclude != nil || condition.FuzzyExclude != nil || condition.FuzzyInclude != nil {

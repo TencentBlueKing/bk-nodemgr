@@ -215,17 +215,24 @@ func GetFinishedPluginWorkflowStatus() []PluginWorkflowStatus {
 
 // PluginWorkflowListOperationResult operation list result.
 type PluginWorkflowListOperationResult struct {
-	HostID          int64
-	BizID           int64
-	NetworkAreaID   int64
-	NetworkUnitID   int64
-	InnerIPList     []string
-	InnerIPV6List   []string
-	PluginName      string
-	PluginVersion   string
-	Operator        string
+	HostID        int64
+	BizID         int64
+	NetworkAreaID int64
+	NetworkUnitID int64
+	InnerIPList   []string
+	InnerIPV6List []string
+	PluginName    string
+	PluginVersion string
+
 	OperationID     string
 	OperInstanceIDs []string
+
+	Operator   string
+	CreateTime time.Time
+
+	// LastInstanceBriefData is the last instance brief data.
+	// currently support life-cycle and latest action.
+	LastInstanceBriefData *operation.InstanceBriefData
 }
 
 // PluginWorkflowOperationSummary summary of plugin workflow operation.

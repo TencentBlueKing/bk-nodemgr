@@ -13,6 +13,7 @@ package workflow
 
 import (
 	"errors"
+	"fmt"
 
 	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
@@ -26,6 +27,7 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -146,7 +148,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	// list all operations by trigger id.
-	operations, _, err := h.storageWorkflow.ListOperationByTriggerID(rCtx, types.UnlimitedPage(), workflow.TriggerID)
+	operations, _, err := h.storageWorkflow.ListOperation(rCtx, types.UnlimitedPage(), req.ConvertConditionsToOperationTypes(workflow.TriggerID))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -154,9 +156,8 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 
 	tokens := make([]string, len(operations))
 	operationMaps := make(map[string]*struct {
-		operationID     string
-		operator        string
-		operInstanceIDs []string
+		operation *operation.Operation
+		operator  string
 	}, len(operations))
 
 	for idx, op := range operations {
@@ -168,21 +169,30 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 
 		tokens[idx] = param.Token
 		operationMaps[param.Token] = &struct {
-			operationID     string
-			operator        string
-			operInstanceIDs []string
+			operation *operation.Operation
+			operator  string
 		}{
-			operationID:     op.OperationID,
-			operator:        param.Operator,
-			operInstanceIDs: op.InstanceIDs,
+			operation: op,
+			operator:  param.Operator,
 		}
 	}
 
 	// list all deployments by condition.
-	deployments, num, err := h.daoPluginDeployment.ListPluginDeployment(rCtx, types.UnlimitedPage(), req.ConvertConditionsToDeploymentTypes(tokens))
+	deployments, num, err := h.daoPluginDeployment.ListPluginDeployment(rCtx,
+		req.ConvertPageToTypes(maxPluginWorkflowLimit),
+		req.ConvertConditionsToDeploymentTypes(tokens))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin deployment")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PluginWorkflowOperationListResp)
+
+	// only count.
+	if req.GetOnlyCount() {
+		resp.ConvertResultFromTypes(num, nil)
+
+		return resp.GetData(), nil
 	}
 
 	hostIDList := conv.SliceToSlice[*types.PluginDeployment, int64](deployments, func(dep *types.PluginDeployment) int64 {
@@ -211,34 +221,27 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	result := make([]*types.PluginWorkflowListOperationResult, len(deployments))
-	for idx, dep := range deployments {
-		op, exists := operationMaps[dep.Token]
-		if !exists {
-			continue
+	for idx, deployment := range deployments {
+		op, exist := operationMaps[deployment.Token]
+		if !exist {
+			return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("invalid token. token(%s)", deployment.Token))
 		}
 
 		result[idx] = &types.PluginWorkflowListOperationResult{
-			Operator:        op.operator,
-			HostID:          dep.Info.Process.HostID,
-			BizID:           hostIDMap[dep.Info.Process.HostID].Static.BizID,
-			NetworkAreaID:   hostIDMap[dep.Info.Process.HostID].Static.NetworkAreaID,
-			NetworkUnitID:   hostIDMap[dep.Info.Process.HostID].Dynamic.NetworkUnitID,
-			InnerIPList:     hostIDMap[dep.Info.Process.HostID].Static.InnerIPList,
-			InnerIPV6List:   hostIDMap[dep.Info.Process.HostID].Static.InnerIPV6List,
-			PluginName:      dep.Info.Process.PluginName,
-			PluginVersion:   dep.Info.InstallOptions.Version,
-			OperationID:     op.operationID,
-			OperInstanceIDs: op.operInstanceIDs,
+			HostID:                deployment.Info.Process.HostID,
+			BizID:                 hostIDMap[deployment.Info.Process.HostID].Static.BizID,
+			NetworkAreaID:         hostIDMap[deployment.Info.Process.HostID].Static.NetworkAreaID,
+			NetworkUnitID:         hostIDMap[deployment.Info.Process.HostID].Dynamic.NetworkUnitID,
+			InnerIPList:           hostIDMap[deployment.Info.Process.HostID].Static.InnerIPList,
+			InnerIPV6List:         hostIDMap[deployment.Info.Process.HostID].Static.InnerIPV6List,
+			PluginName:            deployment.Info.Process.PluginName,
+			PluginVersion:         deployment.Info.InstallOptions.Version,
+			OperationID:           op.operation.OperationID,
+			OperInstanceIDs:       op.operation.InstanceIDs,
+			Operator:              op.operator,
+			CreateTime:            op.operation.CreateTime,
+			LastInstanceBriefData: op.operation.LatestInstBriefData,
 		}
-	}
-
-	resp := new(protoBackend.PluginWorkflowOperationListResp)
-
-	// only count.
-	if req.GetOnlyCount() {
-		resp.ConvertResultFromTypes(num, nil)
-
-		return resp.GetData(), nil
 	}
 
 	resp.ConvertResultFromTypes(num, result)

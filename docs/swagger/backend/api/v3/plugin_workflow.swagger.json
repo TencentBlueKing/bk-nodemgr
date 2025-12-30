@@ -313,6 +313,116 @@
         }
       }
     },
+    "PluginWorkflowOperationListReqExactConditions": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "plugin_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_version": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "state": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "PluginWorkflowOperationListReqFuzzyConditions": {
+      "type": "object"
+    },
+    "PluginWorkflowOperationListRespLatestOperInstBriefData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
+        }
+      }
+    },
+    "PluginWorkflowOperationListRespPluginDeploymentInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "plugin_version": {
+          "type": "string"
+        }
+      }
+    },
+    "PluginWorkflowOperationListRespPluginWorkflowOperation": {
+      "type": "object",
+      "properties": {
+        "operation_id": {
+          "type": "string"
+        },
+        "instance_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operator": {
+          "type": "string"
+        },
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_deployment_info": {
+          "$ref": "#/definitions/PluginWorkflowOperationListRespPluginDeploymentInfo"
+        },
+        "latest_oper_inst_brief_data": {
+          "$ref": "#/definitions/PluginWorkflowOperationListRespLatestOperInstBriefData"
+        }
+      }
+    },
     "WorkflowActionMessageMessage": {
       "type": "object",
       "properties": {
@@ -591,99 +701,6 @@
         }
       }
     },
-    "v3PluginWorkflowOperation": {
-      "type": "object",
-      "properties": {
-        "operation_id": {
-          "type": "string"
-        },
-        "instance_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_host_innerip_list": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_innerip_v6_list": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "plugin_name": {
-          "type": "string"
-        },
-        "plugin_version": {
-          "type": "string"
-        },
-        "operator": {
-          "type": "string"
-        }
-      },
-      "description": "PluginWorkflowOperation describes the node workflow operation."
-    },
-    "v3PluginWorkflowOperationExactConditions": {
-      "type": "object",
-      "properties": {
-        "workflow_id": {
-          "type": "string"
-        },
-        "trigger_id": {
-          "type": "string"
-        },
-        "bk_host_id": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "plugin_name": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "plugin_version": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "state": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "description": "PluginWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request."
-    },
-    "v3PluginWorkflowOperationFuzzyConditions": {
-      "type": "object",
-      "description": "PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\nworkflow list request."
-    },
     "v3PluginWorkflowOperationInstanceListReq": {
       "type": "object",
       "properties": {
@@ -837,11 +854,14 @@
         "page": {
           "$ref": "#/definitions/v3Page"
         },
+        "workflow_id": {
+          "type": "string"
+        },
         "exact_include_conditions": {
-          "$ref": "#/definitions/v3PluginWorkflowOperationExactConditions"
+          "$ref": "#/definitions/PluginWorkflowOperationListReqExactConditions"
         },
         "fuzzy_include_conditions": {
-          "$ref": "#/definitions/v3PluginWorkflowOperationFuzzyConditions"
+          "$ref": "#/definitions/PluginWorkflowOperationListReqFuzzyConditions"
         }
       },
       "description": "PluginWorkflowOperationListReq describes the node operation list\nrequest."
@@ -875,7 +895,7 @@
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3PluginWorkflowOperation"
+            "$ref": "#/definitions/PluginWorkflowOperationListRespPluginWorkflowOperation"
           }
         },
         "total_count": {

@@ -80,44 +80,27 @@ message PluginWorkflowDistinctResp {
   Data data = 5;
 }
 
-// PluginWorkflowOperation describes the node workflow operation.
-message PluginWorkflowOperation {
-  string operation_id = 1;
-  repeated string instance_ids = 2;
-  int64 bk_host_id = 3;
-  int64 bk_biz_id = 4;
-  int64 bk_networkarea_id = 5;
-  int64 bk_networkunit_id = 6;
-  repeated string bk_host_innerip_list = 7;
-  repeated string bk_host_innerip_v6_list = 8;
-  string plugin_name = 9;
-  string plugin_version = 10;
-  string operator = 11;
-}
-
-// PluginWorkflowOperationExactConditions describes the exact conditions of node
-// workflow operation list request.
-message PluginWorkflowOperationExactConditions {
-  string workflow_id = 1;
-  string trigger_id = 2;
-  repeated int64 bk_host_id = 3;
-  repeated string plugin_name = 4;
-  repeated string plugin_version = 5;
-  repeated string state = 6;
-}
-
-// PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of node
-// workflow list request.
-message PluginWorkflowOperationFuzzyConditions {}
-
 // PluginWorkflowOperationListReq describes the node operation list
 // request.
 message PluginWorkflowOperationListReq {
   bool only_count = 1;
   Page page = 2;
-  PluginWorkflowOperationExactConditions exact_include_conditions = 3;
-  PluginWorkflowOperationFuzzyConditions fuzzy_include_conditions = 4;
+  string workflow_id = 3;
+
+  message ExactConditions {
+    repeated int64 bk_host_id = 1;
+    repeated string plugin_name = 2;
+    repeated string plugin_version = 3;
+    repeated string state = 4;
+  }
+
+  message FuzzyConditions {}
+
+  ExactConditions exact_include_conditions = 4;
+  FuzzyConditions fuzzy_include_conditions = 5;
 }
+
+// PluginWorkflowOperation describes the node workflow operation.
 
 // PluginWorkflowOperationListResp describes the node operation list by
 // workflow-id response.
@@ -126,6 +109,32 @@ message PluginWorkflowOperationListResp {
   string message = 2;
   string request_id = 3;
   Error error = 4;
+
+  message PluginDeploymentInfo {
+    int64 bk_host_id = 1;
+    int64 bk_biz_id = 2;
+    int64 bk_networkarea_id = 3;
+    int64 bk_networkunit_id = 4;
+    repeated string bk_host_innerip_list = 5;
+    repeated string bk_host_innerip_v6_list = 6;
+    string plugin_name = 7;
+    string plugin_version = 8;
+  }
+
+  message LatestOperInstBriefData {
+    WorkflowLifeCycle life_cycle = 1;
+    WorkflowActionInstBriefData latest_action_inst_brief_data = 5;
+  }
+
+  message PluginWorkflowOperation {
+    string operation_id = 1;
+    repeated string instance_ids = 2;
+    string operator = 3;
+    int64 create_time = 4;
+    PluginDeploymentInfo plugin_deployment_info = 5;
+    LatestOperInstBriefData latest_oper_inst_brief_data = 6;
+  }
+
   message Data {
     repeated PluginWorkflowOperation operations = 1;
     int64 total_count = 2;

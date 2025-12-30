@@ -12,9 +12,6 @@
 package workflow
 
 import (
-	"fmt"
-	"sort"
-
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
@@ -22,7 +19,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 	"github.com/gin-gonic/gin"
 )
 
@@ -176,70 +172,28 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	if err := req.Validate(); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to validate request body: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, req.Validate())
+	if req.GetOnlyCount() {
+		cnt, err := h.backendHandler.CountPluginWorkflowOperation(rCtx, req.GetWorkflowId(), req.ConvertConditionsToTypes())
+		if err != nil {
+			logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to count operation: %v", err)
+			return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+		}
+
+		resp := new(protoApplication.PluginWorkflowOperationListResp)
+		resp.ConvertResultFromTypes(cnt, nil)
+
+		return resp.GetData(), nil
 	}
 
-	var targetStates []string
-	if exactCond := req.GetExactIncludeConditions(); exactCond != nil {
-		targetStates = exactCond.GetState()
-	}
-
-	result, num, err := h.backendHandler.ListPluginWorkflowOperation(
-		rCtx, req.ConvertPageToTypes(maxOperationLimit), req.ConvertConditionsToTypes())
+	operation, cnt, err := h.backendHandler.ListPluginWorkflowOperation(
+		rCtx, req.ConvertPageToTypes(maxOperationLimit), req.GetWorkflowId(), req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	if len(result) == 0 {
-		resp := new(protoApplication.PluginWorkflowOperationListResp)
-		resp.ConvertResultFromTypes(num, nil, nil)
-
-		if req.GetOnlyCount() {
-			return resp.GetCountOnly(), nil
-		}
-
-		return resp.GetData(), nil
-	}
-
-	operationIDs := make([]string, 0, len(result))
-	for _, operation := range result {
-		operationIDs = append(operationIDs, operation.OperationID)
-	}
-
-	// get all operation instances.
-	// need to grouby operation id. than use last instance status and calculate total time.
-	allInstances, _, err := h.backendHandler.ListPluginWorkflowOperationInstance(rCtx, operationIDs...)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation instance: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	// group by operation id.
-	instancesByOpID := groupInstancesByOperationID(allInstances)
-
-	// calculate each operation total time and last state.
-	summaries, err := calculateOperationSummaries(operationIDs, instancesByOpID)
-	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to calculate operation summary: %v", err)
-		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
-	}
-
-	// filter by states.
-	filteredResults, filteredSummaries := filterOperationsByState(
-		result,
-		summaries,
-		targetStates,
-	)
-
 	resp := new(protoApplication.PluginWorkflowOperationListResp)
-	resp.ConvertResultFromTypes(num, filteredResults, filteredSummaries)
-
-	if req.GetOnlyCount() {
-		return resp.GetCountOnly(), nil
-	}
+	resp.ConvertResultFromTypes(cnt, operation)
 
 	return resp.GetData(), nil
 }
@@ -339,97 +293,4 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 	resp := new(protoApplication.PluginWorkflowOperationTerminateResp)
 
 	return resp.GetData(), nil
-}
-
-func groupInstancesByOperationID(
-	instances []*operation.InstanceBriefData) map[string][]*operation.InstanceBriefData {
-
-	grouped := make(map[string][]*operation.InstanceBriefData)
-	for _, instance := range instances {
-		opID := instance.Metadata.OperationID
-		grouped[opID] = append(grouped[opID], instance)
-	}
-
-	return grouped
-}
-
-func filterOperationsByState(
-	ops []*types.PluginWorkflowListOperationResult,
-	summaries []*types.PluginWorkflowOperationSummary,
-	targetStates []string) (
-	[]*types.PluginWorkflowListOperationResult, []*types.PluginWorkflowOperationSummary) {
-
-	// no state filter required. directly return.
-	if len(targetStates) == 0 {
-		return ops, summaries
-	}
-
-	// record the states that need to be filtered.
-	targetStateSet := make(map[types.PluginWorkflowOperationState]struct{}, len(targetStates))
-	for _, state := range targetStates {
-		targetStateSet[types.PluginWorkflowOperationState(state)] = struct{}{}
-	}
-
-	matchedOperations := make([]*types.PluginWorkflowListOperationResult, len(ops))
-	matchedSummaries := make([]*types.PluginWorkflowOperationSummary, len(ops))
-
-	for i, op := range ops {
-		summary := summaries[i]
-		if _, ok := targetStateSet[summary.LastStatus]; !ok {
-			continue
-		}
-
-		matchedOperations[i] = op
-		matchedSummaries[i] = summary
-	}
-
-	return matchedOperations, matchedSummaries
-}
-
-func calculateOperationSummaries(operationIDs []string,
-	instancesByOpID map[string][]*operation.InstanceBriefData) ([]*types.PluginWorkflowOperationSummary, error) {
-
-	summaries := make([]*types.PluginWorkflowOperationSummary, len(operationIDs))
-
-	for idx, opID := range operationIDs {
-		instances, exists := instancesByOpID[opID]
-
-		// no instances found.
-		if !exists || len(instances) == 0 {
-			summaries[idx] = &types.PluginWorkflowOperationSummary{
-				TotalDuration: 0,
-				LastStatus:    types.PluginWorkflowOperationStateInit,
-			}
-
-			continue
-		}
-
-		sort.Slice(instances, func(i, j int) bool {
-			return instances[i].Lifecycle.CreatedAt.Before(instances[j].Lifecycle.CreatedAt)
-		})
-
-		// calculate total duration.
-		var totalSeconds int64
-		for _, inst := range instances {
-			if inst.Lifecycle.CreatedAt.IsZero() || inst.Lifecycle.EndedAt.IsZero() {
-				continue
-			}
-
-			totalSeconds += inst.Lifecycle.EndedAt.Unix() - inst.Lifecycle.CreatedAt.Unix()
-		}
-
-		// calculate last status.
-		lastInstance := instances[len(instances)-1]
-		lastStatus, err := types.InstanceStatusToPluginWorkflowOperationState(lastInstance.Lifecycle.State)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert instance status to operation state: %w", err)
-		}
-
-		summaries[idx] = &types.PluginWorkflowOperationSummary{
-			TotalDuration: totalSeconds,
-			LastStatus:    lastStatus,
-		}
-	}
-
-	return summaries, nil
 }

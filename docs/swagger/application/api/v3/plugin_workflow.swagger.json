@@ -173,7 +173,7 @@
         "parameters": [
           {
             "name": "body",
-            "description": "PluginWorkflowOperationListReq describes the node operation list\nrequest.",
+            "description": "PluginWorkflowOperationListReq describes the node operation list request.",
             "in": "body",
             "required": true,
             "schema": {
@@ -375,6 +375,46 @@
         }
       },
       "description": "Page describes the generaic conditions when paging query."
+    },
+    "v3PluginDeploymentInfo": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "plugin_version": {
+          "type": "string"
+        }
+      },
+      "description": "PluginDeploymentInfo describes the plugin deployment information."
     },
     "v3PluginWorkflowDistinctReq": {
       "type": "object",
@@ -591,11 +631,18 @@
             "type": "string"
           }
         },
-        "param": {
-          "$ref": "#/definitions/v3PluginWorkflowOperationParam"
+        "operator": {
+          "type": "string"
         },
-        "status": {
-          "$ref": "#/definitions/v3PluginWorkflowOperationStatus"
+        "create_time": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_deployment_info": {
+          "$ref": "#/definitions/v3PluginDeploymentInfo"
+        },
+        "latest_oper_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowOperInstBriefData"
         }
       },
       "description": "PluginWorkflowOperation describes the node workflow operation."
@@ -603,12 +650,6 @@
     "v3PluginWorkflowOperationExactConditions": {
       "type": "object",
       "properties": {
-        "workflow_id": {
-          "type": "string"
-        },
-        "trigger_id": {
-          "type": "string"
-        },
         "bk_host_id": {
           "type": "array",
           "items": {
@@ -635,11 +676,11 @@
           }
         }
       },
-      "description": "PluginWorkflowOperationExactConditions describes the exact conditions of node\nworkflow operation list request."
+      "description": "PluginWorkflowOperationExactConditions describes the exact conditions of\nplugin workflow operation list request."
     },
     "v3PluginWorkflowOperationFuzzyConditions": {
       "type": "object",
-      "description": "PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of node\nworkflow list request."
+      "description": "PluginWorkflowOperationFuzzyConditions describes the fuzzy conditions of\nplugin workflow operation list request."
     },
     "v3PluginWorkflowOperationInstanceListReq": {
       "type": "object",
@@ -749,6 +790,9 @@
         "page": {
           "$ref": "#/definitions/v3Page"
         },
+        "workflow_id": {
+          "type": "string"
+        },
         "exact_include_conditions": {
           "$ref": "#/definitions/v3PluginWorkflowOperationExactConditions"
         },
@@ -756,7 +800,7 @@
           "$ref": "#/definitions/v3PluginWorkflowOperationFuzzyConditions"
         }
       },
-      "description": "PluginWorkflowOperationListReq describes the node operation list\nrequest."
+      "description": "PluginWorkflowOperationListReq describes the node operation list request."
     },
     "v3PluginWorkflowOperationListResp": {
       "type": "object",
@@ -795,49 +839,6 @@
           "format": "int64"
         }
       }
-    },
-    "v3PluginWorkflowOperationParam": {
-      "type": "object",
-      "properties": {
-        "bk_host_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_biz_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_networkarea_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_networkunit_id": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "bk_host_innerip_list": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "bk_host_innerip_v6_list": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "plugin_name": {
-          "type": "string"
-        },
-        "plugin_version": {
-          "type": "string"
-        },
-        "operator": {
-          "type": "string"
-        }
-      },
-      "title": "PluginWorkflowOperationParam describes the plugin workflow operation"
     },
     "v3PluginWorkflowOperationRetryReq": {
       "type": "object",
@@ -881,19 +882,6 @@
     },
     "v3PluginWorkflowOperationRetryRespData": {
       "type": "object"
-    },
-    "v3PluginWorkflowOperationStatus": {
-      "type": "object",
-      "properties": {
-        "state": {
-          "type": "string"
-        },
-        "total_time_second": {
-          "type": "integer",
-          "format": "int64"
-        }
-      },
-      "description": "PluginWorkflowOperationStatus describes the plugin workflow operation status."
     },
     "v3PluginWorkflowOperationTerminateReq": {
       "type": "object",
@@ -1092,6 +1080,18 @@
         }
       },
       "description": "WorkflowLifeCycle describes the workflow life cycle."
+    },
+    "v3WorkflowOperInstBriefData": {
+      "type": "object",
+      "properties": {
+        "life_cycle": {
+          "$ref": "#/definitions/v3WorkflowLifeCycle"
+        },
+        "latest_action_inst_brief_data": {
+          "$ref": "#/definitions/v3WorkflowActionInstBriefData"
+        }
+      },
+      "description": "WorkflowOperInstBriefData describes the brief data of operation instance."
     },
     "v3WorkflowStatisticsInfo": {
       "type": "object",

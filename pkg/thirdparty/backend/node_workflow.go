@@ -47,14 +47,14 @@ type IHandlerNodeWorkflow interface {
 	// @param page describes the page info when listing.
 	// @param workflowID the workflow id.
 	// @return the operation list with page and the total count with filter.
-	ListNodeWorkflowOperation(ctx contextx.IContext, page types.Page, workflowID string, condition *types.ApplicationOperationListCondition) (
+	ListNodeWorkflowOperation(ctx contextx.IContext, page types.Page, workflowID string, condition *types.ApplicationNodeOperationListCondition) (
 		[]*types.NodeWorkflowListOperationResult, int64, error)
 
 	// CountNodeWorkflowOperation count node workflow operation.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param workflowID the workflow id.
 	// @return the operation count with filter.
-	CountNodeWorkflowOperation(ctx contextx.IContext, workflowID string, condition *types.ApplicationOperationListCondition) (int64, error)
+	CountNodeWorkflowOperation(ctx contextx.IContext, workflowID string, condition *types.ApplicationNodeOperationListCondition) (int64, error)
 
 	// ListNodeWorkflowOperationInstance list node workflow operation instance.
 	// @param ctx contextx.IContext, contains tenant-id and username.
@@ -159,7 +159,7 @@ func (h *Handler) DistinctNodeWorkflow(ctx contextx.IContext, _ types.NodeWorkfl
 
 // ListNodeWorkflowOperation list workflow  operation.
 func (h *Handler) ListNodeWorkflowOperation(ctx contextx.IContext,
-	page types.Page, workflowID string, condition *types.ApplicationOperationListCondition) (
+	page types.Page, workflowID string, condition *types.ApplicationNodeOperationListCondition) (
 	[]*types.NodeWorkflowListOperationResult, int64, error) {
 
 	req := &protoBackend.NodeWorkflowOperationListReq{
@@ -183,7 +183,7 @@ func (h *Handler) ListNodeWorkflowOperation(ctx contextx.IContext,
 
 // CountNodeWorkflowOperation count workflow  operation.
 func (h *Handler) CountNodeWorkflowOperation(ctx contextx.IContext, workflowID string,
-	condition *types.ApplicationOperationListCondition) (int64, error) {
+	condition *types.ApplicationNodeOperationListCondition) (int64, error) {
 
 	req := &protoBackend.NodeWorkflowOperationListReq{
 		OnlyCount:  true,

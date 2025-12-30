@@ -46,15 +46,17 @@ type IHandlerPluginWorkflow interface {
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param workflowID the workflow id.
+	// @param condition the filter conditions.
 	// @return the operation list with page and the total count with filter.
-	ListPluginWorkflowOperation(ctx contextx.IContext, page types.Page, condition *types.PluginWorkflowOperationCondition) (
+	ListPluginWorkflowOperation(ctx contextx.IContext, page types.Page, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
 		[]*types.PluginWorkflowListOperationResult, int64, error)
 
 	// CountPluginWorkflowOperation count plugin workflow operation.
 	// @param ctx contextx.IContext, contains tenant-id and username.
 	// @param workflowID the workflow id.
+	// @param condition the filter conditions.
 	// @return the operation count with filter.
-	CountPluginWorkflowOperation(ctx contextx.IContext, condition *types.PluginWorkflowOperationCondition) (int64, error)
+	CountPluginWorkflowOperation(ctx contextx.IContext, workflowID string, condition *types.ApplicationPluginOperationListCondition) (int64, error)
 
 	// ListPluginWorkflowOperationInstance list plugin workflow operation instance.
 	// @param ctx contextx.IContext, contains tenant-id and username.
@@ -151,13 +153,14 @@ func (h *Handler) DistinctPluginWorkflow(ctx contextx.IContext, _ types.PluginWo
 }
 
 // ListPluginWorkflowOperation list workflow  operation.
-func (h *Handler) ListPluginWorkflowOperation(ctx contextx.IContext,
-	page types.Page, condition *types.PluginWorkflowOperationCondition) (
+func (h *Handler) ListPluginWorkflowOperation(
+	ctx contextx.IContext, page types.Page, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
 	[]*types.PluginWorkflowListOperationResult, int64, error) {
 
 	req := &protoBackend.PluginWorkflowOperationListReq{
-		Page:      convertPage(page),
-		OnlyCount: false,
+		Page:       convertPage(page),
+		OnlyCount:  false,
+		WorkflowId: workflowID,
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
@@ -174,11 +177,12 @@ func (h *Handler) ListPluginWorkflowOperation(ctx contextx.IContext,
 }
 
 // CountPluginWorkflowOperation count workflow  operation.
-func (h *Handler) CountPluginWorkflowOperation(ctx contextx.IContext,
-	condition *types.PluginWorkflowOperationCondition) (int64, error) {
+func (h *Handler) CountPluginWorkflowOperation(ctx contextx.IContext, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
+	int64, error) {
 
 	req := &protoBackend.PluginWorkflowOperationListReq{
-		OnlyCount: true,
+		OnlyCount:  true,
+		WorkflowId: workflowID,
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return 0, err
