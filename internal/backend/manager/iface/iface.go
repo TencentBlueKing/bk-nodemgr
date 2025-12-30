@@ -88,3 +88,9 @@ type ISyncManager interface {
 	// LaunchSyncAllAlivePluginProcessInfo launch a task to sync all alive plugin process info. returns the workflow-id.
 	LaunchSyncAllAlivePluginProcessInfo(ctx contextx.IContext) (string, error)
 }
+
+// IDeployPolicyManager defines the DeployPolicyManager interface.
+type IDeployPolicyManager interface {
+	// LaunchExecuteDeployPolicy launch a task to execute deploy policy. returns the trigger-id.
+	LaunchExecuteDeployPolicy(ctx contextx.IContext, param types.ExecuteDeployPolicyParam) (string, error)
+}

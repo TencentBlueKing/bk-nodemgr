@@ -36,6 +36,7 @@ type IManager interface {
 	managerIface.ISyncManager
 	managerIface.INodeManager
 	managerIface.IPluginManager
+	managerIface.IDeployPolicyManager
 }
 
 // NewManager creates a new Manager.

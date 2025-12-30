@@ -259,7 +259,7 @@ message DeployPolicyExecuteResp {
   string request_id = 3;
   Error error = 4;
 
-  message Data {}
+  message Data { string trigger_id = 1; }
   Data data = 5;
 }
 

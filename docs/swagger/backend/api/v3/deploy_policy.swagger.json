@@ -369,7 +369,12 @@
       "description": "DeployPolicyExecuteResp describes HTTP response body when execute deploy\npolicy."
     },
     "v3DeployPolicyExecuteRespData": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "trigger_id": {
+          "type": "string"
+        }
+      }
     },
     "v3DeployPolicyFields": {
       "type": "object",

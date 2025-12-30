@@ -12,7 +12,7 @@
 package deploypolicy
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
+	managerIface "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/iface"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/options"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/goasync"
@@ -26,10 +26,10 @@ const (
 )
 
 type handler struct {
-	rg              *gin.RouterGroup
-	daoDeployPolicy deploypolicy.IDaoDeployPolicy
-	goAsyncPool     goasync.IHandler
-	deployPolicyMgr dpmgr.IHandler
+	rg                   *gin.RouterGroup
+	daoDeployPolicy      deploypolicy.IDaoDeployPolicy
+	goAsyncPool          goasync.IHandler
+	deployPolicyMgrIface managerIface.IDeployPolicyManager
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -39,22 +39,12 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 		LoadBalancingStrategy: goasync.LoadBalancingStrategyLeastFirst,
 	})
 
-	deployPolicyMgr := dpmgr.NewHandler(&dpmgr.Config{
-		DaoProcess:            capability.StoragePlugin,
-		DaoPlugin:             capability.StoragePlugin,
-		DaoHost:               capability.StorageTopo,
-		DomainDeployPolicyMgr: capability.StorageDeployPolicy,
-		CmdbHandler:           capability.CmdbHandler,
-		NodeManager:           capability.Manager,
-		PluginManager:         capability.Manager,
-	})
-
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:              rg.Group("/deploy_policy"),
-		daoDeployPolicy: capability.StorageDeployPolicy,
-		goAsyncPool:     goAsyncPool,
-		deployPolicyMgr: deployPolicyMgr,
+		rg:                   rg.Group("/deploy_policy"),
+		daoDeployPolicy:      capability.StorageDeployPolicy,
+		goAsyncPool:          goAsyncPool,
+		deployPolicyMgrIface: capability.Manager,
 	}
 }
 

@@ -109,3 +109,13 @@ type TerminatePluginWorkflowOperationParam struct {
 	WorkflowID   string
 	OperationIDs []string
 }
+
+// ===============================================================================
+// DeployPolicy Manager Params
+// ===============================================================================
+
+// ExecuteDeployPolicyParam execute deploy policy param.
+type ExecuteDeployPolicyParam struct {
+	DeployPolicyIDs []int64
+	Operator        string
+}

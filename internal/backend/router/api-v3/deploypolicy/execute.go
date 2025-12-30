@@ -13,11 +13,11 @@ package deploypolicy
 import (
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // Execute executes the deploy policy.
@@ -43,22 +43,20 @@ func (h *handler) Execute(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.Aborted, fmt.Errorf("deploy policy is not enabled"))
 	}
 
-	// 3. async execute deploy policy.
-	err = h.goAsyncPool.Run(rCtx, func(nCtx contextx.IContext) error {
-		err := h.deployPolicyMgr.Do(nCtx, deployPolicy)
-		if err != nil {
-			logger.G.Biz(nCtx).WithErr(err).Error("failed to execute deploy policy, failed to do deploy policy")
-			return fmt.Errorf("failed to execute deploy policy, failed to do deploy policy: %w", err)
-		}
-
-		return nil
-	})
+	// 3. launch execute deploy policy
+	param := types.ExecuteDeployPolicyParam{
+		DeployPolicyIDs: []int64{deployPolicyID},
+		Operator:        rCtx.BKUsername(),
+	}
+	triggerID, err := h.deployPolicyMgrIface.LaunchExecuteDeployPolicy(rCtx, param)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to execute deploy policy, failed to run async task")
-		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to execute deploy policy, failed to launch execute deploy policy")
+		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	resp := new(protoBackend.DeployPolicyExecuteResp)
+	resp := &protoBackend.DeployPolicyExecuteResp_Data{
+		TriggerId: triggerID,
+	}
 
-	return resp.GetData(), nil
+	return resp, nil
 }
