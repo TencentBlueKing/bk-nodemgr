@@ -48,7 +48,7 @@ func (h *handler) Execute(rCtx restserver.IContext) (interface{}, error) {
 		DeployPolicyIDs: []int64{deployPolicyID},
 		Operator:        rCtx.BKUsername(),
 	}
-	triggerID, err := h.deployPolicyMgrIface.LaunchExecuteDeployPolicy(rCtx, param)
+	triggerID, err := h.deployPolicyMgr.LaunchExecuteDeployPolicy(rCtx, param)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to execute deploy policy, failed to launch execute deploy policy")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)

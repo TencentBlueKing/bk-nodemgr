@@ -26,10 +26,10 @@ const (
 )
 
 type handler struct {
-	rg                   *gin.RouterGroup
-	daoDeployPolicy      deploypolicy.IDaoDeployPolicy
-	goAsyncPool          goasync.IHandler
-	deployPolicyMgrIface managerIface.IDeployPolicyManager
+	rg              *gin.RouterGroup
+	daoDeployPolicy deploypolicy.IDaoDeployPolicy
+	goAsyncPool     goasync.IHandler
+	deployPolicyMgr managerIface.IDeployPolicyManager
 }
 
 func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
@@ -41,10 +41,10 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 
 	return &handler{
 		// this is a sub router, so we can use some special middleware in it and not affect the father router.
-		rg:                   rg.Group("/deploy_policy"),
-		daoDeployPolicy:      capability.StorageDeployPolicy,
-		goAsyncPool:          goAsyncPool,
-		deployPolicyMgrIface: capability.Manager,
+		rg:              rg.Group("/deploy_policy"),
+		daoDeployPolicy: capability.StorageDeployPolicy,
+		goAsyncPool:     goAsyncPool,
+		deployPolicyMgr: capability.Manager,
 	}
 }
 
