@@ -17,7 +17,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -122,13 +121,13 @@ func (h *Handler) Do(nCtx contextx.IContext, originDeployPolicies ...*types.Depl
 	}
 
 	// 6. update the deploy policy status.
-	deployPoliciesIDs := conv.SliceToSlice(relatedDeployPolicies, func(policy *types.DeployPolicy) int64 {
-		return policy.DeployPolicyID
-	})
+	for _, policy := range relatedDeployPolicies {
+		policy.LifeCycle.ExecutedAt = time.Now()
+	}
 
-	err = h.domainDeployPolicyMgr.UpdateDeployPoliciesExecutedAt(nCtx, deployPoliciesIDs, time.Now())
+	err = h.domainDeployPolicyMgr.RefreshExecuteInfo(nCtx, relatedDeployPolicies...)
 	if err != nil {
-		return fmt.Errorf("failed to update deploy policy status: %w", err)
+		return fmt.Errorf("failed to refresh execute info: %w", err)
 	}
 
 	return nil

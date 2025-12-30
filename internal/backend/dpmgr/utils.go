@@ -19,3 +19,39 @@ func genPluginNameForSpecifyPluginPkg(pluginPkgName string, deployPolicyID int64
 func genProcessUniqueID(hostID int64, pluginName string) string {
 	return fmt.Sprintf("%d_%s", hostID, pluginName)
 }
+
+// DSU disjoint set Union.
+type DSU[T ~int64] struct {
+	father map[T]T
+}
+
+// NewDsu new a disjoint set union.
+func NewDsu[T ~int64]() *DSU[T] {
+	return &DSU[T]{
+		father: make(map[T]T),
+	}
+}
+
+// Find x's father.
+func (d *DSU[T]) Find(x T) T {
+	if _, ok := d.father[x]; !ok {
+		d.father[x] = x
+	}
+
+	if d.father[x] != x {
+		d.father[x] = d.Find(d.father[x])
+	}
+
+	return d.father[x]
+}
+
+// Union x and y.
+func (d *DSU[T]) Union(x, y T) {
+	r1, r2 := d.Find(x), d.Find(y)
+	d.father[r2] = r1
+}
+
+// Judge whether x and y are in the same set.
+func (d *DSU[T]) Judge(x, y T) bool {
+	return d.Find(x) == d.Find(y)
+}

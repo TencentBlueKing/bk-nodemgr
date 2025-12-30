@@ -13,7 +13,6 @@ package deploypolicy
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
@@ -21,7 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-func (s *Storage) discoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error) {
+func (s *Storage) discoverEnabledPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()
 	}
@@ -31,6 +30,8 @@ func (s *Storage) discoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param 
 	}
 
 	opts := convSpecifyPluginParamToOptions(param)
+	// we only find the enabled policies.
+	opts = append(opts, daoDeployPolicy.WithEnabled(true))
 	policies, _, err := s.daoDeployPolicy.List(nCtx, types.UnlimitedPage(), opts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list deploy policies: %w", err)
@@ -55,21 +56,17 @@ func convSpecifyPluginParamToOptions(param *types.SpecifyPluginParam) []daoDeplo
 	return opts
 }
 
-func (s *Storage) updateDeployPoliciesExecutedAt(nCtx contextx.IContext, deployPolicyIDs []int64, executedAt time.Time) error {
+func (s *Storage) refreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*types.DeployPolicy) error {
 	if nCtx == nil {
 		return base.ErrInvalidContext()
 	}
 
-	if len(deployPolicyIDs) == 0 {
-		return base.ErrInvalidParam(errors.New("deploy policy ids is empty"))
+	if len(deployPolicy) == 0 {
+		return base.ErrInvalidParam(errors.New("deploy policy list is empty"))
 	}
 
-	filterOpts := []daoDeployPolicy.OptFn{
-		daoDeployPolicy.WithDeployPolicyID(deployPolicyIDs...),
-	}
-
-	if err := s.daoDeployPolicy.UpdateExecutedAt(nCtx, filterOpts, executedAt); err != nil {
-		return fmt.Errorf("failed to update deploy policies executed at: %w", err)
+	if err := s.daoDeployPolicy.RefreshExecuteInfo(nCtx, deployPolicy...); err != nil {
+		return fmt.Errorf("failed to refresh execute info: %w", err)
 	}
 
 	return nil

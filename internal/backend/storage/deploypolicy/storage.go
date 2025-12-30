@@ -14,7 +14,6 @@ package deploypolicy
 
 import (
 	"errors"
-	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -76,14 +75,14 @@ func (s *Storage) check() error {
 }
 
 const (
-	metricCreateDeployPolicy              = "create_deploy_policy"
-	metricListDeployPolicies              = "list_deploy_policies"
-	metricGetDeployPolicyByID             = "get_deploy_policy_by_id"
-	metricUpdateDeployPolicyFields        = "update_deploy_policy_fields"
-	metricDeleteDeployPolicy              = "delete_deploy_policy"
-	metricExistDeployPolicy               = "exist_deploy_policy"
-	metricDiscoverPoliciesBySpecifyPlugin = "discover_policies_by_specify_plugin"
-	metricUpdateDeployPoliciesExecutedAt  = "update_deploy_policies_executed_at"
+	metricCreateDeployPolicy                     = "create_deploy_policy"
+	metricListDeployPolicies                     = "list_deploy_policies"
+	metricGetDeployPolicyByID                    = "get_deploy_policy_by_id"
+	metricUpdateDeployPolicyFields               = "update_deploy_policy_fields"
+	metricDeleteDeployPolicy                     = "delete_deploy_policy"
+	metricExistDeployPolicy                      = "exist_deploy_policy"
+	metricDiscoverEnabledPoliciesBySpecifyPlugin = "discover_policies_by_specify_plugin"
+	metricRefreshExecuteInfo                     = "refresh_execute_info"
 )
 
 // CreateDeployPolicy create deploy policy.
@@ -203,15 +202,15 @@ func (s *Storage) ExistDeployPolicy(nCtx contextx.IContext, condition *types.Dep
 
 // ==================== IDomainDeployPolicyMgr Functions ====================
 
-// DiscoverPoliciesBySpecifyPlugin discover policies by specify plugin.
-func (s *Storage) DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error) {
+// DiscoverEnabledPoliciesBySpecifyPlugin discover enabled policies by specify plugin.
+func (s *Storage) DiscoverEnabledPoliciesBySpecifyPlugin(nCtx contextx.IContext, param *types.SpecifyPluginParam) ([]*types.DeployPolicy, error) {
 	var (
 		policies []*types.DeployPolicy
 		err      error
 	)
 
-	err = s.WrapFn(nCtx, metricDiscoverPoliciesBySpecifyPlugin, func(nCtx contextx.IContext) error {
-		policies, err = s.discoverPoliciesBySpecifyPlugin(nCtx, param)
+	err = s.WrapFn(nCtx, metricDiscoverEnabledPoliciesBySpecifyPlugin, func(nCtx contextx.IContext) error {
+		policies, err = s.discoverEnabledPoliciesBySpecifyPlugin(nCtx, param)
 
 		return err
 	})
@@ -222,14 +221,14 @@ func (s *Storage) DiscoverPoliciesBySpecifyPlugin(nCtx contextx.IContext, param 
 	return policies, nil
 }
 
-// UpdateDeployPoliciesExecutedAt update deploy policies executed at.
-func (s *Storage) UpdateDeployPoliciesExecutedAt(nCtx contextx.IContext, deployPolicyIDs []int64, executedAt time.Time) error {
+// RefreshExecuteInfo refresh execute info.
+func (s *Storage) RefreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*types.DeployPolicy) error {
 	var (
 		err error
 	)
 
-	err = s.WrapFn(nCtx, metricUpdateDeployPoliciesExecutedAt, func(nCtx contextx.IContext) error {
-		err = s.updateDeployPoliciesExecutedAt(nCtx, deployPolicyIDs, executedAt)
+	err = s.WrapFn(nCtx, metricRefreshExecuteInfo, func(nCtx contextx.IContext) error {
+		err = s.refreshExecuteInfo(nCtx, deployPolicy...)
 
 		return err
 	})

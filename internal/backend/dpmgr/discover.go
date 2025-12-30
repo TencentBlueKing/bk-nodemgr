@@ -75,6 +75,7 @@ func (discover *PolicyDiscovery) discoverRelatedDeployPolicy(nCtx contextx.ICont
 	result := []*types.DeployPolicy{policy}
 
 	state := newBfsState()
+	dsu := NewDsu[int64]()
 
 	state.pushPolicyToQueue(policy)
 
@@ -103,12 +104,14 @@ func (discover *PolicyDiscovery) discoverRelatedDeployPolicy(nCtx contextx.ICont
 				return nil, fmt.Errorf("failed to mark spec as visited: %w", err)
 			}
 
-			relatedPolicies, err := discover.discoverPoliciesBySpec(nCtx, spec)
+			relatedPolicies, err := discover.discoverEnabledPoliciesBySpec(nCtx, spec)
 			if err != nil {
-				return nil, fmt.Errorf("failed to find related policies: %w", err)
+				return nil, fmt.Errorf("failed to discover related policies: %w", err)
 			}
 
 			for _, relatedPolicy := range relatedPolicies {
+				dsu.Union(currentPolicy.DeployPolicyID, relatedPolicy.DeployPolicyID)
+
 				if state.isVisitedPolicy(relatedPolicy) {
 					continue
 				}
@@ -117,6 +120,11 @@ func (discover *PolicyDiscovery) discoverRelatedDeployPolicy(nCtx contextx.ICont
 				state.pushPolicyToQueue(relatedPolicy)
 			}
 		}
+	}
+
+	// update dsu id.
+	for idx := range result {
+		result[idx].DsuID = dsu.Find(result[idx].DeployPolicyID)
 	}
 
 	return result, nil
@@ -180,7 +188,9 @@ func (state *bfsState) markPolicyAsVisited(policy *types.DeployPolicy) {
 	state.visitedPolicies[policy.DeployPolicyID] = struct{}{}
 }
 
-func (discover *PolicyDiscovery) discoverPoliciesBySpec(nCtx contextx.IContext, targetSpec *types.DeploySpec) ([]*types.DeployPolicy, error) {
+func (discover *PolicyDiscovery) discoverEnabledPoliciesBySpec(nCtx contextx.IContext, targetSpec *types.DeploySpec) (
+	[]*types.DeployPolicy, error) {
+
 	switch targetSpec.Type() {
 	case types.DeploySpecTypeSpecifyPlugin:
 		param, err := targetSpec.GetSpecifyPluginParam()
@@ -188,7 +198,7 @@ func (discover *PolicyDiscovery) discoverPoliciesBySpec(nCtx contextx.IContext, 
 			return nil, fmt.Errorf("failed to get spec specify plugin param: %w", err)
 		}
 
-		policies, err := discover.domainDeployPolicyMgr.DiscoverPoliciesBySpecifyPlugin(nCtx, param)
+		policies, err := discover.domainDeployPolicyMgr.DiscoverEnabledPoliciesBySpecifyPlugin(nCtx, param)
 		if err != nil {
 			return nil, fmt.Errorf("failed to discover policies by specify plugin: %w", err)
 		}

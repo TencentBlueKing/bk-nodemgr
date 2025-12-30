@@ -50,6 +50,9 @@ type IHandler interface {
 
 	// UpdateExecutedAt update deploy policies executed at.
 	UpdateExecutedAt(nCtx contextx.IContext, filterOpts []OptFn, executedAt time.Time) error
+
+	// RefreshExecuteInfo refresh deploy policies execute info.
+	RefreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*types.DeployPolicy) error
 }
 
 var _ IHandler = &Handler{}
@@ -623,6 +626,52 @@ func (h *Handler) UpdateExecutedAt(nCtx contextx.IContext, opts []OptFn, execute
 
 	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
 		return fmt.Errorf("failed to update deploy policies executed at: %w", err)
+	}
+
+	return nil
+}
+
+// RefreshExecuteInfo refresh deploy policies execute info.
+func (h *Handler) RefreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*types.DeployPolicy) error {
+	if err := nCtx.CheckTenantID(); err != nil {
+		return fmt.Errorf("failed to check tenant id: %w", err)
+	}
+
+	if len(deployPolicy) == 0 {
+		return base.ErrInvalidParam(fmt.Errorf("deploy policy list is empty"))
+	}
+
+	tenantID := nCtx.TenantID()
+
+	docs := make([]*base.DocumentFieldUpdate, 0, len(deployPolicy))
+	for _, policy := range deployPolicy {
+		if policy == nil {
+			return base.ErrInvalidItemInParamList()
+		}
+
+		updates := map[string]any{
+			FieldKeyLifeCycleExecutedAt: policy.LifeCycle.ExecutedAt,
+			FieldKeyDsuID:               policy.DsuID,
+			FieldKeyLifeCycleUpdatedAt:  time.Now(),
+		}
+
+		docs = append(docs, &base.DocumentFieldUpdate{
+			Filter: func() bson.D {
+				filter := base.AliveFilter()
+				filter = WithDeployPolicyID(policy.DeployPolicyID)(filter)
+
+				return filter
+			}(),
+			Fields: updates,
+		})
+	}
+
+	if len(docs) == 0 {
+		return base.ErrInvalidParam(fmt.Errorf("no valid updates to apply"))
+	}
+
+	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
+		return fmt.Errorf("failed to update deploy policies executed at and dsuid: %w", err)
 	}
 
 	return nil
