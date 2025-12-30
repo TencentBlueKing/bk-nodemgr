@@ -48,9 +48,6 @@ type IHandler interface {
 	// Exist check a deploy policy exist by conditions.
 	Exist(nCtx contextx.IContext, opts ...OptFn) (bool, error)
 
-	// UpdateExecutedAt update deploy policies executed at.
-	UpdateExecutedAt(nCtx contextx.IContext, filterOpts []OptFn, executedAt time.Time) error
-
 	// RefreshExecuteInfo refresh deploy policies execute info.
 	RefreshExecuteInfo(nCtx contextx.IContext, deployPolicy ...*types.DeployPolicy) error
 }
@@ -593,42 +590,6 @@ func generateDeployPolicyUpdates(fields types.DeployPolicyFields, deployPolicy *
 	}
 
 	return updates, nil
-}
-
-// UpdateExecutedAt update deploy policies executed at.
-func (h *Handler) UpdateExecutedAt(nCtx contextx.IContext, opts []OptFn, executedAt time.Time) error {
-	if err := nCtx.CheckTenantID(); err != nil {
-		return fmt.Errorf("failed to check tenant id: %w", err)
-	}
-
-	// Validate executedAt is set
-	if executedAt.IsZero() {
-		return base.ErrInvalidParam(fmt.Errorf("executed at time is required"))
-	}
-
-	tenantID := nCtx.TenantID()
-
-	// Parse filter options
-	filter := base.AliveFilter()
-	for _, opt := range opts {
-		filter = opt(filter)
-	}
-
-	// Build update document
-	docs := []*base.DocumentFieldUpdate{
-		{
-			Filter: filter,
-			Fields: map[string]any{
-				FieldKeyLifeCycleExecutedAt: executedAt,
-			},
-		},
-	}
-
-	if err := h.tenantDao(tenantID).UpdateFieldsBulk(nCtx, docs); err != nil {
-		return fmt.Errorf("failed to update deploy policies executed at: %w", err)
-	}
-
-	return nil
 }
 
 // RefreshExecuteInfo refresh deploy policies execute info.
