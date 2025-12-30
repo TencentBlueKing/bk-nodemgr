@@ -690,7 +690,7 @@ func (x *DeployPolicyUpdateReq) ConvertDeployPoliciesToTypes() ([]*types.DeployP
 
 // Validate check body.
 func (x *DeployPolicyExecuteReq) Validate() error {
-	if x.GetDeployPolicyId() <= 0 {
+	if x.GetDeployPolicyId() < 0 {
 		return fmt.Errorf("deploy policy id is required")
 	}
 
