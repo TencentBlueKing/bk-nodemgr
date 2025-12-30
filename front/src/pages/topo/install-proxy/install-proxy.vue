@@ -115,22 +115,7 @@
           label-width="90"
           required
         >
-          <Select
-            class="w-[488px]"
-            v-model="form.bk_networkarea_id"
-            auto-focus
-            filterable
-            @select="handleSelect"
-          >
-            <Select.Option
-              v-for="option in networkAreaList"
-              :key="option.bk_networkarea_id"
-              :id="String(option.bk_networkarea_id)"
-              :name="option.bk_networkarea_name"
-            >
-              [{{ option.bk_networkarea_id }}] {{ option.bk_networkarea_name }}
-            </Select.Option>
-          </Select>
+          <AreaSelector class="w-[488px]" :multiple="false" @change="handleSingleChange" />
         </Form.FormItem>
         <Form.FormItem
           v-if="bk_networkunit_id === null"
@@ -384,21 +369,12 @@ const systemData = ref([
     version: '',
   },
 ]);
-const networkAreaList = ref<NetworkArea[]>([]);
-// 管控区域下拉列表获取
-const getNetworkAreaList = async () => {
-  const res = await TopoService.NetworkAreaList({
-    page: {
-      limit: 0,
-    },
-  }).catch((err: any) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
-    };
-  });
-  networkAreaList.value = res.items;
+
+const handleSingleChange = (id: string, rows: any[]) => {
+  // 单选通常用于表单赋值
+  form.bk_networkarea_id = id;
+  form.bk_networkunit_id = '';
+  form.bk_networkarea_name = rows[0].bk_networkarea_name;
 };
 
 // 管控单元下拉列表获取
@@ -417,10 +393,7 @@ const getNetworkUnitList = async () => {
   });
   networkUnitList.value = res.items;
 };
-// 选择管控区域
-const handleSelect = (newValue: string) => {
-  form.bk_networkarea_name = networkAreaList.value?.find((item: any) => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
-};
+
 // eslint-disable-next-line max-len
 const areaUnitlist = computed(() => networkUnitList.value.filter((item: NetworkUnit) => [Number(route.params.workarea), Number(form.bk_networkarea_id)].includes(item.bk_networkarea_id)));
 // 安装源
@@ -614,7 +587,7 @@ const handleExcelImport = () => {
   isShowExcelImport.value = true;
 };
 const handleExcelImportConfirm = () => {
-  form.info = excelImportData.value;
+  form.info = [...form.info, ...excelImportData.value];
   isShowExcelImport.value = false;
   uploadExcelRef.value?.handleDelete();
 };
@@ -663,7 +636,6 @@ const getVersions = async () => {
 watch(() => isShow.value, async () => {
   if (isShow.value) {
     await getVersions();
-    await getNetworkAreaList();
   } else {
     formRef.value?.clearValidate();
     // 重置数据

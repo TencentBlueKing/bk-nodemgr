@@ -50,26 +50,11 @@
             class="bg-[#F0F1F5] p-[16px] flex items-center gap-[12px]"
           >
             <div class="flex-1 flex flex-col gap-[8px]">
-              <Select
-                v-model="item.bk_networkarea_id"
-                prefix="管控区域"
-                auto-focus
-                filterable
-                @change="handleChangeArea(item)"
-              >
-                <Select.Option label="不限" value="-1"></Select.Option>
-                <Select.Group>
-                  <Select.Option
-                    v-for="option in networkAreaList"
-                    :key="option.bk_networkarea_id"
-                    :id="String(option.bk_networkarea_id)"
-                    :name="option.bk_networkarea_name"
-                  >
-                    [{{ option.bk_networkarea_id }}]
-                    {{ option.bk_networkarea_name }}
-                  </Select.Option>
-                </Select.Group>
-              </Select>
+              <AreaSelector
+                class="w-[568px]"
+                :multiple="false"
+                :no-limit="true"
+                @change="(id, data) => handleSingleChange(item, id, data)" />
               <Select
                 v-model="item.bk_networkunit_id"
                 prefix="管控单元"
@@ -325,14 +310,11 @@ const handleSubmit = async () => {
   }
 };
 
-const networkAreaList = ref<NetworkArea[]>([]);
-// 管控区域
-const getNetworkAreaList = async () => {
-  const res = await TopoService.NetworkAreaList({}).catch(() => ({
-    total: 0,
-    items: [],
-  }));
-  networkAreaList.value = res.items;
+const handleSingleChange = (item: any, id: string, rows: any[]) => {
+  // 单选通常用于表单赋值
+  item.bk_networkarea_id = id;
+  item.bk_networkunit_id = '';
+  item.bk_networkarea_name = rows[0].bk_networkarea_name;
 };
 // 管控单元下拉列表获取
 const networkUnitList = ref<NetworkUnit[]>([]);
@@ -365,13 +347,11 @@ const getPlatform = async () => {
     label: item,
   }));
 };
-const handleChangeArea = (item: any) => {
-  item.bk_networkunit_id = '-1';
-};
+
 
 watch(() => isShow.value, () => {
   if (isShow.value) {
-    Promise.all([getNetworkAreaList(), getNetworkUnitList(), getPlatform()]);
+    Promise.all([getNetworkUnitList(), getPlatform()]);
     if (!props.isEdit) {
       initData();
     } else if (props.isEdit && props.configData) {

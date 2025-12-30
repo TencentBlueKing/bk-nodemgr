@@ -96,7 +96,7 @@
           <TableColumn field="costTime" :title="'耗时'" min-width="60">
             <template #default="{ row }">
               <span :class="{ 'text-[#c6c4cc]': row.state === 'pending' }">
-                {{ row.costTime > 0 ? row.costTime : 0 }}s
+                {{ formatTimeToMS(row.costTime) }}
               </span>
             </template>
           </TableColumn>
@@ -116,9 +116,17 @@
                     height="12.25px"
                   />
                   <span class="nodeman-icon nc-unknown status-icon" v-else></span>
-                  <span :class="['ml-[5px]', { 'text-[#c4c6cc]': row.state === 'pending' }]">
-                    {{ statusMap[row.state]?.text }}
-                  </span>
+                  <div>
+                    <!-- eslint-disable-next-line max-len -->
+                    <div v-if="currentOperate.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script')
+                      && last_oper_inst_step_key === row.stepKey">
+                      等待手动操作，查看
+                      <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide(row)">操作指引</Button>
+                    </div>
+                    <span v-else :class="['ml-[5px]', { 'text-[#c4c6cc]': row.state === 'pending' }]">
+                      {{ statusMap[row.state]?.text }}
+                    </span>
+                  </div>
                 </div>
                 <Button
                   v-if="row.state === 'running'"
@@ -228,6 +236,7 @@
       </bk-loading>
     </div>
   </div>
+  <guide v-model:is-show="isGuideShow" :data="guideData" />
 </template>
 <script setup lang="ts">
 import { Button, Dropdown, Input, overflowTitle } from 'bkui-vue';
@@ -239,6 +248,8 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
+
+import guide from './guide.vue';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
@@ -313,6 +324,14 @@ const logData = ref<{
   oper_inst_logs: {},
 });
 const tableData = ref<any[]>([]);
+const last_oper_inst_step_key = computed(() => {
+  for (let i = 0; i < tableData.value.length; i++) {
+    if (tableData.value[i].status === 'pending') {
+      return tableData.value[i - 1].stepKey;
+    }
+  }
+  return '';
+});
 const statusMap = {
   running: {
     text: '执行中',
@@ -370,10 +389,41 @@ const timeFormatter = (
   format = 'YYYY-MM-DD HH:mm:ss',
 ) => {
   if (typeof val === 'number') {
-    // 使用 dayjs.unix() 直接解析秒级时间戳
-    return dayjs.unix(val).format(format);
+    // 判断时间戳位数：10位为秒级，13位为毫秒级
+    const timestampStr = val.toString();
+    if (timestampStr.length === 10) {
+      // 秒级时间戳，使用 dayjs.unix()
+      return dayjs.unix(val).format(format);
+    } else if (timestampStr.length === 13) {
+      // 毫秒级时间戳，使用 dayjs()
+      return dayjs(val).format(format);
+    } else {
+      // 其他长度的数字，默认按毫秒处理
+      return dayjs(val).format(format);
+    }
   }
   return val ? dayjs(val).format(format) : '--';
+};
+
+const formatTimeToMS = (duration: number) => {
+  const seconds = Math.floor(duration / 1000);
+  return `${seconds}s`;
+};
+
+// 操作指引侧边栏
+const isGuideShow = ref(false);
+const guideData = ref<{workflow_id: string, operation_id: string, bk_host_innerip: string}>({
+  workflow_id: '',
+  operation_id: '',
+  bk_host_innerip: '',
+});
+const handleOperateGuide = (row: any) => {
+  isGuideShow.value = true;
+  guideData.value = {
+    workflow_id: route.params.taskId as string,
+    operation_id: row.operation_id,
+    bk_host_innerip: row.bk_host_innerip,
+  };
 };
 
 // 重试
@@ -525,19 +575,18 @@ const operateLoading = ref(false);
 const getOperateList = async () => {
   operateLoading.value = true;
   const res = await serviceCaller.call('operationList', {
-    exact_include_conditions: {
-      workflow_id: route.params.taskId,
-    },
+    workflow_id: route.params.taskId,
   }).catch(() => ({
     operations: [],
     total_count: 0,
   }));
   operateLoading.value = false;
   operateList.value = res.operations.map(item => ({
-    ...item.param,
-    ...item.status,
-    bk_host_inner_list: item.param.bk_host_inner_list?.join(',') || item.param.bk_host_innerip_list?.join(','),
-    bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(',') || item.param.bk_host_innerip_v6_list?.join(','),
+    ...item.node_deployment_info,
+    ...item.latest_oper_inst_brief_data.life_cycle,
+    latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
+    bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
+    bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
     operation_id: item.operation_id,
   }));
 };

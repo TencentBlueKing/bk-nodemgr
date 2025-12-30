@@ -205,7 +205,7 @@ const handleChange = async () => {
   });
   if (isSupported) {
     try {
-      await copy(copyContent.join(',\n'));
+      await copy(copyContent.join('\n'));
       Message({
         theme: 'success',
         message: `${t('components.copyIpDropdown.success')}（${copyContent.length} 个${type?.includes('ipv4') ? 'IPv4' : 'IPv6'}）`,

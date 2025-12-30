@@ -199,7 +199,7 @@
         </TableColumn>
         <TableColumn field="total_time_second" :title="'耗时'">
           <template #default="{ row }">
-            <span>{{ formatTimeToMS(row.total_time_second) }}</span>
+            <span>{{ formatCostTime(row.total_time_second) }}</span>
           </template>
         </TableColumn>
         <TableColumn
@@ -221,7 +221,15 @@
                   } status-icon`"
                 ></i>
               </template>
-              <span>{{ statusMap[row.state].text }}</span>
+              <div>
+                {{ console.log(row,12) }}
+                <!-- eslint-disable-next-line max-len -->
+                <div v-if="row.latest_action_inst_brief_data.tags.includes('need_manual_exec_install_script')">
+                  等待手动操作，查看
+                  <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide(row)">操作指引</Button>
+                </div>
+                <span v-else>{{ statusMap[row.state].text }}</span>
+              </div>
             </div>
             <div class="flex items-center" v-else>
               <span class="nodeman-icon nc-unknown status-icon"></span>
@@ -284,6 +292,7 @@
       </Table>
     </div>
   </div>
+  <guide v-model:is-show="isGuideShow" :data="guideData" />
 </template>
 <script setup lang="ts">
 import {
@@ -316,6 +325,8 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
+
+import guide from './guide.vue';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
@@ -418,6 +429,8 @@ const typeMap = computed(() => ({
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
 }));
 
+// 补零规则：非0且小于10时补零，0则直接显示0
+const padIfNeeded = (num: number) => (num === 0 ? '0' : num < 10 ? `0${num}` : num.toString());
 const formatTimeToMS = (duration = 0) => {
   // 处理非数字或负数情况
   if (typeof duration !== 'number' || duration < 0) {
@@ -438,9 +451,6 @@ const formatTimeToMS = (duration = 0) => {
   const minutes = Math.floor(remainingSecondsAfterHours / 60);
   const seconds = remainingSecondsAfterHours % 60;
 
-  // 补零规则：非0且小于10时补零，0则直接显示0
-  const padIfNeeded = (num: number) => (num === 0 ? '0' : num < 10 ? `0${num}` : num.toString());
-
   // 构建结果
   const parts = [];
   if (hours > 0) {
@@ -455,7 +465,7 @@ const formatTimeToMS = (duration = 0) => {
 };
 const formatCostTime = (duration: number) => {
   const minutes = Math.floor(duration / 60000);
-  const seconds = Math.floor((duration % 60000) / 1000);
+  const seconds = padIfNeeded(Math.floor((duration % 60000) / 1000));
   return `${minutes}m ${seconds}s`;
 };
 
@@ -970,12 +980,12 @@ const getParams = () => {
     },
     exact_include_conditions: {} as Record<string, string[] | string>,
     fuzzy_include_conditions: {} as Record<string, string[]>,
+    workflow_id: route.params.taskId,
   };
   searchSelectValue.value.forEach((item: any) => {
     const target = params.exact_include_conditions;
     target[item.id] = item.values?.map((value: any) => value.id);
   });
-  params.exact_include_conditions['workflow_id'] = route.params.taskId;
   return params;
 };
 // 所有子任务状态
@@ -993,19 +1003,21 @@ const getOperateList = async () => {
   }));
   pagination.count = res.total;
   const mapList = res.operations.map((item) => {
-    subTasksStatus.value?.push(item.status.state);
+    subTasksStatus.value?.push(item.latest_oper_inst_brief_data.life_cycle.state);
     return {
-      ...item.param,
-      ...item.status,
-      bk_host_innerip: item.param.bk_host_inner_list?.join(',') || item.param.bk_host_innerip_list?.join(','),
-      bk_host_innerip_v6: item.param.bk_host_innerip_v6_list?.join(',') || item.param.bk_host_innerip_v6_list?.join(','),
-      bk_host_inner_list: item.param.bk_host_inner_list?.join(',') || item.param.bk_host_innerip_list?.join(','),
-      bk_host_innerip_v6_list: item.param.bk_host_innerip_v6_list?.join(',') || item.param.bk_host_innerip_v6_list?.join(','),
-      bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.param.bk_biz_id)?.bk_biz_name
-         || item.param.bk_biz_id,
+      ...item.node_deployment_info,
+      ...item.latest_oper_inst_brief_data.life_cycle,
+      latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
+      bk_host_innerip: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
+      bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
+      bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.node_deployment_info.bk_biz_id)?.bk_biz_name
+         || item.node_deployment_info.bk_biz_id,
       operation_id: item.operation_id,
       reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
-      node_version: route.query.active === 'node' ? item.param.node_version : item.param.plugin_version,
+      node_version: route.query.active === 'node' ? item.node_deployment_info.node_version : item.node_deployment_info.plugin_version,
+      total_time_second: item.latest_oper_inst_brief_data.life_cycle.end_time - item.create_time,
     };
   });
   const isEqual = tableData.value.length === mapList.length
@@ -1046,6 +1058,22 @@ const { start, stop } = useInterval(getOperateList, 1000); // 轮询
 const handleStop = async () => {
   await updataCurrentTaskInfo();
   await getOperateList();
+};
+
+// 操作指引侧边栏
+const isGuideShow = ref(false);
+const guideData = ref<{workflow_id: string, operation_id: string, bk_host_innerip: string}>({
+  workflow_id: '',
+  operation_id: '',
+  bk_host_innerip: '',
+});
+const handleOperateGuide = (row: any) => {
+  isGuideShow.value = true;
+  guideData.value = {
+    workflow_id: route.params.taskId as string,
+    operation_id: row.operation_id,
+    bk_host_innerip: row.bk_host_innerip,
+  };
 };
 watch(
   () => searchSelectValue,

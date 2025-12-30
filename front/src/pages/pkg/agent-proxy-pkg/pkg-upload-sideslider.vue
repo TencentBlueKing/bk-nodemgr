@@ -8,7 +8,7 @@
   >
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <span>包上传</span>
+        <span>包上传<span v-if="subTitle" class="text-[14px] ml-[10px]">{{ subTitle }}</span></span>
         <template v-if="route.name === 'pluginPackageMng'">
           <Dropdown
             theme="light"
@@ -99,6 +99,7 @@ const packageStore = usePackageStore();
 
 // 插件上传类型
 const pluginUploadType = ref('v3/plugin');
+const subTitle = ref('');
 const pluginUploadTypeList = ref([
   {
     id: 'v2/plugin',
@@ -112,6 +113,7 @@ const pluginUploadTypeList = ref([
 const triggerHandler = (id: string) => {
   isShow.value = true;
   pluginUploadType.value = id;
+  subTitle.value = pluginUploadTypeList.value.find(item => item.id === id)?.name || '';
 };
 
 const handleBeforeClose = () => new Promise((resolve, reject) => {

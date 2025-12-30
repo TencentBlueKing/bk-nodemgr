@@ -917,6 +917,11 @@ const tableValidate = async () => {
       }
     }
 
+    if (row.login_mode === 'password_vault' && window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH !== 'true') {
+      setError(i, 'login_mode', '密码库功能未开启');
+      rowValid = false;
+    }
+
     if (!rowValid) {
       isValid = false;
       if (firstErrorRowIndex === -1) firstErrorRowIndex = i;

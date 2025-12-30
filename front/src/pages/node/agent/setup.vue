@@ -36,22 +36,7 @@
           property="bk_networkarea_id"
           required
         >
-          <Select
-            class="w-[568px]"
-            v-model="formData.bk_networkarea_id"
-            auto-focus
-            filterable
-            @select="handleSelect"
-          >
-            <Select.Option
-              v-for="option in networkAreaList"
-              :key="option.bk_networkarea_id"
-              :id="String(option.bk_networkarea_id)"
-              :name="option.bk_networkarea_name"
-            >
-              [{{ option.bk_networkarea_id }}] {{ option.bk_networkarea_name }}
-            </Select.Option>
-          </Select>
+          <AreaSelector class="w-[568px]" :multiple="false" @change="handleSingleChange" />
         </Form.FormItem>
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.cloud_unit')"
@@ -294,9 +279,6 @@ const isShow = ref(false);
 const isShowDialog = ref(false);
 const businessList = computed(() => mainStore.businessList);
 const isAtBottom = ref(false);
-const handleSelect = (newValue: string, oldValue: string) => {
-  formData.bk_networkarea_name = networkAreaList.value?.find(item => String(item.bk_networkarea_id) === newValue)?.bk_networkarea_name || '';
-};
 const dialogData = ref([{
   os: '',
   version: '',
@@ -321,7 +303,7 @@ const handleExcelImport = () => {
   isShowExcelImport.value = true;
 };
 const handleExcelImportConfirm = () => {
-  formData.info = excelImportData.value;
+  formData.info = [...formData.info, ...excelImportData.value];
   isShowExcelImport.value = false;
   uploadExcelRef.value?.handleDelete();
 };
@@ -347,21 +329,12 @@ const handleConfirmVersion = (data: any[]) => {
 };
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);
-const networkAreaList = ref<NetworkArea[]>([]);
-// 管控区域下拉列表获取
-const getNetworkAreaList = async () => {
-  const res = await TopoService.NetworkAreaList({
-    page: {
-      limit: 0,
-    },
-  }).catch((err: any) => {
-    console.log(err);
-    return {
-      total: 0,
-      items: [],
-    };
-  });
-  networkAreaList.value = res.items;
+
+const handleSingleChange = (id: string, rows: any[]) => {
+  // 单选通常用于表单赋值
+  formData.bk_networkarea_id = id;
+  formData.bk_networkunit_id = '';
+  formData.bk_networkarea_name = rows[0].bk_networkarea_name;
 };
 
 // 管控单元下拉列表获取
@@ -379,6 +352,9 @@ const getNetworkUnitList = async () => {
     };
   });
   networkUnitList.value = res.items;
+  if (res.items.length === 1) {
+    formData.bk_networkunit_id = String(res.items[0].bk_networkunit_id);
+  }
 };
 
 const formRef = ref(null);
@@ -511,7 +487,9 @@ watch(() => activeInstallType.value, () => {
 watch(
   () => formData.bk_networkarea_id,
   async () => {
-    await getNetworkUnitList();
+    if (formData.bk_networkarea_id) {
+      await getNetworkUnitList();
+    }
   },
 );
 watch(
@@ -521,7 +499,6 @@ watch(
   },
 );
 onMounted(async () => {
-  await getNetworkAreaList();
   await getVersions();
   if (footerRef.value) {
     window.addEventListener('resize', debouncedCheck);

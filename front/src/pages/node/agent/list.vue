@@ -797,7 +797,7 @@ const handleOperate = async (type: string, data: Host[], batch = false) => {
   let operateData = data;
   if (isCrossPageSelection.value && type !== 'reinstall') {
     await getCorssPageHostIds();
-    operateData = crossPageHostIdData.value;
+    operateData = crossPageHostIdData.value.map((item: any) => ({ bk_host_id: item }));
     batch = true; // 强制设置为批量模式
   }
 

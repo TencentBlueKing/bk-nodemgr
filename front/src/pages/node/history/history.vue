@@ -56,6 +56,8 @@
         :settings="settings"
         @setting-change="handleSettingChange"
         @column-filter="handleFilter"
+        @page-limit-change="pageLimitChange"
+        @page-value-change="pageValueChange"
       >
         <TableColumn
           field="workflow_id"
@@ -195,7 +197,6 @@ import { Table, TableColumn } from '@blueking/table';
 import type { NodeWorkflowInfo } from '@/@types/node_workflow';
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
-import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
@@ -228,7 +229,19 @@ const panels = ref([
 ]);
 
 // 分页
-const { pagination } = usePage(tableData);
+const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
+
+const pageLimitChange = async (limit: number) => {
+  pagination.limit = limit;
+  pagination.current = 1; // 页码重置为1
+  await getTaskList(); // 分页变化不防抖，立即执行
+};
+
+const pageValueChange = async (current: number) => {
+  pagination.current = current;
+  await getTaskList(); // 分页变化不防抖，立即执行
+};
+
 // 跨页全选
 const loading = ref(false);
 
@@ -342,9 +355,11 @@ const hideAutoTask = ref(false);
 
 const timeFormatter = (val: string, format = 'YYYY-MM-DD HH:mm:ss') => (val ? dayjs(val).format(format) : '--');
 
+// 补零规则：非0且小于10时补零，0则直接显示0
+const padIfNeeded = (num: number) => (num === 0 ? '0' : num < 10 ? `0${num}` : num.toString());
 const formatTimeToMS = (duration: number) => {
   const minutes = Math.floor(duration / 60000);
-  const seconds = Math.floor((duration % 60000) / 1000);
+  const seconds = padIfNeeded(Math.floor((duration % 60000) / 1000));
   return `${minutes}m ${seconds}s`;
 };
 
@@ -478,8 +493,8 @@ const getTimestampInSeconds = (originalDate: string) => {
 const getParams = () => {
   const params = {
     page: {
-      limit: 0,
-      offset: 0,
+      limit: pagination.limit,
+      offset: (pagination.current - 1) * pagination.limit,
     },
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
@@ -532,6 +547,7 @@ const getTaskList = async () => {
     });
   };
 
+  pagination.count = res.total;
   tableData.value = res.items.map((item) => {
     const statisticsItem = statistics.items?.find(statistic => statistic.workflow_id === item.workflow_id);
     return {

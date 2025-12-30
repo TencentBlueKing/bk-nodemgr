@@ -90,23 +90,25 @@ export interface NodeWorkflowDistinctRespData {
   status: string[];
 }
 
-export interface NodeWorkflowOperationParam {
+// NodeDeploymentInfo describes the node workflow operation information.
+export interface NodeDeploymentInfo {
   bk_host_id: number;
   bk_biz_id: number;
+  bk_host_innerip_list: string[];
+  bk_host_innerip_v6_list: string[];
   bk_networkarea_id: number;
   bk_networkunit_id: number;
-  bk_host_inner_list: string[];
-  bk_host_innerip_v6_list: string[];
   node_version: string;
-  operator: string;
 }
 
+// NodeWorkflowOperation describes the node workflow operation.
 export interface NodeWorkflowOperation {
   operation_id: string;
   instance_ids: string[];
-  param: NodeWorkflowOperationParam;
-  status: NodeWorkflowOperationStatus;
-  latest_action_inst_brief_data: WorkflowActionInstBriefData;
+  operator: string;
+  create_time: number;
+  node_deployment_info: NodeDeploymentInfo;
+  latest_oper_inst_brief_data: WorkflowOperInstBriefData;
 }
 
 export interface NodeWorkflowOperationStatus {
@@ -117,7 +119,6 @@ export interface NodeWorkflowOperationStatus {
 // NodeWorkflowOperationExactConditions describes the exact conditions of node
 // workflow operation list request.
 export interface NodeWorkflowOperationExactConditions {
-  workflow_id: string;
   node_version: string[];
   bk_host_innerip: string[];
   bk_host_innerip_v6: string[];
@@ -137,6 +138,7 @@ export interface NodeWorkflowOperationFuzzyConditions {
 export interface NodeWorkflowOperationListReq {
   only_count: boolean;
   page: Page;
+  workflow_id: string;
   exact_include_conditions: NodeWorkflowOperationExactConditions;
   fuzzy_include_conditions: NodeWorkflowOperationFuzzyConditions;
 }

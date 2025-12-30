@@ -95,7 +95,7 @@
             :filter="filterOptionSource.version"
           ></TableColumn>
           <TableColumn
-            title="Agent Id"
+            title="Agent ID"
             field="agent_id"
             min-width="120"
           ></TableColumn>
@@ -392,7 +392,6 @@ const getProcessList = async () => {
     page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },
     exact_include_conditions: props.type === 'plugin' ? {
       plugin_name: [props.plugin.name],
-      plugin_pkg_name: [props.plugin.pkg_name],
     } : {
       bk_host_id: [props.node.bk_host_id],
     },

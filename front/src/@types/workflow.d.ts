@@ -57,3 +57,9 @@ export interface WorkflowActionData {
   message: WorkflowActionMessage;
 }
 
+// WorkflowOperInstBriefData describes the brief data of operation instance.
+export interface WorkflowOperInstBriefData {
+  life_cycle: WorkflowLifeCycle;
+  latest_action_inst_brief_data: WorkflowActionInstBriefData;
+}
+

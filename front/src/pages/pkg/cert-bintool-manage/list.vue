@@ -87,6 +87,18 @@
             </div>
           </template>
         </TableColumn>
+        <TableColumn
+          field="download"
+          title="下载"
+          fixed="right"
+          :width="60"
+        >
+          <template #default="{ row }">
+            <download-pkg :data="row" :url="downloadUrl">
+              <i class="nodeman-icon nc-xiazai"></i>
+            </download-pkg>
+          </template>
+        </TableColumn>
       </Table>
     </Loading>
   </div>
@@ -126,7 +138,6 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
-const title = computed(() => (route.name === 'agentPackageMng' ? t('Agent 包管理') : t('Proxy 包管理')));
 const currentType = computed(() => {
   const routeName = route.name?.toString() || '';
   const type = routeName.split('PackageMng')[0];
@@ -136,6 +147,7 @@ const isShow = ref(false);
 const loading = ref(false);
 const packageList = ref<Release[]>([]);
 const originPackageList = ref<Release[]>([]);
+const downloadUrl = computed(() => `${location.origin}/api/v3/package/release/${currentType.value}/download`);
 // 分页
 const {
   pagination,
@@ -216,6 +228,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'operator',
     'updated_at',
     'action',
+    'download',
   ],
   disabled: ['action'],
 }, `pkgMng-${currentType.value}`);

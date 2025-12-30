@@ -997,6 +997,11 @@ export interface PackageReleaseCertDeleteResp {
 export interface PackageReleaseCertDeleteRespData {
 }
 
+// PackageReleaseCertDownloadReq is the request for download cert pkg.
+export interface PackageReleaseCertDownloadReq {
+  generation: number;
+}
+
 // PackageReleaseBinToolListReq describes the HTTP request body when list
 // bintool release.
 export interface PackageReleaseBinToolListReq {
@@ -1035,6 +1040,11 @@ export interface PackageReleaseBinToolDeleteResp {
 }
 
 export interface PackageReleaseBinToolDeleteRespData {
+}
+
+// PackageReleaseBinToolDownloadReq is the request for download bintool pkg.
+export interface PackageReleaseBinToolDownloadReq {
+  generation: number;
 }
 
 // PackageReleasePluginBinToolListReq describes the HTTP request body when list
@@ -1076,6 +1086,13 @@ export interface PackageReleasePluginBinToolDeleteResp {
 }
 
 export interface PackageReleasePluginBinToolDeleteRespData {
+}
+
+// PackageReleasePluginBinToolDownloadReq is the request for download plugin
+// bintool pkg.
+export interface PackageReleasePluginBinToolDownloadReq {
+  generation: number;
+  name: string;
 }
 
 // FileChunk describes the file chunk data.

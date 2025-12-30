@@ -37,12 +37,12 @@
               </TableColumn>
               <TableColumn field="file" title="file" :min-width="200">
                 <template #default>
-                  <span>{{ directEndpoints.cluster.join('\n') }}</span>
+                  <span>{{ directEndpoints.file.join('\n') }}</span>
                 </template>
               </TableColumn>
               <TableColumn field="data" title="data" :min-width="200">
                 <template #default>
-                  <span>{{ directEndpoints.cluster.join('\n') }}</span>
+                  <span>{{ directEndpoints.data.join('\n') }}</span>
                 </template>
               </TableColumn>
             </Table>
