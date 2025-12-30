@@ -13,6 +13,8 @@ package manager
 import (
 	"fmt"
 
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/dpmgr"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/schedule"
@@ -34,6 +36,10 @@ func (mgr *Manager) registerDefinitions() error {
 
 	if err := mgr.registerDefSchedule(); err != nil {
 		return fmt.Errorf("failed to register def schedule: %w", err)
+	}
+
+	if err := mgr.registerDefDeployPolicy(); err != nil {
+		return fmt.Errorf("failed to register def deploy policy: %w", err)
 	}
 
 	return nil
@@ -144,6 +150,35 @@ func (mgr *Manager) registerDefSyncData() error {
 		syncdata.NewActionWatchCMDBResource(syncdataCap),
 		syncdata.NewActionSyncAlivePluginProcessInfo(syncdataCap),
 		syncdata.NewActionGenOperSyncAlivePluginProcessInfo(syncdataCap),
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// registerDefDeployPolicy registers the definitions for deploy policy.
+func (mgr *Manager) registerDefDeployPolicy() error {
+	dpMgr := dpmgr.NewHandler(&dpmgr.Config{
+		DaoProcess:            mgr.conf.StoragePlugin,
+		DaoPlugin:             mgr.conf.StoragePlugin,
+		DaoHost:               mgr.conf.StorageTopo,
+		DomainDeployPolicyMgr: mgr.conf.StorageDeployPolicy,
+		CmdbHandler:           mgr.conf.CmdbHandler,
+		NodeManager:           mgr,
+		PluginManager:         mgr,
+	})
+
+	deployPolicyCap := &deploypolicy.Capability{
+		DPMgr:               dpMgr,
+		StorageDeployPolicy: mgr.conf.StorageDeployPolicy,
+		WorkflowCtl:         mgr.workflowMgr,
+	}
+
+	// register action defs.
+	if err := mgr.workflowMgr.RegisterActions(
+		deploypolicy.NewActionGenOperExecuteDeployPolicy(deployPolicyCap),
+		deploypolicy.NewActionExecuteDeployPolicy(deployPolicyCap),
 	); err != nil {
 		return err
 	}

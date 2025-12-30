@@ -39,6 +39,7 @@ const (
 	scheduledWorkflowSyncAliveAgentInfo         = "sync_alive_agent_info"
 	scheduledWorkflowSyncAlivePluginProcessInfo = "sync_alive_plugin_process_info"
 	scheduledWorkflowWatchAndApplyCMDBResource  = "watch_and_apply_cmdb_resource"
+	scheduledWorkflowExecuteDeployPolicy        = "execute_deploy_policy"
 )
 
 const (
@@ -57,6 +58,7 @@ func (mgr *Manager) getInitScheduledWorkflowFuncs() map[string]initScheduledWork
 		scheduledWorkflowSyncAliveAgentInfo:         mgr.initSWSyncAliveAgentInfo,
 		scheduledWorkflowSyncAlivePluginProcessInfo: mgr.initSWSyncAlivePluginProcessInfo,
 		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.initSWWatchAndApplyCMDBResource,
+		scheduledWorkflowExecuteDeployPolicy:        mgr.initSWExecuteDeployPolicy,
 	}
 }
 
@@ -69,6 +71,7 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 		scheduledWorkflowSyncAliveAgentInfo:         mgr.syncSWSyncAliveAgentInfo,
 		scheduledWorkflowSyncAlivePluginProcessInfo: mgr.syncSWSyncAlivePluginProcessInfo,
 		scheduledWorkflowWatchAndApplyCMDBResource:  mgr.syncSWWatchAndApplyCMDBResource,
+		scheduledWorkflowExecuteDeployPolicy:        mgr.syncSWExecuteDeployPolicy,
 	}
 }
 
@@ -366,6 +369,20 @@ func (mgr *Manager) initSWWatchAndApplyCMDBResource(nCtx contextx.IContext, tena
 
 func (mgr *Manager) syncSWWatchAndApplyCMDBResource(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {
 	return mgr.syncScheduledWorkflow(ctx, sw, schedule.NewOperWatchAndApplyCMDBResource(schedule.OperParamWatchAndApplyCMDBResource{
+		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
+			WorkflowID: sw.WorkflowID,
+			TenantID:   sw.TenantID,
+			Operator:   access.GetVirtualUser(),
+		},
+	}))
+}
+
+func (mgr *Manager) initSWExecuteDeployPolicy(nCtx contextx.IContext, tenantID string) error {
+	return mgr.initScheduledWorkflow(nCtx, tenantID, scheduledWorkflowExecuteDeployPolicy, scheduler.Every+"1h")
+}
+
+func (mgr *Manager) syncSWExecuteDeployPolicy(ctx contextx.IContext, sw *types.ScheduledWorkflow) error {
+	return mgr.syncScheduledWorkflow(ctx, sw, schedule.NewOperExecuteDeployPolicy(schedule.OperParamExecuteDeployPolicy{
 		ScheduleActionStandardParam: utils.ScheduleActionStandardParam{
 			WorkflowID: sw.WorkflowID,
 			TenantID:   sw.TenantID,

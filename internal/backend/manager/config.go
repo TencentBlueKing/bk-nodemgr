@@ -16,6 +16,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/configpolicy"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/deploypolicy"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -61,6 +62,7 @@ type Config struct {
 	StorageHostCredit   credit.IStorageHostCredit
 	StorageConfigPolicy configpolicy.IStorage
 	StorageTenant       tenant.IStorage
+	StorageDeployPolicy deploypolicy.IStorage
 
 	// credit vault.
 	HostPasswordVault creditvault.IHostPasswordVault

@@ -597,6 +597,7 @@ func (svc *Service) initialManager() error {
 		StorageHostCredit:   svc.Cap.StorageCredit,
 		StorageConfigPolicy: svc.Cap.StorageConfigPolicy,
 		StorageTenant:       svc.Cap.StorageTenant,
+		StorageDeployPolicy: svc.Cap.StorageDeployPolicy,
 		HostPasswordVault:   svc.Cap.CreditVault,
 		ProxyMessager:       svc.Cap.ProxyMessager,
 		Cache:               rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),

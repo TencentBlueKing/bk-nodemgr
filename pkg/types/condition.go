@@ -36,6 +36,14 @@ func RecentTimeRange(duration time.Duration) TimeRange {
 	}
 }
 
+// BeforeTimeRange before the end time.
+func BeforeTimeRange(endTime time.Time) TimeRange {
+	return TimeRange{
+		StartTime: time.Time{},
+		EndTime:   endTime,
+	}
+}
+
 // ===============================================================================
 // Business Related Conditions
 // ===============================================================================
