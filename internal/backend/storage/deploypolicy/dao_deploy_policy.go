@@ -124,6 +124,10 @@ func convDeployPolicyConditionsToOptions(condition *types.DeployPolicyCondition)
 		return opts
 	}
 
+	if condition.ExecutedTimeRange != nil {
+		opts = append(opts, daoDeployPolicy.WithExecutedAtTimeRange(*condition.ExecutedTimeRange))
+	}
+
 	if condition.ExactInclude != nil {
 		opts = append(opts, daoDeployPolicy.WithDeployPolicyID(condition.ExactInclude.DeployPolicyID...))
 		opts = append(opts, daoDeployPolicy.WithEnabled(condition.ExactInclude.Enabled...))

@@ -838,6 +838,9 @@ type PluginDeploymentCondition struct {
 
 // DeployPolicyCondition defines the deploy policy condition.
 type DeployPolicyCondition struct {
+	// executed time range will be used whatever condition type is.
+	ExecutedTimeRange *TimeRange
+
 	// will be used when condition type is included in exact mode.
 	ExactInclude *DeployPolicyExactFields
 

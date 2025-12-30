@@ -410,6 +410,15 @@
         },
         "fuzzy_include_conditions": {
           "$ref": "#/definitions/v3DeployPolicyFuzzyConditions"
+        },
+        "exact_exclude_conditions": {
+          "$ref": "#/definitions/v3DeployPolicyExactConditions"
+        },
+        "fuzzy_exclude_conditions": {
+          "$ref": "#/definitions/v3DeployPolicyFuzzyConditions"
+        },
+        "executed_time_range": {
+          "$ref": "#/definitions/v3TimeRange"
         }
       },
       "description": "DeployPolicyListReq describes HTTP request body when list deploy policy."
@@ -584,6 +593,20 @@
     "v3TargetFilter": {
       "type": "object",
       "description": "TargetFilter describes the target filter of deploy policy."
+    },
+    "v3TimeRange": {
+      "type": "object",
+      "properties": {
+        "start_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "end_timestamp_sec": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "description": "TimeRange describes the time range."
     }
   }
 }

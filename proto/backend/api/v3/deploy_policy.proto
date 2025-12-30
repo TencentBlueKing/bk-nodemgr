@@ -121,6 +121,9 @@ message DeployPolicyListReq {
   bool only_count = 2;
   DeployPolicyExactConditions exact_include_conditions = 3;
   DeployPolicyFuzzyConditions fuzzy_include_conditions = 4;
+  DeployPolicyExactConditions exact_exclude_conditions = 5;
+  DeployPolicyFuzzyConditions fuzzy_exclude_conditions = 6;
+  TimeRange executed_time_range = 7;
 }
 
 // DeployPolicyListResp describes HTTP response body when list deploy policy.

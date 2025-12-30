@@ -94,3 +94,8 @@ func WithDeploySpecPluginName(pluginNames ...string) OptFn {
 
 	return base.WithElemMatch(FieldKeySpecs, base.WithValues(fieldSubKeySpecsParamSpecifyPluginPluginName, pluginNames...))
 }
+
+// WithExecutedAtTimeRange filters by executed at time range.
+func WithExecutedAtTimeRange(timeRange types.TimeRange) OptFn {
+	return base.WithTimeRange(FieldKeyLifeCycleExecutedAt, timeRange.StartTime, timeRange.EndTime)
+}

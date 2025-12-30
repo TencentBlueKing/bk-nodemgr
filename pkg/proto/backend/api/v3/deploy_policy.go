@@ -12,6 +12,7 @@ package v3
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -41,10 +42,16 @@ func (x *DeployPolicyListReq) ConvertPageToTypes(maxLimit int) (types.Page, erro
 func (x *DeployPolicyListReq) ConvertConditionsToTypes() *types.DeployPolicyCondition {
 	exactIncludeCond := convertDeployPolicyExactConditionsToTypes(x.GetExactIncludeConditions())
 	fuzzyIncludeCond := convertDeployPolicyFuzzyConditionsToTypes(x.GetFuzzyIncludeConditions())
+	exactExcludeCond := convertDeployPolicyExactConditionsToTypes(x.GetExactExcludeConditions())
+	fuzzyExcludeCond := convertDeployPolicyFuzzyConditionsToTypes(x.GetFuzzyExcludeConditions())
+	executedTimeRangeCond := convertTimeRangeToTypes(x.GetExecutedTimeRange())
 
 	return &types.DeployPolicyCondition{
-		ExactInclude: exactIncludeCond,
-		FuzzyInclude: fuzzyIncludeCond,
+		ExecutedTimeRange: executedTimeRangeCond,
+		ExactInclude:      exactIncludeCond,
+		FuzzyInclude:      fuzzyIncludeCond,
+		ExactExclude:      exactExcludeCond,
+		FuzzyExclude:      fuzzyExcludeCond,
 	}
 }
 
@@ -71,6 +78,18 @@ func convertDeployPolicyFuzzyConditionsToTypes(fuzzyCond *DeployPolicyFuzzyCondi
 	return &types.DeployPolicyFuzzyFields{
 		DeployPolicyName: fuzzyCond.GetDeployPolicyName(),
 		Operator:         fuzzyCond.GetOperator(),
+	}
+}
+
+// convertTimeRangeToTypes convert time range to types.
+func convertTimeRangeToTypes(timeRange *TimeRange) *types.TimeRange {
+	if timeRange == nil {
+		return nil
+	}
+
+	return &types.TimeRange{
+		StartTime: time.Unix(timeRange.GetStartTimestampSec(), 0),
+		EndTime:   time.Unix(timeRange.GetEndTimestampSec(), 0),
 	}
 }
 
