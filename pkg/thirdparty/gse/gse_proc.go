@@ -54,11 +54,11 @@ func (c *cli) operateProcV2(nCtx contextx.IContext, req *operateProcV2Req) (*ope
 		Body(req).
 		Do().Into(resp)
 	if err != nil {
-		return nil, fmt.Errorf("failed to operate proc multi: %w", err)
+		return nil, fmt.Errorf("failed to operate proc v2: %w", err)
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("failed to operate proc multi: %w", err)
+		return nil, fmt.Errorf("failed to operate proc v2: %w", err)
 	}
 
 	return resp.Data, nil
