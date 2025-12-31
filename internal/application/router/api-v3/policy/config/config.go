@@ -25,10 +25,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	maxConfigPolicyLimit = 1000
-)
-
 type handler struct {
 	rg                          *gin.RouterGroup
 	backendHandler              backend.IHandler
@@ -92,10 +88,13 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.backendHandler.ListConfigPolicy(
-		rCtx,
-		req.ConvertPageToTypes(maxConfigPolicyLimit),
-		conditions)
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy, invalid page info")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	hosts, num, err := h.backendHandler.ListConfigPolicy(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy")
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)
@@ -366,10 +365,13 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 		return resp.GetData(), nil
 	}
 
-	events, num, err := h.backendHandler.ListConfigPolicyEvent(
-		rCtx,
-		req.ConvertPageToTypes(maxConfigPolicyLimit),
-		conditions)
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy event, invalid page info")
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	events, num, err := h.backendHandler.ListConfigPolicyEvent(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy event")
 		return nil, errf.ErrWrap(errf.ThirdpartyRequestFailed, err)

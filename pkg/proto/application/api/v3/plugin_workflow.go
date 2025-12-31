@@ -34,8 +34,8 @@ func (x *PluginWorkflowListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PluginWorkflowListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PluginWorkflowListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -387,8 +387,8 @@ func convertPluginWorkflowOperationConditionsToTypes(exactCond *PluginWorkflowOp
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PluginWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PluginWorkflowOperationListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
 }
 
 // ConvertResultFromTypes convert workflow id to types.

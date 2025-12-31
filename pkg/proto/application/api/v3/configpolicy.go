@@ -29,8 +29,8 @@ func (x *ConfigPolicyListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *ConfigPolicyListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *ConfigPolicyListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
 }
 
 // ConvertConditionsToTypes convert conditions to types.

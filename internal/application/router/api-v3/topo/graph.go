@@ -34,7 +34,7 @@ func (h *handler) GetGraph(rCtx restserver.IContext) (interface{}, error) {
 	// list networkunits.
 	networkUnits, _, err := h.backendHandler.ListNetworkUnit(
 		rCtx,
-		types.Page{Limit: maxNetworkUnitLimit},
+		types.UnlimitedPage(),
 		&types.NetworkUnitCondition{
 			ExactInclude: &types.NetworkUnitExactFields{
 				NetworkAreaID: req.GetBkNetworkareaId(),

@@ -17,10 +17,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-const (
-	maxEventLimit = 1000
-)
-
 // ListEvent lists events with page and conditions.
 func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoEventListReq)
@@ -51,10 +47,13 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	events, num, err := h.backendHandler.ListTopoEvent(
-		rCtx,
-		req.ConvertPageToTypes(maxEventLimit),
-		cond)
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	events, num, err := h.backendHandler.ListTopoEvent(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
