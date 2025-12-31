@@ -791,7 +791,7 @@ backend:
     ## defines the workflow related settings.
     workflow:
       # workerNum is the number of workers.
-      workerNum: 1
+      workerNum: 4096
       traceServiceName: "workflow"
       traceSampleRate: 0
 

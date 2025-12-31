@@ -81,7 +81,7 @@ proxyServer:
 
 # workflow defines the backend workflow settings.
 workflow:
-  workerNum: 8
+  workerNum: __BK_NODEMGR_BACKEND_WORKFLOW_WORKER_NUM__
   traceServiceName: "workflow"
   traceSampleRate: 0
 
