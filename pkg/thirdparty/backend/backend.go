@@ -1495,12 +1495,6 @@ func (c *cli) updateNodeProxy(ctx contextx.IContext, req *protoBackend.NodeProxy
 			code, resp.GetMessage(), resp.GetRequestId())
 	}
 
-	if resp.GetData() == nil {
-		return nil,
-			fmt.Errorf("update node proxy failed, get empty data. code(%d), message(%s), request-id(%s)",
-				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
-	}
-
 	return resp, nil
 }
 
