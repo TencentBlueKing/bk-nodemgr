@@ -95,7 +95,7 @@
       <CustomToolbar @trigger-tools="handleClickTool"></CustomToolbar>
 
       <!-- =========== 新增：菜单弹窗锚点 =========== -->
-      <div
+      <!-- <div
         v-show="menuState.visible"
         :style="{
           position: 'absolute',
@@ -115,11 +115,9 @@
           :arrow="false"
           :offset="0"
         >
-          <!-- 锚点内容为空 -->
           <div style="width: 1px; height: 1px"></div>
 
           <template #content>
-            <!-- 开启 pointer-events 以便点击菜单 -->
             <div class="pointer-events-auto min-w-[120px] py-1 bg-white rounded shadow-md border border-[#DCDEE5]">
               <div class="px-3 py-2 hover:bg-[#F0F1F5] text-sm cursor-pointer" @click="handleMenuAction('detail')">
                 查看详情
@@ -127,7 +125,6 @@
               <div class="px-3 py-2 hover:bg-[#F0F1F5] text-sm cursor-pointer" @click="handleMenuAction('edit')">
                 编辑单元
               </div>
-              <!-- 可以根据 menuState.nodeData 判断是否显示删除 -->
               <div
                 class="px-3 py-2 hover:bg-[#F0F1F5] text-sm cursor-pointer text-red-500"
                 @click="handleMenuAction('delete')">
@@ -136,7 +133,7 @@
             </div>
           </template>
         </Popover>
-      </div>
+      </div> -->
 
       <!-- =========== 新增：接入点详情气泡 (Hover) =========== -->
       <div
