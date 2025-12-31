@@ -1,5 +1,5 @@
 configTemplates:
-  - name: bk-nodemgr-relay.conf
+  - name: bk-nodemgr-relay.template
     isMainConfig: true
     filePath: etc
     sourcePath: templates/bk-nodemgr-relay.template

@@ -92,10 +92,6 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/plugin_bintool/download", restserver.StreamHandler(h.DownloadReleasePluginBinTool))
 }
 
-const (
-	maxReleaseLimit = 1000
-)
-
 // ==================== Release Agent ====================
 
 // ListReleaseAgent lists release agent with page and conditions.
@@ -122,7 +118,13 @@ func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	releases, num, err := h.backendHandler.ListReleaseAgent(rCtx, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	releases, num, err := h.backendHandler.ListReleaseAgent(rCtx, gen, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -251,6 +253,7 @@ func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{
 	if err := h.backendHandler.SetAsDefaultReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to set default release agent")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -278,6 +281,7 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 	if err := h.backendHandler.CancelAsDefaultReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to cancel default release agent")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -305,6 +309,7 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 	if err := h.backendHandler.DeleteReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to delete release agent")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -410,7 +415,13 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	releases, num, err := h.backendHandler.ListReleaseProxy(rCtx, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	releases, num, err := h.backendHandler.ListReleaseProxy(rCtx, gen, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -487,6 +498,7 @@ func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	if err := h.backendHandler.EnableReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to enable release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -514,6 +526,7 @@ func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, er
 	if err := h.backendHandler.DisableReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to disable release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -541,6 +554,7 @@ func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{
 	if err := h.backendHandler.SetAsDefaultReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to set default release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -568,6 +582,7 @@ func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interfa
 	if err := h.backendHandler.CancelAsDefaultReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to cancel default release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -595,6 +610,7 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	if err := h.backendHandler.DeleteReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to delete release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -700,7 +716,13 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 		return resp.GetData(), nil
 	}
 
-	releases, num, err := h.backendHandler.ListReleasePlugin(rCtx, gen, req.ConvertPageToTypes(maxReleaseLimit), req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release plugin, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	releases, num, err := h.backendHandler.ListReleasePlugin(rCtx, gen, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release plugin")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

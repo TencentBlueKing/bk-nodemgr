@@ -23,6 +23,7 @@ type IHandlerEvent interface {
 	IHandlerConfigPolicyEvent
 }
 
+// IHandlerTopoEvent defines the backend Handler for topo event.
 type IHandlerTopoEvent interface {
 	// ListTopoEvent list topo events by page and conditions.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -44,7 +45,7 @@ type IHandlerTopoEvent interface {
 	DistinctTopoEvent(nCtx contextx.IContext, condition *types.TopoEventCondition) (*types.TopoEventDistinctResult, error)
 }
 
-// IHandlerPackage defines the backend Handler for package.
+// IHandlerPackageEvent defines the backend Handler for package event.
 type IHandlerPackageEvent interface {
 	// ListPackageEvent list package events by page and conditions.
 	// @param nCtx contextx.IContext, contains tenant-id and username.

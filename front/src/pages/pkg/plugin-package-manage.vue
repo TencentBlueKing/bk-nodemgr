@@ -670,6 +670,7 @@ const handleUpload = () => {
 const getPackages = async () => {
   loading.value = true;
   const res = await PackageService.ListReleasePlugin({
+    page: { limit: 500, offset: 0 },
     generation: 2,
   }).catch(() => ({
     total: 0,

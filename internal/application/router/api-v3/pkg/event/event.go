@@ -21,10 +21,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	maxEventLimit = 1000
-)
-
 type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
@@ -76,10 +72,13 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	events, num, err := h.backendHandler.ListPackageEvent(
-		rCtx,
-		req.ConvertPageToTypes(maxEventLimit),
-		conditions)
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list package event, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	events, num, err := h.backendHandler.ListPackageEvent(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list package event")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

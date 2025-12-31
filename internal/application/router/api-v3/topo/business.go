@@ -15,12 +15,7 @@ import (
 	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-)
-
-const (
-	// not max limit in business.
-	// return all data in one request.
-	maxBusinessLimit = 0
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // ListBusiness list business with specified conditions.
@@ -31,10 +26,19 @@ func (h *handler) ListBusiness(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	bizs, num, err := h.backendHandler.ListBusiness(
-		rCtx,
-		req.ConvertPageToTypes(maxBusinessLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// special logic:
+	// business request with limit 0 means unlimited
+	if page.Limit == 0 {
+		page = types.UnlimitedPage()
+	}
+
+	bizs, num, err := h.backendHandler.ListBusiness(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

@@ -22,11 +22,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	maxWorkflowLimit  = 500
-	maxOperationLimit = 500
-)
-
 type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
@@ -87,7 +82,14 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	workflows, num, err := h.backendHandler.ListPluginWorkflow(rCtx, req.ConvertPageToTypes(maxWorkflowLimit), cond)
+
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	workflows, num, err := h.backendHandler.ListPluginWorkflow(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -112,8 +114,7 @@ func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics plugin workflow, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	workflows, _, err := h.backendHandler.ListPluginWorkflow(
-		rCtx, types.UnlimitedPage(), cond)
+	workflows, _, err := h.backendHandler.ListPluginWorkflow(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics plugin workflow, failed to list plugin workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -205,8 +206,13 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	operation, cnt, err := h.backendHandler.ListPluginWorkflowOperation(
-		rCtx, req.ConvertPageToTypes(maxOperationLimit), req.GetWorkflowId(), req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, invalid page info: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	operation, cnt, err := h.backendHandler.ListPluginWorkflowOperation(rCtx, page, req.GetWorkflowId(), req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation: %v", err)
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

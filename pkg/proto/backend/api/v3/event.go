@@ -20,6 +20,9 @@ import (
 )
 
 const (
+	// event list max limit
+	maxEventLimit = 1000
+
 	// 30 days for max operate time range.
 	maxOperateTimeRangeDuration = 365 * 24 * time.Hour
 )
@@ -47,9 +50,14 @@ func (x *TopoEventListReq) AutoConvert() {
 	}
 }
 
+// PageLimit return page limit.
+func (x *TopoEventListReq) PageLimit() int {
+	return maxEventLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *TopoEventListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *TopoEventListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.
@@ -306,9 +314,14 @@ func (x *PackageEventListReq) AutoConvert() {
 	}
 }
 
+// PageLimit return page limit.
+func (x *PackageEventListReq) PageLimit() int {
+	return maxEventLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *PackageEventListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *PackageEventListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.
@@ -608,9 +621,14 @@ func (x *ConfigPolicyEventListReq) AutoConvert() {
 	}
 }
 
+// PageLimit return page limit.
+func (x *ConfigPolicyEventListReq) PageLimit() int {
+	return maxConfigPolicyLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *ConfigPolicyEventListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *ConfigPolicyEventListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.

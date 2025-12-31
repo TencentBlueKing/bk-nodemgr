@@ -22,11 +22,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const (
-	// max limit in networkarea.
-	maxNetworkAreaLimit = 1000
-)
-
 // CreateNetworkArea creates a new network-area.
 func (h *handler) CreateNetworkArea(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkAreaCreateReq)
@@ -94,10 +89,19 @@ func (h *handler) ListNetworkArea(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkAreas, num, err := h.backendHandler.ListNetworkArea(
-		rCtx,
-		req.ConvertPageToTypes(maxNetworkAreaLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkarea, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// special logic:
+	// networkarea request with limit 0 means unlimited
+	if page.Limit == 0 {
+		page = types.UnlimitedPage()
+	}
+
+	networkAreas, num, err := h.backendHandler.ListNetworkArea(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkarea")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -121,7 +125,7 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 
 	networkunits, _, err := h.backendHandler.ListNetworkUnit(
 		rCtx,
-		types.Page{Limit: 0},
+		types.UnlimitedPage(),
 		req.ConvertNetworkUnitConditionToTypes(),
 	)
 	if err != nil {

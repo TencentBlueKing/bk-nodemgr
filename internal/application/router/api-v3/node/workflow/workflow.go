@@ -22,11 +22,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	maxWorkflowLimit  = 500
-	maxOperationLimit = 500
-)
-
 type handler struct {
 	rg             *gin.RouterGroup
 	backendHandler backend.IHandler
@@ -88,9 +83,14 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	workflows, num, err := h.backendHandler.ListNodeWorkflow(rCtx,
-		req.ConvertPageToTypes(maxWorkflowLimit), cond)
 
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	workflows, num, err := h.backendHandler.ListNodeWorkflow(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -121,8 +121,7 @@ func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	workflows, _, err := h.backendHandler.ListNodeWorkflow(
-		rCtx, types.UnlimitedPage(), cond)
+	workflows, _, err := h.backendHandler.ListNodeWorkflow(rCtx, types.UnlimitedPage(), cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to list workflow")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
@@ -148,8 +147,7 @@ func (h *handler) Statistics(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	// get latest operation instance status distribution by trigger id.
-	distribution, err := h.backendHandler.ListNodeWorkflowOperationInstanceStatusDistribution(
-		rCtx, triggerIDs)
+	distribution, err := h.backendHandler.ListNodeWorkflowOperationInstanceStatusDistribution(rCtx, triggerIDs)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to statistics workflow, failed to get latest operation instance status distribution")
 
@@ -216,8 +214,13 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	operation, cnt, err := h.backendHandler.ListNodeWorkflowOperation(rCtx,
-		req.ConvertPageToTypes(maxOperationLimit), req.GetWorkflowID(), req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	operation, cnt, err := h.backendHandler.ListNodeWorkflowOperation(rCtx, page, req.GetWorkflowID(), req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, failed to list operation")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

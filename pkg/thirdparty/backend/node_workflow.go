@@ -12,6 +12,7 @@ package backend
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -106,21 +107,34 @@ type IHandlerNodeWorkflow interface {
 func (h *Handler) ListNodeWorkflow(nCtx contextx.IContext, page types.Page, condition *types.NodeWorkflowCondition) (
 	[]*types.NodeWorkflow, int64, error) {
 
-	req := &protoBackend.NodeWorkflowListReq{
-		Page: convertPage(page),
-	}
+	req := new(protoBackend.NodeWorkflowListReq)
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listNodeWorkflow(nCtx, req)
+	var (
+		total     int64
+		workflows []*types.NodeWorkflow
+	)
+	executor := pageexecutor.NewPageExecutor[*types.NodeWorkflow](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.NodeWorkflow, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listNodeWorkflow(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		workflows, total = resp.ConvertNodeWorkflowsToTypes()
+
+		return workflows, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	result, num := resp.ConvertNodeWorkflowsToTypes()
-
-	return result, num, nil
+	return result.Items, total, nil
 }
 
 // CountNodeWorkflow count host within specified tenant in contextx.

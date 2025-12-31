@@ -18,10 +18,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	maxScheduleWorkflowLimit = 500
-)
-
 type handler struct {
 	rg              *gin.RouterGroup
 	storageWorkflow workflow.IStorage

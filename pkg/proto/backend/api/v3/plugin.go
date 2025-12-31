@@ -169,9 +169,19 @@ func (x *PluginListReq) ConvertConditionFromTypes(condition *types.PluginConditi
 	}
 }
 
+const (
+	// plugin list max limit
+	maxPluginLimit = 500
+)
+
+// PageLimit returns page limit.
+func (x *PluginListReq) PageLimit() int {
+	return maxPluginLimit
+}
+
 // ConvertPageToTypes converts page to types.
-func (x *PluginListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *PluginListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertPluginFromTypes converts plugin from types.

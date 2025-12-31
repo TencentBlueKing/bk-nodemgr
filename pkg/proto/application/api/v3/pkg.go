@@ -648,8 +648,8 @@ func (x *PackageReleasePluginListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PackageReleasePluginListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PackageReleasePluginListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
 }
 
 // ConvertExactIncludeConditionsToTypes convert conditions to types.

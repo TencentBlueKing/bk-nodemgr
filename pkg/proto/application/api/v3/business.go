@@ -26,8 +26,8 @@ func (x *TopoBusinessListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *TopoBusinessListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *TopoBusinessListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
 }
 
 // ConvertConditionsToTypes convert conditions to types.

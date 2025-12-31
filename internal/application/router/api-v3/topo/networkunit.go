@@ -18,12 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const (
-	// not max limit in networkunit.
-	// return all data in one request.
-	maxNetworkUnitLimit = 0
-)
-
 // CreateNetworkUnit creates a new network-unit.
 func (h *handler) CreateNetworkUnit(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.TopoNetworkUnitCreateReq)
@@ -147,10 +141,19 @@ func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkUnits, num, err := h.backendHandler.ListNetworkUnit(
-		rCtx,
-		req.ConvertPageToTypes(maxNetworkUnitLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// special logic:
+	// networkunit request with limit 0 means unlimited
+	if page.Limit == 0 {
+		page = types.UnlimitedPage()
+	}
+
+	networkUnits, num, err := h.backendHandler.ListNetworkUnit(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

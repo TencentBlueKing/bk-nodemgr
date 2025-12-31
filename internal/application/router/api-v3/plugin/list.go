@@ -17,12 +17,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-const (
-	// not max limit in plugin.
-	// return all data in one request.
-	maxPluginLimit = 0
-)
-
 // List defines the handler to list plugins.
 func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.PluginListReq)
@@ -44,7 +38,13 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	plugins, cnt, err := h.backendHandler.ListPlugins(rCtx, req.ConvertPageToTypes(maxPluginLimit), req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins, invalid page info.")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	plugins, cnt, err := h.backendHandler.ListPlugins(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins.")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

@@ -21,6 +21,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+const (
+	// backendPagingListTimeout defines the timeout for paging list requests
+	backendPagingListTimeout = 30 * time.Minute
+)
+
 func validatePage(reqPage *Page) error {
 	if reqPage == nil {
 		return nil

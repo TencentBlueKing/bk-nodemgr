@@ -159,10 +159,7 @@ const loading = ref(false);
 // 加载插件列表
 const getParams = () => {
   const params = {
-    page: {
-      limit: 0,
-      offset: 0,
-    },
+    page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },
     exact_include_conditions: {},
     fuzzy_include_conditions: {} as Record<string, string[]>,
   };

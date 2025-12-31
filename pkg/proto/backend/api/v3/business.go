@@ -12,6 +12,7 @@ package v3
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -25,9 +26,24 @@ func (x *TopoBusinessListReq) Validate() error {
 func (x *TopoBusinessListReq) AutoConvert() {
 }
 
+const (
+	// business list max limit
+	maxBusinessLimit = 1000
+)
+
+// PageTimeout return page timeout.
+func (x *TopoBusinessListReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
+// PageLimit return page limit.
+func (x *TopoBusinessListReq) PageLimit() int {
+	return maxBusinessLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *TopoBusinessListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *TopoBusinessListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.
@@ -92,6 +108,27 @@ func (x *TopoBusinessListResp) ConvertBusinessFromTypes(total int64, bizs []*typ
 		Total: total,
 		Items: items,
 	}
+}
+
+// ConvertBusinessToTypes convert business to types.
+func (x *TopoBusinessListResp) ConvertBusinessToTypes() (int64, []*types.Business) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.Business, len(items))
+	for idx, item := range items {
+		biz := &types.Business{
+			TenantID: *item.TenantId,
+			BizID:    *item.BkBizId,
+			BizName:  *item.BkBizName,
+		}
+		result[idx] = biz
+	}
+
+	return data.GetTotal(), result
 }
 
 func newEmptyBusiness() *Business {

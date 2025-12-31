@@ -948,6 +948,10 @@ const handleBatchTerminate = async () => {
 
 const updataCurrentTaskInfo = async () => {
   const res = await serviceCaller.call('workflowList', {
+    page: {
+      limit: pagination.limit,
+      offset: (pagination.current - 1) * pagination.limit,
+    },
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
       workflow_id: [route.params.taskId],
@@ -1064,7 +1068,7 @@ const handleViewLog = async (row: any) => {
   router.push({
     name: 'log',
     params: {
-      hostId: row.bk_host_id,
+      hostId: route.query?.active === 'node' ? row.bk_host_id : `${row.bk_host_id}_${row.plugin_name}`,
       taskId: route.params.taskId,
     },
     query: {

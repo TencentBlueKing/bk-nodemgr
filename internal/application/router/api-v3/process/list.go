@@ -17,12 +17,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-const (
-	// not max limit in process.
-	// return all data in one request.
-	maxProcessLimit = 0
-)
-
 // List defines the handler to list processes.
 func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoApplication.ProcessListReq)
@@ -44,7 +38,13 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	processes, cnt, err := h.backendHandler.ListProcesses(rCtx, req.ConvertPageToTypes(maxProcessLimit), req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list processes, invalid page info.")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	processes, cnt, err := h.backendHandler.ListProcesses(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list processes.")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)

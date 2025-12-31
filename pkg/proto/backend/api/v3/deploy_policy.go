@@ -32,9 +32,19 @@ func (x *DeployPolicyListReq) Validate() error {
 func (x *DeployPolicyListReq) AutoConvert() {
 }
 
+const (
+	// deploy policy list max limit
+	maxDeployPolicyLimit = 1000
+)
+
+// PageLimit return page limit.
+func (x *DeployPolicyListReq) PageLimit() int {
+	return maxDeployPolicyLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *DeployPolicyListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *DeployPolicyListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.

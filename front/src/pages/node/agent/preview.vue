@@ -670,6 +670,7 @@ const installCheck = async () => {
 const deelTabelData = ref<any[]>([]);
 const getAgentList = async (row: any) => {
   const res = await TopoService.HostList({
+    page: { limit: 500, offset: 0 },
     exact_include_conditions: {
       bk_host_id: [...row.pending_host_ids],
     },

@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 )
 
@@ -166,7 +165,7 @@ type ReleaseAdditionInfoAgent struct {
 // ReleaseAgentKey defines the release agent key.
 type ReleaseAgentKey struct {
 	Generation Generation
-	Platform   platform.Platform
+	Platform   platfmt.Platform
 	Version    string
 }
 
@@ -187,7 +186,7 @@ type ReleaseAdditionInfoProxy struct {
 // ReleaseProxyKey defines the release proxy key.
 type ReleaseProxyKey struct {
 	Generation Generation
-	Platform   platform.Platform
+	Platform   platfmt.Platform
 	Version    string
 }
 
@@ -231,7 +230,7 @@ type ReleasePlugin struct {
 // ReleasePluginKey defines the release plugin key.
 type ReleasePluginKey struct {
 	Generation Generation
-	Platform   platform.Platform
+	Platform   platfmt.Platform
 	Version    string
 	Name       string
 }

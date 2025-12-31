@@ -25,9 +25,19 @@ func (x *ListGlobalSettingsReq) Validate() error {
 func (x *ListGlobalSettingsReq) AutoConvert() {
 }
 
+const (
+	// global settings list max limit
+	maxGlobalSettingsLimit = 500
+)
+
+// PageLimit return page limit.
+func (x *ListGlobalSettingsReq) PageLimit() int {
+	return maxGlobalSettingsLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *ListGlobalSettingsReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *ListGlobalSettingsReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.

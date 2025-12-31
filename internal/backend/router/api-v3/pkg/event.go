@@ -18,10 +18,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const (
-	maxEventLimit = 1000
-)
-
 // ListPackageEvent lists events with page and conditions.
 func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.PackageEventListReq)
@@ -55,7 +51,7 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes(maxEventLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, invalid page info")
 

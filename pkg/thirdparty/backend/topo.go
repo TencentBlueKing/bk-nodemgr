@@ -12,6 +12,7 @@ package backend
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -142,21 +143,34 @@ type IHandlerNetworkUnit interface {
 func (h *Handler) ListAccessPoint(nCtx contextx.IContext, page types.Page, condition *types.AccessPointCondition) (
 	[]*types.AccessPoint, int64, error) {
 
-	req := &protoBackend.TopoAccessPointListReq{
-		Page: convertPage(page),
-	}
+	req := new(protoBackend.TopoAccessPointListReq)
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listAccessPoint(nCtx, req)
+	var (
+		total        int64
+		accessPoints []*types.AccessPoint
+	)
+	executor := pageexecutor.NewPageExecutor[*types.AccessPoint](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.AccessPoint, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listAccessPoint(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, accessPoints = resp.ConvertAccessPointsToTypes()
+
+		return accessPoints, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, events := resp.ConvertAccessPointsToTypes()
-
-	return events, total, nil
+	return result.Items, total, nil
 }
 
 // ===============================================================================
@@ -165,29 +179,34 @@ func (h *Handler) ListAccessPoint(nCtx contextx.IContext, page types.Page, condi
 
 // ListBusiness list business within specified tenant in contextx.
 func (h *Handler) ListBusiness(nCtx contextx.IContext, page types.Page, condition *types.BusinessCondition) ([]*types.Business, int64, error) {
-	req := &protoBackend.TopoBusinessListReq{
-		Page: convertPage(page),
-	}
+	req := new(protoBackend.TopoBusinessListReq)
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listBusiness(nCtx, req)
+	var (
+		total      int64
+		businesses []*types.Business
+	)
+	executor := pageexecutor.NewPageExecutor[*types.Business](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.Business, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listBusiness(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, businesses = resp.ConvertBusinessToTypes()
+
+		return businesses, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	items := resp.GetItems()
-	data := make([]*types.Business, len(items))
-	for idx, item := range items {
-		data[idx] = &types.Business{
-			TenantID: item.GetTenantId(),
-			BizID:    item.GetBkBizId(),
-			BizName:  item.GetBkBizName(),
-		}
-	}
-
-	return data, resp.GetTotal(), nil
+	return result.Items, total, nil
 }
 
 // ===============================================================================
@@ -268,30 +287,34 @@ func (h *Handler) UpdateNetworkArea(nCtx contextx.IContext, networkArea *types.N
 func (h *Handler) ListNetworkArea(nCtx contextx.IContext, page types.Page, condition *types.NetworkAreaCondition) (
 	[]*types.NetworkArea, int64, error) {
 
-	req := &protoBackend.TopoNetworkAreaListReq{
-		Page: convertPage(page),
-	}
+	req := new(protoBackend.TopoNetworkAreaListReq)
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listNetworkArea(nCtx, req)
+	var (
+		total        int64
+		networkAreas []*types.NetworkArea
+	)
+	executor := pageexecutor.NewPageExecutor[*types.NetworkArea](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.NetworkArea, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listNetworkArea(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, networkAreas = resp.ConvertNetworkAreasToTypes()
+
+		return networkAreas, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	items := resp.GetItems()
-	data := make([]*types.NetworkArea, len(items))
-	for idx, item := range items {
-		data[idx] = &types.NetworkArea{
-			TenantID:    item.GetTenantId(),
-			ID:          item.GetBkNetworkareaId(),
-			Name:        item.GetBkNetworkareaName(),
-			CloudVendor: item.GetCloudVendor(),
-		}
-	}
-
-	return data, resp.GetTotal(), nil
+	return result.Items, total, nil
 }
 
 // GetNetworkArea gets an existing networkarea.
@@ -377,21 +400,34 @@ func (h *Handler) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*
 func (h *Handler) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condition *types.NetworkUnitCondition) (
 	[]*types.NetworkUnit, int64, error) {
 
-	req := &protoBackend.TopoNetworkUnitListReq{
-		Page: convertPage(page),
-	}
+	req := new(protoBackend.TopoNetworkUnitListReq)
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listNetworkUnit(nCtx, req)
+	var (
+		total        int64
+		networkUnits []*types.NetworkUnit
+	)
+	executor := pageexecutor.NewPageExecutor[*types.NetworkUnit](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.NetworkUnit, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listNetworkUnit(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, networkUnits = resp.ConvertNetworkUnitsToTypes()
+
+		return networkUnits, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, networkUnits := resp.ConvertNetworkUnitsToTypes()
-
-	return networkUnits, total, nil
+	return result.Items, total, nil
 }
 
 // DeleteNetworkUnit deletes network unit within specified tenant in contextx.

@@ -66,9 +66,19 @@ func convertProcessConditionsToTypes(
 	return condition
 }
 
+const (
+	// process list max limit
+	maxProcessLimit = 500
+)
+
+// PageLimit return page limit.
+func (x *ProcessListReq) PageLimit() int {
+	return maxProcessLimit
+}
+
 // ConvertPageToTypes converts page to types.
-func (x *ProcessListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *ProcessListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionFromTypes converts condition from types.

@@ -794,6 +794,7 @@ const getPackages = async () => {
 
     // 先获取列表数据
     const listData = await listApi({
+      page: { limit: 500, offset: 0 },
       generation: 2,
       exact_include_conditions: {},
     }).catch(() => ({ total: 0, items: [] }));
