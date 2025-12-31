@@ -125,7 +125,7 @@ func (h *handler) StatisticsNetworkArea(rCtx restserver.IContext) (interface{}, 
 
 	networkunits, _, err := h.backendHandler.ListNetworkUnit(
 		rCtx,
-		types.Page{Limit: 0},
+		types.UnlimitedPage(),
 		req.ConvertNetworkUnitConditionToTypes(),
 	)
 	if err != nil {
