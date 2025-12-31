@@ -97,14 +97,19 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
+	page, err := req.ConvertPageToTypes(maxNodeWorkflowLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	cond, err := req.ConvertConditionsToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	workflows, num, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx,
-		req.ConvertPageToTypes(maxNodeWorkflowLimit),
-		cond)
+
+	workflows, num, err := h.daoNodeWorkflow.ListNodeWorkflow(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -188,8 +193,13 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		}
 	}
 
-	deployments, num, err := h.daoNodeDeployment.ListNodeDeployment(rCtx, req.ConvertPageToTypes(maxNodeWorkflowLimit),
-		req.ConvertConditionsToDeploymentTypes(tokens))
+	page, err := req.ConvertPageToTypes(maxNodeWorkflowLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node deployment, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	deployments, num, err := h.daoNodeDeployment.ListNodeDeployment(rCtx, page, req.ConvertConditionsToDeploymentTypes(tokens))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node deployment")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

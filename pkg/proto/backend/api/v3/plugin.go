@@ -170,8 +170,8 @@ func (x *PluginListReq) ConvertConditionFromTypes(condition *types.PluginConditi
 }
 
 // ConvertPageToTypes converts page to types.
-func (x *PluginListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PluginListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertPluginFromTypes converts plugin from types.

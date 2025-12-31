@@ -60,7 +60,12 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 		return resp.GetData(), nil
 	}
 
-	page := req.ConvertPageToTypes(maxReleaseLimit)
+	page, err := req.ConvertPageToTypes(maxReleaseLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	hosts, num, err := h.daoReleasePlugin.ListReleasePlugin(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin")
@@ -136,7 +141,6 @@ func (h *handler) EnableReleasePlugin(rCtx restserver.IContext) (interface{}, er
 }
 
 func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, key types.ReleasePluginKey) error {
-
 	tenants, err := h.daoTenant.ListAllEnabledTenants(rCtx)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list all tenants")
@@ -162,7 +166,6 @@ func (h *handler) initDefaultPluginForAllTenants(rCtx restserver.IContext, key t
 
 // createDefaultPluginForTenant creates default plugin for a single tenant.
 func (h *handler) createDefaultPluginForTenant(nCtx contextx.IContext, tenantID string, key types.ReleasePluginKey) error {
-
 	exist, err := h.daoPlugin.ExistDefaultPluginByPluginPkgName(nCtx, key.Name)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("tenant_id", tenantID, "plugin_pkg_name", key.Name).

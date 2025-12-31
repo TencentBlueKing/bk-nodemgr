@@ -36,8 +36,8 @@ func (x *PluginWorkflowListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PluginWorkflowListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PluginWorkflowListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -214,8 +214,8 @@ func (x *PluginWorkflowOperationListReq) GetWorkflowID() string {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PluginWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PluginWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionsToOperationTypes convert conditions to operation types.
@@ -553,19 +553,19 @@ func (x *PluginWorkflowOperationInstanceListResp) ConvertWorkflowOperationInstan
 	for idx, item := range items {
 		inst := &operation.InstanceBriefData{
 			Metadata: &operation.InstanceMetadata{
-			OperationInstanceID: item.GetOperInstId(),
-			OperationID:         item.GetOperationId(),
-			OperationDefName:    item.GetOperationDefName(),
-			ParentOperationID:   item.GetParentOperationId(),
-			ActionNames:         item.GetActionNames(),
-		},
-		Lifecycle: &operation.Lifecycle{
-			State:     operation.State(item.GetOperInstStatus()),
-			CreatedAt: time.UnixMilli(item.GetLifeCycle().GetCreateTime()),
-			StartedAt: time.UnixMilli(item.GetLifeCycle().GetStartTime()),
-			EndedAt:   time.UnixMilli(item.GetLifeCycle().GetEndTime()),
-		},
-	}
+				OperationInstanceID: item.GetOperInstId(),
+				OperationID:         item.GetOperationId(),
+				OperationDefName:    item.GetOperationDefName(),
+				ParentOperationID:   item.GetParentOperationId(),
+				ActionNames:         item.GetActionNames(),
+			},
+			Lifecycle: &operation.Lifecycle{
+				State:     operation.State(item.GetOperInstStatus()),
+				CreatedAt: time.UnixMilli(item.GetLifeCycle().GetCreateTime()),
+				StartedAt: time.UnixMilli(item.GetLifeCycle().GetStartTime()),
+				EndedAt:   time.UnixMilli(item.GetLifeCycle().GetEndTime()),
+			},
+		}
 
 		result[idx] = inst
 	}

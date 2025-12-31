@@ -46,10 +46,13 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	plugins, cnt, err := h.daoPlugin.ListPlugins(
-		rCtx,
-		req.ConvertPageToTypes(maxPluginLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes(maxPluginLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins, invalid page info.")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	plugins, cnt, err := h.daoPlugin.ListPlugins(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugins.")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

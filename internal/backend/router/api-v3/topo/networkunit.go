@@ -259,10 +259,13 @@ func (h *handler) ListNetworkUnit(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkUnits, num, err := h.storage.ListNetworkUnit(
-		rCtx,
-		req.ConvertPageToTypes(maxNetworkUnitLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes(maxNetworkUnitLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	networkUnits, num, err := h.storage.ListNetworkUnit(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkunit")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

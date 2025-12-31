@@ -94,10 +94,14 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.storage.ListConfigPolicy(
-		rCtx,
-		req.ConvertPageToTypes(maxConfigPolicyLimit),
-		conditions)
+	page, err := req.ConvertPageToTypes(maxConfigPolicyLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy, invalid page info")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	hosts, num, err := h.storage.ListConfigPolicy(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy")
 
@@ -299,10 +303,14 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 		return resp.GetData(), nil
 	}
 
-	events, num, err := h.storage.ListConfigPolicyEvent(
-		rCtx,
-		req.ConvertPageToTypes(maxConfigPolicyLimit),
-		conditions)
+	page, err := req.ConvertPageToTypes(maxConfigPolicyLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event, invalid page info")
+
+		return nil, errf.ErrWrap(errf.InvalidParameter, err)
+	}
+
+	events, num, err := h.storage.ListConfigPolicyEvent(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event")
 

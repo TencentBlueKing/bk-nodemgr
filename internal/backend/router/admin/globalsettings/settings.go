@@ -46,10 +46,13 @@ func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, err
 		return resp.GetData(), nil
 	}
 
-	settings, num, err := h.storage.ListGlobalSettings(
-		rCtx,
-		req.ConvertPageToTypes(maxGlobalSettingsLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes(maxGlobalSettingsLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list global settings, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	settings, num, err := h.storage.ListGlobalSettings(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list global settings")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

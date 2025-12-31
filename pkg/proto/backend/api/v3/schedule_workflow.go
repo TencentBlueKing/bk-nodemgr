@@ -44,8 +44,8 @@ func (req *ListScheduleWorkflowReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *ListScheduleWorkflowReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *ListScheduleWorkflowReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionsFromTypes convert conditions from types.

@@ -127,8 +127,8 @@ func (x *PackageReleaseAgentListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PackageReleaseAgentListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PackageReleaseAgentListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertExactIncludeConditionsToTypes convert conditions to types.
@@ -400,8 +400,8 @@ func (x *PackageReleaseProxyListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PackageReleaseProxyListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PackageReleaseProxyListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertExactIncludeConditionsToTypes convert conditions to types.
@@ -673,8 +673,8 @@ func (x *PackageReleasePluginListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PackageReleasePluginListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PackageReleasePluginListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertExactIncludeConditionsToTypes convert conditions to types.

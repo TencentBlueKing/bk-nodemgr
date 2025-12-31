@@ -47,10 +47,13 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	hosts, num, err := h.storage.ListHostOrderByUpdateTime(
-		rCtx,
-		req.ConvertPageToTypes(maxHostLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes(maxHostLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	hosts, num, err := h.storage.ListHostOrderByUpdateTime(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

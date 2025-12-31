@@ -51,7 +51,12 @@ func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	page := req.ConvertPageToTypes(maxReleaseLimit)
+	page, err := req.ConvertPageToTypes(maxReleaseLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	hosts, num, err := h.daoReleaseAgent.ListReleaseAgent(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent")

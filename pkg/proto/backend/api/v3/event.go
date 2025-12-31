@@ -48,8 +48,8 @@ func (x *TopoEventListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *TopoEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *TopoEventListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionsToTypes convert conditions to types.
@@ -307,8 +307,8 @@ func (x *PackageEventListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *PackageEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *PackageEventListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionsToTypes convert conditions to types.
@@ -609,8 +609,8 @@ func (x *ConfigPolicyEventListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *ConfigPolicyEventListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *ConfigPolicyEventListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionsToTypes convert conditions to types.

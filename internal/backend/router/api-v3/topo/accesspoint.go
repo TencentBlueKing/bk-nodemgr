@@ -47,10 +47,13 @@ func (h *handler) ListAccessPoint(rCtx restserver.IContext) (interface{}, error)
 		return resp.GetData(), nil
 	}
 
-	accesspoints, num, err := h.storage.ListAccessPoint(
-		rCtx,
-		req.ConvertPageToTypes(maxAccessPointLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes(maxAccessPointLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	accesspoints, num, err := h.storage.ListAccessPoint(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list accesspoint")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

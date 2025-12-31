@@ -37,30 +37,6 @@ func validatePage(reqPage *Page) error {
 	return nil
 }
 
-// generatePage generates list page.
-// Deprecated: use convPageToTypes instead.
-func generatePage(reqPage *Page, maxLimit int) types.Page {
-	page := types.Page{}
-	if reqPage != nil {
-		page.Offset = int(reqPage.GetOffset())
-		page.Limit = int(reqPage.GetLimit())
-	}
-
-	if page.Offset < 0 {
-		page.Offset = 0
-	}
-
-	if page.Limit <= 0 || page.Limit > maxLimit {
-		page.Limit = maxLimit
-	}
-
-	if maxLimit <= 0 {
-		page.Limit = 0
-	}
-
-	return page
-}
-
 func convPageToTypes(reqPage *Page, maxLimit int) (types.Page, error) {
 	page := types.Page{}
 	if reqPage != nil {

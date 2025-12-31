@@ -76,11 +76,13 @@ func (h *handler) ListScheduleWorkflow(rCtx restserver.IContext) (interface{}, e
 		return resp.GetData(), nil
 	}
 
-	schedule, cnt, err := h.storageWorkflow.ListScheduledWorkflow(
-		rCtx,
-		req.ConvertPageToTypes(maxScheduleWorkflowLimit),
-		req.ConvertConditionsToTypes(),
-	)
+	page, err := req.ConvertPageToTypes(maxScheduleWorkflowLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list schedule workflow, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	schedule, cnt, err := h.storageWorkflow.ListScheduledWorkflow(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list schedule workflow")
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)

@@ -31,10 +31,13 @@ func (h *handler) ListBusiness(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	bizs, num, err := h.storage.ListBusinesses(
-		rCtx,
-		req.ConvertPageToTypes(maxBusinessLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes(maxBusinessLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	bizs, num, err := h.storage.ListBusinesses(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

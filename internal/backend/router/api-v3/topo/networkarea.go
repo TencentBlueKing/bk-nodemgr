@@ -135,10 +135,13 @@ func (h *handler) ListNetworkArea(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	networkAreas, num, err := h.storage.ListNetworkArea(
-		rCtx,
-		req.ConvertPageToTypes(maxNetworkAreaLimit),
-		req.ConvertConditionsToTypes())
+	page, err := req.ConvertPageToTypes(maxNetworkAreaLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkarea, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	networkAreas, num, err := h.storage.ListNetworkArea(rCtx, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list networkarea")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

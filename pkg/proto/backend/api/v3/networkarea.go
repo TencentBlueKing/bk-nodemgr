@@ -125,8 +125,8 @@ func (x *TopoNetworkAreaListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *TopoNetworkAreaListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *TopoNetworkAreaListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionsToTypes convert conditions to types.

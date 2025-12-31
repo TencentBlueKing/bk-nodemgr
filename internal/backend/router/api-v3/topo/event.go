@@ -54,10 +54,14 @@ func (h *handler) ListEvent(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	events, num, err := h.storage.ListTopoEvent(
-		rCtx,
-		req.ConvertPageToTypes(maxEventLimit),
-		cond)
+	page, err := req.ConvertPageToTypes(maxEventLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, invalid page info")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	events, num, err := h.storage.ListTopoEvent(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event")
 

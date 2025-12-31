@@ -67,8 +67,8 @@ func convertProcessConditionsToTypes(
 }
 
 // ConvertPageToTypes converts page to types.
-func (x *ProcessListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *ProcessListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionFromTypes converts condition from types.

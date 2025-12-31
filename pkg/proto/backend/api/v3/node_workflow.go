@@ -33,8 +33,8 @@ func (x *NodeWorkflowListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *NodeWorkflowListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *NodeWorkflowListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -241,8 +241,8 @@ func (x *NodeWorkflowOperationListReq) AutoConvert() {
 }
 
 // ConvertPageToTypes convert page to types.
-func (x *NodeWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) types.Page {
-	return generatePage(x.GetPage(), maxLimit)
+func (x *NodeWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
+	return convPageToTypes(x.GetPage(), maxLimit)
 }
 
 // ConvertResultFromTypes convert workflow id to types.

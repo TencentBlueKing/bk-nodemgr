@@ -99,14 +99,19 @@ func (h *handler) ListPluginWorkflow(rCtx restserver.IContext) (interface{}, err
 		return resp.GetData(), nil
 	}
 
+	page, err := req.ConvertPageToTypes(maxPluginWorkflowLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	cond, err := req.ConvertConditionsToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, failed to convert conditions")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
-	workflows, total, err := h.daoPluginWorkflow.ListPluginWorkflow(rCtx,
-		req.ConvertPageToTypes(maxPluginWorkflowLimit),
-		cond)
+
+	workflows, total, err := h.daoPluginWorkflow.ListPluginWorkflow(rCtx, page, cond)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
@@ -192,10 +197,14 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		}
 	}
 
+	page, err := req.ConvertPageToTypes(maxPluginWorkflowLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, invalid page info")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
 	// list all deployments by condition.
-	deployments, num, err := h.daoPluginDeployment.ListPluginDeployment(rCtx,
-		req.ConvertPageToTypes(maxPluginWorkflowLimit),
-		req.ConvertConditionsToDeploymentTypes(tokens))
+	deployments, num, err := h.daoPluginDeployment.ListPluginDeployment(rCtx, page, req.ConvertConditionsToDeploymentTypes(tokens))
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin deployment")
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)

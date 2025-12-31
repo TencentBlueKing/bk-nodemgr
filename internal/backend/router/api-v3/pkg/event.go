@@ -55,10 +55,14 @@ func (h *handler) ListPackageEvent(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	events, num, err := h.daoPackageEvent.ListPackageEvent(
-		rCtx,
-		req.ConvertPageToTypes(maxEventLimit),
-		conditions)
+	page, err := req.ConvertPageToTypes(maxEventLimit)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event, invalid page info")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	events, num, err := h.daoPackageEvent.ListPackageEvent(rCtx, page, conditions)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list event")
 
