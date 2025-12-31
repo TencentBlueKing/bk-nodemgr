@@ -768,7 +768,7 @@ func (x *PackageReleaseProxyCountDeployedReq) ConvertConditionsToTypes() ([]*typ
 
 		conditions[idx] = &types.HostCondition{
 			DynamicExactInclude: &types.HostDynamicExactFields{
-				NodeRole:       []types.NodeRole{types.NodeRoleAgent},
+				NodeRole:       []types.NodeRole{types.NodeRoleProxy},
 				NodeGeneration: []int64{item.GetGeneration()},
 				OSType:         []string{item.GetPlatform().GetOsType()},
 				Arch:           []string{item.GetPlatform().GetCpuArch()},
