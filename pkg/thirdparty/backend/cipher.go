@@ -18,7 +18,9 @@ import (
 // IHandlerCipher cipher handler interface.
 type IHandlerCipher interface {
 	// GetRSAPublicKey get rsa public key.
-	GetRSAPublicKey(ctx contextx.IContext) (string, error)
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @return the rsa public key string and error.
+	GetRSAPublicKey(nCtx contextx.IContext) (string, error)
 }
 
 // GetRSAPublicKey get rsa public key.

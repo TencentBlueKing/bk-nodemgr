@@ -12,10 +12,6 @@
 // Everything from API or Database should be converted into types in this package before using.
 package types
 
-import (
-	"time"
-)
-
 // Business represents a business under a tenant.
 type Business struct {
 	// belongs to.
@@ -166,64 +162,6 @@ type Endpoints struct {
 	Cluster []string
 	File    []string
 	Data    []string
-}
-
-// TopoEventType represents the type of topology event.
-type TopoEventType string
-
-// TopoEventTypeListToStringList converts a topoevent type list to a string list.
-func TopoEventTypeListToStringList(eventTypeList []TopoEventType) []string {
-	data := make([]string, len(eventTypeList))
-	for idx, eventType := range eventTypeList {
-		data[idx] = string(eventType)
-	}
-
-	return data
-}
-
-// StringListToTopoEventTypeList converts a string list to a topoevent type list.
-func StringListToTopoEventTypeList(stringList []string) []TopoEventType {
-	data := make([]TopoEventType, len(stringList))
-	for idx, eventType := range stringList {
-		data[idx] = TopoEventType(eventType)
-	}
-
-	return data
-}
-
-const (
-	// TopoEventNetworkAreaCreate represents the event of creating a network area.
-	TopoEventNetworkAreaCreate TopoEventType = "networkarea-create"
-	// TopoEventNetworkAreaUpdate represents the event of updating a network area.
-	TopoEventNetworkAreaUpdate TopoEventType = "networkarea-update"
-	// TopoEventNetworkAreaDelete represents the event of deleting a network area.
-	TopoEventNetworkAreaDelete TopoEventType = "networkarea-delete"
-	// TopoEventNetworkUnitCreate represents the event of creating a network unit.
-	TopoEventNetworkUnitCreate TopoEventType = "networkunit-create"
-	// TopoEventNetworkUnitUpdate represents the event of updating a network unit.
-	TopoEventNetworkUnitUpdate TopoEventType = "networkunit-update"
-	// TopoEventNetworkUnitDelete represents the event of deleting a network unit.
-	TopoEventNetworkUnitDelete TopoEventType = "networkunit-delete"
-	// TopoEventAccessPointCreate represents the event of creating an access point.
-	TopoEventAccessPointCreate TopoEventType = "accesspoint-create"
-	// TopoEventAccessPointUpdate represents the event of updating an access point.
-	TopoEventAccessPointUpdate TopoEventType = "accesspoint-update"
-	// TopoEventAccessPointDelete represents the event of deleting an access point.
-	TopoEventAccessPointDelete TopoEventType = "accesspoint-delete"
-)
-
-// TopoEvent represents an event record of topology.
-type TopoEvent struct {
-	TenantID        string
-	Type            TopoEventType
-	NetworkAreaID   int64
-	NetworkAreaName string
-	NetworkUnitID   int64
-	NetworkUnitName string
-	AccessPointID   int64
-	AccessPointName string
-	OperateTime     time.Time
-	Operator        string
 }
 
 // TopoConstant defines the topo constants.

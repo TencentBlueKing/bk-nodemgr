@@ -21,84 +21,82 @@ import (
 // nolint: interfacebloat
 type IHandlerPluginWorkflow interface {
 	// ListPluginWorkflow list plugin workflow within specified tenant in contextx.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param condition the filter conditions.
-	// @return the plugin-workflow list with page and the total count with filter.
-	ListPluginWorkflow(ctx contextx.IContext, page types.Page, condition *types.PluginWorkflowCondition) (
-		[]*types.PluginWorkflow, int64, error)
+	// @return the plugin-workflow list with page and the total count with filter and error.
+	ListPluginWorkflow(nCtx contextx.IContext, page types.Page, condition *types.PluginWorkflowCondition) ([]*types.PluginWorkflow, int64, error)
 
 	// CountPluginWorkflow count plugin workflow by conditions.
-	//	@param ctx contextx, contains tenant-id.
+	//	@param nCtx contextx, contains tenant-id.
 	//	@param condition the filter conditions.
-	//	@return the plugin-workflow count with filter.
-	CountPluginWorkflow(ctx contextx.IContext, condition *types.PluginWorkflowCondition) (int64, error)
+	//	@return the plugin-workflow count with filter and error.
+	CountPluginWorkflow(nCtx contextx.IContext, condition *types.PluginWorkflowCondition) (int64, error)
 
 	// DistinctPluginWorkflow distinct plugin workflow by conditions.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param request the plugin workflow distinct request.
 	// @param conditions the filter conditions.
-	// @return the plugin-workflow distinct result.
-	DistinctPluginWorkflow(ctx contextx.IContext, request types.PluginWorkflowDistinctRequest,
-		condition *types.PluginWorkflowCondition) (*types.PluginWorkflowDistinctResult, error)
+	// @return the plugin-workflow distinct result and error.
+	DistinctPluginWorkflow(nCtx contextx.IContext, request types.PluginWorkflowDistinctRequest, condition *types.PluginWorkflowCondition) (
+		*types.PluginWorkflowDistinctResult, error)
 
 	// ListPluginWorkflowOperation list plugin workflow operation.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
 	// @param workflowID the workflow id.
 	// @param condition the filter conditions.
-	// @return the operation list with page and the total count with filter.
-	ListPluginWorkflowOperation(ctx contextx.IContext, page types.Page, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
+	// @return the operation list with page and the total count with filter and error.
+	ListPluginWorkflowOperation(nCtx contextx.IContext, page types.Page, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
 		[]*types.PluginWorkflowListOperationResult, int64, error)
 
 	// CountPluginWorkflowOperation count plugin workflow operation.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param workflowID the workflow id.
 	// @param condition the filter conditions.
-	// @return the operation count with filter.
-	CountPluginWorkflowOperation(ctx contextx.IContext, workflowID string, condition *types.ApplicationPluginOperationListCondition) (int64, error)
+	// @return the operation count with filter and error.
+	CountPluginWorkflowOperation(nCtx contextx.IContext, workflowID string, condition *types.ApplicationPluginOperationListCondition) (int64, error)
 
 	// ListPluginWorkflowOperationInstance list plugin workflow operation instance.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param operationID the operation id.
-	// @return the operation instance list with page and the total count with filter.
-	ListPluginWorkflowOperationInstance(ctx contextx.IContext, operationID ...string) (
-		[]*operation.InstanceBriefData, int64, error)
+	// @return the operation instance list with page and the total count with filter and error.
+	ListPluginWorkflowOperationInstance(nCtx contextx.IContext, operationID ...string) ([]*operation.InstanceBriefData, int64, error)
 
 	// CountPluginWorkflowOperationInstance count plugin workflow operation instance.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param operationID the operation id.
-	// @return the operation instance count with filter.
-	CountPluginWorkflowOperationInstance(ctx contextx.IContext, operationID ...string) (int64, error)
+	// @return the operation instance count with filter and error.
+	CountPluginWorkflowOperationInstance(nCtx contextx.IContext, operationID ...string) (int64, error)
 
 	// GetPluginWorkflowOperationInstanceLog distinct plugin workflow by conditions.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param request the plugin workflow distinct request.
 	// @param condition the filter conditions.
-	// @return the plugin-workflow distinct result.
-	GetPluginWorkflowOperationInstanceLog(ctx contextx.IContext, instanceID string) (*operation.InstanceData, error)
+	// @return the plugin-workflow distinct result and error.
+	GetPluginWorkflowOperationInstanceLog(nCtx contextx.IContext, instanceID string) (*operation.InstanceData, error)
 
 	// ListPluginWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
-	// @param ctx contextx.IContext, contains tenant-id.
+	// @param nCtx contextx.IContext, contains tenant-id.
 	// @param triggerIDs the trigger ids.
 	// @return the latest operation instance status distribution: map[trigger-id]map[state]count and the error.
-	ListPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, triggerIDs []string) (map[string]map[string]int64, error)
+	ListPluginWorkflowOperationInstanceStatusDistribution(nCtx contextx.IContext, triggerIDs []string) (map[string]map[string]int64, error)
 
 	// RetryPluginWorkflowOperation retry plugin operation.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param retryParam the retry param.
 	// @return the error.
-	RetryPluginWorkflowOperation(ctx contextx.IContext, retryParam *types.PluginWorkflowOperationRetryParam) error
+	RetryPluginWorkflowOperation(nCtx contextx.IContext, retryParam *types.PluginWorkflowOperationRetryParam) error
 
 	// TerminatePluginWorkflowOperation terminate plugin operation.
-	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param param the terminate param.
 	// @return the error.
-	TerminatePluginWorkflowOperation(ctx contextx.IContext, terminateParam *types.PluginWorkflowOperationTerminateParam) error
+	TerminatePluginWorkflowOperation(nCtx contextx.IContext, terminateParam *types.PluginWorkflowOperationTerminateParam) error
 }
 
 // ListPluginWorkflow list node workflow within specified tenant in contextx.
-func (h *Handler) ListPluginWorkflow(ctx contextx.IContext, page types.Page, condition *types.PluginWorkflowCondition) (
+func (h *Handler) ListPluginWorkflow(nCtx contextx.IContext, page types.Page, condition *types.PluginWorkflowCondition) (
 	[]*types.PluginWorkflow, int64, error) {
 
 	req := &protoBackend.PluginWorkflowListReq{
@@ -108,7 +106,7 @@ func (h *Handler) ListPluginWorkflow(ctx contextx.IContext, page types.Page, con
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listPluginWorkflows(ctx, req)
+	resp, err := h.cli.listPluginWorkflows(nCtx, req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -119,7 +117,7 @@ func (h *Handler) ListPluginWorkflow(ctx contextx.IContext, page types.Page, con
 }
 
 // CountPluginWorkflow count host within specified tenant in contextx.
-func (h *Handler) CountPluginWorkflow(ctx contextx.IContext, condition *types.PluginWorkflowCondition) (int64, error) {
+func (h *Handler) CountPluginWorkflow(nCtx contextx.IContext, condition *types.PluginWorkflowCondition) (int64, error) {
 	req := &protoBackend.PluginWorkflowListReq{
 		OnlyCount: true,
 	}
@@ -127,7 +125,7 @@ func (h *Handler) CountPluginWorkflow(ctx contextx.IContext, condition *types.Pl
 		return 0, err
 	}
 
-	resp, err := h.cli.listPluginWorkflows(ctx, req)
+	resp, err := h.cli.listPluginWorkflows(nCtx, req)
 	if err != nil {
 		return 0, err
 	}
@@ -136,15 +134,15 @@ func (h *Handler) CountPluginWorkflow(ctx contextx.IContext, condition *types.Pl
 }
 
 // DistinctPluginWorkflow distinct node workflow by conditions.
-func (h *Handler) DistinctPluginWorkflow(ctx contextx.IContext, _ types.PluginWorkflowDistinctRequest,
-	conditions *types.PluginWorkflowCondition) (*types.PluginWorkflowDistinctResult, error) {
+func (h *Handler) DistinctPluginWorkflow(nCtx contextx.IContext, _ types.PluginWorkflowDistinctRequest, conditions *types.PluginWorkflowCondition) (
+	*types.PluginWorkflowDistinctResult, error) {
 
 	req := &protoBackend.PluginWorkflowDistinctReq{}
 	if err := req.ConvertConditionsFromTypes(conditions); err != nil {
 		return nil, err
 	}
 
-	resp, err := h.cli.distinctPluginWorkflows(ctx, req)
+	resp, err := h.cli.distinctPluginWorkflows(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +152,7 @@ func (h *Handler) DistinctPluginWorkflow(ctx contextx.IContext, _ types.PluginWo
 
 // ListPluginWorkflowOperation list workflow  operation.
 func (h *Handler) ListPluginWorkflowOperation(
-	ctx contextx.IContext, page types.Page, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
+	nCtx contextx.IContext, page types.Page, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
 	[]*types.PluginWorkflowListOperationResult, int64, error) {
 
 	req := &protoBackend.PluginWorkflowOperationListReq{
@@ -166,7 +164,7 @@ func (h *Handler) ListPluginWorkflowOperation(
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listPluginWorkflowOperation(ctx, req)
+	resp, err := h.cli.listPluginWorkflowOperation(nCtx, req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -177,7 +175,7 @@ func (h *Handler) ListPluginWorkflowOperation(
 }
 
 // CountPluginWorkflowOperation count workflow  operation.
-func (h *Handler) CountPluginWorkflowOperation(ctx contextx.IContext, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
+func (h *Handler) CountPluginWorkflowOperation(nCtx contextx.IContext, workflowID string, condition *types.ApplicationPluginOperationListCondition) (
 	int64, error) {
 
 	req := &protoBackend.PluginWorkflowOperationListReq{
@@ -187,7 +185,7 @@ func (h *Handler) CountPluginWorkflowOperation(ctx contextx.IContext, workflowID
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return 0, err
 	}
-	resp, err := h.cli.listPluginWorkflowOperation(ctx, req)
+	resp, err := h.cli.listPluginWorkflowOperation(nCtx, req)
 	if err != nil {
 		return 0, err
 	}
@@ -196,15 +194,13 @@ func (h *Handler) CountPluginWorkflowOperation(ctx contextx.IContext, workflowID
 }
 
 // ListPluginWorkflowOperationInstance list workflow operation instance.
-func (h *Handler) ListPluginWorkflowOperationInstance(
-	ctx contextx.IContext, operationID ...string) ([]*operation.InstanceBriefData, int64, error) {
-
+func (h *Handler) ListPluginWorkflowOperationInstance(nCtx contextx.IContext, operationID ...string) ([]*operation.InstanceBriefData, int64, error) {
 	req := &protoBackend.PluginWorkflowOperationInstanceListReq{
 		OnlyCount:   false,
 		OperationId: operationID,
 	}
 
-	resp, err := h.cli.listPluginWorkflowOperationInstance(ctx, req)
+	resp, err := h.cli.listPluginWorkflowOperationInstance(nCtx, req)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -215,13 +211,13 @@ func (h *Handler) ListPluginWorkflowOperationInstance(
 }
 
 // CountPluginWorkflowOperationInstance count workflow operation instance.
-func (h *Handler) CountPluginWorkflowOperationInstance(ctx contextx.IContext, operationID ...string) (int64, error) {
+func (h *Handler) CountPluginWorkflowOperationInstance(nCtx contextx.IContext, operationID ...string) (int64, error) {
 	req := &protoBackend.PluginWorkflowOperationInstanceListReq{
 		OnlyCount:   true,
 		OperationId: operationID,
 	}
 
-	resp, err := h.cli.listPluginWorkflowOperationInstance(ctx, req)
+	resp, err := h.cli.listPluginWorkflowOperationInstance(nCtx, req)
 	if err != nil {
 		return 0, err
 	}
@@ -230,14 +226,14 @@ func (h *Handler) CountPluginWorkflowOperationInstance(ctx contextx.IContext, op
 }
 
 // GetPluginWorkflowOperationInstanceLog get workflow operation instance log.
-func (h *Handler) GetPluginWorkflowOperationInstanceLog(ctx contextx.IContext, instanceID string) (
+func (h *Handler) GetPluginWorkflowOperationInstanceLog(nCtx contextx.IContext, instanceID string) (
 	*operation.InstanceData, error) {
 
 	req := &protoBackend.PluginWorkflowOperationInstanceLogGetReq{
 		OperInstId: instanceID,
 	}
 
-	resp, err := h.cli.getPluginWorkflowOperationInstanceLog(ctx, req)
+	resp, err := h.cli.getPluginWorkflowOperationInstanceLog(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -248,14 +244,14 @@ func (h *Handler) GetPluginWorkflowOperationInstanceLog(ctx contextx.IContext, i
 }
 
 // ListPluginWorkflowOperationInstanceStatusDistribution lists the latest operation instance status distribution by trigger id.
-func (h *Handler) ListPluginWorkflowOperationInstanceStatusDistribution(ctx contextx.IContext, triggerIDs []string) (
+func (h *Handler) ListPluginWorkflowOperationInstanceStatusDistribution(nCtx contextx.IContext, triggerIDs []string) (
 	map[string]map[string]int64, error) {
 
 	req := &protoBackend.PluginWorkflowOperationInstanceStatusDistributionListReq{
 		TriggerId: triggerIDs,
 	}
 
-	resp, err := h.cli.listPluginWorkflowOperationInstanceStatusDistribution(ctx, req)
+	resp, err := h.cli.listPluginWorkflowOperationInstanceStatusDistribution(nCtx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -266,12 +262,12 @@ func (h *Handler) ListPluginWorkflowOperationInstanceStatusDistribution(ctx cont
 }
 
 // RetryPluginWorkflowOperation retry node workflow operation.
-func (h *Handler) RetryPluginWorkflowOperation(ctx contextx.IContext, retryParam *types.PluginWorkflowOperationRetryParam) error {
+func (h *Handler) RetryPluginWorkflowOperation(nCtx contextx.IContext, retryParam *types.PluginWorkflowOperationRetryParam) error {
 	req := &protoBackend.PluginWorkflowOperationRetryReq{}
 
 	req.ConvertOperationRetryParamFromTypes(retryParam)
 
-	err := h.cli.retryPluginWorkflowOperation(ctx, req)
+	err := h.cli.retryPluginWorkflowOperation(nCtx, req)
 	if err != nil {
 		return err
 	}
@@ -280,12 +276,12 @@ func (h *Handler) RetryPluginWorkflowOperation(ctx contextx.IContext, retryParam
 }
 
 // TerminatePluginWorkflowOperation terminate node operation.
-func (h *Handler) TerminatePluginWorkflowOperation(ctx contextx.IContext, terminateParam *types.PluginWorkflowOperationTerminateParam) error {
+func (h *Handler) TerminatePluginWorkflowOperation(nCtx contextx.IContext, terminateParam *types.PluginWorkflowOperationTerminateParam) error {
 	req := &protoBackend.PluginWorkflowOperationTerminateReq{}
 
 	req.ConvertOperationTerminateParamFromTypes(terminateParam)
 
-	err := h.cli.terminatePluginWorkflowOperation(ctx, req)
+	err := h.cli.terminatePluginWorkflowOperation(nCtx, req)
 	if err != nil {
 		return err
 	}

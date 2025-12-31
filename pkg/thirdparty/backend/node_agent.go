@@ -18,13 +18,52 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// IHandlerNodeAgent defines the node agent Handler.
+type IHandlerNodeAgent interface {
+	// InstallAgent node agent.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param installParam the install param.
+	// @return the installing workflow-ids and error.
+	InstallAgent(nCtx contextx.IContext, installParam *types.NodeAgentInstallParam) (string, error)
+
+	// UpgradeAgent node agent.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param upgradeParam the upgrade param.
+	// @return the upgrading workflow-ids and error.
+	UpgradeAgent(nCtx contextx.IContext, upgradeParam *types.NodeAgentUpgradeParam) (string, error)
+
+	// ReconfigAgent node agent.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param reconfigParam the reconfig param.
+	// @return the reconfig workflow-ids and error.
+	ReconfigAgent(nCtx contextx.IContext, reconfigParam *types.NodeAgentReconfigParam) (string, error)
+
+	// RestartProxy node agent.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param restartParam the restart param.
+	// @return the restarting workflow-ids and error.
+	RestartAgent(nCtx contextx.IContext, restartParam *types.NodeAgentRestartParam) (string, error)
+
+	// CheckAgentInstall node agent.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param checkParam the check param.
+	// @return the check result and error.
+	CheckAgentInstall(nCtx contextx.IContext, checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error)
+
+	// UninstallAgent node agent.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param uninstallParam the uninstall param.
+	// @return the restarting workflow-ids and error.
+	UninstallAgent(nCtx contextx.IContext, uninstallParam *types.NodeAgentUninstallParam) (string, error)
+}
+
 // InstallAgent node agent.
-func (h *Handler) InstallAgent(ctx contextx.IContext, installParam *types.NodeAgentInstallParam) (string, error) {
+func (h *Handler) InstallAgent(nCtx contextx.IContext, installParam *types.NodeAgentInstallParam) (string, error) {
 	req := &protoBackend.NodeAgentInstallReq{}
 
 	req.ConvertHostParamFromTypes(installParam)
 
-	resp, err := h.cli.installNodeAgent(ctx, req)
+	resp, err := h.cli.installNodeAgent(nCtx, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to install agent: %w", err)
 	}
@@ -35,14 +74,14 @@ func (h *Handler) InstallAgent(ctx contextx.IContext, installParam *types.NodeAg
 }
 
 // CheckAgentInstall check agent install.
-func (h *Handler) CheckAgentInstall(ctx contextx.IContext,
-	checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error) {
+func (h *Handler) CheckAgentInstall(nCtx contextx.IContext, checkParam []*types.NodeAgentInstallCheckInfo) (
+	[]*types.NodeAgentInstallCheckResult, error) {
 
 	req := &protoBackend.NodeAgentInstallCheckReq{}
 
 	req.ConvertHostParamFromTypes(checkParam)
 
-	resp, err := h.cli.checkAgentInstall(ctx, req)
+	resp, err := h.cli.checkAgentInstall(nCtx, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check agent install: %w", err)
 	}
@@ -53,12 +92,12 @@ func (h *Handler) CheckAgentInstall(ctx contextx.IContext,
 }
 
 // UpgradeAgent node agent.
-func (h *Handler) UpgradeAgent(ctx contextx.IContext, upgradeParam *types.NodeAgentUpgradeParam) (string, error) {
+func (h *Handler) UpgradeAgent(nCtx contextx.IContext, upgradeParam *types.NodeAgentUpgradeParam) (string, error) {
 	req := new(protoBackend.NodeAgentUpgradeReq)
 
 	req.ConvertParamFromTypes(upgradeParam)
 
-	resp, err := h.cli.upgradeNodeAgent(ctx, req)
+	resp, err := h.cli.upgradeNodeAgent(nCtx, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to upgrade agent: %w", err)
 	}
@@ -67,11 +106,11 @@ func (h *Handler) UpgradeAgent(ctx contextx.IContext, upgradeParam *types.NodeAg
 }
 
 // RestartAgent node agent.
-func (h *Handler) RestartAgent(ctx contextx.IContext, restartParam *types.NodeAgentRestartParam) (string, error) {
+func (h *Handler) RestartAgent(nCtx contextx.IContext, restartParam *types.NodeAgentRestartParam) (string, error) {
 	req := new(protoBackend.NodeAgentRestartReq)
 	req.ConvertParamFromTypes(restartParam)
 
-	resp, err := h.cli.restartNodeAgent(ctx, req)
+	resp, err := h.cli.restartNodeAgent(nCtx, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to restart agent: %w", err)
 	}
@@ -80,11 +119,11 @@ func (h *Handler) RestartAgent(ctx contextx.IContext, restartParam *types.NodeAg
 }
 
 // ReconfigAgent node agent.
-func (h *Handler) ReconfigAgent(ctx contextx.IContext, reconfigParam *types.NodeAgentReconfigParam) (string, error) {
+func (h *Handler) ReconfigAgent(nCtx contextx.IContext, reconfigParam *types.NodeAgentReconfigParam) (string, error) {
 	req := new(protoBackend.NodeAgentReconfigReq)
 	req.ConvertParamFromTypes(reconfigParam)
 
-	resp, err := h.cli.reconfigNodeAgent(ctx, req)
+	resp, err := h.cli.reconfigNodeAgent(nCtx, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to reconfig agent: %w", err)
 	}
@@ -93,11 +132,11 @@ func (h *Handler) ReconfigAgent(ctx contextx.IContext, reconfigParam *types.Node
 }
 
 // UninstallAgent node agent.
-func (h *Handler) UninstallAgent(ctx contextx.IContext, reconfigParam *types.NodeAgentUninstallParam) (string, error) {
+func (h *Handler) UninstallAgent(nCtx contextx.IContext, reconfigParam *types.NodeAgentUninstallParam) (string, error) {
 	req := new(protoBackend.NodeAgentUninstallReq)
 	req.ConvertParamFromTypes(reconfigParam)
 
-	resp, err := h.cli.uninstallNodeAgent(ctx, req)
+	resp, err := h.cli.uninstallNodeAgent(nCtx, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to uninstall agent: %w", err)
 	}

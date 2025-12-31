@@ -16,13 +16,49 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+// IHandlerProcess defines the backend Handler for process.
+type IHandlerProcess interface {
+	// ListProcesses lists processes by page and conditions.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param page describes the page info when listing.
+	// @param condition the filter conditions.
+	// @return process list with page and the total count with filter and error.
+	ListProcesses(nCtx contextx.IContext, page types.Page, condition *types.ProcessCondition) ([]*types.Process, int64, error)
+
+	// CountProcesses counts processes by conditions.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the process count with filter and error.
+	CountProcesses(nCtx contextx.IContext, condition *types.ProcessCondition) (int64, error)
+
+	// GetProcessDistributionByHostID gets process distribution by host id.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the process distribution by host id and error.
+	GetProcessDistributionByHostID(nCtx contextx.IContext, condition *types.ProcessCondition) (map[int64]int64, error)
+
+	// GetProcessDistributionByPluginName gets process distribution by plugin name.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the process distribution by plugin name and error.
+	GetProcessDistributionByPluginName(nCtx contextx.IContext, condition *types.ProcessCondition) (map[string]int64, error)
+
+	// DistinctProcess distinct process by conditions.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param selector the distinct selector.
+	// @param condition the filter conditions.
+	// @return the process distinct result and error.
+	DistinctProcess(nCtx contextx.IContext, selector types.ProcessDistinctSelector, condition *types.ProcessCondition) (
+		*types.ProcessDistinctResult, error)
+}
+
 // CountProcesses count processes.
-func (h *Handler) CountProcesses(ctx contextx.IContext, condition *types.ProcessCondition) (int64, error) {
+func (h *Handler) CountProcesses(nCtx contextx.IContext, condition *types.ProcessCondition) (int64, error) {
 	req := new(protoBackend.ProcessListReq)
 	req.ConvertConditionFromTypes(condition)
 	req.OnlyCount = true
 
-	resp, err := h.cli.listProcesses(ctx, req)
+	resp, err := h.cli.listProcesses(nCtx, req)
 	if err != nil {
 		return 0, err
 	}
@@ -31,13 +67,13 @@ func (h *Handler) CountProcesses(ctx contextx.IContext, condition *types.Process
 }
 
 // ListProcesses list processes.
-func (h *Handler) ListProcesses(ctx contextx.IContext, page types.Page, condition *types.ProcessCondition) ([]*types.Process, int64, error) {
+func (h *Handler) ListProcesses(nCtx contextx.IContext, page types.Page, condition *types.ProcessCondition) ([]*types.Process, int64, error) {
 	req := new(protoBackend.ProcessListReq)
 	req.ConvertConditionFromTypes(condition)
 	req.Page = convertPage(page)
 	req.OnlyCount = false
 
-	resp, err := h.cli.listProcesses(ctx, req)
+	resp, err := h.cli.listProcesses(nCtx, req)
 	if err != nil {
 		return nil, 0, err
 	}
