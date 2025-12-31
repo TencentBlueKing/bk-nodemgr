@@ -433,6 +433,7 @@ const handleCancel = () => {
 // 获取版本，用来检查是否有对应架构的包版本去安装
 const getVersions = async () => {
   const res = await PackageService.ListReleaseAgent({
+    page: { limit: 500, offset: 0 },
     generation: 2,
     exact_include_conditions: {
       release_type: ['agent'],

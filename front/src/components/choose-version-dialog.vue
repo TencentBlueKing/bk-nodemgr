@@ -207,6 +207,7 @@ const getVersions = async () => {
   let res;
   if (props.releaseType === 'agent') {
     res = await PackageService.ListReleaseAgent({
+      page: { limit: 500, offset: 0 },
       generation: 2,
       exact_include_conditions: {
         release_type: [props.releaseType],
@@ -218,6 +219,7 @@ const getVersions = async () => {
     }));
   } else {
     res = await PackageService.ListReleaseProxy({
+      page: { limit: 500, offset: 0 },
       generation: 2,
       exact_include_conditions: {
         release_type: [props.releaseType],

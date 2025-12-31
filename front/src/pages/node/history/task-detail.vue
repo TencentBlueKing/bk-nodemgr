@@ -948,6 +948,10 @@ const handleBatchTerminate = async () => {
 
 const updataCurrentTaskInfo = async () => {
   const res = await serviceCaller.call('workflowList', {
+    page: {
+      limit: pagination.limit,
+      offset: (pagination.current - 1) * pagination.limit,
+    },
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
       workflow_id: [route.params.taskId],

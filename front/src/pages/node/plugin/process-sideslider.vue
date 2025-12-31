@@ -451,6 +451,10 @@ const getProcessList = async () => {
   let hostListMap = new Map();
   if (props.type === 'plugin') {
     const hostList = await TopoService.HostList({
+      page: {
+        limit: pagination.limit,
+        offset: (pagination.current - 1) * pagination.limit,
+      },
       exact_include_conditions: {
         bk_host_id: res.items.map(item => item.bk_host_id),
       },
