@@ -17,11 +17,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-const (
-	// maxDeployPolicyLimit the max limit of deploy policies.
-	maxDeployPolicyLimit = 1000
-)
-
 // List lists the deploy policies.
 func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.DeployPolicyListReq)
@@ -36,7 +31,7 @@ func (h *handler) List(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	page, err := req.ConvertPageToTypes(maxDeployPolicyLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list deploy policies, failed to convert page")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

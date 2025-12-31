@@ -31,10 +31,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	maxPluginWorkflowLimit = 500
-)
-
 type handler struct {
 	rg             *gin.RouterGroup
 	pluginMgrIface managerIface.IPluginManager
@@ -99,7 +95,7 @@ func (h *handler) ListPluginWorkflow(rCtx restserver.IContext) (interface{}, err
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes(maxPluginWorkflowLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin workflow, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -197,7 +193,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		}
 	}
 
-	page, err := req.ConvertPageToTypes(maxPluginWorkflowLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list operation, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

@@ -60,7 +60,7 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes(maxReleaseLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list plugin, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

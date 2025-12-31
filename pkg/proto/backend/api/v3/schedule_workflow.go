@@ -43,9 +43,19 @@ func (req *ListScheduleWorkflowReq) Validate() error {
 func (req *ListScheduleWorkflowReq) AutoConvert() {
 }
 
+const (
+	// schedule workflow list max limit
+	maxScheduleWorkflowLimit = 500
+)
+
+// PageLimit return page limit.
+func (x *ListScheduleWorkflowReq) PageLimit() int {
+	return maxScheduleWorkflowLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *ListScheduleWorkflowReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *ListScheduleWorkflowReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsFromTypes convert conditions from types.

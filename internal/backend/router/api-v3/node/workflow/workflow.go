@@ -29,10 +29,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	maxNodeWorkflowLimit = 500
-)
-
 type handler struct {
 	rg           *gin.RouterGroup
 	nodeMgrIface managerIface.INodeManager
@@ -97,7 +93,7 @@ func (h *handler) ListNodeWorkflow(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes(maxNodeWorkflowLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node workflow, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
@@ -193,7 +189,7 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		}
 	}
 
-	page, err := req.ConvertPageToTypes(maxNodeWorkflowLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list node deployment, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

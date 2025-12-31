@@ -13,6 +13,7 @@ package v3
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -223,9 +224,24 @@ func (x *TopoNetworkUnitListReq) Validate() error {
 func (x *TopoNetworkUnitListReq) AutoConvert() {
 }
 
+const (
+	// network unit list max limit
+	maxNetworkUnitLimit = 1000
+)
+
+// PageTimeout return page timeout.
+func (x *TopoNetworkUnitListReq) PageTimeout() time.Duration {
+	return BackendPagingListTimeout
+}
+
+// PageLimit return page limit.
+func (x *TopoNetworkUnitListReq) PageLimit() int {
+	return maxNetworkUnitLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *TopoNetworkUnitListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *TopoNetworkUnitListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.

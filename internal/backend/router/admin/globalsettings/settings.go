@@ -18,10 +18,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-const (
-	maxGlobalSettingsLimit = 500
-)
-
 // ListGlobalSettings lists global settings.
 func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.ListGlobalSettingsReq)
@@ -46,7 +42,7 @@ func (h *handler) ListGlobalSettings(rCtx restserver.IContext) (interface{}, err
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes(maxGlobalSettingsLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list global settings, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

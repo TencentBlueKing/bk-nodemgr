@@ -12,6 +12,7 @@ package v3
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -25,9 +26,24 @@ func (x *TopoAccessPointListReq) Validate() error {
 func (x *TopoAccessPointListReq) AutoConvert() {
 }
 
+const (
+	// access point list max limit
+	maxAccessPointLimit = 1000
+)
+
+// PageTimeout return page timeout.
+func (x *TopoAccessPointListReq) PageTimeout() time.Duration {
+	return BackendPagingListTimeout
+}
+
+// PageLimit return page limit.
+func (x *TopoAccessPointListReq) PageLimit() int {
+	return maxAccessPointLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *TopoAccessPointListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *TopoAccessPointListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.

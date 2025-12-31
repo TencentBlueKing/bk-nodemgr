@@ -19,10 +19,6 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-const (
-	maxHostLimit = 1000
-)
-
 // ListHost lists hosts with page and conditions.
 func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoHostListReq)
@@ -47,7 +43,7 @@ func (h *handler) ListHost(rCtx restserver.IContext) (interface{}, error) {
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes(maxHostLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list host, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

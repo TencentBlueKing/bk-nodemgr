@@ -28,8 +28,7 @@ import (
 )
 
 const (
-	maxConfigPolicyLimit = 1000
-	initVersion          = 1
+	initVersion = 1
 )
 
 type handler struct {
@@ -94,7 +93,7 @@ func (h *handler) ListConfigPolicy(rCtx restserver.IContext) (interface{}, error
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes(maxConfigPolicyLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list config policy, invalid page info")
 
@@ -303,7 +302,7 @@ func (h *handler) ListConfigPolicyEvent(rCtx restserver.IContext) (interface{}, 
 		return resp.GetData(), nil
 	}
 
-	page, err := req.ConvertPageToTypes(maxConfigPolicyLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list policy event, invalid page info")
 

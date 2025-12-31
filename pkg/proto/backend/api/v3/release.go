@@ -20,6 +20,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
+const (
+	// release list max limit
+	maxReleaseLimit = 1000
+)
+
 // ==================== Helper Functions ====================
 
 func convertReleaseExactConditionsToTypes(exactCond *PackageReleaseExactConditions) *types.ReleaseExactFields {
@@ -126,9 +131,14 @@ func (x *PackageReleaseAgentListReq) Validate() error {
 func (x *PackageReleaseAgentListReq) AutoConvert() {
 }
 
+// PageLimit return page limit.
+func (x *PackageReleaseAgentListReq) PageLimit() int {
+	return maxReleaseLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *PackageReleaseAgentListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *PackageReleaseAgentListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertExactIncludeConditionsToTypes convert conditions to types.
@@ -399,9 +409,14 @@ func (x *PackageReleaseProxyListReq) Validate() error {
 func (x *PackageReleaseProxyListReq) AutoConvert() {
 }
 
+// PageLimit return page limit.
+func (x *PackageReleaseProxyListReq) PageLimit() int {
+	return maxReleaseLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *PackageReleaseProxyListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *PackageReleaseProxyListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertExactIncludeConditionsToTypes convert conditions to types.
@@ -672,9 +687,14 @@ func (x *PackageReleasePluginListReq) Validate() error {
 func (x *PackageReleasePluginListReq) AutoConvert() {
 }
 
+// PageLimit return page limit.
+func (x *PackageReleasePluginListReq) PageLimit() int {
+	return maxReleaseLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *PackageReleasePluginListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *PackageReleasePluginListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertExactIncludeConditionsToTypes convert conditions to types.

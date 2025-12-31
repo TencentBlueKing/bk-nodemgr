@@ -17,12 +17,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 )
 
-const (
-	// not max limit in business.
-	// return all data in one request.
-	maxBusinessLimit = 0
-)
-
 // ListBusiness list business with specified conditions.
 func (h *handler) ListBusiness(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoBackend.TopoBusinessListReq)
@@ -31,7 +25,7 @@ func (h *handler) ListBusiness(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	page, err := req.ConvertPageToTypes(maxBusinessLimit)
+	page, err := req.ConvertPageToTypes()
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list business, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)

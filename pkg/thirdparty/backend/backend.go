@@ -84,9 +84,7 @@ func (c *cli) getHeader(ctx contextx.IContext) http.Header {
 // Topo Related Interfaces
 // ===============================================================================
 
-func (c *cli) listBusiness(ctx contextx.IContext, req *protoBackend.TopoBusinessListReq,
-) (*protoBackend.TopoBusinessListResp_Data, error) {
-
+func (c *cli) listBusiness(ctx contextx.IContext, req *protoBackend.TopoBusinessListReq) (*protoBackend.TopoBusinessListResp, error) {
 	resp := new(protoBackend.TopoBusinessListResp)
 	header := c.getHeader(ctx)
 
@@ -107,13 +105,12 @@ func (c *cli) listBusiness(ctx contextx.IContext, req *protoBackend.TopoBusiness
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
-	data := resp.GetData()
-	if data == nil {
+	if resp.GetData() == nil {
 		return nil, fmt.Errorf("list business failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
-	return data, nil
+	return resp, nil
 }
 
 func (c *cli) listHost(ctx contextx.IContext, req *protoBackend.TopoHostListReq,
@@ -457,9 +454,7 @@ func (c *cli) updateNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNet
 	return resp, nil
 }
 
-func (c *cli) listNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetworkAreaListReq,
-) (*protoBackend.TopoNetworkAreaListResp_Data, error) {
-
+func (c *cli) listNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetworkAreaListReq) (*protoBackend.TopoNetworkAreaListResp, error) {
 	resp := new(protoBackend.TopoNetworkAreaListResp)
 	header := c.getHeader(ctx)
 
@@ -480,13 +475,12 @@ func (c *cli) listNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetwo
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
-	data := resp.GetData()
-	if data == nil {
+	if resp.GetData() == nil {
 		return nil, fmt.Errorf("list networkarea failed, get empty data. code(%d), message(%s), request-id(%s)",
 			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
-	return data, nil
+	return resp, nil
 }
 
 func (c *cli) getNetworkArea(ctx contextx.IContext, req *protoBackend.TopoNetworkAreaGetReq,

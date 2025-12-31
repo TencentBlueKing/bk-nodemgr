@@ -27,9 +27,19 @@ func (x *TopoHostListReq) Validate() error {
 func (x *TopoHostListReq) AutoConvert() {
 }
 
+const (
+	// host list max limit
+	maxHostLimit = 1000
+)
+
+// PageLimit return page limit.
+func (x *TopoHostListReq) PageLimit() int {
+	return maxHostLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *TopoHostListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *TopoHostListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.

@@ -23,6 +23,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
+const (
+	// node workflow list max limit
+	maxNodeWorkflowLimit = 500
+)
+
 // Validate check body.
 func (x *NodeWorkflowListReq) Validate() error {
 	return validatePage(x.GetPage())
@@ -32,9 +37,14 @@ func (x *NodeWorkflowListReq) Validate() error {
 func (x *NodeWorkflowListReq) AutoConvert() {
 }
 
+// PageLimit return page limit.
+func (x *NodeWorkflowListReq) PageLimit() int {
+	return maxNodeWorkflowLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *NodeWorkflowListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *NodeWorkflowListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -240,9 +250,14 @@ func (x *NodeWorkflowOperationListReq) ConvertConditionsToOperationTypes(trigger
 func (x *NodeWorkflowOperationListReq) AutoConvert() {
 }
 
+// PageLimit return page limit.
+func (x *NodeWorkflowOperationListReq) PageLimit() int {
+	return maxNodeWorkflowLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *NodeWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *NodeWorkflowOperationListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertResultFromTypes convert workflow id to types.

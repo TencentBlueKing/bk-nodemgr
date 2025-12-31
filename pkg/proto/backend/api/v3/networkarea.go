@@ -13,6 +13,7 @@ package v3
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -124,9 +125,24 @@ func (x *TopoNetworkAreaListReq) Validate() error {
 func (x *TopoNetworkAreaListReq) AutoConvert() {
 }
 
+const (
+	// network area list max limit
+	maxNetworkAreaLimit = 1000
+)
+
+// PageTimeout return page timeout.
+func (x *TopoNetworkAreaListReq) PageTimeout() time.Duration {
+	return BackendPagingListTimeout
+}
+
+// PageLimit return page limit.
+func (x *TopoNetworkAreaListReq) PageLimit() int {
+	return maxNetworkAreaLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *TopoNetworkAreaListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *TopoNetworkAreaListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToTypes convert conditions to types.
@@ -194,6 +210,27 @@ func (x *TopoNetworkAreaListResp) ConvertNetworkAreasFromTypes(total int64, netw
 		Total: total,
 		Items: items,
 	}
+}
+
+// ConvertNetworkAreasToTypes convert networkareas to types.
+func (x *TopoNetworkAreaListResp) ConvertNetworkAreasToTypes() (int64, []*types.NetworkArea) {
+	data := x.GetData()
+	if data == nil {
+		return 0, nil
+	}
+
+	items := data.GetItems()
+	result := make([]*types.NetworkArea, len(items))
+	for idx, item := range items {
+		result[idx] = &types.NetworkArea{
+			TenantID:    item.GetTenantId(),
+			ID:          item.GetBkNetworkareaId(),
+			Name:        item.GetBkNetworkareaName(),
+			CloudVendor: item.GetCloudVendor(),
+		}
+	}
+
+	return data.GetTotal(), result
 }
 
 // Validate check body.

@@ -22,6 +22,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
 )
 
+const (
+	// plugin workflow list max limit
+	maxPluginWorkflowLimit = 500
+)
+
 // ===============================================================================
 // PluginWorkflowList Related Interfaces
 // ===============================================================================
@@ -35,9 +40,14 @@ func (x *PluginWorkflowListReq) Validate() error {
 func (x *PluginWorkflowListReq) AutoConvert() {
 }
 
+// PageLimit return page limit.
+func (x *PluginWorkflowListReq) PageLimit() int {
+	return maxPluginWorkflowLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *PluginWorkflowListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *PluginWorkflowListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsFromTypes convert conditions from types.
@@ -213,9 +223,14 @@ func (x *PluginWorkflowOperationListReq) GetWorkflowID() string {
 	return x.GetWorkflowId()
 }
 
+// PageLimit return page limit.
+func (x *PluginWorkflowOperationListReq) PageLimit() int {
+	return maxPluginWorkflowLimit
+}
+
 // ConvertPageToTypes convert page to types.
-func (x *PluginWorkflowOperationListReq) ConvertPageToTypes(maxLimit int) (types.Page, error) {
-	return convPageToTypes(x.GetPage(), maxLimit)
+func (x *PluginWorkflowOperationListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage(), x.PageLimit())
 }
 
 // ConvertConditionsToOperationTypes convert conditions to operation types.
