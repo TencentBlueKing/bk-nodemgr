@@ -12,6 +12,7 @@ package backend
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
@@ -99,21 +100,34 @@ type IHandlerPluginWorkflow interface {
 func (h *Handler) ListPluginWorkflow(nCtx contextx.IContext, page types.Page, condition *types.PluginWorkflowCondition) (
 	[]*types.PluginWorkflow, int64, error) {
 
-	req := &protoBackend.PluginWorkflowListReq{
-		Page: convertPage(page),
-	}
+	req := new(protoBackend.PluginWorkflowListReq)
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listPluginWorkflows(nCtx, req)
+	var (
+		total     int64
+		workflows []*types.PluginWorkflow
+	)
+	executor := pageexecutor.NewPageExecutor[*types.PluginWorkflow](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.PluginWorkflow, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listPluginWorkflows(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		workflows, total = resp.ConvertPluginWorkflowsToTypes()
+
+		return workflows, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	result, num := resp.ConvertPluginWorkflowsToTypes()
-
-	return result, num, nil
+	return result.Items, total, nil
 }
 
 // CountPluginWorkflow count host within specified tenant in contextx.

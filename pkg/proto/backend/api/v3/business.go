@@ -33,7 +33,7 @@ const (
 
 // PageTimeout return page timeout.
 func (x *TopoBusinessListReq) PageTimeout() time.Duration {
-	return BackendPagingListTimeout
+	return backendPagingListTimeout
 }
 
 // PageLimit return page limit.

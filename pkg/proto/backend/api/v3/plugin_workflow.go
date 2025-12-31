@@ -40,6 +40,11 @@ func (x *PluginWorkflowListReq) Validate() error {
 func (x *PluginWorkflowListReq) AutoConvert() {
 }
 
+// PageTimeout return page timeout.
+func (x *PluginWorkflowListReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
 // PageLimit return page limit.
 func (x *PluginWorkflowListReq) PageLimit() int {
 	return maxPluginWorkflowLimit

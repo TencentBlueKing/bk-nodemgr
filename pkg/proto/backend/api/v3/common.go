@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	// BackendPagingListTimeout defines the timeout for paging list requests
-	BackendPagingListTimeout = 30 * time.Minute
+	// backendPagingListTimeout defines the timeout for paging list requests
+	backendPagingListTimeout = 30 * time.Minute
 )
 
 func validatePage(reqPage *Page) error {

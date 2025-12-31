@@ -33,7 +33,7 @@ const (
 
 // PageTimeout return page timeout.
 func (x *TopoAccessPointListReq) PageTimeout() time.Duration {
-	return BackendPagingListTimeout
+	return backendPagingListTimeout
 }
 
 // PageLimit return page limit.

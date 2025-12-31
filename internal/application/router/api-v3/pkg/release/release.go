@@ -253,6 +253,7 @@ func (h *handler) SetAsDefaultReleaseAgent(rCtx restserver.IContext) (interface{
 	if err := h.backendHandler.SetAsDefaultReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to set default release agent")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -280,6 +281,7 @@ func (h *handler) CancelAsDefaultReleaseAgent(rCtx restserver.IContext) (interfa
 	if err := h.backendHandler.CancelAsDefaultReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to cancel default release agent")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -307,6 +309,7 @@ func (h *handler) DeleteReleaseAgent(rCtx restserver.IContext) (interface{}, err
 	if err := h.backendHandler.DeleteReleaseAgent(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to delete release agent")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -495,6 +498,7 @@ func (h *handler) EnableReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	if err := h.backendHandler.EnableReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to enable release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -522,6 +526,7 @@ func (h *handler) DisableReleaseProxy(rCtx restserver.IContext) (interface{}, er
 	if err := h.backendHandler.DisableReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to disable release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -549,6 +554,7 @@ func (h *handler) SetAsDefaultReleaseProxy(rCtx restserver.IContext) (interface{
 	if err := h.backendHandler.SetAsDefaultReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to set default release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -576,6 +582,7 @@ func (h *handler) CancelAsDefaultReleaseProxy(rCtx restserver.IContext) (interfa
 	if err := h.backendHandler.CancelAsDefaultReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to cancel default release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
@@ -603,6 +610,7 @@ func (h *handler) DeleteReleaseProxy(rCtx restserver.IContext) (interface{}, err
 	if err := h.backendHandler.DeleteReleaseProxy(rCtx, key); err != nil {
 		logger.G.Biz(rCtx).WithErr(err).
 			With("gen", key.Generation, "plat", key.Platform, "version", key.Version).Error("failed to delete release proxy")
+
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 

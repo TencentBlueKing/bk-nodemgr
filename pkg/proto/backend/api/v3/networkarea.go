@@ -132,7 +132,7 @@ const (
 
 // PageTimeout return page timeout.
 func (x *TopoNetworkAreaListReq) PageTimeout() time.Duration {
-	return BackendPagingListTimeout
+	return backendPagingListTimeout
 }
 
 // PageLimit return page limit.

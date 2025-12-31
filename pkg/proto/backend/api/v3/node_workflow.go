@@ -37,6 +37,11 @@ func (x *NodeWorkflowListReq) Validate() error {
 func (x *NodeWorkflowListReq) AutoConvert() {
 }
 
+// PageTimeout return page timeout.
+func (x *NodeWorkflowListReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
 // PageLimit return page limit.
 func (x *NodeWorkflowListReq) PageLimit() int {
 	return maxNodeWorkflowLimit
