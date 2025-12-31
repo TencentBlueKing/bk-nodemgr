@@ -34,6 +34,7 @@
           @page-value-change="pageValueChange"
           @checkbox-change="handleSelectChange"
           @checkbox-all="handleSelectAllChange"
+          @column-filter="handleFilter"
         >
           <TableColumn v-if="type === 'plugin'" type="checkbox" width="60" fixed="left"></TableColumn>
           <TableColumn
@@ -97,7 +98,7 @@
           <TableColumn
             title="Agent ID"
             field="agent_id"
-            min-width="120"
+            min-width="220"
           ></TableColumn>
           <TableColumn
             title="进程名"
@@ -254,7 +255,6 @@ import useTableSetting from '@/composables/use-table-setting';
 
 import type { DistinctProcessRespData } from '@/@types/process';
 
-
 interface FilterOption {
   list: { text: string; value: string }[];
   checked: string[];
@@ -360,15 +360,47 @@ const filterOptionSource: Record<string, FilterOption> = reactive({
   status: { list: [], checked: [], filterScope: 'all' },
 });
 
+const searchSelectValue = ref<any[]>([]);
+const handleFilter = ({ checked, field }: { checked: string[]; field: string }) => {
+  let newId = field;
+  switch (field) {
+    case 'os_type':
+      newId = 'platform_os';
+      break;
+    case 'cpu_arch':
+      newId = 'platform_arch';
+      break;
+  }
+  const index = searchSelectValue.value.findIndex((item: any) => item.id === newId);
+  if (index > -1) searchSelectValue.value.splice(index, 1);
+  if (checked.length) {
+    searchSelectValue.value.push({
+      id: newId,
+      name: newId,
+      values: checked.map((item: any) => {
+        let name = item;
+        switch (field) {
+          case 'status':
+            name = statusMap[item]?.text || item;
+            break;
+        }
+        return { id: item, name };
+      }),
+    });
+  }
+};
+
 // distinct
 const distinct = ref<DistinctProcessRespData>();
 const getDistinct = async () => {
   const res = await ProcessAPIService.DistinctProcess({
-    exact_include_conditions: {
-      bk_host_id: props.type === 'node' ? [props.node.bk_host_id] : processList.value.map((item: any) => item.bk_host_id),
+    exact_include_conditions: props.type === 'plugin' ? {
+      plugin_name: [props.plugin.name],
+    } : {
+      bk_host_id: [props.node.bk_host_id],
     },
   });
-  if (res) {
+  if (res && Object.keys(res).length > 0) {
     distinct.value = res;
     Object.keys(res).forEach((key: any) => {
       if (filterOptionSource[key]) {
@@ -385,10 +417,9 @@ const getDistinct = async () => {
 };
 
 const loading = ref(false);
-
-const getProcessList = async () => {
-  loading.value = true;
-  const res = await ProcessAPIService.ListProcesses({
+const fuzzyKeys = new Set(['name', 'plugin_pkg_name']);
+const getParams = () => {
+  const params = {
     page: { limit: pagination.limit, offset: (pagination.current - 1) * pagination.limit },
     exact_include_conditions: props.type === 'plugin' ? {
       plugin_name: [props.plugin.name],
@@ -396,7 +427,18 @@ const getProcessList = async () => {
       bk_host_id: [props.node.bk_host_id],
     },
     fuzzy_include_conditions: {},
-  }).catch((err) => {
+  };
+  searchSelectValue.value.forEach((item: any) => {
+    const target = fuzzyKeys.has(item.id)
+      ? params.fuzzy_include_conditions
+      : params.exact_include_conditions;
+    target[item.id] = item.values?.map((value: any) => value.id);
+  });
+  return params;
+};
+const getProcessList = async () => {
+  loading.value = true;
+  const res = await ProcessAPIService.ListProcesses(getParams()).catch((err) => {
     console.log(err);
     return {
       total: 0,
@@ -435,7 +477,6 @@ const getProcessList = async () => {
     bk_host_innerip: hostListMap.get(item.bk_host_id)?.bk_host_innerip || '',
     bk_host_innerip_v6: hostListMap.get(item.bk_host_id)?.bk_host_innerip_v6 || '',
   }));
-  getDistinct();
 };
 
 // 暂时没有编辑数据，不需要离开前确认
@@ -456,9 +497,19 @@ watch(
   async () => {
     if (isShow.value) {
       await getProcessList();
+      if (processList.value.length > 0) {
+        getDistinct();
+      }
     }
   },
   { immediate: true },
+);
+watch(
+  searchSelectValue,
+  async () => {
+    await getProcessList();
+  },
+  { deep: true },
 );
 </script>
 <style lang="postcss" scoped>
