@@ -9,8 +9,10 @@
           <div
             v-for="operate in filterIpOpearateList" :key="operate.operation_id"
             class="cursor-pointer w-full px-[20px] h-[40px] leading-[40px] flex items-center"
-            :class="{ 'bg-[#e1ecff]': Number(route.params.hostId) === operate.bk_host_id }"
-            @click="handleChangeIp(operate.bk_host_id)"
+            :class="{ 'bg-[#e1ecff]': isNode
+              ? Number(route.params.hostId) === operate.bk_host_id
+              : route.params.hostId === (`${operate.bk_host_id}_${operate.plugin_name}`) }"
+            @click="handleChangeIp(operate.bk_host_id, operate.plugin_name)"
           >
             <span class="mr-[5px] leading-none">
               <i
@@ -300,7 +302,7 @@ const serviceCaller = {
   },
 };
 const activeKey = ref('');
-
+const isNode = computed(() => route.query.active === 'node');
 const operateList = ref<any[]>([]); // 子任务列表
 // 搜索过滤
 const filterIpOpearateList = computed(() => operateList.value.filter(item => !searchValue.value
@@ -308,7 +310,9 @@ const filterIpOpearateList = computed(() => operateList.value.filter(item => !se
     || item.plugin_name?.includes(searchValue.value)));
 
 const searchValue = ref();
-const currentOperate = computed(() => operateList.value.find(item => item.bk_host_id === Number(route.params.hostId)));
+const currentOperate = computed(() => operateList.value.find(item => isNode.value
+  ? item.bk_host_id === Number(route.params.hostId)
+  : route.params.hostId === (`${item.bk_host_id}_${item.plugin_name}`)));
 const title = computed(() => `${currentOperate.value?.bk_host_inner_list ?? ''} ${typeMap.value[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
 const curOperInstId = ref('');
 const curOperInstVal = ref('latest');
@@ -502,11 +506,11 @@ const handleClickStep = (row: any) => {
 };
 
 // 搜索Ip
-const handleChangeIp = async (hostId: number) => {
+const handleChangeIp = async (hostId: number, plugin_name: string = '') => {
   router.replace({
     name: 'log',
     params: {
-      hostId,
+      hostId: isNode.value ? hostId : `${hostId}_${plugin_name}`,
       taskId: route.params.taskId,
     },
     query: {
@@ -647,6 +651,9 @@ async function getLog() {
     if (start_time && end_time) {
       if (end_time <= 0 && state !== 'pending') {
         costTime = new Date().getTime() - start_time;
+        if (start_time < 0) {
+          costTime = 0;
+        }
       } else if (end_time > 0) {
         costTime = end_time - start_time;
       }
