@@ -500,6 +500,13 @@ watch(
       if (processList.value.length > 0) {
         getDistinct();
       }
+    } else {
+      Object.keys(filterOptionSource).forEach((key: any) => {
+        if (filterOptionSource[key]) {
+          filterOptionSource[key].list = [];
+        }
+      });
+      processList.value = [];
     }
   },
   { immediate: true },
