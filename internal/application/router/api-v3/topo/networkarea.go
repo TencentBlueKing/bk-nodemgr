@@ -95,6 +95,8 @@ func (h *handler) ListNetworkArea(rCtx restserver.IContext) (interface{}, error)
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// special logic:
+	// networkarea request with limit 0 means unlimited
 	if page.Limit == 0 {
 		page = types.UnlimitedPage()
 	}

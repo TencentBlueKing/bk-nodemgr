@@ -32,6 +32,8 @@ func (h *handler) ListBusiness(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// special logic:
+	// business request with limit 0 means unlimited
 	if page.Limit == 0 {
 		page = types.UnlimitedPage()
 	}
