@@ -834,7 +834,15 @@ func convertNodeWorkOperConditionsFromTypes(condition *types.ApplicationNodeOper
 
 	if condition.ExactInclude != nil {
 		exactCond = &NodeWorkflowOperationListReq_ExactConditions{
-			State: types.NodeWorkflowOperationStatusListToStringList(condition.ExactInclude.State),
+			NodeVersion:     condition.ExactInclude.NodeVersion,
+			BkHostInnerip:   condition.ExactInclude.HostInnerIP,
+			BkHostInneripV6: condition.ExactInclude.HostInnerIPV6,
+			BkBizId:         condition.ExactInclude.BizID,
+			BkNetworkareaId: condition.ExactInclude.NetworkAreaID,
+			BkNetworkunitId: condition.ExactInclude.NetworkUnitID,
+			State: conv.SliceToSlice(condition.ExactInclude.State, func(s types.NodeWorkflowOperationState) string {
+				return string(s)
+			}),
 		}
 	}
 
