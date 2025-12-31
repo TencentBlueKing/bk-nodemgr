@@ -1005,21 +1005,39 @@ const getOperateList = async () => {
   const mapList = res.operations.map((item) => {
     subTasksStatus.value?.push(item.latest_oper_inst_brief_data.life_cycle.state);
     const endTime = item.latest_oper_inst_brief_data.life_cycle.end_time;
-    return {
-      ...item.node_deployment_info,
-      ...item.latest_oper_inst_brief_data.life_cycle,
-      latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
-      bk_host_innerip: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
-      bk_host_innerip_v6: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
-      bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
-      bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
-      bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.node_deployment_info.bk_biz_id)?.bk_biz_name
-         || item.node_deployment_info.bk_biz_id,
-      operation_id: item.operation_id,
-      reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
-      node_version: route.query.active === 'node' ? item.node_deployment_info.node_version : item.node_deployment_info.plugin_version,
-      total_time_second: endTime > 0 ? endTime - item.create_time : new Date().getTime() - item.create_time,
-    };
+    if (route.query.active === 'node') {
+      return {
+        ...item.node_deployment_info,
+        ...item.latest_oper_inst_brief_data.life_cycle,
+        latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
+        bk_host_innerip: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
+        bk_host_innerip_v6: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
+        bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
+        bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
+        bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.node_deployment_info.bk_biz_id)?.bk_biz_name
+          || item.node_deployment_info.bk_biz_id,
+        operation_id: item.operation_id,
+        reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
+        node_version: route.query.active === 'node' ? item.node_deployment_info.node_version : item.node_deployment_info.plugin_version,
+        total_time_second: endTime > 0 ? endTime - item.create_time : new Date().getTime() - item.create_time,
+      };
+    } else {
+      return {
+        ...item.plugin_deployment_info,
+        ...item.latest_oper_inst_brief_data.life_cycle,
+        latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
+        bk_host_innerip: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
+        bk_host_innerip_v6: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
+        bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
+        bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
+        bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.plugin_deployment_info.bk_biz_id)?.bk_biz_name
+          || item.plugin_deployment_info.bk_biz_id,
+        operation_id: item.operation_id,
+        reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
+        node_version: route.query.active === 'node' ? item.plugin_deployment_info.node_version : item.plugin_deployment_info.plugin_version,
+        total_time_second: endTime > 0 ? endTime - item.create_time : new Date().getTime() - item.create_time,
+      };
+    }
   });
   const isEqual = tableData.value.length === mapList.length
     && tableData.value.every((item, index) => item.state === mapList[index]?.state);

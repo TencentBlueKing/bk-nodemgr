@@ -581,14 +581,25 @@ const getOperateList = async () => {
     total_count: 0,
   }));
   operateLoading.value = false;
-  operateList.value = res.operations.map(item => ({
-    ...item.node_deployment_info,
-    ...item.latest_oper_inst_brief_data.life_cycle,
-    latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
-    bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
-    bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
-    operation_id: item.operation_id,
-  }));
+  if (route.query.active === 'node') {
+    operateList.value = res.operations.map(item => ({
+      ...item.node_deployment_info,
+      ...item.latest_oper_inst_brief_data.life_cycle,
+      latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
+      bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
+      operation_id: item.operation_id,
+    }));
+  } else {
+    operateList.value = res.operations.map(item => ({
+      ...item.plugin_deployment_info,
+      ...item.latest_oper_inst_brief_data.life_cycle,
+      latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
+      bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
+      operation_id: item.operation_id,
+    }));
+  }
 };
 
 const instanceLoading = ref(false);
