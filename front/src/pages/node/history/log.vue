@@ -579,6 +579,7 @@ const operateLoading = ref(false);
 const getOperateList = async () => {
   operateLoading.value = true;
   const res = await serviceCaller.call('operationList', {
+    page: { limit: 500, offset: 0 },
     workflow_id: route.params.taskId,
   }).catch(() => ({
     operations: [],
