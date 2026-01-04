@@ -23,7 +23,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 
 import { useMainStore } from '@/stores/main';
 
@@ -31,6 +31,10 @@ const props = defineProps({
   needTypeList: {
     type: Array,
     default: () => ['setup', 'import', 'manual'],
+  },
+  currentNodeType: {
+    type: String,
+    default: 'agent',
   },
 });
 const emit = defineEmits(['change']);
@@ -56,11 +60,15 @@ const installTypeConfig = [
   },
 ];
 const installTypeList = computed(() => installTypeConfig.filter(item => props.needTypeList.includes(item.type)));
-const activeType = computed(() => mainStore.agentSetupType);
+const activeType = computed(() => props.currentNodeType === 'agent' ? mainStore.agentSetupType : mainStore.proxySetupType);
 const handleClick = (type: string) => {
   emit('change', type);
-  mainStore.updateAgentSetupType(type);
+  props.currentNodeType === 'agent' ? mainStore.updateAgentSetupType(type) : mainStore.updateProxySetupType(type);
 };
+onMounted(() => {
+  mainStore.updateAgentSetupType('setup');
+  mainStore.updateProxySetupType('setup');
+});
 </script>
 <style lang="postcss" scoped>
 .form-item-content {

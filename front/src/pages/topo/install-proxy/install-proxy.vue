@@ -15,7 +15,7 @@
           label-width="90"
           required
         >
-          <install-type @change="handleChange"></install-type>
+          <install-type currentNodeType="proxy" @change="handleChange"></install-type>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.info')"

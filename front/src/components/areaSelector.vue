@@ -84,9 +84,13 @@ import { useWorkareaStore } from '@/stores/workarea';
 const props = withDefaults(defineProps<{
   multiple?: boolean;
   noLimit?: boolean;
+  bk_networkarea_id?: number;
+  disabled?: boolean;
 }>(), {
   multiple: true,
   noLimit: false,
+  bk_networkarea_id: undefined,
+  disabled: false,
 });
 
 const emit = defineEmits<{
@@ -110,6 +114,9 @@ onMounted(async () => {
 
     if (props.noLimit) {
       internalValue.value = '-1';
+    }
+    if (props.bk_networkarea_id) {
+      internalValue.value = String(props.bk_networkarea_id);
     }
     // 初始值赋值逻辑
     // const favoriteIds = workareaStore.favoriteWorkareaList;

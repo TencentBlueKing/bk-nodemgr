@@ -24,7 +24,7 @@
                 v-model="row.bk_biz_id"
                 auto-focus
                 filterable
-                placeholder="选择业务"
+                :disabled="true"
                 @change="clearError(rowIndex, 'bk_biz_id')"
                 @toggle="
                   (val) =>
@@ -39,6 +39,69 @@
                   :id="item.bk_biz_id"
                 >
                   [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+                </Select.Option>
+              </Select>
+            </ValidateCell>
+          </template>
+        </VxeColumn>
+      </VxeColgroup>
+
+      <!-- 拓扑属性 -->
+      <VxeColgroup title="拓扑属性" align="center" v-if="isReinstall">
+        <VxeColumn
+          field="bk_networkarea_name"
+          title="管控区域"
+          :visible="settings.checked.includes('bk_networkarea_name')"
+          :min-width="150"
+        >
+          <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'bk_networkarea_name')">
+              <Input
+                v-model.trim="row.bk_networkarea_name"
+                :disabled="true"
+                @change="
+                  (val) => {
+                    handleChangeIPv4(val, row, rowIndex);
+                    clearError(rowIndex, 'bk_networkarea_name');
+                  }
+                "
+                @blur="
+                  handleFieldBlur(
+                    rowIndex,
+                    'bk_networkarea_name',
+                    row.bk_networkarea_name
+                  )
+                "
+              ></Input>
+            </ValidateCell>
+          </template>
+        </VxeColumn>
+        <VxeColumn
+          field="bk_networkunit_id"
+          title="管控单元"
+          :min-width="150"
+          :visible="settings.checked.includes('bk_networkunit_id')"
+        >
+          <template #default="{ row, rowIndex }">
+            <ValidateCell :error="getError(rowIndex, 'bk_networkunit_id')">
+              <Select
+                v-model="row.bk_networkunit_id"
+                auto-focus
+                filterable
+                @change="clearError(rowIndex, 'bk_networkunit_id')"
+                @toggle="
+                  (val) =>
+                    !val &&
+                    handleFieldBlur(rowIndex, 'bk_networkunit_id', row.bk_networkunit_id)
+                "
+              >
+                <Select.Option
+                  v-for="option in getNetworkUnitsByAreaId(row.bk_networkarea_id)"
+                  :key="option.bk_networkarea_id"
+                  :id="String(option.bk_networkunit_id)"
+                  :name="option.bk_networkunit_name"
+                >
+                  [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
                 </Select.Option>
               </Select>
             </ValidateCell>
@@ -62,6 +125,7 @@
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip')">
               <Input
                 v-model.trim="row.bk_host_innerip"
+                :disabled="isReinstall"
                 @change="
                   (val) => {
                     handleChangeIPv4(val, row, rowIndex);
@@ -88,6 +152,7 @@
           <template #default="{ row, rowIndex }">
             <ValidateCell :error="getError(rowIndex, 'bk_host_innerip_v6')">
               <Input
+                :disabled="isReinstall"
                 v-model.trim="row.bk_host_innerip_v6"
                 @change="clearError(rowIndex, 'bk_host_innerip_v6')"
                 @blur="
@@ -435,11 +500,15 @@
         </template>
         <VxeColumn :min-width="80" field="action" title="操作">
           <template #default="{ rowIndex }">
-            <Button text @click="handleAddRow(rowIndex)">
+            <Button
+              :disabled="isReinstall"
+              text
+              @click="handleAddRow(rowIndex)">
               <i class="nodeman-icon nc-plus"></i>
             </Button>
             <Button
               text
+              :disabled="isReinstall"
               @click="handleDelRow(rowIndex)"
               style="margin-left: 8px"
             ><i class="nodeman-icon nc-minus"></i
@@ -456,7 +525,7 @@
 
 <script lang="ts" setup>
 import { Button, Input, Message, Select, Switcher, Upload } from 'bkui-vue';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, groupBy } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
@@ -936,6 +1005,39 @@ const tableValidate = async () => {
   return isValid;
 };
 
+// 管控单元下拉列表获取
+const networkUnitList = ref<any[]>([]);
+// 分组映射：{bk_networkarea_id: [网络单元对象数组]}
+const networkUnitGroupMap = ref<Record<number, any[]>>({});
+
+const getNetworkUnitList = async () => {
+  const res = await TopoService.NetworkUnitList({
+    exact_include_conditions: {
+      bk_networkarea_id: tableData.value?.map((item: any) => Number(item.bk_networkarea_id)) || [],
+    },
+  }).catch((err: any) => {
+    console.log(err);
+    return {
+      total: 0,
+      items: [],
+    };
+  });
+  networkUnitList.value = res.items;
+  
+  // 使用Lodash的groupBy函数进行分组
+  networkUnitGroupMap.value = groupBy(res.items, 'bk_networkarea_id');
+};
+
+// 根据网络区域ID获取对应的网络单元列表
+const getNetworkUnitsByAreaId = (bkNetworkAreaId: number) => {
+  return networkUnitGroupMap.value[bkNetworkAreaId] || [];
+};
+
+// 获取所有可用的网络区域ID列表
+const getNetworkAreaIds = () => {
+  return Object.keys(networkUnitGroupMap.value).map(id => Number(id));
+};
+
 const settingRef = ref();
 const showSetting = () => settingRef.value?.showSetting();
 
@@ -956,6 +1058,9 @@ defineExpose({ tableValidate, showSetting });
 
 onMounted(async () => {
   await getHostDistinct();
+  if (props.isReinstall) {
+    await getNetworkUnitList();
+  }
 });
 
 watch(() => type.value, () => {
