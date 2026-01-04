@@ -16,6 +16,7 @@ export const usePackageStore = defineStore('package', () => {
     let res;
     if (currentType.value === 'agent') {
       res = await PackageService.ListReleaseAgent({
+        page: { limit: 500, offset: 0 },
         generation: 2,
         exact_include_conditions: {},
       }).catch(() => ({
@@ -24,6 +25,7 @@ export const usePackageStore = defineStore('package', () => {
       }));
     } else {
       res = await PackageService.ListReleaseProxy({
+        page: { limit: 500, offset: 0 },
         generation: 2,
         exact_include_conditions: {},
       }).catch(() => ({

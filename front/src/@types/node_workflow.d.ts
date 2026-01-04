@@ -111,11 +111,6 @@ export interface NodeWorkflowOperation {
   latest_oper_inst_brief_data: WorkflowOperInstBriefData;
 }
 
-export interface NodeWorkflowOperationStatus {
-  state: string;
-  total_time_second: number;
-}
-
 // NodeWorkflowOperationExactConditions describes the exact conditions of node
 // workflow operation list request.
 export interface NodeWorkflowOperationExactConditions {
