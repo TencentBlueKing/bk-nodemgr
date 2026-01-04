@@ -104,6 +104,7 @@ type HostStaticExactFields struct {
 	BizID         []int64
 	NetworkAreaID []int64
 	InnerIP       []string
+	InnerIPV6     []string
 	Addressing    []Addressing
 }
 

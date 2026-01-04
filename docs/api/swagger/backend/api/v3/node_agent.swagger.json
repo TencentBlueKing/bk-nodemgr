@@ -279,6 +279,46 @@
         }
       }
     },
+    "v3NodeAgentInstallCheckMatchedItem": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_biz_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkarea_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "bk_networkunit_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "os_type": {
+          "type": "string"
+        },
+        "node_role": {
+          "type": "string"
+        },
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "NodeAgentInstallCheckMatchedItem describes the matched item for node."
+    },
     "v3NodeAgentInstallCheckReq": {
       "type": "object",
       "properties": {
@@ -303,8 +343,17 @@
           "type": "integer",
           "format": "int64"
         },
-        "bk_host_innerip": {
-          "type": "string"
+        "bk_host_innerip_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bk_host_innerip_v6_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "bk_networkunit_id": {
           "type": "integer",
@@ -337,37 +386,26 @@
     "v3NodeAgentInstallCheckRespData": {
       "type": "object",
       "properties": {
-        "eligibilities": {
+        "results": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v3NodeAgentInstallEligibility"
+            "$ref": "#/definitions/v3NodeAgentInstallCheckResult"
           }
-        },
-        "total_count": {
-          "type": "integer",
-          "format": "int64"
         }
       }
     },
-    "v3NodeAgentInstallEligibility": {
+    "v3NodeAgentInstallCheckResult": {
       "type": "object",
       "properties": {
-        "inner_ip": {
+        "status": {
           "type": "string"
         },
-        "eligibility_status": {
-          "type": "string"
-        },
-        "pending_host_ids": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
+        "matched": {
+          "$ref": "#/definitions/v3NodeAgentInstallCheckMatchedItem"
         }
       },
-      "description": "NodeAgentInstallEligibility describes the eligibility for node agent\ninstallation."
+      "description": "NodeAgentInstallCheckResult describes the check result for node agent\ninstallation."
     },
     "v3NodeAgentInstallReq": {
       "type": "object",

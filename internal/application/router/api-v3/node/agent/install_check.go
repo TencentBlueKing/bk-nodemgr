@@ -26,14 +26,14 @@ func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, erro
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	result, err := h.backendHandler.CheckAgentInstall(rCtx, req.ConvertAgentParamToTypes())
+	result, err := h.backendHandler.CheckInstallAgent(rCtx, req.ConvertParamToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to check agent install")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
 	resp := new(protoApplication.NodeAgentInstallCheckResp)
-	resp.ConvertResultFromTypes(result, len(result))
+	resp.ConvertResultFromTypes(req.GetHost(), result)
 
 	return resp.GetData(), nil
 }

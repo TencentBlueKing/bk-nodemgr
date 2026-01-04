@@ -13,21 +13,15 @@ package agent
 
 import (
 	"fmt"
-	"time"
 
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
-)
-
-const (
-	// checkAgentInstallMaxPageSize defines the max page size for page executor.
-	// In the scenario of 40,000 hosts, a single request for 1,000 hosts requires 400 table lookups.
-	checkAgentInstallMaxPageSize = 1000
 )
 
 // AgentInstallCheck checks if an agent can be installed on hosts.
@@ -45,232 +39,382 @@ func (h *handler) AgentInstallCheck(rCtx restserver.IContext) (interface{}, erro
 	}
 
 	resp := new(protoBackend.NodeAgentInstallCheckResp)
-	resp.ConvertResultFromTypes(results, len(results))
+	resp.ConvertResultFromTypes(results)
 
 	return resp.GetData(), nil
 }
 
-func (h *handler) checkInstall(nCtx contextx.IContext,
-	hosts []*protoBackend.NodeAgentInstallCheckReq_Host) ([]*types.NodeAgentInstallCheckResult, error) {
+// nolint: funlen,gocognit,gocyclo,cyclop
+func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.NodeAgentInstallCheckReq_Host) (
+	[]*types.NodeAgentInstallCheckResult, error) {
 
-	ips := make([]string, len(hosts))
-	unitIDs := make([]int64, len(hosts))
-	for i, host := range hosts {
-		unitIDs[i] = host.GetBkNetworkunitId()
-		ips[i] = host.GetBkHostInnerip()
-	}
-
-	// fetch network-units.
-	unitsIDMap, err := h.getNetworkUnitByIDs(nCtx, unitIDs) // unitID -> networkUnit
-	if err != nil {
-		return nil, fmt.Errorf("failed to get network-unit by ids: %w", err)
-	}
-
-	// fetch host.
-	ipHostMap, err := h.getHostByIPs(nCtx, ips) // ip -> host
-	if err != nil {
-		return nil, fmt.Errorf("failed to get host by ips: %w", err)
-	}
-
-	// fetch pagent install eligibility.
-	unitPagentEligMap, err := h.getPagentInstallEligs(nCtx, unitsIDMap) // unitID -> canInstallPagent
-	if err != nil {
-		return nil, fmt.Errorf("failed to get pagent install eligibility: %w", err)
-	}
-
-	results := make([]*types.NodeAgentInstallCheckResult, len(hosts))
-
-	for idx := range hosts {
-		result, err := h.processHost(hosts[idx], ipHostMap, unitsIDMap, unitPagentEligMap)
-		if err != nil {
-			logger.G.Biz(nCtx).WithErr(err).With("host", hosts[idx]).Error("failed to process host install check")
-
-			return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+	// generates the basic host filters.
+	ipMap := make(map[string]struct{})
+	ipv6Map := make(map[string]struct{})
+	networkUnitIDMap := make(map[int64]struct{})
+	hostIDMap := make(map[int64]struct{})
+	for _, host := range reqHosts {
+		for _, ip := range host.GetBkHostInneripList() {
+			ipMap[ip] = struct{}{}
 		}
-		results[idx] = result
+
+		for _, ipv6 := range host.GetBkHostInneripV6List() {
+			ipv6Map[ipv6] = struct{}{}
+		}
+
+		if networkUnitID := host.GetBkNetworkunitId(); networkUnitID >= 0 {
+			networkUnitIDMap[networkUnitID] = struct{}{}
+		}
+
+		if hostID := host.GetBkHostId(); hostID >= 0 {
+			hostIDMap[hostID] = struct{}{}
+		}
+	}
+
+	checker := newInstallChecker(h.storageHost, h.domainNodeInstall)
+	if err := checker.init(nCtx,
+		conv.MapKeyToSlice(networkUnitIDMap),
+		conv.MapKeyToSlice(hostIDMap),
+		conv.MapKeyToSlice(ipMap),
+		conv.MapKeyToSlice(ipv6Map)); err != nil {
+		return nil, fmt.Errorf("failed to init install checker: %w", err)
+	}
+
+	// check all request hosts.
+	results := make([]*types.NodeAgentInstallCheckResult, len(reqHosts))
+	for idx, host := range reqHosts {
+		reqHostID := host.GetBkHostId()
+
+		// try to install a brand new host not in CMDB.
+		if reqHostID < 0 {
+			// check if inner ip duplicated.
+			if matchedHost, exist := checker.hasInnerIP(host.GetBkHostInneripList()); exist {
+				results[idx] = &types.NodeAgentInstallCheckResult{
+					Status:  types.NodeAgentInstallCheckStatusDuplicatedInnerIP,
+					Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				}
+
+				continue
+			}
+
+			// check if inner ipv6 duplicated.
+			if matchedHost, exist := checker.hasInnerIPV6(host.GetBkHostInneripV6List()); exist {
+				results[idx] = &types.NodeAgentInstallCheckResult{
+					Status:  types.NodeAgentInstallCheckStatusDuplicatedInnerIPV6,
+					Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+				}
+
+				continue
+			}
+
+			// check networkunit.
+			_, ok := checker.getNetworkUnit(host.GetBkNetworkunitId())
+			if !ok {
+				results[idx] = &types.NodeAgentInstallCheckResult{
+					Status: types.NodeAgentInstallCheckStatusNetworkUnitNotFound,
+				}
+
+				continue
+			}
+
+			if !checker.validateNetworkUnit(host.GetBkNetworkunitId()) {
+				results[idx] = &types.NodeAgentInstallCheckResult{
+					Status: types.NodeAgentInstallCheckStatusNetworkUnitNotSupportInstall,
+				}
+
+				continue
+			}
+
+			// register to CMDB and install.
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status: types.NodeAgentInstallCheckStatusRegisterToCMDBAndInstall,
+			}
+
+			continue
+		}
+
+		// install an existed host in CMDB.
+		matchedHost, ok := checker.getHost(reqHostID)
+		if !ok {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status: types.NodeAgentInstallCheckStatusHostNotFound,
+			}
+
+			continue
+		}
+
+		// check node-role.
+		if matchedHost.Dynamic.NodeRole == types.NodeRoleProxy {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:  types.NodeAgentInstallCheckStatusInvalidNodeRole,
+				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+			}
+
+			continue
+		}
+
+		// check biz-id.
+		if host.GetBkBizId() != matchedHost.Static.BizID {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:  types.NodeAgentInstallCheckStatusMismatchedBizID,
+				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+			}
+
+			continue
+		}
+
+		// check networkunit.
+		matchedNetworkUnit, ok := checker.getNetworkUnit(host.GetBkNetworkunitId())
+		if !ok {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:  types.NodeAgentInstallCheckStatusNetworkUnitNotFound,
+				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+			}
+
+			continue
+		}
+
+		if !checker.validateNetworkUnit(host.GetBkNetworkunitId()) {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:  types.NodeAgentInstallCheckStatusNetworkUnitNotSupportInstall,
+				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+			}
+
+			continue
+		}
+
+		// check networkarea-id.
+		if matchedNetworkUnit.NetworkAreaID != matchedHost.Static.NetworkAreaID {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:  types.NodeAgentInstallCheckStatusMismatchedNetworkAreaID,
+				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+			}
+
+			continue
+		}
+
+		// check inner-ip.
+		allFound := true
+		for _, innerIP := range host.GetBkHostInneripList() {
+			found := false
+			for _, existIP := range matchedHost.Static.InnerIPList {
+				if innerIP == existIP {
+					found = true
+					break
+				}
+			}
+			allFound = allFound && found
+		}
+		if !allFound {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:  types.NodeAgentInstallCheckStatusMismatchedInnerIP,
+				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+			}
+
+			continue
+		}
+
+		// check inner-ipv6
+		allFound = true
+		for _, innerIPV6 := range host.GetBkHostInneripV6List() {
+			found := false
+			for _, existIP := range matchedHost.Static.InnerIPV6List {
+				if innerIPV6 == existIP {
+					found = true
+					break
+				}
+			}
+			allFound = allFound && found
+		}
+		if !allFound {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status:  types.NodeAgentInstallCheckStatusMismatchedInnerIPV6,
+				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+			}
+
+			continue
+		}
+
+		// normal install.
+		results[idx] = &types.NodeAgentInstallCheckResult{
+			Status:  types.NodeAgentInstallCheckStatusNormalInstall,
+			Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
+		}
 	}
 
 	return results, nil
 }
 
-// processHost process a single host install check.
-func (h *handler) processHost(host *protoBackend.NodeAgentInstallCheckReq_Host,
-	ipHostMap map[string][]*types.Host,
-	unitsIDMap map[int64]*types.NetworkUnit,
-	unitPagentEligMap map[int64]bool) (*types.NodeAgentInstallCheckResult, error) {
-
-	networkUnitID := host.GetBkNetworkunitId()
-	innerIP := host.GetBkHostInnerip()
-
-	networkUnit, exists := unitsIDMap[networkUnitID]
-	if !exists {
-		return nil, fmt.Errorf("failed to get networkunit by id, networkunit-id(%d)", networkUnitID)
-	}
-
-	canInstallPagent := unitPagentEligMap[networkUnitID]
-	if !canInstallPagent {
-		return &types.NodeAgentInstallCheckResult{
-			InnerIP:     innerIP,
-			InstallElig: types.NodeAgentInstallEligNotExistRelay,
-		}, nil
-	}
-
-	allHostsWithSameIP := ipHostMap[innerIP]
-	sameAreaHosts := make([]*types.Host, 0)
-	for _, h := range allHostsWithSameIP {
-		if h.Static.NetworkAreaID != networkUnit.NetworkAreaID {
-			continue
-		}
-		sameAreaHosts = append(sameAreaHosts, h)
-	}
-
-	return h.checkAgentInstallElig(host.GetBkHostId(), host.GetBkBizId(), innerIP, sameAreaHosts)
-}
-
-func (h *handler) checkAgentInstallElig(hostID,
-	bizID int64, innerIP string, needCheckHosts []*types.Host) (*types.NodeAgentInstallCheckResult, error) {
-
-	result := &types.NodeAgentInstallCheckResult{
-		InnerIP:     innerIP,
-		InstallElig: types.NodeAgentInstallEligNormalInstall,
-	}
-
-	switch {
-	// if no install record found, we mark it as "import cmdb and normal install".
-	case len(needCheckHosts) == 0:
-		result.InstallElig = types.NodeAgentInstallEligImportCmdbAndNormalInstall
-
-	// if only one install record found, and it's a proxy, we can't install agent on proxy.
-	case len(needCheckHosts) == 1 && needCheckHosts[0].Dynamic.NodeRole == types.NodeRoleProxy:
-		result.InstallElig = types.NodeAgentInstallEligExistProxy
-
-	// if only one install record found, and it's the same host id, it means it's reinstall.
-	case len(needCheckHosts) == 1 && needCheckHosts[0].HostID == hostID:
-		result.InstallElig = types.NodeAgentInstallEligNormalInstall
-
-	// if one or more install records found, we need to check host.
-	default:
-		result = handleMultipleHosts(needCheckHosts, innerIP, bizID)
-	}
-
-	return result, nil
-}
-
-func handleMultipleHosts(hosts []*types.Host, innerIP string, bizID int64) *types.NodeAgentInstallCheckResult {
-	if duplicateHostIDs := getDynamicDuplicateIPHostIDs(hosts); len(duplicateHostIDs) > 0 {
-		return &types.NodeAgentInstallCheckResult{
-			InnerIP:        innerIP,
-			InstallElig:    types.NodeAgentInstallEligDuplicateIP,
-			PendingHostIDs: duplicateHostIDs,
-		}
-	}
-
-	if conflictHostIDs := getIPConflictHostIDsByBizID(hosts, bizID); len(conflictHostIDs) > 0 {
-		return &types.NodeAgentInstallCheckResult{
-			InnerIP:        innerIP,
-			InstallElig:    types.NodeAgentInstallEligConflictIP,
-			PendingHostIDs: conflictHostIDs,
-		}
-	}
-
-	return &types.NodeAgentInstallCheckResult{
-		InnerIP:     innerIP,
-		InstallElig: types.NodeAgentInstallEligNormalInstall,
+func newInstallChecker(storageHost topoStg.IStorageHost, domainNodeInstall topoStg.IDomainNodeInstall) *installChecker {
+	return &installChecker{
+		storageHost:       storageHost,
+		domainNodeInstall: domainNodeInstall,
 	}
 }
 
-func (h *handler) getNetworkUnitByIDs(nCtx contextx.IContext, unitIDs []int64) (
-	map[int64]*types.NetworkUnit, error) {
+type installChecker struct {
+	networkUnitMap         map[int64]*types.NetworkUnit
+	hostMap                map[int64]*types.Host
+	networkUnitValidateMap map[int64]bool
 
-	units, err := h.domainNodeInstall.GetNetworkUnitByIDs(nCtx, unitIDs)
+	storageHost       topoStg.IStorageHost
+	domainNodeInstall topoStg.IDomainNodeInstall
+}
+
+func (ic *installChecker) hasInnerIP(innerIPList []string) (*types.Host, bool) {
+	for _, host := range ic.hostMap {
+		for _, existIP := range host.Static.InnerIPList {
+			for _, givenIP := range innerIPList {
+				if existIP == givenIP {
+					return host, true
+				}
+			}
+		}
+	}
+
+	return nil, false
+}
+
+func (ic *installChecker) hasInnerIPV6(innerIPV6 []string) (*types.Host, bool) {
+	for _, host := range ic.hostMap {
+		for _, existIP := range host.Static.InnerIPV6List {
+			for _, givenIP := range innerIPV6 {
+				if existIP == givenIP {
+					return host, true
+				}
+			}
+		}
+	}
+
+	return nil, false
+}
+
+func (ic *installChecker) getHost(hostID int64) (*types.Host, bool) {
+	if _, ok := ic.hostMap[hostID]; ok {
+		return ic.hostMap[hostID], true
+	}
+
+	return nil, false
+}
+
+func (ic *installChecker) getNetworkUnit(networkUnitID int64) (*types.NetworkUnit, bool) {
+	if _, ok := ic.networkUnitMap[networkUnitID]; ok {
+		return ic.networkUnitMap[networkUnitID], true
+	}
+
+	return nil, false
+}
+
+func (ic *installChecker) validateNetworkUnit(networkUnitID int64) bool {
+	if _, ok := ic.networkUnitValidateMap[networkUnitID]; ok {
+		return ic.networkUnitValidateMap[networkUnitID]
+	}
+
+	return false
+}
+
+func (ic *installChecker) init(
+	nCtx contextx.IContext, networkUnitIDList []int64, hostIDList []int64, innerIPList []string, innerIPV6List []string) error {
+
+	// fetch networkunits.
+	networkUnitMap, err := ic.fetchNetworkUnits(nCtx, networkUnitIDList)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	ic.networkUnitMap = networkUnitMap
 
-	networkUnitsMap := make(map[int64]*types.NetworkUnit, len(units))
-	for _, unit := range units {
-		networkUnitsMap[unit.ID] = unit
+	// fetch hosts.
+	hostMap, err := ic.fetchHosts(nCtx, hostIDList, innerIPList, innerIPV6List)
+	if err != nil {
+		return err
 	}
+	ic.hostMap = hostMap
 
-	return networkUnitsMap, nil
+	// query if networkunit have valid proxy for installation.
+	networkUnitValidateMap, err := ic.domainNodeInstall.ExistDedicatedInstallerProxyHost(nCtx, networkUnitIDList)
+	if err != nil {
+		return fmt.Errorf("failed to check dedicated installer proxy for networkunits: %w", err)
+	}
+	for _, networkUnit := range networkUnitMap {
+		// direct networkunit do not need installer proxy.
+		if networkUnit.IsDirect {
+			networkUnitValidateMap[networkUnit.ID] = true
+		}
+	}
+	ic.networkUnitValidateMap = networkUnitValidateMap
+
+	return nil
 }
 
-func (h *handler) getPagentInstallEligs(nCtx contextx.IContext,
-	unitsIDMap map[int64]*types.NetworkUnit) (map[int64]bool, error) {
+func (ic *installChecker) fetchNetworkUnits(nCtx contextx.IContext, networkUnitIDList []int64) (map[int64]*types.NetworkUnit, error) {
+	networkUnits := make(map[int64]*types.NetworkUnit)
 
-	result := make(map[int64]bool)
-
-	for unitID, unit := range unitsIDMap {
-		if unit.IsDirect {
-			result[unitID] = true
-			continue
-		}
-
-		isPagentSupported, err := h.domainNodeInstall.ExistDedicatedInstallerProxyHost(nCtx, unitID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to check dedicated installer proxy host: %w", err)
-		}
-		result[unitID] = isPagentSupported
+	if len(networkUnitIDList) == 0 {
+		return make(map[int64]*types.NetworkUnit), nil
 	}
 
-	return result, nil
+	// fetch networkunits.
+	networkUnitsByID, err := ic.domainNodeInstall.GetNetworkUnitByIDs(nCtx, networkUnitIDList)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list networkunits by networkunit-id: %w", err)
+	}
+	for _, networkUnit := range networkUnitsByID {
+		networkUnits[networkUnit.ID] = networkUnit
+	}
+
+	return networkUnits, nil
 }
 
-func (h *handler) getHostByIPs(nCtx contextx.IContext,
-	innerIPs []string) (map[string][]*types.Host, error) {
+func (ic *installChecker) fetchHosts(nCtx contextx.IContext, hostIDList []int64, innerIPList []string, innerIPV6List []string) (
+	map[int64]*types.Host, error) {
 
-	executor := pageexecutor.NewPageExecutor[*types.Host](checkAgentInstallMaxPageSize, 1*time.Hour)
+	// TODO: reduce the storage query, combine all hosts list into one db operation.
+	hosts := make(map[int64]*types.Host)
 
-	fn := func(nCtx contextx.IContext, p types.Page) ([]*types.Host, error) {
-		cond := &types.HostCondition{
+	// fetch hosts by host-id.
+	if len(hostIDList) > 0 {
+		hostsByID, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
-				InnerIP: innerIPs,
+				HostID: hostIDList,
 			},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list hosts by host-id: %w", err)
 		}
-		host, _, err := h.storageHost.ListHost(nCtx, p, cond)
-
-		return host, err
-	}
-
-	pageResult, err := executor.Execute(nCtx, types.UnlimitedPage(), fn)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get host by inner: %w", err)
-	}
-
-	// ip -> host
-	ipHostMap := make(map[string][]*types.Host)
-	for _, host := range pageResult.Items {
-		if len(host.Static.InnerIPList) == 0 {
-			return nil, fmt.Errorf("failed to get host byinner ip: %w", err)
+		for _, host := range hostsByID {
+			hosts[host.HostID] = host
 		}
-
-		ip := host.Static.InnerIPList[0]
-		ipHostMap[ip] = append(ipHostMap[ip], host)
 	}
 
-	return ipHostMap, nil
-}
-
-func getDynamicDuplicateIPHostIDs(hosts []*types.Host) []int64 {
-	hostIDs := make([]int64, 0)
-	for _, host := range hosts {
-		if host.Static.Addressing != types.AddressingDynamic {
-			continue
+	// fetch hosts by innerip.
+	if len(innerIPList) > 0 {
+		hostsByInnerIP, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+			StaticExactInclude: &types.HostStaticExactFields{
+				InnerIP: innerIPList,
+			},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list hosts by innerip: %w", err)
 		}
-		hostIDs = append(hostIDs, host.HostID)
-	}
-
-	return hostIDs
-}
-
-func getIPConflictHostIDsByBizID(hosts []*types.Host, bizID int64) []int64 {
-	hostIDs := make([]int64, 0)
-	for _, host := range hosts {
-		if host.Static.BizID != bizID {
-			continue
+		for _, host := range hostsByInnerIP {
+			hosts[host.HostID] = host
 		}
-		hostIDs = append(hostIDs, host.HostID)
 	}
 
-	return hostIDs
+	// fetch hosts by innerip_v6.
+	if len(innerIPV6List) > 0 {
+		hostsByInnerIPV6, _, err := ic.storageHost.ListHost(nCtx, types.UnlimitedPage(), &types.HostCondition{
+			StaticExactInclude: &types.HostStaticExactFields{
+				InnerIPV6: innerIPV6List,
+			},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to list hosts by innerip v6: %w", err)
+		}
+		for _, host := range hostsByInnerIPV6 {
+			hosts[host.HostID] = host
+		}
+	}
+
+	return hosts, nil
 }

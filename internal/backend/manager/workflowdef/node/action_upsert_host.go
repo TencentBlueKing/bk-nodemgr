@@ -120,10 +120,7 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 	// nolint: nestif
 	// host-id not specified.
 	if info.Host.HostID < 0 {
-		hosts, count, err := act.storageHost.ListHost(nCtx, types.Page{
-			Offset: 0,
-			Limit:  1,
-		}, &types.HostCondition{
+		count, err := act.storageHost.CountHost(nCtx, &types.HostCondition{
 			StaticExactInclude: &types.HostStaticExactFields{
 				NetworkAreaID: []int64{info.Host.Static.NetworkAreaID},
 				Addressing:    []types.Addressing{info.Host.Static.Addressing},
@@ -134,24 +131,20 @@ func (act *actionUpsertHostToCMDB) checkHost(nCtx contextx.IContext, info *types
 			return err
 		}
 
-		if count > 1 {
-			return fmt.Errorf("more than one host found, contact the system administrator to check the host, "+
-				"networkarea_id(%d), addressing(%s), inner_ip(%v)",
+		if count > 0 {
+			return fmt.Errorf("duplicated host with same ip found. networkarea-id(%d), addressing(%s), inner-ip(%v)",
 				info.Host.Static.NetworkAreaID, info.Host.Static.Addressing, info.Host.Static.InnerIPList)
 		}
 
-		if len(hosts) == 0 {
-			hostID, err := act.insertHost(nCtx, info)
-			if err != nil {
-				return fmt.Errorf("insert host to cmdb failed: %w", err)
-			}
+		// new host should be inserted into cmdb.
+		hostID, err := act.insertHost(nCtx, info)
+		if err != nil {
+			return fmt.Errorf("insert host to cmdb failed: %w", err)
+		}
 
-			info.Host.HostID = hostID
-			if err := act.storageHost.UpsertManyHost(nCtx, &info.Host); err != nil {
-				return fmt.Errorf("upsert host to db failed: %w", err)
-			}
-		} else {
-			info.Host.HostID = hosts[0].HostID
+		info.Host.HostID = hostID
+		if err := act.storageHost.UpsertManyHost(nCtx, &info.Host); err != nil {
+			return fmt.Errorf("upsert host to db failed: %w", err)
 		}
 
 		return nil

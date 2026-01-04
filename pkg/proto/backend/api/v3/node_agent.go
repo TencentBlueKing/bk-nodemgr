@@ -15,6 +15,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -373,16 +374,12 @@ func (x *NodeAgentInstallCheckReq) Validate() error {
 	}
 
 	for _, host := range hosts {
-		if host.GetBkNetworkunitId() < 0 {
-			return errors.New("bk_networkunit_id is required")
-		}
-
-		if host.GetBkHostInnerip() == "" {
-			return errors.New("bk_innerip is required")
-		}
-
 		if host.GetBkBizId() < 0 {
 			return errors.New("bk_biz_id is required")
+		}
+
+		if len(host.GetBkHostInneripList()) == 0 && len(host.GetBkHostInneripV6List()) == 0 {
+			return errors.New("bk_host_innerip_list and bk_host_innerip_v6_list can not be both empty")
 		}
 	}
 
@@ -391,17 +388,40 @@ func (x *NodeAgentInstallCheckReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeAgentInstallCheckReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
 }
 
-// ConvertHostParamFromTypes convert host param from types.
-func (x *NodeAgentInstallCheckReq) ConvertHostParamFromTypes(checkParam []*types.NodeAgentInstallCheckInfo) {
+// AutoConvert auto convert.
+func (x *NodeAgentInstallCheckReq_Host) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
+
+	if x.BkBizId == nil {
+		x.BkBizId = new(int64)
+		*x.BkBizId = -1
+	}
+
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamFromTypes convert host param from types.
+func (x *NodeAgentInstallCheckReq) ConvertParamFromTypes(checkParam []*types.NodeAgentInstallCheckParam) {
 	hostsParam := make([]*NodeAgentInstallCheckReq_Host, len(checkParam))
 	for idx, host := range checkParam {
 		hostsParam[idx] = &NodeAgentInstallCheckReq_Host{
-			BkHostId:        host.HostID,
-			BkBizId:         host.BizID,
-			BkHostInnerip:   host.InnerIP,
-			BkNetworkunitId: host.NetworkUnitID,
+			BkHostId:            &host.HostID,
+			BkBizId:             &host.BizID,
+			BkNetworkunitId:     &host.NetworkUnitID,
+			BkHostInneripList:   host.InnerIPList,
+			BkHostInneripV6List: host.InnerIPV6List,
 		}
 	}
 
@@ -409,22 +429,31 @@ func (x *NodeAgentInstallCheckReq) ConvertHostParamFromTypes(checkParam []*types
 }
 
 // ConvertResultFromTypes convert result from types.
-func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeAgentInstallCheckResult, total int) {
-	items := make([]*NodeAgentInstallEligibility, 0, total)
-	for _, status := range result {
-		item := &NodeAgentInstallEligibility{
-			InnerIp:           status.InnerIP,
-			EligibilityStatus: string(status.InstallElig),
+func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(results []*types.NodeAgentInstallCheckResult) {
+	items := make([]*NodeAgentInstallCheckResult, len(results))
+	for idx, result := range results {
+		item := &NodeAgentInstallCheckResult{
+			Status: string(result.Status),
 		}
-		if status.PendingHostIDs != nil {
-			item.PendingHostIds = status.PendingHostIDs
+
+		if result.Matched != nil {
+			item.Matched = &NodeAgentInstallCheckMatchedItem{
+				BkHostId:            &result.Matched.HostID,
+				BkBizId:             &result.Matched.BizID,
+				BkNetworkareaId:     &result.Matched.NetworkAreaID,
+				BkNetworkunitId:     &result.Matched.NetworkUnitID,
+				OsType:              string(result.Matched.OsType),
+				NodeRole:            string(result.Matched.NodeRole),
+				BkHostInneripList:   result.Matched.InnerIPList,
+				BkHostInneripV6List: result.Matched.InnerIPV6List,
+			}
 		}
-		items = append(items, item)
+
+		items[idx] = item
 	}
 
 	x.Data = &NodeAgentInstallCheckResp_Data{
-		TotalCount:    int64(total),
-		Eligibilities: items,
+		Results: items,
 	}
 }
 
@@ -436,13 +465,26 @@ func (x *NodeAgentInstallCheckResp) ConvertResultToTypes() []*types.NodeAgentIns
 
 	data := x.GetData()
 
-	items := make([]*types.NodeAgentInstallCheckResult, len(data.GetEligibilities()))
-	for idx, item := range data.GetEligibilities() {
-		items[idx] = &types.NodeAgentInstallCheckResult{
-			InnerIP:        item.GetInnerIp(),
-			InstallElig:    types.NodeAgentInstallElig(item.GetEligibilityStatus()),
-			PendingHostIDs: item.GetPendingHostIds(),
+	items := make([]*types.NodeAgentInstallCheckResult, len(data.GetResults()))
+	for idx, result := range data.GetResults() {
+		item := &types.NodeAgentInstallCheckResult{
+			Status: types.NodeAgentInstallCheckStatus(result.GetStatus()),
 		}
+
+		if matched := result.GetMatched(); matched != nil {
+			item.Matched = &types.NodeAgentInstallCheckMatchedItem{
+				HostID:        matched.GetBkHostId(),
+				BizID:         matched.GetBkBizId(),
+				NetworkAreaID: matched.GetBkNetworkareaId(),
+				NetworkUnitID: matched.GetBkNetworkunitId(),
+				OsType:        criteria.OSType(matched.GetOsType()),
+				NodeRole:      types.NodeRole(matched.GetNodeRole()),
+				InnerIPList:   matched.GetBkHostInneripList(),
+				InnerIPV6List: matched.GetBkHostInneripV6List(),
+			}
+		}
+
+		items[idx] = item
 	}
 
 	return items

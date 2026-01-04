@@ -120,10 +120,11 @@ message NodeAgentUninstallResp {
 
 // AgentInstallCheckInfo describes the node agent install check parameter.
 message AgentInstallCheckInfo {
-  int64 bk_biz_id = 1;
-  int64 bk_host_id = 2;
-  string bk_host_innerip = 3;
-  int64 bk_networkunit_id = 4;
+  optional int64 bk_biz_id = 1;
+  optional int64 bk_host_id = 2;
+  repeated string bk_host_innerip_list = 3;
+  repeated string bk_host_innerip_v6_list = 4;
+  optional int64 bk_networkunit_id = 5;
 }
 
 // NodeAgentInstallCheckReq describes the node agent install check request.
@@ -137,19 +138,30 @@ message NodeAgentInstallCheckResp {
   string request_id = 3;
   Error error = 4;
 
-  message Data {
-    repeated NodeAgentInstallElig install_eligs = 1;
-    int64 total_count = 2;
-  }
+  message Data { repeated NodeAgentInstallCheckResult results = 1; }
   Data data = 5;
 }
 
-// NodeAgentInstallElig describes the eligibility for node agent
+// NodeAgentInstallCheckMatchedItem describes the matched item for node.
+message NodeAgentInstallCheckMatchedItem {
+  optional int64 bk_host_id = 1;
+  optional int64 bk_biz_id = 2;
+  optional int64 bk_networkarea_id = 3;
+  optional int64 bk_networkunit_id = 4;
+  string os_type = 5;
+  string node_role = 6;
+  repeated string bk_host_innerip_list = 7;
+  repeated string bk_host_innerip_v6_list = 8;
+}
+
+// NodeAgentInstallCheckResult describes the check result for node agent
 // installation.
-message NodeAgentInstallElig {
-  string inner_ip = 1;
-  string elig_status = 2;
-  repeated int64 pending_host_ids = 3;
+message NodeAgentInstallCheckResult {
+  string status = 1;
+  NodeAgentInstallCheckMatchedItem matched = 2;
+  string message_en = 3;
+  string message_zh = 4;
+  string category = 5;
 }
 
 // UploadAgentTemplateReq is the request for upload agent tempalte file.

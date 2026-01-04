@@ -371,16 +371,12 @@ func (x *NodeAgentInstallCheckReq) Validate() error {
 // Validate check body.
 // nolint: protogetter
 func (x *AgentInstallCheckInfo) Validate() error {
-	if x.BkHostInnerip == "" {
-		return errors.New("bk_innerip can not be empty")
-	}
-
 	if x.GetBkBizId() < 0 {
 		return errors.New("biz_id must be equal or greater than 0")
 	}
 
-	if x.GetBkNetworkunitId() < 0 {
-		return errors.New("network_unit_id must be greater than or equal to 0")
+	if len(x.GetBkHostInneripList()) == 0 && len(x.GetBkHostInneripV6List()) == 0 {
+		return errors.New("bk_host_innerip_list and bk_host_innerip_v6_list can not be both empty")
 	}
 
 	return nil
@@ -388,50 +384,167 @@ func (x *AgentInstallCheckInfo) Validate() error {
 
 // AutoConvert auto convert.
 func (x *NodeAgentInstallCheckReq) AutoConvert() {
+	hosts := x.GetHost()
+	for idx := range hosts {
+		hosts[idx].AutoConvert()
+	}
 }
 
-// ConvertAgentParamToTypes convert to types.
-func (x *NodeAgentInstallCheckReq) ConvertAgentParamToTypes() []*types.NodeAgentInstallCheckInfo {
+// AutoConvert auto convert.
+func (x *AgentInstallCheckInfo) AutoConvert() {
+	if x.BkNetworkunitId == nil {
+		x.BkNetworkunitId = new(int64)
+		*x.BkNetworkunitId = -1
+	}
+
+	if x.BkBizId == nil {
+		x.BkBizId = new(int64)
+		*x.BkBizId = -1
+	}
+
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamToTypes convert to types.
+func (x *NodeAgentInstallCheckReq) ConvertParamToTypes() []*types.NodeAgentInstallCheckParam {
 	infos := x.GetHost()
 	if infos == nil {
 		return nil
 	}
 
-	infoParam := make([]*types.NodeAgentInstallCheckInfo, len(infos))
-
+	infoParam := make([]*types.NodeAgentInstallCheckParam, len(infos))
 	for idx, info := range infos {
-		infoParam[idx] = &types.NodeAgentInstallCheckInfo{
+		infoParam[idx] = &types.NodeAgentInstallCheckParam{
 			BizID:         info.GetBkBizId(),
 			HostID:        info.GetBkHostId(),
-			InnerIP:       info.GetBkHostInnerip(),
 			NetworkUnitID: info.GetBkNetworkunitId(),
+			InnerIPList:   info.GetBkHostInneripList(),
+			InnerIPV6List: info.GetBkHostInneripV6List(),
 		}
 	}
 
 	return infoParam
 }
 
+const (
+	agentInstallCheckResultCategoryNormalInstall            = "normal_install"
+	agentInstallCheckResultCategoryRegisterToCMDBAndInstall = "register_to_cmdb_and_install"
+	agentInstallCheckResultCategoryNeedConfirm              = "need_confirm"
+	agentInstallCheckResultCategoryError                    = "error"
+)
+
 // ConvertResultFromTypes convert result from types.
-func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(result []*types.NodeAgentInstallCheckResult, num int) {
-	if result == nil {
+// nolint: cyclop
+func (x *NodeAgentInstallCheckResp) ConvertResultFromTypes(requests []*AgentInstallCheckInfo, results []*types.NodeAgentInstallCheckResult) {
+	if requests == nil || results == nil || len(requests) != len(results) {
 		return
 	}
 
-	installElig := make([]*NodeAgentInstallElig, len(result))
-	for idx, status := range result {
-		item := &NodeAgentInstallElig{
-			InnerIp:    status.InnerIP,
-			EligStatus: string(status.InstallElig),
+	total := len(requests)
+
+	items := make([]*NodeAgentInstallCheckResult, total)
+	for idx := range total {
+		request := requests[idx]
+		result := results[idx]
+
+		item := &NodeAgentInstallCheckResult{
+			Status: string(result.Status),
 		}
-		if status.PendingHostIDs != nil {
-			item.PendingHostIds = status.PendingHostIDs
+
+		switch result.Status {
+		case types.NodeAgentInstallCheckStatusDuplicatedInnerIP:
+			item.MessageEn = "Inner IPV4 already exists in networkarea, will reinstall this host"
+			item.MessageZh = "内网IPV4在该管控区域下已经存在, 将重装该主机"
+			item.Category = agentInstallCheckResultCategoryNeedConfirm
+
+		case types.NodeAgentInstallCheckStatusDuplicatedInnerIPV6:
+			item.MessageEn = "Inner IPV6 already exists in networkarea, will reinstall this host"
+			item.MessageZh = "内网IPV6在该管控区域下已经存在, 将重装该主机"
+			item.Category = agentInstallCheckResultCategoryNeedConfirm
+
+		case types.NodeAgentInstallCheckStatusHostNotFound:
+			item.MessageEn = "Host does not exist"
+			item.MessageZh = "该主机不存在"
+			item.Category = agentInstallCheckResultCategoryError
+
+		case types.NodeAgentInstallCheckStatusNetworkUnitNotFound:
+			item.MessageEn = "Networkunit does not exist"
+			item.MessageZh = "所属管控单元不存在"
+			item.Category = agentInstallCheckResultCategoryError
+
+		case types.NodeAgentInstallCheckStatusMismatchedInnerIP:
+			item.MessageEn = "Inner IPV4 does not match CMDB configuration"
+			item.MessageZh = "内网IPV4与CMDB配置不符"
+			item.Category = agentInstallCheckResultCategoryError
+
+		case types.NodeAgentInstallCheckStatusMismatchedInnerIPV6:
+			item.MessageEn = "Inner IPV6 does not match CMDB configuration"
+			item.MessageZh = "内网IPV6与CMDB配置不符"
+			item.Category = agentInstallCheckResultCategoryError
+
+		case types.NodeAgentInstallCheckStatusMismatchedBizID:
+			item.MessageEn = "Business ID does not match CMDB configuration"
+			item.MessageZh = "所属业务与CMDB配置不符"
+			item.Category = agentInstallCheckResultCategoryError
+
+		case types.NodeAgentInstallCheckStatusMismatchedNetworkAreaID:
+			item.MessageEn = "Networkarea ID does not match CMDB configuration"
+			item.MessageZh = "所属管控区域与CMDB配置不符"
+			item.Category = agentInstallCheckResultCategoryError
+
+		case types.NodeAgentInstallCheckStatusInvalidNodeRole:
+			item.MessageEn = "Node role does not allow Agent installation, please uninstall the node first"
+			item.MessageZh = "节点角色不允许安装Agent, 请先卸载节点"
+			item.Category = agentInstallCheckResultCategoryError
+
+		case types.NodeAgentInstallCheckStatusNetworkUnitNotSupportInstall:
+			item.MessageEn = "Networkunit lacks available installation proxy nodes"
+			item.MessageZh = "所属管控单元缺少可用的安装代理proxy节点"
+			item.Category = agentInstallCheckResultCategoryError
+
+		case types.NodeAgentInstallCheckStatusRegisterToCMDBAndInstall:
+			item.MessageEn = "Import node to CMDB and install Agent"
+			item.MessageZh = "将节点导入CMDB并安装Agent"
+			item.Category = agentInstallCheckResultCategoryRegisterToCMDBAndInstall
+
+		case types.NodeAgentInstallCheckStatusNormalInstall:
+			if result.Matched != nil && request.GetBkNetworkunitId() != result.Matched.NetworkUnitID {
+				item.MessageEn = "Install Agent into networkunit"
+				item.MessageZh = "安装节点到新的管控单元"
+				item.Category = agentInstallCheckResultCategoryNeedConfirm
+			} else {
+				item.MessageEn = "Install Agent"
+				item.MessageZh = "安装Agent"
+				item.Category = agentInstallCheckResultCategoryNormalInstall
+			}
+
+		default:
+			item.MessageEn = fmt.Sprintf("Unknown error %s", result.Status)
+			item.MessageZh = fmt.Sprintf("未知错误 %s", result.Status)
+			item.Category = agentInstallCheckResultCategoryError
 		}
-		installElig[idx] = item
+
+		if result.Matched != nil {
+			item.Matched = &NodeAgentInstallCheckMatchedItem{
+				BkHostId:            &result.Matched.HostID,
+				BkBizId:             &result.Matched.BizID,
+				BkNetworkareaId:     &result.Matched.NetworkAreaID,
+				BkNetworkunitId:     &result.Matched.NetworkUnitID,
+				OsType:              string(result.Matched.OsType),
+				NodeRole:            string(result.Matched.NodeRole),
+				BkHostInneripList:   result.Matched.InnerIPList,
+				BkHostInneripV6List: result.Matched.InnerIPV6List,
+			}
+		}
+
+		items[idx] = item
 	}
 
 	x.Data = &NodeAgentInstallCheckResp_Data{
-		InstallEligs: installElig,
-		TotalCount:   int64(num),
+		Results: items,
 	}
 }
 

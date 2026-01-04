@@ -44,11 +44,11 @@ type IHandlerNodeAgent interface {
 	// @return the restarting workflow-ids and error.
 	RestartAgent(nCtx contextx.IContext, restartParam *types.NodeAgentRestartParam) (string, error)
 
-	// CheckAgentInstall node agent.
-	// @param nCtx contextx.IContext, contains tenant-id and username.
-	// @param checkParam the check param.
+	// CheckInstallAgent node agent.
+	// @param ctx contextx.IContext, contains tenant-id and username.
+	// @param params the check param.
 	// @return the check result and error.
-	CheckAgentInstall(nCtx contextx.IContext, checkParam []*types.NodeAgentInstallCheckInfo) ([]*types.NodeAgentInstallCheckResult, error)
+	CheckInstallAgent(ctx contextx.IContext, params []*types.NodeAgentInstallCheckParam) ([]*types.NodeAgentInstallCheckResult, error)
 
 	// UninstallAgent node agent.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -73,17 +73,15 @@ func (h *Handler) InstallAgent(nCtx contextx.IContext, installParam *types.NodeA
 	return result, nil
 }
 
-// CheckAgentInstall check agent install.
-func (h *Handler) CheckAgentInstall(nCtx contextx.IContext, checkParam []*types.NodeAgentInstallCheckInfo) (
-	[]*types.NodeAgentInstallCheckResult, error) {
-
+// CheckInstallAgent check agent install.
+func (h *Handler) CheckInstallAgent(ctx contextx.IContext, params []*types.NodeAgentInstallCheckParam) ([]*types.NodeAgentInstallCheckResult, error) {
 	req := &protoBackend.NodeAgentInstallCheckReq{}
 
-	req.ConvertHostParamFromTypes(checkParam)
+	req.ConvertParamFromTypes(params)
 
-	resp, err := h.cli.checkAgentInstall(nCtx, req)
+	resp, err := h.cli.checkInstallAgent(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check agent install: %w", err)
+		return nil, fmt.Errorf("failed to check install agent: %w", err)
 	}
 
 	result := resp.ConvertResultToTypes()

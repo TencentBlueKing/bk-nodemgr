@@ -1302,7 +1302,7 @@ func (c *cli) uninstallNodeAgent(ctx contextx.IContext, req *protoBackend.NodeAg
 	return resp, nil
 }
 
-func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAgentInstallCheckReq,
+func (c *cli) checkInstallAgent(ctx contextx.IContext, req *protoBackend.NodeAgentInstallCheckReq,
 ) (*protoBackend.NodeAgentInstallCheckResp, error) {
 
 	resp := new(protoBackend.NodeAgentInstallCheckResp)
@@ -1321,13 +1321,13 @@ func (c *cli) checkAgentInstall(ctx contextx.IContext, req *protoBackend.NodeAge
 	}
 
 	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("check agent install node failed. code(%d), message(%s), error(%v), request-id(%s)",
+		return nil, fmt.Errorf("check install agent failed. code(%d), message(%s), error(%v), request-id(%s)",
 			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
 	}
 
 	if resp.GetData() == nil {
 		return nil,
-			fmt.Errorf("check agent install node failed, get empty data. code(%d), message(%s), request-id(%s)",
+			fmt.Errorf("check install agent failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 

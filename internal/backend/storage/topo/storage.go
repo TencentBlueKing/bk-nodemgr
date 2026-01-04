@@ -126,14 +126,14 @@ func (s *Storage) GetHostsByAreaAndInnerIP(nCtx contextx.IContext, networkAreaID
 }
 
 // ExistDedicatedInstallerProxyHost exists dedicated installer proxy host by network unit id.
-func (s *Storage) ExistDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (
-	exist bool, err error) {
+func (s *Storage) ExistDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitIDs []int64) (
+	exist map[int64]bool, err error) {
 
 	// record metric.
 	metric := s.metric().Start("exist_dedicated_installer_proxy_host")
 	defer metric.End(err)
 
-	exist, err = s.existDedicatedInstallerProxyHost(nCtx, networkUnitID)
+	exist, err = s.existDedicatedInstallerProxyHost(nCtx, networkUnitIDs)
 
 	return exist, err
 }
@@ -143,7 +143,7 @@ func (s *Storage) GetNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []i
 	results []*types.NetworkUnit, err error) {
 
 	// record metric.
-	metric := s.metric().Start("get_network_unit_by_ids")
+	metric := s.metric().Start("get_networkunit_by_ids")
 	defer metric.End(err)
 
 	results, err = s.getNetworkUnitByIDs(nCtx, networkUnitIDs)

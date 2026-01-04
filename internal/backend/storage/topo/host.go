@@ -278,6 +278,7 @@ func convertHostConditionsToOptions(conditions ...*types.HostCondition) []host.O
 				host.WithStaticNetworkAreaID(condition.StaticExactInclude.NetworkAreaID...),
 				host.WithStaticAddressing(condition.StaticExactInclude.Addressing...),
 				host.WithStaticInnerIPList(condition.StaticExactInclude.InnerIP...),
+				host.WithStaticInnerIPV6List(condition.StaticExactInclude.InnerIPV6...),
 			)
 		}
 

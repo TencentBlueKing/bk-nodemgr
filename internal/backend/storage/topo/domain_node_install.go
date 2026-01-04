@@ -36,21 +36,33 @@ func (s *Storage) getHostsByAreaAndInnerIP(nCtx contextx.IContext,
 	return results, nil
 }
 
-func (s *Storage) existDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitID int64) (bool, error) {
+func (s *Storage) existDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitIDs []int64) (map[int64]bool, error) {
+	if len(networkUnitIDs) == 0 {
+		return make(map[int64]bool), nil
+	}
+
 	opts := make([]host.OptFn, 0)
 	opts = append(opts,
-		host.WithDynamicNetworkUnitID(networkUnitID),
+		host.WithDynamicNetworkUnitID(networkUnitIDs...),
 		host.WithDynamicNodeRole(types.NodeRoleProxy),
 		host.WithDynamicNodeStatus(types.NodeStatusRunning),
 		host.WithDynamicProxyTags(types.ProxyTagDedicatedInstaller),
 	)
 
-	exist, err := s.daoHost.Exist(nCtx, opts...)
+	matchedUnitIDs, err := s.daoHost.DistinctNetworkUnitID(nCtx, opts...)
 	if err != nil {
-		return false, fmt.Errorf("exist dedicated installer proxy host failed. unit-id(%d): %w", networkUnitID, err)
+		return nil, fmt.Errorf("exist dedicated installer proxy host failed. unit-id(%v): %w", networkUnitIDs, err)
 	}
 
-	return exist, nil
+	results := make(map[int64]bool)
+	for _, unitID := range networkUnitIDs {
+		results[unitID] = false
+	}
+	for _, unitID := range matchedUnitIDs {
+		results[unitID] = true
+	}
+
+	return results, nil
 }
 
 func (s *Storage) getNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []int64) ([]*types.NetworkUnit, error) {
