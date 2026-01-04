@@ -83,12 +83,12 @@ bk-nodemgr-relay-1.0.0.tgz
 .
 └─bk-nodemgr-relay
     ├── plugins_linux_x86_64
-    │   ├── definition.yaml
-    │   ├── etc
-    │   ├── bin
-    │   │   └── bk-nodemgr-relay
-    │   └── templates
-    │       └── bk-nodemgr-relay.template
+    │     ├── definition.yaml
+    │     ├── etc
+    │     ├── bin
+    │     │     └── bk-nodemgr-relay
+    │     └── templates
+    │         └── bk-nodemgr-relay.template
     └── project.yaml
 ```
 
