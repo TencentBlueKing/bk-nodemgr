@@ -2,7 +2,7 @@ configTemplates:
   - name: bk-nodemgr-relay.conf
     isMainConfig: true
     filePath: etc
-    sourcePath: templates/bk-nodemgr-relay.template
+    sourcePath: templates/bk-nodemgr-relay.conf.template
     variables:
       - title: Log
         type: object

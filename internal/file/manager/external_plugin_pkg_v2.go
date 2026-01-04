@@ -23,7 +23,6 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/pluginpkg"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -263,7 +262,7 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 					multiPlatConfigTplSourceContent[plat.String()] = make(map[string]string)
 				}
 
-				sourcePath := tool.JoinPath(plat.OS, path[2:]...)
+				sourcePath := filepath.Join(path[2:]...)
 				multiPlatConfigTplSourceContent[plat.String()][sourcePath] = string(content)
 
 				return nil
@@ -274,18 +273,13 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 		return nil, err
 	}
 
-	for platStr, configTemplates := range detail.ConfigTemplates {
-		configTplSourceContent := multiPlatConfigTplSourceContent[platStr]
-		if multiPlatConfigTplSourceContent[platStr] == nil {
-			continue
-		}
-
-		for idx, configTemplate := range configTemplates {
-			if configTplSourceContent[configTemplate.SourcePath] == "" {
+	for platStr, templates := range multiPlatConfigTplSourceContent {
+		for idx, tpl := range detail.ConfigTemplates[platStr] {
+			sourceContent, ok := templates[tpl.SourcePath]
+			if !ok {
 				continue
 			}
-
-			configTemplates[idx].SourceContent = configTplSourceContent[configTemplate.SourcePath]
+			detail.ConfigTemplates[platStr][idx].SourceContent = sourceContent
 		}
 	}
 

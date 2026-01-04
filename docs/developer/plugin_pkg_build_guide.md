@@ -26,7 +26,7 @@
     - `{{plugin_name}}`：插件的主可执行文件，windows下需加上`.exe`后缀。
   - `etc`：存放插件配置文件目录。
   - `templates`：存放插件配置模板文件目录。
-    - `{{plugin_template_name}}.template`：插件的配置模板文件，使用Go模板语法编写，后缀强制为`.template`。
+    - `{{plugin_template_name}}.conf.template`：插件的配置模板文件，使用Go模板语法编写，后缀强制为`.template`。
 - `project.yaml`：插件项目文件，描述插件的基本信息。
 
 ## nodemgr渲染模板的变量
@@ -97,9 +97,6 @@ NodeInfo:
         ProxyAccessDisabled: 此节点是否建立新的代理访问连接
         ProxyInstallOriginUnitID: 代理安装时所在的管控单元ID
         ProxyTags: Proxy节点的标签列表
-PreDefinitionConstants:
-    Global: 全局插件配置，定义于nodemgr的backend配置文件gseDeployConfs.pluginCustom.commonConstants.Global中
-    Unique: 属于该插件的的特别配置，定义于nodemgr的backend配置文件gseDeployConfs.pluginCustom.commonConstants.{{plugin_name}}中
 CustomContext:
     # 自定义变量，安装时由用户在请求参数中提供，请规范使用驼峰命名法定义变量名称
     # variables的配置内容也会出现在这里
@@ -156,7 +153,7 @@ configTemplates:
   - name: bk-nodemgr-relay.conf
     isMainConfig: true
     filePath: etc
-    sourcePath: templates/bk-nodemgr-relay.template
+    sourcePath: templates/bk-nodemgr-relay.conf.template
     variables:
       - title: Log
         type: object
@@ -433,7 +430,7 @@ control:
   - name：配置文件名称
   - filePath：配置模板文件存放路径
   - isMainConfig：是否为主配置文件, 支持 true（是）、 false（否），只能有一个主配置文件
-  - sourcePath：配置模板文件在插件包中的相对路径
+  - sourcePath：配置模板文件在插件包中的相对路径, 相对于插件包内的`plugins_{{os_type}}_{{arch}}`目录, 以`/`分隔符分隔
   - variables：提供给页面配置的变量列表
     - title：变量名称
     - type：变量类型，支持 string（字符串）、 number（数字）、 bool（布尔值）、 object（对象）、 array（数组）

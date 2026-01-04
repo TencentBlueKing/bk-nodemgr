@@ -54,14 +54,14 @@ build/
     │   │   ├── definition.yaml
     │   │   ├── etc
     │   │   └── templates
-    │   │       └── bk-nodemgr-relay.template
+    │   │       └── bk-nodemgr-relay.conf.template
     │   ├── plugins_linux_x86_64
     │   │   ├── bin
     │   │   │   └── bk-nodemgr-relay
     │   │   ├── definition.yaml
     │   │   ├── etc
     │   │   └── templates
-    │   │       └── bk-nodemgr-relay.template
+    │   │       └── bk-nodemgr-relay.conf.template
     │   └── project.yaml
     ├── dist
     ├── scripts
