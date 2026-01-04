@@ -134,7 +134,7 @@ jobs:
 
             # 添加操作指南
             COMMENT="${COMMENT}\n### 📋 操作指南\n\n"
-            COMMENT="${COMMENT}1. 请参考模板文件 \`docs/design/pkg_readme_template.md\` 创建README.md\n"
+            COMMENT="${COMMENT}1. 请参考模板文件 \`docs/style/pkg_readme_template.md\` 创建README.md\n"
             COMMENT="${COMMENT}2. 文档应包含：\n"
             COMMENT="${COMMENT}   - 包的功能概述\n"
             COMMENT="${COMMENT}   - 设计原理\n"
