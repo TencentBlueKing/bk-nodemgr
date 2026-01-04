@@ -402,6 +402,7 @@ func newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
 	switch conf.AuthIdentity {
 	case config.AuthIdentityNone:
 		return restserver.NewNoneAuthIdentity(), nil
+
 	case config.AuthIdentityRestServer:
 		return restserver.NewRestServerAuthIdentity(conf.JWTServerConfig.SymmetricKey), nil
 

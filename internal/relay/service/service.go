@@ -149,8 +149,10 @@ func (svc *Service) newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIde
 	switch conf.AuthIdentity {
 	case config.AuthIdentityNone:
 		return restserver.NewNoneAuthIdentity(), nil
+
 	case config.AuthIdentityRestServer:
 		return restserver.NewRestServerAuthIdentity(conf.JWTServerConfig.SymmetricKey), nil
+
 	default:
 		return nil, fmt.Errorf("no support this auth identity, auth-identity(%s)", conf.AuthIdentity)
 	}

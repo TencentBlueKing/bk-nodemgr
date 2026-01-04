@@ -674,6 +674,7 @@ func newAuthIdentity(conf config.HTTPServer) (restserver.IAuthIdentity, error) {
 	switch conf.AuthIdentity {
 	case config.AuthIdentityNone:
 		return restserver.NewNoneAuthIdentity(), nil
+
 	case config.AuthIdentityAPIGW:
 		publickeyPem, err := base64.StdEncoding.DecodeString(conf.JWTServerConfig.PublicKeyPem)
 		if err != nil {
