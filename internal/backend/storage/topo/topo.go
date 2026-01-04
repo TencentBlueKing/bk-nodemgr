@@ -122,12 +122,14 @@ func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, condi
 		if condition.ExactInclude != nil {
 			opts = append(opts,
 				networkarea.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				networkarea.WithCloudVendor(condition.ExactInclude.CloudVendor...),
 			)
 		}
 
 		if condition.ExactExclude != nil {
 			opts = append(opts,
 				networkarea.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+				networkarea.WithoutCloudVendor(condition.ExactExclude.CloudVendor...),
 			)
 		}
 

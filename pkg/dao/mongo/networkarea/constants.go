@@ -14,6 +14,12 @@ const (
 	// FieldKeyNetworkAreaID the networkarea-id field key.
 	FieldKeyNetworkAreaID = "data.networkarea_id"
 
+	// FieldKeyNetworkAreaName the networkarea-name field key.
+	FieldKeyNetworkAreaName = "data.networkarea_name"
+
+	// FieldKeyCloudVendor the cloud-vendor field key.
+	FieldKeyCloudVendor = "data.cloud_vendor"
+
 	// FieldKeyTenantID the tenant-id field key.
 	FieldKeyTenantID = "data.tenant_id"
 )

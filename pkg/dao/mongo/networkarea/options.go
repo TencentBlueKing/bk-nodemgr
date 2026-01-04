@@ -17,20 +17,30 @@ type OptFn = base.OptFn
 
 // WithNetworkAreaID filters by networkarea-id.
 func WithNetworkAreaID(networkAreaIDs ...int64) OptFn {
-	return base.WithInt64Values("data.networkarea_id", networkAreaIDs...)
+	return base.WithValues(FieldKeyNetworkAreaID, networkAreaIDs...)
 }
 
 // WithoutNetworkAreaID filters by not contains networkarea-id.
 func WithoutNetworkAreaID(networkAreaIDs ...int64) OptFn {
-	return base.WithoutInt64Values("data.networkarea_id", networkAreaIDs...)
+	return base.WithoutValues(FieldKeyNetworkAreaID, networkAreaIDs...)
+}
+
+// WithCloudVendor filters by cloud_vendor.
+func WithCloudVendor(cloudVendors ...string) OptFn {
+	return base.WithStringValues(FieldKeyCloudVendor, cloudVendors...)
+}
+
+// WithoutCloudVendor filters by not contains cloud_vendor.
+func WithoutCloudVendor(cloudVendors ...string) OptFn {
+	return base.WithoutStringValues(FieldKeyCloudVendor, cloudVendors...)
 }
 
 // WithFuzzyNetworkAreaName filters by networkarea-name.
 func WithFuzzyNetworkAreaName(networkAreaNames ...string) OptFn {
-	return base.WithFuzzyValues("data.networkarea_name", networkAreaNames...)
+	return base.WithFuzzyValues(FieldKeyNetworkAreaName, networkAreaNames...)
 }
 
 // WithoutFuzzyNetworkAreaName filters by not contains networkarea-name.
 func WithoutFuzzyNetworkAreaName(networkAreaNames ...string) OptFn {
-	return base.WithoutFuzzyValues("data.networkarea_name", networkAreaNames...)
+	return base.WithoutFuzzyValues(FieldKeyNetworkAreaName, networkAreaNames...)
 }
