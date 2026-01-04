@@ -7,7 +7,7 @@
           :label="$t('platform.nodeMan.installAgentPage.type')"
           required
         >
-          <install-type></install-type>
+          <install-type currentNodeType="agent" @change="handleChange"></install-type>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.business')"
@@ -284,6 +284,12 @@ const dialogData = ref([{
   version: '',
 }]);
 const isBatch = ref(false);
+
+// 切换安装方式
+const handleChange = (value: string) => {
+  formRef.value?.clearValidate();
+};
+
 const handleChooseVersion = (row: { version: string; os: string }) => {
   isShowDialog.value = true;
   dialogData.value = [row];

@@ -7,7 +7,7 @@
           :label="$t('platform.nodeMan.installAgentPage.type')"
           required
         >
-          <install-type :need-type-list="['setup', 'manual']"></install-type>
+          <install-type currentNodeType="agent" @change="handleChange"></install-type>
         </Form.FormItem>
         <Form.FormItem
           :label="$t('platform.nodeMan.installAgentPage.info')"
@@ -18,6 +18,7 @@
               ref="installTableRef"
               v-model:data="formData.info"
               :is-reinstall="true"
+              :current-settings="tableSetting"
               :max-height="640"
             ></install-table>
           </Loading>
@@ -105,10 +106,46 @@ const isAtBottom = ref(false);
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);
 
+const tableSetting = reactive({
+  fields: [
+    { title: '业务', field: 'bk_biz_id' },
+    { title: '管控区域', field: 'bk_networkarea_name' },
+    { title: '管控单元', field: 'bk_networkunit_id' },
+    { title: '内网 IPv4', field: 'bk_host_innerip' },
+    { title: '内网 IPv6', field: 'bk_host_innerip_v6' },
+    { title: '操作系统', field: 'os_type' },
+    { title: '登录 IP', field: 'login_ip' },
+    { title: '登录端口', field: 'login_port' },
+    { title: '登录账号', field: 'login_user' },
+    { title: '认证方式', field: 'login_mode' },
+    { title: '密码 / 密钥', field: 'credit' },
+  ],
+  checked: [
+    'bk_biz_id',
+    'bk_networkarea_name',
+    'bk_networkunit_id',
+    'bk_host_innerip',
+    'bk_host_innerip_v6',
+    'os_type',
+    'login_port',
+    'login_ip',
+    'login_user',
+    'login_mode',
+    'credit',
+  ],
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
+  size: 'medium',
+});
+
 const loading = ref(false);
 // 显示侧边栏安装策略
 const handleShowPanel = () => {
   showRightPanel.value = true;
+};
+
+// 切换安装方式
+const handleChange = (value: string) => {
+  formRef.value?.clearValidate();
 };
 
 const handleCancel = () => {

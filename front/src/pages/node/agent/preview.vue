@@ -43,7 +43,7 @@
                 !selection.length ||
                   !selection.find((item) =>
                     ['conflict_ip', 'duplicate_dynamic_ip'].includes(
-                      item.elig_status
+                      item.status
                     )
                   )
               "
@@ -57,11 +57,7 @@
               @click="handleBatchRemove"
               :disabled="
                 !selection.length ||
-                  !selection.find((item) =>
-                    ['exist_proxy', 'exist_agent', 'not_exist_relay'].includes(
-                      item.elig_status
-                    )
-                  )
+                  !selection.find((item) => item.category === 'error')
               "
             >
               {{ $t("platform.nodeMan.preview.button.batchRemove") }}
@@ -107,6 +103,7 @@
             <template #panel>
               <Table
                 :data="tableData"
+                :pagination="pagination"
                 :empty-text="$t('table.empty')"
                 :column-config="{ resizable: true }"
                 show-overflow-tooltip
@@ -150,121 +147,38 @@
                   min-width="150"
                 ></TableColumn>
                 <TableColumn
-                  field="elig_status"
+                  field="status"
                   :title="t('platform.nodeMan.status')"
                   min-width="400"
                 >
                   <template #default="{ row }">
-                    <div class="flex items-center gap-[4px]">
+                    <Spinner v-if="installCheckLoading" class="mr-[8px]" />
+                    <div class="flex items-center gap-[4px]" v-else>
                       <close
-                        v-if="statusMap[row.elig_status]?.icon === 'wrong'"
+                        v-if="categoryMap[row.category]?.icon === 'wrong'"
                         width="14px"
                         height="14px"
-                        :fill="statusMap[row.elig_status]?.iconColor"
+                        :fill="categoryMap[row.category]?.iconColor"
                       />
                       <i
                         v-else
                         :class="`nodeman-icon nc-${
-                          statusMap[row.elig_status]?.icon
+                          categoryMap[row.category]?.icon
                         } text-[14px]`"
                         :style="{
-                          color: statusMap[row.elig_status]?.iconColor,
+                          color: categoryMap[row.category]?.iconColor,
                         }"
                       ></i>
-                      <p>{{ statusMap[row.elig_status]?.text }}</p>
-                      <PopConfirm
-                        width="780"
-                        :title="statusMap[row.elig_status]?.text"
-                        trigger="click"
-                        @confirm="ensure(row)"
-                      >
-                        <Button
-                          v-show="
-                            ['conflict_ip', 'duplicate_dynamic_ip'].includes(
-                              row.elig_status
-                            )
-                          "
+                      <p>{{ isZh ? row.message_zh : row.message_en }}</p>
+                      <Button
+                          v-show="row.category === 'need_confirm'"
                           theme="primary"
                           text
-                          @click="getAgentList(row)"
+                          @click="deel(row)"
                         >{{
                           t("platform.nodeMan.preview.button.deel")
-                        }}</Button
-                        >
-                        <template #content>
-                          <div class="mt-[6px] mb-[8px] text-[12px]">
-                            {{ t("platform.nodeMan.preview.popConfirm.tip") }}
-                          </div>
-                          <Table
-                            class="mb-[24px]"
-                            :data="deelTabelData"
-                            :empty-text="t('table.empty')"
-                            show-overflow-tooltip
-                            :column-config="{ resizable: true }"
-                            :max-height="462"
-                            :show-settings="isShowSetting"
-                            :settings="settings"
-                            @setting-change="handleSettingChange"
-                          >
-                            <template #prepend>
-                              <div
-                                class="bg-[#F0F5FF] h-[32px] flex items-center pl-[16px]"
-                              >
-                                <Radio v-model="radioValue" label="cmdb">{{
-                                  t(
-                                    "platform.nodeMan.preview.popConfirm.prepend"
-                                  )
-                                }}</Radio>
-                              </div>
-                              <div
-                                class="bg-[#F0F5FF] h-[32px] flex items-center pl-[16px]"
-                              >
-                                <Radio v-model="radioValue" label="normal">{{ t('正常安装') }}</Radio>
-                              </div>
-                            </template>
-                            <TableColumn
-                              field="bk_host_innerip"
-                              fixed="left"
-                              :title="t('platform.nodeMan.inner_ip')"
-                              min-width="220"
-                            >
-                              <template #default="{ row }">
-                                <Radio
-                                  v-model="radioValue"
-                                  :label="row.bk_host_innerip"
-                                >
-                                  <span>{{
-                                    t(
-                                      "platform.nodeMan.preview.popConfirm.install"
-                                    )
-                                  }}</span>
-                                  <span>{{ row.bk_host_innerip }}</span>
-                                </Radio>
-                              </template>
-                            </TableColumn>
-                            <TableColumn
-                              field="bk_host_innerip_v6"
-                              :title="t('platform.nodeMan.inner_ipv6')"
-                              min-width="150"
-                            ></TableColumn>
-                            <TableColumn
-                              field="os_type"
-                              :title="t('platform.nodeMan.os_type')"
-                              min-width="100"
-                            ></TableColumn>
-                            <TableColumn
-                              field="bk_host_name"
-                              :title="'主机名'"
-                              min-width="200"
-                            ></TableColumn>
-                            <TableColumn
-                              field="bk_networkarea_name"
-                              :title="t('platform.nodeMan.bk_cloud_name')"
-                              min-width="150"
-                            ></TableColumn>
-                          </Table>
-                        </template>
-                      </PopConfirm>
+                        }}
+                      </Button>
                     </div>
                   </template>
                 </TableColumn>
@@ -295,7 +209,7 @@
           :loading="loading"
           v-bk-tooltips="{
             content: disabledDataNum
-              ? '有Agent 状态错误数据，不可安装'
+              ? '有Agent 状态异常数据，不可安装'
               : '校验失败，不可安装',
             disabled: !checkFailed && disabledDataNum === 0,
           }"
@@ -318,19 +232,19 @@ import {
   Sideslider,
   Tab,
 } from 'bkui-vue';
-import { Close } from 'bkui-vue/lib/icon';
+import { Close, Spinner } from 'bkui-vue/lib/icon';
 import { cloneDeep } from 'lodash';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
-
+import usePage from '@/composables/use-page';
 import type { AgentInstallInfo } from '@/@types/node_agent.d';
 import { NodeAgentService } from '@/api/modules/node_agent';
 import { TopoService } from '@/api/modules/topo';
 import useTableSetting from '@/composables/use-table-setting';
-import { useNodeManageStore } from '@/stores/node-manage';
+import { useMainStore } from '@/stores/main';
 
 const isShow = defineModel('isShow', { type: Boolean });
 
@@ -346,14 +260,15 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const nodeManageStore = useNodeManageStore();
+const mainStore = useMainStore();
 const router = useRouter();
-const searchValue = ref('');
 const originData = ref<AgentInstallInfo[]>([]);
 const tableData = ref<AgentInstallInfo[]>([]);
 const tabKey = ref(Date.now());
 const disabledDataNum = ref(0);
-const checkFailed = computed(() => tableData.value.some(item => !item.elig_status));
+const isZh = computed(() => mainStore.curLanguage === 'zh-CN');
+const checkFailed = computed(() => tableData.value.some(item => !item.status));
+const pagination = usePage(tableData)
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = computed(() => [
@@ -385,16 +300,16 @@ const tabs = computed(() => {
     (acc: any, item: any) => {
       acc.all += 1;
 
-      if (['conflict_ip', 'duplicate_dynamic_ip'].includes(item.elig_status)) {
+      if (item.category === 'need_confirm') {
         acc.confirm += 1;
       }
-      if (['exist_proxy', 'exist_agent', 'not_exist_relay'].includes(item.elig_status)) {
+      if (item.category === 'error') {
         acc.error += 1;
       }
-      if (item.elig_status === 'import_cmdb_and_normal_install') {
+      if (item.category === 'register_to_cmdb_and_install') {
         acc.cleanInstallation += 1;
       }
-      if (item.elig_status === 'normal_install') {
+      if (item.category === 'normal_install') {
         acc.normalInstallation += 1;
       }
 
@@ -417,11 +332,10 @@ const tabs = computed(() => {
     },
     {
       label: t('platform.nodeMan.preview.label.pendingConfirmation'),
-      name: 'confirm',
+      name: 'need_confirm',
       count: countResult.confirm,
       icon: 'danger-fill',
       iconColor: '#FF9C01',
-      includeSatatus: ['conflict_ip', 'duplicate_dynamic_ip'],
     },
     {
       label: t('platform.nodeMan.preview.label.error'),
@@ -429,23 +343,20 @@ const tabs = computed(() => {
       count: countResult.error,
       icon: 'wrong',
       iconColor: '#EA3636',
-      includeSatatus: ['exist_proxy', 'exist_agent', 'not_exist_relay'],
     },
     {
       label: t('platform.nodeMan.preview.label.cleanInstallation'),
-      name: 'CMDB',
+      name: 'register_to_cmdb_and_install',
       count: countResult.cleanInstallation,
       icon: 'check-circle-fill',
       iconColor: '#1CAB88',
-      includeSatatus: ['import_cmdb_and_normal_install'],
     },
     {
       label: t('platform.nodeMan.preview.label.normalInstallation'),
-      name: 'setup',
+      name: 'normal_install',
       count: countResult.normalInstallation,
       icon: 'check-circle-fill',
       iconColor: '#1CAB88',
-      includeSatatus: ['normal_install'],
     },
   ];
 });
@@ -463,7 +374,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
       'bk_networkunit_id',
       'os_type',
       'node_version',
-      'elig_status',
+      'status',
       'action',
     ],
     disabled: ['action'],
@@ -507,6 +418,28 @@ const statusMap = {
     iconColor: '#FF9C01',
   },
 };
+const categoryMap = {
+  normal_install: {
+    text: '可执行：正常安装',
+    icon: 'check-circle-fill',
+    iconColor: '#1CAB88',
+  },
+  import_cmdb_and_normal_install: {
+    text: '可执行：全新安装并导入 CMDB',
+    icon: 'check-circle-fill',
+    iconColor: '#1CAB88',
+  },
+  error: {
+    text: '错误',
+    icon: 'wrong',
+    iconColor: '#EA3636',
+  },
+  need_confirm: {
+    text: '待确认',
+    icon: 'danger-fill',
+    iconColor: '#FF9C01',
+  }
+}
 
 const radioValue = ref('cmdb');
 function getUniqueChildren(prop: string) {
@@ -527,24 +460,24 @@ function getUniqueChildren(prop: string) {
 const handleBeforeClose = () => {
   isShow.value = false;
 };
-const ensure = (row: AgentInstallInfo) => {
-  if (
-    row.elig_status === 'conflict_ip'
-    || row.elig_status === 'duplicate_dynamic_ip'
-  ) {
-    row.elig_status = radioValue.value === 'cmdb'
-      ? 'import_cmdb_and_normal_install'
-      : 'normal_install';
-  }
-  tabKey.value = Date.now();
-  Message({
-    theme: 'success',
-    message:
-      radioValue.value === 'cmdb'
-        ? '该 Agent 已被手动确认为“全新安装并导入 CMDB”'
-        : '该 Agent 已被手动确认为“正常安装”',
-  });
-};
+// const ensure = (row: AgentInstallInfo) => {
+//   if (
+//     row.status === 'conflict_ip'
+//     || row.status === 'duplicate_dynamic_ip'
+//   ) {
+//     row.status = radioValue.value === 'cmdb'
+//       ? 'import_cmdb_and_normal_install'
+//       : 'normal_install';
+//   }
+//   tabKey.value = Date.now();
+//   Message({
+//     theme: 'success',
+//     message:
+//       radioValue.value === 'cmdb'
+//         ? '该 Agent 已被手动确认为“全新安装并导入 CMDB”'
+//         : '该 Agent 已被手动确认为“正常安装”',
+//   });
+// };
 const handleRemove = (row: AgentInstallInfo) => {
   originData.value = originData.value.filter((item: any) => item.bk_host_innerip !== row.bk_host_innerip);
   tabKey.value = Date.now();
@@ -554,6 +487,16 @@ const handleRemove = (row: AgentInstallInfo) => {
   });
 };
 
+// 处理待确认
+const deel = async (row: any) => {
+  if (['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(row.status)) {
+    row.bk_host_id = row.matched.bk_host_id;
+    await installCheck();
+  } else {
+    row.category = 'normal_install';
+    tableData.value = [...tableData.value];
+  }
+}
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const handleSelectChange = ({
@@ -573,11 +516,11 @@ const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
 const handleBatchInstall = () => {
   tableData.value.forEach((item: any) => {
     if (
-      (item.elig_status === 'conflict_ip'
-        || item.elig_status === 'duplicate_dynamic_ip')
+      (item.status === 'conflict_ip'
+        || item.status === 'duplicate_dynamic_ip')
       && item.checked
     ) {
-      item.elig_status = 'import_cmdb_and_normal_install';
+      item.status = 'import_cmdb_and_normal_install';
     }
   });
   tabKey.value = Date.now();
@@ -587,7 +530,7 @@ const handleBatchInstall = () => {
   });
 };
 const handleBatchRemove = () => {
-  originData.value = originData.value.filter((item: any) => !['exist_proxy', 'exist_agent', 'not_exist_relay'].includes(item.elig_status) || !item.checked);
+  originData.value = originData.value.filter((item: any) => !(item.category == 'error' && item.checked));
   tabKey.value = Date.now();
 };
 
@@ -596,8 +539,11 @@ const handleSetup = async () => {
   loading.value = true;
   // 过滤掉每条数据中的duplicate_host_ids和elig_status字段
   const filteredData = tableData.value.map((item: any) => {
-    const { pending_host_ids, elig_status, ...rest } = item;
-    return rest;
+    const { pending_host_ids, status, bk_networkunit_id, ...rest } = item;
+    return {
+      ...rest,
+      bk_networkunit_id: Number(bk_networkunit_id),
+    };
   });
   const res = await NodeAgentService.NodeAgentInstall({
     info: filteredData,
@@ -635,34 +581,37 @@ function sortByEligStatus(arr: any[]) {
   // 复制原数组避免修改原数组
   return [...arr].sort((a, b) => {
     // 获取当前元素的优先级，默认最低
-    const priorityA = priority[a.elig_status] ?? 6;
-    const priorityB = priority[b.elig_status] ?? 6;
+    const priorityA = priority[a.status] ?? 6;
+    const priorityB = priority[b.status] ?? 6;
     // 按优先级升序排列（数值越小优先级越高）
     return priorityA - priorityB;
   });
 }
 
 // 安装检查
+const installCheckLoading = ref(false);
 const installCheck = async () => {
+  installCheckLoading.value = true;
   const res = await NodeAgentService.NodeAgentInstallCheck({
     host: originData.value.map((item: any) => ({
-      bk_biz_id: item.bk_biz_id,
-      bk_host_innerip: item.bk_host_innerip,
-      bk_networkunit_id: item.bk_networkunit_id,
+      ...(item.bk_host_id ? { bk_host_id: item.bk_host_id } : {}),
+      bk_biz_id: Number(item.bk_biz_id),
+      bk_host_innerip_list: item.bk_host_innerip.split(';'),
+      bk_host_innerip_v6_list: item.bk_host_innerip_v6.split(';'),
+      bk_networkunit_id: Number(item.bk_networkunit_id),
     })),
   }).catch(() => ({
-    total_count: 0,
-    install_eligs: [],
+    results: [],
   }));
+  installCheckLoading.value = false;
   if (res) {
-    originData.value = sortByEligStatus(originData.value.map((item: any) => {
-      const target = res.install_eligs.find((elig: any) => elig.inner_ip === item.bk_host_innerip);
+    originData.value = originData.value.map(item => {
+      const find = res.results.find((result: any) => result.matched.bk_host_id === item.bk_host_id || result.matched.bk_host_innerip_list.join(',') === item.bk_host_innerip);
       return {
         ...item,
-        pending_host_ids: target?.pending_host_ids || [],
-        elig_status: target?.pending_host_ids?.[0] === item.bk_host_id ? 'normal_install' : (target?.elig_status || ''),
+        ...find,
       };
-    }));
+    });
   }
   tableData.value = cloneDeep(originData.value);
 };
@@ -714,9 +663,7 @@ watch(
       if (active.value === 'all') {
         return true;
       }
-      return tabs.value
-        .find((tab: any) => tab.name === active.value)
-        ?.includeSatatus?.includes(item.elig_status);
+      return item.category === active.value;
     });
   },
   { immediate: true },

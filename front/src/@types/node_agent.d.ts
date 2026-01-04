@@ -137,7 +137,8 @@ export interface NodeAgentUninstallRespData {
 export interface AgentInstallCheckInfo {
   bk_biz_id: number;
   bk_host_id: number;
-  bk_host_innerip: string;
+  bk_host_innerip_list: string[];
+  bk_host_innerip_v6_list: string[];
   bk_networkunit_id: number;
 }
 
@@ -157,16 +158,29 @@ export interface NodeAgentInstallCheckResp {
 }
 
 export interface NodeAgentInstallCheckRespData {
-  install_eligs: NodeAgentInstallElig[];
-  total_count: number;
+  results: NodeAgentInstallCheckResult[];
 }
 
-// NodeAgentInstallElig describes the eligibility for node agent
+// NodeAgentInstallCheckMatchedItem describes the matched item for node.
+export interface NodeAgentInstallCheckMatchedItem {
+  bk_host_id: number;
+  bk_biz_id: number;
+  bk_networkarea_id: number;
+  bk_networkunit_id: number;
+  os_type: string;
+  node_role: string;
+  bk_host_innerip_list: string[];
+  bk_host_innerip_v6_list: string[];
+}
+
+// NodeAgentInstallCheckResult describes the check result for node agent
 // installation.
-export interface NodeAgentInstallElig {
-  inner_ip: string;
-  elig_status: string;
-  pending_host_ids: number[];
+export interface NodeAgentInstallCheckResult {
+  status: string;
+  matched: NodeAgentInstallCheckMatchedItem;
+  message_en: string;
+  message_zh: string;
+  category: string;
 }
 
 // UploadAgentTemplateReq is the request for upload agent tempalte file.
