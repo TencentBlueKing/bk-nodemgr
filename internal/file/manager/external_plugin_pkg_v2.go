@@ -262,6 +262,8 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 					multiPlatConfigTplSourceContent[plat.String()] = make(map[string]string)
 				}
 
+				// Notice: The plugin package is read and processed on the Linux system
+				// so the sourcePath here should also be processed using the Linux separator.
 				sourcePath := filepath.Join(path[2:]...)
 				multiPlatConfigTplSourceContent[plat.String()][sourcePath] = string(content)
 
