@@ -124,6 +124,12 @@ func (h *handler) ListReleaseAgent(rCtx restserver.IContext) (interface{}, error
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
+	// special logic:
+	// release agent request with limit 0 means unlimited
+	if page.Limit == 0 {
+		page = types.UnlimitedPage()
+	}
+
 	releases, num, err := h.backendHandler.ListReleaseAgent(rCtx, gen, page, req.ConvertConditionsToTypes())
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release agent")
@@ -419,6 +425,12 @@ func (h *handler) ListReleaseProxy(rCtx restserver.IContext) (interface{}, error
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release proxy, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// special logic:
+	// release proxy request with limit 0 means unlimited
+	if page.Limit == 0 {
+		page = types.UnlimitedPage()
 	}
 
 	releases, num, err := h.backendHandler.ListReleaseProxy(rCtx, gen, page, req.ConvertConditionsToTypes())
@@ -720,6 +732,12 @@ func (h *handler) ListReleasePlugin(rCtx restserver.IContext) (interface{}, erro
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to list release plugin, invalid page info")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// special logic:
+	// release plugin request with limit 0 means unlimited
+	if page.Limit == 0 {
+		page = types.UnlimitedPage()
 	}
 
 	releases, num, err := h.backendHandler.ListReleasePlugin(rCtx, gen, page, req.ConvertConditionsToTypes())

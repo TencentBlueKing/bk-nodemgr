@@ -15,6 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/pageexecutor"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -266,21 +267,35 @@ func (h *Handler) ListReleaseAgent(nCtx contextx.IContext,gen types.Generation,p
 	[]*types.ReleaseAgent, int64, error) {
 
 	req := &protoBackend.PackageReleaseAgentListReq{
-		Page:       convertPage(page),
 		Generation: int64(gen),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listReleaseAgent(nCtx, req)
+	var (
+		total    int64
+		releases []*types.ReleaseAgent
+	)
+	executor := pageexecutor.NewPageExecutor[*types.ReleaseAgent](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.ReleaseAgent, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listReleaseAgent(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, releases = resp.ConvertReleasesToTypes()
+
+		return releases, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, releases := resp.ConvertReleasesToTypes()
-
-	return releases, total, nil
+	return result.Items, total, nil
 }
 
 // CountReleaseAgent counts agent releases by conditions.
@@ -404,21 +419,35 @@ func (h *Handler) ListReleaseProxy(nCtx contextx.IContext,gen types.Generation,p
 	[]*types.ReleaseProxy, int64, error) {
 
 	req := &protoBackend.PackageReleaseProxyListReq{
-		Page:       convertPage(page),
 		Generation: int64(gen),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listReleaseProxy(nCtx, req)
+	var (
+		total    int64
+		releases []*types.ReleaseProxy
+	)
+	executor := pageexecutor.NewPageExecutor[*types.ReleaseProxy](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.ReleaseProxy, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listReleaseProxy(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, releases = resp.ConvertReleasesToTypes()
+
+		return releases, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, releases := resp.ConvertReleasesToTypes()
-
-	return releases, total, nil
+	return result.Items, total, nil
 }
 
 // CountReleaseProxy counts proxy releases by conditions.
@@ -542,21 +571,35 @@ func (h *Handler) ListReleasePlugin(nCtx contextx.IContext,gen types.Generation,
 	[]*types.ReleasePlugin, int64, error) {
 
 	req := &protoBackend.PackageReleasePluginListReq{
-		Page:       convertPage(page),
 		Generation: int64(gen),
 	}
 	if err := req.ConvertConditionsFromTypes(condition); err != nil {
 		return nil, 0, err
 	}
 
-	resp, err := h.cli.listReleasePlugin(nCtx, req)
+	var (
+		total    int64
+		releases []*types.ReleasePlugin
+	)
+	executor := pageexecutor.NewPageExecutor[*types.ReleasePlugin](req.PageLimit(), req.PageTimeout())
+	fn := func(nCtx contextx.IContext, page types.Page) ([]*types.ReleasePlugin, error) {
+		req.Page = convertPage(page)
+		resp, err := h.cli.listReleasePlugin(nCtx, req)
+		if err != nil {
+			return nil, err
+		}
+
+		total, releases = resp.ConvertReleasePluginsToTypes()
+
+		return releases, nil
+	}
+
+	result, err := executor.Execute(nCtx, page, fn)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	total, releases := resp.ConvertReleasePluginsToTypes()
-
-	return releases, total, nil
+	return result.Items, total, nil
 }
 
 // CountReleasePlugin counts plugin releases by conditions.

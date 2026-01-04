@@ -131,6 +131,11 @@ func (x *PackageReleaseAgentListReq) Validate() error {
 func (x *PackageReleaseAgentListReq) AutoConvert() {
 }
 
+// PageTimeout return page timeout.
+func (x *PackageReleaseAgentListReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
 // PageLimit return page limit.
 func (x *PackageReleaseAgentListReq) PageLimit() int {
 	return maxReleaseLimit
@@ -409,6 +414,11 @@ func (x *PackageReleaseProxyListReq) Validate() error {
 func (x *PackageReleaseProxyListReq) AutoConvert() {
 }
 
+// PageTimeout return page timeout.
+func (x *PackageReleaseProxyListReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
+}
+
 // PageLimit return page limit.
 func (x *PackageReleaseProxyListReq) PageLimit() int {
 	return maxReleaseLimit
@@ -685,6 +695,11 @@ func (x *PackageReleasePluginListReq) Validate() error {
 
 // AutoConvert auto convert.
 func (x *PackageReleasePluginListReq) AutoConvert() {
+}
+
+// PageTimeout return page timeout.
+func (x *PackageReleasePluginListReq) PageTimeout() time.Duration {
+	return backendPagingListTimeout
 }
 
 // PageLimit return page limit.
