@@ -223,7 +223,7 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 		{
 			filePathRegex: []string{
 				".*",
-				buildPrefixMatchRegex(originalPluginPkgV2DirNamePlatPrefix),
+				buildPrefixMatchRegex(originalPluginPkgV3DirNamePlatPrefix),
 				buildFullMatchRegex(originalPluginPkgV3FileNameDefinition)},
 			callback: func(path []string, definitionFile io.Reader) error {
 				plat := convPluginV3DirNameToPlat(path[1])
@@ -243,7 +243,7 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 		{
 			filePathRegex: []string{
 				".*",
-				buildPrefixMatchRegex(originalPluginPkgV2DirNamePlatPrefix),
+				buildPrefixMatchRegex(originalPluginPkgV3DirNamePlatPrefix),
 				buildFullMatchRegex(originalPluginPkgV3DirNameTemplates),
 				buildSuffixMatchRegex(originalPluginPkgV3FileNameTemplatesExt)},
 			callback: func(path []string, tplFile io.Reader) error {
@@ -258,7 +258,8 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 					multiPlatConfigTplSourceContent[plat.String()] = make(map[string]string)
 				}
 
-				multiPlatConfigTplSourceContent[plat.String()][path[len(path)-1]] = string(content)
+				sourcePath := tool.JoinPath(plat.OS, path[2:]...)
+				multiPlatConfigTplSourceContent[plat.String()][sourcePath] = string(content)
 
 				return nil
 			},
@@ -272,7 +273,7 @@ func checkOriginPluginV3Pkg(file io.ReadCloser) (*types.OriginPluginV3PkgDetail,
 
 	for platStr, templates := range multiPlatConfigTplSourceContent {
 		for idx, tpl := range detail.ConfigTemplates[platStr] {
-			if sourceContent, ok := templates[tpl.Name]; ok {
+			if sourceContent, ok := templates[tpl.SourcePath]; ok {
 				detail.ConfigTemplates[platStr][idx].SourceContent = sourceContent
 			}
 		}
@@ -299,14 +300,22 @@ func parsePluginV3PkgConfigTemplateFromDefinition(pluginDefinition *PluginV3Defi
 
 // notice: because the official plugin pkg's control cmd is provided by the nodemgr, so we specify the script path.
 func buildPluginV3PkgController(plat platfmt.Platform, pluginDefinition *PluginV3Definition) types.ProcessController {
+	fn := func(path ...string) []string {
+		if len(path) == 0 || path[len(path)-1] == "" {
+			return []string{}
+		}
+
+		return path
+	}
+
 	return types.ProcessController{
-		StartCmd:   tool.JoinPath(plat.OS, pluginV3PkgDirNameBin, pluginDefinition.Control.StartCmd),
-		StopCmd:    tool.JoinPath(plat.OS, pluginV3PkgDirNameBin, pluginDefinition.Control.StopCmd),
-		RestartCmd: tool.JoinPath(plat.OS, pluginV3PkgDirNameBin, pluginDefinition.Control.RestartCmd),
-		ReloadCmd:  tool.JoinPath(plat.OS, pluginV3PkgDirNameBin, pluginDefinition.Control.ReloadCmd),
-		KillCmd:    tool.JoinPath(plat.OS, pluginV3PkgDirNameBin, pluginDefinition.Control.KillCmd),
-		VersionCmd: tool.JoinPath(plat.OS, pluginV3PkgDirNameBin, pluginDefinition.Control.VersionCmd),
-		HealthCmd:  tool.JoinPath(plat.OS, pluginV3PkgDirNameBin, pluginDefinition.Control.HealthCmd),
+		StartCmd:   tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.StartCmd)...),
+		StopCmd:    tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.StopCmd)...),
+		RestartCmd: tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.RestartCmd)...),
+		ReloadCmd:  tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.ReloadCmd)...),
+		KillCmd:    tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.KillCmd)...),
+		VersionCmd: tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.VersionCmd)...),
+		HealthCmd:  tool.JoinPath(plat.OS, fn(pluginV3PkgDirNameBin, pluginDefinition.Control.HealthCmd)...),
 	}
 }
 

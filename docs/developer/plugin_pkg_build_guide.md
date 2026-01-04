@@ -35,6 +35,7 @@
 
 ```yaml
 PluginInfo:
+    Name: 插件的二进制文件名称, 与project.yaml文件中的name字段一致
     LogPath: 插件日志路径
     DataPath: 插件数据路径
     PidPath: 插件PID文件路径
@@ -48,24 +49,54 @@ PluginInfo:
     IsMultiTenant: 是否为多租户插件，true或false
 NodeInfo:
     HostID: 主机ID
-    HostName: 主机名称
-    BizID: 业务ID
-    NetworkAreaID: 管控区域ID
-    NetworkAreaName: 管控区域名称
-    NetworkUnitID: 管控单元ID
-    NetworkUnitName: 管控单元名称
-    OSType: 操作系统类型
-    Arch: 操作系统架构
-    InnerIPList: 内网IP列表
-    OuterIPList: 外网IP列表
-    InnerIPv6List: 内网IPv6列表
-    OuterIPv6List: 外网IPv6列表
-    AgentID: Agent ID
-    CPUNum: CPU核数
-    MemCap: 内存容量
-    NodeRole: 节点角色，如agent、proxy等
-    LoginIP: 登录IP
-    LoginUser: 登录用户
+    TenantID: 租户ID
+    Static:
+        BizID: 业务ID
+        NetworkAreaID: 管控区域ID
+        InnerIPList: 内网IP列表
+        InnerIPV6List: 内网IPv6列表
+        OuterIPList: 外网IP列表
+        OuterIPV6List: 外网IPv6列表
+        Mac: MAC地址
+        Addressing: 寻址方式
+        OSType: 操作系统类型
+        OSTypeCCID: 操作系统类型(CMDB中存储的操作系统类型ID)
+        Arch: 操作系统架构
+        CPUNum: CPU核数
+        MemCap: 内存容量
+        HostName: 主机名称
+        DeptName: 部门名称
+        Operator: 操作人
+        RegionID: 所属区域ID
+        CityID: 所属城市ID
+        SyncedAgentID: 同步自CMDB的Agent ID
+    Dynamic:
+        AgentID: 获取自GSE Agent的实际Agent ID
+        AdvertiseIP: 节点使用的实际网卡的IP
+        AdvertiseIPV6: 节点使用的实际网卡的IPv6
+        ExportIP: 节点的出口IPv4地址
+        ExportIPV6: 节点的出口IPv6地址
+        NetworkUnitID: 管控单元ID
+        NodeOsType: 节点操作系统类型
+        NodeCPUArch: 节点CPU架构
+        NodeVersion: 节点Agent的版本
+        NodeRole: 节点角色，如agent、proxy等
+        NodeGeneration: 节点Agent的版本代数, 1对应1.x版本的Agent, 2对应2.x版本的Agent
+        NodeStatus: 节点状态
+        LoginIP: 登录IP
+        LoginPort: 登录端口
+        LoginUser: 登录用户
+        LoginMode: 登录方式
+        LoginCreditID: 登录凭据ID
+        LoginCreditValid: 登录凭据是否有效
+        RelayDownloadPort: relay的下载端口
+        RelayCallbackPort: relay的回调端口
+        ProxyClusterPort: Proxy的gse_agent监听的端口
+        ProxyFilePort: Proxy的gse_file_proxy监听的端口
+        ProxyDataPort: Proxy的gse_data_proxy监听的端口
+        ProxyAccessDisabled: 此节点是否建立新的代理访问连接
+        ProxyInstallOriginUnitID: 代理安装时所在的管控单元ID
+        ProxyTags: Proxy节点的标签列表
 PreDefinitionConstants:
     Global: 全局插件配置，定义于nodemgr的backend配置文件gseDeployConfs.pluginCustom.commonConstants.Global中
     Unique: 属于该插件的的特别配置，定义于nodemgr的backend配置文件gseDeployConfs.pluginCustom.commonConstants.{{plugin_name}}中
@@ -402,6 +433,7 @@ control:
   - name：配置文件名称
   - filePath：配置模板文件存放路径
   - isMainConfig：是否为主配置文件, 支持 true（是）、 false（否），只能有一个主配置文件
+  - sourcePath：配置模板文件在插件包中的相对路径
   - variables：提供给页面配置的变量列表
     - title：变量名称
     - type：变量类型，支持 string（字符串）、 number（数字）、 bool（布尔值）、 object（对象）、 array（数组）

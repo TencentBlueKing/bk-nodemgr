@@ -254,7 +254,8 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 					multiPlatConfigTplSourceContent[plat.String()] = make(map[string]string)
 				}
 
-				multiPlatConfigTplSourceContent[plat.String()][path[len(path)-1]] = string(content)
+				sourcePath := tool.JoinPath(plat.OS, path[2:]...)
+				multiPlatConfigTplSourceContent[plat.String()][sourcePath] = string(content)
 
 				return nil
 			},
@@ -273,11 +274,11 @@ func checkOriginPluginV2Pkg(file io.ReadCloser) (*types.OriginPluginV2PkgDetail,
 		}
 
 		for idx, configTemplate := range configTemplates {
-			if configTplSourceContent[configTemplate.Name] == "" {
+			if configTplSourceContent[configTemplate.SourcePath] == "" {
 				continue
 			}
 
-			configTemplates[idx].SourceContent = configTplSourceContent[configTemplate.Name]
+			configTemplates[idx].SourceContent = configTplSourceContent[configTemplate.SourcePath]
 		}
 	}
 
@@ -312,14 +313,22 @@ func parsePluginV2PkgConfigTemplateFromProject(pluginProject *PluginV2Project) (
 
 // notice: because the official plugin pkg's control cmd is provided by the nodemgr, so we specify the script path.
 func buildPluginV2PkgController(plat platfmt.Platform, pluginProject *PluginV2Project) types.ProcessController {
+	fn := func(path ...string) []string {
+		if len(path) == 0 || path[len(path)-1] == "" {
+			return []string{}
+		}
+
+		return path
+	}
+
 	return types.ProcessController{
-		StartCmd:   tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.StartCmd),
-		StopCmd:    tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.StopCmd),
-		RestartCmd: tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.RestartCmd),
-		ReloadCmd:  tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.ReloadCmd),
-		KillCmd:    tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.KillCmd),
-		VersionCmd: tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.VersionCmd),
-		HealthCmd:  tool.JoinPath(plat.OS, pluginV2PkgDirNameBin, pluginProject.Control.HealthCmd),
+		StartCmd:   tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.StartCmd)...),
+		StopCmd:    tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.StopCmd)...),
+		RestartCmd: tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.RestartCmd)...),
+		ReloadCmd:  tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.ReloadCmd)...),
+		KillCmd:    tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.KillCmd)...),
+		VersionCmd: tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.VersionCmd)...),
+		HealthCmd:  tool.JoinPath(plat.OS, fn(pluginV2PkgDirNameBin, pluginProject.Control.HealthCmd)...),
 	}
 }
 

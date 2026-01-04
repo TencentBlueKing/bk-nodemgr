@@ -23,6 +23,7 @@ import (
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/pluginpkg"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -178,9 +179,10 @@ type ExternalPluginConfigTemplate struct {
  * project.yml
  * others can be ignored.
  */
-// nolint: funlen
+// nolint: funlen, gocognit
 func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPluginV2PkgDetail, error) {
 	detail := types.NewOriginExternalPluginV2PkgDetail()
+	multiPlatConfigTplSourceContent := make(map[string]map[string]string)
 
 	tgzReadRules := []tgzReadRule{
 		{
@@ -243,9 +245,48 @@ func checkOriginExternalPluginPkg(file io.ReadCloser) (*types.OriginExternalPlug
 				return nil
 			},
 		},
+		{
+			filePathRegex: []string{
+				buildPrefixMatchRegex(originalExternalPluginDirNamePlatPrefix),
+				".*",
+				buildFullMatchRegex(originalExternalPluginDirNameEtc),
+				buildSuffixMatchRegex(originalExternalPluginFileNameEtcExt)},
+			callback: func(path []string, tplFile io.Reader) error {
+				plat := convExternalPluginDirNameToPlat(path[0])
+
+				content, err := io.ReadAll(tplFile)
+				if err != nil {
+					return fmt.Errorf("failed to read (%s) template file: %w", path[len(path)-1], err)
+				}
+
+				if _, ok := multiPlatConfigTplSourceContent[plat.String()]; !ok {
+					multiPlatConfigTplSourceContent[plat.String()] = make(map[string]string)
+				}
+
+				sourcePath := tool.JoinPath(plat.OS, path[2:]...)
+				multiPlatConfigTplSourceContent[plat.String()][sourcePath] = string(content)
+
+				return nil
+			},
+		},
 	}
 	if err := checkTgz(file, tgzReadRules); err != nil {
 		return nil, err
+	}
+
+	for platStr, configTemplates := range detail.ConfigTemplates {
+		configTplSourceContent := multiPlatConfigTplSourceContent[platStr]
+		if multiPlatConfigTplSourceContent[platStr] == nil {
+			continue
+		}
+
+		for idx, configTemplate := range configTemplates {
+			if configTplSourceContent[configTemplate.SourcePath] == "" {
+				continue
+			}
+
+			configTemplates[idx].SourceContent = configTplSourceContent[configTemplate.SourcePath]
+		}
 	}
 
 	return detail, nil
@@ -459,12 +500,6 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 		return nil, err
 	}
 
-	// local plugin bintool.
-	localPluginBinTool, err := m.fetchReleasePluginBinToolToLocal(nCtx, types.ReleaseNamePluginBinToolV2)
-	if err != nil {
-		return nil, err
-	}
-
 	pluginPkgName := originDetail.PluginPkgName
 
 	gp := gopool.NewPool()
@@ -488,11 +523,6 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 			origiExternalPluginFile, err := localOrigin.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin external plugin file: %w", err)
-			}
-
-			originPluginBinToolFile, err := localPluginBinTool.Content(nCtx)
-			if err != nil {
-				return fmt.Errorf("failed to open origin plugin bintool file: %w", err)
 			}
 
 			// set sub dir paths.
@@ -533,17 +563,6 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 						sourceFile: origiExternalPluginFile,
 						fileRules:  files,
 					},
-					// get things from origin plugin bintool.
-					{
-						sourceFile: originPluginBinToolFile,
-						fileRules: []tgzWriteRuleFile{
-							{
-								sourceFilePath: []string{tgzPathMatchingSegment1, convPlatToPluginBinToolDirName(plat), tgzPathMatchingSegment2},
-								targetFilePath: []string{externalPluginPkgDirNameBin, tgzPathMatchingSegment2},
-								targetFileMode: tgzModeExe,
-							},
-						},
-					},
 				},
 			); err != nil {
 				return fmt.Errorf("failed to generate tgz from origin packages: %w", err)
@@ -568,6 +587,8 @@ func (m *Manager) generateExternalPluginPkg(nCtx contextx.IContext,
 const (
 	originalExternalPluginDirNamePlatPrefix     = "external_plugins_"
 	originalExternalPluginDirNamePlatSplitTimes = 4
+	originalExternalPluginDirNameEtc            = "etc"
+	originalExternalPluginFileNameEtcExt        = ".tpl"
 
 	originalExternalPluginFileNameProject = "project.yaml"
 
