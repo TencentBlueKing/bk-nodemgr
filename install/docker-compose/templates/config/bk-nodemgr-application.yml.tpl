@@ -7,7 +7,7 @@ tenantMode: single
 # infoServer defines self info http server settings.
 infoServer:
   # listening IP and Port.
-  bindIP: 127.0.0.1
+  bindIP: __BK_NODEMGR_APPLICATION_INFO_BIND_IP__
   port: __BK_NODEMGR_APPLICATION_INFO_PORT__
 
   # advertiseIP advertise ip for external access.
