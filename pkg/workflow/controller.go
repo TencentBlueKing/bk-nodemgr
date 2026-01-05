@@ -521,7 +521,7 @@ func (ctl *controller) LaunchOperationInstance(nCtx contextx.IContext) error {
 	for idx, actionName := range actionNames {
 		signatures[idx] = &tasks.Signature{
 			UUID: identifier.GenActionInstanceID(),
-			Name: actionName,
+			Name: registeredTaskName,
 			Args: []tasks.Arg{
 				{
 					Name:  "action",

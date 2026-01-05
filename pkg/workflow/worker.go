@@ -36,6 +36,8 @@ type IWorker interface {
 const (
 	consumerTag         = ""
 	engineMaxRetryLimit = uint(10)
+
+	registeredTaskName = "action_runner"
 )
 
 func (mgr *manager) launchWorker() error {
@@ -43,10 +45,8 @@ func (mgr *manager) launchWorker() error {
 		return errors.New("operation instance manager is not running")
 	}
 
-	for _, actionDef := range mgr.registeredActionDefs {
-		if err := mgr.server.RegisterTask(actionDef.Name(), mgr.do); err != nil {
-			return err
-		}
+	if err := mgr.server.RegisterTask(registeredTaskName, mgr.do); err != nil {
+		return err
 	}
 
 	mgr.worker = mgr.server.NewWorker(consumerTag, mgr.WorkerNum)
