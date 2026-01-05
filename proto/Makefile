@@ -6,28 +6,28 @@ ROOT_DIR = $(CURDIR)/..
 # application v3
 APPLICATION_V3_PROTO_DIR = $(CURDIR)/application/api/v3
 APPLICATION_V3_GO_OUT_DIR = $(ROOT_DIR)/pkg/proto/application/api/v3
-APPLICATION_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/swagger/application/api/v3
+APPLICATION_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/api/swagger/application/api/v3
 APPLICATION_V3_PROTO_FILES = $(wildcard $(APPLICATION_V3_PROTO_DIR)/*.proto)
 APPLICATION_V3_GO_FILES = $(patsubst $(APPLICATION_V3_PROTO_DIR)/%.proto,$(APPLICATION_V3_GO_OUT_DIR)/%.pb.go,$(APPLICATION_V3_PROTO_FILES))
 
 # backend v3
 BACKEND_V3_PROTO_DIR = $(CURDIR)/backend/api/v3
 BACKEND_V3_GO_OUT_DIR = $(ROOT_DIR)/pkg/proto/backend/api/v3
-BACKEND_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/swagger/backend/api/v3
+BACKEND_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/api/swagger/backend/api/v3
 BACKEND_V3_PROTO_FILES = $(wildcard $(BACKEND_V3_PROTO_DIR)/*.proto)
 BACKEND_V3_GO_FILES = $(patsubst $(BACKEND_V3_PROTO_DIR)/%.proto,$(BACKEND_V3_GO_OUT_DIR)/%.pb.go,$(BACKEND_V3_PROTO_FILES))
 
 # file v3
 FILE_V3_PROTO_DIR = $(CURDIR)/file/api/v3
 FILE_V3_GO_OUT_DIR = $(ROOT_DIR)/pkg/proto/file/api/v3
-FILE_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/swagger/file/api/v3
+FILE_V3_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/api/swagger/file/api/v3
 FILE_V3_PROTO_FILES = $(wildcard $(FILE_V3_PROTO_DIR)/*.proto)
 FILE_V3_GO_FILES = $(patsubst $(FILE_V3_PROTO_DIR)/%.proto,$(FILE_V3_GO_OUT_DIR)/%.pb.go,$(FILE_V3_PROTO_FILES))
 
 # backend callback
 BACKEND_CALLBACK_PROTO_DIR = $(CURDIR)/backend/callback
 BACKEND_CALLBACK_GO_OUT_DIR = $(ROOT_DIR)/pkg/proto/backend/callback
-BACKEND_CALLBACK_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/swagger/backend/callback
+BACKEND_CALLBACK_SWAGGER_OUT_DIR = $(ROOT_DIR)/docs/api/swagger/backend/callback
 BACKEND_CALLBACK_PROTO_FILES = $(wildcard $(BACKEND_CALLBACK_PROTO_DIR)/*.proto)
 BACKEND_CALLBACK_GO_FILES = $(patsubst $(BACKEND_CALLBACK_PROTO_DIR)/%.proto,$(BACKEND_CALLBACK_GO_OUT_DIR)/%.pb.go,$(BACKEND_CALLBACK_PROTO_FILES))
 
@@ -89,7 +89,7 @@ file-v3: pre
 	$(ECHO) "successfully generated file api/v3"
 
 all: application-v3 backend-v3 file-v3 backend-callback
-	$(FIXSWAGGER) $(ROOT_DIR)/docs/swagger
+	$(FIXSWAGGER) $(ROOT_DIR)/docs/api/swagger
 	$(ECHO) "convert_swagger_type done"
 	$(ECHO) "all generating done"
 
