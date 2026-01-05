@@ -170,6 +170,14 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
 	}
 
+	// if no operations match the filter, return empty result early.
+	if len(operations) == 0 {
+		resp := new(protoBackend.PluginWorkflowOperationListResp)
+		resp.ConvertResultFromTypes(0, nil)
+
+		return resp.GetData(), nil
+	}
+
 	tokens := make([]string, len(operations))
 	operationMaps := make(map[string]*struct {
 		operation *operation.Operation
