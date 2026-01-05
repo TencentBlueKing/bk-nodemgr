@@ -169,10 +169,11 @@ const handlePreview = async () => {
       password: 'login_password',
       key: 'login_key_file',
     };
-    formData.info.forEach((item) => {
+    previewData.data = cloneDeep(formData);
+    previewData.data.info.forEach((item) => {
       item[modeMap[item.login_mode]] = item.credit;
+      item.bk_networkunit_id = Number(item.bk_networkunit_id);
     });
-    previewData.data = { ...formData };
   } else {
     scrollToFirstErrorByClassNames();
   }
@@ -239,6 +240,7 @@ onMounted(async () => {
       ...host.state,
       ...host.info,
       ...host,
+      bk_networkunit_id: String(host.info.bk_networkunit_id),
       bk_host_innerip: host.info.bk_host_innerip_list?.join(','),
       bk_host_innerip_v6: host.info.bk_host_innerip_v6_list?.join(','),
     }));
@@ -248,6 +250,7 @@ onMounted(async () => {
     formData.info = nodeManageStore.agentEditParams.tableData.map(({ info, state, ...rest }) => ({
       target_version: state?.node_version,
       ...rest,
+      bk_networkunit_id: String(info.bk_networkunit_id),
       bk_host_innerip: info.bk_host_innerip_list?.[0],
       bk_host_innerip_v6: info.bk_host_innerip_v6_list?.[0],
     }));

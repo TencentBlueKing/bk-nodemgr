@@ -16,6 +16,8 @@
             <p>{{ $t("platform.nodeMan.preview.tipTitle") }}</p>
             <p>{{ $t("platform.nodeMan.preview.firstTip") }}</p>
             <p>{{ $t("platform.nodeMan.preview.secondTip") }}</p>
+            <p>{{ $t("platform.nodeMan.preview.thirdTip") }}</p>
+            <p>{{ $t("platform.nodeMan.preview.fourthTip") }}</p>
           </div>
         </div>
         <div class="flex justify-between mt-[16px]">
@@ -38,17 +40,13 @@
           </div>
           <div class="flex gap-[8px]">
             <Button
-              @click="handleBatchInstall"
+              @click="handleAllInstall"
               :disabled="
-                !selection.length ||
-                  !selection.find((item) =>
-                    ['conflict_ip', 'duplicate_dynamic_ip'].includes(
-                      item.status
-                    )
-                  )
+                !tableData.length ||
+                  !tableData.find((item) => item.category === 'need_confirm')
               "
               v-bk-tooltips="{
-                content: '处理待确认为全新安装',
+                content: '处理待确认为正常安装',
               }"
             >
               {{ $t("platform.nodeMan.preview.button.batchInstall") }}
@@ -62,6 +60,30 @@
             >
               {{ $t("platform.nodeMan.preview.button.batchRemove") }}
             </Button>
+            <Dropdown
+              theme="light"
+              trigger="click"
+              :popover-options="{
+                clickContentAutoHide: true,
+              }">
+              <Button :disabled="!selection.length">
+                <span>{{ $t("platform.nodeMan.batchOperate") }}</span>
+                <i
+                  class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
+                ></i>
+              </Button>
+              <template #content>
+                <Dropdown.DropdownMenu>
+                  <Dropdown.DropdownItem
+                    v-for="item in operate"
+                    :key="item.id"
+                    @click="handleOperate(item.id)"
+                  >
+                    {{ item.name }}
+                  </Dropdown.DropdownItem>
+                </Dropdown.DropdownMenu>
+              </template>
+            </Dropdown>
           </div>
         </div>
         <Tab
@@ -137,18 +159,18 @@
                   min-width="100"
                 ></TableColumn>
                 <TableColumn
-                  field="bk_host_name"
-                  :title="t('platform.nodeMan.bk_host_name')"
-                  min-width="200"
-                ></TableColumn>
-                <TableColumn
                   field="bk_networkarea_name"
                   :title="t('platform.nodeMan.bk_cloud_name')"
                   min-width="150"
                 ></TableColumn>
                 <TableColumn
+                  field="bk_networkunit_name"
+                  title="管控单元"
+                  min-width="150"
+                ></TableColumn>
+                <TableColumn
                   field="status"
-                  :title="t('platform.nodeMan.status')"
+                  title="状态"
                   min-width="400"
                 >
                   <template #default="{ row }">
@@ -171,13 +193,12 @@
                       ></i>
                       <p>{{ isZh ? row.message_zh : row.message_en }}</p>
                       <Button
-                          v-show="row.category === 'need_confirm'"
-                          theme="primary"
-                          text
-                          @click="deel(row)"
-                        >{{
-                          t("platform.nodeMan.preview.button.deel")
-                        }}
+                        v-show="row.category === 'need_confirm'"
+                        theme="primary"
+                        text
+                        @click="deel(row)"
+                      >
+                        确认
                       </Button>
                     </div>
                   </template>
@@ -209,9 +230,10 @@
           :loading="loading"
           v-bk-tooltips="{
             content: disabledDataNum
-              ? '有Agent 状态异常数据，不可安装'
-              : '校验失败，不可安装',
-            disabled: !checkFailed && disabledDataNum === 0,
+              ? '有节点待确认或错误，不可安装'
+              : checkFailed
+                ? '校验失败，不可安装'
+                : '执行安装全部节点',
           }"
         >{{
           t("platform.nodeMan.preview.button.performInstallation")
@@ -225,6 +247,7 @@
 <script lang="ts" setup>
 import {
   Button,
+  Dropdown,
   Message,
   PopConfirm,
   Radio,
@@ -268,7 +291,43 @@ const tabKey = ref(Date.now());
 const disabledDataNum = ref(0);
 const isZh = computed(() => mainStore.curLanguage === 'zh-CN');
 const checkFailed = computed(() => tableData.value.some(item => !item.status));
-const pagination = usePage(tableData)
+const { pagination } = usePage(tableData);
+
+// 批量
+const operate = ref([
+  {
+    id: 'comfirm',
+    match: 'need_confirm',
+    name: '确认',
+  },
+  {
+    id: 'remove',
+    match: 'error',
+    name: '移除',
+  }
+]);
+const handleOperate = async (id: string) => {
+  if (id === 'comfirm') {
+    const findItem = selection.value.filter((item: any) => ['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status));
+    const otherItemIps = selection.value
+      .filter((item: any) => item.status !== 'duplicated_inner_ip' && item.status !== 'duplicated_inner_ipv6')
+      .map((item: any) => item.bk_host_innerip);
+    if (findItem) {
+      findItem.forEach((item: any) => {
+        item.bk_host_id = item.matched.bk_host_id;
+      });
+      await installCheck();
+    }
+    tableData.value.forEach((item: any) => {
+      if (otherItemIps.includes(item.bk_host_innerip) && item.category === 'need_confirm') {
+        item.category = 'normal_install';
+      }
+    });
+  } else if (id === 'remove') {
+    originData.value = originData.value.filter(item => !item.checked);
+  }
+  tabKey.value = Date.now();
+}
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = computed(() => [
@@ -381,61 +440,61 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
   },
   'nodeMng-preview',
 );
-const statusMap = {
-  import_cmdb_and_normal_install: {
-    text: '可执行：全新安装并导入 CMDB',
-    icon: 'check-circle-fill',
-    iconColor: '#1CAB88',
-  },
-  normal_install: {
-    text: '可执行：正常安装',
-    icon: 'check-circle-fill',
-    iconColor: '#1CAB88',
-  },
-  exist_proxy: {
-    text: '该主机已安装 proxy，若继续安装该 Proxy 将会被覆盖',
-    icon: 'wrong',
-    iconColor: '#EA3636',
-  },
-  exist_agent: {
-    text: '该 IP 主机在当前管控区域已安装 Agent，无法重复安装',
-    icon: 'wrong',
-    iconColor: '#EA3636',
-  },
-  not_exist_relay: {
-    text: '不存在可用于安装agent的中继节点',
-    icon: 'wrong',
-    iconColor: '#EA3636',
-  },
-  conflict_ip: {
-    text: '当前业务下可能已存在您希望安装的相同 IP 主机',
-    icon: 'danger-fill',
-    iconColor: '#FF9C01',
-  },
-  duplicate_dynamic_ip: {
-    text: '动态寻址下已存在相同 IP 的安装记录',
-    icon: 'danger-fill',
-    iconColor: '#FF9C01',
-  },
-};
+// const statusMap = {
+//   import_cmdb_and_normal_install: {
+//     text: '可执行：全新安装并导入 CMDB',
+//     icon: 'check-circle-fill',
+//     iconColor: '#1CAB88',
+//   },
+//   normal_install: {
+//     text: '可执行：正常安装',
+//     icon: 'check-circle-fill',
+//     iconColor: '#1CAB88',
+//   },
+//   exist_proxy: {
+//     text: '该主机已安装 proxy，若继续安装该 Proxy 将会被覆盖',
+//     icon: 'wrong',
+//     iconColor: '#EA3636',
+//   },
+//   exist_agent: {
+//     text: '该 IP 主机在当前管控区域已安装 Agent，无法重复安装',
+//     icon: 'wrong',
+//     iconColor: '#EA3636',
+//   },
+//   not_exist_relay: {
+//     text: '不存在可用于安装agent的中继节点',
+//     icon: 'wrong',
+//     iconColor: '#EA3636',
+//   },
+//   conflict_ip: {
+//     text: '当前业务下可能已存在您希望安装的相同 IP 主机',
+//     icon: 'danger-fill',
+//     iconColor: '#FF9C01',
+//   },
+//   duplicate_dynamic_ip: {
+//     text: '动态寻址下已存在相同 IP 的安装记录',
+//     icon: 'danger-fill',
+//     iconColor: '#FF9C01',
+//   },
+// };
 const categoryMap = {
   normal_install: {
-    text: '可执行：正常安装',
+    // text: '可执行：正常安装',
     icon: 'check-circle-fill',
     iconColor: '#1CAB88',
   },
   import_cmdb_and_normal_install: {
-    text: '可执行：全新安装并导入 CMDB',
+    // text: '可执行：全新安装并导入 CMDB',
     icon: 'check-circle-fill',
     iconColor: '#1CAB88',
   },
   error: {
-    text: '错误',
+    // text: '错误',
     icon: 'wrong',
     iconColor: '#EA3636',
   },
   need_confirm: {
-    text: '待确认',
+    // text: '待确认',
     icon: 'danger-fill',
     iconColor: '#FF9C01',
   }
@@ -481,10 +540,6 @@ const handleBeforeClose = () => {
 const handleRemove = (row: AgentInstallInfo) => {
   originData.value = originData.value.filter((item: any) => item.bk_host_innerip !== row.bk_host_innerip);
   tabKey.value = Date.now();
-  Message({
-    theme: 'success',
-    message: '全部“错误”Agent 已被移除',
-  });
 };
 
 // 处理待确认
@@ -513,20 +568,23 @@ const handleSelectChange = ({
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
   tableData.value.forEach((item: any) => (item.checked = checked));
 };
-const handleBatchInstall = () => {
+const handleAllInstall = async () => {
+  const findItem = tableData.value.filter((item: any) => ['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status));
+  if (findItem) {
+    findItem.forEach((item: any) => {
+      item.bk_host_id = item.matched.bk_host_id;
+    });
+    await installCheck();
+  }
   tableData.value.forEach((item: any) => {
-    if (
-      (item.status === 'conflict_ip'
-        || item.status === 'duplicate_dynamic_ip')
-      && item.checked
-    ) {
-      item.status = 'import_cmdb_and_normal_install';
+    if (['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status)) {
+      item.category = 'normal_install';
     }
   });
   tabKey.value = Date.now();
   Message({
     theme: 'success',
-    message: '全部“待确认”Agent 已被手动确认为“全新安装并导入 CMDB"',
+    message: '全部“待确认”Agent 已被手动确认为“正常安装"',
   });
 };
 const handleBatchRemove = () => {
@@ -596,8 +654,8 @@ const installCheck = async () => {
     host: originData.value.map((item: any) => ({
       ...(item.bk_host_id ? { bk_host_id: item.bk_host_id } : {}),
       bk_biz_id: Number(item.bk_biz_id),
-      bk_host_innerip_list: item.bk_host_innerip.split(';'),
-      bk_host_innerip_v6_list: item.bk_host_innerip_v6.split(';'),
+      bk_host_innerip_list: item.bk_host_innerip?.split(';'),
+      bk_host_innerip_v6_list: item.bk_host_innerip_v6?.split(';'),
       bk_networkunit_id: Number(item.bk_networkunit_id),
     })),
   }).catch(() => ({
@@ -686,6 +744,7 @@ watch(
         bk_networkarea_name:
           item.bk_networkarea_name || props.data.bk_networkarea_name,
         bk_addressing: 'static',
+        checked: false,
       }));
       await installCheck();
     }

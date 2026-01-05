@@ -334,7 +334,7 @@ interface ProcessResource {
 
 // ProcessMonitorPolicy describes the process monitor policy.
 interface ProcessMonitorPolicy {
-  auto_type: string;
+  restart_type: string;
   start_check_seconds: number;
   stop_check_seconds: number;
   operate_timeout_seconds: number;

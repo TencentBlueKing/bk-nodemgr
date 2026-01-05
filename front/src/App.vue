@@ -343,7 +343,33 @@ function handleChangeLang(item) {
       BK_DOMAIN: domain = '',
     } = window.PROJECT_CONFIG;
 
-    const api = `${overwriteUrl}/api/c/compapi/v2/usermanage/fe_update_user_language/?language=${item.id}`;
+    // URL安全检查
+    if (!overwriteUrl || typeof overwriteUrl !== 'string') {
+      console.error('Invalid overwriteUrl parameter');
+      return;
+    }
+    
+    // URL消毒：验证协议和格式
+    let safeOverwriteUrl = overwriteUrl;
+    try {
+      const urlObj = new URL(overwriteUrl, window.location.origin);
+      if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+        console.error('Invalid URL protocol');
+        return;
+      }
+      safeOverwriteUrl = urlObj.origin;
+    } catch (error) {
+      console.error('Invalid URL format');
+      return;
+    }
+    
+    // 参数消毒：只允许字母数字和下划线
+    const safeLanguage = item.id.replace(/[^a-zA-Z0-9_-]/g, '');
+    
+    // 使用URLSearchParams进行安全参数化
+    const url = new URL(`${safeOverwriteUrl}/api/c/compapi/v2/usermanage/fe_update_user_language/`);
+    url.searchParams.set('language', encodeURIComponent(safeLanguage));
+    
     const scriptId = 'jsonp-script';
     const prevJsonpScript = document.getElementById(scriptId);
     if (prevJsonpScript) {
@@ -351,18 +377,26 @@ function handleChangeLang(item) {
     }
     const scriptEl = document.createElement('script');
     scriptEl.type = 'text/javascript';
-    scriptEl.src = api;
+    scriptEl.src = url.toString();
     scriptEl.id = scriptId;
     document.body.appendChild(scriptEl);
 
     const today = new Date();
     today.setTime(today.getTime() + 1000 * 60 * 60 * 24);
-    document.cookie = `blueking_language=${item.id};path=/;domain=${domain};expires=${today.toUTCString()}`;
+    // 安全设置cookie，对值进行编码
+    const encodedLang = encodeURIComponent(safeLanguage);
+    document.cookie = `blueking_language=${encodedLang};path=/;domain=${domain};expires=${today.toUTCString()}`;
     location.reload();
   }
 }
 // 自定义批量搜索方法
-const filterOption = (input: any, options: {id: number, name: string}) => (options.name?.includes(input) || input.includes(options.id));
+const filterOption = (input: any, options: {id: number, name: string}) => {
+  // 安全处理输入，防止正则表达式注入
+  const safeInput = String(input).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const safeId = String(options.id).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  
+  return options.name?.includes(safeInput) || String(input).includes(safeId);
+};
 // 设置title
 watch(appName, () => {
   // https://github.com/vueuse/head

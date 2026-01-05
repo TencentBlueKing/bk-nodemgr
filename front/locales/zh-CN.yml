@@ -33,23 +33,25 @@ platform:
         install: 去安装
     preview:
       title: 安装预览
-      tipTitle: 当前业务中发现部分主机 IP 已经在蓝鲸注册，需要手动确认是全新安装还是基于 CMDB 记录安装：
-      firstTip: 1. 全新安装会将该 IP 当作全新主机处理，执行安装并将该主机导入到 CMDB 中；
-      secondTip: 2. 若是已经在 CMDB 中注册过的主机，为了确保节点管理安装记录与 CMDB 主机记录之间的正确匹配，需要手动指定该 IP 所匹配的正确 CMDB 主机记录。
+      tipTitle: 安装预览将检测所选节点的信息：
+      firstTip: 1. 待确认：节点有部分信息待确认，请手动确认。
+      secondTip: 2. 错误：节点无法安装，请移除出本次安装列表。
+      thirdTip: 3. 导入CMDB并安装Agent：节点不在CMDB中，将会自动导入然后安装Agent。
+      fourthTip: 4. 安装Agent：节点无异常情况，可以正常安装/重装Agent。
       placeholder: 输入 关键词
       label:
         all: 全部
         pendingConfirmation: 待确认
         error: 错误
-        cleanInstallation: 全新安装并导入 CMDB
-        normalInstallation: 正常安装
+        cleanInstallation: 导入CMDB并安装Agent
+        normalInstallation: 安装Agent
       popConfirm:
         title: 当前业务下可能已存在您希望安装的相同 IP主机
         tip: 请选择处理方式：
         prepend: 全新安装，并导入 CMDB
         install: 安装为：
       button:
-        batchInstall: 一键处理为：全新安装
+        batchInstall: 一键确认
         batchRemove: 一键移除错误项
         deel: 去处理
         remove: 移除

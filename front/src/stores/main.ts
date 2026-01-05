@@ -8,6 +8,7 @@ export const useMainStore = defineStore('mainStore', {
     selectedBusinessId: number[];
     selectedBusinessName: string[];
     agentSetupType: string;
+    proxySetupType: string;
     configEditData: ConfigPolicy | null;
     curLanguage: string;
     routeState: Object,
@@ -20,6 +21,7 @@ export const useMainStore = defineStore('mainStore', {
     selectedBusinessId: [] as number[], // 当前业务id
     selectedBusinessName: [] as string[], // 当前业务名称
     agentSetupType: 'setup', // 代理安装方式
+    proxySetupType: 'setup',
     configEditData: null,
     curLanguage: 'zh-CN',
     routeState: {},
@@ -46,6 +48,9 @@ export const useMainStore = defineStore('mainStore', {
     },
     updateAgentSetupType(type: string) {
       this.agentSetupType = type;
+    },
+    updateProxySetupType(type: string) {
+      this.proxySetupType = type;
     },
     updateConfigEditData(data: ConfigPolicy) {
       this.configEditData = data;

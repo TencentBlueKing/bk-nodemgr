@@ -34,23 +34,25 @@ platform:
 
     preview:
       title: Installation preview
-      tipTitle: 'Some host IPs in the current business have already been registered in BlueKing. You need to manually confirm whether to perform a new installation or install based on the CMDB record:'
-      firstTip: 1. A new installation will treat this IP as a new host, execute the installation, and import the host into the CMDB;
-      secondTip: 2. If the host has already been registered in the CMDB, to ensure the correct matching between the node management installation record and the CMDB host record, you need to manually specify the correct CMDB host record that matches this IP.
+      tipTitle: 'The installation preview will detect information for the selected nodes:'
+      firstTip: '1. Pending: Some node information requires verification; please confirm manually.'
+      secondTip: '2. Error: The node cannot be installed; please remove it from the installation list.'
+      thirdTip: '3. Import to CMDB & Install Agent: Nodes not in CMDB will be imported automatically before Agent installation.'
+      fourthTip: '4. Install Agent: No issues detected; Agent can be installed or reinstalled normally.'
       placeholder: Enter keywords
       label:
         all: All
         pendingConfirmation: Pending confirmation
         error: Error
-        cleanInstallation: Clean installation and import to CMDB
-        normalInstallation: Normal installation
+        cleanInstallation: Import to CMDB & Install Agent
+        normalInstallation: Install Agent
       popConfirm:
         title: A host with the same IP you wish to install may already exist under the current business
         tip: 'Please select a handling method:'
         prepend: New installation and import to CMDB
         install: 'Install as:'
       button:
-        batchInstall: 'One-click process as: New installation'
+        batchInstall: 'One-click confirmation'
         batchRemove: One-click remove erroneous items
         deel: Go to handle
         remove: Remove

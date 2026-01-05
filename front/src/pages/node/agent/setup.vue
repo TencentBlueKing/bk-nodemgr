@@ -52,7 +52,7 @@
           >
             <Select.Option
               v-for="option in networkUnitList"
-              :key="option.bk_networkarea_id"
+              :key="option.bk_networkunit_id"
               :id="String(option.bk_networkunit_id)"
               :name="option.bk_networkunit_name"
             >
