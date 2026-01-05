@@ -12,26 +12,24 @@ package step
 
 import (
 	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginuninstaller"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginupgrader"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
-
 	"github.com/spf13/cobra"
 )
 
-// NewUninstall creates a new uninstall step command.
-func NewUninstall() *cobra.Command {
+// NewUpgrade creates a new upgrade step command.
+func NewUpgrade() *cobra.Command {
 	var (
 		// pre-run.
 		pluginHandler pluginhandler.IPluginHandler
 	)
 
 	stepCmd := &cobra.Command{
-		Use:   "uninstall",
-		Short: "Uninstall plugin",
-		Long:  "Uninstall plugin",
+		Use:   "upgrade",
+		Short: "Upgrade plugin",
+		Long:  "Upgrade plugin",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
@@ -47,7 +45,7 @@ func NewUninstall() *cobra.Command {
 		},
 
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			step := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
+			step := pluginupgrader.NewStep(pluginupgrader.StepArgs{
 				PluginHandler: pluginHandler,
 			})
 
@@ -55,7 +53,7 @@ func NewUninstall() *cobra.Command {
 				return err
 			}
 
-			fmt.Println("successfully uninstalled")
+			fmt.Println("successfully upgraded")
 
 			return nil
 		},

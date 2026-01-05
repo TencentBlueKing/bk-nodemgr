@@ -8,24 +8,22 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package plugininstaller this package is used to install bk-nodemgr plugins.
-package plugininstaller
+// Package pluginupgrader provides the step to upgrade plugin.
+package pluginupgrader
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
-// Step install plugin.
+// Step uninstall plugin.
 type Step struct {
 	args StepArgs
 }
 
-// StepArgs args for step.
+// StepArgs define args for step.
 type StepArgs struct {
 	PluginHandler pluginhandler.IPluginHandler
 
@@ -33,46 +31,46 @@ type StepArgs struct {
 	SrcConfigDir string
 }
 
-// String step args string message.
-func (args StepArgs) String() string {
-	return fmt.Sprintf("pkg-path(%s), src-config-dir(%s)", args.PkgPath, args.SrcConfigDir)
-}
-
 // NewStep new a step.
 func NewStep(args StepArgs) *Step {
 	return &Step{args: args}
 }
 
-// Run run the step to install plugin.
+// Run run the step to upgrade plugin.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(plugin.StepInstallPlugin, "start to install plugin. %s", step.args.String())
+	// 1. purge existing file-system.
+	if err := step.args.PluginHandler.FS().Purge(ctx); err != nil {
+		logger.Errorf(plugin.StepUpgradePlugin, "failed to purge file-system: %v", err)
 
-	// 1. init file-system architecture.
+		return err
+	}
+	logger.Info(plugin.StepUpgradePlugin, "purged existing file-system")
+
+	// 2. init file-system architecture.
 	if err := step.args.PluginHandler.FS().Init(); err != nil {
-		logger.Errorf(plugin.StepInstallPlugin, "failed to init file-system: %v", err)
+		logger.Errorf(plugin.StepUpgradePlugin, "failed to init file-system: %v", err)
 
 		return err
 	}
-	logger.Info(plugin.StepInstallPlugin, "inited file-system")
+	logger.Info(plugin.StepUpgradePlugin, "inited file-system")
 
-	// 2. unpack release package file into installed file-system.
+	// 3. unpack release package file into installed file-system.
 	if err := step.args.PluginHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, false); err != nil {
-		logger.Errorf(plugin.StepInstallPlugin, "failed to unpack release pkg: %v", err)
+		logger.Errorf(plugin.StepUpgradePlugin, "failed to unpack release pkg: %v", err)
 
 		return err
 	}
 
-	logger.Info(plugin.StepInstallPlugin, "unpacked release pkg")
+	logger.Info(plugin.StepUpgradePlugin, "unpacked release pkg")
 
-	// 3. copy config files to installed file-system.
+	// 4. copy config files to installed file-system.
 	if err := step.args.PluginHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
-		logger.Errorf(plugin.StepInstallPlugin, "failed to copy config dir: %v", err)
+		logger.Errorf(plugin.StepUpgradePlugin, "failed to copy config dir: %v", err)
 
 		return err
 	}
-	logger.Info(plugin.StepInstallPlugin, "copied config dir")
 
-	logger.Info(plugin.StepInstallPlugin, "installed node")
+	logger.Infof(plugin.StepUpgradePlugin, "uninstalled plugin")
 
 	return nil
 }

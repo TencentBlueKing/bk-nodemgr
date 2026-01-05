@@ -12,33 +12,26 @@ package plugin
 
 import (
 	"fmt"
-	"path/filepath"
-
 	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/handler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/step"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/plugininstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/pluginuninstaller"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/statusreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
 	"github.com/spf13/cobra"
+	"path/filepath"
 )
 
-// NewFullInstall creates a new full install command.
-// nolint: lll, funlen, gocognit
-func NewFullInstall() *cobra.Command {
+// NewFullUninstall creates a new full uninstall command.
+func NewFullUninstall() *cobra.Command {
 	var (
 		// required flags.
-		downloadSvrAddr string
 		callbackSvrAddr string
 		deployToken     string
 		operInstID      string
-		pluginVersion   string
 
 		// optional flags.
 		logDir   string
@@ -46,22 +39,19 @@ func NewFullInstall() *cobra.Command {
 
 		// pre-run.
 		persistentVars *persistent.Variables
-		pkgPath        string
 		pluginHandler  pluginhandler.IPluginHandler
 	)
 
 	fullCmd := &cobra.Command{
-		Use:   "full-install",
-		Short: "Full install process",
-		Long:  "Full install process",
+		Use:   "full-uninstall",
+		Short: "Full uninstall plugin",
+		Long:  "Full uninstall plugin",
 		PreRunE: func(cmd *cobra.Command, _ []string) error {
 			vars, err := persistent.GetVariables(cmd)
 			if err != nil {
 				return err
 			}
 			persistentVars = vars
-
-			pkgPath = filepath.Join(persistentVars.DataDir, step.GenReleasePkgName(persistentVars.PluginName, pluginVersion))
 
 			if logDir == "" {
 				logDir = filepath.Join(persistentVars.DataDir, "logs")
@@ -98,38 +88,10 @@ func NewFullInstall() *cobra.Command {
 				}).Run(cmd.Context())
 			}()
 
-			// download files.
-			if err := filedownloader.NewStep(filedownloader.StepArgs{
-				DownloadSvrAddr:              downloadSvrAddr,
-				CallbackSvrAddr:              callbackSvrAddr,
-				PluginGroup:                  persistentVars.PluginGroup,
-				PluginName:                   persistentVars.PluginName,
-				PluginPkgName:                persistentVars.PluginPkgName,
-				DeployToken:                  deployToken,
-				PkgVersion:                   pluginVersion,
-				PkgSavedPath:                 pkgPath,
-				ConfigSavedDir:               persistentVars.ConfigDir,
-				SelectDownloads:              false,
-				EnableDownloadConfig:         false,
-				EnableDownloadReleasePackage: false,
-			}).Run(cmd.Context()); err != nil {
-				return err
-			}
-
 			// uninstall plugin.
 			if err := pluginuninstaller.NewStep(pluginuninstaller.StepArgs{
 				PluginHandler: pluginHandler,
 			}).Run(cmd.Context()); err != nil {
-				return err
-			}
-
-			// install plugin.
-			_, err := plugininstaller.NewStep(plugininstaller.StepArgs{
-				PluginHandler: pluginHandler,
-				PkgPath:       pkgPath,
-				SrcConfigDir:  persistentVars.ConfigDir,
-			}).Run(cmd.Context())
-			if err != nil {
 				return err
 			}
 
@@ -148,9 +110,6 @@ func NewFullInstall() *cobra.Command {
 	/*
 	 * required flags.
 	 */
-	fullCmd.Flags().StringVar(&downloadSvrAddr, pluginflag.DownloadSvrAddr, "", "download server address, for downloading release files and reporting status")
-	_ = fullCmd.MarkFlagRequired(pluginflag.DownloadSvrAddr)
-
 	fullCmd.Flags().StringVar(&callbackSvrAddr, pluginflag.CallbackSvrAddr, "", "callback server address, for downloading config files")
 	_ = fullCmd.MarkFlagRequired(pluginflag.CallbackSvrAddr)
 
@@ -159,9 +118,6 @@ func NewFullInstall() *cobra.Command {
 
 	fullCmd.Flags().StringVar(&operInstID, pluginflag.OperInstID, "", "operation instance id")
 	_ = fullCmd.MarkFlagRequired(pluginflag.OperInstID)
-
-	fullCmd.Flags().StringVar(&pluginVersion, pluginflag.PluginVersion, "", "plugin version, for downloading package version")
-	_ = fullCmd.MarkFlagRequired(pluginflag.PluginVersion)
 
 	/*
 	 * optional flags.

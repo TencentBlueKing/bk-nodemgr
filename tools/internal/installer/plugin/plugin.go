@@ -23,6 +23,9 @@ const (
 	// StepUninstallPlugin this is the step to uninstall plugin.
 	StepUninstallPlugin logger.Step = "uninstall_plugin"
 
+	// StepUpgradePlugin this is the step to upgrade plugin.
+	StepUpgradePlugin logger.Step = "upgrade_plugin"
+
 	// StepDownloadFiles this is the step to download files.
 	StepDownloadFiles logger.Step = "download_files"
 

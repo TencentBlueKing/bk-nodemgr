@@ -34,7 +34,7 @@ func NewStep(args StepArgs) *Step {
 	return &Step{args: args}
 }
 
-// Run run the step tp uninstall agent.
+// Run run the step to uninstall plugin.
 func (step *Step) Run(ctx context.Context) error {
 	logger.Infof(plugin.StepUninstallPlugin, "start to uninstall plugin")
 

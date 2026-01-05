@@ -58,12 +58,11 @@ func NewInstall() *cobra.Command {
 				SrcConfigDir:  persistentVars.ConfigDir,
 			})
 
-			stepResult, err := step.Run(cmd.Context())
-			if err != nil {
+			if err := step.Run(cmd.Context()); err != nil {
 				return err
 			}
 
-			fmt.Printf("successfully installed, step-result(%s).\n", stepResult)
+			fmt.Printf("successfully installed.\n")
 
 			return nil
 		},
