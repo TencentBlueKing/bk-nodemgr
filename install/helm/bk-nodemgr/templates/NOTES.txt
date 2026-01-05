@@ -12,7 +12,7 @@
 
 **********************************************************************************
 
-*** PLEASE BE PATIENT: bk-gse may take a few minutes to run. ***
+*** PLEASE BE PATIENT: bk-nodemgr may take a few minutes to run. ***
 
 Thank you for installing, your release is named {{ .Release.Name }}.
 
