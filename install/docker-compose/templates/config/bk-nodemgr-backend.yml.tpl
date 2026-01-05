@@ -158,7 +158,7 @@ gse:
 # log settings.
 log:
   dir: /bk-nodemgr/log/
-  level: INFO
+  level: __BK_NODEMGR_BACKEND_LOG_LEVEL__
   maxNum: 10
   maxSizeMB: 200
 
