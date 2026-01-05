@@ -194,9 +194,13 @@
           ></TableColumn>
           <TableColumn
             title="重启策略"
-            field="auto_type"
+            field="restart_type"
             min-width="120"
-          ></TableColumn>
+          >
+            <template #default="{ row }">
+              {{ row.restart_type === 'auto' && row.auto_start ? '自动启动' : '手动启动' }}
+            </template>
+          </TableColumn>
           <TableColumn
             title="启动后延迟检查的时间"
             field="start_check_seconds"
