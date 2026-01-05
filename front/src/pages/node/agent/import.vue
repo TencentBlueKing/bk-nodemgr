@@ -36,7 +36,13 @@
         class="w-[100px] mr-[8px]"
         theme="primary"
         @click="handlePreview"
-      >{{ $t("platform.nodeMan.installAgentPage.button.install") }}
+      >
+        <span>{{ $t("platform.nodeMan.installAgentPage.button.install") }}</span>
+        <span
+          class="mx-[8px] px-[6px] bg-[#e1ecff] rounded-[8px] text-[#3a84ff] text-[12px] h-[16px] leading-[16px]"
+        >
+          {{ formData.info.length }}
+        </span>
       </Button>
       <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
@@ -80,7 +86,10 @@ const initData = {
   login_mode: 'password',
   login_password: '',
   login_key_file: '',
+  bk_networkarea_id: '',
+  bk_networkarea_name: '',
   bk_networkunit_id: '',
+  bk_networkunit_name: '',
   bk_biz_id: '',
   bk_host_id: '',
   re_register: false,
@@ -88,11 +97,6 @@ const initData = {
 };
 const formData = reactive({
   type: '',
-  bk_biz_id: '',
-  bk_networkarea_id: '',
-  bk_networkunit_id: '',
-  bk_networkarea_name: '',
-  bk_networkunit_name: '',
   bk_host_name: '',
   info: [cloneDeep(initData)] as AgentInstallInfo[],
 });

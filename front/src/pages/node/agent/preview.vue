@@ -222,7 +222,7 @@
       </div>
     </template>
     <template #footer>
-      <div class="flex justify-start gap-[8px]">
+      <div class="flex justify-start gap-[8px] pl-[16px]">
         <Button
           theme="primary"
           @click="handleSetup"
@@ -231,13 +231,10 @@
           v-bk-tooltips="{
             content: disabledDataNum
               ? '有节点待确认或错误，不可安装'
-              : checkFailed
-                ? '校验失败，不可安装'
-                : '执行安装全部节点',
+              : installCheckLoading ? '校验安装节点中...' : '校验失败，不可安装',
+            disabled: disabledDataNum === 0 && !checkFailed,
           }"
-        >{{
-          t("platform.nodeMan.preview.button.performInstallation")
-        }}</Button
+        >执行安装全部节点</Button
         >
         <Button @click="handleBeforeClose">{{ t("action.cancel") }}</Button>
       </div>
@@ -248,6 +245,7 @@
 import {
   Button,
   Dropdown,
+  InfoBox,
   Message,
   PopConfirm,
   Radio,
@@ -430,7 +428,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
       'bk_host_name',
       'bk_networkarea_name',
       'bk_networkarea_id',
-      'bk_networkunit_id',
+      'bk_networkunit_name',
       'os_type',
       'node_version',
       'status',
@@ -500,7 +498,6 @@ const categoryMap = {
   }
 }
 
-const radioValue = ref('cmdb');
 function getUniqueChildren(prop: string) {
   const res = Array.from(new Set(originData.value
     .map((item: any) => item[prop])
@@ -516,27 +513,18 @@ function getUniqueChildren(prop: string) {
     };
   });
 }
-const handleBeforeClose = () => {
-  isShow.value = false;
-};
-// const ensure = (row: AgentInstallInfo) => {
-//   if (
-//     row.status === 'conflict_ip'
-//     || row.status === 'duplicate_dynamic_ip'
-//   ) {
-//     row.status = radioValue.value === 'cmdb'
-//       ? 'import_cmdb_and_normal_install'
-//       : 'normal_install';
-//   }
-//   tabKey.value = Date.now();
-//   Message({
-//     theme: 'success',
-//     message:
-//       radioValue.value === 'cmdb'
-//         ? '该 Agent 已被手动确认为“全新安装并导入 CMDB”'
-//         : '该 Agent 已被手动确认为“正常安装”',
-//   });
-// };
+const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
+  InfoBox({
+    title: '确认关闭?',
+    infoType: 'warning',
+    onConfirm: () => {
+      resolve(true);
+      isShow.value = false;
+    },
+    onCancel: () => reject(),
+  });
+});
+
 const handleRemove = (row: AgentInstallInfo) => {
   originData.value = originData.value.filter((item: any) => item.bk_host_innerip !== row.bk_host_innerip);
   tabKey.value = Date.now();
@@ -730,7 +718,6 @@ watch(
   () => isShow,
   async () => {
     if (isShow.value && props.data) {
-      radioValue.value = 'cmdb';
       originData.value = props.data.info.map(item => ({
         ...item,
         login_port: Number(item.login_port),
@@ -743,6 +730,8 @@ watch(
         bk_host_id: Number(item.bk_host_id),
         bk_networkarea_name:
           item.bk_networkarea_name || props.data.bk_networkarea_name,
+        bk_networkunit_name:
+          item.bk_networkunit_name || props.data.bk_networkunit_name,
         bk_addressing: 'static',
         checked: false,
       }));

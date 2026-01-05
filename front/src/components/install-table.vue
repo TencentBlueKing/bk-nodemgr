@@ -88,7 +88,12 @@
                 v-model="row.bk_networkunit_id"
                 auto-focus
                 filterable
-                @change="clearError(rowIndex, 'bk_networkunit_id')"
+                @change="
+                  (val) => {
+                    clearError(rowIndex, 'bk_networkunit_id');
+                    handleNetworkUnitChange(val, row, rowIndex);
+                  }
+                "
                 @toggle="
                   (val) =>
                     !val &&
@@ -1036,6 +1041,20 @@ const getNetworkUnitsByAreaId = (bkNetworkAreaId: number) => {
 // 获取所有可用的网络区域ID列表
 const getNetworkAreaIds = () => {
   return Object.keys(networkUnitGroupMap.value).map(id => Number(id));
+};
+
+// 处理管控单元变更，获取对应的名称
+const handleNetworkUnitChange = (val: string, row: any, rowIndex: number) => {
+  if (!val) return;
+  
+  // 在所有网络单元中查找对应的名称
+  const networkUnit = networkUnitList.value.find(
+    (unit: any) => String(unit.bk_networkunit_id) === val
+  );
+  
+  if (networkUnit) {
+    row.bk_networkunit_name = networkUnit.bk_networkunit_name;
+  }
 };
 
 const settingRef = ref();
