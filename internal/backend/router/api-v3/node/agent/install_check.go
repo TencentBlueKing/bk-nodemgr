@@ -85,10 +85,28 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 	for idx, host := range reqHosts {
 		reqHostID := host.GetBkHostId()
 
+		// check networkunit.
+		matchedNetworkUnit, ok := checker.getNetworkUnit(host.GetBkNetworkunitId())
+		if !ok {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status: types.NodeAgentInstallCheckStatusNetworkUnitNotFound,
+			}
+
+			continue
+		}
+
+		if !checker.validateNetworkUnit(host.GetBkNetworkunitId()) {
+			results[idx] = &types.NodeAgentInstallCheckResult{
+				Status: types.NodeAgentInstallCheckStatusNetworkUnitNotSupportInstall,
+			}
+
+			continue
+		}
+
 		// try to install a brand new host not in CMDB.
 		if reqHostID < 0 {
 			// check if inner ip duplicated.
-			if matchedHost, exist := checker.hasInnerIP(host.GetBkHostInneripList()); exist {
+			if matchedHost, exist := checker.hasInnerIP(matchedNetworkUnit.NetworkAreaID, host.GetBkHostInneripList()); exist {
 				results[idx] = &types.NodeAgentInstallCheckResult{
 					Status:  types.NodeAgentInstallCheckStatusDuplicatedInnerIP,
 					Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
@@ -98,28 +116,10 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 			}
 
 			// check if inner ipv6 duplicated.
-			if matchedHost, exist := checker.hasInnerIPV6(host.GetBkHostInneripV6List()); exist {
+			if matchedHost, exist := checker.hasInnerIPV6(matchedNetworkUnit.NetworkAreaID, host.GetBkHostInneripV6List()); exist {
 				results[idx] = &types.NodeAgentInstallCheckResult{
 					Status:  types.NodeAgentInstallCheckStatusDuplicatedInnerIPV6,
 					Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
-				}
-
-				continue
-			}
-
-			// check networkunit.
-			_, ok := checker.getNetworkUnit(host.GetBkNetworkunitId())
-			if !ok {
-				results[idx] = &types.NodeAgentInstallCheckResult{
-					Status: types.NodeAgentInstallCheckStatusNetworkUnitNotFound,
-				}
-
-				continue
-			}
-
-			if !checker.validateNetworkUnit(host.GetBkNetworkunitId()) {
-				results[idx] = &types.NodeAgentInstallCheckResult{
-					Status: types.NodeAgentInstallCheckStatusNetworkUnitNotSupportInstall,
 				}
 
 				continue
@@ -157,26 +157,6 @@ func (h *handler) checkInstall(nCtx contextx.IContext, reqHosts []*protoBackend.
 		if host.GetBkBizId() != matchedHost.Static.BizID {
 			results[idx] = &types.NodeAgentInstallCheckResult{
 				Status:  types.NodeAgentInstallCheckStatusMismatchedBizID,
-				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
-			}
-
-			continue
-		}
-
-		// check networkunit.
-		matchedNetworkUnit, ok := checker.getNetworkUnit(host.GetBkNetworkunitId())
-		if !ok {
-			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status:  types.NodeAgentInstallCheckStatusNetworkUnitNotFound,
-				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
-			}
-
-			continue
-		}
-
-		if !checker.validateNetworkUnit(host.GetBkNetworkunitId()) {
-			results[idx] = &types.NodeAgentInstallCheckResult{
-				Status:  types.NodeAgentInstallCheckStatusNetworkUnitNotSupportInstall,
 				Matched: types.ConvertHostToNodeAgentInstallCheckMatchedItem(matchedHost),
 			}
 
@@ -261,8 +241,12 @@ type installChecker struct {
 	domainNodeInstall topoStg.IDomainNodeInstall
 }
 
-func (ic *installChecker) hasInnerIP(innerIPList []string) (*types.Host, bool) {
+func (ic *installChecker) hasInnerIP(networkAreaID int64, innerIPList []string) (*types.Host, bool) {
 	for _, host := range ic.hostMap {
+		if host.Static.NetworkAreaID != networkAreaID {
+			continue
+		}
+
 		for _, existIP := range host.Static.InnerIPList {
 			for _, givenIP := range innerIPList {
 				if existIP == givenIP {
@@ -275,8 +259,12 @@ func (ic *installChecker) hasInnerIP(innerIPList []string) (*types.Host, bool) {
 	return nil, false
 }
 
-func (ic *installChecker) hasInnerIPV6(innerIPV6 []string) (*types.Host, bool) {
+func (ic *installChecker) hasInnerIPV6(networkAreaID int64, innerIPV6 []string) (*types.Host, bool) {
 	for _, host := range ic.hostMap {
+		if host.Static.NetworkAreaID != networkAreaID {
+			continue
+		}
+
 		for _, existIP := range host.Static.InnerIPV6List {
 			for _, givenIP := range innerIPV6 {
 				if existIP == givenIP {
