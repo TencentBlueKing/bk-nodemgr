@@ -36,7 +36,7 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to uninstall plugin.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(plugin.StepUninstallPlugin, "start to uninstall plugin")
+	logger.Info(plugin.StepUninstallPlugin, "start to uninstall plugin")
 
 	if err := step.args.PluginHandler.FS().Purge(ctx); err != nil {
 		logger.Errorf(plugin.StepUninstallPlugin, "failed to purge file-system: %v", err)
@@ -44,7 +44,7 @@ func (step *Step) Run(ctx context.Context) error {
 		return fmt.Errorf("failed to purge file-system: %w", err)
 	}
 
-	logger.Infof(plugin.StepUninstallPlugin, "uninstalled plugin")
+	logger.Info(plugin.StepUninstallPlugin, "uninstalled plugin")
 
 	return nil
 }

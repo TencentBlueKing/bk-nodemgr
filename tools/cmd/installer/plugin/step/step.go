@@ -31,6 +31,7 @@ func NewStepCommand() *cobra.Command {
 	stepCommand.AddCommand(NewReportData())
 	stepCommand.AddCommand(NewReportStatus())
 	stepCommand.AddCommand(NewUninstall())
+	stepCommand.AddCommand(NewUpgrade())
 
 	return stepCommand
 }

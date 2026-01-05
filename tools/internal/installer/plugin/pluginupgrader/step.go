@@ -18,7 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
-// Step uninstall plugin.
+// Step upgrade plugin.
 type Step struct {
 	args StepArgs
 }
@@ -54,7 +54,7 @@ func (step *Step) Run(ctx context.Context) error {
 	}
 	logger.Info(plugin.StepUpgradePlugin, "inited file-system")
 
-	// 3. unpack release package file into installed file-system.
+	// 3. unpack release package file into inited file-system.
 	if err := step.args.PluginHandler.FS().UnpackReleasePackage(ctx, step.args.PkgPath, false); err != nil {
 		logger.Errorf(plugin.StepUpgradePlugin, "failed to unpack release pkg: %v", err)
 
@@ -63,14 +63,14 @@ func (step *Step) Run(ctx context.Context) error {
 
 	logger.Info(plugin.StepUpgradePlugin, "unpacked release pkg")
 
-	// 4. copy config files to installed file-system.
+	// 4. copy config files to inited file-system.
 	if err := step.args.PluginHandler.FS().CopyConfigDir(ctx, step.args.SrcConfigDir); err != nil {
 		logger.Errorf(plugin.StepUpgradePlugin, "failed to copy config dir: %v", err)
 
 		return err
 	}
 
-	logger.Infof(plugin.StepUpgradePlugin, "uninstalled plugin")
+	logger.Info(plugin.StepUpgradePlugin, "upgrade plugin")
 
 	return nil
 }
