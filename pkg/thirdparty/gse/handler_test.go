@@ -779,7 +779,7 @@ func Test_Handler_ReloadProcess(t *testing.T) {
 						MemLimitPercent: 10,
 					},
 					MonitorPolicy: types.ProcessMonitorPolicy{
-						AutoType:       types.ProcessAutoTypeTrusteeship,
+						RestartType:    types.ProcessRestartTypeAuto,
 						StartCheckSecs: 5,
 						StopCheckSecs:  0,
 						OpTimeoutSecs:  5,
@@ -844,7 +844,7 @@ func Test_Handler_RestartProcess(t *testing.T) {
 						MemLimitPercent: 10,
 					},
 					MonitorPolicy: types.ProcessMonitorPolicy{
-						AutoType:       types.ProcessAutoTypeTrusteeship,
+						RestartType:    types.ProcessRestartTypeAuto,
 						StartCheckSecs: 5,
 						StopCheckSecs:  0,
 						OpTimeoutSecs:  5,
@@ -909,7 +909,7 @@ func Test_Handler_StartProcess(t *testing.T) {
 						MemLimitPercent: 10,
 					},
 					MonitorPolicy: types.ProcessMonitorPolicy{
-						AutoType:       types.ProcessAutoTypeTrusteeship,
+						RestartType:    types.ProcessRestartTypeAuto,
 						StartCheckSecs: 5,
 						StopCheckSecs:  0,
 						OpTimeoutSecs:  5,
@@ -974,7 +974,7 @@ func Test_Handler_StopProcess(t *testing.T) {
 						MemLimitPercent: 10,
 					},
 					MonitorPolicy: types.ProcessMonitorPolicy{
-						AutoType:       types.ProcessAutoTypeTrusteeship,
+						RestartType:    types.ProcessRestartTypeAuto,
 						StartCheckSecs: 5,
 						StopCheckSecs:  0,
 						OpTimeoutSecs:  5,
@@ -1039,7 +1039,7 @@ func Test_Handler_TrusteeshipProcess(t *testing.T) {
 						MemLimitPercent: 10,
 					},
 					MonitorPolicy: types.ProcessMonitorPolicy{
-						AutoType:       types.ProcessAutoTypeTrusteeship,
+						RestartType:    types.ProcessRestartTypeAuto,
 						StartCheckSecs: 5,
 						StopCheckSecs:  0,
 						OpTimeoutSecs:  5,
@@ -1104,7 +1104,7 @@ func Test_Handler_UnTrusteeshipProcess(t *testing.T) {
 						MemLimitPercent: 10,
 					},
 					MonitorPolicy: types.ProcessMonitorPolicy{
-						AutoType:       types.ProcessAutoTypeTrusteeship,
+						RestartType:    types.ProcessRestartTypeAuto,
 						StartCheckSecs: 5,
 						StopCheckSecs:  0,
 						OpTimeoutSecs:  5,

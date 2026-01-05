@@ -682,7 +682,7 @@
     "v3ProcessMonitorPolicy": {
       "type": "object",
       "properties": {
-        "auto_type": {
+        "restart_type": {
           "type": "string"
         },
         "start_check_seconds": {

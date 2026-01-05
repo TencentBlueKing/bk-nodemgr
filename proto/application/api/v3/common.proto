@@ -329,7 +329,7 @@ message ProcessResource {
 
 // ProcessMonitorPolicy describes the process monitor policy.
 message ProcessMonitorPolicy {
-  optional string auto_type = 1;
+  optional string restart_type = 1;
   optional int64 start_check_seconds = 2;
   optional int64 stop_check_seconds = 3;
   optional int64 operate_timeout_seconds = 4;

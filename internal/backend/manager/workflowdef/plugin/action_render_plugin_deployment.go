@@ -229,7 +229,7 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	// TODO: 接入配置管理
 	// nolint: mnd
 	std.DeployInfo().Process.MonitorPolicy = types.ProcessMonitorPolicy{
-		AutoType:       types.ProcessAutoTypeTrusteeship,
+		RestartType:    types.ProcessRestartTypeAuto,
 		StartCheckSecs: 5,
 		StopCheckSecs:  5,
 		OpTimeoutSecs:  5,

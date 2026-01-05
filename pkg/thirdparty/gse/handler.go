@@ -1186,7 +1186,7 @@ func convProcessSpecFromType(processSpec types.ProcessSpec) (procSpec, error) {
 	}
 
 	var err error
-	spec.MonitorPolicy.AutoType, err = convAutoTypeFromType(processSpec.MonitorPolicy.AutoType)
+	spec.MonitorPolicy.AutoType, err = convAutoTypeFromType(processSpec.MonitorPolicy.RestartType)
 	if err != nil {
 		return spec, fmt.Errorf("failed to parse auto type: %w", err)
 	}
@@ -1194,15 +1194,15 @@ func convProcessSpecFromType(processSpec types.ProcessSpec) (procSpec, error) {
 	return spec, nil
 }
 
-func convAutoTypeFromType(autoType types.ProcessAutoType) (procSpecMonitorPolicyAutoType, error) {
+func convAutoTypeFromType(autoType types.ProcessRestartType) (procSpecMonitorPolicyAutoType, error) {
 	if err := autoType.Validate(); err != nil {
 		return 0, fmt.Errorf("failed to parse auto type: %w", err)
 	}
 
 	switch autoType {
-	case types.ProcessAutoTypeTrusteeship:
+	case types.ProcessRestartTypeAuto:
 		return procSpecMonitorPolicyAutoTypeTrusteeship, nil
-	case types.ProcessAutoTypeOnce:
+	case types.ProcessRestartTypeManual:
 		return procSpecMonitorPolicyAutoTypeOnce, nil
 	default:
 		return 0, fmt.Errorf("unsupport auto type: %s", autoType)

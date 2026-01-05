@@ -315,7 +315,7 @@ func convertPluginDeploymentInfoToTypes(info *Info) (*types.PluginDeploymentInfo
 				MemLimitPercent: info.Process.Resource.MemLimitPercent,
 			},
 			MonitorPolicy: types.ProcessMonitorPolicy{
-				AutoType:       types.ProcessAutoType(info.Process.MonitorPolicy.AutoType),
+				RestartType:    types.ProcessRestartType(info.Process.MonitorPolicy.RestartType),
 				StartCheckSecs: info.Process.MonitorPolicy.StartCheckSecs,
 				StopCheckSecs:  info.Process.MonitorPolicy.StopCheckSecs,
 				OpTimeoutSecs:  info.Process.MonitorPolicy.OpTimeoutSecs,
@@ -384,7 +384,7 @@ func convertPluginDeploymentInfoFromTypes(info *types.PluginDeploymentInfo) (*In
 				MemLimitPercent: info.Process.Resource.MemLimitPercent,
 			},
 			MonitorPolicy: processMonitorPolicy{
-				AutoType:       string(info.Process.MonitorPolicy.AutoType),
+				RestartType:    string(info.Process.MonitorPolicy.RestartType),
 				StartCheckSecs: info.Process.MonitorPolicy.StartCheckSecs,
 				StopCheckSecs:  info.Process.MonitorPolicy.StopCheckSecs,
 				OpTimeoutSecs:  info.Process.MonitorPolicy.OpTimeoutSecs,

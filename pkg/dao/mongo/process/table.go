@@ -76,7 +76,7 @@ type processResource struct {
 }
 
 type processMonitorPolicy struct {
-	AutoType       string `json:"auto_type" bson:"auto_type"`
+	RestartType    string `json:"restart_type" bson:"restart_type"`
 	StartCheckSecs int64  `json:"start_check_secs" bson:"start_check_secs"`
 	StopCheckSecs  int64  `json:"stop_check_secs" bson:"stop_check_secs"`
 	OpTimeoutSecs  int64  `json:"op_timeout_secs" bson:"op_timeout_secs"`

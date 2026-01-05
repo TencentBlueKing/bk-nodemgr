@@ -101,7 +101,7 @@ func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.
 		*item.ProcessController.HealthCmd = proc.Controller.HealthCmd
 		*item.ProcessResource.CpuLimitPercent = proc.Resource.CPULimitPercent
 		*item.ProcessResource.MemLimitPercent = proc.Resource.MemLimitPercent
-		*item.ProcessMonitorPolicy.AutoType = proc.MonitorPolicy.AutoType.String()
+		*item.ProcessMonitorPolicy.RestartType = proc.MonitorPolicy.RestartType.String()
 		*item.ProcessMonitorPolicy.StartCheckSeconds = proc.MonitorPolicy.StartCheckSecs
 		*item.ProcessMonitorPolicy.StopCheckSeconds = proc.MonitorPolicy.StopCheckSecs
 		*item.ProcessMonitorPolicy.OperateTimeoutSeconds = proc.MonitorPolicy.OpTimeoutSecs
@@ -156,7 +156,7 @@ func newEmptyProcess() *Process {
 			MemLimitPercent: new(float64),
 		},
 		ProcessMonitorPolicy: &ProcessMonitorPolicy{
-			AutoType:              new(string),
+			RestartType:           new(string),
 			StartCheckSeconds:     new(int64),
 			StopCheckSeconds:      new(int64),
 			OperateTimeoutSeconds: new(int64),

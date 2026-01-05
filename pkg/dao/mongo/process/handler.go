@@ -171,7 +171,7 @@ func convProcessFromTypes(process *types.Process) *Process {
 			MemLimitPercent: process.Resource.MemLimitPercent,
 		},
 		MonitorPolicy: processMonitorPolicy{
-			AutoType:       string(process.MonitorPolicy.AutoType),
+			RestartType:    string(process.MonitorPolicy.RestartType),
 			StartCheckSecs: process.MonitorPolicy.StartCheckSecs,
 			StopCheckSecs:  process.MonitorPolicy.StopCheckSecs,
 			OpTimeoutSecs:  process.MonitorPolicy.OpTimeoutSecs,
@@ -315,7 +315,7 @@ func convertProcessToTypes(data *Process) *types.Process {
 			MemLimitPercent: data.Resource.MemLimitPercent,
 		},
 		MonitorPolicy: types.ProcessMonitorPolicy{
-			AutoType:       types.ProcessAutoType(data.MonitorPolicy.AutoType),
+			RestartType:    types.ProcessRestartType(data.MonitorPolicy.RestartType),
 			StartCheckSecs: data.MonitorPolicy.StartCheckSecs,
 			StopCheckSecs:  data.MonitorPolicy.StopCheckSecs,
 			OpTimeoutSecs:  data.MonitorPolicy.OpTimeoutSecs,

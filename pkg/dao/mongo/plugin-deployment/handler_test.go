@@ -119,7 +119,7 @@ func TestHandler_Create(t *testing.T) {
 								MemLimitPercent: 10,
 							},
 							MonitorPolicy: types.ProcessMonitorPolicy{
-								AutoType:       "trusteeship",
+								RestartType:    "trusteeship",
 								StartCheckSecs: 5,
 								StopCheckSecs:  5,
 								OpTimeoutSecs:  5,
@@ -248,7 +248,7 @@ func TestHandler_UpdateInfo(t *testing.T) {
 							MemLimitPercent: 10,
 						},
 						MonitorPolicy: types.ProcessMonitorPolicy{
-							AutoType:       "trusteeship",
+							RestartType:    "trusteeship",
 							StartCheckSecs: 5,
 							StopCheckSecs:  5,
 							OpTimeoutSecs:  5,

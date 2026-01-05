@@ -115,36 +115,36 @@ func (resource ProcessResource) Validate() error {
 	return nil
 }
 
-// ProcessAutoType defines the auto type of process.
-type ProcessAutoType string
+// ProcessRestartType defines the restart type of process.
+type ProcessRestartType string
 
 const (
-	// ProcessAutoTypeTrusteeship means trusteeship.
-	ProcessAutoTypeTrusteeship ProcessAutoType = "trusteeship"
+	// ProcessRestartTypeAuto means this process is auto restart.
+	ProcessRestartTypeAuto ProcessRestartType = "auto"
 
-	// ProcessAutoTypeOnce means once.
-	ProcessAutoTypeOnce ProcessAutoType = "once"
+	// ProcessRestartTypeManual means this process is manual restart.
+	ProcessRestartTypeManual ProcessRestartType = "manual"
 )
 
-// Validate validate the process auto type.
-func (autoType ProcessAutoType) Validate() error {
-	switch autoType {
-	case ProcessAutoTypeTrusteeship, ProcessAutoTypeOnce:
+// Validate validate the process restart type.
+func (rt ProcessRestartType) Validate() error {
+	switch rt {
+	case ProcessRestartTypeAuto, ProcessRestartTypeManual:
 		return nil
 	default:
-		return fmt.Errorf("invalid process auto type(%s)", autoType)
+		return fmt.Errorf("invalid process restart type(%s)", rt)
 	}
 }
 
-// String convert process auto type to string.
-func (autoType ProcessAutoType) String() string {
-	return string(autoType)
+// String convert process restart type to string.
+func (rt ProcessRestartType) String() string {
+	return string(rt)
 }
 
 // ProcessMonitorPolicy defines the monitor policy of process.
 type ProcessMonitorPolicy struct {
-	// AutoType defines the auto type of process.
-	AutoType ProcessAutoType
+	// RestartType defines the restart type of process.
+	RestartType ProcessRestartType
 
 	// StartCheckSecs start checking the time the process survives after the execution of the command, in seconds, with a default value of 5.
 	StartCheckSecs int64

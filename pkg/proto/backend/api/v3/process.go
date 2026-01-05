@@ -155,7 +155,7 @@ func (x *ProcessListResp) ConvertProcessFromTypes(total int64, process []*types.
 		*item.ProcessController.HealthCmd = proc.Controller.HealthCmd
 		*item.ProcessResource.CpuLimitPercent = proc.Resource.CPULimitPercent
 		*item.ProcessResource.MemLimitPercent = proc.Resource.MemLimitPercent
-		*item.ProcessMonitorPolicy.AutoType = proc.MonitorPolicy.AutoType.String()
+		*item.ProcessMonitorPolicy.RestartType = proc.MonitorPolicy.RestartType.String()
 		*item.ProcessMonitorPolicy.StartCheckSeconds = proc.MonitorPolicy.StartCheckSecs
 		*item.ProcessMonitorPolicy.StopCheckSeconds = proc.MonitorPolicy.StopCheckSecs
 		*item.ProcessMonitorPolicy.OperateTimeoutSeconds = proc.MonitorPolicy.OpTimeoutSecs
@@ -210,7 +210,7 @@ func newEmptyProcess() *ProcessListResp_Process {
 			MemLimitPercent: new(float64),
 		},
 		ProcessMonitorPolicy: &ProcessMonitorPolicy{
-			AutoType:              new(string),
+			RestartType:           new(string),
 			StartCheckSeconds:     new(int64),
 			StopCheckSeconds:      new(int64),
 			OperateTimeoutSeconds: new(int64),
@@ -264,7 +264,7 @@ func (x *ProcessListResp) ConvertProcessToTypes() ([]*types.Process, int64) {
 				MemLimitPercent: proc.GetProcessResource().GetMemLimitPercent(),
 			},
 			MonitorPolicy: types.ProcessMonitorPolicy{
-				AutoType:       types.ProcessAutoType(proc.GetProcessMonitorPolicy().GetAutoType()),
+				RestartType:    types.ProcessRestartType(proc.GetProcessMonitorPolicy().GetRestartType()),
 				StartCheckSecs: proc.GetProcessMonitorPolicy().GetStartCheckSeconds(),
 				StopCheckSecs:  proc.GetProcessMonitorPolicy().GetStopCheckSeconds(),
 				OpTimeoutSecs:  proc.GetProcessMonitorPolicy().GetOperateTimeoutSeconds(),
