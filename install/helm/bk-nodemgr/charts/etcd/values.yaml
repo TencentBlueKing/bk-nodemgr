@@ -582,7 +582,6 @@ service:
   ## ref: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
   ## e.g:
   ## loadBalancerSourceRanges:
-  ##   - 10.10.10.0/24
   ##
   loadBalancerSourceRanges: []
   ## @param service.externalIPs [array] External IPs
@@ -1091,7 +1090,7 @@ defrag:
     ## @param defrag.cronjob.concurrencyPolicy Set the cronjob parameter concurrencyPolicy
     ##
     concurrencyPolicy: Forbid
-    ## @param defrag.cronjob.suspend Boolean that indicates if the controller must suspend subsequent executions (not applied to already started executions) 
+    ## @param defrag.cronjob.suspend Boolean that indicates if the controller must suspend subsequent executions (not applied to already started executions)
     ##
     suspend: false
     ## @param defrag.cronjob.successfulJobsHistoryLimit Number of successful finished jobs to retain

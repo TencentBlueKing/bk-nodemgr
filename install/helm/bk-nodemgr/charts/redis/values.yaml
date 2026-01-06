@@ -525,16 +525,13 @@ master:
     ## @param master.service.loadBalancerSourceRanges Redis&reg; master service Load Balancer sources
     ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
     ## e.g.
-    ## loadBalancerSourceRanges:
-    ##   - 10.10.10.0/24
+    ## loadBalancerSourceRanges:=
     ##
     loadBalancerSourceRanges: []
     ## @param master.service.externalIPs Redis&reg; master service External IPs
     ## https://kubernetes.io/docs/concepts/services-networking/service/#external-ips
     ## e.g.
     ## externalIPs:
-    ##   - 10.10.10.1
-    ##   - 201.22.30.1
     ##
     externalIPs: []
     ## @param master.service.annotations Additional custom annotations for Redis&reg; master service
@@ -959,7 +956,6 @@ replica:
     ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
     ## e.g.
     ## loadBalancerSourceRanges:
-    ##   - 10.10.10.0/24
     ##
     loadBalancerSourceRanges: []
     ## @param replica.service.annotations Additional custom annotations for Redis&reg; replicas service
@@ -1297,7 +1293,6 @@ sentinel:
     ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
     ## e.g.
     ## loadBalancerSourceRanges:
-    ##   - 10.10.10.0/24
     ##
     loadBalancerSourceRanges: []
     ## @param sentinel.service.annotations Additional custom annotations for Redis&reg; Sentinel service
@@ -1646,7 +1641,6 @@ metrics:
     ## https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/#restrict-access-for-loadbalancer-service
     ## e.g.
     ## loadBalancerSourceRanges:
-    ##   - 10.10.10.0/24
     ##
     loadBalancerSourceRanges: []
     ## @param metrics.service.annotations Additional custom annotations for Redis&reg; exporter service
