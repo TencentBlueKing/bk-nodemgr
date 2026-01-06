@@ -18,6 +18,121 @@ import (
 )
 
 // Validate check body.
+func (x *PluginListReq) Validate() error {
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginListReq) AutoConvert() {}
+
+// ConvertConditionsToTypes converts conditions to types.
+func (x *PluginListReq) ConvertConditionsToTypes() *types.PluginCondition {
+	return convertPluginConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
+}
+
+func convertPluginConditionsToTypes(
+	exactCond *PluginListReq_ExactConditions, fuzzyCond *PluginListReq_FuzzyConditions) *types.PluginCondition {
+
+	condition := &types.PluginCondition{}
+
+	// exact conditions.
+	if exactCond != nil {
+		condition.ExactInclude = &types.PluginExactFields{
+			Name:  exactCond.GetName(),
+			Group: exactCond.GetGroup(),
+		}
+	}
+
+	// fuzzy conditions.
+	if fuzzyCond != nil {
+		condition.FuzzyInclude = &types.PluginFuzzyFields{
+			Name:    fuzzyCond.GetName(),
+			PkgName: fuzzyCond.GetPkgName(),
+		}
+	}
+
+	return condition
+}
+
+// ConvertConditionFromTypes converts condition from types.
+func (x *PluginListReq) ConvertConditionFromTypes(condition *types.PluginCondition) {
+	if condition == nil {
+		return
+	}
+
+	// exact conditions.
+	if condition.ExactInclude != nil {
+		x.ExactIncludeConditions = &PluginListReq_ExactConditions{
+			Name:  condition.ExactInclude.Name,
+			Group: condition.ExactInclude.Group,
+		}
+	}
+
+	// fuzzy conditions.
+	if condition.FuzzyInclude != nil {
+		x.FuzzyIncludeConditions = &PluginListReq_FuzzyConditions{
+			Name:    condition.FuzzyInclude.Name,
+			PkgName: condition.FuzzyInclude.PkgName,
+		}
+	}
+}
+
+// ConvertPageToTypes converts page to types.
+func (x *PluginListReq) ConvertPageToTypes() (types.Page, error) {
+	return convPageToTypes(x.GetPage())
+}
+
+// ConvertPluginFromTypes converts plugin from types.
+func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Plugin) {
+	items := make([]*Plugin, len(plugins))
+	for idx, plugin := range plugins {
+		item := newEmptyPlugin()
+		*item.TenantId = plugin.TenantID
+		*item.Name = plugin.Name
+		*item.Group = plugin.Group
+		*item.PkgName = plugin.PkgName
+		*item.Memo = plugin.Memo
+
+		items[idx] = item
+	}
+
+	x.Data = &PluginListResp_Data{
+		Total: total,
+		Items: items,
+	}
+}
+
+// ConvertPluginToTypes converts plugin to types.
+func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
+	data := x.GetData()
+	total := data.GetTotal()
+	plugins := make([]*types.Plugin, len(data.GetItems()))
+	for idx, plugin := range data.GetItems() {
+		item := &types.Plugin{
+			TenantID: plugin.GetTenantId(),
+			Name:     plugin.GetName(),
+			Group:    plugin.GetGroup(),
+			PkgName:  plugin.GetPkgName(),
+			Memo:     plugin.GetMemo(),
+		}
+
+		plugins[idx] = item
+	}
+
+	return plugins, total
+}
+
+func newEmptyPlugin() *Plugin {
+	return &Plugin{
+		TenantId: new(string),
+		Name:     new(string),
+		Group:    new(string),
+		PkgName:  new(string),
+		Memo:     new(string),
+	}
+}
+
+// Validate check body.
 func (x *PluginInstallReq) Validate() error {
 	plugins := x.GetPlugin()
 	if len(plugins) == 0 {
@@ -108,118 +223,93 @@ func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 }
 
 // Validate check body.
-func (x *PluginListReq) Validate() error {
+func (x *PluginUpgradeReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *PluginUpgradeReq_Plugin) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id can not be zero")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version can not be empty")
+	}
+
 	return nil
 }
 
 // AutoConvert auto convert.
-func (x *PluginListReq) AutoConvert() {}
-
-// ConvertConditionsToTypes converts conditions to types.
-func (x *PluginListReq) ConvertConditionsToTypes() *types.PluginCondition {
-	return convertPluginConditionsToTypes(x.GetExactIncludeConditions(), x.GetFuzzyIncludeConditions())
-}
-
-func convertPluginConditionsToTypes(
-	exactCond *PluginListReq_ExactConditions, fuzzyCond *PluginListReq_FuzzyConditions) *types.PluginCondition {
-
-	condition := &types.PluginCondition{}
-
-	// exact conditions.
-	if exactCond != nil {
-		condition.ExactInclude = &types.PluginExactFields{
-			Name:  exactCond.GetName(),
-			Group: exactCond.GetGroup(),
-		}
-	}
-
-	// fuzzy conditions.
-	if fuzzyCond != nil {
-		condition.FuzzyInclude = &types.PluginFuzzyFields{
-			Name:    fuzzyCond.GetName(),
-			PkgName: fuzzyCond.GetPkgName(),
-		}
-	}
-
-	return condition
-}
-
-// ConvertConditionFromTypes converts condition from types.
-func (x *PluginListReq) ConvertConditionFromTypes(condition *types.PluginCondition) {
-	if condition == nil {
-		return
-	}
-
-	// exact conditions.
-	if condition.ExactInclude != nil {
-		x.ExactIncludeConditions = &PluginListReq_ExactConditions{
-			Name:  condition.ExactInclude.Name,
-			Group: condition.ExactInclude.Group,
-		}
-	}
-
-	// fuzzy conditions.
-	if condition.FuzzyInclude != nil {
-		x.FuzzyIncludeConditions = &PluginListReq_FuzzyConditions{
-			Name:    condition.FuzzyInclude.Name,
-			PkgName: condition.FuzzyInclude.PkgName,
-		}
+func (x *PluginUpgradeReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
 	}
 }
 
-// ConvertPageToTypes converts page to types.
-func (x *PluginListReq) ConvertPageToTypes() (types.Page, error) {
-	return convPageToTypes(x.GetPage())
-}
-
-// ConvertPluginFromTypes converts plugin from types.
-func (x *PluginListResp) ConvertPluginFromTypes(total int64, plugins []*types.Plugin) {
-	items := make([]*Plugin, len(plugins))
-	for idx, plugin := range plugins {
-		item := newEmptyPlugin()
-		*item.TenantId = plugin.TenantID
-		*item.Name = plugin.Name
-		*item.Group = plugin.Group
-		*item.PkgName = plugin.PkgName
-		*item.Memo = plugin.Memo
-
-		items[idx] = item
-	}
-
-	x.Data = &PluginListResp_Data{
-		Total: total,
-		Items: items,
+// AutoConvert auto convert.
+func (x *PluginUpgradeReq_Plugin) AutoConvert() {
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
 	}
 }
 
-func newEmptyPlugin() *Plugin {
-	return &Plugin{
-		TenantId: new(string),
-		Name:     new(string),
-		Group:    new(string),
-		PkgName:  new(string),
-		Memo:     new(string),
-	}
-}
-
-// ConvertPluginToTypes converts plugin to types.
-func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
-	data := x.GetData()
-	total := data.GetTotal()
-	plugins := make([]*types.Plugin, len(data.GetItems()))
-	for idx, plugin := range data.GetItems() {
-		item := &types.Plugin{
-			TenantID: plugin.GetTenantId(),
-			Name:     plugin.GetName(),
-			Group:    plugin.GetGroup(),
-			PkgName:  plugin.GetPkgName(),
-			Memo:     plugin.GetMemo(),
+// ConvertParamFromTypes converts param from types.
+func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDeploymentParam) error {
+	var err error
+	plugin := make([]*PluginUpgradeReq_Plugin, len(upgradeParam))
+	for idx, param := range upgradeParam {
+		item := &PluginUpgradeReq_Plugin{}
+		item.BkHostId = &param.HostID
+		item.PluginName = param.PluginName
+		item.Version = param.Version
+		item.ConfigName = param.ConfigName
+		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return err
 		}
 
-		plugins[idx] = item
+		plugin[idx] = item
 	}
 
-	return plugins, total
+	x.Plugin = plugin
+
+	return nil
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	plugin := x.GetPlugin()
+	upgradeParam := make([]*types.PluginDeploymentParam, len(plugin))
+	for idx, proc := range plugin {
+		item := &types.PluginDeploymentParam{
+			HostID:     proc.GetBkHostId(),
+			PluginName: proc.GetPluginName(),
+			Version:    proc.GetVersion(),
+		}
+
+		upgradeParam[idx] = item
+	}
+
+	return upgradeParam
 }
 
 // Validate check body.

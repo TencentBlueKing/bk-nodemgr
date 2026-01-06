@@ -126,6 +126,9 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 	}
 
 	version := std.DeployInfo().Process.Info.Version
+	if version == "" {
+		version = std.DeployInfo().InstallOptions.Version
+	}
 	pluginPkgName := plugin.PkgName
 	pluginGroup := plugin.Group
 	pluginName := plugin.Name

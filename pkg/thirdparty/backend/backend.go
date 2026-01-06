@@ -2587,41 +2587,7 @@ func (c *cli) distinctPackageEvent(ctx contextx.IContext, req *protoBackend.Pack
 // Plugin Related Interfaces
 // ===============================================================================
 
-func (c *cli) installPlugin(ctx contextx.IContext, req *protoBackend.PluginInstallReq) (
-	*protoBackend.PluginInstallResp, error) {
-
-	resp := new(protoBackend.PluginInstallResp)
-	header := c.getHeader(ctx)
-
-	err := c.client.Post().
-		SubResourcef("/plugin/install").
-		WithContext(ctx).
-		WithHeaders(header).
-		Body(req).
-		EnableLogBody().
-		EnableLogResponse().
-		Do().Into(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	if code := resp.GetCode(); code != CodeOK {
-		return nil, fmt.Errorf("install plugin failed. code(%d), message(%s), error(%v), request-id(%s)",
-			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
-	}
-
-	if resp.GetData() == nil {
-		return nil,
-			fmt.Errorf("install plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
-				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
-	}
-
-	return resp, nil
-}
-
-func (c *cli) listPlugins(ctx contextx.IContext, req *protoBackend.PluginListReq) (
-	*protoBackend.PluginListResp, error) {
-
+func (c *cli) listPlugins(ctx contextx.IContext, req *protoBackend.PluginListReq) (*protoBackend.PluginListResp, error) {
 	resp := new(protoBackend.PluginListResp)
 	header := c.getHeader(ctx)
 
@@ -2651,9 +2617,67 @@ func (c *cli) listPlugins(ctx contextx.IContext, req *protoBackend.PluginListReq
 	return resp, nil
 }
 
-func (c *cli) applyPluginSubConfig(ctx contextx.IContext, req *protoBackend.PluginApplySubConfigReq) (
-	*protoBackend.PluginApplySubConfigResp, error) {
+func (c *cli) installPlugin(ctx contextx.IContext, req *protoBackend.PluginInstallReq) (*protoBackend.PluginInstallResp, error) {
+	resp := new(protoBackend.PluginInstallResp)
+	header := c.getHeader(ctx)
 
+	err := c.client.Post().
+		SubResourcef("/plugin/install").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("install plugin failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("install plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) upgradePlugin(ctx contextx.IContext, req *protoBackend.PluginUpgradeReq) (*protoBackend.PluginUpgradeResp, error) {
+	resp := new(protoBackend.PluginUpgradeResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/upgrade").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("upgrade plugin failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("upgrade plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) applyPluginSubConfig(ctx contextx.IContext, req *protoBackend.PluginApplySubConfigReq) (*protoBackend.PluginApplySubConfigResp, error) {
 	resp := new(protoBackend.PluginApplySubConfigResp)
 	header := c.getHeader(ctx)
 

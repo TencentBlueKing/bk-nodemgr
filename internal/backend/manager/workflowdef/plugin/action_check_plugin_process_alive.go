@@ -118,22 +118,6 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID)
 	}
 
-	if process.Info.Version != std.DeployInfo().InstallOptions.Version {
-		std.InstanceData().LogE(fmt.Sprintf("plugin process version mismatch, plugin-name(%s), host-id(%d), expect-version(%s), actual-version(%s)",
-			std.DeployInfo().Process.PluginName,
-			std.DeployInfo().Process.HostID,
-			std.DeployInfo().InstallOptions.Version,
-			process.Info.Version,
-		))
-
-		return fmt.Errorf("plugin process version mismatch, plugin-name(%s), host-id(%d), expect-version(%s), actual-version(%s)",
-			std.DeployInfo().Process.PluginName,
-			std.DeployInfo().Process.HostID,
-			std.DeployInfo().InstallOptions.Version,
-			process.Info.Version,
-		)
-	}
-
 	std.InstanceData().LogI(fmt.Sprintf("plugin process is running normally, plugin-name(%s), host-id(%d)",
 		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID))
 

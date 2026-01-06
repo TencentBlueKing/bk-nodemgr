@@ -21,6 +21,9 @@ import (
 const (
 	// pluginCmdFullInstall defines the installer cmd.
 	pluginCmdFullInstall = "plugin full-install"
+
+	// pluginCmdFullUpgrade defines the installer cmd.
+	pluginCmdFullUpgrade = "plugin full-upgrade"
 )
 
 // pluginFlagName defines the plugin flag name.
@@ -182,6 +185,86 @@ func (params *PluginInstallParams) ToWindowsScript() (string, string, error) {
 
 	// wrap cmd with stdout.
 	scriptName := fmt.Sprintf("plugin_install_%s_%s.bat", params.PluginGroup, params.PluginName)
+	scriptContent := fmt.Sprintf("%s", cmdStr)
+
+	return scriptName, scriptContent, nil
+}
+
+// PluginUpgradeParams defines the upgrade params.
+type PluginUpgradeParams struct {
+	PluginCommonParams
+
+	PluginGroup   string
+	PluginName    string
+	PluginVersion string
+	PluginPkgName string
+
+	DownloadSvrAddr string
+	CallbackSvrAddr string
+
+	DeployToken string
+	OperInstID  string
+}
+
+// Validate validates the install params.
+func (params *PluginUpgradeParams) Validate() error {
+
+	return nil
+}
+
+func (params *PluginUpgradeParams) buildArgs() []string {
+	args := []string{
+		fmt.Sprintf("--%s %s", pluginFlagBaseDeployDir, params.BaseDeployDir),
+		fmt.Sprintf("--%s %s", pluginFlagBaseWorkDir, params.BaseWorkDir),
+		fmt.Sprintf("--%s %s", pluginFlagPluginGroup, params.PluginGroup),
+		fmt.Sprintf("--%s %s", pluginFlagPluginName, params.PluginName),
+		fmt.Sprintf("--%s %s", pluginFlagPluginVersion, params.PluginVersion),
+		fmt.Sprintf("--%s %s", pluginFlagPluginPkgName, params.PluginPkgName),
+		fmt.Sprintf("--%s %s", pluginFlagDeployEnv, params.DeployEnv),
+		fmt.Sprintf("--%s %s", pluginFlagDownloadSvrAdd, params.DownloadSvrAddr),
+		fmt.Sprintf("--%s %s", pluginFlagCallbackSvrAdd, params.CallbackSvrAddr),
+		fmt.Sprintf("--%s %s", pluginFlagDeployToken, params.DeployToken),
+		fmt.Sprintf("--%s %s", pluginFlagOperInstID, params.OperInstID),
+	}
+
+	return args
+}
+
+// ToUnixScript converts the upgrade params to a unix script.
+func (params *PluginUpgradeParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+
+	// build original cmd.
+	installerFilePath := filepath.Join(params.InstallWorkDir, params.InstallerFileName)
+	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginCmdFullUpgrade, strings.Join(args, " "))
+
+	// wrap cmd with stdout.
+	scriptName := fmt.Sprintf("plugin_upgrade_%s_%s.sh", params.PluginGroup, params.PluginName)
+
+	stdoutPath := filepath.Join(params.InstallWorkDir, fmt.Sprintf("%s.stdout", scriptName))
+	scriptContent := fmt.Sprintf("%s >%s 2>&1 &", cmdStr, stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScript converts the upgrade params to a windows script.
+func (params *PluginUpgradeParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+
+	// build original cmd.
+	installerFilePath := winpath.Join(params.InstallWorkDir, params.InstallerFileName)
+	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginCmdFullUpgrade, strings.Join(args, " "))
+
+	// wrap cmd with stdout.
+	scriptName := fmt.Sprintf("plugin_upgrade_%s_%s.bat", params.PluginGroup, params.PluginName)
 	scriptContent := fmt.Sprintf("%s", cmdStr)
 
 	return scriptName, scriptContent, nil

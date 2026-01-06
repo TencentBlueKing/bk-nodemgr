@@ -18,98 +18,6 @@ import (
 )
 
 // Validate check body.
-func (x *PluginInstallReq) Validate() error {
-	plugins := x.GetPlugin()
-	if len(plugins) == 0 {
-		return errors.New("plugins can not be empty")
-	}
-
-	for idx := range plugins {
-		if err := plugins[idx].Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Validate check body.
-// nolint: protogetter
-func (x *PluginInstallReq_Plugin) Validate() error {
-	if x.GetBkHostId() < 0 {
-		return errors.New("bk_host_id can not be zero")
-	}
-
-	if x.GetPluginName() == "" {
-		return errors.New("plugin_name can not be empty")
-	}
-
-	if x.GetVersion() == "" {
-		return errors.New("version can not be empty")
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *PluginInstallReq) AutoConvert() {
-	plugin := x.GetPlugin()
-	for idx := range plugin {
-		plugin[idx].AutoConvert()
-	}
-}
-
-// AutoConvert auto convert.
-func (x *PluginInstallReq_Plugin) AutoConvert() {
-	if x.BkHostId == nil {
-		x.BkHostId = new(int64)
-		*x.BkHostId = -1
-	}
-}
-
-// ConvertParamFromTypes converts param from types.
-func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginDeploymentParam) error {
-	var err error
-	plugin := make([]*PluginInstallReq_Plugin, len(installParam))
-	for idx, param := range installParam {
-		item := &PluginInstallReq_Plugin{}
-		item.BkHostId = &param.HostID
-		item.PluginName = param.PluginName
-		item.Version = param.Version
-		item.ConfigName = param.ConfigName
-		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
-		if err != nil {
-			return err
-		}
-
-		plugin[idx] = item
-	}
-
-	x.Plugin = plugin
-
-	return nil
-}
-
-// ConvertParamToTypes converts param to types.
-func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
-	plugin := x.GetPlugin()
-	installParam := make([]*types.PluginDeploymentParam, len(plugin))
-	for idx, proc := range plugin {
-		item := &types.PluginDeploymentParam{
-			HostID:              proc.GetBkHostId(),
-			PluginName:          proc.GetPluginName(),
-			Version:             proc.GetVersion(),
-			ConfigName:          proc.GetConfigName(),
-			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
-		}
-
-		installParam[idx] = item
-	}
-
-	return installParam
-}
-
-// Validate check body.
 func (x *PluginListReq) Validate() error {
 	return nil
 }
@@ -232,6 +140,190 @@ func (x *PluginListResp) ConvertPluginToTypes() ([]*types.Plugin, int64) {
 	}
 
 	return plugins, total
+}
+
+// Validate check body.
+func (x *PluginInstallReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *PluginInstallReq_Plugin) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id can not be zero")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginInstallReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// AutoConvert auto convert.
+func (x *PluginInstallReq_Plugin) AutoConvert() {
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginInstallReq) ConvertParamFromTypes(installParam ...*types.PluginDeploymentParam) error {
+	var err error
+	plugin := make([]*PluginInstallReq_Plugin, len(installParam))
+	for idx, param := range installParam {
+		item := &PluginInstallReq_Plugin{}
+		item.BkHostId = &param.HostID
+		item.PluginName = param.PluginName
+		item.Version = param.Version
+		item.ConfigName = param.ConfigName
+		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return err
+		}
+
+		plugin[idx] = item
+	}
+
+	x.Plugin = plugin
+
+	return nil
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginInstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	plugin := x.GetPlugin()
+	installParam := make([]*types.PluginDeploymentParam, len(plugin))
+	for idx, proc := range plugin {
+		item := &types.PluginDeploymentParam{
+			HostID:              proc.GetBkHostId(),
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+		}
+
+		installParam[idx] = item
+	}
+
+	return installParam
+}
+
+// Validate check body.
+func (x *PluginUpgradeReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *PluginUpgradeReq_Plugin) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id can not be zero")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	if x.GetVersion() == "" {
+		return errors.New("version can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginUpgradeReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// AutoConvert auto convert.
+func (x *PluginUpgradeReq_Plugin) AutoConvert() {
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginUpgradeReq) ConvertParamFromTypes(upgradeParam ...*types.PluginDeploymentParam) error {
+	var err error
+	plugin := make([]*PluginUpgradeReq_Plugin, len(upgradeParam))
+	for idx, param := range upgradeParam {
+		item := &PluginUpgradeReq_Plugin{}
+		item.BkHostId = &param.HostID
+		item.PluginName = param.PluginName
+		item.Version = param.Version
+		item.ConfigName = param.ConfigName
+		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
+		if err != nil {
+			return err
+		}
+
+		plugin[idx] = item
+	}
+
+	x.Plugin = plugin
+
+	return nil
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	plugin := x.GetPlugin()
+	upgradeParam := make([]*types.PluginDeploymentParam, len(plugin))
+	for idx, proc := range plugin {
+		item := &types.PluginDeploymentParam{
+			HostID:              proc.GetBkHostId(),
+			PluginName:          proc.GetPluginName(),
+			Version:             proc.GetVersion(),
+			ConfigName:          proc.GetConfigName(),
+			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
+		}
+
+		upgradeParam[idx] = item
+	}
+
+	return upgradeParam
 }
 
 // Validate check body.

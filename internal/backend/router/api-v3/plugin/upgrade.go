@@ -8,8 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+package plugin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -19,24 +18,36 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// TerminateOperation terminate plugin workflow operation.
-func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.PluginWorkflowOperationTerminateReq)
+// Upgrade defines the handler to upgrade plugin.
+func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginUpgradeReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate plugin workflow operation, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade plugin, failed to decode request body.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.pluginMgrIface.LaunchTerminatePluginOperationFromLastInstance(rCtx, types.TerminatePluginWorkflowOperationParam{
-		WorkflowID:   req.GetWorkflowId(),
-		OperationIDs: req.GetOperationIds(),
+	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(rCtx.TenantID(), req.ConvertParamToTypes()...)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade plugin, failed to generate plugin deployments.")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	workflowID, err := h.pluginMgrIface.LaunchUpgradePlugin(rCtx, types.UpgradePluginParam{
+		Type:              types.PluginWorkflowTypeUpgrade,
+		HostIDs:           hostIDs,
+		Operator:          rCtx.BKUsername(),
+		PluginDeployments: pluginDeployments,
 	})
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate plugin workflow operation")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade plugin.")
 		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
 	}
 
-	resp := new(protoBackend.PluginWorkflowOperationTerminateResp)
+	respData := &protoBackend.PluginUpgradeResp_Data{
+		WorkflowId: workflowID,
+	}
 
-	return resp.GetData(), nil
+	logger.G.Biz(rCtx).With("workflow-id", workflowID).Info("launched upgrade plugin workflow")
+
+	return respData, nil
 }

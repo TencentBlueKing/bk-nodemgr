@@ -18,6 +18,12 @@ import (
 
 // IHandlerPlugin defines the backend Handler for plugin.
 type IHandlerPlugin interface {
+	// CountPlugins counts plugins by conditions.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param condition the filter conditions.
+	// @return the plugin count with filter and error.
+	CountPlugins(nCtx contextx.IContext, condition *types.PluginCondition) (int64, error)
+
 	// ListPlugins lists plugins by page and conditions.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param page describes the page info when listing.
@@ -25,17 +31,17 @@ type IHandlerPlugin interface {
 	// @return plugin list with page and the total count with filter and error.
 	ListPlugins(nCtx contextx.IContext, page types.Page, condition *types.PluginCondition) ([]*types.Plugin, int64, error)
 
-	// CountPlugins counts plugins by conditions.
-	// @param nCtx contextx.IContext, contains tenant-id and username.
-	// @param condition the filter conditions.
-	// @return the plugin count with filter and error.
-	CountPlugins(nCtx contextx.IContext, condition *types.PluginCondition) (int64, error)
-
 	// InstallPlugin install plugin.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param installParam the install param.
 	// @return the installing workflow-ids and error.
 	InstallPlugin(nCtx contextx.IContext, installParam ...*types.PluginDeploymentParam) (string, error)
+
+	// UpgradePlugin upgrade plugin.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param upgradeParam the upgrade param.
+	// @return the upgrading workflow-ids and error.
+	UpgradePlugin(nCtx contextx.IContext, upgradeParam ...*types.PluginDeploymentParam) (string, error)
 
 	// ApplyPluginSubConfig apply plugin sub config.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
@@ -49,21 +55,6 @@ type IHandlerPlugin interface {
 	// @param memo the plugin memo.
 	// @return the error.
 	SetPluginMemo(nCtx contextx.IContext, pluginName string, memo string) error
-}
-
-// InstallPlugin install plugin.
-func (h *Handler) InstallPlugin(nCtx contextx.IContext, installParam ...*types.PluginDeploymentParam) (string, error) {
-	req := new(protoBackend.PluginInstallReq)
-	if err := req.ConvertParamFromTypes(installParam...); err != nil {
-		return "", err
-	}
-
-	resp, err := h.cli.installPlugin(nCtx, req)
-	if err != nil {
-		return "", err
-	}
-
-	return resp.GetData().GetWorkflowId(), nil
 }
 
 // CountPlugins count plugins.
@@ -95,6 +86,36 @@ func (h *Handler) ListPlugins(nCtx contextx.IContext, page types.Page, condition
 	plugins, total := resp.ConvertPluginToTypes()
 
 	return plugins, total, nil
+}
+
+// InstallPlugin install plugin.
+func (h *Handler) InstallPlugin(nCtx contextx.IContext, installParam ...*types.PluginDeploymentParam) (string, error) {
+	req := new(protoBackend.PluginInstallReq)
+	if err := req.ConvertParamFromTypes(installParam...); err != nil {
+		return "", err
+	}
+
+	resp, err := h.cli.installPlugin(nCtx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetData().GetWorkflowId(), nil
+}
+
+// UpgradePlugin upgrade plugin.
+func (h *Handler) UpgradePlugin(nCtx contextx.IContext, upgradeParam ...*types.PluginDeploymentParam) (string, error) {
+	req := new(protoBackend.PluginUpgradeReq)
+	if err := req.ConvertParamFromTypes(upgradeParam...); err != nil {
+		return "", err
+	}
+
+	resp, err := h.cli.upgradePlugin(nCtx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetData().GetWorkflowId(), nil
 }
 
 // ApplyPluginSubConfig apply plugin sub config.

@@ -151,6 +151,40 @@
           "PluginAPI"
         ]
       }
+    },
+    "/api/v3/plugin/upgrade": {
+      "post": {
+        "summary": "UpgradePlugin upgrades a plugin on specified hosts.",
+        "operationId": "PluginAPI_UpgradePlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginUpgradeResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginUpgradeReq describes the plugin upgrade request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginUpgradeReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginAPI"
+        ]
+      }
     }
   },
   "definitions": {
@@ -507,6 +541,73 @@
         }
       },
       "description": "PluginSetMemoResp describes the plugin set memo response."
+    },
+    "v3PluginUpgradeReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginUpgradeReqPlugin"
+          }
+        }
+      },
+      "description": "PluginUpgradeReq describes the plugin upgrade request."
+    },
+    "v3PluginUpgradeReqPlugin": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "config_name": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "custom_config_context": {
+          "type": "object"
+        }
+      }
+    },
+    "v3PluginUpgradeResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginUpgradeRespData"
+        }
+      },
+      "description": "PluginUpgradeResp describes the plugin upgrade response."
+    },
+    "v3PluginUpgradeRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
     }
   }
 }

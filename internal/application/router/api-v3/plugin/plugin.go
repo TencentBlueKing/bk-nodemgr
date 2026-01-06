@@ -36,8 +36,9 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
 
-	h.rg.POST("/install", restserver.Handler(h.Install))
 	h.rg.POST("/list", restserver.Handler(h.List))
+	h.rg.POST("/install", restserver.Handler(h.Install))
+	h.rg.POST("/upgrade", restserver.Handler(h.Upgrade))
 	h.rg.POST("/apply_subconfig", restserver.Handler(h.ApplySubConfig))
 	h.rg.POST("/set_memo", restserver.Handler(h.SetMemo))
 

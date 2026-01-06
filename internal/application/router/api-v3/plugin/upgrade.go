@@ -8,35 +8,31 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package workflow ...
-package workflow
+package plugin
 
 import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
-	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
+	protoApplication "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/application/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
-// TerminateOperation terminate plugin workflow operation.
-func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, error) {
-	req := new(protoBackend.PluginWorkflowOperationTerminateReq)
+// Upgrade defines the handler to upgrade plugin.
+func (h *handler) Upgrade(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PluginUpgradeReq)
 	if err := rCtx.BindJSON(req); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate plugin workflow operation, failed to decode request body")
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade plugin, failed to decode request body.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.pluginMgrIface.LaunchTerminatePluginOperationFromLastInstance(rCtx, types.TerminatePluginWorkflowOperationParam{
-		WorkflowID:   req.GetWorkflowId(),
-		OperationIDs: req.GetOperationIds(),
-	})
+	workflowID, err := h.backendHandler.UpgradePlugin(rCtx, req.ConvertParamToTypes()...)
 	if err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to terminate plugin workflow operation")
-		return nil, resterrf.ErrWrap(resterrf.BackendOperateFailed, err)
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upgrade plugin")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	resp := new(protoBackend.PluginWorkflowOperationTerminateResp)
+	resp := new(protoApplication.PluginUpgradeResp_Data)
+	resp.WorkflowId = workflowID
 
-	return resp.GetData(), nil
+	return resp, nil
 }

@@ -210,6 +210,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionRenderPluginConfig(pluginCap),
 		plugin.NewActionWaitPluginInstallerComplete(pluginCap),
 		plugin.NewActionInstallPlugin(pluginCap),
+		plugin.NewActionUpgradePlugin(pluginCap),
 		plugin.NewActionUpsertProcess(pluginCap),
 		plugin.NewActionPushPluginConfig(pluginCap),
 		plugin.NewActionCheckPluginProcessAlive(pluginCap),

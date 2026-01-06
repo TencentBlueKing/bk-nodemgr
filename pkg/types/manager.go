@@ -110,6 +110,14 @@ type TerminatePluginWorkflowOperationParam struct {
 	OperationIDs []string
 }
 
+// UpgradePluginParam define the param of LaunchUpgradePlugin.
+type UpgradePluginParam struct {
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	Operator          string
+	PluginDeployments []*PluginDeployment
+}
+
 // ===============================================================================
 // DeployPolicy Manager Params
 // ===============================================================================

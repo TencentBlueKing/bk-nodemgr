@@ -49,14 +49,17 @@ type IPluginManager interface {
 	// LaunchInstallPlugin launch a task to install plugin. returns the workflow-id.
 	LaunchInstallPlugin(ctx contextx.IContext, param types.InstallPluginParam) (string, error)
 
+	// LaunchUpgradePlugin launch a task to upgrade plugin. returns the workflow-id.
+	LaunchUpgradePlugin(nCtx contextx.IContext, param types.UpgradePluginParam) (string, error)
+
 	// LaunchApplyPluginSubConfig launch a task to apply plugin subconfig. returns the workflow-id.
 	LaunchApplyPluginSubConfig(ctx contextx.IContext, param types.ApplyPluginSubConfigParam) (string, error)
 
 	// LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
 	LaunchRetryPluginOperationFromLastInstance(ctx contextx.IContext, param types.RetryPluginWorkflowOperationParam) error
 
-	// TerminatePluginOperationLastInstance terminate operation from last instance.
-	TerminatePluginOperationLastInstance(ctx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error
+	// LaunchTerminatePluginOperationFromLastInstance launch a task to terminate operation from last instance.
+	LaunchTerminatePluginOperationFromLastInstance(ctx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error
 }
 
 // ISyncManager defines the SyncManager interface.

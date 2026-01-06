@@ -31,6 +31,30 @@ message PluginInstallResp {
   Data data = 5;
 }
 
+// PluginUpgradeReq describes the plugin upgrade request.
+message PluginUpgradeReq {
+  message Plugin {
+    optional int64 bk_host_id = 1;
+    string plugin_name = 2;
+    string version = 3;
+    repeated string config_name = 4;
+    optional google.protobuf.Struct custom_config_context = 5;
+  }
+
+  repeated Plugin plugin = 1;
+}
+
+// PluginUpgradeResp describes the plugin upgrade response.
+message PluginUpgradeResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // PluginApplySubConfigReq describes the plugin apply sub-configuration
 // request.
 message PluginApplySubConfigReq {
@@ -116,6 +140,14 @@ service Plugin {
   rpc InstallPlugin(PluginInstallReq) returns (PluginInstallResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/install"
+      body : "*"
+    };
+  }
+
+  // UpgradePlugin upgrades a plugin on specified hosts.
+  rpc UpgradePlugin(PluginUpgradeReq) returns (PluginUpgradeResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/upgrade"
       body : "*"
     };
   }
