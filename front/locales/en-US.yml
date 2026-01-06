@@ -94,7 +94,7 @@ platform:
         operateTime: Operate time
         costTime: Cost time
         status: Task execution state
-        count: Total/Success/Failed/Ignored
+        count: Total/Success/Failed/Timeout
       button:
         hideAutoTask: Hide Auto-Deployment Tasks
       placeholder:

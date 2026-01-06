@@ -10,6 +10,8 @@
       :show-settings="isShowSetting"
       :settings="settings"
       :max-height="maxHeight"
+      @page-limit-change="pageLimitChange"
+      @page-value-change="pageValueChange"
       @setting-change="handleSettingChange"
       @column-filter="handleColumnFilter">
       <TableColumn
@@ -67,7 +69,6 @@
         :label="$t('topoManager.workArea.table.workUnitsCount')"
         field="networkunit_count"
         show-overflow="tooltip"
-        sortable
         :min-width="240">
         <template #default="{ row }">
           <span class="!text-[12px]">
@@ -79,7 +80,6 @@
         :label="$t('topoManager.workArea.table.proxyCount')"
         field="proxy_count"
         show-overflow="tooltip"
-        sortable
         :min-width="180">
         <template #default="{ row }">
           <span class="!text-[12px]">
@@ -91,7 +91,6 @@
         :label="$t('topoManager.workArea.table.agentCount')"
         field="agent_count"
         show-overflow="tooltip"
-        sortable
         :min-width="180">
         <template #default="{ row }">
           <span class="!text-[12px]">
@@ -121,7 +120,7 @@
 
 <script lang="ts" setup>
 import { Button, InfoBox, Loading } from 'bkui-vue';
-import { reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -129,7 +128,6 @@ import { Table, TableColumn } from '@blueking/table';
 
 import { vendorMap } from '../vendorMap';
 
-import usePage from '@/composables/use-page';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
 import type { INetWorkArea } from '@/stores/workarea';
@@ -141,7 +139,7 @@ interface IProps {
 }
 const props = defineProps<IProps>();
 
-const emit = defineEmits(['edit']);
+const emit = defineEmits(['edit', 'filter']);
 
 const tableData = ref(props.list);
 const { t } = useI18n();
@@ -149,8 +147,19 @@ const router = useRouter();
 const workareaStore = useWorkareaStore();
 const sortConfig = ref({ multiple: true });
 
-// 分页
-const { pagination } = usePage(tableData);
+// 分页 - 使用store中的前端分页配置
+const pagination = computed(() => workareaStore.frontPagination);
+
+const pageLimitChange = async (limit: number) => {
+  workareaStore.frontPageConf.limit = limit;
+  workareaStore.frontPageConf.current = 1; // 页码重置为1
+  await workareaStore.handleFetchCurrentPageStatistics();
+};
+
+const pageValueChange = async (current: number) => {
+  workareaStore.frontPageConf.current = current;
+  await workareaStore.handleFetchCurrentPageStatistics();
+};
 
 // table setting逻辑
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
@@ -177,9 +186,8 @@ const filterOption = reactive<{
   list: [],
   checked: [],
 });
-const handleColumnFilter = ({ checked }: { checked: string[] }) => {
-  filterOption.checked = checked;
-  handleFilter(checked);
+const handleColumnFilter = ({ checked, field }: { checked: string[]; field: string }) => {
+  emit('filter', { checked, field })
 };
 
 // 收藏管控区域
@@ -207,13 +215,13 @@ const handleCollect = (val: number) => {
 };
 
 // 改变includeConditions 重新请求table data
-const handleFilter = (currentChecked: string[]) => {
-  if (currentChecked.length === 0) {
-    tableData.value = props.list;
-    return;
-  }
-  tableData.value = tableData.value.filter(item => currentChecked.includes(parseInt(item.cloud_vendor)));
-};
+// const handleFilter = (currentChecked: string[]) => {
+//   if (currentChecked.length === 0) {
+//     tableData.value = props.list;
+//     return;
+//   }
+//   tableData.value = tableData.value.filter(item => currentChecked.includes(parseInt(item.cloud_vendor)));
+// };
 
 // table height逻辑
 // 52(顶部导航)+52(二级导航)+24*2(content-padding)+32(flex-row)+16(table-margin-top)

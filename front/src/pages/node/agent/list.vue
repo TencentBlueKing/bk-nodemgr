@@ -393,8 +393,8 @@ const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_nam
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const total = computed(() => pagination.count);
-const networkAreaListMap = ref(new Map<number, string | number>([[-1, -1]]));
-const networkUnitListMap = ref(new Map<number, string | number>([[-1, -1]]));
+const networkAreaListMap = ref(new Map<number, string>([[-1, '未分配']]));
+const networkUnitListMap = ref(new Map<number, string>([[-1, '未分配']]));
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 
 const searchSelectData = computed(() => [
@@ -539,7 +539,7 @@ function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
 ) {
   const uniqueValues = hostDistinct.value?.[prop] || [];
   return uniqueValues
-    .filter((item: any) => item !== '' && item !== -1)
+    .filter((item: any) => item !== '')
     .map((value: any) => ({
       id: value,
       name: keyMap?.get(Number(value)) || String(value),

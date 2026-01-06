@@ -1,6 +1,7 @@
 import { keyBy } from 'lodash';
 import { defineStore } from 'pinia';
 import { onUpdated, reactive, ref } from 'vue';
+import usePage from '@/composables/use-page';
 
 import type {
   TopoEventListReq,
@@ -26,7 +27,12 @@ export const useWorkareaStore = defineStore('workarea', () => {
   const osTypeList = ref<string[]>([]);
   // const all
   const loading = ref(false);
-  const pagination = reactive({ count: 0, limit: 50, current: 1 });
+  const pagination = reactive({ count: 0, limit: 10, current: 1 });
+
+  const { 
+    pagination: frontPagination,
+    pageConf: frontPageConf,
+  } = usePage(workareaList);
 
   interface IncludeConditions {
     bk_networkarea_id: number[]; // 管控区域ID
@@ -59,8 +65,8 @@ export const useWorkareaStore = defineStore('workarea', () => {
           bk_networkarea_name: includeConditions.bk_networkarea_name,
         },
       });
-      workareaList.value = (result?.items as INetWorkArea[]) || [];
-      workareaList.value.sort((a: INetWorkArea, b: INetWorkArea) => {
+      const allWorkareaList = (result?.items as INetWorkArea[]) || [];
+      allWorkareaList.sort((a: INetWorkArea, b: INetWorkArea) => {
         // bk_networkarea_id为0的始终排在最前面
         if (a.bk_networkarea_id === 0) return -1;
         if (b.bk_networkarea_id === 0) return 1;
@@ -71,7 +77,16 @@ export const useWorkareaStore = defineStore('workarea', () => {
         if (!aIsFavorite && bIsFavorite) return 1;
         return b.bk_networkarea_id - a.bk_networkarea_id;
       });
+      
+      // 设置所有数据到store
+      workareaList.value = allWorkareaList;
       pagination.count = result?.total || 0;
+      loading.value = false; // 立即结束加载，先渲染
+
+      // 异步获取当前页的统计信息
+      Promise.resolve().then(async () => {
+        await handleFetchCurrentPageStatistics();
+      });
     } catch (err) {
       console.error(err);
     } finally {
@@ -79,14 +94,41 @@ export const useWorkareaStore = defineStore('workarea', () => {
     }
   };
 
+  // 获取当前页的统计信息（不重新请求管控区域数据）
+  const handleFetchCurrentPageStatistics = async () => {
+    if (workareaList.value.length === 0) return;
+    
+    // 获取当前页的数据（分页切片）
+    const startIndex = (frontPageConf.current - 1) * frontPageConf.limit;
+    const endIndex = startIndex + frontPageConf.limit;
+    const currentPageData = workareaList.value.slice(startIndex, endIndex);
+    const currentPageWorkareaIds = currentPageData.map(item => item.bk_networkarea_id);
+    
+    if (currentPageWorkareaIds.length > 0) {
+      const countData = await handleFetchWorkareaInfoCount(currentPageWorkareaIds).catch(() => []);
+      const lookup = keyBy(countData, 'bk_networkarea_id');
+
+      // 只更新当前页的数据（触发响应式更新）
+      workareaList.value = workareaList.value.map(item => {
+        if (currentPageWorkareaIds.includes(item.bk_networkarea_id)) {
+          return {
+            ...item,
+            ...lookup[item.bk_networkarea_id],
+          };
+        }
+        return item;
+      });
+    }
+  };
+
   // 分页操作
   const pageLimitChange = async (limit: number) => {
     pagination.limit = limit;
-    await handleFetchWorkareaList();
+    await handleFetchCurrentPageStatistics();
   };
   const pageValueChange = async (current: number) => {
     pagination.current = current;
-    await handleFetchWorkareaList();
+    await handleFetchCurrentPageStatistics();
   };
 
   const handleDeleteWorkarea = async (bk_networkarea_id: number) => {
@@ -117,10 +159,12 @@ export const useWorkareaStore = defineStore('workarea', () => {
       // 先同步收藏状态，确保排序使用最新数据
       syncFavoriteWorkareaList();
 
-      // 1. 第一次请求：获取基础列表
+      // 1. 第一次请求：获取所有基础列表数据
       const result = await TopoService.NetworkAreaList(params);
-      workareaList.value = (result?.items as INetWorkArea[]) || [];
-      workareaList.value.sort((a: INetWorkArea, b: INetWorkArea) => {
+      const allWorkareaList = (result?.items as INetWorkArea[]) || [];
+      
+      // 排序所有数据
+      allWorkareaList.sort((a: INetWorkArea, b: INetWorkArea) => {
         // bk_networkarea_id为0的始终排在最前面
         if (a.bk_networkarea_id === 0) return -1;
         if (b.bk_networkarea_id === 0) return 1;
@@ -131,20 +175,16 @@ export const useWorkareaStore = defineStore('workarea', () => {
         if (!aIsFavorite && bIsFavorite) return 1;
         return b.bk_networkarea_id - a.bk_networkarea_id;
       });
+      
+      // 设置所有数据到store
+      workareaList.value = allWorkareaList;
       pagination.count = result?.total || 0;
       loading.value = false; // 立即结束加载，先渲染
 
-      // 2. 用微任务异步执行第二次请求（在当前同步任务后执行）
+      // 2. 用微任务异步执行第二次请求：只请求当前页的统计信息
+      // 异步获取当前页的统计信息
       Promise.resolve().then(async () => {
-        const workareaIds = workareaList.value.map(item => item.bk_networkarea_id);
-        const countData = await handleFetchWorkareaInfoCount(workareaIds).catch(() => []);
-        const lookup = keyBy(countData, 'bk_networkarea_id');
-
-        // 更新数据（触发响应式更新）
-        workareaList.value = workareaList.value.map(item => ({
-          ...item,
-          ...lookup[item.bk_networkarea_id],
-        }));
+        await handleFetchCurrentPageStatistics();
       });
     } catch (error) {
       workareaList.value = [];
@@ -251,6 +291,8 @@ export const useWorkareaStore = defineStore('workarea', () => {
     vendorList,
     osTypeList,
     favoriteWorkareaList,
+    frontPagination,
+    frontPageConf,
     pageLimitChange,
     pageValueChange,
     handleCreateWorkarea,
@@ -262,6 +304,7 @@ export const useWorkareaStore = defineStore('workarea', () => {
     handleFetchAllWorkUnit,
     handleFetchRecordList,
     handleFetchVendorAndOs,
+    handleFetchCurrentPageStatistics,
     syncFavoriteWorkareaList,
   };
 });

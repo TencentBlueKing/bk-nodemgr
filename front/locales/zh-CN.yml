@@ -92,7 +92,7 @@ platform:
         operateTime: 执行时间
         costTime: 总耗时
         status: 执行状态
-        count: 总数/成功/失败/忽略
+        count: 总数/成功/失败/超时
       button:
         hideAutoTask: 隐藏自动部署任务
       placeholder:

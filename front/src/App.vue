@@ -395,7 +395,9 @@ const filterOption = (input: any, options: {id: number, name: string}) => {
   const safeInput = String(input).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const safeId = String(options.id).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   
-  return options.name?.includes(safeInput) || String(input).includes(safeId);
+  // 使用正则表达式实现模糊匹配（不区分大小写）
+  const nameRegex = new RegExp(safeInput, 'i');
+  return options.name?.match(nameRegex) || String(input).includes(safeId);
 };
 // 设置title
 watch(appName, () => {

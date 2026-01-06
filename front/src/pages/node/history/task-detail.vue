@@ -111,7 +111,7 @@
         @page-limit-change="pageLimitChange"
         @page-value-change="pageValueChange"
       >
-        <template #prepend>
+        <!-- <template #prepend>
           <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
             <template v-if="isCrossPageSelection">
               已跨页全选 <span class="font-bold mx-1">{{ pagination.count - excludedIds.size }}</span> 条，
@@ -125,7 +125,7 @@
               </Button>
             </template>
           </div>
-        </template>
+        </template> -->
 
         <TableColumn width="80" fixed="left">
           <template #header>
@@ -139,7 +139,7 @@
                 <template #content>
                   <Dropdown.DropdownMenu>
                     <Dropdown.DropdownItem @click="handleSelectCurrentPage">本页全选</Dropdown.DropdownItem>
-                    <Dropdown.DropdownItem @click="handleSelectAllCrossPage">跨页全选</Dropdown.DropdownItem>
+                    <!-- <Dropdown.DropdownItem @click="handleSelectAllCrossPage">跨页全选</Dropdown.DropdownItem> -->
                   </Dropdown.DropdownMenu>
                 </template>
               </Dropdown>
@@ -223,7 +223,7 @@
               </template>
               <div>
                 <!-- eslint-disable-next-line max-len -->
-                <div v-if="row.latest_action_inst_brief_data.tags.includes('need_manual_exec_install_script')">
+                <div v-if="row.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script') && row.state === 'running'">
                   等待手动操作，查看
                   <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide(row)">操作指引</Button>
                 </div>
@@ -366,7 +366,8 @@ const reTryType = [
 ];
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
-const stateMinWidth = computed(() => (tableData.value.some(item => item.latest_action_inst_brief_data.tags.includes('need_manual_exec_install_script')) ? 240 : 120));
+const stateMinWidth = computed(() => (tableData.value.some(item =>
+  item.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script') && item.state === 'running') ? 240 : 120));
 
 // 当前任务状态
 const currentTaskStatus = computed(() => nodeManageStore.taskHistoryTableRowData.status);
@@ -377,12 +378,12 @@ const statusMap = computed(() => ({
   },
   failed: {
     text: '失败',
-    icon: 'terminated',
+    icon: 'failed',
     tagTheme: 'danger',
   },
   success: {
     text: '成功',
-    icon: 'running',
+    icon: 'success',
     tagTheme: 'success',
   },
   partial_failed: {
@@ -397,12 +398,12 @@ const statusMap = computed(() => ({
   },
   timeout: {
     text: '超时',
-    icon: 'warning',
+    icon: 'timeout',
     tagTheme: '',
   },
   init: {
     text: '初始化',
-    icon: 'unknown',
+    icon: 'incomplete',
     tagTheme: '',
   },
   terminated: {
@@ -411,7 +412,7 @@ const statusMap = computed(() => ({
   },
   launched: {
     text: '等待执行',
-    icon: 'unknown',
+    icon: 'incomplete',
   },
 }));
 const typeMap = computed(() => ({
@@ -526,16 +527,34 @@ const radioGroup = computed(() => [
     count: tableData.value.length,
   },
   {
-    icon: 'nodeman-icon nc-running status-icon',
+    icon: 'nodeman-icon nc-incomplete status-icon',
+    label: '未完成',
+    name: 'incomplete',
+    count: tableData.value.filter((item: { state: string }) => ['init ', 'launched', 'running'].includes(item.state)).length,
+  },
+  {
+    icon: 'nodeman-icon nc-success status-icon',
     label: '成功',
     name: 'success',
     count: tableData.value.filter((item: { state: string }) => item.state === 'success').length,
   },
   {
-    icon: 'nodeman-icon nc-terminated status-icon',
+    icon: 'nodeman-icon nc-failed status-icon',
     label: '失败',
     name: 'failed',
     count: tableData.value.filter((item: { state: string }) => item.state === 'failed').length,
+  },
+  {
+    icon: 'nodeman-icon nc-timeout status-icon',
+    label: '超时',
+    name: 'timeout',
+    count: tableData.value.filter((item: { state: string }) => item.state === 'timeout').length,
+  },
+  {
+    icon: 'nodeman-icon nc-terminated status-icon',
+    label: '被终止',
+    name: 'terminated',
+    count: tableData.value.filter((item: { state: string }) => item.state === 'terminated').length,
   },
 ]);
 const bussinessMap = computed(() => mainStore.businessList.map(item => ({
@@ -935,7 +954,7 @@ const handleTerminate = async (row: any) => {
 const handleBatchTerminate = async () => {
   const res = await serviceCaller.call('terminate', {
     workflow_id: route.params.taskId,
-    operation_ids: failedSelection.value.map(item => item.operation_id),
+    operation_ids: runningSelection.value.map(item => item.operation_id),
   }).catch(() => false);
   if (res !== false) {
     await getOperateList();
@@ -1007,13 +1026,14 @@ const getOperateList = async () => {
   }));
   pagination.count = res.total;
   const mapList = res.operations.map((item) => {
-    subTasksStatus.value?.push(item.latest_oper_inst_brief_data.life_cycle.state);
-    const endTime = item.latest_oper_inst_brief_data.life_cycle.end_time;
+    const briefData = item.latest_oper_inst_brief_data;
+    briefData && subTasksStatus.value?.push(briefData.life_cycle.state);
+    const endTime = briefData ? briefData.life_cycle.end_time : new Date().getTime();
     if (route.query.active === 'node') {
       return {
         ...item.node_deployment_info,
-        ...item.latest_oper_inst_brief_data.life_cycle,
-        latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
+        ...(briefData ? briefData.life_cycle : {}),
+        latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
         bk_host_innerip: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
         bk_host_innerip_v6: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
         bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
@@ -1028,8 +1048,8 @@ const getOperateList = async () => {
     } else {
       return {
         ...item.plugin_deployment_info,
-        ...item.latest_oper_inst_brief_data.life_cycle,
-        latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
+        ...(briefData ? briefData.life_cycle : {}),
+        latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
         bk_host_innerip: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
         bk_host_innerip_v6: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
         bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
@@ -1073,6 +1093,7 @@ const handleViewLog = async (row: any) => {
     },
     query: {
       active: route.query?.active,
+      status: route.query?.status,
     },
   });
 };
@@ -1180,17 +1201,47 @@ onBeforeUnmount(() => {
 }
 .nc-running {
   &::before {
-    background: #cbf0da;
     border-color: #2caf5e;
+    background: #cbf0da;
   }
 }
 .nc-terminated {
   &::before {
-    border-color: #ea3636;
-    background: #ffdddd;
+    border-color: #8E62D1;
+    background: #e0d2f4;
   }
 }
 .nc-warning {
+  &::before {
+    border-color: #ff9c01;
+    background: #fce5c0;
+  }
+}
+.nc-unknown {
+  &::before {
+    border-color: #b2b5bd;
+    background: #f0f1f5;
+  }
+}
+.nc-incomplete {
+  &::before {
+    border-color: #90A4B2;
+    background: #e2e7eb;
+  }
+}
+.nc-success {
+  &::before {
+    border-color: #2DCC56;
+    background: #cbf0da;
+  }
+}
+.nc-failed {
+  &::before {
+    border-color: #EF5350;
+    background: #f5cfcf;
+  }
+}
+.nc-timeout {
   &::before {
     border-color: #ff9c01;
     background: #fce5c0;

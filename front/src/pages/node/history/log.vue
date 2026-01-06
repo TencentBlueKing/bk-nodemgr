@@ -121,7 +121,7 @@
                   <div>
                     <!-- eslint-disable-next-line max-len -->
                     <div v-if="currentOperate.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script')
-                      && last_oper_inst_step_key === row.stepKey">
+                      && last_oper_inst_step_key === row.stepKey && currentOperate.state === 'running'">
                       等待手动操作，查看
                       <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide">操作指引</Button>
                     </div>
@@ -307,7 +307,8 @@ const operateList = ref<any[]>([]); // 子任务列表
 // 搜索过滤
 const filterIpOpearateList = computed(() => operateList.value.filter(item => !searchValue.value
     || item.bk_host_inner_list.includes(searchValue.value)
-    || item.plugin_name?.includes(searchValue.value)));
+    || item.plugin_name?.includes(searchValue.value)
+    || route.query.status === item.state));
 
 const searchValue = ref();
 const currentOperate = computed(() => operateList.value.find(item => isNode.value
@@ -342,19 +343,19 @@ const statusMap = {
   },
   failed: {
     text: '执行失败',
-    icon: 'terminated',
+    icon: 'failed',
   },
   timeout: {
     text: '超时',
-    icon: 'warning',
+    icon: 'timeout',
   },
   success: {
     text: '执行成功',
-    icon: 'running',
+    icon: 'success',
   },
   skipped: {
-    text: '执行成功',
-    icon: 'running',
+    text: '跳过',
+    icon: 'unknown',
   },
   pending: {
     text: '等待执行',
@@ -366,11 +367,11 @@ const statusMap = {
   },
   launched: {
     text: '等待执行',
-    icon: 'unknown',
+    icon: 'incomplete',
   },
   init: {
     text: '初始化',
-    icon: 'unknown',
+    icon: 'incomplete',
   },
 };
 const typeMap = computed(() => ({
@@ -587,23 +588,29 @@ const getOperateList = async () => {
   }));
   operateLoading.value = false;
   if (route.query.active === 'node') {
-    operateList.value = res.operations.map(item => ({
-      ...item.node_deployment_info,
-      ...item.latest_oper_inst_brief_data.life_cycle,
-      latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
-      bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
-      bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
-      operation_id: item.operation_id,
-    }));
+    operateList.value = res.operations.map(item => {
+      const briefData = item.latest_oper_inst_brief_data;
+      return {
+        ...item.node_deployment_info,
+        ...(briefData ? briefData.life_cycle : {}),
+        latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
+        bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
+        bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
+        operation_id: item.operation_id,
+      }
+    });
   } else {
-    operateList.value = res.operations.map(item => ({
-      ...item.plugin_deployment_info,
-      ...item.latest_oper_inst_brief_data.life_cycle,
-      latest_action_inst_brief_data: item.latest_oper_inst_brief_data.latest_action_inst_brief_data,
-      bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
-      bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
-      operation_id: item.operation_id,
-    }));
+    operateList.value = res.operations.map(item => {
+      const briefData = item.latest_oper_inst_brief_data;
+      return {
+        ...item.plugin_deployment_info,
+        ...(briefData ? briefData.life_cycle : {}),
+        latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
+        bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
+        bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
+        operation_id: item.operation_id,
+      }
+    });
   }
 };
 
@@ -755,19 +762,19 @@ onMounted(async () => {
 }
 .nc-running {
   &::before {
-    background: #cbf0da;
     border-color: #2caf5e;
+    background: #cbf0da;
   }
 }
 .nc-terminated {
   &::before {
-    border-color: #ea3636;
-    background: #ffdddd;
+    border-color: #8E62D1;
+    background: #e0d2f4;
   }
 }
 .nc-warning {
   &::before {
-    border-color: #f59500;
+    border-color: #ff9c01;
     background: #fce5c0;
   }
 }
@@ -777,7 +784,30 @@ onMounted(async () => {
     background: #f0f1f5;
   }
 }
-
+.nc-incomplete {
+  &::before {
+    border-color: #90A4B2;
+    background: #e2e7eb;
+  }
+}
+.nc-success {
+  &::before {
+    border-color: #2DCC56;
+    background: #cbf0da;
+  }
+}
+.nc-failed {
+  &::before {
+    border-color: #EF5350;
+    background: #f5cfcf;
+  }
+}
+.nc-timeout {
+  &::before {
+    border-color: #ff9c01;
+    background: #fce5c0;
+  }
+}
 /* 滚动高亮动画样式 */
 .scroll-highlight-animation {
   animation: highlightPulse 1.5s ease-in-out 3;

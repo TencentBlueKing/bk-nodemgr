@@ -25,6 +25,7 @@
       :list="tableData"
       :vendor-list="workareaStore.vendorList"
       @edit="handleEditWorkarea"
+      @filter="handleFilter"
     />
     <UpsertWorkarea
       v-model:is-show="showUpsertWorkarea"
@@ -123,6 +124,29 @@ const initSearchData = () => {
     },
   ];
 };
+
+// 表头过滤
+const handleFilter = ({ checked, field }: { checked: string[]; field: string }) => {
+  const index = searchKey.value.findIndex((item: any) => item.id === field);
+  if (index > -1) searchKey.value.splice(index, 1);
+  if (checked.length) {
+    searchKey.value.push({
+      id: field === 'cloud_vendor' ? 'vendor' : field,
+      name: field === 'cloud_vendor' ? t('topoManager.workArea.search.vendor') : field,
+      values: checked.map((item: any) => {
+        let name = item;
+        let value_id = item;
+        if (field === 'cloud_vendor') {
+          value_id = workareaStore.vendorList[item];
+          const label = vendorMap[workareaStore.vendorList[item]]?.label;
+          name = label ? t(String(label)) : item;
+        }
+        return { id: value_id, name };
+      }),
+    });
+  }
+};
+
 // 后端端过滤数据
 watch(searchKey, async (newVal) => {
   workareaStore.includeConditions.bk_networkarea_name = [];
@@ -140,7 +164,7 @@ watch(searchKey, async (newVal) => {
   });
   await workareaStore.handleFetchWorkareaList();
   tableData.value = workareaStore.workareaList;
-});
+}, { deep: true });
 const getTableData = async () => {
   await Promise.all([
     workareaStore.handleGetAllWorkareaList(),
