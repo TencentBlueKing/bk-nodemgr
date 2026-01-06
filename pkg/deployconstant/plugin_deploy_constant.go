@@ -89,7 +89,7 @@ func populatePluginDefaultValues(conf *PluginDeployConf) {
 	env := system.GetEnv()
 
 	conf.DeployDir = tool.JoinPath(conf.OsType, conf.BaseDeployDir, env, pluginBaseDirName)
-	conf.WorkDir = tool.JoinPath(conf.OsType, conf.BaseWorkDir, env, pluginBaseDirName)
+	conf.WorkDir = tool.JoinPath(conf.OsType, conf.BaseWorkDir, env)
 
 	// HostIDPath is a special logic of CMDB that cannot be modified
 	if conf.OsType == criteria.OSWindows {
