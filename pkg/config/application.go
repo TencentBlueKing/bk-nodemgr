@@ -250,9 +250,9 @@ func (svc *ApplicationService) LoadFromEnv() error {
 	if err := envx.MustLoadString("NODEMAN_ETCD_PASSWORD", &svc.Etcd.Password); err != nil {
 		return err
 	}
-	_ = envx.LoadString("NODEMAN_ETCD_CERT", &svc.Etcd.Cert)
-	_ = envx.LoadString("NODEMAN_ETCD_KEY", &svc.Etcd.Key)
-	_ = envx.LoadString("NODEMAN_ETCD_CA", &svc.Etcd.Ca)
+	_ = envx.LoadString("NODEMAN_ETCD_CERT", &svc.Etcd.TLS.CertFile)
+	_ = envx.LoadString("NODEMAN_ETCD_KEY", &svc.Etcd.TLS.KeyFile)
+	_ = envx.LoadString("NODEMAN_ETCD_CA", &svc.Etcd.TLS.CAFile)
 
 	// mongodb.
 	var mongoDBHosts string

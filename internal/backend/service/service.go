@@ -13,6 +13,7 @@ package service
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -413,10 +414,27 @@ func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {
 }
 
 func (svc *Service) newRedisClient() (*redis.Client, error) {
+	var tlsConfig *tls.Config
+	if svc.conf.Redis.TLS.CAFile != "" && svc.conf.Redis.TLS.CertFile != "" && svc.conf.Redis.TLS.KeyFile != "" {
+		sslConf := &ssl.TLSConfig{
+			CAFile:   svc.conf.Redis.TLS.CAFile,
+			CertFile: svc.conf.Redis.TLS.CertFile,
+			KeyFile:  svc.conf.Redis.TLS.KeyFile,
+			Password: svc.conf.Redis.TLS.Password,
+		}
+
+		var err error
+		tlsConfig, err = sslConf.NewClientTLSConf()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create tls config: %w", err)
+		}
+	}
+
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", svc.conf.Redis.Host, svc.conf.Redis.Port),
-		Password: svc.conf.Redis.Password,
-		DB:       svc.conf.Redis.DB,
+		Addr:      fmt.Sprintf("%s:%d", svc.conf.Redis.Host, svc.conf.Redis.Port),
+		Password:  svc.conf.Redis.Password,
+		DB:        svc.conf.Redis.DB,
+		TLSConfig: tlsConfig,
 	})
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
@@ -451,6 +469,22 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 		return nil, fmt.Errorf("failed to create mongo service: %w", err)
 	}
 
+	var tlsConfig *tls.Config
+	if svc.conf.MongoDB.TLS.CAFile != "" && svc.conf.MongoDB.TLS.CertFile != "" && svc.conf.MongoDB.TLS.KeyFile != "" {
+		sslConf := &ssl.TLSConfig{
+			CAFile:   svc.conf.MongoDB.TLS.CAFile,
+			CertFile: svc.conf.MongoDB.TLS.CertFile,
+			KeyFile:  svc.conf.MongoDB.TLS.KeyFile,
+			Password: svc.conf.MongoDB.TLS.Password,
+		}
+
+		var err error
+		tlsConfig, err = sslConf.NewClientTLSConf()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create tls config: %w", err)
+		}
+	}
+
 	mongoClient, err := mongo.Connect(
 		contextx.Background(),
 		&mongoOptions.ClientOptions{
@@ -463,6 +497,7 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 				PasswordSet:   true,
 			},
 			Hosts:          svc.conf.MongoDB.Hosts,
+			TLSConfig:      tlsConfig,
 			ReadPreference: readpref.SecondaryPreferred(),
 			Monitor:        otelmongo.NewMonitor(otelmongo.WithTracerProvider(mongoSvc.TracerProvider())),
 		},
@@ -648,6 +683,7 @@ func (svc *Service) registerInfoServer() error {
 			Name:             string(discover.EndpointNameBackendInfo),
 			IP:               svc.conf.InfoServer.BindIP,
 			Port:             svc.conf.InfoServer.Port,
+			TLSConfig:        svc.conf.InfoServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.InfoServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.InfoServer.TraceSampleRate,
@@ -710,6 +746,7 @@ func (svc *Service) registerAdminServer() error {
 			Name:             string(discover.EndpointNameBackendAdmin),
 			IP:               svc.conf.AdminServer.BindIP,
 			Port:             svc.conf.AdminServer.Port,
+			TLSConfig:        svc.conf.AdminServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.AdminServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.AdminServer.TraceSampleRate,
@@ -751,6 +788,7 @@ func (svc *Service) registerBasicServer() error {
 			Name:             string(discover.EndpointNameBackendBasic),
 			IP:               svc.conf.BasicServer.BindIP,
 			Port:             svc.conf.BasicServer.Port,
+			TLSConfig:        svc.conf.BasicServer.TLSConfig,
 			RequestIDSetter:  apigwserver.NewBKAPIRequestIDSetter(),
 			TraceServiceName: svc.conf.BasicServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
@@ -781,6 +819,7 @@ func (svc *Service) registerCallbackServer() error {
 			Name:             string(discover.EndpointNameBackendCallback),
 			IP:               svc.conf.CallbackServer.BindIP,
 			Port:             svc.conf.CallbackServer.Port,
+			TLSConfig:        svc.conf.CallbackServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.CallbackServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.CallbackServer.TraceSampleRate,
@@ -810,6 +849,7 @@ func (svc *Service) registerProxyServer() error {
 			Name:             string(discover.EndpointNameBackendPorxy),
 			IP:               svc.conf.ProxyServer.BindIP,
 			Port:             svc.conf.ProxyServer.Port,
+			TLSConfig:        svc.conf.ProxyServer.TLSConfig,
 			TraceServiceName: svc.conf.ProxyServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.ProxyServer.TraceSampleRate,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),

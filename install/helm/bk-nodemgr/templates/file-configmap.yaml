@@ -48,9 +48,17 @@ data:
       endpoints: {{ .Values.externalEtcd.endpoints | toYaml | nindent 6 }}
       username: {{ .Values.externalEtcd.username }}
       password: {{ .Values.externalEtcd.password }}
-      ca: {{ .Values.externalEtcd.ca }}
-      cert: {{ .Values.externalEtcd.cert }}
-      key: {{ .Values.externalEtcd.key }}
+      tls:
+        {{- if len .Values.externalEtcd.tls.ca }}
+        caFile: {{ .Values.common.certPath }}/etcdca.crt
+        certFile: {{ .Values.common.certPath }}/etcd.crt
+        keyFile: {{ .Values.common.certPath }}/etcd.key
+        password: {{ .Values.externalEtcd.tls.password }}
+        {{- else if len .Values.externalEtcd.tls.secretName }}
+        "caFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCaFileName }}",
+        "certFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretCertFileName }}",
+        "keyFile": "{{ .Values.common.certPath }}/{{ .Values.externalEtcd.tls.secretKeyFileName }}",
+        {{- end}}
       {{- end}}
 
     mongodb:
@@ -71,6 +79,17 @@ data:
       database: {{ .Values.externalMongodb.database }}
       authSource: {{ .Values.externalMongodb.authSource }}
       authMechanism: {{ .Values.externalMongodb.authMechanism }}
+      tls:
+        {{- if len .Values.externalMongodb.tls.ca }}
+        caFile: {{ .Values.common.certPath }}/mongoca.crt
+        certFile: {{ .Values.common.certPath }}/mongo.crt
+        keyFile: {{ .Values.common.certPath }}/mongo.key
+        password: {{ .Values.externalMongodb.tls.password }}
+        {{- else if len .Values.externalMongodb.tls.secretName }}
+        "caFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCaFileName }}",
+        "certFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretCertFileName }}",
+        "keyFile": "{{ .Values.common.certPath }}/{{ .Values.externalMongodb.tls.secretKeyFileName }}",
+        {{- end}}
       {{- end}}
       traceServiceName: {{ .Values.file.config.mongodb.traceServiceName }}
       traceSampleRate: {{ .Values.file.config.mongodb.traceSampleRate }}

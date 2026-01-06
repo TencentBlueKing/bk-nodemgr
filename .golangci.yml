@@ -429,7 +429,7 @@ linters-settings:
     ignore-calls: true
     # Exclude strings matching the given regular expression.
     # Default: ""
-    ignore-strings: 'foo.+'
+    ignore-strings: "foo.+"
   gocyclo:
     # Maximal code complexity to report.
     # Default: 30 (but we recommend 10-20)
@@ -458,7 +458,7 @@ linters-settings:
     # To select a subset of rules to run.
     # Available rules: https://github.com/securego/gosec#available-rules
     # Default: [] - means include all rules
-    includes: [ ]
+    includes: []
     # To specify a set of rules to explicitly exclude.
     # Available rules: https://github.com/securego/gosec#available-rules
     # Default: []
@@ -597,6 +597,7 @@ linters-settings:
       - m *serverMessager
       - c Context
       - o *Option
+      - c TLSConfig
   whitespace:
     # Enforces newlines (or comments) after every multi-line if statement.
     # Default: false

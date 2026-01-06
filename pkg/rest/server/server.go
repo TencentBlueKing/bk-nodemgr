@@ -18,8 +18,10 @@ import (
 	"path"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	restmetrics "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/metrics"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
 )
@@ -120,6 +122,7 @@ type Options struct {
 	Port             int
 	RequestIDSetter  IRequestIDSetter
 	StaticOptions    *StaticOptions
+	TLSConfig        config.TLSConfig
 	TraceServiceName string
 	TraceSampleRate  float64
 }
@@ -199,11 +202,40 @@ func NewServer(ctx context.Context, opts Options, apiOptFns ...OptionFunc) (*Ser
 // Start starts the router.
 func (svr *Server) Start() error {
 	addr := fmt.Sprintf("%s:%d", svr.opts.IP, svr.opts.Port)
-	if err := svr.engine.Run(addr); err != nil {
-		return err
+
+	// tls server.
+	if svr.opts.TLSConfig.CAFile != "" && svr.opts.TLSConfig.CertFile != "" && svr.opts.TLSConfig.KeyFile != "" {
+		return svr.startWithTLS(addr)
 	}
 
-	return nil
+	return svr.startWithoutTLS(addr)
+}
+
+func (svr *Server) startWithoutTLS(addr string) error {
+	return svr.engine.Run(addr)
+}
+
+func (svr *Server) startWithTLS(addr string) error {
+	conf := &ssl.TLSConfig{
+		InsecureSkipVerify: svr.opts.TLSConfig.InsecureSkipVerify,
+		VerifyClient:       svr.opts.TLSConfig.VerifyClient,
+		CertFile:           svr.opts.TLSConfig.CertFile,
+		KeyFile:            svr.opts.TLSConfig.KeyFile,
+		CAFile:             svr.opts.TLSConfig.CAFile,
+		Password:           svr.opts.TLSConfig.Password,
+	}
+	tlsConfig, err := conf.NewServerTLSConf()
+	if err != nil {
+		return fmt.Errorf("failed to create server tls config: %w", err)
+	}
+
+	server := &http.Server{
+		Addr:      addr,
+		Handler:   svr.engine.Handler(),
+		TLSConfig: tlsConfig,
+	}
+
+	return server.ListenAndServeTLS("", "")
 }
 
 // Name returns the router name.

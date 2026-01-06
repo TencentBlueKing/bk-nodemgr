@@ -360,14 +360,15 @@ func (provider *ProviderEtcd) Deregister(serviceName discover.ServiceName, insta
 var errNotTLS = errors.New("not tls")
 
 func (provider *ProviderEtcd) initTLS() (*tls.Config, error) {
-	if provider.config.Ca == "" || provider.config.Cert == "" || provider.config.Key == "" {
+	if provider.config.TLS.CAFile == "" || provider.config.TLS.CertFile == "" || provider.config.TLS.KeyFile == "" {
 		return nil, errNotTLS
 	}
 
 	tlsConf := &ssl.TLSConfig{
-		CAFile:   provider.config.Ca,
-		CertFile: provider.config.Cert,
-		KeyFile:  provider.config.Key,
+		CAFile:   provider.config.TLS.CAFile,
+		CertFile: provider.config.TLS.CertFile,
+		KeyFile:  provider.config.TLS.KeyFile,
+		Password: provider.config.TLS.Password,
 	}
 
 	if err := tlsConf.Validate(); err != nil {

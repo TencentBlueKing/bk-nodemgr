@@ -10,4 +10,26 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 data:
-  
+  ca.crt: {{ .Values.certData.ca | b64dec | quote }}
+  server.crt: {{ .Values.certData.cert | b64dec | quote }}
+  server.key: {{ .Values.certData.key | b64dec | quote }}
+  api_client.crt: {{ .Values.certData.apiClient.cert | b64dec | quote }}
+  api_client.key: {{ .Values.certData.apiClient.key | b64dec | quote }}
+  {{- if len .Values.externalRedis.tls.ca }}
+  redisca.crt: {{ .Values.externalRedis.tls.ca | b64dec | quote }}
+  redis.crt: {{ .Values.externalRedis.tls.cert | b64dec | quote }}
+  redis.key: {{ .Values.externalRedis.tls.key | b64dec | quote }}
+  {{- end }}
+  {{- if len .Values.externalMongodb.tls.ca }}
+  mongoca.crt: {{ .Values.externalMongodb.tls.ca | b64dec | quote }}
+  mongo.crt: {{ .Values.externalMongodb.tls.cert | b64dec | quote }}
+  mongo.key: {{ .Values.externalMongodb.tls.key | b64dec | quote }}
+  {{- end }}
+  {{- if len .Values.externalEtcd.tls.ca }}
+  etcdca.crt: {{ .Values.externalEtcd.tls.ca | b64dec | quote }}
+  etcd.crt: {{ .Values.externalEtcd.tls.cert | b64dec | quote }}
+  etcd.key: {{ .Values.externalEtcd.tls.key | b64dec | quote }}
+  {{- end }}
+  {{- if .Values.bkApigatewayPublicKey }}
+  apigw_jwt.crt: {{ .Values.bkApigatewayPublicKey | b64dec | quote }}
+  {{- end }}

@@ -12,7 +12,7 @@ global:
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  imagePullSecrets: [ ]
+  imagePullSecrets: []
   storageClass: ""
 
 ## @section Common parameters
@@ -28,13 +28,13 @@ nameOverride: ""
 fullnameOverride: ""
 ## @param commonLabels Labels to add to all deployed objects
 ##
-commonLabels: { }
+commonLabels: {}
 ## @param commonAnnotations Annotations to add to all deployed objects
 ##
-commonAnnotations: { }
+commonAnnotations: {}
 ## @param extraDeploy Array of extra objects to deploy with the release
 ##
-extraDeploy: [ ]
+extraDeploy: []
 
 image:
   registry: "hub.bktencent.com"
@@ -52,7 +52,7 @@ image:
   ## pullSecrets:
   ##   - myRegistryKeySecretName
   ##
-  pullSecrets: [ ]
+  pullSecrets: []
 
 ## @param extraEnvVars Array with extra environment variables to add to the bk-nodemgr container
 ## e.g:
@@ -60,7 +60,7 @@ image:
 ##   - name: FOO
 ##     value: "bar"
 ##
-extraEnvVars: [ ]
+extraEnvVars: []
 
 ## @param extraEnvVarsCM Name of existing ConfigMap containing extra env vars
 ##
@@ -104,13 +104,13 @@ serviceAccount:
 ## @param hostAliases [array] bk-nodemgr pod host aliases
 ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
 ##
-hostAliases: [ ]
+hostAliases: []
 ## @param extraVolumes Optionally specify extra list of additional volumes for bk-nodemgr pods
 ##
-extraVolumes: [ ]
+extraVolumes: []
 ## @param extraVolumeMounts Optionally specify extra list of additional volumeMounts for bk-nodemgr container(s)
 ##
-extraVolumeMounts: [ ]
+extraVolumeMounts: []
 ## @param sidecars Add additional sidecar containers to the bk-nodemgr pod
 ## e.g:
 ## sidecars:
@@ -121,7 +121,7 @@ extraVolumeMounts: [ ]
 ##       - name: portname
 ##         containerPort: 1234
 ##
-sidecars: [ ]
+sidecars: []
 ## @param initContainers Add additional init containers to the bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
 ## e.g:
@@ -131,7 +131,7 @@ sidecars: [ ]
 ##    imagePullPolicy: Always
 ##    command: ['sh', '-c', 'copy addons from git and push to /bk-nodemgr/addons. Should work with extraVolumeMounts and extraVolumes']
 ##
-initContainers: [ ]
+initContainers: []
 
 ## @param initContainerResources init container resources.
 initContainerResources:
@@ -145,11 +145,11 @@ initContainerResources:
 ## @param podLabels Extra labels for bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
-podLabels: { }
+podLabels: {}
 ## @param podAnnotations Annotations for bk-nodemgr pods
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
 ##
-podAnnotations: { }
+podAnnotations: {}
 ## @param podAffinityPreset Pod affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
 ## ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
 ##
@@ -174,20 +174,20 @@ nodeAffinityPreset:
   ##   - e2e-az1
   ##   - e2e-az2
   ##
-  values: [ ]
+  values: []
 ## @param affinity Affinity for pod assignment
 ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
 ## NOTE: podAffinityPreset, podAntiAffinityPreset, and  nodeAffinityPreset will be ignored when it's set
 ##
-affinity: { }
+affinity: {}
 ## @param nodeSelector Node labels for pod assignment
 ## ref: https://kubernetes.io/docs/user-guide/node-selection/
 ##
-nodeSelector: { }
+nodeSelector: {}
 ## @param tolerations Tolerations for pod assignment
 ## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 ##
-tolerations: [ ]
+tolerations: []
 ##
 ## @param terminationGracePeriodSeconds Termination grace period in seconds
 ## ref: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes
@@ -264,10 +264,10 @@ readinessProbe:
 
 ## @param customLivenessProbe Custom livenessProbe that overrides the default one
 ##
-customLivenessProbe: { }
+customLivenessProbe: {}
 ## @param customReadinessProbe Custom readinessProbe that overrides the default one
 #
-customReadinessProbe: { }
+customReadinessProbe: {}
 
 ## bk-nodemgr Autoscaling configuration
 ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
@@ -337,9 +337,36 @@ externalEtcd:
     - "127.0.0.1:2379"
   username: ""
   password: ""
-  ca: ""
-  cert: ""
-  key: ""
+  ## external etcd service tls
+  tls:
+    ## @param secretName secret name.
+    ##
+    secretName: ""
+    ## @param secretCaFileName secret ca filename.
+    ##
+    secretCaFileName: ""
+    ## @param secretCertFileName secret cert filename.
+    ##
+    secretCertFileName: ""
+    ## @param secretKeyFileName secret key filename.
+    ##
+    secretKeyFileName: ""
+
+    ## @param content of the etcdca.crt
+    ## certificate package and encoded in base64
+    ##
+    ca: ""
+    ## @param content of the etcd.crt
+    ## certificate package and encoded in base64
+    ##
+    cert: ""
+    ## @param content of the etcd.key
+    ## certificate package and encoded in base64
+    ##
+    key: ""
+    ## @param value of the etcd cert password
+    ##
+    password: ""
 
 ## Redis chart configuration
 ## ref: https://github.com/bitnami/charts/blob/master/bitnami/redis/values.yaml
@@ -375,31 +402,60 @@ redis:
     ##
     enabled: false
 
-## If the redis cluster included in the chart is disabled, bk-nodemgr will use below
+## If the redis included in the chart is disabled, bk-nodemgr will use below
 ## parameters to connect to an external redis service.
 externalRedis:
-  ## external redis cluster service types('cluster' 'standalone' 'sentinel')
+  ## external redis service types('cluster' 'standalone' 'sentinel')
   ##
   type: "cluster"
-  ## external redis cluster service host name
+  ## external redis service host name
   ##
   host: ""
-  ## external redis cluster service port
+  ## external redis service port
   ##
   port: 6379
-  ## external redis cluster service user name
+  ## external redis service user name
   ##
   username: "default"
-  ## external redis cluster service password
+  ## external redis service password
   ##
   password: ""
-  ## external redis cluster service sentinel master name
+  ## external redis service sentinel master name
   ##
   sentinelMasterName: ""
-  ## external redis cluster service sentinel password
+  ## external redis service sentinel password
   ##
   sentinelPassword: ""
+  ## external redis service tls
+  tls:
+    ## @param secretName secret name.
+    ##
+    secretName: ""
+    ## @param secretCaFileName secret ca filename.
+    ##
+    secretCaFileName: ""
+    ## @param secretCertFileName secret cert filename.
+    ##
+    secretCertFileName: ""
+    ## @param secretKeyFileName secret key filename.
+    ##
+    secretKeyFileName: ""
 
+    ## @param content of the redisca.crt
+    ## certificate package and encoded in base64
+    ##
+    ca: ""
+    ## @param content of the redis.crt
+    ## certificate package and encoded in base64
+    ##
+    cert: ""
+    ## @param content of the redis.key
+    ## certificate package and encoded in base64
+    ##
+    key: ""
+    ## @param value of the redis cert password
+    ##
+    password: ""
 
 ## mongodb chart configuration
 ## ref: https://github.com/bitnami/charts/blob/master/bitnami/mongodb/values.yaml
@@ -490,9 +546,77 @@ externalMongodb:
   database: "nodemgr"
   authSource: "admin"
   authMechanism: "SCRAM-SHA-256"
+  ## external mongodb service tls
+  tls:
+    ## @param secretName secret name.
+    ##
+    secretName: ""
+    ## @param secretCaFileName secret ca filename.
+    ##
+    secretCaFileName: "etcdca.crt"
+    ## @param secretCertFileName secret cert filename.
+    ##
+    secretCertFileName: "etcd.crt"
+    ## @param secretKeyFileName secret key filename.
+    ##
+    secretKeyFileName: "etcd.key"
 
+    ## @param content of the mongoca.crt
+    ## certificate package and encoded in base64
+    ##
+    ca: ""
+    ## @param content of the mongo.crt
+    ## certificate package and encoded in base64
+    ##
+    cert: ""
+    ## @param content of the mongo.key
+    ## certificate package and encoded in base64
+    ##
+    key: ""
+    ## @param value of the mongo cert password
+    ##
+    password: ""
 
-## Nodeman application.
+## Nodemgr cert data.
+certData:
+  ## @param certData.ca the content of the ca.crt
+  ## certificate package and encoded in base64
+  ##
+  ca: ""
+
+  ## @param certData.cert the content of the server.crt
+  ## certificate package and encoded in base64
+  ##
+  cert: ""
+
+  ## @param certData.key the content of the server.key
+  ## certificate package and encoded in base64
+  ##
+  key: ""
+
+  ## @param certData.password the content of the password.key
+  ## certificate package and encoded in base64
+  ##
+  password: ""
+
+  ## client chart configurationm, used for api.
+  ##
+  apiClient:
+    ## @param certData.apiClient.cert the content of the api_client.crt
+    ## certificate package and encoded in base64
+    ##
+    cert: ""
+
+    ## @param certData.apiClient.key the content of the api_client.key
+    ## certificate package and encoded in base64
+    ##
+    key: ""
+
+## bk-apigateway public key.
+##
+bkApigatewayPublicKey: ""
+
+## Nodemgr application.
 ##
 application:
   ## @param application, enabled Enable application
@@ -505,14 +629,14 @@ application:
 
   ## @param podAnnotations module pod annotations,
   ## NOTE: would use root annotations configs when it's not set.
-  podAnnotations: { }
+  podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
   hostNetwork: false
 
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
-  nodeSelector: { }
+  nodeSelector: {}
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
@@ -678,7 +802,7 @@ application:
       # otlp headers
       otlpHeaders: {}
 
-## Nodeman backend.
+## Nodemgr backend.
 ##
 backend:
   ## @param backend, enabled Enable backend
@@ -691,14 +815,14 @@ backend:
 
   ## @param podAnnotations module pod annotations,
   ## NOTE: would use root annotations configs when it's not set.
-  podAnnotations: { }
+  podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
   hostNetwork: true
 
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
-  nodeSelector: { }
+  nodeSelector: {}
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
@@ -713,6 +837,17 @@ backend:
     requests:
       memory: 2048Mi
       cpu: 1000m
+
+  ## @param ingress support base on bk-bcs component,
+  ## it's not enabled as the default config.
+  ingress:
+    enabled: false
+    ## bk-bcs network extension lbid config.
+    lbid: ""
+    ## bk-bcs network lb policy: WRR, LEAST_CONN
+    lbPolicy: WRR
+    ## bk-bcs network direct connect mode.
+    isDirectConnect: true
 
   ## @param configs module configs
   ##
@@ -914,7 +1049,7 @@ backend:
         caFile: ""
         # the password to decrypt the certificate.
         password: ""
-        
+
     creditVault:
       hostCreditVault:
         enable: false
@@ -1039,7 +1174,7 @@ backend:
       # otlp headers
       otlpHeaders: {}
 
-## Nodeman file
+## Nodemgr file
 ##
 file:
   ## @param enabled Enable file
@@ -1052,14 +1187,14 @@ file:
 
   ## @param podAnnotations module pod annotations,
   ## NOTE: would use root annotations configs when it's not set.
-  podAnnotations: { }
+  podAnnotations: {}
 
   ## @param hostNetwork module host network mode config.
   hostNetwork: true
 
   ## @param nodeSelector specify node labels for task pod assignment.
   ## NOTE: will be combined with the top nodeSelector in values.
-  nodeSelector: { }
+  nodeSelector: {}
 
   ## @param terminationGracePeriodSeconds module pod termination grace period
   ## NOTE: would use root terminationGracePeriodSeconds if it's not set.
@@ -1205,7 +1340,7 @@ file:
       # otlp headers
       otlpHeaders: {}
 
-## Nodeman apigw-sync
+## Nodemgr apigw-sync
 apigwSync:
   enabled: false
   repository: "bk-nodemgr-apigw-sync"

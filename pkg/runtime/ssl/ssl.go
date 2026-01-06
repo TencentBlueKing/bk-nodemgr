@@ -29,6 +29,10 @@ type TLSConfig struct {
 	// This should be used only for testing.
 	InsecureSkipVerify bool
 
+	// VerifyClient controls whether a server requests a certificate from a client.
+	// If TLSConfig is used in client side, this field is ignored.
+	VerifyClient bool
+
 	// CertFile authentication certificate file.
 	CertFile string
 
@@ -92,7 +96,11 @@ func (c TLSConfig) NewServerTLSConf() (*tls.Config, error) {
 	conf := &tls.Config{
 		ClientCAs:    caPool,
 		Certificates: []tls.Certificate{*cert},
-		ClientAuth:   tls.RequireAndVerifyClientCert,
+		MinVersion:   tls.VersionTLS12,
+	}
+
+	if c.VerifyClient {
+		conf.ClientAuth = tls.RequireAndVerifyClientCert
 	}
 
 	return conf, nil
@@ -118,7 +126,7 @@ func loadCertificates(certFile, keyFile, passwd string) (*tls.Certificate, error
 		return nil, err
 	}
 
-	if "" != passwd {
+	if passwd != "" {
 		priPem, _ := pem.Decode(priKey)
 		if priPem == nil {
 			return nil, fmt.Errorf("decode private key failed")

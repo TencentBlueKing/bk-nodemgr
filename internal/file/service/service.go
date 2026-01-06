@@ -13,6 +13,7 @@ package service
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -214,6 +215,22 @@ func (svc *Service) newBKRepoHandler() (bkrepo.IHandler, error) {
 }
 
 func (svc *Service) newMongoClient() (*mongo.Client, error) {
+	var tlsConfig *tls.Config
+	if svc.conf.MongoDB.TLS.CAFile != "" && svc.conf.MongoDB.TLS.CertFile != "" && svc.conf.MongoDB.TLS.KeyFile != "" {
+		sslConf := &ssl.TLSConfig{
+			CAFile:   svc.conf.MongoDB.TLS.CAFile,
+			CertFile: svc.conf.MongoDB.TLS.CertFile,
+			KeyFile:  svc.conf.MongoDB.TLS.KeyFile,
+			Password: svc.conf.MongoDB.TLS.Password,
+		}
+
+		var err error
+		tlsConfig, err = sslConf.NewClientTLSConf()
+		if err != nil {
+			return nil, fmt.Errorf("failed to create tls config: %w", err)
+		}
+	}
+
 	mongoClient, err := mongo.Connect(
 		contextx.Background(),
 		&mongoOptions.ClientOptions{
@@ -227,6 +244,7 @@ func (svc *Service) newMongoClient() (*mongo.Client, error) {
 			},
 			Hosts:          svc.conf.MongoDB.Hosts,
 			ReadPreference: readpref.SecondaryPreferred(),
+			TLSConfig:      tlsConfig,
 		},
 	)
 	if err != nil {
@@ -419,6 +437,7 @@ func (svc *Service) registerInfoServer() error {
 			Name:             string(discover.EndpointNameFileInfo),
 			IP:               svc.conf.InfoServer.BindIP,
 			Port:             svc.conf.InfoServer.Port,
+			TLSConfig:        svc.conf.InfoServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.InfoServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.InfoServer.TraceSampleRate,
@@ -460,6 +479,7 @@ func (svc *Service) registerAdminServer() error {
 			Name:             string(discover.EndpointNameFileAdmin),
 			IP:               svc.conf.AdminServer.BindIP,
 			Port:             svc.conf.AdminServer.Port,
+			TLSConfig:        svc.conf.AdminServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.AdminServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.AdminServer.TraceSampleRate,
@@ -501,6 +521,7 @@ func (svc *Service) registerBasicServer() error {
 			Name:             string(discover.EndpointNameFileBasic),
 			IP:               svc.conf.BasicServer.BindIP,
 			Port:             svc.conf.BasicServer.Port,
+			TLSConfig:        svc.conf.BasicServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.BasicServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.BasicServer.TraceSampleRate,
@@ -541,6 +562,7 @@ func (svc *Service) registerDownloadServer() error {
 			Name:             string(discover.EndpointNameFileDownload),
 			IP:               svc.conf.DownloadServer.BindIP,
 			Port:             svc.conf.DownloadServer.Port,
+			TLSConfig:        svc.conf.DownloadServer.TLSConfig,
 			RequestIDSetter:  restserver.NewRequestIDSetter(),
 			TraceServiceName: svc.conf.DownloadServer.TraceServiceName,
 			TraceSampleRate:  svc.conf.DownloadServer.TraceSampleRate,

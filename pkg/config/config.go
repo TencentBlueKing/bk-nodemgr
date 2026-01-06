@@ -18,12 +18,10 @@ import (
 
 // Etcd the config of etcd.
 type Etcd struct {
-	Endpoints []string `yaml:"endpoints" usage:"endpoints of etcd"`
-	Username  string   `yaml:"username" usage:"username of etcd"`
-	Password  string   `yaml:"password" usage:"password of etcd"`
-	Cert      string   `yaml:"cert" usage:"cert file of etcd"`
-	Key       string   `yaml:"key" usage:"key file for etcd"`
-	Ca        string   `yaml:"ca" usage:"ca file for etcd"`
+	Endpoints []string  `yaml:"endpoints" usage:"endpoints of etcd"`
+	Username  string    `yaml:"username" usage:"username of etcd"`
+	Password  string    `yaml:"password" usage:"password of etcd"`
+	TLS       TLSConfig `yaml:"tls" usage:"tls of etcd"`
 }
 
 // Validate configures the config.
@@ -32,8 +30,8 @@ func (conf Etcd) Validate() error {
 		return errors.New("endpoints of etcd is empty")
 	}
 
-	if (len(conf.Cert) == 0) != (len(conf.Key) == 0) {
-		return errors.New("cert file and key file must be both empty or both not empty")
+	if err := conf.TLS.Validate(); err != nil {
+		return err
 	}
 
 	return nil
@@ -41,10 +39,11 @@ func (conf Etcd) Validate() error {
 
 // Redis the config of redis.
 type Redis struct {
-	Host         string `yaml:"host" usage:"host of redis"`
-	Port         int    `yaml:"port" usage:"port of redis"`
-	Password     string `yaml:"password" usage:"password of redis"`
-	DB           int    `yaml:"db" usage:"db of redis"`
+	Host         string    `yaml:"host" usage:"host of redis"`
+	Port         int       `yaml:"port" usage:"port of redis"`
+	Password     string    `yaml:"password" usage:"password of redis"`
+	DB           int       `yaml:"db" usage:"db of redis"`
+	TLS          TLSConfig `yaml:"tls" usage:"tls of redis"`
 	TraceService `yaml:",inline"`
 }
 
@@ -66,18 +65,23 @@ func (conf Redis) Validate() error {
 		return errors.New("password of redis is empty")
 	}
 
+	if err := conf.TLS.Validate(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // MongoDB the config of mongodb.
 type MongoDB struct {
-	AppName       string   `yaml:"appName" usage:"app name of mongodb"`
-	Hosts         []string `yaml:"hosts" usage:"hosts list of mongodb"`
-	Username      string   `yaml:"username" usage:"user of mongodb"`
-	Password      string   `yaml:"password" usage:"password of mongodb"`
-	Database      string   `yaml:"database" usage:"database of mongodb"`
-	AuthSource    string   `yaml:"authSource" usage:"auth source of mongodb"`
-	AuthMechanism string   `yaml:"authMechanism" usage:"auth mechanism of mongodb"`
+	AppName       string    `yaml:"appName" usage:"app name of mongodb"`
+	Hosts         []string  `yaml:"hosts" usage:"hosts list of mongodb"`
+	Username      string    `yaml:"username" usage:"user of mongodb"`
+	Password      string    `yaml:"password" usage:"password of mongodb"`
+	Database      string    `yaml:"database" usage:"database of mongodb"`
+	AuthSource    string    `yaml:"authSource" usage:"auth source of mongodb"`
+	AuthMechanism string    `yaml:"authMechanism" usage:"auth mechanism of mongodb"`
+	TLS           TLSConfig `yaml:"tls" usage:"tls of mongodb"`
 	TraceService  `yaml:",inline"`
 }
 
@@ -97,6 +101,10 @@ func (conf MongoDB) Validate() error {
 
 	if conf.Database == "" {
 		return errors.New("database of mongodb is empty")
+	}
+
+	if err := conf.TLS.Validate(); err != nil {
+		return err
 	}
 
 	return nil
@@ -193,6 +201,7 @@ type HTTPServer struct {
 	AuthIdentity    AuthIdentity    `yaml:"authIdentity" usage:"identity of auth"`
 	JWTServerConfig JWTServerConfig `yaml:"jwtServerConfig" usage:"JWT configuration for authentication"`
 	StaticDir       string          `yaml:"staticDir"`
+	TLSConfig       TLSConfig       `yaml:"tls"`
 	TraceService    `yaml:",inline"`
 }
 
@@ -454,17 +463,12 @@ func (repo Repo) Validate() error {
 
 // TLSConfig defines tls related options.
 type TLSConfig struct {
-	// Server should be accessed without verifying the TLS certificate.
-	// For testing only.
-	InsecureSkipVerify bool `yaml:"insecureSkipVerify"`
-	// Server requires TLS client certificate authentication
-	CertFile string `yaml:"certFile"`
-	// Server requires TLS client certificate authentication
-	KeyFile string `yaml:"keyFile"`
-	// Trusted root certificates for server
-	CAFile string `yaml:"caFile"`
-	// the password to decrypt the certificate
-	Password string `yaml:"password"`
+	InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
+	VerifyClient       bool   `yaml:"verifyClient"`
+	CAFile             string `yaml:"caFile"`
+	CertFile           string `yaml:"certFile"`
+	KeyFile            string `yaml:"keyFile"`
+	Password           string `yaml:"password"`
 }
 
 // Validate validates the config.
@@ -489,7 +493,7 @@ func (conf TLSConfig) Validate() error {
 	case len(conf.CertFile) == 0 && len(conf.CAFile) > 0:
 		return nil
 
-	// case2: two-way authentication
+	// case3: two-way authentication
 	case len(conf.CertFile) > 0 && len(conf.KeyFile) > 0:
 		return nil
 	default:
