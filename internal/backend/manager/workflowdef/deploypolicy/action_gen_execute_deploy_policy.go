@@ -134,7 +134,7 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 	}
 
 	// create trigger for handling execute deploy policy
-	meta := trigger.NewMetadataOnce()
+	meta := trigger.NewMetadataOrdered()
 	meta.CleanPolicy = trigger.MetadataCleanPolicy{
 		Namespace: std.InstanceData().TriggerID,
 		MaxNum:    10, // nolint: mnd
