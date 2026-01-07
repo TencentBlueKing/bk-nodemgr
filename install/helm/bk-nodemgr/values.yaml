@@ -536,9 +536,10 @@ externalMongodb:
   ## @param replicaSetName Name of the replica set
   ##
   replicaSetName: "rs0"
-  ## @param externalMongodb.hosts MongoDB&reg; service host, eg:ip:port,ip:port
+  ## @param externalMongodb.hosts MongoDB&reg; service host list, eg:ip:port
   ##
-  hosts: ""
+  hosts:
+    - ""
   ## MongoDB&reg; custom users and databases
   ## ref: https://github.com/bitnami/bitnami-docker-mongodb/blob/master/README.md#creating-users-and-databases-on-first-run
   username: "nodemgr"
@@ -651,6 +652,17 @@ application:
     requests:
       memory: 2048Mi
       cpu: 1000m
+
+  ## @param ingress support base on bk-bcs component,
+  ## it's not enabled as the default config.
+  ingress:
+    enabled: false
+    ## bk-bcs network extension lbid config.
+    lbid: ""
+    ## bk-bcs network lb policy: WRR, LEAST_CONN
+    lbPolicy: WRR
+    ## bk-bcs network direct connect mode.
+    isDirectConnect: true
 
   ## @param configs module configs
   ##

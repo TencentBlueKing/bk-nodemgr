@@ -111,8 +111,7 @@ data:
       authSource: {{ .Values.mongodb.auth.database }}
       authMechanism: SCRAM-SHA-256
       {{- else }}
-      hosts:
-        - {{ .Values.externalMongodb.hosts }}
+      hosts: {{ .Values.externalMongodb.hosts | toYaml | nindent 6}}
       username: {{ .Values.externalMongodb.username }}
       password: {{ .Values.externalMongodb.password }}
       database: {{ .Values.externalMongodb.database }}

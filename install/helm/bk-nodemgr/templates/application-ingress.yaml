@@ -1,0 +1,29 @@
+{{- if .Values.application.enabled }}
+{{- if .Values.application.ingress.enabled }}
+apiVersion: networkextension.bkbcs.tencent.com/v1
+kind: Ingress
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-application
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  annotations:
+    networkextension.bkbcs.tencent.com/lbids: {{ .Values.application.ingress.lbid }}
+  {{- if .Values.commonAnnotations }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  rules:
+  - port: {{ .Values.application.config.basicServer.port }}
+    protocol: TCP
+    listenerAttribute:
+      lbPolicy: {{ .Values.application.ingress.lbPolicy }}
+    services:
+    - serviceName: {{ template "bk-nodemgr.fullname" . }}-application
+      serviceNamespace: {{ .Release.Namespace | quote }}
+      servicePort: {{ .Values.application.config.basicServer.port }}
+      isDirectConnect: {{ .Values.application.ingress.isDirectConnect }}
+{{- end }}
+{{- end }}
