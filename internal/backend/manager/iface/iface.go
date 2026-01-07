@@ -58,8 +58,8 @@ type IPluginManager interface {
 	// LaunchRetryPluginOperationFromLastInstance launch a task to retry operation from last instance.
 	LaunchRetryPluginOperationFromLastInstance(ctx contextx.IContext, param types.RetryPluginWorkflowOperationParam) error
 
-	// LaunchTerminatePluginOperationFromLastInstance launch a task to terminate operation from last instance.
-	LaunchTerminatePluginOperationFromLastInstance(ctx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error
+	// TerminatePluginOperationLastInstance terminate operation from last instance.
+	TerminatePluginOperationLastInstance(ctx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error
 }
 
 // ISyncManager defines the SyncManager interface.

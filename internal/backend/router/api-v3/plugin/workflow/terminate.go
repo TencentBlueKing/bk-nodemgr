@@ -27,7 +27,7 @@ func (h *handler) TerminateOperation(rCtx restserver.IContext) (interface{}, err
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	err := h.pluginMgrIface.LaunchTerminatePluginOperationFromLastInstance(rCtx, types.TerminatePluginWorkflowOperationParam{
+	err := h.pluginMgrIface.TerminatePluginOperationLastInstance(rCtx, types.TerminatePluginWorkflowOperationParam{
 		WorkflowID:   req.GetWorkflowId(),
 		OperationIDs: req.GetOperationIds(),
 	})

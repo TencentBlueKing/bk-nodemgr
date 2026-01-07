@@ -293,8 +293,8 @@ func (mgr *Manager) LaunchRetryPluginOperationFromLastInstance(nCtx contextx.ICo
 	return triggerCtl.ActivateTrigger(nCtx)
 }
 
-// LaunchTerminatePluginOperationFromLastInstance launch a task to terminate operation from last instance.
-func (mgr *Manager) LaunchTerminatePluginOperationFromLastInstance(nCtx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error {
+// TerminatePluginOperationLastInstance terminate operation from last instance.
+func (mgr *Manager) TerminatePluginOperationLastInstance(nCtx contextx.IContext, param types.TerminatePluginWorkflowOperationParam) error {
 	nodeWorkflow, err := mgr.conf.StoragePlugin.GetPluginWorkflow(nCtx, param.WorkflowID)
 	if err != nil {
 		return fmt.Errorf("failed to get plugin workflow: %w", err)
