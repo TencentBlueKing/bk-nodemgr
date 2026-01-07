@@ -206,7 +206,7 @@
 ### 修改 proto 文件
 
 1. 在 `proto/{service}/api/v3/` 目录下修改或添加 `.proto` 文件
-2. 进入 `proto/` 目录运行 `make all` 生成代码
+2. 进入 `proto/` 目录运行 `make clean && make all` 生成代码
 3. 检查生成的 Go 代码和 Swagger 文档
 4. 更新相关的 API 处理逻辑
 
@@ -225,8 +225,4 @@
 - `.golangci.yml` - 代码检查配置
 - `README.md` - 项目 README
 - `docs/` - 项目文档目录
-  - `docs/api/` - API 文档
-  - `docs/design/` - 设计文档
-  - `docs/swagger/` - Swagger API 文档
-- `proto/README.md` - Proto 文件说明
 

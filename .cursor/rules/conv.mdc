@@ -1,0 +1,60 @@
+---
+description: Prefer using pkg/runtime/conv package for type conversions. Provides type-safe conversion methods that reduce manual conversion complexity and potential errors.
+alwaysApply: true
+---
+
+# 数据转换规则
+
+当需要进行数据转换时，**优先使用 `pkg/runtime/conv`** 包提供的转换函数。该包提供了类型安全的转换方法，能够处理多种数据类型之间的转换，减少手动转换的复杂性和潜在错误。
+
+## 优先使用场景### 基本类型转换
+- **转换为 int64**: 使用 `conv.ToInt64()` 或 `conv.ToInt64Default()`
+- **转换为 string**: 使用 `conv.ToString()` 或 `conv.ToStringDefault()`
+- **字符串转布尔值**: 使用 `conv.StringToBool()`
+- **数字转布尔值**: 使用 `conv.NumberToBool()`
+
+### 结构体和映射转换
+- **map 转 struct**: 使用 `conv.MapToStruct()`
+- **struct 转 map**: 使用 `conv.StructToMap()` 或 `conv.StructToMapIgnoreError()`
+
+### 切片操作
+- **切片去重**: 使用 `conv.SliceUnique()`
+- **切片转换**: 使用 `conv.SliceToSlice()` 或 `conv.SliceToSliceWithError()`
+- **切片转 map**: 使用 `conv.SliceToMap()`
+- **map 值转切片**: 使用 `conv.MapValueToSlice()`
+- **map 键转切片**: 使用 `conv.MapKeyToSlice()`（自动排序）
+
+### 工具函数
+- **检查值是否为空**: 使用 `conv.IsEmpty()`
+
+## 使用原则
+
+1. **优先使用**: 当 `pkg/runtime/conv` 包提供了合适的转换函数时，优先使用它而不是手动实现。
+2. **不要强行使用**: 如果标准库或其他包提供了更合适、更高效的解决方案，或者需要特殊的转换逻辑，不要强行使用 `conv` 包。
+3. **错误处理**: 注意处理转换函数返回的错误，使用带 `Default` 后缀的函数时确保默认值合理。
+4. **性能考虑**: 对于性能敏感的场景，如果标准库的直接转换更高效，可以使用标准库。
+
+## 示例
+
+```go
+// ✅ 推荐：使用 conv 包
+val, err := conv.ToInt64(interfaceValue)
+if err != nil {
+    return err
+}
+
+// ✅ 推荐：使用 conv 包处理 map 到 struct
+var result MyStruct
+if err := conv.MapToStruct(dataMap, &result); err != nil {
+    return err
+}
+
+// ✅ 推荐：使用 conv 包进行切片去重
+uniqueSlice := conv.SliceUnique(originalSlice)
+
+// ✅ 可以：如果标准库更合适，使用标准库
+str := strconv.Itoa(intValue)  // 简单的 int 转 string，标准库更直接
+
+// ❌ 不推荐：手动实现类型转换（除非有特殊需求）
+// 应该使用 conv 包提供的函数
+```
