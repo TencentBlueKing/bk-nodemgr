@@ -128,6 +128,41 @@ type PluginInstallParams struct {
 
 // Validate validates the install params.
 func (params *PluginInstallParams) Validate() error {
+	if err := params.PluginCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if params.PluginGroup == "" {
+		return fmt.Errorf("plugin group is empty")
+	}
+
+	if params.PluginName == "" {
+		return fmt.Errorf("plugin name is empty")
+	}
+
+	if params.PluginVersion == "" {
+		return fmt.Errorf("plugin version is empty")
+	}
+
+	if params.PluginPkgName == "" {
+		return fmt.Errorf("plugin package name is empty")
+	}
+
+	if params.CallbackSvrAddr == "" {
+		return fmt.Errorf("callback server address is empty")
+	}
+
+	if params.DownloadSvrAddr == "" {
+		return fmt.Errorf("download server address is empty")
+	}
+
+	if params.DeployToken == "" {
+		return fmt.Errorf("deploy token is empty")
+	}
+
+	if params.OperInstID == "" {
+		return fmt.Errorf("operation instance id is empty")
+	}
 
 	return nil
 }
@@ -206,8 +241,43 @@ type PluginUpgradeParams struct {
 	OperInstID  string
 }
 
-// Validate validates the install params.
+// Validate validates the upgrade params.
 func (params *PluginUpgradeParams) Validate() error {
+	if err := params.PluginCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if params.PluginGroup == "" {
+		return fmt.Errorf("plugin group is empty")
+	}
+
+	if params.PluginName == "" {
+		return fmt.Errorf("plugin name is empty")
+	}
+
+	if params.PluginVersion == "" {
+		return fmt.Errorf("plugin version is empty")
+	}
+
+	if params.PluginPkgName == "" {
+		return fmt.Errorf("plugin package name is empty")
+	}
+
+	if params.CallbackSvrAddr == "" {
+		return fmt.Errorf("callback server address is empty")
+	}
+
+	if params.DownloadSvrAddr == "" {
+		return fmt.Errorf("download server address is empty")
+	}
+
+	if params.DeployToken == "" {
+		return fmt.Errorf("deploy token is empty")
+	}
+
+	if params.OperInstID == "" {
+		return fmt.Errorf("operation instance id is empty")
+	}
 
 	return nil
 }
