@@ -43,6 +43,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/statistics", restserver.Handler(h.Statistics))
 	h.rg.POST("/distinct", restserver.Handler(h.Distinct))
 	h.rg.POST("/operation/list", restserver.Handler(h.ListOperation))
+	h.rg.POST("/operation/distinct", restserver.Handler(h.DistinctOperation))
 	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
 	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
@@ -348,6 +349,29 @@ func (h *handler) GetManualSolution(rCtx restserver.IContext) (interface{}, erro
 
 	// convert ManualInfo to ManualSolution
 	resp.ConvertResultFromTypes(manualInfo)
+
+	return resp.GetData(), nil
+}
+
+// DistinctOperation defines the node workflow operation distinct handler.
+func (h *handler) DistinctOperation(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.NodeWorkflowOperationDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct operation, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	result, err := h.backendHandler.DistinctNodeWorkflowOperation(
+		rCtx,
+		req.GetWorkflowID(),
+		types.NewNodeWorkflowOperationDistinctSelectorAllSet())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct operation, failed to distinct operation fields")
+		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
+	}
+
+	resp := new(protoApplication.NodeWorkflowOperationDistinctResp)
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }
