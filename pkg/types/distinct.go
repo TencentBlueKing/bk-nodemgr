@@ -10,7 +10,10 @@
 
 package types
 
-import "github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+import (
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
+)
 
 // HostDistinctRequest describes the wanted distinct fields.
 type HostDistinctRequest struct {
@@ -270,4 +273,35 @@ type ProcessDistinctResult struct {
 	PluginName    []string
 	PluginGroup   []string
 	PluginPkgName []string
+}
+
+// ===============================================================================
+// Workflow Operation Distinct (Common for Node and Plugin)
+// ===============================================================================
+
+// NewWorkflowOperationDistinctSelectorAllSet creates a WorkflowOperationDistinctSelector with all fields set to true.
+func NewWorkflowOperationDistinctSelectorAllSet() WorkflowOperationDistinctSelector {
+	return WorkflowOperationDistinctSelector{
+		State: true,
+	}
+}
+
+// WorkflowOperationDistinctSelector describes the wanted distinct fields for workflow operations.
+type WorkflowOperationDistinctSelector struct {
+	State bool
+}
+
+// WorkflowOperationDistinctResult describes the result of distinct for workflow operations.
+type WorkflowOperationDistinctResult struct {
+	State []operation.State
+}
+
+// NewNodeWorkflowOperationDistinctSelectorAllSet creates a WorkflowOperationDistinctSelector for node workflow.
+func NewNodeWorkflowOperationDistinctSelectorAllSet() WorkflowOperationDistinctSelector {
+	return NewWorkflowOperationDistinctSelectorAllSet()
+}
+
+// NewPluginWorkflowOperationDistinctSelectorAllSet creates a WorkflowOperationDistinctSelector for plugin workflow.
+func NewPluginWorkflowOperationDistinctSelectorAllSet() WorkflowOperationDistinctSelector {
+	return NewWorkflowOperationDistinctSelectorAllSet()
 }

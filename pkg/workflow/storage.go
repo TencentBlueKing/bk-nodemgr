@@ -84,6 +84,10 @@ type IStorageOperation interface {
 
 	// UpdateOperationLatestInstBriefData updates operation's latest instance brief data.
 	UpdateOperationLatestInstBriefData(ctx contextx.IContext, operationID string, briefData *operation.InstanceBriefData) error
+
+	// DistinctOperation distincts operation fields by conditions.
+	DistinctOperation(nCtx contextx.IContext, selector types.WorkflowOperationDistinctSelector, conditions ...*types.OperationCondition) (
+		*types.WorkflowOperationDistinctResult, error)
 }
 
 // IStorageOperationInstance defines the storage handler for operation instance.

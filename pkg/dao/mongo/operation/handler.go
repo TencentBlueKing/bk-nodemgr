@@ -12,6 +12,8 @@
 package operation
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -52,6 +54,9 @@ type IHandler interface {
 	// GetLatestOperationInstanceStatusDistributionByTriggerID gets the latest operation instance status distribution by trigger id.
 	GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx contextx.IContext, triggerID ...string) (
 		map[string]*operation.InstanceStatusDistribution, error)
+
+	// DistinctLatestInstState distinct with field latest_inst_state.
+	DistinctLatestInstState(nCtx contextx.IContext, opts ...OptFn) ([]operation.State, error)
 }
 
 type handler struct {
@@ -232,6 +237,41 @@ func (h *handler) GetLatestOperationInstanceStatusDistributionByTriggerID(nCtx c
 	}
 
 	return distribution, nil
+}
+
+// DistinctLatestInstState distincts with field latest_inst_state.
+func (h *handler) DistinctLatestInstState(nCtx contextx.IContext, opts ...OptFn) ([]operation.State, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	result, err := h.distinctString(nCtx, FieldKeyLatestInstState, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	stateList, err := conv.SliceToSliceWithError[string, operation.State](result, func(s string) (operation.State, error) {
+		state := operation.State(s)
+		if err := state.Validate(); err != nil {
+			return "", err
+		}
+
+		return state, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get distinct latest inst state: %w", err)
+	}
+
+	return stateList, nil
+}
+
+func (h *handler) distinctString(nCtx contextx.IContext, key string, opts ...OptFn) ([]string, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.dao.DistinctString(nCtx, key, filter, nil)
 }
 
 func convertOperationFromDB(dbOp *Operation) *operation.Operation {

@@ -222,6 +222,35 @@ func (s *Storage) countOperation(nCtx contextx.IContext, conditions ...*types.Op
 	return s.daoOperation.Count(nCtx, opts...)
 }
 
+// distinctOperation distincts operation fields by conditions.
+func (s *Storage) distinctOperation(
+	nCtx contextx.IContext,
+	selector types.WorkflowOperationDistinctSelector,
+	conditions ...*types.OperationCondition) (*types.WorkflowOperationDistinctResult, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	opts, err := convertOperationConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := new(types.WorkflowOperationDistinctResult)
+
+	if selector.State {
+		state, err := s.daoOperation.DistinctLatestInstState(nCtx, opts...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to distinct latest instance state: %w", err)
+		}
+
+		result.State = state
+	}
+
+	return result, nil
+}
+
 func convertOperationConditionsToOptions(conditions ...*types.OperationCondition) ([]operation.OptFn, error) {
 	opts := make([]operation.OptFn, 0)
 
