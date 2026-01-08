@@ -186,7 +186,7 @@ func MiddlewareReceivedLog(skipPaths ...string) gin.HandlerFunc {
 				path = path + "?" + raw
 			}
 
-			logger.G.Biz(rCtx).With("client-ip", gCtx.ClientIP()).Info("[request recv] %s", path)
+			logger.G.Biz(rCtx).With("client-ip", gCtx.ClientIP()).Info("[request recv] %s %s", gCtx.Request.Method, path)
 		}
 
 		gCtx.Next()
@@ -220,7 +220,7 @@ func MiddlewareReturnedLog(skipPaths ...string) gin.HandlerFunc {
 				WithDuration(time.Since(start)).
 				With("client-ip", gCtx.ClientIP()).
 				With("code", gCtx.Writer.Status()).
-				Info("[request done] %s", path)
+				Info("[request done] %s %s", gCtx.Request.Method, path)
 		}
 	}
 }
