@@ -169,25 +169,41 @@ func NewRequestIDSetter() *RequestIDSetter {
 
 // MiddlewareReceivedLog print log when received request.
 // nolint: contextcheck
-func MiddlewareReceivedLog(skipPaths ...string) gin.HandlerFunc {
-	skip := make(map[string]struct{})
+func MiddlewareReceivedLog(skipPaths []string, skipMethods []string) gin.HandlerFunc {
+	skipPathsMap := make(map[string]struct{})
 	for _, skipPath := range skipPaths {
-		skip[skipPath] = struct{}{}
+		skipPathsMap[skipPath] = struct{}{}
+	}
+
+	skipMethodsMap := make(map[string]struct{})
+	for _, skipMethod := range skipMethods {
+		skipMethodsMap[skipMethod] = struct{}{}
 	}
 
 	return func(gCtx *gin.Context) {
-		if _, ok := skip[gCtx.Request.URL.Path]; !ok {
-			rCtx, _ := GenRestContext(gCtx)
+		if _, ok := skipMethodsMap[gCtx.Request.Method]; ok {
+			gCtx.Next()
 
-			path := gCtx.Request.URL.Path
-			raw := gCtx.Request.URL.RawQuery
-
-			if raw != "" {
-				path = path + "?" + raw
-			}
-
-			logger.G.Biz(rCtx).With("client-ip", gCtx.ClientIP()).Info("[request recv] %s", path)
+			return
 		}
+
+		if _, ok := skipPathsMap[gCtx.Request.URL.Path]; ok {
+			gCtx.Next()
+
+			return
+		}
+
+		rCtx, _ := GenRestContext(gCtx)
+		path := gCtx.Request.URL.Path
+		raw := gCtx.Request.URL.RawQuery
+
+		if raw != "" {
+			path = path + "?" + raw
+		}
+
+		logger.G.Biz(rCtx).
+			With("client-ip", gCtx.ClientIP()).
+			Info("[request recv] %s %s", gCtx.Request.Method, path)
 
 		gCtx.Next()
 	}
@@ -195,10 +211,15 @@ func MiddlewareReceivedLog(skipPaths ...string) gin.HandlerFunc {
 
 // MiddlewareReturnedLog print log when returned response.
 // nolint: contextcheck
-func MiddlewareReturnedLog(skipPaths ...string) gin.HandlerFunc {
-	skip := make(map[string]struct{})
+func MiddlewareReturnedLog(skipPaths []string, skipMethods []string) gin.HandlerFunc {
+	skipPathsMap := make(map[string]struct{})
 	for _, skipPath := range skipPaths {
-		skip[skipPath] = struct{}{}
+		skipPathsMap[skipPath] = struct{}{}
+	}
+
+	skipMethodsMap := make(map[string]struct{})
+	for _, skipMethod := range skipMethods {
+		skipMethodsMap[skipMethod] = struct{}{}
 	}
 
 	return func(gCtx *gin.Context) {
@@ -206,22 +227,27 @@ func MiddlewareReturnedLog(skipPaths ...string) gin.HandlerFunc {
 
 		gCtx.Next()
 
-		if _, ok := skip[gCtx.Request.URL.Path]; !ok {
-			rCtx, _ := GenRestContext(gCtx)
-
-			path := gCtx.Request.URL.Path
-			raw := gCtx.Request.URL.RawQuery
-
-			if raw != "" {
-				path = path + "?" + raw
-			}
-
-			logger.G.Biz(rCtx).
-				WithDuration(time.Since(start)).
-				With("client-ip", gCtx.ClientIP()).
-				With("code", gCtx.Writer.Status()).
-				Info("[request done] %s", path)
+		if _, ok := skipMethodsMap[gCtx.Request.Method]; ok {
+			return
 		}
+
+		if _, ok := skipPathsMap[gCtx.Request.URL.Path]; ok {
+			return
+		}
+
+		rCtx, _ := GenRestContext(gCtx)
+		path := gCtx.Request.URL.Path
+		raw := gCtx.Request.URL.RawQuery
+
+		if raw != "" {
+			path = path + "?" + raw
+		}
+
+		logger.G.Biz(rCtx).
+			WithDuration(time.Since(start)).
+			With("client-ip", gCtx.ClientIP()).
+			With("code", gCtx.Writer.Status()).
+			Info("[request done] %s %s", gCtx.Request.Method, path)
 	}
 }
 
