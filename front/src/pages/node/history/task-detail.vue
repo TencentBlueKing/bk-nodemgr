@@ -666,6 +666,14 @@ const searchSelectData = computed(() => [
 ]);
 // eslint-disable-next-line max-len
 const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  // 当搜素条件的执行状态变化时，都要触发radioGroup的变化
+  const stateSearchItem = data.find((item) => item.id === 'state');
+  if (stateSearchItem) {
+    radioGroupValue.value = stateSearchItem.values[0].id;
+  } else {
+    radioGroupValue.value = 'all';
+  }
+
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
   });
@@ -811,6 +819,7 @@ const handleChangeRadio = (state: string) => {
   // 更新搜索条件
   const index = searchSelectValue.value.findIndex((item: any) => item.id === 'state');
   if (index > -1) searchSelectValue.value.splice(index, 1);
+  if (state === 'all') return; // 全选不需要更新搜索条件
   searchSelectValue.value.push({
     id: 'state',
     name: '状态',

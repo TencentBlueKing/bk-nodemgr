@@ -193,7 +193,7 @@
           :min-width="120"
         >
           <template #default="{ row }">
-            {{ row.bk_networkunit_name }}
+            {{ networkUnitListMap.get(row.bk_networkunit_id) || row.bk_networkunit_name }}
           </template>
         </TableColumn>
         <TableColumn

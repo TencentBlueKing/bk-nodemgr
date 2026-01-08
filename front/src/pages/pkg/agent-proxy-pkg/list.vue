@@ -201,7 +201,6 @@
             field="host"
             :title="'已部署主机'"
             :min-width="120"
-            sortable
           >
             <template #default="{ row }">
               <Button text theme="primary" @click="handleClickHost(row)">
@@ -333,7 +332,7 @@
 <script lang="ts" setup>
 import { Button, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
 import { AngleDown, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
-import { isArray } from 'lodash';
+import { debounce, isArray } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
@@ -418,6 +417,7 @@ const state = reactive<{
 // 分页
 const {
   pagination,
+  pageConf,
 } = usePage(packageList);
 const sortConfig = ref<VxeTablePropTypes.SortConfig>({
   sortMethod({ data, sortList }) {
@@ -783,6 +783,48 @@ const handleUpload = () => {
   isShow.value = true;
 };
 const tagList = ref<{value: string, label: string}[]>([]);
+
+const fetchCurrentPageCounts = async () => {
+  // 1. 根据当前分页计算索引范围
+  const { current, limit } = pageConf;
+  const start = (current - 1) * limit;
+  const end = start + limit;
+
+  // 2. 切片获取当前页显示的那些行对象
+  // 注意：slice 返回的是对象的引用，修改 currentViewItems 中的 item 会直接更新 packageList
+  const currentViewItems = packageList.value.slice(start, end);
+
+  if (!currentViewItems.length) return;
+
+  // 3. 准备 API 参数
+  const countApi = currentType.value === 'agent'
+    ? PackageService.CountDeployedReleasedAgent
+    : PackageService.CountDeployedReleasedProxy;
+
+  // 构造请求体，只包含当前页的包信息
+  const requestItems = currentViewItems.map(item => ({
+    generation: item.generation,
+    version: item.version,
+    platform: item.platform,
+  }));
+
+  try {
+    // 4. 调用接口获取数量
+    const countData = await countApi({ items: requestItems });
+
+    // ============================================
+    // 【关键点】：在这里给列表数据赋值 host 数量
+    // ============================================
+    currentViewItems.forEach((item, index) => {
+      // countData.counts 的顺序与 requestItems 一致
+      // 直接修改属性，Vue 的响应式系统会自动更新表格 DOM
+      item.host = countData.counts[index] || 0;
+    });
+  } catch (error) {
+    console.error('获取部署数量失败', error);
+  }
+};
+
 const getPackages = async () => {
   loading.value = true;
 
@@ -798,20 +840,6 @@ const getPackages = async () => {
       generation: 2,
       exact_include_conditions: {},
     }).catch(() => ({ total: 0, items: [] }));
-
-    // 如果有列表数据，则并行调用计数API
-    const countData = listData.items?.length
-      ? await countApi({
-        items: listData.items.map(item => ({
-          generation: item.release.generation,
-          version: item.release.version,
-          platform: {
-            os_type: item.release.os_type,
-            cpu_arch: item.release.cpu_arch,
-          },
-        })),
-      }).catch(() => ({ total: 0, counts: [] }))
-      : { total: 0, counts: [] };
 
     // 处理标签数据
     const allLabels = listData.items.flatMap(item => item.release.labels || []);
@@ -833,13 +861,14 @@ const getPackages = async () => {
       },
       labels: item.release.labels || [],
       os_cpu_arch: `${item.release.os_type}_${item.release.cpu_arch}`,
-      host: countData.counts?.[index] || 0,
+      host: 0,
       isShowTagInput: false,
       createPopShow: false,
     })).sort((a, b) => compareVersions(a.version, b.version));
 
     originPackageList.value = processedItems;
     packageList.value = processedItems;
+    fetchCurrentPageCounts();
   } catch (error) {
     console.error('获取包列表失败:', error);
     // 确保在错误情况下也清空数据
@@ -893,6 +922,18 @@ const handleDelete = async (row: Release) => {
 const handleConfirm = async () => {
   await getPackages();
 };
+
+const debounceFetchCurrentPageCounts = debounce(fetchCurrentPageCounts, 300);
+watch(
+  [
+    () => pageConf.current,  // 页码变了
+    () => pageConf.limit,    // 每页条数变了
+  ],
+  () => {
+    // 只要视图变化，就重新获取当前视图内的 host 数量
+    debounceFetchCurrentPageCounts();
+  },
+);
 watch(originPackageList, () => {
   filterOptionSource.version.list = getUniqueChildren('version');
   filterOptionSource.os_type.list = getUniqueChildren('os_type');
