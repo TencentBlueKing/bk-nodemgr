@@ -24,6 +24,9 @@ const (
 
 	// pluginCmdFullUpgrade defines the installer cmd.
 	pluginCmdFullUpgrade = "plugin full-upgrade"
+
+	// pluginCmdFullUninstall defines the installer cmd.
+	pluginCmdFullUninstall = "plugin full-uninstall"
 )
 
 // pluginFlagName defines the plugin flag name.
@@ -335,6 +338,103 @@ func (params *PluginUpgradeParams) ToWindowsScript() (string, string, error) {
 
 	// wrap cmd with stdout.
 	scriptName := fmt.Sprintf("plugin_upgrade_%s_%s.bat", params.PluginGroup, params.PluginName)
+	scriptContent := fmt.Sprintf("%s", cmdStr)
+
+	return scriptName, scriptContent, nil
+}
+
+// PluginUninstallParams defines the uninstall params.
+type PluginUninstallParams struct {
+	PluginCommonParams
+
+	PluginGroup string
+	PluginName  string
+
+	CallbackSvrAddr string
+
+	DeployToken string
+	OperInstID  string
+}
+
+// Validate validates the uninstall params.
+func (params *PluginUninstallParams) Validate() error {
+	if err := params.PluginCommonParams.Validate(); err != nil {
+		return err
+	}
+
+	if params.PluginGroup == "" {
+		return fmt.Errorf("plugin group is empty")
+	}
+
+	if params.PluginName == "" {
+		return fmt.Errorf("plugin name is empty")
+	}
+
+	if params.CallbackSvrAddr == "" {
+		return fmt.Errorf("callback server address is empty")
+	}
+
+	if params.DeployToken == "" {
+		return fmt.Errorf("deploy token is empty")
+	}
+
+	if params.OperInstID == "" {
+		return fmt.Errorf("operation instance id is empty")
+	}
+
+	return nil
+}
+
+func (params *PluginUninstallParams) buildArgs() []string {
+	args := []string{
+		fmt.Sprintf("--%s %s", pluginFlagBaseDeployDir, params.BaseDeployDir),
+		fmt.Sprintf("--%s %s", pluginFlagBaseWorkDir, params.BaseWorkDir),
+		fmt.Sprintf("--%s %s", pluginFlagPluginGroup, params.PluginGroup),
+		fmt.Sprintf("--%s %s", pluginFlagPluginName, params.PluginName),
+		fmt.Sprintf("--%s %s", pluginFlagDeployEnv, params.DeployEnv),
+		fmt.Sprintf("--%s %s", pluginFlagCallbackSvrAdd, params.CallbackSvrAddr),
+		fmt.Sprintf("--%s %s", pluginFlagDeployToken, params.DeployToken),
+		fmt.Sprintf("--%s %s", pluginFlagOperInstID, params.OperInstID),
+	}
+
+	return args
+}
+
+// ToUnixScript converts the uninstall params to a unix script.
+func (params *PluginUninstallParams) ToUnixScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+
+	// build original cmd.
+	installerFilePath := filepath.Join(params.InstallWorkDir, params.InstallerFileName)
+	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginCmdFullUninstall, strings.Join(args, " "))
+
+	// wrap cmd with stdout.
+	scriptName := fmt.Sprintf("plugin_uninstall_%s_%s.sh", params.PluginGroup, params.PluginName)
+
+	stdoutPath := filepath.Join(params.InstallWorkDir, fmt.Sprintf("%s.stdout", scriptName))
+	scriptContent := fmt.Sprintf("%s >%s 2>&1 &", cmdStr, stdoutPath)
+
+	return scriptName, scriptContent, nil
+}
+
+// ToWindowsScript converts the uninstall params to a windows script.
+func (params *PluginUninstallParams) ToWindowsScript() (string, string, error) {
+	if err := params.Validate(); err != nil {
+		return "", "", err
+	}
+
+	args := params.buildArgs()
+
+	// build original cmd.
+	installerFilePath := winpath.Join(params.InstallWorkDir, params.InstallerFileName)
+	cmdStr := fmt.Sprintf("%s %s %s", installerFilePath, pluginCmdFullUninstall, strings.Join(args, " "))
+
+	// wrap cmd with stdout.
+	scriptName := fmt.Sprintf("plugin_uninstall_%s_%s.bat", params.PluginGroup, params.PluginName)
 	scriptContent := fmt.Sprintf("%s", cmdStr)
 
 	return scriptName, scriptContent, nil

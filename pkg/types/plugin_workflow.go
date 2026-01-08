@@ -41,6 +41,9 @@ const (
 	// PluginWorkflowTypeUpgrade is the operation type for upgrade plugin.
 	PluginWorkflowTypeUpgrade PluginWorkflowType = "upgrade_plugin"
 
+	// PluginWorkflowTypeUninstall is the operation type for uninstall plugin.
+	PluginWorkflowTypeUninstall PluginWorkflowType = "uninstall_plugin"
+
 	// PluginWorkflowTypeReconfig is the operation type for reconfig plugin.
 	PluginWorkflowTypeReconfig PluginWorkflowType = "reconfig_plugin"
 

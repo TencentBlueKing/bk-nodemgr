@@ -43,6 +43,12 @@ type IHandlerPlugin interface {
 	// @return the upgrading workflow-ids and error.
 	UpgradePlugin(nCtx contextx.IContext, upgradeParam ...*types.PluginDeploymentParam) (string, error)
 
+	// UninstallPlugin uninstall plugin.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param uninstallParam the uninstall param.
+	// @return the uninstalling workflow-ids and error.
+	UninstallPlugin(nCtx contextx.IContext, uninstallParam ...*types.PluginDeploymentParam) (string, error)
+
 	// ApplyPluginSubConfig apply plugin sub config.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param applyParam the apply param.
@@ -111,6 +117,19 @@ func (h *Handler) UpgradePlugin(nCtx contextx.IContext, upgradeParam ...*types.P
 	}
 
 	resp, err := h.cli.upgradePlugin(nCtx, req)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.GetData().GetWorkflowId(), nil
+}
+
+// UninstallPlugin uninstall plugin.
+func (h *Handler) UninstallPlugin(nCtx contextx.IContext, uninstallParam ...*types.PluginDeploymentParam) (string, error) {
+	req := new(protoBackend.PluginUninstallReq)
+	req.ConvertParamFromTypes(uninstallParam...)
+
+	resp, err := h.cli.uninstallPlugin(nCtx, req)
 	if err != nil {
 		return "", err
 	}

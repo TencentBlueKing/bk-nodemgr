@@ -293,6 +293,73 @@ func (x *PluginUpgradeReq) ConvertParamToTypes() []*types.PluginDeploymentParam 
 }
 
 // Validate check body.
+func (x *PluginUninstallReq) Validate() error {
+	plugins := x.GetPlugin()
+	if len(plugins) == 0 {
+		return errors.New("plugins can not be empty")
+	}
+
+	for idx := range plugins {
+		if err := plugins[idx].Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Validate check body.
+// nolint: protogetter
+func (x *PluginUninstallReq_Plugin) Validate() error {
+	if x.GetBkHostId() < 0 {
+		return errors.New("bk_host_id can not be zero")
+	}
+
+	if x.GetPluginName() == "" {
+		return errors.New("plugin_name can not be empty")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginUninstallReq) AutoConvert() {
+	plugin := x.GetPlugin()
+	for idx := range plugin {
+		plugin[idx].AutoConvert()
+	}
+}
+
+// AutoConvert auto convert.
+func (x *PluginUninstallReq_Plugin) AutoConvert() {
+	if x.BkHostId == nil {
+		x.BkHostId = new(int64)
+		*x.BkHostId = -1
+	}
+}
+
+// ConvertParamFromTypes converts param from types.
+func (x *PluginUninstallReq) ConvertParamFromTypes(uninstallParam ...*types.PluginDeploymentParam) {
+	x.Plugin = conv.SliceToSlice(uninstallParam, func(param *types.PluginDeploymentParam) *PluginUninstallReq_Plugin {
+		item := &PluginUninstallReq_Plugin{}
+		item.BkHostId = &param.HostID
+		item.PluginName = param.PluginName
+
+		return item
+	})
+}
+
+// ConvertParamToTypes converts param to types.
+func (x *PluginUninstallReq) ConvertParamToTypes() []*types.PluginDeploymentParam {
+	return conv.SliceToSlice(x.GetPlugin(), func(plugin *PluginUninstallReq_Plugin) *types.PluginDeploymentParam {
+		return &types.PluginDeploymentParam{
+			HostID:     plugin.GetBkHostId(),
+			PluginName: plugin.GetPluginName(),
+		}
+	})
+}
+
+// Validate check body.
 func (x *PluginApplySubConfigReq) Validate() error {
 	plugins := x.GetPlugin()
 	if len(plugins) == 0 {

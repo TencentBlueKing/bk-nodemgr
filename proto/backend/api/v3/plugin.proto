@@ -55,6 +55,27 @@ message PluginUpgradeResp {
   Data data = 5;
 }
 
+// PluginUninstallReq describes the plugin uninstall request.
+message PluginUninstallReq {
+  message Plugin {
+    optional int64 bk_host_id = 1;
+    string plugin_name = 2;
+  }
+
+  repeated Plugin plugin = 1;
+}
+
+// PluginUninstallResp describes the plugin uninstall response.
+message PluginUninstallResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { string workflow_id = 1; }
+  Data data = 5;
+}
+
 // PluginApplySubConfigReq describes the plugin apply sub-configuration
 // request.
 message PluginApplySubConfigReq {
@@ -147,6 +168,14 @@ service Plugin {
   rpc UpgradePlugin(PluginUpgradeReq) returns (PluginUpgradeResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/upgrade"
+      body : "*"
+    };
+  }
+
+  // UninstallPlugin uninstalls a plugin on specified hosts.
+  rpc UninstallPlugin(PluginUninstallReq) returns (PluginUninstallResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/uninstall"
       body : "*"
     };
   }

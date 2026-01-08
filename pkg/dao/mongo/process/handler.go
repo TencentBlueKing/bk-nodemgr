@@ -402,7 +402,7 @@ func (h *Handler) Delete(nCtx contextx.IContext, hostID int64, pluginName string
 		filter = opt(filter)
 	}
 
-	err := h.tenantDao(nCtx.TenantID()).DeleteMany(nCtx, filter)
+	err := h.tenantDao(nCtx.TenantID()).HardDelete(nCtx, filter)
 
 	if err != nil {
 		logger.G.Sys().With("host-id", hostID).With("plugin-name", pluginName).WithErr(err).Error("failed to delete process")

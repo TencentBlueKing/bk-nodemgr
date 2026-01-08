@@ -97,6 +97,14 @@ type UpgradePluginParam struct {
 	PluginDeployments []*PluginDeployment
 }
 
+// UninstallPluginParam define the param of LaunchUninstallPlugin.
+type UninstallPluginParam struct {
+	Type              PluginWorkflowType
+	HostIDs           []int64
+	Operator          string
+	PluginDeployments []*PluginDeployment
+}
+
 // ApplyPluginSubConfigParam define the param of LaunchApplyPluginSubConfig.
 type ApplyPluginSubConfigParam struct {
 	Type              PluginWorkflowType

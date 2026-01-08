@@ -152,6 +152,40 @@
         ]
       }
     },
+    "/api/v3/plugin/uninstall": {
+      "post": {
+        "summary": "UninstallPlugin uninstalls a plugin on specified hosts.",
+        "operationId": "PluginAPI_UninstallPlugin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginUninstallResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginUninstallReq describes the plugin uninstall request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginUninstallReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginAPI"
+        ]
+      }
+    },
     "/api/v3/plugin/upgrade": {
       "post": {
         "summary": "UpgradePlugin upgrades a plugin on specified hosts.",
@@ -538,6 +572,61 @@
         }
       },
       "description": "PluginSetMemoResp describes the plugin set memo response."
+    },
+    "v3PluginUninstallReq": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3PluginUninstallReqPlugin"
+          }
+        }
+      },
+      "description": "PluginUninstallReq describes the plugin uninstall request."
+    },
+    "v3PluginUninstallReqPlugin": {
+      "type": "object",
+      "properties": {
+        "bk_host_id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "plugin_name": {
+          "type": "string"
+        }
+      }
+    },
+    "v3PluginUninstallResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginUninstallRespData"
+        }
+      },
+      "description": "PluginUninstallResp describes the plugin uninstall response."
+    },
+    "v3PluginUninstallRespData": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      }
     },
     "v3PluginUpgradeReq": {
       "type": "object",

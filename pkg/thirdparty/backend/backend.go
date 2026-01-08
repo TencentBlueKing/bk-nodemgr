@@ -2677,6 +2677,36 @@ func (c *cli) upgradePlugin(ctx contextx.IContext, req *protoBackend.PluginUpgra
 	return resp, nil
 }
 
+func (c *cli) uninstallPlugin(ctx contextx.IContext, req *protoBackend.PluginUninstallReq) (*protoBackend.PluginUninstallResp, error) {
+	resp := new(protoBackend.PluginUninstallResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/uninstall").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("uninstall plugin failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("uninstall plugin failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) applyPluginSubConfig(ctx contextx.IContext, req *protoBackend.PluginApplySubConfigReq) (*protoBackend.PluginApplySubConfigResp, error) {
 	resp := new(protoBackend.PluginApplySubConfigResp)
 	header := c.getHeader(ctx)
