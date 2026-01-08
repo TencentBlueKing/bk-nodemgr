@@ -78,8 +78,17 @@ func (mgr *Manager) getSyncScheduledWorkflowFuncs() map[string]syncScheduledWork
 func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
 	logger.G.Sys().With("time-gap", scheduledWorkflowMonitorTimeGap.String()).Info("start monitoring scheduled workflows")
 
-	for name, f := range mgr.getInitScheduledWorkflowFuncs() {
-		_ = mgr.initAllTenantScheduleWorkflow(nCtx, name, f)
+	tenantIDs := tenant.GetAllTenantIDs()
+	for _, tenantID := range tenantIDs {
+		for name, f := range mgr.getInitScheduledWorkflowFuncs() {
+			if err := mgr.initScheduleWorkflow(nCtx, tenantID, name, f); err != nil {
+				logger.G.Sys().WithErr(err).With("tenant-id", tenantID, "workflow-name", name).Error("failed to initialize scheduled workflow")
+
+				continue
+			}
+
+			logger.G.Sys().With("tenant-id", tenantID, "workflow-name", name).Info("initialized scheduled workflow")
+		}
 	}
 
 	go func() {
@@ -114,17 +123,6 @@ func (mgr *Manager) startMonitoringScheduledWorkflow(nCtx contextx.IContext) {
 	}()
 }
 
-func (mgr *Manager) initAllTenantScheduleWorkflow(nCtx contextx.IContext, workflowName string, initFunc initScheduledWorkflowFunc) error {
-	tenantIDs := tenant.GetAllTenantIDs()
-	for _, tenantID := range tenantIDs {
-		if err := mgr.initScheduleWorkflow(nCtx, tenantID, workflowName, initFunc); err != nil {
-			return fmt.Errorf("failed to init scheduled workflow: %w", err)
-		}
-	}
-
-	return nil
-}
-
 func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string, workflowName string, initFunc initScheduledWorkflowFunc) error {
 	nCtx = contextx.From(nCtx, contextx.WithTenantID(tenantID))
 
@@ -137,19 +135,31 @@ func (mgr *Manager) initScheduleWorkflow(nCtx contextx.IContext, tenantID string
 	}()
 
 	// reload the scheduled workflow after get the lock.
-	var err error
-	sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(nCtx, types.UnlimitedPage())
+	cond := &types.ScheduledWorkflowCondition{
+		ExactInclude: &types.ScheduledWorkflowExactFields{
+			WorkflowName: []string{workflowName},
+		},
+	}
+
+	sws, _, err := mgr.conf.StorageWorkflow.ListScheduledWorkflow(nCtx, types.SingleItemPage(), cond)
 	if err != nil {
 		return err
 	}
 
-	for _, sw := range sws {
-		if sw.WorkflowName == workflowName && sw.TenantID == tenantID {
-			return nil
+	switch len(sws) {
+	case 0:
+		if err = initFunc(nCtx, tenantID); err != nil {
+			return fmt.Errorf("failed to initialize scheduled workflow: %w", err)
 		}
+
+		return nil
+	case 1:
+		break
+	default:
+		return fmt.Errorf("expected 0 or 1 scheduled workflow, but got %d", len(sws))
 	}
 
-	return initFunc(nCtx, tenantID)
+	return nil
 }
 
 func (mgr *Manager) ensureScheduledWorkflow(nCtx contextx.IContext, sw *types.ScheduledWorkflow) error {
