@@ -61,6 +61,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h.rg.POST("/list", restserver.Handler(h.ListPluginWorkflow))
 	h.rg.POST("/distinct", restserver.Handler(h.DistinctPluginWorkflow))
 	h.rg.POST("/operation/list", restserver.Handler(h.ListOperation))
+	h.rg.POST("/operation/distinct", restserver.Handler(h.DistinctOperation))
 	h.rg.POST("/operation/retry", restserver.Handler(h.RetryOperation))
 	h.rg.POST("/operation/terminate", restserver.Handler(h.TerminateOperation))
 	h.rg.POST("/operation/instance/list", restserver.Handler(h.ListOperationInstance))
@@ -273,6 +274,42 @@ func (h *handler) ListOperation(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	resp.ConvertResultFromTypes(num, result)
+
+	return resp.GetData(), nil
+}
+
+// DistinctOperation defines the plugin workflow operation distinct handler.
+func (h *handler) DistinctOperation(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoBackend.PluginWorkflowOperationDistinctReq)
+	if err := rCtx.BindJSON(req); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct operation, failed to decode request body")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	// get workflow to get trigger id.
+	workflow, err := h.daoPluginWorkflow.GetPluginWorkflow(rCtx, req.GetWorkflowID())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct operation, failed to get plugin workflow")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	operationCond := &types.OperationCondition{
+		ExactInclude: &types.OperationExactFields{
+			TriggerID: []string{workflow.TriggerID},
+		},
+	}
+
+	result, err := h.storageWorkflow.DistinctOperation(
+		rCtx,
+		req.ConvertSelectorToTypes(),
+		operationCond)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to distinct operation, failed to distinct operation fields")
+		return nil, resterrf.ErrWrap(resterrf.DBExecCmdFailed, err)
+	}
+
+	resp := new(protoBackend.PluginWorkflowOperationDistinctResp)
+	resp.ConvertResultFromTypes(result)
 
 	return resp.GetData(), nil
 }

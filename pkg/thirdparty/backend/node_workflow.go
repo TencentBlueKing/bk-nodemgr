@@ -56,6 +56,14 @@ type IHandlerNodeWorkflow interface {
 	// @return the operation count with filter and error.
 	CountNodeWorkflowOperation(nCtx contextx.IContext, workflowID string, condition *types.ApplicationNodeOperationListCondition) (int64, error)
 
+	// DistinctNodeWorkflowOperation distinct node workflow operation by conditions.
+	// @param nCtx contextx.IContext, contains tenant-id and username.
+	// @param workflowID the workflow id.
+	// @param selector the node workflow operation distinct selector.
+	// @return the node-workflow operation distinct result and error.
+	DistinctNodeWorkflowOperation(nCtx contextx.IContext, workflowID string,
+		selector types.WorkflowOperationDistinctSelector) (*types.WorkflowOperationDistinctResult, error)
+
 	// ListNodeWorkflowOperationInstance list node workflow operation instance.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param condition the filter conditions.
@@ -212,6 +220,28 @@ func (h *Handler) CountNodeWorkflowOperation(nCtx contextx.IContext, workflowID 
 	}
 
 	return resp.GetData().GetTotal(), nil
+}
+
+// DistinctNodeWorkflowOperation distinct workflow operation by conditions.
+func (h *Handler) DistinctNodeWorkflowOperation(nCtx contextx.IContext, workflowID string,
+	selector types.WorkflowOperationDistinctSelector) (*types.WorkflowOperationDistinctResult, error) {
+
+	req := &protoBackend.NodeWorkflowOperationDistinctReq{
+		WorkflowId: workflowID,
+	}
+	req.ConvertSelectorFromTypes(selector)
+
+	resp, err := h.cli.distinctNodeWorkflowOperation(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := resp.ConvertOperationDistinctToTypes()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // ListNodeWorkflowOperationInstance list workflow operation instance.

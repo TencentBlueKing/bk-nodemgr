@@ -58,6 +58,14 @@ type IHandlerPluginWorkflow interface {
 	// @return the operation count with filter and error.
 	CountPluginWorkflowOperation(nCtx contextx.IContext, workflowID string, condition *types.ApplicationPluginOperationListCondition) (int64, error)
 
+	// DistinctPluginWorkflowOperation distincts plugin workflow operation fields by conditions.
+	// @param nCtx contextx.IContext, contains tenant-id.
+	// @param workflowID the workflow id.
+	// @param selector the selector for fields to distinct.
+	// @return the plugin workflow operation distinct result and error.
+	DistinctPluginWorkflowOperation(nCtx contextx.IContext, workflowID string,
+		selector types.WorkflowOperationDistinctSelector) (*types.WorkflowOperationDistinctResult, error)
+
 	// ListPluginWorkflowOperationInstance list plugin workflow operation instance.
 	// @param nCtx contextx.IContext, contains tenant-id and username.
 	// @param operationID the operation id.
@@ -206,6 +214,28 @@ func (h *Handler) CountPluginWorkflowOperation(nCtx contextx.IContext, workflowI
 	}
 
 	return resp.GetData().GetTotalCount(), nil
+}
+
+// DistinctPluginWorkflowOperation distincts plugin workflow operation fields by conditions.
+func (h *Handler) DistinctPluginWorkflowOperation(nCtx contextx.IContext, workflowID string,
+	selector types.WorkflowOperationDistinctSelector) (*types.WorkflowOperationDistinctResult, error) {
+
+	req := &protoBackend.PluginWorkflowOperationDistinctReq{
+		WorkflowId: workflowID,
+	}
+	req.ConvertSelectorFromTypes(selector)
+
+	resp, err := h.cli.distinctPluginWorkflowOperation(nCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := resp.ConvertOperationDistinctToTypes()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // ListPluginWorkflowOperationInstance list workflow operation instance.

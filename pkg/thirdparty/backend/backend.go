@@ -953,6 +953,37 @@ func (c *cli) listNodeWorkflowOperation(ctx contextx.IContext, req *protoBackend
 	return resp, nil
 }
 
+func (c *cli) distinctNodeWorkflowOperation(ctx contextx.IContext, req *protoBackend.NodeWorkflowOperationDistinctReq,
+) (*protoBackend.NodeWorkflowOperationDistinctResp, error) {
+
+	resp := new(protoBackend.NodeWorkflowOperationDistinctResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/node/workflow/operation/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil, fmt.Errorf("distinct workflow operation failed, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
 func (c *cli) listNodeWorkflowOperationInstance(
 	ctx contextx.IContext,
 	req *protoBackend.NodeWorkflowOperationInstanceListReq,
@@ -2963,6 +2994,38 @@ func (c *cli) listPluginWorkflowOperation(ctx contextx.IContext, req *protoBacke
 	if resp.GetData() == nil {
 		return nil,
 			fmt.Errorf("list plugin workflow operation failed, get empty data. code(%d), message(%s), request-id(%s)",
+				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return resp, nil
+}
+
+func (c *cli) distinctPluginWorkflowOperation(ctx contextx.IContext, req *protoBackend.PluginWorkflowOperationDistinctReq) (
+	*protoBackend.PluginWorkflowOperationDistinctResp, error) {
+
+	resp := new(protoBackend.PluginWorkflowOperationDistinctResp)
+	header := c.getHeader(ctx)
+
+	err := c.client.Post().
+		SubResourcef("/plugin/workflow/operation/distinct").
+		WithContext(ctx).
+		WithHeaders(header).
+		Body(req).
+		EnableLogBody().
+		EnableLogResponse().
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("distinct plugin workflow operation failed. code(%d), message(%s), error(%v), request-id(%s)",
+			code, resp.GetMessage(), resp.GetError(), resp.GetRequestId())
+	}
+
+	if resp.GetData() == nil {
+		return nil,
+			fmt.Errorf("distinct plugin workflow operation failed, get empty data. code(%d), message(%s), request-id(%s)",
 				resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
 	}
 
