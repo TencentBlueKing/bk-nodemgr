@@ -655,13 +655,14 @@ func (h *Handler) convCloudAreaToTypes(tenantID string, cloudArea *CloudArea) *t
 }
 
 // convHostTopoRelationToTypes convert host topo relation to types.HostRel.
-func convHostTopoRelationToTypes(hostRel *HostTopoRelation) *types.Host {
+func convHostTopoRelationToTypes(tenantID string, hostRel *HostTopoRelation) *types.Host {
 	if hostRel == nil {
 		return nil
 	}
 
 	return &types.Host{
-		HostID: hostRel.BKHostID,
+		TenantID: tenantID,
+		HostID:   hostRel.BKHostID,
 		Static: &types.HostStatic{
 			BizID: hostRel.BKBizID,
 		},
@@ -722,7 +723,7 @@ func (h *Handler) WatchHostRelationResourceEvent(nCtx contextx.IContext, cursor 
 			Cursor:    relationData.BKCursor,
 			Resource:  types.ResourceTypeHostRelation,
 			EventType: types.EventType(relationData.BKEventType),
-			Detail:    convHostTopoRelationToTypes(relationData.BKDetail),
+			Detail:    convHostTopoRelationToTypes(nCtx.TenantID(), relationData.BKDetail),
 		})
 	}
 
