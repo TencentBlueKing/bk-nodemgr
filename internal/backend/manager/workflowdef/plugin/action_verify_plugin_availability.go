@@ -139,18 +139,30 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 	if !pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType.IsLaunchNode(host.Dynamic.NodeRole) {
 		std.InstanceData().LogE(
 			fmt.Sprintf("plugin pkg launch node type not match host node role, "+
-				"plugin-name(%s), plugin-pkg-name(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
-				plugin.Name, pluginPkg.Name, host.HostID,
+				"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
+				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
 				pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole))
 
-		return errors.New("plugin pkg launch node type not match host node role")
+		return fmt.Errorf("plugin pkg launch node type not match host node role, "+
+			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
+			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
+			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole)
+	}
+
+	if !pluginPkg.Enabled {
+		std.InstanceData().LogE(
+			fmt.Sprintf("plugin pkg is not enabled, plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
+				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID))
+
+		return fmt.Errorf("plugin pkg is not enabled, plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
+			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID)
 	}
 
 	std.InstanceData().LogI(
-		fmt.Sprintf("plugin pkg launch node type match host node role, plugin-name(%s), plugin-pkg-name(%s), "+
-			"host-id(%d), launch-node-type(%s), host-node-role(%s)",
-			plugin.Name, pluginPkg.Name, deployInfo.Process.HostID,
-			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole))
+		fmt.Sprintf("plugin pkg verify succeed, "+
+			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s)",
+			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
+			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType))
 
 	return nil
 }

@@ -13,8 +13,6 @@ package plugin
 import (
 	"errors"
 	"fmt"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"time"
 
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
@@ -24,70 +22,68 @@ import (
 )
 
 const (
-	// ActionNameCheckPluginProcessAlive the name of action check plugin process alive.
-	ActionNameCheckPluginProcessAlive = "check_plugin_process_alive"
+	// ActionNameFetchPluginProcess the name of action fetch plugin process.
+	ActionNameFetchPluginProcess = "fetch_plugin_process"
 )
 
-// NewActionCheckPluginProcessAlive new an action to check plugin process alive.
-func NewActionCheckPluginProcessAlive(capability *Capability) action.Definition {
-	return &actionCheckPluginProcessAlive{
+// NewActionFetchPluginProcess new an action to fetch plugin process.
+func NewActionFetchPluginProcess(capability *Capability) action.Definition {
+	return &actionFetchPluginProcess{
 		daoPluginDeployment: capability.StoragePlugin,
 		daoProcess:          capability.StoragePlugin,
-		gseHandlerProc:      capability.GSEHandler,
 	}
 }
 
-// ActParamCheckPluginProcessAlive defines the parameters for actionCheckPluginProcessAlive.
-type ActParamCheckPluginProcessAlive struct {
+// ActParamFetchPluginProcess defines the parameters for actionFetchPluginProcess.
+type ActParamFetchPluginProcess struct {
 	pluginUtils.PluginActionStandardParam `json:",inline"`
 }
 
-type actionCheckPluginProcessAlive struct {
+type actionFetchPluginProcess struct {
 	daoPluginDeployment pluginStg.IDaoPluginDeployment
 	daoProcess          pluginStg.IDaoProcess
-	gseHandlerProc      gse.IHandlerProc
 }
 
 // Name returns the name of the action.
-func (act *actionCheckPluginProcessAlive) Name() string {
-	return ActionNameCheckPluginProcessAlive
+func (act *actionFetchPluginProcess) Name() string {
+	return ActionNameFetchPluginProcess
 }
 
 // Version returns the version of the action.
-func (act *actionCheckPluginProcessAlive) Version() string {
+func (act *actionFetchPluginProcess) Version() string {
 	return "1.0.0" // nolint: goconst
 }
 
 // Description returns the description of the action.
-func (act *actionCheckPluginProcessAlive) Description() string {
-	return "check plugin process alive"
+func (act *actionFetchPluginProcess) Description() string {
+	return "fetch plugin process"
 }
 
 // Timeout returns the timeout of the action.
-func (act *actionCheckPluginProcessAlive) Timeout() time.Duration {
+func (act *actionFetchPluginProcess) Timeout() time.Duration {
 	return 1 * time.Minute
 }
 
 // Tags returns the tags of the action.
-func (act *actionCheckPluginProcessAlive) Tags() []action.Tag {
+func (act *actionFetchPluginProcess) Tags() []action.Tag {
 	return []action.Tag{}
 }
 
 // MaxRetryCount returns the max retry count of the action.
-func (act *actionCheckPluginProcessAlive) MaxRetryCount() uint {
+func (act *actionFetchPluginProcess) MaxRetryCount() uint {
 	return 3 // nolint: mnd
 }
 
 // DelayFn this func define when this action fails, how long to wait before retrying.
-func (act *actionCheckPluginProcessAlive) DelayFn() func() {
+func (act *actionFetchPluginProcess) DelayFn() func() {
 	return func() {
 		time.Sleep(1 * time.Second)
 	}
 }
 
 // Do this func define what the action will do.
-func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error {
-	param := new(ActParamCheckPluginProcessAlive)
+func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
+	param := new(ActParamFetchPluginProcess)
 	err := conv.MapToStruct(ctx.Data.Content, param)
 	if err != nil {
 		return err
@@ -106,28 +102,19 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 
 	nCtx := std.Context()
 	deployInfo := std.DeployInfo()
-	processSpec := deployInfo.Process.ToProcessSpec()
-	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
+	process, err := act.daoProcess.GetProcess(nCtx, deployInfo.Process.HostID, deployInfo.Process.PluginName)
 	if err != nil {
-		return fmt.Errorf("failed to query process info: %w", err)
+		std.InstanceData().LogE(fmt.Sprintf("failed to get process, process-name(%s), host-id(%d): %v",
+			deployInfo.Process.PluginName, deployInfo.Process.HostID, err))
+
+		return fmt.Errorf("failed to get plugin process, process-name(%s), host-id(%d): %w",
+			deployInfo.Process.PluginName, deployInfo.Process.HostID, err)
 	}
 
-	if processInfo.Status != types.ProcessStatusRunning {
-		std.InstanceData().LogI(fmt.Sprintf("process status is not running, status(%s)", processInfo.Status))
+	std.InstanceData().LogI(fmt.Sprintf("fetch plugin process succeed, plugin-name(%s), host-id(%d)",
+		deployInfo.Process.PluginName, deployInfo.Process.HostID))
 
-		return fmt.Errorf("process status is not running, status(%s)", processInfo.Status)
-	}
-
-	if deployInfo.Process.Info.Version != processInfo.Version {
-		std.InstanceData().LogI(fmt.Sprintf("process version mismatch, record-version(%s), actual-version(%s)",
-			deployInfo.Process.Info.Version, processInfo.Version))
-	}
-
-	std.InstanceData().LogI(fmt.Sprintf("check plugin process alive succeed, plugin-name(%s), host-id(%d), status(%s), version(%s)",
-		deployInfo.Process.PluginName, deployInfo.Process.HostID, processInfo.Status, processInfo.Version))
-
-	// update process info
-	deployInfo.Process.Info = *processInfo
+	deployInfo.Process = *process
 
 	return nil
 }

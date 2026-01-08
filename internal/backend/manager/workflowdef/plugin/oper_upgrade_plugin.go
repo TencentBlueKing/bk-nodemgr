@@ -44,8 +44,9 @@ func (oper *operUpgradePlugin) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operUpgradePlugin) ActionDefNames() []string {
 	return []string{
-		ActionNameCheckPluginProcessAlive,
+		ActionNameFetchPluginProcess,
 		ActionNameVerifyPluginAvailability,
+		ActionNameCheckPluginProcessAlive,
 		ActionNameStopProcess,
 		ActionNameRenderPluginDeployment,
 		ActionNameEnsureAndUpdatePluginConfigDetails,
@@ -64,8 +65,10 @@ func (oper *operUpgradePlugin) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameUpsertProcess:                      true,
+			ActionNameFetchPluginProcess:                 true,
 			ActionNameVerifyPluginAvailability:           true,
+			ActionNameCheckPluginProcessAlive:            true,
+			ActionNameStopProcess:                        true,
 			ActionNameRenderPluginDeployment:             true,
 			ActionNameEnsureAndUpdatePluginConfigDetails: true,
 			ActionNameRenderPluginConfig:                 true,
