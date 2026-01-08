@@ -369,7 +369,6 @@ func (x *NodeAgentInstallCheckReq) Validate() error {
 }
 
 // Validate check body.
-// nolint: protogetter
 func (x *AgentInstallCheckInfo) Validate() error {
 	if x.GetBkBizId() < 0 {
 		return errors.New("biz_id must be equal or greater than 0")
@@ -377,6 +376,18 @@ func (x *AgentInstallCheckInfo) Validate() error {
 
 	if len(x.GetBkHostInneripList()) == 0 && len(x.GetBkHostInneripV6List()) == 0 {
 		return errors.New("bk_host_innerip_list and bk_host_innerip_v6_list can not be both empty")
+	}
+
+	for _, ip := range x.GetBkHostInneripList() {
+		if ip == "" {
+			return errors.New("bk_host_innerip_list can not contain empty string")
+		}
+	}
+
+	for _, ipv6 := range x.GetBkHostInneripV6List() {
+		if ipv6 == "" {
+			return errors.New("bk_host_innerip_v6_list can not contain empty string")
+		}
 	}
 
 	return nil

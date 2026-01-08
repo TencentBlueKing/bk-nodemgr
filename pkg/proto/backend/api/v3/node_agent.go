@@ -373,13 +373,34 @@ func (x *NodeAgentInstallCheckReq) Validate() error {
 		return errors.New("host can not be empty")
 	}
 
-	for _, host := range hosts {
-		if host.GetBkBizId() < 0 {
-			return errors.New("bk_biz_id is required")
+	for idx := range hosts {
+		if err := hosts[idx].Validate(); err != nil {
+			return err
 		}
+	}
 
-		if len(host.GetBkHostInneripList()) == 0 && len(host.GetBkHostInneripV6List()) == 0 {
-			return errors.New("bk_host_innerip_list and bk_host_innerip_v6_list can not be both empty")
+	return nil
+}
+
+// Validate check body.
+func (x *NodeAgentInstallCheckReq_Host) Validate() error {
+	if x.GetBkBizId() < 0 {
+		return errors.New("bk_biz_id is required")
+	}
+
+	if len(x.GetBkHostInneripList()) == 0 && len(x.GetBkHostInneripV6List()) == 0 {
+		return errors.New("bk_host_innerip_list and bk_host_innerip_v6_list can not be both empty")
+	}
+
+	for _, ip := range x.GetBkHostInneripList() {
+		if ip == "" {
+			return errors.New("bk_host_innerip_list can not contain empty string")
+		}
+	}
+
+	for _, ipv6 := range x.GetBkHostInneripV6List() {
+		if ipv6 == "" {
+			return errors.New("bk_host_innerip_v6_list can not contain empty string")
 		}
 	}
 
