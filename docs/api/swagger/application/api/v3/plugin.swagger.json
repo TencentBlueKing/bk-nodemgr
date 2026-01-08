@@ -344,9 +344,6 @@
         "plugin_name": {
           "type": "string"
         },
-        "version": {
-          "type": "string"
-        },
         "config_name": {
           "type": "array",
           "items": {

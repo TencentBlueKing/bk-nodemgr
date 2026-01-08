@@ -165,7 +165,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		return err
 	}
 
-	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(tenantID, deployParams...)
+	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(tenantID, types.DefaultPluginDeploymentTransferOptions(), deployParams...)
 	if err != nil {
 		return fmt.Errorf("failed to create plugin deployments by params: %w", err)
 	}

@@ -800,3 +800,5 @@ linters-settings:
         alias: cipherStg
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/cipher
         alias: daoCipher
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/deploypolicy/utils
+        alias: deployPolicyUtils

@@ -71,8 +71,10 @@ func (mgr *Manager) createInstallPluginOper(
 	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
 
 	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
-		logger.G.Biz(nCtx).Error("failed to create plugin deployment. trigger-id(%s), plugin-token(%s), err(%v)",
-			triggerCtl.GetTriggerID(), deploy.Token, err)
+		logger.G.Biz(nCtx).WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to create plugin deployment.")
 
 		return err
 	}
@@ -156,8 +158,11 @@ func (mgr *Manager) createUpgradePluginOper(
 	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
 
 	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
-		logger.G.Biz(nCtx).Error("failed to create plugin deployment. trigger-id(%s), plugin-token(%s), err(%v)",
-			triggerCtl.GetTriggerID(), deploy.Token, err)
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("trigger-id", triggerCtl.GetTriggerID()).
+			With("plugin-token", deploy.Token).
+			Error("failed to create plugin deployment.")
 
 		return err
 	}
@@ -222,8 +227,11 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 		deploy := pluginDeploy
 		gp.Go(func() error {
 			if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
-				logger.G.Biz(nCtx).Error("failed to create plugin deployment. trigger-id(%s), plugin-token(%s), err(%v)",
-					triggerCtl.GetTriggerID(), deploy.Token, err)
+				logger.G.Biz(nCtx).
+					WithErr(err).
+					With("trigger-id", triggerCtl.GetTriggerID()).
+					With("plugin-token", deploy.Token).
+					Error("failed to create plugin deployment.")
 
 				return err
 			}

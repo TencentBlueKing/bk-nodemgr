@@ -8,6 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
+// Package deploypolicy this package provide deploy policy relate action definition.
 package deploypolicy
 
 import (

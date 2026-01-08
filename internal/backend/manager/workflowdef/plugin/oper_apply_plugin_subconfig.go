@@ -46,6 +46,7 @@ func (oper *operApplyPluginSubConfig) Name() string {
 func (oper *operApplyPluginSubConfig) ActionDefNames() []string {
 	return []string{
 		ActionNameCheckPluginProcessAlive,
+		ActionNameVerifyPluginAvailability,
 		ActionNameRenderPluginDeployment,
 		ActionNameEnsureAndUpdatePluginConfigDetails,
 		ActionNameRenderPluginConfig,
@@ -62,6 +63,7 @@ func (oper *operApplyPluginSubConfig) DefaultParameters() operation.Param {
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
 			ActionNameCheckPluginProcessAlive:            true,
+			ActionNameVerifyPluginAvailability:           true,
 			ActionNameRenderPluginDeployment:             true,
 			ActionNameEnsureAndUpdatePluginConfigDetails: true,
 			ActionNameRenderPluginConfig:                 true,

@@ -61,9 +61,8 @@ message PluginApplySubConfigReq {
   message Plugin {
     optional int64 bk_host_id = 1;
     string plugin_name = 2;
-    string version = 3;
-    repeated string config_name = 4;
-    optional google.protobuf.Struct custom_config_context = 5;
+    repeated string config_name = 3;
+    optional google.protobuf.Struct custom_config_context = 4;
   }
 
   repeated Plugin plugin = 1;

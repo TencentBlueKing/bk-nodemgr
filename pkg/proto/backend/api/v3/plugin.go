@@ -332,10 +332,6 @@ func (x *PluginApplySubConfigReq_Plugin) Validate() error {
 		return errors.New("plugin_name can not be empty")
 	}
 
-	if x.GetVersion() == "" {
-		return errors.New("version can not be empty")
-	}
-
 	return nil
 }
 
@@ -362,7 +358,6 @@ func (x *PluginApplySubConfigReq) ConvertParamFromTypes(installParam ...*types.P
 		item := &PluginApplySubConfigReq_Plugin{}
 		item.BkHostId = &param.HostID
 		item.PluginName = param.PluginName
-		item.Version = param.Version
 		item.ConfigName = param.ConfigName
 		item.CustomConfigContext, err = structpb.NewStruct(param.CustomConfigContext)
 		if err != nil {
@@ -384,7 +379,6 @@ func (x *PluginApplySubConfigReq) ConvertParamToTypes() []*types.PluginDeploymen
 		return &types.PluginDeploymentParam{
 			HostID:              proc.GetBkHostId(),
 			PluginName:          proc.GetPluginName(),
-			Version:             proc.GetVersion(),
 			ConfigName:          proc.GetConfigName(),
 			CustomConfigContext: proc.GetCustomConfigContext().AsMap(),
 		}

@@ -67,7 +67,7 @@ func (act *actionGenOperExecuteDeployPolicy) Description() string {
 
 // Timeout returns the timeout of this action.
 func (act *actionGenOperExecuteDeployPolicy) Timeout() time.Duration {
-	return 30 * time.Minute
+	return 30 * time.Minute // nolint: mnd
 }
 
 // MaxRetryCount returns the max retry count of this action.
@@ -119,12 +119,14 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 	if err != nil {
 		logger.G.Sys().WithErr(err).With("tenant-id", std.TenantID()).
 			Error("failed to list deploy policies")
+
 		return fmt.Errorf("failed to list deploy policies: %w", err)
 	}
 
 	if total == 0 {
 		logger.G.Sys().With("tenant-id", std.TenantID()).
 			Info("no deploy policy found that needs to be executed")
+
 		return nil
 	}
 

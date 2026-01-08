@@ -121,10 +121,15 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 		return err
 	}
 
+	version := deployInfo.InstallOptions.Version
+	if version == "" {
+		version = deployInfo.Process.Info.Version
+	}
+
 	pluginPkg, err := act.daoReleasePlugin.GetReleasePlugin(nCtx, types.ReleasePluginKey{
 		Generation: host.Dynamic.NodeGeneration,
 		Platform:   platform.NewPlatform(host.Dynamic.NodeOsType, host.Dynamic.NodeCPUArch),
-		Version:    deployInfo.InstallOptions.Version,
+		Version:    version,
 		Name:       plugin.PkgName,
 	})
 	if err != nil {

@@ -112,15 +112,13 @@ func (p *PluginDeploymentParam) Validate() error {
 		return fmt.Errorf("empty PluginName: %s", p.PluginName)
 	}
 
-	if p.Version == "" {
-		return fmt.Errorf("empty Version: %s", p.Version)
-	}
-
 	return nil
 }
 
 // NewPluginDeploymentsByParams create base plugin deployments by params.
-func NewPluginDeploymentsByParams(tenantID string, params ...*PluginDeploymentParam) ([]*PluginDeployment, []int64, error) {
+func NewPluginDeploymentsByParams(tenantID string, transferOption PluginDeploymentTransferOptions, params ...*PluginDeploymentParam) (
+	[]*PluginDeployment, []int64, error) {
+
 	pluginDeployments := make([]*PluginDeployment, 0, len(params))
 	for _, param := range params {
 		if err := param.Validate(); err != nil {
@@ -144,11 +142,7 @@ func NewPluginDeploymentsByParams(tenantID string, params ...*PluginDeploymentPa
 			InstallOptions: PluginDeploymentInstallOptions{
 				Version: param.Version,
 			},
-			TransferOptions: PluginDeploymentTransferOptions{
-				SelectDownloads:      true,
-				EnableReleasePackage: false,
-				EnableInstaller:      true,
-			},
+			TransferOptions: transferOption,
 		}
 
 		pluginDeployments = append(pluginDeployments, NewPluginDeployment(deploymentInfo, conf))
@@ -161,4 +155,13 @@ func NewPluginDeploymentsByParams(tenantID string, params ...*PluginDeploymentPa
 	hostIDs := conv.MapKeyToSlice(hostIDMap)
 
 	return pluginDeployments, hostIDs, nil
+}
+
+// DefaultPluginDeploymentTransferOptions return the default plugin deployment transfer options.
+func DefaultPluginDeploymentTransferOptions() PluginDeploymentTransferOptions {
+	return PluginDeploymentTransferOptions{
+		SelectDownloads:      true,
+		EnableReleasePackage: false,
+		EnableInstaller:      true,
+	}
 }

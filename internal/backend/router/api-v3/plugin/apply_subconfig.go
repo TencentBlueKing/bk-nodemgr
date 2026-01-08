@@ -26,7 +26,8 @@ func (h *handler) ApplySubConfig(rCtx restserver.IContext) (interface{}, error) 
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(rCtx.TenantID(), req.ConvertParamToTypes()...)
+	pluginDeployments, hostIDs, err := types.NewPluginDeploymentsByParams(
+		rCtx.TenantID(), types.DefaultPluginDeploymentTransferOptions(), req.ConvertParamToTypes()...)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to install plugin, failed to generate plugin deployments.")
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
