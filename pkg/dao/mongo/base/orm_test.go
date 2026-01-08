@@ -712,3 +712,231 @@ func TestOrm_DeleteMany(t *testing.T) {
 		}
 	})
 }
+
+// TestOrm_HardDelete tests the HardDelete method
+func TestOrm_HardDelete(t *testing.T) {
+	orm, _ := testClient(t)
+	nCtx := contextx.New(context.Background())
+
+	// Create test data first
+	testData1 := &TestData{
+		ID:      uuid.NewString(),
+		Name:    "hard-delete-1",
+		Value:   2000,
+		Enabled: true,
+	}
+	testData2 := &TestData{
+		ID:      uuid.NewString(),
+		Name:    "hard-delete-2",
+		Value:   2100,
+		Enabled: false,
+	}
+
+	err := orm.Create(nCtx, testData1)
+	if err != nil {
+		t.Fatalf("Failed to create test data 1: %v", err)
+	}
+	err = orm.Create(nCtx, testData2)
+	if err != nil {
+		t.Fatalf("Failed to create test data 2: %v", err)
+	}
+
+	// Verify initial count
+	initialCount, err := orm.Count(nCtx, bson.D{})
+	if err != nil {
+		t.Fatalf("Failed to count initial data: %v", err)
+	}
+	if initialCount != 2 {
+		t.Fatalf("Expected 2 documents initially, got %v", initialCount)
+	}
+
+	tests := []struct {
+		name    string
+		nCtx    contextx.IContext
+		filter  bson.D
+		wantErr bool
+	}{
+		{
+			name:    "hard delete by id",
+			nCtx:    nCtx,
+			filter:  bson.D{{Key: FieldKeyTestDataID, Value: testData1.ID}},
+			wantErr: false,
+		},
+		{
+			name:    "hard delete non-existent data",
+			nCtx:    nCtx,
+			filter:  bson.D{{Key: FieldKeyTestDataValue, Value: 9999}},
+			wantErr: false, // Should not error when nothing to delete
+		},
+		{
+			name:    "nil context",
+			nCtx:    nil,
+			filter:  bson.D{{Key: FieldKeyTestDataID, Value: testData2.ID}},
+			wantErr: true,
+		},
+		{
+			name:    "empty filter",
+			nCtx:    nCtx,
+			filter:  bson.D{},
+			wantErr: true, // Empty filter should return error
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := orm.HardDelete(tt.nCtx, tt.filter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HardDelete() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+
+	// Verify deletion (hard delete - count should decrease)
+	t.Run("verify hard deletion", func(t *testing.T) {
+		count, err := orm.Count(nCtx, bson.D{})
+		if err != nil {
+			t.Fatalf("Failed to count after deletion: %v", err)
+		}
+		// Since HardDelete is hard delete, one document should be removed
+		// testData1 was deleted, testData2 should still exist
+		if count != 1 {
+			t.Errorf("Expected 1 document after hard deletion, got %v", count)
+		}
+
+		// Verify testData1 is gone
+		_, err = orm.Get(nCtx, bson.D{{Key: FieldKeyTestDataID, Value: testData1.ID}})
+		if err == nil {
+			t.Error("Expected testData1 to be deleted, but it still exists")
+		}
+
+		// Verify testData2 still exists
+		data, err := orm.Get(nCtx, bson.D{{Key: FieldKeyTestDataID, Value: testData2.ID}})
+		if err != nil {
+			t.Errorf("Expected testData2 to exist, but got error: %v", err)
+		}
+		if data == nil {
+			t.Error("Expected testData2 to exist, but got nil")
+		}
+	})
+}
+
+// TestOrm_HardDeleteMany tests the HardDeleteMany method
+func TestOrm_HardDeleteMany(t *testing.T) {
+	orm, _ := testClient(t)
+	nCtx := contextx.New(context.Background())
+
+	// Create test data first
+	testData1 := &TestData{
+		ID:      uuid.NewString(),
+		Name:    "hard-delete-many-1",
+		Value:   3000,
+		Enabled: true,
+	}
+	testData2 := &TestData{
+		ID:      uuid.NewString(),
+		Name:    "hard-delete-many-2",
+		Value:   3100,
+		Enabled: true,
+	}
+	testData3 := &TestData{
+		ID:      uuid.NewString(),
+		Name:    "hard-delete-many-3",
+		Value:   3200,
+		Enabled: false,
+	}
+
+	err := orm.Create(nCtx, testData1)
+	if err != nil {
+		t.Fatalf("Failed to create test data 1: %v", err)
+	}
+	err = orm.Create(nCtx, testData2)
+	if err != nil {
+		t.Fatalf("Failed to create test data 2: %v", err)
+	}
+	err = orm.Create(nCtx, testData3)
+	if err != nil {
+		t.Fatalf("Failed to create test data 3: %v", err)
+	}
+
+	// Verify initial count
+	initialCount, err := orm.Count(nCtx, bson.D{})
+	if err != nil {
+		t.Fatalf("Failed to count initial data: %v", err)
+	}
+	if initialCount != 3 {
+		t.Fatalf("Expected 3 documents initially, got %v", initialCount)
+	}
+
+	tests := []struct {
+		name    string
+		nCtx    contextx.IContext
+		filter  bson.D
+		wantErr bool
+	}{
+		{
+			name:    "hard delete many by enabled status",
+			nCtx:    nCtx,
+			filter:  bson.D{{Key: FieldKeyTestDataEnabled, Value: true}},
+			wantErr: false,
+		},
+		{
+			name:    "hard delete many non-existent data",
+			nCtx:    nCtx,
+			filter:  bson.D{{Key: FieldKeyTestDataValue, Value: 9999}},
+			wantErr: false, // Should not error when nothing to delete
+		},
+		{
+			name:    "nil context",
+			nCtx:    nil,
+			filter:  bson.D{{Key: FieldKeyTestDataEnabled, Value: false}},
+			wantErr: true,
+		},
+		{
+			name:    "empty filter",
+			nCtx:    nCtx,
+			filter:  bson.D{},
+			wantErr: true, // Empty filter should return error
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := orm.HardDeleteMany(tt.nCtx, tt.filter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("HardDeleteMany() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+
+	// Verify deletion (hard delete - count should decrease)
+	t.Run("verify hard deletion many", func(t *testing.T) {
+		count, err := orm.Count(nCtx, bson.D{})
+		if err != nil {
+			t.Fatalf("Failed to count after deletion: %v", err)
+		}
+		// testData1 and testData2 were deleted (enabled=true), testData3 should still exist (enabled=false)
+		if count != 1 {
+			t.Errorf("Expected 1 document after hard deletion, got %v", count)
+		}
+
+		// Verify testData1 and testData2 are gone
+		_, err = orm.Get(nCtx, bson.D{{Key: FieldKeyTestDataID, Value: testData1.ID}})
+		if err == nil {
+			t.Error("Expected testData1 to be deleted, but it still exists")
+		}
+
+		_, err = orm.Get(nCtx, bson.D{{Key: FieldKeyTestDataID, Value: testData2.ID}})
+		if err == nil {
+			t.Error("Expected testData2 to be deleted, but it still exists")
+		}
+
+		// Verify testData3 still exists
+		data, err := orm.Get(nCtx, bson.D{{Key: FieldKeyTestDataID, Value: testData3.ID}})
+		if err != nil {
+			t.Errorf("Expected testData3 to exist, but got error: %v", err)
+		}
+		if data == nil {
+			t.Error("Expected testData3 to exist, but got nil")
+		}
+	})
+}

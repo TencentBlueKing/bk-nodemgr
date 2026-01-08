@@ -83,6 +83,16 @@ type IOrm[P DataPoint[T], T any] interface {
 	// DeleteMany delete multiple data.
 	DeleteMany(nCtx contextx.IContext, filter bson.D) error
 
+	// HardDelete delete single data permanently from database.
+	// NOTE: this is a hard delete, record will be permanently removed.
+	// WARNING: empty filter is not allowed to prevent accidental deletion of all data.
+	HardDelete(nCtx contextx.IContext, filter bson.D) error
+
+	// HardDeleteMany delete multiple data permanently from database.
+	// NOTE: this is a hard delete, records will be permanently removed.
+	// WARNING: empty filter is not allowed to prevent accidental deletion of all data.
+	HardDeleteMany(nCtx contextx.IContext, filter bson.D) error
+
 	// UpdateFieldsBulk updates multiple documents in bulk based on the provided updates.
 	UpdateFieldsBulk(nCtx contextx.IContext, updates []*DocumentFieldUpdate) error
 }
@@ -483,6 +493,80 @@ func (orm *Orm[P, T]) DeleteMany(nCtx contextx.IContext, filter bson.D) (err err
 
 	if result.MatchedCount > 0 {
 		logger.G.Sys().With("table", orm.dao.GetTableName(), "deleted-count", result.MatchedCount).Info("deleted many")
+	}
+
+	return nil
+}
+
+// HardDelete this is a hard delete operation for mongo db.
+// NOTE: this is a hard delete, record will be permanently removed.
+// WARNING: empty filter is not allowed to prevent accidental deletion of all data.
+func (orm *Orm[P, T]) HardDelete(nCtx contextx.IContext, filter bson.D) (err error) {
+	var result *mongo.DeleteResult
+
+	// record metric.
+	metric := orm.metric().start(daomongo.MetricOperationBulkWrite, len(filter))
+	defer func() {
+		metric.end(err, func() int {
+			if result == nil {
+				return 0
+			}
+
+			return int(result.DeletedCount)
+		}())
+	}()
+
+	if nCtx == nil {
+		return errors.New("context is nil")
+	}
+
+	if len(filter) == 0 {
+		return errors.New("empty filter is not allowed for hard delete to prevent accidental deletion of all data")
+	}
+
+	if result, err = orm.dao.GetClient().DeleteOne(nCtx, filter); err != nil {
+		return err
+	}
+
+	if result.DeletedCount > 0 {
+		logger.G.Sys().With("table", orm.dao.GetTableName(), "deleted-count", result.DeletedCount).Info("hard deleted document")
+	}
+
+	return nil
+}
+
+// HardDeleteMany this is a hard delete operation for mongo db.
+// NOTE: this is a hard delete, records will be permanently removed.
+// WARNING: empty filter is not allowed to prevent accidental deletion of all data.
+func (orm *Orm[P, T]) HardDeleteMany(nCtx contextx.IContext, filter bson.D) (err error) {
+	var result *mongo.DeleteResult
+
+	// record metric.
+	metric := orm.metric().start(daomongo.MetricOperationBulkWrite, len(filter))
+	defer func() {
+		metric.end(err, func() int {
+			if result == nil {
+				return 0
+			}
+
+			return int(result.DeletedCount)
+		}())
+	}()
+
+	if nCtx == nil {
+		return errors.New("context is nil")
+	}
+
+	if len(filter) == 0 {
+		return errors.New("empty filter is not allowed for hard delete to prevent accidental deletion of all data")
+	}
+
+	if result, err = orm.dao.GetClient().DeleteMany(nCtx, filter); err != nil {
+		return err
+	}
+
+	if result.DeletedCount > 0 {
+		logger.G.Sys().With("table", orm.dao.GetTableName(), "deleted-count", result.DeletedCount).Info("hard deleted many documents")
 	}
 
 	return nil
