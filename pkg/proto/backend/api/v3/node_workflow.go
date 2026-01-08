@@ -917,3 +917,77 @@ func newEmptyNodeWorkflow() *NodeWorkflowInfo {
 		Status:      new(string),
 	}
 }
+
+// Validate check body.
+func (x *NodeWorkflowOperationDistinctReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id is required")
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeWorkflowOperationDistinctReq) AutoConvert() {
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeWorkflowOperationDistinctReq) GetWorkflowID() string {
+	return x.GetWorkflowId()
+}
+
+// ConvertSelectorToTypes convert selector to types.
+func (x *NodeWorkflowOperationDistinctReq) ConvertSelectorToTypes() types.WorkflowOperationDistinctSelector {
+	if x.GetSelector() == nil {
+		return types.WorkflowOperationDistinctSelector{}
+	}
+
+	selector := x.GetSelector()
+	return types.WorkflowOperationDistinctSelector{
+		State: selector.GetState(),
+	}
+}
+
+// ConvertSelectorFromTypes convert selector from types.
+func (x *NodeWorkflowOperationDistinctReq) ConvertSelectorFromTypes(selector types.WorkflowOperationDistinctSelector) {
+	x.Selector = &NodeWorkflowOperationDistinctSelector{
+		State: selector.State,
+	}
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *NodeWorkflowOperationDistinctResp) ConvertResultFromTypes(result *types.WorkflowOperationDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &NodeWorkflowOperationDistinctResp_Data{
+		State: conv.SliceToSlice(result.State, func(s operation.State) string {
+			return string(s)
+		}),
+	}
+}
+
+// ConvertOperationDistinctToTypes convert operation distinct to types.
+func (x *NodeWorkflowOperationDistinctResp) ConvertOperationDistinctToTypes() (*types.WorkflowOperationDistinctResult, error) {
+	if x.GetData() == nil {
+		return nil, fmt.Errorf("distinct operation failed, get empty data")
+	}
+
+	var err error
+	result := new(types.WorkflowOperationDistinctResult)
+	result.State, err = conv.SliceToSliceWithError(
+		x.GetData().GetState(),
+		func(s string) (operation.State, error) {
+			state := operation.State(s)
+			if err := state.Validate(); err != nil {
+				return "", err
+			}
+
+			return state, nil
+		})
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert state: %w", err)
+	}
+
+	return result, nil
+}

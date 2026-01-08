@@ -875,3 +875,81 @@ func convertPluginWorkConditionsFromTypes(condition *types.PluginWorkflowConditi
 
 	return exactCond, fuzzyCond, timeRange, nil
 }
+
+// ===============================================================================
+// PluginWorkflowOperationDistinct Related Interfaces
+// ===============================================================================
+
+// Validate check body.
+func (x *PluginWorkflowOperationDistinctReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id can not be empty")
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowOperationDistinctReq) AutoConvert() {
+}
+
+// GetWorkflowID get workflow id.
+func (x *PluginWorkflowOperationDistinctReq) GetWorkflowID() string {
+	return x.GetWorkflowId()
+}
+
+// ConvertSelectorToTypes convert selector to types.
+func (x *PluginWorkflowOperationDistinctReq) ConvertSelectorToTypes() types.WorkflowOperationDistinctSelector {
+	if x.GetSelector() == nil {
+		return types.WorkflowOperationDistinctSelector{}
+	}
+
+	selector := x.GetSelector()
+	return types.WorkflowOperationDistinctSelector{
+		State: selector.GetState(),
+	}
+}
+
+// ConvertSelectorFromTypes convert selector from types.
+func (x *PluginWorkflowOperationDistinctReq) ConvertSelectorFromTypes(selector types.WorkflowOperationDistinctSelector) {
+	x.Selector = &PluginWorkflowOperationDistinctSelector{
+		State: selector.State,
+	}
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PluginWorkflowOperationDistinctResp) ConvertResultFromTypes(result *types.WorkflowOperationDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &PluginWorkflowOperationDistinctResp_Data{
+		State: conv.SliceToSlice(result.State, func(s operation.State) string {
+			return string(s)
+		}),
+	}
+}
+
+// ConvertOperationDistinctToTypes convert operation distinct to types.
+func (x *PluginWorkflowOperationDistinctResp) ConvertOperationDistinctToTypes() (*types.WorkflowOperationDistinctResult, error) {
+	if x.GetData() == nil {
+		return nil, fmt.Errorf("distinct operation failed, get empty data")
+	}
+
+	var err error
+	result := new(types.WorkflowOperationDistinctResult)
+	result.State, err = conv.SliceToSliceWithError(
+		x.GetData().GetState(),
+		func(s string) (operation.State, error) {
+			state := operation.State(s)
+			if err := state.Validate(); err != nil {
+				return "", err
+			}
+
+			return state, nil
+		})
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert state: %w", err)
+	}
+
+	return result, nil
+}

@@ -100,6 +100,29 @@ message PluginWorkflowOperationListReq {
   FuzzyConditions fuzzy_include_conditions = 5;
 }
 
+// PluginWorkflowOperationDistinctSelector describes the plugin workflow
+// operation distinct selector.
+message PluginWorkflowOperationDistinctSelector { bool state = 1; }
+
+// PluginWorkflowOperationDistinctReq describes the plugin workflow operation
+// distinct request.
+message PluginWorkflowOperationDistinctReq {
+  string workflow_id = 1;
+  PluginWorkflowOperationDistinctSelector selector = 2;
+}
+
+// PluginWorkflowOperationDistinctResp describes the plugin workflow operation
+// distinct response.
+message PluginWorkflowOperationDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated string state = 1; }
+  Data data = 5;
+}
+
 // PluginWorkflowOperation describes the node workflow operation.
 
 // PluginWorkflowOperationListResp describes the node operation list by
@@ -265,6 +288,16 @@ service PluginWorkflow {
       returns (PluginWorkflowOperationListResp) {
     option (google.api.http) = {
       post : "/api/v3/plugin/workflow/operation/list"
+      body : "*"
+    };
+  }
+
+  // PluginWorkflowOperationDistinct provides plugin workflow operation
+  // distinct.
+  rpc PluginWorkflowOperationDistinct(PluginWorkflowOperationDistinctReq)
+      returns (PluginWorkflowOperationDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/plugin/workflow/operation/distinct"
       body : "*"
     };
   }

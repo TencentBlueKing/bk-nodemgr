@@ -155,6 +155,22 @@ message NodeWorkflowOperationListResp {
   Data data = 5;
 }
 
+// NodeWorkflowOperationDistinctReq describes the node workflow operation
+// distinct request.
+message NodeWorkflowOperationDistinctReq { string workflow_id = 1; }
+
+// NodeWorkflowOperationDistinctResp describes the node workflow operation
+// distinct response.
+message NodeWorkflowOperationDistinctResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated string state = 1; }
+  Data data = 5;
+}
+
 // NodeWorkflowOperationInstanceListReq describes the node operation instance
 // list by operation-id request.
 message NodeWorkflowOperationInstanceListReq {
@@ -296,6 +312,15 @@ service NodeWorkflow {
       returns (NodeWorkflowOperationListResp) {
     option (google.api.http) = {
       post : "/api/v3/node/workflow/operation/list"
+      body : "*"
+    };
+  }
+
+  // NodeWorkflowOperationDistinct provides node workflow operation distinct.
+  rpc NodeWorkflowOperationDistinct(NodeWorkflowOperationDistinctReq)
+      returns (NodeWorkflowOperationDistinctResp) {
+    option (google.api.http) = {
+      post : "/api/v3/node/workflow/operation/distinct"
       body : "*"
     };
   }

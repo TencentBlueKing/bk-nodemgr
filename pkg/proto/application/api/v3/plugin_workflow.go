@@ -696,3 +696,37 @@ func newEmptyPluginWorkflowStatistics() *WorkflowStatisticsInfo {
 		TerminatedCount: new(int64),
 	}
 }
+
+// ===============================================================================
+// PluginWorkflowOperationDistinct Related Interfaces
+// ===============================================================================
+
+// Validate check body.
+func (x *PluginWorkflowOperationDistinctReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id can not be empty")
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PluginWorkflowOperationDistinctReq) AutoConvert() {
+}
+
+// GetWorkflowID get workflow id.
+func (x *PluginWorkflowOperationDistinctReq) GetWorkflowID() string {
+	return x.GetWorkflowId()
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PluginWorkflowOperationDistinctResp) ConvertResultFromTypes(result *types.WorkflowOperationDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &PluginWorkflowOperationDistinctResp_Data{
+		State: formatRespSlice(conv.SliceToSlice(result.State, func(s operation.State) string {
+			return string(s)
+		})),
+	}
+}

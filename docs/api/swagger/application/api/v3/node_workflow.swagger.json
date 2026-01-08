@@ -84,6 +84,40 @@
         ]
       }
     },
+    "/api/v3/node/workflow/operation/distinct": {
+      "post": {
+        "summary": "NodeWorkflowOperationDistinct provides node workflow operation distinct.",
+        "operationId": "NodeWorkflow_NodeWorkflowOperationDistinct",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "NodeWorkflowOperationDistinctReq describes the node workflow operation\ndistinct request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3NodeWorkflowOperationDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "NodeWorkflow"
+        ]
+      }
+    },
     "/api/v3/node/workflow/operation/instance/list": {
       "post": {
         "summary": "NodeWorkflowOperationInstanceList provides node workflow operation instance\nlist.",
@@ -706,6 +740,48 @@
         }
       },
       "description": "NodeWorkflowOperation describes the node workflow operation."
+    },
+    "v3NodeWorkflowOperationDistinctReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        }
+      },
+      "description": "NodeWorkflowOperationDistinctReq describes the node workflow operation\ndistinct request."
+    },
+    "v3NodeWorkflowOperationDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3NodeWorkflowOperationDistinctRespData"
+        }
+      },
+      "description": "NodeWorkflowOperationDistinctResp describes the node workflow operation\ndistinct response."
+    },
+    "v3NodeWorkflowOperationDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
     },
     "v3NodeWorkflowOperationExactConditions": {
       "type": "object",

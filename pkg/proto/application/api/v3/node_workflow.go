@@ -708,3 +708,33 @@ func newEmptyNodeWorkflowStatistics() *WorkflowStatisticsInfo {
 		TerminatedCount: new(int64),
 	}
 }
+
+// Validate check body.
+func (x *NodeWorkflowOperationDistinctReq) Validate() error {
+	if x.GetWorkflowId() == "" {
+		return errors.New("workflow_id can not be empty")
+	}
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *NodeWorkflowOperationDistinctReq) AutoConvert() {
+}
+
+// GetWorkflowID get workflow id.
+func (x *NodeWorkflowOperationDistinctReq) GetWorkflowID() string {
+	return x.GetWorkflowId()
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *NodeWorkflowOperationDistinctResp) ConvertResultFromTypes(result *types.WorkflowOperationDistinctResult) {
+	if result == nil {
+		return
+	}
+
+	x.Data = &NodeWorkflowOperationDistinctResp_Data{
+		State: formatRespSlice(conv.SliceToSlice(result.State, func(s operation.State) string {
+			return string(s)
+		})),
+	}
+}

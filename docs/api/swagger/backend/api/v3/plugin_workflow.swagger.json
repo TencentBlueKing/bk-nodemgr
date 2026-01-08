@@ -84,6 +84,40 @@
         ]
       }
     },
+    "/api/v3/plugin/workflow/operation/distinct": {
+      "post": {
+        "summary": "PluginWorkflowOperationDistinct provides plugin workflow operation\ndistinct.",
+        "operationId": "PluginWorkflow_PluginWorkflowOperationDistinct",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowOperationDistinctResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "PluginWorkflowOperationDistinctReq describes the plugin workflow operation\ndistinct request.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3PluginWorkflowOperationDistinctReq"
+            }
+          }
+        ],
+        "tags": [
+          "PluginWorkflow"
+        ]
+      }
+    },
     "/api/v3/plugin/workflow/operation/instance/list": {
       "post": {
         "summary": "PluginWorkflowOperationInstanceList provides plugin workflow operation\ninstance list.",
@@ -704,6 +738,60 @@
           }
         }
       }
+    },
+    "v3PluginWorkflowOperationDistinctReq": {
+      "type": "object",
+      "properties": {
+        "workflow_id": {
+          "type": "string"
+        },
+        "selector": {
+          "$ref": "#/definitions/v3PluginWorkflowOperationDistinctSelector"
+        }
+      },
+      "description": "PluginWorkflowOperationDistinctReq describes the plugin workflow operation\ndistinct request."
+    },
+    "v3PluginWorkflowOperationDistinctResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "error": {
+          "$ref": "#/definitions/v3Error"
+        },
+        "data": {
+          "$ref": "#/definitions/v3PluginWorkflowOperationDistinctRespData"
+        }
+      },
+      "description": "PluginWorkflowOperationDistinctResp describes the plugin workflow operation\ndistinct response."
+    },
+    "v3PluginWorkflowOperationDistinctRespData": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v3PluginWorkflowOperationDistinctSelector": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "boolean"
+        }
+      },
+      "description": "PluginWorkflowOperationDistinctSelector describes the plugin workflow\noperation distinct selector."
     },
     "v3PluginWorkflowOperationInstanceListReq": {
       "type": "object",
