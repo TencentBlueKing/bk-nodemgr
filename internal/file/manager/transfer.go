@@ -316,7 +316,15 @@ func (m *Manager) getCurrentGSEEndpoint(nCtx contextx.IContext) (string, error) 
 		return "", errors.New("agent-id is empty")
 	}
 
-	logger.G.Biz(nCtx).With("ipv4", m.hostAdvertiseIPV4, "ipv6", m.hostAdvertiseIPV6, "agent-id", agentID).Info("got current service agent-id")
+	if host.Dynamic.NodeStatus != types.NodeStatusRunning {
+		return "", fmt.Errorf("target host's agent is not running, host-id(%d), agent-id(%s), node-status(%s)",
+			host.HostID, agentID, host.Dynamic.NodeStatus)
+	}
+
+	logger.G.Biz(nCtx).
+		With("ipv4", m.hostAdvertiseIPV4, "ipv6", m.hostAdvertiseIPV6, "agent-id", agentID,
+			"host-id", host.HostID, "node-status", host.Dynamic.NodeStatus).
+		Info("got current service agent-id")
 
 	return agentID, nil
 }
