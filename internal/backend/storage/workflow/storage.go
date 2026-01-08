@@ -518,12 +518,25 @@ func (s *Storage) CountOperation(
 func (s *Storage) DistinctOperation(
 	nCtx contextx.IContext,
 	selector types.WorkflowOperationDistinctSelector,
-	conditions ...*types.OperationCondition) (result *types.WorkflowOperationDistinctResult, err error) {
+	conditions ...*types.OperationCondition) (*types.WorkflowOperationDistinctResult, error) {
 
-	metric := s.metric().Start("distinct_operation")
-	defer metric.End(err)
+	var (
+		result *types.WorkflowOperationDistinctResult
+		err    error
+	)
 
-	result, err = s.distinctOperation(nCtx, selector, conditions...)
+	err = s.WrapFn(nCtx, "distinct_operation", func(nCtx contextx.IContext) error {
+		result, err = s.distinctOperation(nCtx, selector, conditions...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return result, err
 }
 
