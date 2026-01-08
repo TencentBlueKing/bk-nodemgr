@@ -194,7 +194,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
-import type { NodeWorkflowInfo } from '@/@types/node_workflow';
+import type { NodeWorkflowDistinctRespData, NodeWorkflowInfo } from '@/@types/node_workflow';
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import { PluginWorkflowService } from '@/api/modules/plugin_workflow';
 import useTableSetting from '@/composables/use-table-setting';
@@ -378,19 +378,26 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   ],
   disabled: ['workflow_id'],
 }, 'nodeMng-history');
-const getUniqueChildren = (prop: string, map?: Record<string, any>) => {
-  const uniqueValues = Array.from(new Set(tableData.value.map((item: any) => item[prop]).filter((item: any) => item)));
-  return uniqueValues.map(value => ({
-    id: value,
-    name: map && map.value && map.value[value as string] ? map.value[value as string].text : value,
-  }));
-};
+
+const workflowDistinct = ref<NodeWorkflowDistinctRespData | null>();
+function getUniqueChildrenFrom <K extends keyof NodeWorkflowDistinctRespData>(
+  prop: K,
+  keyMap?: Record<string, any>,
+) {
+  const uniqueValues = workflowDistinct.value?.[prop] || [];
+  return uniqueValues
+    .filter((item: any) => item !== '')
+    .map((value: any) => ({
+      id: value,
+      name: keyMap?.[value].text || String(value),
+    }));
+}
 const searchSelectData = computed(() => [
   { id: 'workflow_id', name: t('platform.nodeMan.taskHistory.label.taskID') },
   {
     id: 'type',
     name: t('platform.nodeMan.taskHistory.label.taskType'),
-    children: getUniqueChildren('type', typeMap),
+    children: getUniqueChildrenFrom('type', typeMap.value),
   },
   {
     id: 'bk_biz_id',
@@ -401,12 +408,12 @@ const searchSelectData = computed(() => [
   {
     id: 'operator',
     name: t('platform.nodeMan.taskHistory.label.operator'),
-    children: getUniqueChildren('operator'),
+    children: getUniqueChildrenFrom('operator'),
   },
   {
     id: 'status',
     name: t('platform.nodeMan.taskHistory.label.status'),
-    children: getUniqueChildren('status', statusMap),
+    children: getUniqueChildrenFrom('status', statusMap.value),
   },
 ]);
 const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
@@ -481,10 +488,7 @@ const filterOptionSource = reactive<Record<string, FilterOption>>({
     filterScope: 'all',
   },
 });
-const getSearchParams = (prop: string) => {
-  const foundItem = searchSelectValue.value.find((item: any) => item.id === prop);
-  return foundItem ? foundItem.values.map((item: any) => item.id) : [];
-};
+
 const getTimestampInSeconds = (originalDate: string) => {
   const timestampInMilliseconds = new Date(originalDate).getTime();
   const timestampInSeconds = Math.floor(timestampInMilliseconds / 1000);
@@ -511,6 +515,35 @@ const getParams = () => {
   });
   return params;
 };
+
+// 获取搜索和筛选条件
+const getWorkflowDistinct = async () => {
+  const params = {
+    exact_include_conditions: {
+      bk_biz_id: mainStore.selectedBusinessId,
+    },
+  };
+  const res = await NodeWorkflowService.NodeWorkflowDistinct(params).catch((err: any) => {
+    console.error('获取主机筛选条件唯一值失败:', err);
+    return null;
+  });
+  if (res) {
+    workflowDistinct.value = res;
+    Object.keys(res).forEach((key: any) => {
+      if (filterOptionSource[key]) {
+        filterOptionSource[key].list = res[key]
+          .filter((item: any) => item !== '')
+          .map((value: string | number) => {
+            let text = value;
+            if (key === 'type') text = typeMap.value[value as string].text || value;
+            if (key === 'status') text = statusMap.value[value as string].text || value;
+            return { text, value };
+          });
+      }
+    });
+  }
+};
+
 const getTaskList = async () => {
   loading.value = true;
   let res;
@@ -584,15 +617,7 @@ watch(
   },
   { immediate: true },
 );
-watch(
-  () => tableData,
-  () => {
-    filterOptionSource.type.list = filterOptionConfig('type', typeMap);
-    filterOptionSource.operator.list = filterOptionConfig('operator');
-    filterOptionSource.status.list = filterOptionConfig('status', statusMap);
-  },
-  { deep: true, immediate: true },
-);
+
 watch(
   [
     () => searchSelectValue,
@@ -612,6 +637,13 @@ watch(
 
     // 立即获取，配合上面的 ID 检查机制，哪怕快速点击也没问题
     getTaskList();
+  },
+  { immediate: true, deep: true },
+);
+watch(
+  () => mainStore.selectedBusinessId,
+  () => {
+    getWorkflowDistinct();
   },
   { immediate: true, deep: true },
 );

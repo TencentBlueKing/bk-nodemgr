@@ -47,13 +47,14 @@
     </FlexRow>
     <!-- table -->
     <DetailTable
-      :search-select-value="searchKey"
+      v-model:search-select-value="searchKey"
       :bk-networkunit-id="active"
       :is-batch-reinstall="batchReinstall"
       @select-change="handleSelectChange"
       @get-data="handleGetData"
       @update-cross-page="handleUpdateCrossPage"
-      @excluded-ids-change="handleExcludedIdsChange">
+      @excluded-ids-change="handleExcludedIdsChange"
+      @update-search-select-data="handleUpdateSearchSelectData">
     </DetailTable>
   </div>
   <InstallProxy
@@ -110,6 +111,14 @@ const searchSelectData = ref<ISearchItem[]>([
   {
     name: 'AgentID',
     id: 'bk_agent_id',
+  },
+  {
+    name: 'Proxy 版本',
+    id: 'node_version',
+  },
+  {
+    name: 'Proxy 状态',
+    id: 'node_status',
   },
 ]);
 // 复制
@@ -206,5 +215,9 @@ const handleUpdateCrossPage = (crossPage: boolean) => {
 // 更新detail-table.vue中的excludedIds
 const handleExcludedIdsChange = (ids: number[]) => {
   excludedIds.value = ids;
+};
+
+const handleUpdateSearchSelectData = (data: any) => {
+  searchSelectData.value = data;
 };
 </script>

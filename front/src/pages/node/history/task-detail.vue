@@ -340,6 +340,18 @@ interface FilterOption {
   checked: string[];
   filterScope: string;
 }
+
+interface IWorkflowStatisticsInfo {
+  failed_count: number;
+  init_count: number;
+  launched_count: number;
+  running_count: number;
+  success_count: number;
+  terminated_count: number;
+  timeout_count: number;
+  total_count: number;
+  workflow_id: string;
+}
 type taskType =
   | 'install_agent'
   | 'install_plugin'
@@ -367,7 +379,7 @@ const reTryType = [
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
 const stateMinWidth = computed(() => (tableData.value.some(item =>
-  item.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script') && item.state === 'running') ? 240 : 120));
+  item.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script') && item.state === 'running') ? 240 : 120));
 
 // 当前任务状态
 const currentTaskStatus = computed(() => nodeManageStore.taskHistoryTableRowData.status);
@@ -412,6 +424,10 @@ const statusMap = computed(() => ({
   },
   launched: {
     text: '等待执行',
+    icon: 'incomplete',
+  },
+  incomplete: {
+    text: '未完成',
     icon: 'incomplete',
   },
 }));
@@ -524,37 +540,37 @@ const radioGroup = computed(() => [
     icon: '',
     label: '全部',
     name: 'all',
-    count: tableData.value.length,
+    count: statistics.value.total_count,
   },
   {
     icon: 'nodeman-icon nc-incomplete status-icon',
     label: '未完成',
     name: 'incomplete',
-    count: tableData.value.filter((item: { state: string }) => ['init ', 'launched', 'running'].includes(item.state)).length,
+    count: statistics.value.init_count + statistics.value.launched_count + statistics.value.running_count,
   },
   {
     icon: 'nodeman-icon nc-success status-icon',
     label: '成功',
     name: 'success',
-    count: tableData.value.filter((item: { state: string }) => item.state === 'success').length,
+    count: statistics.value.success_count,
   },
   {
     icon: 'nodeman-icon nc-failed status-icon',
     label: '失败',
     name: 'failed',
-    count: tableData.value.filter((item: { state: string }) => item.state === 'failed').length,
+    count: statistics.value.failed_count,
   },
   {
     icon: 'nodeman-icon nc-timeout status-icon',
     label: '超时',
     name: 'timeout',
-    count: tableData.value.filter((item: { state: string }) => item.state === 'timeout').length,
+    count: statistics.value.timeout_count,
   },
   {
     icon: 'nodeman-icon nc-terminated status-icon',
     label: '被终止',
     name: 'terminated',
-    count: tableData.value.filter((item: { state: string }) => item.state === 'terminated').length,
+    count: statistics.value.terminated_count,
   },
 ]);
 const bussinessMap = computed(() => mainStore.businessList.map(item => ({
@@ -787,10 +803,28 @@ const handleHeaderClick = () => {
   isCurrentPageAllChecked.value ? handleClearSelection() : handleSelectCurrentPage();
 };
 
-const handleChangeRadio = (value: string) => {
+const handleChangeRadio = (state: string) => {
+  // 切换状态tab，重置选择状态
   isCrossPageSelection.value = false;
   excludedIds.value.clear();
   filterTableData.value.forEach(item => (item.checked = false));
+  // 更新搜索条件
+  const index = searchSelectValue.value.findIndex((item: any) => item.id === 'state');
+  if (index > -1) searchSelectValue.value.splice(index, 1);
+  searchSelectValue.value.push({
+    id: 'state',
+    name: '状态',
+    values: state !== 'incomplete'
+      ? [{
+        id: state,
+        name: statusMap.value[state]?.text || state,
+      }]
+      : [
+        { id: 'init', name: '初始化' },
+        { id: 'launched', name: '等待执行' },
+        { id: 'running', name: '执行中' },
+      ],
+  });
 };
 
 // 表格设置
@@ -890,22 +924,52 @@ const serviceCaller = {
       terminate: NodeWorkflowService.NodeWorkflowOperationTerminate,
       workflowList: NodeWorkflowService.NodeWorkflowList,
       operationList: NodeWorkflowService.NodeWorkflowOperationList,
+      statistics: NodeWorkflowService.NodeWorkflowStatistics,
     },
     plugin: {
       retry: PluginWorkflowService.PluginWorkflowOperationRetry,
       terminate: PluginWorkflowService.PluginWorkflowOperationTerminate,
       workflowList: PluginWorkflowService.PluginWorkflowList,
       operationList: PluginWorkflowService.PluginWorkflowOperationList,
+      statistics: PluginWorkflowService.PluginWorkflowStatistics,
     },
   },
 
   // 统一调用方法
-  async call(method: 'retry' | 'terminate' | 'workflowList' | 'operationList', params: any) {
+  async call(method: 'retry' | 'terminate' | 'workflowList' | 'operationList' | 'statistics', params: any) {
     const serviceType = this.getCurrentServiceType();
     const serviceMethod = this.serviceMethods[serviceType][method];
     return await serviceMethod(params);
   },
 };
+
+// 获取statistics
+const statistics = ref<IWorkflowStatisticsInfo>({
+  failed_count: 0,
+  init_count: 0,
+  launched_count: 0,
+  running_count: 0,
+  success_count: 0,
+  terminated_count: 0,
+  timeout_count: 0,
+  total_count: 0,
+  workflow_id: '',
+});
+const getStatistics = async () => {
+  const res = await serviceCaller.call('statistics', {
+    workflow_id: [route.params.taskId],
+  }).catch((err) => {
+    console.log(err);
+    return {
+      items: [],
+    };
+  });
+  const workflowStatisticsInfoItem = res.items.find(item => item.workflow_id === route.params.taskId);
+  if (workflowStatisticsInfoItem) {
+    statistics.value = workflowStatisticsInfoItem;
+  };
+};
+
 // 重试
 const handleRetry = async (row: any, type: string) => {
   const res = await serviceCaller.call('retry', {
@@ -1180,6 +1244,7 @@ onMounted(async () => {
   }
   await updataCurrentTaskInfo();
   await getOperateList();
+  getStatistics();
   if (currentTaskStatus.value === 'running' && needInterval.value) {
     start();
   }

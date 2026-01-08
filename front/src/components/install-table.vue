@@ -1028,7 +1028,7 @@ const getNetworkUnitList = async () => {
     };
   });
   networkUnitList.value = res.items;
-  
+
   // 使用Lodash的groupBy函数进行分组
   networkUnitGroupMap.value = groupBy(res.items, 'bk_networkarea_id');
 };
@@ -1046,12 +1046,12 @@ const getNetworkAreaIds = () => {
 // 处理管控单元变更，获取对应的名称
 const handleNetworkUnitChange = (val: string, row: any, rowIndex: number) => {
   if (!val) return;
-  
+
   // 在所有网络单元中查找对应的名称
   const networkUnit = networkUnitList.value.find(
     (unit: any) => String(unit.bk_networkunit_id) === val
   );
-  
+
   if (networkUnit) {
     row.bk_networkunit_name = networkUnit.bk_networkunit_name;
   }

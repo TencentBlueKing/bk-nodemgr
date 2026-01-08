@@ -472,24 +472,24 @@ function handleMenuAction(action: string) {
   const { currentNodeId, nodeData } = menuState;
 
   // 打印看看，应该就是你发的那串 JSON
-  console.log('当前操作节点:', currentNodeId);
-  console.log('节点数据:', nodeData);
+  // console.log('当前操作节点:', currentNodeId);
+  // console.log('节点数据:', nodeData);
 
   switch (action) {
     case 'detail':
-      console.log(`查看详情: ${nodeData.name}`);
+      // console.log(`查看详情: ${nodeData.name}`);
       // 这里的 nodeData.name 就是 "default-test-1"
       break;
 
     case 'edit':
-      console.log('编辑单元');
+      // console.log('编辑单元');
       // 如果你需要 ID，可以从 currentNodeId 解析，或者看看 nodeData 里有没有存 ID
       // 你的数据里好像只有 bk_networkunit_id 在 links 里或者需要从 nodeId 解析
       break;
 
     case 'delete':
       // 你的数据里有 "area": "workArea-0"
-      console.log(`从区域 ${nodeData.area} 删除单元`);
+      // console.log(`从区域 ${nodeData.area} 删除单元`);
 
       // 执行删除逻辑...
       // deleteUnit(currentNodeId);
@@ -722,9 +722,7 @@ const execUpdateArea = (areaId: string) => {
   }
 
   // 6. 执行批量更新
-  console.log("🚀 ~ 2");
   graph.updateNodeData(updates);
-  console.log("🚀 ~ 3");
 };
 
 // 2. 节流版 (保持简单)
@@ -743,7 +741,6 @@ function handleNodeDrag(e: any) {
   const nodeData = graph.getNodeData(nodeId);
   const areaId = nodeData?.data?.area;
 
-  console.log("🚀 ~ handleNodeDrag ~ areaId:", areaId)
   if (areaId) {
     throttledUpdateArea(areaId as string);
   }
@@ -767,7 +764,6 @@ function handleNodeDragEnd(e: any) {
     // 我们立即执行一次计算，把区域框校准到最新位置。
     setTimeout(() => {
       execUpdateArea(areaId as string);
-      console.log("🚀 ~ handleNodeDragEnd ~ areaId:", areaId)
     }, 100);
   }
 }

@@ -7,7 +7,7 @@
       <bk-loading title="数据加载中" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)]">
         <div class="h-full overflow-y-auto">
           <div
-            v-for="operate in filterIpOpearateList" :key="operate.operation_id"
+            v-for="(operate, index) in filterIpOpearateList" :key="index"
             class="cursor-pointer w-full px-[20px] h-[40px] leading-[40px] flex items-center"
             :class="{ 'bg-[#e1ecff]': isNode
               ? Number(route.params.hostId) === operate.bk_host_id
@@ -102,10 +102,13 @@
               </span>
             </template>
           </TableColumn>
-          <TableColumn field="state" :title="'执行情况'" min-width="150">
+          <TableColumn
+            field="state"
+            :title="'执行情况'"
+            :min-width="isManual ? 230 : 150">
             <template #default="{ row }">
-              <div class="flex items-center">
-                <div class="flex items-center w-[100px]">
+              <div class="flex items-center gap-[5px]">
+                <div class="flex items-center flex-1">
                   <i
                     v-if="statusMap[row.state]?.icon"
                     :class="`nodeman-icon nc-${
@@ -118,14 +121,13 @@
                     height="12.25px"
                   />
                   <span class="nodeman-icon nc-unknown status-icon" v-else></span>
-                  <div>
+                  <div :class="['ml-[5px]']">
                     <!-- eslint-disable-next-line max-len -->
-                    <div v-if="currentOperate.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script')
-                      && last_oper_inst_step_key === row.stepKey && currentOperate.state === 'running'">
+                    <div v-if="isManual && last_oper_inst_step_key === row.stepKey && currentOperate.state === 'running'">
                       等待手动操作，查看
                       <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide">操作指引</Button>
                     </div>
-                    <span v-else :class="['ml-[5px]', { 'text-[#c4c6cc]': row.state === 'pending' }]">
+                    <span v-else :class="[{ 'text-[#c4c6cc]': row.state === 'pending' }]">
                       {{ statusMap[row.state]?.text }}
                     </span>
                   </div>
@@ -314,6 +316,7 @@ const searchValue = ref();
 const currentOperate = computed(() => operateList.value.find(item => isNode.value
   ? item.bk_host_id === Number(route.params.hostId)
   : route.params.hostId === (`${item.bk_host_id}_${item.plugin_name}`)));
+const isManual = computed(() => !!currentOperate.value?.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script'));
 const title = computed(() => `${currentOperate.value?.bk_host_inner_list ?? ''} ${typeMap.value[nodeManageStore.taskHistoryTableRowData.type] ?? ''} 的执行日志`);
 const curOperInstId = ref('');
 const curOperInstVal = ref('latest');

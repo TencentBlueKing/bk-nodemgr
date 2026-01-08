@@ -318,7 +318,7 @@ const pageValueChange = async (current: number) => {
 // 进程状态映射
 const statusMap = {
   running: {
-    text: '健康',
+    text: '正常',
     icon: 'running',
   },
   stopped: {

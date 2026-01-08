@@ -221,11 +221,10 @@
               <span
                 :class="`nodeman-icon nc-${row.node_status.toLowerCase()} status-icon`"
               ></span>
-              <span>{{ row.node_status }}</span>
+              <span>{{ statusMap.get(row.node_status) || row.node_status }}</span>
             </div>
             <div class="flex items-center" v-else>
-              <span class="nodeman-icon nc-unknown status-icon"></span>
-              <span>{{ row.node_status }}</span>
+              <span>--</span>
             </div>
           </template>
         </TableColumn>
@@ -290,6 +289,7 @@
       :data="chooseVersionData.data"
       :batch="chooseVersionData.batch"
       :is-cross-page-selection="isCrossPageSelection"
+      type="upgrade"
       @confirm="handleUpgrade"
     >
     </choose-version-dialog>
@@ -345,6 +345,9 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
+// 正则表达式
+const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
+const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
 
 // ---------- 响应式数据 ----------
 const tableData = ref<Host[]>([]);
@@ -387,6 +390,14 @@ const agentInstallType = [
   { id: 'import', name: 'Excel 导入远程安装' },
   { id: 'manual', name: '手动安装' },
 ];
+
+const statusMap = ref(new Map<string, string>([
+  ['init', '初始化'],
+  ['running', '正常'],
+  ['damaged', '异常'],
+  ['unknown', '未安装'],
+]));
+
 const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_name', 'dept_name']);
 
 // ---------- 计算属性 ----------
@@ -428,7 +439,7 @@ const searchSelectData = computed(() => [
   {
     id: 'node_status',
     name: 'Agent 状态',
-    children: getUniqueChildrenFrom('node_status'),
+    children: getUniqueChildrenFrom('node_status', statusMap.value),
     multiple: true,
   },
 ]);
@@ -535,14 +546,14 @@ const getCorssPageHostIds = async () => {
 // ---------- 辅助函数 ----------
 function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
   prop: K,
-  keyMap?: Map<number, string | number>,
+  keyMap?: Map<number | string, string | number>,
 ) {
   const uniqueValues = hostDistinct.value?.[prop] || [];
   return uniqueValues
     .filter((item: any) => item !== '')
     .map((value: any) => ({
       id: value,
-      name: keyMap?.get(Number(value)) || String(value),
+      name: keyMap?.get(value) || String(value),
     }));
 }
 
@@ -622,6 +633,7 @@ const getHostDistinct = async () => {
             let text = value;
             if (key === 'bk_networkarea_id') text = networkAreaListMap.value.get(Number(value)) || value;
             if (key === 'bk_networkunit_id') text = networkUnitListMap.value.get(Number(value)) || value;
+            if (key === 'node_status') text = statusMap.value.get(value as string) || value;
             return { text, value };
           });
       }
@@ -720,7 +732,42 @@ const loadInitialData = async () => {
 };
 
 // ---------- 事件处理函数 ----------
+/**
+ * 处理粘贴/快速输入的逻辑
+ */
+const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  const text = data.length > 0 ? data[data.length - 1].id : '';
+  if (text) {
+    let targetId = '';
+    let targetName = '';
+
+    // 1. 自动识别 IP 类型
+    if (IPV4_REG.test(text)) {
+      targetId = 'bk_host_innerip';
+      targetName = t('platform.nodeMan.inner_ip');
+    } else if (IPV6_REG.test(text)) {
+      targetId = 'bk_host_innerip_v6';
+      targetName = t('platform.nodeMan.inner_ipv6');
+    }
+
+    // 2. 如果匹配成功，直接构造并推入 searchSelectValue
+    if (targetId) {
+      const index = searchSelectValue.value.findIndex((item: any) => item.id === targetId);
+      if (index > -1) searchSelectValue.value.splice(index, 1);
+
+      searchSelectValue.value.push({
+        id: targetId,
+        name: targetName,
+        values: [{ id: text, name: text }],
+      });
+      // 3. 移除粘贴的文本
+      searchSelectValue.value.splice(data.length - 2, 1);
+      return;
+    }
+  }
+};
 const handleSearchSelectChange = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  handleInputPaste(data);
   Object.keys(filterOptionSource).forEach((key) => {
     filterOptionSource[key].checked = [];
   });
@@ -739,11 +786,12 @@ const handleFilter = ({ checked, field }: { checked: string[]; field: string }) 
   if (checked.length) {
     searchSelectValue.value.push({
       id: field,
-      name: t(field),
+      name: field,
       values: checked.map((item: any) => {
         let name = item;
         if (field === 'bk_networkarea_id') name = networkAreaListMap.value.get(Number(item)) || item;
         if (field === 'bk_networkunit_id') name = networkUnitListMap.value.get(Number(item)) || item;
+        if (field === 'node_status') name = statusMap.value.get(item) || item;
         return { id: item, name };
       }),
     });
@@ -857,12 +905,14 @@ const operateJob = async (extraData: any = {}) => {
   }
 };
 
-const handleUpgrade = async (osVersion: any[]) => {
+const handleUpgrade = async (osVersion: any[], upgradeData: {force: boolean, graceful_restart_timeout_sec: number}) => {
   loading.value = true;
   const params = {
     host: operateData.value?.map((item: any) => ({
       bk_host_id: item.bk_host_id,
       target_version: osVersion[0].version,
+      force: upgradeData.force,
+      graceful_restart_timeout_sec: upgradeData.graceful_restart_timeout_sec,
     })),
   };
   const result = await NodeAgentService.NodeAgentUpgrade(params).catch(() => ({ workflow_id: '' }));

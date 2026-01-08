@@ -23,6 +23,56 @@
             ></install-table>
           </Loading>
         </Form.FormItem>
+        <Form.FormItem>
+          <Button
+            text
+            theme="primary"
+            class="text-[14px]"
+            @click="isShow = !isShow"
+          >
+            <span class="mr-[8.5px]">{{ $t('platform.nodeMan.installAgentPage.AdvancedOptions') }}</span>
+            <angle-double-down-line
+              :class="{ 'transform rotate-180': isShow }"
+            />
+          </Button>
+        </Form.FormItem>
+        <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.version')" required v-if="isShow">
+          <div class="w-[568px]">
+            <Table :data="systemData" :border="true" width="568" empty-text="当前无可用版本">
+              <TableColumn
+                field="os"
+                title="操作系统/架构"
+                width="200"
+              >
+                <template #default="{ row }">
+                  {{ row.os?.replace('_', '/') }}
+                </template>
+              </TableColumn>
+              <TableColumn field="version" :title="$t('platform.nodeMan.installAgentPage.packageVersion')" width="368">
+                <template #header>
+                  <span class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.packageVersion') }}</span>
+                  <span class="mr-[10px] w-[14px] text-[#ea3636]">*</span>
+                  <Button text @click="handleBatchEditVersion">
+                    <i class="nodeman-icon nc-bulk-edit cursor-pointer"></i>
+                  </Button>
+                </template>
+                <template #default="{ row }">
+                  <Validate
+                    :value="row.version"
+                    required
+                    :ref="(el) => setInputRef(row.os, el)"
+                  >
+                    <Input
+                      :model-value="row.version"
+                      :placeholder="$t('platform.nodeMan.installAgentPage.placeholder.select')"
+                      @click="handleChooseVersion(row)"
+                    />
+                  </Validate>
+                </template>
+              </TableColumn>
+            </Table>
+          </div>
+        </Form.FormItem>
       </Form>
     </div>
     <div
@@ -51,6 +101,13 @@
       :data="previewData.data"
       :is-manual="activeInstallType === 'manual'"
     ></preview>
+    <choose-version-dialog
+      v-model:is-show="isShowDialog"
+      :data="dialogData"
+      :batch="isBatch"
+      :release-type="'agent'"
+      @confirm="handleConfirmVersion"
+    ></choose-version-dialog>
   </div>
 </template>
 <script lang="ts" setup>
@@ -67,6 +124,7 @@ import Preview from './preview.vue';
 import type { AgentInstallInfo } from '@/@types/node_agent.d';
 import { TopoService } from '@/api/modules/topo';
 import { scrollToFirstErrorByClassNames } from '@/common/util';
+import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
@@ -110,6 +168,26 @@ const isAtBottom = ref(false);
 // 安装方式
 const activeInstallType = computed(() => mainStore.agentSetupType);
 
+// 系统版本
+const systemData = ref([
+  {
+    os: 'linux_amd64',
+    version: '',
+  },
+  {
+    os: 'darwin_amd64',
+    version: '',
+  },
+  {
+    os: 'linux_arm64',
+    version: '',
+  },
+  {
+    os: 'windows_amd64',
+    version: '',
+  },
+]);
+
 const tableSetting = reactive({
   fields: [
     { title: '业务', field: 'bk_biz_id' },
@@ -152,6 +230,52 @@ const handleChange = (value: string) => {
   formRef.value?.clearValidate();
 };
 
+const isShowDialog = ref(false);
+const dialogData = ref([{
+  os: '',
+  version: '',
+}]);
+const isBatch = ref(false);
+const handleChooseVersion = (row: { version: string; os: string }) => {
+  isShowDialog.value = true;
+  dialogData.value = [row];
+};
+// 批量选择版本
+const handleBatchEditVersion = () => {
+  isShowDialog.value = true;
+  dialogData.value = systemData.value;
+  isBatch.value = true;
+};
+const handleConfirmVersion = (data: any[]) => {
+  systemData.value.forEach((sys: { version: string; os: string }) => {
+    const find = data.find((item) => sys.os === `${item.os_type}_${item.cup_arch}`);
+    if (find) {
+      sys.version = find.version;
+    }
+  });
+  isBatch.value = false;
+};
+
+const inputRefs = ref<Map<string, InstanceType<typeof Validate>>>(new Map());
+const setInputRef = (
+  os: string,
+  el: InstanceType<typeof Validate> | null,
+) => {
+  if (el) {
+    const key = os;
+    inputRefs.value.set(key, el);
+  }
+};
+const systemValidate = async () => {
+  const refs = Array.from(inputRefs.value.values());
+  const validate = [];
+  for (const item of refs) {
+    validate.push(item.validate('blur'));
+  }
+  const result = await Promise.all(validate);
+  return result.every(item => item);
+};
+
 const handleCancel = () => {
   router.push({ name: 'agent' });
 };
@@ -178,6 +302,19 @@ const handlePreview = async () => {
       item[modeMap[item.login_mode]] = item.credit;
       item.bk_networkunit_id = Number(item.bk_networkunit_id);
     });
+    if (isShow.value) {
+      previewData.data.target_version = systemData.value
+        .filter((item: any) => !!item.version)
+        .map((item) => {
+          const [type, cpu_arch] = item.os.split('_');
+          const os_type = type;
+          return {
+            os_type,
+            cpu_arch,
+            version: item.version,
+          };
+        });
+    }
   } else {
     scrollToFirstErrorByClassNames();
   }

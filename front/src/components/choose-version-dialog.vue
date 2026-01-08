@@ -4,8 +4,6 @@
     :width="1048"
     :title="title"
     @closed="isShow = false"
-    @confirm="handleConfirm"
-    @cancel="handleCancel"
   >
     <div class="flex h-[489px]">
       <!-- OS List -->
@@ -89,10 +87,29 @@
         </p>
       </div>
     </div>
+    <template #footer>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-[8px]" v-if="type === 'upgrade'">
+          <Radio.Group v-model="force" class="w-[180px]">
+            <Radio.Button :label="true" :key="true">强制升级</Radio.Button>
+            <Radio.Button :label="false" :key="false">无损升级</Radio.Button>
+          </Radio.Group>
+          <div class="flex items-center gap-[3px]" v-show="!force">
+            <span>超时时间</span>
+            <Input type="number" v-model="graceful_restart_timeout_sec" class="w-[80px] mx-[3px]"></Input>
+            <span>秒</span>
+          </div>
+        </div>
+        <div class="ml-auto">
+          <Button class="mr-[8px]" theme="primary" @click="handleConfirm">{{ $t('action.confirm') }}</Button>
+          <Button @click="handleCancel">{{ $t('action.cancel') }}</Button>
+        </div>
+      </div>
+    </template>
   </Dialog>
 </template>
 <script lang="ts" setup>
-import { Button, Dialog, Radio, Tag } from 'bkui-vue';
+import { Button, Dialog, Input, Radio, Tag } from 'bkui-vue';
 import { RightShape } from 'bkui-vue/lib/icon';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -150,6 +167,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  type: {
+    type: String,
+    default: '',
+  },
 });
 const emit = defineEmits(['confirm', 'cancel']);
 const { t } = useI18n();
@@ -161,6 +182,8 @@ const title = computed(() => props.title || t('components.chooseVersion.title'))
 const selectedOs = ref();
 const selectedVersion = ref<any>();
 const selectedRadio = computed(() => selectedVersion.value.version || '');
+const force = ref(false); // 是否强制升级
+const graceful_restart_timeout_sec = ref(120);
 
 function selectOs(os: IOsversion) {
   if (!props.batch) return;
@@ -180,7 +203,10 @@ function handleConfirm() {
     version: item.selectedVersion.version,
     os_type: item.selectedVersion.os_type,
     cup_arch: item.selectedVersion.cpu_arch,
-  })));
+  })), {
+    force: force.value,
+    graceful_restart_timeout_sec: graceful_restart_timeout_sec.value,
+  });
   isShow.value = false;
 }
 

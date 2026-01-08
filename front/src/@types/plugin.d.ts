@@ -25,6 +25,32 @@ export interface PluginInstallRespData {
   workflow_id: string;
 }
 
+// PluginUpgradeReq describes the plugin upgrade request.
+export interface PluginUpgradeReq {
+  plugin: Plugin[];
+}
+
+export interface PluginUpgradeReqPlugin {
+  bk_host_id: number;
+  plugin_name: string;
+  version: string;
+  config_name: string[];
+  custom_config_context: Record<string, any>;
+}
+
+// PluginUpgradeResp describes the plugin upgrade response.
+export interface PluginUpgradeResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PluginUpgradeRespData;
+}
+
+export interface PluginUpgradeRespData {
+  workflow_id: string;
+}
+
 // PluginApplySubConfigReq describes the plugin apply sub-configuration
 // request.
 export interface PluginApplySubConfigReq {

@@ -49,6 +49,7 @@
             auto-focus
             filterable
             :disabled="!formData.bk_networkarea_id"
+            @change="handleNetworkUnitChange"
           >
             <Select.Option
               v-for="option in networkUnitList"
@@ -322,6 +323,10 @@ const handleUpload = (data: any) => {
 };
 const handleImport = () => {
   formData.info = excelImportData.value;
+};
+const handleNetworkUnitChange = (id: string) => {
+  formData.bk_networkunit_name = networkUnitList.value.find((item) =>
+    item.bk_networkunit_id === Number(id))?.bk_networkunit_name || '';
 };
 
 const handleConfirmVersion = (data: any[]) => {

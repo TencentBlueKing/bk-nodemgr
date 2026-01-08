@@ -10,11 +10,14 @@
     <div class="w-full">
       <p class="text-[16px] mb-[20px]">{{ subTitle }}</p>
       <template v-if="type === 'restart'">
-        <Checkbox v-model="isReconfig">同时重载配置</Checkbox>
+        <Checkbox v-model="isReconfig" class="mb-[10px]">同时重载配置</Checkbox>
         <div class="flex items-center gap-[6px] h-[32px]">
-          <Checkbox v-model="isForce" class="w-[100px]">强制重启</Checkbox>
+          <Radio.Group v-model="isForce" class="w-[180px]">
+            <Radio.Button :label="true" :key="true">强制重启</Radio.Button>
+            <Radio.Button :label="false" :key="false">无损重启</Radio.Button>
+          </Radio.Group>
           <div class="flex items-center gap-[3px]" v-show="!isForce">
-            <span>时间</span>
+            <span>超时时间</span>
             <Input type="number" v-model="time" class="w-[80px]"></Input>
             <span>秒</span>
           </div>
@@ -24,7 +27,7 @@
   </Dialog>
 </template>
 <script lang="ts" setup>
-import { Checkbox, Dialog, Input } from 'bkui-vue';
+import { Checkbox, Dialog, Input, Radio } from 'bkui-vue';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 

@@ -17,7 +17,7 @@
         :settings="settings"
         :max-height="maxHeight"
         @setting-change="handleSettingChange"
-        @column-filter="handleColumnFilter">
+        @column-filter="handleFilter">
         <template #prepend>
           <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
             <template v-if="isCrossPageSelection">
@@ -116,25 +116,24 @@
           :label="$t('topoManager.workAreaDetail.table.proxyVersion')"
           field="node_version"
           show-overflow="tooltip"
-          :filter="proxyVersionFilter"
+          :filter="filterOptionSource.node_version"
           :min-width="150">
         </TableColumn>
         <TableColumn
           :label="$t('topoManager.workAreaDetail.table.proxyStatus')"
           field="node_status"
           show-overflow="tooltip"
-          :filter="proxyStatusFilter"
+          :filter="filterOptionSource.node_status"
           :min-width="130">
           <template #default="{ row }">
             <div class="flex items-center" v-if="row.node_status">
               <i
                 :class="`nodeman-icon nc-${row.node_status.toLowerCase()} status-icon`"
               ></i>
-              <div>{{ row.node_status }}</div>
+              <div>{{ statusMap.get(row.node_status) || row.node_status }}</div>
             </div>
             <div class="flex items-center" v-else>
-              <span class="nodeman-icon nc-unknown status-icon"></span>
-              <span>{{ row.node_status }}</span>
+              <span>--</span>
             </div>
           </template>
         </TableColumn>
@@ -209,6 +208,7 @@
 import { Button, Checkbox, Dropdown, Tag } from 'bkui-vue';
 import { debounce } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -219,6 +219,7 @@ import ReinstallProxy from '../../install-proxy/reinstall-proxy.vue';
 import EditProxySideslider from './edit-proxy-sideslider.vue';
 import MoreAction from './more-action.vue';
 
+import type { TopoHostDistinctRespData } from '@/@types/topo';
 import type {
   TopoHostExactConditions,
   TopoHostFuzzyConditions,
@@ -228,6 +229,12 @@ import { TopoService } from '@/api/modules/topo';
 import useDynamicsHeight from '@/composables/use-table-height';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
+
+interface FilterOption {
+  list: { text: string; value: string }[];
+  checked: string[];
+  filterScope: string;
+}
 
 const props = defineProps({
   searchSelectValue: {
@@ -239,7 +246,9 @@ const props = defineProps({
     default: 0,
   },
 });
-const emit = defineEmits(['selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage']);
+const emit = defineEmits(['update:searchSelectValue', 'selectChange', 'getData', 'excludedIdsChange', 'updateCrossPage', 'updateSearchSelectData']);
+
+const { t } = useI18n();
 const route = useRoute();
 const workAreaId = Number(route.params.workarea);
 const list = ref<Host[]>([]);
@@ -355,27 +364,41 @@ const loading = ref(false);
 const tableOffset = 445;
 const { maxHeight } = useDynamicsHeight(tableOffset);
 
-const handleColumnFilter = () => {
+const handleFilter = ({ checked, field }: { checked: string[]; field: string }) => {
+  // 1. 克隆一份数据，避免直接修改 props
+  const newValue = [...props.searchSelectValue];
 
+  const index = newValue.findIndex((item: any) => item.id === field);
+  if (index > -1) newValue.splice(index, 1);
+
+  if (checked.length) {
+    newValue.push({
+      id: field,
+      name: field,
+      values: checked.map((item: any) => {
+        let name = item;
+        if (field === 'node_status') name = statusMap.value.get(item) || item;
+        return { id: item, name };
+      }),
+    });
+  }
+
+  // 2. 通过 emit 通知父组件更新
+  emit('update:searchSelectValue', newValue);
 };
+
+const statusMap = ref(new Map<string, string>([
+  ['init', '初始化'],
+  ['running', '正常'],
+  ['damaged', '异常'],
+  ['unknown', '未安装'],
+]));
+
 const searchSelectValue = computed(() => props.searchSelectValue);
-const proxyVersionFilter = reactive({
-  list: [],
-  checked: [],
+const filterOptionSource: Record<string, FilterOption> = reactive({
+  node_version: { list: [], checked: [], filterScope: 'all' },
+  node_status: { list: [], checked: [], filterScope: 'all' },
 });
-const proxyStatusFilter = reactive({
-  list: [],
-  checked: [],
-});
-
-const filterOptionConfig = (prop: string, valMap?: Record<string, any>) => {
-  const uniqueValues = Array.from(new Set(list.value.map((item: any) => item[prop]).filter((item: any) => item)));
-  return uniqueValues.map(value => ({
-    text:
-      valMap && valMap[value as string] ? valMap[value as string].text : value,
-    value,
-  }));
-};
 
 // ---------- 侧边栏 ----------
 const isShowSideslider = ref(false);
@@ -469,48 +492,124 @@ const handleReinstall = (row: Host) => {
   isShowInstallProxy.value = true;
   reinstallData.value = [row];
 };
-watch(
-  () => list,
-  () => {
-    proxyVersionFilter.list = filterOptionConfig('node_version');
-    proxyStatusFilter.list = filterOptionConfig('node_status');
-  },
-  { deep: true, immediate: true },
-);
+
+/**
+ * 获取主机筛选条件的唯一值
+ */
+const hostDistinct = ref<TopoHostDistinctRespData | null>();
+function getUniqueChildrenFrom <K extends keyof TopoHostDistinctRespData>(
+  prop: K,
+  keyMap?: Map<number | string, string | number>,
+) {
+  const uniqueValues = hostDistinct.value?.[prop] || [];
+  return uniqueValues
+    .filter((item: any) => item !== '')
+    .map((value: any) => ({
+      id: value,
+      name: keyMap?.get(value) || String(value),
+    }));
+}
+const getHostDistinct = async () => {
+  const params = {
+    exact_include_conditions: {
+      node_role: ['proxy'],
+      bk_biz_id: mainStore.selectedBusinessId,
+    },
+  };
+  const res = await TopoService.HostDistinct(params).catch((err: any) => {
+    console.error('获取主机筛选条件唯一值失败:', err);
+    return null;
+  });
+  if (res) {
+    hostDistinct.value = res;
+    Object.keys(res).forEach((key: any) => {
+      if (filterOptionSource[key]) {
+        filterOptionSource[key].list = res[key]
+          .filter((item: any) => item !== '')
+          .map((value: string | number) => {
+            let text = value;
+            if (key === 'node_status') text = statusMap.value.get(value as string) || value;
+            return { text, value };
+          });
+      }
+    });
+
+    // 更新searchSelectData
+    const searchSelectData = [
+      {
+        name: t('topoManager.workAreaDetail.table.ipv4'),
+        id: 'bk_host_innerip',
+      },
+      {
+        name: t('topoManager.workAreaDetail.table.ipv6'),
+        id: 'bk_host_innerip_v6',
+      },
+      {
+        name: 'AgentID',
+        id: 'bk_agent_id',
+      },
+      {
+        name: 'Proxy 版本',
+        id: 'node_version',
+        children: getUniqueChildrenFrom('node_version'),
+        multiple: true,
+      },
+      {
+        name: 'Proxy 状态',
+        id: 'node_status',
+        children: getUniqueChildrenFrom('node_status', statusMap.value),
+        multiple: true,
+      },
+    ];
+    emit('updateSearchSelectData', searchSelectData);
+  };
+};
 watch(route, async () => {
   if (route.query.os_type) {
-    searchSelectValue.value.push(...[
+    // 1. 拷贝当前已有数据，避免直接修改 props
+    const nextSearchValue = [...props.searchSelectValue];
+
+    // 2. 构造从路由获取的新标签
+    const routeTags = [
       {
         id: 'os_type',
         name: '操作系统',
-        values: [{
-          id: route.query.os_type,
-          name: route.query.os_type,
-        }],
+        values: [{ id: route.query.os_type, name: route.query.os_type }],
       },
       {
         id: 'cpu_arch',
         name: '架构',
-        values: [{
-          id: route.query.cpu_arch,
-          name: route.query.cpu_arch,
-        }],
+        values: [{ id: route.query.cpu_arch, name: route.query.cpu_arch }],
       },
       {
         id: 'node_version',
         name: 'Proxy 版本',
-        values: [{
-          id: route.query.node_version,
-          name: route.query.node_version,
-        }],
+        values: [{ id: route.query.node_version, name: route.query.node_version }],
       },
-    ]);
-    await getProxyList();
+    ];
+
+    // 3. 过滤掉重复的标签（防止重复 push）
+    routeTags.forEach((tag) => {
+      const isExist = nextSearchValue.some(item => item.id === tag.id);
+      if (!isExist) {
+        nextSearchValue.push(tag);
+      }
+    });
+
+    // 4. 通知父组件更新 searchKey
+    emit('update:searchSelectValue', nextSearchValue);
   }
 }, { immediate: true, deep: true });
 const debounceGetProxyList = debounce(() => {
   getProxyList();
 }, 300);
+watch(
+  () => mainStore.selectedBusinessId,
+  async () => {
+    getHostDistinct();
+  },
+  { immediate: true, deep: true },
+);
 watch(
   [
     () => mainStore.selectedBusinessId,

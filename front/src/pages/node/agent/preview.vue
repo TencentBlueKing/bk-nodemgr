@@ -260,10 +260,11 @@ import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
-import usePage from '@/composables/use-page';
+
 import type { AgentInstallInfo } from '@/@types/node_agent.d';
 import { NodeAgentService } from '@/api/modules/node_agent';
 import { TopoService } from '@/api/modules/topo';
+import usePage from '@/composables/use-page';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 
@@ -609,6 +610,7 @@ const handleSetup = async () => {
         active: 'node',
       },
     });
+    isShow.value = false;
   }
 };
 // 定义排序优先级
