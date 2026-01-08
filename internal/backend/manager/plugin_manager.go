@@ -67,8 +67,8 @@ func (mgr *Manager) LaunchInstallPlugin(nCtx contextx.IContext, param types.Inst
 	return workflowID, nil
 }
 
-func (mgr *Manager) createInstallPluginOper(nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment,
-) error {
+func (mgr *Manager) createInstallPluginOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
 
 	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
 		logger.G.Biz(nCtx).Error("failed to create plugin deployment. trigger-id(%s), plugin-token(%s), err(%v)",
@@ -96,7 +96,7 @@ func (mgr *Manager) createInstallPluginOper(nCtx contextx.IContext, operator str
 		With("trigger-id", triggerCtl.GetTriggerID()).
 		With("operation-id", operCtl.GetOperationID()).
 		With("plugin-token", deploy.Token).
-		Error("launched install plugin task.")
+		Info("launched install plugin task.")
 
 	return nil
 }
@@ -152,8 +152,8 @@ func (mgr *Manager) LaunchUpgradePlugin(nCtx contextx.IContext, param types.Upgr
 	return workflowID, nil
 }
 
-func (mgr *Manager) createUpgradePluginOper(nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment,
-) error {
+func (mgr *Manager) createUpgradePluginOper(
+	nCtx contextx.IContext, operator string, triggerCtl workflow.ITriggerCtl, deploy *types.PluginDeployment) error {
 
 	if err := mgr.conf.StoragePlugin.CreatePluginDeployment(nCtx, deploy); err != nil {
 		logger.G.Biz(nCtx).Error("failed to create plugin deployment. trigger-id(%s), plugin-token(%s), err(%v)",
@@ -181,7 +181,7 @@ func (mgr *Manager) createUpgradePluginOper(nCtx contextx.IContext, operator str
 		With("trigger-id", triggerCtl.GetTriggerID()).
 		With("operation-id", operCtl.GetOperationID()).
 		With("plugin-token", deploy.Token).
-		Error("launched upgrade plugin task.")
+		Info("launched upgrade plugin task.")
 
 	return nil
 }
@@ -253,7 +253,7 @@ func (mgr *Manager) LaunchApplyPluginSubConfig(nCtx contextx.IContext, param typ
 				With("trigger-id", triggerCtl.GetTriggerID()).
 				With("operation-id", operCtl.GetOperationID()).
 				With("plugin-token", deploy.Token).
-				Error("launched install plugin task.")
+				Info("launched install plugin task.")
 
 			return nil
 		})
