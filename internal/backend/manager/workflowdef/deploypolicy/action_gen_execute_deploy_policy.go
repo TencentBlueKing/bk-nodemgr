@@ -134,10 +134,11 @@ func (act *actionGenOperExecuteDeployPolicy) Do(ctx *action.InstanceContext) err
 	}
 
 	// create trigger for handling execute deploy policy
-	meta := trigger.NewMetadataOrdered()
+	meta := trigger.NewMetadataOrdered(10) // nolint: mnd
 	meta.CleanPolicy = trigger.MetadataCleanPolicy{
 		Namespace: std.InstanceData().TriggerID,
 		MaxNum:    10, // nolint: mnd
+		MaxDays:   30, // nolint: mnd
 	}
 	trigCtl, err := act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOrdered, meta)
 	if err != nil {

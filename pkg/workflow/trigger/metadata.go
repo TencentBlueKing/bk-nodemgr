@@ -73,8 +73,9 @@ func NewMetadataOnce() *MetadataOnce {
 
 // NewMetadataOrdered creates a new MetadataOrdered instance.
 // nolint: mnd
-func NewMetadataOrdered() *MetadataOrdered {
+func NewMetadataOrdered(maxConcurrencyNum int) *MetadataOrdered {
 	return &MetadataOrdered{
+		MaxConcurrencyNum: maxConcurrencyNum,
 		CleanPolicy: MetadataCleanPolicy{
 			MaxDays: 30,
 		},
