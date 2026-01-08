@@ -13,6 +13,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"regexp"
 	"time"
 
@@ -167,59 +168,78 @@ func NewRequestIDSetter() *RequestIDSetter {
 	return &RequestIDSetter{}
 }
 
-// MiddlewareReceivedLog print log when received request.
-// nolint: contextcheck
-func MiddlewareReceivedLog(skipPaths []string, skipMethods []string) gin.HandlerFunc {
-	skipPathsMap := make(map[string]struct{})
-	for _, skipPath := range skipPaths {
-		skipPathsMap[skipPath] = struct{}{}
-	}
+// logSkipConfig defines log skip configuration.
+type logSkipConfig struct {
+	Path    string
+	Methods []string // Methods to skip. Use allMethods() to skip all HTTP methods.
+}
 
-	skipMethodsMap := make(map[string]struct{})
-	for _, skipMethod := range skipMethods {
-		skipMethodsMap[skipMethod] = struct{}{}
+// allMethods returns all HTTP methods.
+func allMethods() []string {
+	return []string{
+		http.MethodGet,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodPatch,
+		http.MethodDelete,
+		http.MethodHead,
+		http.MethodOptions,
+		http.MethodConnect,
+		http.MethodTrace,
+	}
+}
+
+// middlewareReceivedLog prints log when received request.
+// nolint: contextcheck
+func middlewareReceivedLog(skipConfigs []logSkipConfig) gin.HandlerFunc {
+	pathMethodMap := make(map[string]map[string]struct{})
+	for _, config := range skipConfigs {
+		methodMap := make(map[string]struct{})
+		for _, method := range config.Methods {
+			methodMap[method] = struct{}{}
+		}
+		pathMethodMap[config.Path] = methodMap
 	}
 
 	return func(gCtx *gin.Context) {
-		if _, ok := skipMethodsMap[gCtx.Request.Method]; ok {
-			gCtx.Next()
+		path := gCtx.Request.URL.Path
+		method := gCtx.Request.Method
 
-			return
-		}
+		methodMap, pathExists := pathMethodMap[path]
+		if pathExists {
+			if _, methodExists := methodMap[method]; methodExists {
+				gCtx.Next()
 
-		if _, ok := skipPathsMap[gCtx.Request.URL.Path]; ok {
-			gCtx.Next()
-
-			return
+				return
+			}
 		}
 
 		rCtx, _ := GenRestContext(gCtx)
-		path := gCtx.Request.URL.Path
+		fullPath := path
 		raw := gCtx.Request.URL.RawQuery
 
 		if raw != "" {
-			path = path + "?" + raw
+			fullPath = fullPath + "?" + raw
 		}
 
 		logger.G.Biz(rCtx).
 			With("client-ip", gCtx.ClientIP()).
-			Info("[request recv] %s %s", gCtx.Request.Method, path)
+			Info("[request recv] %s %s", method, fullPath)
 
 		gCtx.Next()
 	}
 }
 
-// MiddlewareReturnedLog print log when returned response.
+// middlewareReturnedLog prints log when returned response.
 // nolint: contextcheck
-func MiddlewareReturnedLog(skipPaths []string, skipMethods []string) gin.HandlerFunc {
-	skipPathsMap := make(map[string]struct{})
-	for _, skipPath := range skipPaths {
-		skipPathsMap[skipPath] = struct{}{}
-	}
-
-	skipMethodsMap := make(map[string]struct{})
-	for _, skipMethod := range skipMethods {
-		skipMethodsMap[skipMethod] = struct{}{}
+func middlewareReturnedLog(skipConfigs []logSkipConfig) gin.HandlerFunc {
+	pathMethodMap := make(map[string]map[string]struct{})
+	for _, config := range skipConfigs {
+		methodMap := make(map[string]struct{})
+		for _, method := range config.Methods {
+			methodMap[method] = struct{}{}
+		}
+		pathMethodMap[config.Path] = methodMap
 	}
 
 	return func(gCtx *gin.Context) {
@@ -227,27 +247,29 @@ func MiddlewareReturnedLog(skipPaths []string, skipMethods []string) gin.Handler
 
 		gCtx.Next()
 
-		if _, ok := skipMethodsMap[gCtx.Request.Method]; ok {
-			return
-		}
+		urlPath := gCtx.Request.URL.Path
+		method := gCtx.Request.Method
 
-		if _, ok := skipPathsMap[gCtx.Request.URL.Path]; ok {
-			return
+		methodMap, pathExists := pathMethodMap[urlPath]
+		if pathExists {
+			if _, methodExists := methodMap[method]; methodExists {
+				return
+			}
 		}
 
 		rCtx, _ := GenRestContext(gCtx)
-		path := gCtx.Request.URL.Path
+		fullPath := urlPath
 		raw := gCtx.Request.URL.RawQuery
 
 		if raw != "" {
-			path = path + "?" + raw
+			fullPath = fullPath + "?" + raw
 		}
 
 		logger.G.Biz(rCtx).
 			WithDuration(time.Since(start)).
 			With("client-ip", gCtx.ClientIP()).
 			With("code", gCtx.Writer.Status()).
-			Info("[request done] %s %s", gCtx.Request.Method, path)
+			Info("[request done] %s %s", method, fullPath)
 	}
 }
 

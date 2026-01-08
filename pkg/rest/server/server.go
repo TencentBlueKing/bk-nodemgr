@@ -163,10 +163,20 @@ func NewServer(ctx context.Context, opts Options, apiOptFns ...OptionFunc) (*Ser
 	svr.engine.Use(MiddlewareSetRequestID(opts.RequestIDSetter))
 
 	// Set received log middleware.
-	svr.engine.Use(MiddlewareReceivedLog([]string{"/ping", "/healthz", "/metrics"}, []string{http.MethodHead}))
+	svr.engine.Use(middlewareReceivedLog([]logSkipConfig{
+		{Path: "/ping", Methods: allMethods()},
+		{Path: "/healthz", Methods: allMethods()},
+		{Path: "/metrics", Methods: allMethods()},
+		{Path: "/", Methods: []string{http.MethodHead}},
+	}))
 
 	// Set done log middleware.
-	svr.engine.Use(MiddlewareReturnedLog([]string{"/ping", "/healthz", "/metrics"}, []string{http.MethodHead}))
+	svr.engine.Use(middlewareReturnedLog([]logSkipConfig{
+		{Path: "/ping", Methods: allMethods()},
+		{Path: "/healthz", Methods: allMethods()},
+		{Path: "/metrics", Methods: allMethods()},
+		{Path: "/", Methods: []string{http.MethodHead}},
+	}))
 
 	// Set metrics monitor.
 	svr.metrics = restmetrics.NewMonitor("server_"+opts.Name,
