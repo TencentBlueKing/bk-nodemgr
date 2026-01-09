@@ -16,6 +16,7 @@ metadata:
 spec:
   selector:
     app: nodemgr-application
+  type: NodePort
   ports:
     - name: info-http
       port: {{ .Values.application.config.infoServer.port }}
