@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+
 import type { NodeWorkflowInfo } from '@/@types/node_workflow';
 
 export const useNodeManageStore = defineStore('nodeManageStore', {
@@ -7,7 +8,12 @@ export const useNodeManageStore = defineStore('nodeManageStore', {
     agentEditParams: {
       tableData: [] as Host[],
       type: '',
-      isSelectedAllPages: false,
+      isCrossPageSelection: false,
+      queryParams: {
+        exact_include_conditions: {} as Record<string, string>,
+        exact_exclude_conditions: {} as Record<string, string>,
+        fuzzy_include_conditions: {} as Record<string, string>,
+      },
     },
   }),
   actions: {

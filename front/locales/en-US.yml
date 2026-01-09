@@ -52,7 +52,7 @@ platform:
         prepend: New installation and import to CMDB
         install: 'Install as:'
       button:
-        batchInstall: 'One-click confirmation'
+        batchConfirm: 'One-click confirmation'
         batchRemove: One-click remove erroneous items
         deel: Go to handle
         remove: Remove
@@ -66,8 +66,10 @@ platform:
     inner_ip: LAN IPv4
     inner_ipv6: LAN IPv6
     agentId: Agent ID
+    bk_biz_id: Business ID
     bk_cloud_name: BK-Net
     bk_cloud_unit: BK-Net unit
+    dept_name: Department
     os_type: Operating system
     bk_host_name: Host name
     System/Arch: System/Architecture

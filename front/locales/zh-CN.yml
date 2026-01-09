@@ -51,7 +51,7 @@ platform:
         prepend: 全新安装，并导入 CMDB
         install: 安装为：
       button:
-        batchInstall: 一键确认
+        batchConfirm: 一键确认
         batchRemove: 一键移除错误项
         deel: 去处理
         remove: 移除
@@ -64,8 +64,10 @@ platform:
     inner_ip: 内网IPv4
     inner_ipv6: 内网IPv6
     agentId: Agent ID
+    bk_biz_id: 归属业务
     bk_cloud_name: 管控区域
     bk_cloud_unit: 管控单元
+    dept_name: 运维部门
     os_type: 操作系统
     bk_host_name: 主机名
     System/Arch: 操作系统/架构

@@ -391,13 +391,29 @@ function handleChangeLang(item) {
 }
 // 自定义批量搜索方法
 const filterOption = (input: any, options: {id: number, name: string}) => {
-  // 安全处理输入，防止正则表达式注入
-  const safeInput = String(input).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const safeId = String(options.id).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  
-  // 使用正则表达式实现模糊匹配（不区分大小写）
-  const nameRegex = new RegExp(safeInput, 'i');
-  return options.name?.match(nameRegex) || String(input).includes(safeId);
+  const inputStr = String(input).trim();
+  if (!inputStr) return false;
+
+  // 使用正则表达式分割输入，支持空格、逗号、分号作为分隔符
+  const keywords = inputStr.split(/[\s,;]+/).filter(keyword => keyword.trim());
+
+  if (keywords.length === 0) return false;
+
+  // 批量匹配name：只要有一个关键词匹配就返回true
+  const nameMatch = keywords.some(keyword => {
+    // 安全处理关键词，防止正则表达式注入
+    const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const nameRegex = new RegExp(safeKeyword, 'i');
+    return options.name?.match(nameRegex);
+  });
+
+  // 批量匹配id：只要有一个id匹配就返回true
+  const idMatch = keywords.some(keyword => {
+    const keywordStr = String(keyword).trim();
+    return keywordStr === String(options.id);
+  });
+
+  return nameMatch || idMatch;
 };
 // 设置title
 watch(appName, () => {

@@ -175,6 +175,16 @@
           :min-width="320"
         ></TableColumn>
         <TableColumn
+          field="bk_biz_id"
+          :title="t('platform.nodeMan.bk_biz_id')"
+          :filter="filterOptionSource.bk_biz_id"
+          :min-width="120"
+        >
+          <template #default="{ row }">
+            {{ bizListMap.get(row.bk_biz_id) || row.bk_biz_id }}
+          </template>
+        </TableColumn>
+        <TableColumn
           field="bk_networkarea_id"
           :title="t('platform.nodeMan.bk_cloud_name')"
           :filter="filterOptionSource.bk_networkarea_id"
@@ -196,6 +206,12 @@
             {{ networkUnitListMap.get(row.bk_networkunit_id) || row.bk_networkunit_name }}
           </template>
         </TableColumn>
+        <TableColumn
+          field="dept_name"
+          :title="t('platform.nodeMan.dept_name')"
+          :filter="filterOptionSource.dept_name"
+          :min-width="120"
+        ></TableColumn>
         <TableColumn
           show-overflow
           field="os_type"
@@ -362,8 +378,10 @@ const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 // 搜索和筛选
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const filterOptionSource: Record<string, FilterOption> = reactive({
+  bk_biz_id: { list: [], checked: [], filterScope: 'all' },
   bk_networkarea_id: { list: [], checked: [], filterScope: 'all' },
   bk_networkunit_id: { list: [], checked: [], filterScope: 'all' },
+  dept_name: { list: [], checked: [], filterScope: 'all' },
   os_type: { list: [], checked: [], filterScope: 'all' },
   node_version: { list: [], checked: [], filterScope: 'all' },
   node_status: { list: [], checked: [], filterScope: 'all' },
@@ -404,6 +422,8 @@ const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_nam
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const total = computed(() => pagination.count);
+// eslint-disable-next-line max-len
+const bizListMap = computed(() => new Map<number, string>(mainStore.businessList.map((item: any) => [item.bk_biz_id, item.bk_biz_name])));
 const networkAreaListMap = ref(new Map<number, string>([[-1, '未分配']]));
 const networkUnitListMap = ref(new Map<number, string>([[-1, '未分配']]));
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
@@ -412,6 +432,12 @@ const searchSelectData = computed(() => [
   { id: 'bk_host_innerip', name: t('platform.nodeMan.inner_ip'), multiple: true },
   { id: 'bk_host_innerip_v6', name: t('platform.nodeMan.inner_ipv6'), multiple: true },
   { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
+  {
+    id: 'bk_biz_id',
+    name: '归属业务',
+    children: getUniqueChildrenFrom('bk_biz_id', bizListMap.value),
+    multiple: true,
+  },
   {
     id: 'bk_networkarea_id',
     name: '管控区域',
@@ -422,6 +448,12 @@ const searchSelectData = computed(() => [
     id: 'bk_networkunit_id',
     name: '管控单元',
     children: getUniqueChildrenFrom('bk_networkunit_id', networkUnitListMap.value),
+    multiple: true,
+  },
+  {
+    id: 'dept_name',
+    name: '运维部门',
+    children: getUniqueChildrenFrom('dept_name'),
     multiple: true,
   },
   {
@@ -449,6 +481,8 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'bk_host_innerip',
     'bk_host_innerip_v6',
+    'bk_biz_id',
+    'dept_name',
     'bk_agent_id',
     'bk_networkarea_id',
     'bk_networkunit_id',
@@ -631,6 +665,7 @@ const getHostDistinct = async () => {
           .filter((item: any) => item !== '')
           .map((value: string | number) => {
             let text = value;
+            if (key === 'bk_biz_id') text = bizListMap.value.get(Number(value)) || value;
             if (key === 'bk_networkarea_id') text = networkAreaListMap.value.get(Number(value)) || value;
             if (key === 'bk_networkunit_id') text = networkUnitListMap.value.get(Number(value)) || value;
             if (key === 'node_status') text = statusMap.value.get(value as string) || value;
@@ -789,6 +824,7 @@ const handleFilter = ({ checked, field }: { checked: string[]; field: string }) 
       name: field,
       values: checked.map((item: any) => {
         let name = item;
+        if (field === 'bk_biz_id') name = bizListMap.value.get(Number(item)) || item;
         if (field === 'bk_networkarea_id') name = networkAreaListMap.value.get(Number(item)) || item;
         if (field === 'bk_networkunit_id') name = networkUnitListMap.value.get(Number(item)) || item;
         if (field === 'node_status') name = statusMap.value.get(item) || item;

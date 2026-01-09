@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PluginInstallReq, PluginInstallResp, PluginUpgradeReq, PluginUpgradeResp, PluginApplySubConfigReq, PluginApplySubConfigResp, PluginListReq, PluginListResp, PluginSetMemoReq, PluginSetMemoResp } from '@/@types/plugin';
+import type { PluginInstallReq, PluginInstallResp, PluginUpgradeReq, PluginUpgradeResp, PluginUninstallReq, PluginUninstallResp, PluginApplySubConfigReq, PluginApplySubConfigResp, PluginListReq, PluginListResp, PluginSetMemoReq, PluginSetMemoResp } from '@/@types/plugin';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -13,6 +13,8 @@ export const PluginAPIService = {
   InstallPlugin: async <Request = PluginInstallReq, ResponseData = PluginInstallResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/install')(params, config),
   // UpgradePlugin upgrades a plugin on specified hosts.
   UpgradePlugin: async <Request = PluginUpgradeReq, ResponseData = PluginUpgradeResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/upgrade')(params, config),
+  // UninstallPlugin uninstalls a plugin on specified hosts.
+  UninstallPlugin: async <Request = PluginUninstallReq, ResponseData = PluginUninstallResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/uninstall')(params, config),
   // ApplyPluginSubConfig apply sub-configuration for a plugin on specified
   // hosts.
   ApplyPluginSubConfig: async <Request = PluginApplySubConfigReq, ResponseData = PluginApplySubConfigResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/apply_subconfig')(params, config),

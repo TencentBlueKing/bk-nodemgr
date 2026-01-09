@@ -170,6 +170,7 @@
         <TableColumn
           field="bk_networkarea_id"
           :title="'管控区域'"
+          :filter="filterOptionSource.bk_networkarea_id"
           min-width="150"
         >
           <template #default="{ row }">
@@ -179,6 +180,7 @@
         <TableColumn
           field="bk_networkunit_id"
           :title="'管控单元'"
+          :filter="filterOptionSource.bk_networkunit_id"
           min-width="150"
         >
           <template #default="{ row }">
@@ -186,15 +188,19 @@
           </template>
         </TableColumn>
         <TableColumn
-          field="bk_biz_name"
+          field="bk_biz_id"
           :title="'业务'"
+          :filter="filterOptionSource.bk_biz_id"
           min-width="150"
-        ></TableColumn>
+        >
+          <template #default="{ row }">
+            {{ bizListMap.get(row.bk_biz_id) || row.bk_biz_id }}
+          </template>
+        </TableColumn>
         <TableColumn
           field="node_version"
           :title="'目标版本'"
           min-width="150"
-          :filter="filterOptionSource.node_version"
         >
         </TableColumn>
         <TableColumn field="total_time_second" :title="'耗时'">
@@ -446,6 +452,9 @@ const typeMap = computed(() => ({
   uninstall_proxy: t('platform.nodeMan.taskHistory.taskType.uninstall_proxy'),
 }));
 
+const networkAreaListMap = ref(new Map<number, string>([]));
+const networkUnitListMap = ref(new Map<number, string>([[-1, '未分配']]));
+
 // 补零规则：非0且小于10时补零，0则直接显示0
 const padIfNeeded = (num: number) => (num === 0 ? '0' : num < 10 ? `0${num}` : num.toString());
 const formatTimeToMS = (duration = 0) => {
@@ -573,10 +582,11 @@ const radioGroup = computed(() => [
     count: statistics.value.terminated_count,
   },
 ]);
-const bussinessMap = computed(() => mainStore.businessList.map(item => ({
-  id: item.bk_biz_id,
-  name: item.bk_biz_name,
-})));
+// eslint-disable-next-line max-len
+const businessList = computed(() => mainStore.businessList);
+// eslint-disable-next-line max-len
+const bizListMap = computed(() => new Map<number, string>(mainStore.businessList.map((item: any) => [item.bk_biz_id, item.bk_biz_name])));
+
 const getUniqueChildren = (prop: string) => {
   const uniqueValues = Array.from(new Set(tableData.value
     .map((item: any) => item[prop])
@@ -588,10 +598,10 @@ const getUniqueChildren = (prop: string) => {
         name = statusMap.value[value as string]?.text || String(value);
         break;
       case 'bk_networkarea_id':
-        name = networkAreaListMap.get(value as number) || String(value);
+        name = networkAreaListMap.value.get(value as number) || String(value);
         break;
       case 'bk_networkunit_id':
-        name = networkUnitListMap.get(value as number) || String(value);
+        name = networkUnitListMap.value.get(value as number) || String(value);
         break;
       default:
         String(value);
@@ -603,6 +613,7 @@ const getUniqueChildren = (prop: string) => {
     };
   });
 };
+
 const filterOptionConfig = (prop: string, textMap?: Record<string, any>) => {
   const uniqueValues = Array.from(new Set(tableData.value
     .map((item: any) => item[prop])
@@ -615,8 +626,38 @@ const filterOptionConfig = (prop: string, textMap?: Record<string, any>) => {
     value,
   }));
 };
+const getFilterList = (prop: string) => {
+  switch (prop) {
+    case 'bk_biz_id':
+      return Array.from(bizListMap.value, ([id, name]) => ({ value: String(id), text: name }));
+    case 'bk_networkarea_id':
+      return Array.from(networkAreaListMap.value, ([id, name]) => ({ value: String(id), text: name }))
+        .sort((a, b) => a.value - b.value);
+    case 'bk_networkunit_id':
+      return Array.from(networkUnitListMap.value, ([id, name]) => ({ value: String(id), text: name }));
+    default:
+      return [];
+  }
+};
 const filterOptionSource = reactive<Record<string, FilterOption>>({
-  node_version: {
+  // node_version: {
+  //   list: [],
+  //   checked: [],
+  //   filterScope: 'all',
+  // },
+  bk_biz_id: {
+    list: getFilterList('bk_biz_id'),
+    checked: [],
+    filterScope: 'all',
+  },
+  bk_networkarea_id: {
+    // eslint-disable-next-line max-len
+    list: [],
+    checked: [],
+    filterScope: 'all',
+  },
+  bk_networkunit_id: {
+    // eslint-disable-next-line max-len
     list: [],
     checked: [],
     filterScope: 'all',
@@ -636,25 +677,27 @@ const searchSelectData = computed(() => [
   {
     id: 'bk_networkarea_id',
     name: '管控区域',
-    children: getUniqueChildren('bk_networkarea_id'),
+    // eslint-disable-next-line max-len
+    children: Array.from(networkAreaListMap.value, ([id, name]) => ({ id: String(id), name })),
     multiple: true,
   },
   {
     id: 'bk_networkunit_id',
     name: '管控单元',
-    children: getUniqueChildren('bk_networkunit_id'),
+    // eslint-disable-next-line max-len
+    children: Array.from(networkUnitListMap.value, ([id, name]) => ({ id: String(id), name })),
     multiple: true,
   },
   {
     id: 'bk_biz_id',
     name: '业务',
-    children: bussinessMap.value,
+    children: Array.from(bizListMap.value, ([id, name]) => ({ id: String(id), name })),
     multiple: true,
   },
   {
     id: 'node_version',
     name: '目标版本',
-    children: getUniqueChildren('node_version'),
+    children: [],
     multiple: true,
   },
   {
@@ -844,7 +887,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
       'bk_host_innerip_v6_list',
       'bk_networkarea_id',
       'bk_networkunit_id',
-      'bk_biz_name',
+      'bk_biz_id',
       'node_version',
       'total_time_second',
       'state',
@@ -881,15 +924,14 @@ const handleFilter = ({
   }
 };
 
-const networkAreaListMap = new Map<number, string | number>([[-1, -1]]);
 // 管控区域下拉列表获取
-const getNetworkAreaList = async (data: {bk_networkarea_id: number}[]) => {
+const getNetworkAreaList = async () => {
   const res = await TopoService.NetworkAreaList({
     page: {
       limit: 0,
     },
     exact_include_conditions: {
-      bk_networkarea_id: data.map(item => item.bk_networkarea_id),
+      bk_networkarea_id: [],
     },
   }).catch((err: any) => {
     console.log(err);
@@ -899,15 +941,15 @@ const getNetworkAreaList = async (data: {bk_networkarea_id: number}[]) => {
     };
   });
   res.items.forEach((item) => {
-    networkAreaListMap.set(item.bk_networkarea_id, item.bk_networkarea_name);
+    networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
   });
+  filterOptionSource.bk_networkarea_id.list = getFilterList('bk_networkarea_id');
 };
 // 管控单元下拉列表获取
-const networkUnitListMap = new Map<number, string | number>([[-1, -1]]);
-const getNetworkUnitList = async (data: {bk_networkunit_id: number}[]) => {
+const getNetworkUnitList = async () => {
   const res = await TopoService.NetworkUnitList({
     exact_include_conditions: {
-      bk_networkunit_id: data.map(item => item.bk_networkunit_id),
+      bk_networkunit_id: [],
     },
   }).catch((err: any) => {
     console.log(err);
@@ -917,8 +959,9 @@ const getNetworkUnitList = async (data: {bk_networkunit_id: number}[]) => {
     };
   });
   res.items.forEach((item) => {
-    networkUnitListMap.set(item.bk_networkunit_id, item.bk_networkunit_name);
+    networkUnitListMap.value.set(item.bk_networkunit_id, item.bk_networkunit_name);
   });
+  filterOptionSource.bk_networkunit_id.list = getFilterList('bk_networkunit_id');
 };
 
 // 统一服务调用器
@@ -1057,7 +1100,6 @@ const updataCurrentTaskInfo = async () => {
   });
   const list = res.items.map(item => ({
     ...item,
-    bk_biz_name: item.bk_biz_name?.filter(item => item),
     cost_time: item.finish_time > 0 ? item.finish_time - item.operate_time : 0,
   }));
   const findItem = list.find((item: any) => item.workflow_id === route.params.taskId);
@@ -1111,8 +1153,6 @@ const getOperateList = async () => {
         bk_host_innerip_v6: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
         bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
         bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
-        bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.node_deployment_info.bk_biz_id)?.bk_biz_name
-          || item.node_deployment_info.bk_biz_id,
         operation_id: item.operation_id,
         reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
         node_version: route.query.active === 'node' ? item.node_deployment_info.node_version : item.node_deployment_info.plugin_version,
@@ -1127,8 +1167,6 @@ const getOperateList = async () => {
         bk_host_innerip_v6: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
         bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
         bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
-        bk_biz_name: mainStore.businessList.find(biz => biz.bk_biz_id === item.plugin_deployment_info.bk_biz_id)?.bk_biz_name
-          || item.plugin_deployment_info.bk_biz_id,
         operation_id: item.operation_id,
         reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
         node_version: route.query.active === 'node' ? item.plugin_deployment_info.node_version : item.plugin_deployment_info.plugin_version,
@@ -1138,13 +1176,6 @@ const getOperateList = async () => {
   });
   const isEqual = tableData.value.length === mapList.length
     && tableData.value.every((item, index) => item.state === mapList[index]?.state);
-  const isLengthEqual = tableData.value.length === mapList.length;
-  if (!isLengthEqual && mapList.length > 0) {
-    await Promise.all([
-      getNetworkAreaList(mapList),
-      getNetworkUnitList(mapList),
-    ]);
-  }
   if (!isEqual) {
     tableData.value = mapList;
     tableData.value.forEach((item) => {
@@ -1202,7 +1233,6 @@ watch(
 watch(
   () => tableData,
   () => {
-    filterOptionSource.node_version.list = filterOptionConfig('node_version');
     filterOptionSource.state.list = filterOptionConfig('state', statusMap.value);
   },
   { deep: true, immediate: true },
@@ -1253,6 +1283,7 @@ onMounted(async () => {
   }
   await updataCurrentTaskInfo();
   await getOperateList();
+  await Promise.all([getNetworkAreaList(), getNetworkUnitList()]);
   getStatistics();
   if (currentTaskStatus.value === 'running' && needInterval.value) {
     start();

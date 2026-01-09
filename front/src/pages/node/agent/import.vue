@@ -362,6 +362,7 @@ onMounted(async () => {
         only_count: false,
         exact_include_conditions: nodeManageStore.agentEditParams.queryParams.exact_include_conditions || {},
         exact_exclude_conditions: nodeManageStore.agentEditParams.queryParams.exact_exclude_conditions || {},
+        fuzzy_include_conditions: nodeManageStore.agentEditParams.queryParams.fuzzy_include_conditions || {},
       }).catch(() => ({ total: 0, items: [] }));
 
       if (hostListData.items && hostListData.items.length > 0) {

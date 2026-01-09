@@ -51,6 +51,29 @@ export interface PluginUpgradeRespData {
   workflow_id: string;
 }
 
+// PluginUninstallReq describes the plugin uninstall request.
+export interface PluginUninstallReq {
+  plugin: Plugin[];
+}
+
+export interface PluginUninstallReqPlugin {
+  bk_host_id: number;
+  plugin_name: string;
+}
+
+// PluginUninstallResp describes the plugin uninstall response.
+export interface PluginUninstallResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PluginUninstallRespData;
+}
+
+export interface PluginUninstallRespData {
+  workflow_id: string;
+}
+
 // PluginApplySubConfigReq describes the plugin apply sub-configuration
 // request.
 export interface PluginApplySubConfigReq {
@@ -60,7 +83,6 @@ export interface PluginApplySubConfigReq {
 export interface PluginApplySubConfigReqPlugin {
   bk_host_id: number;
   plugin_name: string;
-  version: string;
   config_name: string[];
   custom_config_context: Record<string, any>;
 }

@@ -40,7 +40,7 @@
           </div>
           <div class="flex gap-[8px]">
             <Button
-              @click="handleAllInstall"
+              @click="handleAllConfirm"
               :disabled="
                 !tableData.length ||
                   !tableData.find((item) => item.category === 'need_confirm')
@@ -49,7 +49,7 @@
                 content: '处理待确认为正常安装',
               }"
             >
-              {{ $t("platform.nodeMan.preview.button.batchInstall") }}
+              {{ $t("platform.nodeMan.preview.button.batchConfirm") }}
             </Button>
             <Button
               @click="handleBatchRemove"
@@ -129,6 +129,9 @@
                 :empty-text="$t('table.empty')"
                 :column-config="{ resizable: true }"
                 show-overflow-tooltip
+                :tooltip-config="{
+                  popupClassName: 'preview-table',
+                }"
                 :max-height="462"
                 :show-settings="isShowSetting"
                 :settings="settings"
@@ -246,7 +249,6 @@ import {
   Button,
   Dropdown,
   InfoBox,
-  Message,
   PopConfirm,
   Radio,
   SearchSelect,
@@ -326,7 +328,7 @@ const handleOperate = async (id: string) => {
     originData.value = originData.value.filter(item => !item.checked);
   }
   tabKey.value = Date.now();
-}
+};
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = computed(() => [
@@ -496,8 +498,8 @@ const categoryMap = {
     // text: '待确认',
     icon: 'danger-fill',
     iconColor: '#FF9C01',
-  }
-}
+  },
+};
 
 function getUniqueChildren(prop: string) {
   const res = Array.from(new Set(originData.value
@@ -540,7 +542,7 @@ const deel = async (row: any) => {
     row.category = 'normal_install';
     tableData.value = [...tableData.value];
   }
-}
+};
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const handleSelectChange = ({
@@ -557,7 +559,7 @@ const handleSelectChange = ({
 const handleSelectAllChange = ({ checked }: { checked: boolean }) => {
   tableData.value.forEach((item: any) => (item.checked = checked));
 };
-const handleAllInstall = async () => {
+const handleAllConfirm = async () => {
   const findItem = tableData.value.filter((item: any) => ['duplicated_inner_ip', 'duplicated_inner_ipv6'].includes(item.status));
   if (findItem) {
     findItem.forEach((item: any) => {
@@ -571,10 +573,6 @@ const handleAllInstall = async () => {
     }
   });
   tabKey.value = Date.now();
-  Message({
-    theme: 'success',
-    message: '全部“待确认”Agent 已被手动确认为“正常安装"',
-  });
 };
 const handleBatchRemove = () => {
   originData.value = originData.value.filter((item: any) => !(item.category == 'error' && item.checked));
@@ -644,8 +642,8 @@ const installCheck = async () => {
     host: originData.value.map((item: any) => ({
       ...(item.bk_host_id ? { bk_host_id: item.bk_host_id } : {}),
       bk_biz_id: Number(item.bk_biz_id),
-      bk_host_innerip_list: item.bk_host_innerip?.split(';'),
-      bk_host_innerip_v6_list: item.bk_host_innerip_v6?.split(';'),
+      ...(item.bk_host_innerip ? { bk_host_innerip_list: item.bk_host_innerip.split(';') } : {}),
+      ...(item.bk_host_innerip_v6 ? { bk_host_innerip_v6_list: item.bk_host_innerip_v6.split(';') } : {}),
       bk_networkunit_id: Number(item.bk_networkunit_id),
     })),
   }).catch(() => ({
@@ -654,7 +652,10 @@ const installCheck = async () => {
   installCheckLoading.value = false;
   if (res) {
     originData.value = originData.value.map(item => {
-      const find = res.results.find((result: any) => result.matched.bk_host_id === item.bk_host_id || result.matched.bk_host_innerip_list.join(',') === item.bk_host_innerip);
+      const find = res.results.find((result: any) =>
+        result.matched.bk_host_id === item.bk_host_id
+          || item.bk_host_innerip.includes(result.matched.bk_host_innerip_list[0])
+          || item.bk_host_innerip_v6.includes(result.matched.bk_host_innerip_v6_list[0]));
       return {
         ...item,
         ...find,
@@ -749,5 +750,12 @@ watch(
 }
 :deep(.bk-tab-content) {
   padding: 0;
+}
+</style>
+<style lang="postcss">
+.vxe-table--tooltip-wrapper {
+  &.preview-table {
+    z-index: 2004 !important;
+  }
 }
 </style>
