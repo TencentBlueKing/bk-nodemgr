@@ -61,8 +61,8 @@ func (oper *operUninstallPlugin) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameFetchPluginProcess:          false,
-			ActionNameCheckPluginProcessAlive:     false,
+			ActionNameFetchPluginProcess:          true,
+			ActionNameCheckPluginProcessAlive:     true,
 			ActionNameStopProcess:                 true,
 			ActionNameTransferPluginPkgToNode:     true,
 			ActionNameUninstallPlugin:             true,
