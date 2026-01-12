@@ -368,12 +368,81 @@ func (executor *Executor) executeChangeActionPluginInstall(nCtx contextx.IContex
 	return nil
 }
 
-func (executor *Executor) executeChangeActionPluginUninstall(_ contextx.IContext, _ []*ChangeTask) error {
-	return errors.New("not implemented")
+func (executor *Executor) executeChangeActionPluginUninstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
+	hostMap := make(map[int64]struct{})
+	for idx, task := range tasks {
+		param, err := task.Spec.GetSpecifyPluginParam()
+		if err != nil {
+			return fmt.Errorf("failed to schedule and execute change action: %w", err)
+		}
+
+		pluginDeployments[idx] = types.NewPluginDeployment(&types.PluginDeploymentInfo{
+			Process: types.Process{
+				TenantID:   nCtx.TenantID(),
+				HostID:     task.Target.Host.HostID,
+				PluginName: param.PluginName,
+			},
+		}, &types.PluginDeploymentPluginConf{})
+
+		hostMap[task.Target.Host.HostID] = struct{}{}
+	}
+
+	hostIDs := conv.MapKeyToSlice(hostMap)
+	workflowID, err := executor.pluginManager.LaunchUninstallPlugin(nCtx, types.UninstallPluginParam{
+		Type:              types.PluginWorkflowTypeUninstall,
+		HostIDs:           hostIDs,
+		Operator:          access.GetVirtualUser(),
+		PluginDeployments: pluginDeployments,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin uninstall: %w", err)
+	}
+
+	logger.G.Sys().With("workflow-id", workflowID).Info("successful to execute change action plugin uninstall")
+
+	return nil
 }
 
-func (executor *Executor) executeChangeActionPluginUpgrade(_ contextx.IContext, _ []*ChangeTask) error {
-	return errors.New("not implemented")
+func (executor *Executor) executeChangeActionPluginUpgrade(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
+	hostMap := make(map[int64]struct{})
+	for idx, task := range tasks {
+		param, err := task.Spec.GetSpecifyPluginParam()
+		if err != nil {
+			return fmt.Errorf("failed to schedule and execute change action: %w", err)
+		}
+
+		pluginDeployments[idx] = types.NewPluginDeployment(&types.PluginDeploymentInfo{
+			Process: types.Process{
+				TenantID:   nCtx.TenantID(),
+				HostID:     task.Target.Host.HostID,
+				PluginName: param.PluginName,
+			},
+			InstallOptions: types.PluginDeploymentInstallOptions{
+				Version: param.Version,
+			},
+		}, &types.PluginDeploymentPluginConf{
+			CustomConfigContext: param.CustomConfigContext,
+		})
+
+		hostMap[task.Target.Host.HostID] = struct{}{}
+	}
+
+	hostIDs := conv.MapKeyToSlice(hostMap)
+	workflowID, err := executor.pluginManager.LaunchUpgradePlugin(nCtx, types.UpgradePluginParam{
+		Type:              types.PluginWorkflowTypeUpgrade,
+		HostIDs:           hostIDs,
+		Operator:          access.GetVirtualUser(),
+		PluginDeployments: pluginDeployments,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin upgrade: %w", err)
+	}
+
+	logger.G.Sys().With("workflow-id", workflowID).Info("successful to execute change action plugin upgrade")
+
+	return nil
 }
 
 // ===============================================================================
@@ -487,14 +556,85 @@ func (executor *Executor) executeChangeActionPluginPkgInstall(nCtx contextx.ICon
 	return nil
 }
 
-// TODO: implement plugin pkg upgrade logic
-func (executor *Executor) executeChangeActionPluginPkgUpgrade(_ contextx.IContext, _ []*ChangeTask) error {
-	return errors.New("not implemented")
+func (executor *Executor) executeChangeActionPluginPkgUpgrade(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	// 1. convert tasks to plugins.
+	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
+	hostMap := make(map[int64]struct{})
+	for idx, task := range tasks {
+		param, err := task.Spec.GetSpecifyPluginPkgParam()
+		if err != nil {
+			return fmt.Errorf("failed to get specify plugin pkg param for task: %w", err)
+		}
+
+		pluginDeployments[idx] = types.NewPluginDeployment(&types.PluginDeploymentInfo{
+			Process: types.Process{
+				TenantID:   nCtx.TenantID(),
+				HostID:     task.Target.Host.HostID,
+				PluginName: genPluginNameForSpecifyPluginPkg(param.PluginPkgName, task.DeployPolicyID, task.Target.ServiceInstance.ModuleID),
+			},
+			InstallOptions: types.PluginDeploymentInstallOptions{
+				Version: param.Version,
+			},
+		}, &types.PluginDeploymentPluginConf{
+			CustomConfigContext: param.CustomConfigContext,
+		})
+
+		hostMap[task.Target.Host.HostID] = struct{}{}
+	}
+
+	// 2. build plugin deployments.
+	hostIDs := conv.MapKeyToSlice(hostMap)
+	workflowID, err := executor.pluginManager.LaunchUpgradePlugin(nCtx, types.UpgradePluginParam{
+		Type:              types.PluginWorkflowTypeUpgrade,
+		HostIDs:           hostIDs,
+		Operator:          access.GetVirtualUser(),
+		PluginDeployments: pluginDeployments,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg upgrade: %w", err)
+	}
+
+	logger.G.Sys().With("workflow-id", workflowID).Info("successful to execute change action plugin pkg upgrade")
+
+	return nil
 }
 
-// TODO: implement plugin pkg uninstall logic
-func (executor *Executor) executeChangeActionPluginPkgUninstall(_ contextx.IContext, _ []*ChangeTask) error {
-	return errors.New("not implemented")
+func (executor *Executor) executeChangeActionPluginPkgUninstall(nCtx contextx.IContext, tasks []*ChangeTask) error {
+	// 1. convert tasks to plugins.
+	pluginDeployments := make([]*types.PluginDeployment, len(tasks))
+	hostMap := make(map[int64]struct{})
+	for idx, task := range tasks {
+		param, err := task.Spec.GetSpecifyPluginPkgParam()
+		if err != nil {
+			return fmt.Errorf("failed to get specify plugin pkg param for task: %w", err)
+		}
+
+		pluginDeployments[idx] = types.NewPluginDeployment(&types.PluginDeploymentInfo{
+			Process: types.Process{
+				TenantID:   nCtx.TenantID(),
+				HostID:     task.Target.Host.HostID,
+				PluginName: genPluginNameForSpecifyPluginPkg(param.PluginPkgName, task.DeployPolicyID, task.Target.ServiceInstance.ModuleID),
+			},
+		}, &types.PluginDeploymentPluginConf{})
+
+		hostMap[task.Target.Host.HostID] = struct{}{}
+	}
+
+	// 2. build plugin deployments.
+	hostIDs := conv.MapKeyToSlice(hostMap)
+	workflowID, err := executor.pluginManager.LaunchUninstallPlugin(nCtx, types.UninstallPluginParam{
+		Type:              types.PluginWorkflowTypeUninstall,
+		HostIDs:           hostIDs,
+		Operator:          access.GetVirtualUser(),
+		PluginDeployments: pluginDeployments,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to execute change action plugin pkg uninstall: %w", err)
+	}
+
+	logger.G.Sys().With("workflow-id", workflowID).Info("successful to execute change action plugin pkg uninstall")
+
+	return nil
 }
 
 // ===============================================================================
