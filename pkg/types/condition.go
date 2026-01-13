@@ -704,22 +704,6 @@ type ConfigPolicyCondition struct {
 // Process Related Conditions
 // ===============================================================================
 
-// ProcessCondition defines the process condition.
-// in this condition, fields are generated with AND expr.
-type ProcessCondition struct {
-	// will be used when condition type is included in exact mode.
-	ExactInclude *ProcessExactFields
-
-	// will be used when condition type is included in fuzzy mode.
-	FuzzyInclude *ProcessFuzzyFields
-
-	// will be used when condition type is excluded in exclude mode.
-	ExactExclude *ProcessExactFields
-
-	// will be used when condition type is excluded in exclude mode.
-	FuzzyExclude *ProcessFuzzyFields
-}
-
 // ProcessExactFields defines the process exact fields.
 // support includes and excludes.
 type ProcessExactFields struct {
@@ -740,6 +724,48 @@ type ProcessExactFields struct {
 type ProcessFuzzyFields struct {
 	Name    []string
 	PkgName []string
+}
+
+// ProcessCondition defines the process condition.
+// in this condition, fields are generated with AND expr.
+type ProcessCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ProcessExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ProcessFuzzyFields
+
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *ProcessExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *ProcessFuzzyFields
+}
+
+// ProcessConfigExactFields defines the process config exact fields.
+// support includes and excludes.
+type ProcessConfigExactFields struct {
+	Name      []string
+	ProcessID []string
+}
+
+// ProcessConfigFuzzyFields defines the process config fuzzy fields.
+// support includes and excludes.
+type ProcessConfigFuzzyFields struct{}
+
+// ProcessConfigCondition defines the process config condition.
+type ProcessConfigCondition struct {
+	// will be used when condition type is included in exact mode.
+	ExactInclude *ProcessConfigExactFields
+
+	// will be used when condition type is included in fuzzy mode.
+	FuzzyInclude *ProcessConfigFuzzyFields
+
+	// will be used when condition type is excluded in exclude mode.
+	ExactExclude *ProcessConfigExactFields
+
+	// will be used when condition type is excluded in exclude mode.
+	FuzzyExclude *ProcessConfigFuzzyFields
 }
 
 // ===============================================================================

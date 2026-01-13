@@ -24,6 +24,7 @@ type IStorage interface {
 	IDaoPluginWorkflow
 	IDaoPlugin
 	IDaoProcess
+	IDaoProcessConfig
 }
 
 // IDaoPluginDeployment defines the plugin deployment dao interface.
@@ -142,4 +143,28 @@ type IDaoProcess interface {
 	// DistinctProcess get distinct process.
 	DistinctProcess(nCtx contextx.IContext, request types.ProcessDistinctSelector, condition ...*types.ProcessCondition) (
 		*types.ProcessDistinctResult, error)
+}
+
+// IDaoProcessConfig defines the process config dao interface.
+type IDaoProcessConfig interface {
+	// CreateProcessConfig create process config record.
+	CreateProcessConfig(nCtx contextx.IContext, config *types.ProcessConfig) error
+
+	// GetProcessConfig get process config record.
+	GetProcessConfig(nCtx contextx.IContext, name, processID string) (*types.ProcessConfig, error)
+
+	// CountProcessConfigs count process config records.
+	CountProcessConfigs(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (int64, error)
+
+	// ListProcessConfigs list process config records.
+	ListProcessConfigs(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) ([]*types.ProcessConfig, int64, error)
+
+	// UpsertProcessConfigs upsert many process config record.
+	UpsertProcessConfigs(nCtx contextx.IContext, configs ...*types.ProcessConfig) error
+
+	// DeleteProcessConfigsByProcessID delete many process config record by process ID.
+	DeleteProcessConfigsByProcessID(nCtx contextx.IContext, processID ...string) error
+
+	// DeleteProcessConfigs delete many process config record.
+	DeleteProcessConfigs(nCtx contextx.IContext, processID string, names ...string) error
 }

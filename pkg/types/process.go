@@ -282,3 +282,11 @@ type ProcessAgentGroup struct {
 	ProcessName string
 	AgentIDList []string
 }
+
+// ProcessConfig process configuration.
+type ProcessConfig struct {
+	Name      string
+	ProcessID string
+	Content   string
+	MD5       string
+}

@@ -25,6 +25,7 @@ import (
 	plugindeployment "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-deployment"
 	pluginworkflow "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/plugin-workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
+	daoProcessConfig "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -77,6 +78,13 @@ const (
 	metricOperationUpdatePluginDeploymentPluginConf               = "update_plugin_deployment_plugin_conf"
 	metricOperationGetPluginDeploymentPluginConfConfigFilesDetail = "get_plugin_deployment_plugin_conf_config_files_detail"
 	metricOperationUpsertManyPlugins                              = "upsert_many_plugins"
+	metricOperationGetProcessConfig                               = "get_process_config"
+	metricOperationCreateProcessConfig                            = "create_process_config"
+	metricOperationUpsertManyProcessConfigs                       = "upsert_many_process_configs"
+	metricOperationDeleteProcessConfigsByProcessID                = "delete_process_configs_by_process_id"
+	metricOperationDeleteProcessConfigs                           = "delete_process_configs"
+	metricOperationListProcessConfig                              = "list_process_config"
+	metricOperationCountProcessConfig                             = "count_process_config"
 )
 
 // NewStorage ...
@@ -123,6 +131,7 @@ type Storage struct {
 	daoPluginWorkflow   pluginworkflow.IHandler
 	daoPlugin           plugin.IHandler
 	daoProcess          process.IHandler
+	daoProcessConfig    daoProcessConfig.IHandler
 	daoOperInstData     operinstdata.IHandler
 
 	monitoredWorkflows      map[string]*types.PluginWorkflow
@@ -134,6 +143,7 @@ func (s *Storage) initDao() error {
 	s.daoPluginWorkflow = pluginworkflow.New(s.Database)
 	s.daoPlugin = plugin.New(s.Database)
 	s.daoProcess = process.New(s.Database)
+	s.daoProcessConfig = daoProcessConfig.New(s.Database)
 	s.daoOperInstData = operinstdata.New(s.Database)
 
 	return nil
@@ -332,6 +342,10 @@ func (s *Storage) check() error {
 	return nil
 }
 
+// ===============================================================================
+// PluginDeploymentInfo Related Interface
+// ===============================================================================
+
 // GetPluginDeploymentInfo get plugin deployment info.
 func (s *Storage) GetPluginDeploymentInfo(nCtx contextx.IContext, token string) (*types.PluginDeploymentInfo, error) {
 	var (
@@ -408,6 +422,7 @@ func (s *Storage) UpdatePluginDeploymentInfo(nCtx contextx.IContext, token strin
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -426,6 +441,7 @@ func (s *Storage) GetPluginDeploymentPluginConf(ctx contextx.IContext, token str
 	if err != nil {
 		return nil, err
 	}
+
 	return pluginConf, nil
 }
 
@@ -443,12 +459,12 @@ func (s *Storage) UpdatePluginDeploymentPluginConf(ctx contextx.IContext, token 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // GetPluginDeploymentPluginConfConfigFilesDetail get plugin deployment plugin conf config files detail.
-func (s *Storage) GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string) (
-	[]*types.PluginConfigDetail, error) {
+func (s *Storage) GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string) ([]*types.PluginConfigDetail, error) {
 	var (
 		config []*types.PluginConfigDetail
 		err    error
@@ -468,6 +484,10 @@ func (s *Storage) GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IC
 
 	return config, nil
 }
+
+// ===============================================================================
+// PluginWorkflow Related Interface
+// ===============================================================================
 
 // GetPluginWorkflow get plugin workflow.
 func (s *Storage) GetPluginWorkflow(nCtx contextx.IContext, workflowID string) (*types.PluginWorkflow, error) {
@@ -621,6 +641,10 @@ func (s *Storage) DistinctPluginWorkflow(
 	return result, nil
 }
 
+// ===============================================================================
+// Plugin Related Interface
+// ===============================================================================
+
 // GetPlugin get plugin by id.
 func (s *Storage) GetPlugin(nCtx contextx.IContext, pluginName string) (*types.Plugin, error) {
 	var (
@@ -666,8 +690,7 @@ func (s *Storage) CountPlugins(nCtx contextx.IContext, conditions ...*types.Plug
 }
 
 // ListPlugins list plugins.
-func (s *Storage) ListPlugins(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) (
-	[]*types.Plugin, int64, error) {
+func (s *Storage) ListPlugins(nCtx contextx.IContext, page types.Page, conditions ...*types.PluginCondition) ([]*types.Plugin, int64, error) {
 	var (
 		plugins []*types.Plugin
 		cnt     int64
@@ -768,6 +791,27 @@ func (s *Storage) CreatePlugin(nCtx contextx.IContext, plugin *types.Plugin) err
 
 	return nil
 }
+
+// UpsertManyPlugins upsert many plugins.
+func (s *Storage) UpsertManyPlugins(nCtx contextx.IContext, plugins ...*types.Plugin) error {
+	var (
+		err error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationUpsertManyPlugins, func(nCtx contextx.IContext) error {
+		err = s.upsertManyPlugins(nCtx, plugins...)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ===============================================================================
+// Process Related Interface
+// ===============================================================================
 
 // CountProcesses count processes.
 func (s *Storage) CountProcesses(nCtx contextx.IContext, conditions ...*types.ProcessCondition) (int64, error) {
@@ -1016,14 +1060,41 @@ func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessD
 	return result, nil
 }
 
-// UpsertManyPlugins upsert many plugins.
-func (s *Storage) UpsertManyPlugins(nCtx contextx.IContext, plugins ...*types.Plugin) error {
+// ===============================================================================
+// ProcessConfig Related Interface
+// ===============================================================================
+
+// GetProcessConfig get process config.
+func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processID, name string) (*types.ProcessConfig, error) {
+	var (
+		processConfig *types.ProcessConfig
+		err           error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationGetProcessConfig, func(nCtx contextx.IContext) error {
+		processConfig, err = s.getProcessConfig(nCtx, processID, name)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return processConfig, nil
+}
+
+// CreateProcessConfig create process config.
+func (s *Storage) CreateProcessConfig(nCtx contextx.IContext, processConfig *types.ProcessConfig) error {
 	var (
 		err error
 	)
 
-	err = s.WrapFn(nCtx, metricOperationUpsertManyPlugins, func(nCtx contextx.IContext) error {
-		err = s.upsertManyPlugins(nCtx, plugins...)
+	err = s.WrapFn(nCtx, metricOperationCreateProcessConfig, func(nCtx contextx.IContext) error {
+		err = s.createProcessConfig(nCtx, processConfig)
+
 		return err
 	})
 	if err != nil {
@@ -1031,4 +1102,105 @@ func (s *Storage) UpsertManyPlugins(nCtx contextx.IContext, plugins ...*types.Pl
 	}
 
 	return nil
+}
+
+// UpsertProcessConfigs upsert many process configs.
+func (s *Storage) UpsertProcessConfigs(nCtx contextx.IContext, processConfigs ...*types.ProcessConfig) error {
+	var (
+		err error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationUpsertManyProcessConfigs, func(nCtx contextx.IContext) error {
+		err = s.upsertProcessConfigs(nCtx, processConfigs...)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteProcessConfigsByProcessID delete process configs by process id.
+func (s *Storage) DeleteProcessConfigsByProcessID(nCtx contextx.IContext, processID ...string) error {
+	var (
+		err error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigsByProcessID, func(nCtx contextx.IContext) error {
+		err = s.deleteProcessConfigsByProcessID(nCtx, processID...)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteProcessConfigs delete process configs.
+func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processID string, names ...string) error {
+	var (
+		err error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigs, func(nCtx contextx.IContext) error {
+		err = s.deleteProcessConfigs(nCtx, processID, names...)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ListProcessConfigs list process configs.
+func (s *Storage) ListProcessConfigs(nCtx contextx.IContext, page types.Page, conditions ...*types.ProcessConfigCondition) (
+	[]*types.ProcessConfig, int64, error) {
+
+	var (
+		processConfigs []*types.ProcessConfig
+		total          int64
+		err            error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationListProcessConfig, func(nCtx contextx.IContext) error {
+		processConfigs, total, err = s.listProcessConfigs(nCtx, page, conditions...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return processConfigs, total, nil
+}
+
+// CountProcessConfigs count process configs.
+func (s *Storage) CountProcessConfigs(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (int64, error) {
+	var (
+		count int64
+		err   error
+	)
+
+	err = s.WrapFn(nCtx, metricOperationCountProcessConfig, func(nCtx contextx.IContext) error {
+		count, err = s.countProcessConfigs(nCtx, conditions...)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
