@@ -99,7 +99,7 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 
 		// if the trigger's last updated time is too long ago, delete it.
 		// nolint: mnd
-		if meta.CleanPolicy.MaxDays > 0 && int(time.Since(trig.UpdatedAt).Hours()/24) > meta.CleanPolicy.MaxDays {
+		if meta.CleanPolicy.MaxDays > 0 && time.Since(trig.UpdatedAt).Hours()/24 > meta.CleanPolicy.MaxDays {
 			deletingTriggerIDs = append(deletingTriggerIDs, trig.TriggerID)
 		}
 	}
@@ -157,7 +157,7 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 
 		// if the trigger's last updated time is too long ago, delete it.
 		// nolint: mnd
-		if meta.CleanPolicy.MaxDays > 0 && int(time.Since(trig.UpdatedAt).Hours()/24) > meta.CleanPolicy.MaxDays {
+		if meta.CleanPolicy.MaxDays > 0 && time.Since(trig.UpdatedAt).Hours()/24 > meta.CleanPolicy.MaxDays {
 			deletingTriggerIDs = append(deletingTriggerIDs, trig.TriggerID)
 		}
 	}

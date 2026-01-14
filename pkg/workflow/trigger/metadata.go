@@ -66,7 +66,7 @@ func (m *MetadataPeriodic) Validate() error {
 func NewMetadataOnce() *MetadataOnce {
 	return &MetadataOnce{
 		CleanPolicy: MetadataCleanPolicy{
-			MaxDays: 30,
+			MaxDays: 30.0,
 		},
 	}
 }
@@ -77,7 +77,7 @@ func NewMetadataOrdered(maxConcurrencyNum int) *MetadataOrdered {
 	return &MetadataOrdered{
 		MaxConcurrencyNum: maxConcurrencyNum,
 		CleanPolicy: MetadataCleanPolicy{
-			MaxDays: 30,
+			MaxDays: 30.0,
 		},
 	}
 }
@@ -111,7 +111,7 @@ func NewMetadataPeriodic[T time.Duration | string](interval T, allowedConcurrenc
 
 // MetadataCleanPolicy will store the clean policy of an once/ordered trigger.
 type MetadataCleanPolicy struct {
-	MaxDays int
+	MaxDays float64
 }
 
 // PeriodicMetadataCleanPolicy will store the clean policy of a periodic trigger.
