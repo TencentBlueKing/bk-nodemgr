@@ -254,6 +254,8 @@ const getBusinessList = async () => {
     page: {
       limit: 0,
     },
+  }, {
+    irrevocable: true,
   });
   mainStore.updateBusinessList(res.items);
   loading.value = false;

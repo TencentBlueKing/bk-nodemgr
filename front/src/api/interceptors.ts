@@ -54,14 +54,14 @@ function fetch<T, C extends Config>(input: RequestInfo | URL, init: Partial<C>) 
           res = fn(res, init);
         });
         resolve(res as FetchReturnType<T, C>);
-        removeQueue(requestID);
+        removeQueue(init?.id || requestID);
       })
       .catch((err) => {
         interceptorsResError.forEach((fn) => {
           err = fn(err, init);
         });
         reject(err);
-        removeQueue(requestID);
+        removeQueue(init?.id || requestID);
       });
 
     // const route = useRoute();

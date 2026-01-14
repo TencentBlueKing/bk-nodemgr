@@ -2,6 +2,7 @@
 import { setupLayouts } from 'virtual:generated-layouts';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
+import { cancelRequest } from '@/api/request-queue';
 import NotFound from '@/pages/app/404.vue';
 import AgentImport from '@/pages/node/agent/import.vue';
 import AgentManager from '@/pages/node/agent/list.vue';
@@ -15,7 +16,6 @@ import AgentPackageMng from '@/pages/pkg/agent-proxy-pkg/list.vue';
 import CertBintoolMng from '@/pages/pkg/cert-bintool-manage/list.vue';
 import PluginPackageMng from '@/pages/pkg/plugin-package-manage.vue';
 import OperationRecords from '@/pages/pkg/record.vue';
-import CreateConfig from '@/pages/rules/agent-strategy/create-config.vue';
 import AgentStrategy from '@/pages/rules/agent-strategy/index.vue';
 import Rules from '@/pages/rules/index.vue';
 import RulesRecord from '@/pages/rules/record/record.vue';
@@ -308,6 +308,9 @@ export const install: UserModule = ({ app }) => {
   const router = createRouter({
     history: createWebHashHistory(import.meta.env.BK_SITE_URL),
     routes,
+  });
+  router.beforeEach(() => {
+    cancelRequest();
   });
   app.use(router);
 };
