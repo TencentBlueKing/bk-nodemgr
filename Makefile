@@ -174,7 +174,7 @@ docker-build-apigw-sync: pre
 	@$(ECHO) "Building docker image bk-nodemgr-apigw-sync..."
 	@$(MKDIR) $(OUTPUT_DIR)/apigw-sync
 	@$(CP) -R $(ROOT_DIR)/install/images/bk-nodemgr-apigw-sync/support-files $(OUTPUT_DIR)/apigw-sync/
-	@$(CP) -R $(ROOT_DIR)/docs/apigw/* $(OUTPUT_DIR)/apigw-sync/support-files
+	@$(CP) -R $(ROOT_DIR)/apigw/* $(OUTPUT_DIR)/apigw-sync/support-files
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr-apigw-sync/Dockerfile $(OUTPUT_DIR)/apigw-sync
 	@$(CD) $(OUTPUT_DIR)/apigw-sync && docker build -t bk-nodemgr-apigw-sync:v${VERSION} .
 	@$(ECHO) "Built successfully docker image bk-nodemgr-apigw-sync:v${VERSION}"

@@ -116,7 +116,7 @@
       "name": "接口文档变更需要修改网关文档",
       "description": "记得要修改下列几处文件",
       "source_patterns": [
-        "docs/apigw/resources.yaml"
+        "apigw/resources.yaml"
       ],
       "related_files": [
         "proto/backend/*"
