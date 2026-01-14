@@ -110,8 +110,7 @@ func (act *actionGenOperSyncHost) Do(ctx *action.InstanceContext) error {
 	// create trigger for handling sync host operations.
 	meta := trigger.NewMetadataOnce()
 	meta.CleanPolicy = trigger.MetadataCleanPolicy{
-		Namespace: std.InstanceData().TriggerID,
-		MaxNum:    100, // nolint: mnd
+		MaxDays: 1,
 	}
 	trigCtl, err := act.workflowCtl.CreateTrigger(std.Context(), trigger.CategoryOnce, meta)
 	if err != nil {

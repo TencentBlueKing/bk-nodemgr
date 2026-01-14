@@ -54,25 +54,6 @@ func (pt *PeriodicTask) CleanTrigger(nCtx contextx.IContext) error {
 	return nil
 }
 
-// triggerList defines the trigger list.
-// make it sortable and sorted with updated time from old to new.
-type triggerList []*trigger.Trigger
-
-// Len returns the length of the trigger list.
-func (l triggerList) Len() int {
-	return len(l)
-}
-
-// Less compares the updated time of the trigger.
-func (l triggerList) Less(i, j int) bool {
-	return l[i].UpdatedAt.Before(l[j].UpdatedAt)
-}
-
-// Swap swaps the elements with indexes i and j.
-func (l triggerList) Swap(i, j int) {
-	l[i], l[j] = l[j], l[i]
-}
-
 // operInstList defines the operation instance list.
 // make it sortable and sorted with creation time from old to new.
 type operInstList []*operation.InstanceBriefData
@@ -105,8 +86,6 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 		return err
 	}
 
-	cleanQueue := make(map[string]triggerList)
-
 	deletingTriggerIDs := make([]string, 0)
 	for _, trig := range results.Items {
 		if trig.Active {
@@ -122,47 +101,24 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 		// nolint: mnd
 		if meta.CleanPolicy.MaxDays > 0 && int(time.Since(trig.UpdatedAt).Hours()/24) > meta.CleanPolicy.MaxDays {
 			deletingTriggerIDs = append(deletingTriggerIDs, trig.TriggerID)
-
-			continue
-		}
-
-		// add trigger into the clean queue.
-		if _, ok := cleanQueue[meta.CleanPolicy.Namespace]; !ok {
-			cleanQueue[meta.CleanPolicy.Namespace] = make(triggerList, 0)
-		}
-		cleanQueue[meta.CleanPolicy.Namespace] = append(cleanQueue[meta.CleanPolicy.Namespace], trig)
-	}
-
-	for _, triggerList := range cleanQueue {
-		sort.Sort(sort.Reverse(triggerList))
-
-		for i, trig := range triggerList {
-			meta, ok := trig.Metadata.(*trigger.MetadataOnce)
-			if !ok || meta == nil {
-				continue
-			}
-
-			if meta.CleanPolicy.MaxNum > 0 && i >= meta.CleanPolicy.MaxNum {
-				deletingTriggerIDs = append(deletingTriggerIDs, trig.TriggerID)
-			}
 		}
 	}
 
 	if len(deletingTriggerIDs) > 0 {
-		if err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Warn("failed to delete once triggers")
+		if err = pt.conf.StgWorkflow.DeleteOperationInstancesByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
+			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete operation instances of once triggers")
 
 			return err
 		}
 
 		if err = pt.conf.StgWorkflow.DeleteOperationsByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Warn("failed to delete operations of once triggers")
+			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete operations of once triggers")
 
 			return err
 		}
 
-		if err = pt.conf.StgWorkflow.DeleteOperationInstancesByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("count", len(deletingTriggerIDs)).Warn("failed to delete operations of once triggers")
+		if err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, deletingTriggerIDs...); err != nil {
+			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete once triggers")
 
 			return err
 		}
@@ -188,8 +144,6 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 		return err
 	}
 
-	cleanQueue := make(map[string]triggerList)
-
 	deletingTriggerIDs := make([]string, 0)
 	for _, trig := range results.Items {
 		if trig.Active {
@@ -205,47 +159,23 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 		// nolint: mnd
 		if meta.CleanPolicy.MaxDays > 0 && int(time.Since(trig.UpdatedAt).Hours()/24) > meta.CleanPolicy.MaxDays {
 			deletingTriggerIDs = append(deletingTriggerIDs, trig.TriggerID)
-
-			continue
-		}
-
-		// add trigger into the clean queue.
-		if _, ok := cleanQueue[meta.CleanPolicy.Namespace]; !ok {
-			cleanQueue[meta.CleanPolicy.Namespace] = make(triggerList, 0)
-		}
-		cleanQueue[meta.CleanPolicy.Namespace] = append(cleanQueue[meta.CleanPolicy.Namespace], trig)
-	}
-
-	for _, triggerList := range cleanQueue {
-		sort.Sort(sort.Reverse(triggerList))
-
-		for i, trig := range triggerList {
-			meta, ok := trig.Metadata.(*trigger.MetadataOrdered)
-			if !ok || meta == nil {
-				continue
-			}
-
-			if meta.CleanPolicy.MaxNum > 0 && i >= meta.CleanPolicy.MaxNum {
-				deletingTriggerIDs = append(deletingTriggerIDs, trig.TriggerID)
-			}
 		}
 	}
 
 	if len(deletingTriggerIDs) > 0 {
-		if err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete ordered triggers")
+		if err = pt.conf.StgWorkflow.DeleteOperationInstancesByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
+			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete oper-instances of ordered triggers")
 
 			return err
 		}
-
 		if err = pt.conf.StgWorkflow.DeleteOperationsByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
 			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete operations of ordered triggers")
 
 			return err
 		}
 
-		if err = pt.conf.StgWorkflow.DeleteOperationInstancesByTriggerID(nCtx, deletingTriggerIDs...); err != nil {
-			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete oper-instances of ordered triggers")
+		if err = pt.conf.StgWorkflow.DeleteTriggers(nCtx, deletingTriggerIDs...); err != nil {
+			logger.G.Sys().WithErr(err).With("trigger-count", len(deletingTriggerIDs)).Warn("failed to delete ordered triggers")
 
 			return err
 		}
@@ -300,7 +230,7 @@ func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 			logger.G.Sys().
 				WithErr(err).
 				With("oper-inst-count", len(deletingOperInstIDs)).
-				Info("failed to delete overflow operation instances in periodic trigger")
+				Warn("failed to delete overflow operation instances in periodic trigger")
 
 			return err
 		}

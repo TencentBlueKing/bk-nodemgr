@@ -111,9 +111,7 @@ func NewMetadataPeriodic[T time.Duration | string](interval T, allowedConcurrenc
 
 // MetadataCleanPolicy will store the clean policy of an once/ordered trigger.
 type MetadataCleanPolicy struct {
-	Namespace string
-	MaxNum    int
-	MaxDays   int
+	MaxDays int
 }
 
 // PeriodicMetadataCleanPolicy will store the clean policy of a periodic trigger.

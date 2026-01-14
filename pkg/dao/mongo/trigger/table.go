@@ -67,9 +67,7 @@ type MetadataOrdered struct {
 
 // CleanPolicy will store the clean policy of an once/ordered trigger.
 type CleanPolicy struct {
-	Namespace string `json:"namespace" bson:"namespace"`
-	MaxNum    int    `json:"max_num" bson:"max_num"`
-	MaxDays   int    `json:"max_days" bson:"max_days"`
+	MaxDays int `json:"max_days" bson:"max_days"`
 }
 
 // PeriodicCleanPolicy will store the clean policy of a periodic trigger.

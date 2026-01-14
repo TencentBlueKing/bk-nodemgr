@@ -11,8 +11,9 @@
 package syncdata
 
 import (
-	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 
 	syncDataUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/syncdata/utils"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
@@ -125,8 +126,7 @@ func (act *actionGenOperSyncAgentState) Do(ctx *action.InstanceContext) error {
 			// create trigger for handling sync agent state operations.
 			meta := trigger.NewMetadataOnce()
 			meta.CleanPolicy = trigger.MetadataCleanPolicy{
-				Namespace: std.InstanceData().TriggerID,
-				MaxNum:    100, // nolint: mnd
+				MaxDays: 1,
 			}
 			trigCtl, err = act.workflowCtl.CreateTrigger(nCtx, trigger.CategoryOnce, meta)
 			if err != nil {

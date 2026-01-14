@@ -214,9 +214,7 @@ func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {
 		if ok {
 			t.MetadataOnce = MetadataOnce{
 				CleanPolicy: CleanPolicy{
-					Namespace: meta.CleanPolicy.Namespace,
-					MaxNum:    meta.CleanPolicy.MaxNum,
-					MaxDays:   meta.CleanPolicy.MaxDays,
+					MaxDays: meta.CleanPolicy.MaxDays,
 				},
 			}
 		}
@@ -227,9 +225,7 @@ func convertTriggerFromTypes(trig *trigger.Trigger) *Trigger {
 			t.MetadataOrdered = MetadataOrdered{
 				MaxConcurrencyNum: meta.MaxConcurrencyNum,
 				CleanPolicy: CleanPolicy{
-					Namespace: meta.CleanPolicy.Namespace,
-					MaxNum:    meta.CleanPolicy.MaxNum,
-					MaxDays:   meta.CleanPolicy.MaxDays,
+					MaxDays: meta.CleanPolicy.MaxDays,
 				},
 			}
 		}
@@ -264,9 +260,7 @@ func convertTriggerToTypes(trig *Trigger) *trigger.Trigger {
 	case trigger.CategoryOnce:
 		typeTrigger.Metadata = &trigger.MetadataOnce{
 			CleanPolicy: trigger.MetadataCleanPolicy{
-				Namespace: trig.MetadataOnce.CleanPolicy.Namespace,
-				MaxNum:    trig.MetadataOnce.CleanPolicy.MaxNum,
-				MaxDays:   trig.MetadataOnce.CleanPolicy.MaxDays,
+				MaxDays: trig.MetadataOnce.CleanPolicy.MaxDays,
 			},
 		}
 
@@ -274,9 +268,7 @@ func convertTriggerToTypes(trig *Trigger) *trigger.Trigger {
 		typeTrigger.Metadata = &trigger.MetadataOrdered{
 			MaxConcurrencyNum: trig.MetadataOrdered.MaxConcurrencyNum,
 			CleanPolicy: trigger.MetadataCleanPolicy{
-				Namespace: trig.MetadataOrdered.CleanPolicy.Namespace,
-				MaxNum:    trig.MetadataOrdered.CleanPolicy.MaxNum,
-				MaxDays:   trig.MetadataOrdered.CleanPolicy.MaxDays,
+				MaxDays: trig.MetadataOrdered.CleanPolicy.MaxDays,
 			},
 		}
 
