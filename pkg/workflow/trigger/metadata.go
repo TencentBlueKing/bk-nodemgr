@@ -61,12 +61,18 @@ func (m *MetadataPeriodic) Validate() error {
 	return nil
 }
 
+const (
+	metadataOnceMaxDaysDefault            = 30.0
+	metadataOrderedMaxDaysDefault         = 30.0
+	metadataPeriodicMaxOperInstNumDefault = 1000
+)
+
 // NewMetadataOnce creates a new MetadataOnce instance.
 // nolint: mnd
 func NewMetadataOnce() *MetadataOnce {
 	return &MetadataOnce{
 		CleanPolicy: MetadataCleanPolicy{
-			MaxDays: 30.0,
+			MaxDays: metadataOnceMaxDaysDefault,
 		},
 	}
 }
@@ -77,7 +83,7 @@ func NewMetadataOrdered(maxConcurrencyNum int) *MetadataOrdered {
 	return &MetadataOrdered{
 		MaxConcurrencyNum: maxConcurrencyNum,
 		CleanPolicy: MetadataCleanPolicy{
-			MaxDays: 30.0,
+			MaxDays: metadataOrderedMaxDaysDefault,
 		},
 	}
 }
@@ -98,7 +104,7 @@ func NewMetadataPeriodic[T time.Duration | string](interval T, allowedConcurrenc
 		Interval:           cronExpr,
 		AllowedConcurrency: allowedConcurrency,
 		CleanPolicy: PeriodicMetadataCleanPolicy{
-			MaxOperInstNum: 1000, // nolint: mnd
+			MaxOperInstNum: metadataPeriodicMaxOperInstNumDefault,
 		},
 	}
 
