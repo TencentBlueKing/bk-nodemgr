@@ -74,6 +74,13 @@ func (l operInstList) Swap(i, j int) {
 	l[i], l[j] = l[j], l[i]
 }
 
+// lastResortOnceCleanPolicy is the clean policy for the lastResort cleanup of once triggers.
+func lastResortOnceCleanPolicy() trigger.MetadataCleanPolicy {
+	return trigger.MetadataCleanPolicy{
+		MaxDays: 90, // nolint: mnd
+	}
+}
+
 // nolint: gocognit
 func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[string](triggerListMaxPage, 1*time.Hour)
@@ -95,9 +102,15 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 				continue
 			}
 
+			cleanPolicy := lastResortOnceCleanPolicy()
+
+			if meta.CleanPolicy.MaxDays > 0 {
+				cleanPolicy = meta.CleanPolicy
+			}
+
 			// if the trigger's last updated time is too long ago, delete it.
 			// nolint: mnd
-			if meta.CleanPolicy.MaxDays > 0 && time.Since(trig.UpdatedAt).Hours()/24 > meta.CleanPolicy.MaxDays {
+			if time.Since(trig.UpdatedAt).Hours()/24 > cleanPolicy.MaxDays {
 				needDeletingTriggerIDs = append(needDeletingTriggerIDs, trig.TriggerID)
 			}
 		}
@@ -145,6 +158,13 @@ func (pt *PeriodicTask) cleanOnceTrigger(nCtx contextx.IContext) error {
 	return nil
 }
 
+// lastResortOrderedCleanPolicy is the clean policy for the lastResort cleanup of ordered triggers.
+func lastResortOrderedCleanPolicy() trigger.MetadataCleanPolicy {
+	return trigger.MetadataCleanPolicy{
+		MaxDays: 90, // nolint: mnd
+	}
+}
+
 // nolint: gocognit
 func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[string](triggerListMaxPage, 1*time.Hour)
@@ -166,9 +186,15 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 				continue
 			}
 
+			cleanPolicy := lastResortOrderedCleanPolicy()
+
+			if meta.CleanPolicy.MaxDays > 0 {
+				cleanPolicy = meta.CleanPolicy
+			}
+
 			// if the trigger's last updated time is too long ago, delete it.
 			// nolint: mnd
-			if meta.CleanPolicy.MaxDays > 0 && time.Since(trig.UpdatedAt).Hours()/24 > meta.CleanPolicy.MaxDays {
+			if time.Since(trig.UpdatedAt).Hours()/24 > cleanPolicy.MaxDays {
 				needDeletingTriggerIDs = append(needDeletingTriggerIDs, trig.TriggerID)
 			}
 		}
@@ -216,6 +242,7 @@ func (pt *PeriodicTask) cleanOrderedTrigger(nCtx contextx.IContext) error {
 	return nil
 }
 
+// nolint: gocognit
 func (pt *PeriodicTask) cleanPeriodicTrigger(nCtx contextx.IContext) error {
 	executor := pageexecutor.NewPageExecutor[string](triggerListMaxPage, 1*time.Hour)
 
