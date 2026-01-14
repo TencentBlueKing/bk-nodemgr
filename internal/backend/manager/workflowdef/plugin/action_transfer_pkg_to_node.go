@@ -74,7 +74,7 @@ func (act *actionTransferPluginPkgToNode) Description() string {
 
 // Timeout returns the timeout of the action.
 func (act *actionTransferPluginPkgToNode) Timeout() time.Duration {
-	return 1 * time.Minute
+	return 10 * time.Minute
 }
 
 // Tags returns the tags of the action.
