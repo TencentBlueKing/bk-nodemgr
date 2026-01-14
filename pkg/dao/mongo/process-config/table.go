@@ -13,6 +13,7 @@ package processconfig
 
 import (
 	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 )
 
@@ -25,20 +26,21 @@ var _ base.IData = &ProcessConfig{}
 
 // ProcessConfig represents the table of process configuration.
 type ProcessConfig struct {
-	Name      string `json:"name" bson:"name"`
-	ProcessID string `json:"process_id" bson:"process_id"`
-	Content   string `json:"content" bson:"content"`
-	MD5       string `json:"md5" bson:"md5"`
+	Name        string `json:"name" bson:"name"`
+	ProcessName string `json:"process_name" bson:"process_name"`
+	HostID      int64  `json:"host_id" bson:"host_id"`
+	Content     string `json:"content" bson:"content"`
+	MD5         string `json:"md5" bson:"md5"`
 }
 
 // UniqueFields unique fields of the table.
 func (config *ProcessConfig) UniqueFields() []string {
-	return []string{FieldKeyName, FieldKeyProcessID}
+	return []string{FieldKeyName, FieldKeyProcessName, FieldKeyHostID}
 }
 
 // UniqueKey unique key of the table.
 func (config *ProcessConfig) UniqueKey() string {
-	return fmt.Sprintf("%s_%s", config.Name, config.ProcessID)
+	return fmt.Sprintf("%s_%s_%d", config.Name, config.ProcessName, config.HostID)
 }
 
 // TableScheduledWorkflow represent the complete db structures of scheduled workflow.

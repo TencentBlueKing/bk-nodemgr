@@ -79,7 +79,8 @@ func buildUpsertManyParams(configs ...*ProcessConfig) []mongo.WriteModel {
 	for _, config := range configs {
 		filter := append(base.AliveFilter(),
 			bson.E{Key: FieldKeyName, Value: config.Name},
-			bson.E{Key: FieldKeyProcessID, Value: config.ProcessID})
+			bson.E{Key: FieldKeyProcessName, Value: config.ProcessName},
+			bson.E{Key: FieldKeyHostID, Value: config.HostID})
 
 		update := base.BuildUpsertParam(config)
 

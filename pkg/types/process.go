@@ -269,6 +269,14 @@ func (proc *Process) ToProcessSpec() ProcessSpec {
 	}
 }
 
+// GetUniqueKey gets the unique key of the process.
+func (proc *Process) GetUniqueKey() ProcessUniqueKey {
+	return ProcessUniqueKey{
+		Name:   proc.PluginName,
+		HostID: proc.HostID,
+	}
+}
+
 // ProcessInfoDelta is a map of process ID to process info.
 type ProcessInfoDelta struct {
 	HostID      int64
@@ -285,8 +293,15 @@ type ProcessAgentGroup struct {
 
 // ProcessConfig process configuration.
 type ProcessConfig struct {
-	Name      string
-	ProcessID string
-	Content   string
-	MD5       string
+	Name        string
+	ProcessName string
+	HostID      int64
+	Content     string
+	MD5         string
+}
+
+// ProcessUniqueKey process unique key.
+type ProcessUniqueKey struct {
+	Name   string
+	HostID int64
 }

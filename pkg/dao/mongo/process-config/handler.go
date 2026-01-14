@@ -12,12 +12,13 @@ package processconfig
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
-	"sync"
 )
 
 // IHandler defines the process config handler interface.
@@ -26,7 +27,7 @@ type IHandler interface {
 	Create(nCtx contextx.IContext, config *types.ProcessConfig) error
 
 	// Get get process config record.
-	Get(nCtx contextx.IContext, processID, name string) (*types.ProcessConfig, error)
+	Get(nCtx contextx.IContext, hostID int64, processName, name string) (*types.ProcessConfig, error)
 
 	// Count count process config records.
 	Count(nCtx contextx.IContext, opts ...OptFn) (int64, error)
@@ -99,7 +100,7 @@ func (h *Handler) Create(nCtx contextx.IContext, config *types.ProcessConfig) er
 }
 
 // Get get process config record.
-func (h *Handler) Get(nCtx contextx.IContext, processID, name string) (*types.ProcessConfig, error) {
+func (h *Handler) Get(nCtx contextx.IContext, hostID int64, processName, name string) (*types.ProcessConfig, error) {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return nil, err
 	}
@@ -107,7 +108,8 @@ func (h *Handler) Get(nCtx contextx.IContext, processID, name string) (*types.Pr
 	tenantID := nCtx.TenantID()
 	filter := base.AliveFilter()
 	filter = WithName(name)(filter)
-	filter = WithProcessID(processID)(filter)
+	filter = WithProcessName(processName)(filter)
+	filter = WithHostID(hostID)(filter)
 
 	data, err := h.tenantDao(tenantID).Get(nCtx, filter)
 	if err != nil {
@@ -217,10 +219,11 @@ func convProcessConfigToTypes(config *ProcessConfig) *types.ProcessConfig {
 	}
 
 	return &types.ProcessConfig{
-		Name:      config.Name,
-		ProcessID: config.ProcessID,
-		Content:   config.Content,
-		MD5:       config.MD5,
+		Name:        config.Name,
+		ProcessName: config.ProcessName,
+		HostID:      config.HostID,
+		Content:     config.Content,
+		MD5:         config.MD5,
 	}
 }
 
@@ -231,9 +234,10 @@ func convProcessConfigFromTypes(config *types.ProcessConfig) *ProcessConfig {
 	}
 
 	return &ProcessConfig{
-		Name:      config.Name,
-		ProcessID: config.ProcessID,
-		Content:   config.Content,
-		MD5:       config.MD5,
+		Name:        config.Name,
+		ProcessName: config.ProcessName,
+		HostID:      config.HostID,
+		Content:     config.Content,
+		MD5:         config.MD5,
 	}
 }

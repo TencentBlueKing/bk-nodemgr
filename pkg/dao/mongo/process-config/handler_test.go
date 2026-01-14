@@ -11,15 +11,16 @@
 package processconfig
 
 import (
+	"os"
+	"sync"
+	"testing"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"os"
-	"sync"
-	"testing"
 )
 
 // testClient ...
@@ -60,22 +61,25 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 		h := testClient(t)
 		err := h.UpsertMany(nCtx,
 			&types.ProcessConfig{
-				ProcessID: "test-process-id-1",
-				Name:      "test-process-name-1",
-				Content:   "test-content-1",
-				MD5:       "test-md5-1",
+				ProcessName: "test-process-name-1",
+				HostID:      2,
+				Name:        "test-process-config-name-1",
+				Content:     "test-content-1",
+				MD5:         "test-md5-1",
 			},
 			&types.ProcessConfig{
-				ProcessID: "test-process-id-2",
-				Name:      "test-process-name-2",
-				Content:   "test-content-2",
-				MD5:       "test-md5-2",
+				ProcessName: "test-process-name-2",
+				HostID:      2,
+				Name:        "test-process-config-name-2",
+				Content:     "test-content-2",
+				MD5:         "test-md5-2",
 			},
 			&types.ProcessConfig{
-				ProcessID: "test-process-id-3",
-				Name:      "test-process-name-3",
-				Content:   "test-content-3",
-				MD5:       "test-md5-3",
+				ProcessName: "test-process-name-3",
+				HostID:      2,
+				Name:        "test-process-config-name-3",
+				Content:     "test-content-3",
+				MD5:         "test-md5-3",
 			},
 		)
 		if err != nil {
@@ -103,10 +107,11 @@ func Test_handler_Create(t *testing.T) {
 			args: args{
 				nCtx: nCtx,
 				config: &types.ProcessConfig{
-					ProcessID: "test-process-id",
-					Name:      "test-process-name",
-					MD5:       "test-md5",
-					Content:   "test-content",
+					ProcessName: "test-process-name",
+					HostID:      2,
+					Name:        "test-process-config-name",
+					MD5:         "test-md5",
+					Content:     "test-content",
 				},
 			},
 			wantErr: false,
@@ -119,7 +124,7 @@ func Test_handler_Create(t *testing.T) {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			t.Logf("Create() success for name(%s), processID(%s)", tt.args.config.Name, tt.args.config.ProcessID)
+			t.Logf("Create() success for name(%s), ProcessName(%s)", tt.args.config.Name, tt.args.config.ProcessName)
 		})
 	}
 }
@@ -144,16 +149,18 @@ func Test_handler_UpsertMany(t *testing.T) {
 				nCtx: nCtx,
 				config: []*types.ProcessConfig{
 					{
-						ProcessID: "test-process-id-1",
-						Name:      "test-process-name-1",
-						Content:   "updated-test-content-1",
-						MD5:       "updated-test-md5-1",
+						ProcessName: "test-process-name-1",
+						HostID:      2,
+						Name:        "test-process-config-name-1",
+						Content:     "updated-test-content-1",
+						MD5:         "updated-test-md5-1",
 					},
 					{
-						ProcessID: "test-process-id-4",
-						Name:      "test-process-name-4",
-						Content:   "test-content-4",
-						MD5:       "test-md5-4",
+						ProcessName: "test-process-name-4",
+						HostID:      2,
+						Name:        "test-process-config-name-4",
+						Content:     "test-content-4",
+						MD5:         "test-md5-4",
 					},
 				},
 			},
@@ -191,8 +198,8 @@ func Test_handler_DeleteMany(t *testing.T) {
 			args: args{
 				nCtx: nCtx,
 				opts: []base.OptFn{
-					WithName("test-process-name-2", "test-process-name-3"),
-					WithProcessID("test-process-id-2", "test-process-id-3"),
+					WithName("test-process-config-name-2", "test-process-config-name-3"),
+					WithProcessName("test-process-name-2", "test-process-name-3"),
 				},
 			},
 			wantErr: false,
@@ -216,9 +223,10 @@ func Test_handler_Get(t *testing.T) {
 	prepareData(t, nCtx)
 
 	type args struct {
-		nCtx      contextx.IContext
-		name      string
-		processID string
+		nCtx        contextx.IContext
+		name        string
+		processName string
+		hostID      int64
 	}
 	tests := []struct {
 		name    string
@@ -229,13 +237,15 @@ func Test_handler_Get(t *testing.T) {
 		{
 			name: "get process config",
 			args: args{
-				nCtx:      nCtx,
-				name:      "test-process-name-1",
-				processID: "test-process-id-1",
+				nCtx:        nCtx,
+				name:        "test-process-config-name-1",
+				processName: "test-process-name-1",
+				hostID:      2,
 			},
 			want: &types.ProcessConfig{
-				ProcessID: "test-process-id-1",
-				Name:      "test-process-name-1",
+				ProcessName: "test-process-name-1",
+				HostID:      2,
+				Name:        "test-process-config-name-1",
 			},
 			wantErr: false,
 		},
@@ -243,7 +253,7 @@ func Test_handler_Get(t *testing.T) {
 	h := testClient(t)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := h.Get(tt.args.nCtx, tt.args.name, tt.args.processID)
+			got, err := h.Get(tt.args.nCtx, tt.args.hostID, tt.args.processName, tt.args.name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -264,7 +274,7 @@ func compareProcessConfig(a, b *types.ProcessConfig) bool {
 	}
 
 	return a.Name == b.Name &&
-		a.ProcessID == b.ProcessID
+		a.ProcessName == b.ProcessName
 }
 
 // Test_handler_List ...

@@ -151,7 +151,7 @@ type IDaoProcessConfig interface {
 	CreateProcessConfig(nCtx contextx.IContext, config *types.ProcessConfig) error
 
 	// GetProcessConfig get process config record.
-	GetProcessConfig(nCtx contextx.IContext, name, processID string) (*types.ProcessConfig, error)
+	GetProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string) (*types.ProcessConfig, error)
 
 	// CountProcessConfigs count process config records.
 	CountProcessConfigs(nCtx contextx.IContext, conditions ...*types.ProcessConfigCondition) (int64, error)
@@ -162,9 +162,9 @@ type IDaoProcessConfig interface {
 	// UpsertProcessConfigs upsert many process config record.
 	UpsertProcessConfigs(nCtx contextx.IContext, configs ...*types.ProcessConfig) error
 
-	// DeleteProcessConfigsByProcessID delete many process config record by process ID.
-	DeleteProcessConfigsByProcessID(nCtx contextx.IContext, processID ...string) error
+	// DeleteProcessConfigsByProcessUniqueKey delete many process config record by process unique key.
+	DeleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error
 
 	// DeleteProcessConfigs delete many process config record.
-	DeleteProcessConfigs(nCtx contextx.IContext, processID string, names ...string) error
+	DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error
 }

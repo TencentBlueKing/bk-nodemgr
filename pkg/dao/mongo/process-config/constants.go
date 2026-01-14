@@ -14,8 +14,11 @@ const (
 	// FieldKeyName process config field name.
 	FieldKeyName = "data.name"
 
-	// FieldKeyProcessID process config field process id.
-	FieldKeyProcessID = "data.process_id"
+	// FieldKeyProcessName process config field process name.
+	FieldKeyProcessName = "data.process_name"
+
+	// FieldKeyHostID process config field host id.
+	FieldKeyHostID = "data.host_id"
 
 	// FieldKeyContent process config field content.
 	FieldKeyContent = "data.content"

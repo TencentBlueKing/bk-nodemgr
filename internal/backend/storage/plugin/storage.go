@@ -81,7 +81,7 @@ const (
 	metricOperationGetProcessConfig                               = "get_process_config"
 	metricOperationCreateProcessConfig                            = "create_process_config"
 	metricOperationUpsertManyProcessConfigs                       = "upsert_many_process_configs"
-	metricOperationDeleteProcessConfigsByProcessID                = "delete_process_configs_by_process_id"
+	metricOperationDeleteProcessConfigsByProcessUniqueKey         = "delete_process_configs_by_process_unique_key"
 	metricOperationDeleteProcessConfigs                           = "delete_process_configs"
 	metricOperationListProcessConfig                              = "list_process_config"
 	metricOperationCountProcessConfig                             = "count_process_config"
@@ -1065,14 +1065,14 @@ func (s *Storage) DistinctProcess(nCtx contextx.IContext, request types.ProcessD
 // ===============================================================================
 
 // GetProcessConfig get process config.
-func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processID, name string) (*types.ProcessConfig, error) {
+func (s *Storage) GetProcessConfig(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, name string) (*types.ProcessConfig, error) {
 	var (
 		processConfig *types.ProcessConfig
 		err           error
 	)
 
 	err = s.WrapFn(nCtx, metricOperationGetProcessConfig, func(nCtx contextx.IContext) error {
-		processConfig, err = s.getProcessConfig(nCtx, processID, name)
+		processConfig, err = s.getProcessConfig(nCtx, processUniqueKey, name)
 		if err != nil {
 			return err
 		}
@@ -1122,14 +1122,14 @@ func (s *Storage) UpsertProcessConfigs(nCtx contextx.IContext, processConfigs ..
 	return nil
 }
 
-// DeleteProcessConfigsByProcessID delete process configs by process id.
-func (s *Storage) DeleteProcessConfigsByProcessID(nCtx contextx.IContext, processID ...string) error {
+// DeleteProcessConfigsByProcessUniqueKey delete process configs by process unique key.
+func (s *Storage) DeleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext, processUniqueKeys ...*types.ProcessUniqueKey) error {
 	var (
 		err error
 	)
 
-	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigsByProcessID, func(nCtx contextx.IContext) error {
-		err = s.deleteProcessConfigsByProcessID(nCtx, processID...)
+	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigsByProcessUniqueKey, func(nCtx contextx.IContext) error {
+		err = s.deleteProcessConfigsByProcessUniqueKey(nCtx, processUniqueKeys...)
 
 		return err
 	})
@@ -1141,13 +1141,13 @@ func (s *Storage) DeleteProcessConfigsByProcessID(nCtx contextx.IContext, proces
 }
 
 // DeleteProcessConfigs delete process configs.
-func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processID string, names ...string) error {
+func (s *Storage) DeleteProcessConfigs(nCtx contextx.IContext, processUniqueKey *types.ProcessUniqueKey, names ...string) error {
 	var (
 		err error
 	)
 
 	err = s.WrapFn(nCtx, metricOperationDeleteProcessConfigs, func(nCtx contextx.IContext) error {
-		err = s.deleteProcessConfigs(nCtx, processID, names...)
+		err = s.deleteProcessConfigs(nCtx, processUniqueKey, names...)
 
 		return err
 	})

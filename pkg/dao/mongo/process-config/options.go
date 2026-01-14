@@ -25,17 +25,22 @@ func WithoutName(names ...string) OptFn {
 	return base.WithoutValues(FieldKeyName, names...)
 }
 
-// WithProcessID filters by process id.
-func WithProcessID(processIDs ...string) OptFn {
-	return base.WithValues(FieldKeyProcessID, processIDs...)
+// WithProcessName filters by process name.
+func WithProcessName(processNames ...string) OptFn {
+	return base.WithValues(FieldKeyProcessName, processNames...)
 }
 
-// WithoutProcessID filters by no contains process id.
-func WithoutProcessID(processIDs ...string) OptFn {
-	return base.WithoutValues(FieldKeyProcessID, processIDs...)
+// WithoutProcessName filters by no contains process name.
+func WithoutProcessName(processNames ...string) OptFn {
+	return base.WithoutValues(FieldKeyProcessName, processNames...)
 }
 
-// WithMD5 filters by md5.
-func WithMD5(md5s ...string) OptFn {
-	return base.WithValues(FieldKeyMD5, md5s...)
+// WithHostID filters by host id.
+func WithHostID(hostIDs ...int64) OptFn {
+	return base.WithValues(FieldKeyHostID, hostIDs...)
+}
+
+// WithoutHostID filters by no contains host id.
+func WithoutHostID(hostIDs ...int64) OptFn {
+	return base.WithoutValues(FieldKeyHostID, hostIDs...)
 }
