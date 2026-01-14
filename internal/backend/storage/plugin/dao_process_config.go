@@ -16,7 +16,6 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
-	daoProcess "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process"
 	daoProcessConfig "github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
@@ -77,7 +76,7 @@ func (s *Storage) deleteProcessConfigsByProcessUniqueKey(nCtx contextx.IContext,
 	err := s.daoProcessConfig.DeleteMany(
 		nCtx, daoProcessConfig.WithProcessName(processNames...), daoProcessConfig.WithHostID(hostIDs...))
 	if err != nil {
-		return fmt.Errorf("failed to delete processConfigs by processID: %w", err)
+		return fmt.Errorf("failed to delete processConfigs by processUniqueKey: %w", err)
 	}
 
 	return nil
@@ -169,7 +168,7 @@ func (s *Storage) listProcessConfigs(nCtx contextx.IContext, page types.Page, co
 }
 
 func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigCondition) ([]daoProcessConfig.OptFn, error) {
-	opts := make([]daoProcess.OptFn, 0)
+	opts := make([]daoProcessConfig.OptFn, 0)
 	for _, condition := range conditions {
 		if condition == nil {
 			continue
@@ -189,9 +188,9 @@ func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigC
 
 		if condition.ExactExclude != nil {
 			opts = append(opts,
-				daoProcessConfig.WithoutName(condition.ExactInclude.Name...),
-				daoProcessConfig.WithoutProcessName(condition.ExactInclude.ProcessName...),
-				daoProcessConfig.WithoutHostID(condition.ExactInclude.HostID...),
+				daoProcessConfig.WithoutName(condition.ExactExclude.Name...),
+				daoProcessConfig.WithoutProcessName(condition.ExactExclude.ProcessName...),
+				daoProcessConfig.WithoutHostID(condition.ExactExclude.HostID...),
 			)
 		}
 
