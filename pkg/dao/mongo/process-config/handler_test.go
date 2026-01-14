@@ -61,25 +61,28 @@ func prepareData(t *testing.T, nCtx contextx.IContext) {
 		h := testClient(t)
 		err := h.UpsertMany(nCtx,
 			&types.ProcessConfig{
-				ProcessName: "test-process-name-1",
-				HostID:      2,
-				Name:        "test-process-config-name-1",
-				Content:     "test-content-1",
-				MD5:         "test-md5-1",
+				ProcessName:  "test-process-name-1",
+				HostID:       2,
+				Name:         "test-process-config-name-1",
+				IsMainConfig: true,
+				Content:      "test-content-1",
+				MD5:          "test-md5-1",
 			},
 			&types.ProcessConfig{
-				ProcessName: "test-process-name-2",
-				HostID:      2,
-				Name:        "test-process-config-name-2",
-				Content:     "test-content-2",
-				MD5:         "test-md5-2",
+				ProcessName:  "test-process-name-2",
+				HostID:       2,
+				Name:         "test-process-config-name-2",
+				IsMainConfig: false,
+				Content:      "test-content-2",
+				MD5:          "test-md5-2",
 			},
 			&types.ProcessConfig{
-				ProcessName: "test-process-name-3",
-				HostID:      2,
-				Name:        "test-process-config-name-3",
-				Content:     "test-content-3",
-				MD5:         "test-md5-3",
+				ProcessName:  "test-process-name-3",
+				HostID:       2,
+				Name:         "test-process-config-name-3",
+				IsMainConfig: false,
+				Content:      "test-content-3",
+				MD5:          "test-md5-3",
 			},
 		)
 		if err != nil {
@@ -107,11 +110,12 @@ func Test_handler_Create(t *testing.T) {
 			args: args{
 				nCtx: nCtx,
 				config: &types.ProcessConfig{
-					ProcessName: "test-process-name",
-					HostID:      2,
-					Name:        "test-process-config-name",
-					MD5:         "test-md5",
-					Content:     "test-content",
+					ProcessName:  "test-process-name",
+					HostID:       2,
+					Name:         "test-process-config-name",
+					IsMainConfig: false,
+					MD5:          "test-md5",
+					Content:      "test-content",
 				},
 			},
 			wantErr: false,
@@ -149,18 +153,20 @@ func Test_handler_UpsertMany(t *testing.T) {
 				nCtx: nCtx,
 				config: []*types.ProcessConfig{
 					{
-						ProcessName: "test-process-name-1",
-						HostID:      2,
-						Name:        "test-process-config-name-1",
-						Content:     "updated-test-content-1",
-						MD5:         "updated-test-md5-1",
+						ProcessName:  "test-process-name-1",
+						HostID:       2,
+						Name:         "test-process-config-name-1",
+						IsMainConfig: true,
+						Content:      "updated-test-content-1",
+						MD5:          "updated-test-md5-1",
 					},
 					{
-						ProcessName: "test-process-name-4",
-						HostID:      2,
-						Name:        "test-process-config-name-4",
-						Content:     "test-content-4",
-						MD5:         "test-md5-4",
+						ProcessName:  "test-process-name-4",
+						HostID:       2,
+						Name:         "test-process-config-name-4",
+						IsMainConfig: false,
+						Content:      "test-content-4",
+						MD5:          "test-md5-4",
 					},
 				},
 			},
@@ -293,12 +299,68 @@ func Test_handler_List(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "list process config",
+			name: "list process config with no filters",
 			args: args{
 				nCtx: nCtx,
 				opts: []base.OptFn{},
 			},
 			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "list process config with name filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithName("test-process-config-name-1"),
+				},
+			},
+			wantLen: 1,
+			wantErr: false,
+		},
+		{
+			name: "list process config with process name filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithProcessName("test-process-name-1"),
+				},
+			},
+			wantLen: 1,
+			wantErr: false,
+		},
+		{
+			name: "list process config with host id filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithHostID(2),
+				},
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "list process config with name and process name filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithName("test-process-config-name-1"),
+					WithProcessName("test-process-name-1"),
+				},
+			},
+			wantLen: 1,
+			wantErr: false,
+		},
+		{
+			name: "list process config with is main config filter",
+			args: args{
+				nCtx: nCtx,
+				opts: []base.OptFn{
+					WithIsMainConfig(true),
+				},
+			},
+			wantLen: 1,
 			wantErr: false,
 		},
 	}

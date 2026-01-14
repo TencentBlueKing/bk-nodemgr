@@ -219,11 +219,12 @@ func convProcessConfigToTypes(config *ProcessConfig) *types.ProcessConfig {
 	}
 
 	return &types.ProcessConfig{
-		Name:        config.Name,
-		ProcessName: config.ProcessName,
-		HostID:      config.HostID,
-		Content:     config.Content,
-		MD5:         config.MD5,
+		Name:         config.Name,
+		ProcessName:  config.ProcessName,
+		HostID:       config.HostID,
+		IsMainConfig: config.IsMainConfig,
+		Content:      config.Content,
+		MD5:          config.MD5,
 	}
 }
 
@@ -234,10 +235,11 @@ func convProcessConfigFromTypes(config *types.ProcessConfig) *ProcessConfig {
 	}
 
 	return &ProcessConfig{
-		Name:        config.Name,
-		ProcessName: config.ProcessName,
-		HostID:      config.HostID,
-		Content:     config.Content,
-		MD5:         config.MD5,
+		Name:         config.Name,
+		ProcessName:  config.ProcessName,
+		HostID:       config.HostID,
+		IsMainConfig: config.IsMainConfig,
+		Content:      config.Content,
+		MD5:          config.MD5,
 	}
 }

@@ -25,4 +25,7 @@ const (
 
 	// FieldKeyMD5 process config field md5.
 	FieldKeyMD5 = "data.md5"
+
+	// FieldKeyIsMainConfig process config field is main config.
+	FieldKeyIsMainConfig = "data.is_main_config"
 )

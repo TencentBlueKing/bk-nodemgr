@@ -745,9 +745,10 @@ type ProcessCondition struct {
 // ProcessConfigExactFields defines the process config exact fields.
 // support includes and excludes.
 type ProcessConfigExactFields struct {
-	Name        []string
-	ProcessName []string
-	HostID      []int64
+	Name         []string
+	ProcessName  []string
+	HostID       []int64
+	IsMainConfig []bool
 }
 
 // ProcessConfigFuzzyFields defines the process config fuzzy fields.

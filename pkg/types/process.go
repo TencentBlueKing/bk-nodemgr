@@ -293,11 +293,12 @@ type ProcessAgentGroup struct {
 
 // ProcessConfig process configuration.
 type ProcessConfig struct {
-	Name        string
-	ProcessName string
-	HostID      int64
-	Content     string
-	MD5         string
+	Name         string
+	ProcessName  string
+	HostID       int64
+	IsMainConfig bool
+	Content      string
+	MD5          string
 }
 
 // ProcessUniqueKey process unique key.
