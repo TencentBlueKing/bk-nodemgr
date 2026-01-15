@@ -45,6 +45,7 @@ func (oper *operInstallPlugin) Name() string {
 // ActionDefNames returns the action def names.
 func (oper *operInstallPlugin) ActionDefNames() []string {
 	return []string{
+		ActionNameTryStopProcess,
 		ActionNameUpsertProcess,
 		ActionNameVerifyPluginAvailability,
 		ActionNameRenderPluginDeployment,
@@ -64,6 +65,7 @@ func (oper *operInstallPlugin) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
+			ActionNameTryStopProcess:                     true,
 			ActionNameUpsertProcess:                      true,
 			ActionNameVerifyPluginAvailability:           true,
 			ActionNameRenderPluginDeployment:             true,

@@ -225,6 +225,7 @@ func (mgr *Manager) registerDefPlugin() error {
 		plugin.NewActionReloadProcess(pluginCap),
 		plugin.NewActionTrusteeshipProcess(pluginCap),
 		plugin.NewActionUnTrusteeshipProcess(pluginCap),
+		plugin.NewActionTryStopProcess(pluginCap),
 		plugin.NewActionVerifyPluginAvailability(pluginCap),
 	); err != nil {
 		return err
