@@ -80,7 +80,14 @@ func CheckNetworkPolicies(ctx context.Context, policies []NetworkPolicy) error {
 				}
 
 				return nil
-			case NetworkUDP, NetworkTCP6, NetworkUDP6:
+			case NetworkTCP6:
+				idle, err := utils.CheckTCP6PortIdle(ctx, policy.Port)
+				if err != nil || !idle {
+					return fmt.Errorf("port %d is not idle", policy.Port)
+				}
+
+				return nil
+			case NetworkUDP, NetworkUDP6:
 				return fmt.Errorf("not support network: %s", policy.Network)
 			default:
 				return fmt.Errorf("invalid network: %s", policy.Network)
