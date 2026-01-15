@@ -537,7 +537,7 @@ func (s *Storage) DistinctOperation(
 		return nil, err
 	}
 
-	return result, err
+	return result, nil
 }
 
 // ListOperationByOperationID lists operation by operation id.
