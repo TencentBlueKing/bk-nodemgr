@@ -44,6 +44,14 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 		return
 	}
 
+	deployInfo, err := h.GetNodeDeploymentInfo(nCtx, req.GetToken())
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to get node deployment info")
+		gCtx.JSON(http.StatusInternalServerError, err)
+
+		return
+	}
+
 	nodeConf, err := h.GetNodeDeploymentNodeConf(nCtx, req.GetToken())
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to get node deployment conf")
@@ -61,7 +69,7 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 		return
 	}
 
-	conf.PortPolicies, err = h.calCheckListPortPolicies(nodeConf)
+	conf.PortPolicies, err = h.calCheckListPortPolicies(deployInfo, nodeConf)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to get gse node check list, failed to calculate port policies")
 		gCtx.JSON(http.StatusInternalServerError, err)
@@ -83,16 +91,47 @@ func (h *handler) GetCheckList(gCtx *gin.Context) {
 }
 
 const (
+
+	// GSEHomeDir GSE home directory.
+	GSEHomeDir = "__BK_GSE_HOME_DIR__"
+
+	// GSEProxyBindPort GSE proxy bind port.
+	GSEProxyBindPort = "__BK_GSE_PROXY_BIND_PORT__"
+
 	// GSELogFileSizeMB log file size in MB.
 	GSELogFileSizeMB = "__BK_GSE_LOG_FILESIZE_MB__"
 
 	// GSELogFileNum log file number.
 	GSELogFileNum = "__BK_GSE_LOG_FILENUM__"
+
+	// GSELogPath GSE log path.
+	GSELogPath = "__BK_GSE_LOG_PATH__"
+
+	// GSEDataAgentBindPort GSE data agent bind port.
+	GSEDataAgentBindPort = "__BK_GSE_DATA_AGENT_BIND_PORT__"
+
+	// GSEDataMetricExporterBindPort GSE data metric exporter bind port.
+	GSEDataMetricExporterBindPort = "__BK_GSE_DATA_METRIC_EXPORTER_BIND_PORT__"
+
+	// GSEFileBittorrentBindPort GSE file bittorrent bind port.
+	GSEFileBittorrentBindPort = "__BK_GSE_FILE_BITTORRENT_BIND_PORT__"
+
+	// GSEFileBittorrentTrackerBindPort GSE file bittorrent tracker bind port.
+	GSEFileBittorrentTrackerBindPort = "__BK_GSE_FILE_BITTORRENT_TRACKER_BIND_PORT__"
+
+	// GSEFileTopologyBindPort GSE file topology bind port.
+	GSEFileTopologyBindPort = "__BK_GSE_FILE_TOPOLOGY_BIND_PORT__"
+
+	// GSEFileTopologyThriftBindPort GSE file topology thrift bind port.
+	GSEFileTopologyThriftBindPort = "__BK_GSE_FILE_TOPOLOGY_THRIFT_BIND_PORT__"
+
+	// GSEFileMetricExporterBindPort GSE file metric exporter bind port.
+	GSEFileMetricExporterBindPort = "__BK_GSE_FILE_METRIC_EXPORTER_BIND_PORT__"
 )
 
 func (h *handler) calCheckListDiskRequires(nodeConf *types.NodeConf) ([]DiskRequire, error) {
 	diskRequiresMap := map[string]uint64{
-		"__BK_GSE_HOME_DIR__": 300, // nolint: mnd
+		GSEHomeDir: 300, // nolint: mnd
 	}
 
 	logFileSize, err := conv.ToInt64(nodeConf.PreSetting[GSELogFileSizeMB])
@@ -106,7 +145,7 @@ func (h *handler) calCheckListDiskRequires(nodeConf *types.NodeConf) ([]DiskRequ
 			GSELogFileNum, nodeConf.PreSetting[GSELogFileNum])
 	}
 
-	diskRequiresMap["__BK_GSE_LOG_PATH__"] = uint64(logFileSize) * uint64(logFileNum)
+	diskRequiresMap[GSELogPath] = uint64(logFileSize) * uint64(logFileNum)
 
 	diskRequires := make([]DiskRequire, 0)
 	for key, value := range diskRequiresMap {
@@ -128,39 +167,61 @@ func (h *handler) calCheckListDiskRequires(nodeConf *types.NodeConf) ([]DiskRequ
 	return diskRequires, nil
 }
 
-func (h *handler) calCheckListPortPolicies(nodeConf *types.NodeConf) ([]PortPolicy, error) {
-	portPoliciesMap := map[string]criteria.NetType{
-		//"__BK_GSE_DATA_AGENT_BIND_PORT__":              criteria.NetTypeTCP,
-		//"__BK_GSE_DATA_METRIC_EXPORTER_BIND_PORT__":    criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_BITTORRENT_BIND_PORT__":         criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_BITTORRENT_TRACKER_BIND_PORT__": criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_TOPOLOGY_BIND_PORT__":           criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_TOPOLOGY_THRIFT_BIND_PORT__":    criteria.NetTypeTCP,
-		//"__BK_GSE_FILE_METRIC_EXPORTER_BIND_PORT__":    criteria.NetTypeTCP,
-		"__BK_GSE_PROXY_BIND_PORT__": criteria.NetTypeTCP,
+// proxyPortKeys lists all proxy port keys that need to be checked.
+func proxyPortKeys() []string {
+	return []string{
+		GSEDataAgentBindPort,
+		GSEDataMetricExporterBindPort,
+		GSEFileBittorrentBindPort,
+		GSEFileBittorrentTrackerBindPort,
+		GSEFileTopologyBindPort,
+		GSEFileTopologyThriftBindPort,
+		GSEFileMetricExporterBindPort,
+		GSEProxyBindPort,
 	}
+}
 
+func (h *handler) calCheckListPortPolicies(deployInfo *types.DeploymentInfo, nodeConf *types.NodeConf) ([]PortPolicy, error) {
+	switch deployInfo.Host.Dynamic.NodeRole {
+	case types.NodeRoleProxy:
+		return h.calCheckListProxyPortPolicies(nodeConf)
+	case types.NodeRoleAgent:
+		return []PortPolicy{}, nil
+	default:
+		return nil, fmt.Errorf("invalid node role: %s", deployInfo.Host.Dynamic.NodeRole)
+	}
+}
+
+func (h *handler) calCheckListProxyPortPolicies(nodeConf *types.NodeConf) ([]PortPolicy, error) {
 	portPolicies := make([]PortPolicy, 0)
-	for key, netType := range portPoliciesMap {
-		port, ok := nodeConf.PreSetting[key]
+	for _, portKey := range proxyPortKeys() {
+		port, ok := nodeConf.PreSetting[portKey]
 		if !ok {
 			continue
 		}
+
 		portNum, err := conv.ToInt64(port)
 		if err != nil {
-			return nil, fmt.Errorf("invalid node conf, key(%s) , value(%v)", key, port)
+			return nil, fmt.Errorf("invalid node conf, key(%s) , value(%v)", portKey, port)
 		}
 
-		portPolicies = append(portPolicies, PortPolicy{
-			Port:    uint64(portNum),
-			Network: netType,
-		})
+		// Proxy ports default to check both TCP4 and TCP6.
+		portPolicies = append(portPolicies,
+			PortPolicy{
+				Port:    uint64(portNum),
+				Network: criteria.NetTypeTCP4,
+			},
+			PortPolicy{
+				Port:    uint64(portNum),
+				Network: criteria.NetTypeTCP6,
+			},
+		)
 	}
 
 	return portPolicies, nil
 }
 
-func (h *handler) calCheckListNetworkPolicies(nodeConf *types.NodeConf) ([]NetworkPolicy, error) {
+func (h *handler) calCheckListNetworkPolicies(_ *types.NodeConf) ([]NetworkPolicy, error) {
 	// TODO: implement me
 
 	return nil, nil

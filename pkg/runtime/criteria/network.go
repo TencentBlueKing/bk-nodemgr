@@ -19,11 +19,17 @@ const (
 	// NetTypeTCP this defines the network type of tcp.
 	NetTypeTCP NetType = "tcp"
 
+	// NetTypeTCP4 this defines the network type of tcp4.
+	NetTypeTCP4 NetType = "tcp4"
+
 	// NetTypeTCP6 this defines the network type of tcp6.
 	NetTypeTCP6 NetType = "tcp6"
 
 	// NetTypeUDP this defines the network type of udp.
 	NetTypeUDP NetType = "udp"
+
+	// NetTypeUDP4 this defines the network type of udp4.
+	NetTypeUDP4 NetType = "udp4"
 
 	// NetTypeUDP6 this defines the network type of udp6.
 	NetTypeUDP6 NetType = "udp6"
@@ -32,7 +38,7 @@ const (
 // Validate validate the network type.
 func (netType NetType) Validate() error {
 	switch netType {
-	case NetTypeTCP, NetTypeTCP6, NetTypeUDP, NetTypeUDP6:
+	case NetTypeTCP, NetTypeTCP4, NetTypeTCP6, NetTypeUDP, NetTypeUDP4, NetTypeUDP6:
 		return nil
 	default:
 		return fmt.Errorf("invalid network type: %s", netType)
