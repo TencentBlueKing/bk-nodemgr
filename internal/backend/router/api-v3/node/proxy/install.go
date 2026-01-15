@@ -74,7 +74,7 @@ func (h *handler) Install(rCtx restserver.IContext) (interface{}, error) {
 	return resp.GetData(), nil
 }
 
-// nolint: funlen
+// nolint: funlen, gocognit
 func (h *handler) generateInstallNodeDeployments(
 	nCtx contextx.IContext, req *protoBackend.NodeProxyInstallReq) ([]*types.NodeDeployment, []int64, error) {
 

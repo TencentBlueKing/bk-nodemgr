@@ -111,19 +111,19 @@ func (x *NodeProxyInstallHost) Validate() error {
 	}
 
 	if x.GetLoginPort() < 0 {
-		return errors.New("login_port must be greater than 0")
+		return errors.New("login_port must be >= 0")
 	}
 
-	if len(x.GetLoginUser()) == 0 {
+	if x.GetLoginUser() == "" {
 		return errors.New("login_user can not be empty")
 	}
 
 	if x.GetRelayCallbackPort() < 0 {
-		return errors.New("relay_callback_port must be greater than 0")
+		return errors.New("relay_callback_port must be >= 0")
 	}
 
 	if x.GetRelayDownloadPort() < 0 {
-		return errors.New("relay_download_port must be greater than 0")
+		return errors.New("relay_download_port must be >= 0")
 	}
 
 	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
@@ -476,19 +476,19 @@ func (x *NodeProxyUpdateHost) Validate() error {
 	}
 
 	if x.GetLoginPort() < 0 {
-		return errors.New("login_port must be greater than 0")
+		return errors.New("login_port must be >= 0")
 	}
 
-	if len(x.GetLoginUser()) == 0 {
+	if x.GetLoginUser() == "" {
 		return errors.New("login_user can not be empty")
 	}
 
 	if x.GetRelayCallbackPort() < 0 {
-		return errors.New("relay_callback_port must be greater than 0")
+		return errors.New("relay_callback_port must be >= 0")
 	}
 
 	if x.GetRelayDownloadPort() < 0 {
-		return errors.New("relay_download_port must be greater than 0")
+		return errors.New("relay_download_port must be >= 0")
 	}
 
 	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
