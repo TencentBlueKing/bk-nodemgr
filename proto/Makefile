@@ -60,7 +60,7 @@ $(APPLICATION_V3_GO_OUT_DIR)/%.pb.go: $(APPLICATION_V3_PROTO_DIR)/%.proto
 	$(PROTOC) -I=$(APPLICATION_V3_PROTO_DIR) --go_out=paths=source_relative:$(APPLICATION_V3_GO_OUT_DIR) --openapiv2_out=$(APPLICATION_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
 	$(REPLACE) $@
 
-application-v3: pre
+application-v3: | pre
 	$(MAKE) $(APPLICATION_V3_GO_FILES)
 	$(ECHO) "successfully generated application api/v3"
 
@@ -68,7 +68,7 @@ $(BACKEND_V3_GO_OUT_DIR)/%.pb.go: $(BACKEND_V3_PROTO_DIR)/%.proto
 	$(PROTOC) -I=$(BACKEND_V3_PROTO_DIR) --go_out=paths=source_relative:$(BACKEND_V3_GO_OUT_DIR) --openapiv2_out=$(BACKEND_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
 	$(REPLACE) $@
 
-backend-v3: pre
+backend-v3: | pre
 	$(MAKE) $(BACKEND_V3_GO_FILES)
 	$(ECHO) "successfully generated backend api/v3"
 
@@ -76,7 +76,7 @@ $(BACKEND_CALLBACK_GO_OUT_DIR)/%.pb.go: $(BACKEND_CALLBACK_PROTO_DIR)/%.proto
 	$(PROTOC) -I=$(BACKEND_CALLBACK_PROTO_DIR) --go_out=paths=source_relative:$(BACKEND_CALLBACK_GO_OUT_DIR) --openapiv2_out=$(BACKEND_CALLBACK_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
 	$(REPLACE) $@
 
-backend-callback: pre
+backend-callback: | pre
 	$(MAKE) $(BACKEND_CALLBACK_GO_FILES)
 	$(ECHO) "successfully generated backend callback"
 
@@ -84,7 +84,7 @@ $(FILE_V3_GO_OUT_DIR)/%.pb.go: $(FILE_V3_PROTO_DIR)/%.proto
 	$(PROTOC) -I=$(FILE_V3_PROTO_DIR) --go_out=paths=source_relative:$(FILE_V3_GO_OUT_DIR) --openapiv2_out=$(FILE_V3_SWAGGER_OUT_DIR) --openapiv2_opt output_format=json --openapiv2_opt=json_names_for_fields=false $<
 	$(REPLACE) $@
 
-file-v3: pre
+file-v3: | pre
 	$(MAKE) $(FILE_V3_GO_FILES)
 	$(ECHO) "successfully generated file api/v3"
 

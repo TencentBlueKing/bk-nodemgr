@@ -70,7 +70,7 @@ front: | pre
 
 tools: | pre
 	@$(ECHO) "Building tools..."
-	@$(MAKE) -C $(ROOT_DIR)/tools platform-builds -e UPX_ENABLED=1
+	@$(MAKE) -j -C $(ROOT_DIR)/tools platform-builds -e UPX_ENABLED=1
 
 	$(MKDIR) $(OUTPUT_DIR)/tools
 	@$(CP) -r $(ROOT_DIR)/tools/build/$(VERSION)/* $(OUTPUT_DIR)/tools

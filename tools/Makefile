@@ -52,7 +52,7 @@ pre:
 all: test build
 
 # 构建本地平台的应用
-build: pre
+build: | pre
 	@$(ECHO) "Building $(APP_NAME) $(VERSION) for host platform..."
 	$(GO) build $(GO_FLAGS) $(LD_FLAGS) -o $(OUTPUT_DIR)/$(APP_NAME) $(MAIN_PATH)
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/$(APP_NAME)"
@@ -62,7 +62,7 @@ build: pre
 	fi
 
 # 跨平台构建所有组合
-platform-builds: pre
+platform-builds: | pre
 	@$(ECHO) "Building $(APP_NAME) $(VERSION) for all platforms..."
 	@$(foreach os,$(OSES),\
 		$(foreach arch,$(ARCHES),\
@@ -83,7 +83,7 @@ platform-builds: pre
 	)
 
 # 压缩二进制文件
-build-matrix: pre
+build-matrix: | pre
 	@if [ -z "$(GOOS)" ] || [ -z "$(GOARCH)" ]; then \
 		$(ECHO) "Error: GOOS and GOARCH must be specified."; \
 		$(ECHO) "Example: make build-matrix GOOS=linux GOARCH=amd64"; \
@@ -102,7 +102,7 @@ build-matrix: pre
 	fi
 
 # 运行测试
-test: pre
+test: | pre
 	@$(ECHO) "Running tests..."
 
 	@GOOS=$$($(GO) env GOOS); \
