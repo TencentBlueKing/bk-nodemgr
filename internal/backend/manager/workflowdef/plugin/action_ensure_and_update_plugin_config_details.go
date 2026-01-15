@@ -227,9 +227,9 @@ type ContextPreDefinitionConstants struct {
 	Unique map[string]any `json:"Unique"`
 }
 
-// ContextNodeStaticInfo node static info for render context.
+// ContextNodeInfoStatic node info static for render context.
 // Use PascalCase to cure the struct field names to be compatible with Go template rendering.
-type ContextNodeStaticInfo struct {
+type ContextNodeInfoStatic struct {
 	BizID         int64    `json:"BizID"`
 	NetworkAreaID int64    `json:"NetworkAreaID"`
 	RegionID      string   `json:"RegionID"`
@@ -250,9 +250,9 @@ type ContextNodeStaticInfo struct {
 	MemCap        float64  `json:"MemCap"`
 }
 
-// ContextNodeDynamicInfo node dynamic info for render context.
+// ContextNodeInfoDynamic node info dynamic for render context.
 // Use PascalCase to cure the struct field names to be compatible with Go template rendering.
-type ContextNodeDynamicInfo struct {
+type ContextNodeInfoDynamic struct {
 	NodeRole                 string   `json:"NodeRole"`
 	NodeStatus               string   `json:"NodeStatus"`
 	NodeVersion              string   `json:"NodeVersion"`
@@ -281,8 +281,8 @@ type ContextNodeDynamicInfo struct {
 type ContextNodeInfo struct {
 	HostID   int64                  `json:"HostID"`
 	TenantID string                 `json:"TenantID"`
-	Static   ContextNodeStaticInfo  `json:"Static"`
-	Dynamic  ContextNodeDynamicInfo `json:"Dynamic"`
+	Static   ContextNodeInfoStatic  `json:"Static"`
+	Dynamic  ContextNodeInfoDynamic `json:"Dynamic"`
 }
 
 func convertHostTypeToContextNodeInfo(hostInfo *types.Host) ContextNodeInfo {
@@ -294,7 +294,7 @@ func convertHostTypeToContextNodeInfo(hostInfo *types.Host) ContextNodeInfo {
 	return ContextNodeInfo{
 		HostID:   hostInfo.HostID,
 		TenantID: hostInfo.TenantID,
-		Static: ContextNodeStaticInfo{
+		Static: ContextNodeInfoStatic{
 			BizID:         hostInfo.Static.BizID,
 			NetworkAreaID: hostInfo.Static.NetworkAreaID,
 			RegionID:      hostInfo.Static.RegionID,
@@ -314,7 +314,7 @@ func convertHostTypeToContextNodeInfo(hostInfo *types.Host) ContextNodeInfo {
 			CPUNum:        hostInfo.Static.CPUNum,
 			MemCap:        hostInfo.Static.MemCap,
 		},
-		Dynamic: ContextNodeDynamicInfo{
+		Dynamic: ContextNodeInfoDynamic{
 			NodeRole:                 string(hostInfo.Dynamic.NodeRole),
 			NodeStatus:               string(hostInfo.Dynamic.NodeStatus),
 			NodeVersion:              hostInfo.Dynamic.NodeVersion,
