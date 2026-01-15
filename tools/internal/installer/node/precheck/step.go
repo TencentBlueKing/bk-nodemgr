@@ -13,9 +13,7 @@ package precheck
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/agenthandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
@@ -141,28 +139,4 @@ func DefaultCheckList() *CheckList {
 		PortPolicies:    []PortPolicy{},
 		NetworkPolicies: []NetworkPolicy{},
 	}
-}
-
-// LoadCheckList load check list from file.
-func LoadCheckList(preCheckListPath string) (*CheckList, error) {
-	if preCheckListPath == "" {
-		return DefaultCheckList(), nil
-	}
-
-	// nolint: gosec
-	bytes, err := os.ReadFile(preCheckListPath)
-	if err != nil {
-		return nil, err
-	}
-
-	list := new(CheckList)
-	if err := json.Unmarshal(bytes, list); err != nil {
-		return nil, err
-	}
-
-	if list.Validate() != nil {
-		return nil, err
-	}
-
-	return list, nil
 }
