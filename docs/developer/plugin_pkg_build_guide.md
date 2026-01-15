@@ -69,7 +69,6 @@ NodeInfo:
         Operator: 操作人
         RegionID: 所属区域ID
         CityID: 所属城市ID
-        SyncedAgentID: 同步自CMDB的Agent ID
     Dynamic:
         AgentID: 获取自GSE Agent的实际Agent ID
         AdvertiseIP: 节点使用的实际网卡的IP
@@ -83,12 +82,7 @@ NodeInfo:
         NodeRole: 节点角色，如agent、proxy等
         NodeGeneration: 节点Agent的版本代数, 1对应1.x版本的Agent, 2对应2.x版本的Agent
         NodeStatus: 节点状态
-        LoginIP: 登录IP
-        LoginPort: 登录端口
         LoginUser: 登录用户
-        LoginMode: 登录方式
-        LoginCreditID: 登录凭据ID
-        LoginCreditValid: 登录凭据是否有效
         RelayDownloadPort: relay的下载端口
         RelayCallbackPort: relay的回调端口
         ProxyClusterPort: Proxy的gse_agent监听的端口

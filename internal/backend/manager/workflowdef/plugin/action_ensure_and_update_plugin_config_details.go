@@ -225,6 +225,116 @@ type ContextPreDefinitionConstants struct {
 	Unique map[string]any
 }
 
+// ContextNodeStaticInfo node static info for render context.
+type ContextNodeStaticInfo struct {
+	BizID         int64
+	NetworkAreaID int64
+	RegionID      string
+	CityID        string
+	HostName      string
+	DeptName      string
+	InnerIPList   []string
+	InnerIPV6List []string
+	OuterIPList   []string
+	OuterIPV6List []string
+	Operator      string
+	Mac           string
+	OSTypeCCID    string
+	OSType        string
+	Arch          string
+	Addressing    string
+	CPUNum        float64
+	MemCap        float64
+}
+
+// ContextNodeDynamicInfo node dynamic info for render context.
+type ContextNodeDynamicInfo struct {
+	NodeRole                 string
+	NodeStatus               string
+	NodeVersion              string
+	NodeGeneration           int64
+	NodeCPUArch              string
+	NodeOsType               string
+	AgentID                  string
+	NetworkUnitID            int64
+	LoginUser                string
+	ExportIP                 string
+	ExportIPV6               string
+	AdvertiseIP              string
+	AdvertiseIPV6            string
+	ProxyAccessDisabled      bool
+	ProxyTags                []string
+	ProxyClusterPort         int64
+	ProxyDataPort            int64
+	ProxyFilePort            int64
+	RelayDownloadPort        int64
+	RelayCallbackPort        int64
+	ProxyInstallOriginUnitID int64
+}
+
+// ContextNodeInfo node info for render context.
+type ContextNodeInfo struct {
+	HostID   int64
+	TenantID string
+	Static   ContextNodeStaticInfo
+	Dynamic  ContextNodeDynamicInfo
+}
+
+func convertHostTypeToContextNodeInfo(hostInfo *types.Host) ContextNodeInfo {
+	proxyTags := make([]string, 0, len(hostInfo.Dynamic.ProxyTags))
+	for _, tag := range hostInfo.Dynamic.ProxyTags {
+		proxyTags = append(proxyTags, string(tag))
+	}
+
+	return ContextNodeInfo{
+		HostID:   hostInfo.HostID,
+		TenantID: hostInfo.TenantID,
+		Static: ContextNodeStaticInfo{
+			BizID:         hostInfo.Static.BizID,
+			NetworkAreaID: hostInfo.Static.NetworkAreaID,
+			RegionID:      hostInfo.Static.RegionID,
+			CityID:        hostInfo.Static.CityID,
+			HostName:      hostInfo.Static.HostName,
+			DeptName:      hostInfo.Static.DeptName,
+			InnerIPList:   hostInfo.Static.InnerIPList,
+			InnerIPV6List: hostInfo.Static.InnerIPV6List,
+			OuterIPList:   hostInfo.Static.OuterIPList,
+			OuterIPV6List: hostInfo.Static.OuterIPV6List,
+			Operator:      hostInfo.Static.Operator,
+			Mac:           hostInfo.Static.Mac,
+			OSTypeCCID:    hostInfo.Static.OSTypeCCID,
+			OSType:        hostInfo.Static.OSType,
+			Arch:          hostInfo.Static.Arch,
+			Addressing:    string(hostInfo.Static.Addressing),
+			CPUNum:        hostInfo.Static.CPUNum,
+			MemCap:        hostInfo.Static.MemCap,
+		},
+		Dynamic: ContextNodeDynamicInfo{
+			NodeRole:                 string(hostInfo.Dynamic.NodeRole),
+			NodeStatus:               string(hostInfo.Dynamic.NodeStatus),
+			NodeVersion:              hostInfo.Dynamic.NodeVersion,
+			NodeGeneration:           int64(hostInfo.Dynamic.NodeGeneration),
+			NodeCPUArch:              hostInfo.Dynamic.NodeCPUArch.String(),
+			NodeOsType:               hostInfo.Dynamic.NodeOsType.String(),
+			AgentID:                  hostInfo.Static.SyncedAgentID,
+			NetworkUnitID:            hostInfo.Dynamic.NetworkUnitID,
+			LoginUser:                hostInfo.Dynamic.LoginUser,
+			ExportIP:                 hostInfo.Dynamic.ExportIP,
+			ExportIPV6:               hostInfo.Dynamic.ExportIPV6,
+			AdvertiseIP:              hostInfo.Dynamic.AdvertiseIP,
+			AdvertiseIPV6:            hostInfo.Dynamic.AdvertiseIPV6,
+			ProxyAccessDisabled:      hostInfo.Dynamic.ProxyAccessDisabled,
+			ProxyTags:                proxyTags,
+			ProxyClusterPort:         hostInfo.Dynamic.ProxyClusterPort,
+			ProxyDataPort:            hostInfo.Dynamic.ProxyDataPort,
+			ProxyFilePort:            hostInfo.Dynamic.ProxyFilePort,
+			RelayDownloadPort:        hostInfo.Dynamic.RelayDownloadPort,
+			RelayCallbackPort:        hostInfo.Dynamic.RelayCallbackPort,
+			ProxyInstallOriginUnitID: hostInfo.Dynamic.ProxyInstallOriginUnitID,
+		},
+	}
+}
+
 const (
 	keyPluginInfo             = "PluginInfo"
 	keyNodeInfo               = "NodeInfo"
@@ -255,9 +365,11 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateGoTemplateSystemCon
 		Global: act.pluginDeployConstant.GetCommonConstants(keyGlobal),
 	}
 
+	nodeInfo := convertHostTypeToContextNodeInfo(hostInfo)
+
 	renderContext := map[string]any{
 		keyPluginInfo:             conv.StructToMapIgnoreError(pluginInfo),
-		keyNodeInfo:               conv.StructToMapIgnoreError(*hostInfo),
+		keyNodeInfo:               conv.StructToMapIgnoreError(nodeInfo),
 		keyPreDefinitionConstants: conv.StructToMapIgnoreError(preDefinitionConstants),
 	}
 
