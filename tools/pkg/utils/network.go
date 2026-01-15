@@ -11,16 +11,44 @@
 // Package utils ...
 package utils
 
+import "fmt"
+
+// NetworkType defines network type.
+type NetworkType string
+
 const (
 	// NetTCP define the network type is tcp.
-	NetTCP = "tcp"
+	// notice: this means both tcp4 and tcp6.
+	NetTCP NetworkType = "tcp"
 
-	// NetUDP define the network type is udp.
-	NetUDP = "udp"
+	// NetTCP4 define the network type is tcp4.
+	NetTCP4 NetworkType = "tcp4"
 
 	// NetTCP6 define the network type is tcp6.
-	NetTCP6 = "tcp6"
+	NetTCP6 NetworkType = "tcp6"
+
+	// NetUDP define the network type is udp.
+	// notice: this means both udp4 and udp6.
+	NetUDP NetworkType = "udp"
+
+	// NetUDP4 define the network type is udp4.
+	NetUDP4 NetworkType = "udp4"
 
 	// NetUDP6 define the network type is udp6.
-	NetUDP6 = "udp6"
+	NetUDP6 NetworkType = "udp6"
 )
+
+// String returns the string representation of the network type.
+func (n NetworkType) String() string {
+	return string(n)
+}
+
+// Validate validates the network type.
+func (n NetworkType) Validate() error {
+	switch n {
+	case NetTCP, NetUDP, NetTCP4, NetTCP6, NetUDP4, NetUDP6:
+		return nil
+	default:
+		return fmt.Errorf("invalid network type: %s", n)
+	}
+}

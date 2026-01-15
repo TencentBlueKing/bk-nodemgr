@@ -34,7 +34,7 @@ func (policy *PortPolicy) Validate() error {
 	}
 
 	switch policy.Network {
-	case "udp", "tcp", "udp6", "tcp6":
+	case utils.NetTCP4.String(), utils.NetTCP6.String(), utils.NetUDP4.String(), utils.NetUDP6.String():
 	default:
 		return fmt.Errorf("invalid network: %s", policy.Network)
 	}
@@ -49,17 +49,17 @@ func CheckPortPolicies(ctx context.Context, polices []PortPolicy) error {
 		policy := &polices[idx]
 		gp.Go(func() error {
 			switch policy.Network {
-			case "tcp":
-				idle, err := utils.CheckTCPPortIdle(ctx, policy.Port)
+			case utils.NetTCP4.String():
+				idle, err := utils.CheckTCP4PortIdle(ctx, policy.Port)
 				if err != nil || !idle {
 					return fmt.Errorf("port %d is not idle", policy.Port)
 				}
-			case "tcp6":
+			case utils.NetTCP6.String():
 				idle, err := utils.CheckTCP6PortIdle(ctx, policy.Port)
 				if err != nil || !idle {
 					return fmt.Errorf("port %d is not idle", policy.Port)
 				}
-			case "udp", "udp6":
+			case utils.NetUDP4.String(), utils.NetUDP6.String():
 				return fmt.Errorf("not support network: %s", policy.Network)
 			default:
 				return fmt.Errorf("invalid network: %s", policy.Network)

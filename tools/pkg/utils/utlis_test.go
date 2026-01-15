@@ -94,8 +94,8 @@ func TestCheckTCPPortOpen(t *testing.T) {
 	}
 }
 
-// TestCheckTCPPortIdle test
-func TestCheckTCPPortIdle(t *testing.T) {
+// TestCheckTCP4PortIdle test
+func TestCheckTCP4PortIdle(t *testing.T) {
 	type args struct {
 		port uint64
 	}
@@ -116,13 +116,13 @@ func TestCheckTCPPortIdle(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := CheckTCPPortIdle(context.Background(), tt.args.port)
+			got, err := CheckTCP4PortIdle(context.Background(), tt.args.port)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("CheckTCPPortIdle() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("CheckTCP4PortIdle() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("CheckTCPPortIdle() got = %v, want %v", got, tt.want)
+				t.Errorf("CheckTCP4PortIdle() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

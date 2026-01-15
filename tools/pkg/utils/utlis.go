@@ -340,7 +340,7 @@ func CountDiskFreeSpace(dirPath string) (uint64, error) {
 func CheckNetTCPOpen(host string, port int, timeout time.Duration) (bool, error) {
 	target := fmt.Sprintf("%s:%d", host, port)
 
-	conn, err := net.DialTimeout(NetTCP, target, timeout)
+	conn, err := net.DialTimeout(NetTCP.String(), target, timeout)
 	if err != nil {
 		return false, err
 	}
@@ -353,24 +353,23 @@ func CheckNetTCPOpen(host string, port int, timeout time.Duration) (bool, error)
 
 const checkPortIdleTimeout = 2 * time.Second
 
-// CheckTCPPortIdle check tcp port is in use or not.
-func CheckTCPPortIdle(ctx context.Context, port uint64) (bool, error) {
+// CheckTCP4PortIdle check tcp4 port is in use or not.
+func CheckTCP4PortIdle(ctx context.Context, port uint64) (bool, error) {
 	address := fmt.Sprintf("127.0.0.1:%d", port)
 
 	tCtx, cancel := context.WithTimeout(ctx, checkPortIdleTimeout)
 	defer cancel()
 
-	// try to connect tcp port.
+	// try to connect tcp4 port.
 	var dialer net.Dialer
-	conn, _ := dialer.DialContext(tCtx, NetTCP, address)
+	conn, _ := dialer.DialContext(tCtx, NetTCP4.String(), address)
 	if conn != nil {
 		_ = conn.Close()
 		return false, errors.New("port is in use")
 	}
 
 	// port could not be connected, but could't be sure whether it is idle.
-	var listener net.Listener
-	listener, err := net.Listen(NetTCP, address)
+	listener, err := net.Listen(NetTCP4.String(), address)
 	if err != nil {
 		return false, err
 	}
@@ -387,9 +386,9 @@ func CheckTCP6PortIdle(ctx context.Context, port uint64) (bool, error) {
 	tCtx, cancel := context.WithTimeout(ctx, checkPortIdleTimeout)
 	defer cancel()
 
-	// try to connect tcp port.
+	// try to connect tcp6 port.
 	var dialer net.Dialer
-	conn, _ := dialer.DialContext(tCtx, NetTCP, address)
+	conn, _ := dialer.DialContext(tCtx, NetTCP6.String(), address)
 	if conn != nil {
 		_ = conn.Close()
 
@@ -397,8 +396,7 @@ func CheckTCP6PortIdle(ctx context.Context, port uint64) (bool, error) {
 	}
 
 	// port could not be connected, but could't be sure whether it is idle.
-	var listener net.Listener
-	listener, err := net.Listen(NetTCP6, address)
+	listener, err := net.Listen(NetTCP6.String(), address)
 	if err != nil {
 		return false, err
 	}
@@ -406,24 +404,6 @@ func CheckTCP6PortIdle(ctx context.Context, port uint64) (bool, error) {
 	_ = listener.Close()
 
 	return true, nil
-}
-
-// CleanDirectory clean directory.
-func CleanDirectory(path string) ([]string, error) {
-	entries, err := os.ReadDir(path)
-	if err != nil {
-		return nil, err
-	}
-
-	paths := make([]string, len(entries))
-	for idx, entry := range entries {
-		paths[idx] = filepath.Join(path, entry.Name())
-		if err := os.RemoveAll(paths[idx]); err != nil {
-			return nil, fmt.Errorf("failed to remove %s: %w", paths[idx], err)
-		}
-	}
-
-	return paths, nil
 }
 
 // ListFiles list all files in a directory.

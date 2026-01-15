@@ -18,35 +18,11 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 )
 
-// Net defines network type.
-type Net string
-
-const (
-	// NetworkTCP defines network tcp.
-	NetworkTCP = "tcp"
-	// NetworkUDP defines network udp.
-	NetworkUDP = "udp"
-	// NetworkTCP6 defines network tcp6.
-	NetworkTCP6 = "tcp6"
-	// NetworkUDP6 defines network udp6.
-	NetworkUDP6 = "udp6"
-)
-
-// Validate validate network.
-func (n Net) Validate() error {
-	switch n {
-	case NetworkTCP, NetworkUDP, NetworkTCP6, NetworkUDP6:
-		return nil
-	default:
-		return fmt.Errorf("invalid network: %s", n)
-	}
-}
-
 // NetworkPolicy network policy.
 type NetworkPolicy struct {
 	Host    string `json:"host"`
 	Port    uint64 `json:"port"`
-	Network Net    `json:"network"`
+	Network string `json:"network"`
 }
 
 // Validate validate network policy.
@@ -59,11 +35,12 @@ func (policy *NetworkPolicy) Validate() error {
 		return fmt.Errorf("invalid port: %d", policy.Port)
 	}
 
-	if err := policy.Network.Validate(); err != nil {
-		return err
+	switch policy.Network {
+	case utils.NetTCP4.String(), utils.NetTCP6.String(), utils.NetUDP4.String(), utils.NetUDP6.String():
+		return nil
+	default:
+		return fmt.Errorf("invalid network: %s", policy.Network)
 	}
-
-	return nil
 }
 
 // CheckNetworkPolicies check network policies.
@@ -73,21 +50,21 @@ func CheckNetworkPolicies(ctx context.Context, policies []NetworkPolicy) error {
 		policy := &policies[idx]
 		gp.Go(func() error {
 			switch policy.Network {
-			case NetworkTCP:
-				idle, err := utils.CheckTCPPortIdle(ctx, policy.Port)
+			case utils.NetTCP4.String():
+				idle, err := utils.CheckTCP4PortIdle(ctx, policy.Port)
 				if err != nil || !idle {
 					return fmt.Errorf("port %d is not idle", policy.Port)
 				}
 
 				return nil
-			case NetworkTCP6:
+			case utils.NetTCP6.String():
 				idle, err := utils.CheckTCP6PortIdle(ctx, policy.Port)
 				if err != nil || !idle {
 					return fmt.Errorf("port %d is not idle", policy.Port)
 				}
 
 				return nil
-			case NetworkUDP, NetworkUDP6:
+			case utils.NetUDP4.String(), utils.NetUDP6.String():
 				return fmt.Errorf("not support network: %s", policy.Network)
 			default:
 				return fmt.Errorf("invalid network: %s", policy.Network)
