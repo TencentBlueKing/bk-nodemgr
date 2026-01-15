@@ -166,6 +166,8 @@ func (h *handler) generateInstallNodeDeployments(
 							AdvertiseIP:              reqHost.GetAdvertiseIp(),
 							AdvertiseIPV6:            reqHost.GetAdvertiseIpV6(),
 							ProxyInstallOriginUnitID: reqHost.GetProxyInstallOriginUnitId(),
+							RelayDownloadPort:        reqHost.GetRelayDownloadPort(),
+							RelayCallbackPort:        reqHost.GetRelayCallbackPort(),
 						},
 					},
 					CurrentVersionSupports: types.DeploymentVersionSupports{},

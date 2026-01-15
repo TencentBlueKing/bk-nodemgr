@@ -33,6 +33,8 @@ type NodeProxyInstallHost struct {
 	ProxyTags                []ProxyTag
 	ProxyInstallOriginUnitID int64
 	CreditExpiredIntervalSec int64
+	RelayDownloadPort        int64
+	RelayCallbackPort        int64
 }
 
 // NodeProxyInstallParam describes the node proxy install parameter.
@@ -81,16 +83,18 @@ type NodeProxyReconfigParam struct {
 
 // NodeProxyUpdateHost describes the node proxy update host.
 type NodeProxyUpdateHost struct {
-	HostID        int64
-	LoginIP       string
-	LoginPort     int64
-	LoginUser     string
-	LoginMode     LoginMode
-	ExportIP      string
-	ExportIPV6    string
-	AdvertiseIP   string
-	AdvertiseIPV6 string
-	ProxyTags     []ProxyTag
+	HostID            int64
+	LoginIP           string
+	LoginPort         int64
+	LoginUser         string
+	LoginMode         LoginMode
+	ExportIP          string
+	ExportIPV6        string
+	AdvertiseIP       string
+	AdvertiseIPV6     string
+	ProxyTags         []ProxyTag
+	RelayDownloadPort int64
+	RelayCallbackPort int64
 }
 
 // NodeProxyUpdateParam describes the node proxy update parameter.

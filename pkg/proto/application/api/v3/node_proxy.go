@@ -77,6 +77,14 @@ func (x *NodeProxyInstallHost) Validate() error {
 		return errors.New("login_user can not be empty")
 	}
 
+	if x.GetRelayCallbackPort() < 0 {
+		return errors.New("relay_callback_port must be greater than 0")
+	}
+
+	if x.GetRelayDownloadPort() < 0 {
+		return errors.New("relay_download_port must be greater than 0")
+	}
+
 	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
 		return err
 	}
@@ -122,6 +130,8 @@ func (x *NodeProxyInstallReq) ConvertProxyParamToTypes() *types.NodeProxyInstall
 			ProxyTags:                types.StringListToProxyTagList(host.GetProxyTags()),
 			ProxyInstallOriginUnitID: host.GetProxyInstallOriginUnitId(),
 			CreditExpiredIntervalSec: host.GetCreditExpiredIntervalSec(),
+			RelayDownloadPort:        host.GetRelayDownloadPort(),
+			RelayCallbackPort:        host.GetRelayCallbackPort(),
 		}
 	}
 
@@ -414,14 +424,16 @@ func (x *NodeProxyUpdateReq) ConvertParamToTypes() *types.NodeProxyUpdateParam {
 
 	for idx, host := range hosts {
 		hostsParam[idx] = &types.NodeProxyUpdateHost{
-			HostID:      host.GetBkHostId(),
-			LoginIP:     host.GetLoginIp(),
-			LoginPort:   host.GetLoginPort(),
-			LoginUser:   host.GetLoginUser(),
-			LoginMode:   types.LoginMode(host.GetLoginMode()),
-			ExportIP:    host.GetExportIp(),
-			AdvertiseIP: host.GetAdvertiseIp(),
-			ProxyTags:   types.StringListToProxyTagList(host.GetProxyTags()),
+			HostID:            host.GetBkHostId(),
+			LoginIP:           host.GetLoginIp(),
+			LoginPort:         host.GetLoginPort(),
+			LoginUser:         host.GetLoginUser(),
+			LoginMode:         types.LoginMode(host.GetLoginMode()),
+			ExportIP:          host.GetExportIp(),
+			AdvertiseIP:       host.GetAdvertiseIp(),
+			ProxyTags:         types.StringListToProxyTagList(host.GetProxyTags()),
+			RelayDownloadPort: host.GetRelayDownloadPort(),
+			RelayCallbackPort: host.GetRelayCallbackPort(),
 		}
 	}
 
@@ -435,6 +447,30 @@ func (x *NodeProxyUpdateReq) ConvertParamToTypes() *types.NodeProxyUpdateParam {
 func (x *NodeProxyUpdateHost) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id must be >= 0")
+	}
+
+	if x.GetLoginIp() == "" {
+		return errors.New("login_ip can not be empty")
+	}
+
+	if x.GetLoginPort() < 0 {
+		return errors.New("login_port must be greater than 0")
+	}
+
+	if len(x.GetLoginUser()) == 0 {
+		return errors.New("login_user can not be empty")
+	}
+
+	if x.GetRelayCallbackPort() < 0 {
+		return errors.New("relay_callback_port must be greater than 0")
+	}
+
+	if x.GetRelayDownloadPort() < 0 {
+		return errors.New("relay_download_port must be greater than 0")
+	}
+
+	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
+		return err
 	}
 
 	return nil

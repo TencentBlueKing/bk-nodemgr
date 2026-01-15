@@ -64,6 +64,8 @@ func (x *NodeProxyInstallReq) ConvertParamFromTypes(installParam *types.NodeProx
 			ProxyTags:                types.ProxyTagListToStringList(host.ProxyTags),
 			ProxyInstallOriginUnitId: host.ProxyInstallOriginUnitID,
 			CreditExpiredIntervalSec: host.CreditExpiredIntervalSec,
+			RelayDownloadPort:        host.RelayDownloadPort,
+			RelayCallbackPort:        host.RelayCallbackPort,
 		}
 	}
 
@@ -114,6 +116,14 @@ func (x *NodeProxyInstallHost) Validate() error {
 
 	if len(x.GetLoginUser()) == 0 {
 		return errors.New("login_user can not be empty")
+	}
+
+	if x.GetRelayCallbackPort() < 0 {
+		return errors.New("relay_callback_port must be greater than 0")
+	}
+
+	if x.GetRelayDownloadPort() < 0 {
+		return errors.New("relay_download_port must be greater than 0")
 	}
 
 	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
@@ -396,15 +406,17 @@ func (x *NodeProxyUpdateReq) ConvertHostToTypes() []*types.Host {
 		hosts = append(hosts, &types.Host{
 			HostID: host.GetBkHostId(),
 			Dynamic: &types.HostDynamic{
-				LoginIP:       host.GetLoginIp(),
-				LoginPort:     host.GetLoginPort(),
-				LoginUser:     host.GetLoginUser(),
-				LoginMode:     types.LoginMode(host.GetLoginMode()),
-				ExportIP:      host.GetExportIp(),
-				ExportIPV6:    host.GetExportIpV6(),
-				AdvertiseIP:   host.GetAdvertiseIp(),
-				AdvertiseIPV6: host.GetAdvertiseIpV6(),
-				ProxyTags:     types.StringListToProxyTagList(host.GetProxyTags()),
+				LoginIP:           host.GetLoginIp(),
+				LoginPort:         host.GetLoginPort(),
+				LoginUser:         host.GetLoginUser(),
+				LoginMode:         types.LoginMode(host.GetLoginMode()),
+				ExportIP:          host.GetExportIp(),
+				ExportIPV6:        host.GetExportIpV6(),
+				AdvertiseIP:       host.GetAdvertiseIp(),
+				AdvertiseIPV6:     host.GetAdvertiseIpV6(),
+				ProxyTags:         types.StringListToProxyTagList(host.GetProxyTags()),
+				RelayDownloadPort: host.GetRelayDownloadPort(),
+				RelayCallbackPort: host.GetRelayCallbackPort(),
 			},
 		})
 	}
@@ -417,16 +429,18 @@ func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyU
 	hostsParam := make([]*NodeProxyUpdateHost, len(updateParam.Hosts))
 	for idx, host := range updateParam.Hosts {
 		hostsParam[idx] = &NodeProxyUpdateHost{
-			BkHostId:      host.HostID,
-			LoginIp:       host.LoginIP,
-			LoginPort:     host.LoginPort,
-			LoginUser:     host.LoginUser,
-			LoginMode:     string(host.LoginMode),
-			ExportIp:      host.ExportIP,
-			ExportIpV6:    host.ExportIPV6,
-			AdvertiseIp:   host.AdvertiseIP,
-			AdvertiseIpV6: host.AdvertiseIPV6,
-			ProxyTags:     types.ProxyTagListToStringList(host.ProxyTags),
+			BkHostId:          host.HostID,
+			LoginIp:           host.LoginIP,
+			LoginPort:         host.LoginPort,
+			LoginUser:         host.LoginUser,
+			LoginMode:         string(host.LoginMode),
+			ExportIp:          host.ExportIP,
+			ExportIpV6:        host.ExportIPV6,
+			AdvertiseIp:       host.AdvertiseIP,
+			AdvertiseIpV6:     host.AdvertiseIPV6,
+			ProxyTags:         types.ProxyTagListToStringList(host.ProxyTags),
+			RelayDownloadPort: host.RelayDownloadPort,
+			RelayCallbackPort: host.RelayCallbackPort,
 		}
 	}
 
@@ -436,15 +450,17 @@ func (x *NodeProxyUpdateReq) ConvertParamFromTypes(updateParam *types.NodeProxyU
 // ConvertHostFieldsToTypes convert host dynamic fields to types.
 func (x *NodeProxyUpdateReq) ConvertHostFieldsToTypes() types.HostDynamicFields {
 	return types.HostDynamicFields{
-		LoginIP:       true,
-		LoginPort:     true,
-		LoginUser:     true,
-		LoginMode:     true,
-		ExportIP:      true,
-		ExportIPV6:    true,
-		AdvertiseIP:   true,
-		AdvertiseIPV6: true,
-		ProxyTags:     true,
+		LoginIP:           true,
+		LoginPort:         true,
+		LoginUser:         true,
+		LoginMode:         true,
+		ExportIP:          true,
+		ExportIPV6:        true,
+		AdvertiseIP:       true,
+		AdvertiseIPV6:     true,
+		ProxyTags:         true,
+		RelayDownloadPort: true,
+		RelayCallbackPort: true,
 	}
 }
 
@@ -453,6 +469,30 @@ func (x *NodeProxyUpdateReq) ConvertHostFieldsToTypes() types.HostDynamicFields 
 func (x *NodeProxyUpdateHost) Validate() error {
 	if x.GetBkHostId() < 0 {
 		return errors.New("bk_host_id must be >= 0")
+	}
+
+	if x.GetLoginIp() == "" {
+		return errors.New("login_ip can not be empty")
+	}
+
+	if x.GetLoginPort() < 0 {
+		return errors.New("login_port must be greater than 0")
+	}
+
+	if len(x.GetLoginUser()) == 0 {
+		return errors.New("login_user can not be empty")
+	}
+
+	if x.GetRelayCallbackPort() < 0 {
+		return errors.New("relay_callback_port must be greater than 0")
+	}
+
+	if x.GetRelayDownloadPort() < 0 {
+		return errors.New("relay_download_port must be greater than 0")
+	}
+
+	if err := types.LoginMode(x.GetLoginMode()).Validate(); err != nil {
+		return err
 	}
 
 	return nil
