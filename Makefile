@@ -42,33 +42,33 @@ pre:
 
 	go1.23.10 mod tidy
 
-backend: pre
+backend: | pre
 	@$(ECHO) "Building backend $(VERSION)..."
 	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-backend $(ROOT_DIR)/cmd/backend/main.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-backend"
 
-application: pre
+application: | pre
 	@$(ECHO) "Building application $(VERSION)..."
 	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-application $(ROOT_DIR)/cmd/application/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-application"
 
-file: pre
+file: | pre
 	@$(ECHO) "Building file $(VERSION)..."
 	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-file $(ROOT_DIR)/cmd/file/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-file"
 
-relay: pre
+relay: | pre
 	@$(ECHO) "Building proxy $(VERSION)..."
 	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-relay $(ROOT_DIR)/cmd/relay/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-relay"
 
-front: pre
+front: | pre
 	@$(ECHO) "Building frontend..."
 	@$(CD) $(ROOT_DIR)/front && $(NPM) i && $(NPM) build
 	@$(CP) -R $(ROOT_DIR)/front/dist $(OUTPUT_DIR)/
 	@$(ECHO) "Built successfully: frontend"
 
-tools: pre
+tools: | pre
 	@$(ECHO) "Building tools..."
 	@$(MAKE) -C $(ROOT_DIR)/tools platform-builds -e UPX_ENABLED=1
 
@@ -76,7 +76,7 @@ tools: pre
 	@$(CP) -r $(ROOT_DIR)/tools/build/$(VERSION)/* $(OUTPUT_DIR)/tools
 	@$(ECHO) "Built successfully tools"
 
-bintools: pre
+bintools: | pre
 	@$(ECHO) "Building bintools..."
 	@$(MKDIR) $(OUTPUT_DIR)/bintools/
 
@@ -92,7 +92,7 @@ bintools: pre
 	@$(ECHO) "Built successfully $(OUTPUT_DIR)/bintools/plugin_bintool.tgz"
 	@$(ECHO) "Built successfully bintools"
 
-scripts: pre
+scripts: | pre
 	@$(ECHO) "Building scripts..."
 	@$(MKDIR) $(OUTPUT_DIR)/scripts
 
@@ -104,7 +104,7 @@ OSES := linux
 ARCHES := amd64 arm64
 
 plugin-pkg-relay: APP_NAME ?= bk-nodemgr-relay
-plugin-pkg-relay: pre
+plugin-pkg-relay: | pre
 	@$(ECHO) "Building plugin-pkg-relay..."
 	@$(MKDIR) $(OUTPUT_DIR)/$(APP_NAME)
 	@$(ECHO) "Building $(APP_NAME) $(VERSION) for all platforms..."
@@ -170,7 +170,7 @@ docker-build-server: backend application file front tools scripts
 	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodemgr-server:v${VERSION} .
 	@$(ECHO) "Built successfully docker images bk-nodemgr-server:v${VERSION}"
 
-docker-build-apigw-sync: pre
+docker-build-apigw-sync: | pre
 	@$(ECHO) "Building docker image bk-nodemgr-apigw-sync..."
 	@$(MKDIR) $(OUTPUT_DIR)/apigw-sync
 	@$(CP) -R $(ROOT_DIR)/install/images/bk-nodemgr-apigw-sync/support-files $(OUTPUT_DIR)/apigw-sync/
