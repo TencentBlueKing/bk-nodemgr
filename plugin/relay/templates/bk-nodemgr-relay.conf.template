@@ -34,8 +34,8 @@ adminServer:
   traceSampleRate: 0
 
 callbackServer:
-  bindIP: {{ .CustomContext.CallbackServer.BindIP | default "127.0.0.1" }}
-  port: {{ .CustomContext.CallbackServer.Port | default 28302 }}
+  bindIP: {{ default (default "127.0.0.1" .NodeInfo.Dynamic.AdvertiseIP) .CustomContext.CallbackServer.BindIP }}
+  port: {{ default (default 28302 .NodeInfo.Dynamic.RelayCallbackPort) .CustomContext.CallbackServer.Port }}
   {{- with .NodeInfo.Dynamic.AdvertiseIP }}
   advertiseIPV4: {{ . }}
   {{- end }}
@@ -47,8 +47,8 @@ callbackServer:
   traceSampleRate: 0
 
 downloadServer:
-  bindIP: {{ .CustomContext.DownloadServer.BindIP | default "127.0.0.1" }}
-  port: {{ .CustomContext.DownloadServer.Port | default 28303 }}
+  bindIP: {{ default (default "127.0.0.1" .NodeInfo.Dynamic.AdvertiseIP) .CustomContext.DownloadServer.BindIP }}
+  port: {{ default (default 28303 .NodeInfo.Dynamic.RelayDownloadPort) .CustomContext.DownloadServer.Port }}
   {{- with .NodeInfo.Dynamic.AdvertiseIP }}
   advertiseIPV4: {{ . }}
   {{- end }}
@@ -75,5 +75,5 @@ log:
   maxSizeMB: {{ .CustomContext.Log.LogMaxSizeMB | default 100 }}
   maxNum: {{ .CustomContext.Log.LogMaxNum | default 7 }}
   level: {{ .CustomContext.Log.LogLevel | default "INFO" }}
-  toStderr: {{ .CustomContext.Log.LogToStderr | default false}}
+  toStderr: {{ .CustomContext.Log.LogToStderr | default false }}
   alsoToStderr: {{ .CustomContext.Log.LogAlsoToStderr | default false }}

@@ -133,7 +133,7 @@ plugin-pkg-relay: pre
 				$(MKDIR) "$$plugin_path/etc"; \
 				$(MKDIR) "$$plugin_path/templates"; \
 				$(CP) $(ROOT_DIR)/plugin/relay/definition.yaml "$$plugin_path/definition.yaml"; \
-				$(CP) $(ROOT_DIR)/plugin/relay/templates/* "$$plugin_path/templates"; \
+				$(CP) $(ROOT_DIR)/plugin/relay/templates/*.template "$$plugin_path/templates"; \
 			fi; \
 		)\
 	)
