@@ -115,7 +115,7 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	if !exist {
-		std.InstanceData().LogI("process not exist, skip try stop process")
+		std.InstanceData().LogI("process not exist, no need to stop the process.")
 
 		return nil
 	}
@@ -126,7 +126,8 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	if process.Info.Status != types.ProcessStatusRunning {
-		std.InstanceData().LogI(fmt.Sprintf("process status recorded in database is not running(%s), skip try stop process", process.Info.Status))
+		std.InstanceData().LogI(
+			fmt.Sprintf("process status recorded in database is not running(%s), no need to stop the process", process.Info.Status))
 
 		return nil
 	}
@@ -134,13 +135,15 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	std.InstanceData().LogI(
 		fmt.Sprintf("process status recorded in database is running, try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
 			process.PluginName, process.HostID, process.Controller.StopCmd),
+		fmt.Sprintf("process record in database, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status),
 	)
 
 	processSpec := process.ToProcessSpec()
 
 	result, err := act.gseHandlerProc.UnTrusteeshipAndStopProcess(nCtx, processSpec)
 	if err != nil {
-		std.InstanceData().LogW(fmt.Sprintf("execute stop plugin process operation return error: %s", err.Error()))
+		std.InstanceData().LogW(fmt.Sprintf("failed to execute stop plugin process operation, result(%s), err(%s)", result, err.Error()))
 	} else {
 		std.InstanceData().LogI(fmt.Sprintf("successfully execute stop plugin process operation, result(%s)", result))
 	}
@@ -165,9 +168,9 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 		}
 
 		if processInfo.AutoStart {
-			std.InstanceData().LogI("process is still trusteeship by gse")
+			std.InstanceData().LogI("process autostart is true, process will be restart by gse again")
 
-			return errors.New("process is still trusteeship by gse")
+			return errors.New("process autostart is true, process will be restart by gse again")
 		}
 
 		// update process info
