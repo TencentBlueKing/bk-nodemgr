@@ -136,6 +136,13 @@
               :key="option.bk_networkunit_id"
               :id="String(option.bk_networkunit_id)"
               :name="option.bk_networkunit_name"
+              :disabled="option.is_direct"
+              v-bk-tooltips="{
+                content: '不能选择直连单元',
+                disabled: !option.is_direct,
+                boundary: 'parent',
+                placement: 'left'
+              }"
             >
               [{{ option.bk_networkunit_id }}] {{ option.bk_networkunit_name }}
             </Select.Option>

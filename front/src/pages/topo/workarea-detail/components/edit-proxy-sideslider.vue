@@ -39,7 +39,12 @@
               >
               </Select.Option>
             </Select>
-            <Input v-model="formData.credit" class="flex-1" type="password" />
+            <Input
+              v-if="formData.login_mode === 'password_vault'"
+              :value="'自动拉取'"
+              disabled
+            ></Input>
+            <Input v-else v-model="formData.credit" class="flex-1" type="password" />
           </div>
         </Form.FormItem>
         <Form.FormItem :label="$t('topoManager.installProxy.form.port')" property="login_port">
@@ -165,7 +170,7 @@ const formData = reactive(cloneDeep(initData));
 // 切换认证方式
 const handleChangeMode = (newValue: string) => {
   formData.login_mode = newValue;
-  formData.credit = '';
+  formData.credit =  newValue === 'password_vault' ? '自动拉取' : '';
 };
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
   InfoBox({

@@ -130,10 +130,17 @@
             :key="item.bk_biz_id"
             :name="item.bk_biz_name"
             :id="item.bk_biz_id"
+            v-bk-tooltips="{
+              content: `[${item.bk_biz_id}] ${item.bk_biz_name}`,
+              disabled: !textOverflowMap[item.bk_biz_id],
+              boundary: 'parent',
+              placement: 'right',
+              offset: 10
+            }"
           >
-            <div class="w-full flex items-center biz-select-option">
+            <div class="w-full flex items-center biz-select-option overflow-hidden">
               <Button
-                class="mr-[8px] w-[18px]"
+                class="mr-[8px] w-[18px] shrink-0"
                 text
                 @click.native.stop="handleCollect(item.bk_biz_id)">
                 <i
@@ -145,7 +152,11 @@
                   v-else>
                 </i>
               </Button>
-              <span>[{{ item.bk_biz_id }}] {{ item.bk_biz_name }}</span>
+              <div
+                class="truncate"
+                @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
+                [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+              </div>
             </div>
           </Select.Option>
         </Select>
@@ -187,7 +198,7 @@
 import { Button, Dropdown, Menu, Navigation, Select } from 'bkui-vue';
 import { AngleUpFill } from 'bkui-vue/lib/icon';
 import { debounce, isArray } from 'lodash';
-import { computed, onBeforeMount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeMount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -468,6 +479,12 @@ const handleToggle = () => {
     // 优先级3: 选中和收藏状态都相同则按ID从小到大排序
     return a.bk_biz_id - b.bk_biz_id;
   });
+};
+
+const textOverflowMap = reactive<Record<number, boolean>>({});
+const handleTextMouseenter = (e: MouseEvent, id: number) => {
+  const el = e.target as HTMLElement;
+  textOverflowMap[id] = el.scrollWidth > el.clientWidth;
 };
 
 const handleCollect = (val: number) => {

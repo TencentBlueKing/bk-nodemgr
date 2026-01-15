@@ -903,22 +903,34 @@ const tableValidate = async () => {
       rowValid = false;
     }
     // 2.2 IP
-    if (settings.checked.includes('bk_host_innerip')) {
-      if (!row.bk_host_innerip) {
-        setError(i, 'bk_host_innerip', '必填项');
+    // 2.2 IP & IPv6 联合校验
+    const hasIpv4Config = settings.checked.includes('bk_host_innerip');
+    const hasIpv6Config = settings.checked.includes('bk_host_innerip_v6');
+
+    // 获取当前值
+    const ipv4Value = row.bk_host_innerip;
+    const ipv6Value = row.bk_host_innerip_v6;
+
+    // A. 必填校验：如果开启了IP列，但IPv4和IPv6都为空，则报错
+    if (hasIpv4Config || hasIpv6Config) {
+      if (!ipv4Value && !ipv6Value) {
+        if (hasIpv4Config) setError(i, 'bk_host_innerip', 'IP与IPv6至少填一项');
+        if (hasIpv6Config) setError(i, 'bk_host_innerip_v6', 'IP与IPv6至少填一项');
         rowValid = false;
-      } else if (
-        !validateItemData(row.bk_host_innerip, rules.bk_host_innerip)
-      ) {
+      }
+    }
+
+    // B. IPv4 格式校验 (仅在有值时校验)
+    if (hasIpv4Config && ipv4Value) {
+      if (!validateItemData(ipv4Value, rules.bk_host_innerip)) {
         setError(i, 'bk_host_innerip', rules.bk_host_innerip[0].message);
         rowValid = false;
       }
     }
-    if (
-      settings.checked.includes('bk_host_innerip_v6')
-      && row.bk_host_innerip_v6
-    ) {
-      if (!validateItemData(row.bk_host_innerip_v6, rules.bk_host_innerip_v6)) {
+
+    // C. IPv6 格式校验 (仅在有值时校验)
+    if (hasIpv6Config && ipv6Value) {
+      if (!validateItemData(ipv6Value, rules.bk_host_innerip_v6)) {
         setError(i, 'bk_host_innerip_v6', rules.bk_host_innerip_v6[0].message);
         rowValid = false;
       }

@@ -442,7 +442,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting(
   'nodeMng-preview',
 );
 // const statusMap = {
-//   import_cmdb_and_normal_install: {
+//   register_to_cmdb_and_install: {
 //     text: '可执行：全新安装并导入 CMDB',
 //     icon: 'check-circle-fill',
 //     iconColor: '#1CAB88',
@@ -484,7 +484,7 @@ const categoryMap = {
     icon: 'check-circle-fill',
     iconColor: '#1CAB88',
   },
-  import_cmdb_and_normal_install: {
+  register_to_cmdb_and_install: {
     // text: '可执行：全新安装并导入 CMDB',
     icon: 'check-circle-fill',
     iconColor: '#1CAB88',
@@ -618,7 +618,7 @@ const priority = {
   exist_proxy: 1,
   exist_agent: 1,
   not_exist_relay: 1,
-  import_cmdb_and_normal_install: 2,
+  register_to_cmdb_and_install: 2,
   normal_install: 3,
 };
 
@@ -651,11 +651,12 @@ const installCheck = async () => {
   }));
   installCheckLoading.value = false;
   if (res) {
-    originData.value = originData.value.map(item => {
-      const find = res.results.find((result: any) =>
-        result.matched.bk_host_id === item.bk_host_id
-          || item.bk_host_innerip.includes(result.matched.bk_host_innerip_list[0])
-          || item.bk_host_innerip_v6.includes(result.matched.bk_host_innerip_v6_list[0]));
+    originData.value = originData.value.map((item: any, originIndex: number) => {
+      const find = res.results.find((result: any, index: number) =>
+        result.matched?.bk_host_id === item.bk_host_id
+          || item.bk_host_innerip.includes(result.matched?.bk_host_innerip_list[0])
+          || item.bk_host_innerip_v6.includes(result.matched?.bk_host_innerip_v6_list[0])
+          || originIndex === index);
       return {
         ...item,
         ...find,
