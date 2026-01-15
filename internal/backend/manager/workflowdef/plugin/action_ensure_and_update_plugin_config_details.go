@@ -204,80 +204,85 @@ func fillConfigDetails(pluginRelease *types.ReleasePlugin, pluginConf *types.Plu
 }
 
 // ContextPluginInfo plugin info for render context.
+// Use PascalCase to cure the struct field names to be compatible with Go template rendering.
 type ContextPluginInfo struct {
-	Name          string
-	LogPath       string
-	DataPath      string
-	PidPath       string
-	SetupPath     string
-	HostIDPath    string
-	PluginIPC     string
-	DataIPC       string
-	AgentDir      string
-	GroupID       string
-	SubConfigPath string
-	IsMultiTenant bool
+	Name          string `json:"Name"`
+	LogPath       string `json:"LogPath"`
+	DataPath      string `json:"DataPath"`
+	PidPath       string `json:"PidPath"`
+	SetupPath     string `json:"SetupPath"`
+	HostIDPath    string `json:"HostIDPath"`
+	PluginIPC     string `json:"PluginIPC"`
+	DataIPC       string `json:"DataIPC"`
+	AgentDir      string `json:"AgentDir"`
+	GroupID       string `json:"GroupID"`
+	SubConfigPath string `json:"SubConfigPath"`
+	IsMultiTenant bool   `json:"IsMultiTenant"`
 }
 
 // ContextPreDefinitionConstants pre-definition constants for render context.
+// Use PascalCase to cure the struct field names to be compatible with Go template rendering.
 type ContextPreDefinitionConstants struct {
-	Global map[string]any
-	Unique map[string]any
+	Global map[string]any `json:"Global"`
+	Unique map[string]any `json:"Unique"`
 }
 
 // ContextNodeStaticInfo node static info for render context.
+// Use PascalCase to cure the struct field names to be compatible with Go template rendering.
 type ContextNodeStaticInfo struct {
-	BizID         int64
-	NetworkAreaID int64
-	RegionID      string
-	CityID        string
-	HostName      string
-	DeptName      string
-	InnerIPList   []string
-	InnerIPV6List []string
-	OuterIPList   []string
-	OuterIPV6List []string
-	Operator      string
-	Mac           string
-	OSTypeCCID    string
-	OSType        string
-	Arch          string
-	Addressing    string
-	CPUNum        float64
-	MemCap        float64
+	BizID         int64    `json:"BizID"`
+	NetworkAreaID int64    `json:"NetworkAreaID"`
+	RegionID      string   `json:"RegionID"`
+	CityID        string   `json:"CityID"`
+	HostName      string   `json:"HostName"`
+	DeptName      string   `json:"DeptName"`
+	InnerIPList   []string `json:"InnerIPList"`
+	InnerIPV6List []string `json:"InnerIPV6List"`
+	OuterIPList   []string `json:"OuterIPList"`
+	OuterIPV6List []string `json:"OuterIPV6List"`
+	Operator      string   `json:"Operator"`
+	Mac           string   `json:"Mac"`
+	OSTypeCCID    string   `json:"OSTypeCCID"`
+	OSType        string   `json:"OSType"`
+	Arch          string   `json:"Arch"`
+	Addressing    string   `json:"Addressing"`
+	CPUNum        float64  `json:"CPUNum"`
+	MemCap        float64  `json:"MemCap"`
 }
 
 // ContextNodeDynamicInfo node dynamic info for render context.
+// Use PascalCase to cure the struct field names to be compatible with Go template rendering.
 type ContextNodeDynamicInfo struct {
-	NodeRole                 string
-	NodeStatus               string
-	NodeVersion              string
-	NodeGeneration           int64
-	NodeCPUArch              string
-	NodeOsType               string
-	AgentID                  string
-	NetworkUnitID            int64
-	LoginUser                string
-	ExportIP                 string
-	ExportIPV6               string
-	AdvertiseIP              string
-	AdvertiseIPV6            string
-	ProxyAccessDisabled      bool
-	ProxyTags                []string
-	ProxyClusterPort         int64
-	ProxyDataPort            int64
-	ProxyFilePort            int64
-	RelayDownloadPort        int64
-	RelayCallbackPort        int64
-	ProxyInstallOriginUnitID int64
+	NodeRole                 string   `json:"NodeRole"`
+	NodeStatus               string   `json:"NodeStatus"`
+	NodeVersion              string   `json:"NodeVersion"`
+	NodeGeneration           int64    `json:"NodeGeneration"`
+	NodeCPUArch              string   `json:"NodeCPUArch"`
+	NodeOsType               string   `json:"NodeOsType"`
+	AgentID                  string   `json:"AgentID"`
+	NetworkUnitID            int64    `json:"NetworkUnitID"`
+	LoginUser                string   `json:"LoginUser"`
+	ExportIP                 string   `json:"ExportIP"`
+	ExportIPV6               string   `json:"ExportIPV6"`
+	AdvertiseIP              string   `json:"AdvertiseIP"`
+	AdvertiseIPV6            string   `json:"AdvertiseIPV6"`
+	ProxyAccessDisabled      bool     `json:"ProxyAccessDisabled"`
+	ProxyTags                []string `json:"ProxyTags"`
+	ProxyClusterPort         int64    `json:"ProxyClusterPort"`
+	ProxyDataPort            int64    `json:"ProxyDataPort"`
+	ProxyFilePort            int64    `json:"ProxyFilePort"`
+	RelayDownloadPort        int64    `json:"RelayDownloadPort"`
+	RelayCallbackPort        int64    `json:"RelayCallbackPort"`
+	ProxyInstallOriginUnitID int64    `json:"ProxyInstallOriginUnitID"`
 }
 
 // ContextNodeInfo node info for render context.
+// Use PascalCase to cure the struct field names to be compatible with Go template rendering.
 type ContextNodeInfo struct {
-	HostID   int64
-	TenantID string
-	Static   ContextNodeStaticInfo
-	Dynamic  ContextNodeDynamicInfo
+	HostID   int64                  `json:"HostID"`
+	TenantID string                 `json:"TenantID"`
+	Static   ContextNodeStaticInfo  `json:"Static"`
+	Dynamic  ContextNodeDynamicInfo `json:"Dynamic"`
 }
 
 func convertHostTypeToContextNodeInfo(hostInfo *types.Host) ContextNodeInfo {
