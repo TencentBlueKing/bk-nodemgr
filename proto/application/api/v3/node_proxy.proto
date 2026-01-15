@@ -31,6 +31,8 @@ message NodeProxyInstallHost {
   int64 proxy_install_origin_unit_id = 20;
   // credit expired interval in seconds, default is 86400 (24 hours)
   int64 credit_expired_interval_sec = 21;
+  int64 relay_download_port = 22;
+  int64 relay_callback_port = 23;
 }
 
 // NodeProxyInstallReq describes the node proxy install request.
@@ -127,6 +129,8 @@ message NodeProxyUpdateHost {
   string advertise_ip = 10;
   string advertise_ip_v6 = 11;
   repeated string proxy_tags = 12;
+  int64 relay_download_port = 13;
+  int64 relay_callback_port = 14;
 }
 
 message NodeProxyUninstallHost { int64 bk_host_id = 1; }

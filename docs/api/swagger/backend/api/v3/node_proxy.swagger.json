@@ -355,6 +355,14 @@
           "type": "integer",
           "format": "int64",
           "title": "credit expired interval in seconds, default is 86400 (24 hours)"
+        },
+        "relay_download_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "relay_callback_port": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "NodeProxyInstallHost describes the node proxy install host."
@@ -626,6 +634,14 @@
           "items": {
             "type": "string"
           }
+        },
+        "relay_download_port": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "relay_callback_port": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "description": "NodeProxyUpdateHost describes the node proxy update host."
