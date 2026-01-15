@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { NodeWorkflowListReq, NodeWorkflowListResp, NodeWorkflowStatisticsReq, NodeWorkflowStatisticsResp, NodeWorkflowDistinctReq, NodeWorkflowDistinctResp, NodeWorkflowOperationListReq, NodeWorkflowOperationListResp, NodeWorkflowOperationInstanceListReq, NodeWorkflowOperationInstanceListResp, NodeWorkflowOperationInstanceLogGetReq, NodeWorkflowOperationInstanceLogGetResp, NodeWorkflowOperationRetryReq, NodeWorkflowOperationRetryResp, NodeWorkflowOperationTerminateReq, NodeWorkflowOperationTerminateResp, NodeWorkflowOperationManualSolutionGetReq, NodeWorkflowOperationManualSolutionGetResp } from '@/@types/node_workflow';
+import type { NodeWorkflowListReq, NodeWorkflowListResp, NodeWorkflowStatisticsReq, NodeWorkflowStatisticsResp, NodeWorkflowDistinctReq, NodeWorkflowDistinctResp, NodeWorkflowOperationListReq, NodeWorkflowOperationListResp, NodeWorkflowOperationDistinctReq, NodeWorkflowOperationDistinctResp, NodeWorkflowOperationInstanceListReq, NodeWorkflowOperationInstanceListResp, NodeWorkflowOperationInstanceLogGetReq, NodeWorkflowOperationInstanceLogGetResp, NodeWorkflowOperationRetryReq, NodeWorkflowOperationRetryResp, NodeWorkflowOperationTerminateReq, NodeWorkflowOperationTerminateResp, NodeWorkflowOperationManualSolutionGetReq, NodeWorkflowOperationManualSolutionGetResp } from '@/@types/node_workflow';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -17,6 +17,8 @@ export const NodeWorkflowService = {
   NodeWorkflowDistinct: async <Request = NodeWorkflowDistinctReq, ResponseData = NodeWorkflowDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/distinct')(params, config),
   // NodeWorkflowOperationList provides node workflow operation list.
   NodeWorkflowOperationList: async <Request = NodeWorkflowOperationListReq, ResponseData = NodeWorkflowOperationListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/list')(params, config),
+  // NodeWorkflowOperationDistinct provides node workflow operation distinct.
+  NodeWorkflowOperationDistinct: async <Request = NodeWorkflowOperationDistinctReq, ResponseData = NodeWorkflowOperationDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/distinct')(params, config),
   // NodeWorkflowOperationInstanceList provides node workflow operation instance
   // list.
   NodeWorkflowOperationInstanceList: async <Request = NodeWorkflowOperationInstanceListReq, ResponseData = NodeWorkflowOperationInstanceListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/node/workflow/operation/instance/list')(params, config),

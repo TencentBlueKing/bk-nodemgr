@@ -152,6 +152,26 @@ export interface NodeWorkflowOperationListRespData {
   total: number;
 }
 
+// NodeWorkflowOperationDistinctReq describes the node workflow operation
+// distinct request.
+export interface NodeWorkflowOperationDistinctReq {
+  workflow_id: string;
+}
+
+// NodeWorkflowOperationDistinctResp describes the node workflow operation
+// distinct response.
+export interface NodeWorkflowOperationDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: NodeWorkflowOperationDistinctRespData;
+}
+
+export interface NodeWorkflowOperationDistinctRespData {
+  state: string[];
+}
+
 // NodeWorkflowOperationInstanceListReq describes the node operation instance
 // list by operation-id request.
 export interface NodeWorkflowOperationInstanceListReq {

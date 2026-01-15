@@ -1,7 +1,7 @@
 // gen-api.js 自动生成，请勿手动修改
 import { type Config } from '../interceptors';
 
-import type { PluginWorkflowListReq, PluginWorkflowListResp, PluginWorkflowStatisticsReq, PluginWorkflowStatisticsResp, PluginWorkflowDistinctReq, PluginWorkflowDistinctResp, PluginWorkflowOperationListReq, PluginWorkflowOperationListResp, PluginWorkflowOperationInstanceListReq, PluginWorkflowOperationInstanceListResp, PluginWorkflowOperationInstanceLogGetReq, PluginWorkflowOperationInstanceLogGetResp, PluginWorkflowOperationRetryReq, PluginWorkflowOperationRetryResp, PluginWorkflowOperationTerminateReq, PluginWorkflowOperationTerminateResp } from '@/@types/plugin_workflow';
+import type { PluginWorkflowListReq, PluginWorkflowListResp, PluginWorkflowStatisticsReq, PluginWorkflowStatisticsResp, PluginWorkflowDistinctReq, PluginWorkflowDistinctResp, PluginWorkflowOperationListReq, PluginWorkflowOperationListResp, PluginWorkflowOperationDistinctReq, PluginWorkflowOperationDistinctResp, PluginWorkflowOperationInstanceListReq, PluginWorkflowOperationInstanceListResp, PluginWorkflowOperationInstanceLogGetReq, PluginWorkflowOperationInstanceLogGetResp, PluginWorkflowOperationRetryReq, PluginWorkflowOperationRetryResp, PluginWorkflowOperationTerminateReq, PluginWorkflowOperationTerminateResp } from '@/@types/plugin_workflow';
 import Fetch from '@/api/fetch';
 
 const fetch = new Fetch({
@@ -17,6 +17,9 @@ export const PluginWorkflowService = {
   PluginWorkflowDistinct: async <Request = PluginWorkflowDistinctReq, ResponseData = PluginWorkflowDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/workflow/distinct')(params, config),
   // PluginWorkflowOperationList provides plugin workflow operation list.
   PluginWorkflowOperationList: async <Request = PluginWorkflowOperationListReq, ResponseData = PluginWorkflowOperationListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/workflow/operation/list')(params, config),
+  // PluginWorkflowOperationDistinct provides plugin workflow operation
+  // distinct.
+  PluginWorkflowOperationDistinct: async <Request = PluginWorkflowOperationDistinctReq, ResponseData = PluginWorkflowOperationDistinctResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/workflow/operation/distinct')(params, config),
   // PluginWorkflowOperationInstanceList provides plugin workflow operation
   // instance list.
   PluginWorkflowOperationInstanceList: async <Request = PluginWorkflowOperationInstanceListReq, ResponseData = PluginWorkflowOperationInstanceListResp['data']>(params?: Request, config?: Config) => await fetch.post<Request, ResponseData>('/api/v3/plugin/workflow/operation/instance/list')(params, config),

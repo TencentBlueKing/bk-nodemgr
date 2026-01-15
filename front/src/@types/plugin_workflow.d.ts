@@ -113,6 +113,26 @@ export interface PluginWorkflowOperationListReq {
   fuzzy_include_conditions: PluginWorkflowOperationFuzzyConditions;
 }
 
+// PluginWorkflowOperationDistinctReq describes the plugin workflow operation
+// distinct request.
+export interface PluginWorkflowOperationDistinctReq {
+  workflow_id: string;
+}
+
+// PluginWorkflowOperationDistinctResp describes the plugin workflow operation
+// distinct response.
+export interface PluginWorkflowOperationDistinctResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PluginWorkflowOperationDistinctRespData;
+}
+
+export interface PluginWorkflowOperationDistinctRespData {
+  state: string[];
+}
+
 // PluginDeploymentInfo describes the plugin deployment information.
 export interface PluginDeploymentInfo {
   bk_host_id: number;

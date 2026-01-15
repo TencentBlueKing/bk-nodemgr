@@ -23,7 +23,10 @@
         <Form.FormItem :label="$t('topoManager.installProxy.table.loginIp')" property="login_ip" required>
           <Input v-model="formData.login_ip" />
         </Form.FormItem>
-        <Form.FormItem :label="$t('topoManager.installProxy.table.authenticationMethod')" property="credit" required>
+        <Form.FormItem
+          :label="$t('topoManager.installProxy.table.authenticationMethod')"
+          property="credit"
+          :required="!formData.login_credit_valid">
           <div class="flex w-full gap-[8px]">
             <Select
               v-model="formData.login_mode"
@@ -44,7 +47,12 @@
               :value="'自动拉取'"
               disabled
             ></Input>
-            <Input v-else v-model="formData.credit" class="flex-1" type="password" />
+            <Input
+              v-else
+              v-model="formData.credit"
+              class="flex-1"
+              :placeholder="formData.login_credit_valid ? '密码有效，点击修改' : '请输入'"
+              type="password" />
           </div>
         </Form.FormItem>
         <Form.FormItem :label="$t('topoManager.installProxy.form.port')" property="login_port">
@@ -152,7 +160,10 @@ const initData = {
   file_tunnel: false,
   data_tunnel: false,
   proxy_tags: [] as string[],
+  login_credit_valid: false,
 };
+const isPasswordVaultEnabled = computed(() => window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true');
+
 const authenticationTypes = ref([
   {
     id: 'password',
@@ -162,15 +173,16 @@ const authenticationTypes = ref([
     id: 'keyfile',
     name: '密钥',
   },
-  ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true'
+  ...(isPasswordVaultEnabled.value
     ? [{ id: 'password_vault', name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME }]
     : []),
 ]);
 const formData = reactive(cloneDeep(initData));
+
 // 切换认证方式
 const handleChangeMode = (newValue: string) => {
   formData.login_mode = newValue;
-  formData.credit =  newValue === 'password_vault' ? '自动拉取' : '';
+  formData.credit = newValue === 'password_vault' ? '自动拉取' : '';
 };
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
   InfoBox({
@@ -229,6 +241,7 @@ watch(() => isShow.value, () => {
     proxyTags.forEach((key) => {
       formData[key] = props.data?.proxy_tags.includes(key);
     });
+    formData.credit = formData.login_mode === 'password_vault' ? '自动拉取' : '';
   }
 });
 </script>
