@@ -26,7 +26,6 @@ import (
 
 // GetCheckList get gse node check list.
 func (h *handler) GetCheckList(gCtx *gin.Context) {
-
 	nCtx := contextx.New(gCtx)
 
 	req := new(protoCallback.GetCheckListReq)
