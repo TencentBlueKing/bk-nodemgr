@@ -12,7 +12,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.method')"
           property="method"
-          label-width="90"
+          label-width="110"
           required
         >
           <install-type currentNodeType="proxy" @change="handleChange"></install-type>
@@ -20,7 +20,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.info')"
           property=""
-          label-width="90"
+          label-width="110"
           required
         >
           <!-- <template #label>
@@ -40,7 +40,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.password')"
           property="saveTime"
-          label-width="90"
+          label-width="110"
           required
         >
           <Radio.Group v-model="form.saveTime">
@@ -64,7 +64,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.os')"
           property="os_type"
-          label-width="90"
+          label-width="110"
           required
         >
           <Select class="w-[488px]" v-model="form.os_type" disabled></Select>
@@ -72,7 +72,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.port')"
           property="login_port"
-          label-width="90"
+          label-width="110"
           required
         >
           <Input class="w-[488px]" v-model="form.login_port" />
@@ -80,7 +80,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.account')"
           property="login_user"
-          label-width="90"
+          label-width="110"
           required
         >
           <Input class="w-[488px]" v-model="form.login_user" />
@@ -88,7 +88,7 @@
         <Form.FormItem
           :label="$t('topoManager.installProxy.form.business')"
           property="bk_biz_id"
-          label-width="90"
+          label-width="110"
           required
         >
           <Select
@@ -112,7 +112,7 @@
           v-if="bk_networkunit_id === null"
           :label="$t('platform.nodeMan.bk_cloud_name')"
           property="bk_networkarea_id"
-          label-width="90"
+          label-width="110"
           required
         >
           <AreaSelector class="w-[488px]" :multiple="false" @change="handleSingleChange" />
@@ -121,7 +121,7 @@
           v-if="bk_networkunit_id === null"
           :label="$t('platform.nodeMan.bk_cloud_unit')"
           property="bk_networkunit_id"
-          label-width="90"
+          label-width="110"
           required
         >
           <Select
@@ -149,7 +149,23 @@
           </Select>
         </Form.FormItem>
         <Form.FormItem
-          label-width="90">
+          :label="$t('topoManager.installProxy.form.relayDownloadPort')"
+          property="relay_download_port"
+          label-width="110"
+          required
+        >
+          <Input class="w-[488px]" v-model="form.relay_download_port" />
+        </Form.FormItem>
+        <Form.FormItem
+          :label="$t('topoManager.installProxy.form.relayCallbackPort')"
+          property="relay_callback_port"
+          label-width="110"
+          required
+        >
+          <Input class="w-[488px]" v-model="form.relay_callback_port" />
+        </Form.FormItem>
+        <Form.FormItem
+          label-width="110">
           <Button
             text
             theme="primary"
@@ -166,7 +182,7 @@
           v-if="isTargetShow"
           :label="'安装源'"
           property="proxy_install_origin"
-          label-width="90"
+          label-width="110"
           required
         >
           <Cascader
@@ -176,7 +192,7 @@
             trigger="click"
           ></Cascader>
         </Form.FormItem>
-        <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
+        <Form.FormItem :label="$t('Proxy 版本')" label-width="110" required v-if="isTargetShow">
           <div class="w-[488px]">
             <Table :data="systemData" :border="true" empty-text="当前无可用版本">
               <TableColumn
@@ -332,6 +348,8 @@ const form = reactive({
   bk_networkunit_id: '', // 管控单元
   target_version: [] as TargetVersion[],
   proxy_install_origin: [],
+  relay_download_port: '',
+  relay_callback_port: '',
 });
 const settings = reactive({
   fields: [
@@ -552,6 +570,8 @@ const handleConfirm = async () => {
           proxy_install_origin_unit_id,
           credit_expired_interval_sec: form.saveTime * 24 * 3600,
           login_port: Number(form.login_port),
+          relay_download_port: Number(form.relay_download_port),
+          relay_callback_port: Number(form.relay_callback_port),
           bk_networkunit_id: props.bk_networkunit_id || Number(form.bk_networkunit_id),
           ...(bk_host_id !== null && bk_host_id !== '' ? { bk_host_id } : {}),
         };

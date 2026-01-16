@@ -256,6 +256,8 @@ topoManager:
       port: Login Port
       account: Login Account
       business: Belonging Business
+      relayDownloadPort: Relay download port
+      relayCallbackPort: Relay callback port
     installMethodList:
       remote:
         title: Ordinary remote installation

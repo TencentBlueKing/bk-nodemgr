@@ -107,6 +107,12 @@
           </template>
         </TableColumn>
         <TableColumn
+          field="dept_name"
+          :title="t('platform.nodeMan.dept_name')"
+          :filter="filterOptionSource.dept_name"
+          :min-width="120"
+        ></TableColumn>
+        <TableColumn
           label="Agent ID"
           field="bk_agent_id"
           show-overflow="tooltip"
@@ -277,6 +283,7 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
     'advertise_ip',
     'login_ip',
     'bk_biz_id',
+    'dept_name',
     'bk_agent_id',
     'node_version',
     'node_status',
@@ -396,6 +403,7 @@ const statusMap = ref(new Map<string, string>([
 
 const searchSelectValue = computed(() => props.searchSelectValue);
 const filterOptionSource: Record<string, FilterOption> = reactive({
+  dept_name: { list: [], checked: [], filterScope: 'all' },
   node_version: { list: [], checked: [], filterScope: 'all' },
   node_status: { list: [], checked: [], filterScope: 'all' },
 });
@@ -416,6 +424,7 @@ const handleEdit = (row: Host) => {
 const fuzzyKeys = new Set([
   'bk_host_innerip',
   'bk_host_innerip_v6',
+  'dept_name',
 ]);
 const getParams = () => {
   const params = {
@@ -474,8 +483,6 @@ const getProxyList = async () => {
       ...item,
       bk_host_innerip: item.info.bk_host_innerip_list.join(','),
       bk_host_innerip_v6: item.info.bk_host_innerip_v6_list.join(','),
-      export_ip: item.info.bk_host_outerip_list.join(','),
-      advertise_ip: item.info.bk_host_outerip_v6_list.join(','),
       pluginNum: pluginNumMap[item.bk_host_id] || 0,
       checked: isChecked,
     };
@@ -558,6 +565,12 @@ const getHostDistinct = async () => {
         name: 'Proxy 状态',
         id: 'node_status',
         children: getUniqueChildrenFrom('node_status', statusMap.value),
+        multiple: true,
+      },
+      {
+        id: 'dept_name',
+        name: '运维部门',
+        children: getUniqueChildrenFrom('dept_name'),
         multiple: true,
       },
     ];

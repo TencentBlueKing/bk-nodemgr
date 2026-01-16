@@ -120,6 +120,10 @@ const searchSelectData = ref<ISearchItem[]>([
     name: 'Proxy 状态',
     id: 'node_status',
   },
+  {
+    id: 'dept_name',
+    name: '运维部门',
+  },
 ]);
 // 复制
 const subList = [

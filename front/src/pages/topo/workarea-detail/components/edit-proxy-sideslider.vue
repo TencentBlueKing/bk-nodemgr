@@ -61,6 +61,22 @@
         <Form.FormItem :label="$t('topoManager.installProxy.form.account')" property="login_user">
           <Input v-model="formData.login_user" />
         </Form.FormItem>
+        <Form.FormItem
+          :label="$t('topoManager.installProxy.form.relayDownloadPort')"
+          property="relay_download_port"
+          label-width="110"
+          required
+        >
+          <Input class="w-[488px]" v-model="formData.relay_download_port" />
+        </Form.FormItem>
+        <Form.FormItem
+          :label="$t('topoManager.installProxy.form.relayCallbackPort')"
+          property="relay_callback_port"
+          label-width="110"
+          required
+        >
+          <Input class="w-[488px]" v-model="formData.relay_callback_port" />
+        </Form.FormItem>
         <div class="flex items-center">
           <div class="flex items-center w-1/4">
             <Checkbox v-model="formData.dedicated_installer" theme="primary"></Checkbox>
@@ -161,6 +177,8 @@ const initData = {
   data_tunnel: false,
   proxy_tags: [] as string[],
   login_credit_valid: false,
+  relay_download_port: '',
+  relay_callback_port: '',
 };
 const isPasswordVaultEnabled = computed(() => window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true');
 
@@ -222,6 +240,8 @@ const handleSave = async () => {
     login_key_file: formData.login_key_file,
     proxy_tags: formData.proxy_tags,
     login_port: Number(formData.login_port),
+    relay_download_port: Number(formData.relay_download_port),
+    relay_callback_port: Number(formData.relay_callback_port),
     export_ip: formData.export_ip || '', // 或者提供一个合适默认值
     advertise_ip: formData.advertise_ip || '',
   };

@@ -257,6 +257,8 @@ topoManager:
       port: 登录端口
       account: 登录账号
       business: 归属业务
+      relayDownloadPort: 中转下载端口
+      relayCallbackPort:  中转回调端口
     installMethodList:
       remote:
         title: 普通远程安装
