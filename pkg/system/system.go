@@ -59,7 +59,7 @@ const (
 // Validate Edition.
 func (edition Edition) Validate() error {
 	switch edition {
-	case EditionCE, EditionEE:
+	case EditionCE, EditionEE, EditionInner:
 		return nil
 	default:
 		return fmt.Errorf("invalid edition, edition(%s)", edition)
