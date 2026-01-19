@@ -36,12 +36,12 @@ type StepArgs struct {
 	Token           string
 	AgentID         string
 	OperInstID      string
-	CallbackSvrAddr string
+	CallbackSvrAddr []string
 }
 
 // String step args string message.
 func (args StepArgs) String() string {
-	return fmt.Sprintf("token(%s), oper-inst-id(%s),  agent-id(%s), callback-svr-addr(%s)",
+	return fmt.Sprintf("token(%s), oper-inst-id(%s),  agent-id(%s), callback-svr-addrs(%v)",
 		args.Token, args.OperInstID, args.AgentID, args.CallbackSvrAddr)
 }
 
@@ -56,8 +56,8 @@ func (step *Step) Run(ctx context.Context) error {
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
-		if err := step.reportData(ctx); err != nil {
-			logger.Infof(node.StepReportData, "retry report data. attempt(%d): %v", attempt, err)
+		if err := step.reportDataMultiEndpoint(ctx); err != nil {
+			logger.Infof(node.StepReportData, "retry multi-endpoint report data. attempt(%d): %v", attempt, err)
 
 			return err
 		}
@@ -85,8 +85,29 @@ const (
 	reportDataURLPath = "/api/v3/callback/workflow/node_install/report_data"
 )
 
-// ReportData report data.
-func (step *Step) reportData(ctx context.Context) error {
+// reportDataMultiEndpoint tries multiple server addresses in order until one succeeds.
+func (step *Step) reportDataMultiEndpoint(ctx context.Context) error {
+	if len(step.args.CallbackSvrAddr) == 0 {
+		return fmt.Errorf("no callback server addresses provided")
+	}
+
+	var lastErr error
+	for i, callbackSvrAddr := range step.args.CallbackSvrAddr {
+		logger.Infof(node.StepReportData, "attempting to report data to server, index(%d/%d), url(%s)", i+1, len(step.args.CallbackSvrAddr), callbackSvrAddr)
+		err := step.reportData(ctx, callbackSvrAddr)
+		if err == nil {
+			return nil
+		}
+		logger.Warnf(node.StepReportData, "failed to report data: %v", err)
+		lastErr = err
+	}
+
+	// All servers failed, return error with server addresses for debugging
+	return fmt.Errorf("failed to report data to all %d server(s) %v: %w", len(step.args.CallbackSvrAddr), step.args.CallbackSvrAddr, lastErr)
+}
+
+// reportData report data to a single server.
+func (step *Step) reportData(ctx context.Context, baseURL string) error {
 	req := &reportDataReq{
 		Token:      step.args.Token,
 		OperInstID: step.args.OperInstID,
@@ -98,7 +119,7 @@ func (step *Step) reportData(ctx context.Context) error {
 		return fmt.Errorf("failed to marshal report data request body: %w", err)
 	}
 
-	reportURL, err := url.JoinPath(step.args.CallbackSvrAddr, reportDataURLPath)
+	reportURL, err := url.JoinPath(baseURL, reportDataURLPath)
 	if err != nil {
 		return fmt.Errorf("failed to format report data url: %w", err)
 	}

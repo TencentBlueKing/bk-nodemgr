@@ -15,6 +15,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/datareporter"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -30,8 +31,13 @@ func NewReportData() *cobra.Command {
 		Use:   "report-data",
 		Short: "Report data",
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
+			if len(callbackSvrAddrs) == 0 {
+				return fmt.Errorf("callback server address is empty or invalid")
+			}
+
 			step := datareporter.NewStep(datareporter.StepArgs{
-				CallbackSvrAddr: callbackSvrAddr,
+				CallbackSvrAddr: callbackSvrAddrs,
 				Token:           deployToken,
 			})
 

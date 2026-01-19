@@ -18,6 +18,7 @@ import (
 	pluginflag "github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/flag"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/cmd/installer/plugin/persistent"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin/filedownloader"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -49,9 +50,19 @@ func NewDownloadFiles() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
+			if len(downloadSvrAddrs) == 0 {
+				return fmt.Errorf("download server address is empty or invalid")
+			}
+
+			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
+			if len(callbackSvrAddrs) == 0 {
+				return fmt.Errorf("callback server address is empty or invalid")
+			}
+
 			step := filedownloader.NewStep(filedownloader.StepArgs{
-				DownloadSvrAddr:              downloadSvrAddr,
-				CallbackSvrAddr:              callbackSvrAddr,
+				DownloadSvrAddr:              downloadSvrAddrs,
+				CallbackSvrAddr:              callbackSvrAddrs,
 				PluginGroup:                  persistentVars.PluginGroup,
 				PluginName:                   persistentVars.PluginName,
 				PluginPkgName:                persistentVars.PluginPkgName,

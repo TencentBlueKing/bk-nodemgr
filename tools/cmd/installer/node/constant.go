@@ -10,10 +10,37 @@
 
 package node
 
-import "net/url"
+import (
+	"fmt"
+	"net/url"
+)
 
-func reportLogURL(callbackSvrAddr string) string {
-	fullURL, _ := url.JoinPath(callbackSvrAddr, "/api/v3/callback/workflow/node_install/report_log")
+const (
+	// reportLogPath is the API path for reporting logs.
+	reportLogPath = "/api/v3/callback/workflow/node_install/report_log"
+)
 
-	return fullURL
+// reportLogURLs builds report log URLs from multiple server addresses.
+func reportLogURLs(callbackSvrAddrs []string) ([]string, error) {
+	if len(callbackSvrAddrs) == 0 {
+		return nil, fmt.Errorf("callback server addresses are empty")
+	}
+
+	urls := make([]string, 0, len(callbackSvrAddrs))
+	for _, addr := range callbackSvrAddrs {
+		if addr == "" {
+			continue
+		}
+		fullURL, err := url.JoinPath(addr, reportLogPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to join URL path for address %s: %w", addr, err)
+		}
+		urls = append(urls, fullURL)
+	}
+
+	if len(urls) == 0 {
+		return nil, fmt.Errorf("no valid callback server addresses provided")
+	}
+
+	return urls, nil
 }

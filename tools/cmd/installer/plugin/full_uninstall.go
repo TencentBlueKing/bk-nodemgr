@@ -21,6 +21,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/pluginhandler"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 	"path/filepath"
 )
@@ -67,7 +68,15 @@ func NewFullUninstall() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogURL(callbackSvrAddr))
+			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
+			if len(callbackSvrAddrs) == 0 {
+				return fmt.Errorf("callback server address is empty or invalid")
+			}
+			logURLs, err := reportLogURLs(callbackSvrAddrs)
+			if err != nil {
+				return fmt.Errorf("failed to build log report URLs: %w", err)
+			}
+			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, logURLs)
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
@@ -84,7 +93,7 @@ func NewFullUninstall() *cobra.Command {
 					Token:           deployToken,
 					OperInstID:      operInstID,
 					Status:          state,
-					CallbackSvrAddr: callbackSvrAddr,
+					CallbackSvrAddr: callbackSvrAddrs,
 				}).Run(cmd.Context())
 			}()
 
@@ -97,7 +106,7 @@ func NewFullUninstall() *cobra.Command {
 
 			// report data.
 			if err := datareporter.NewStep(datareporter.StepArgs{
-				CallbackSvrAddr: callbackSvrAddr,
+				CallbackSvrAddr: callbackSvrAddrs,
 				Token:           deployToken,
 			}).Run(cmd.Context()); err != nil {
 				return err

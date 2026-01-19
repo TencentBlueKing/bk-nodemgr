@@ -37,12 +37,12 @@ type StepArgs struct {
 	Token           string
 	OperInstID      string
 	Status          types.ProcessState
-	CallbackSvrAddr string
+	CallbackSvrAddr []string
 }
 
 // String step args string message.
 func (args StepArgs) String() string {
-	return fmt.Sprintf("token(%s), oper-inst-id(%s), status(%s), callback-svr-addr(%s)",
+	return fmt.Sprintf("token(%s), oper-inst-id(%s), status(%s), callback-svr-addrs(%v)",
 		args.Token, args.OperInstID, args.Status, args.CallbackSvrAddr)
 }
 
@@ -57,9 +57,9 @@ func (step *Step) Run(ctx context.Context) error {
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
-		if err := step.reportStatus(ctx); err != nil {
+		if err := step.reportStatusMultiEndpoint(ctx); err != nil {
 			logger.Errorf(node.StepReportStatus,
-				"failed to retry report status. attempt(%d): %v", attempt, err)
+				"failed to retry multi-endpoint report status. attempt(%d): %v", attempt, err)
 
 			return err
 		}
@@ -77,9 +77,31 @@ func (step *Step) Run(ctx context.Context) error {
 
 const (
 	reportStatusTimeout = 10 * time.Second
+	reportStatusPath    = "/api/v3/callback/workflow/node_install/report_status"
 )
 
-func (step *Step) reportStatus(ctx context.Context) error {
+// reportStatusMultiEndpoint tries multiple server addresses in order until one succeeds.
+func (step *Step) reportStatusMultiEndpoint(ctx context.Context) error {
+	if len(step.args.CallbackSvrAddr) == 0 {
+		return fmt.Errorf("no callback server addresses provided")
+	}
+
+	var lastErr error
+	for i, callbackSvrAddr := range step.args.CallbackSvrAddr {
+		logger.Infof(node.StepReportStatus, "attempting to report status to server, index(%d/%d), url(%s)", i+1, len(step.args.CallbackSvrAddr), callbackSvrAddr)
+		err := step.reportStatus(ctx, callbackSvrAddr)
+		if err == nil {
+			return nil
+		}
+		logger.Warnf(node.StepReportStatus, "failed to report status: %v", err)
+		lastErr = err
+	}
+
+	// All servers failed, return error with server addresses for debugging
+	return fmt.Errorf("failed to report status to all %d server(s) %v: %w", len(step.args.CallbackSvrAddr), step.args.CallbackSvrAddr, lastErr)
+}
+
+func (step *Step) reportStatus(ctx context.Context, baseURL string) error {
 	type reportStatusReq struct {
 		Token      string `json:"token"`
 		OperInstID string `json:"oper_inst_id"`
@@ -96,7 +118,7 @@ func (step *Step) reportStatus(ctx context.Context) error {
 		return fmt.Errorf("failed to marshal status request: %w", err)
 	}
 
-	reportURL, err := url.JoinPath(step.args.CallbackSvrAddr, "/api/v3/callback/workflow/node_install/report_status")
+	reportURL, err := url.JoinPath(baseURL, reportStatusPath)
 	if err != nil {
 		return fmt.Errorf("failed to format status URL: %w", err)
 	}

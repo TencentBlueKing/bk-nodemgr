@@ -35,8 +35,8 @@ type Step struct {
 
 // StepArgs define args for step.
 type StepArgs struct {
-	DownloadSvrAddr    string
-	CallbackSvrAddr    string
+	DownloadSvrAddr    []string
+	CallbackSvrAddr    []string
 	NodeRole           types.NodeRole
 	DeployToken        string
 	Generation         types.Generation
@@ -125,7 +125,35 @@ func (step *Step) Run(ctx context.Context) error {
 
 const (
 	maxTime = 300 * time.Second
+
+	// API paths for node installer file download.
+	getAgentConfigPath      = "/api/v3/callback/workflow/node_install/get_agent_config"
+	getFileProxyConfigPath  = "/api/v3/callback/workflow/node_install/get_file_proxy_config"
+	getDataProxyConfigPath  = "/api/v3/callback/workflow/node_install/get_data_proxy_config"
+	getCheckListPath        = "/api/v3/callback/workflow/node_install/get_check_list"
+	downloadReleaseBasePath = "/api/v3/download"
 )
+
+// downloadFileMultiEndpoint tries multiple server addresses in order until one succeeds.
+func (step *Step) downloadFileMultiEndpoint(ctx context.Context, reqBody any, serverAddrs []string, subURL, savedPath string) error {
+	if len(serverAddrs) == 0 {
+		return fmt.Errorf("no server addresses provided")
+	}
+
+	var lastErr error
+	for i, serverAddr := range serverAddrs {
+		logger.Infof(node.StepDownloadFiles, "attempting to download from server, index(%d/%d), url(%s)", i+1, len(serverAddrs), serverAddr)
+		err := step.downloadFile(ctx, reqBody, serverAddr, subURL, savedPath)
+		if err == nil {
+			return nil
+		}
+		logger.Warnf(node.StepDownloadFiles, "failed to download: %v", err)
+		lastErr = err
+	}
+
+	// All servers failed, return error with server addresses for debugging
+	return fmt.Errorf("failed to download from all %d server(s) %v: %w", len(serverAddrs), serverAddrs, lastErr)
+}
 
 func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL, savedPath string) error {
 	downloadURL, err := url.JoinPath(baseURL, subURL)
@@ -188,10 +216,10 @@ func (step *Step) downloadAgentConfig(ctx context.Context) error {
 	}
 
 	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_agent.conf")
-	if err := step.downloadFile(ctx,
+	if err := step.downloadFileMultiEndpoint(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/api/v3/callback/workflow/node_install/get_agent_config",
+		getAgentConfigPath,
 		savedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get agent config: %v", err)
 
@@ -219,10 +247,10 @@ func (step *Step) downloadFileProxyConfig(ctx context.Context) error {
 	}
 
 	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_file_proxy.conf")
-	if err := step.downloadFile(ctx,
+	if err := step.downloadFileMultiEndpoint(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/api/v3/callback/workflow/node_install/get_file_proxy_config",
+		getFileProxyConfigPath,
 		savedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get file proxy config: %v", err)
 
@@ -250,10 +278,10 @@ func (step *Step) downloadDataProxyConfig(ctx context.Context) error {
 	}
 
 	savedPath := filepath.Join(step.args.ConfigSavedDir, "gse_data_proxy.conf")
-	if err := step.downloadFile(ctx,
+	if err := step.downloadFileMultiEndpoint(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/api/v3/callback/workflow/node_install/get_data_proxy_config",
+		getDataProxyConfigPath,
 		savedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get data proxy config: %v", err)
 
@@ -280,10 +308,10 @@ func (step *Step) downloadCheckList(ctx context.Context) error {
 		Token:    step.args.DeployToken,
 	}
 
-	if err := step.downloadFile(ctx,
+	if err := step.downloadFileMultiEndpoint(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/api/v3/callback/workflow/node_install/get_check_list",
+		getCheckListPath,
 		step.args.CheckListSavedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get check list: %v", err)
 
@@ -311,10 +339,11 @@ func (step *Step) downloadReleasePackage(ctx context.Context) error {
 		Generation: int(step.args.Generation),
 	}
 
-	if err := step.downloadFile(ctx,
+	downloadPath := downloadReleaseBasePath + "/" + string(step.args.NodeRole)
+	if err := step.downloadFileMultiEndpoint(ctx,
 		requestBody,
 		step.args.DownloadSvrAddr,
-		"/api/v3/download/"+string(step.args.NodeRole),
+		downloadPath,
 		step.args.PkgSavedPath); err != nil {
 		logger.Errorf(node.StepDownloadFiles, "failed to get release package: %v", err)
 

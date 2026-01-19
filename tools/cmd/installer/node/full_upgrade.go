@@ -29,6 +29,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/logreporter"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -85,7 +86,15 @@ func NewFullUpgrade() *cobra.Command {
 		// nolint: nonamedreturns
 		RunE: func(cmd *cobra.Command, _ []string) (runErr error) {
 			// init log settings.
-			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, reportLogURL(callbackSvrAddr))
+			callbackSvrAddrs := utils.SplitServerAddrs(callbackSvrAddr)
+			if len(callbackSvrAddrs) == 0 {
+				return fmt.Errorf("callback server address is empty or invalid")
+			}
+			logURLs, err := reportLogURLs(callbackSvrAddrs)
+			if err != nil {
+				return fmt.Errorf("failed to build log report URLs: %w", err)
+			}
+			lHandler := logreporter.NewHandler(logDir, logToStd, deployToken, operInstID, logURLs)
 			if err := lHandler.Start(); err != nil {
 				return fmt.Errorf("failed to init logger: %w", err)
 			}
@@ -102,15 +111,20 @@ func NewFullUpgrade() *cobra.Command {
 					Token:           deployToken,
 					OperInstID:      operInstID,
 					Status:          state,
-					CallbackSvrAddr: callbackSvrAddr,
+					CallbackSvrAddr: callbackSvrAddrs,
 				}).Run(cmd.Context())
 			}()
 
 			// download files.
 			if !skipDownload {
+				downloadSvrAddrs := utils.SplitServerAddrs(downloadSvrAddr)
+				if len(downloadSvrAddrs) == 0 {
+					return fmt.Errorf("download server address is empty or invalid")
+				}
+
 				if err := filedownloader.NewStep(filedownloader.StepArgs{
-					DownloadSvrAddr:    downloadSvrAddr,
-					CallbackSvrAddr:    callbackSvrAddr,
+					DownloadSvrAddr:    downloadSvrAddrs,
+					CallbackSvrAddr:    callbackSvrAddrs,
 					NodeRole:           persistentVars.NodeRole,
 					Generation:         persistentVars.Generation,
 					DeployToken:        deployToken,
@@ -160,7 +174,7 @@ func NewFullUpgrade() *cobra.Command {
 
 			// report data.
 			if err := datareporter.NewStep(datareporter.StepArgs{
-				CallbackSvrAddr: callbackSvrAddr,
+				CallbackSvrAddr: callbackSvrAddrs,
 				Token:           deployToken,
 				AgentID:         agentID,
 				OperInstID:      operInstID,

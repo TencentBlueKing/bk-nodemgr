@@ -20,7 +20,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/plugin"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/types"
@@ -36,12 +36,12 @@ type StepArgs struct {
 	Token           string
 	OperInstID      string
 	Status          types.ProcessState
-	CallbackSvrAddr string
+	CallbackSvrAddr []string
 }
 
 // String step args string message.
 func (args StepArgs) String() string {
-	return fmt.Sprintf("token(%s), oper-inst-id(%s), status(%s), callback-svr-addr(%s)",
+	return fmt.Sprintf("token(%s), oper-inst-id(%s), status(%s), callback-svr-addrs(%v)",
 		args.Token, args.OperInstID, args.Status, args.CallbackSvrAddr)
 }
 
@@ -52,33 +52,55 @@ func NewStep(args StepArgs) *Step {
 
 // Run run the step to report data.
 func (step *Step) Run(ctx context.Context) error {
-	logger.Infof(node.StepReportStatus, "start to report status: %s", step.args.String())
+	logger.Infof(plugin.StepReportStatus, "start to report status: %s", step.args.String())
 
 	backoff := retrier.NewExpoBackoff(retrier.ExpoBackoffOptsDefault())
 	if err := backoff.Do(ctx, func(attempt int) error {
-		if err := step.reportStatus(ctx); err != nil {
-			logger.Errorf(node.StepReportStatus,
-				"failed to retry report status. attempt(%d): %v", attempt, err)
+		if err := step.reportStatusMultiEndpoint(ctx); err != nil {
+			logger.Errorf(plugin.StepReportStatus,
+				"failed to retry multi-endpoint report status. attempt(%d): %v", attempt, err)
 
 			return err
 		}
 
 		return nil
 	}); err != nil {
-		logger.Errorf(node.StepReportStatus, "failed to report status: %v", err)
+		logger.Errorf(plugin.StepReportStatus, "failed to report status: %v", err)
 		return fmt.Errorf("failed to report status: %w", err)
 	}
 
-	logger.Infof(node.StepReportStatus, "reported status")
+	logger.Infof(plugin.StepReportStatus, "reported status")
 
 	return nil
 }
 
 const (
 	reportStatusTimeout = 10 * time.Second
+	reportStatusPath    = "/api/v3/callback/workflow/plugin/report_status"
 )
 
-func (step *Step) reportStatus(ctx context.Context) error {
+// reportStatusMultiEndpoint tries multiple server addresses in order until one succeeds.
+func (step *Step) reportStatusMultiEndpoint(ctx context.Context) error {
+	if len(step.args.CallbackSvrAddr) == 0 {
+		return fmt.Errorf("no callback server addresses provided")
+	}
+
+	var lastErr error
+	for i, callbackSvrAddr := range step.args.CallbackSvrAddr {
+		logger.Infof(plugin.StepReportStatus, "attempting to report status to server, index(%d/%d), url(%s)", i+1, len(step.args.CallbackSvrAddr), callbackSvrAddr)
+		err := step.reportStatus(ctx, callbackSvrAddr)
+		if err == nil {
+			return nil
+		}
+		logger.Warnf(plugin.StepReportStatus, "failed to report status: %v", err)
+		lastErr = err
+	}
+
+	// All servers failed, return error with server addresses for debugging
+	return fmt.Errorf("failed to report status to all %d server(s) %v: %w", len(step.args.CallbackSvrAddr), step.args.CallbackSvrAddr, lastErr)
+}
+
+func (step *Step) reportStatus(ctx context.Context, baseURL string) error {
 	type reportStatusReq struct {
 		Token      string `json:"token"`
 		OperInstID string `json:"oper_inst_id"`
@@ -94,7 +116,7 @@ func (step *Step) reportStatus(ctx context.Context) error {
 		return fmt.Errorf("failed to marshal status request: %w", err)
 	}
 
-	reportURL, err := url.JoinPath(step.args.CallbackSvrAddr, "/api/v3/callback/workflow/plugin/report_status")
+	reportURL, err := url.JoinPath(baseURL, reportStatusPath)
 	if err != nil {
 		return fmt.Errorf("failed to format status URL: %w", err)
 	}
@@ -118,7 +140,7 @@ func (step *Step) reportStatus(ctx context.Context) error {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		logger.Errorf(node.StepReportStatus, "failed to send request to report status. resp-code(%d), resp-body(%s)",
+		logger.Errorf(plugin.StepReportStatus, "failed to send request to report status. resp-code(%d), resp-body(%s)",
 			resp.StatusCode, body)
 
 		return fmt.Errorf("failed to send status request. resp-code(%d)", resp.StatusCode)

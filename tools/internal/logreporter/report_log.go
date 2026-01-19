@@ -24,6 +24,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/retrier"
 )
 
@@ -47,19 +49,19 @@ type ReportLogsArgs struct {
 	// BulkSize the number of logs that can be sent in one bulk request.
 	BulkSize int
 
-	// ReportLogURL the URL for report log.
-	ReportLogURL string
+	// ReportLogURLs the URLs for report log (multiple server addresses).
+	ReportLogURLs []string
 }
 
 // Reporter report logs.
 type Reporter struct {
-	token        string
-	operInstID   string
-	reader       io.ReadCloser
-	mu           sync.Mutex
-	logRptCnt    uint
-	bulkSize     int
-	reportLogURL string
+	token         string
+	operInstID    string
+	reader        io.ReadCloser
+	mu            sync.Mutex
+	logRptCnt     uint
+	bulkSize      int
+	reportLogURLs []string
 }
 
 // Validate ReportLogsArgs.
@@ -82,12 +84,12 @@ func (reporter *Reporter) Validate() error {
 // NewReporter new reporter.
 func NewReporter(args ReportLogsArgs) *Reporter {
 	reporter := &Reporter{
-		token:        args.Token,
-		operInstID:   args.OperInstID,
-		reader:       args.Reader,
-		logRptCnt:    args.LogRptCnt,
-		bulkSize:     args.BulkSize,
-		reportLogURL: args.ReportLogURL,
+		token:         args.Token,
+		operInstID:    args.OperInstID,
+		reader:        args.Reader,
+		logRptCnt:     args.LogRptCnt,
+		bulkSize:      args.BulkSize,
+		reportLogURLs: args.ReportLogURLs,
 	}
 
 	return reporter
@@ -132,7 +134,7 @@ func (reporter *Reporter) ReportLogs(ctx context.Context) (uint, error) {
 	for _, line := range bulkLog {
 		logEntry, err := convLogLineToLogEntry(line)
 		if err != nil {
-			fmt.Printf("covnert log line failed: %v\n", err)
+			logger.Warnf(node.StepGeneral, "failed to convert log line: %v", err)
 			continue
 		}
 
@@ -148,7 +150,7 @@ func (reporter *Reporter) ReportLogs(ctx context.Context) (uint, error) {
 			Logs:       entries,
 		}
 
-		if err := bulkReportLogs(ctx, backoff, reporter.reportLogURL, req); err != nil {
+		if err := bulkReportLogsMultiEndpoint(ctx, backoff, reporter.reportLogURLs, req); err != nil {
 			return 0, fmt.Errorf("bulk report logs failed: %v", err)
 		}
 	}
@@ -183,7 +185,28 @@ func splitIntoN(items []*LogEntry, num int) [][]*LogEntry {
 
 const bulkReportLogsTimeout = 10 * time.Second
 
-// bulkReportLogs bulk report logs.
+// bulkReportLogsMultiEndpoint tries multiple server addresses in order until one succeeds.
+func bulkReportLogsMultiEndpoint(ctx context.Context, retrier retrier.Retrier, reportURLs []string, req *ReportLogReq) error {
+	if len(reportURLs) == 0 {
+		return fmt.Errorf("no report log URLs provided")
+	}
+
+	var lastErr error
+	for i, reportURL := range reportURLs {
+		logger.Infof(node.StepGeneral, "attempting to report logs to server, index(%d/%d), url(%s)", i+1, len(reportURLs), reportURL)
+		err := bulkReportLogs(ctx, retrier, reportURL, req)
+		if err == nil {
+			return nil
+		}
+		logger.Warnf(node.StepGeneral, "failed to report logs: %v", err)
+		lastErr = err
+	}
+
+	// All servers failed, return error with server URLs for debugging
+	return fmt.Errorf("failed to report logs to all %d server(s) %v: %w", len(reportURLs), reportURLs, lastErr)
+}
+
+// bulkReportLogs bulk report logs to a single server.
 func bulkReportLogs(ctx context.Context, retrier retrier.Retrier, reportURL string, req *ReportLogReq) error {
 	jsonData, err := json.Marshal(req)
 	if err != nil {
@@ -215,7 +238,7 @@ func bulkReportLogs(ctx context.Context, retrier retrier.Retrier, reportURL stri
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
-			fmt.Printf("send report request failed, status: %d, body: %s\n", resp.StatusCode, body)
+			logger.Errorf(node.StepGeneral, "failed to send report request, status: %d, body: %s", resp.StatusCode, body)
 
 			return fmt.Errorf("send report request failed, status: %d", resp.StatusCode)
 		}

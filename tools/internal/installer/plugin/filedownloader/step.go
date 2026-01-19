@@ -33,8 +33,8 @@ type Step struct {
 
 // StepArgs define args for step.
 type StepArgs struct {
-	DownloadSvrAddr string
-	CallbackSvrAddr string
+	DownloadSvrAddr []string
+	CallbackSvrAddr []string
 
 	PluginGroup    string
 	PluginName     string
@@ -99,7 +99,32 @@ func (step *Step) Run(ctx context.Context) error {
 
 const (
 	maxTime = 300 * time.Second
+
+	// API paths for plugin installer file download.
+	getPluginConfigPath = "/api/v3/callback/workflow/plugin/get_main_config"
+	downloadPluginPath  = "/api/v3/download/plugin"
 )
+
+// downloadFileMultiEndpoint tries multiple server addresses in order until one succeeds.
+func (step *Step) downloadFileMultiEndpoint(ctx context.Context, reqBody any, serverAddrs []string, subURL, savedPath string) error {
+	if len(serverAddrs) == 0 {
+		return fmt.Errorf("no server addresses provided")
+	}
+
+	var lastErr error
+	for i, serverAddr := range serverAddrs {
+		logger.Infof(plugin.StepDownloadFiles, "attempting to download from server, index(%d/%d), url(%s)", i+1, len(serverAddrs), serverAddr)
+		err := step.downloadFile(ctx, reqBody, serverAddr, subURL, savedPath)
+		if err == nil {
+			return nil
+		}
+		logger.Warnf(plugin.StepDownloadFiles, "failed to download: %v", err)
+		lastErr = err
+	}
+
+	// All servers failed, return error with server addresses for debugging
+	return fmt.Errorf("failed to download from all %d server(s) %v: %w", len(serverAddrs), serverAddrs, lastErr)
+}
 
 func (step *Step) downloadFile(ctx context.Context, reqBody any, baseURL, subURL, savedPath string) error {
 	downloadURL, err := url.JoinPath(baseURL, subURL)
@@ -164,10 +189,10 @@ func (step *Step) downloadPluginConfig(ctx context.Context) error {
 	}
 
 	savedPath := filepath.Join(step.args.ConfigSavedDir, pluginConfName(step.args.PluginPkgName))
-	if err := step.downloadFile(ctx,
+	if err := step.downloadFileMultiEndpoint(ctx,
 		requestBody,
 		step.args.CallbackSvrAddr,
-		"/api/v3/callback/workflow/plugin/get_main_config",
+		getPluginConfigPath,
 		savedPath); err != nil {
 		logger.Errorf(plugin.StepDownloadFiles, "failed to get config: %v", err)
 
@@ -194,10 +219,10 @@ func (step *Step) downloadReleasePackage(ctx context.Context) error {
 		Version:       step.args.PkgVersion,
 	}
 
-	if err := step.downloadFile(ctx,
+	if err := step.downloadFileMultiEndpoint(ctx,
 		requestBody,
 		step.args.DownloadSvrAddr,
-		"/api/v3/download/plugin",
+		downloadPluginPath,
 		step.args.PkgSavedPath); err != nil {
 		logger.Errorf(plugin.StepDownloadFiles, "failed to get release package: %v", err)
 

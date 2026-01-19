@@ -34,11 +34,11 @@ func TestReporter_ReportLogs(t *testing.T) {
 	file, _ := os.Open(os.Getenv("NODEMGR_LOG_FILE"))
 
 	type fields struct {
-		token            string
-		reader           io.ReadCloser
-		logRptCnt        uint
-		bulkSize         int
-		callbackEndpoint string
+		token         string
+		reader        io.ReadCloser
+		logRptCnt     uint
+		bulkSize      int
+		reportLogURLs []string
 	}
 	type args struct {
 		ctx context.Context
@@ -52,11 +52,11 @@ func TestReporter_ReportLogs(t *testing.T) {
 		{
 			name: "normal",
 			fields: fields{
-				token:            os.Getenv("BK_NODEMGR_TOKEN"),
-				reader:           file,
-				logRptCnt:        0,
-				bulkSize:         110,
-				callbackEndpoint: os.Getenv("BK_NODEMGR_CALLBACK_ENDPOINT"),
+				token:         os.Getenv("BK_NODEMGR_TOKEN"),
+				reader:        file,
+				logRptCnt:     0,
+				bulkSize:      110,
+				reportLogURLs: []string{os.Getenv("BK_NODEMGR_CALLBACK_ENDPOINT")},
 			},
 			args: args{
 				ctx: context.Background(),
@@ -67,11 +67,11 @@ func TestReporter_ReportLogs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reporter := NewReporter(ReportLogsArgs{
-				Token:            tt.fields.token,
-				Reader:           tt.fields.reader,
-				LogRptCnt:        tt.fields.logRptCnt,
-				BulkSize:         tt.fields.bulkSize,
-				CallbackEndpoint: tt.fields.callbackEndpoint,
+				Token:         tt.fields.token,
+				Reader:        tt.fields.reader,
+				LogRptCnt:     tt.fields.logRptCnt,
+				BulkSize:      tt.fields.bulkSize,
+				ReportLogURLs: tt.fields.reportLogURLs,
 			})
 			got, err := reporter.ReportLogs(tt.args.ctx)
 			if err != nil {

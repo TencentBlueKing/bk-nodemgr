@@ -17,6 +17,9 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/tools/internal/installer/node"
+	"github.com/TencentBlueKing/bk-nodemgr/tools/pkg/logger"
 )
 
 const (
@@ -29,17 +32,17 @@ const (
 )
 
 // NewHandler creates a new logger handler.
-func NewHandler(logDir string, logToStd bool, deployToken, operInstID, reportLogURL string) *Handler {
+func NewHandler(logDir string, logToStd bool, deployToken, operInstID string, reportLogURLs []string) *Handler {
 	return &Handler{
 		logDir:      logDir,
 		logToStd:    logToStd,
 		logFilePath: filepath.Join(logDir, fmt.Sprintf("installer_%s.log", time.Now().Format("2006-01-02T15-04-05"))),
 		args: ReportLogsArgs{
-			Token:        deployToken,
-			OperInstID:   operInstID,
-			LogRptCnt:    0,
-			BulkSize:     defaultLogReportBulkSize,
-			ReportLogURL: reportLogURL,
+			Token:         deployToken,
+			OperInstID:    operInstID,
+			LogRptCnt:     0,
+			BulkSize:      defaultLogReportBulkSize,
+			ReportLogURLs: reportLogURLs,
 		},
 	}
 }
@@ -86,7 +89,7 @@ func (lh *Handler) Start() error {
 	errCh, stopper := lh.reporter.Watch(1 * time.Second)
 	go func() {
 		for err := range errCh {
-			fmt.Println("failed to report logs: ", err.Error())
+			logger.Errorf(node.StepGeneral, "log reporter error: %v", err)
 		}
 	}()
 	lh.watchStopper = stopper
