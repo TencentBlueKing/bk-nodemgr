@@ -33,6 +33,14 @@
 
 在插件配置模板文件中，可以使用以下变量进行渲染：
 
+> v3 插件中不再提供 `子配置路径` 变量，请自行使用插件安装路径或插件配置路径等变量自行组合拼接
+>
+> nodemgr 在下发主配置文件时默认会将配置文件下发到插件配置路径下
+>
+> nodemgr 在下发子配置文件时，会严格按照插件包的 `definition.yaml` 文件中各子配置的 `filePath` 路径进行下发
+>
+> 请确保插件包中 `definition.yaml` 文件内各子配置的 `filePath` 路径安全合法，避免出现路径遍历等安全问题
+
 ```yaml
 PluginInfo:
     Name: 插件的二进制文件名称, 与project.yaml文件中的name字段一致
@@ -40,12 +48,12 @@ PluginInfo:
     DataPath: 插件数据路径
     PidPath: 插件PID文件路径
     SetupPath: 插件安装路径
+    ConfigPath: 插件配置路径
     HostIDPath: 主机ID文件路径
     PluginIPC: PluginIPC路径，windows为端口号，linux为文件路径
     DataIPC: DataIPC路径，windows为端口号，linux为文件路径
     AgentDir: Agent安装路径
     GroupID: 插件所属的Group ID
-    SubConfigPath: 子配置文件存放路径
     IsMultiTenant: 是否为多租户插件，true或false
 NodeInfo:
     HostID: 主机ID

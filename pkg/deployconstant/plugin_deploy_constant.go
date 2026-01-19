@@ -113,24 +113,29 @@ func populatePluginDefaultValues(conf *PluginDeployConf) {
 	}
 }
 
-// GenerateDefaultRunDir generates the default run directory based on plugin group and plugin name.
-func (conf PluginDeployConf) GenerateDefaultRunDir(pluginGroup, pluginName string) string {
-	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName, pluginRunDirName)
-}
-
-// GenerateDefaultDataDir generates the default data directory based on plugin group and plugin name.
-func (conf PluginDeployConf) GenerateDefaultDataDir(pluginGroup, pluginName string) string {
-	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName, pluginDataDirName)
-}
-
 // GenerateDefaultSetupPath generates the default setup path based on plugin group and plugin name.
 func (conf PluginDeployConf) GenerateDefaultSetupPath(pluginGroup, pluginName string) string {
 	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName)
 }
 
+// GenerateDefaultRunDir generates the default run directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GenerateDefaultRunDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.GenerateDefaultSetupPath(pluginGroup, pluginName), pluginRunDirName)
+}
+
+// GenerateDefaultDataDir generates the default data directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GenerateDefaultDataDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.GenerateDefaultSetupPath(pluginGroup, pluginName), pluginDataDirName)
+}
+
+// GenerateDefaultConfigDir generates the default configuration directory based on plugin group and plugin name.
+func (conf PluginDeployConf) GenerateDefaultConfigDir(pluginGroup, pluginName string) string {
+	return tool.JoinPath(conf.OsType, conf.GenerateDefaultSetupPath(pluginGroup, pluginName), pluginConfigDirName)
+}
+
 // GenerateDefaultSubConfigDir generates the default sub-configuration directory based on plugin group and plugin name.
-func (conf PluginDeployConf) GenerateDefaultSubConfigDir(pluginGroup, pluginName string) string {
-	return tool.JoinPath(conf.OsType, conf.DeployDir, pluginGroup, pluginName, pluginConfigDirName, pluginName)
+func (conf PluginDeployConf) GenerateDefaultSubConfigDir(pluginGroup, pluginName, targetRelatedFilePath string) string {
+	return tool.JoinPath(conf.OsType, conf.GenerateDefaultSetupPath(pluginGroup, pluginName), targetRelatedFilePath)
 }
 
 // GetCommonConstants returns the common constants by target plugin name.

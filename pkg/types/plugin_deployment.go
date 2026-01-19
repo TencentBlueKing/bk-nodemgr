@@ -59,6 +59,9 @@ type PluginConfigDetail struct {
 
 	// IsMainConfig indicates whether it is the main configuration file.
 	IsMainConfig bool
+
+	// FilePath is the relative path of the config file to the deploydir deployed by the plugin
+	FilePath string
 }
 
 // PluginDeploymentInfo defines the plugin deployment info.

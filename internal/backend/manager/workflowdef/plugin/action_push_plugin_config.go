@@ -127,14 +127,23 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 	endpoints := []*types.Endpoint{{AgentID: host.Dynamic.AgentID}}
 	tasks := make([]*types.PushFileDetail, 0, len(pluginConf))
 	for _, pluginConfDetail := range pluginConf {
-		if pluginConfDetail == nil {
+		// notice: push plugin config only push sub config files, not main config file
+		if pluginConfDetail == nil || pluginConfDetail.IsMainConfig {
 			continue
+		}
+
+		storeDir := pluginDeployConf.GenerateDefaultSubConfigDir(
+			std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName, pluginConfDetail.FilePath,
+		)
+
+		if err = pluginUtils.CheckDirPathSafe(storeDir, std.DeployInfo().Process.Platform.OS); err != nil {
+			return fmt.Errorf("check config store dir safe failed, dir(%s): %w", storeDir, err)
 		}
 
 		tasks = append(tasks, &types.PushFileDetail{
 			FileName:    pluginConfDetail.Name,
 			FileContent: pluginConfDetail.Content,
-			StoreDir:    pluginDeployConf.GenerateDefaultSubConfigDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
+			StoreDir:    storeDir,
 			Owner:       host.Dynamic.LoginUser,
 			Endpoints:   endpoints,
 		})

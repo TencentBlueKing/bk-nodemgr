@@ -13,6 +13,7 @@ package plugin
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,7 +22,10 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -187,6 +191,7 @@ func fillConfigDetails(pluginRelease *types.ReleasePlugin, pluginConf *types.Plu
 				Name:         tpl.Name,
 				Content:      tpl.SourceContent,
 				IsMainConfig: tpl.IsMainConfig,
+				FilePath:     splitPathAndCombineByOS(tpl.FilePath, pluginRelease.Platform.OS),
 			}
 		}
 	}
@@ -195,12 +200,37 @@ func fillConfigDetails(pluginRelease *types.ReleasePlugin, pluginConf *types.Plu
 		if tpl, ok := templateMap[detail.Name]; ok {
 			pluginConf.ConfigFilesDetail[idx].Content = tpl.SourceContent
 			pluginConf.ConfigFilesDetail[idx].IsMainConfig = tpl.IsMainConfig
+			pluginConf.ConfigFilesDetail[idx].FilePath = splitPathAndCombineByOS(tpl.FilePath, pluginRelease.Platform.OS)
 		}
 	}
 
 	if len(pluginConf.ConfigFilesDetail) == 0 && mainTemplate != nil {
 		pluginConf.ConfigFilesDetail = []*types.PluginConfigDetail{mainTemplate}
 	}
+}
+
+func splitPathAndCombineByOS(fullPath string, osType criteria.OSType) string {
+	if len(fullPath) == 0 {
+		return fullPath
+	}
+
+	var paths []string
+	switch {
+	case strings.Contains(fullPath, string(filepath.Separator)):
+		paths = strings.Split(fullPath, string(filepath.Separator))
+	case strings.Contains(fullPath, string(winpath.DirSeparator)):
+		paths = strings.Split(fullPath, string(winpath.DirSeparator))
+	default:
+		return fullPath
+	}
+
+	sep := winpath.DirSeparator
+	if osType != criteria.OSWindows {
+		// notice: nodemgr is running on linux operating system, so we use filepath for non-windows OS type
+		sep = filepath.Separator
+	}
+
+	return strings.Join(paths, string(sep))
 }
 
 // ContextPluginInfo plugin info for render context.
@@ -211,12 +241,12 @@ type ContextPluginInfo struct {
 	DataPath      string `json:"DataPath"`
 	PidPath       string `json:"PidPath"`
 	SetupPath     string `json:"SetupPath"`
+	ConfigPath    string `json:"ConfigPath"`
 	HostIDPath    string `json:"HostIDPath"`
 	PluginIPC     string `json:"PluginIPC"`
 	DataIPC       string `json:"DataIPC"`
 	AgentDir      string `json:"AgentDir"`
 	GroupID       string `json:"GroupID"`
-	SubConfigPath string `json:"SubConfigPath"`
 	IsMultiTenant bool   `json:"IsMultiTenant"`
 }
 
@@ -356,12 +386,12 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateGoTemplateSystemCon
 		DataPath:      act.pluginDeployConstant.GenerateDefaultDataDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
 		PidPath:       act.pluginDeployConstant.GenerateDefaultRunDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
 		SetupPath:     act.pluginDeployConstant.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
+		ConfigPath:    act.pluginDeployConstant.GenerateDefaultConfigDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
 		HostIDPath:    act.nodeDeployConstant.HostIDPath,
 		PluginIPC:     act.nodeDeployConstant.GenerateDefaultPluginIPCPath(hostInfo.Dynamic.NodeRole),
 		DataIPC:       act.nodeDeployConstant.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
 		AgentDir:      act.nodeDeployConstant.DeployDir,
 		GroupID:       std.DeployInfo().Process.PluginGroup,
-		SubConfigPath: act.pluginDeployConstant.GenerateDefaultSubConfigDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
 		IsMultiTenant: tenant.GetMode() == tenant.ModeMultiple,
 	}
 
@@ -504,6 +534,15 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 		},
 	}
 
+	// notice: in v2 plugin, subconfig_path still need provide, and the path is fixed
+	subconfigDir := act.pluginDeployConstant.GenerateDefaultSubConfigDir(
+		std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName,
+		tool.JoinPath(std.DeployInfo().Process.Platform.OS, "etc", std.DeployInfo().Process.PluginName), // nolint: goconst
+	)
+	if err = pluginUtils.CheckDirPathSafe(subconfigDir, std.DeployInfo().Process.Platform.OS); err != nil {
+		return nil, fmt.Errorf("check subconfig dir safe failed, dir(%s): %w", subconfigDir, err)
+	}
+
 	pluginPath := map[string]any{
 		keyLogPath:       act.pluginDeployConstant.LogDir,
 		keyDataPath:      act.pluginDeployConstant.GenerateDefaultDataDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
@@ -511,7 +550,7 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) generateJinja2SystemConfigC
 		keySetupPath:     act.pluginDeployConstant.GenerateDefaultSetupPath(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
 		keyEndpoint:      act.nodeDeployConstant.GenerateDefaultDataIPCPath(hostInfo.Dynamic.NodeRole),
 		keyHostID:        act.nodeDeployConstant.HostIDPath,
-		keySubConfigPath: act.pluginDeployConstant.GenerateDefaultSubConfigDir(std.DeployInfo().Process.PluginGroup, std.DeployInfo().Process.PluginName),
+		keySubConfigPath: subconfigDir,
 	}
 
 	controlInfo := map[string]any{
