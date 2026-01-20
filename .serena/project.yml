@@ -22,7 +22,7 @@
 # The first language is the default language and the respective language server will be used as a fallback.
 # Note that when using the JetBrains backend, language servers are not used and this list is correspondingly ignored.
 languages:
-- go
+  - go
 
 # the encoding used by text files in the project
 # For a list of possible encodings, see https://docs.python.org/3.11/library/codecs.html#standard-encodings
@@ -83,7 +83,28 @@ excluded_tools: []
 
 # initial prompt for the project. It will always be given to the LLM upon activating the project
 # (contrary to the memories, which are loaded on demand).
-initial_prompt: ""
+initial_prompt: |
+  You are working on BlueKing Node Manager (bk-nodemgr), a Go-based microservices application for node management in the BlueKing platform.
+  
+  **Project Structure Overview:**
+  - `cmd/` - Service entry points (backend, application, file, relay)
+  - `pkg/` - Shared libraries (dao, rest, workflow, thirdparty, logger, config)
+  - `internal/` - Service-specific business logic
+  - `proto/` - API definitions (Protocol Buffers)
+  - `docs/` - Project documentation
+  
+  **Progressive Reading Guide:**
+  1. Read AGENTS.md for coding standards, conventions, and development workflow
+  2. Explore service directories in cmd/ to understand service boundaries
+  3. Review pkg/ packages to understand shared components and patterns
+  4. Check docs/ for API documentation, style guides, and concepts
+  5. Refer to Makefile for build commands and common operations
+  
+  **Key Context:**
+  - Language: Go 1.23.10
+  - Architecture: Microservices (backend, application, file, relay)
+  - Database: MongoDB, Cache: Redis
+  - Code quality: Follow .golangci.yml rules.
 
 project_name: "bk-nodemgr"
 included_optional_tools: []
