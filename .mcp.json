@@ -1,8 +1,9 @@
 {
   "mcpServers": {
     "context7": {
-      "type": "sse",
-      "url": "https://mcp.context7.com/sse"
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
     },
     "serena": {
       "type": "stdio",
