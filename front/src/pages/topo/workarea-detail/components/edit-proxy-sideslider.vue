@@ -115,7 +115,7 @@
 </template>
 <script lang="ts" setup>
 import { Button, Checkbox, Form, InfoBox, Input, Message, Select, Sideslider, Switcher } from 'bkui-vue';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import type { PropType } from 'vue';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -202,7 +202,15 @@ const handleChangeMode = (newValue: string) => {
   formData.login_mode = newValue;
   formData.credit = newValue === 'password_vault' ? '自动拉取' : '';
 };
+
+const originData = ref<any>();
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
+  // 没有修改，直接关闭
+  if (isEqual(formData, originData.value)) {
+    resolve(true);
+    isShow.value = false;
+    return;
+  }
   InfoBox({
     title: '确认关闭?',
     infoType: 'warning',
@@ -262,6 +270,21 @@ watch(() => isShow.value, () => {
       formData[key] = props.data?.proxy_tags.includes(key);
     });
     formData.credit = formData.login_mode === 'password_vault' ? '自动拉取' : '';
+    originData.value = cloneDeep(formData);
+  }
+  if (!isShow.value) {
+    // 重置表单数据
+    formData.export_ip = '';
+    formData.advertise_ip = '';
+    formData.login_ip = '';
+    formData.login_user = '';
+    formData.login_mode = '';
+    formData.login_password = '';
+    formData.login_key_file = '';
+    formData.proxy_tags = [];
+    formData.login_port = '';
+    formData.relay_download_port = '';
+    formData.relay_callback_port = '';
   }
 });
 </script>

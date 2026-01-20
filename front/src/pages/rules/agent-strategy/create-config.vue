@@ -160,6 +160,7 @@
 </template>
 <script lang="ts" setup>
 import { Button, Form, InfoBox, Input, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
+import { cloneDeep, isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 
 import type { NetworkArea, NetworkUnit } from '@/@types/topo';
@@ -182,18 +183,6 @@ const props = defineProps<{
 const emit = defineEmits(['save']);
 const mainStore = useMainStore();
 const userStore = useUserStore();
-
-const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
-  InfoBox({
-    title: '确认关闭?',
-    infoType: 'warning',
-    onConfirm: () => {
-      resolve(true);
-      isShow.value = false;
-    },
-    onCancel: () => reject(),
-  });
-});
 
 const title = computed(() => {
   const action = props.isEdit ? '编辑' : '新建';
@@ -251,6 +240,26 @@ const rules = {
   ],
   biz_id: [{ required: true, message: '业务不能为空', trigger: 'change' }],
 };
+
+const originData = ref(cloneDeep(formData));
+const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
+  // 没有修改数据，直接关闭
+  if (isEqual(formData, originData.value)) {
+    resolve(true);
+    isShow.value = false;
+    return;
+  }
+  InfoBox({
+    title: '确认关闭?',
+    infoType: 'warning',
+    onConfirm: () => {
+      resolve(true);
+      isShow.value = false;
+    },
+    onCancel: () => reject(),
+  });
+});
+
 const handleAdd = () => {
   formData.scopes.push({
     bk_networkarea_id: '-1',
@@ -369,6 +378,7 @@ watch(() => isShow.value, () => {
         cpu_arch: item.cpu_arch === '' ? '-1' : item.cpu_arch,
       }));
     }
+    originData.value = cloneDeep(formData);
   }
 }, { immediate: true });
 </script>

@@ -4,7 +4,7 @@
     <div class="flex items-center w-full h-[32px] mb-[16px]">
       <Button theme="primary" @click="handleUpload" class="mr-[16px]">包上传</Button>
       <SearchSelect
-        class="flex-1"
+        class="flex-1 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"
         v-model.trim="searchSelectValue"

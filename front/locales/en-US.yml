@@ -62,13 +62,13 @@ platform:
     copy: Copy
     uninstall: Uninstall
     bussinessTopology: Business topo
-    agentSearchPlaceholder: 'Search IP, Agent ID, BK-Net, BK-Net unit and more'
+    agentSearchPlaceholder: Please select IP, Agent ID, Cloud Area, or Control Unit...
     inner_ip: LAN IPv4
     inner_ipv6: LAN IPv6
     agentId: Agent ID
     bk_biz_id: Business ID
-    bk_cloud_name: BK-Net
-    bk_cloud_unit: BK-Net unit
+    bk_cloud_name: Cloud Area
+    bk_cloud_unit: Control Unit
     dept_name: Department
     os_type: Operating system
     bk_host_name: Host name
@@ -100,7 +100,7 @@ platform:
       button:
         hideAutoTask: Hide Auto-Deployment Tasks
       placeholder:
-        listSearch: Search by [Task ID], [Task Type], [Business], [Executor], [Execution Status]
+        listSearch: Please select Task ID, Task Type, Business, Executor, or Status
       taskType:
         install_agent: Install agent
         upgrade_agent: Upgrade agent
@@ -127,7 +127,7 @@ topoManager:
   workArea:
     title: Workarea
     search:
-      placeholder: Please enter the name, ID, and cloud service provider search for the controlled area
+      placeholder: Please select Cloud Area Name, Cloud Area ID, or Cloud Provider
       workareaName: Workarea name
       workareaId: Workarea ID
       vendor: Vendor
@@ -187,7 +187,7 @@ topoManager:
       installProxy: Install Proxy
       batch: Batch
     searchSelect:
-      placeholder: Please enter internal IPv4, internal IPv6, AgentAD to search
+      placeholder: Please select Internal IPv4, Internal IPv6, or Agent ID
     table:
       ipv4: Internal IPv4 network
       ipv6: Intranet IPv6
@@ -233,6 +233,7 @@ topoManager:
       content: Work Unit
       tips: After deletion, the proxy under the Work Unit will also be cleared. Please operate with caution!
     empty: No Work Unit currently available
+    emptyTips: You can create a Work Unit to view related data
     accessPoints:
       upstream: Upstream access point
       downstream: Downstream access point
@@ -307,7 +308,7 @@ topoManager:
     title: Operation Record
     searchPlaceholder:
       date: "For example: from January 30, 2019 to January 30, 2019"
-      searchSelect: Please enter the name of the control area, control area ID, control unit, operation, and operator search
+      searchSelect: Please select Cloud Area Name, Cloud Area ID, Control Unit, Action, or Operator
     table:
       workareaName: Workarea Name
       workareaId: Workarea ID

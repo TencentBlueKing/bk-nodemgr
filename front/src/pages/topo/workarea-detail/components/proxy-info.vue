@@ -36,7 +36,7 @@
       </template>
       <template #right>
         <SearchSelect
-          class="w-[480px]"
+          class="w-[480px] bg-[#fff]"
           :placeholder="$t('topoManager.workAreaDetail.searchSelect.placeholder')"
           :unique-select="true"
           v-model.trim="searchKey"

@@ -59,10 +59,16 @@
         </template>
         <template v-if="workUnitList.length === 0">
           <Exception
-            :description="$t('topoManager.workUnit.empty')"
+            class="exception-wrap-item"
+            :title="$t('topoManager.workUnit.empty')"
+            :description="$t('topoManager.workUnit.emptyTips')"
             scene="part"
             type="empty"
-          />
+          >
+            <Button theme="primary" @click="handleCreateWorkUnit">
+              {{ $t('topoManager.workUnit.title.create') }}
+            </Button>
+          </Exception>
         </template>
       </Tab>
       <UpsertWorkUnit
@@ -204,5 +210,31 @@ onMounted(() => {
 <style lang="less" scoped>
 :deep(.bk-tab-header-operation > .bk-tab-header-item) {
   background-color: unset !important;
+}
+</style>
+<style lang="postcss">
+.exception-wrap-item {
+  height: 435px;
+  .bk-exception-img {
+    width: 440px;
+    height: 200px;
+    img {
+      width: 440px;
+      height: 200px;
+    }
+  }
+  .bk-exception-title {
+    font-size: 24px;
+    color: #313238;
+    letter-spacing: 0;
+    line-height: 32px;
+  }
+  .bk-exception-description {
+    margin-top: 16px;
+    font-size: 14px;
+  }
+  .bk-exception-footer {
+    margin-top: 24px;
+  }
 }
 </style>

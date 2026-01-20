@@ -78,7 +78,7 @@
           :placeholder="$t('platform.nodeMan.bussinessTopology')"
         /> -->
         <SearchSelect
-          class="w-[480px] z-99"
+          class="w-[480px] z-99 bg-[#fff]"
           ref="searchSelect"
           :data="searchSelectData"
           v-model.trim="searchSelectValue"

@@ -60,7 +60,7 @@ platform:
     copy: 复制
     uninstall: 卸载
     bussinessTopology: 业务拓扑
-    agentSearchPlaceholder: 搜索IP、Agent ID、管控区域、管控单元...
+    agentSearchPlaceholder: 请选择 IP、Agent ID、管控区域、管控单元...
     inner_ip: 内网IPv4
     inner_ipv6: 内网IPv6
     agentId: Agent ID
@@ -98,7 +98,7 @@ platform:
       button:
         hideAutoTask: 隐藏自动部署任务
       placeholder:
-        listSearch: 搜索 任务ID、任务类型、业务、执行人、执行状态 搜索
+        listSearch: 请选择 任务ID、任务类型、业务、执行人、执行状态
       taskType:
         install_agent: Agent 安装
         upgrade_agent: Agent 升级
@@ -128,7 +128,7 @@ topoManager:
   workArea:
     title: 管控区域
     search:
-      placeholder: 请输入 管控区名称、管控区ID、云服务商 搜索
+      placeholder: 请选择 管控区名称、管控区ID、云服务商
       workareaName: 管控区域名称
       workareaId: 管控区域ID
       vendor: 云服务商
@@ -188,7 +188,7 @@ topoManager:
       installProxy: 安装 Proxy
       batch: 批量
     searchSelect:
-      placeholder: 请输入 内网IPv4、内网IPv6、AgentID 搜索
+      placeholder: 请选择 内网IPv4、内网IPv6、AgentID
     table:
       ipv4: 内网 IPv4
       ipv6: 内网 IPv6
@@ -234,6 +234,7 @@ topoManager:
       content: 管控单元
       tips: 删除后，管控单元下按照的Proxy也会被清除，请谨慎操作！
     empty: 暂无管控单元
+    emptyTips: 你可以去新建管控单元以查看相关数据
     accessPoints:
       upstream: 上游接入点
       downstream: 下游接入点
@@ -310,7 +311,7 @@ topoManager:
     title: 操作记录
     searchPlaceholder:
       date: 如：2019-01-30 至 2019-01-30
-      searchSelect: 请输入 管控区名称、管控区ID、管控单元、操作、操作人 搜索
+      searchSelect: 请选择 管控区名称、管控区ID、管控单元、操作、操作人
     table:
       workareaName: 管控区域名称
       workareaId: 管控区域ID

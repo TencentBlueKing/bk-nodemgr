@@ -30,9 +30,9 @@
             class="text-[14px]"
             @click="isShow = !isShow"
           >
-            <span class="mr-[8.5px]">{{ $t('platform.nodeMan.installAgentPage.AdvancedOptions') }}</span>
+            <span class="mr-[8.5px] text-[14px]">{{ $t('platform.nodeMan.installAgentPage.AdvancedOptions') }}</span>
             <angle-double-down-line
-              :class="{ 'transform rotate-180': isShow }"
+              :class="['text-[14px]', { 'transform rotate-180': isShow }]"
             />
           </Button>
         </Form.FormItem>

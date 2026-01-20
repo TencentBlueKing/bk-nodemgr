@@ -18,9 +18,18 @@
         :label="$t('topoManager.workArea.table.workareaName')"
         field="bk_networkarea_name"
         show-overflow="tooltip"
+        fixed="left"
         :min-width="280">
         <template #default="{ row }">
           <Button
+            v-if="row.bk_networkarea_id === 0"
+            text
+            class="mr-[12px]">
+            <i class="nodeman-icon nc-collect text-[#C4C6CC] text-[18px]">
+            </i>
+          </Button>
+          <Button
+            v-else
             text
             class="mr-[12px]"
             @click.stop="handleCollect(row.bk_networkarea_id)">
@@ -33,7 +42,7 @@
               v-else>
             </i>
           </Button>
-          <Button theme="primary" class="!text-[12px]" text @click="handleToWorkareaDetail(row.bk_networkarea_id)">
+          <Button theme="primary" text @click="handleToWorkareaDetail(row.bk_networkarea_id)">
             {{ row.bk_networkarea_name }}
           </Button>
         </template>
@@ -44,7 +53,7 @@
         show-overflow="tooltip"
         :min-width="240">
         <template #default="{ row }">
-          <span class="!text-[12px]">
+          <span>
             {{ row.bk_networkarea_id || row.bk_networkarea_id === 0 ? `#${row.bk_networkarea_id}` : '--' }}
           </span>
         </template>
@@ -56,7 +65,7 @@
         :filter="filterOption"
         :min-width="240">
         <template #default="{ row }">
-          <span class="!text-[12px]">
+          <span>
             {{ row.cloud_vendor && vendorMap[row.cloud_vendor] ?
               $t(
                 vendorMap[row.cloud_vendor]?.label
@@ -71,7 +80,7 @@
         show-overflow="tooltip"
         :min-width="240">
         <template #default="{ row }">
-          <span class="!text-[12px]">
+          <span>
             {{ !isNaN(row.networkunit_count) ? row.networkunit_count : '--' }}
           </span>
         </template>
@@ -82,7 +91,7 @@
         show-overflow="tooltip"
         :min-width="180">
         <template #default="{ row }">
-          <span class="!text-[12px]">
+          <span>
             {{ !isNaN(row.proxy_count) ? row.proxy_count : '--' }}
           </span>
         </template>
@@ -93,7 +102,7 @@
         show-overflow="tooltip"
         :min-width="180">
         <template #default="{ row }">
-          <span class="!text-[12px]">
+          <span>
             {{ !isNaN(row.agent_count) ? row.agent_count : '--' }}
           </span>
         </template>
@@ -102,6 +111,7 @@
         :label="$t('table.action')"
         field="action"
         show-overflow="tooltip"
+        fixed="right"
         :min-width="140">
         <template #default="{ row }">
           <div class="flex">
@@ -187,7 +197,7 @@ const filterOption = reactive<{
   checked: [],
 });
 const handleColumnFilter = ({ checked, field }: { checked: string[]; field: string }) => {
-  emit('filter', { checked, field })
+  emit('filter', { checked, field });
 };
 
 // 收藏管控区域

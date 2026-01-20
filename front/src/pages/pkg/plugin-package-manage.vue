@@ -7,12 +7,12 @@
         <span>包上传</span>
       </Button>
       <SearchSelect
-        class="ml-[16px] flex-1"
+        class="ml-[16px] flex-1 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
-        :placeholder="'请输入 插件包名、版本号、操作系统、架构、上传用户、状态、默认版本 搜索'"
+        :placeholder="'请选择 插件包名、版本号、操作系统、架构、上传用户、状态、默认版本'"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -21,13 +21,13 @@
       <div
         class="w-[240px] flex-shrink-0 bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full mr-[17px]"
       >
-        <div class="px-[16px] py-[10px] text-[12px]">快捷筛选</div>
+        <div class="px-[16px] py-[10px] text-[14px]">快捷筛选</div>
         <div v-for="option in dimensionList" :key="option.id">
           <div
             class="flex justify-between items-center bg-[#F0F1F5] h-[32px] px-[16px] cursor-pointer"
             :class="{ 'bg-[#fff]': !option.expand }"
             @click="handleExpand(option)">
-            <div class="text-[12px]">{{ option.name }}</div>
+            <div class="text-[14px]">{{ option.name }}</div>
             <angle-down v-show="option.expand" />
             <angle-right v-show="!option.expand" />
           </div>

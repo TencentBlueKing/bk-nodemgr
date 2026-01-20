@@ -21,14 +21,9 @@
         :name="defaultArea.bk_networkarea_name"
       >
         <div class="flex items-center group/item">
-          <Button text class="mr-2 w-[18px]" @click.stop="handleCollect(defaultArea.bk_networkarea_id)">
+          <Button text class="mr-2 w-[18px]">
             <i
-              v-if="isFavorited(defaultArea.bk_networkarea_id)"
-              class="nodeman-icon nc-collect text-[#ffb848] text-lg"
-            ></i>
-            <i
-              v-else
-              class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-lg opacity-0 group-hover/item:opacity-100"
+              class="nodeman-icon nc-collect text-[#C4C6CC] text-[16px]"
             ></i>
           </Button>
           <span class="truncate">
@@ -49,15 +44,15 @@
           <Button text class="mr-2 w-[18px] shrink-0" @click.stop="handleCollect(item.bk_networkarea_id)">
             <i
               v-if="isFavorited(item.bk_networkarea_id)"
-              class="nodeman-icon nc-collect text-[#ffb848] text-lg"
+              class="nodeman-icon nc-collect text-[#ffb848] text-[14px]"
             ></i>
             <i
               v-else
-              class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-lg opacity-0 group-hover/item:opacity-100"
+              class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[14px] opacity-0 group-hover/item:opacity-100"
             ></i>
           </Button>
           <div
-            class="flex-1 truncate text-sm"
+            class="flex-1 truncate"
             @mouseenter="handleTextMouseenter($event, item.bk_networkarea_id)"
             v-bk-tooltips="{
               content: `[${item.bk_networkarea_id}] ${item.bk_networkarea_name}`,

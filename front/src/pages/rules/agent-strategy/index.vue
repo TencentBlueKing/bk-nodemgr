@@ -1,5 +1,5 @@
 <template>
-  <Tab
+  <!-- <Tab
     v-model:active="active"
     type="unborder-card"
     :label-height="41"
@@ -12,8 +12,8 @@
       :name="item.name"
     >
     </Tab.TabPanel>
-  </Tab>
-  <div class="p-[24px] mt-[41px]">
+  </Tab> -->
+  <div class="p-[24px]">
     <div class="flex items-center justify-between">
       <div>
         <Button theme="primary" @click="handleCreate">
@@ -23,12 +23,12 @@
       </div>
       <div class="">
         <SearchSelect
-          class="w-[480px] z-99"
+          class="w-[480px] z-99 bg-[#fff]"
           ref="searchSelect"
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
-          :placeholder="'请输入 配置名称、修改人 搜索'"
+          :placeholder="'请选择 配置名称、修改人'"
           @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>

@@ -15,10 +15,11 @@
       <div class="flex-1 ml-[8px]">
         <SearchSelect
           ref="searchSelect"
+          class="bg-[#fff]"
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
-          :placeholder="'搜索版本号、操作系统、架构、操作类型、操作人、包类型'"
+          :placeholder="'请选择 版本号、操作系统、架构、操作类型、操作人、包类型'"
           @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>

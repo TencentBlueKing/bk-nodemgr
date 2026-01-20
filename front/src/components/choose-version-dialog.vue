@@ -53,10 +53,13 @@
           <TableColumn
             field="version"
             fixed="left"
-            :title="t('Agent 版本')"
             min-width="130"
             sortable
-          ></TableColumn>
+          >
+            <template #header>
+              <span class="text-[14px]">{{ $t('Agent 版本') }}</span>
+            </template>
+          </TableColumn>
           <TableColumn
             field="tag"
             min-width="80"

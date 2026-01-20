@@ -82,12 +82,11 @@
           <Button
             text
             theme="primary"
-            class="text-[14px]"
             @click="isShow = !isShow"
           >
-            <span class="mr-[8.5px]">{{ $t('platform.nodeMan.installAgentPage.AdvancedOptions') }}</span>
+            <span class="mr-[8.5px] text-[14px]">{{ $t('platform.nodeMan.installAgentPage.AdvancedOptions') }}</span>
             <angle-double-down-line
-              :class="{ 'transform rotate-180': isShow }"
+              :class="['text-[14px]', { 'transform rotate-180': isShow }]"
             />
           </Button>
         </Form.FormItem>
@@ -99,16 +98,19 @@
                 title="操作系统/架构"
                 width="200"
               >
+                <template #header>
+                  <span class="text-[14px]">操作系统/架构</span>
+                </template>
                 <template #default="{ row }">
                   {{ row.os?.replace('_', '/') }}
                 </template>
               </TableColumn>
               <TableColumn field="version" :title="$t('platform.nodeMan.installAgentPage.packageVersion')" width="368">
                 <template #header>
-                  <span class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.packageVersion') }}</span>
+                  <span class="mr-[2px] text-[14px]">{{ $t('platform.nodeMan.installAgentPage.packageVersion') }}</span>
                   <span class="mr-[10px] w-[14px] text-[#ea3636]">*</span>
                   <Button text @click="handleBatchEditVersion">
-                    <i class="nodeman-icon nc-bulk-edit cursor-pointer"></i>
+                    <i class="nodeman-icon nc-bulk-edit cursor-pointer text-[14px]"></i>
                   </Button>
                 </template>
                 <template #default="{ row }">

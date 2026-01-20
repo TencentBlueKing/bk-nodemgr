@@ -32,6 +32,7 @@
       <div class="flex-1 ml-[8px]">
         <SearchSelect
           ref="searchSelect"
+          class="bg-[#fff]"
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"

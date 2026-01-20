@@ -117,6 +117,12 @@ const triggerHandler = (id: string) => {
 };
 
 const handleBeforeClose = () => new Promise((resolve, reject) => {
+  // 没有上传数据，直接关闭
+  if (!uploadData.value) {
+    resolve(true);
+    isShow.value = false;
+    return;
+  }
   InfoBox({
     title: '确认关闭?',
     infoType: 'warning',

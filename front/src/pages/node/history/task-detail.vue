@@ -86,12 +86,12 @@
         </div>
       </div>
       <SearchSelect
-        class="flex-1"
+        class="flex-1 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
-        :placeholder="'请输入IP、管控区域、业务、目标版本、执行状态 搜索'"
+        :placeholder="'请选择 IP、管控区域、业务、目标版本、执行状态'"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>

@@ -4,7 +4,7 @@
     <div class="flex items-center w-full h-[32px] mb-[16px]">
       <Button theme="primary" @click="handleUpload">包上传</Button>
       <SearchSelect
-        class="ml-[16px] flex-1"
+        class="ml-[16px] flex-1 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
@@ -18,13 +18,13 @@
       <div
         class="w-[240px] flex-shrink-0 bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full mr-[17px]"
       >
-        <div class="px-[16px] py-[10px] text-[12px]">快捷筛选</div>
+        <div class="px-[16px] py-[10px] text-[14px]">快捷筛选</div>
         <div v-for="option in dimensionList" :key="option.id">
           <div
             class="flex justify-between items-center bg-[#F0F1F5] h-[32px] px-[16px] cursor-pointer"
             :class="{ 'bg-[#fff]': option.id === 'version' ? !state.versionExpand : !state.osExpand }"
             @click="handleExpand(option.id)">
-            <div class="text-[12px]">{{ option.name }}</div>
+            <div class="text-[14px]">{{ option.name }}</div>
             <angle-down v-show="option.id === 'version' ? state.versionExpand : state.osExpand" />
             <angle-right v-show="option.id === 'version' ? !state.versionExpand : !state.osExpand" />
           </div>

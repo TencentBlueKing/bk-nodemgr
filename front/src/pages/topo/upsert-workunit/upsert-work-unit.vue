@@ -68,6 +68,7 @@
         </Form.FormItem>
         <template v-if="isExpand">
           <Form.FormItem
+            class="mt-[-12px]"
             label="cluster"
             property="cluster"
             label-width="130">
@@ -78,6 +79,7 @@
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
+            class="mt-[-12px]"
             label="file"
             property="file"
             label-width="130">
@@ -88,6 +90,7 @@
             </SelectGroup>
           </Form.FormItem>
           <Form.FormItem
+            class="mt-[-12px]"
             label="data"
             property="data"
             label-width="130">
@@ -108,9 +111,9 @@
           </Form.FormItem>
         </template>
         <Button text theme="primary" class="ml-[130px]" @click="toggleExpand">
-          <span>{{ $t('topoManager.workUnit.form.senior') }}</span>
-          <i class="nodeman-icon nc-angle-double-down text-[24px]" v-if="!isExpand"></i>
-          <i class="nodeman-icon nc-double-up text-[24px]" v-else></i>
+          <span class="text-[14px]">{{ $t('topoManager.workUnit.form.senior') }}</span>
+          <i class="nodeman-icon nc-angle-double-down text-[20px]" v-if="!isExpand"></i>
+          <i class="nodeman-icon nc-double-up text-[20px]" v-else></i>
         </Button>
       </Form>
       <template #footer>
@@ -133,7 +136,7 @@
 
 <script lang="ts" setup>
 import { Button, Form, InfoBox, Input, Message, Radio, Sideslider } from 'bkui-vue';
-import { isEqual } from 'lodash';
+import { cloneDeep, isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
@@ -351,7 +354,15 @@ const handleConfirm = async () => {
 const handleClose = () => {
   isShow.value = false;
 };
+
+const originData = ref<any>();
 const handleBeforeClose = () => new Promise((resolve, reject) => {
+  // 没有修改，直接关闭
+  if (isEqual(form, originData.value)) {
+    resolve(true);
+    isShow.value = false;
+    return;
+  }
   InfoBox({
     title: '确认关闭?',
     infoType: 'warning',
@@ -405,6 +416,7 @@ watch(isShow, async (isCurrentShow: boolean) => {
     if (!props.isCreate) {
       getWorkUnit();
     }
+    originData.value = cloneDeep(form);
   }
   if (!isCurrentShow) {
     formRef.value.clearValidate();

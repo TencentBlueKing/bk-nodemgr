@@ -361,7 +361,7 @@ function handleChangeLang(item) {
       console.error('Invalid overwriteUrl parameter');
       return;
     }
-    
+
     // URL消毒：验证协议和格式
     let safeOverwriteUrl = overwriteUrl;
     try {
@@ -375,14 +375,14 @@ function handleChangeLang(item) {
       console.error('Invalid URL format');
       return;
     }
-    
+
     // 参数消毒：只允许字母数字和下划线
     const safeLanguage = item.id.replace(/[^a-zA-Z0-9_-]/g, '');
-    
+
     // 使用URLSearchParams进行安全参数化
     const url = new URL(`${safeOverwriteUrl}/api/c/compapi/v2/usermanage/fe_update_user_language/`);
     url.searchParams.set('language', encodeURIComponent(safeLanguage));
-    
+
     const scriptId = 'jsonp-script';
     const prevJsonpScript = document.getElementById(scriptId);
     if (prevJsonpScript) {
@@ -523,6 +523,8 @@ onMounted(async () => {
       mainStore.updateWindowInnerHeight(window.innerHeight);
     }, 300),
   );
+  // 初始化收藏管控区域
+  localStorage.setItem('collect_workarea', JSON.stringify([0]));
 });
 </script>
 <style lang="postcss" scoped>

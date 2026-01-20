@@ -12,7 +12,7 @@
       </template>
       <template #right>
         <SearchSelect
-          class="w-[480px]"
+          class="w-[480px] bg-[#fff]"
           unique-select
           :placeholder="$t('topoManager.workArea.search.placeholder')"
           v-model.trim="searchKey"

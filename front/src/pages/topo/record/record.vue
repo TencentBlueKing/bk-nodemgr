@@ -1,26 +1,21 @@
 <template>
   <div class="p-[24px]">
-    <FlexRow>
-      <template #left></template>
-      <template #right>
-        <div class="flex items-center">
-          <DatePicker
-            type="daterange"
-            v-model="operateTime"
-            :placeholder="$t('topoManager.record.searchPlaceholder.date')"
-            class="mr-[8px]"
-          >
-          </DatePicker>
-          <SearchSelect
-            class="w-[480px]"
-            unique-select
-            :placeholder="$t('topoManager.record.searchPlaceholder.searchSelect')"
-            v-model.trim="searchSelectValue"
-            :data="searchSelectData">
-          </SearchSelect>
-        </div>
-      </template>
-    </FlexRow>
+    <div class="flex items-center">
+      <DatePicker
+        type="daterange"
+        v-model="operateTime"
+        :placeholder="$t('topoManager.record.searchPlaceholder.date')"
+        class="mr-[8px]"
+      >
+      </DatePicker>
+      <SearchSelect
+        class="flex-1 bg-[#fff]"
+        unique-select
+        :placeholder="$t('topoManager.record.searchPlaceholder.searchSelect')"
+        v-model.trim="searchSelectValue"
+        :data="searchSelectData">
+      </SearchSelect>
+    </div>
     <Loading :loading="loading">
       <Table
         class="mt-[16px] w-full filterTable"

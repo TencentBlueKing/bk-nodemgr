@@ -1,5 +1,6 @@
 <template>
-  <div class="flex w-full h-full">
+  <page-header :title="title" @click="handleBackToHistoryDetail" class="border-b border-[#e4e7ef]"></page-header>
+  <div class="flex w-full h-[calc(100%-52px)]">
     <div class="w-[280px] h-full flex flex-col">
       <div class="h-[72px] p-[20px]">
         <Input v-model="searchValue" :placeholder="route.query.active === 'node' ? '请搜索ip' : '请搜索ip或插件名'"></Input>
@@ -35,17 +36,8 @@
         </div>
       </bk-loading>
     </div>
-    <div class="bg-[#fff] px-[24px] py-[20px] h-full flex-1 flex flex-col">
-      <div class="flex items-center h-[30px]">
-        <ArrowsLeft
-          width="24"
-          height="24"
-          class="text-[#3a84ff] cursor-pointer mr-[5px]"
-          @click="handleBackToHistoryDetail"
-        />
-        <span>{{ $t(title) }}</span>
-      </div>
-      <div class="h-[72px] my-[20px]">
+    <div class="bg-[#fff] px-[24px] pb-[20px] h-full flex-1 flex flex-col">
+      <div class="h-[52px] my-[20px]">
         <Dropdown
           theme="light"
           trigger="click"

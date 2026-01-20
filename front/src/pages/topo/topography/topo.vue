@@ -22,15 +22,8 @@
             <div class="w-[180px] flex">
               <Button
                 text
-                class="mr-[8px] w-[18px] favorited-item"
-                @click.stop="handleCollect(defaultNetWorkarea?.bk_networkarea_id)">
-                <i
-                  class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-                  v-if="collectList.includes(defaultNetWorkarea?.bk_networkarea_id)">
-                </i>
-                <i
-                  class="nodeman-icon nc-not-favorited text-[#C4C6CC] text-[18px] hidden"
-                  v-else>
+                class="mr-[8px] w-[18px] favorited-item">
+                <i class="nodeman-icon nc-collect text-[#C4C6CC] text-[18px]">
                 </i>
               </Button>
               <span>

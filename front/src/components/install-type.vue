@@ -10,7 +10,7 @@
         <i :class="['text-[18px]', 'nodeman-icon', item.icon]"></i>
       </div>
       <div
-        class="text-[14px] text-[#313238] leading-[19px] ml-[12px] content"
+        class="text-[12px] text-[#313238] leading-[19px] ml-[12px] content"
         v-bk-tooltips="{
           content: item.desc,
         }">
@@ -77,31 +77,32 @@ onMounted(() => {
     gap: 8px;
     width: 568px;
     .active {
-        &.type {
-          border-color: none;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);;
-          .prefix {
-            background: #E1ECFF;
-            color: #3A84FF;
-          }
+      border-color: #3A84FF !important;
+      &.type {
+        border-color: none;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);;
+        .prefix {
+          background: #E1ECFF;
+          color: #3A84FF;
         }
+      }
     }
     .checked {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 0 32px 32px 0;
-        border-color: transparent #3A84FF transparent transparent;
-        .nc-check-small {
-            position: absolute;
-            font-size: 20px;
-            color: #fff;
-            top: 0;
-            right: -32px;
-        }
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 32px 32px 0;
+      border-color: transparent #3A84FF transparent transparent;
+      .nc-check-small {
+          position: absolute;
+          font-size: 20px;
+          color: #fff;
+          top: 0;
+          right: -32px;
+      }
     }
     .type {
       position: relative;

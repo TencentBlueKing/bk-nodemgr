@@ -1,5 +1,5 @@
 <template>
-  <Tab
+  <!-- <Tab
     v-model:active="active"
     type="unborder-card"
     :label-height="41"
@@ -12,8 +12,8 @@
       :name="item.name"
     >
     </Tab.TabPanel>
-  </Tab>
-  <div class="p-[24px] mt-[41px]">
+  </Tab> -->
+  <div class="p-[24px]">
     <section class="flex justify-between mb-[15px]">
       <div class="flex gap-[12px]">
         <DatePicker
@@ -29,10 +29,11 @@
       <div class="flex-1 ml-[8px]">
         <SearchSelect
           ref="searchSelect"
+          class="bg-[#fff]"
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
-          :placeholder="'搜索、配置ID、配置名称、版本、配置类型、操作类型、操作人'"
+          :placeholder="'请选择 配置ID、配置名称、版本、配置类型、操作类型、操作人'"
           @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>
