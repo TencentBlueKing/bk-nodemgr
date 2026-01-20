@@ -444,6 +444,7 @@ func convertPluginConfigDetailsFromTypes(details ...*types.PluginConfigDetail) [
 			Name:         detail.Name,
 			Content:      detail.Content,
 			IsMainConfig: detail.IsMainConfig,
+			FilePath:     detail.FilePath,
 		})
 	}
 
@@ -457,6 +458,7 @@ func convertPluginConfigDetailsToTypes(details ...configDetail) []*types.PluginC
 			Name:         detail.Name,
 			Content:      detail.Content,
 			IsMainConfig: detail.IsMainConfig,
+			FilePath:     detail.FilePath,
 		})
 	}
 

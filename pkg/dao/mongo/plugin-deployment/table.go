@@ -119,6 +119,7 @@ type configDetail struct {
 	Name         string `json:"name" bson:"name"`
 	Content      string `json:"content" bson:"content"`
 	IsMainConfig bool   `json:"is_main_config" bson:"is_main_config"`
+	FilePath     string `json:"file_path" bson:"file_path"`
 }
 
 // UniqueFields unique fields of the table.
