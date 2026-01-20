@@ -19,19 +19,36 @@ import (
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
+)
+
+const (
+	// Dangerous directory paths for Unix systems.
+	dangerousDirUnixRoot = "/"
+	dangerousDirUnixProc = "/proc/"
+	dangerousDirUnixSys  = "/sys/"
+	dangerousDirUnixDev  = "/dev/"
+
+	// Dangerous directory paths for Windows systems.
+	dangerousDirWindowsCRoot            = "c:\\"
+	dangerousDirWindowsCWindows         = "c:\\windows\\"
+	dangerousDirWindowsCProgramFiles    = "c:\\program files\\"
+	dangerousDirWindowsCProgramFilesX86 = "c:\\program files (x86)\\"
+	dangerousDirWindowsCPrograms        = "c:\\programs\\"
+	dangerousDirWindowsCRecovery        = "c:\\recovery\\"
 )
 
 // CheckDirPathSafe checks if the given dir path is safe to use based on the OS type.
 func CheckDirPathSafe(dirPath string, osType criteria.OSType) error {
 	if osType == criteria.OSWindows {
-		return CheckWindowsDirPathSafe(dirPath)
+		return checkWindowsDirPathSafe(dirPath)
 	}
 
-	return CheckUnixDirPathSafe(dirPath)
+	return checkUnixDirPathSafe(dirPath)
 }
 
-// CheckUnixDirPathSafe checks if the given unix dir path is safe to use.
-func CheckUnixDirPathSafe(dirPath string) error {
+// checkUnixDirPathSafe checks if the given unix dir path is safe to use.
+func checkUnixDirPathSafe(dirPath string) error {
 	if dirPath == "" {
 		return errors.New("dirPath is empty")
 	}
@@ -53,8 +70,8 @@ func CheckUnixDirPathSafe(dirPath string) error {
 	return nil
 }
 
-// CheckWindowsDirPathSafe checks if the given windows dir path is safe to use.
-func CheckWindowsDirPathSafe(dirPath string) error {
+// checkWindowsDirPathSafe checks if the given windows dir path is safe to use.
+func checkWindowsDirPathSafe(dirPath string) error {
 	if dirPath == "" {
 		return fmt.Errorf("dirPath is empty")
 	}
@@ -79,24 +96,24 @@ func CheckWindowsDirPathSafe(dirPath string) error {
 func isDangerousPath(path string) error {
 	path = filepath.Clean(strings.ToLower(path))
 
-	if path == "/" {
+	if path == dangerousDirUnixRoot {
 		return errors.New("dirPath is root path, too dangerous")
 	}
 
-	if path == "c:\\" {
+	if path == dangerousDirWindowsCRoot {
 		return fmt.Errorf("dirPath is dangerous, dirPath(%s)", path)
 	}
 
 	// Check if the path contains any dangerous patterns
 	dangerousDirPrefixs := []string{
-		"/proc/",
-		"/sys/",
-		"/dev/",
-		"c:\\windows\\",
-		"c:\\program files\\",
-		"c:\\program files (x86)\\",
-		"c:\\programs\\",
-		"c:\\recovery\\",
+		dangerousDirUnixProc,
+		dangerousDirUnixSys,
+		dangerousDirUnixDev,
+		dangerousDirWindowsCWindows,
+		dangerousDirWindowsCProgramFiles,
+		dangerousDirWindowsCProgramFilesX86,
+		dangerousDirWindowsCPrograms,
+		dangerousDirWindowsCRecovery,
 	}
 	for _, dangerousDir := range dangerousDirPrefixs {
 		if strings.HasPrefix(path, filepath.Clean(dangerousDir)) {
@@ -109,7 +126,7 @@ func isDangerousPath(path string) error {
 
 func containsParentDirSegment(cleanPath string) bool {
 	parts := strings.FieldsFunc(cleanPath, func(r rune) bool {
-		return r == '/' || r == '\\'
+		return r == filepath.Separator || r == winpath.DirSeparator
 	})
 
 	return slices.Contains(parts, "..")
