@@ -268,8 +268,8 @@ func (h *Handler) UpsertPluginConfConfigFilesDetail(nCtx contextx.IContext, toke
 		confMap[item.Name] = item
 	}
 
-	mergeedDetails := conv.MapValueToSlice(confMap)
-	if err := h.dao.UpdateField(nCtx, filter, FieldKeyPluginConfConfigFilesDetail, mergeedDetails); err != nil {
+	mergedDetails := conv.MapValueToSlice(confMap)
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyPluginConfConfigFilesDetail, mergedDetails); err != nil {
 		return err
 	}
 

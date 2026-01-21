@@ -134,7 +134,7 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 		}
 	})
 	if err := act.daoPluginDeployment.UpsertPluginDeploymentPluginConfConfigFilesDetail(std.Context(), std.Token(), configDetails...); err != nil {
-		return fmt.Errorf("failed to get plugin deployment plugin conf: %w", err)
+		return fmt.Errorf("failed to upsert plugin deployment plugin conf: %w", err)
 	}
 
 	return nil
