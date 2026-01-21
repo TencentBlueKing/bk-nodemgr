@@ -3,12 +3,21 @@
   <div class="flex w-full h-[calc(100%-52px)]">
     <div class="w-[280px] h-full flex flex-col">
       <div class="h-[72px] p-[20px]">
-        <Input v-model="searchValue" :placeholder="route.query.active === 'node' ? '请搜索ip' : '请搜索ip或插件名'"></Input>
+        <SearchSelect
+          class="flex-1 bg-[#fff]"
+          ref="searchSelect"
+          :data="searchSelectData"
+          v-model.trim="searchSelectValue"
+          :unique-select="true"
+          :placeholder="isNode ? '请选择 IP、执行状态' : '请选择 IP、插件名、执行状态'"
+          @update:model-value="handleSearchSelectChange"
+        >
+        </SearchSelect>
       </div>
       <bk-loading title="数据加载中" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)]">
         <div class="h-full overflow-y-auto">
           <div
-            v-for="(operate, index) in filterIpOpearateList" :key="index"
+            v-for="(operate, index) in filterOperateList" :key="index"
             class="cursor-pointer w-full px-[20px] h-[40px] leading-[40px] flex items-center"
             :class="{ 'bg-[#e1ecff]': isNode
               ? Number(route.params.hostId) === operate.bk_host_id
@@ -235,7 +244,7 @@
   <guide v-model:is-show="isGuideShow" :data="guideData" />
 </template>
 <script setup lang="ts">
-import { Button, Dropdown, Input, overflowTitle } from 'bkui-vue';
+import { Button, Dropdown, Input, overflowTitle, SearchSelect } from 'bkui-vue';
 import { AngleUpFill, ArrowsLeft, Close, RightShape, Spinner } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
@@ -261,6 +270,11 @@ const router = useRouter();
 
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
+
+// 正则表达式
+const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
+const IPV6_REG = /^(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}$/i;
+
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const { start, stop } = useInterval(getLog, 1000); // 轮询
@@ -278,6 +292,7 @@ const serviceCaller = {
       operationList: NodeWorkflowService.NodeWorkflowOperationList,
       operationInstanceList: NodeWorkflowService.NodeWorkflowOperationInstanceList,
       operationInstanceLogGet: NodeWorkflowService.NodeWorkflowOperationInstanceLogGet,
+      operationDistinct: NodeWorkflowService.NodeWorkflowOperationDistinct,
     },
     plugin: {
       retry: PluginWorkflowService.PluginWorkflowOperationRetry,
@@ -285,11 +300,12 @@ const serviceCaller = {
       operationList: PluginWorkflowService.PluginWorkflowOperationList,
       operationInstanceList: PluginWorkflowService.PluginWorkflowOperationInstanceList,
       operationInstanceLogGet: PluginWorkflowService.PluginWorkflowOperationInstanceLogGet,
+      operationDistinct: PluginWorkflowService.PluginWorkflowOperationDistinct,
     },
   },
 
   // 统一调用方法
-  async call(method: 'retry' | 'terminate' | 'operationList' | 'operationInstanceList' | 'operationInstanceLogGet', params: any) {
+  async call(method: 'retry' | 'terminate' | 'operationList' | 'operationInstanceList' | 'operationInstanceLogGet' | 'operationDistinct', params: any) {
     const serviceType = this.getCurrentServiceType();
     const serviceMethod = this.serviceMethods[serviceType][method];
     return await serviceMethod(params);
@@ -298,13 +314,14 @@ const serviceCaller = {
 const activeKey = ref('');
 const isNode = computed(() => route.query.active === 'node');
 const operateList = ref<any[]>([]); // 子任务列表
+const filterOperateList = computed(() => operateList.value.filter((row: any) =>
+  searchSelectValue.value.every((searchItem: any) => {
+    const { id: searchField, values } = searchItem;
+    const searchIds = values?.map((value: { id: string }) => value.id);
+    return searchIds.includes(row[searchField]);
+  })
+));
 // 搜索过滤
-const filterIpOpearateList = computed(() => operateList.value.filter(item => !searchValue.value
-    || item.bk_host_inner_list.includes(searchValue.value)
-    || item.plugin_name?.includes(searchValue.value)
-    || route.query.status === item.state));
-
-const searchValue = ref();
 const currentOperate = computed(() => operateList.value.find(item => isNode.value
   ? item.bk_host_id === Number(route.params.hostId)
   : route.params.hostId === (`${item.bk_host_id}_${item.plugin_name}`)));
@@ -332,7 +349,7 @@ const last_oper_inst_step_key = computed(() => {
   }
   return '';
 });
-const statusMap = {
+const statusMap = computed(() => ({
   running: {
     text: '执行中',
   },
@@ -368,7 +385,7 @@ const statusMap = {
     text: '初始化',
     icon: 'incomplete',
   },
-};
+}));
 const typeMap = computed(() => ({
   install_agent: t('platform.nodeMan.taskHistory.taskType.install_agent'),
   install_plugin: t('platform.nodeMan.taskHistory.taskType.install_plugin'),
@@ -408,6 +425,79 @@ const timeFormatter = (
 const formatTimeToMS = (duration: number) => {
   const seconds = Math.floor(duration / 1000);
   return `${seconds}s`;
+};
+
+// 获取状态去重列表
+const distinctStates = ref<string[]>([]);
+const getDistinctStates = async () => {
+  try {
+    const res = await serviceCaller.call('operationDistinct', {
+      workflow_id: route.params.taskId,
+    });
+    if (res && res.state) {
+      distinctStates.value = res.state;
+    }
+  } catch (error) {
+    console.error('获取状态去重列表失败:', error);
+    // 如果接口调用失败，回退到从当前列表获取
+    distinctStates.value = Array.from(new Set(operateList.value
+      .map((item: any) => item.state)
+      .filter((item: any) => item !== null && item !== undefined && item !== '')));
+  }
+};
+// 搜索
+const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
+const searchSelectData = computed(() => [
+  { id: 'bk_host_inner_list', name: 'IPv4', multiple: true },
+  { id: 'bk_host_innerip_v6_list', name: 'IPv6', multiple: true },
+  ...(isNode.value ? [] : [{ id: 'plugin_name', name: '插件名' }]),
+  {
+    id: 'state',
+    name: '执行状态',
+    children: distinctStates.value.map(value => ({
+      id: value,
+      name: statusMap.value[value]?.text || value,
+    })),
+    multiple: true,
+  },
+]);
+/**
+ * 处理粘贴/快速输入的逻辑
+ */
+const handleInputPaste = (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  const text = data.length > 0 ? data[data.length - 1].id : '';
+  if (text) {
+    let targetId = '';
+    let targetName = '';
+
+    // 1. 自动识别 IP 类型
+    if (IPV4_REG.test(text)) {
+      targetId = 'bk_host_inner_list';
+      targetName = 'IPv4';
+    } else if (IPV6_REG.test(text)) {
+      targetId = 'bk_host_innerip_v6_list';
+      targetName = 'ipV6';
+    }
+
+    // 2. 如果匹配成功，直接构造并推入 searchSelectValue
+    if (targetId) {
+      const index = searchSelectValue.value.findIndex((item: any) => item.id === targetId);
+      if (index > -1) searchSelectValue.value.splice(index, 1);
+
+      searchSelectValue.value.push({
+        id: targetId,
+        name: targetName,
+        values: [{ id: text, name: text }],
+      });
+      // 3. 移除粘贴的文本
+      searchSelectValue.value.splice(data.length - 2, 1);
+      return;
+    }
+  }
+};
+// eslint-disable-next-line max-len
+const handleSearchSelectChange = async (data: { id: string; name: string; values: { id: string; name: string }[] }[]) => {
+  handleInputPaste(data);
 };
 
 // 操作指引侧边栏
@@ -577,6 +667,9 @@ const getOperateList = async () => {
   const res = await serviceCaller.call('operationList', {
     page: { limit: 500, offset: 0 },
     workflow_id: route.params.taskId,
+    exact_include_conditions: {
+      state: route.query.status ? [route.query.status] : [],
+    },
   }).catch(() => ({
     operations: [],
     total_count: 0,
@@ -592,7 +685,7 @@ const getOperateList = async () => {
         bk_host_inner_list: item.node_deployment_info.bk_host_inner_list?.join(',') || item.node_deployment_info.bk_host_innerip_list?.join(','),
         bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
         operation_id: item.operation_id,
-      }
+      };
     });
   } else {
     operateList.value = res.operations.map(item => {
@@ -604,7 +697,7 @@ const getOperateList = async () => {
         bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
         bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
         operation_id: item.operation_id,
-      }
+      };
     });
   }
 };
@@ -626,6 +719,7 @@ const getInstance = async () => {
   const total = res.oper_inst_data.length;
   instanceLoading.value = false;
   curOperInstId.value = total > 0 ? res.oper_inst_data[total - 1].oper_inst_id : '';
+  curOperInstVal.value = 'latest';
   curSortNames.value = total > 0 ? res.oper_inst_data[total - 1].action_names : [];
   operInstList.value = [];
   for (let i = 1; i <= total; i++) {
@@ -737,6 +831,7 @@ onMounted(async () => {
   await getOperateList();
   await getInstance();
   await getLog();
+  await getDistinctStates();
   if (isInterval.value) {
     start();
   } else {

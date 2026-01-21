@@ -66,7 +66,7 @@
         <copy-ip-dropdown
           type="agent"
           :list="list"
-          :data="filterTableData"
+          :data="tableData"
           filter-prop="state"
           :disabled="!hasSelection"
         ></copy-ip-dropdown>
@@ -99,7 +99,7 @@
     <div class="relative">
       <Table
         class="filterTable"
-        :data="filterTableData"
+        :data="tableData"
         :empty-text="'暂无数据'"
         :pagination="pagination"
         show-overflow-tooltip
@@ -318,6 +318,7 @@ import {
   Success,
 } from 'bkui-vue/lib/icon';
 import dayjs from 'dayjs';
+import { debounce } from 'lodash';
 import {
   computed,
   onBeforeUnmount,
@@ -542,7 +543,9 @@ const taskInfoList = computed(() => [
 ]);
 
 const tableData = ref<any[]>([]);
-const filterTableData = computed(() => tableData.value.filter((item: any) => radioGroupValue.value === 'all' || item.state === radioGroupValue.value));
+// 从接口获取的状态列表
+const distinctStates = ref<string[]>([]);
+
 const radioGroupValue = ref('all');
 const radioGroup = computed(() => [
   {
@@ -587,7 +590,37 @@ const businessList = computed(() => mainStore.businessList);
 // eslint-disable-next-line max-len
 const bizListMap = computed(() => new Map<number, string>(mainStore.businessList.map((item: any) => [item.bk_biz_id, item.bk_biz_name])));
 
+// 获取状态去重列表
+const getDistinctStates = async () => {
+  try {
+    const res = await serviceCaller.call('operationDistinct', {
+      workflow_id: route.params.taskId,
+    });
+    if (res && res.state) {
+      distinctStates.value = res.state;
+    }
+  } catch (error) {
+    console.error('获取状态去重列表失败:', error);
+    // 如果接口调用失败，回退到从当前列表获取
+    distinctStates.value = Array.from(new Set(tableData.value
+      .map((item: any) => item.state)
+      .filter((item: any) => item !== null && item !== undefined && item !== '')));
+  }
+};
+
 const getUniqueChildren = (prop: string) => {
+  if (prop === 'state' && distinctStates.value.length > 0) {
+    // 使用接口返回的状态列表
+    return distinctStates.value.map((value) => {
+      const name = statusMap.value[value as string]?.text || String(value);
+      return {
+        id: value,
+        name,
+      };
+    });
+  }
+
+  // 其他属性保持原有逻辑
   const uniqueValues = Array.from(new Set(tableData.value
     .map((item: any) => item[prop])
     .filter((item: any) => item !== null && item !== undefined && item !== '')));
@@ -604,7 +637,7 @@ const getUniqueChildren = (prop: string) => {
         name = networkUnitListMap.value.get(value as number) || String(value);
         break;
       default:
-        String(value);
+        name = String(value);
         break;
     }
     return {
@@ -651,13 +684,11 @@ const filterOptionSource = reactive<Record<string, FilterOption>>({
     filterScope: 'all',
   },
   bk_networkarea_id: {
-    // eslint-disable-next-line max-len
     list: [],
     checked: [],
     filterScope: 'all',
   },
   bk_networkunit_id: {
-    // eslint-disable-next-line max-len
     list: [],
     checked: [],
     filterScope: 'all',
@@ -677,14 +708,12 @@ const searchSelectData = computed(() => [
   {
     id: 'bk_networkarea_id',
     name: '管控区域',
-    // eslint-disable-next-line max-len
     children: Array.from(networkAreaListMap.value, ([id, name]) => ({ id: String(id), name })),
     multiple: true,
   },
   {
     id: 'bk_networkunit_id',
     name: '管控单元',
-    // eslint-disable-next-line max-len
     children: Array.from(networkUnitListMap.value, ([id, name]) => ({ id: String(id), name })),
     multiple: true,
   },
@@ -712,7 +741,8 @@ const handleSearchSelectChange = async (data: { id: string; name: string; values
   // 当搜素条件的执行状态变化时，都要触发radioGroup的变化
   const stateSearchItem = data.find((item) => item.id === 'state');
   if (stateSearchItem) {
-    radioGroupValue.value = stateSearchItem.values[0].id;
+    const state = stateSearchItem.values[0].id;
+    radioGroupValue.value = ['init', 'launched', 'running'].includes(state) ? 'incomplete' : state;
   } else {
     radioGroupValue.value = 'all';
   }
@@ -801,23 +831,23 @@ const list = [
 ];
 
 // 表格勾选
-const selection = computed(() => filterTableData.value.filter((item: any) => item.checked));
+const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const failedSelection = computed(() => selection.value.filter((item: any) => ['failed', 'timeout', 'terminated'].includes(item.state)));
 const runningSelection = computed(() => selection.value.filter((item: any) => ['running'].includes(item.state)));
 
 // --- 跨页全选核心状态 ---
 const isCrossPageSelection = ref(false); // 是否开启跨页全选模式
-const excludedIds = ref<Set<number>>(new Set()); // 全选模式下，用户手动“取消勾选”的 ID 集合
+const excludedIds = ref<Set<number>>(new Set()); // 全选模式下，用户手动"取消勾选"的 ID 集合
 
 // 计算属性：是否有任何选中（用于禁用批量按钮）
-const hasSelection = computed(() => filterTableData.value.some(item => item.checked) || isCrossPageSelection.value);
+const hasSelection = computed(() => tableData.value.some(item => item.checked) || isCrossPageSelection.value);
 
 // 计算属性：当前页是否全选（用于表头 Checkbox 状态）
 // eslint-disable-next-line max-len
-const isCurrentPageAllChecked = computed(() => filterTableData.value.length > 0 && filterTableData.value.every(item => item.checked));
+const isCurrentPageAllChecked = computed(() => tableData.value.length > 0 && tableData.value.every(item => item.checked));
 const isIndeterminate = computed(() => {
-  const selectedCount = filterTableData.value.filter(item => item.checked).length;
-  return selectedCount > 0 && selectedCount < filterTableData.value.length;
+  const selectedCount = tableData.value.filter(item => item.checked).length;
+  return selectedCount > 0 && selectedCount < tableData.value.length;
 });
 
 // 1. 处理单行勾选
@@ -833,20 +863,20 @@ const handleRowCheck = (checked: boolean, row: any) => {
 const handleSelectAllCrossPage = () => {
   isCrossPageSelection.value = true;
   excludedIds.value.clear();
-  filterTableData.value.forEach(item => (item.checked = true));
+  tableData.value.forEach(item => (item.checked = true));
 };
 
 // 3. 取消选择
 const handleClearSelection = () => {
   isCrossPageSelection.value = false;
   excludedIds.value.clear();
-  filterTableData.value.forEach(item => (item.checked = false));
+  tableData.value.forEach(item => (item.checked = false));
 };
 
 // 4. 本页全选
 const handleSelectCurrentPage = () => {
   isCrossPageSelection.value = false;
-  filterTableData.value.forEach(item => (item.checked = true));
+  tableData.value.forEach(item => (item.checked = true));
 };
 
 // 5. 表头 Checkbox 快速切换
@@ -858,25 +888,34 @@ const handleChangeRadio = (state: string) => {
   // 切换状态tab，重置选择状态
   isCrossPageSelection.value = false;
   excludedIds.value.clear();
-  filterTableData.value.forEach(item => (item.checked = false));
-  // 更新搜索条件
+  tableData.value.forEach(item => (item.checked = false));
+
+  // 清除状态搜索条件
   const index = searchSelectValue.value.findIndex((item: any) => item.id === 'state');
   if (index > -1) searchSelectValue.value.splice(index, 1);
+
+  // 清除筛选状态
+  filterOptionSource.state.checked = [];
+
   if (state === 'all') return; // 全选不需要更新搜索条件
+  const values = state !== 'incomplete'
+    ? [{
+      id: state,
+      name: statusMap.value[state]?.text || state,
+    }]
+    : [
+      { id: 'init', name: '初始化' },
+      { id: 'launched', name: '等待执行' },
+      { id: 'running', name: '执行中' },
+    ];
+  // 更新状态搜索条件
   searchSelectValue.value.push({
     id: 'state',
     name: '状态',
-    values: state !== 'incomplete'
-      ? [{
-        id: state,
-        name: statusMap.value[state]?.text || state,
-      }]
-      : [
-        { id: 'init', name: '初始化' },
-        { id: 'launched', name: '等待执行' },
-        { id: 'running', name: '执行中' },
-      ],
+    values,
   });
+  // 更新状态筛选
+  filterOptionSource.state.checked = values.map((item: any) => item.id) as string[];
 };
 
 // 表格设置
@@ -977,6 +1016,7 @@ const serviceCaller = {
       workflowList: NodeWorkflowService.NodeWorkflowList,
       operationList: NodeWorkflowService.NodeWorkflowOperationList,
       statistics: NodeWorkflowService.NodeWorkflowStatistics,
+      operationDistinct: NodeWorkflowService.NodeWorkflowOperationDistinct,
     },
     plugin: {
       retry: PluginWorkflowService.PluginWorkflowOperationRetry,
@@ -984,13 +1024,20 @@ const serviceCaller = {
       workflowList: PluginWorkflowService.PluginWorkflowList,
       operationList: PluginWorkflowService.PluginWorkflowOperationList,
       statistics: PluginWorkflowService.PluginWorkflowStatistics,
+      operationDistinct: PluginWorkflowService.PluginWorkflowOperationDistinct,
     },
   },
 
   // 统一调用方法
-  async call(method: 'retry' | 'terminate' | 'workflowList' | 'operationList' | 'statistics', params: any) {
+  async call(method: 'retry' | 'terminate' | 'workflowList' | 'operationList' | 'statistics' | 'operationDistinct', params: any) {
     const serviceType = this.getCurrentServiceType();
     const serviceMethod = this.serviceMethods[serviceType][method];
+
+    // 为workflowList请求添加不可取消配置，避免路由切换时被取消
+    if (method === 'workflowList') {
+      return await serviceMethod(params, { irrevocable: true });
+    }
+
     return await serviceMethod(params);
   },
 };
@@ -1008,6 +1055,8 @@ const statistics = ref<IWorkflowStatisticsInfo>({
   workflow_id: '',
 });
 const getStatistics = async () => {
+  // 没有taskId，不请求statistics
+  if (!route.params.taskId) return;
   const res = await serviceCaller.call('statistics', {
     workflow_id: [route.params.taskId],
   }).catch((err) => {
@@ -1021,6 +1070,7 @@ const getStatistics = async () => {
     statistics.value = workflowStatisticsInfoItem;
   };
 };
+const debouncedGetStatistics = debounce(getStatistics, 500);
 
 // 重试
 const handleRetry = async (row: any, type: string) => {
@@ -1230,13 +1280,32 @@ watch(
   },
   { deep: true },
 );
-watch(
-  () => tableData,
-  () => {
-    filterOptionSource.state.list = filterOptionConfig('state', statusMap.value);
-  },
-  { deep: true, immediate: true },
-);
+
+// 移除这个监听器，避免覆盖接口返回的状态数据
+// watch(
+//   () => tableData,
+//   () => {
+//     filterOptionSource.state.list = filterOptionConfig('state', statusMap.value);
+//   },
+//   { deep: true, immediate: true },
+// );
+
+// 监听distinctStates变化，更新筛选选项
+watch(distinctStates, (newStates) => {
+  if (newStates.length > 0) {
+    filterOptionSource.state.list = newStates.map(value => ({
+      text: statusMap.value[value]?.text || value,
+      value,
+    }));
+  }
+}, { immediate: true });
+
+// 监听tableData变化，自动更新统计信息
+watch(() => tableData.value, async () => {
+  // 防抖处理，避免频繁调用接口
+  debouncedGetStatistics();
+}, { deep: true });
+
 watch(
   () => needInterval.value,
   async () => {
@@ -1285,6 +1354,8 @@ onMounted(async () => {
   await getOperateList();
   await Promise.all([getNetworkAreaList(), getNetworkUnitList()]);
   getStatistics();
+  // 获取状态去重列表
+  await getDistinctStates();
   if (currentTaskStatus.value === 'running' && needInterval.value) {
     start();
   }
