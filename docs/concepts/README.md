@@ -9,3 +9,7 @@
 ### [plugin](plugin/README.md)
 
 插件的概念文档。
+
+### [tool](tool/README.md)
+
+工具相关的概念文档。
