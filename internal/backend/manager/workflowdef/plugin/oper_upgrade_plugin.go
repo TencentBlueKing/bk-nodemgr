@@ -11,10 +11,11 @@
 package plugin
 
 import (
+	"time"
+
 	pluginUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/plugin/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/operation"
-	"time"
 )
 
 const (
@@ -54,6 +55,8 @@ func (oper *operUpgradePlugin) ActionDefNames() []string {
 		ActionNameTransferPluginPkgToNode,
 		ActionNameUpgradePlugin,
 		ActionNameWaitPluginInstallerComplete,
+		ActionNameFetchProcessSubConfigIntoDeployment,
+		ActionNamePushPluginConfig,
 		ActionNameStartProcess,
 		ActionNameUpdateProcess,
 	}
@@ -65,18 +68,20 @@ func (oper *operUpgradePlugin) DefaultParameters() operation.Param {
 		Timeout:     10 * time.Minute, // nolint: mnd
 		InitContent: conv.StructToMapIgnoreError(oper.param),
 		RetryStartPoint: map[string]bool{
-			ActionNameFetchPluginProcess:                 true,
-			ActionNameVerifyPluginAvailability:           true,
-			ActionNameCheckPluginProcessAlive:            true,
-			ActionNameStopProcess:                        true,
-			ActionNameRenderPluginDeployment:             true,
-			ActionNameEnsureAndUpdatePluginConfigDetails: true,
-			ActionNameRenderPluginConfig:                 true,
-			ActionNameTransferPluginPkgToNode:            true,
-			ActionNameUpgradePlugin:                      true,
-			ActionNameWaitPluginInstallerComplete:        false,
-			ActionNameStartProcess:                       true,
-			ActionNameUpdateProcess:                      true,
+			ActionNameFetchPluginProcess:                  true,
+			ActionNameVerifyPluginAvailability:            true,
+			ActionNameCheckPluginProcessAlive:             true,
+			ActionNameStopProcess:                         true,
+			ActionNameRenderPluginDeployment:              true,
+			ActionNameEnsureAndUpdatePluginConfigDetails:  true,
+			ActionNameRenderPluginConfig:                  true,
+			ActionNameTransferPluginPkgToNode:             true,
+			ActionNameUpgradePlugin:                       true,
+			ActionNameWaitPluginInstallerComplete:         false,
+			ActionNameFetchProcessSubConfigIntoDeployment: true,
+			ActionNamePushPluginConfig:                    true,
+			ActionNameStartProcess:                        true,
+			ActionNameUpdateProcess:                       true,
 		},
 	}
 }

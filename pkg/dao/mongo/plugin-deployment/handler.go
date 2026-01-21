@@ -17,6 +17,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/base"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -44,6 +45,9 @@ type IHandler interface {
 
 	// GetPluginConfConfigFilesDetail get plugin conf config files detail.
 	GetPluginConfConfigFilesDetail(nCtx contextx.IContext, token string) ([]*types.PluginConfigDetail, error)
+
+	// UpsertPluginConfConfigFilesDetail update plugin conf config files detail.
+	UpsertPluginConfConfigFilesDetail(nCtx contextx.IContext, token string, configDetails ...*types.PluginConfigDetail) error
 }
 
 // Handler this is a Handler to operate node deployment table.
@@ -228,6 +232,48 @@ func (h *Handler) GetPluginConfConfigFilesDetail(nCtx contextx.IContext, token s
 	}
 
 	return convertPluginConfigDetailsToTypes(data.PluginConf.ConfigFilesDetail...), nil
+}
+
+// UpsertPluginConfConfigFilesDetail update plugin conf config files detail.
+func (h *Handler) UpsertPluginConfConfigFilesDetail(nCtx contextx.IContext, token string, configDetails ...*types.PluginConfigDetail) error {
+	if nCtx == nil {
+		return base.ErrInvalidContext()
+	}
+
+	if token == "" {
+		return ErrInvalidToken()
+	}
+
+	if len(configDetails) == 0 {
+		return base.ErrEmptyParamData()
+	}
+
+	filter := base.AliveFilter()
+	filter = WithToken(token)(filter)
+
+	dbData, err := h.dao.Get(nCtx, filter, FieldKeyPluginConfConfigFilesDetail)
+	if err != nil {
+		return err
+	}
+
+	confMap, err := conv.SliceToMap(dbData.PluginConf.ConfigFilesDetail, func(detail configDetail) string {
+		return detail.Name
+	})
+	if err != nil {
+		return err
+	}
+
+	data := convertPluginConfigDetailsFromTypes(configDetails...)
+	for _, item := range data {
+		confMap[item.Name] = item
+	}
+
+	mergeedDetails := conv.MapValueToSlice(confMap)
+	if err := h.dao.UpdateField(nCtx, filter, FieldKeyPluginConfConfigFilesDetail, mergeedDetails); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func convertPluginDeploymentFromTypes(data *types.PluginDeployment) (*Data, error) {

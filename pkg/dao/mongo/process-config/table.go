@@ -32,6 +32,7 @@ type ProcessConfig struct {
 	IsMainConfig bool   `json:"is_main_config" bson:"is_main_config"`
 	Content      string `json:"content" bson:"content"`
 	MD5          string `json:"md5" bson:"md5"`
+	FilePath     string `json:"file_path" bson:"file_path"`
 }
 
 // UniqueFields unique fields of the table.

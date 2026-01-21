@@ -147,7 +147,17 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 			Owner:       host.Dynamic.LoginUser,
 			Endpoints:   endpoints,
 		})
+
+		std.InstanceData().LogI(fmt.Sprintf("prepare to push plugin config file(%s) to host(%d) in dir(%s)",
+			pluginConfDetail.Name, host.HostID, storeDir))
 	}
+
+	if len(tasks) == 0 {
+		std.InstanceData().LogI("no plugin config need to push")
+		return nil
+	}
+
+	std.InstanceData().LogI(fmt.Sprintf("start to push %d plugin config files to host(%d)", len(tasks), host.HostID))
 
 	taskID, err := act.gseHandler.PushFile(std.Context(), tasks...)
 	if err != nil {

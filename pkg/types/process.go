@@ -299,6 +299,7 @@ type ProcessConfig struct {
 	IsMainConfig bool
 	Content      string
 	MD5          string
+	FilePath     string
 }
 
 // ProcessUniqueKey process unique key.

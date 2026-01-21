@@ -50,6 +50,9 @@ type IDaoPluginDeployment interface {
 
 	// GetPluginDeploymentPluginConfConfigFilesDetail get plugin deployment plugin conf config detail.
 	GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string) ([]*types.PluginConfigDetail, error)
+
+	// UpsertPluginDeploymentPluginConfConfigFilesDetail update plugin deployment plugin conf config detail.
+	UpsertPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IContext, token string, configDetails ...*types.PluginConfigDetail) error
 }
 
 // IDaoPluginWorkflow defines the dao interface.

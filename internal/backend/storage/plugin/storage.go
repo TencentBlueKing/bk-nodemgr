@@ -44,47 +44,48 @@ const (
 	schedulerTaskMonitorWorkflowStatus    = "monitor_plugin_workflow_status"
 	recentMonitoredTime                   = 5 * time.Minute
 
-	metricOperationListPluginDeployment                           = "list_plugin_deployment"
-	metricOperationGetPluginWorkflowStatus                        = "get_plugin_workflow_status"
-	metricOperationCountPluginWorkflow                            = "count_plugin_workflow"
-	metricOperationListPluginWorkflow                             = "list_plugin_workflow"
-	metricOperationCountProcess                                   = "count_process"
-	metricOperationListProcess                                    = "list_process"
-	metricOperationGetProcessDistributionByHostID                 = "get_process_distribution_by_host_id"
-	metricOperationGetProcessDistributionByPluginName             = "get_process_distribution_by_plugin_name"
-	metricOperationDistinctProcess                                = "distinct_process"
-	metricOperationCreateProcess                                  = "create_process"
-	metricOperationUpdateProcess                                  = "update_process"
-	metricOperationUpdateProcessInfo                              = "update_process_info"
-	metricOperationDeleteProcess                                  = "delete_process"
-	metricOperationExistProcess                                   = "exist_process"
-	metricOperationUpdateManyProcessInfo                          = "update_many_process_info"
-	metricOperationGetProcess                                     = "get_process"
-	metricOperationGetPluginWorkflow                              = "get_plugin_workflow"
-	metricOperationCreatePluginWorkflow                           = "create_plugin_workflow"
-	metricOperationUpdatePluginWorkflowStatus                     = "update_plugin_workflow_status"
-	metricOperationDistinctPluginWorkflow                         = "distinct_plugin_workflow"
-	metricOperationGetPlugin                                      = "get_plugin"
-	metricOperationCountPlugins                                   = "count_plugins"
-	metricOperationListPlugins                                    = "list_plugins"
-	metricOperationExistPluginByPluginName                        = "exist_plugin_by_plugin_name"
-	metricOperationExistDefaultPluginByPluginPkgName              = "exist_default_plugin_by_plugin_pkg_name"
-	metricOperationSetPluginMemo                                  = "set_plugin_memo"
-	metricOperationCreatePlugin                                   = "create_plugin"
-	metricOperationGetPluginDeploymentInfo                        = "get_plugin_deployment_info"
-	metricOperationCreatePluginDeployment                         = "create_plugin_deployment"
-	metricOperationUpdatePluginDeploymentInfo                     = "update_plugin_deployment_info"
-	metricOperationGetPluginDeploymentPluginConf                  = "get_plugin_deployment_plugin_conf"
-	metricOperationUpdatePluginDeploymentPluginConf               = "update_plugin_deployment_plugin_conf"
-	metricOperationGetPluginDeploymentPluginConfConfigFilesDetail = "get_plugin_deployment_plugin_conf_config_files_detail"
-	metricOperationUpsertManyPlugins                              = "upsert_many_plugins"
-	metricOperationGetProcessConfig                               = "get_process_config"
-	metricOperationCreateProcessConfig                            = "create_process_config"
-	metricOperationUpsertManyProcessConfigs                       = "upsert_many_process_configs"
-	metricOperationDeleteProcessConfigsByProcessUniqueKey         = "delete_process_configs_by_process_unique_key"
-	metricOperationDeleteProcessConfigs                           = "delete_process_configs"
-	metricOperationListProcessConfig                              = "list_process_config"
-	metricOperationCountProcessConfig                             = "count_process_config"
+	metricOperationListPluginDeployment                              = "list_plugin_deployment"
+	metricOperationGetPluginWorkflowStatus                           = "get_plugin_workflow_status"
+	metricOperationCountPluginWorkflow                               = "count_plugin_workflow"
+	metricOperationListPluginWorkflow                                = "list_plugin_workflow"
+	metricOperationCountProcess                                      = "count_process"
+	metricOperationListProcess                                       = "list_process"
+	metricOperationGetProcessDistributionByHostID                    = "get_process_distribution_by_host_id"
+	metricOperationGetProcessDistributionByPluginName                = "get_process_distribution_by_plugin_name"
+	metricOperationDistinctProcess                                   = "distinct_process"
+	metricOperationCreateProcess                                     = "create_process"
+	metricOperationUpdateProcess                                     = "update_process"
+	metricOperationUpdateProcessInfo                                 = "update_process_info"
+	metricOperationDeleteProcess                                     = "delete_process"
+	metricOperationExistProcess                                      = "exist_process"
+	metricOperationUpdateManyProcessInfo                             = "update_many_process_info"
+	metricOperationGetProcess                                        = "get_process"
+	metricOperationGetPluginWorkflow                                 = "get_plugin_workflow"
+	metricOperationCreatePluginWorkflow                              = "create_plugin_workflow"
+	metricOperationUpdatePluginWorkflowStatus                        = "update_plugin_workflow_status"
+	metricOperationDistinctPluginWorkflow                            = "distinct_plugin_workflow"
+	metricOperationGetPlugin                                         = "get_plugin"
+	metricOperationCountPlugins                                      = "count_plugins"
+	metricOperationListPlugins                                       = "list_plugins"
+	metricOperationExistPluginByPluginName                           = "exist_plugin_by_plugin_name"
+	metricOperationExistDefaultPluginByPluginPkgName                 = "exist_default_plugin_by_plugin_pkg_name"
+	metricOperationSetPluginMemo                                     = "set_plugin_memo"
+	metricOperationCreatePlugin                                      = "create_plugin"
+	metricOperationGetPluginDeploymentInfo                           = "get_plugin_deployment_info"
+	metricOperationCreatePluginDeployment                            = "create_plugin_deployment"
+	metricOperationUpdatePluginDeploymentInfo                        = "update_plugin_deployment_info"
+	metricOperationGetPluginDeploymentPluginConf                     = "get_plugin_deployment_plugin_conf"
+	metricOperationUpdatePluginDeploymentPluginConf                  = "update_plugin_deployment_plugin_conf"
+	metricOperationGetPluginDeploymentPluginConfConfigFilesDetail    = "get_plugin_deployment_plugin_conf_config_files_detail"
+	metricOperationUpsertPluginDeploymentPluginConfConfigFilesDetail = "upsert_plugin_deployment_plugin_conf_config_files_detail"
+	metricOperationUpsertManyPlugins                                 = "upsert_many_plugins"
+	metricOperationGetProcessConfig                                  = "get_process_config"
+	metricOperationCreateProcessConfig                               = "create_process_config"
+	metricOperationUpsertManyProcessConfigs                          = "upsert_many_process_configs"
+	metricOperationDeleteProcessConfigsByProcessUniqueKey            = "delete_process_configs_by_process_unique_key"
+	metricOperationDeleteProcessConfigs                              = "delete_process_configs"
+	metricOperationListProcessConfig                                 = "list_process_config"
+	metricOperationCountProcessConfig                                = "count_process_config"
 )
 
 // NewStorage ...
@@ -483,6 +484,26 @@ func (s *Storage) GetPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IC
 	}
 
 	return config, nil
+}
+
+// UpsertPluginDeploymentPluginConfConfigFilesDetail update plugin deployment plugin conf config files detail.
+func (s *Storage) UpsertPluginDeploymentPluginConfConfigFilesDetail(
+	ctx contextx.IContext, token string, configDetails ...*types.PluginConfigDetail) error {
+
+	var (
+		err error
+	)
+
+	err = s.WrapFn(ctx, metricOperationUpsertPluginDeploymentPluginConfConfigFilesDetail, func(ctx contextx.IContext) error {
+		err = s.upsertPluginDeploymentPluginConfConfigFilesDetail(ctx, token, configDetails...)
+
+		return err
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ===============================================================================

@@ -225,6 +225,7 @@ func convProcessConfigToTypes(config *ProcessConfig) *types.ProcessConfig {
 		IsMainConfig: config.IsMainConfig,
 		Content:      config.Content,
 		MD5:          config.MD5,
+		FilePath:     config.FilePath,
 	}
 }
 
@@ -241,5 +242,6 @@ func convProcessConfigFromTypes(config *types.ProcessConfig) *ProcessConfig {
 		IsMainConfig: config.IsMainConfig,
 		Content:      config.Content,
 		MD5:          config.MD5,
+		FilePath:     config.FilePath,
 	}
 }

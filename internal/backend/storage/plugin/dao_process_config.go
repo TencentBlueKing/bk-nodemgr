@@ -179,6 +179,7 @@ func convertProcessConfigConditionsToOptions(conditions ...*types.ProcessConfigC
 				daoProcessConfig.WithName(condition.ExactInclude.Name...),
 				daoProcessConfig.WithProcessName(condition.ExactInclude.ProcessName...),
 				daoProcessConfig.WithHostID(condition.ExactInclude.HostID...),
+				daoProcessConfig.WithIsMainConfig(condition.ExactInclude.IsMainConfig...),
 			)
 		}
 

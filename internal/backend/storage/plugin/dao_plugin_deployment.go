@@ -154,6 +154,29 @@ func (s *Storage) getPluginDeploymentPluginConfConfigFilesDetail(ctx contextx.IC
 	return configs, nil
 }
 
+// upsertPluginDeploymentPluginConfConfigFilesDetail update plugin deployment plugin conf config files detail.
+func (s *Storage) upsertPluginDeploymentPluginConfConfigFilesDetail(
+	ctx contextx.IContext, token string, configDetails ...*types.PluginConfigDetail) error {
+
+	if ctx == nil {
+		return basestorage.ErrNilContent()
+	}
+
+	if token == "" {
+		return basestorage.ErrEmptyUniqueKey()
+	}
+
+	if len(configDetails) == 0 {
+		return errors.New("config details is empty")
+	}
+
+	if err := s.daoPluginDeployment.UpsertPluginConfConfigFilesDetail(ctx, token, configDetails...); err != nil {
+		return fmt.Errorf("failed to upsert plugin deployment config details: %v", err)
+	}
+
+	return nil
+}
+
 func convertPluginDeploymentConditionToOptions(conditions ...*types.PluginDeploymentCondition) ([]plugindeployment.OptFn, error) {
 	var opts []plugindeployment.OptFn
 	for _, condition := range conditions {

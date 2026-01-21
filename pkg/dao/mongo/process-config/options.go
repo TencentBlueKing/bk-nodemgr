@@ -46,6 +46,6 @@ func WithoutHostID(hostIDs ...int64) OptFn {
 }
 
 // WithIsMainConfig filters by is main config.
-func WithIsMainConfig(isMainConfigs bool) OptFn {
-	return base.WithValues(FieldKeyIsMainConfig, isMainConfigs)
+func WithIsMainConfig(isMainConfigs ...bool) OptFn {
+	return base.WithValues(FieldKeyIsMainConfig, isMainConfigs...)
 }
