@@ -317,6 +317,116 @@ func TestProviderDefault_GetEndpoint(t *testing.T) {
 	}
 }
 
+// TestProviderDefault_SelectEndpoints test SelectEndpoints.
+func TestProviderDefault_SelectEndpoints(t *testing.T) {
+	type args struct {
+		serviceName  ServiceName
+		endpointName EndpointName
+		count        int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantLen int
+		wantErr bool
+	}{
+		{
+			name: "normal - select 3 from 3",
+			args: args{
+				serviceName:  ServiceNameBackend,
+				endpointName: EndpointNameBackendCallback,
+				count:        3,
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "normal - select 2 from 3",
+			args: args{
+				serviceName:  ServiceNameBackend,
+				endpointName: EndpointNameBackendCallback,
+				count:        2,
+			},
+			wantLen: 2,
+			wantErr: false,
+		},
+		{
+			name: "boundary - count equals endpoints count",
+			args: args{
+				serviceName:  ServiceNameBackend,
+				endpointName: EndpointNameBackendCallback,
+				count:        3,
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "boundary - count greater than endpoints count",
+			args: args{
+				serviceName:  ServiceNameBackend,
+				endpointName: EndpointNameBackendCallback,
+				count:        5,
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "boundary - count <= 0",
+			args: args{
+				serviceName:  ServiceNameBackend,
+				endpointName: EndpointNameBackendCallback,
+				count:        0,
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "invalid service name",
+			args: args{
+				serviceName:  "invalid",
+				endpointName: EndpointNameBackendCallback,
+				count:        3,
+			},
+			wantLen: 0,
+			wantErr: true,
+		},
+		{
+			name: "invalid endpoint name",
+			args: args{
+				serviceName:  ServiceNameBackend,
+				endpointName: "invalid",
+				count:        3,
+			},
+			wantLen: 0,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := testProviderDefault(t)
+			got, err := p.SelectEndpoints(tt.args.serviceName, tt.args.endpointName, tt.args.count, NewRoundRobinSelector())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SelectEndpoints() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(got) != tt.wantLen {
+				t.Errorf("SelectEndpoints() len = %v, wantLen %v", len(got), tt.wantLen)
+			}
+			// 验证去重：确保没有重复的地址。
+			addrMap := make(map[string]bool)
+			for _, ep := range got {
+				addr := ep.GetIPV4Address()
+				if addrMap[addr] {
+					t.Errorf("SelectEndpoints() found duplicate address: %v", addr)
+				}
+				addrMap[addr] = true
+			}
+			t.Logf("SelectEndpoints() got = %v", got)
+		})
+	}
+}
+
 // TestProviderDefault_Update test Update.
 func TestProviderDefault_Update(t *testing.T) {
 	type args struct {

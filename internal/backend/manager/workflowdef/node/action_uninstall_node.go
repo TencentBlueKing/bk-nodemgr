@@ -138,14 +138,13 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	// randomly select a callback server endpoint.
-	randSelector := discover.NewRandomSelector()
-	callbackSvrEndpoint, err := act.provider.GetEndpoint(
+	callbackEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
-		randSelector)
+		nodeUtils.DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
 	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint: %w", err)
+		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
 	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
@@ -159,7 +158,7 @@ func (act *actionUninstallNode) Do(ctx *action.InstanceContext) error {
 		InstallerWorkDir: std.DeployInfo().InstallerWorkDir,
 		Generation:       std.DeployInfo().Host.Dynamic.NodeGeneration,
 		NodeRole:         std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr:  "http://" + callbackSvrEndpoint.GetIPV4Address(),
+		CallbackSvrAddr:  nodeUtils.BuildServerURLs(callbackEndpoints...),
 		DeployToken:      std.Token(),
 		OperInstID:       std.InstanceData().OperationInstanceID,
 		BaseWorkDir:      deployConstant.BaseWorkDir,

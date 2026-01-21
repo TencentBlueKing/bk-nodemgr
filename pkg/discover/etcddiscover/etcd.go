@@ -158,6 +158,18 @@ func (provider *ProviderEtcd) GetEndpoint(
 	return provider.getCacheInstanceHolder(serviceName).getEndpoint(endpointName, selector)
 }
 
+// SelectEndpoints select a specified number of endpoints.
+func (provider *ProviderEtcd) SelectEndpoints(
+	serviceName discover.ServiceName, endpointName discover.EndpointName, count int, selector discover.Selector) ([]discover.Endpoint, error) {
+
+	endpoints, err := provider.GetAllEndpoint(serviceName, endpointName)
+	if err != nil {
+		return nil, err
+	}
+
+	return discover.SelectEndpoints(endpoints, count, selector)
+}
+
 // Register registers a service instance.
 // nolint: gocognit
 func (provider *ProviderEtcd) Register(serviceName discover.ServiceName, instance discover.Instance) error {

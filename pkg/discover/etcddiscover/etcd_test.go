@@ -306,9 +306,9 @@ func TestProviderEtcd_GetAllEndpoint(t *testing.T) {
 				return got[i].IPV4 < got[j].IPV4
 			})
 			sort.Slice(tt.want, func(i, j int) bool {
-				return tt.want[i].IPV6 < tt.want[j].IPV6
-			})
-			sort.Slice(tt.want, func(i, j int) bool {
+				if tt.want[i].IPV4 != tt.want[j].IPV4 {
+					return tt.want[i].IPV4 < tt.want[j].IPV4
+				}
 				return tt.want[i].Port < tt.want[j].Port
 			})
 
@@ -418,6 +418,117 @@ func TestProviderEtcd_GetEndpoint(t *testing.T) {
 				t.Errorf("GetEndpoint() got = %v, want %v", got, tt.want)
 			}
 
+		})
+	}
+}
+
+// TestProviderEtcd_SelectEndpoints test SelectEndpoints.
+func TestProviderEtcd_SelectEndpoints(t *testing.T) {
+	type args struct {
+		serviceName  discover.ServiceName
+		endpointName discover.EndpointName
+		count        int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantLen int
+		wantErr bool
+	}{
+		{
+			name: "normal - select 3 from 3",
+			args: args{
+				serviceName:  discover.ServiceNameBackend,
+				endpointName: discover.EndpointNameBackendCallback,
+				count:        3,
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "normal - select 2 from 3",
+			args: args{
+				serviceName:  discover.ServiceNameBackend,
+				endpointName: discover.EndpointNameBackendCallback,
+				count:        2,
+			},
+			wantLen: 2,
+			wantErr: false,
+		},
+		{
+			name: "boundary - count equals endpoints count",
+			args: args{
+				serviceName:  discover.ServiceNameBackend,
+				endpointName: discover.EndpointNameBackendCallback,
+				count:        3,
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "boundary - count greater than endpoints count",
+			args: args{
+				serviceName:  discover.ServiceNameBackend,
+				endpointName: discover.EndpointNameBackendCallback,
+				count:        5,
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "boundary - count <= 0",
+			args: args{
+				serviceName:  discover.ServiceNameBackend,
+				endpointName: discover.EndpointNameBackendCallback,
+				count:        0,
+			},
+			wantLen: 3,
+			wantErr: false,
+		},
+		{
+			name: "invalid service name",
+			args: args{
+				serviceName:  "invalid",
+				endpointName: discover.EndpointNameBackendCallback,
+				count:        3,
+			},
+			wantLen: 0,
+			wantErr: true,
+		},
+		{
+			name: "invalid endpoint name",
+			args: args{
+				serviceName:  discover.ServiceNameBackend,
+				endpointName: "invalid",
+				count:        3,
+			},
+			wantLen: 0,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := testProviderEtcd(t)
+			p.list(tt.args.serviceName)
+			got, err := p.SelectEndpoints(tt.args.serviceName, tt.args.endpointName, tt.args.count, discover.NewRoundRobinSelector())
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SelectEndpoints() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if len(got) != tt.wantLen {
+				t.Errorf("SelectEndpoints() len = %v, wantLen %v", len(got), tt.wantLen)
+			}
+			// 验证去重：确保没有重复的地址。
+			addrMap := make(map[string]bool)
+			for _, ep := range got {
+				addr := ep.GetIPV4Address()
+				if addrMap[addr] {
+					t.Errorf("SelectEndpoints() found duplicate address: %v", addr)
+				}
+				addrMap[addr] = true
+			}
+			t.Logf("SelectEndpoints() got = %v", got)
 		})
 	}
 }

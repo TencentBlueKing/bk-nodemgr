@@ -233,21 +233,22 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 }
 
 func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionStandarder, client *wmix.Client, installerPath string) error {
-	randSelector := discover.NewRandomSelector()
-	downloadSvrEndpoint, err := act.provider.GetEndpoint(
+	downloadEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileDownload,
-		randSelector)
+		nodeUtils.DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
 	if err != nil {
-		return fmt.Errorf("failed to get file endpoint: %w", err)
+		return fmt.Errorf("failed to select file endpoints: %w", err)
 	}
 
-	callbackSvrEndpoint, err := act.provider.GetEndpoint(
+	callbackEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
-		randSelector)
+		nodeUtils.DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
 	if err != nil {
-		return fmt.Errorf("failed to get backend callback endpoint: %w", err)
+		return fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
 	deployConstant, err := deployconstant.GetNodeDeployConf(std.DeployInfo().Host.Dynamic.NodeGeneration, std.DeployInfo().Host.Dynamic.NodeOsType)
@@ -260,8 +261,8 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		Generation:      std.DeployInfo().Host.Dynamic.NodeGeneration,
 		InstallerPath:   installerPath,
 		NodeRole:        std.DeployInfo().Host.Dynamic.NodeRole,
-		CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
-		DownloadSvrAddr: "http://" + downloadSvrEndpoint.GetIPV4Address(),
+		CallbackSvrAddr: nodeUtils.BuildServerURLs(callbackEndpoints...),
+		DownloadSvrAddr: nodeUtils.BuildServerURLs(downloadEndpoints...),
 		DeployToken:     std.Token(),
 		OperInstID:      std.InstanceData().OperationInstanceID,
 		BaseWorkDir:     deployConstant.BaseWorkDir,

@@ -195,21 +195,22 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 		return nil, fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
-	randSelector := discover.NewRandomSelector()
-	downloadSvrEndpoint, err := act.provider.GetEndpoint(
+	downloadEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileDownload,
-		randSelector)
+		pluginUtils.DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get file endpoint: %w", err)
+		return nil, fmt.Errorf("failed to select file endpoints: %w", err)
 	}
 
-	callbackSvrEndpoint, err := act.provider.GetEndpoint(
+	callbackEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
-		randSelector)
+		pluginUtils.DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get backend callback endpoint: %w", err)
+		return nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
 	params := &pluginUpgradeParams{
@@ -225,8 +226,8 @@ func (act *actionUpgradePlugin) buildUpgradeParams(
 			PluginName:      targetPlugin.Name,
 			PluginVersion:   std.DeployInfo().Process.Info.Version,
 			PluginPkgName:   targetPlugin.PkgName,
-			CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
-			DownloadSvrAddr: "http://" + downloadSvrEndpoint.GetIPV4Address(),
+			CallbackSvrAddr: pluginUtils.BuildServerURLs(callbackEndpoints...),
+			DownloadSvrAddr: pluginUtils.BuildServerURLs(downloadEndpoints...),
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
 		},

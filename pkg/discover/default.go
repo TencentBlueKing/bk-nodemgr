@@ -90,6 +90,18 @@ func (p *ProviderDefault) GetEndpoint(
 	return endpoint, nil
 }
 
+// SelectEndpoints select a specified number of endpoints.
+func (p *ProviderDefault) SelectEndpoints(
+	serviceName ServiceName, endpointName EndpointName, count int, selector Selector) ([]Endpoint, error) {
+
+	endpoints, err := p.GetAllEndpoint(serviceName, endpointName)
+	if err != nil {
+		return nil, err
+	}
+
+	return SelectEndpoints(endpoints, count, selector)
+}
+
 // Register registers a service instance.
 func (p *ProviderDefault) Register(serviceName ServiceName, instances ...Instance) error {
 	for _, instance := range instances {

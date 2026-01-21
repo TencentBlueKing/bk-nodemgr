@@ -29,4 +29,8 @@ const (
 
 	// NodeCmdStepRestart defines the installer cmd.
 	NodeCmdStepRestart = "node step restart"
+
+	// ServerAddrSeparator is the separator used to join/split multiple server addresses.
+	// This separator is used in the installer tools to handle comma-separated server addresses.
+	ServerAddrSeparator = ","
 )

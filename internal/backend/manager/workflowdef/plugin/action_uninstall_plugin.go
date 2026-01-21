@@ -195,13 +195,13 @@ func (act *actionUninstallPlugin) buildUninstallParams(
 		return nil, fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
-	randSelector := discover.NewRandomSelector()
-	callbackSvrEndpoint, err := act.provider.GetEndpoint(
+	callbackEndpoints, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
-		randSelector)
+		pluginUtils.DefaultEndpointSelectionCount,
+		discover.NewRoundRobinSelector())
 	if err != nil {
-		return nil, fmt.Errorf("failed to get backend callback endpoint: %w", err)
+		return nil, fmt.Errorf("failed to select backend callback endpoints: %w", err)
 	}
 
 	params := &pluginUninstallParams{
@@ -215,7 +215,7 @@ func (act *actionUninstallPlugin) buildUninstallParams(
 			},
 			PluginGroup:     targetPlugin.Group,
 			PluginName:      targetPlugin.Name,
-			CallbackSvrAddr: "http://" + callbackSvrEndpoint.GetIPV4Address(),
+			CallbackSvrAddr: pluginUtils.BuildServerURLs(callbackEndpoints...),
 			DeployToken:     std.Token(),
 			OperInstID:      std.InstanceData().OperationInstanceID,
 		},

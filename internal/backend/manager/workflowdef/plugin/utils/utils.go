@@ -8,7 +8,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-// Package utils use to provide some common utils for node actions.
+// Package utils use to provide some common utils for plugin actions.
 package utils
 
 import (
@@ -18,6 +18,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/winpath"
 )
@@ -130,4 +132,28 @@ func containsParentDirSegment(cleanPath string) bool {
 	})
 
 	return slices.Contains(parts, "..")
+}
+
+const (
+	// DefaultEndpointSelectionCount is the default count when selecting endpoints.
+	DefaultEndpointSelectionCount = 3
+)
+
+// BuildServerURLs builds a comma-separated string of multiple addresses in the format: http://addr1,http://addr2,http://addr3.
+// The installer already supports this format and will use utils.SplitServerAddrs() to split and process it.
+// If endpoints is empty, returns an empty string.
+func BuildServerURLs(endpoints ...discover.Endpoint) string {
+	if len(endpoints) == 0 {
+		return ""
+	}
+
+	addrs := make([]string, 0, len(endpoints))
+	for _, ep := range endpoints {
+		addr := ep.GetIPV4Address()
+		if addr != "" {
+			addrs = append(addrs, "http://"+addr)
+		}
+	}
+
+	return strings.Join(addrs, installer.ServerAddrSeparator)
 }

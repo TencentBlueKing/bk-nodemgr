@@ -224,6 +224,10 @@ type Discover interface {
 	// GetEndpoint get a specific service endpoint.
 	GetEndpoint(serviceName ServiceName, endpointName EndpointName, selector Selector) (
 		Endpoint, error)
+
+	// SelectEndpoints select a specified number of endpoints.
+	// If selector is nil, it uses RoundRobinSelector as the default.
+	SelectEndpoints(serviceName ServiceName, endpointName EndpointName, count int, selector Selector) ([]Endpoint, error)
 }
 
 // Registry this defines the interface of service registry.
@@ -238,7 +242,7 @@ type Registry interface {
 	Deregister(serviceName ServiceName, instanceID string) error
 }
 
-// Selector this defines the interface of a service endpoint selector.
+// Selector selects a service endpoint from the given endpoints.
 type Selector interface {
 	// Select selects a service endpoint from the given endpoints.
 	Select(endpoints []Endpoint) (Endpoint, error)
