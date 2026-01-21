@@ -116,6 +116,13 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 		return err
 	}
 
+	if len(processConfigs) == 0 {
+		std.InstanceData().LogI(fmt.Sprintf("no process sub configs found for process(%s) on host(%d)",
+			deployInfo.Process.PluginName, deployInfo.Process.HostID))
+
+		return nil
+	}
+
 	std.InstanceData().LogI(fmt.Sprintf("get %d process sub configs for deployment", len(processConfigs)))
 
 	configDetails := conv.SliceToSlice(processConfigs, func(processConfig *types.ProcessConfig) *types.PluginConfigDetail {
