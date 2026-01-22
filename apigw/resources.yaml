@@ -14690,3 +14690,201 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: false
         descriptionEn:
+  /api/v3/node/workflow/operation/distinct:
+    post:
+      operationId: NodeWorkflow_NodeWorkflowOperationDistinct
+      description: NodeWorkflowOperationDistinct provides node workflow operation distinct.
+      tags:
+        - NodeWorkflow
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      state:
+                        type: array
+                        items:
+                          type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: NodeWorkflowOperationDistinctResp describes the node workflow operation\ndistinct response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        "@type":
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selector:
+                  type: object
+                  properties:
+                    state:
+                      type: boolean
+                  description: NodeWorkflowOperationDistinctSelector describes the node workflow operation\ndistinct selector.
+                workflow_id:
+                  type: string
+              description: NodeWorkflowOperationDistinctReq describes the node workflow operation\ndistinct request.
+        required: true
+        description: NodeWorkflowOperationDistinctReq describes the node workflow operation\ndistinct request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/node/workflow/operation/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: false
+        descriptionEn:
+  /api/v3/plugin/workflow/operation/distinct:
+    post:
+      operationId: PluginWorkflow_PluginWorkflowOperationDistinct
+      description: PluginWorkflowOperationDistinct provides plugin workflow operation\ndistinct.
+      tags:
+        - PluginWorkflow
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  data:
+                    type: object
+                    properties:
+                      state:
+                        type: array
+                        items:
+                          type: string
+                  error:
+                    type: object
+                    properties:
+                      system:
+                        type: string
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                      message:
+                        type: string
+                  message:
+                    type: string
+                  request_id:
+                    type: string
+                description: PluginWorkflowOperationDistinctResp describes the plugin workflow operation\ndistinct response.
+          description: A successful response.
+        default:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    format: int32
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        "@type":
+                          type: string
+                      additionalProperties: {}
+                  message:
+                    type: string
+          description: An unexpected error response.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selector:
+                  type: object
+                  properties:
+                    state:
+                      type: boolean
+                  description: PluginWorkflowOperationDistinctSelector describes the plugin workflow\noperation distinct selector.
+                workflow_id:
+                  type: string
+              description: PluginWorkflowOperationDistinctReq describes the plugin workflow operation\ndistinct request.
+        required: true
+        description: PluginWorkflowOperationDistinctReq describes the plugin workflow operation\ndistinct request.
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /api/v3/plugin/workflow/operation/distinct
+          matchSubpath: false
+          timeout: 0
+        pluginConfigs: []
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: false
+        descriptionEn:
