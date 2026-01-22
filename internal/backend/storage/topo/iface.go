@@ -168,6 +168,10 @@ type IStorageHost interface {
 	// GetHostDistributionByNetworkAreaID get host distribution by node role.
 	GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
 		map[int64]int64, error)
+
+	// GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
+	// Returns RelayInfo list with DedicatedInstaller tag and Running status.
+	GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) ([]*types.RelayInfo, error)
 }
 
 // IStorageDomainGse this interface defines the operations which is only for domain gse.

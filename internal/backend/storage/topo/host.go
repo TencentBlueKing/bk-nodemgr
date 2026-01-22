@@ -452,3 +452,18 @@ func (s *Storage) listHostWithFields(nCtx contextx.IContext, page types.Page,
 
 	return hosts, num, nil
 }
+
+func (s *Storage) getRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (
+	[]*types.RelayInfo, error) {
+
+	if nCtx == nil {
+		return nil, basestorage.ErrNilContent()
+	}
+
+	results, err := s.daoHost.GetRelayInfosInNetworkUnit(nCtx, networkUnitID)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}

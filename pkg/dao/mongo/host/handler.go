@@ -66,6 +66,11 @@ type IHandler interface {
 	// ListWithFields lists hosts with fields.
 	ListWithFields(nCtx contextx.IContext, page types.Page, selection *types.HostFieldSelection, opts ...OptFn) ([]*types.Host, int64, error)
 
+	// GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
+	// Returns RelayInfo list with DedicatedInstaller tag and Running status.
+	// Uses MongoDB projection to only query required fields (6 fields instead of 40+).
+	GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) ([]*types.RelayInfo, error)
+
 	IDistinctor
 }
 
@@ -910,4 +915,61 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 	}
 
 	return fields
+}
+
+// GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
+// Returns RelayInfo list with DedicatedInstaller tag and Running status.
+// Uses MongoDB projection to only query required fields (5 fields instead of 40+).
+func (h *handler) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) ([]*types.RelayInfo, error) {
+	if nCtx == nil {
+		return nil, base.ErrInvalidContext()
+	}
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, fmt.Errorf("failed to check tenant id: %w", err)
+	}
+
+	tenantID := nCtx.TenantID()
+
+	filter := base.AliveFilter()
+	filter = WithDynamicNetworkUnitID(networkUnitID)(filter)
+	filter = WithDynamicNodeRole(types.NodeRoleProxy)(filter)
+	filter = WithDynamicNodeStatus(types.NodeStatusRunning)(filter)
+	filter = WithDynamicProxyTags(types.ProxyTagDedicatedInstaller)(filter)
+
+	fields := []string{
+		FieldKeyHostID,
+		FieldKeyDynamicAgentID,
+		FieldKeyStaticInnerIPList,
+		FieldKeyDynamicRelayDownloadPort,
+		FieldKeyDynamicRelayCallbackPort,
+	}
+
+	hosts, err := h.tenantDao(tenantID).List(nCtx, filter, nil, fields...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get relay hosts: %w", err)
+	}
+
+	relayInfos := make([]*types.RelayInfo, 0, len(hosts))
+	for _, host := range hosts {
+		relayInfo := &types.RelayInfo{
+			HostID: host.HostID,
+		}
+
+		if host.Dynamic != nil {
+			relayInfo.AgentID = host.Dynamic.AgentID
+			relayInfo.DownloadSvcPort = host.Dynamic.RelayDownloadPort
+			relayInfo.CallbackSvcPort = host.Dynamic.RelayCallbackPort
+		}
+
+		if host.Static != nil {
+			if len(host.Static.InnerIPList) > 0 {
+				relayInfo.InnerIP = host.Static.InnerIPList[0]
+			}
+		}
+
+		relayInfos = append(relayInfos, relayInfo)
+	}
+
+	return relayInfos, nil
 }

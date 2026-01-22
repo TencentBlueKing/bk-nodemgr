@@ -169,3 +169,17 @@ func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page,
 
 	return results, num, err
 }
+
+// GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
+// Returns RelayInfo list with DedicatedInstaller tag and Running status.
+func (s *Storage) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (
+	results []*types.RelayInfo, err error) {
+
+	// record metric.
+	metric := s.metric().Start("get_relay_infos_in_network_unit")
+	defer metric.End(err)
+
+	results, err = s.getRelayInfosInNetworkUnit(nCtx, networkUnitID)
+
+	return results, err
+}
