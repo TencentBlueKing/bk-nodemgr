@@ -121,6 +121,7 @@ type RelayInfo struct {
 	HostID          int64  `json:"host_id" bson:"host_id"`
 	AgentID         string `json:"agent_id" bson:"agent_id"`
 	InnerIP         string `json:"inner_ip" bson:"inner_ip"`
+	InnerIPV6       string `json:"inner_ipv6" bson:"inner_ipv6"`
 	PackageDestDir  string `json:"package_dest_dir" bson:"package_dest_dir"`
 	DownloadSvcPort int64  `json:"download_svc_port" bson:"download_svc_port"`
 	CallbackSvcPort int64  `json:"callback_svc_port" bson:"callback_svc_port"`

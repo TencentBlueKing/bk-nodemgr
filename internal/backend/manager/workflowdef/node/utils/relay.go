@@ -21,7 +21,7 @@ import (
 func relayInfoToEndpoint(relayInfo *types.RelayInfo, port int64) discover.Endpoint {
 	return discover.Endpoint{
 		IPV4: relayInfo.InnerIP,
-		IPV6: "",
+		IPV6: relayInfo.InnerIPV6,
 		Port: int(port),
 		Nice: 0,
 		Meta: nil,

@@ -212,6 +212,7 @@ func convertDeploymentInfoToTypes(info *Info) (*types.DeploymentInfo, error) {
 			HostID:          info.RelayInfo.HostID,
 			AgentID:         info.RelayInfo.AgentID,
 			InnerIP:         info.RelayInfo.InnerIP,
+			InnerIPV6:       info.RelayInfo.InnerIPV6,
 			PackageDestDir:  info.RelayInfo.PackageDestDir,
 			DownloadSvcPort: info.RelayInfo.DownloadSvcPort,
 			CallbackSvcPort: info.RelayInfo.CallbackSvcPort,

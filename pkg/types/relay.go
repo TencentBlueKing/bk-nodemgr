@@ -21,6 +21,8 @@ type RelayInfo struct {
 
 	// InnerIP is the inner ip.
 	InnerIP string
+	// InnerIPV6 is the inner ipv6.
+	InnerIPV6 string
 	// DownloadSvcPort is the file service port.
 	DownloadSvcPort int64
 	// CallbackSvcPort is the callback service port.

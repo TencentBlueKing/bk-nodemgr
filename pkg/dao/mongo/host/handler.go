@@ -941,6 +941,7 @@ func (h *handler) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 		FieldKeyHostID,
 		FieldKeyDynamicAgentID,
 		FieldKeyStaticInnerIPList,
+		FieldKeyStaticInnerIPV6List,
 		FieldKeyDynamicRelayDownloadPort,
 		FieldKeyDynamicRelayCallbackPort,
 	}
@@ -965,6 +966,9 @@ func (h *handler) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnit
 		if host.Static != nil {
 			if len(host.Static.InnerIPList) > 0 {
 				relayInfo.InnerIP = host.Static.InnerIPList[0]
+			}
+			if len(host.Static.InnerIPV6List) > 0 {
+				relayInfo.InnerIPV6 = host.Static.InnerIPV6List[0]
 			}
 		}
 
