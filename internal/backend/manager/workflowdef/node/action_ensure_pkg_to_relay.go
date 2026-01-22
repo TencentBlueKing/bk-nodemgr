@@ -42,9 +42,9 @@ const (
 	// ActionNameEnsurePkgToRelay defines the action name.
 	ActionNameEnsurePkgToRelay = "ensure_pkg_to_relay"
 
-	queryRelayTimeout          = 3 * time.Second
+	queryRelayTimeout          = 30 * time.Second
 	waitForRelayReportInterval = 3 * time.Second
-	waitForRelayReportTimeout  = 10 * time.Second
+	waitForRelayReportTimeout  = 30 * time.Second
 )
 
 // NewActionEnsurePkgToRelay get a new action.

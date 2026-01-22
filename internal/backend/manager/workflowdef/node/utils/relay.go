@@ -76,7 +76,8 @@ func (std *NodeActionStandarder) GetRelayInfos(count int) ([]*types.RelayInfo, e
 	for _, relayInfo := range validRelayInfos {
 		ep := relayInfoToEndpoint(relayInfo, relayInfo.DownloadSvcPort)
 		endpoints = append(endpoints, ep)
-		key := ep.GetIPV4Address()
+		// Use combined key (IPv4-IPv6) to avoid conflicts when multiple relays have same IPv4 but different IPv6
+		key := fmt.Sprintf("%s-%s", ep.GetIPV4Address(), ep.GetIPV6Address())
 		relayInfoMap[key] = relayInfo
 	}
 
@@ -98,7 +99,8 @@ func (std *NodeActionStandarder) GetRelayInfos(count int) ([]*types.RelayInfo, e
 	// Map selected endpoints back to RelayInfo
 	result := make([]*types.RelayInfo, 0, len(selectedEndpoints))
 	for _, ep := range selectedEndpoints {
-		key := ep.GetIPV4Address()
+		// Use combined key (IPv4-IPv6) to match the key used when building the map
+		key := fmt.Sprintf("%s-%s", ep.GetIPV4Address(), ep.GetIPV6Address())
 		relayInfo, ok := relayInfoMap[key]
 		if !ok {
 			continue

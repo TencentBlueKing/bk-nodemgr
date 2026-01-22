@@ -919,7 +919,7 @@ func convertHostFieldSelectionToFields(selection *types.HostFieldSelection) []st
 
 // GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
 // Returns RelayInfo list with DedicatedInstaller tag and Running status.
-// Uses MongoDB projection to only query required fields (5 fields instead of 40+).
+// Uses MongoDB projection to only query required fields (6 fields instead of 40+).
 func (h *handler) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) ([]*types.RelayInfo, error) {
 	if nCtx == nil {
 		return nil, base.ErrInvalidContext()

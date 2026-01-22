@@ -47,11 +47,10 @@ func NewActionPagentDetectInfoByWMI(capability *Capability) action.Definition {
 		storageHostCredit:     capability.StorageHostCredit,
 		storageActionInstance: capability.StorageWorkflow,
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		storageRelease:        capability.StorageRelease,
-
-		passwordVault: capability.HostPasswordVault,
-
-		proxyMessager: capability.ProxyMessager,
+		passwordVault:         capability.HostPasswordVault,
+		proxyMessager:         capability.ProxyMessager,
 	}
 }
 
@@ -231,20 +230,65 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayTodetect(
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
+	// Get multiple relay infos for retry
+	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	if err != nil {
+		return err
+	}
+	if len(relayInfos) == 0 {
+		return fmt.Errorf("no relay info selected")
+	}
+
+	// Try each relay sequentially until one succeeds
+	return act.notifyRelayToDetectMultiRelay(std, data, relayInfos)
+}
+
+// notifyRelayToDetectSingle sends detect info to a single relay.
+func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectSingle(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
+	if relayInfo == nil || relayInfo.AgentID == "" {
+		return fmt.Errorf("relay info has no agent id")
+	}
+
 	errCh := act.proxyMessager.PushToClient(std.Context(),
-		protoRelay.ServerPushEventTypeDetectInfoByWMI, data, std.DeployInfo().RelayInfo.AgentID)
+		protoRelay.ServerPushEventTypeDetectInfoByWMI, data, relayInfo.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("detect info by wmi failed: %w", err)
+			return fmt.Errorf("detect info by wmi failed. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
+		return nil
 	case <-time.After(queryClientTimeout):
-		return errors.New("wait client timed out")
+		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
+	}
+}
+
+// notifyRelayToDetectMultiRelay tries each relay sequentially until one succeeds.
+func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectMultiRelay(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfos []*types.RelayInfo) error {
+	var lastErr error
+	for i, relayInfo := range relayInfos {
+		if relayInfo == nil || relayInfo.AgentID == "" {
+			std.InstanceData().LogW(fmt.Sprintf("relay info at index %d has no agent id, trying next", i))
+			continue
+		}
+
+		std.InstanceData().LogI(fmt.Sprintf("attempting to send detect info to relay, index(%d/%d), agent-id(%s)",
+			i+1, len(relayInfos), relayInfo.AgentID))
+
+		err := act.notifyRelayToDetectSingle(std, data, relayInfo)
+		if err == nil {
+			std.InstanceData().LogI(fmt.Sprintf("detect info by wmi sent to relay successfully, agent-id(%s)", relayInfo.AgentID))
+			return nil
+		}
+
+		std.InstanceData().LogW(fmt.Sprintf("failed to send detect info to relay, index(%d/%d), agent-id(%s): %v",
+			i+1, len(relayInfos), relayInfo.AgentID, err))
+		lastErr = err
 	}
 
-	std.InstanceData().LogI("detect info by wmi send to relay successfully")
-
-	return nil
+	// All relays failed
+	return fmt.Errorf("failed to send detect info to all relay(s). count(%d): %w", len(relayInfos), lastErr)
 }
 
 // waitForRelayReportDetect wait for relay to report the detect result.

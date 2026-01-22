@@ -41,7 +41,14 @@ const (
 	ActionNamePagentDetectInfoBySSH = "pagent_detect_info_by_ssh"
 
 	// queryClientTimeout defines the query client timeout.
-	queryClientTimeout = 3 * time.Second
+	queryClientTimeout = 30 * time.Second
+
+	// relayInfoCountForRetry defines the count of relay info for retry.
+	// Default is 3 for high availability. Adjust based on business requirements.
+	relayInfoCountForRetry = 3
+
+	// actionRetryDelay defines the delay before retrying the action when it fails.
+	actionRetryDelay = 5 * time.Second
 )
 
 // NewActionPagentDetectInfoBySSH get a new action.
@@ -110,7 +117,7 @@ func (act *actionPagentDetectInfoBySSH) MaxRetryCount() uint {
 // DelayFn this func define when this action fails, how long to wait before retrying.
 func (act *actionPagentDetectInfoBySSH) DelayFn() func() {
 	return func() {
-		time.Sleep(5 * time.Second) // nolint: mnd
+		time.Sleep(actionRetryDelay)
 	}
 }
 
@@ -144,7 +151,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 	}
 
 	// send detect info request to relay.
-	if err := act.notifyRelayTodetect(std, cMethod, cKey); err != nil {
+	if err := act.notifyRelayToDetect(std, cMethod, cKey); err != nil {
 		return err
 	}
 
@@ -221,7 +228,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 	return nil
 }
 
-func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
+func (act *actionPagentDetectInfoBySSH) notifyRelayToDetect(
 	std *nodeUtils.NodeActionStandarder, cMethod sshx.AuthMethod, cKey string) error {
 
 	detectInfoEvent := protoRelay.DetectInfoBySSHReq{
@@ -239,20 +246,65 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayTodetect(
 		return fmt.Errorf("failed to marshal data: %w", err)
 	}
 
+	// Get multiple relay infos for retry
+	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	if err != nil {
+		return err
+	}
+	if len(relayInfos) == 0 {
+		return fmt.Errorf("no relay info selected")
+	}
+
+	// Try each relay sequentially until one succeeds
+	return act.notifyRelayToDetectMultiRelay(std, data, relayInfos)
+}
+
+// notifyRelayToDetectSingle sends detect info to a single relay.
+func (act *actionPagentDetectInfoBySSH) notifyRelayToDetectSingle(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
+	if relayInfo == nil || relayInfo.AgentID == "" {
+		return fmt.Errorf("relay info has no agent id")
+	}
+
 	errCh := act.proxyMessager.PushToClient(std.Context(),
-		protoRelay.ServerPushEventTypeDetectInfoBySSH, data, std.DeployInfo().RelayInfo.AgentID)
+		protoRelay.ServerPushEventTypeDetectInfoBySSH, data, relayInfo.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("detect info by ssh failed: %w", err)
+			return fmt.Errorf("detect info by ssh failed. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
+		return nil
 	case <-time.After(queryClientTimeout):
-		return errors.New("wait client timed out")
+		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
+	}
+}
+
+// notifyRelayToDetectMultiRelay tries each relay sequentially until one succeeds.
+func (act *actionPagentDetectInfoBySSH) notifyRelayToDetectMultiRelay(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfos []*types.RelayInfo) error {
+	var lastErr error
+	for i, relayInfo := range relayInfos {
+		if relayInfo == nil || relayInfo.AgentID == "" {
+			std.InstanceData().LogW(fmt.Sprintf("relay info at index %d has no agent id, trying next", i))
+			continue
+		}
+
+		std.InstanceData().LogI(fmt.Sprintf("attempting to send detect info to relay, index(%d/%d), agent-id(%s)",
+			i+1, len(relayInfos), relayInfo.AgentID))
+
+		err := act.notifyRelayToDetectSingle(std, data, relayInfo)
+		if err == nil {
+			std.InstanceData().LogI(fmt.Sprintf("detect info by ssh sent to relay successfully, agent-id(%s)", relayInfo.AgentID))
+			return nil
+		}
+
+		std.InstanceData().LogW(fmt.Sprintf("failed to send detect info to relay, index(%d/%d), agent-id(%s): %v",
+			i+1, len(relayInfos), relayInfo.AgentID, err))
+		lastErr = err
 	}
 
-	std.InstanceData().LogI("detect info by ssh send to relay successfully")
-
-	return nil
+	// All relays failed
+	return fmt.Errorf("failed to send detect info to all relay(s). count(%d): %w", len(relayInfos), lastErr)
 }
 
 // nolint: gocognit
