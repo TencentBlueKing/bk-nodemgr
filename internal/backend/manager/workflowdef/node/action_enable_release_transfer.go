@@ -17,6 +17,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -30,6 +31,7 @@ const (
 func NewActionEnableReleaseTransfer(capability *Capability) action.Definition {
 	return &actionEnableReleaseTransfer{
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 	}
 }
 
@@ -40,6 +42,7 @@ type ActionParamEnableReleaseTransfer struct {
 
 type actionEnableReleaseTransfer struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 }
 
 // Name returns the name of the action.
@@ -90,7 +93,7 @@ func (act *actionEnableReleaseTransfer) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

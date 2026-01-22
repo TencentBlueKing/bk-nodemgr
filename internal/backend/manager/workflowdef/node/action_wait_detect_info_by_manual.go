@@ -18,6 +18,7 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -38,6 +39,7 @@ const (
 func NewActionWaitDetectInfoByManual(capability *Capability) action.Definition {
 	return &actionWaitDetectInfoByManual{
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		storageActionInstance: capability.StorageWorkflow,
 		storageRelease:        capability.StorageRelease,
 	}
@@ -50,6 +52,7 @@ type ActParamWaitDetectInfoByManual struct {
 
 type actionWaitDetectInfoByManual struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
 	storageRelease        release.IStorage
 }
@@ -99,7 +102,7 @@ func (act *actionWaitDetectInfoByManual) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

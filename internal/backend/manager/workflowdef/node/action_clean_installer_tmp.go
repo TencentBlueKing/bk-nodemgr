@@ -19,6 +19,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
@@ -42,6 +43,7 @@ const (
 func NewActionCleanInstaller(capability *Capability) action.Definition {
 	return &actionCleanInstaller{
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		gseHandler:            capability.GSEHandler,
 	}
 }
@@ -65,6 +67,7 @@ type CleanParams struct {
 
 type actionCleanInstaller struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	gseHandler            gse.IHandler
 }
 
@@ -116,7 +119,7 @@ func (act *actionCleanInstaller) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

@@ -19,6 +19,7 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -54,6 +55,7 @@ func NewActionEnsurePkgToRelay(capability *Capability) action.Definition {
 		storageRelease:        capability.StorageRelease,
 		storageActionInstance: capability.StorageWorkflow,
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 
 		fileHandler:   capability.FileHandler,
 		proxyMessager: capability.ProxyMessager,
@@ -74,6 +76,7 @@ type actionEnsurePkgToRelay struct {
 	storageRelease        release.IStorage
 	storageActionInstance workflow.IStorageActionInstance
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 }
 
 // Name returns the name of the action.
@@ -126,7 +129,7 @@ func (act *actionEnsurePkgToRelay) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

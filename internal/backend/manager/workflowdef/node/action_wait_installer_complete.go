@@ -17,6 +17,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -36,6 +37,7 @@ const (
 func NewActionWaitInstallerComplete(capability *Capability) action.Definition {
 	return &actionWaitInstallerComplete{
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		storageActionInstance: capability.StorageWorkflow,
 	}
 }
@@ -48,6 +50,7 @@ type ActionWaitInstallerComplete struct {
 
 type actionWaitInstallerComplete struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
 }
 
@@ -96,7 +99,7 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

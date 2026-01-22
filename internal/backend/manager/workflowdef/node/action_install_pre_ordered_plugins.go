@@ -20,6 +20,7 @@ import (
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	pluginStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/plugin"
 	releaseStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
@@ -41,6 +42,7 @@ func NewActionInstallPreOrderedPlugins(capability *Capability) action.Definition
 	return &actionInstallPreOrderedPlugins{
 		storagePkg:            capability.StorageRelease,
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		storagePluginWorkflow: capability.StoragePlugin,
 
 		pluginMgrIface: capability.PluginIface,
@@ -60,6 +62,7 @@ type InstallPreOrderedPluginsParams struct {
 type actionInstallPreOrderedPlugins struct {
 	storagePkg            releaseStg.IPlugin
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	storagePluginWorkflow pluginStg.IDaoPluginWorkflow
 
 	pluginMgrIface managerIface.IPluginManager
@@ -114,7 +117,7 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

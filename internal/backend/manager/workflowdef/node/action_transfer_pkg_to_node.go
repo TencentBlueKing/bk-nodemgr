@@ -18,6 +18,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -40,6 +41,7 @@ const (
 func NewActionTransferPkgToNode(capability *Capability) action.Definition {
 	return &actionTransferPkgToNode{
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		fileHandler:           capability.FileHandler,
 	}
 }
@@ -51,6 +53,7 @@ type ActionParamTransferPkgToNode struct {
 
 type actionTransferPkgToNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	fileHandler           file.IHandler
 }
 
@@ -102,7 +105,7 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

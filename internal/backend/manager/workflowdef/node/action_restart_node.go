@@ -19,6 +19,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/installer"
@@ -40,6 +41,7 @@ const (
 func NewActionRestartNode(capability *Capability) action.Definition {
 	return &actionRestartNode{
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		gseHandler:            capability.GSEHandler,
 	}
 }
@@ -63,6 +65,7 @@ type RestartParams struct {
 
 type actionRestartNode struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	gseHandler            gse.IHandler
 }
 
@@ -114,7 +117,7 @@ func (act *actionRestartNode) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
@@ -41,6 +42,7 @@ func NewActionDetectInfoByWMI(capability *Capability) action.Definition {
 	return &actionDetectInfoByWMI{
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		storageRelease:        capability.StorageRelease,
 		passwordVault:         capability.HostPasswordVault,
 	}
@@ -54,6 +56,7 @@ type ActParamDetectInfoByWMI struct {
 type actionDetectInfoByWMI struct {
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	storageRelease        release.IStorage
 	passwordVault         creditvault.IHostPasswordVault
 }
@@ -111,7 +114,7 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

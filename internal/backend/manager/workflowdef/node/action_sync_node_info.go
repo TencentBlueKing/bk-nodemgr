@@ -17,6 +17,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
 
@@ -34,6 +35,7 @@ func NewActionSyncNodeInfo(capability *Capability) action.Definition {
 	return &actionSyncNodeInfo{
 		gseClient:             capability.GSEHandler,
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 	}
 }
 
@@ -45,6 +47,7 @@ type ActParamSyncNodeInfo struct {
 type actionSyncNodeInfo struct {
 	gseClient             gse.IHandler
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 }
 
 // Name returns the name of the action.
@@ -93,7 +96,7 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

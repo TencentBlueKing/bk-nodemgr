@@ -20,6 +20,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/relay/relayconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
@@ -49,6 +50,7 @@ func NewActionPagentDetectInfoBySSH(capability *Capability) action.Definition {
 		storageHostCredit:     capability.StorageHostCredit,
 		storageActionInstance: capability.StorageWorkflow,
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		storageRelease:        capability.StorageRelease,
 
 		passwordVault: capability.HostPasswordVault,
@@ -64,6 +66,7 @@ type ActParamPagentDetectInfoBySSH struct {
 
 type actionPagentDetectInfoBySSH struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
 	storageRelease        release.IStorage
 	storageHostCredit     credit.IStorageHostCredit
@@ -123,7 +126,7 @@ func (act *actionPagentDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

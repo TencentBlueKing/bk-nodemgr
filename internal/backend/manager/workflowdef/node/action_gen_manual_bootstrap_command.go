@@ -17,6 +17,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
@@ -35,6 +36,7 @@ const (
 func NewActionGenManualCommand(capability *Capability) action.Definition {
 	return &actionGenManualBootstrapCommand{
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		storageActionInstance: capability.StorageWorkflow,
 		provider:              capability.DiscoverProvider,
 	}
@@ -47,6 +49,7 @@ type ActParamGenManualBootstrapCommand struct {
 
 type actionGenManualBootstrapCommand struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
 	provider              discover.Provider
 }
@@ -97,7 +100,7 @@ func (act *actionGenManualBootstrapCommand) Do(ctx *action.InstanceContext) erro
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

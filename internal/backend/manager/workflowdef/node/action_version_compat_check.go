@@ -16,6 +16,7 @@ import (
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
@@ -33,6 +34,7 @@ const (
 func NewActionVersionCompatCheck(capability *Capability) action.Definition {
 	return &actionVersionCompatCheck{
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 
 		operateAgentSupportedLowestVersionFmt: types.NewGSEVersionFormatter(agentOperateRestartLowestVersion),
 	}
@@ -45,6 +47,7 @@ type ActionParamVersionCompatCheck struct {
 
 type actionVersionCompatCheck struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 
 	operateAgentSupportedLowestVersionFmt types.GSEVersionFormatter
 }
@@ -97,7 +100,7 @@ func (act *actionVersionCompatCheck) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

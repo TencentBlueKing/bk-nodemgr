@@ -20,6 +20,7 @@ import (
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/credit"
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/deployconstant"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
@@ -46,6 +47,7 @@ func NewActionInstallNodeByManual(capability *Capability) action.Definition {
 		installerGroup:        capability.InstallerFileGroup,
 		storageHostCredit:     capability.StorageHostCredit,
 		storageNodeDeployment: capability.StorageNode,
+		storageHost:           capability.StorageTopo,
 		storageActionInstance: capability.StorageWorkflow,
 		provider:              capability.DiscoverProvider,
 		passwordVault:         capability.HostPasswordVault,
@@ -77,6 +79,7 @@ type actionInstallNodeByManual struct {
 
 	storageHostCredit     credit.IStorageHostCredit
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 	storageActionInstance workflow.IStorageActionInstance
 	provider              discover.Provider
 	passwordVault         creditvault.IHostPasswordVault
@@ -130,7 +133,7 @@ func (act *actionInstallNodeByManual) Do(ctx *action.InstanceContext) error {
 	}
 
 	// initialize standard data.
-	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment)
+	std := nodeUtils.NewNodeActionStandarder(act.storageNodeDeployment, act.storageHost)
 	if err = std.Initialize(ctx, param.NodeActionStandardParam); err != nil {
 		return err
 	}

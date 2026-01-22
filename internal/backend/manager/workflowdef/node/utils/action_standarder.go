@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	nodeStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/node"
+	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -21,15 +22,20 @@ import (
 )
 
 // NewNodeActionStandarder creates a new NodeActionStandarder.
-func NewNodeActionStandarder(storageNodeDeployment nodeStg.IDaoNodeDeployment) *NodeActionStandarder {
+func NewNodeActionStandarder(
+	storageNodeDeployment nodeStg.IDaoNodeDeployment,
+	storageHost topoStg.IStorageHost,
+) *NodeActionStandarder {
 	return &NodeActionStandarder{
 		storageNodeDeployment: storageNodeDeployment,
+		storageHost:           storageHost,
 	}
 }
 
 // NodeActionStandarder defines the standard parameters of node action.
 type NodeActionStandarder struct {
 	storageNodeDeployment nodeStg.IDaoNodeDeployment
+	storageHost           topoStg.IStorageHost
 
 	instanceContext *action.InstanceContext
 	param           NodeActionStandardParam
