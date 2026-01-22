@@ -22,15 +22,14 @@ import (
 )
 
 // upsertReleaseBinTool upserts release bintool.
-func (s *Storage) upsertReleaseBinTool(ctx contextx.IContext, bintool types.ReleaseBinTool) error {
+func (s *Storage) upsertReleaseBinTool(nCtx contextx.IContext, bintool types.ReleaseBinTool) error {
 	rls := &bintool.Release
-	rls.Operator = ctx.BKUsername()
+	rls.Operator = nCtx.BKUsername()
 	rls.Name = types.ReleaseNameBinTool
 	rls.Version = types.ReleaseVersionBinTool
 	rls.UpdatedAt = time.Now()
 
-	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypeBinTool, rls)
-	if err != nil {
+	if err := s.daoRelease.UpsertMany(nCtx, types.ReleaseTypeBinTool, rls); err != nil {
 		return fmt.Errorf("failed to upsert release bintool: %w", err)
 	}
 
@@ -38,9 +37,8 @@ func (s *Storage) upsertReleaseBinTool(ctx contextx.IContext, bintool types.Rele
 }
 
 // deleteReleaseBinTool deletes release bintool.
-func (s *Storage) deleteReleaseBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error {
-	err := s.daoRelease.Delete(ctx, types.ReleaseTypeBinTool, release.WithGeneration(gen), release.WithFileName(fileName))
-	if err != nil {
+func (s *Storage) deleteReleaseBinTool(nCtx contextx.IContext, gen types.Generation, fileName string) error {
+	if err := s.daoRelease.Delete(nCtx, types.ReleaseTypeBinTool, release.WithGeneration(gen), release.WithFileName(fileName)); err != nil {
 		return fmt.Errorf("failed to delete release bintool: %w", err)
 	}
 
@@ -48,8 +46,8 @@ func (s *Storage) deleteReleaseBinTool(ctx contextx.IContext, gen types.Generati
 }
 
 // getReleaseBinTool gets release bintool.
-func (s *Storage) getReleaseBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error) {
-	rls, err := s.daoRelease.Get(ctx, types.ReleaseTypeBinTool, release.WithGeneration(gen))
+func (s *Storage) getReleaseBinTool(nCtx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error) {
+	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeBinTool, release.WithGeneration(gen))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get release bintool: %w", err)
 	}
@@ -60,10 +58,10 @@ func (s *Storage) getReleaseBinTool(ctx contextx.IContext, gen types.Generation)
 }
 
 // existReleaseBinTool checks if release bintool exists.
-func (s *Storage) existReleaseBinTool(ctx contextx.IContext, gen types.Generation) (bool, error) {
-	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeBinTool, release.WithGeneration(gen))
+func (s *Storage) existReleaseBinTool(nCtx contextx.IContext, gen types.Generation) (bool, error) {
+	result, err := s.daoRelease.Exist(nCtx, types.ReleaseTypeBinTool, release.WithGeneration(gen))
 	if err != nil {
-		return false, fmt.Errorf("failed to check release bintool: %w", err)
+		return false, fmt.Errorf("failed to check exist release bintool: %w", err)
 	}
 
 	return result, nil

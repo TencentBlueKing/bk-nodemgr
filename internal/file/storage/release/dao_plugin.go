@@ -25,66 +25,56 @@ import (
 )
 
 // existReleasePlugin checks if release plugin exists.
-func (s *Storage) existReleasePlugin(
-	ctx contextx.IContext, pluginName string, version string, plats ...platfmt.Platform) (bool, error) {
-
+func (s *Storage) existReleasePlugin(nCtx contextx.IContext, pluginName string, version string, plats ...platfmt.Platform) (bool, error) {
 	fileNames := make([]string, 0, len(plats))
 	for _, plat := range plats {
 		pluginFileName, err := pluginpkg.FormatPkgFileName(pluginName, types.ReleaseTypePlugin, types.Generation2, plat, version)
 		if err != nil {
-			return false, err
+			return false, fmt.Errorf("failed to check exist release plugin: %w", err)
 		}
 
 		fileNames = append(fileNames, pluginFileName)
 	}
 
-	num, err := s.daoRelease.Count(ctx, types.ReleaseTypePlugin, release.WithFileName(fileNames...))
+	exist, err := s.daoRelease.Exist(nCtx, types.ReleaseTypePlugin, release.WithFileName(fileNames...))
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to check exist release plugin: %w", err)
 	}
 
-	result := num > 0
-
-	return result, nil
+	return exist, nil
 }
 
 // upsertManyReleasePlugin upsert many release.
-func (s *Storage) upsertManyReleasePlugin(ctx contextx.IContext, releasePlugins []*types.ReleasePlugin) error {
-	var err error
-
+func (s *Storage) upsertManyReleasePlugin(nCtx contextx.IContext, releasePlugins []*types.ReleasePlugin) error {
 	releases := make([]*types.Release, 0, len(releasePlugins))
 	for _, rls := range releasePlugins {
 		if rls == nil {
 			continue
 		}
 
-		rls.UpdatedAt = time.Now()
-		rls.Operator = ctx.BKUsername()
-		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoPlugin)
+		additionInfo, err := conv.StructToMap(rls.ReleaseAdditionInfoPlugin)
 		if err != nil {
-			return fmt.Errorf("failed to upsert many release agent: %v", err)
+			return fmt.Errorf("failed to upsert many release plugin, failed to convert addition info to map: %w", err)
 		}
+
+		rls.UpdatedAt = time.Now()
+		rls.Operator = nCtx.BKUsername()
+		rls.AdditionInfo = additionInfo
 
 		releases = append(releases, &rls.Release)
 	}
 
-	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypePlugin, releases...)
-	if err != nil {
-		return fmt.Errorf("failed to upsert many release agent: %v", err)
+	if err := s.daoRelease.UpsertMany(nCtx, types.ReleaseTypePlugin, releases...); err != nil {
+		return fmt.Errorf("failed to upsert many release plugin: %w", err)
 	}
 
 	return nil
 }
 
-func (s *Storage) getReleasePlugin(ctx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
+func (s *Storage) getReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platfmt.Platform, version string) (
 	*types.ReleasePlugin, error) {
 
-	var (
-		rls *types.Release
-		err error
-	)
-
-	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypePlugin,
+	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypePlugin,
 		release.WithName(name),
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
@@ -96,7 +86,7 @@ func (s *Storage) getReleasePlugin(ctx contextx.IContext, name string, gen types
 
 	additionInfo := new(types.ReleaseAdditionInfoPlugin)
 	if err = conv.MapToStruct(rls.AdditionInfo, additionInfo); err != nil {
-		return nil, fmt.Errorf("failed to get release plugin: %v", err)
+		return nil, fmt.Errorf("failed to get release plugin, failed to convert addition info to struct: %w", err)
 	}
 
 	return &types.ReleasePlugin{

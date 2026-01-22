@@ -22,13 +22,8 @@ import (
 )
 
 // getReleaseCert gets release cert.
-func (s *Storage) getReleaseCert(ctx contextx.IContext) (*types.ReleaseCert, error) {
-	var (
-		rls *types.Release
-		err error
-	)
-
-	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeCert,
+func (s *Storage) getReleaseCert(nCtx contextx.IContext) (*types.ReleaseCert, error) {
+	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeCert,
 		// cert was designed in generation 2.
 		release.WithGeneration(types.Generation2),
 	)
@@ -42,28 +37,27 @@ func (s *Storage) getReleaseCert(ctx contextx.IContext) (*types.ReleaseCert, err
 }
 
 // existReleaseCert checks if release cert exists.
-func (s *Storage) existReleaseCert(ctx contextx.IContext) (bool, error) {
-	result, err := s.daoRelease.Exist(ctx, types.ReleaseTypeCert,
+func (s *Storage) existReleaseCert(nCtx contextx.IContext) (bool, error) {
+	result, err := s.daoRelease.Exist(nCtx, types.ReleaseTypeCert,
 		// cert was designed in generation 2.
 		release.WithGeneration(types.Generation2),
 	)
 	if err != nil {
-		return false, fmt.Errorf("failed to check if release cert exists: %w", err)
+		return false, fmt.Errorf("failed to check exist release cert: %w", err)
 	}
 
 	return result, nil
 }
 
 // upsertReleaseCert upserts release cert.
-func (s *Storage) upsertReleaseCert(ctx contextx.IContext, cert types.ReleaseCert) error {
+func (s *Storage) upsertReleaseCert(nCtx contextx.IContext, cert types.ReleaseCert) error {
 	rls := &cert.Release
-	rls.Operator = ctx.BKUsername()
+	rls.Operator = nCtx.BKUsername()
 	rls.Name = types.ReleaseNameCert
 	rls.Version = types.ReleaseVersionCert
 	rls.UpdatedAt = time.Now()
 
-	err := s.daoRelease.UpsertMany(ctx, types.ReleaseTypeCert, rls)
-	if err != nil {
+	if err := s.daoRelease.UpsertMany(nCtx, types.ReleaseTypeCert, rls); err != nil {
 		return fmt.Errorf("failed to upsert release cert: %w", err)
 	}
 
@@ -71,9 +65,8 @@ func (s *Storage) upsertReleaseCert(ctx contextx.IContext, cert types.ReleaseCer
 }
 
 // deleteReleaseCert deletes release cert.
-func (s *Storage) deleteReleaseCert(ctx contextx.IContext, fileName string) error {
-	err := s.daoRelease.Delete(ctx, types.ReleaseTypeCert, release.WithFileName(fileName))
-	if err != nil {
+func (s *Storage) deleteReleaseCert(nCtx contextx.IContext, fileName string) error {
+	if err := s.daoRelease.Delete(nCtx, types.ReleaseTypeCert, release.WithFileName(fileName)); err != nil {
 		return fmt.Errorf("failed to delete release cert: %w", err)
 	}
 

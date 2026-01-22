@@ -24,11 +24,8 @@ import (
 )
 
 // getReleaseProxy gets release by generation, type, platform and version.
-func (s *Storage) getReleaseProxy(
-	ctx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (data *types.ReleaseProxy, err error) {
-
-	var rls *types.Release
-	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeProxy,
+func (s *Storage) getReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseProxy, error) {
+	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeProxy,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
@@ -39,7 +36,7 @@ func (s *Storage) getReleaseProxy(
 
 	additionInfo := new(types.ReleaseAdditionInfoProxy)
 	if err = conv.MapToStruct(rls.AdditionInfo, additionInfo); err != nil {
-		return nil, fmt.Errorf("failed to get release proxy: %v", err)
+		return nil, fmt.Errorf("failed to get release proxy, failed to convert addition info to struct: %w", err)
 	}
 
 	return &types.ReleaseProxy{
@@ -49,23 +46,44 @@ func (s *Storage) getReleaseProxy(
 }
 
 // upsertManyReleaseProxy upsert many release.
-func (s *Storage) upsertManyReleaseProxy(ctx contextx.IContext, releaseProxys []*types.ReleaseProxy) (err error) {
+func (s *Storage) upsertManyReleaseProxy(nCtx contextx.IContext, releaseProxys []*types.ReleaseProxy) error {
 	releases := make([]*types.Release, 0, len(releaseProxys))
 	for _, rls := range releaseProxys {
 		if rls == nil {
 			continue
 		}
 
+		additionInfo, err := conv.StructToMap(rls.ReleaseAdditionInfoProxy)
+		if err != nil {
+			return fmt.Errorf("failed to upsert many release proxy, failed to convert addition info to map: %w", err)
+		}
+
 		rls.Name = types.ReleaseNameProxy
 		rls.UpdatedAt = time.Now()
-		rls.Operator = ctx.BKUsername()
-		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoProxy)
-		if err != nil {
-			return fmt.Errorf("failed to upsert many release proxy: %v", err)
-		}
+		rls.Operator = nCtx.BKUsername()
+		rls.AdditionInfo = additionInfo
 
 		releases = append(releases, &rls.Release)
 	}
 
-	return s.daoRelease.UpsertMany(ctx, types.ReleaseTypeProxy, releases...)
+	if err := s.daoRelease.UpsertMany(nCtx, types.ReleaseTypeProxy, releases...); err != nil {
+		return fmt.Errorf("failed to upsert many release proxy: %w", err)
+	}
+
+	return nil
+}
+
+// existReleaseProxy checks if release proxy exists.
+func (s *Storage) existReleaseProxy(nCtx contextx.IContext, gen types.Generation, version string, plats ...platfmt.Platform) (bool, error) {
+	exist, err := s.daoRelease.Exist(nCtx, types.ReleaseTypeProxy,
+		release.WithGeneration(gen),
+		release.WithType(types.ReleaseTypeProxy),
+		release.WithVersion(version),
+		release.WithPlatform(plats...),
+	)
+	if err != nil {
+		return false, fmt.Errorf("failed to check release proxy exist: %w", err)
+	}
+
+	return exist, nil
 }

@@ -24,8 +24,8 @@ type IStorage interface {
 
 	IDaoAgent
 	IDaoProxy
-	IDaoBinTool
 	IDaoCert
+	IDaoBinTool
 	IDaoPluginBinTool
 	IDaoPlugin
 }
@@ -33,78 +33,80 @@ type IStorage interface {
 // IDaoAgent defines the agent interface.
 type IDaoAgent interface {
 	// GetReleaseAgent gets release agent by generation, type, platform and version.
-	GetReleaseAgent(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
+	GetReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseAgent, error)
 
 	// UpsertManyReleaseAgent upsert many release agent.
-	UpsertManyReleaseAgent(ctx contextx.IContext, releaseAgents []*types.ReleaseAgent) error
+	UpsertManyReleaseAgent(nCtx contextx.IContext, releaseAgents []*types.ReleaseAgent) error
 
 	// ExistReleaseAgent checks if release agent exists.
-	ExistReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platform.Platform) (bool, error)
+	ExistReleaseAgent(nCtx contextx.IContext, gen types.Generation, version string, plats ...platform.Platform) (bool, error)
 }
 
 // IDaoProxy defines the proxy interface.
 type IDaoProxy interface {
 	// GetReleaseProxy gets release proxy by generation, type, platform and version.
-	GetReleaseProxy(ctx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
+	GetReleaseProxy(nCtx contextx.IContext, gen types.Generation, plat platform.Platform, version string) (*types.ReleaseProxy, error)
 
 	// UpsertManyReleaseProxy upserts many proxy release.
-	UpsertManyReleaseProxy(ctx contextx.IContext, releaseProxys []*types.ReleaseProxy) error
+	UpsertManyReleaseProxy(nCtx contextx.IContext, releaseProxys []*types.ReleaseProxy) error
+
+	// ExistReleaseProxy checks if release proxy exists.
+	ExistReleaseProxy(nCtx contextx.IContext, gen types.Generation, version string, plats ...platform.Platform) (bool, error)
 }
 
 // IDaoCert defines the cert interface.
 type IDaoCert interface {
 	// GetReleaseCert gets release cert.
-	GetReleaseCert(ctx contextx.IContext) (*types.ReleaseCert, error)
+	GetReleaseCert(nCtx contextx.IContext) (*types.ReleaseCert, error)
 
 	// ExistReleaseCert checks if release cert exists.
-	ExistReleaseCert(ctx contextx.IContext) (bool, error)
+	ExistReleaseCert(nCtx contextx.IContext) (bool, error)
 
 	// UpsertReleaseCert upserts release cert.
-	UpsertReleaseCert(ctx contextx.IContext, cert types.ReleaseCert) error
+	UpsertReleaseCert(nCtx contextx.IContext, cert types.ReleaseCert) error
 
 	// DeleteReleaseCert deletes release cert.
-	DeleteReleaseCert(ctx contextx.IContext, fileName string) error
+	DeleteReleaseCert(nCtx contextx.IContext, fileName string) error
 }
 
 // IDaoBinTool defines the bin tool interface.
 type IDaoBinTool interface {
 	// GetReleaseBinTool gets release bintool.
-	GetReleaseBinTool(ctx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error)
+	GetReleaseBinTool(nCtx contextx.IContext, gen types.Generation) (*types.ReleaseBinTool, error)
 
 	// ExistReleaseBinTool checks if release bintool exists.
-	ExistReleaseBinTool(ctx contextx.IContext, gen types.Generation) (bool, error)
+	ExistReleaseBinTool(nCtx contextx.IContext, gen types.Generation) (bool, error)
 
 	// UpsertReleaseBinTool upserts release bintool.
-	UpsertReleaseBinTool(ctx contextx.IContext, bintool types.ReleaseBinTool) error
+	UpsertReleaseBinTool(nCtx contextx.IContext, bintool types.ReleaseBinTool) error
 
 	// DeleteReleaseBinTool deletes release bintool.
-	DeleteReleaseBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error
+	DeleteReleaseBinTool(nCtx contextx.IContext, gen types.Generation, fileName string) error
 }
 
 // IDaoPluginBinTool defines the plugin bin tool interface.
 type IDaoPluginBinTool interface {
 	// GetReleasePluginBinTool gets release plugin bintool.
-	GetReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, name string) (*types.ReleasePluginBinTool, error)
+	GetReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, name string) (*types.ReleasePluginBinTool, error)
 
 	// ExistReleasePluginBinTool checks if release plugin bintool exists.
-	ExistReleasePluginBinTool(ctx contextx.IContext, gen types.Generation) (bool, error)
+	ExistReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation) (bool, error)
 
 	// UpsertReleasePluginBinTool upserts release plugin bintool.
-	UpsertReleasePluginBinTool(ctx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error
+	UpsertReleasePluginBinTool(nCtx contextx.IContext, pluginBinTool types.ReleasePluginBinTool) error
 
 	// DeleteReleasePluginBinTool deletes release plugin bintool.
-	DeleteReleasePluginBinTool(ctx contextx.IContext, gen types.Generation, fileName string) error
+	DeleteReleasePluginBinTool(nCtx contextx.IContext, gen types.Generation, fileName string) error
 }
 
 // IDaoPlugin defines the interface of plugin.
 type IDaoPlugin interface {
 	// GetReleasePlugin gets release plugin.
-	GetReleasePlugin(ctx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (
-		*types.ReleasePlugin, error)
+	GetReleasePlugin(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform, version string) (*types.ReleasePlugin, error)
 
 	// ExistReleasePlugin checks if release plugin exists.
-	ExistReleasePlugin(ctx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
+	ExistReleasePlugin(nCtx contextx.IContext, pluginName string, version string, plat ...platform.Platform) (bool, error)
 
 	// UpsertManyReleasePlugin upserts many release plugin.
-	UpsertManyReleasePlugin(ctx contextx.IContext, releasePlugins []*types.ReleasePlugin) error
+	UpsertManyReleasePlugin(nCtx contextx.IContext, releasePlugins []*types.ReleasePlugin) error
 }

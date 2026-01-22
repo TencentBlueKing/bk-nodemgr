@@ -24,62 +24,50 @@ import (
 )
 
 // upsertManyReleaseAgent upsert many release.
-func (s *Storage) upsertManyReleaseAgent(ctx contextx.IContext, releaseAgents []*types.ReleaseAgent) error {
-	var err error
-
+func (s *Storage) upsertManyReleaseAgent(nCtx contextx.IContext, releaseAgents []*types.ReleaseAgent) error {
 	releases := make([]*types.Release, 0, len(releaseAgents))
 	for _, rls := range releaseAgents {
 		if rls == nil {
 			continue
 		}
 
-		rls.Name = types.ReleaseNameAgent
-		rls.Operator = ctx.BKUsername()
-		rls.UpdatedAt = time.Now()
-		rls.AdditionInfo, err = conv.StructToMap(rls.ReleaseAdditionInfoAgent)
+		additionInfo, err := conv.StructToMap(rls.ReleaseAdditionInfoAgent)
 		if err != nil {
-			return fmt.Errorf("failed to upsert many release agent: %v", err)
+			return fmt.Errorf("failed to upsert many release agent, failed to convert addition info to map: %w", err)
 		}
+
+		rls.Name = types.ReleaseNameAgent
+		rls.Operator = nCtx.BKUsername()
+		rls.UpdatedAt = time.Now()
+		rls.AdditionInfo = additionInfo
 
 		releases = append(releases, &rls.Release)
 	}
 
-	err = s.daoRelease.UpsertMany(ctx, types.ReleaseTypeAgent, releases...)
-	if err != nil {
-		return fmt.Errorf("failed to upsert many release agent: %v", err)
+	if err := s.daoRelease.UpsertMany(nCtx, types.ReleaseTypeAgent, releases...); err != nil {
+		return fmt.Errorf("failed to upsert many release agent: %w", err)
 	}
 
 	return nil
 }
 
 // existReleaseAgent checks if release agent exists.
-func (s *Storage) existReleaseAgent(ctx contextx.IContext, gen types.Generation, version string, plats ...platfmt.Platform) (bool, error) {
-	var err error
-
-	count, err := s.daoRelease.Count(ctx, types.ReleaseTypeAgent,
+func (s *Storage) existReleaseAgent(nCtx contextx.IContext, gen types.Generation, version string, plats ...platfmt.Platform) (bool, error) {
+	exist, err := s.daoRelease.Exist(nCtx, types.ReleaseTypeAgent,
 		release.WithGeneration(gen),
 		release.WithType(types.ReleaseTypeAgent),
 		release.WithVersion(version),
 		release.WithPlatform(plats...))
 	if err != nil {
-		return false, fmt.Errorf("failed to exist release agent: %w", err)
+		return false, fmt.Errorf("failed to check exist release agent: %w", err)
 	}
-
-	exist := count > 0
 
 	return exist, nil
 }
 
 // getReleaseAgent gets release by generation, type, platform and version.
-func (s *Storage) getReleaseAgent(
-	ctx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseAgent, error) {
-
-	var (
-		rls *types.Release
-		err error
-	)
-
-	rls, err = s.daoRelease.Get(ctx, types.ReleaseTypeAgent,
+func (s *Storage) getReleaseAgent(nCtx contextx.IContext, gen types.Generation, plat platfmt.Platform, version string) (*types.ReleaseAgent, error) {
+	rls, err := s.daoRelease.Get(nCtx, types.ReleaseTypeAgent,
 		release.WithGeneration(gen),
 		release.WithPlatform(plat),
 		release.WithVersion(version),
@@ -90,7 +78,7 @@ func (s *Storage) getReleaseAgent(
 
 	additionInfo := new(types.ReleaseAdditionInfoAgent)
 	if err = conv.MapToStruct(rls.AdditionInfo, additionInfo); err != nil {
-		return nil, fmt.Errorf("failed to get release agent: %v", err)
+		return nil, fmt.Errorf("failed to get release agent, failed to convert addition info to struct: %w", err)
 	}
 
 	return &types.ReleaseAgent{
