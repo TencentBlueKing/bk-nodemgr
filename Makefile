@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools bintools scripts
+.PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools bintools scripts apigw-docs
 
 # version
 BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
@@ -190,3 +190,9 @@ clean:
 doc:
 	@$(ECHO) "Open http://localhost:6060 to view the documentation"
 	godoc -http=localhost:6060
+
+apigw-docs: | pre
+	@$(ECHO) "Building apigw-docs..."
+	$(MKDIR) $(OUTPUT_DIR)/apigw
+	@$(CD) $(ROOT_DIR)/apigw/apidocs && $(TAR) $(OUTPUT_DIR)/apigw/apidocs.tgz zh/ en/
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/apigw-docs/docs.tgz"
