@@ -106,7 +106,7 @@ func (m MIMEType) String() string {
 // Validate validates the MIMEType.
 func (m MIMEType) Validate() error {
 	switch m {
-	case MIMETypeBin, MIMETypeText, MIMETypePdf, MIMETypeDoc, MIMETypeXls, MIMETypeZip, MIMETypePng, MIMETypeJpg:
+	case MIMETypeBin, MIMETypeText, MIMETypePdf, MIMETypeDoc, MIMETypeXls, MIMETypeZip, MIMETypePng, MIMETypeJpg, MIMETypeJSON:
 		return nil
 	default:
 		return fmt.Errorf("invalid mime type: %s", m)
@@ -114,6 +114,9 @@ func (m MIMEType) Validate() error {
 }
 
 const (
+	// MIMETypeJSON defines the mime type of json data.
+	MIMETypeJSON MIMEType = "application/json"
+
 	// MIMETypeBin defines the mime type of binary data.
 	MIMETypeBin MIMEType = "application/octet-stream"
 
