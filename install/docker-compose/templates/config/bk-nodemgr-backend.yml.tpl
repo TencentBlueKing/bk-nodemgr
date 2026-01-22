@@ -152,6 +152,8 @@ gse:
   appSecret: __BK_NODEMGR_APPSECRET__
   user: admin
   authMode: "un"
+  pluginSlotID: __BK_NODEMGR_PLUGIN_SLOT_ID__
+  pluginSlotToken: __BK_NODEMGR_PLUGIN_SLOT_TOKEN__
   traceServiceName: "backend-client-gse"
   traceSampleRate: 0
 

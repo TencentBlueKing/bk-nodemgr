@@ -25,5 +25,14 @@ spec:
       serviceNamespace: {{ .Release.Namespace | quote }}
       servicePort: {{ .Values.backend.config.basicServer.port }}
       isDirectConnect: {{ .Values.backend.ingress.isDirectConnect }}
+  - port: {{ .Values.backend.config.proxyServer.port }}
+    protocol: TCP
+    listenerAttribute:
+      lbPolicy: {{ .Values.backend.ingress.lbPolicy }}
+    services:
+    - serviceName: {{ template "bk-nodemgr.fullname" . }}-backend
+      serviceNamespace: {{ .Release.Namespace | quote }}
+      servicePort: {{ .Values.backend.config.proxyServer.port }}
+      isDirectConnect: {{ .Values.backend.ingress.isDirectConnect }}
 {{- end }}
 {{- end }}
