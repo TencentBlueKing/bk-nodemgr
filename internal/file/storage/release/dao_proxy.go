@@ -82,7 +82,7 @@ func (s *Storage) existReleaseProxy(nCtx contextx.IContext, gen types.Generation
 		release.WithPlatform(plats...),
 	)
 	if err != nil {
-		return false, fmt.Errorf("failed to check release proxy exist: %w", err)
+		return false, fmt.Errorf("failed to check exist release proxy: %w", err)
 	}
 
 	return exist, nil
