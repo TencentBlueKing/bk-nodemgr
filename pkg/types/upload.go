@@ -27,6 +27,9 @@ const (
 	// UploadCategoryOriginServer represents the origin server.
 	UploadCategoryOriginServer UploadCategory = "origin_server"
 
+	// UploadCategoryOriginProxy represents the origin proxy.
+	UploadCategoryOriginProxy UploadCategory = "origin_proxy"
+
 	// UploadCategoryOriginCert represents the origin cert.
 	UploadCategoryOriginCert UploadCategory = "origin_cert"
 
