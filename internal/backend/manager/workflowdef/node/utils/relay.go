@@ -35,6 +35,7 @@ func (std *NodeActionStandarder) getNetworkUnitID() int64 {
 	if std.DeployInfo().Host.Dynamic.NodeRole == types.NodeRoleProxy {
 		networkUnitID = std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID
 	}
+
 	return networkUnitID
 }
 

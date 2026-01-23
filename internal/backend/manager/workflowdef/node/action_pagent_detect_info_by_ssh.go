@@ -262,6 +262,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayToDetect(
 // notifyRelayToDetectSingle sends detect info to a single relay.
 func (act *actionPagentDetectInfoBySSH) notifyRelayToDetectSingle(
 	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
+
 	if relayInfo == nil || relayInfo.AgentID == "" {
 		return fmt.Errorf("relay info has no agent id")
 	}
@@ -273,6 +274,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayToDetectSingle(
 		if err != nil {
 			return fmt.Errorf("detect info by ssh failed. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
+
 		return nil
 	case <-time.After(queryClientTimeout):
 		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
@@ -282,6 +284,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayToDetectSingle(
 // notifyRelayToDetectMultiRelay tries each relay sequentially until one succeeds.
 func (act *actionPagentDetectInfoBySSH) notifyRelayToDetectMultiRelay(
 	std *nodeUtils.NodeActionStandarder, data []byte, relayInfos []*types.RelayInfo) error {
+
 	var lastErr error
 	for i, relayInfo := range relayInfos {
 		if relayInfo == nil || relayInfo.AgentID == "" {

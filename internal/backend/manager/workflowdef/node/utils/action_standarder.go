@@ -26,6 +26,7 @@ func NewNodeActionStandarder(
 	storageNodeDeployment nodeStg.IDaoNodeDeployment,
 	storageHost topoStg.IStorageHost,
 ) *NodeActionStandarder {
+
 	return &NodeActionStandarder{
 		storageNodeDeployment: storageNodeDeployment,
 		storageHost:           storageHost,
