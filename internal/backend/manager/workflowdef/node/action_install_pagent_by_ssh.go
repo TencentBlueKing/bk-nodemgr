@@ -35,6 +35,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/sshx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/system"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/workflow/action"
 )
@@ -195,21 +196,70 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 		return fmt.Errorf("marshal event failed: %w", err)
 	}
 
-	errCh := act.proxyMessager.PushToClient(std.Context(),
-		protoRelay.ServerPushEventTypeInstallBySSH, data, std.DeployInfo().RelayInfo.AgentID)
+	// Get multiple relay infos for retry
+	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	if err != nil {
+		return err
+	}
+	if len(relayInfos) == 0 {
+		return fmt.Errorf("no relay info selected")
+	}
 
+	// Try each relay sequentially until one succeeds
+	return act.notifyRelayToInstallMultiRelay(std, data, relayInfos)
+}
+
+// notifyRelayToInstallSingle sends install request to a single relay.
+func (act *actionInstallPagentBySSH) notifyRelayToInstallSingle(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
+
+	if relayInfo == nil || relayInfo.AgentID == "" {
+		return fmt.Errorf("relay info has no agent id")
+	}
+
+	errCh := act.proxyMessager.PushToClient(std.Context(),
+		protoRelay.ServerPushEventTypeInstallBySSH, data, relayInfo.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("notify relay to install failed: %w", err)
+			return fmt.Errorf("notify relay to install failed. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
+
+		return nil
 	case <-std.Context().Done():
-		return std.Context().Err()
+		return fmt.Errorf("context cancelled. agent-id(%s): %w", relayInfo.AgentID, std.Context().Err())
+	case <-time.After(queryClientTimeout):
+		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
+	}
+}
+
+// notifyRelayToInstallMultiRelay tries each relay sequentially until one succeeds.
+func (act *actionInstallPagentBySSH) notifyRelayToInstallMultiRelay(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfos []*types.RelayInfo) error {
+
+	var lastErr error
+	for i, relayInfo := range relayInfos {
+		if relayInfo == nil || relayInfo.AgentID == "" {
+			std.InstanceData().LogW(fmt.Sprintf("relay info at index %d has no agent id, trying next", i))
+			continue
+		}
+
+		std.InstanceData().LogI(fmt.Sprintf("attempting to send install request to relay, index(%d/%d), agent-id(%s)",
+			i+1, len(relayInfos), relayInfo.AgentID))
+
+		err := act.notifyRelayToInstallSingle(std, data, relayInfo)
+		if err == nil {
+			std.InstanceData().LogI(fmt.Sprintf("notify relay to install pagent successfully, agent-id(%s)", relayInfo.AgentID))
+			return nil
+		}
+
+		std.InstanceData().LogW(fmt.Sprintf("failed to send install request to relay, index(%d/%d), agent-id(%s): %v",
+			i+1, len(relayInfos), relayInfo.AgentID, err))
+		lastErr = err
 	}
 
-	std.InstanceData().LogI("notify relay to install pagent successfully")
-
-	return nil
+	// All relays failed
+	return fmt.Errorf("failed to send install request to all relay(s). count(%d): %w", len(relayInfos), lastErr)
 }
 
 // nolint: gocognit
