@@ -5,38 +5,6 @@ option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/file/api
 import "common.proto";
 import "google/api/annotations.proto";
 
-// UploadAgentReq is the request for upload agent pkg.
-message UploadAgentReq {
-  string os_type = 1;
-  string cpu_arch = 2;
-  int64 generation = 3;
-  string version = 4;
-  bool overwrite = 5;
-}
-
-// UploadAgentResp is the response for upload agent pkg.
-message UploadAgentResp {
-  string name = 1;
-  int64 size = 2;
-  string md5 = 3;
-}
-
-// UploadProxyReq is the request for upload proxy pkg.
-message UploadProxyReq {
-  string os_type = 1;
-  string cpu_arch = 2;
-  int64 generation = 3;
-  string version = 4;
-  bool overwrite = 5;
-}
-
-// UploadProxyResp is the response for upload proxy pkg.
-message UploadProxyResp {
-  string name = 1;
-  int64 size = 2;
-  string md5 = 3;
-}
-
 // UploadOriginAgentReq is the request for upload origin agent pkg.
 message UploadOriginAgentReq {
   int64 generation = 1;
@@ -85,6 +53,33 @@ message UploadOriginServerResp {
     optional string md5 = 6;
     optional string version = 7;
     repeated Platform platforms = 8;
+  }
+  Data data = 4;
+}
+
+// UploadOriginProxyReq is the request for upload origin proxy pkg.
+message UploadOriginProxyReq {
+  int64 generation = 1;
+  bool overwrite = 2;
+}
+
+// UploadOriginProxyResp is the response for upload origin proxy pkg.
+message UploadOriginProxyResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+
+  message Data {
+    optional string upload_id = 1;
+    optional bool existed = 2;
+    optional bool generated = 3;
+    optional string name = 4;
+    optional int64 size = 5;
+    optional string md5 = 6;
+    optional string version = 7;
+    optional string changelog_en = 8;
+    optional string changelog_zh = 9;
+    repeated Platform platforms = 10;
   }
   Data data = 4;
 }
@@ -271,6 +266,14 @@ service Upload {
       returns (UploadOriginServerResp) {
     option (google.api.http) = {
       post : "/api/v3/upload/origin/server"
+      body : "*"
+    };
+  }
+
+  // UploadOriginProxy provides origin proxy upload.
+  rpc UploadOriginProxy(UploadOriginProxyReq) returns (UploadOriginProxyResp) {
+    option (google.api.http) = {
+      post : "/api/v3/upload/origin/proxy"
       body : "*"
     };
   }

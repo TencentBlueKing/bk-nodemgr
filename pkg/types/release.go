@@ -27,6 +27,9 @@ const (
 	// ReleaseTypeOriginServer defines the release of origin gse server package.
 	ReleaseTypeOriginServer ReleaseType = "origin_server"
 
+	// ReleaseTypeOriginProxy defines the release of origin gse proxy package.
+	ReleaseTypeOriginProxy ReleaseType = "origin_proxy"
+
 	// ReleaseTypeOriginPluginV2 defines the release of nodemgr origin plugin v2 package.
 	ReleaseTypeOriginPluginV2 ReleaseType = "origin_plugin_v2"
 
@@ -60,6 +63,7 @@ func (rt ReleaseType) Validate() error {
 	switch rt {
 	case ReleaseTypeOriginAgent,
 		ReleaseTypeOriginServer,
+		ReleaseTypeOriginProxy,
 		ReleaseTypeAgent,
 		ReleaseTypeProxy,
 		ReleaseTypeCert,

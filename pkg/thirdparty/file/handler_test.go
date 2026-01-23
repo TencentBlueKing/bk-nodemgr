@@ -11,18 +11,20 @@
 package file
 
 import (
-	"context"
 	"os"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	restdiscovery "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/discovery"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/ssl"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/joho/godotenv"
 )
 
 var (
 	agentFileName = ""
+	proxyFileName = ""
 )
 
 func initParams(t *testing.T) {
@@ -32,6 +34,7 @@ func initParams(t *testing.T) {
 	}
 
 	agentFileName = os.Getenv("AGENT_FILE_NAME")
+	proxyFileName = os.Getenv("PROXY_FILE_NAME")
 }
 
 // testClient ...
@@ -75,7 +78,25 @@ func Test_handler_UploadOriginAgent(t *testing.T) {
 	}
 	defer file.Close()
 
-	data, err := testClient(t).UploadOriginAgent(context.Background(), agentFileName, file)
+	data, err := testClient(t).UploadOriginAgent(contextx.Background(), agentFileName, file, types.Generation2, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("data: %+#v", data)
+}
+
+// Test_handler_UploadOriginProxy tests the UploadOriginProxy method.
+func Test_handler_UploadOriginProxy(t *testing.T) {
+	initParams(t)
+
+	file, err := os.Open(proxyFileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+
+	data, err := testClient(t).UploadOriginProxy(contextx.Background(), proxyFileName, file, types.Generation2, true)
 	if err != nil {
 		t.Fatal(err)
 	}

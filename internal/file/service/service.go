@@ -300,6 +300,10 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin server file group: %w", err)
 	}
+	upstreamOriginProxyFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/proxy")
+	if err != nil {
+		return fmt.Errorf("failed to ensure upstream origin proxy file group: %w", err)
+	}
 	upstreamOriginCertFG, err := svc.Cap.BKRepo.EnsureFileGroup(nCtx, "origin/cert")
 	if err != nil {
 		return fmt.Errorf("failed to ensure upstream origin cert file group: %w", err)
@@ -368,6 +372,7 @@ func (svc *Service) initialManager(nCtx contextx.IContext) error {
 	svc.Cap.Manager = manager.New(
 		manager.WithUpstreamOriginAgentFileGroup(upstreamOriginAgentFG),
 		manager.WithUpstreamOriginServerFileGroup(upstreamOriginServerFG),
+		manager.WithUpstreamOriginProxyFileGroup(upstreamOriginProxyFG),
 		manager.WithUpstreamOriginCertFileGroup(upstreamOriginCertFG),
 		manager.WithUpstreamOriginBinToolFileGroup(upstreamOriginBinToolFG),
 		manager.WithUpstreamOriginPluginBinToolV2FileGroup(upstreamOriginPluginBinToolV2FG),

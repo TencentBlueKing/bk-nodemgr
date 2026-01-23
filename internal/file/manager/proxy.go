@@ -13,6 +13,8 @@ package manager
 import (
 	"errors"
 	"fmt"
+	"io"
+	"strings"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -28,8 +30,323 @@ import (
 
 // IProxy defines the interface for proxy.
 type IProxy interface {
+	// UploadOriginProxy uploads the origin proxy.
+	UploadOriginProxy(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
+
 	// PublishReleaseProxy generates release proxy by upload-id.
 	PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error
+}
+
+// UploadOriginProxy uploads the origin proxy.
+// nolint:funlen,gocognit,gocyclo,cyclop
+// NOCC: golint/fnsize(func design is not suitable for splitting).
+func (m *Manager) UploadOriginProxy(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error) {
+	// validation.
+	if pkgFile == nil {
+		logger.G.Biz(nCtx).Error("failed to upload origin proxy package. file is nil")
+
+		return nil, errors.New("file is nil")
+	}
+
+	// store file to temp.
+	tempFileName, err := m.saveTempFile(nCtx, pkgFile)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package. failed to save temp file")
+
+		return nil, err
+	}
+
+	checkingFile, err := m.getTempFile(nCtx, tempFileName)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package. failed to get temp file")
+
+		return nil, err
+	}
+
+	detail, err := checkGSE2OriginProxyPkg(checkingFile)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package. failed to check origin proxy package")
+
+		return nil, err
+	}
+
+	uploadingFile, err := m.getTempFile(nCtx, tempFileName)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package. failed to get temp file")
+
+		return nil, err
+	}
+
+	// origin proxy package only have one platform.
+	if len(detail.Platforms) == 0 {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package. failed to get platform")
+
+		return nil, errors.New("failed to get platform")
+	}
+	plat := detail.Platforms[0]
+	gen := types.Generation2
+	pkgFileName, err := nodepkg.FormatPkgFileName(
+		gen,
+		types.ReleaseTypeOriginProxy,
+		plat,
+		detail.Version,
+	)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package, failed to format package")
+
+		return nil, err
+	}
+	pkgFileName = m.wrapOriginPackageName(pkgFileName)
+
+	// upload to upstream.
+	if err := m.upstreamOriginProxy.Store(nCtx, fileiface.FileInfo{Name: pkgFileName}, uploadingFile, true); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package, failed to upload to upstream")
+
+		return nil, err
+	}
+
+	// get file.
+	file, err := m.upstreamOriginProxy.GetFile(nCtx, pkgFileName)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package. failed to get file from upstream")
+
+		return nil, err
+	}
+
+	// get info.
+	detail.FileInfo = file.Info()
+
+	// check if release existed.
+	existed, err := m.storageRelease.ExistReleaseProxy(nCtx, gen, detail.Version, detail.Platforms...)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package. failed to check if release existed")
+
+		return nil, err
+	}
+	detail.Existed = existed
+
+	// create the upload record.
+	uploadID, err := m.storageUpload.CreateProxyUpload(nCtx, &types.Upload{
+		Category:  types.UploadCategoryOriginProxy,
+		SavedName: pkgFileName,
+	})
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package, failed to create upload")
+
+		return nil, err
+	}
+	detail.UploadID = uploadID
+
+	// record event.
+	m.recordUploadEvent(nCtx, types.ReleaseTypeOriginProxy, types.ReleaseNameProxy, detail.Version, detail.Platforms)
+
+	logger.G.Biz(nCtx).With("version", detail.Version, "filename", pkgFileName).Info("uploaded origin proxy package to upstream")
+
+	return detail, nil
+}
+
+// checkGSE2OriginProxyPkg check origin proxy package.
+// nolint:funlen,gocognit,gocyclo,cyclop,lll
+// NOCC: golint/fnsize(func design is not suitable for splitting).
+func checkGSE2OriginProxyPkg(file io.ReadCloser) (*types.OriginPkgDetail, error) {
+	platSet := make(map[string]struct{})
+	var seenFile, seenData, seenAgent bool
+	detail := types.NewOriginPkgDetail()
+	if err := checkTgz(file, []tgzReadRule{
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyFileNameVersion)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read version file: %w", err)
+				}
+
+				detail.Version = strings.Trim(string(content), "\n\r\t ")
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyFileNameDescription)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read description file: %w", err)
+				}
+
+				detail.ChangeLogZH = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyFileNameDescriptionEN)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read description-en file: %w", err)
+				}
+
+				detail.ChangeLogEN = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameSupportFile), buildFullMatchRegex(originalProxyDirNameTemplates), buildFullMatchRegex(originalProxyFileNameConfTemplateDataProxyTypeOne)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read #etc#gse#gse_data_proxy.conf template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyData] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameSupportFile), buildFullMatchRegex(originalProxyDirNameTemplates), buildFullMatchRegex(originalProxyFileNameConfTemplateDataProxyTypeTwo)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_data_proxy.conf.template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyData] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameSupportFile), buildFullMatchRegex(originalProxyDirNameTemplates), buildFullMatchRegex(originalProxyFileNameConfTemplateFileProxyTypeOne)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read #etc#gse#gse_file_proxy.conf template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyFile] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameSupportFile), buildFullMatchRegex(originalProxyDirNameTemplates), buildFullMatchRegex(originalProxyFileNameConfTemplateFileProxyTypeTwo)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_file_proxy.conf.template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyFile] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameSupportFile), buildFullMatchRegex(originalProxyDirNameTemplates), buildFullMatchRegex(originalProxyFileNameConfTemplateAgentTypeOne)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read #etc#gse#gse_agent.conf template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyAgent] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameSupportFile), buildFullMatchRegex(originalProxyDirNameTemplates), buildFullMatchRegex(originalProxyFileNameConfTemplateAgentTypeTwo)},
+			callback: func(_ []string, r io.Reader) error {
+				content, err := io.ReadAll(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_agent.conf.template file: %w", err)
+				}
+
+				detail.ConfigTemplate[types.ConfigKeyAgent] = string(content)
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameSupportFile), buildFullMatchRegex(originalProxyDirNameEnv), buildFullMatchRegex(originalProxyFileNameProxyEnv)},
+			callback: func(_ []string, r io.Reader) error {
+				environ, err := parseEnvFile(r)
+				if err != nil {
+					return fmt.Errorf("failed to read gse_proxy.env file: %w", err)
+				}
+
+				detail.ConfigEnviron = environ
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameRoot), buildFullMatchRegex(originalProxyDirNameBin), buildFullMatchRegex(originalProxyFileNameAgent)},
+			callback: func(_ []string, r io.Reader) error {
+				seenAgent = true
+				plat, err := checkServerBinaryPlatform(r)
+				if err != nil {
+					return fmt.Errorf("failed to check gse_agent binary platform: %w", err)
+				}
+
+				platSet[plat.String()] = struct{}{}
+
+				if len(detail.Platforms) == 0 {
+					detail.Platforms = append(detail.Platforms, *plat)
+				}
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameRoot), buildFullMatchRegex(originalProxyDirNameBin), buildFullMatchRegex(originalProxyFileNameData)},
+			callback: func(_ []string, r io.Reader) error {
+				seenData = true
+				plat, err := checkServerBinaryPlatform(r)
+				if err != nil {
+					return fmt.Errorf("failed to check gse_data binary platform: %w", err)
+				}
+
+				platSet[plat.String()] = struct{}{}
+
+				if len(detail.Platforms) == 0 {
+					detail.Platforms = append(detail.Platforms, *plat)
+				}
+
+				return nil
+			},
+		},
+		{
+			filePathRegex: []string{".*", buildFullMatchRegex(originalProxyDirNameRoot), buildFullMatchRegex(originalProxyDirNameBin), buildFullMatchRegex(originalProxyFileNameFile)},
+			callback: func(_ []string, r io.Reader) error {
+				seenFile = true
+				plat, err := checkServerBinaryPlatform(r)
+				if err != nil {
+					return fmt.Errorf("failed to check gse_file binary platform: %w", err)
+				}
+
+				platSet[plat.String()] = struct{}{}
+
+				if len(detail.Platforms) == 0 {
+					detail.Platforms = append(detail.Platforms, *plat)
+				}
+
+				return nil
+			},
+		},
+	}); err != nil {
+		return nil, fmt.Errorf("failed to check origin agent package: %w", err)
+	}
+
+	if !seenFile || !seenData || !seenAgent || len(platSet) != 1 || detail.Version == "" {
+		return nil, fmt.Errorf("invalid origin proxy package. gse-file(%t) gse-data(%t) gse-agent(%t) version(%s) platform(%v) platform-set-size(%d)",
+			seenFile, seenData, seenAgent, detail.Version, detail.Platforms, len(platSet))
+	}
+
+	return detail, nil
 }
 
 // PublishReleaseProxy generates release proxy packages by upload-id.
@@ -203,10 +520,32 @@ type releaseProxyPkg struct {
 }
 
 const (
-	proxyPkgDirNameBin             = "bin"
-	proxyPkgDirNameCert            = "cert"
-	proxyPkgFileNameFileServer     = "gse_file"
-	proxyPkgFileNameDataServer     = "gse_data"
+	originalProxyDirNameRoot        = "server"
+	originalProxyDirNameEnv         = "env"
+	originalProxyDirNameSupportFile = "support-files"
+	originalProxyDirNameBin         = "bin"
+	originalProxyDirNameTemplates   = "templates"
+
+	originalProxyFileNameVersion       = "VERSION"
+	originalProxyFileNameDescription   = "DESCRIPTION"
+	originalProxyFileNameDescriptionEN = "DESCRIPTION_EN"
+	originalProxyFileNameProxyEnv      = "gse_proxy.env"
+
+	originalProxyFileNameAgent                    = "gse_agent"
+	originalProxyFileNameConfTemplateAgentTypeOne = "#etc#gse#gse_agent.conf"
+	originalProxyFileNameConfTemplateAgentTypeTwo = "gse_agent.conf.template"
+
+	originalProxyFileNameFile                         = "gse_file"
+	originalProxyFileNameConfTemplateFileProxyTypeOne = "#etc#gse#gse_file_proxy.conf"
+	originalProxyFileNameConfTemplateFileProxyTypeTwo = "gse_file_proxy.conf.template"
+
+	originalProxyFileNameData                         = "gse_data"
+	originalProxyFileNameConfTemplateDataProxyTypeOne = "#etc#gse#gse_data_proxy.conf"
+	originalProxyFileNameConfTemplateDataProxyTypeTwo = "gse_data_proxy.conf.template"
+
+	proxyPkgDirNameBin  = "bin"
+	proxyPkgDirNameCert = "cert"
+
 	proxyPkgFileNameCaCrt          = "gseca.crt"
 	proxyPkgFileNameAgentCrt       = "gse_agent.crt"
 	proxyPkgFileNameAgentKey       = "gse_agent.key"
@@ -223,6 +562,22 @@ func proxyPkgFileNameAgent(plat platfmt.Platform) string {
 	}
 
 	return "gse_agent"
+}
+
+func proxyPkgFileNameData(plat platfmt.Platform) string {
+	if plat.OS == criteria.OSWindows {
+		return "gse_data.exe"
+	}
+
+	return "gse_data"
+}
+
+func proxyPkgFileNameFile(plat platfmt.Platform) string {
+	if plat.OS == criteria.OSWindows {
+		return "gse_file.exe"
+	}
+
+	return "gse_file"
 }
 
 // generateProxyPkg generates proxy package.
@@ -303,13 +658,13 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 							{
 								sourceFilePath: []string{tgzPathMatchingSegment1, originalServerDirNameRoot, originalServerDirNameBin,
 									originalServerFileNameFileServer},
-								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameFileServer},
+								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameFile(plat)},
 								targetFileMode: tgzModeExe,
 							},
 							{
 								sourceFilePath: []string{tgzPathMatchingSegment1, originalServerDirNameRoot, originalServerDirNameBin,
 									originalServerFileNameDataServer},
-								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameDataServer},
+								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameData(plat)},
 								targetFileMode: tgzModeExe,
 							},
 						},

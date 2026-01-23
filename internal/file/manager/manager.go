@@ -124,6 +124,13 @@ func WithUpstreamOriginAgentFileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	}
 }
 
+// WithUpstreamOriginProxyFileGroup sets the upstream file group.
+func WithUpstreamOriginProxyFileGroup(fileGroup fileiface.FileGroup) OptionFn {
+	return func(manager *Manager) {
+		manager.upstreamOriginProxy = fileGroup
+	}
+}
+
 // WithUpstreamOriginPluginV2FileGroup sets the upstream file group.
 func WithUpstreamOriginPluginV2FileGroup(fileGroup fileiface.FileGroup) OptionFn {
 	return func(manager *Manager) {
@@ -293,6 +300,7 @@ type Manager struct {
 	// upstream file group is regarded as the file source.
 	upstreamOriginAgent            fileiface.FileGroup
 	upstreamOriginServer           fileiface.FileGroup
+	upstreamOriginProxy            fileiface.FileGroup
 	upstreamOriginCert             fileiface.FileGroup
 	upstreamOriginBinTool          fileiface.FileGroup
 	upstreamOriginPluginBinTool    fileiface.FileGroup
@@ -341,6 +349,10 @@ type Manager struct {
 func (m *Manager) Start(_ context.Context) error {
 	if m.upstreamOriginAgent == nil {
 		return errors.New("invalid upstream origin agent")
+	}
+
+	if m.upstreamOriginProxy == nil {
+		return errors.New("invalid upstream origin proxy")
 	}
 
 	if m.upstreamOriginServer == nil {

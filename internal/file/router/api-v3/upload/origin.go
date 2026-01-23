@@ -87,6 +87,41 @@ func (h *handler) UploadOriginServer(rCtx restserver.IContext) (interface{}, err
 	return resp.GetData(), nil
 }
 
+// UploadOriginProxy upload origin proxy.
+func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoFile.UploadOriginProxyReq)
+	fileHeader, err := rCtx.ParseFileForm(req)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload proxy, failed to parse file form")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload proxy, failed to open file")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	detail, err := h.manager.UploadOriginProxy(rCtx, file)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload proxy")
+
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", req.GetGeneration(), "detail", detail).Info("uploaded origin proxy")
+
+	resp := new(protoFile.UploadOriginProxyResp)
+	resp.ConvertResultFromTypes(false, detail)
+
+	return resp.GetData(), nil
+}
+
 // UploadOriginCert upload origin cert.
 func (h *handler) UploadOriginCert(rCtx restserver.IContext) (interface{}, error) {
 	req := new(protoFile.UploadOriginCertReq)

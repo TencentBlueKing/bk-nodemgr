@@ -82,6 +82,9 @@ type IPkgUploadHandler interface {
 	// UploadOriginServer upload origin server.
 	UploadOriginServer(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (*types.OriginPkgDetail, error)
 
+	// UploadOriginProxy upload origin proxy.
+	UploadOriginProxy(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (*types.OriginPkgDetail, error)
+
 	// UploadOriginCert upload origin cert.
 	UploadOriginCert(nCtx contextx.IContext, fileName string, file io.Reader, overwrite bool) (*types.OriginCertPkgDetail, error)
 
@@ -241,6 +244,43 @@ func (h *handler) UploadOriginServer(nCtx contextx.IContext, fileName string, fi
 		Existed:   resp.GetExisted(),
 		Version:   resp.GetVersion(),
 		Platforms: resp.ConvertPlatformsToTypes(),
+	}, nil
+}
+
+// UploadOriginProxy upload origin proxy.
+func (h *handler) UploadOriginProxy(nCtx contextx.IContext, fileName string, file io.Reader, gen types.Generation, overwrite bool) (
+	*types.OriginPkgDetail, error) {
+
+	if err := nCtx.CheckTenantID(); err != nil {
+		return nil, err
+	}
+
+	if gen != types.Generation2 {
+		return nil, fmt.Errorf("param generateion(%d) invalid, only generation2 is supported for origin proxy upload", gen)
+	}
+
+	tenantID := nCtx.TenantID()
+	params := &protoFile.UploadOriginProxyReq{
+		Generation: int64(gen),
+		Overwrite:  overwrite,
+	}
+	resp, err := h.cli.uploadOriginProxy(nCtx, tenantID, params, fileName, file)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.OriginPkgDetail{
+		FileInfo: fileiface.FileInfo{
+			Name: resp.GetName(),
+			Size: resp.GetSize(),
+			MD5:  resp.GetMd5(),
+		},
+		UploadID:    resp.GetUploadId(),
+		Existed:     resp.GetExisted(),
+		Version:     resp.GetVersion(),
+		Platforms:   resp.ConvertPlatformsToTypes(),
+		ChangeLogEN: resp.GetChangelogEn(),
+		ChangeLogZH: resp.GetChangelogZh(),
 	}, nil
 }
 

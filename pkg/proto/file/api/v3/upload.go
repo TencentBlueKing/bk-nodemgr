@@ -19,56 +19,6 @@ import (
 )
 
 // Validate check request body.
-func (x *UploadAgentReq) Validate() error {
-	if x.GetGeneration() == 0 {
-		return errors.New("generation is required")
-	}
-
-	if x.GetCpuArch() == "" {
-		return errors.New("cpu_arch is required")
-	}
-
-	if x.GetOsType() == "" {
-		return errors.New("os_type is required")
-	}
-
-	if x.GetVersion() == "" {
-		return errors.New("version is required")
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *UploadAgentReq) AutoConvert() {
-}
-
-// Validate check request body.
-func (x *UploadProxyReq) Validate() error {
-	if x.GetGeneration() == 0 {
-		return errors.New("generation is required")
-	}
-
-	if x.GetCpuArch() == "" {
-		return errors.New("cpu_arch is required")
-	}
-
-	if x.GetOsType() == "" {
-		return errors.New("os_type is required")
-	}
-
-	if x.GetVersion() == "" {
-		return errors.New("version is required")
-	}
-
-	return nil
-}
-
-// AutoConvert auto convert.
-func (x *UploadProxyReq) AutoConvert() {
-}
-
-// Validate check request body.
 func (x *UploadOriginAgentReq) Validate() error {
 	if x.GetGeneration() == 0 {
 		return errors.New("generation is required")
@@ -176,6 +126,66 @@ func (x *UploadOriginServerResp) ConvertResultFromTypes(generated bool, detail *
 
 // ConvertPlatformsToTypes convert platforms to types.
 func (x *UploadOriginServerResp_Data) ConvertPlatformsToTypes() []platform.Platform {
+	plats := make([]platform.Platform, 0)
+	for _, plat := range x.GetPlatforms() {
+		plats = append(plats, ConvertPlatformToTypes(plat))
+	}
+
+	return plats
+}
+
+// Validate check request body.
+func (x *UploadOriginProxyReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *UploadOriginProxyReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *UploadOriginProxyResp) ConvertResultFromTypes(generated bool, detail *types.OriginPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, ConvertPlatformFromTypes(plat))
+	}
+
+	data := &UploadOriginProxyResp_Data{
+		UploadId:    new(string),
+		Existed:     new(bool),
+		Generated:   new(bool),
+		Name:        new(string),
+		Size:        new(int64),
+		Md5:         new(string),
+		Version:     new(string),
+		ChangelogEn: new(string),
+		ChangelogZh: new(string),
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.FileInfo.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.ChangelogEn = detail.ChangeLogEN
+	*data.ChangelogZh = detail.ChangeLogZH
+	data.Platforms = plats
+
+	x.Data = data
+}
+
+// ConvertPlatformsToTypes convert platforms to types.
+func (x *UploadOriginProxyResp_Data) ConvertPlatformsToTypes() []platform.Platform {
 	plats := make([]platform.Platform, 0)
 	for _, plat := range x.GetPlatforms() {
 		plats = append(plats, ConvertPlatformToTypes(plat))

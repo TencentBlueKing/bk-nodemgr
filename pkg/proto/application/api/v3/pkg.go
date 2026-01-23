@@ -121,6 +121,56 @@ func (x *PackageUploadOriginServerResp) ConvertResultFromTypes(generated bool, d
 }
 
 // Validate check request body.
+func (x *PackageUploadOriginProxyReq) Validate() error {
+	if x.GetGeneration() == 0 {
+		return errors.New("generation is required")
+	}
+
+	return nil
+}
+
+// AutoConvert auto convert.
+func (x *PackageUploadOriginProxyReq) AutoConvert() {
+}
+
+// ConvertResultFromTypes convert result from types.
+func (x *PackageUploadOriginProxyResp) ConvertResultFromTypes(generated bool, detail *types.OriginPkgDetail) {
+	if detail == nil {
+		return
+	}
+
+	plats := make([]*Platform, 0)
+	for _, plat := range detail.Platforms {
+		plats = append(plats, ConvertPlatformFromTypes(plat))
+	}
+
+	data := &PackageUploadOriginProxyResp_Data{
+		UploadId:    new(string),
+		Existed:     new(bool),
+		Generated:   new(bool),
+		Name:        new(string),
+		Size:        new(int64),
+		Md5:         new(string),
+		Version:     new(string),
+		ChangeLogEn: new(string),
+		ChangeLogZh: new(string),
+	}
+
+	*data.UploadId = detail.UploadID
+	*data.Existed = detail.Existed
+	*data.Generated = generated
+	*data.Name = detail.FileInfo.Name
+	*data.Size = detail.Size
+	*data.Md5 = detail.MD5
+	*data.Version = detail.Version
+	*data.ChangeLogEn = detail.ChangeLogEN
+	*data.ChangeLogZh = detail.ChangeLogZH
+	data.Platforms = plats
+
+	x.Data = data
+}
+
+// Validate check request body.
 func (x *PackageUploadOriginCertReq) Validate() error {
 	return nil
 }

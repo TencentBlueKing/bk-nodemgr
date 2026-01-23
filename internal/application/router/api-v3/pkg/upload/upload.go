@@ -44,6 +44,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/origin/agent", restserver.Handler(h.UploadOriginAgent))
 	h.rg.POST("/origin/server", restserver.Handler(h.UploadOriginServer))
+	h.rg.POST("/origin/proxy", restserver.Handler(h.UploadOriginProxy))
 	h.rg.POST("/origin/cert", restserver.Handler(h.UploadOriginCert))
 	h.rg.POST("/origin/bintool", restserver.Handler(h.UploadOriginBinTool))
 	h.rg.POST("/origin/plugin_bintool", restserver.Handler(h.UploadOriginPluginBinTool))
@@ -111,6 +112,37 @@ func (h *handler) UploadOriginServer(rCtx restserver.IContext) (interface{}, err
 	logger.G.Biz(rCtx).With("gen", req.GetGeneration(), "detail", detail).Info("uploaded origin server")
 
 	resp := new(protoApplication.PackageUploadOriginServerResp)
+	resp.ConvertResultFromTypes(false, detail)
+
+	return resp.GetData(), nil
+}
+
+// UploadOriginProxy upload origin proxy.
+func (h *handler) UploadOriginProxy(rCtx restserver.IContext) (interface{}, error) {
+	req := new(protoApplication.PackageUploadOriginProxyReq)
+	fileHeader, err := rCtx.ParseFileForm(req)
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin proxy, failed to parse file form: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin proxy, failed to open file")
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	detail, err := h.fileHandler.UploadOriginProxy(rCtx, fileHeader.Filename, file, types.Generation(req.GetGeneration()), req.GetOverwrite())
+	if err != nil {
+		logger.G.Biz(rCtx).WithErr(err).Error("failed to upload origin proxy: %v", err)
+		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+	}
+
+	logger.G.Biz(rCtx).With("gen", req.GetGeneration(), "detail", detail).Info("uploaded origin proxy")
+	resp := new(protoApplication.PackageUploadOriginProxyResp)
 	resp.ConvertResultFromTypes(false, detail)
 
 	return resp.GetData(), nil

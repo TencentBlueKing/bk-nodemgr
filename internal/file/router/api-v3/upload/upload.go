@@ -37,6 +37,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 	h.rg.POST("/origin/agent", restserver.Handler(h.UploadOriginAgent))
 	h.rg.POST("/origin/server", restserver.Handler(h.UploadOriginServer))
+	h.rg.POST("/origin/proxy", restserver.Handler(h.UploadOriginProxy))
 	h.rg.POST("/origin/cert", restserver.Handler(h.UploadOriginCert))
 	h.rg.POST("/origin/bintool", restserver.Handler(h.UploadOriginBinTool))
 	h.rg.POST("/origin/plugin_bintool", restserver.Handler(h.UploadOriginPluginBinTool))

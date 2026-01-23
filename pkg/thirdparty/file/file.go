@@ -165,6 +165,48 @@ func (c *cli) uploadOriginServer(
 	return data, nil
 }
 
+func (c *cli) uploadOriginProxy(
+	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginProxyReq, fileName string, file io.Reader) (
+	*protoFile.UploadOriginProxyResp_Data, error) {
+
+	resp := new(protoFile.UploadOriginProxyResp)
+	header, err := c.getCommonHeader(nCtx, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.generateUploadFileBody(req, header, fileName, file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate upload file body: %w", err)
+	}
+	defer func() {
+		_ = body.Close()
+	}()
+
+	err = c.client.Post().
+		SubResourcef("/upload/origin/proxy").
+		WithContext(nCtx).
+		WithHeaders(header).
+		BodyReader(body).
+		Do().Into(resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to do post request: %w", err)
+	}
+
+	if code := resp.GetCode(); code != CodeOK {
+		return nil, fmt.Errorf("failed to upload origin proxy. code(%d), message(%s), request-id(%s)",
+			code, resp.GetMessage(), resp.GetRequestId())
+	}
+
+	data := resp.GetData()
+	if data == nil {
+		return nil, fmt.Errorf("failed to upload origin proxy, get empty data. code(%d), message(%s), request-id(%s)",
+			resp.GetCode(), resp.GetMessage(), resp.GetRequestId())
+	}
+
+	return data, nil
+}
+
 func (c *cli) uploadOriginCert(
 	nCtx contextx.IContext, tenantID string, req *protoFile.UploadOriginCertReq, fileName string, file io.Reader) (
 	*protoFile.UploadOriginCertResp_Data, error) {

@@ -152,6 +152,40 @@
         ]
       }
     },
+    "/api/v3/upload/origin/proxy": {
+      "post": {
+        "summary": "UploadOriginProxy provides origin proxy upload.",
+        "operationId": "Upload_UploadOriginProxy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginProxyResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "UploadOriginProxyReq is the request for upload origin proxy pkg.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3UploadOriginProxyReq"
+            }
+          }
+        ],
+        "tags": [
+          "Upload"
+        ]
+      }
+    },
     "/api/v3/upload/origin/server": {
       "post": {
         "summary": "UploadOriginServer provides origin server upload.",
@@ -850,6 +884,78 @@
           "type": "string"
         },
         "template_renderer": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Platform"
+          }
+        }
+      }
+    },
+    "v3UploadOriginProxyReq": {
+      "type": "object",
+      "properties": {
+        "generation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "overwrite": {
+          "type": "boolean"
+        }
+      },
+      "description": "UploadOriginProxyReq is the request for upload origin proxy pkg."
+    },
+    "v3UploadOriginProxyResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "type": "string"
+        },
+        "data": {
+          "$ref": "#/definitions/v3UploadOriginProxyRespData"
+        }
+      },
+      "description": "UploadOriginProxyResp is the response for upload origin proxy pkg."
+    },
+    "v3UploadOriginProxyRespData": {
+      "type": "object",
+      "properties": {
+        "upload_id": {
+          "type": "string"
+        },
+        "existed": {
+          "type": "boolean"
+        },
+        "generated": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "md5": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "changelog_en": {
+          "type": "string"
+        },
+        "changelog_zh": {
           "type": "string"
         },
         "platforms": {
