@@ -237,21 +237,71 @@ func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *nodeUtils.NodeAct
 	if err != nil {
 		return fmt.Errorf("marshal event failed: %w", err)
 	}
-	errCh := act.proxyMessager.PushToClient(std.Context(),
-		protoRelay.ServerPushEventTypeCheckPkgState, data, std.DeployInfo().RelayInfo.AgentID)
 
+	// Get multiple relay infos for retry
+	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	if err != nil {
+		return err
+	}
+	if len(relayInfos) == 0 {
+		return fmt.Errorf("no relay info selected")
+	}
+
+	// Try each relay sequentially until one succeeds
+	return act.queryRelayPackageStateMultiRelay(std, data, relayInfos)
+}
+
+// queryRelayPackageStateSingle sends package state check request to a single relay.
+func (act *actionEnsurePkgToRelay) queryRelayPackageStateSingle(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
+
+	if relayInfo == nil || relayInfo.AgentID == "" {
+		return fmt.Errorf("relay info has no agent id")
+	}
+
+	errCh := act.proxyMessager.PushToClient(std.Context(),
+		protoRelay.ServerPushEventTypeCheckPkgState, data, relayInfo.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("push to relay failed: %w", err)
+			return fmt.Errorf("push to relay failed. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
-	case <-time.After(queryRelayTimeout):
-		return errors.New("relay response timeout")
+
+		return nil
+	case <-std.Context().Done():
+		return fmt.Errorf("context cancelled. agent-id(%s): %w", relayInfo.AgentID, std.Context().Err())
+	case <-time.After(queryClientTimeout):
+		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
+	}
+}
+
+// queryRelayPackageStateMultiRelay tries each relay sequentially until one succeeds.
+func (act *actionEnsurePkgToRelay) queryRelayPackageStateMultiRelay(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfos []*types.RelayInfo) error {
+
+	var lastErr error
+	for i, relayInfo := range relayInfos {
+		if relayInfo == nil || relayInfo.AgentID == "" {
+			std.InstanceData().LogW(fmt.Sprintf("relay info at index %d has no agent id, trying next", i))
+			continue
+		}
+
+		std.InstanceData().LogI(fmt.Sprintf("attempting to query package state from relay, index(%d/%d), agent-id(%s)",
+			i+1, len(relayInfos), relayInfo.AgentID))
+
+		err := act.queryRelayPackageStateSingle(std, data, relayInfo)
+		if err == nil {
+			std.InstanceData().LogI(fmt.Sprintf("package state query sent to relay successfully, agent-id(%s)", relayInfo.AgentID))
+			return nil
+		}
+
+		std.InstanceData().LogW(fmt.Sprintf("failed to query package state from relay, index(%d/%d), agent-id(%s): %v",
+			i+1, len(relayInfos), relayInfo.AgentID, err))
+		lastErr = err
 	}
 
-	std.InstanceData().LogI("package state query sent to relay.")
-
-	return nil
+	// All relays failed
+	return fmt.Errorf("failed to query package state from all relay(s). count(%d): %w", len(relayInfos), lastErr)
 }
 
 // nolint: gocognit
@@ -520,21 +570,70 @@ func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
 		return fmt.Errorf("marshal event failed: %w", err)
 	}
 
-	errCh := act.proxyMessager.PushToClient(std.Context(),
-		protoRelay.ServerPushEventTypeNotifyReceive, data, std.DeployInfo().RelayInfo.AgentID)
+	// Get multiple relay infos for retry
+	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	if err != nil {
+		return err
+	}
+	if len(relayInfos) == 0 {
+		return fmt.Errorf("no relay info selected")
+	}
 
+	// Try each relay sequentially until one succeeds
+	return act.notifyRelayToReceivePackageMultiRelay(std, data, relayInfos)
+}
+
+// notifyRelayToReceivePackageSingle sends receive notification to a single relay.
+func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackageSingle(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfo *types.RelayInfo) error {
+
+	if relayInfo == nil || relayInfo.AgentID == "" {
+		return fmt.Errorf("relay info has no agent id")
+	}
+
+	errCh := act.proxyMessager.PushToClient(std.Context(),
+		protoRelay.ServerPushEventTypeNotifyReceive, data, relayInfo.AgentID)
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return fmt.Errorf("notify relay to receive failed: %w", err)
+			return fmt.Errorf("notify relay to receive failed. agent-id(%s): %w", relayInfo.AgentID, err)
 		}
+
+		return nil
 	case <-std.Context().Done():
-		return std.Context().Err()
+		return fmt.Errorf("context cancelled. agent-id(%s): %w", relayInfo.AgentID, std.Context().Err())
+	case <-time.After(queryClientTimeout):
+		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
+	}
+}
+
+// notifyRelayToReceivePackageMultiRelay tries each relay sequentially until one succeeds.
+func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackageMultiRelay(
+	std *nodeUtils.NodeActionStandarder, data []byte, relayInfos []*types.RelayInfo) error {
+
+	var lastErr error
+	for i, relayInfo := range relayInfos {
+		if relayInfo == nil || relayInfo.AgentID == "" {
+			std.InstanceData().LogW(fmt.Sprintf("relay info at index %d has no agent id, trying next", i))
+			continue
+		}
+
+		std.InstanceData().LogI(fmt.Sprintf("attempting to notify relay to receive package, index(%d/%d), agent-id(%s)",
+			i+1, len(relayInfos), relayInfo.AgentID))
+
+		err := act.notifyRelayToReceivePackageSingle(std, data, relayInfo)
+		if err == nil {
+			std.InstanceData().LogI(fmt.Sprintf("notify relay to receive package done, agent-id(%s)", relayInfo.AgentID))
+			return nil
+		}
+
+		std.InstanceData().LogW(fmt.Sprintf("failed to notify relay to receive package, index(%d/%d), agent-id(%s): %v",
+			i+1, len(relayInfos), relayInfo.AgentID, err))
+		lastErr = err
 	}
 
-	std.InstanceData().LogI("notify relay to receive package done")
-
-	return nil
+	// All relays failed
+	return fmt.Errorf("failed to notify all relay(s) to receive package. count(%d): %w", len(relayInfos), lastErr)
 }
 
 func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
