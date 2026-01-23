@@ -39,6 +39,19 @@ import (
 const (
 	// ActionNamePagentDetectInfoByWMI defines the action name.
 	ActionNamePagentDetectInfoByWMI = "pagent_detect_info_by_wmi"
+
+	// queryClientTimeoutWMI defines the query client timeout for WMI action.
+	queryClientTimeoutWMI = 30 * time.Second
+
+	// relayInfoCountForRetryWMI defines the count of relay info for retry in WMI action.
+	// Default is 3 for high availability. Adjust based on business requirements.
+	relayInfoCountForRetryWMI = 3
+
+	// waitForRelayReportTimeoutWMI defines the timeout for waiting relay report in WMI action.
+	waitForRelayReportTimeoutWMI = 30 * time.Second
+
+	// waitForRelayReportIntervalWMI defines the interval for checking relay report in WMI action.
+	waitForRelayReportIntervalWMI = 3 * time.Second
 )
 
 // NewActionPagentDetectInfoByWMI get a new action.
@@ -231,7 +244,7 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayTodetect(
 	}
 
 	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetryWMI)
 	if err != nil {
 		return err
 	}
@@ -260,7 +273,9 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectSingle(
 		}
 
 		return nil
-	case <-time.After(queryClientTimeout):
+	case <-std.Context().Done():
+		return fmt.Errorf("context cancelled. agent-id(%s): %w", relayInfo.AgentID, std.Context().Err())
+	case <-time.After(queryClientTimeoutWMI):
 		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
 	}
 }
@@ -299,10 +314,10 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectMultiRelay(
 func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
 	std *nodeUtils.NodeActionStandarder) (criteria.OSType, criteria.CPUArch, error) {
 
-	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeoutWMI)
 	defer cancel()
 
-	ticker := time.NewTicker(waitForRelayReportInterval)
+	ticker := time.NewTicker(waitForRelayReportIntervalWMI)
 	defer ticker.Stop()
 
 	for {

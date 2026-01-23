@@ -149,8 +149,14 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	// get relay service URLs for install command
+	downloadURLs, callbackURLs, err := std.GetRelayServiceURLs(relayInfoCountForRetryWMI)
+	if err != nil {
+		return fmt.Errorf("failed to get relay service URLs: %w", err)
+	}
+
 	// build install command.
-	installCmd := act.buildInstallCmd(std, installerPath, deployConstant)
+	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)
 
 	// notify relay to install.
 	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd); err != nil {
@@ -220,7 +226,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 	}
 
 	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetryWMI)
 	if err != nil {
 		return err
 	}
@@ -251,7 +257,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstallSingle(
 		return nil
 	case <-std.Context().Done():
 		return fmt.Errorf("context cancelled. agent-id(%s): %w", relayInfo.AgentID, std.Context().Err())
-	case <-time.After(queryClientTimeout):
+	case <-time.After(queryClientTimeoutWMI):
 		return fmt.Errorf("wait client timed out. agent-id(%s)", relayInfo.AgentID)
 	}
 }
@@ -289,10 +295,10 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstallMultiRelay(
 func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 	std *nodeUtils.NodeActionStandarder) error {
 
-	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeout)
+	timeoutCtx, cancel := contextx.WithTimeout(contextx.From(std.Context()), waitForRelayReportTimeoutWMI)
 	defer cancel()
 
-	ticker := time.NewTicker(waitForRelayReportInterval)
+	ticker := time.NewTicker(waitForRelayReportIntervalWMI)
 	defer ticker.Stop()
 
 	for {
@@ -348,7 +354,9 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 
 func (act *actionInstallPagentByWMI) buildInstallCmd(
 	std *nodeUtils.NodeActionStandarder,
-	installerPath string, deployConstant deployconstant.NodeDeployConf) string {
+	installerPath string,
+	deployConstant deployconstant.NodeDeployConf,
+	downloadURLs, callbackURLs string) string {
 
 	installParams := &InstallParamsWin{
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
@@ -359,8 +367,8 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 		OperInstID:      std.InstanceData().OperationInstanceID,
 		BaseWorkDir:     deployConstant.BaseWorkDir,
 		BaseDeployDir:   deployConstant.BaseDeployDir,
-		CallbackSvrAddr: buildURL(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort),
-		DownloadSvrAddr: buildURL(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort),
+		DownloadSvrAddr: downloadURLs,
+		CallbackSvrAddr: callbackURLs,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {

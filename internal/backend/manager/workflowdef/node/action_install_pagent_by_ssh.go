@@ -14,7 +14,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
 	"path"
 	"strings"
 	"time"
@@ -150,8 +149,14 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	// get relay service URLs for install command
+	downloadURLs, callbackURLs, err := std.GetRelayServiceURLs(relayInfoCountForRetry)
+	if err != nil {
+		return fmt.Errorf("failed to get relay service URLs: %w", err)
+	}
+
 	// build install command.
-	installCmd := act.buildInstallCmd(std, installerPath, deployConstant)
+	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)
 
 	// notify relay to install pagent by ssh.
 	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd); err != nil {
@@ -346,7 +351,9 @@ func (act *actionInstallPagentBySSH) setupInstallationTools(std *nodeUtils.NodeA
 
 func (act *actionInstallPagentBySSH) buildInstallCmd(
 	std *nodeUtils.NodeActionStandarder,
-	installerPath string, deployConstant deployconstant.NodeDeployConf) string {
+	installerPath string,
+	deployConstant deployconstant.NodeDeployConf,
+	downloadURLs, callbackURLs string) string {
 
 	installParams := &InstallParams{
 		NodeVersion:     std.DeployInfo().Host.Dynamic.NodeVersion,
@@ -357,8 +364,8 @@ func (act *actionInstallPagentBySSH) buildInstallCmd(
 		OperInstID:      std.InstanceData().OperationInstanceID,
 		BaseWorkDir:     deployConstant.BaseWorkDir,
 		BaseDeployDir:   deployConstant.BaseDeployDir,
-		DownloadSvrAddr: buildURL(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort),
-		CallbackSvrAddr: buildURL(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort),
+		DownloadSvrAddr: downloadURLs,
+		CallbackSvrAddr: callbackURLs,
 	}
 
 	if !std.DeployInfo().InstallOptions.ReRegister && std.DeployInfo().Host.Dynamic.AgentID != "" {
@@ -395,8 +402,4 @@ func (act *actionInstallPagentBySSH) buildInstallCmd(
 	std.InstanceData().LogI(fmt.Sprintf("build install cmd: %v", result))
 
 	return result
-}
-
-func buildURL(ip string, port int64) string {
-	return fmt.Sprintf("http://%s", net.JoinHostPort(ip, fmt.Sprintf("%d", port)))
 }

@@ -23,7 +23,6 @@ func relayInfoToEndpoint(relayInfo *types.RelayInfo, port int64) discover.Endpoi
 		IPV4: relayInfo.InnerIP,
 		IPV6: relayInfo.InnerIPV6,
 		Port: int(port),
-		Nice: 0,
 		Meta: nil,
 	}
 }
@@ -62,9 +61,11 @@ func (std *NodeActionStandarder) GetRelayInfos(count int) ([]*types.RelayInfo, e
 	// Filter RelayInfo that has download service port
 	validRelayInfos := make([]*types.RelayInfo, 0, len(relayInfos))
 	for _, relayInfo := range relayInfos {
-		if relayInfo.DownloadSvcPort > 0 {
-			validRelayInfos = append(validRelayInfos, relayInfo)
+		if relayInfo.DownloadSvcPort <= 0 || relayInfo.CallbackSvcPort <= 0 {
+			continue
 		}
+
+		validRelayInfos = append(validRelayInfos, relayInfo)
 	}
 
 	if len(validRelayInfos) == 0 {
@@ -114,4 +115,28 @@ func (std *NodeActionStandarder) GetRelayInfos(count int) ([]*types.RelayInfo, e
 	}
 
 	return result, nil
+}
+
+// GetRelayServiceURLs queries Relay hosts and returns download and callback service URLs.
+func (std *NodeActionStandarder) GetRelayServiceURLs(count int) (string, string, error) {
+	relayInfos, err := std.GetRelayInfos(count)
+	if err != nil {
+		return "", "", err
+	}
+
+	// Build download URLs
+	downloadEndpoints := make([]discover.Endpoint, 0, len(relayInfos))
+	for _, relayInfo := range relayInfos {
+		downloadEndpoints = append(downloadEndpoints, relayInfoToEndpoint(relayInfo, relayInfo.DownloadSvcPort))
+	}
+	downloadURLs := BuildServerURLs(downloadEndpoints...)
+
+	// Build callback URLs
+	callbackEndpoints := make([]discover.Endpoint, 0, len(relayInfos))
+	for _, relayInfo := range relayInfos {
+		callbackEndpoints = append(callbackEndpoints, relayInfoToEndpoint(relayInfo, relayInfo.CallbackSvcPort))
+	}
+	callbackURLs := BuildServerURLs(callbackEndpoints...)
+
+	return downloadURLs, callbackURLs, nil
 }
