@@ -377,8 +377,8 @@ func SliceUnique[T comparable](source []T) []T {
 }
 
 // MapValueToSlice convert map value to slice.
-func MapValueToSlice[T any](m map[string]T) []T {
-	values := make([]T, 0, len(m))
+func MapValueToSlice[K comparable, V any](m map[K]V) []V {
+	values := make([]V, 0, len(m))
 	for _, value := range m {
 		values = append(values, value)
 	}

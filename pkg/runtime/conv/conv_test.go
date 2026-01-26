@@ -841,47 +841,200 @@ func TestSliceUnique(t *testing.T) {
 	}
 }
 
-// MapValueToSlice map to slice.
-func TestMapToSlice(t *testing.T) {
-	type args struct {
-		m map[string]int
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    []int
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			args: args{
+// TestMapMapValueToSlice map to slice.
+func TestMapMapValueToSlice(t *testing.T) {
+	t.Run("string_key", func(t *testing.T) {
+		tests := []struct {
+			name string
+			m    map[string]int
+			want []int
+		}{
+			{
+				name: "normal",
 				m: map[string]int{
 					"a": 1,
 					"b": 2,
 					"c": 3,
 					"d": 4,
 				},
+				want: []int{1, 2, 3, 4},
 			},
-			want:    []int{1, 2, 3, 4},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := MapValueToSlice(tt.args.m)
+			{
+				name: "empty_map",
+				m:    map[string]int{},
+				want: []int{},
+			},
+			{
+				name: "single_element",
+				m: map[string]int{
+					"a": 1,
+				},
+				want: []int{1},
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got := MapValueToSlice(tt.m)
 
-			sort.Slice(got, func(i, j int) bool {
-				return got[i] < got[j]
-			})
-			sort.Slice(tt.want, func(i, j int) bool {
-				return tt.want[i] < tt.want[j]
-			})
+				sort.Slice(got, func(i, j int) bool {
+					return got[i] < got[j]
+				})
+				sort.Slice(tt.want, func(i, j int) bool {
+					return tt.want[i] < tt.want[j]
+				})
 
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("MapValueToSlice() got = %v, wantErr %v", got, tt.wantErr)
-			}
-		})
-	}
+				assert.Equal(t, tt.want, got)
+			})
+		}
+	})
+
+	t.Run("int_key", func(t *testing.T) {
+		tests := []struct {
+			name string
+			m    map[int]string
+			want []string
+		}{
+			{
+				name: "normal",
+				m: map[int]string{
+					1: "a",
+					2: "b",
+					3: "c",
+				},
+				want: []string{"a", "b", "c"},
+			},
+			{
+				name: "empty_map",
+				m:    map[int]string{},
+				want: []string{},
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got := MapValueToSlice(tt.m)
+
+				sort.Strings(got)
+				sort.Strings(tt.want)
+
+				assert.Equal(t, tt.want, got)
+			})
+		}
+	})
+
+	t.Run("int64_key", func(t *testing.T) {
+		tests := []struct {
+			name string
+			m    map[int64]float64
+			want []float64
+		}{
+			{
+				name: "normal",
+				m: map[int64]float64{
+					1: 1.1,
+					2: 2.2,
+					3: 3.3,
+				},
+				want: []float64{1.1, 2.2, 3.3},
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got := MapValueToSlice(tt.m)
+
+				sort.Float64s(got)
+				sort.Float64s(tt.want)
+
+				assert.Equal(t, tt.want, got)
+			})
+		}
+	})
+
+	t.Run("custom_comparable_key", func(t *testing.T) {
+		type customKey struct {
+			ID   int
+			Name string
+		}
+
+		type customValue struct {
+			Value string
+		}
+
+		tests := []struct {
+			name string
+			m    map[customKey]customValue
+			want []customValue
+		}{
+			{
+				name: "normal",
+				m: map[customKey]customValue{
+					{ID: 1, Name: "a"}: {Value: "value1"},
+					{ID: 2, Name: "b"}: {Value: "value2"},
+					{ID: 3, Name: "c"}: {Value: "value3"},
+				},
+				want: []customValue{
+					{Value: "value1"},
+					{Value: "value2"},
+					{Value: "value3"},
+				},
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got := MapValueToSlice(tt.m)
+
+				// Sort by Value for comparison
+				sort.Slice(got, func(i, j int) bool {
+					return got[i].Value < got[j].Value
+				})
+				sort.Slice(tt.want, func(i, j int) bool {
+					return tt.want[i].Value < tt.want[j].Value
+				})
+
+				assert.Equal(t, tt.want, got)
+			})
+		}
+	})
+
+	t.Run("pointer_value", func(t *testing.T) {
+		tests := []struct {
+			name string
+			m    map[string]*int
+			want []*int
+		}{
+			{
+				name: "normal",
+				m: map[string]*int{
+					"a": intPtr(1),
+					"b": intPtr(2),
+					"c": intPtr(3),
+				},
+				want: []*int{intPtr(1), intPtr(2), intPtr(3)},
+			},
+		}
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				got := MapValueToSlice(tt.m)
+
+				// Sort by dereferenced value for comparison
+				sort.Slice(got, func(i, j int) bool {
+					return *got[i] < *got[j]
+				})
+				sort.Slice(tt.want, func(i, j int) bool {
+					return *tt.want[i] < *tt.want[j]
+				})
+
+				assert.Equal(t, len(tt.want), len(got), "slice length mismatch")
+				for i := range got {
+					assert.Equal(t, *tt.want[i], *got[i], "element at index %d", i)
+				}
+			})
+		}
+	})
+}
+
+// intPtr returns a pointer to the given int value.
+func intPtr(v int) *int {
+	return &v
 }
 
 // MapKeyToSlice map key to slice.
