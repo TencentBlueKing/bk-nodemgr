@@ -34,7 +34,7 @@ allowed-tools:
 执行 6 步审查流程：
 
 1. **🔍 确定范围** - 使用 `🧠 sequential-thinking` 分析策略，用 `🔍 serena.get_symbols_overview` 识别文件和模块类型
-2. **⚠️ 语法检查** - 使用 `ReadLints` + `go build/vet`（最高优先级，阻塞性错误）
+2. **⚠️ 语法检查** - 使用 [scripts/go-lint.sh](scripts/go-lint.sh)（最高优先级，阻塞性错误）
 3. **📋 规范检查** - 使用 `🔍 serena.find_symbol` 精确定位，用 `📚 context7` 查询规范（可选）
 4. **🔗 一致性检查** - 使用 `🔍 serena.find_symbol` 和 `find_referencing_symbols` 查找并对比相似代码
 5. **💡 质量检查** - 使用 `🧠 sequential-thinking` 分析质量问题，用 `🔍 serena.search_for_pattern` 查找特定模式
