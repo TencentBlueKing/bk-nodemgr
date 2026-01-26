@@ -43,10 +43,6 @@ const (
 	// queryClientTimeout defines the query client timeout.
 	queryClientTimeout = 30 * time.Second
 
-	// relayInfoCountForRetry defines the count of relay info for retry.
-	// Default is 3 for high availability. Adjust based on business requirements.
-	relayInfoCountForRetry = 3
-
 	// actionRetryDelay defines the delay before retrying the action when it fails.
 	actionRetryDelay = 5 * time.Second
 )
@@ -247,7 +243,7 @@ func (act *actionPagentDetectInfoBySSH) notifyRelayToDetect(
 	}
 
 	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	relayInfos, err := std.GetRelayInfos()
 	if err != nil {
 		return err
 	}

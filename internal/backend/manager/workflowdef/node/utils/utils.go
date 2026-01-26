@@ -33,9 +33,18 @@ func BuildServerURLs(endpoints ...discover.Endpoint) string {
 
 	addrs := make([]string, 0, len(endpoints))
 	for _, ep := range endpoints {
-		addr := ep.GetIPV4Address()
-		if addr != "" {
-			addrs = append(addrs, "http://"+addr)
+		if ep.IPV4 != "" {
+			addr := ep.GetIPV4Address()
+			if addr != "" {
+				addrs = append(addrs, "http://"+addr)
+			}
+		}
+
+		if ep.IPV6 != "" {
+			addr := ep.GetIPV6Address()
+			if addr != "" {
+				addrs = append(addrs, "http://"+addr)
+			}
 		}
 	}
 

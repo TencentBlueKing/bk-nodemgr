@@ -244,7 +244,7 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayTodetect(
 	}
 
 	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetryWMI)
+	relayInfos, err := std.GetRelayInfos()
 	if err != nil {
 		return err
 	}

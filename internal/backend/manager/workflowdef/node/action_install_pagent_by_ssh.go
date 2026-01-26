@@ -150,7 +150,7 @@ func (act *actionInstallPagentBySSH) Do(ctx *action.InstanceContext) error {
 	}
 
 	// get relay service URLs for install command
-	downloadURLs, callbackURLs, err := std.GetRelayServiceURLs(relayInfoCountForRetry)
+	downloadURLs, callbackURLs, err := std.GetRelayServiceURLs()
 	if err != nil {
 		return fmt.Errorf("failed to get relay service URLs: %w", err)
 	}
@@ -202,7 +202,7 @@ func (act *actionInstallPagentBySSH) notifyRelayToInstall(
 	}
 
 	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	relayInfos, err := std.GetRelayInfos()
 	if err != nil {
 		return err
 	}

@@ -42,7 +42,6 @@ const (
 	// ActionNameEnsurePkgToRelay defines the action name.
 	ActionNameEnsurePkgToRelay = "ensure_pkg_to_relay"
 
-	queryRelayTimeout          = 30 * time.Second
 	waitForRelayReportInterval = 3 * time.Second
 	waitForRelayReportTimeout  = 30 * time.Second
 )
@@ -239,7 +238,7 @@ func (act *actionEnsurePkgToRelay) queryRelayPackageState(std *nodeUtils.NodeAct
 	}
 
 	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	relayInfos, err := std.GetRelayInfos()
 	if err != nil {
 		return err
 	}
@@ -571,7 +570,7 @@ func (act *actionEnsurePkgToRelay) notifyRelayToReceivePackage(
 	}
 
 	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetry)
+	relayInfos, err := std.GetRelayInfos()
 	if err != nil {
 		return err
 	}

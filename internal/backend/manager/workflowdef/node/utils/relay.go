@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -41,7 +42,7 @@ func (std *NodeActionStandarder) getNetworkUnitID() int64 {
 // GetRelayInfos queries Relay hosts and returns RelayInfo list.
 // It filters RelayInfo that has download service port and selects using round-robin selector.
 // If count > 0, returns up to count RelayInfos; otherwise returns a single RelayInfo.
-func (std *NodeActionStandarder) GetRelayInfos(count int) ([]*types.RelayInfo, error) {
+func (std *NodeActionStandarder) GetRelayInfos() ([]*types.RelayInfo, error) {
 	if std.storageHost == nil {
 		return nil, fmt.Errorf("storageHost is not set")
 	}
@@ -58,68 +59,30 @@ func (std *NodeActionStandarder) GetRelayInfos(count int) ([]*types.RelayInfo, e
 		return nil, fmt.Errorf("no available relay host in network unit %d", networkUnitID)
 	}
 
-	// Filter RelayInfo that has download service port
-	validRelayInfos := make([]*types.RelayInfo, 0, len(relayInfos))
-	for _, relayInfo := range relayInfos {
-		if relayInfo.DownloadSvcPort <= 0 || relayInfo.CallbackSvcPort <= 0 {
-			continue
-		}
-
-		validRelayInfos = append(validRelayInfos, relayInfo)
+	relayInfoMap, err := conv.SliceToMap(relayInfos, func(v *types.RelayInfo) int64 {
+		return v.HostID
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert relay infos to map: %w", err)
 	}
 
+	for _, relayInfo := range relayInfoMap {
+		if relayInfo.DownloadSvcPort <= 0 || relayInfo.CallbackSvcPort <= 0 {
+			delete(relayInfoMap, relayInfo.HostID)
+		}
+	}
+
+	validRelayInfos := conv.MapValueToSlice(relayInfoMap)
 	if len(validRelayInfos) == 0 {
 		return nil, fmt.Errorf("no relay host with download service port in network unit %d", networkUnitID)
 	}
 
-	// Convert to endpoints for selection
-	endpoints := make([]discover.Endpoint, 0, len(validRelayInfos))
-	relayInfoMap := make(map[string]*types.RelayInfo)
-	for _, relayInfo := range validRelayInfos {
-		ep := relayInfoToEndpoint(relayInfo, relayInfo.DownloadSvcPort)
-		endpoints = append(endpoints, ep)
-		// Use combined key (IPv4-IPv6) to avoid conflicts when multiple relays have same IPv4 but different IPv6
-		key := fmt.Sprintf("%s-%s", ep.GetIPV4Address(), ep.GetIPV6Address())
-		relayInfoMap[key] = relayInfo
-	}
-
-	// Select endpoints using round-robin selector
-	selector := discover.NewRoundRobinSelector()
-	var selectedEndpoints []discover.Endpoint
-	if count > 0 {
-		selectedEndpoints, err = discover.SelectEndpoints(endpoints, count, selector)
-	} else {
-		selectedEndpoint, err := selector.Select(endpoints)
-		if err == nil {
-			selectedEndpoints = []discover.Endpoint{selectedEndpoint}
-		}
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to select relay endpoints: %w", err)
-	}
-
-	// Map selected endpoints back to RelayInfo
-	result := make([]*types.RelayInfo, 0, len(selectedEndpoints))
-	for _, ep := range selectedEndpoints {
-		// Use combined key (IPv4-IPv6) to match the key used when building the map
-		key := fmt.Sprintf("%s-%s", ep.GetIPV4Address(), ep.GetIPV6Address())
-		relayInfo, ok := relayInfoMap[key]
-		if !ok {
-			continue
-		}
-		result = append(result, relayInfo)
-	}
-
-	if len(result) == 0 {
-		return nil, fmt.Errorf("failed to find relay info for selected endpoints")
-	}
-
-	return result, nil
+	return validRelayInfos, nil
 }
 
 // GetRelayServiceURLs queries Relay hosts and returns download and callback service URLs.
-func (std *NodeActionStandarder) GetRelayServiceURLs(count int) (string, string, error) {
-	relayInfos, err := std.GetRelayInfos(count)
+func (std *NodeActionStandarder) GetRelayServiceURLs() (string, string, error) {
+	relayInfos, err := std.GetRelayInfos()
 	if err != nil {
 		return "", "", err
 	}

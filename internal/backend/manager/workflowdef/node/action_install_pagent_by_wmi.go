@@ -150,7 +150,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 	}
 
 	// get relay service URLs for install command
-	downloadURLs, callbackURLs, err := std.GetRelayServiceURLs(relayInfoCountForRetryWMI)
+	downloadURLs, callbackURLs, err := std.GetRelayServiceURLs()
 	if err != nil {
 		return fmt.Errorf("failed to get relay service URLs: %w", err)
 	}
@@ -226,7 +226,7 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 	}
 
 	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos(relayInfoCountForRetryWMI)
+	relayInfos, err := std.GetRelayInfos()
 	if err != nil {
 		return err
 	}
