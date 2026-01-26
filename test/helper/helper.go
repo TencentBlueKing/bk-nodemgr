@@ -26,7 +26,6 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/TencentBlueKing/bk-nodemgr/test"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -73,15 +72,17 @@ func GetFileBaseURL() string {
 // SendHTTPRequest sends HTTP request.
 func SendHTTPRequest(t *testing.T, method, url string, body []byte) *http.Response {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
-	require.NoError(t, err, "failed to create request")
+	if err != nil {
+		t.Fatalf("failed to create request: %v, method(%s), url(%s)", err, method, url)
+	}
 	req.Header.Set(ContentTypeKey, restserver.MIMETypeJSON.String())
 	req.Header.Set(restheader.BKTenantIDKey, DefaultTenantID)
 
 	client := &http.Client{Timeout: DefaultHTTPTimeout}
 	resp, err := client.Do(req)
-
-	require.NoError(t, err, "failed to send request")
-	require.NotNil(t, resp, "failed to get response")
+	if err != nil {
+		t.Fatalf("failed to send request: %v, method(%s), url(%s)", err, method, url)
+	}
 
 	return resp
 }
@@ -95,10 +96,21 @@ func ParseResponse(t *testing.T, resp *http.Response, v interface{}) {
 	}()
 
 	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err, "failed to read response body")
+	if err != nil {
+		t.Fatalf("failed to read response body: %v, status(%d), status-text(%s)",
+			err, resp.StatusCode, resp.Status)
+	}
+
+	if len(body) == 0 {
+		t.Fatalf("response body is empty, status(%d), status-text(%s)",
+			resp.StatusCode, resp.Status)
+	}
 
 	err = json.Unmarshal(body, v)
-	require.NoError(t, err, "failed to unmarshal response")
+	if err != nil {
+		t.Fatalf("failed to unmarshal response: %v, status(%d), status-text(%s), body(%s)",
+			err, resp.StatusCode, resp.Status, string(body))
+	}
 }
 
 // GenerateRandomSuffix generates a random suffix for test data.
