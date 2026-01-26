@@ -122,17 +122,10 @@ func (act *actionGenManualBootstrapCommand) Do(ctx *action.InstanceContext) erro
 }
 
 func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.NodeActionStandarder) error {
-	callbackSvrAddress, err := act.selectCallbackSvr(std)
+	callbackSvrAddress, downloadSvrAddress, err := act.selectServiceURLs(std)
 	if err != nil {
-		return fmt.Errorf("failed to select callback server: %w", err)
+		return fmt.Errorf("failed to select service urls: %w", err)
 	}
-	callbackSvrAddress = "http://" + callbackSvrAddress
-
-	downloadSvrAddress, err := act.selectDownloadSvr(std)
-	if err != nil {
-		return fmt.Errorf("failed to select download server: %w", err)
-	}
-	downloadSvrAddress = "http://" + downloadSvrAddress
 
 	osType, err := platform.NormalizeOS(std.DeployInfo().Host.Static.OSType)
 	if err != nil {
@@ -178,36 +171,44 @@ func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.No
 	return nil
 }
 
-func (act *actionGenManualBootstrapCommand) selectCallbackSvr(std *nodeUtils.NodeActionStandarder) (string, error) {
+// selectServiceURLs selects service URLs for download and callback servers.
+// Returns: (callbackURLs, downloadURLs, error).
+func (act *actionGenManualBootstrapCommand) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
 	if !std.DeployInfo().InstallOptions.DirectInstall {
-		return fmt.Sprintf("%s:%d", std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort), nil
+		relayInfos, err := std.GetRelayInfos()
+		if err != nil {
+			return "", "", fmt.Errorf("failed to get relay infos: %w", err)
+		}
+		if len(relayInfos) == 0 {
+			return "", "", fmt.Errorf("no relay info selected")
+		}
+
+		downloadURLs, callbackURLs, err := std.BuildServiceURLByRelayInfo(relayInfos)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to build relay service urls: %w", err)
+		}
+
+		return callbackURLs, downloadURLs, nil
 	}
 
 	randSelector := discover.NewRandomSelector()
-	callbackSvrEndpoint, err := act.provider.GetEndpoint(
+	callbackSvrEndpoint, err := act.provider.SelectEndpoints(
 		discover.ServiceNameBackend,
 		discover.EndpointNameBackendCallback,
+		nodeUtils.DefaultEndpointSelectionCount,
 		randSelector)
 	if err != nil {
-		return "", fmt.Errorf("failed to get backend callback endpoint: %w", err)
+		return "", "", fmt.Errorf("failed to select backend callback endpoint: %w", err)
 	}
 
-	return callbackSvrEndpoint.GetIPV4Address(), nil
-}
-
-func (act *actionGenManualBootstrapCommand) selectDownloadSvr(std *nodeUtils.NodeActionStandarder) (string, error) {
-	if !std.DeployInfo().InstallOptions.DirectInstall {
-		return fmt.Sprintf("%s:%d", std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort), nil
-	}
-
-	randSelector := discover.NewRandomSelector()
-	downloadSvrEndpoint, err := act.provider.GetEndpoint(
+	downloadSvrEndpoint, err := act.provider.SelectEndpoints(
 		discover.ServiceNameFile,
 		discover.EndpointNameFileDownload,
+		nodeUtils.DefaultEndpointSelectionCount,
 		randSelector)
 	if err != nil {
-		return "", fmt.Errorf("failed to get backend file endpoint: %w", err)
+		return "", "", fmt.Errorf("failed to select file download endpoint: %w", err)
 	}
 
-	return downloadSvrEndpoint.GetIPV4Address(), nil
+	return nodeUtils.BuildServerURLs(callbackSvrEndpoint...), nodeUtils.BuildServerURLs(downloadSvrEndpoint...), nil
 }

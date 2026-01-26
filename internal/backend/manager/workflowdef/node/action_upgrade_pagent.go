@@ -13,9 +13,7 @@ package node
 import (
 	"errors"
 	"fmt"
-	"net"
 	"path"
-	"strconv"
 	"strings"
 	"time"
 
@@ -157,8 +155,11 @@ func (act *actionUpgradePagent) setupUpgradeParams(
 		return nil, fmt.Errorf("failed to get deploy constant: %w", err)
 	}
 
-	// get service addresses form relay config file.
-	downloadSvcAddr, callbackSvcAddr := act.getServiceAddresses(std)
+	// get service addresses from relay config file.
+	downloadSvcAddr, callbackSvcAddr, err := act.selectServiceURLs(std)
+	if err != nil {
+		return nil, fmt.Errorf("failed to select service urls: %w", err)
+	}
 
 	upgradeParams := &UpgradeParams{
 		AgentID:          std.DeployInfo().Host.Dynamic.AgentID,
@@ -273,17 +274,25 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 	return nil
 }
 
-func (act *actionUpgradePagent) getServiceAddresses(std *nodeUtils.NodeActionStandarder) (
-	string, string) {
+// selectServiceURLs selects service URLs for download and callback servers.
+// For pagent upgrade, it always uses relay info (pagent upgrade is only used in indirect link scenarios).
+// It returns download URLs and callback URLs in comma-separated format: "http://ip1:port1,http://ip2:port2,...".
+// Returns: (downloadURLs, callbackURLs, error).
+func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStandarder) (string, string, error) {
+	relayInfos, err := std.GetRelayInfos()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to get relay infos: %w", err)
+	}
+	if len(relayInfos) == 0 {
+		return "", "", fmt.Errorf("no relay info selected")
+	}
 
-	downloadSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.DownloadSvcPort)
-	callbackSvrAddr := getHTTPAddress(std.DeployInfo().RelayInfo.InnerIP, std.DeployInfo().RelayInfo.CallbackSvcPort)
+	downloadSvrAddr, callbackSvrAddr, err := std.BuildServiceURLByRelayInfo(relayInfos)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to build relay service urls: %w", err)
+	}
 
 	std.InstanceData().LogI(fmt.Sprintf("relay download svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr))
 
-	return downloadSvrAddr, callbackSvrAddr
-}
-
-func getHTTPAddress(ip string, port int64) string {
-	return "http://" + net.JoinHostPort(ip, strconv.Itoa(int(port)))
+	return downloadSvrAddr, callbackSvrAddr, nil
 }
