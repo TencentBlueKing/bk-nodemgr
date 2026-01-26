@@ -149,8 +149,16 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
+	relayInfos, err := std.GetRelayInfos()
+	if err != nil {
+		return fmt.Errorf("failed to get relay infos: %w", err)
+	}
+	if len(relayInfos) == 0 {
+		return fmt.Errorf("no relay info selected")
+	}
+
 	// get relay service URLs for install command
-	downloadURLs, callbackURLs, err := std.GetRelayServiceURLs()
+	downloadURLs, callbackURLs, err := std.BuildServiceURLByRelayInfo(relayInfos)
 	if err != nil {
 		return fmt.Errorf("failed to get relay service URLs: %w", err)
 	}
@@ -159,7 +167,7 @@ func (act *actionInstallPagentByWMI) Do(ctx *action.InstanceContext) error {
 	installCmd := act.buildInstallCmd(std, installerPath, deployConstant, downloadURLs, callbackURLs)
 
 	// notify relay to install.
-	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd); err != nil {
+	if err := act.notifyRelayToInstall(std, cMethod, cKey, toolName, installCmd, relayInfos); err != nil {
 		return err
 	}
 
@@ -205,7 +213,8 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 	cMethod wmix.AuthMethod,
 	cKey string,
 	toolsName string,
-	installCmd string) error {
+	installCmd string,
+	relayInfos []*types.RelayInfo) error {
 
 	event := protoRelay.InstallPagentByWMIReq{
 		ActionName:       std.InstanceData().Name,
@@ -223,15 +232,6 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstall(
 	data, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("marshal event failed: %w", err)
-	}
-
-	// Get multiple relay infos for retry
-	relayInfos, err := std.GetRelayInfos()
-	if err != nil {
-		return err
-	}
-	if len(relayInfos) == 0 {
-		return fmt.Errorf("no relay info selected")
 	}
 
 	// Try each relay sequentially until one succeeds

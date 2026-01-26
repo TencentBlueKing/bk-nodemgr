@@ -80,13 +80,8 @@ func (std *NodeActionStandarder) GetRelayInfos() ([]*types.RelayInfo, error) {
 	return validRelayInfos, nil
 }
 
-// GetRelayServiceURLs queries Relay hosts and returns download and callback service URLs.
-func (std *NodeActionStandarder) GetRelayServiceURLs() (string, string, error) {
-	relayInfos, err := std.GetRelayInfos()
-	if err != nil {
-		return "", "", err
-	}
-
+// BuildServiceURLByRelayInfo queries Relay hosts and returns download and callback service URLs.
+func (std *NodeActionStandarder) BuildServiceURLByRelayInfo(relayInfos []*types.RelayInfo) (string, string, error) {
 	// Build download URLs
 	downloadEndpoints := make([]discover.Endpoint, 0, len(relayInfos))
 	for _, relayInfo := range relayInfos {
