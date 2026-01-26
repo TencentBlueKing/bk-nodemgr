@@ -79,7 +79,7 @@ func (m *Manager) UploadOriginProxy(nCtx contextx.IContext, pkgFile io.ReadClose
 
 	// origin proxy package only have one platform.
 	if len(detail.Platforms) == 0 {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin proxy package. failed to get platform")
+		logger.G.Biz(nCtx).Error("failed to upload origin proxy package. failed to get platform")
 
 		return nil, errors.New("failed to get platform")
 	}
@@ -338,7 +338,7 @@ func checkGSE2OriginProxyPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 			},
 		},
 	}); err != nil {
-		return nil, fmt.Errorf("failed to check origin agent package: %w", err)
+		return nil, fmt.Errorf("failed to check origin proxy package: %w", err)
 	}
 
 	if !seenFile || !seenData || !seenAgent || len(platSet) != 1 || detail.Version == "" {
@@ -361,7 +361,7 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 	}
 
 	if up.Category != types.UploadCategoryOriginServer {
-		logger.G.Biz(nCtx).WithErr(err).With("category", up.Category).Error("failed to publish release proxy, invalid category")
+		logger.G.Biz(nCtx).With("category", up.Category).Error("failed to publish release proxy, invalid category")
 
 		return errors.New("invalid category")
 	}
