@@ -44,11 +44,11 @@
         </SearchSelect>
       </div>
     </section>
-    <bk-loading title="数据加载中" :loading="loading">
+    <bk-loading :title="t('table.loading')" :loading="loading">
       <Table
         class="filterTable"
         :data="tableData"
-        :empty-text="'暂无数据'"
+        :empty-text="$t('table.empty')"
         :pagination="pagination"
         :column-config="{ resizable: true }"
         show-overflow-tooltip
@@ -225,8 +225,8 @@ const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 // tab
 const active = ref('');
 const panels = ref([
-  { name: 'node', label: '节点历史' },
-  { name: 'plugin', label: '插件历史' },
+  { name: 'node', label: t('platform.nodeMan.taskHistory.tab.nodeHistory') },
+  { name: 'plugin', label: t('platform.nodeMan.taskHistory.tab.pluginHistory') },
 ]);
 
 // 分页
@@ -253,7 +253,7 @@ const dateValue = ref([
 ]);
 const shortcutsRange = reactive([
   {
-    text: '今天',
+    text: t('platform.nodeMan.taskHistory.shortcut.today'),
     value() {
       const end = new Date();
       const start = new Date(end.getFullYear(), end.getMonth(), end.getDate());
@@ -261,7 +261,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近7天',
+    text: t('platform.nodeMan.taskHistory.shortcut.last7Days'),
     value() {
       const end = new Date();
       const start = new Date();
@@ -270,7 +270,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近15天',
+    text: t('platform.nodeMan.taskHistory.shortcut.last15Days'),
     value() {
       const end = new Date();
       const start = new Date();
@@ -279,7 +279,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近30天',
+    text: t('platform.nodeMan.taskHistory.shortcut.last30Days'),
     value() {
       const end = new Date();
       const start = new Date();

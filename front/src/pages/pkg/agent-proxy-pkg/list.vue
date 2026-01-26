@@ -2,14 +2,14 @@
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
-      <Button theme="primary" @click="handleUpload">包上传</Button>
+      <Button theme="primary" @click="handleUpload">{{ t('agentProxyPkg.upload') }}</Button>
       <SearchSelect
         class="ml-[16px] flex-1 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
-        :placeholder="'版本号、操作系统、架构、标签、上传用户、状态、默认版本'"
+        :placeholder="t('agentProxyPkg.searchPlaceholder')"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -18,7 +18,7 @@
       <div
         class="w-[240px] flex-shrink-0 bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full mr-[17px]"
       >
-        <div class="px-[16px] py-[10px] text-[14px]">快捷筛选</div>
+        <div class="px-[16px] py-[10px] text-[14px]">{{ $t('agentProxyPkg.quickFilter') }}</div>
         <div v-for="option in dimensionList" :key="option.id">
           <div
             class="flex justify-between items-center bg-[#F0F1F5] h-[32px] px-[16px] cursor-pointer"
@@ -44,7 +44,7 @@
               <div class="border-b flex justify-between items-center h-[36px]">
                 <div class="flex items-center text-[13px]">
                   <text-all class="mr-[5px]" />
-                  <span>全部</span>
+                  <span>{{ t('agentProxyPkg.all') }}</span>
                 </div>
                 <Tag
                   size="large"
@@ -92,7 +92,7 @@
         </div>
       </div>
       <Loading
-        title="数据加载中"
+        :title="t('agentStrategy.loading')"
         :loading="loading"
         class="flex-1 overflow-auto"
       >
@@ -100,7 +100,7 @@
           class="w-full filterTable"
           :max-height="maxHeight"
           :data="packageList"
-          :empty-text="'暂无数据'"
+          :empty-text="t('table.empty')"
           :pagination="pagination"
           show-overflow-tooltip
           :show-settings="isShowSetting"
@@ -111,7 +111,7 @@
         >
           <TableColumn
             field="file_name"
-            :title="'包文件名'"
+            :title="t('agentProxyPkg.fileName')"
             :min-width="320"
             fixed="left"
             show-overflow="tooltip"
@@ -119,43 +119,43 @@
           <TableColumn
             field="version"
             :filter="filterOptionSource.version"
-            :title="'版本号'"
+            :title="t('agentProxyPkg.version')"
             :min-width="130"
             sortable
             show-overflow="tooltip"
           ></TableColumn>
           <TableColumn
             field="os_type"
-            :title="'操作系统'"
+            :title="t('agentProxyPkg.os')"
             :filter="filterOptionSource.os_type"
             :min-width="110"
           ></TableColumn>
           <TableColumn
             field="cpu_arch"
-            :title="'架构'"
+            :title="t('agentProxyPkg.arch')"
             :filter="filterOptionSource.cpu_arch"
             :min-width="80"
           ></TableColumn>
           <TableColumn
             field="labels"
-            :title="'标签信息'"
+            :title="t('agentProxyPkg.labels')"
             :min-width="180"
             :filter="filterOptionSource.labels"
           >
             <template #header>
-              <span>标签信息</span>
+              <span>{{ t('agentProxyPkg.labels') }}</span>
               <PopConfirm
                 width="320"
                 theme="light"
                 trigger="click"
-                title="批量编辑标签"
+                :title="t('agentProxyPkg.batchEditLabels')"
                 @confirm="batchUpdateTag"
               >
                 <Button class="mx-[3px]" text :disabled="!packageList.length">
                   <i class="nodeman-icon nc-edit text-[18px]  cursor-pointer"></i>
                 </Button>
                 <template #content>
-                  <div class="text-[12px] text-[#4D4F56] mb-[6px]">统一填充</div>
+                  <div class="text-[12px] text-[#4D4F56] mb-[6px]">{{ t('agentProxyPkg.unifiedFill') }}</div>
                   <Select
                     class="mb-[18px]"
                     v-model="selectTag"
@@ -182,13 +182,13 @@
           </TableColumn>
           <TableColumn
             field="operator"
-            :title="'上传用户'"
+            :title="t('agentProxyPkg.uploader')"
             :min-width="120"
             :filter="filterOptionSource.operator"
           ></TableColumn>
           <TableColumn
             field="updated_at"
-            :title="'上传时间'"
+            :title="t('agentProxyPkg.uploadTime')"
             :min-width="180"
             sort-type="number"
             sortable
@@ -199,7 +199,7 @@
           </TableColumn>
           <TableColumn
             field="host"
-            :title="'已部署主机'"
+            :title="t('agentProxyPkg.deployedHosts')"
             :min-width="120"
           >
             <template #default="{ row }">
@@ -210,29 +210,29 @@
           </TableColumn>
           <TableColumn
             field="enabled"
-            :title="'状态'"
+            :title="t('agentProxyPkg.status')"
             :min-width="120"
             :filter="filterOptionSource.enabled"
           >
             <template #default="{ row }">
-              <Tag v-if="row.enabled" theme="success">启用</Tag>
-              <Tag v-else>禁用</Tag>
+              <Tag v-if="row.enabled" theme="success">{{ t('agentProxyPkg.enabled') }}</Tag>
+              <Tag v-else>{{ t('agentProxyPkg.disabled') }}</Tag>
             </template>
           </TableColumn>
           <TableColumn
             field="as_default"
-            :title="'默认版本'"
+            :title="t('agentProxyPkg.defaultVersion')"
             :min-width="120"
             :filter="filterOptionSource.as_default"
           >
             <template #default="{ row }">
-              <Tag v-if="row.as_default" theme="success">是</Tag>
-              <Tag v-else>否</Tag>
+              <Tag v-if="row.as_default" theme="success">{{ t('agentProxyPkg.yes') }}</Tag>
+              <Tag v-else>{{ t('agentProxyPkg.no') }}</Tag>
             </template>
           </TableColumn>
           <TableColumn
             field="action"
-            :title="'操作'"
+            :title="t('agentProxyPkg.action')"
             fixed="right"
             :width="180"
           >
@@ -245,7 +245,7 @@
                   v-if="row.enabled && !row.as_default"
                   @click="handleSetDefaultVersion(row)"
                 >
-                  设为默认版本
+                  {{ t('agentProxyPkg.setDefault') }}
                 </Button>
                 <Button
                   theme="primary"
@@ -254,12 +254,12 @@
                   v-if="row.enabled && row.as_default"
                   @click="handleCancelAsDefaultVersion(row)"
                 >
-                  取消设置默认版本
+                  {{ t('agentProxyPkg.cancelDefault') }}
                 </Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
-                  confirm-text="停用"
+                  :confirm-text="t('agentProxyPkg.disable')"
                   @confirm="handleDisabled(row)"
                 >
                   <Button
@@ -267,15 +267,17 @@
                     class="mr-[8px]"
                     text
                     v-show="row.enabled"
-                  >停用</Button>
+                  >{{ t('agentProxyPkg.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
-                        确认停用该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？
+                        {{ $t('agentProxyPkg.confirmDisable', { type: currentType === 'agent' ? 'Agent' : 'Proxy' }) }}
                       </div>
-                      <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">停用目标：{{row.file_name}}</div>
+                      <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
+                        {{ $t('agentProxyPkg.disableTarget', { name: row.file_name }) }}
+                      </div>
                       <div class="text-[12px] text-[#262830] w-full">
-                        停用后，{{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 安装、重装、升级时，不可选择
+                        {{ $t('agentProxyPkg.disableTip', { type: currentType === 'agent' ? 'Agent' : 'Proxy' }) }}
                       </div>
                     </div>
                   </template>
@@ -286,25 +288,27 @@
                   text
                   v-if="!row.enabled"
                   @click="handleEnabled(row)"
-                >启用</Button>
+                >{{ t('agentProxyPkg.enable') }}</Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
-                  confirm-text="删除"
+                  :confirm-text="t('agentProxyPkg.delete')"
                   @confirm="handleDelete(row)"
                 >
                   <Button
                     theme="primary"
                     text
                     v-show="!row.enabled"
-                  >删除</Button>
+                  >{{ t('agentProxyPkg.delete') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
-                        确认删除该 {{ currentType === 'agent' ? 'Agent' : 'Proxy' }} 包？
+                        {{ t('agentProxyPkg.confirmDelete', { type: currentType === 'agent' ? 'Agent' : 'Proxy' }) }}
                       </div>
-                      <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
-                      <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
+                      <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
+                        {{ t('agentProxyPkg.deleteTarget', { name: row.file_name }) }}
+                      </div>
+                      <div class="text-[12px] text-[#4D4F56] w-full">{{ t('agentProxyPkg.deleteTip') }}</div>
                     </div>
                   </template>
                 </PopConfirm>
@@ -313,9 +317,9 @@
           </TableColumn>
           <TableColumn
             field="download"
-            title="下载"
+            :title="t('agentProxyPkg.download')"
             fixed="right"
-            :width="60"
+            :min-width="60"
           >
             <template #default="{ row }">
               <download-pkg :data="row" :url="downloadUrl">
@@ -443,13 +447,13 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
 const dimensionList = computed(() => [
   {
     id: 'os_cpu_arch',
-    name: '操作系统/架构',
+    name: t('agentProxyPkg.osArch'),
     multiple: true,
     children: getUniqueChildren('os_cpu_arch'),
   },
   {
     id: 'version',
-    name: '版本号',
+    name: t('agentProxyPkg.version'),
     multiple: true,
     children: getUniqueChildren('version'),
   },
@@ -494,16 +498,16 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
   },
   enabled: {
     list: [
-      { value: true, text: '启用' },
-      { value: false, text: '禁用' },
+      { value: true, text: t('agentProxyPkg.enabled') },
+      { value: false, text: t('agentProxyPkg.disabled') },
     ],
     checked: [],
     filterScope: 'all',
   },
   as_default: {
     list: [
-      { value: true, text: '是' },
-      { value: false, text: '否' },
+      { value: true, text: t('agentProxyPkg.yes') },
+      { value: false, text: t('agentProxyPkg.no') },
     ],
     checked: [],
     filterScope: 'all',
@@ -547,48 +551,48 @@ function getUniqueChildren(prop: string) {
 const searchSelectData = computed(() => [
   {
     id: 'version',
-    name: '版本号',
+    name: t('agentProxyPkg.version'),
     multiple: true,
     children: getUniqueChildren('version'),
   },
   {
     id: 'os_type',
-    name: '操作系统',
+    name: t('agentProxyPkg.os'),
     multiple: true,
     children: getUniqueChildren('os_type'),
   },
   {
     id: 'cpu_arch',
-    name: '架构',
+    name: t('agentProxyPkg.arch'),
     multiple: true,
     children: getUniqueChildren('cpu_arch'),
   },
   {
     id: 'labels',
-    name: '标签',
+    name: t('agentProxyPkg.labels'),
     children: getUniqueChildren('labels'),
     multiple: true,
   },
   {
     id: 'operator',
-    name: '上传用户',
+    name: t('agentProxyPkg.uploader'),
     children: getUniqueChildren('operator'),
     multiple: true,
   },
   {
     id: 'enabled',
-    name: '状态',
+    name: t('agentProxyPkg.status'),
     children: [
-      { id: true, name: '启用' },
-      { id: false, name: '禁用' },
+      { id: true, name: t('agentProxyPkg.enabled') },
+      { id: false, name: t('agentProxyPkg.disabled') },
     ],
   },
   {
     id: 'as_default',
-    name: '默认版本',
+    name: t('agentProxyPkg.defaultVersion'),
     children: [
-      { id: true, name: '是' },
-      { id: false, name: '否' },
+      { id: true, name: t('agentProxyPkg.yes') },
+      { id: false, name: t('agentProxyPkg.no') },
     ],
   },
 ]);
@@ -628,7 +632,7 @@ const handleFilter = ({
         let name;
         switch (field) {
           case 'enabled':
-            name = item ? t('启用') : t('禁用');
+            name = item ? t('agentProxyPkg.enabled') : t('agentProxyPkg.disabled');
             break;
           default:
             name = item;

@@ -2,7 +2,7 @@
   <Sideslider
     :is-show="isShow"
     :width="1100"
-    :title="`手动安装 ${data.bk_host_innerip || ''}`"
+    :title="`${$t('platform.nodeMan.installAgentPage.guideTitle')} ${data.bk_host_innerip || ''}`"
     @update:is-show="handleClose"
     @closed="handleClosed"
   >
@@ -10,7 +10,7 @@
       <div v-if="installSolutions.length > 0" class="p-8">
 
         <div class="mb-8 p-6 bg-white rounded shadow-sm border border-[#dcdee5]">
-          <div class="text-[#63656e] mb-3 text-sm font-bold">安装方式:</div>
+          <div class="text-[#63656e] mb-3 text-sm font-bold">{{ $t('platform.nodeMan.installAgentPage.type') }}:</div>
           <div class="flex items-center gap-4">
             <Radio.Group v-model="activeSolutionType" type="capsule">
               <Radio.Button
@@ -21,13 +21,17 @@
                 {{ item.type }}
               </Radio.Button>
             </Radio.Group>
-            <span class="text-xs text-[#979ba5]">通过 {{ activeSolutionType }} 进行安装</span>
+            <span class="text-xs text-[#979ba5]">
+              {{ $t('platform.nodeMan.guide.installWith', { type: activeSolutionType }) }}
+            </span>
           </div>
         </div>
 
         <div v-if="currentSolution" class="mt-4">
           <div class="mb-8 text-sm font-bold text-[#313238]">
-            在目标主机通过 <span class="text-[#3a84ff]">{{ activeSolutionType }}</span> 安装:
+            {{ $t('platform.nodeMan.guide.onHost') }}
+            <span class="text-[#3a84ff]"> {{ activeSolutionType }} </span>
+            {{ $t('platform.nodeMan.guide.install') }}:
           </div>
 
           <div class="relative ml-4">
@@ -64,7 +68,7 @@
                       class="ml-4 px-6 h-8 flex-shrink-0"
                       @click="handleCopy(step.content_zh)"
                     >
-                      复制
+                      {{ $t('action.copy') }}
                     </Button>
                   </div>
 
@@ -96,6 +100,7 @@ import {
   Radio,
   Sideslider } from 'bkui-vue';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { NodeWorkflowService } from '@/api/modules/node_workflow';
 
@@ -123,7 +128,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits(['update:isShow']);
-
+const { t } = useI18n();
 const isLoading = ref(false);
 const installSolutions = ref<ManualSolution[]>([]);
 const activeSolutionType = ref('');
@@ -176,7 +181,7 @@ const handleCopy = (content: string) => {
   textarea.select();
   try {
     document.execCommand('copy');
-    Message({ theme: 'success', message: '已成功复制命令', delay: 1500 });
+    Message({ theme: 'success', message: t('platform.nodeMan.guide.copySuccess'), delay: 1500 });
   } finally {
     document.body.removeChild(textarea);
   }

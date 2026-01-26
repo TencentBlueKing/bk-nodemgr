@@ -13,10 +13,10 @@
   >
     <template #tip>
       <div class="flex items-center gap-[3px]">
-        <span>{{ '仅支持 .xlsx 类型文件，下载'}}</span>
+        <span>{{ $t('components.uploadExcel.tip') }}</span>
         <a :href="downloadUrl" download="bk_nodeman_info.xlsx">
           <Button text theme="primary">
-            {{ '模板文件' }}
+            {{ $t('components.uploadExcel.templateFile') }}
           </Button>
         </a>
       </div>
@@ -27,9 +27,10 @@
 import { Button, Message, PopConfirm, Progress, Upload } from 'bkui-vue';
 import { RightTurnLine } from 'bkui-vue/lib/icon';
 import { computed, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
-
+const { t } = useI18n();
 const emit = defineEmits(['upload', 'cancel', 'loading']);
 const uploader = ref(null);
 const url = `${window.location.origin}/api/v3/node/agent/upload_template`;
@@ -49,7 +50,7 @@ const handleBeforeUpload = (file: File, fileList: File[]) => {
     fileList.pop();
     Message({
       theme: 'warning',
-      message: '仅支持 .xlsx 类型文件',
+      message: t('components.uploadExcel.tip'),
     });
     return false;
   }
@@ -102,10 +103,10 @@ const handleUpload = () => {
 
   // 错误处理
   xhr.onerror = () => {
-    curFile.message = '上传失败';
+    curFile.message = t('components.uploadExcel.error');
     Message({
       theme: 'error',
-      message: '上传失败',
+      message: t('components.uploadExcel.error'),
     });
   };
 

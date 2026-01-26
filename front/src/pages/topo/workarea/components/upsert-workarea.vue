@@ -153,7 +153,7 @@ const handleConfirm = async () => {
       });
     }
     if (res) {
-      if(props.isCreate) {
+      if (props.isCreate) {
         isGuideShow.value = true;
       } else {
         emit('update');

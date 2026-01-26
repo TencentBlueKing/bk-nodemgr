@@ -23,7 +23,8 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { useMainStore } from '@/stores/main';
 
@@ -38,11 +39,12 @@ const props = defineProps({
   },
 });
 const emit = defineEmits(['change']);
+const { t } = useI18n();
 const mainStore = useMainStore();
-const installTypeConfig = [
+const installTypeConfig = ref([
   {
     type: 'setup',
-    name: '远程安装',
+    name: t('components.installType.remoteInstall'),
     icon: 'nc-monitor',
     desc: '线上表单填写，需要提供登录信息',
   },
@@ -54,12 +56,12 @@ const installTypeConfig = [
   // },
   {
     type: 'manual',
-    name: '手动安装',
+    name: t('components.installType.manualInstall'),
     icon: 'nc-manual',
     desc: '无需提供登录信息，自行在服务器上执行给定命令完成安装',
   },
-];
-const installTypeList = computed(() => installTypeConfig.filter(item => props.needTypeList.includes(item.type)));
+]);
+const installTypeList = computed(() => installTypeConfig.value.filter(item => props.needTypeList.includes(item.type)));
 const activeType = computed(() => props.currentNodeType === 'agent' ? mainStore.agentSetupType : mainStore.proxySetupType);
 const handleClick = (type: string) => {
   emit('change', type);

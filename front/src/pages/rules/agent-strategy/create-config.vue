@@ -8,16 +8,16 @@
   >
     <div class="p-[24px] h-full overflow-auto">
       <Form ref="formRef" :model="formData" :rules="rules" form-type="vertical">
-        <Form.FormItem :label="'配置名称'" property="configpolicy_name" required>
+        <Form.FormItem :label="t('agentStrategy.form.configName')" property="configpolicy_name" required>
           <Input v-model="formData.configpolicy_name"></Input>
         </Form.FormItem>
-        <Form.FormItem :label="'业务'" property="biz_id" required>
+        <Form.FormItem :label="t('agentStrategy.form.business')" property="biz_id" required>
           <Select
             v-model="formData.biz_id"
             auto-focus
             filterable
             multiple
-            placeholder="选择业务"
+            :placeholder="t('agentStrategy.form.selectBusiness')"
             @change="handleChangeBiz"
           >
             <Select.Option
@@ -33,17 +33,17 @@
           </Select>
         </Form.FormItem>
         <Form.FormItem
-          :label="'是否启用'"
+          :label="t('agentStrategy.form.enabled')"
           property="enabled"
           required
           v-if="isEdit"
         >
           <Switcher v-model="formData.enabled" theme="primary"></Switcher>
         </Form.FormItem>
-        <Form.FormItem :label="'备注'" property="biz_id">
+        <Form.FormItem :label="t('agentStrategy.form.remark')" property="biz_id">
           <Input type="textarea" v-model="formData.remark" show-word-limit :maxlength="100"></Input>
         </Form.FormItem>
-        <Form.FormItem :label="'作用范围'" property="scopes">
+        <Form.FormItem :label="t('agentStrategy.form.scope')" property="scopes">
           <div
             v-for="(item, index) in formData.scopes"
             :key="index"
@@ -57,12 +57,12 @@
                 @change="(id, data) => handleSingleChange(item, id, data)" />
               <Select
                 v-model="item.bk_networkunit_id"
-                prefix="管控单元"
+                :prefix="t('agentStrategy.form.workUnit')"
                 :disabled="item.bk_networkarea_id === '-1'"
                 auto-focus
                 filterable
               >
-                <Select.Option label="不限" value="-1"></Select.Option>
+                <Select.Option :label="t('agentStrategy.form.unlimited')" value="-1"></Select.Option>
                 <Select.Group>
                   <Select.Option
                     v-for="option in filterNetworkUnitList(
@@ -79,11 +79,11 @@
               </Select>
               <Select
                 v-model="item.os_type"
-                prefix="操作系统"
+                :prefix="t('agentStrategy.form.os')"
                 auto-focus
                 filterable
               >
-                <Select.Option label="不限" value="-1"></Select.Option>
+                <Select.Option :label="t('agentStrategy.form.unlimited')" value="-1"></Select.Option>
                 <Select.Group>
                   <Select.Option
                     v-for="option in osTypeList"
@@ -94,13 +94,13 @@
                   </Select.Option>
                 </Select.Group>
               </Select>
-              <Select v-model="item.cpu_arch" prefix="架构" auto-focus filterable>
+              <Select v-model="item.cpu_arch" :prefix="t('agentStrategy.form.arch')" auto-focus filterable>
                 <template #prefix>
                   <div class="w-[65px] text-center text-[#63656E] text-[12px] border-r border-r-[#c4c6cc]">
                     架<span class="ml-[24px]">构</span>
                   </div>
                 </template>
-                <Select.Option label="不限" value="-1"></Select.Option>
+                <Select.Option :label="t('agentStrategy.form.unlimited')" value="-1"></Select.Option>
                 <Select.Group>
                   <Select.Option
                     v-for="option in cpuArchList"
@@ -121,7 +121,7 @@
           <!--eslint-disable-next-line max-len -->
           <div class="bg-[#F0F5FF] border-dashed border-2 border-[#A3C5FD] text-[#3A84FF] h-[30px] flex items-center justify-center cursor-pointer" @click="handleAdd">
             <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
-            <span class="text-[14px]">{{ $t('添加范围') }}</span>
+            <span class="text-[14px]">{{ $t('agentStrategy.form.addScope') }}</span>
           </div>
         </Form.FormItem>
         <Form.FormItem property="configs">
@@ -149,12 +149,12 @@
             >
               <i class="nodeman-icon nc-remind-fill text-[14px]"></i>
               <span class="mr-[3px] ml-[9px]"
-              >编辑器内容有改动，保存该配置版本将会由</span
+              >{{ t('agentStrategy.form.versionTip') }}</span
               >
               <Tag theme="warning">{{
                 `V${configData.version}`
               }}</Tag>
-              <span class="mx-[3px]">升级为</span>
+              <span class="mx-[3px]">{{ t('agentStrategy.form.upgradeTo') }}</span>
               <Tag theme="success">{{
                 `V${configData.version + 1}`
               }}</Tag>
@@ -166,9 +166,9 @@
 
     <template #footer>
       <Button theme="primary" class="mr-[8px] w-[88px]" @click="handleSubmit">
-        {{ isEdit ? "保存" : "提交" }}
+        {{ isEdit ? t('agentStrategy.form.save') : t('agentStrategy.form.submit') }}
       </Button>
-      <Button class="w-[88px]" @click="handleBeforeClose">取消</Button>
+      <Button class="w-[88px]" @click="handleBeforeClose">{{ t('agentStrategy.form.cancel') }}</Button>
     </template>
   </Sideslider>
 </template>
@@ -177,6 +177,7 @@ import { Button, Form, InfoBox, Input, Select, Sideslider, Switcher, Tag } from 
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import type { NetworkArea, NetworkUnit } from '@/@types/topo';
 import { ConfigPolicyAPIService } from '@/api/modules/configpolicy';
@@ -201,14 +202,15 @@ const props = defineProps<{
   isEdit: boolean;
   configData?: any;
 }>();
+const { t } = useI18n();
 const emit = defineEmits(['save']);
 const mainStore = useMainStore();
 const userStore = useUserStore();
 
 const title = computed(() => {
-  const action = props.isEdit ? '编辑' : '新建';
+  const action = props.isEdit ? t('agentStrategy.form.edit') : t('agentStrategy.form.create');
   const role = props.configpolicyType === 'config_policy_agent' ? 'Agent' : 'Proxy';
-  return `${action} ${role} 配置`;
+  return t('agentStrategy.form.configTitle', { action, role });
 });
 const businessList = computed(() => mainStore.businessList);
 
@@ -217,7 +219,7 @@ const isConfigShow = ref(false);
 const formData = reactive({
   configpolicy_name: '',
   configpolicy_type: props.configpolicyType,
-  biz_id: ['不限'] as string[] | number[],
+  biz_id: [t('agentStrategy.form.unlimited')] as string[] | number[],
   remark: '',
   scopes: [] as IScope[],
   configs: [] as ConfigPolicyConfigBlock[],
@@ -228,7 +230,7 @@ const initData = () => {
   formData.configpolicy_name = '';
   formData.configpolicy_type = props.configpolicyType;
   formData.remark = '';
-  formData.biz_id = ['不限'];
+  formData.biz_id = [t('agentStrategy.form.unlimited')];
   formData.scopes = [];
   formData.configs = [];
   formData.operator = '';
@@ -239,14 +241,14 @@ const formRef = ref();
 const configpolicyId = ref();
 const rules = {
   configpolicy_name: [
-    { required: true, message: '配置名称不能为空', trigger: 'blur' },
+    { required: true, message: t('agentStrategy.validate.configNameRequired'), trigger: 'blur' },
     {
-      message: '配置名称长度在1-50个字符之间',
+      message: t('agentStrategy.validate.configNameLength'),
       trigger: 'blur',
       validator: (val: string) => val.length <= 50 && val.length >= 1,
     },
   ],
-  biz_id: [{ required: true, message: '业务不能为空', trigger: 'change' }],
+  biz_id: [{ required: true, message: t('agentStrategy.validate.businessRequired'), trigger: 'change' }],
 };
 
 const originData = ref(cloneDeep(formData));
@@ -258,7 +260,7 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
     return;
   }
   InfoBox({
-    title: '确认关闭?',
+    title: t('dialog.confirmClose'),
     infoType: 'warning',
     onConfirm: () => {
       resolve(true);
@@ -280,11 +282,11 @@ const handleDelete = (index: number) => {
   formData.scopes = formData.scopes.filter((_: any, ind: number) => ind !== index);
 };
 const handleChangeBiz = (val: any) => {
-  const filter = val.filter((item: any) => item !== '不限');
+  const filter = val.filter((item: any) => item !== t('agentStrategy.form.unlimited'));
   if (filter.length > 0) {
     formData.biz_id = filter;
   } else {
-    formData.biz_id = ['不限'];
+    formData.biz_id = [t('agentStrategy.form.unlimited')];
   }
 };
 const updateConfig = (configs: any[]) => {
@@ -303,7 +305,7 @@ const handleSubmit = async () => {
     os_type: item.os_type === '-1' ? '' : item.os_type,
     cpu_arch: item.cpu_arch === '-1' ? '' : item.cpu_arch,
   }));
-  const biz_id = formData.biz_id.includes('不限') ? [] : formData.biz_id;
+  const biz_id = formData.biz_id.includes(t('agentStrategy.form.unlimited')) ? [] : formData.biz_id;
   if (props.isEdit) {
     res = await ConfigPolicyAPIService.ConfigPolicyUpdate({
       configpolicy_id: configpolicyId.value,
@@ -377,7 +379,7 @@ watch(() => isShow.value, () => {
       Object.assign(formData, props.configData);
       formData.biz_id = props.configData.biz_id.length
         ? props.configData.biz_id
-        : ['不限'];
+        : [t('agentStrategy.form.unlimited')];
       formData.scopes = props.configData.scopes.map((item: ConfigPolicyScope) => ({
         ...item,
         bk_networkarea_id: String(item.bk_networkarea_id),

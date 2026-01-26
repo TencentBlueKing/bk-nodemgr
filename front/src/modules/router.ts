@@ -1,6 +1,7 @@
 
 import { setupLayouts } from 'virtual:generated-layouts';
 import { createRouter, createWebHashHistory } from 'vue-router';
+import { i18n } from '@/modules/i18n';
 
 import { cancelRequest } from '@/api/request-queue';
 import NotFound from '@/pages/app/404.vue';
@@ -51,7 +52,7 @@ const routes = setupLayouts([
             path: 'proxy',
             component: proxyStatus,
             meta: {
-              title: 'Proxy状态',
+              title: i18n.global.t('route.agentStatus'),
               back: false,
               mainMenu: 'nodeManager',
             },
@@ -61,7 +62,7 @@ const routes = setupLayouts([
             path: 'setup',
             component: AgentSetup,
             meta: {
-              title: '安装 Agent',
+              title: i18n.global.t('route.installAgent'),
               back: true,
               mainMenu: 'nodeManager',
               parentName: 'agent', // 增加父路由节点名字，用来显示当前菜单
@@ -73,7 +74,7 @@ const routes = setupLayouts([
             props: true,
             component: AgentImport,
             meta: {
-              title: '安装/重装 Agent',
+              title: i18n.global.t('route.installReinstallAgent'),
               back: true,
               mainMenu: 'nodeManager',
               parentName: 'agent',
@@ -85,7 +86,7 @@ const routes = setupLayouts([
             component: PluginManager,
             meta: {
               mainMenu: 'nodeManager',
-              title: '插件',
+              title: i18n.global.t('route.plugin'),
               back: false,
             },
           },
@@ -94,7 +95,7 @@ const routes = setupLayouts([
             path: 'history',
             component: TaskHistory,
             meta: {
-              title: '任务历史',
+              title: i18n.global.t('route.taskHistory'),
               back: false,
               mainMenu: 'nodeManager',
             },
@@ -130,8 +131,8 @@ const routes = setupLayouts([
             path: 'workarea',
             component: WorkArea,
             meta: {
-              title: '管控区域',
-              subTitle: '管控区域是互相之间能直接通信的一组服务器单元，如企业内的局域网、公有云VPC（虚拟私有网络）。',
+              title: i18n.global.t('route.workarea'),
+              subTitle: i18n.global.t('route.workareaSubtitle'),
               back: false,
               mainMenu: 'topoManager',
             },
@@ -143,7 +144,7 @@ const routes = setupLayouts([
             meta: {
               back: true,
               mainMenu: 'topoManager',
-              title: '管控区域详情',
+              title: i18n.global.t('route.workareaDetail'),
               parentName: 'workarea',
             },
           },
@@ -152,8 +153,8 @@ const routes = setupLayouts([
             path: 'topo',
             component: Topography,
             meta: {
-              title: '拓扑图',
-              subTitle: '拓扑图展示各个管控单元之间的拓扑联系',
+              title: i18n.global.t('route.topo'),
+              subTitle: i18n.global.t('route.topoSubtitle'),
               back: false,
               mainMenu: 'topoManager',
             },
@@ -163,7 +164,7 @@ const routes = setupLayouts([
             path: 'record',
             component: OperationRecord,
             meta: {
-              title: '操作记录',
+              title: i18n.global.t('route.operationRecord'),
               back: false,
               mainMenu: 'topoManager',
             },
@@ -182,7 +183,7 @@ const routes = setupLayouts([
             path: 'agentStrategy',
             component: AgentStrategy,
             meta: {
-              title: 'Agent 策略',
+              title: i18n.global.t('route.agentStrategy'),
               back: false,
               mainMenu: 'ruleManager',
             },
@@ -193,7 +194,7 @@ const routes = setupLayouts([
             path: 'proxyStrategy',
             component: AgentStrategy,
             meta: {
-              title: 'Proxy 策略',
+              title: i18n.global.t('route.proxyStrategy'),
               back: false,
               mainMenu: 'ruleManager',
             },
@@ -203,7 +204,7 @@ const routes = setupLayouts([
             path: 'pluginStrategy',
             component: Rules,
             meta: {
-              title: '插件策略',
+              title: i18n.global.t('route.pluginStrategy'),
               back: false,
               mainMenu: 'ruleManager',
             },
@@ -213,7 +214,7 @@ const routes = setupLayouts([
             path: 'strategy-task-history',
             component: RulesRecord,
             meta: {
-              title: '操作记录',
+              title: i18n.global.t('route.operationRecord'),
               back: false,
               mainMenu: 'ruleManager',
             },
@@ -231,7 +232,7 @@ const routes = setupLayouts([
             path: 'agentPackageMng',
             component: AgentPackageMng,
             meta: {
-              title: 'Agent 包管理',
+              title: i18n.global.t('route.agentPackage'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -241,7 +242,7 @@ const routes = setupLayouts([
             path: 'proxyPackageMng',
             component: AgentPackageMng,
             meta: {
-              title: 'Proxy 包管理',
+              title: i18n.global.t('route.proxyPackage'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -251,7 +252,7 @@ const routes = setupLayouts([
             path: 'certPackageMng',
             component: CertBintoolMng,
             meta: {
-              title: '证书管理',
+              title: i18n.global.t('route.certManage'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -261,7 +262,7 @@ const routes = setupLayouts([
             path: 'bintoolPackageMng',
             component: CertBintoolMng,
             meta: {
-              title: '工具管理',
+              title: i18n.global.t('route.toolManage'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -271,7 +272,7 @@ const routes = setupLayouts([
             path: 'plugin_bintoolPackageMng',
             component: CertBintoolMng,
             meta: {
-              title: '插件包工具管理',
+              title: i18n.global.t('route.pluginToolManage'),
               back: false,
               mainMenu: 'pkgManager',
             },
@@ -290,7 +291,7 @@ const routes = setupLayouts([
             path: 'operationRecords',
             component: OperationRecords,
             meta: {
-              title: '操作记录',
+              title: i18n.global.t('route.operationRecord'),
               back: false,
               mainMenu: 'pkgManager',
             },

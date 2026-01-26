@@ -1,5 +1,5 @@
 <template>
-  <page-header :title="'Agent状态'" :back="Object.keys(route.query).length > 0"></page-header>
+  <page-header :title="'route.agentStatus'" :back="Object.keys(route.query).length > 0"></page-header>
   <div class="p-[24px]">
     <!-- agnet操作及搜索 -->
     <section class="flex justify-between mb-[15px]">
@@ -113,17 +113,25 @@
         <template #prepend>
           <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
             <template v-if="isCrossPageSelection">
-              已跨页全选 <span class="font-bold mx-1">{{ total - excludedIds.size }}</span> 条，
-              <Button text theme="primary" @click="handleClearSelection">取消选择</Button>
+              <span>{{ $t('taskDetail.table.crossPageSelected') }} </span>
+              <span class="font-bold mx-1"> {{ total - excludedIds.size }} </span>
+              <span>{{ $t('taskDetail.table.items') }}</span>
+              <Button text theme="primary" @click="handleClearSelection">
+                {{ $t('taskDetail.table.cancelSelection') }}
+              </Button>
             </template>
             <template v-else>
-              已选择 <span class="font-bold mx-1">{{ selection.length }}</span> 条，
+              <span>{{ $t('taskDetail.table.selected') }}</span>
+              <span class="font-bold mx-1"> {{ selection.length }} </span>
+              <span>{{ $t('taskDetail.table.items') }}</span>
               <Button
                 v-if="total > pagination.limit"
                 text theme="primary" @click="handleSelectAllCrossPage">
-                选择所有页共 {{ total }} 条
+                {{ $t('taskDetail.table.selectAllPages', { x: total }) }}
               </Button>
-              <Button v-else text theme="primary" @click="handleClearSelection">取消选择</Button>
+              <Button v-else text theme="primary" @click="handleClearSelection">
+                {{ $t('taskDetail.table.cancelSelection') }}
+              </Button>
             </template>
           </div>
         </template>
@@ -139,9 +147,13 @@
                 <i class="nodeman-icon nc-arrow-down ml-1 text-[18px]"></i>
                 <template #content>
                   <Dropdown.DropdownMenu>
-                    <Dropdown.DropdownItem @click="handleSelectCurrentPage">本页全选</Dropdown.DropdownItem>
+                    <Dropdown.DropdownItem @click="handleSelectCurrentPage">
+                      {{ $t('taskDetail.filter.currentPage') }}
+                    </Dropdown.DropdownItem>
                     <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
-                      <Button text :disabled="total <= pagination.limit">跨页全选</Button>
+                      <Button text :disabled="total <= pagination.limit">
+                        {{ $t('taskDetail.filter.crossSelected') }}
+                      </Button>
                     </Dropdown.DropdownItem>
                   </Dropdown.DropdownMenu>
                 </template>
@@ -245,7 +257,7 @@
           </template>
         </TableColumn>
         <TableColumn
-          title="插件数"
+          :title="t('platform.nodeMan.installAgentPage.pluginNum')"
           field="pluginNum"
           :min-width="122"
         >
@@ -269,7 +281,7 @@
               ext-cls="reinstall"
               @click="handleOperate('reinstall', [row])"
             >
-              {{ $t("platform.nodeMan.agentStatus.button.reinstall") }}
+              {{ $t("platform.nodeMan.agentStatus.reinstall") }}
             </Button>
 
             <Dropdown
@@ -397,12 +409,12 @@ const topo = ref([]);
 
 // ---------- 常量定义 ----------
 const topoBizFilterList = computed(() => mainStore.businessList);
-const operate = [
-  { id: 'reinstall', name: '重装', disabled: false, show: true },
-  { id: 'upgrade', name: '升级/回退', disabled: false, show: true },
-  { id: 'restart', name: '重启', disabled: false, show: true },
-  { id: 'uninstall', name: '卸载', disabled: false, show: true },
-];
+const operate = ref([
+  { id: 'reinstall', name: t('platform.nodeMan.agentStatus.reinstall'), disabled: false, show: true },
+  { id: 'upgrade', name: t('platform.nodeMan.agentStatus.upgrade'), disabled: false, show: true },
+  { id: 'restart', name: t('platform.nodeMan.agentStatus.restart'), disabled: false, show: true },
+  { id: 'uninstall', name: t('platform.nodeMan.agentStatus.uninstall'), disabled: false, show: true },
+]);
 const agentInstallType = [
   { id: 'setup', name: '普通远程安装' },
   { id: 'import', name: 'Excel 导入远程安装' },
@@ -410,10 +422,10 @@ const agentInstallType = [
 ];
 
 const statusMap = ref(new Map<string, string>([
-  ['init', '初始化'],
-  ['running', '正常'],
-  ['damaged', '异常'],
-  ['unknown', '未安装'],
+  ['init', t('platform.nodeMan.agentStatus.init')],
+  ['running', t('platform.nodeMan.agentStatus.running')],
+  ['damaged', t('platform.nodeMan.agentStatus.damaged')],
+  ['unknown', t('platform.nodeMan.agentStatus.unknown')],
 ]));
 
 const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_name', 'dept_name']);
@@ -424,8 +436,8 @@ const selection = computed(() => tableData.value.filter((item: any) => item.chec
 const total = computed(() => pagination.count);
 // eslint-disable-next-line max-len
 const bizListMap = computed(() => new Map<number, string>(mainStore.businessList.map((item: any) => [item.bk_biz_id, item.bk_biz_name])));
-const networkAreaListMap = ref(new Map<number, string>([[-1, '未分配']]));
-const networkUnitListMap = ref(new Map<number, string>([[-1, '未分配']]));
+const networkAreaListMap = ref(new Map<number, string>([[-1, t('platform.nodeMan.agentStatus.unassigned')]]));
+const networkUnitListMap = ref(new Map<number, string>([[-1, t('platform.nodeMan.agentStatus.unassigned')]]));
 const hostDistinct = ref<TopoHostDistinctRespData | null>();
 
 const searchSelectData = computed(() => [
@@ -434,43 +446,43 @@ const searchSelectData = computed(() => [
   { id: 'bk_agent_id', name: 'Agent ID', multiple: true },
   {
     id: 'bk_biz_id',
-    name: '归属业务',
+    name: t('platform.nodeMan.bk_biz_id'),
     children: getUniqueChildrenFrom('bk_biz_id', bizListMap.value),
     multiple: true,
   },
   {
     id: 'bk_networkarea_id',
-    name: '管控区域',
+    name: t('platform.nodeMan.bk_cloud_name'),
     children: getUniqueChildrenFrom('bk_networkarea_id', networkAreaListMap.value),
     multiple: true,
   },
   {
     id: 'bk_networkunit_id',
-    name: '管控单元',
+    name: t('platform.nodeMan.bk_cloud_unit'),
     children: getUniqueChildrenFrom('bk_networkunit_id', networkUnitListMap.value),
     multiple: true,
   },
   {
     id: 'dept_name',
-    name: '运维部门',
+    name: t('platform.nodeMan.dept_name'),
     children: getUniqueChildrenFrom('dept_name'),
     multiple: true,
   },
   {
     id: 'os_type',
-    name: '操作系统',
+    name: t('platform.nodeMan.os_type'),
     children: getUniqueChildrenFrom('os_type'),
     multiple: true,
   },
   {
     id: 'node_version',
-    name: 'Agent 版本',
+    name: t('platform.nodeMan.agent_version'),
     children: getUniqueChildrenFrom('node_version'),
     multiple: true,
   },
   {
     id: 'node_status',
-    name: 'Agent 状态',
+    name: t('platform.nodeMan.status'),
     children: getUniqueChildrenFrom('node_status', statusMap.value),
     multiple: true,
   },
@@ -988,29 +1000,33 @@ const handleOperatetHost = async (data: Host[], batch: boolean, operateType: str
   };
   let type = '';
   switch (operateType) {
-    case 'restart': type = '重启'; break;
-    case 'upgrade': type = '升级/回退'; break;
-    case 'uninstall': type = '卸载'; break;
+    case 'restart': type = t('platform.nodeMan.agentStatus.restart'); break;
+    case 'upgrade': type = t('platform.nodeMan.agentStatus.upgrade'); break;
+    case 'uninstall': type = t('platform.nodeMan.agentStatus.uninstall'); break;
   }
   operateData.value = data;
   if (operateType === 'upgrade') {
-    chooseVersionData.title = 'Agent 升级/回退';
+    chooseVersionData.title = t('platform.nodeMan.agentStatus.agentUpgrade');
     chooseVersionData.isShow = true;
     chooseVersionData.data = data;
     chooseVersionData.batch = batch;
   } else if (operateType === 'restart') {
     operateDialogIsShow.value = true;
     operateDialogData.type = operateType;
-    operateDialogData.title = batch ? `请确认是否批量${type}` : `请确认是否${type}`;
+    operateDialogData.title = batch
+      ? t('platform.nodeMan.agentStatus.confirmIsBatch', { type })
+      : t('platform.nodeMan.agentStatus.confirmIsSingle', { type });
     operateDialogData.subTitle = batch
-      ? `${type} ${titleObj.firstIp} 等${titleObj.num}个IP的Agent`
-      : `${type} ${titleObj.firstIp} 的Agent`;
+      ? t('platform.nodeMan.agentStatus.batchOperate', { type, firstIp: titleObj.firstIp, num: titleObj.num })
+      : t('platform.nodeMan.agentStatus.singleOperate', { type, firstIp: titleObj.firstIp });
   } else if (operateType === 'uninstall') {
     InfoBox({
-      title: batch ? `请确认是否批量${type}` : `请确认是否${type}`,
+      title: batch
+        ? t('platform.nodeMan.agentStatus.confirmIsBatch', { type })
+        : t('platform.nodeMan.agentStatus.confirmIsSingle', { type }),
       subTitle: batch
-        ? `${type} ${titleObj.firstIp} 等${titleObj.num}个IP的Agent`
-        : `${type} ${titleObj.firstIp} 的Agent`,
+        ? t('platform.nodeMan.agentStatus.batchOperate', { type, firstIp: titleObj.firstIp, num: titleObj.num })
+        : t('platform.nodeMan.agentStatus.singleOperate', { type, firstIp: titleObj.firstIp }),
       onConfirm: () => {
         handleUninstall();
       },
@@ -1035,9 +1051,9 @@ watch(() => route.query, (newQuery, oldQuery) => {
   if (os_type && cpu_arch && node_version) {
     searchSelectValue.value = [
       ...searchSelectValue.value.filter(item => !['os_type', 'cpu_arch', 'node_version'].includes(item.id)),
-      { id: 'os_type', name: '操作系统', values: [{ id: os_type, name: os_type }] },
-      { id: 'cpu_arch', name: '架构', values: [{ id: cpu_arch, name: cpu_arch }] },
-      { id: 'node_version', name: 'Agent版本', values: [{ id: node_version, name: node_version }] },
+      { id: 'os_type', name: t('platform.nodeMan.os_type'), values: [{ id: os_type, name: os_type }] },
+      { id: 'cpu_arch', name: t('platform.nodeMan.cpu_arch'), values: [{ id: cpu_arch, name: cpu_arch }] },
+      { id: 'node_version', name: t('platform.nodeMan.agent_version'), values: [{ id: node_version, name: node_version }] },
     ];
   } else if (bk_networkarea_id !== undefined && bk_networkunit_id !== undefined) {
     const areaId = Number(bk_networkarea_id);

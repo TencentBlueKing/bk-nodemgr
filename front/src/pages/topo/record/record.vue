@@ -104,17 +104,17 @@ const {
 } = useWorkareaStore();
 
 // 操作类型映射
-const typeMap = {
-  'networkarea-create': '创建管控区域',
-  'networkarea-update': '更新管控区域',
-  'networkarea-delete': '删除管控区域',
-  'networkunit-create': '创建管控单元',
-  'networkunit-update': '更新管控单元',
-  'networkunit-delete': '删除管控单元',
-  'accesspoint-create': '创建接入点',
-  'accesspoint-update': '更新接入点',
-  'accesspoint-delete': '删除接入点',
-};
+const typeMap = ref({
+  'networkarea-create': t('topoManager.record.table.createNetworkarea'),
+  'networkarea-update': t('topoManager.record.table.updateNetworkarea'),
+  'networkarea-delete': t('topoManager.record.table.deleteNetworkarea'),
+  'networkunit-create': t('topoManager.record.table.createNetworkunit'),
+  'networkunit-update': t('topoManager.record.table.updateNetworkunit'),
+  'networkunit-delete': t('topoManager.record.table.deleteNetworkunit'),
+  'accesspoint-create': t('topoManager.record.table.createAccesspoint'),
+  'accesspoint-update': t('topoManager.record.table.updateAccesspoint'),
+  'accesspoint-delete': t('topoManager.record.table.deleteAccesspoint'),
+});
 const workareaStore = useWorkareaStore();
 const searchSelectValue = ref<ISearchValue[]>([]);
 const loading = ref(false);

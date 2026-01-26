@@ -33,10 +33,10 @@
       </div>
 
       <!-- Agent Version -->
-      <div class="w-[280px] ml-[11px]">
+      <div class="ml-[11px]">
         <Table
           :data="selectedOs?.versions"
-          :empty-text="'暂无数据'"
+          :empty-text="$t('table.empty')"
           :sort-config="sortConfig"
         >
           <TableColumn fixed="left" width="34">
@@ -53,19 +53,19 @@
           <TableColumn
             field="version"
             fixed="left"
-            min-width="130"
+            min-width="138"
             sortable
           >
             <template #header>
-              <span class="text-[14px]">{{ $t('Agent 版本') }}</span>
+              <span class="text-[14px]">{{ $t('components.chooseVersion.AgentVersion') }}</span>
             </template>
           </TableColumn>
           <TableColumn
             field="tag"
-            min-width="80"
+            min-width="90"
           >
             <template #default="{ row }">
-              <Tag v-if="row.as_default">默认版本</Tag>
+              <Tag v-if="row.as_default">{{ $t('components.chooseVersion.DefaultVersion') }}</Tag>
             </template>
           </TableColumn>
           <TableColumn fixed="right" min-width="34">
@@ -83,7 +83,9 @@
         <div
           class="text-[14px] bg-[#FAFBFD] border border-l-none border-[#DCDEE5] h-[40.69px] leading-[40.69px] pl-[24px]"
         >
-          <span v-if="selectedVersion?.version">{{ selectedVersion?.version }} 的详细信息</span>
+          <span v-if="selectedVersion?.version">
+            {{ $t('components.chooseVersion.versionInfoTitle', { version: selectedVersion?.version }) }}
+          </span>
         </div>
         <p class="text-[12px] border border-t-none h-full p-[16px]">
           {{ selectedVersion?.description }}
@@ -93,14 +95,18 @@
     <template #footer>
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-[8px]" v-if="type === 'upgrade'">
-          <Radio.Group v-model="force" class="w-[180px]">
-            <Radio.Button :label="true" :key="true">强制升级</Radio.Button>
-            <Radio.Button :label="false" :key="false">无损升级</Radio.Button>
+          <Radio.Group v-model="force">
+            <Radio.Button :label="true" :key="true">
+              {{ $t('components.chooseVersion.forceUpgrade') }}
+            </Radio.Button>
+            <Radio.Button :label="false" :key="false">
+              {{ $t('components.chooseVersion.gracefulUpgrade') }}
+            </Radio.Button>
           </Radio.Group>
-          <div class="flex items-center gap-[3px]" v-show="!force">
-            <span>超时时间</span>
+          <div class="flex items-center gap-[3px] ml-[20px]" v-show="!force">
+            <span>{{ $t('components.operateDialog.gracefulTime') }}</span>
             <Input type="number" v-model="graceful_restart_timeout_sec" class="w-[80px] mx-[3px]"></Input>
-            <span>秒</span>
+            <span>{{ $t('components.operateDialog.seconds') }}</span>
           </div>
         </div>
         <div class="ml-auto">

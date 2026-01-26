@@ -2,20 +2,20 @@
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
-      <Button theme="primary" @click="handleUpload" class="mr-[16px]">包上传</Button>
+      <Button theme="primary" @click="handleUpload" class="mr-[16px]">{{ t('certBintool.upload') }}</Button>
       <SearchSelect
         class="flex-1 bg-[#fff]"
         ref="searchSelect"
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
-        :placeholder="t('包文件名、上传用户')"
+        :placeholder="t('certBintool.searchPlaceholder')"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
     </div>
     <Loading
-      title="数据加载中"
+      :title="t('agentStrategy.loading')"
       :loading="loading"
       class="flex-1"
     >
@@ -23,7 +23,7 @@
         class="w-full filterTable"
         :max-height="maxHeight"
         :data="packageList"
-        :empty-text="'暂无数据'"
+        :empty-text="t('table.empty')"
         :pagination="pagination"
         show-overflow-tooltip
         :show-settings="isShowSetting"
@@ -34,20 +34,20 @@
       >
         <TableColumn
           field="file_name"
-          :title="'包文件名'"
+          :title="t('certBintool.fileName')"
           :min-width="320"
           fixed="left"
           show-overflow="tooltip"
         ></TableColumn>
         <TableColumn
           field="operator"
-          :title="'上传用户'"
+          :title="t('certBintool.uploader')"
           :min-width="120"
           :filter="filterOptionSource.operator"
         ></TableColumn>
         <TableColumn
           field="updated_at"
-          :title="'上传时间'"
+          :title="t('certBintool.uploadTime')"
           :min-width="180"
           sort-type="number"
           sortable
@@ -58,7 +58,7 @@
         </TableColumn>
         <TableColumn
           field="action"
-          :title="'操作'"
+          :title="t('certBintool.action')"
           fixed="right"
           :min-width="120"
         >
@@ -67,20 +67,23 @@
               <PopConfirm
                 theme="light"
                 trigger="click"
-                confirm-text="删除"
+                :confirm-text="t('certBintool.delete')"
                 @confirm="handleDelete(row)"
               >
                 <Button
                   theme="primary"
                   text
-                >删除</Button>
+                >{{ t('certBintool.delete') }}</Button>
                 <template #content>
                   <div class="px-[4px] pt-[8px] pb-[16px]">
                     <div class="text-[16px] text-[#313238] mb-[6px]">
-                      确认删除该{{ route.name === "certPackageMng" ? "证书" : "工具" }}？
+                      <!-- eslint-disable-next-line max-len -->
+                      {{ $t('certBintool.confirmDelete', { type: route.name === "certPackageMng" ? t('certBintool.cert') : t('certBintool.tool') }) }}
                     </div>
-                    <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
-                    <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
+                    <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
+                      {{ t('certBintool.deleteTarget', { name: row.file_name }) }}
+                    </div>
+                    <div class="text-[12px] text-[#4D4F56] w-full">{{ t('certBintool.deleteTip') }}</div>
                   </div>
                 </template>
               </PopConfirm>
@@ -89,9 +92,9 @@
         </TableColumn>
         <TableColumn
           field="download"
-          title="下载"
+          :title="t('certBintool.download')"
           fixed="right"
-          :width="60"
+          :min-width="60"
         >
           <template #default="{ row }">
             <download-pkg :data="row" :url="downloadUrl" :current-type="currentType">
@@ -209,13 +212,13 @@ function getUniqueChildren(prop: string) {
 const searchSelectData = computed(() => [
   {
     id: 'file_name',
-    name: t('包文件名'),
+    name: t('certBintool.fileName'),
     children: getUniqueChildren('file_name'),
     multiple: true,
   },
   {
     id: 'operator',
-    name: t('上传用户'),
+    name: t('certBintool.uploader'),
     children: getUniqueChildren('operator'),
     multiple: true,
   },
@@ -250,7 +253,7 @@ const handleFilter = ({
         let name;
         switch (field) {
           case 'enabled':
-            name = item ? t('启用') : t('禁用');
+            name = item ? t('agentProxyPkg.enabled') : t('agentProxyPkg.disabled');
             break;
           default:
             name = item;

@@ -28,7 +28,7 @@
         <template #default>
           <span
             v-bk-tooltips="{
-              content: '不可选择当前管控单元作为上游接入点管控单元',
+              content: $t('topoManager.workUnit.tip'),
               disabled: isCreate || (workUnitId !== item.bk_networkunit_id),
               placement: 'left',
             }">

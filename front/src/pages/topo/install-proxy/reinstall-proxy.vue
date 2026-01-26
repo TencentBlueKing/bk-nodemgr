@@ -50,7 +50,7 @@
         </Form.FormItem>
         <Form.FormItem
           v-if="isTargetShow"
-          :label="'安装源'"
+          :label="t('installProxy.installSource')"
           property="proxy_install_origin"
           label-width="90"
           required
@@ -62,15 +62,15 @@
             trigger="click"
           ></Cascader>
         </Form.FormItem>
-        <Form.FormItem :label="$t('Proxy 版本')" label-width="90" required v-if="isTargetShow">
+        <Form.FormItem :label="t('installProxy.proxyVersion')" label-width="90" required v-if="isTargetShow">
           <div class="w-[488px]">
-            <Table :data="systemData" :border="true" empty-text="当前无可用版本">
+            <Table :data="systemData" :border="true" :empty-text="t('installProxy.noAvailableVersion')">
               <TableColumn
                 field="displayName"
-                :title="$t('操作系统/架构')"
+                :title="t('installProxy.osArch')"
                 width="200"
               ></TableColumn>
-              <TableColumn field="version" :title="$t('版本')" width="288">
+              <TableColumn field="version" :title="t('installProxy.version')" width="288">
                 <template #default="{ row }">
                   <Validate
                     :value="row.version"
@@ -79,7 +79,7 @@
                   >
                     <Input
                       :model-value="row.version"
-                      :placeholder="$t('请选择')"
+                      :placeholder="t('installProxy.pleaseSelect')"
                       @click="handleChooseVersion(row)"
                     />
                   </Validate>
@@ -97,7 +97,7 @@
           class="mr-[8px] w-[120px]"
           :disabled="systemData.length === 0"
           v-bk-tooltips="{
-            content: '当前无可用版本, 不可安装',
+            content: t('installProxy.noAvailableVersionTip'),
             disabled: systemData.length > 0
           }"
           @click="handleConfirm"
@@ -163,21 +163,21 @@ const router = useRouter();
 const { t } = useI18n();
 const settings = reactive({
   fields: [
-    { field: 'bk_biz_id', title: '归属业务' },
-    { field: 'bk_host_innerip', title: '内网 IPv4' },
-    { field: 'bk_host_innerip_v6', title: '内网 IPv6' },
-    { field: 'os_type', title: '操作系统' },
-    { field: 'login_port', title: '登录端口' },
-    { field: 'login_user', title: '登录账号' },
-    { field: 'export_ip', title: '出口IP' },
-    { field: 'advertise_ip', title: '服务IP' },
-    { field: 'login_ip', title: '登录 IP' },
-    { field: 'login_mode', title: '认证方式' },
-    { field: 'credit', title: '密码 / 密钥' },
-    { field: 'dedicated_installer', title: '安装跳板' },
-    { field: 'cluster_tunnel', title: 'Agent控制' },
-    { field: 'file_tunnel', title: '文件传输' },
-    { field: 'data_tunnel', title: '数据上报' },
+    { field: 'bk_biz_id', title: t('installProxy.business') },
+    { field: 'bk_host_innerip', title: t('installProxy.innerIPv4') },
+    { field: 'bk_host_innerip_v6', title: t('installProxy.innerIPv6') },
+    { field: 'os_type', title: t('installProxy.os') },
+    { field: 'login_port', title: t('installProxy.port') },
+    { field: 'login_user', title: t('installProxy.account') },
+    { field: 'export_ip', title: t('installProxy.exportIP') },
+    { field: 'advertise_ip', title: t('installProxy.serviceIP') },
+    { field: 'login_ip', title: t('installProxy.loginIP') },
+    { field: 'login_mode', title: t('installProxy.authMethod') },
+    { field: 'credit', title: t('installProxy.passwordKey') },
+    { field: 'dedicated_installer', title: t('installProxy.installJump') },
+    { field: 'cluster_tunnel', title: t('installProxy.agentControl') },
+    { field: 'file_tunnel', title: t('installProxy.fileTransfer') },
+    { field: 'data_tunnel', title: t('installProxy.dataReport') },
   ],
   checked: [
     'bk_biz_id',
@@ -268,15 +268,15 @@ const getNetworkUnitList = async () => {
 const installOriginList = computed(() => ([
   {
     id: 'upstream',
-    name: '上级管控单元',
+    name: t('installProxy.upstreamUnit'),
   },
   {
     id: 'current',
-    name: '当前管控单元',
+    name: t('installProxy.currentUnit'),
   },
   {
     id: 'custom',
-    name: '自定义',
+    name: t('installProxy.custom'),
     children: networkUnitList.value.map(item => ({
       id: String(item.bk_networkunit_id),
       name: `[${item.bk_networkunit_id}] ${item.bk_networkunit_name}`,
@@ -307,7 +307,7 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
     return;
   }
   InfoBox({
-    title: '确认关闭?',
+    title: t('installProxy.confirmClose'),
     infoType: 'warning',
     onConfirm: () => {
       resolve(true);
@@ -397,7 +397,7 @@ const handleConfirm = async () => {
     if (!res) return;
     Message({
       theme: 'success',
-      message: '已发起proxy重装',
+      message: t('installProxy.reinstallInitiated'),
     });
     isShow.value = false;
     if (res.workflow_id) {

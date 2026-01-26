@@ -24,12 +24,12 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const links = [
   {
-    name: t('联系BK助手'),
+    name: t('footer.linksBk'),
     href: 'https://bk.tencent.com/s-mart/community',
     target: '_blank',
   },
   {
-    name: t('蓝鲸桌面'),
+    name: t('footer.desktop'),
     href: 'https://bk.tencent.com/s-mart/desktop',
     target: '_blank',
   },

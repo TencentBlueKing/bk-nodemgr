@@ -21,18 +21,26 @@
         <template #prepend>
           <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
             <template v-if="isCrossPageSelection">
-              已跨页全选 <span class="font-bold mx-1">{{ pagination.count - excludedIds.size }}</span> 条，
-              <Button text theme="primary" @click="handleClearSelection">取消选择</Button>
+              {{ $t('taskDetail.table.crossPageSelected') }}
+              <span class="font-bold mx-1"> {{ pagination.count - excludedIds.size }} </span>
+              <span>{{ $t('taskDetail.table.items') }}</span>
+              <Button text theme="primary" @click="handleClearSelection">
+                {{ $t('taskDetail.table.cancelSelection') }}
+              </Button>
             </template>
             <template v-else>
-              已选择 <span class="font-bold mx-1">{{ selection.length }}</span> 条，
+              <span>{{ $t('taskDetail.table.selected') }}</span>
+              <span class="font-bold mx-1"> {{ selection.length }} </span>
+              <span>{{ $t('taskDetail.table.items') }}</span>
               <Button
                 v-if="pagination.count > pagination.limit"
                 text theme="primary"
                 @click="handleSelectAllCrossPage">
-                选择所有页共 {{ pagination.count }} 条
+                {{ $t('taskDetail.table.selectAllPages', { x: pagination.count }) }}
               </Button>
-              <Button v-else text theme="primary" @click="handleClearSelection">取消选择</Button>
+              <Button v-else text theme="primary" @click="handleClearSelection">
+                {{ $t('taskDetail.table.cancelSelection') }}
+              </Button>
             </template>
           </div>
         </template>
@@ -47,9 +55,11 @@
                 <i class="nodeman-icon nc-arrow-down ml-1 text-[18px]"></i>
                 <template #content>
                   <Dropdown.DropdownMenu>
-                    <Dropdown.DropdownItem @click="handleSelectCurrentPage">本页全选</Dropdown.DropdownItem>
+                    <Dropdown.DropdownItem @click="handleSelectCurrentPage">
+                      {{ $t('taskDetail.filter.currentPage') }}
+                    </Dropdown.DropdownItem>
                     <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
-                      <Button text>跨页全选</Button>
+                      <Button text>{{ $t('taskDetail.filter.crossSelected') }}</Button>
                     </Dropdown.DropdownItem>
                   </Dropdown.DropdownMenu>
                 </template>
@@ -80,25 +90,25 @@
           :min-width="130">
         </TableColumn>
         <TableColumn
-          label="出口IP"
+          :label="$t('installProxy.exportIP')"
           field="export_ip"
           show-overflow="tooltip"
           :min-width="130">
         </TableColumn>
         <TableColumn
-          label="服务IP"
+          :label="$t('installProxy.serviceIP')"
           field="advertise_ip"
           show-overflow="tooltip"
           :min-width="130">
         </TableColumn>
         <TableColumn
-          label="登录IP"
+          :label="$t('installProxy.loginIP')"
           field="login_ip"
           show-overflow="tooltip"
           :min-width="130">
         </TableColumn>
         <TableColumn
-          label="所属业务"
+          :label="$t('installProxy.businessName')"
           field="bk_biz_id"
           show-overflow="tooltip"
           :min-width="100">
@@ -144,7 +154,7 @@
           </template>
         </TableColumn>
         <TableColumn
-          label="proxy服务"
+          :label="$t('installProxy.proxyTags')"
           field="proxy_tags"
           show-overflow="tooltip"
           :min-width="300">
@@ -157,7 +167,7 @@
           </template>
         </TableColumn>
         <TableColumn
-          title="插件数"
+          :title="$t('installProxy.pluginNum')"
           field="pluginNum"
           :min-width="122"
         >
@@ -269,12 +279,12 @@ const sidesliderData = reactive<{
   isShow: false,
   data: null,
 });
-const proxyTagMap = {
-  dedicated_installer: '安装跳板',
-  cluster_tunnel: 'Agent控制',
-  file_tunnel: '文件传输',
-  data_tunnel: '数据上报',
-};
+const proxyTagMap = ref({
+  dedicated_installer: t('installProxy.installJump'),
+  cluster_tunnel: t('installProxy.agentControl'),
+  file_tunnel: t('installProxy.fileTransfer'),
+  data_tunnel: t('installProxy.dataReport'),
+});
 const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   checked: [
     'bk_host_innerip',
@@ -395,10 +405,10 @@ const handleFilter = ({ checked, field }: { checked: string[]; field: string }) 
 };
 
 const statusMap = ref(new Map<string, string>([
-  ['init', '初始化'],
-  ['running', '正常'],
-  ['damaged', '异常'],
-  ['unknown', '未安装'],
+  ['init', t('platform.nodeMan.agentStatus.init')],
+  ['running', t('platform.nodeMan.agentStatus.running')],
+  ['damaged', t('platform.nodeMan.agentStatus.damaged')],
+  ['unknown', t('platform.nodeMan.agentStatus.unknown')],
 ]));
 
 const searchSelectValue = computed(() => props.searchSelectValue);
@@ -556,20 +566,20 @@ const getHostDistinct = async () => {
         id: 'bk_agent_id',
       },
       {
-        name: 'Proxy 版本',
+        name: t('installProxy.proxyVersion'),
         id: 'node_version',
         children: getUniqueChildrenFrom('node_version'),
         multiple: true,
       },
       {
-        name: 'Proxy 状态',
+        name: t('topoManager.workAreaDetail.table.proxyStatus'),
         id: 'node_status',
         children: getUniqueChildrenFrom('node_status', statusMap.value),
         multiple: true,
       },
       {
         id: 'dept_name',
-        name: '运维部门',
+        name: t('platform.nodeMan.dept_name'),
         children: getUniqueChildrenFrom('dept_name'),
         multiple: true,
       },
@@ -586,17 +596,17 @@ watch(route, async () => {
     const routeTags = [
       {
         id: 'os_type',
-        name: '操作系统',
+        name: t('topoManager.installProxy.form.os'),
         values: [{ id: route.query.os_type, name: route.query.os_type }],
       },
       {
         id: 'cpu_arch',
-        name: '架构',
+        name: t('agentStrategy.table.arch'),
         values: [{ id: route.query.cpu_arch, name: route.query.cpu_arch }],
       },
       {
         id: 'node_version',
-        name: 'Proxy 版本',
+        name: t('installProxy.proxyVersion'),
         values: [{ id: route.query.node_version, name: route.query.node_version }],
       },
     ];

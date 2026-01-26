@@ -18,7 +18,7 @@
       <div>
         <Button theme="primary" @click="handleCreate">
           <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
-          新建配置
+          {{ $t('agentStrategy.createConfig') }}
         </Button>
       </div>
       <div class="">
@@ -28,14 +28,14 @@
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
-          :placeholder="'请选择 配置名称、修改人'"
+          :placeholder="$t('agentStrategy.searchPlaceholder')"
           @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>
       </div>
     </div>
     <Loading
-      title="数据加载中"
+      :title="$t('agentStrategy.loading')"
       :loading="loading"
       class="mt-[16px] flex-1 overflow-auto"
     >
@@ -43,7 +43,7 @@
         class="w-full"
         :max-height="maxHeight"
         :data="tableData"
-        :empty-text="'暂无数据'"
+        :empty-text="$t('table.empty')"
         :pagination="pagination"
         show-overflow-tooltip
         :show-settings="isShowSetting"
@@ -55,20 +55,20 @@
       >
         <TableColumn
           field="configpolicy_name"
-          :title="'配置名称'"
+          :title="$t('agentStrategy.table.configName')"
           :min-width="150"
           fixed="left"
           show-overflow="tooltip"
         ></TableColumn>
         <TableColumn
           field="configpolicy_id"
-          :title="'配置ID'"
+          :title="$t('agentStrategy.table.configId')"
           :min-width="100"
           fixed="left"
         ></TableColumn>
         <TableColumn
           field="version"
-          :title="'版本'"
+          :title="$t('agentStrategy.table.version')"
           :min-width="120"
         >
           <template #default="{ row }">
@@ -77,19 +77,19 @@
         </TableColumn>
         <TableColumn
           field="biz_name"
-          :title="'业务'"
+          :title="$t('agentStrategy.table.business')"
           :min-width="120"
           show-overflow="tooltip"
         ></TableColumn>
         <TableColumn
           field="remark"
-          :title="'备注'"
+          :title="$t('agentStrategy.table.remark')"
           :min-width="180"
           show-overflow="tooltip"
         ></TableColumn>
         <TableColumn
           field="scopes"
-          :title="'范围'"
+          :title="$t('agentStrategy.table.scope')"
           :min-width="120"
         >
           <template #default="{ row }">
@@ -100,26 +100,26 @@
               <Button text theme="primary">{{ row.scopes?.length }}</Button>
               <template #content>
                 <Table :data="row.scopes" :min-width="600">
-                  <TableColumn field="bk_networkarea_id" title="管控区域" :min-width="120">
+                  <TableColumn field="bk_networkarea_id" :title="$t('taskDetail.table.workarea')" :min-width="120">
                     <template #default="{ row: scopesRow }">
-                      {{ networkAreaList?.find(item =>
-                        item.bk_networkarea_id === scopesRow.bk_networkarea_id )?.bk_networkarea_name || '不限' }}
+                      <!-- eslint-disable-next-line max-len -->
+                      {{ networkAreaList?.find(item => item.bk_networkarea_id === scopesRow.bk_networkarea_id )?.bk_networkarea_name || $t('agentStrategy.table.unlimited') }}
                     </template>
                   </TableColumn>
-                  <TableColumn field="bk_networkunit_id" title="管控单元" :min-width="120">
+                  <TableColumn field="bk_networkunit_id" :title="$t('taskDetail.table.workUnit')" :min-width="120">
                     <template #default="{ row: scopesRow }">
-                      {{ networkUnitList?.find(item =>
-                        item.bk_networkunit_id === scopesRow.bk_networkunit_id )?.bk_networkunit_name || '不限' }}
+                      <!-- eslint-disable-next-line max-len -->
+                      {{ networkUnitList?.find(item => item.bk_networkunit_id === scopesRow.bk_networkunit_id )?.bk_networkunit_name || $t('agentStrategy.table.unlimited') }}
                     </template>
                   </TableColumn>
-                  <TableColumn field="os_type" title="操作系统">
+                  <TableColumn field="os_type" :title="$t('agentStrategy.table.os')">
                     <template #default="{ row: scopesRow }">
-                      {{ scopesRow.os_type || '不限' }}
+                      {{ scopesRow.os_type || $t('agentStrategy.table.unlimited') }}
                     </template>
                   </TableColumn>
-                  <TableColumn field="cpu_arch" title="架构" :min-width="120">
+                  <TableColumn field="cpu_arch" :title="$t('agentStrategy.table.arch')" :min-width="120">
                     <template #default="{ row: scopesRow }">
-                      {{ scopesRow.cpu_arch || '不限' }}
+                      {{ scopesRow.cpu_arch || $t('agentStrategy.table.unlimited') }}
                     </template>
                   </TableColumn>
                 </Table>
@@ -129,13 +129,13 @@
         </TableColumn>
         <TableColumn
           field="operator"
-          :title="'修改人'"
+          :title="$t('agentStrategy.table.operator')"
           :min-width="120"
           show-overflow="tooltip"
         ></TableColumn>
         <TableColumn
           field="updated_time"
-          :title="'修改时间'"
+          :title="$t('agentStrategy.table.updateTime')"
           :min-width="150"
         >
           <template #default="{ row }">
@@ -144,17 +144,17 @@
         </TableColumn>
         <TableColumn
           field="enabled"
-          :title="'状态'"
+          :title="$t('agentStrategy.table.status')"
           :min-width="100"
         >
           <template #default="{ row }">
-            <Tag v-if="row.enabled" theme="success">启用</Tag>
-            <Tag v-else>未启用</Tag>
+            <Tag v-if="row.enabled" theme="success">{{ $t('agentStrategy.table.enabled') }}</Tag>
+            <Tag v-else>{{ $t('agentStrategy.table.disabled') }}</Tag>
           </template>
         </TableColumn>
         <TableColumn
           field="action"
-          :title="'操作'"
+          :title="$t('agentStrategy.table.action')"
           :min-width="120"
           fixed="right"
         >
@@ -165,28 +165,28 @@
                 theme="primary"
                 text
                 @click="handleUpdate(row)"
-              >编辑</Button>
+              >{{ $t('agentStrategy.action.edit') }}</Button>
               <Button
                 class="mr-[8px]"
                 theme="primary"
                 text
                 v-if="!row.enabled"
                 @click="handleEnabled(row)"
-              >启用</Button>
+              >{{ $t('agentStrategy.action.enable') }}</Button>
               <Button
                 class="mr-[8px]"
                 theme="primary"
                 text
                 v-if="row.enabled"
                 @click="handleDisabled(row)"
-              >停用</Button>
+              >{{ $t('agentStrategy.action.disable') }}</Button>
               <PopConfirm
                 width="360"
                 theme="light"
                 trigger="click"
                 placement="top-start"
-                title="确认删除该配置策略？"
-                confirm-text="删除"
+                :title="$t('agentStrategy.action.confirmDelete')"
+                :confirm-text="$t('agentStrategy.action.delete')"
                 @confirm="handleDelete(row)"
               >
                 <Button
@@ -195,14 +195,14 @@
                   :disabled="row.enabled"
                   @click="row.isDeletePopShow = true"
                   v-bk-tooltips="{
-                    content: '启用中的配置不可删除',
+                    content: $t('agentStrategy.action.deleteDisabledTip'),
                     disabled: !row.enabled
                   }"
-                >删除</Button>
+                >{{ $t('agentStrategy.action.delete') }}</Button>
                 <template #content>
                   <div class="px-[4px] pb-[4px]">
-                    <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.configpolicy_name}}</div>
-                    <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
+                    <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">{{ $t('agentStrategy.action.deleteTarget', { name: row.configpolicy_name }) }}</div>
+                    <div class="text-[12px] text-[#4D4F56] w-full">{{ $t('agentStrategy.action.deleteTip') }}</div>
                   </div>
                 </template>
               </PopConfirm>
@@ -226,6 +226,7 @@
 import { Button, Loading, PopConfirm, Popover, SearchSelect, Sideslider, Tab, Tag } from 'bkui-vue';
 import { debounce } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -240,6 +241,7 @@ import { formatTimestamp } from '@/common/util';
 import useTableSetting from '@/composables/use-table-setting';
 import { useMainStore } from '@/stores/main';
 
+const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
 const configpolicyType = computed(() => (route.name === 'agentStrategy' ? 'config_policy_agent' : 'config_policy_proxy'));
@@ -248,9 +250,9 @@ const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableData = ref<ConfigPolicy[]>([]);
 const loading = ref(false);
 const active = ref('');
-const panels = ref([
-  { name: 'configStrategy', label: '配置策略' },
-  // { name: 'deploymentStrategy', label: '部署策略' },
+const panels = computed(() => [
+  { name: 'configStrategy', label: t('agentStrategy.configStrategy') },
+  // { name: 'deploymentStrategy', label: t('agentStrategy.deploymentStrategy') },
 ]);
 
 // Sideslider控制变量
@@ -272,15 +274,15 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
   disabled: ['action'],
 }, `rulesMng-${configpolicyType.value}`);
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
-const searchSelectData = ref([
+const searchSelectData = computed(() => [
   {
     id: 'configpolicy_name',
-    name: '配置名称',
+    name: t('agentStrategy.table.configName'),
     children: [],
   },
   {
     id: 'operator',
-    name: '修改人',
+    name: t('agentStrategy.table.operator'),
     children: [],
   },
 ]);
@@ -304,7 +306,7 @@ const handleFilter = ({
         let name;
         switch (field) {
           case 'enabled':
-            name = item ? '启用' : '禁用';
+            name = item ? t('agentStrategy.filter.enabled') : t('agentStrategy.filter.disabled');
             break;
           default:
             name = item;
@@ -436,7 +438,7 @@ const getConfigPolicyList = async () => {
     biz_name: mainStore.businessList
       .filter(biz => item.biz_id.includes(biz.bk_biz_id))
       .map(item => item.bk_biz_name)
-      .join(',') || '不限',
+      .join(',') || t('agentStrategy.table.unlimited'),
   }));
 };
 const debounceConfigPolicyList = debounce(getConfigPolicyList, 300);

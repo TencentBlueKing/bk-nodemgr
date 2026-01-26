@@ -38,10 +38,14 @@
         </Form.FormItem>
         <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.version')" required v-if="isShow">
           <div class="w-[568px]">
-            <Table :data="systemData" :border="true" width="568" empty-text="当前无可用版本">
+            <Table
+              :data="systemData"
+              :border="true"
+              width="568"
+              empty-text="$t('platform.nodeMan.installAgentPage.noAvailableVersion')">
               <TableColumn
                 field="os"
-                title="操作系统/架构"
+                :title="$t('platform.nodeMan.installAgentPage.osArch')"
                 width="200"
               >
                 <template #default="{ row }">
@@ -115,6 +119,7 @@ import { Button, Form, Input, Loading, Select, Upload } from 'bkui-vue';
 import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, debounce  } from 'lodash';
 import { computed, onMounted, onUnmounted, reactive, ref, watch  } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -128,6 +133,7 @@ import Validate from '@/components/validate.vue';
 import { useMainStore } from '@/stores/main';
 import { useNodeManageStore } from '@/stores/node-manage';
 
+const { t } = useI18n();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
@@ -190,17 +196,17 @@ const systemData = ref([
 
 const tableSetting = reactive({
   fields: [
-    { title: '业务', field: 'bk_biz_id' },
-    { title: '管控区域', field: 'bk_networkarea_name' },
-    { title: '管控单元', field: 'bk_networkunit_id' },
-    { title: '内网 IPv4', field: 'bk_host_innerip' },
-    { title: '内网 IPv6', field: 'bk_host_innerip_v6' },
-    { title: '操作系统', field: 'os_type' },
-    { title: '登录 IP', field: 'login_ip' },
-    { title: '登录端口', field: 'login_port' },
-    { title: '登录账号', field: 'login_user' },
-    { title: '认证方式', field: 'login_mode' },
-    { title: '密码 / 密钥', field: 'credit' },
+    { title: t('platform.nodeMan.installAgentPage.business'), field: 'bk_biz_id' },
+    { title: t('platform.nodeMan.bk_cloud_name'), field: 'bk_networkarea_name' },
+    { title: t('platform.nodeMan.bk_cloud_unit'), field: 'bk_networkunit_id' },
+    { title: t('platform.nodeMan.inner_ip'), field: 'bk_host_innerip' },
+    { title: t('platform.nodeMan.inner_ipv6'), field: 'bk_host_innerip_v6' },
+    { title: t('platform.nodeMan.os_type'), field: 'os_type' },
+    { title: t('platform.nodeMan.installAgentPage.loginIp'), field: 'login_ip' },
+    { title: t('platform.nodeMan.installAgentPage.loginPort'), field: 'login_port' },
+    { title: t('platform.nodeMan.installAgentPage.loginUser'), field: 'login_user' },
+    { title: t('platform.nodeMan.installAgentPage.loginMode'), field: 'login_mode' },
+    { title: t('platform.nodeMan.installAgentPage.passwordKey'), field: 'credit' },
   ],
   checked: [
     'bk_biz_id',

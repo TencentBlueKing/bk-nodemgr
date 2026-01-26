@@ -8,7 +8,7 @@
       <div
         class="h-[50px] flex flex-shrink-0 justify-between items-center px-[16px] bg-[#2E2E2E] text-[#C4C6CC]"
       >
-        <div>{{ t("执行日志") }}</div>
+        <div>{{ t("platform.nodeMan.log.executionLog") }}</div>
         <div class="flex">
           <Dropdown
             :popover-options="{

@@ -11,17 +11,37 @@
         @page-limit-change="pageLimitChange"
         @page-value-change="pageValueChange"
       >
-        <TableColumn title="插件名" field="name" min-width="150"></TableColumn>
-        <TableColumn title="插件包名" field="pkg_name" min-width="150">
+        <TableColumn
+          :title="$t('pluginManagement.plugin.table.pluginName')"
+          field="name"
+          min-width="150"
+        ></TableColumn>
+        <TableColumn
+          :title="$t('pluginManagement.plugin.table.packageName')"
+          field="pkg_name"
+          min-width="150"
+        >
           <template #default="{ row }">
             <Button text theme="primary" @click="handleGoToPluginPkgMng(row)">
               {{ row.pkg_name }}
             </Button>
           </template>
         </TableColumn>
-        <TableColumn title="插件组" field="group" min-width="120"></TableColumn>
-        <TableColumn title="备注" field="memo" min-width="380"></TableColumn>
-        <TableColumn title="节点数" field="node_num" min-width="120">
+        <TableColumn
+          :title="$t('pluginManagement.plugin.table.pluginGroup')"
+          field="group"
+          min-width="120"
+        ></TableColumn>
+        <TableColumn
+          :title="$t('pluginManagement.plugin.table.memo')"
+          field="memo"
+          min-width="380"
+        ></TableColumn>
+        <TableColumn
+          :title="$t('pluginManagement.plugin.table.nodeCount')"
+          field="node_num"
+          min-width="120"
+        >
           <template #default="{ row }">
             <Button text theme="primary" @click="openSidebar(row)">
               {{ row.node_num || 0 }}
@@ -29,7 +49,11 @@
             </Button>
           </template>
         </TableColumn>
-        <TableColumn title="操作" field="operation" min-width="150">
+        <TableColumn
+          :title="$t('pluginManagement.plugin.table.operation')"
+          field="operation"
+          min-width="150"
+        >
           <template #default="{ row }">
             <Button text theme="primary" @click="handleEditInfo(row)">
               {{ $t('action.edit') }}

@@ -51,7 +51,8 @@
               v-else
               v-model="formData.credit"
               class="flex-1"
-              :placeholder="formData.login_credit_valid ? '密码有效，点击修改' : '请输入'"
+              :placeholder="formData.login_credit_valid
+                ? t('components.installTable.creditValid') : t('components.installTable.inputPassword')"
               type="password" />
           </div>
         </Form.FormItem>
@@ -107,8 +108,8 @@
     </template>
     <template #footer>
       <div class="flex justify-start gap-[8px]">
-        <Button theme="primary" @click="handleSave" :loading="loading">保存</Button>
-        <Button @click="handleBeforeClose">取消</Button>
+        <Button theme="primary" @click="handleSave" :loading="loading">{{ $t('action.save') }}</Button>
+        <Button @click="handleBeforeClose">{{ $t('action.cancel') }}</Button>
       </div>
     </template>
   </Sideslider>
@@ -142,21 +143,21 @@ const proxyTags = ['cluster_tunnel', 'data_tunnel', 'dedicated_installer', 'file
 const { t } = useI18n();
 const rules: ValidationRules = {
   bk_host_innerip: [
-    { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的内网 IPv4' },
+    { validator: VALIDATE_REGEX.IPV4, message: t('validate.ipv4') },
   ],
   bk_host_innerip_v6: [
-    { validator: VALIDATE_REGEX.IPV6, message: '请输入正确的内网 IPv6' },
+    { validator: VALIDATE_REGEX.IPV6, message: t('validate.ipv6') },
   ],
-  os_type: [{ validator: (val: string) => val, message: '请输入操作系统' }],
+  os_type: [{ validator: (val: string) => val, message: t('validate.os') }],
   login_ip: [
-    { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的登录 IP' },
+    { validator: VALIDATE_REGEX.IPV4, message: t('validate.loginIp') },
   ],
   login_port: [
-    { validator: VALIDATE_REGEX.PORT, message: '请输入正确的登录端口' },
+    { validator: VALIDATE_REGEX.PORT, message: t('validate.port') },
   ],
-  login_user: [{ validator: (val: string) => val, message: '请输入登录账号' }],
-  login_mode: [{ validator: (val: string) => val, message: '请输入认证方式' }],
-  credit: [{ validator: (val: string) => val, message: '请输入密码 / 密钥' }],
+  login_user: [{ validator: (val: string) => val, message: t('validate.loginUser') }],
+  login_mode: [{ validator: (val: string) => val, message: t('validate.authType') }],
+  credit: [{ validator: (val: string) => val, message: t('validate.password') }],
 };
 const initData = {
   bk_host_id: '',
@@ -185,11 +186,11 @@ const isPasswordVaultEnabled = computed(() => window.PROJECT_CONFIG.PASSWORD_VAU
 const authenticationTypes = ref([
   {
     id: 'password',
-    name: '密码',
+    name: t('authenticationType.password'),
   },
   {
     id: 'keyfile',
-    name: '密钥',
+    name: t('authenticationType.keyfile'),
   },
   ...(isPasswordVaultEnabled.value
     ? [{ id: 'password_vault', name: window.PROJECT_CONFIG.PASSWORD_VAULT_NAME }]
@@ -212,7 +213,7 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
     return;
   }
   InfoBox({
-    title: '确认关闭?',
+    title: t('dialog.confirmClose'),
     infoType: 'warning',
     onConfirm: () => {
       resolve(true);

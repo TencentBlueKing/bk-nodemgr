@@ -1,20 +1,20 @@
 <template>
   <div>
-    <div class="text-[12px] text-[#4D4F56] mb-[8px]">结果预览</div>
-    <bk-loading title="数据解析中" :loading="loading">
+    <div class="text-[12px] text-[#4D4F56] mb-[8px]">{{ t('pkgUpload.resultPreview') }}</div>
+    <bk-loading :title="t('pkgUpload.parsing')" :loading="loading">
       <Table
         v-if="currentType !== 'plugin_bintool'"
         :data="tableData"
       >
         <TableColumn
           field="name"
-          :title="currentType === 'cert' ? '文件名' : '包名'"
+          :title="currentType === 'cert' ? t('pkgUpload.fileName') : t('pkgUpload.packageNameLabel')"
           v-if="!['bintool', 'plugin_bintool'].includes(currentType)"
           min-width="350"
         ></TableColumn>
         <TableColumn
           field="os_type"
-          :title="'操作系统架构'"
+          :title="t('pkgUpload.osArch')"
           v-if="currentType !== 'cert'"
           min-width="150"
         >
@@ -24,7 +24,7 @@
         </TableColumn>
         <TableColumn
           field="release_type"
-          :title="'包类型'"
+          :title="t('pkgUpload.packageType')"
           v-if="!['cert', 'bintool', 'plugin_bintool'].includes(currentType)"
           min-width="70"
         ></TableColumn>
@@ -37,13 +37,13 @@
           >
             <TableColumn
               field="name"
-              :title="'包名'"
+              :title="t('pkgUpload.packageNameLabel')"
               v-if="!['bintool', 'plugin_bintool'].includes(currentType)"
               min-width="350"
             ></TableColumn>
             <TableColumn
               field="os_type"
-              :title="'操作系统架构'"
+              :title="t('pkgUpload.osArch')"
               min-width="150"
             >
               <template #default="{ row }">
@@ -52,7 +52,7 @@
             </TableColumn>
             <TableColumn
               field="release_type"
-              :title="'包类型'"
+              :title="t('pkgUpload.packageType')"
               v-if="!['cert', 'bintool', 'plugin_bintool'].includes(currentType)"
               min-width="70"
             ></TableColumn>
@@ -62,7 +62,7 @@
     </bk-loading>
     <template v-if="data?.change_log_zh || data?.change_log_en || data?.description">
       <div class="text-[12px] text-[#4D4F56] mt-[24px] mb-[8px] flex items-center gap-[16px]">
-        <span>描述</span>
+        <span>{{ t('pkgUpload.description') }}</span>
         <Radio.Group v-model="changLog" v-if="data?.change_log_zh || data?.change_log_en">
           <Radio.Button label="ZH"></Radio.Button>
           <Radio.Button label="EN"></Radio.Button>
@@ -75,10 +75,10 @@
           {{ changLog === 'ZH' ? data.change_log_zh : data.change_log_en }}
         </span>
         <div v-else-if="currentType === 'plugin'" class="flex flex-col gap-[10px] flex-wrap">
-          <span>描述信息：{{ data.description }}</span>
-          <span>配置文件：{{ data.config_file }}</span>
-          <span>配置格式：{{ data.config_format }}</span>
-          <span>运行节点类型：{{ data.launch_node }}</span>
+          <span>{{ t('pkgUpload.descInfo', { desc: data.description }) }}</span>
+          <span>{{ t('pkgUpload.configFile', { file: data.config_file }) }}</span>
+          <span>{{ t('pkgUpload.configFormat', { format: data.config_format }) }}</span>
+          <span>{{ t('pkgUpload.launchNode', { node: data.launch_node }) }}</span>
         </div>
       </div>
     </template>
@@ -87,12 +87,14 @@
 <script lang="ts" setup>
 import { Button, PopConfirm, Radio, Select } from 'bkui-vue';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
 
 import { usePackageStore } from '@/stores/package';
 
+const { t } = useI18n();
 const props = defineProps({
   data: {
     type: Object,

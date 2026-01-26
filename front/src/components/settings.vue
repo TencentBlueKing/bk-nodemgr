@@ -22,7 +22,7 @@
             ]"
             @click="activeSetting = 'field'"
           >
-            字段设置
+            {{ $t('components.setting.field') }}
           </div>
           <!-- <div
             :class="[
@@ -58,16 +58,16 @@
           class="bg-[#fff] px-[16px] overflow-y-auto my-[16px]"
           v-show="activeSetting === 'advance'"
         >
-          <div class="text-[14px] mb-[8px]">表格行高</div>
+          <div class="text-[14px] mb-[8px]">{{ $t('components.setting.size') }}</div>
           <Radio.Group
             v-model="size"
             class="flex justify-center"
             type="card"
             @change="handleSizeChange"
           >
-            <Radio.Button label="small">小</Radio.Button>
-            <Radio.Button label="medium">中</Radio.Button>
-            <Radio.Button label="large">大</Radio.Button>
+            <Radio.Button label="small">{{ $t('components.setting.small') }}</Radio.Button>
+            <Radio.Button label="medium">{{ $t('components.setting.medium') }}</Radio.Button>
+            <Radio.Button label="large">{{ $t('components.setting.large') }}</Radio.Button>
           </Radio.Group>
         </div>
       </div>

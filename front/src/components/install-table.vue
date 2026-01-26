@@ -11,10 +11,10 @@
       round
     >
       <!-- 业务属性 -->
-      <VxeColgroup title="业务属性" align="center" v-if="isReinstall">
+      <VxeColgroup :title="$t('components.installTable.bizProperty')" align="center" v-if="isReinstall">
         <VxeColumn
           field="bk_biz_id"
-          title="归属业务"
+          :title="$t('components.installTable.bkBizId')"
           :visible="settings.checked.includes('bk_biz_id')"
           :min-width="150"
         >
@@ -47,10 +47,10 @@
       </VxeColgroup>
 
       <!-- 拓扑属性 -->
-      <VxeColgroup title="拓扑属性" align="center" v-if="isReinstall">
+      <VxeColgroup :title="$t('components.installTable.topoProperty')" align="center" v-if="isReinstall">
         <VxeColumn
           field="bk_networkarea_name"
-          title="管控区域"
+          :title="$t('components.installTable.networkArea')"
           :visible="settings.checked.includes('bk_networkarea_name')"
           :min-width="150"
         >
@@ -78,7 +78,7 @@
         </VxeColumn>
         <VxeColumn
           field="bk_networkunit_id"
-          title="管控单元"
+          :title="$t('components.installTable.networkUnit')"
           :min-width="150"
           :visible="settings.checked.includes('bk_networkunit_id')"
         >
@@ -117,12 +117,12 @@
       <!-- 主机 IP -->
       <VxeColgroup align="center">
         <template #header>
-          <span class="mr-[5px]">主机 IP</span>
+          <span class="mr-[5px]">{{ $t('components.installTable.hostIp') }}</span>
           <span class="mx-[3px] text-[#FF5656]">*</span>
         </template>
         <VxeColumn
           field="bk_host_innerip"
-          title="内网 IPv4"
+          :title="$t('components.installTable.innerIPv4')"
           :visible="settings.checked.includes('bk_host_innerip')"
           :min-width="150"
         >
@@ -150,7 +150,7 @@
         </VxeColumn>
         <VxeColumn
           field="bk_host_innerip_v6"
-          title="内网 IPv6"
+          :title="$t('components.installTable.innerIPv6')"
           :min-width="150"
           :visible="settings.checked.includes('bk_host_innerip_v6')"
         >
@@ -174,19 +174,19 @@
       </VxeColgroup>
 
       <!-- 主机属性 -->
-      <VxeColgroup title="主机属性" align="center">
+      <VxeColgroup :title="$t('components.installTable.keyfile')" align="center">
         <VxeColumn
           field="os_type"
-          title="操作系统"
+          :title="$t('components.installTable.osType')"
           :min-width="120"
           :visible="settings.checked.includes('os_type')"
           v-if="releaseType !== 'proxy' || isReinstall"
         >
           <template #header>
-            <span class="mr-[5px]">操作系统</span>
+            <span class="mr-[5px]">{{ $t('components.installTable.osType') }}</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
             <BatchEdit
-              :title="'批量编辑操作系统'"
+              :title="$t('components.installTable.batchEditOsType')"
               type="select"
               :options="datasourceList"
               @confirm="(value) => handleBatchEdit('os_type', value)"
@@ -227,7 +227,7 @@
           v-if="releaseType === 'proxy'"
         >
           <template #header>
-            <span class="mr-[5px]">出口IP</span>
+            <span class="mr-[5px]">{{ $t('components.installTable.exportIP') }}</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
           </template>
           <template #default="{ row, rowIndex }">
@@ -242,7 +242,7 @@
         </VxeColumn>
         <VxeColumn
           field="advertise_ip"
-          title="服务IP"
+          :title="$t('components.installTable.serviceIP')"
           :min-width="150"
           v-if="releaseType === 'proxy'"
           :visible="settings.checked.includes('advertise_ip')"
@@ -262,15 +262,15 @@
       </VxeColgroup>
 
       <!-- 登录信息 -->
-      <VxeColgroup title="登录信息" align="center" v-if="type !== 'manual'">
+      <VxeColgroup :title="$t('components.installTable.loginInfo')" align="center" v-if="type !== 'manual'">
         <VxeColumn
           field="login_ip"
-          title="登录 IP"
+          :title="$t('components.installTable.loginIP')"
           :min-width="150"
           :visible="settings.checked.includes('login_ip')"
         >
           <template #header>
-            <span class="mr-[5px]">登录 IP</span>
+            <span class="mr-[5px]">{{ $t('components.installTable.loginIP') }}</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
           </template>
           <template #default="{ row, rowIndex }">
@@ -285,16 +285,16 @@
         </VxeColumn>
         <VxeColumn
           field="login_port"
-          title="登录端口"
+          :title="$t('components.installTable.port')"
           :min-width="120"
           :visible="settings.checked.includes('login_port')"
           v-if="releaseType !== 'proxy' || isReinstall"
         >
           <template #header>
-            <span class="mr-[5px]">登录端口</span>
+            <span class="mr-[5px]">{{ $t('components.installTable.port') }}</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
             <BatchEdit
-              :title="'批量编辑登录端口'"
+              :title="$t('components.installTable.batchEditPort')"
               type="input"
               @confirm="(value) => handleBatchEdit('login_port', value)"
             >
@@ -315,16 +315,16 @@
         </VxeColumn>
         <VxeColumn
           field="login_user"
-          title="登录账号"
+          :title="$t('components.installTable.account')"
           :min-width="150"
           :visible="settings.checked.includes('login_user')"
           v-if="releaseType !== 'proxy' || isReinstall"
         >
           <template #header>
-            <span class="mr-[5px]">登录账号</span>
+            <span class="mr-[5px]">{{ $t('components.installTable.account') }}</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
             <BatchEdit
-              :title="'批量编辑登录账号'"
+              :title="$t('components.installTable.batchEditAccount')"
               type="input"
               @confirm="(value) => handleBatchEdit('login_user', value)"
             >
@@ -346,10 +346,10 @@
           :visible="settings.checked.includes('login_mode')"
         >
           <template #header>
-            <span class="mr-[5px]">认证方式</span>
+            <span class="mr-[5px]">{{ $t('components.installTable.authMethod') }}</span>
             <span class="mx-[3px] text-[#FF5656]">*</span>
             <BatchEdit
-              :title="'批量编辑认证方式'"
+              :title="$t('components.installTable.batchEditAuthMethod')"
               type="select"
               :options="authenticationTypes"
               @confirm="(value) => handleBatchEdit('login_mode', value)"
@@ -391,10 +391,10 @@
         >
           <template #header>
             <div class="flex">
-              <span class="mr-[5px]">密码 / 密钥</span>
+              <span class="mr-[5px]">{{ $t('components.installTable.passwordKey') }}</span>
               <span class="mx-[3px] text-[#FF5656]">*</span>
               <BatchEdit
-                :title="'批量编辑密码/密钥'"
+                :title="$t('components.installTable.batchEditPasswordKey')"
                 type="credit"
                 @confirm="(value) => handleBatchEdit('credit', value)"
               >
@@ -404,7 +404,7 @@
           <template #default="{ row, rowIndex }">
             <Input
               v-if="row.login_mode === 'password_vault'"
-              :value="'自动拉取'"
+              :value="$t('components.installTable.autoGet')"
               disabled
             ></Input>
             <ValidateCell v-else :error="getError(rowIndex, 'credit')">
@@ -425,7 +425,7 @@
                 v-else
                 v-model.trim="row.credit"
                 :placeholder="
-                  row.login_credit_valid ? '密码有效，点击修改' : '请输入密码'
+                  row.login_credit_valid ? $t('components.installTable.creditValid') : $t('components.installTable.inputPassword')
                 "
                 type="password"
                 @change="clearError(rowIndex, 'credit')"
@@ -438,14 +438,14 @@
 
       <!-- 开启的服务 -->
       <VxeColgroup
-        title="开启的服务"
+        :title="$t('components.installTable.enabledSerive')"
         align="center"
         v-if="releaseType === 'proxy'"
       >
         <VxeColumn
           :min-width="90"
           field="dedicated_installer"
-          title="安装跳板"
+          :title="$t('components.installTable.installJump')"
           :visible="settings.checked.includes('dedicated_installer')"
         >
           <template #default="{ row }">
@@ -458,7 +458,7 @@
         <VxeColumn
           :min-width="90"
           field="cluster_tunnel"
-          title="Agent控制"
+          :title="$t('components.installTable.agentControl')"
           :visible="settings.checked.includes('cluster_tunnel')"
         >
           <template #default="{ row }">
@@ -468,7 +468,7 @@
         <VxeColumn
           :min-width="90"
           field="file_tunnel"
-          title="文件传输"
+          :title="$t('components.installTable.fileTransfer')"
           :visible="settings.checked.includes('file_tunnel')"
         >
           <template #default="{ row }">
@@ -478,7 +478,7 @@
         <VxeColumn
           :min-width="90"
           field="data_tunnel"
-          title="数据上报"
+          :title="$t('components.installTable.dataReport')"
           :visible="settings.checked.includes('data_tunnel')"
         >
           <template #default="{ row }">
@@ -532,6 +532,7 @@
 import { Button, Input, Message, Select, Switcher, Upload } from 'bkui-vue';
 import { cloneDeep, groupBy } from 'lodash';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { VxeColgroup, VxeColumn, VxeTable } from '@blueking/vxe-table';
 
@@ -586,32 +587,8 @@ const props = defineProps({
     }),
   },
 });
-// const manualSetting = {
-//   fields: [
-//     { title: '内网 IPv4', field: 'bk_host_innerip' },
-//     { title: '内网 IPv6', field: 'bk_host_innerip_v6' },
-//     { title: '操作系统', field: 'os_type' },
-//   ],
-//   checked: ['bk_host_innerip', 'bk_host_innerip_v6', 'os_type'],
-//   disabled: ['os_type'],
-//   size: 'medium' as VxeComponentSizeType,
-// };
-// const autoSetting  = {
-//   fields: [
-//     { title: '内网 IPv4', field: 'bk_host_innerip' },
-//     { title: '内网 IPv6', field: 'bk_host_innerip_v6' },
-//     { title: '操作系统', field: 'os_type' },
-//     { title: '登录 IP', field: 'login_ip' },
-//     { title: '登录端口', field: 'login_port' },
-//     { title: '登录账号', field: 'login_user' },
-//     { title: '认证方式', field: 'login_mode' },
-//     { title: '密码 / 密钥', field: 'credit' },
-//   ],
-//   checked: ['bk_host_innerip', 'bk_host_innerip_v6', 'os_type', 'login_port', 'login_ip', 'login_user', 'login_mode', 'credit'],
-//   disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
-//   size: 'medium' as VxeComponentSizeType,
-// };
 
+const { t } = useI18n();
 const initData = {
   bk_host_innerip: '',
   bk_host_innerip_v6: '',
@@ -639,21 +616,21 @@ const initData = {
 
 const rules: ValidationRules = {
   bk_host_innerip: [
-    { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的内网 IPv4' },
+    { validator: VALIDATE_REGEX.IPV4, message: t('components.installTable.ipv4ValidMessage') },
   ],
   bk_host_innerip_v6: [
-    { validator: VALIDATE_REGEX.IPV6, message: '请输入正确的内网 IPv6' },
+    { validator: VALIDATE_REGEX.IPV6, message: t('components.installTable.ipv6ValidMessage') },
   ],
-  os_type: [{ validator: (val: string) => val, message: '请输入操作系统' }],
+  os_type: [{ validator: (val: string) => val, message: t('components.installTable.osTypeValidMessage') }],
   login_ip: [
-    { validator: VALIDATE_REGEX.IPV4, message: '请输入正确的登录 IP' },
+    { validator: VALIDATE_REGEX.IPV4, message: t('components.installTable.loginIPValidMessage') },
   ],
   login_port: [
-    { validator: VALIDATE_REGEX.PORT, message: '请输入正确的登录端口' },
+    { validator: VALIDATE_REGEX.PORT, message: t('components.installTable.portValidMessage') },
   ],
-  login_user: [{ validator: (val: string) => val, message: '请输入登录账号' }],
-  login_mode: [{ validator: (val: string) => val, message: '请输入认证方式' }],
-  credit: [{ validator: (val: string) => val, message: '请输入密码 / 密钥' }],
+  login_user: [{ validator: (val: string) => val, message: t('components.installTable.accountValidMessage') }],
+  login_mode: [{ validator: (val: string) => val, message: t('components.installTable.loginModeValidMessage') }],
+  credit: [{ validator: (val: string) => val, message: t('components.installTable.passwordKeyValidMessage') }],
 };
 
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
@@ -708,7 +685,7 @@ const handleAddRow = (index: number) => {
 
 const handleDelRow = (index: number) => {
   if (!Array.isArray(tableData.value)) return;
-  if (tableData.value.length === 1) return Message({ theme: 'warning', message: '至少保留一行' });
+  if (tableData.value.length === 1) return Message({ theme: 'warning', message: t('components.installTable.minimum') });
   tableData.value.splice(index, 1);
   shiftErrors(index, -1);
 };
@@ -721,8 +698,8 @@ const settingChange = (data: any) => {
 
 const datasourceList = ref<{ id: string; name: string }[]>([]);
 const authenticationTypes = ref([
-  { id: 'password', name: '密码' },
-  { id: 'keyfile', name: '密钥' },
+  { id: 'password', name: t('components.installTable.password') },
+  { id: 'keyfile', name: t('components.installTable.keyfile') },
   ...(window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH === 'true'
     ? [
       {
@@ -847,7 +824,7 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
   if (props.isReinstall) requiredFields.push('bk_biz_id');
 
   if (requiredFields.includes(field) && !value && value !== 0) {
-    setError(rowIndex, field, '必填项');
+    setError(rowIndex, field,  t('validate.required'));
     return;
   }
 
@@ -859,7 +836,7 @@ const handleFieldBlur = (rowIndex: number, field: string, value: any) => {
       !row.login_credit_valid &&
       !value
     ) {
-      setError(rowIndex, field, '必填项');
+      setError(rowIndex, field,  t('validate.required'));
       return;
     }
   }
@@ -899,7 +876,7 @@ const tableValidate = async () => {
       && settings.checked.includes('bk_biz_id')
       && !row.bk_biz_id
     ) {
-      setError(i, 'bk_biz_id', '必填项');
+      setError(i, 'bk_biz_id',  t('validate.required'));
       rowValid = false;
     }
     // 2.2 IP
@@ -914,8 +891,8 @@ const tableValidate = async () => {
     // A. 必填校验：如果开启了IP列，但IPv4和IPv6都为空，则报错
     if (hasIpv4Config || hasIpv6Config) {
       if (!ipv4Value && !ipv6Value) {
-        if (hasIpv4Config) setError(i, 'bk_host_innerip', 'IP与IPv6至少填一项');
-        if (hasIpv6Config) setError(i, 'bk_host_innerip_v6', 'IP与IPv6至少填一项');
+        if (hasIpv4Config) setError(i, 'bk_host_innerip', t('components.installTable.either'));
+        if (hasIpv6Config) setError(i, 'bk_host_innerip_v6', t('components.installTable.either'));
         rowValid = false;
       }
     }
@@ -941,14 +918,14 @@ const tableValidate = async () => {
       && settings.checked.includes('os_type')
       && !row.os_type
     ) {
-      setError(i, 'os_type', '必填项');
+      setError(i, 'os_type',  t('validate.required'));
       rowValid = false;
     }
     // 2.4 Proxy IP
     if (props.releaseType === 'proxy') {
       if (settings.checked.includes('export_ip')) {
         if (!row.export_ip) {
-          setError(i, 'export_ip', '必填项');
+          setError(i, 'export_ip',  t('validate.required'));
           rowValid = false;
         } else if (!validateItemData(row.export_ip, rules.login_ip)) {
           setError(i, 'export_ip', rules.login_ip[0].message);
@@ -966,7 +943,7 @@ const tableValidate = async () => {
     if (type.value !== 'manual') {
       if (settings.checked.includes('login_ip')) {
         if (!row.login_ip) {
-          setError(i, 'login_ip', '必填项');
+          setError(i, 'login_ip',  t('validate.required'));
           rowValid = false;
         } else if (!validateItemData(row.login_ip, rules.login_ip)) {
           setError(i, 'login_ip', rules.login_ip[0].message);
@@ -976,7 +953,7 @@ const tableValidate = async () => {
       if (props.releaseType !== 'proxy' || props.isReinstall) {
         if (settings.checked.includes('login_port')) {
           if (!row.login_port) {
-            setError(i, 'login_port', '必填项');
+            setError(i, 'login_port',  t('validate.required'));
             rowValid = false;
           } else if (!validateItemData(row.login_port, rules.login_port)) {
             setError(i, 'login_port', rules.login_port[0].message);
@@ -984,12 +961,12 @@ const tableValidate = async () => {
           }
         }
         if (settings.checked.includes('login_user') && !row.login_user) {
-          setError(i, 'login_user', '必填项');
+          setError(i, 'login_user',  t('validate.required'));
           rowValid = false;
         }
       }
       if (settings.checked.includes('login_mode') && !row.login_mode) {
-        setError(i, 'login_mode', '必填项');
+        setError(i, 'login_mode',  t('validate.required'));
         rowValid = false;
       }
       if (
@@ -997,14 +974,14 @@ const tableValidate = async () => {
         && row.login_mode !== 'password_vault'
       ) {
         if (!row.login_credit_valid && !row.credit) {
-          setError(i, 'credit', '必填项');
+          setError(i, 'credit', t('validate.required'));
           rowValid = false;
         }
       }
     }
 
     if (row.login_mode === 'password_vault' && window.PROJECT_CONFIG.PASSWORD_VAULT_SWITCH !== 'true') {
-      setError(i, 'login_mode', '密码库功能未开启');
+      setError(i, 'login_mode', t('components.installTable.passwordVaultDisabled'));
       rowValid = false;
     }
 

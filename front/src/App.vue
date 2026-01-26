@@ -96,7 +96,7 @@
               </div>
               <template #content>
                 <ul>
-                  <li class="dropdown-item" @click="logout">退出登录</li>
+                  <li class="dropdown-item" @click="logout">{{ t('platform.logout') }}</li>
                 </ul>
               </template>
             </bk-popover>
@@ -120,7 +120,7 @@
           :show-selected-icon="false"
           multiple
           filterable
-          placeholder="全部业务"
+          :placeholder="t('platform.nodeMan.allBusiness')"
           :popover-options="{ boundary: 'document.body', width: '235px' }"
           @change="changeCurBusiness"
           @toggle="handleToggle"
@@ -278,7 +278,7 @@ const changeCurBusiness = (val: number[]) => {
 // 收起左侧菜单展示的业务的文案
 const navBizShrinkText = computed(() => {
   if (!mainStore.selectedBusinessName.length) {
-    return '全';
+    return t('platform.nodeMan.all');
   }
   const len = mainStore.selectedBusinessName.length;
   const text = len > 1 ? len : mainStore.selectedBusinessName[0]?.[0];
@@ -349,28 +349,29 @@ const curLang = computed(() => {
   return langs.value.find(item => item.id === currentLang) || { id: 'zh-cn', icon: 'nodeman-icon nc-lang-zh-cn' };
 });
 // 切换语言
-function handleChangeLang(item) {
+async function handleChangeLang(item) {
   if (item.id !== curLang.value) {
     const {
-      BK_COMPONENT_API_URL: overwriteUrl = '',
       BK_DOMAIN: domain = '',
+      BK_TENANT: tenant_id = '',
+      BK_USER_WEB_URL: apiBaseUrl = '',
     } = window.PROJECT_CONFIG;
 
     // URL安全检查
-    if (!overwriteUrl || typeof overwriteUrl !== 'string') {
-      console.error('Invalid overwriteUrl parameter');
+    if (!apiBaseUrl || typeof apiBaseUrl !== 'string') {
+      console.error('Invalid apiBaseUrl parameter');
       return;
     }
 
     // URL消毒：验证协议和格式
-    let safeOverwriteUrl = overwriteUrl;
+    let safeApiBaseUrl = apiBaseUrl;
     try {
-      const urlObj = new URL(overwriteUrl, window.location.origin);
+      const urlObj = new URL(apiBaseUrl);
       if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
         console.error('Invalid URL protocol');
         return;
       }
-      safeOverwriteUrl = urlObj.origin;
+      safeApiBaseUrl = urlObj.href;
     } catch (error) {
       console.error('Invalid URL format');
       return;
@@ -378,28 +379,49 @@ function handleChangeLang(item) {
 
     // 参数消毒：只允许字母数字和下划线
     const safeLanguage = item.id.replace(/[^a-zA-Z0-9_-]/g, '');
-
-    // 使用URLSearchParams进行安全参数化
-    const url = new URL(`${safeOverwriteUrl}/api/c/compapi/v2/usermanage/fe_update_user_language/`);
-    url.searchParams.set('language', encodeURIComponent(safeLanguage));
-
-    const scriptId = 'jsonp-script';
-    const prevJsonpScript = document.getElementById(scriptId);
-    if (prevJsonpScript) {
-      document.body.removeChild(prevJsonpScript);
+    if (!safeLanguage) {
+      console.error('Invalid language parameter after sanitization');
+      return;
     }
-    const scriptEl = document.createElement('script');
-    scriptEl.type = 'text/javascript';
-    scriptEl.src = url.toString();
-    scriptEl.id = scriptId;
-    document.body.appendChild(scriptEl);
 
-    const today = new Date();
-    today.setTime(today.getTime() + 1000 * 60 * 60 * 24);
-    // 安全设置cookie，对值进行编码
-    const encodedLang = encodeURIComponent(safeLanguage);
-    document.cookie = `blueking_language=${encodedLang};path=/;domain=${domain};expires=${today.toUTCString()}`;
-    location.reload();
+    try {
+      const baseUrl = safeApiBaseUrl.endsWith('/') ? safeApiBaseUrl.slice(0, -1) : safeApiBaseUrl;
+      const url = `${baseUrl}/api/v3/open-web/tenant/current-user/language/`;
+
+      // 添加响应状态检查
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'X-Bk-Tenant-Id': tenant_id,
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          language: safeLanguage,
+        }),
+        credentials: 'include',
+      });
+
+      // 检查HTTP响应状态
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // 设置合理的cookie过期时间（1小时）
+      const today = new Date();
+      today.setTime(today.getTime() + 1000 * 60 * 60);
+
+      // 安全设置cookie，对值进行编码
+      const encodedLang = encodeURIComponent(safeLanguage);
+      document.cookie = `blueking_language=${encodedLang};path=/;domain=${domain};expires=${today.toUTCString()}`;
+
+      // 更新HTML lang属性
+      document.querySelector('html')?.setAttribute('lang', safeLanguage);
+
+      // 添加延迟让用户看到切换成功的视觉反馈
+      window.location.reload();
+    } catch (err) {
+      console.error('Language switch failed:', err);
+    }
   }
 }
 // 自定义批量搜索方法

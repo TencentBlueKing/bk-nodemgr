@@ -29,6 +29,7 @@
       :data="chooseVersionData.data"
       :batch="chooseVersionData.batch"
       release-type="proxy"
+      :type="chooseVersionData.type"
       @confirm="handleUpgrade"
     >
     </choose-version-dialog>
@@ -182,23 +183,25 @@ const handleClickDropMenu = async (action: keyof typeof confirmConfigMap) => {
       num: operateData.length,
     };
     if (action === 'upgrade') {
-      chooseVersionData.title = 'Proxy 升级/回退';
+      chooseVersionData.title = t('topoManager.workAreaDetail.upgrade');
       chooseVersionData.isShow = true;
       chooseVersionData.data = operateData;
       chooseVersionData.batch = batch;
+      chooseVersionData.type = action;
     } else if (action === 'restart') {
       operateDialogIsShow.value = true;
       operateDialogData.type = action;
-      operateDialogData.title = batch ? '请确认是否批量重启' : '请确认是否重启';
+      operateDialogData.title = batch
+        ? t('topoManager.workAreaDetail.batchRestartTitle') : t('topoManager.workAreaDetail.restartTitle');
       operateDialogData.subTitle = batch
-        ? `重启 ${titleObj.firstIp} 等${titleObj.num}个IP的Proxy`
-        : `重启 ${titleObj.firstIp} 的Proxy`;
+        ? t('topoManager.workAreaDetail.restartSubTitle', { firstIp: titleObj.firstIp, num: titleObj.num })
+        : t('topoManager.workAreaDetail.restartSubTitle', { firstIp: titleObj.firstIp });
     } else if (action === 'unload') {
       InfoBox({
-        title: batch ? '请确认是否批量卸载' : '请确认是否卸载',
+        title: batch ? t('topoManager.workAreaDetail.batchUnloadTitle') : t('topoManager.workAreaDetail.unloadTitle'),
         subTitle: batch
-          ? `卸载 ${titleObj.firstIp} 等${titleObj.num}个IP的Agent`
-          : `卸载 ${titleObj.firstIp} 的Agent`,
+          ? t('topoManager.workAreaDetail.batchUnloadSubTitle', { firstIp: titleObj.firstIp, num: titleObj.num })
+          : t('topoManager.workAreaDetail.unloadSubTitle', { firstIp: titleObj.firstIp }),
         onConfirm: () => {
           handleUninstall();
         },
@@ -214,6 +217,7 @@ const chooseVersionData = reactive({
   isShow: false,
   data: null,
   batch: false,
+  type: '',
 });
 const operateDialogIsShow = ref(false);
 const operateDialogData = {

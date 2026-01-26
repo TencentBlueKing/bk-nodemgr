@@ -35,9 +35,9 @@
       <div
         class="w-full h-[32px] leading-[32px] mt-[4px] bg-[#F5F7FA] px-[14px] text-[#63656E] text-[12px]"
       >
-        <span>新建 “</span>
+        <span>{{ $t('action.create') }} “</span>
         <span class="text-[#3A84FF]">{{ createTag }}</span>
-        <span>” 标签</span>
+        <span>” {{ $t('action.tag') }}</span>
       </div>
     </div>
   </div>

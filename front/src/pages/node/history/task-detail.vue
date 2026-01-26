@@ -38,7 +38,7 @@
           }"
         >
           <Button :disabled="!failedSelection.length">
-            <span>批量重试</span>
+            <span>{{ $t('taskDetail.batchRetry') }}</span>
             <i
               class="nodeman-icon nc-arrow-down ml-[5px] text-[18px] text-[#979BA5]"
             ></i>
@@ -62,7 +62,11 @@
             </Dropdown.DropdownMenu>
           </template>
         </Dropdown>
-        <Button :disabled="!runningSelection.length" @click="handleBatchTerminate">批量终止</Button>
+        <Button
+          :disabled="!runningSelection.length"
+          @click="handleBatchTerminate">
+          {{ $t('taskDetail.batchTerminate') }}
+        </Button>
         <copy-ip-dropdown
           type="agent"
           :list="list"
@@ -91,7 +95,7 @@
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
-        :placeholder="'请选择 IP、管控区域、业务、目标版本、执行状态'"
+        :placeholder="$t('taskDetail.searchPlaceholder')"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -100,7 +104,7 @@
       <Table
         class="filterTable"
         :data="tableData"
-        :empty-text="'暂无数据'"
+        :empty-text="$t('table.empty')"
         :pagination="pagination"
         show-overflow-tooltip
         :max-height="maxHeight"
@@ -114,14 +118,20 @@
         <!-- <template #prepend>
           <div v-if="hasSelection" class="flex items-center justify-center h-[30px] bg-[#ebecf0] text-[12px]">
             <template v-if="isCrossPageSelection">
-              已跨页全选 <span class="font-bold mx-1">{{ pagination.count - excludedIds.size }}</span> 条，
-              <Button text theme="primary" @click="handleClearSelection">取消选择</Button>
+              <span>{{ $t('taskDetail.table.crossPageSelected') }}</span>
+              <span class="font-bold mx-1"> {{ pagination.count - excludedIds.size }} </span>
+              <span>{{ $t('taskDetail.table.items') }}</span>
+              <Button text theme="primary" @click="handleClearSelection">
+                {{ $t('taskDetail.table.cancelSelection') }}
+              </Button>
             </template>
             <template v-else>
-              已选择 <span class="font-bold mx-1">{{ selection.length }}</span> 条，
+              <span>{{ $t('taskDetail.table.selected') }}</span>
+              <span class="font-bold mx-1"> {{ selection.length }} </span>
+              <span> {{ $t('taskDetail.table.items') }}</span>
               <Button
                 text theme="primary" @click="handleSelectAllCrossPage">
-                选择所有页共 {{ pagination.count }} 条
+                {{ $t('taskDetail.table.selectAllPages', { x: pagination.count }) }}
               </Button>
             </template>
           </div>
@@ -138,8 +148,12 @@
                 <i class="nodeman-icon nc-arrow-down ml-1 text-[18px]"></i>
                 <template #content>
                   <Dropdown.DropdownMenu>
-                    <Dropdown.DropdownItem @click="handleSelectCurrentPage">本页全选</Dropdown.DropdownItem>
-                    <!-- <Dropdown.DropdownItem @click="handleSelectAllCrossPage">跨页全选</Dropdown.DropdownItem> -->
+                    <Dropdown.DropdownItem @click="handleSelectCurrentPage">
+                      {{ $t('taskDetail.filter.currentPage') }}
+                    </Dropdown.DropdownItem>
+                    <!-- <Dropdown.DropdownItem @click="handleSelectAllCrossPage">
+                      {{ $t('taskDetail.table.crossSelected') }}
+                    </Dropdown.DropdownItem> -->
                   </Dropdown.DropdownMenu>
                 </template>
               </Dropdown>
@@ -152,24 +166,24 @@
         <TableColumn
           v-if="route.query.active === 'plugin'"
           field="plugin_name"
-          :title="'插件名'"
+          :title="$t('taskDetail.table.pluginName')"
           width="150"
           fixed="left"
         ></TableColumn>
         <TableColumn
           field="bk_host_inner_list"
-          :title="'IPv4'"
+          :title="$t('taskDetail.table.ipv4')"
           width="150"
           fixed="left"
         ></TableColumn>
         <TableColumn
           field="bk_host_innerip_v6_list"
-          :title="'IPv6'"
+          :title="$t('taskDetail.table.ipv6')"
           width="150"
         ></TableColumn>
         <TableColumn
           field="bk_networkarea_id"
-          :title="'管控区域'"
+          :title="$t('taskDetail.table.workarea')"
           :filter="filterOptionSource.bk_networkarea_id"
           min-width="150"
         >
@@ -179,7 +193,7 @@
         </TableColumn>
         <TableColumn
           field="bk_networkunit_id"
-          :title="'管控单元'"
+          :title="$t('taskDetail.table.workUnit')"
           :filter="filterOptionSource.bk_networkunit_id"
           min-width="150"
         >
@@ -189,7 +203,7 @@
         </TableColumn>
         <TableColumn
           field="bk_biz_id"
-          :title="'业务'"
+          :title="$t('taskDetail.table.business')"
           :filter="filterOptionSource.bk_biz_id"
           min-width="150"
         >
@@ -199,18 +213,18 @@
         </TableColumn>
         <TableColumn
           field="node_version"
-          :title="'目标版本'"
+          :title="$t('taskDetail.table.targetVersion')"
           min-width="150"
         >
         </TableColumn>
-        <TableColumn field="total_time_second" :title="'耗时'">
+        <TableColumn field="total_time_second" :title="$t('taskDetail.table.costTime')">
           <template #default="{ row }">
             <span>{{ formatCostTime(row.total_time_second) }}</span>
           </template>
         </TableColumn>
         <TableColumn
           field="state"
-          :title="'执行状态'"
+          :title="$t('taskDetail.table.status')"
           :filter="filterOptionSource.state"
           :min-width="stateMinWidth"
         >
@@ -230,8 +244,10 @@
               <div>
                 <!-- eslint-disable-next-line max-len -->
                 <div v-if="row.latest_action_inst_brief_data?.tags.includes('need_manual_exec_install_script') && row.state === 'running'">
-                  等待手动操作，查看
-                  <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide(row)">操作指引</Button>
+                  {{ $t('taskDetail.table.waitManual') }}
+                  <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide(row)">
+                    {{ $t('taskDetail.table.guide') }}
+                  </Button>
                 </div>
                 <span v-else>{{ statusMap[row.state].text }}</span>
               </div>
@@ -244,14 +260,16 @@
         </TableColumn>
         <TableColumn
           field="reTryCount"
-          :title="'重试次数'"
+          :title="$t('taskDetail.table.retryCount')"
           min-width="100"
         ></TableColumn>
-        <TableColumn :title="'操作'" fixed="right" width="200">
+        <TableColumn :title="$t('taskDetail.table.action')" fixed="right" width="200">
           <template #default="{ row }">
             <div class="flex items-center gap-[11px]">
-              <Button text theme="primary" @click="handleViewLog(row)">查看日志</Button>
-              <Button text theme="primary" :disabled="row.state !== 'running'" @click="handleTerminate(row)">终止</Button>
+              <Button text theme="primary" @click="handleViewLog(row)">{{ $t('taskDetail.table.viewLog') }}</Button>
+              <Button text theme="primary" :disabled="row.state !== 'running'" @click="handleTerminate(row)">
+                {{ $t('taskDetail.table.terminate') }}
+              </Button>
               <Dropdown
                 theme="light"
                 trigger="click"
@@ -267,7 +285,7 @@
                   class="flex items-stretch"
                 >
                   <right-turn-line fill="#3A84FF" />
-                  <span>重试</span>
+                  <span>{{ $t('taskDetail.table.retry') }}</span>
                 </Button>
                 <template #content>
                   <Dropdown.DropdownMenu ext-cls="dropDown-menu">
@@ -371,18 +389,18 @@ const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
-const reTryType = [
+const reTryType = computed(() => [
   {
     id: 'ALL',
-    name: '重新开始执行',
-    tooltip: '重新开始执行完整的任务',
+    name: t('taskDetail.retryType.all'),
+    tooltip: t('taskDetail.retryType.allTooltip'),
   },
   {
     id: 'PARTIAL',
-    name: '最近失败重试',
-    tooltip: '从最近失败的步骤开始重试',
+    name: t('taskDetail.retryType.partial'),
+    tooltip: t('taskDetail.retryType.partialTooltip'),
   },
-];
+]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
 const stateMinWidth = computed(() => (tableData.value.some(item =>
@@ -392,49 +410,49 @@ const stateMinWidth = computed(() => (tableData.value.some(item =>
 const currentTaskStatus = computed(() => nodeManageStore.taskHistoryTableRowData.status);
 const statusMap = computed(() => ({
   running: {
-    text: '执行中',
+    text: t('taskDetail.status.running'),
     tagTheme: 'info',
   },
   failed: {
-    text: '失败',
+    text: t('taskDetail.status.failed'),
     icon: 'failed',
     tagTheme: 'danger',
   },
   success: {
-    text: '成功',
+    text: t('taskDetail.status.success'),
     icon: 'success',
     tagTheme: 'success',
   },
   partial_failed: {
-    text: '部分失败',
+    text: t('taskDetail.status.partial_failed'),
     icon: 'warning',
     tagTheme: 'warning',
   },
   ignored: {
-    text: '已忽略（没有需要变更的实例）',
+    text: t('taskDetail.status.ignored'),
     icon: 'warning',
     tagTheme: '',
   },
   timeout: {
-    text: '超时',
+    text: t('taskDetail.status.timeout'),
     icon: 'timeout',
     tagTheme: '',
   },
   init: {
-    text: '初始化',
+    text: t('taskDetail.status.init'),
     icon: 'incomplete',
     tagTheme: '',
   },
   terminated: {
-    text: '终止',
+    text: t('taskDetail.status.terminated'),
     icon: 'terminated',
   },
   launched: {
-    text: '等待执行',
+    text: t('taskDetail.status.launched'),
     icon: 'incomplete',
   },
   incomplete: {
-    text: '未完成',
+    text: t('taskDetail.status.incomplete'),
     icon: 'incomplete',
   },
 }));
@@ -454,7 +472,7 @@ const typeMap = computed(() => ({
 }));
 
 const networkAreaListMap = ref(new Map<number, string>([]));
-const networkUnitListMap = ref(new Map<number, string>([[-1, '未分配']]));
+const networkUnitListMap = ref(new Map<number, string>([[-1, t('taskDetail.table.unassigned')]]));
 
 // 补零规则：非0且小于10时补零，0则直接显示0
 const padIfNeeded = (num: number) => (num === 0 ? '0' : num < 10 ? `0${num}` : num.toString());
@@ -515,29 +533,29 @@ const sliceWorkflowId = (val: string) => `#${val?.slice(-4)}`;
 const taskInfoList = computed(() => [
   {
     prop: 'type',
-    name: '任务类型',
+    name: t('taskDetail.info.type'),
     value:
       typeMap.value[nodeManageStore.taskHistoryTableRowData?.type as taskType]
       || nodeManageStore.taskHistoryTableRowData?.type,
   },
   {
     prop: 'cost_time',
-    name: '总耗时',
+    name: t('taskDetail.info.costTime'),
     value: formatCostTime(nodeManageStore.taskHistoryTableRowData?.cost_time),
   },
   {
     prop: 'workflow_id',
-    name: '任务ID',
+    name: t('taskDetail.info.taskId'),
     value: sliceWorkflowId(nodeManageStore.taskHistoryTableRowData?.workflow_id),
   },
   {
     prop: 'operator',
-    name: '执行人',
+    name: t('taskDetail.info.operator'),
     value: nodeManageStore.taskHistoryTableRowData?.operator,
   },
   {
     prop: 'operate_time',
-    name: '执行时间',
+    name: t('taskDetail.info.operateTime'),
     value: timeFormatter(nodeManageStore.taskHistoryTableRowData?.operate_time),
   },
 ]);
@@ -550,37 +568,37 @@ const radioGroupValue = ref('all');
 const radioGroup = computed(() => [
   {
     icon: '',
-    label: '全部',
+    label: t('taskDetail.status.all'),
     name: 'all',
     count: statistics.value.total_count,
   },
   {
     icon: 'nodeman-icon nc-incomplete status-icon',
-    label: '未完成',
+    label: t('taskDetail.status.incomplete'),
     name: 'incomplete',
     count: statistics.value.init_count + statistics.value.launched_count + statistics.value.running_count,
   },
   {
     icon: 'nodeman-icon nc-success status-icon',
-    label: '成功',
+    label: t('taskDetail.status.success'),
     name: 'success',
     count: statistics.value.success_count,
   },
   {
     icon: 'nodeman-icon nc-failed status-icon',
-    label: '失败',
+    label: t('taskDetail.status.failed'),
     name: 'failed',
     count: statistics.value.failed_count,
   },
   {
     icon: 'nodeman-icon nc-timeout status-icon',
-    label: '超时',
+    label: t('taskDetail.status.timeout'),
     name: 'timeout',
     count: statistics.value.timeout_count,
   },
   {
     icon: 'nodeman-icon nc-terminated status-icon',
-    label: '被终止',
+    label: t('taskDetail.status.terminated'),
     name: 'terminated',
     count: statistics.value.terminated_count,
   },
@@ -703,35 +721,35 @@ const loading = ref(false);
 // 搜索
 const searchSelectValue = ref<{ id: string; name: string; values: any[] }[]>([]);
 const searchSelectData = computed(() => [
-  { id: 'bk_host_innerip', name: 'IPv4', multiple: true },
-  { id: 'bk_host_innerip_v6', name: 'IPv6', multiple: true },
+  { id: 'bk_host_innerip', name: t('taskDetail.search.ipv4'), multiple: true },
+  { id: 'bk_host_innerip_v6', name: t('taskDetail.search.ipv6'), multiple: true },
   {
     id: 'bk_networkarea_id',
-    name: '管控区域',
+    name: t('taskDetail.search.workarea'),
     children: Array.from(networkAreaListMap.value, ([id, name]) => ({ id: String(id), name })),
     multiple: true,
   },
   {
     id: 'bk_networkunit_id',
-    name: '管控单元',
+    name: t('taskDetail.search.workUnit'),
     children: Array.from(networkUnitListMap.value, ([id, name]) => ({ id: String(id), name })),
     multiple: true,
   },
   {
     id: 'bk_biz_id',
-    name: '业务',
+    name: t('taskDetail.search.business'),
     children: Array.from(bizListMap.value, ([id, name]) => ({ id: String(id), name })),
     multiple: true,
   },
   {
     id: 'node_version',
-    name: '目标版本',
+    name: t('taskDetail.search.targetVersion'),
     children: [],
     multiple: true,
   },
   {
     id: 'state',
-    name: '执行状态',
+    name: t('taskDetail.search.status'),
     children: getUniqueChildren('state'),
     multiple: true,
   },
@@ -771,64 +789,64 @@ const pageValueChange = async (current: number) => {
 };
 
 // 复制
-const list = [
+const list = computed(() => [
   {
     id: 'all',
-    name: '所有IP',
+    name: t('taskDetail.copy.all'),
     children: [
       {
         id: 'ipv4',
-        name: 'IPv4',
+        name: t('taskDetail.search.ipv4'),
       },
       {
         id: 'ipv6',
-        name: 'IPv6',
+        name: t('taskDetail.search.ipv6'),
       },
     ],
   },
   {
     id: 'ignore',
-    name: '被忽略IP',
+    name: t('taskDetail.copy.ignored'),
     children: [
       {
         id: 'ipv4',
-        name: 'IPv4',
+        name: t('taskDetail.search.ipv4'),
       },
       {
         id: 'ipv6',
-        name: 'IPv6',
+        name: t('taskDetail.search.ipv6'),
       },
     ],
   },
   {
     id: 'failed',
-    name: '失败IP',
+    name: t('taskDetail.copy.failed'),
     children: [
       {
         id: 'ipv4',
-        name: 'IPv4',
+        name: t('taskDetail.search.ipv4'),
       },
       {
         id: 'ipv6',
-        name: 'IPv6',
+        name: t('taskDetail.search.ipv6'),
       },
     ],
   },
   {
     id: 'success',
-    name: '成功IP',
+    name: t('taskDetail.copy.success'),
     children: [
       {
         id: 'ipv4',
-        name: 'IPv4',
+        name: t('taskDetail.search.ipv4'),
       },
       {
         id: 'ipv6',
-        name: 'IPv6',
+        name: t('taskDetail.search.ipv6'),
       },
     ],
   },
-];
+]);
 
 // 表格勾选
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
@@ -904,14 +922,14 @@ const handleChangeRadio = (state: string) => {
       name: statusMap.value[state]?.text || state,
     }]
     : [
-      { id: 'init', name: '初始化' },
-      { id: 'launched', name: '等待执行' },
-      { id: 'running', name: '执行中' },
+      { id: 'init', name: t('taskDetail.status.init') },
+      { id: 'launched', name: t('taskDetail.status.launched') },
+      { id: 'running', name: t('taskDetail.status.running') },
     ];
   // 更新状态搜索条件
   searchSelectValue.value.push({
     id: 'state',
-    name: '状态',
+    name: t('taskDetail.state'),
     values,
   });
   // 更新状态筛选
@@ -1343,7 +1361,7 @@ onMounted(async () => {
   if (route.query.status) {
     searchSelectValue.value.push({
       id: 'state',
-      name: '执行状态',
+      name: t('taskDetail.search.status'),
       values: [{
         id: route.query.status,
         name: statusMap.value[route.query.status]?.text || route.query.status,

@@ -19,17 +19,17 @@
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
-          :placeholder="'请选择 版本号、操作系统、架构、操作类型、操作人、包类型'"
+          :placeholder="$t('pkgRecord.searchPlaceholder')"
           @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>
       </div>
     </section>
-    <bk-loading title="数据加载中" :loading="loading">
+    <bk-loading :title="t('table.loading')" :loading="loading">
       <Table
         class="filterTable"
         :data="tableData"
-        :empty-text="'暂无数据'"
+        :empty-text="t('table.empty')"
         :pagination="pagination"
         :column-config="{ resizable: true }"
         show-overflow-tooltip
@@ -45,13 +45,13 @@
       >
         <TableColumn
           field="name"
-          :title="t('包名')"
+          :title="t('pkgRecord.packageName')"
           min-width="130"
           fixed="left"
         ></TableColumn>
         <TableColumn
           field="version"
-          :title="t('版本号')"
+          :title="t('pkgRecord.version')"
           min-width="130"
           fixed="left"
           sortable
@@ -63,13 +63,13 @@
         </TableColumn>
         <TableColumn
           field="release_type"
-          :title="t('包类型')"
+          :title="t('pkgRecord.packageType')"
           min-width="130"
           :filter="filterOptionSource.release_type"
         ></TableColumn>
         <TableColumn
           field="os_type"
-          :title="t('操作系统')"
+          :title="t('pkgRecord.os')"
           min-width="130"
           :filter="filterOptionSource.os_type"
         >
@@ -79,7 +79,7 @@
         </TableColumn>
         <TableColumn
           field="cpu_arch"
-          :title="t('架构')"
+          :title="t('pkgRecord.arch')"
           min-width="130"
           :filter="filterOptionSource.cpu_arch"
         >
@@ -89,7 +89,7 @@
         </TableColumn>
         <TableColumn
           field="event_type"
-          :title="t('操作类型')"
+          :title="t('pkgRecord.operateType')"
           min-width="150"
           :filter="filterOptionSource.event_type"
         >
@@ -99,13 +99,13 @@
         </TableColumn>
         <TableColumn
           field="operator"
-          :title="t('操作人')"
+          :title="t('pkgRecord.operator')"
           min-width="150"
           :filter="filterOptionSource.operator"
         ></TableColumn>
         <TableColumn
           field="operate_time"
-          :title="t('操作时间')"
+          :title="t('pkgRecord.operateTime')"
           sort-type="number"
           sortable
           min-width="200"
@@ -203,7 +203,7 @@ const dateValue = ref([
 ]);
 const shortcutsRange = reactive([
   {
-    text: '今天',
+    text: t('pkgRecord.today'),
     value() {
       const end = new Date();
       const start = new Date(end.getFullYear(), end.getMonth(), end.getDate());
@@ -211,7 +211,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近7天',
+    text: t('pkgRecord.last7Days'),
     value() {
       const end = new Date();
       const start = new Date();
@@ -220,7 +220,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近15天',
+    text: t('pkgRecord.last15Days'),
     value() {
       const end = new Date();
       const start = new Date();
@@ -229,7 +229,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近30天',
+    text: t('pkgRecord.last30Days'),
     value() {
       const end = new Date();
       const start = new Date();
@@ -260,15 +260,15 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 }, 'pkgMng-record');
 
 // 操作类型中文映射
-const eventMap = {
-  publish: '发布',
-  enable: '启用',
-  disable: '禁用',
-  delete: '删除',
-  set_as_default: '设置为默认版本',
-  cancel_as_default: '取消设置默认版本',
-  upload: '上传',
-};
+const eventMap = computed(() => ({
+  publish: t('pkgRecord.action.publish'),
+  enable: t('pkgRecord.action.enable'),
+  disable: t('pkgRecord.action.disable'),
+  delete: t('pkgRecord.action.delete'),
+  set_as_default: t('pkgRecord.action.setAsDefault'),
+  cancel_as_default: t('pkgRecord.action.cancelAsDefault'),
+  upload: t('pkgRecord.action.upload'),
+}));
 
 const getUniqueChildrenFrom = <K extends keyof PackageEventDistinctRespData>(
   prop: K,
@@ -285,37 +285,37 @@ const getUniqueChildrenFrom = <K extends keyof PackageEventDistinctRespData>(
 const searchSelectData = computed(() => [
   {
     id: 'version',
-    name: '版本号',
+    name: t('pkgRecord.version'),
     children: getUniqueChildrenFrom('version'),
     multiple: true,
   },
   {
     id: 'release_type',
-    name: '包类型',
+    name: t('pkgRecord.packageType'),
     children: getUniqueChildrenFrom('release_type'),
     multiple: true,
   },
   {
     id: 'os_type',
-    name: '操作系统',
+    name: t('pkgRecord.os'),
     children: getUniqueChildrenFrom('os_type'),
     multiple: true,
   },
   {
     id: 'cpu_arch',
-    name: '架构',
+    name: t('pkgRecord.arch'),
     children: getUniqueChildrenFrom('cpu_arch'),
     multiple: true,
   },
   {
     id: 'event_type',
-    name: '操作类型',
-    children: getUniqueChildrenFrom('event_type', eventMap),
+    name: t('pkgRecord.operateType'),
+    children: getUniqueChildrenFrom('event_type', eventMap.value),
     multiple: true,
   },
   {
     id: 'operator',
-    name: '操作人',
+    name: t('pkgRecord.operator'),
     children: getUniqueChildrenFrom('operator'),
     multiple: true,
   },
@@ -436,7 +436,7 @@ const getHostDistinct = async () => {
             let text;
             switch (key) {
               case 'event_type':
-                text = eventMap[value] || value;
+                text = eventMap.value[value] || value;
                 break;
               default:
                 text = value;
@@ -461,9 +461,10 @@ const handleFilter = ({
   const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (checked.length) {
+    const item = searchSelectData.value.find(item => item.id === field);
     searchSelectValue.value.push({
       id: field,
-      name: t(field),
+      name: item ? item.name : field,
       values: checked.map((item: any) => ({
         id: item,
         name: item,

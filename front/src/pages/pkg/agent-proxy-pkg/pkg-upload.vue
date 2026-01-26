@@ -2,7 +2,7 @@
   <Upload
     ref="uploader"
     type="formdata"
-    :tip="'支持 tgz、tar、gz 扩展名格式文件'"
+    :tip="t('pkgUpload.fileFormatTip')"
     :url="url"
     :size="1000"
     :multiple="false"
@@ -23,7 +23,7 @@
             v-if="curFile.status === 'success'"
           >
             <i class="nodeman-icon nc-check-small text-[22px]"></i>
-            <span>上传成功</span>
+            <span>{{ t('pkgUpload.uploadSuccess') }}</span>
           </div>
           <div
             class="text-[#FF5656] text-[12px]"
@@ -38,25 +38,27 @@
             <PopConfirm
               width="320"
               theme="light"
-              :title="`${ capitalizeFirstLetter(currentType) }目标版本已存在，是否覆盖上传？`"
-              confirmText="覆盖上传"
-              cancelText="取消上传"
+              :title="t('pkgUpload.overwriteConfirm', { type: capitalizeFirstLetter(currentType) })"
+              :confirmText="t('pkgUpload.overwrite')"
+              :cancelText="t('pkgUpload.cancelUpload')"
               @confirm="handleOverwrite"
               @cancel="handleCancel"
             >
               <div class="w-full">
                 <i class="nodeman-icon nc-remind-fill text-[#F8B64F]"></i>
-                <span class="text-[#F59500] ml-[7px]">{{ capitalizeFirstLetter(currentType) }} 目标版本已存在</span>
+                <span class="text-[#F59500] ml-[7px]">
+                  {{ $t('pkgUpload.targetExists', { type: capitalizeFirstLetter(currentType) }) }}
+                </span>
               </div>
               <template #content>
                 <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
-                  包名：{{ curFile.data?.name }}
+                  {{ $t('pkgUpload.packageName', { name: curFile.data?.name }) }}
                 </div>
                 <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
-                  MD5：{{ curFile.data?.md5 }}
+                  {{ $t('pkgUpload.md5', { md5: curFile.data?.md5 }) }}
                 </div>
                 <div class="text-[12px] text-[#4D4F56] w-full mb-[22px]">
-                  继续上传，将会覆盖当前平台同版本的 {{ capitalizeFirstLetter(currentType) }} 包
+                  {{ $t('pkgUpload.overwriteTip', { type: capitalizeFirstLetter(currentType) }) }}
                 </div>
               </template>
             </PopConfirm>
@@ -91,10 +93,12 @@
 import { Button, Message, PopConfirm, Progress, Upload } from 'bkui-vue';
 import { RightTurnLine } from 'bkui-vue/lib/icon';
 import { computed, reactive, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 import { bytesToMegabytes, capitalizeFirstLetter } from '@/common/util';
 
+const { t } = useI18n();
 const props = defineProps({
   pluginType: {
     type: String,
@@ -141,7 +145,7 @@ const handleBeforeUpload = (file: File, fileList: File[]) => {
     fileList.pop();
     Message({
       theme: 'warning',
-      message: '只允许上传tgz、tar、gz的文件',
+      message: t('pkgUpload.fileFormatError'),
     });
     return false;
   }
@@ -200,10 +204,10 @@ const handleUpload = () => {
 
   // 错误处理
   xhr.onerror = () => {
-    curFile.message = '上传失败';
+    curFile.message = t('pkgUpload.uploadFailed');
     Message({
       theme: 'error',
-      message: '上传失败',
+      message: t('pkgUpload.uploadFailed'),
     });
   };
 

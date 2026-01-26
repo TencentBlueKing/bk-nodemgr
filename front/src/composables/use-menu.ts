@@ -39,12 +39,12 @@ const navList = [
         ],
       },
       {
-        title: i18n.global.t('platform.nodeMan.pluginManagement.pluginGroupName'),
+        title: i18n.global.t('pluginManagement.pluginGroupName'),
         children: [
           {
             routeName: 'plugin',
             icon: 'nodeman-icon nc-plug-in',
-            title: i18n.global.t('platform.nodeMan.pluginManagement.plugin.title'),
+            title: i18n.global.t('pluginManagement.plugin.title'),
           },
         ],
       },

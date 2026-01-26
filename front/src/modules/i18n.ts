@@ -1,6 +1,7 @@
 import type { Locale } from 'vue-i18n';
 import { createI18n } from 'vue-i18n';
 
+import { parseCookies } from '@/common/util';
 import type { UserModule } from '@/types.ts';
 
 const i18n = createI18n({
@@ -36,11 +37,28 @@ async function loadLanguageAsync(lang: string): Promise<Locale> {
   return setI18nLanguage(lang);
 }
 
+// 获取当前语言设置
+function getCurrentLanguage(): string {
+  const cookies = parseCookies();
+  let currentLang = cookies.blueking_language || 'zh-CN';
+
+  // 标准化语言标识
+  if (['zh-CN', 'zh-cn', 'cn', 'zhCN', 'zhcn', 'None', 'none'].indexOf(currentLang) > -1) {
+    currentLang = 'zh-CN';
+  } else {
+    currentLang = 'en-US';
+  }
+
+  // 确保语言在可用语言列表中
+  return availableLocales.includes(currentLang) ? currentLang : 'zh-CN';
+}
+
 // Setup i18n
 const install: UserModule = async ({ app }) => {
   app.use(i18n);
-  // 加载默认语言
-  await loadLanguageAsync('zh-CN');
+  // 根据cookie中的语言设置加载对应语言
+  const currentLang = getCurrentLanguage();
+  await loadLanguageAsync(currentLang);
 };
 
 export {

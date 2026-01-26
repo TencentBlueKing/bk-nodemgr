@@ -1,13 +1,14 @@
 <template>
   <div class="text-[12px]">
     <div class="mb-[14px] flex items-start">
-      <div class="text-[#4D4F56] w-[72px] mr-[3px]">
+      <div class="text-[#4D4F56] w-[72px]">
         {{
           is_direct
             ? $t("topoManager.workUnit.form.directConfig")
             : $t("topoManager.workUnit.accessPoints.upstream")
-        }} :
+        }}
       </div>
+      <span class="mr-[10px]">: </span>
       <template v-if="is_direct">
         <Popover
           theme="light"
@@ -15,7 +16,7 @@
           placement="right"
         >
           <div>
-            <Tag theme="info">直连</Tag>
+            <Tag theme="info">{{ $t('topoManager.workUnit.form.direct') }}</Tag>
           </div>
           <template #content>
             <Table
@@ -25,9 +26,12 @@
               auto-resize
               :show-overflow="false"
               :row-config="{ isHover: true, height: 'auto' }">
-              <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+              <TableColumn
+                field="accesspoint_name"
+                :title="$t('topoManager.workUnit.form.accessPointName')"
+                :min-width="180">
                 <template #default>
-                  <Tag theme="info">直连</Tag>
+                  <Tag theme="info">{{ $t('topoManager.workUnit.form.direct') }}</Tag>
                 </template>
               </TableColumn>
               <TableColumn field="cluster" title="cluster" :min-width="200">
@@ -74,7 +78,10 @@
                 auto-resize
                 :show-overflow="false"
                 :row-config="{ isHover: true, height: 'auto' }">
-                <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+                <TableColumn
+                  field="accesspoint_name"
+                  :title="$t('topoManager.workUnit.form.accessPointName')"
+                  :min-width="180">
                   <template #default>
                     {{ clusterData.accesspoint_name }}
                   </template>
@@ -110,7 +117,10 @@
                 auto-resize
                 :show-overflow="false"
                 :row-config="{ isHover: true, height: 'auto' }">
-                <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+                <TableColumn
+                  field="accesspoint_name"
+                  :title="$t('topoManager.workUnit.form.accessPointName')"
+                  :min-width="180">
                   <template #default>
                     {{ fileData.accesspoint_name }}
                   </template>
@@ -146,7 +156,10 @@
                 auto-resize
                 :show-overflow="false"
                 :row-config="{ isHover: true, height: 'auto' }">
-                <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+                <TableColumn
+                  field="accesspoint_name"
+                  :title="$t('topoManager.workUnit.form.accessPointName')"
+                  :min-width="180">
                   <template #default>
                     {{ dataData.accesspoint_name }}
                   </template>
@@ -164,8 +177,9 @@
     </div>
     <div class="flex items-center">
       <div class="text-[#4D4F56] w-[72px] mr-[3px] shrink-0">
-        {{ $t('topoManager.workUnit.accessPoints.downstream') }} :
+        {{ $t('topoManager.workUnit.accessPoints.downstream') }}
       </div>
+      <span class="mr-[10px]">:</span>
       <span v-if="isDownStreamDataExist" class="responsive-container cursor-pointer text-[#3a84ff]">
         <Popover
           theme="light"
@@ -184,7 +198,10 @@
               :show-overflow="false"
               :row-config="{ isHover: true, height: 'auto' }"
             >
-              <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+              <TableColumn
+                field="accesspoint_name"
+                :title="$t('topoManager.workUnit.form.accessPointName')"
+                :min-width="180">
                 <template #default="{ row }">
                   {{ row.accesspoint_name }}
                 </template>

@@ -1,10 +1,10 @@
 <template>
-  <page-header :title="'插件包管理'" :back="!!route.query?.name"></page-header>
+  <page-header :title="'pluginPackage.title'" :back="!!route.query?.name"></page-header>
   <div class="p-[24px] h-[calc(100%_-_52px)] flex flex-col">
     <!-- 搜索栏 -->
     <div class="flex items-center w-full h-[32px] mb-[16px]">
       <Button theme="primary" @click="handleUpload">
-        <span>包上传</span>
+        <span>{{ $t('pluginPackage.upload') }}</span>
       </Button>
       <SearchSelect
         class="ml-[16px] flex-1 bg-[#fff]"
@@ -12,7 +12,7 @@
         :data="searchSelectData"
         v-model.trim="searchSelectValue"
         :unique-select="true"
-        :placeholder="'请选择 插件包名、版本号、操作系统、架构、上传用户、状态、默认版本'"
+        :placeholder="$t('pluginPackage.searchPlaceholder')"
         @update:model-value="handleSearchSelectChange"
       >
       </SearchSelect>
@@ -21,7 +21,7 @@
       <div
         class="w-[240px] flex-shrink-0 bg-[#fff] rounded-[2px] shadow-[0_2px_4px_#1919290d] h-full mr-[17px]"
       >
-        <div class="px-[16px] py-[10px] text-[14px]">快捷筛选</div>
+        <div class="px-[16px] py-[10px] text-[14px]">{{ $t('pluginPackage.quickFilter') }}</div>
         <div v-for="option in dimensionList" :key="option.id">
           <div
             class="flex justify-between items-center bg-[#F0F1F5] h-[32px] px-[16px] cursor-pointer"
@@ -44,7 +44,7 @@
               <div class="border-b flex justify-between items-center h-[36px]">
                 <div class="flex items-center text-[13px]">
                   <text-all class="mr-[5px]" />
-                  <span>全部</span>
+                  <span>{{ $t('pluginPackage.all') }}</span>
                 </div>
                 <Tag
                   size="large"
@@ -85,7 +85,7 @@
         </div>
       </div>
       <Loading
-        title="数据加载中"
+        :title="$t('agentStrategy.loading')"
         :loading="loading"
         class="flex-1 overflow-auto"
       >
@@ -93,7 +93,7 @@
           class="w-full filterTable"
           :max-height="maxHeight"
           :data="packageList"
-          :empty-text="'暂无数据'"
+          :empty-text="$t('table.empty')"
           :pagination="pagination"
           show-overflow-tooltip
           :show-settings="isShowSetting"
@@ -104,14 +104,14 @@
         >
           <TableColumn
             field="name"
-            :title="'插件包名'"
+            :title="$t('pluginPackage.packageName')"
             :min-width="150"
             fixed="left"
             show-overflow="tooltip"
           ></TableColumn>
           <TableColumn
             field="file_name"
-            :title="'包文件名'"
+            :title="$t('pluginPackage.fileName')"
             :min-width="320"
             fixed="left"
             show-overflow="tooltip"
@@ -119,32 +119,32 @@
           <TableColumn
             field="version"
             :filter="filterOptionSource.version"
-            :title="'版本号'"
+            :title="$t('pluginPackage.version')"
             :min-width="180"
             sortable
             show-overflow="tooltip"
           ></TableColumn>
           <TableColumn
             field="os_type"
-            :title="'操作系统'"
+            :title="$t('pluginPackage.os')"
             :filter="filterOptionSource.os_type"
             :min-width="110"
           ></TableColumn>
           <TableColumn
             field="cpu_arch"
-            :title="'架构'"
+            :title="$t('pluginPackage.arch')"
             :filter="filterOptionSource.cpu_arch"
             :min-width="80"
           ></TableColumn>
           <TableColumn
             field="operator"
-            :title="'上传用户'"
+            :title="$t('pluginPackage.uploader')"
             :min-width="120"
             :filter="filterOptionSource.operator"
           ></TableColumn>
           <TableColumn
             field="updated_at"
-            :title="'上传时间'"
+            :title="$t('pluginPackage.uploadTime')"
             :min-width="180"
             sort-type="number"
             sortable
@@ -155,29 +155,29 @@
           </TableColumn>
           <TableColumn
             field="enabled"
-            :title="'状态'"
+            :title="$t('pluginPackage.status')"
             :min-width="120"
             :filter="filterOptionSource.enabled"
           >
             <template #default="{ row }">
-              <Tag v-if="row.enabled" theme="success">启用</Tag>
-              <Tag v-else>禁用</Tag>
+              <Tag v-if="row.enabled" theme="success">{{ $t('pluginPackage.enabled') }}</Tag>
+              <Tag v-else>{{ $t('pluginPackage.disabled') }}</Tag>
             </template>
           </TableColumn>
           <TableColumn
             field="as_default"
-            :title="'默认版本'"
+            :title="$t('pluginPackage.defaultVersion')"
             :min-width="120"
             :filter="filterOptionSource.as_default"
           >
             <template #default="{ row }">
-              <Tag v-if="row.as_default" theme="success">是</Tag>
-              <Tag v-else>否</Tag>
+              <Tag v-if="row.as_default" theme="success">{{ $t('pluginPackage.yes') }}</Tag>
+              <Tag v-else>{{ $t('pluginPackage.no') }}</Tag>
             </template>
           </TableColumn>
           <TableColumn
             field="action"
-            :title="'操作'"
+            :title="$t('pluginPackage.action')"
             fixed="right"
             :min-width="180"
           >
@@ -190,7 +190,7 @@
                   v-if="row.enabled && !row.as_default"
                   @click="handleSetDefaultVersion(row)"
                 >
-                  设为默认版本
+                  {{ $t('pluginPackage.setDefault') }}
                 </Button>
                 <Button
                   theme="primary"
@@ -199,12 +199,12 @@
                   v-if="row.enabled && row.as_default"
                   @click="handleCancelAsDefaultVersion(row)"
                 >
-                  取消设置默认版本
+                  {{ $t('pluginPackage.cancelDefault') }}
                 </Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
-                  confirm-text="停用"
+                  :confirm-text="$t('pluginPackage.disable')"
                   @confirm="handleDisabled(row)"
                 >
                   <Button
@@ -212,13 +212,15 @@
                     theme="primary"
                     text
                     v-show="row.enabled"
-                  >停用</Button>
+                  >{{ $t('pluginPackage.disable') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
-                        确认停用该插件包？
+                        {{ $t('pluginPackage.confirmDisable') }}
                       </div>
-                      <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">停用目标：{{row.file_name}}</div>
+                      <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
+                        {{ $t('pluginPackage.disableTarget', { name: row.file_name }) }}
+                      </div>
                       <!-- <div class="text-[12px] text-[#262830] w-full">停用后，Agent 安装、重装、升级时，不可选择</div> -->
                     </div>
                   </template>
@@ -229,25 +231,27 @@
                   text
                   v-if="!row.enabled"
                   @click="handleEnabled(row)"
-                >启用</Button>
+                >{{ $t('pluginPackage.enable') }}</Button>
                 <PopConfirm
                   theme="light"
                   trigger="click"
-                  confirm-text="删除"
+                  :confirm-text="$t('pluginPackage.delete')"
                   @confirm="handleDelete(row)"
                 >
                   <Button
                     theme="primary"
                     text
                     v-show="!row.enabled"
-                  >删除</Button>
+                  >{{ $t('pluginPackage.delete') }}</Button>
                   <template #content>
                     <div class="px-[4px] pt-[8px] pb-[16px]">
                       <div class="text-[16px] text-[#313238] mb-[6px]">
-                        确认删除该插件包？
+                        {{ $t('pluginPackage.confirmDelete') }}
                       </div>
-                      <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">删除目标：{{row.file_name}}</div>
-                      <div class="text-[12px] text-[#4D4F56] w-full">删除后不可恢复，请谨慎操作！</div>
+                      <div class="text-[12px] text-[#4D4F56] w-full mb-[5px]">
+                        {{ $t('pluginPackage.deleteTarget', { name: row.file_name }) }}
+                      </div>
+                      <div class="text-[12px] text-[#4D4F56] w-full">{{ $t('pluginPackage.deleteTip') }}</div>
                     </div>
                   </template>
                 </PopConfirm>
@@ -256,9 +260,9 @@
           </TableColumn>
           <TableColumn
             field="download"
-            title="下载"
+            :title="$t('pluginPackage.download')"
             fixed="right"
-            :width="60"
+            :min-width="60"
           >
             <template #default="{ row }">
               <download-pkg :data="row" :url="downloadUrl">
@@ -274,7 +278,7 @@
 </template>
 <script lang="ts" setup>
 import { Button, Dropdown, Loading, PopConfirm, SearchSelect, Select, Tag, TagInput } from 'bkui-vue';
-import { AngleDownLine, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
+import { AngleDown, AngleDownLine, AngleRight, EditLine, TextAll } from 'bkui-vue/lib/icon';
 import { isArray } from 'lodash';
 import type { ComputedRef } from 'vue';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
@@ -374,7 +378,7 @@ const sortConfig = ref<VxeTablePropTypes.SortConfig>({
 const dimensionList = ref([
   {
     id: 'os_cpu_arch',
-    name: '操作系统/架构',
+    name: t('pluginPackage.osArch'),
     multiple: true,
     expand: true,
     optionalSet: new Set(['all']),
@@ -382,7 +386,7 @@ const dimensionList = ref([
   },
   {
     id: 'name',
-    name: '插件包名',
+    name: t('pluginPackage.packageName'),
     multiple: true,
     expand: true,
     optionalSet: new Set(['all']),
@@ -431,18 +435,18 @@ const filterOptionSource = reactive<Record<string, IFilterOption>>({
     filterScope: 'all',
   },
   enabled: {
-    list: [
-      { value: true, text: '启用' },
-      { value: false, text: '禁用' },
-    ],
+    list: computed(() => [
+      { value: true, text: t('pluginPackage.enabled') },
+      { value: false, text: t('pluginPackage.disabled') },
+    ]),
     checked: [],
     filterScope: 'all',
   },
   as_default: {
-    list: [
-      { value: true, text: '是' },
-      { value: false, text: '否' },
-    ],
+    list: computed(() => [
+      { value: true, text: t('pluginPackage.yes') },
+      { value: false, text: t('pluginPackage.no') },
+    ]),
     checked: [],
     filterScope: 'all',
   },
@@ -485,48 +489,48 @@ function getUniqueChildren(prop: string) {
 const searchSelectData = computed(() => [
   {
     id: 'name',
-    name: '插件包名',
+    name: t('pluginPackage.packageName'),
     multiple: true,
     children: getUniqueChildren('name'),
   },
   {
     id: 'version',
-    name: '版本号',
+    name: t('pluginPackage.version'),
     multiple: true,
     children: getUniqueChildren('version'),
   },
   {
     id: 'os_type',
-    name: '操作系统',
+    name: t('pluginPackage.os'),
     multiple: true,
     children: getUniqueChildren('os_type'),
   },
   {
     id: 'cpu_arch',
-    name: '架构',
+    name: t('pluginPackage.arch'),
     multiple: true,
     children: getUniqueChildren('cpu_arch'),
   },
   {
     id: 'operator',
-    name: '上传用户',
+    name: t('pluginPackage.uploader'),
     children: getUniqueChildren('operator'),
     multiple: true,
   },
   {
     id: 'enabled',
-    name: '状态',
+    name: t('pluginPackage.status'),
     children: [
-      { id: true, name: '启用' },
-      { id: false, name: '禁用' },
+      { id: true, name: t('pluginPackage.enabled') },
+      { id: false, name: t('pluginPackage.disabled') },
     ],
   },
   {
     id: 'as_default',
-    name: '默认版本',
+    name: t('pluginPackage.defaultVersion'),
     children: [
-      { id: true, name: '是' },
-      { id: false, name: '否' },
+      { id: true, name: t('pluginPackage.yes') },
+      { id: false, name: t('pluginPackage.no') },
     ],
   },
 ]);
@@ -565,7 +569,7 @@ const handleFilter = ({
         let name;
         switch (field) {
           case 'enabled':
-            name = item ? t('启用') : t('禁用');
+            name = item ? t('pluginPackage.enabled') : t('pluginPackage.disabled');
             break;
           default:
             name = item;
@@ -750,10 +754,10 @@ watch(() => route.query, () => {
   if (route.query.name) {
     searchSelectValue.value.push({
       id: 'name',
-      name: '插件包名',
+      name: t('pluginPackage.packageName'),
       values: [{
-        id: route.query.name,
-        name: route.query.name,
+        id: route.query.name as string,
+        name: route.query.name as string,
       }],
     });
   }

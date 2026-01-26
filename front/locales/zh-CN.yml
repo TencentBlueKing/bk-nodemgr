@@ -5,8 +5,20 @@ platform:
     node: 节点
     agentStatus:
       title: Agent 状态
-      button:
-        reinstall: 重装
+      reinstall: 重装
+      upgrade: 升级/回退
+      agentUpgrade: Agent 升级/回退
+      restart: 重启
+      uninstall: 卸载
+      init: 初始化
+      running: 正常
+      damaged: 异常
+      unknown: 未安装
+      unassigned: 未分配
+      confirmIsBatch: 请确认是否批量{type}
+      confirmIsSingle: 请确认是否{type}
+      batchOperate: '{type} {firstIp} 等{num}个IP的Agent'
+      singleOperate: '{type} {firstIp} 的Agent'
     proxyStatus:
       title: Proxy 状态
     installAgent: 安装 Agent
@@ -19,7 +31,7 @@ platform:
       tip2SecondSlotText: 安装要求
       tip2ThirdSlotText: 表格展示设置
       type: 安装方式
-      business: 安装到业务
+      installBusiness: 安装到业务
       cloud: 安装到管控区域
       cloud_unit: 安装到管控单元
       info: 安装信息
@@ -31,6 +43,18 @@ platform:
         selectBiz: 选择业务
       button:
         install: 去安装
+      excelImport: 导入
+      noAvailableVersion: 当前无可用版本
+      osArch: 操作系统/架构
+      noAvailableVersionTip: 当前无可用版本, 不可安装
+      guideTitle: 手动安装
+      business: 业务
+      loginIp: 登录IP
+      loginPort: 登录端口
+      loginUser: 登录账号
+      loginMode: 认证方式
+      passwordKey: 密码 / 密钥
+      pluginNum: 插件数
     preview:
       title: 安装预览
       tipTitle: 安装预览将检测所选节点的信息：
@@ -39,6 +63,12 @@ platform:
       thirdTip: 3. 导入CMDB并安装Agent：节点不在CMDB中，将会自动导入然后安装Agent。
       fourthTip: 4. 安装Agent：节点无异常情况，可以正常安装/重装Agent。
       placeholder: 输入 关键词
+      searchPlaceholder: 请选择 IPV4、IPV6、操作系统、主机名
+      processConfirmTip: 处理待确认为正常安装
+      status: 状态
+      disabledTip: 有节点待确认或错误，不可安装
+      loadingTip: 校验安装节点中...
+      checkFailedTip: 校验失败，不可安装
       label:
         all: 全部
         pendingConfirmation: 待确认
@@ -56,7 +86,10 @@ platform:
         deel: 去处理
         remove: 移除
         performInstallation: 执行安装
+        setup: 执行安装全部节点
     batchOperate: 批量
+    allBusiness: 全部业务
+    all: 全
     copy: 复制
     uninstall: 卸载
     bussinessTopology: 业务拓扑
@@ -69,6 +102,7 @@ platform:
     bk_cloud_unit: 管控单元
     dept_name: 运维部门
     os_type: 操作系统
+    cpu_arch: 架构
     bk_host_name: 主机名
     System/Arch: 操作系统/架构
     status: Agent 状态
@@ -78,12 +112,21 @@ platform:
     operate: 操作
     edit: 编辑
     delete: 删除
-    pluginManagement:
-      pluginGroupName: 插件
-      plugin:
-        title: 插件
     history: 历史
+    guide:
+      installWith: 通过 {type} 进行安装
+      onHost: 在目标主机通过
+      install: 安装
+      copySuccess: 已成功复制命令
     taskHistory:
+      tab:
+        nodeHistory: 节点历史
+        pluginHistory: 插件历史
+      shortcut:
+        today: 今天
+        last7Days: 近7天
+        last15Days: 近15天
+        last30Days: 近30天
       title:
         mainTitle: 任务历史
       label:
@@ -117,13 +160,64 @@ platform:
         failed: 失败
         success: 成功
         partial_failed: 部分失败
+    log:
+      executionLog: 执行日志
+      searchNode: 请选择 IP、执行状态
+      searchPlugin: 请选择 IP、插件名、执行状态
+      step: 步骤
+      costTime: 耗时
+      executionStatus: 执行情况
+      waitManualOperation: 等待手动操作，查看
+      operationGuide: 操作指引
+      terminate: 终止
   topoManagerName: 拓扑管理
   ruleManagerName: 策略管理
   pkgManagerName: 包管理
-  taskHistory: 
-    title: 任务历史
-    taskDetail:
-      title: 任务详情
+pluginManagement:
+  pluginGroupName: 插件
+  plugin:
+    title: 插件
+    edit: 编辑插件
+    table:
+      pluginName: 插件名
+      packageName: 插件包名
+      pluginGroup: 插件组
+      memo: 备注
+      nodeCount: 节点数
+      operation: 操作
+    process:
+      os: 操作系统
+      cpuArch: CPU 架构
+      version: 版本
+      processName: 进程名
+      processStatus: 进程状态
+      installPath: 安装路径
+      pidPath: Pid 文件路径
+      configPath: 配置文件路径
+      logPath: 日志文件夹路径
+      systemAccount: 进程所属系统账户
+      startCmd: 启动命令
+      stopCmd: 停止命令
+      restartCmd: 重启命令
+      reloadCmd: Reload 命令
+      killCmd: Kill命令
+      versionQueryCmd: 进程版本查询命令
+      healthCheckCmd: 进程健康检查命令
+      cpuLimitPercent: CPU 使用率上限百分比（总占比，非单核占比）
+      memLimitPercent: Mem 使用率上限百分比
+      restartStrategy: 重启策略
+      startCheckDelay: 启动后延迟检查的时间
+      stopCheckDelay: 停止命令执行后开始检查进程存活的时间
+      commandTimeout: 命令执行超时时间
+      autoStart: 自动启动
+      manualStart: 手动启动
+      processList: 插件进程列表
+      status:
+        running: 正常
+        stopped: 停止
+        unregister: 未注册
+        init: 初始化
+        unknown: 未知
 topoManager:
   workArea:
     title: 管控区域
@@ -182,6 +276,15 @@ topoManager:
     downstream: 下游接入点
     expand: 展开
     retract: 收起
+    upgrade: Proxy 升级/回退
+    batchRestartTitle: 请确认是否批量重启
+    restartTitle: 请确认是否重启
+    batchRestartSubTitle: 重启 {firstIp} 等{num}个IP的Proxy
+    restartSubTitle: 重启 {firstIp} 的Proxy
+    batchUnloadTitle: 请确认是否批量卸载
+    batchUnloadSubTitle: 卸载 {firstIp} 等{num}个IP的Proxy
+    unloadTitle: 请确认是否卸载
+    unloadSubTitle: 卸载 {firstIp} 的Proxy
     tab:
       direct: 直连
     button:
@@ -218,6 +321,9 @@ topoManager:
       edit: 编辑管控单元
       updateProxyInfo: 修改Proxy信息
     form:
+      workUnitType: 管控单元类型
+      notDirect: 非直连
+      direct: 直连
       workUnitName: 管控单元名称
       upstream: 上游接入点
       downstream: 下游接入点
@@ -242,6 +348,7 @@ topoManager:
     toggle:
       expand: 展开
       close: 收起
+    tip: '不可选择当前管控单元作为上游接入点管控单元'
   installProxy:
     title: 安装 Proxy
     reinstall: 重装 Proxy
@@ -260,6 +367,7 @@ topoManager:
       business: 归属业务
       relayDownloadPort: 中转下载端口
       relayCallbackPort:  中转回调端口
+      tip: 不能选择直连单元
     installMethodList:
       remote:
         title: 普通远程安装
@@ -290,13 +398,11 @@ topoManager:
       tempFileDirectory: 临时文件目录
       speedLimit: 传输限速 M/s
       dataCompression: 数据压缩
-
     batchEdit:
       loginIp: 批量编辑登录 IP
       password: 批量编辑密码 / 密钥
       directory: 批量编辑临时文件目录
       zip: 批量编辑数据压缩
-  
   topo:
     title: 拓扑图
     toolbar:
@@ -307,6 +413,9 @@ topoManager:
       tips: 至少选择 {count} 个区域
       default: 默认区域
       other: 其他区域
+    expand: 展开无单元区域
+    collapse: 收起无单元区域
+    accessPointName: 接入点名称
   record:
     title: 操作记录
     searchPlaceholder:
@@ -319,6 +428,15 @@ topoManager:
       type: 操作
       operator: 操作人
       operateTime: 操作时间
+      createNetworkarea: 创建管控区域
+      updateNetworkarea: 更新管控区域
+      deleteNetworkarea: 删除管控区域
+      createNetworkunit: 创建管控单元
+      updateNetworkunit: 更新管控单元
+      deleteNetworkunit: 删除管控单元
+      createAccesspoint: 创建接入点
+      updateAccesspoint: 更新接入点
+      deleteAccesspoint: 删除接入点
     searchItems:
       workareaName: 管控区名称
       workareaId: 管控区ID
@@ -339,6 +457,10 @@ action:
   installLater: 稍后安装
   install: 安装
   unload: 卸载
+  tag: 标签
+  remove: 移除
+  back: 上一步
+  import: Excel 导入
 table:
   loading: 数据加载中
   empty: 暂无数据
@@ -352,6 +474,304 @@ message:
     keepAtLeast: 至少保留 {x} 行
 validate:
   required: 必填项
+  ipv4: 请输入正确的内网 IPv4
+  ipv6: 请输入正确的内网 IPv6
+  os: 请输入操作系统
+  loginIp: 请输入正确的登录 IP
+  port: 请输入正确的登录端口
+  loginUser: 请输入登录账号
+  authType: 请输入认证方式
+  password: 请输入密码 / 密钥
+authenticationType:
+  password: 密码
+  keyfile: 密钥
+  password_vault: 密码库
+dialog:
+  confirmClose: 确认关闭?
+taskDetail:
+  searchPlaceholder: 请选择 IP、管控区域、业务、目标版本、执行状态
+  batchRetry: 批量重试
+  batchTerminate: 批量终止
+  title: 任务详情
+  state: 状态
+  retryType:
+    all: 重新开始执行
+    allTooltip: 重新开始执行完整的任务
+    partial: 最近失败重试
+    partialTooltip: 从最近失败的步骤开始重试
+  status:
+    all: 全部
+    incomplete: 未完成
+    success: 成功
+    failed: 失败
+    timeout: 超时
+    terminated: 被终止
+    running: 执行中
+    partial_failed: 部分失败
+    ignored: 已忽略（没有需要变更的实例）
+    init: 初始化
+    launched: 等待执行
+  info:
+    type: 任务类型
+    costTime: 总耗时
+    taskId: 任务ID
+    operator: 执行人
+    operateTime: 执行时间
+  table:
+    crossPageSelected: 已跨页全选
+    items: 条，
+    cancelSelection: 取消选择
+    selected: 已选择
+    selectAllPages: 选择所有页共 {x} 条
+    unassigned: 未分配
+    pluginName: 插件名
+    ipv4: IPv4
+    ipv6: IPv6
+    workarea: 管控区域
+    workUnit: 管控单元
+    business: 业务
+    targetVersion: 目标版本
+    costTime: 耗时
+    status: 执行状态
+    retryCount: 重试次数
+    action: 操作
+    viewLog: 查看日志
+    terminate: 终止
+    retry: 重试
+    guide: 操作指引
+    waitManual: 等待手动操作，查看
+  filter:
+    currentPage: 本页全选
+    crossSelected: 跨页全选
+  search:
+    ipv4: IPv4
+    ipv6: IPv6
+    workarea: 管控区域
+    workUnit: 管控单元
+    business: 业务
+    targetVersion: 目标版本
+    status: 执行状态
+  copy:
+    all: 所有IP
+    ignored: 被忽略IP
+    failed: 失败IP
+    success: 成功IP
+agentStrategy:
+  searchPlaceholder: 请选择 配置名称、修改人 搜索
+  configStrategy: 配置策略
+  deploymentStrategy: 部署策略
+  createConfig: 新建配置
+  loading: 数据加载中
+  table:
+    configName: 配置名称
+    configId: 配置ID
+    version: 版本
+    business: 业务
+    remark: 备注
+    scope: 范围
+    operator: 修改人
+    updateTime: 修改时间
+    status: 状态
+    action: 操作
+    enabled: 启用
+    disabled: 未启用
+    unlimited: 不限
+    os: 操作系统
+    arch: 架构
+  action:
+    edit: 编辑
+    enable: 启用
+    disable: 停用
+    delete: 删除
+    confirmDelete: 确认删除该配置策略？
+    deleteTarget: 删除目标：{name}
+    deleteTip: 删除后不可恢复，请谨慎操作！
+    deleteDisabledTip: 启用中的配置不可删除
+  filter:
+    enabled: 启用
+    disabled: 禁用
+  form:
+    configName: 配置名称
+    business: 业务
+    enabled: 是否启用
+    remark: 备注
+    scope: 作用范围
+    config: 配置
+    selectBusiness: 选择业务
+    unlimited: 不限
+    workUnit: 管控单元
+    os: 操作系统
+    arch: 架构
+    addScope: 添加范围
+    save: 保存
+    submit: 提交
+    cancel: 取消
+    edit: 编辑
+    create: 新建
+    configTitle: "{action} {role} 配置"
+    configTip: 如需修改默认配置，需打开开关后修改
+    versionTip: 编辑器内容有改动，保存该配置版本将会由
+    upgradeTo: 升级为
+  validate:
+    configNameRequired: 配置名称不能为空
+    configNameLength: 配置名称长度在1-50个字符之间
+    businessRequired: 业务不能为空
+pluginPackage:
+  title: 插件包管理
+  upload: 包上传
+  searchPlaceholder: 请选择 插件包名、版本号、操作系统、架构、上传用户、状态、默认版本
+  quickFilter: 快捷筛选
+  all: 全部
+  osArch: 操作系统/架构
+  packageName: 插件包名
+  fileName: 包文件名
+  version: 版本号
+  os: 操作系统
+  arch: 架构
+  uploader: 上传用户
+  uploadTime: 上传时间
+  status: 状态
+  defaultVersion: 默认版本
+  action: 操作
+  download: 下载
+  setDefault: 设为默认版本
+  cancelDefault: 取消设置默认版本
+  disable: 停用
+  enable: 启用
+  delete: 删除
+  enabled: 启用
+  disabled: 禁用
+  yes: 是
+  no: 否
+  confirmDisable: 确认停用该插件包？
+  disableTarget: 停用目标：{name}
+  confirmDelete: 确认删除该插件包？
+  deleteTarget: 删除目标：{name}
+  deleteTip: 删除后不可恢复，请谨慎操作！
+pkgUpload:
+  title: 包上传
+  officialPlugin: 2.0 官方插件包
+  externalPlugin: 2.0 业务插件包
+  submit: 提交
+  cancel: 取消
+  uploadTip: 请先上传包文件
+  success: 发布成功
+  fileFormatTip: 支持 tgz、tar、gz 扩展名格式文件
+  uploadSuccess: 上传成功
+  uploadFailed: 上传失败
+  overwriteConfirm: "{type} 目标版本已存在，是否覆盖上传？"
+  overwrite: 覆盖上传
+  cancelUpload: 取消上传
+  targetExists: "{type} 目标版本已存在"
+  packageName: "包名：{name}"
+  md5: "MD5：{md5}"
+  overwriteTip: "继续上传，将会覆盖当前平台同版本的 {type} 包"
+  fileFormatError: 只允许上传tgz、tar、gz的文件
+  resultPreview: 结果预览
+  parsing: 数据解析中
+  fileName: 文件名
+  packageNameLabel: 包名
+  osArch: 操作系统架构
+  packageType: 包类型
+  description: 描述
+  descInfo: "描述信息：{desc}"
+  configFile: "配置文件：{file}"
+  configFormat: "配置格式：{format}"
+  launchNode: "运行节点类型：{node}"
+certBintool:
+  upload: 包上传
+  searchPlaceholder: 包文件名、上传用户
+  fileName: 包文件名
+  uploader: 上传用户
+  uploadTime: 上传时间
+  action: 操作
+  delete: 删除
+  confirmDelete: 确认删除该{type}？
+  deleteTarget: 删除目标：{name}
+  deleteTip: 删除后不可恢复，请谨慎操作！
+  download: 下载
+  cert: 证书
+  tool: 工具
+pkgRecord:
+  searchPlaceholder: 请选择 版本号、操作系统、架构、操作类型、操作人、包类型
+  packageName: 包名
+  version: 版本号
+  packageType: 包类型
+  os: 操作系统
+  arch: 架构
+  operateType: 操作类型
+  operator: 操作人
+  operateTime: 操作时间
+  today: 今天
+  last7Days: 近7天
+  last15Days: 近15天
+  last30Days: 近30天
+  action:
+    publish: 发布
+    enable: 启用
+    disable: 禁用
+    delete: 删除
+    setAsDefault: 设置为默认版本
+    cancelAsDefault: 取消设置默认版本
+    upload: 上传
+rulesRecord:
+  configStrategy: 配置策略
+  searchPlaceholder: 请选择 配置ID、配置名称、版本、配置类型、操作类型、操作人
+  configName: 配置名称
+  configID: 配置ID
+  version: 版本
+  configType: 配置类型
+  operateType: 操作类型
+  operator: 操作人
+  operateTime: 操作时间
+  today: 今天
+  last7Days: 近7天
+  last15Days: 近15天
+  last30Days: 近30天
+  action:
+    create: 新增
+    enable: 开启
+    disable: 禁用
+    update: 更新
+    delete: 删除
+  configTypeMap:
+    agent: Agent 策略
+    proxy: Proxy 策略
+agentProxyPkg:
+  upload: 包上传
+  searchPlaceholder: 请输入 版本号、操作系统、架构、标签、上传用户、状态、默认版本 搜索
+  quickFilter: 快捷筛选
+  all: 全部
+  fileName: 包文件名
+  version: 版本号
+  os: 操作系统
+  arch: 架构
+  labels: 标签信息
+  batchEditLabels: 批量编辑标签
+  unifiedFill: 统一填充
+  uploader: 上传用户
+  uploadTime: 上传时间
+  deployedHosts: 已部署主机
+  status: 状态
+  defaultVersion: 默认版本
+  action: 操作
+  setDefault: 设为默认版本
+  cancelDefault: 取消设置默认版本
+  disable: 停用
+  enable: 启用
+  delete: 删除
+  download: 下载
+  confirmDisable: 确认停用该 {type} 包？
+  disableTarget: 停用目标：{name}
+  disableTip: 停用后，{type} 安装、重装、升级时，不可选择
+  confirmDelete: 确认删除该 {type} 包？
+  deleteTarget: 删除目标：{name}
+  deleteTip: 删除后不可恢复，请谨慎操作！
+  enabled: 启用
+  disabled: 禁用
+  yes: 是
+  no: 否
+  osArch: 操作系统/架构
 components:
   batchEdit:
     passwordTip: 仅对密码认证生效
@@ -359,6 +779,11 @@ components:
     keyTip: 仅对密钥认证生效
   chooseVersion:
     title: 按操作系统选定版本
+    AgentVersion: Agent 版本
+    DefaultVersion: 默认版本
+    versionInfoTitle: '{version} 的详细信息'
+    forceUpgrade: 强制升级
+    gracefulUpgrade: 无损升级
   configTemplate:
     enable: 开启
     disabled: 关闭
@@ -372,3 +797,129 @@ components:
     failed: 复制失败
     notSupport: 当前环境不支持剪贴板操作
     copy: 复制
+  installTable:
+    bizProperty: 业务属性
+    bkBizId: 归属业务
+    topoProperty: 拓扑属性
+    networkArea: 管控区域
+    networkUnit: 管控单元
+    hostIp: 主机IP
+    innerIPv4: 内网IPv4
+    innerIPv6: 内网IPv6
+    osType: 操作系统
+    batchEditOsType: 批量编辑操作系统
+    port: 登录端口
+    batchEditPort: 批量编辑登录端口
+    account: 登录账号
+    batchEditAccount: 批量编辑登录账号
+    exportIP: 出口IP
+    serviceIP: 服务IP
+    loginInfo: 登录信息
+    loginIP: 登录IP
+    authMethod: 认证方式
+    batchEditAuthMethod: 批量编辑认证方式
+    passwordKey: 密码/密钥
+    batchEditPasswordKey: 批量编辑密码/密钥
+    autoGet: 自动拉取
+    installJump: 安装跳板
+    agentControl: Agent控制
+    fileTransfer: 文件传输
+    dataReport: 数据上报
+    validationFailed: 有填写的信息未通过校验
+    creditValid: 密码有效，点击修改
+    inputPassword: 请输入密码
+    enabledSerive: 开启的服务
+    ipv4ValidMessage: 请输入正确的内网 IPv4
+    ipv6ValidMessage: 请输入正确的内网 IPv6
+    osTypeValidMessage: 请选择操作系统
+    loginIPValidMessage: 请输入正确的登录IP
+    portValidMessage: 请输入正确的登录端口
+    accountValidMessage: 请输入登录账号
+    loginModeValidMessage: 请选择认证方式
+    passwordKeyValidMessage: 请输入密码/密钥
+    password: 密码
+    keyfile: 密钥
+    minimum: 至少保留一行
+    either: IPv4与IPv6至少填一项
+    passwordVaultDisabled: 密码库功能未开启
+  installType:
+    remoteInstall: 远程安装
+    manualInstall: 手动安装
+  logVersion:
+    current: 当前版本
+  operateDialog:
+    reloadConfig: 同时重载配置
+    forceRestart: 强制重启
+    gracefulRestart: 无损重启
+    gracefulTime: 超时时间
+    seconds: 秒
+  setting:
+    field: 字段设置
+    size: 表格行高
+    small: 小
+    medium: 中
+    large: 大
+  uploadExcel:
+    tip: '仅支持 .xlsx 类型文件，下载'
+    templateFile: 模板文件
+    error: 上传失败
+footer:
+  desktop: 蓝鲸桌面
+  linksBk: 联系BK助手
+installProxy:
+  selectBusiness: 选择业务
+  advancedOptions: 高级选项
+  installSource: 安装源
+  proxyVersion: Proxy 版本
+  noAvailableVersion: 当前无可用版本
+  osArch: 操作系统/架构
+  version: 版本
+  pleaseSelect: 请选择
+  noAvailableVersionTip: 当前无可用版本, 不可安装
+  excelImport: Excel 导入
+  confirmClose: 确认关闭?
+  business: 归属业务
+  innerIPv4: 内网 IPv4
+  innerIPv6: 内网 IPv6
+  os: 操作系统
+  port: 登录端口
+  account: 登录账号
+  exportIP: 出口IP
+  serviceIP: 服务IP
+  loginIP: 登录 IP
+  businessName: 所属业务
+  proxyTags: proxy 服务
+  pluginNum: 插件数
+  authMethod: 认证方式
+  passwordKey: 密码 / 密钥
+  installJump: 安装跳板
+  agentControl: Agent控制
+  fileTransfer: 文件传输
+  dataReport: 数据上报
+  upstreamUnit: 上级管控单元
+  currentUnit: 当前管控单元
+  custom: 自定义
+  installInitiated: 已发起proxy安装
+  reinstallInitiated: 已发起proxy重装
+  validationFailed: 有填写的信息未通过校验
+route:
+  agentStatus: Agent状态
+  installAgent: 安装Agent
+  installReinstallAgent: 安装/重装Agent
+  plugin: 插件
+  taskHistory: 任务历史
+  workarea: 管控区域
+  workareaSubtitle: 管控区域副标题
+  workareaDetail: 管控区域详情
+  topo: 拓扑
+  topoSubtitle: 拓扑副标题
+  operationRecord: 操作记录
+  agentStrategy: Agent策略
+  proxyStrategy: Proxy策略
+  pluginStrategy: 插件策略
+  agentPackage: Agent包管理
+  proxyPackage: Proxy包管理
+  certManage: 证书管理
+  toolManage: 工具管理
+  pluginToolManage: 插件工具管理
+

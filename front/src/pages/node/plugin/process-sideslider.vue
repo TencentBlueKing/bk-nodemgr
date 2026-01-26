@@ -2,7 +2,7 @@
   <Sideslider
     v-model:is-show="isShow"
     render-directive="if"
-    :title="title"
+    :title="$t('pluginManagement.plugin.process.processList')"
     width="1200"
   >
     <div class="p-[24px]">
@@ -59,38 +59,37 @@
           >
           </TableColumn>
           <TableColumn
-            title="插件名"
+            :title="$t('pluginManagement.plugin.table.pluginName')"
             field="plugin_name"
             min-width="150"
             :filter="filterOptionSource.plugin_name"
           ></TableColumn>
           <TableColumn
-            title="插件包名"
+            :title="$t('pluginManagement.plugin.table.packageName')"
             field="plugin_pkg_name"
             min-width="150"
             :filter="filterOptionSource.plugin_pkg_name"
           ></TableColumn>
           <TableColumn
-            title="插件组"
+            :title="$t('pluginManagement.plugin.table.pluginGroup')"
             field="plugin_group"
             min-width="120"
             :filter="filterOptionSource.plugin_group"
           ></TableColumn>
           <TableColumn
-            title="操作系统"
+            :title="$t('pluginManagement.plugin.process.os')"
             field="os_type"
             min-width="120"
             :filter="filterOptionSource.os_type"
           ></TableColumn>
           <TableColumn
-            title="CPU 架构"
+            :title="$t('pluginManagement.plugin.process.cpuArch')"
             field="cpu_arch"
             min-width="120"
             :filter="filterOptionSource.cpu_arch"
           ></TableColumn>
-          <TableColumn title="Pid" field="pid" min-width="100"></TableColumn>
           <TableColumn
-            title="版本"
+            :title="$t('pluginManagement.plugin.process.version')"
             field="version"
             min-width="120"
             :filter="filterOptionSource.version"
@@ -101,12 +100,12 @@
             min-width="220"
           ></TableColumn>
           <TableColumn
-            title="进程名"
+            :title="$t('pluginManagement.plugin.process.processName')"
             field="name"
             min-width="120"
           ></TableColumn>
           <TableColumn
-            title="进程状态"
+            :title="$t('pluginManagement.plugin.process.processStatus')"
             field="status"
             min-width="120"
             :filter="filterOptionSource.status"
@@ -114,95 +113,95 @@
             <template #default="{ row }">
               <div class="flex items-center">
                 <i
-                  :class="`nodeman-icon nc-${
-                    statusMap[row.status]?.icon
-                  } status-icon`"
+                  :class="`nodeman-icon nc-${statusMap[row.status]?.icon} status-icon`"
                 ></i>
                 <span>{{ statusMap[row.status]?.text || "--" }}</span>
               </div>
             </template>
           </TableColumn>
           <TableColumn
-            title="安装路径"
+            :title="$t('pluginManagement.plugin.process.installPath')"
             field="setup_path"
             min-width="120"
           ></TableColumn>
           <TableColumn
-            title="Pid 文件路径"
+            :title="$t('pluginManagement.plugin.process.pidPath')"
             field="pid_path"
             min-width="120"
           ></TableColumn>
           <TableColumn
-            title="配置文件路径"
+            :title="$t('pluginManagement.plugin.process.configPath')"
             field="config_path"
             min-width="120"
           ></TableColumn>
           <TableColumn
-            title="日志文件夹路径"
+            :title="$t('pluginManagement.plugin.process.logPath')"
             field="log_path"
             min-width="130"
           ></TableColumn>
           <TableColumn
-            title="进程所属系统账户"
+            :title="$t('pluginManagement.plugin.process.systemAccount')"
             field="user"
             min-width="150"
           ></TableColumn>
           <TableColumn
-            title="启动命令"
+            :title="$t('pluginManagement.plugin.process.startCmd')"
             field="start_cmd"
             min-width="180"
           ></TableColumn>
           <TableColumn
-            title="停止命令"
+            :title="$t('pluginManagement.plugin.process.stopCmd')"
             field="stop_cmd"
             min-width="180"
           ></TableColumn>
           <TableColumn
-            title="重启命令"
+            :title="$t('pluginManagement.plugin.process.restartCmd')"
             field="restart_cmd"
             min-width="180"
           ></TableColumn>
           <TableColumn
-            title="Reload 命令"
+            :title="$t('pluginManagement.plugin.process.reloadCmd')"
             field="reload_cmd"
             min-width="180"
           ></TableColumn>
           <TableColumn
-            title="Kill命令"
+            :title="$t('pluginManagement.plugin.process.killCmd')"
             field="kill_cmd"
             min-width="180"
           ></TableColumn>
           <TableColumn
-            title="进程版本查询命令"
+            :title="$t('pluginManagement.plugin.process.versionQueryCmd')"
             field="version_cmd"
             min-width="180"
           ></TableColumn>
           <TableColumn
-            title="进程健康检查命令"
+            :title="$t('pluginManagement.plugin.process.healthCheckCmd')"
             field="health_cmd"
             min-width="180"
           ></TableColumn>
           <TableColumn
-            title="CPU 使用率上限百分比（总占比，非单核占比）"
+            :title="$t('pluginManagement.plugin.process.cpuLimitPercent')"
             field="cpu_limit_percent"
             min-width="120"
           ></TableColumn>
           <TableColumn
-            title="Mem 使用率上限百分比"
+            :title="$t('pluginManagement.plugin.process.memLimitPercent')"
             field="mem_limit_percent"
             min-width="120"
           ></TableColumn>
           <TableColumn
-            title="重启策略"
+            :title="$t('pluginManagement.plugin.process.restartStrategy')"
             field="restart_type"
             min-width="120"
           >
             <template #default="{ row }">
-              {{ row.restart_type === 'auto' && row.auto_start ? '自动启动' : '手动启动' }}
+              {{ row.restart_type === 'auto' && row.auto_start
+                ? $t('pluginManagement.plugin.process.autoStart')
+                : $t('pluginManagement.plugin.process.manualStart') }}
             </template>
           </TableColumn>
           <TableColumn
-            title="启动后延迟检查的时间"
+            :title="$t('pluginManagement.plugin.process.startCheckDelay')"
             field="start_check_seconds"
             min-width="120"
           >
@@ -211,7 +210,7 @@
             </template>
           </TableColumn>
           <TableColumn
-            title="停止命令执行后开始检查进程存活的时间"
+            :title="$t('pluginManagement.plugin.process.stopCheckDelay')"
             field="stop_check_seconds"
             min-width="120"
           >
@@ -220,7 +219,7 @@
             </template>
           </TableColumn>
           <TableColumn
-            title="命令执行超时时间"
+            :title="$t('pluginManagement.plugin.process.commandTimeout')"
             field="operate_timeout_seconds"
             min-width="120"
           >
@@ -249,15 +248,15 @@ import {
   Sideslider,
 } from 'bkui-vue';
 import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { Table, TableColumn } from '@blueking/table';
 
+import type { DistinctProcessRespData } from '@/@types/process';
 import { ProcessAPIService } from '@/api/modules/process';
 import { TopoService } from '@/api/modules/topo';
-
 import useTableSetting from '@/composables/use-table-setting';
 
-import type { DistinctProcessRespData } from '@/@types/process';
 
 interface FilterOption {
   list: { text: string; value: string }[];
@@ -283,7 +282,7 @@ const props = defineProps({
   },
 });
 
-const title = computed(() => '插件进程列表');
+const { t } = useI18n();
 
 // 表格
 const { isShowSetting, settings, handleSettingChange } = useTableSetting(
@@ -318,23 +317,23 @@ const pageValueChange = async (current: number) => {
 // 进程状态映射
 const statusMap = {
   running: {
-    text: '正常',
+    text: t('pluginManagement.plugin.process.status.running'),
     icon: 'running',
   },
   stopped: {
-    text: '停止',
+    text: t('pluginManagement.plugin.process.status.stopped'),
     icon: 'terminated',
   },
   unregister: {
-    text: '未注册',
+    text: t('pluginManagement.plugin.process.status.unregister'),
     icon: 'unknown',
   },
   init: {
-    text: '初始化',
+    text: t('pluginManagement.plugin.process.status.init'),
     icon: 'unknown',
   },
   unknown: {
-    text: '未知',
+    text: t('pluginManagement.plugin.process.status.unknown'),
     icon: 'unknown',
   },
 };
@@ -490,7 +489,7 @@ const getProcessList = async () => {
 // 暂时没有编辑数据，不需要离开前确认
 // const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
 //   InfoBox({
-//     title: '确认关闭?',
+//     title: t('dialog.confirmClose'),
 //     infoType: 'warning',
 //     onConfirm: () => {
 //       resolve(true);

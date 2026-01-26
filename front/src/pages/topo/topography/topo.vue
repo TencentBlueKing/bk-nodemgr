@@ -78,7 +78,7 @@
           :outline="true"
           @click="toggleIsolatedAreas"
         >
-          {{ isIsolatedCollapsed ? '展开无单元区域' : '收起无单元区域' }}
+          {{ isIsolatedCollapsed ? $t('topoManager.topo.expand') : $t('topoManager.topo.collapse') }}
         </Button>
       </div>
 
@@ -160,7 +160,7 @@
               :show-overflow="false"
               :row-config="{ isHover: true, height: 'auto' }"
             >
-              <TableColumn field="accesspoint_name" title="接入点名称" :min-width="180">
+              <TableColumn field="accesspoint_name" :title="$t('topoManager.topo.accessPointName')" :min-width="180">
                 <template #default="{ row }">
                   {{ row.name }}
                 </template>

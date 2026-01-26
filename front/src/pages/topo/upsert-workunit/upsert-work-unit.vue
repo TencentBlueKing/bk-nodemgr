@@ -7,13 +7,18 @@
       width="640"
     >
       <div class="flex items-center w-full text-[14px] text-[#63656e] pt-[28px]" v-if="isCreate">
-        <div class="w-[130px] pr-[22px] text-right">管控单元类型</div>
+        <div class="w-[130px] pr-[22px] text-right">{{ t('topoManager.workUnit.form.workUnitType') }}</div>
         <Radio.Group v-model="type">
-          <Radio label="not_direct">非直连</Radio>
-          <Radio label="direct">直连</Radio>
+          <Radio label="not_direct">{{ $t('topoManager.workUnit.form.notDirect') }}</Radio>
+          <Radio label="direct">{{ $t('topoManager.workUnit.form.direct') }}</Radio>
         </Radio.Group>
       </div>
-      <Form :model="form" ref="formRef" class="pt-[28px]" :rules="rules" v-if="(!isCreate && isDirect) || (isCreate && type === 'direct')">
+      <Form
+        :model="form"
+        ref="formRef"
+        class="pt-[28px]"
+        :rules="rules"
+        v-if="(!isCreate && isDirect) || (isCreate && type === 'direct')">
         <Form.FormItem
           :label="$t('topoManager.workUnit.form.workUnitName')"
           property="bk_networkunit_name"
@@ -364,7 +369,7 @@ const handleBeforeClose = () => new Promise((resolve, reject) => {
     return;
   }
   InfoBox({
-    title: '确认关闭?',
+    title: t('dialog.confirmClose'),
     infoType: 'warning',
     onConfirm: () => {
       resolve(true);

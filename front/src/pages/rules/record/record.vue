@@ -33,17 +33,17 @@
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
-          :placeholder="'请选择 配置ID、配置名称、版本、配置类型、操作类型、操作人'"
+          :placeholder="$t('rulesRecord.searchPlaceholder')"
           @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>
       </div>
     </section>
-    <bk-loading title="数据加载中" :loading="loading">
+    <bk-loading :title="$t('table.loading')" :loading="loading">
       <Table
         class="filterTable"
         :data="tableData"
-        :empty-text="'暂无数据'"
+        :empty-text="$t('table.empty')"
         :pagination="pagination"
         :column-config="{ resizable: true }"
         show-overflow-tooltip
@@ -58,20 +58,20 @@
       >
         <TableColumn
           field="configpolicy_name"
-          :title="t('配置名称')"
+          :title="$t('rulesRecord.configName')"
           fixed="left"
           min-width="130"
           :filter="filterOptionSource.configpolicy_name"
         ></TableColumn>
         <TableColumn
           field="configpolicy_id"
-          :title="t('配置ID')"
+          :title="$t('rulesRecord.configID')"
           min-width="130"
           :filter="filterOptionSource.configpolicy_id"
         ></TableColumn>
         <TableColumn
           field="version"
-          :title="t('版本')"
+          :title="$t('rulesRecord.version')"
           min-width="130"
           sortable
           :filter="filterOptionSource.version"
@@ -82,7 +82,7 @@
         </TableColumn>
         <TableColumn
           field="configpolicy_type"
-          :title="t('配置类型')"
+          :title="$t('rulesRecord.configType')"
           min-width="130"
           :filter="filterOptionSource.configpolicy_type"
         >
@@ -92,7 +92,7 @@
         </TableColumn>
         <TableColumn
           field="type"
-          :title="t('操作类型')"
+          :title="$t('rulesRecord.operateType')"
           min-width="150"
           :filter="filterOptionSource.type"
         >
@@ -102,13 +102,13 @@
         </TableColumn>
         <TableColumn
           field="operator"
-          :title="t('操作人')"
+          :title="$t('rulesRecord.operator')"
           min-width="150"
           :filter="filterOptionSource.operator"
         ></TableColumn>
         <TableColumn
           field="operate_time"
-          :title="t('操作时间')"
+          :title="$t('rulesRecord.operateTime')"
           sort-type="number"
           sortable
           min-width="200"
@@ -170,8 +170,8 @@ const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 const loading = ref(false);
 
 const active = ref('');
-const panels = ref([
-  { name: 'configStrategy', label: '配置策略' },
+const panels = computed(() => [
+  { name: 'configStrategy', label: t('rulesRecord.configStrategy') },
   // { name: 'deploymentStrategy', label: '部署策略' },
 ]);
 
@@ -202,7 +202,7 @@ const dateValue = ref([
 ]);
 const shortcutsRange = reactive([
   {
-    text: '今天',
+    text: t('rulesRecord.today'),
     value() {
       const end = new Date();
       const start = new Date(end.getFullYear(), end.getMonth(), end.getDate());
@@ -210,7 +210,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近7天',
+    text: t('rulesRecord.last7Days'),
     value() {
       const end = new Date();
       const start = new Date();
@@ -219,7 +219,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近15天',
+    text: t('rulesRecord.last15Days'),
     value() {
       const end = new Date();
       const start = new Date();
@@ -228,7 +228,7 @@ const shortcutsRange = reactive([
     },
   },
   {
-    text: '近30天',
+    text: t('rulesRecord.last30Days'),
     value() {
       const end = new Date();
       const start = new Date();
@@ -259,18 +259,18 @@ const { isShowSetting, settings, handleSettingChange } = useTableSetting({
 }, 'rulesMng-record');
 
 // 操作类型中文映射
-const operateMap = {
-  create: '新增',
-  enable: '开启',
-  disable: '禁用',
-  update: '更新',
-  delete: '删除',
-};
+const operateMap = computed(() => ({
+  create: t('rulesRecord.action.create'),
+  enable: t('rulesRecord.action.enable'),
+  disable: t('rulesRecord.action.disable'),
+  update: t('rulesRecord.action.update'),
+  delete: t('rulesRecord.action.delete'),
+}));
 // 配置类型映射
-const configMap = {
-  config_policy_agent: 'Agent 策略',
-  config_policy_proxy: 'Proxy 策略',
-};
+const configMap = computed(() => ({
+  config_policy_agent: t('rulesRecord.configTypeMap.agent'),
+  config_policy_proxy: t('rulesRecord.configTypeMap.proxy'),
+}));
 
 // eslint-disable-next-line max-len
 const getUniqueChildrenFrom = <K extends keyof ConfigPolicyEventExactConditions | keyof ConfigPolicyEventFuzzyConditions>(
@@ -303,37 +303,37 @@ const getUniqueChildrenFrom = <K extends keyof ConfigPolicyEventExactConditions 
 const searchSelectData = computed(() => [
   {
     id: 'configpolicy_id',
-    name: '配置ID',
+    name: t('rulesRecord.configID'),
     children: getUniqueChildrenFrom('configpolicy_id'),
     multiple: true,
   },
   {
     id: 'configpolicy_name',
-    name: '配置名称',
+    name: t('rulesRecord.configName'),
     children: getUniqueChildrenFrom('configpolicy_name'),
     multiple: true,
   },
   {
     id: 'version',
-    name: '版本',
+    name: t('rulesRecord.version'),
     children: getUniqueChildrenFrom('version'),
     multiple: true,
   },
   {
     id: 'configpolicy_type',
-    name: '配置类型',
-    children: getUniqueChildrenFrom('configpolicy_type', configMap),
+    name: t('rulesRecord.configType'),
+    children: getUniqueChildrenFrom('configpolicy_type', configMap.value),
     multiple: true,
   },
   {
     id: 'type',
-    name: '操作类型',
-    children: getUniqueChildrenFrom('type', operateMap),
+    name: t('rulesRecord.operateType'),
+    children: getUniqueChildrenFrom('type', operateMap.value),
     multiple: true,
   },
   {
     id: 'operator',
-    name: '操作人',
+    name: t('rulesRecord.operator'),
     children: getUniqueChildrenFrom('operator'),
     multiple: true,
   },
@@ -382,10 +382,10 @@ const getHostDistinct = async () => {
                 text = `V${value}`;
                 break;
               case 'type':
-                text = operateMap[value] || value;
+                text = operateMap.value[value] || value;
                 break;
               case 'configpolicy_type':
-                text = configMap[value] || value;
+                text = configMap.value[value] || value;
                 break;
               default:
                 text = value;
@@ -410,9 +410,10 @@ const handleFilter = ({
   const index = searchSelectValue.value.findIndex((item: any) => item.id === field);
   index > -1 && searchSelectValue.value.splice(index, 1);
   if (checked.length) {
+    const item = searchSelectData.value.find(item => item.id === field);
     searchSelectValue.value.push({
       id: field,
-      name: t(field),
+      name: item ? item.name : field,
       values: checked.map((item: any) => ({
         id: item,
         name: item,

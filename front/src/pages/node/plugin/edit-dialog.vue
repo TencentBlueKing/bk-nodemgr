@@ -2,16 +2,16 @@
   <div>
     <Dialog
       :is-show="isShow"
-      :title="'编辑插件'"
+      :title="$t('pluginManagement.plugin.edit')"
       render-directive="if"
       :width="600"
       @closed="isShow = false"
     >
       <Form :model="form" form-type="vertical" :rules="rules" ref="formRef" :width="480">
-        <Form.FormItem label="插件名" prop="name" :required="true">
+        <Form.FormItem :label="$t('pluginManagement.plugin.table.pluginName')" prop="name" :required="true">
           <Input v-model="form.name" :disabled="true"></Input>
         </Form.FormItem>
-        <Form.FormItem label="备注" prop="memo">
+        <Form.FormItem :label="$t('pluginManagement.plugin.table.memo')" prop="memo">
           <Input type="textarea" v-model="form.memo" :resize="false" autosize></Input>
         </Form.FormItem>
       </Form>

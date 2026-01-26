@@ -55,6 +55,34 @@ export interface PackageUploadOriginServerRespData {
   change_log_zh: string;
 }
 
+// PackageUploadOriginProxyReq is the request for upload origin proxy pkg.
+export interface PackageUploadOriginProxyReq {
+  generation: number;
+  overwrite: boolean;
+}
+
+// PackageUploadOriginProxyResp is the response for upload origin proxy pkg.
+export interface PackageUploadOriginProxyResp {
+  code: number;
+  message: string;
+  request_id: string;
+  error: Error;
+  data: PackageUploadOriginProxyRespData;
+}
+
+export interface PackageUploadOriginProxyRespData {
+  upload_id: string;
+  existed: boolean;
+  generated: boolean;
+  name: string;
+  size: number;
+  md5: string;
+  version: string;
+  platforms: Platform[];
+  change_log_en: string;
+  change_log_zh: string;
+}
+
 // PackageUploadOriginCertResp is the response for upload origin cert pkg.
 export interface PackageUploadOriginCertReq {
   overwrite: boolean;

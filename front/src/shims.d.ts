@@ -4,19 +4,16 @@ declare interface Window {
   readonly BK_DAYU_HOST: string
   PROJECT_CONFIG: {
     BK_API_PREFIX: string,
-    BK_USER_MANAGE: string,
     BK_SHARED_RES_BASE_JS_URL: string,
     BK_LOGIN_URL: string,
-    SITE_URL: string,
     BK_REQUEST_ID_HEADER_KEY: string,
     PASSWORD_VAULT_SWITCH: string,
     PASSWORD_VAULT_NAME: string,
-    BK_COMPONENT_API_URL: string,
     BK_DOMAIN: string,
     BKAPP_NAV_OPEN_SOURCE_URL: string,
     BK_DOCS_CENTER_URL: string,
+    BK_TENANT: string,
     BK_USER_WEB_URL: string,
-    BK_TENANT: string
   }
   loginModal: Object
 }

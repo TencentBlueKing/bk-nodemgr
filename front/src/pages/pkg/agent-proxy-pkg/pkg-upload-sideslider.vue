@@ -2,13 +2,13 @@
   <Sideslider
     v-model:is-show="isShow"
     :width="960"
-    :title="'包上传'"
+    :title="t('pkgUpload.title')"
     render-directive="if"
     :before-close="handleBeforeClose"
   >
     <template #header>
       <div class="flex items-center justify-between w-full">
-        <span>包上传<span v-if="subTitle" class="text-[14px] ml-[10px]">{{ subTitle }}</span></span>
+        <span>{{ t('pkgUpload.title') }}<span v-if="subTitle" class="text-[14px] ml-[10px]">{{ subTitle }}</span></span>
         <template v-if="route.name === 'pluginPackageMng'">
           <Dropdown
             theme="light"
@@ -60,15 +60,15 @@
         theme="primary"
         :disabled="!hasPkg"
         v-bk-tooltips="{
-          content: '请先上传包文件',
+          content: t('pkgUpload.uploadTip'),
           disabled: hasPkg,
         }"
         class="mr-[8px]"
         @click="submit"
         :loading="loading"
-      >提交</Button
+      >{{ t('pkgUpload.submit') }}</Button
       >
-      <Button @click="handleBeforeClose">取消</Button>
+      <Button @click="handleBeforeClose">{{ t('pkgUpload.cancel') }}</Button>
     </template>
   </Sideslider>
 </template>
@@ -81,6 +81,7 @@ import {
   Sideslider,
 } from 'bkui-vue';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
 import PkgUpload from './pkg-upload.vue';
@@ -90,6 +91,7 @@ import type { PackageUploadOriginAgentRespData } from '@/@types/pkg';
 import { PackageService } from '@/api/modules/pkg';
 import { usePackageStore } from '@/stores/package';
 
+const { t } = useI18n();
 const isShow = defineModel('isShow', { type: Boolean });
 const emit = defineEmits('confirm');
 const route = useRoute();
@@ -100,14 +102,14 @@ const packageStore = usePackageStore();
 // 插件上传类型
 const pluginUploadType = ref('v3/plugin');
 const subTitle = ref('');
-const pluginUploadTypeList = ref([
+const pluginUploadTypeList = computed(() => [
   {
     id: 'v2/plugin',
-    name: '2.0 官方插件包',
+    name: t('pkgUpload.officialPlugin'),
   },
   {
     id: 'v2/external_plugin',
-    name: '2.0 业务插件包',
+    name: t('pkgUpload.externalPlugin'),
   },
 ]);
 const triggerHandler = (id: string) => {
@@ -124,7 +126,7 @@ const handleBeforeClose = () => new Promise((resolve, reject) => {
     return;
   }
   InfoBox({
-    title: '确认关闭?',
+    title: t('dialog.confirmClose'),
     infoType: 'warning',
     onConfirm: () => {
       resolve(true);
@@ -171,7 +173,7 @@ const submit = async () => {
     }
     Message({
       theme: 'success',
-      message: '发布成功',
+      message: t('pkgUpload.success'),
     });
     isShow.value = false;
     emit('confirm');

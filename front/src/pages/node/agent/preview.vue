@@ -28,7 +28,7 @@
               :data="searchSelectData"
               v-model.trim="searchSelectValue"
               :unique-select="true"
-              :placeholder="'IPV4、IPV6、操作系统、主机名'"
+              :placeholder="$t('platform.nodeMan.preview.searchPlaceholder')"
             >
             </SearchSelect>
             <copy-ip-dropdown
@@ -46,7 +46,7 @@
                   !tableData.find((item) => item.category === 'need_confirm')
               "
               v-bk-tooltips="{
-                content: '处理待确认为正常安装',
+                content: $t('platform.nodeMan.preview.processConfirmTip'),
               }"
             >
               {{ $t("platform.nodeMan.preview.button.batchConfirm") }}
@@ -168,12 +168,12 @@
                 ></TableColumn>
                 <TableColumn
                   field="bk_networkunit_name"
-                  title="管控单元"
+                  :title="$t('platform.nodeMan.bk_cloud_unit')"
                   min-width="150"
                 ></TableColumn>
                 <TableColumn
                   field="status"
-                  title="状态"
+                  :title="$t('platform.nodeMan.preview.status')"
                   min-width="400"
                 >
                   <template #default="{ row }">
@@ -233,11 +233,12 @@
           :loading="loading"
           v-bk-tooltips="{
             content: disabledDataNum
-              ? '有节点待确认或错误，不可安装'
-              : installCheckLoading ? '校验安装节点中...' : '校验失败，不可安装',
+              ? $t('platform.nodeMan.preview.disabledTip')
+              : installCheckLoading
+                ? $t('platform.nodeMan.preview.loadingTip') : $t('platform.nodeMan.preview.checkFailedTip'),
             disabled: disabledDataNum === 0 && !checkFailed,
           }"
-        >执行安装全部节点</Button
+        >{{ $t('platform.nodeMan.preview.button.setup') }}</Button
         >
         <Button @click="handleBeforeClose">{{ t("action.cancel") }}</Button>
       </div>
@@ -299,13 +300,13 @@ const operate = ref([
   {
     id: 'comfirm',
     match: 'need_confirm',
-    name: '确认',
+    name: t('action.confirm1'),
   },
   {
     id: 'remove',
     match: 'error',
-    name: '移除',
-  }
+    name: t('action.remove'),
+  },
 ]);
 const handleOperate = async (id: string) => {
   if (id === 'comfirm') {
@@ -350,7 +351,7 @@ const searchSelectData = computed(() => [
   },
   {
     id: 'bk_host_name',
-    name: '主机名',
+    name: t('platform.nodeMan.bk_host_name'),
     children: getUniqueChildren('bk_host_name'),
     multiple: true,
   },
@@ -518,7 +519,7 @@ function getUniqueChildren(prop: string) {
 }
 const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) => {
   InfoBox({
-    title: '确认关闭?',
+    title: t('dialog.confirmClose'),
     infoType: 'warning',
     onConfirm: () => {
       resolve(true);

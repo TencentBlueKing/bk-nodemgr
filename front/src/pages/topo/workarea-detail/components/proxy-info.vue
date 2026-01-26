@@ -113,16 +113,16 @@ const searchSelectData = ref<ISearchItem[]>([
     id: 'bk_agent_id',
   },
   {
-    name: 'Proxy 版本',
+    name: t('installProxy.proxyVersion'),
     id: 'node_version',
   },
   {
-    name: 'Proxy 状态',
+    name: t('topoManager.workAreaDetail.table.proxyStatus'),
     id: 'node_status',
   },
   {
     id: 'dept_name',
-    name: '运维部门',
+    name: t('platform.nodeMan.dept_name'),
   },
 ]);
 // 复制

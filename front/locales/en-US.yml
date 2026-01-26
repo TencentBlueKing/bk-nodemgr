@@ -1,45 +1,74 @@
 platform:
-  name: bk-nodeman
+  name: Node Management
   title: BK NodeMan
-  nodeManagement:
+  nodeMan:
     node: Node
     agentStatus:
-      title: Agent status
-      button:
-        reinstall: reinstall
-    proxyState:
-      title: Proxy status
-    installAgent: Install agent
+      title: Agent Status
+      reinstall: Reinstall
+      upgrade: Upgrade/Rollback
+      agentUpgrade: Agent Upgrade/Rollback
+      restart: Restart
+      uninstall: Uninstall
+      init: Initialization
+      running: Running
+      damaged: Abnormal
+      unknown: Not Installed
+      unassigned: Unassigned
+      confirmIsBatch: Confirm batch {type}?
+      confirmIsSingle: Confirm {type}?
+      batchOperate: '{type} Agent for {num} IPs including {firstIp}'
+      singleOperate: '{type} Agent for {firstIp}'
+    proxyStatus:
+      title: Proxy Status
+    installAgent: Install Agent
     installAgentPage:
-      tip1: For external IP addresses or other {0} that have not been previously registered in the BlueKing CMDB, installing the Agent will register the {1} host record in the CMDB;
-      tip1FirstSlotText: New host
-      tip1SecondSlotText: Auto import
-      tip2: Installing the Agent requires enabling certain {0}. After completing the Agent information, click {1} to view the corresponding installation guide; for more advanced configurations, click the {2} in the installation information.
-      tip2FirstSlotText: Network access policy
-      tip2SecondSlotText: Installation requirements
-      tip2ThirdSlotText: Table display settings
-      type: Installation method
-      business: Install to business
-      cloud: Install to management zone
-      cloud_unit: Install to management unit
-      info: Installation information
-      version: Agent version
-      packageVersion: Package version
-      AdvancedOptions: Advanced options
+      tip1: For {0} (such as public IPs) not previously registered in BK-CMDB, installing the Agent will automatically import the {1} host records into CMDB.
+      tip1FirstSlotText: new hosts
+      tip1SecondSlotText: auto-import
+      tip2: Installing the Agent requires specific {0}. After completing the Agent info, click {1} to view the installation guide. For advanced configurations, click {2} in the installation info.
+      tip2FirstSlotText: network access policies
+      tip2SecondSlotText: Installation Requirements
+      tip2ThirdSlotText: Table Display Settings
+      type: Installation Method
+      installBusiness: Install to Business
+      cloud: Install to Cloud Area
+      cloud_unit: Install to Control Unit
+      info: Installation Info
+      version: Agent Version
+      packageVersion: Package Version
+      AdvancedOptions: Advanced Options
       placeholder:
         select: Please select
-        selectBiz: Select business
+        selectBiz: Select Business
       button:
-        install: Go to install
-
+        install: Install
+      excelImport: Import
+      noAvailableVersion: No version available
+      osArch: OS / Arch
+      noAvailableVersionTip: No version available, installation not possible
+      guideTitle: Manual Installation
+      business: Business
+      loginIp: Login IP
+      loginPort: Login Port
+      loginUser: Login Account
+      loginMode: Auth Method
+      passwordKey: Password / Key
+      pluginNum: Plugins
     preview:
-      title: Installation preview
-      tipTitle: 'The installation preview will detect information for the selected nodes:'
-      firstTip: '1. Pending: Some node information requires verification; please confirm manually.'
-      secondTip: '2. Error: The node cannot be installed; please remove it from the installation list.'
-      thirdTip: '3. Import to CMDB & Install Agent: Nodes not in CMDB will be imported automatically before Agent installation.'
-      fourthTip: '4. Install Agent: No issues detected; Agent can be installed or reinstalled normally.'
+      title: Installation Preview
+      tipTitle: 'The preview will detect information for selected nodes:'
+      firstTip: '1. Pending: Some node info needs manual confirmation.'
+      secondTip: '2. Error: Cannot install; please remove from the list.'
+      thirdTip: '3. Import to CMDB & Install Agent: Node not in CMDB; will be imported automatically.'
+      fourthTip: '4. Install Agent: Normal status; ready for installation/reinstallation.'
       placeholder: Enter keywords
+      searchPlaceholder: Select IPv4, IPv6, OS, or Hostname
+      processConfirmTip: Treat pending as normal installation
+      status: Status
+      disabledTip: Cannot install while nodes are pending or in error
+      loadingTip: Verifying nodes...
+      checkFailedTip: Verification failed, cannot install
       label:
         all: All
         pendingConfirmation: Pending confirmation
@@ -47,287 +76,379 @@ platform:
         cleanInstallation: Import to CMDB & Install Agent
         normalInstallation: Install Agent
       popConfirm:
-        title: A host with the same IP you wish to install may already exist under the current business
-        tip: 'Please select a handling method:'
-        prepend: New installation and import to CMDB
+        title: The same IP host may already exist under the current business
+        tip: 'Please select a processing method:'
+        prepend: Fresh installation and import to CMDB
         install: 'Install as:'
       button:
-        batchConfirm: 'One-click confirmation'
-        batchRemove: One-click remove erroneous items
-        deel: Go to handle
+        batchConfirm: Batch Confirm
+        batchRemove: Remove Errors
+        deel: Go to Process
         remove: Remove
-        performInstallation: Perform installation
-
+        performInstallation: Execute Installation
+        setup: Install All Nodes
     batchOperate: Batch
+    allBusiness: All Businesses
+    all: All
     copy: Copy
     uninstall: Uninstall
-    bussinessTopology: Business topo
-    agentSearchPlaceholder: Please select IP, Agent ID, Cloud Area, or Control Unit...
-    inner_ip: LAN IPv4
-    inner_ipv6: LAN IPv6
+    bussinessTopology: Business Topology
+    agentSearchPlaceholder: Select IP, Agent ID, Cloud Area, Control Unit...
+    inner_ip: Private IPv4
+    inner_ipv6: Private IPv6
     agentId: Agent ID
-    bk_biz_id: Business ID
+    bk_biz_id: Business
     bk_cloud_name: Cloud Area
     bk_cloud_unit: Control Unit
     dept_name: Department
-    os_type: Operating system
-    bk_host_name: Host name
-    System/Arch: System/Architecture
-    status: Agent status
-    status_display: Agent status
-    agent_version: Agent version
-    is_manual: Install mode
-    operate: Actions
+    os_type: OS
+    cpu_arch: Arch
+    bk_host_name: Hostname
+    System/Arch: OS/Arch
+    status: Agent Status
+    status_display: Agent Status
+    agent_version: Agent Version
+    is_manual: Installation Method
+    operate: Action
     edit: Edit
-    delete: Detele
-    pluginManagement:
-      pluginGroupName: Plugin
-      plugin:
-        title: Plugin
+    delete: Delete
     history: History
+    guide:
+      installWith: Install via {type}
+      onHost: On target host via
+      install: Install
+      copySuccess: Command copied successfully
     taskHistory:
+      tab:
+        nodeHistory: Node History
+        pluginHistory: Plugin History
+      shortcut:
+        today: Today
+        last7Days: Last 7 days
+        last15Days: Last 15 days
+        last30Days: Last 30 days
       title:
-        mainTitle: Task history
+        mainTitle: Task History
       label:
         taskID: Task ID
-        taskType: Task type
+        taskType: Task Type
         business: Business
         operator: Operator
-        operateTime: Operate time
-        costTime: Cost time
-        status: Task execution state
+        operateTime: Execution Time
+        costTime: Total Duration
+        status: Status
         count: Total/Success/Failed/Timeout
       button:
-        hideAutoTask: Hide Auto-Deployment Tasks
+        hideAutoTask: Hide Auto-deploy Tasks
       placeholder:
-        listSearch: Please select Task ID, Task Type, Business, Executor, or Status
+        listSearch: Select Task ID, Task Type, Business, Operator, Status
       taskType:
-        install_agent: Install agent
-        upgrade_agent: Upgrade agent
-        reconfig_agent: Reconfig agent
-        restart_agent: Restart agent
-        uninstall_agent: Uninstall agent
-        install_proxy: Install proxy
-        upgrade_proxy: Upgrade proxy
-        reconfig_proxy: Reconfig proxy
-        restart_proxy: Restart proxy
-        uninstall_proxy: Uninstall proxy
-        install_plugin: Install plugin
-        upgrade_plugin: Upgrade plugin
+        install_agent: Agent Installation
+        upgrade_agent: Agent Upgrade
+        reconfig_agent: Agent Reconfiguration
+        restart_agent: Agent Restart
+        uninstall_agent: Agent Uninstallation
+        install_proxy: Proxy Installation
+        upgrade_proxy: Proxy Upgrade
+        reconfig_proxy: Proxy Reconfiguration
+        restart_proxy: Proxy Restart
+        uninstall_proxy: Proxy Uninstallation
+        install_plugin: Plugin Installation
+        upgrade_plugin: Plugin Upgrade
       statusType:
         running: Running
         failed: Failed
         success: Success
-        partial_failed: Partial_failed
-  taskHistory:
-    title: Task history
-    taskDetail:
-      title: Task details
+        partial_failed: Partial Failed
+    log:
+      executionLog: Execution Log
+      searchNode: Select IP, Status
+      searchPlugin: Select IP, Plugin, Status
+      step: Step
+      costTime: Duration
+      executionStatus: Status
+      waitManualOperation: Waiting for manual operation, view
+      operationGuide: Operation Guide
+      terminate: Terminate
+  topoManagerName: Topology Management
+  ruleManagerName: Strategy Management
+  pkgManagerName: Package Management
+pluginManagement:
+  pluginGroupName: Plugin
+  plugin:
+    title: Plugin
+    edit: Edit Plugin
+    table:
+      pluginName: Plugin Name
+      packageName: Package Name
+      pluginGroup: Plugin Group
+      memo: Memo
+      nodeCount: Nodes
+      operation: Action
+    process:
+      os: OS
+      cpuArch: CPU Arch
+      version: Version
+      processName: Process Name
+      processStatus: Status
+      installPath: Install Path
+      pidPath: PID File Path
+      configPath: Config Path
+      logPath: Log Path
+      systemAccount: System Account
+      startCmd: Start Command
+      stopCmd: Stop Command
+      restartCmd: Restart Command
+      reloadCmd: Reload Command
+      killCmd: Kill Command
+      versionQueryCmd: Version Query Command
+      healthCheckCmd: Health Check Command
+      cpuLimitPercent: CPU Limit (%)
+      memLimitPercent: Mem Limit (%)
+      restartStrategy: Restart Strategy
+      startCheckDelay: Start Check Delay
+      stopCheckDelay: Stop Check Delay
+      commandTimeout: Timeout
+      autoStart: Auto Start
+      manualStart: Manual Start
+      processList: Plugin Process List
+      status:
+        running: Running
+        stopped: Stopped
+        unregister: Unregistered
+        init: Initialization
+        unknown: Unknown
 topoManager:
   workArea:
-    title: Workarea
+    title: Cloud Area
     search:
-      placeholder: Please select Cloud Area Name, Cloud Area ID, or Cloud Provider
-      workareaName: Workarea name
-      workareaId: Workarea ID
-      vendor: Vendor
+      placeholder: Select Cloud Area Name, Cloud Area ID, Cloud Provider
+      workareaName: Cloud Area Name
+      workareaId: Cloud Area ID
+      vendor: Cloud Provider
     form:
-      create: Create a new workarea
-      edit: Edit workarea
-      workareaName: Workarea name
-      vendor: Vendor
-      tips: After creating the workarea, it is still necessary to install a proxy in order to use it normally
-      success: Workarea created successfully
-      failed: Workarea creation failed
+      create: Create Cloud Area
+      edit: Edit Cloud Area
+      workareaName: Cloud Area Name
+      vendor: Cloud Provider
+      tips: Proxy must be installed after creating a Cloud Area to function properly.
+      success: Cloud Area created successfully
+      failed: Failed to create Cloud Area
     formRule:
-      workareaName: The name of the Workarea cannot be empty
-      vendor: Vendor name cannot be empty
+      workareaName: Cloud Area Name is required
+      vendor: Cloud Provider is required
     table:
-      workareaName: Workarea name
-      workareaId: Workarea ID
-      vendor: Vendor
-      workUnitsCount: Number of workUnits
-      proxyCount: Number of Proxy
-      agentCount: Number of Agent
+      workareaName: Cloud Area Name
+      workareaId: Cloud Area ID
+      vendor: Cloud Provider
+      workUnitsCount: Control Units
+      proxyCount: Proxies
+      agentCount: Agents
     vendor:
       AWS: AWS
       Tencent: Tencent Cloud
       Google: Google Cloud
       Azure: Azure
-      Enterprise: Enterprise Private Cloud
+      Enterprise: Private Cloud
       Alibaba: Alibaba Cloud
-      ECloud: ECloud
-      MOS: MOS
-      KS: KSyun
+      ECloud: CTCC
+      MOS: Meituan Cloud
+      KS: Kingsoft Cloud
       Baidu: Baidu Cloud
       Huawei: Huawei Cloud
       Capital: Capital Cloud
-      TencentPrivate: Tencent Private Cloud
+      TencentPrivate: Tencent Internal
     copy:
-      workarea: Workarea
-      select: The selected Proxy IP
-      selectAll: Proxy IP for all items
-      success: Replicating Success
-      failed: Replicating Failed
+      workarea: Cloud Area
+      select: Selected Proxy IPs
+      selectAll: All Proxy IPs
+      success: Copied successfully
+      failed: Failed to copy
     delete:
-      title: Are you sure you want to delete this' Workarea '?
+      title: Confirm delete this Cloud Area?
   workAreaDetail:
-    workUnitCount: Number of Work Unit
-    proxyQuantity: Number of Proxy
-    agentQuantity: Number of Agent
-    updatePerson: Update Person
-    updateTime: Update Time
-    upstream: Upstream access point
-    downstream: Downstream access point
+    workUnitCount: Control Units
+    proxyQuantity: Proxies
+    agentQuantity: Agents
+    updatePerson: Updated By
+    updateTime: Updated At
+    upstream: Upstream
+    downstream: Downstream
     expand: Expand
-    retract: Retract
+    retract: Collapse
+    upgrade: Proxy Upgrade/Rollback
+    batchRestartTitle: Confirm batch restart?
+    restartTitle: Confirm restart?
+    batchRestartSubTitle: Restart Proxy for {num} IPs including {firstIp}
+    restartSubTitle: Restart Proxy for {firstIp}
+    batchUnloadTitle: Confirm batch uninstall?
+    batchUnloadSubTitle: Uninstall Proxy for {num} IPs including {firstIp}
+    unloadTitle: Confirm uninstall?
+    unloadSubTitle: Uninstall Proxy for {firstIp}
     tab:
       direct: Direct
     button:
       installProxy: Install Proxy
       batch: Batch
     searchSelect:
-      placeholder: Please select Internal IPv4, Internal IPv6, or Agent ID
+      placeholder: Select Private IPv4, Private IPv6, Agent ID
     table:
-      ipv4: Internal IPv4 network
-      ipv6: Intranet IPv6
+      ipv4: Private IPv4
+      ipv6: Private IPv6
       proxyVersion: Proxy Version
       proxyStatus: Proxy Status
       action: Action
-      Reassembly: Reassembly
+      Reassembly: Reinstall
       edit: Edit
     dropdown:
       reinstall: Reinstall
       upgrade: Upgrade/Rollback
-      unload: Unload
-      overload: Overload Configuration
+      unload: Uninstall
+      overload: Reload Config
       restart: Restart
     dialogTitle:
-      upgrade: Are you sure to upgrade to the latest version?
-      unload: Are you sure to uninstall the current proxy?
-      overload: Confirm overloaded configuration?
-      restart: Are you sure to restart the current proxy?
+      upgrade: Confirm upgrade to the latest version?
+      unload: Confirm uninstall current Proxy?
+      overload: Confirm reload configuration?
+      restart: Confirm restart current Proxy?
     dialogTips:
-      unload: After uninstallation, it will not be able to be restored. Please proceed with caution
-    dialogContent: 
-      ipv4: Internal IPv4 network
+      unload: This action cannot be undone, please proceed with caution.
+    dialogContent:
+      ipv4: Private IPv4
   workUnit:
     title:
-      create: Create Work Unit
-      edit: Edit Work Unit
-      updateProxyInfo: update proxy info
+      create: Create Control Unit
+      edit: Edit Control Unit
+      updateProxyInfo: Update Proxy Info
     form:
-      workUnitName: Name of Work Unit
-      upstream: Upstream access point
-      directConfig: Direct access config
-      downstream: Downstream access point
-      senior: Senior
-      accessPointName: Access point name
-      createAccessPoint: Add new access point
-      deleteTips: Are you sure you want to delete this access point?
-      input: 
-        placeholder: Please enter IP:Port
-        validate: Format error, please enter IP:port
+      workUnitType: Control Unit Type
+      notDirect: Non-direct
+      direct: Direct
+      workUnitName: Control Unit Name
+      upstream: Upstream
+      downstream: Downstream
+      directConfig: Direct Config
+      senior: Advanced
+      accessPointName: Access Point Name
+      createAccessPoint: Add Access Point
+      deleteTips: Confirm delete this access point?
+      input:
+        placeholder: Enter IP:Port
+        validate: Invalid format, please use IP:Port
     delete:
-      title: Are you sure to delete this Work Unit?
-      content: Work Unit
-      tips: After deletion, the proxy under the Work Unit will also be cleared. Please operate with caution!
-    empty: No Work Unit currently available
-    emptyTips: You can create a Work Unit to view related data
+      title: Confirm delete this Control Unit?
+      content: Control Unit
+      tips: Deleting will also clear associated Proxies. Proceed with caution!
+    empty: No Control Units
+    emptyTips: Create a new Control Unit to view data.
     accessPoints:
-      upstream: Upstream access point
-      downstream: Downstream access point
-      directConfig: Direct config
+      upstream: Upstream Access Points
+      downstream: Downstream Access Points
+      directConfig: Direct Config
     toggle:
-      expand: expand
-      close: retract
+      expand: Expand
+      close: Collapse
+    tip: Cannot select the current Control Unit as an upstream access point.
   installProxy:
     title: Install Proxy
     reinstall: Reinstall Proxy
-    tips: Installing a proxy requires opening a certain network access policy. After filling in the proxy information, you can view the corresponding installation instructions
-    guide: Install Requirements
+    tips: Installing Proxy requires specific network access policies. Viewing the guide is available after completing the info.
+    guide: Installation Requirements
     form:
       method: Installation Method
-      info: Installation Information
-      password: Key/Password
+      info: Installation Info
+      password: Key / Password
       saveTime:
         oneDay: Save for {x} days
-        longTermSave: Long term preservation
-      os: Operating System
+        longTermSave: Permanent
+      os: OS
       port: Login Port
       account: Login Account
-      business: Belonging Business
-      relayDownloadPort: Relay download port
-      relayCallbackPort: Relay callback port
+      business: Business
+      relayDownloadPort: Relay Download Port
+      relayCallbackPort: Relay Callback Port
+      tip: Cannot select direct-connected units.
     installMethodList:
       remote:
-        title: Ordinary remote installation
-        content: Online form filling requires login information
+        title: Standard Remote Installation
+        content: Fill online form, requires login info
       excel:
-        title: Excel import remote installation
-        content: Import and fill in Excel, login information is required
+        title: Excel Import Installation
+        content: Bulk import via Excel, requires login info
       manual:
-        title: Manual install
-        content: No need to provide login information, execute the given command on the server to complete the installation on your own
+        title: Manual Installation
+        content: No login info required, execute commands on server manually
     table:
       hostIp: Host IP
-      ipv4: Internal IPv4 Network
-      ipv6: Internal IPv6 Network
-      export_ip: Export ip
-      advertise_ip: Advertise ip
-      dedicated_installer: Dedicated installer
-      cluster_tunnel: Cluster tunnel
-      file_tunnel: File tunnel
-      data_tunnel: Data tunnel
+      ipv4: Private IPv4
+      ipv6: Private IPv6
+      export_ip: Export IP
+      advertise_ip: Service IP
+      dedicated_installer: Install Jumper
+      cluster_tunnel: Agent Control
+      file_tunnel: File Transfer
+      data_tunnel: Data Report
       hostProperties: Host Properties
-      os: Operating System
-      loginInfo: Login Information
+      os: OS
+      loginInfo: Login Info
       loginIp: Login IP
-      authenticationMethod: Authentication Method
-      password: Password/Key
-      transmittedInfo: Transmitted Information
-      tempFileDirectory: Temporary File Directory
-      speedLimit: Transmission Speed Limit M/s
+      authenticationMethod: Auth Method
+      password: Password / Key
+      transmittedInfo: Transfer Info
+      tempFileDirectory: Temp Directory
+      speedLimit: Speed Limit (M/s)
       dataCompression: Data Compression
     batchEdit:
-      loginIp: Batch edit login IP
-      password: Batch Edit Passwords/Keys
-      directory: Batch edit temporary file directory
-      zip: Batch editing data compression
+      loginIp: Batch Edit Login IP
+      password: Batch Edit Password/Key
+      directory: Batch Edit Temp Directory
+      zip: Batch Edit Data Compression
   topo:
-    title: Topology Map
+    title: Topology
     toolbar:
-      minimap: Map
-      center: Back To Center
+      minimap: Minimap
+      center: Center
       originalSize: Original Size
     select:
-      tips: Select at least {count} workarea
-      default: Default Workarea
-      other: Other Workarea
+      tips: Select at least {count} areas
+      default: Default Area
+      other: Other Areas
+    expand: Expand areas without units
+    collapse: Collapse areas without units
+    accessPointName: Access Point Name
   record:
     title: Operation Record
     searchPlaceholder:
-      date: "For example: from January 30, 2019 to January 30, 2019"
-      searchSelect: Please select Cloud Area Name, Cloud Area ID, Control Unit, Action, or Operator
+      date: 'e.g., 2019-01-30 to 2019-01-30'
+      searchSelect: Select Cloud Area Name, Cloud Area ID, Control Unit, Action, Operator
     table:
-      workareaName: Workarea Name
-      workareaId: Workarea ID
-      workUnit: Work Unit
-      type: Operate
+      workareaName: Cloud Area Name
+      workareaId: Cloud Area ID
+      workUnit: Control Unit
+      type: Action
       operator: Operator
-      operateTime: Operate Time
+      operateTime: Operation Time
+      createNetworkarea: Create Cloud Area
+      updateNetworkarea: Update Cloud Area
+      deleteNetworkarea: Delete Cloud Area
+      createNetworkunit: Create Control Unit
+      updateNetworkunit: Update Control Unit
+      deleteNetworkunit: Delete Control Unit
+      createAccesspoint: Create Access Point
+      updateAccesspoint: Update Access Point
+      deleteAccesspoint: Delete Access Point
     searchItems:
-      workareaName: Workarea Name
-      workareaId: Workarea ID
-      workUnit: Work Unit
-      type: Operate
+      workareaName: Cloud Area Name
+      workareaId: Cloud Area ID
+      workUnit: Control Unit
+      type: Action
       operator: Operator
 action:
   create: Create
   copy: Copy
   edit: Edit
   delete: Delete
-  confirm: Confirm
+  confirm: OK
   confirm1: Confirm
   cancel: Cancel
   save: Save
@@ -335,37 +456,469 @@ action:
   reinstallProxy: Reinstall Proxy
   installLater: Install Later
   install: Install
-  unload: Unload
+  unload: Uninstall
+  tag: Tag
+  remove: Remove
+  back: Back
+  import: Excel Import
 table:
-  empty: No data available at the moment
-  action: action
+  loading: Loading...
+  empty: No Data
+  action: Action
 message:
   success:
-    edit: Modified successfully
-    create: New created successfully
-    delete: Delete successfully
+    edit: Updated successfully
+    create: Created successfully
+    delete: Deleted successfully
   warn:
-    keepAtLeast: Keep at least {x} rows
+    keepAtLeast: Keep at least {x} row(s)
 validate:
   required: Required
+  ipv4: Invalid Private IPv4
+  ipv6: Invalid Private IPv6
+  os: OS required
+  loginIp: Invalid Login IP
+  port: Invalid Login Port
+  loginUser: Login Account required
+  authType: Auth Method required
+  password: Password/Key required
+authenticationType:
+  password: Password
+  keyfile: Key
+  password_vault: Password Vault
+dialog:
+  confirmClose: Confirm close?
+taskDetail:
+  searchPlaceholder: Select IP, Cloud Area, Business, Target Version, Status
+  batchRetry: Batch Retry
+  batchTerminate: Batch Terminate
+  title: Task Details
+  state: State
+  retryType:
+    all: Restart Execution
+    allTooltip: Restart the entire task from the beginning
+    partial: Retry Failed
+    partialTooltip: Retry from the latest failed step
+  status:
+    all: All
+    incomplete: Incomplete
+    success: Success
+    failed: Failed
+    timeout: Timeout
+    terminated: Terminated
+    running: Running
+    partial_failed: Partial Failed
+    ignored: Ignored
+    init: Initialization
+    launched: Pending
+  info:
+    type: Task Type
+    costTime: Duration
+    taskId: Task ID
+    operator: Operator
+    operateTime: Execution Time
+  table:
+    crossPageSelected: All pages selected
+    items: items,
+    cancelSelection: Cancel
+    selected: Selected
+    selectAllPages: Select all {x} items
+    unassigned: Unassigned
+    pluginName: Plugin Name
+    ipv4: IPv4
+    ipv6: IPv6
+    workarea: Cloud Area
+    workUnit: Control Unit
+    business: Business
+    targetVersion: Target Version
+    costTime: Duration
+    status: Status
+    retryCount: Retries
+    action: Action
+    viewLog: View Logs
+    terminate: Terminate
+    retry: Retry
+    guide: Guide
+    waitManual: Waiting for manual operation, view
+  filter:
+    currentPage: Select current page
+    crossSelected: Select all pages
+  search:
+    ipv4: IPv4
+    ipv6: IPv6
+    workarea: Cloud Area
+    workUnit: Control Unit
+    business: Business
+    targetVersion: Target Version
+    status: Status
+  copy:
+    all: All IPs
+    ignored: Ignored IPs
+    failed: Failed IPs
+    success: Success IPs
+agentStrategy:
+  searchPlaceholder: Search by Name, Operator
+  configStrategy: Config Strategy
+  deploymentStrategy: Deployment Strategy
+  createConfig: Create Config
+  loading: Loading...
+  table:
+    configName: Config Name
+    configId: Config ID
+    version: Version
+    business: Business
+    remark: Remark
+    scope: Scope
+    operator: Operator
+    updateTime: Updated At
+    status: Status
+    action: Action
+    enabled: Enabled
+    disabled: Disabled
+    unlimited: Unlimited
+    os: OS
+    arch: Arch
+  action:
+    edit: Edit
+    enable: Enable
+    disable: Disable
+    delete: Delete
+    confirmDelete: Confirm delete this strategy?
+    deleteTarget: 'Delete Target: {name}'
+    deleteTip: This cannot be undone.
+    deleteDisabledTip: Enabled configurations cannot be deleted.
+  filter:
+    enabled: Enabled
+    disabled: Disabled
+  form:
+    configName: Config Name
+    business: Business
+    enabled: Enabled
+    remark: Remark
+    scope: Scope
+    config: Config
+    selectBusiness: Select Business
+    unlimited: Unlimited
+    workUnit: Control Unit
+    os: OS
+    arch: Arch
+    addScope: Add Scope
+    save: Save
+    submit: Submit
+    cancel: Cancel
+    edit: Edit
+    create: Create
+    configTitle: "{action} {role} Config"
+    configTip: Switch to enable modification of default config
+    versionTip: Editor content changed; saving will upgrade from
+    upgradeTo: to
+  validate:
+    configNameRequired: Config Name is required
+    configNameLength: Length must be 1-50 characters
+    businessRequired: Business is required
+pluginPackage:
+  title: Plugin Packages
+  upload: Upload Package
+  searchPlaceholder: Select Package Name, Version, OS, Arch, User, Status, Default
+  quickFilter: Quick Filter
+  all: All
+  osArch: OS / Arch
+  packageName: Package Name
+  fileName: Filename
+  version: Version
+  os: OS
+  arch: Arch
+  uploader: User
+  uploadTime: Uploaded At
+  status: Status
+  defaultVersion: Default
+  action: Action
+  download: Download
+  setDefault: Set as Default
+  cancelDefault: Cancel Default
+  disable: Disable
+  enable: Enable
+  delete: Delete
+  enabled: Enabled
+  disabled: Disabled
+  yes: Yes
+  no: No
+  confirmDisable: Confirm disable this package?
+  disableTarget: 'Disable Target: {name}'
+  confirmDelete: Confirm delete this package?
+  deleteTarget: 'Delete Target: {name}'
+  deleteTip: This cannot be undone.
+pkgUpload:
+  title: Upload Package
+  officialPlugin: Official Plugin (2.0)
+  externalPlugin: Business Plugin (2.0)
+  submit: Submit
+  cancel: Cancel
+  uploadTip: Please upload a file first
+  success: Published successfully
+  fileFormatTip: Supports .tgz, .tar, .gz
+  uploadSuccess: Uploaded successfully
+  uploadFailed: Upload failed
+  overwriteConfirm: "{type} version already exists. Overwrite?"
+  overwrite: Overwrite
+  cancelUpload: Cancel Upload
+  targetExists: "{type} version already exists"
+  packageName: "Name: {name}"
+  md5: "MD5: {md5}"
+  overwriteTip: "Continuing will overwrite the existing {type} package"
+  fileFormatError: Only .tgz, .tar, .gz files allowed
+  resultPreview: Preview
+  parsing: Parsing data...
+  fileName: Filename
+  packageNameLabel: Name
+  osArch: OS Arch
+  packageType: Type
+  description: Description
+  descInfo: "Description: {desc}"
+  configFile: "Config: {file}"
+  configFormat: "Format: {format}"
+  launchNode: "Node Type: {node}"
+certBintool:
+  upload: Upload
+  searchPlaceholder: Filename, User
+  fileName: Filename
+  uploader: User
+  uploadTime: Uploaded At
+  action: Action
+  delete: Delete
+  confirmDelete: Confirm delete this {type}?
+  deleteTarget: 'Delete Target: {name}'
+  deleteTip: This cannot be undone.
+  download: Download
+  cert: Certificate
+  tool: Tool
+pkgRecord:
+  searchPlaceholder: Select Version, OS, Arch, Type, User, Package Type
+  packageName: Name
+  version: Version
+  packageType: Type
+  os: OS
+  arch: Arch
+  operateType: Type
+  operator: User
+  operateTime: Time
+  today: Today
+  last7Days: Last 7 days
+  last15Days: Last 15 days
+  last30Days: Last 30 days
+  action:
+    publish: Publish
+    enable: Enable
+    disable: Disable
+    delete: Delete
+    setAsDefault: Set as Default
+    cancelAsDefault: Cancel Default
+    upload: Upload
+rulesRecord:
+  configStrategy: Strategy
+  searchPlaceholder: Select ID, Name, Version, Type, Action, User
+  configName: Name
+  configID: ID
+  version: Version
+  configType: Type
+  operateType: Action
+  operator: User
+  operateTime: Time
+  today: Today
+  last7Days: Last 7 days
+  last15Days: Last 15 days
+  last30Days: Last 30 days
+  action:
+    create: Add
+    enable: Enable
+    disable: Disable
+    update: Update
+    delete: Delete
+  configTypeMap:
+    agent: Agent Strategy
+    proxy: Proxy Strategy
+agentProxyPkg:
+  upload: Upload
+  searchPlaceholder: Search by Version, OS, Arch, Tag, User, Status, Default
+  quickFilter: Quick Filter
+  all: All
+  fileName: Filename
+  version: Version
+  os: OS
+  arch: Arch
+  labels: Labels
+  batchEditLabels: Batch Edit Labels
+  unifiedFill: Unified Fill
+  uploader: User
+  uploadTime: Time
+  deployedHosts: Deployed Hosts
+  status: Status
+  defaultVersion: Default
+  action: Action
+  setDefault: Set as Default
+  cancelDefault: Cancel Default
+  disable: Disable
+  enable: Enable
+  delete: Delete
+  download: Download
+  confirmDisable: Confirm disable this {type} package?
+  disableTarget: 'Disable Target: {name}'
+  disableTip: Disabled packages cannot be selected during installation/upgrade.
+  confirmDelete: Confirm delete this {type} package?
+  deleteTarget: 'Delete Target: {name}'
+  deleteTip: This cannot be undone.
+  enabled: Enabled
+  disabled: Disabled
+  yes: 'Yes'
+  no: 'No'
+  osArch: OS / Arch
 components:
   batchEdit:
-    passwordTip: Only applies to password authentication
-    batchEditKey: Batch edit keys
-    keyTip: Only applies to key authentication
+    passwordTip: Only for Password Auth
+    batchEditKey: Batch Edit Keys
+    keyTip: Only for Key Auth
   chooseVersion:
-    title: Choose version based on operating system
+    title: Select Version by OS
+    AgentVersion: Agent Version
+    DefaultVersion: Default
+    versionInfoTitle: '{version} Details'
+    forceUpgrade: Force Upgrade
+    gracefulUpgrade: Graceful Upgrade
   configTemplate:
-    enable: Enable
-    disabled: Disabled
+    enable: 'On'
+    disabled: 'Off'
   copyIpDropdown:
-    checkIp: Check Ip
-    workareaAndIpv4: Workarea + IPv4
-    workareaAndIpv6: Workarea + IPv6
-    allIps: All IP
-    empty: No content available to copy
-    success: Copy succeeded
-    failed: Copy failed
-    notSupport: Clipboard operations are not supported in the current environment
+    checkIp: Selected IPs
+    workareaAndIpv4: Cloud Area + IPv4
+    workareaAndIpv6: Cloud Area + IPv6
+    allIps: All IPs
+    empty: Nothing to copy
+    success: Copied successfully
+    failed: Failed to copy
+    notSupport: Clipboard not supported
     copy: Copy
-      
+  installTable:
+    bizProperty: Business Property
+    bkBizId: Business
+    topoProperty: Topology Property
+    networkArea: Cloud Area
+    networkUnit: Control Unit
+    hostIp: Host IP
+    innerIPv4: Private IPv4
+    innerIPv6: Private IPv6
+    osType: OS
+    batchEditOsType: Batch Edit OS
+    port: Login Port
+    batchEditPort: Batch Edit Port
+    account: Login Account
+    batchEditAccount: Batch Edit Account
+    exportIP: Export IP
+    serviceIP: Service IP
+    loginInfo: Login Info
+    loginIP: Login IP
+    authMethod: Auth Method
+    batchEditAuthMethod: Batch Edit Auth Method
+    passwordKey: Password / Key
+    batchEditPasswordKey: Batch Edit Password/Key
+    autoGet: Auto Get
+    installJump: Install Jumper
+    agentControl: Agent Control
+    fileTransfer: File Transfer
+    dataReport: Data Report
+    validationFailed: Some info failed verification
+    creditValid: Valid; click to modify
+    inputPassword: Enter password
+    enabledSerive: Enabled Services
+    ipv4ValidMessage: Invalid Private IPv4
+    ipv6ValidMessage: Invalid Private IPv6
+    osTypeValidMessage: Select OS
+    loginIPValidMessage: Invalid Login IP
+    portValidMessage: Invalid Port
+    accountValidMessage: Enter login account
+    loginModeValidMessage: Select Auth Method
+    passwordKeyValidMessage: Enter Password/Key
+    password: Password
+    keyfile: Key
+    minimum: Keep at least one row
+    either: Required (IPv4 or IPv6)
+    passwordVaultDisabled: Password Vault disabled
+  installType:
+    remoteInstall: Remote
+    manualInstall: Manual
+  logVersion:
+    current: Current
+  operateDialog:
+    reloadConfig: Reload Config
+    forceRestart: Force Restart
+    gracefulRestart: Graceful Restart
+    gracefulTime: Timeout
+    seconds: s
+  setting:
+    field: Field Settings
+    size: Row Height
+    small: Small
+    medium: Medium
+    large: Large
+  uploadExcel:
+    tip: 'Supports .xlsx only,'
+    templateFile: Template File
+    error: Upload failed
+footer:
+  desktop: BlueKing Desktop
+  linksBk: Contact BK Assistant
+installProxy:
+  selectBusiness: Select Business
+  advancedOptions: Advanced Options
+  installSource: Source
+  proxyVersion: Proxy Version
+  noAvailableVersion: No version available
+  osArch: OS / Arch
+  version: Version
+  pleaseSelect: Please select
+  noAvailableVersionTip: No version available, installation not possible
+  excelImport: Excel Import
+  confirmClose: Confirm close?
+  business: Business
+  innerIPv4: Private IPv4
+  innerIPv6: Private IPv6
+  os: OS
+  port: Port
+  account: Account
+  exportIP: Export IP
+  serviceIP: Service IP
+  loginIP: Login IP
+  businessName: Business
+  proxyTags: Proxy Services
+  pluginNum: Plugins
+  authMethod: Auth Method
+  passwordKey: Password / Key
+  installJump: Install Jumper
+  agentControl: Agent Control
+  fileTransfer: File Transfer
+  dataReport: Data Report
+  upstreamUnit: Upstream Unit
+  currentUnit: Current Unit
+  custom: Custom
+  installInitiated: Proxy installation initiated
+  reinstallInitiated: Proxy reinstallation initiated
+  validationFailed: Verification failed
+route:
+  agentStatus: Agent Status
+  installAgent: Install Agent
+  installReinstallAgent: Install/Reinstall Agent
+  plugin: Plugin
+  taskHistory: Task History
+  workarea: Cloud Area
+  workareaSubtitle: Cloud Area Subtitle
+  workareaDetail: Cloud Area Details
+  topo: Topology
+  topoSubtitle: Topology Subtitle
+  operationRecord: Operation Record
+  agentStrategy: Agent Strategy
+  proxyStrategy: Proxy Strategy
+  pluginStrategy: Plugin Strategy
+  agentPackage: Agent Package
+  proxyPackage: Proxy Package
+  certManage: Certificate Management
+  toolManage: Tool Management
+  pluginToolManage: Plugin Tool Management

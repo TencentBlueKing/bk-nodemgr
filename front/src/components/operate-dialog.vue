@@ -10,16 +10,22 @@
     <div class="w-full">
       <p class="text-[16px] mb-[20px]">{{ subTitle }}</p>
       <template v-if="type === 'restart'">
-        <Checkbox v-model="isReconfig" class="mb-[10px]">同时重载配置</Checkbox>
+        <Checkbox v-model="isReconfig" class="mb-[10px]">
+          {{ $t('components.operateDialog.reloadConfig') }}
+        </Checkbox>
         <div class="flex items-center gap-[6px] h-[32px]">
           <Radio.Group v-model="isForce" class="w-[180px]">
-            <Radio.Button :label="true" :key="true">强制重启</Radio.Button>
-            <Radio.Button :label="false" :key="false">无损重启</Radio.Button>
+            <Radio.Button :label="true" :key="true">
+              {{ $t('components.operateDialog.forceRestart') }}
+            </Radio.Button>
+            <Radio.Button :label="false" :key="false">
+              {{ $t('components.operateDialog.gracefulRestart') }}
+            </Radio.Button>
           </Radio.Group>
           <div class="flex items-center gap-[3px]" v-show="!isForce">
-            <span>超时时间</span>
+            <span>{{ $t('components.operateDialog.gracefulTime') }}</span>
             <Input type="number" v-model="time" class="w-[80px]"></Input>
-            <span>秒</span>
+            <span>{{ $t('components.operateDialog.seconds') }}</span>
           </div>
         </div>
       </template>

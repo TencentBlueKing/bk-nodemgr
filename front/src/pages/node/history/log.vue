@@ -9,12 +9,14 @@
           :data="searchSelectData"
           v-model.trim="searchSelectValue"
           :unique-select="true"
-          :placeholder="isNode ? '请选择 IP、执行状态' : '请选择 IP、插件名、执行状态'"
+          :placeholder="isNode
+            ? $t('platform.nodeMan.log.searchNode')
+            : $t('platform.nodeMan.log.searchPlugin')"
           @update:model-value="handleSearchSelectChange"
         >
         </SearchSelect>
       </div>
-      <bk-loading title="数据加载中" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)]">
+      <bk-loading :title="$t('table.loading')" :loading="operateLoading" class="flex-1 h-[calc(100%-72px)]">
         <div class="h-full overflow-y-auto">
           <div
             v-for="(operate, index) in filterOperateList" :key="index"
@@ -57,7 +59,7 @@
           <Button
             v-if="!['success'].includes(currentOperate?.state)"
             class="w-[86px]">
-            <span>重试</span>
+            <span>{{ $t('platform.nodeMan.log.retry') }}</span>
           </Button>
           <template #content>
             <Dropdown.DropdownMenu>
@@ -78,14 +80,14 @@
           </template>
         </Dropdown>
       </div>
-      <bk-loading title="数据加载中" :loading="instanceLoading" class="flex-1 flex h-[calc(100%-102px)]">
+      <bk-loading :title="$t('table.loading')" :loading="instanceLoading" class="flex-1 flex h-[calc(100%-102px)]">
         <Table
           :data="tableData"
-          :empty-text="'暂无数据'"
+          :empty-text="$t('table.empty')"
           :min-width="300"
           class="w-[40%] h-full mr-[10px] bg-[#f5f7fa]"
         >
-          <TableColumn :title="'步骤'" min-width="200" fixed="left">
+          <TableColumn :title="$t('platform.nodeMan.log.step')" min-width="200" fixed="left">
             <template #default="{ row }">
               <Button
                 text
@@ -96,7 +98,7 @@
               </Button>
             </template>
           </TableColumn>
-          <TableColumn field="costTime" :title="'耗时'" min-width="60">
+          <TableColumn field="costTime" :title="$t('platform.nodeMan.log.costTime')" min-width="60">
             <template #default="{ row }">
               <span :class="{ 'text-[#c6c4cc]': row.state === 'pending' }">
                 {{ formatTimeToMS(row.costTime) }}
@@ -105,7 +107,7 @@
           </TableColumn>
           <TableColumn
             field="state"
-            :title="'执行情况'"
+            :title="$t('platform.nodeMan.log.executionStatus')"
             :min-width="isManual ? 230 : 150">
             <template #default="{ row }">
               <div class="flex items-center gap-[5px]">
@@ -125,8 +127,10 @@
                   <div :class="['ml-[5px]']">
                     <!-- eslint-disable-next-line max-len -->
                     <div v-if="isManual && last_oper_inst_step_key === row.stepKey && currentOperate.state === 'running'">
-                      等待手动操作，查看
-                      <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide">操作指引</Button>
+                      {{ $t('platform.nodeMan.log.waitManualOperation') }}
+                      <Button class="ml-[2px]" text theme="primary" @click="handleOperateGuide">
+                        {{ $t('platform.nodeMan.log.operationGuide') }}
+                      </Button>
                     </div>
                     <span v-else :class="[{ 'text-[#c4c6cc]': row.state === 'pending' }]">
                       {{ statusMap[row.state]?.text }}
@@ -138,7 +142,7 @@
                   text
                   theme="primary"
                   @click="handleTerminate">
-                  终止
+                  {{ $t('platform.nodeMan.log.terminate') }}
                 </Button>
               </div>
             </template>
@@ -160,7 +164,7 @@
             class="sticky top-0 z-10 h-[50px]
               flex flex-shrink-0 justify-between items-center px-[16px] bg-[#202024] text-[#C4C6CC]"
           >
-            <div>执行日志</div>
+            <div>{{ $t('platform.nodeMan.log.executionLog') }}</div>
             <div class="flex">
               <Dropdown
                 :popover-options="{

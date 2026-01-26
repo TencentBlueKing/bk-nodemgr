@@ -18,7 +18,7 @@
             <span class="item-title">{{ item.title }}</span>
             <span class="item-date">{{ item.date }}</span>
             <span v-if="index === current" class="item-current">
-              {{ $t("当前版本") }}
+              {{ $t("components.logVersion.current") }}
             </span>
           </li>
         </ul>
@@ -82,7 +82,6 @@ const handleItemClick = async (v = 0) => {
 // 工具函数：处理fetch请求
 const fetchData = async (url: string, params?: Record<string, string>) => {
   try {
-    const baseURL = window.PROJECT_CONFIG.SITE_URL;
     const fullUrl = new URL(url, location.origin);
 
     if (params) {

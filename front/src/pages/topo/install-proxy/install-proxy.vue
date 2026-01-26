@@ -25,7 +25,9 @@
         >
           <!-- <template #label>
             <div class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.info') }}</div>
-            <Button text theme="primary" @click="handleExcelImport">导入</Button>
+            <Button text theme="primary" @click="handleExcelImport">
+              {{ $t('platform.nodeMan.installAgentPage.excelImport') }}
+            </Button>
           </template> -->
           <install-table
             ref="installTableRef"
@@ -96,7 +98,7 @@
             v-model="form.bk_biz_id"
             auto-focus
             filterable
-            placeholder="选择业务"
+            :placeholder="t('installProxy.selectBusiness')"
           >
             <Select.Option
               v-for="item in businessList"
@@ -138,7 +140,7 @@
               :name="option.bk_networkunit_name"
               :disabled="option.is_direct"
               v-bk-tooltips="{
-                content: '不能选择直连单元',
+                content: $t('topoManager.installProxy.form.tip'),
                 disabled: !option.is_direct,
                 boundary: 'parent',
                 placement: 'left'
@@ -179,7 +181,7 @@
         </Form.FormItem>
         <Form.FormItem
           v-if="isTargetShow"
-          :label="'安装源'"
+          :label="t('installProxy.installSource')"
           property="proxy_install_origin"
           label-width="110"
           required
@@ -191,15 +193,15 @@
             trigger="click"
           ></Cascader>
         </Form.FormItem>
-        <Form.FormItem :label="$t('Proxy 版本')" label-width="110" required v-if="isTargetShow">
+        <Form.FormItem :label="$t('installProxy.proxyVersion')" label-width="110" required v-if="isTargetShow">
           <div class="w-[488px]">
-            <Table :data="systemData" :border="true" empty-text="当前无可用版本">
+            <Table :data="systemData" :border="true" :empty-text="t('installProxy.noAvailableVersion')">
               <TableColumn
                 field="displayName"
-                :title="$t('操作系统/架构')"
+                :title="t('installProxy.osArch')"
                 width="200"
               ></TableColumn>
-              <TableColumn field="version" :title="$t('版本')" width="288">
+              <TableColumn field="version" :title="t('installProxy.version')" width="288">
                 <template #default="{ row }">
                   <Validate
                     :value="row.version"
@@ -208,7 +210,7 @@
                   >
                     <Input
                       :model-value="row.version"
-                      :placeholder="$t('请选择')"
+                      :placeholder="t('installProxy.pleaseSelect')"
                       @click="handleChooseVersion(row)"
                     />
                   </Validate>
@@ -223,14 +225,14 @@
             class="w-[100px]"
             theme="primary"
             @click="handleImport">
-            {{ '导入' }}
+            {{ $t('platform.nodeMan.installAgentPage.excelImport') }}
           </Button> -->
           <Button
             theme="primary"
             class="w-[120px]"
             :disabled="systemData.length === 0"
             v-bk-tooltips="{
-              content: '当前无可用版本, 不可安装',
+              content: t('installProxy.noAvailableVersionTip'),
               disabled: systemData.length > 0
             }"
             @click="handleConfirm"
@@ -265,7 +267,7 @@
     <Dialog
       :is-show="isShowExcelImport"
       :width="1048"
-      :title="'Excel 导入'"
+      :title="t('installProxy.excelImport')"
       @closed="handleExcelImportCancel">
       <UploadExcel ref="uploadExcelRef" @upload="handleUpload"></UploadExcel>
       <template #footer>
@@ -352,17 +354,17 @@ const form = reactive({
 });
 const settings = reactive({
   fields: [
-    { field: 'bk_host_innerip', title: '内网 IPv4' },
-    { field: 'bk_host_innerip_v6', title: '内网 IPv6' },
-    { field: 'export_ip', title: '出口IP' },
-    { field: 'advertise_ip', title: '服务IP' },
-    { field: 'login_ip', title: '登录 IP' },
-    { field: 'login_mode', title: '认证方式' },
-    { field: 'credit', title: '密码 / 密钥' },
-    { field: 'dedicated_installer', title: '安装跳板' },
-    { field: 'cluster_tunnel', title: 'Agent控制' },
-    { field: 'file_tunnel', title: '文件传输' },
-    { field: 'data_tunnel', title: '数据上报' },
+    { field: 'bk_host_innerip', title: t('installProxy.innerIPv4') },
+    { field: 'bk_host_innerip_v6', title: t('installProxy.innerIPv6') },
+    { field: 'export_ip', title: t('installProxy.exportIP') },
+    { field: 'advertise_ip', title: t('installProxy.serviceIP') },
+    { field: 'login_ip', title: t('installProxy.loginIP') },
+    { field: 'login_mode', title: t('installProxy.authMethod') },
+    { field: 'credit', title: t('installProxy.passwordKey') },
+    { field: 'dedicated_installer', title: t('installProxy.installJump') },
+    { field: 'cluster_tunnel', title: t('installProxy.agentControl') },
+    { field: 'file_tunnel', title: t('installProxy.fileTransfer') },
+    { field: 'data_tunnel', title: t('installProxy.dataReport') },
   ],
   checked: [
     'bk_host_innerip',
@@ -429,17 +431,17 @@ const installOriginList = computed(() => {
     list = [
       {
         id: 'upstream',
-        name: '上级管控单元',
+        name: t('installProxy.upstreamUnit'),
         bk_networkunit_id: unit?.links?.cluster?.bk_networkunit_id,
       },
       {
         id: 'current',
-        name: '当前管控单元',
+        name: t('installProxy.currentUnit'),
         bk_networkunit_id: Number(props.bk_networkunit_id || form.bk_networkunit_id),
       },
       {
         id: 'custom',
-        name: '自定义',
+        name: t('installProxy.custom'),
         children: areaUnitlist.value.map((item: NetworkUnit) => ({
           id: String(item.bk_networkunit_id),
           name: `[${item.bk_networkunit_id}] ${item.bk_networkunit_name}`,
@@ -450,12 +452,12 @@ const installOriginList = computed(() => {
     list = [
       {
         id: 'current',
-        name: '当前管控单元',
+        name: t('installProxy.currentUnit'),
         bk_networkunit_id: Number(props.bk_networkunit_id || form.bk_networkunit_id),
       },
       {
         id: 'custom',
-        name: '自定义',
+        name: t('installProxy.custom'),
         children: areaUnitlist.value.map((item: NetworkUnit) => ({
           id: String(item.bk_networkunit_id),
           name: `[${item.bk_networkunit_id}] ${item.bk_networkunit_name}`,
@@ -492,7 +494,7 @@ const handleBeforeClose = (): Promise<boolean> => new Promise((resolve, reject) 
     return;
   }
   InfoBox({
-    title: '确认关闭?',
+    title: t('installProxy.confirmClose'),
     infoType: 'warning',
     onConfirm: () => {
       resolve(true);
@@ -591,7 +593,7 @@ const handleConfirm = async () => {
     if (!res) return;
     Message({
       theme: 'success',
-      message: '已发起proxy安装',
+      message: t('installProxy.installInitiated'),
     });
     isShow.value = false;
     if (res.workflow_id) {
@@ -607,7 +609,7 @@ const handleConfirm = async () => {
     scrollToFirstErrorByClassNames();
     Message({
       theme: 'warning',
-      message: '有填写的信息未通过校验',
+      message: t('installProxy.validationFailed'),
     });
   }
 };

@@ -10,7 +10,7 @@
           <install-type currentNodeType="agent" @change="handleChange"></install-type>
         </Form.FormItem>
         <Form.FormItem
-          :label="$t('platform.nodeMan.installAgentPage.business')"
+          :label="$t('platform.nodeMan.installAgentPage.installBusiness')"
           property="bk_biz_id"
           required
         >
@@ -68,12 +68,15 @@
           <template #label>
             <div class="mr-[2px]">{{ $t('platform.nodeMan.installAgentPage.info') }}</div>
             <!-- 导入弹窗 -->
-            <Button text theme="primary" @click="handleExcelImport">导入</Button>
+            <Button text theme="primary" @click="handleExcelImport">
+              {{ $t('platform.nodeMan.installAgentPage.excelImport') }}
+            </Button>
           </template>
           <install-table
             ref="installTableRef"
             :max-height="520"
             v-model:data="formData.info"
+            :current-settings="settings"
           >
             <UploadExcel @upload="handleUpload" v-if="activeInstallType === 'import'"></UploadExcel>
           </install-table>
@@ -92,14 +95,19 @@
         </Form.FormItem>
         <Form.FormItem :label="$t('platform.nodeMan.installAgentPage.version')" required v-if="isShow">
           <div class="w-[568px]">
-            <Table :data="systemData" :border="true" width="568" empty-text="当前无可用版本">
+            <Table
+              :data="systemData"
+              :border="true"
+              width="568"
+              :empty-text="$t('platform.nodeMan.installAgentPage.noAvailableVersion')"
+            >
               <TableColumn
                 field="os"
-                title="操作系统/架构"
+                :title="$t('platform.nodeMan.installAgentPage.osArch')"
                 width="200"
               >
                 <template #header>
-                  <span class="text-[14px]">操作系统/架构</span>
+                  <span class="text-[14px]">{{ $t('platform.nodeMan.installAgentPage.osArch') }}</span>
                 </template>
                 <template #default="{ row }">
                   {{ row.os?.replace('_', '/') }}
@@ -154,7 +162,7 @@
         theme="primary"
         :disabled="systemData.length === 0"
         v-bk-tooltips="{
-          content: '当前无可用版本, 不可安装',
+          content: $t('platform.nodeMan.installAgentPage.noAvailableVersionTip'),
           disabled: systemData.length > 0
         }"
         @click="handlePreview"
@@ -171,7 +179,7 @@
         v-if="excelImportData.length && activeInstallType === 'import' && formData.info.length > 0"
         class="w-[88px]"
         @click="handleSetpBack">
-        {{ '上一步' }}
+        {{ $t("action.back") }}
       </Button>
       <Button class="w-[88px]" @click="handleCancel">{{ $t("action.cancel") }}</Button>
     </div>
@@ -190,7 +198,7 @@
     <Dialog
       :is-show="isShowExcelImport"
       :width="1048"
-      :title="'Excel 导入'"
+      :title="$t('action.import')"
       @closed="handleExcelImportCancel">
       <UploadExcel ref="uploadExcelRef" @upload="handleUpload"></UploadExcel>
       <template #footer>
@@ -255,6 +263,33 @@ const formData = reactive({
   target_version: [] as any[],
   disable_default_target_version: false,
 });
+
+// 表头设置
+const settings = reactive({
+  fields: [
+    { title: t('components.installTable.innerIPv4'), field: 'bk_host_innerip' },
+    { title: t('components.installTable.innerIPv6'), field: 'bk_host_innerip_v6' },
+    { title: t('components.installTable.osType'), field: 'os_type' },
+    { title: t('components.installTable.loginIP'), field: 'login_ip' },
+    { title: t('components.installTable.port'), field: 'login_port' },
+    { title: t('components.installTable.account'), field: 'login_user' },
+    { title: t('components.installTable.authMethod'), field: 'login_mode' },
+    { title: t('components.installTable.passwordKey'), field: 'credit' },
+  ],
+  checked: [
+    'bk_host_innerip',
+    'bk_host_innerip_v6',
+    'os_type',
+    'login_port',
+    'login_ip',
+    'login_user',
+    'login_mode',
+    'credit',
+  ],
+  disabled: ['os_type', 'login_port', 'login_user', 'login_mode', 'credit'],
+  size: 'medium',
+});
+
 const previewData = reactive({
   isShow: false,
   data: null,
