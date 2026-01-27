@@ -31,6 +31,21 @@ allowed-tools:
 
 ## 快速开始
 
+### PR 审查（推荐）
+
+审查远程 PR 时，使用 [scripts/pr-worktree.sh](scripts/pr-worktree.sh) 创建独立工作区：
+
+```bash
+# 根据 PR URL 自动创建 worktree
+.claude/skills/code-review/scripts/pr-worktree.sh <PR_URL>
+
+# 支持: GitHub、GitLab、腾讯工蜂、Gitee
+```
+
+脚本自动解析 PR URL、fetch 分支、创建 worktree。创建后进入 worktree 目录进行审查。
+
+### 代码审查流程
+
 执行 6 步审查流程：
 
 1. **🔍 确定范围** - 使用 `🧠 sequential-thinking` 分析策略，用 `🔍 serena.get_symbols_overview` 识别文件和模块类型
