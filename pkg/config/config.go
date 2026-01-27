@@ -568,6 +568,9 @@ type Front struct {
 	// PasswordVault Options.
 	PasswordVaultSwitch bool   `yaml:"passwordVaultSwitch" usage:"switch of password vault"`
 	PasswordVaultName   string `yaml:"passwordVaultName" usage:"name of password vault"`
+
+	// BKUserWebURL is the URL of bk user web service.
+	BKUserWebURL string `yaml:"bkUserWebURL" usage:"bk user web url"`
 }
 
 // Validate validates the config.

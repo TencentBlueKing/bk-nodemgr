@@ -49,5 +49,6 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_PASS_ANALYTICS_SCRIPT": h.frontSetting.BKPassAnalyticsScript(),
 		"PASSWORD_VAULT_SWITCH":    h.frontSetting.PasswordVaultSwitch(),
 		"PASSWORD_VAULT_NAME":      h.frontSetting.PasswordVaultName(),
+		"BK_USER_WEB_URL":          h.frontSetting.BKUserWebURL(),
 	})
 }

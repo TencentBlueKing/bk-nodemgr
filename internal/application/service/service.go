@@ -171,6 +171,7 @@ func (svc *Service) initialCapability() error {
 			BKPassAnalyticsScript: svc.conf.BKPaas.AnalysisScript,
 			PasswordVaultSwitch:   svc.conf.Front.PasswordVaultSwitch,
 			PasswordVaultName:     svc.conf.Front.PasswordVaultName,
+			BKUserWebURL:          svc.conf.Front.BKUserWebURL,
 		},
 	)
 	if err != nil {

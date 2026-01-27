@@ -688,6 +688,8 @@ application:
       passwordVaultSwitch: false
       ## password vault name, default is password_vault.
       passwordVaultName: "password_vault"
+      ## bk user web url, default is empty.
+      bkUserWebURL: ""
 
     # defines the nodemgr backend (BK API gateway) related settings.
     backend:

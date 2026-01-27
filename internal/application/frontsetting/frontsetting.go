@@ -34,6 +34,9 @@ type IFrontSetting interface {
 
 	// PasswordVaultName the front setting field.
 	PasswordVaultName() string
+
+	// BKUserWebURL the front setting field.
+	BKUserWebURL() string
 }
 
 var _ IFrontSetting = &FrontSetting{}
@@ -46,6 +49,8 @@ type FrontSetting struct {
 
 	passwordVaultSwitch bool
 	passwordVaultName   string
+
+	bkUserWebURL string
 }
 
 // Option front setting option.
@@ -57,6 +62,9 @@ type Option struct {
 	// PasswordVault Options.
 	PasswordVaultSwitch bool
 	PasswordVaultName   string
+
+	// BKUserWebURL is the URL of bk user web service.
+	BKUserWebURL string
 }
 
 // Validate validate.
@@ -84,6 +92,7 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		bkPassAnalyticsScript: opt.BKPassAnalyticsScript,
 		passwordVaultSwitch:   opt.PasswordVaultSwitch,
 		passwordVaultName:     opt.PasswordVaultName,
+		bkUserWebURL:          opt.BKUserWebURL,
 	}, nil
 }
 
@@ -110,4 +119,9 @@ func (setting *FrontSetting) PasswordVaultSwitch() bool {
 // PasswordVaultName get password vault name.
 func (setting *FrontSetting) PasswordVaultName() string {
 	return setting.passwordVaultName
+}
+
+// BKUserWebURL get bk user web url.
+func (setting *FrontSetting) BKUserWebURL() string {
+	return setting.bkUserWebURL
 }

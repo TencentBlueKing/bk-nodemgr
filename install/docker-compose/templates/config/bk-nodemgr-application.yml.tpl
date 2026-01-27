@@ -4,6 +4,14 @@ runMode: debug
 # tenantMode single/multiple.
 tenantMode: single
 
+# front settings.
+front:
+  # password vault related settings.
+  passwordVaultSwitch: false
+  passwordVaultName: "password_vault"
+  # bk user web url.
+  bkUserWebURL: "__BK_NODEMGR_APPLICATION_USER_WEB_URL__"
+
 # infoServer defines self info http server settings.
 infoServer:
   # listening IP and Port.
