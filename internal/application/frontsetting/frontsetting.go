@@ -37,6 +37,15 @@ type IFrontSetting interface {
 
 	// BKUserWebURL the front setting field.
 	BKUserWebURL() string
+
+	// BKDomain the front setting field.
+	BKDomain() string
+
+	// BKDocsCenterURL the front setting field.
+	BKDocsCenterURL() string
+
+	// BKAppNavOpenSourceURL the front setting field.
+	BKAppNavOpenSourceURL() string
 }
 
 var _ IFrontSetting = &FrontSetting{}
@@ -51,6 +60,10 @@ type FrontSetting struct {
 	passwordVaultName   string
 
 	bkUserWebURL string
+
+	bkDomain              string
+	bkDocsCenterURL       string
+	bkAppNavOpenSourceURL string
 }
 
 // Option front setting option.
@@ -65,6 +78,15 @@ type Option struct {
 
 	// BKUserWebURL is the URL of bk user web service.
 	BKUserWebURL string
+
+	// BKDomain is the domain of bk platform.
+	BKDomain string
+
+	// BKDocsCenterURL is the URL of bk docs center.
+	BKDocsCenterURL string
+
+	// BKAppNavOpenSourceURL is the URL of bk app nav open source.
+	BKAppNavOpenSourceURL string
 }
 
 // Validate validate.
@@ -93,6 +115,9 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		passwordVaultSwitch:   opt.PasswordVaultSwitch,
 		passwordVaultName:     opt.PasswordVaultName,
 		bkUserWebURL:          opt.BKUserWebURL,
+		bkDomain:              opt.BKDomain,
+		bkDocsCenterURL:       opt.BKDocsCenterURL,
+		bkAppNavOpenSourceURL: opt.BKAppNavOpenSourceURL,
 	}, nil
 }
 
@@ -124,4 +149,19 @@ func (setting *FrontSetting) PasswordVaultName() string {
 // BKUserWebURL get bk user web url.
 func (setting *FrontSetting) BKUserWebURL() string {
 	return setting.bkUserWebURL
+}
+
+// BKDomain get bk domain.
+func (setting *FrontSetting) BKDomain() string {
+	return setting.bkDomain
+}
+
+// BKDocsCenterURL get bk docs center url.
+func (setting *FrontSetting) BKDocsCenterURL() string {
+	return setting.bkDocsCenterURL
+}
+
+// BKAppNavOpenSourceURL get bk app nav open source url.
+func (setting *FrontSetting) BKAppNavOpenSourceURL() string {
+	return setting.bkAppNavOpenSourceURL
 }

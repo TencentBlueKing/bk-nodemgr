@@ -571,6 +571,15 @@ type Front struct {
 
 	// BKUserWebURL is the URL of bk user web service.
 	BKUserWebURL string `yaml:"bkUserWebURL" usage:"bk user web url"`
+
+	// BKDomain is the domain of bk platform.
+	BKDomain string `yaml:"bkDomain" usage:"bk domain"`
+
+	// BKDocsCenterURL is the URL of bk docs center.
+	BKDocsCenterURL string `yaml:"bkDocsCenterURL" usage:"bk docs center url"`
+
+	// BKAppNavOpenSourceURL is the URL of bk app nav open source.
+	BKAppNavOpenSourceURL string `yaml:"bkAppNavOpenSourceURL" usage:"bk app nav open source url"`
 }
 
 // Validate validates the config.

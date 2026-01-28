@@ -11,6 +11,12 @@ front:
   passwordVaultName: "password_vault"
   # bk user web url.
   bkUserWebURL: "__BK_NODEMGR_APPLICATION_USER_WEB_URL__"
+  # bk domain.
+  bkDomain: "__BK_NODEMGR_APPLICATION_DOMAIN__"
+  # bk docs center url.
+  bkDocsCenterURL: "__BK_NODEMGR_APPLICATION_DOCS_CENTER_URL__"
+  # bk app nav open source url.
+  bkAppNavOpenSourceURL: "__BK_NODEMGR_APPLICATION_NAV_OPEN_SOURCE_URL__"
 
 # infoServer defines self info http server settings.
 infoServer:

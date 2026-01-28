@@ -16,6 +16,8 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/frontsetting"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/application/options"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/tenant"
 	"github.com/gin-gonic/gin"
 )
 
@@ -43,12 +45,29 @@ func Load(rg *gin.RouterGroup, capability *options.Capability, middlewares ...gi
 
 // Index return the index page.
 func (h *handler) Index(ctx *gin.Context) {
+	// Get tenant ID
+	var tenantID string
+	if tenant.GetMode() == tenant.ModeSingle {
+		tenantID = tenant.SingleModeTenantID
+	} else {
+		// Multiple tenant mode: get tenant ID from request header
+		tenantID = header.BKTenantIDGetter(ctx.Request)
+		if tenantID == "" {
+			// Use default value if tenant ID is not found in header
+			tenantID = tenant.SingleModeTenantID
+		}
+	}
+
 	ctx.HTML(http.StatusOK, "index.html", gin.H{
-		"BK_LOGIN_URL":             h.frontSetting.BKLoginURL(),
-		"BK_REQUEST_ID_HEADER_KEY": h.frontSetting.BKRequestIDHeaderKey(),
-		"BK_PASS_ANALYTICS_SCRIPT": h.frontSetting.BKPassAnalyticsScript(),
-		"PASSWORD_VAULT_SWITCH":    h.frontSetting.PasswordVaultSwitch(),
-		"PASSWORD_VAULT_NAME":      h.frontSetting.PasswordVaultName(),
-		"BK_USER_WEB_URL":          h.frontSetting.BKUserWebURL(),
+		"BK_LOGIN_URL":              h.frontSetting.BKLoginURL(),
+		"BK_REQUEST_ID_HEADER_KEY":  h.frontSetting.BKRequestIDHeaderKey(),
+		"BK_PASS_ANALYTICS_SCRIPT":  h.frontSetting.BKPassAnalyticsScript(),
+		"PASSWORD_VAULT_SWITCH":     h.frontSetting.PasswordVaultSwitch(),
+		"PASSWORD_VAULT_NAME":       h.frontSetting.PasswordVaultName(),
+		"BK_USER_WEB_URL":           h.frontSetting.BKUserWebURL(),
+		"BK_TENANT":                 tenantID,
+		"BK_DOMAIN":                 h.frontSetting.BKDomain(),
+		"BK_DOCS_CENTER_URL":        h.frontSetting.BKDocsCenterURL(),
+		"BKAPP_NAV_OPEN_SOURCE_URL": h.frontSetting.BKAppNavOpenSourceURL(),
 	})
 }

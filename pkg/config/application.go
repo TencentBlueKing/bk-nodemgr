@@ -30,8 +30,9 @@ const (
 	defaultApplicationTenantMode = tenant.ModeSingle
 
 	// front config default values.
-	defaultApplicationFrontPasswordVaultSwitch = false
-	defaultApplicationFrontPasswordVaultName   = "password_vault"
+	defaultApplicationFrontPasswordVaultSwitch   = false
+	defaultApplicationFrontPasswordVaultName     = "password_vault"
+	defaultApplicationFrontBKAppNavOpenSourceURL = "https://github.com/TencentBlueKing/bk-nodemgr"
 
 	defaultApplicationBackendTraceServiceName = "application-client-backend"
 	defaultApplicationFileTraceServiceName    = "application-client-file"
@@ -109,8 +110,9 @@ func NewApplicationService() *ApplicationService {
 			},
 		},
 		Front: Front{
-			PasswordVaultSwitch: defaultApplicationFrontPasswordVaultSwitch,
-			PasswordVaultName:   defaultApplicationFrontPasswordVaultName,
+			PasswordVaultSwitch:   defaultApplicationFrontPasswordVaultSwitch,
+			PasswordVaultName:     defaultApplicationFrontPasswordVaultName,
+			BKAppNavOpenSourceURL: defaultApplicationFrontBKAppNavOpenSourceURL,
 		},
 		Backend: Backend{
 			APIGatewayClient: APIGatewayClient{
@@ -178,11 +180,22 @@ func (svc *ApplicationService) Load(filePath string) error {
 	// default options.
 	svc.RunMode = RunModeRelease
 
+	var err error
 	if filePath == "" {
-		return svc.LoadFromEnv()
+		err = svc.LoadFromEnv()
+	} else {
+		err = svc.LoadFromFile(filePath)
+	}
+	if err != nil {
+		return err
 	}
 
-	return svc.LoadFromFile(filePath)
+	// Set default values for front config if not set.
+	if svc.Front.BKAppNavOpenSourceURL == "" {
+		svc.Front.BKAppNavOpenSourceURL = defaultApplicationFrontBKAppNavOpenSourceURL
+	}
+
+	return nil
 }
 
 // LoadFromEnv loads config from environment variables.
@@ -292,6 +305,12 @@ func (svc *ApplicationService) LoadFromEnv() error {
 	if _, err := envx.LoadInt("NODEMAN_LOG_MAX_SIZE_MB", &svc.Log.MaxSizeMB); err != nil {
 		return err
 	}
+
+	// front config.
+	_ = envx.LoadString("BK_NODEMGR_APPLICATION_USER_WEB_URL", &svc.Front.BKUserWebURL)
+	_ = envx.LoadString("BK_NODEMGR_APPLICATION_DOMAIN", &svc.Front.BKDomain)
+	_ = envx.LoadString("BK_NODEMGR_APPLICATION_DOCS_CENTER_URL", &svc.Front.BKDocsCenterURL)
+	_ = envx.LoadString("BK_NODEMGR_APPLICATION_NAV_OPEN_SOURCE_URL", &svc.Front.BKAppNavOpenSourceURL)
 
 	return nil
 }

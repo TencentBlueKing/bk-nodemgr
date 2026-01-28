@@ -172,6 +172,9 @@ func (svc *Service) initialCapability() error {
 			PasswordVaultSwitch:   svc.conf.Front.PasswordVaultSwitch,
 			PasswordVaultName:     svc.conf.Front.PasswordVaultName,
 			BKUserWebURL:          svc.conf.Front.BKUserWebURL,
+			BKDomain:              svc.conf.Front.BKDomain,
+			BKDocsCenterURL:       svc.conf.Front.BKDocsCenterURL,
+			BKAppNavOpenSourceURL: svc.conf.Front.BKAppNavOpenSourceURL,
 		},
 	)
 	if err != nil {

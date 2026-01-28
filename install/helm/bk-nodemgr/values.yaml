@@ -690,6 +690,12 @@ application:
       passwordVaultName: "password_vault"
       ## bk user web url, default is empty.
       bkUserWebURL: ""
+      ## bk domain, default is empty.
+      bkDomain: ""
+      ## bk docs center url, default is empty.
+      bkDocsCenterURL: ""
+      ## bk app nav open source url, default is empty.
+      bkAppNavOpenSourceURL: ""
 
     # defines the nodemgr backend (BK API gateway) related settings.
     backend:

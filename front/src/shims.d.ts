@@ -14,7 +14,9 @@ declare interface Window {
     BK_COMPONENT_API_URL: string,
     BK_DOMAIN: string,
     BKAPP_NAV_OPEN_SOURCE_URL: string,
-    BK_DOCS_CENTER_URL: string
+    BK_DOCS_CENTER_URL: string,
+    BK_USER_WEB_URL: string,
+    BK_TENANT: string
   }
   loginModal: Object
 }
