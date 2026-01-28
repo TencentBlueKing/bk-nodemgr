@@ -737,6 +737,39 @@ application:
         # the password to decrypt the certificate.
         password: ""
 
+    # defines the notice center (BK API gateway) related settings.
+    notice:
+      # endpoints is a seed list of host:port addresses of notice apigw nodes.
+      endpoints:
+        - "https://example.com/api/bk-notice/prod"
+      # appCode is the BlueKing app code of NodeMan to request api gateway.
+      appCode: ""
+      # appSecret is the BlueKing app secret of NodeMan to request api gateway.
+      appSecret: ""
+      # user is the BlueKing user of NodeMan to request api gateway.
+      user: ""
+      # authMode is the mode to do api auth verification.
+      # 1. un use username authentication
+      # 2. at use accessToken auth
+      authMode: "un"
+      # accessToken is the BlueKing access token (when authMode=at)
+      accessToken: ""
+      # trace service name for Notice client
+      traceServiceName: "application-client-notice"
+      traceSampleRate: 0
+      # defines tls related options.
+      tls:
+        # server should be accessed without verifying the TLS certificate.
+        insecureSkipVerify: false
+        # server requires TLS client certificate authentication.
+        certFile: ""
+        # server requires TLS client certificate authentication.
+        keyFile: ""
+        # trusted root certificates for server.
+        caFile: ""
+        # the password to decrypt the certificate.
+        password: ""
+
     ## defines the application info server related settings.
     infoServer:
       bindIP: "0.0.0.0"

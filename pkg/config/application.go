@@ -36,6 +36,7 @@ const (
 
 	defaultApplicationBackendTraceServiceName = "application-client-backend"
 	defaultApplicationFileTraceServiceName    = "application-client-file"
+	defaultApplicationNoticeTraceServiceName  = "application-client-notice"
 
 	// info server config default values.
 	defaultApplicationInfoBindIP           = "127.0.0.1"
@@ -79,6 +80,11 @@ type Backend struct {
 	APIGatewayClient `yaml:",inline" usage:"api-gateway config of backend"`
 }
 
+// Notice the config of notice gateway config.
+type Notice struct {
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of notice"`
+}
+
 // ApplicationService the config of application service.
 type ApplicationService struct {
 	RunMode     RunMode     `yaml:"mode" usage:"run mode of service"`
@@ -87,6 +93,7 @@ type ApplicationService struct {
 	BKPaas      BKPaaS      `yaml:"bkPaaS" usage:"bk paas config of application service"`
 	Front       Front       `yaml:"front" usage:"front config of application service"`
 	Backend     Backend     `yaml:"backend" usage:"backend gateway config"`
+	Notice      Notice      `yaml:"notice" usage:"notice gateway config"`
 	File        File        `yaml:"file" usage:"file config of backend service"`
 	Etcd        Etcd        `yaml:"etcd" usage:"etcd config of application service"`
 	MongoDB     MongoDB     `yaml:"mongodb" usage:"mongodb config of application service"`
@@ -118,6 +125,13 @@ func NewApplicationService() *ApplicationService {
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
 					TraceServiceName: defaultApplicationBackendTraceServiceName,
+				},
+			},
+		},
+		Notice: Notice{
+			APIGatewayClient: APIGatewayClient{
+				TraceService: TraceService{
+					TraceServiceName: defaultApplicationNoticeTraceServiceName,
 				},
 			},
 		},
@@ -355,6 +369,10 @@ func (svc *ApplicationService) Validate() error {
 
 	if err := svc.Backend.Validate(); err != nil {
 		return fmt.Errorf("failed to validate backend config: %w", err)
+	}
+
+	if err := svc.Notice.Validate(); err != nil {
+		return fmt.Errorf("failed to validate notice config: %w", err)
 	}
 
 	if err := svc.File.Validate(); err != nil {

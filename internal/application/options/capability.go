@@ -18,6 +18,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/backend"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/notice"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -32,6 +33,9 @@ type Capability struct {
 
 	// FileHandler the file handler.
 	FileHandler file.IHandler
+
+	// NoticeHandler the notice api handler.
+	NoticeHandler notice.IHandler
 
 	// StorageConfigPolicyTemplate the storage of config policy template.
 	StorageConfigPolicyTemplate cptemplate.IStorage

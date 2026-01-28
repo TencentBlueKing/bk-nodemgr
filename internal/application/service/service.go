@@ -42,6 +42,7 @@ import (
 	bksaasbklogin "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/bklogin"
 	bksaasheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/bksaas/header"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/notice"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -54,6 +55,7 @@ const (
 	clientNameBackend = "backend"
 	clientNameBKLogin = "bklogin"
 	clientNameFile    = "file"
+	clientNameNotice  = "notice"
 )
 
 // Service defines a apigwserver that provides application services.
@@ -152,6 +154,12 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create file handler: %w", err)
 	}
 
+	// initial notice handler.
+	svc.Cap.NoticeHandler, err = svc.newNoticeHandler()
+	if err != nil {
+		return fmt.Errorf("failed to create notice handler: %w", err)
+	}
+
 	// initial mongo client.
 	svc.Cap.MongoClient, err = svc.newMongoClient()
 	if err != nil {
@@ -200,6 +208,30 @@ func (svc *Service) newBackendHandler() (backend.IHandler, error) {
 	}
 
 	return backendHandler, nil
+}
+
+func (svc *Service) newNoticeHandler() (notice.IHandler, error) {
+	apiGwAppConfig := newAPIGWAppConfig(&svc.conf.Notice.APIGatewayClient)
+	apiGwUserConfig := apigwclient.UserConfig{
+		AppConfig:   apiGwAppConfig,
+		AuthMode:    apigwclient.AuthMode(svc.conf.Notice.AuthMode),
+		BKUsername:  svc.conf.Notice.User,
+		AccessToken: svc.conf.Notice.AccessToken,
+	}
+
+	apiGwClientCapability, err := newAPIGwClientCapability(clientNameNotice, &svc.conf.Notice.APIGatewayClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for notice: %w", err)
+	}
+
+	noticeHandler, err := notice.New(apiGwClientCapability, &notice.Config{
+		APIGWUserConfig: apiGwUserConfig,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return noticeHandler, nil
 }
 
 func (svc *Service) newFileHandler() (file.IHandler, error) {
