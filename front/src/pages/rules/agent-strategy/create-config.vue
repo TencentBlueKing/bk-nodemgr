@@ -7,7 +7,7 @@
     :before-close="handleBeforeClose"
   >
     <div class="p-[24px] h-full overflow-auto">
-      <Form ref="formRef" :model="formData" :rules="rules">
+      <Form ref="formRef" :model="formData" :rules="rules" form-type="vertical">
         <Form.FormItem :label="'配置名称'" property="configpolicy_name" required>
           <Input v-model="formData.configpolicy_name"></Input>
         </Form.FormItem>
@@ -41,17 +41,17 @@
           <Switcher v-model="formData.enabled" theme="primary"></Switcher>
         </Form.FormItem>
         <Form.FormItem :label="'备注'" property="biz_id">
-          <Input type="textarea" v-model="formData.remark"></Input>
+          <Input type="textarea" v-model="formData.remark" show-word-limit :maxlength="100"></Input>
         </Form.FormItem>
         <Form.FormItem :label="'作用范围'" property="scopes">
           <div
             v-for="(item, index) in formData.scopes"
             :key="index"
-            class="bg-[#F0F1F5] p-[16px] flex items-center gap-[12px]"
+            class="bg-[#F0F1F5] p-[16px] flex items-center gap-[12px] mb-[10px] relative form-scope"
           >
             <div class="flex-1 flex flex-col gap-[8px]">
               <AreaSelector
-                class="w-[568px]"
+                class="w-full"
                 :multiple="false"
                 :no-limit="true"
                 @change="(id, data) => handleSingleChange(item, id, data)" />
@@ -95,6 +95,11 @@
                 </Select.Group>
               </Select>
               <Select v-model="item.cpu_arch" prefix="架构" auto-focus filterable>
+                <template #prefix>
+                  <div class="w-[65px] text-center text-[#63656E] text-[12px] border-r border-r-[#c4c6cc]">
+                    架<span class="ml-[24px]">构</span>
+                  </div>
+                </template>
                 <Select.Option label="不限" value="-1"></Select.Option>
                 <Select.Group>
                   <Select.Option
@@ -107,44 +112,53 @@
                 </Select.Group>
               </Select>
             </div>
-            <div class="w-[20px] cursor-pointer" @click="handleDelete(index)">
-              <i class="nodeman-icon nc-delete-3" v-show="index !== 0"></i>
+            <div
+              class="delete absolute right-[-10px] top-[-15px] w-[20px] cursor-pointer hidden"
+              @click="handleDelete(index)">
+              <i class="nodeman-icon nc-minus text-[#EA3636]"></i>
             </div>
           </div>
-          <Button theme="primary" text @click="handleAdd">
+          <!--eslint-disable-next-line max-len -->
+          <div class="bg-[#F0F5FF] border-dashed border-2 border-[#A3C5FD] text-[#3A84FF] h-[30px] flex items-center justify-center cursor-pointer" @click="handleAdd">
             <i class="nodeman-icon nc-plus-line text-[11px] mr-[8px]"></i>
-            <span class="text-[14px]">添加范围</span>
-          </Button>
-        </Form.FormItem>
-        <Form.FormItem :label="'配置'" property="configs">
-          <div class="flex items-center text-[#979BA5]">
-            <i class="nodeman-icon nc-tips"></i>
-            <span class="ml-[9px] text-[12px]"
-            >如需修改默认配置，需打开开关后修改</span
-            >
+            <span class="text-[14px]">{{ $t('添加范围') }}</span>
           </div>
-          <config-template
-            :visible="true"
-            :configpolicy-type="configpolicyType"
-            :is-edit="isEdit"
-            :configs="formData.configs"
-            @update-config="updateConfig"
-          ></config-template>
-          <div
-            class="text-[#E71818] text-[12px] flex items-center"
-            v-if="isEdit && configData"
+        </Form.FormItem>
+        <Form.FormItem property="configs">
+          <Button
+            text
+            theme="primary"
+            @click="isConfigShow = !isConfigShow"
           >
-            <i class="nodeman-icon nc-remind-fill text-[14px]"></i>
-            <span class="mr-[3px] ml-[9px]"
-            >编辑器内容有改动，保存该配置版本将会由</span
+            <span class="mr-[8.5px] text-[14px]">{{ $t('platform.nodeMan.installAgentPage.AdvancedOptions') }}</span>
+            <angle-double-down-line
+              :class="['text-[14px]', { 'transform rotate-180': isConfigShow }]"
+            />
+          </Button>
+          <div class="mt-[15px]" v-show="isConfigShow">
+            <config-template
+              :visible="true"
+              :configpolicy-type="configpolicyType"
+              :is-edit="isEdit"
+              :configs="formData.configs"
+              @update-config="updateConfig"
+            ></config-template>
+            <div
+              class="text-[#E71818] text-[12px] flex items-center"
+              v-if="isEdit && configData"
             >
-            <Tag theme="warning">{{
-              `V${configData.version}`
-            }}</Tag>
-            <span class="mx-[3px]">升级为</span>
-            <Tag theme="success">{{
-              `V${configData.version + 1}`
-            }}</Tag>
+              <i class="nodeman-icon nc-remind-fill text-[14px]"></i>
+              <span class="mr-[3px] ml-[9px]"
+              >编辑器内容有改动，保存该配置版本将会由</span
+              >
+              <Tag theme="warning">{{
+                `V${configData.version}`
+              }}</Tag>
+              <span class="mx-[3px]">升级为</span>
+              <Tag theme="success">{{
+                `V${configData.version + 1}`
+              }}</Tag>
+            </div>
           </div>
         </Form.FormItem>
       </Form>
@@ -160,6 +174,7 @@
 </template>
 <script lang="ts" setup>
 import { Button, Form, InfoBox, Input, Select, Sideslider, Switcher, Tag } from 'bkui-vue';
+import { AngleDoubleDownLine } from 'bkui-vue/lib/icon';
 import { cloneDeep, isEqual } from 'lodash';
 import { computed, reactive, ref, watch } from 'vue';
 
@@ -171,6 +186,12 @@ import ConfigTemplate from '@/components/config-template.vue';
 import { useMainStore } from '@/stores/main';
 import useUserStore from '@/stores/user';
 
+interface IScope {
+  bk_networkarea_id: string | number,
+  bk_networkunit_id: string | number,
+  os_type: string,
+  cpu_arch: string,
+}
 // Sideslider显示状态
 const isShow = defineModel('isShow', { type: Boolean });
 
@@ -191,20 +212,14 @@ const title = computed(() => {
 });
 const businessList = computed(() => mainStore.businessList);
 
+const isConfigShow = ref(false);
 // 初始化数据函数
 const formData = reactive({
   configpolicy_name: '',
   configpolicy_type: props.configpolicyType,
   biz_id: ['不限'] as string[] | number[],
   remark: '',
-  scopes: [
-    {
-      bk_networkarea_id: '-1',
-      bk_networkunit_id: '-1',
-      os_type: '-1',
-      cpu_arch: '-1',
-    },
-  ],
+  scopes: [] as IScope[],
   configs: [] as ConfigPolicyConfigBlock[],
   operator: '',
   enabled: false,
@@ -214,14 +229,7 @@ const initData = () => {
   formData.configpolicy_type = props.configpolicyType;
   formData.remark = '';
   formData.biz_id = ['不限'];
-  formData.scopes = [
-    {
-      bk_networkarea_id: '-1',
-      bk_networkunit_id: '-1',
-      os_type: '-1',
-      cpu_arch: '-1',
-    },
-  ];
+  formData.scopes = [];
   formData.configs = [];
   formData.operator = '';
   formData.enabled = false;
@@ -269,7 +277,6 @@ const handleAdd = () => {
   });
 };
 const handleDelete = (index: number) => {
-  if (index === 0) return;
   formData.scopes = formData.scopes.filter((_: any, ind: number) => ind !== index);
 };
 const handleChangeBiz = (val: any) => {
@@ -283,6 +290,7 @@ const handleChangeBiz = (val: any) => {
 const updateConfig = (configs: any[]) => {
   formData.configs = configs;
 };
+
 const handleSubmit = async () => {
   // 表单验证
   const isValid = await formRef.value?.validate().catch(() => false);
@@ -382,3 +390,12 @@ watch(() => isShow.value, () => {
   }
 }, { immediate: true });
 </script>
+<style lang="postcss" scoped>
+.form-scope {
+  &:hover {
+    .delete {
+      display: inline-block;
+    }
+  }
+}
+</style>
