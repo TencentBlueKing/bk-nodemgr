@@ -41,7 +41,9 @@ RM      = rm
 SH      = sh
 PROTOC  = protoc -Ithirdparty/
 FORMAT  = clang-format -i
-REPLACE = sed -i 's/,omitempty//g'
+UNAME_S := $(shell uname)
+SED_INPLACE = $(if $(filter Darwin,$(UNAME_S)),sed -i '',sed -i)
+REPLACE = $(SED_INPLACE) -e 's/,omitempty//g'
 FIXSWAGGER = ./convert_swagger_type.sh
 
 default: all

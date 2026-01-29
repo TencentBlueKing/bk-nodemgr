@@ -1,20 +1,40 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-SWAGGER_ROOT="$1"
+set -euo pipefail
 
-# recursively process all Swagger.JSON files.
+SWAGGER_ROOT="${1:-}"
+
+if [[ -z "${SWAGGER_ROOT}" ]]; then
+  echo "usage: $(basename "$0") <swagger_root_dir>" >&2
+  exit 2
+fi
+
+if [[ ! -d "${SWAGGER_ROOT}" ]]; then
+  echo "swagger_root_dir not found: ${SWAGGER_ROOT}" >&2
+  exit 2
+fi
+
+sed_inplace() {
+  # macOS/BSD sed requires an explicit empty backup suffix.
+  # GNU sed accepts `-i` without a suffix.
+  if sed --version >/dev/null 2>&1; then
+    sed -i -E "$@"
+  else
+    sed -i '' -E "$@"
+  fi
+}
+
+# Recursively process all *.swagger.json files.
 find "${SWAGGER_ROOT}" -type f -name "*.swagger.json" -print0 | while IFS= read -r -d '' file; do
-  # Modify files in place using GNU sed
-  sed -i -E '
+  sed_inplace '
     /[[:space:]]*"type": "string",/ {
-      N  
+      N
       /[[:space:]]*"type": "string",\n[[:space:]]*"format": "int64"/ {
-        s/"type": "string"/"type": "integer"/  # replace type
+        s/"type": "string"/"type": "integer"/
       }
     }
-    # Handle the format of the same line (type and format on the same line)
     /[[:space:]]*"type": "string",[[:space:]]*"format": "int64"/ {
-      s/"type": "string"/"type": "integer"/  # replace type
+      s/"type": "string"/"type": "integer"/
     }
   ' "${file}"
 done

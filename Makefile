@@ -1,5 +1,24 @@
 .PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools bintools scripts apigw-docs
 
+# Target platform for docker-build-server (optional)
+# Examples:
+#   make docker-build-server                      # build for host arch
+#   make docker-build-server TARGET_PLATFORM=linux/amd64
+#   make docker-build-server TARGET_PLATFORM=linux/arm64
+# Notes:
+#   - When TARGET_PLATFORM is set, service binaries are cross-compiled for that platform
+#     and the docker image is built via buildx with the same --platform.
+TARGET_PLATFORM ?=
+
+# buildx builder (used when TARGET_PLATFORM is set)
+BUILDX_BUILDER ?= nodemgr-multiarch
+BUILDX_PLATFORMS ?= linux/amd64,linux/arm64
+
+ifneq ($(strip $(TARGET_PLATFORM)),)
+TARGET_OS := $(word 1,$(subst /, ,$(TARGET_PLATFORM)))
+TARGET_ARCH := $(word 2,$(subst /, ,$(TARGET_PLATFORM)))
+endif
+
 # version
 BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
 GITTAG    := $(shell git describe --tags --always --dirty 2>/dev/null || echo "v0.0.0")
@@ -19,6 +38,9 @@ LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.VERSION=${
 
 # fixed go version.
 GO = go1.23.10
+
+# Go build env for cross compile (empty when TARGET_PLATFORM is not set)
+GO_BUILD_ENV = CGO_ENABLED=0 $(if $(TARGET_OS),GOOS=$(TARGET_OS),) $(if $(TARGET_ARCH),GOARCH=$(TARGET_ARCH),)
 
 # cmd
 MKDIR = mkdir -p
@@ -44,22 +66,22 @@ pre:
 
 backend: | pre
 	@$(ECHO) "Building backend $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-backend $(ROOT_DIR)/cmd/backend/main.go
+	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-backend $(ROOT_DIR)/cmd/backend/main.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-backend"
 
 application: | pre
 	@$(ECHO) "Building application $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-application $(ROOT_DIR)/cmd/application/*.go
+	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-application $(ROOT_DIR)/cmd/application/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-application"
 
 file: | pre
 	@$(ECHO) "Building file $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-file $(ROOT_DIR)/cmd/file/*.go
+	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-file $(ROOT_DIR)/cmd/file/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-file"
 
 relay: | pre
 	@$(ECHO) "Building proxy $(VERSION)..."
-	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-relay $(ROOT_DIR)/cmd/relay/*.go
+	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-relay $(ROOT_DIR)/cmd/relay/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-relay"
 
 front: | pre
@@ -167,7 +189,29 @@ docker-build-server: backend application file front tools scripts
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/Dockerfile $(OUTPUT_DIR)
 	@$(CP) $(ROOT_DIR)/install/docker-compose/serviced.sh $(OUTPUT_DIR)
-	@$(CD) $(OUTPUT_DIR) && docker build -t bk-nodemgr-server:v${VERSION} .
+	@if [ -n "$(TARGET_PLATFORM)" ]; then \
+		case "$(TARGET_PLATFORM)" in \
+			*/*) ;; \
+			*) $(ECHO) "Error: TARGET_PLATFORM must be in 'os/arch' format, got '$(TARGET_PLATFORM)'"; exit 1;; \
+		esac; \
+		$(ECHO) "Make sure Docker buildx is available..."; \
+		docker buildx version >/dev/null 2>&1 || { $(ECHO) "Please install/enable Docker buildx"; exit 1; }; \
+		prev_builder=$$(docker buildx ls 2>/dev/null | awk '$$1 ~ /\*/ {gsub("\\*","",$$1); print $$1; exit}'); \
+		[ -n "$$prev_builder" ] || prev_builder=default; \
+		trap 'docker buildx use default >/dev/null 2>&1 || docker buildx use "$$prev_builder" >/dev/null 2>&1 || true' EXIT; \
+		if ! docker buildx inspect "$(BUILDX_BUILDER)" >/dev/null 2>&1; then \
+			$(ECHO) "Creating buildx builder: $(BUILDX_BUILDER)"; \
+			docker buildx create --name "$(BUILDX_BUILDER)" --driver docker-container --platform "$(BUILDX_PLATFORMS)" --use --bootstrap; \
+		else \
+			$(ECHO) "Using existing buildx builder: $(BUILDX_BUILDER)"; \
+			docker buildx use "$(BUILDX_BUILDER)"; \
+			docker buildx inspect --bootstrap >/dev/null; \
+		fi; \
+		$(ECHO) "Building docker image for platform $(TARGET_PLATFORM)..."; \
+		$(CD) $(OUTPUT_DIR) && docker buildx build --platform $(TARGET_PLATFORM) -t bk-nodemgr-server:v${VERSION} --load .; \
+	else \
+		$(CD) $(OUTPUT_DIR) && docker build -t bk-nodemgr-server:v${VERSION} .; \
+	fi
 	@$(ECHO) "Built successfully docker images bk-nodemgr-server:v${VERSION}"
 
 docker-build-apigw-sync: | pre
