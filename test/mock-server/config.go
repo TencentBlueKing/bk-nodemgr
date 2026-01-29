@@ -1,0 +1,118 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router/cmdb"
+	"gopkg.in/yaml.v2"
+)
+
+const (
+	// basic server config default values.
+	defaultMockBasicBindIP   = "127.0.0.1"
+	defaultMockBasicPort     = 28400
+	defaultMockBasicIdentity = config.AuthIdentityNone
+
+	// default log config.
+	defaultMockLogDir       = "./logs"
+	defaultMockLogMaxSizeMB = 200
+	defaultMockLogMaxNum    = 10
+	defaultMockLogLevel     = config.LogLevelInfo
+
+	defaultMockAdvertiseIPv4 = "127.0.0.1"
+	defaultMockAdvertiseIPv6 = "::1"
+)
+
+// MockService holds mock-server configuration.
+type MockService struct {
+	BasicServer config.HTTPServer `yaml:"basicServer" usage:"basic server config of mock-server"`
+	Log         config.Log        `yaml:"log" usage:"log config of mock-server"`
+
+	// MockData holds the mock data configuration for all mock routers.
+	MockData MockData `yaml:"mockData" usage:"mock data config"`
+}
+
+// MockData holds the mock data configuration for all mock routers.
+type MockData struct {
+	CMDB *cmdb.Config `yaml:"cmdb"`
+}
+
+// Validate validates the MockData.
+func (m *MockData) Validate() error {
+	if m.CMDB != nil {
+		if err := m.CMDB.Validate(); err != nil {
+			return fmt.Errorf("failed to validate cmdb config: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// NewMockService generates a new MockService with default values.
+func NewMockService() *MockService {
+	return &MockService{
+		BasicServer: config.HTTPServer{
+			BindIP:        defaultMockBasicBindIP,
+			Port:          defaultMockBasicPort,
+			AuthIdentity:  defaultMockBasicIdentity,
+			AdvertiseIPV4: defaultMockAdvertiseIPv4,
+			AdvertiseIPV6: defaultMockAdvertiseIPv6,
+		},
+		Log: config.Log{
+			Dir:       defaultMockLogDir,
+			MaxSizeMB: defaultMockLogMaxSizeMB,
+			MaxNum:    defaultMockLogMaxNum,
+			Level:     defaultMockLogLevel,
+		},
+	}
+}
+
+// LoadFromFile loads config from file.
+func (conf *MockService) LoadFromFile(path string) error {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+
+	absPath = filepath.Clean(absPath)
+	configContent, err := os.ReadFile(absPath)
+	if err != nil {
+		return err
+	}
+
+	if err = yaml.Unmarshal(configContent, conf); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Validate validates the config.
+func (conf *MockService) Validate() error {
+	if err := conf.BasicServer.Validate(); err != nil {
+		return fmt.Errorf("failed to validate basic server config: %w", err)
+	}
+
+	if err := conf.Log.Validate(); err != nil {
+		return fmt.Errorf("failed to validate log config: %w", err)
+	}
+
+	if err := conf.MockData.Validate(); err != nil {
+		return fmt.Errorf("failed to validate mock data config: %w", err)
+	}
+
+	return nil
+}

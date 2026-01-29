@@ -1,10 +1,21 @@
-.PHONY: all clean test build pre
+.PHONY: all clean test build pre mock-server
+
+# version
+BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
+GITTAG    := $(shell git describe --tags --always --dirty 2>/dev/null || echo "v0.0.0")
+GITHASH   := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+VERSION   ?= ${GITTAG}-$(shell date +%y.%m.%d)
 
 # directories
 TEST_OUTPUT = build
 
 # go version
 GO = go1.23.10
+
+# ldflags
+LDVersionFLAG = "-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.VERSION=${VERSION} \
+	-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.BUILDTIME=${BUILDTIME} \
+	-X github.com/TencentBlueKing/bk-nodemgr/pkg/version.GITHASH=${GITHASH} "
 
 # cmd
 MKDIR = mkdir -p
@@ -31,8 +42,14 @@ build:
 		CGO_ENABLED=0 $(GO) test -v -c -o "$$out" "./$$dir" || exit 1; \
 	done
 
-all: pre build
-	@$(ECHO) "Built successfully test cases"
+mock-server: pre
+	@$(ECHO) "Building mock-server $(VERSION)..."
+	@$(MKDIR) $(TEST_OUTPUT)
+	CGO_ENABLED=0 $(GO) build -ldflags ${LDVersionFLAG} -o $(TEST_OUTPUT)/mock-server ./mock-server
+	@$(ECHO) "Built successfully: $(TEST_OUTPUT)/mock-server"
+
+all: pre build mock-server
+	@$(ECHO) "Built successfully test cases and mock-server"
 
 test:
 	@for testfile in $$(find $(TEST_OUTPUT) -type f -name "*.test" 2>/dev/null); do \

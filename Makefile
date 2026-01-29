@@ -181,7 +181,7 @@ docker-build-apigw-sync: | pre
 
 test: | pre
 	@$(ECHO) "Building test..."
-	@$(MAKE) -C $(ROOT_DIR)/test build
+	@$(MAKE) -C $(ROOT_DIR)/test all
 	@$(MKDIR) $(OUTPUT_DIR)/test
 	@$(CP) -R $(ROOT_DIR)/test/build/* $(OUTPUT_DIR)/test/ 2>/dev/null || true
 	@$(ECHO) "Built successfully test"
