@@ -50,3 +50,52 @@ func (resp *BaseBroker[T]) IsFailed() error {
 
 	return nil
 }
+
+// getCurrentAnnouncementsParams describe the parameters for getting current announcements.
+// This is an internal type, not exposed in the public API.
+type getCurrentAnnouncementsParams struct {
+	Platform string
+	Username string
+}
+
+// toQueryParams converts params to URL query parameters.
+func (p *getCurrentAnnouncementsParams) toQueryParams() map[string]string {
+	params := make(map[string]string)
+	if p.Platform != "" {
+		params["platform"] = p.Platform
+	}
+	if p.Username != "" {
+		params["username"] = p.Username
+	}
+
+	return params
+}
+
+// announcementContent describe the content of an announcement.
+type announcementContent struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+// announcementData describe the announcement data from API response.
+type announcementData struct {
+	ID           int64               `json:"id"`
+	Content      announcementContent `json:"content"`
+	AnnounceType string              `json:"announce_type"`
+	StartTime    string              `json:"start_time"`
+	EndTime      string              `json:"end_time"`
+}
+
+// registerApplicationResp describe the response data after registering an application.
+type registerApplicationResp struct {
+	ID   int64  `json:"id"`
+	Code string `json:"code"`
+	Name string `json:"name"`
+}
+
+// appRegistration represents the result of registering an application (internal use).
+type appRegistration struct {
+	ID   int64
+	Code string
+	Name string
+}

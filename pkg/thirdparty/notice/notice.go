@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
 )
@@ -53,4 +54,63 @@ func (c *cli) getHeader() (http.Header, error) {
 	// TODO: integrate tenant info
 
 	return header, nil
+}
+
+// getCurrentAnnouncements get current announcements from notice center.
+func (c *cli) getCurrentAnnouncements(nCtx contextx.IContext,
+	params *getCurrentAnnouncementsParams) ([]*announcementData, error) {
+
+	resp := new(BaseBroker[[]*announcementData])
+	header, err := c.getHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	request := c.client.Get().
+		SubResourcef("/announcement/get_current_announcements").
+		WithContext(nCtx).
+		WithHeaders(header)
+
+	// Add query parameters
+	if params != nil {
+		for key, value := range params.toQueryParams() {
+			request = request.WithParam(key, value)
+		}
+	}
+
+	err = request.Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("get current announcements failed: %v", err)
+	}
+
+	return resp.Data, nil
+}
+
+// registerApplication registers an application with notice center.
+// No request body needed - authentication is via header.
+func (c *cli) registerApplication(nCtx contextx.IContext) (*registerApplicationResp, error) {
+	resp := new(BaseBroker[*registerApplicationResp])
+	header, err := c.getHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.client.Post().
+		SubResourcef("/register").
+		WithContext(nCtx).
+		WithHeaders(header).
+		Do().Into(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.IsFailed(); err != nil {
+		return nil, fmt.Errorf("register application failed: %v", err)
+	}
+
+	return resp.Data, nil
 }

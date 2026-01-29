@@ -37,6 +37,11 @@ func NewAppConfig(endpoints []string, appCode string, appSecret string) AppConfi
 	}
 }
 
+// GetAppCode returns the app code from the config.
+func (conf *AppConfig) GetAppCode() string {
+	return conf.appCode
+}
+
 // Validate api gateway runtime.
 func (conf *AppConfig) Validate() error {
 	if len(conf.endpoints) == 0 {
