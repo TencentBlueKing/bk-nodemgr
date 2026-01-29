@@ -1,0 +1,61 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making
+ * 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available. Copyright (C) 2017-2022 THL
+ * A29 Limited, a Tencent company. All rights reserved. Licensed under the MIT
+ * License (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * https://opensource.org/licenses/MIT Unless required by applicable law or
+ * agreed to in writing, software distributed under the License is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/application/api/v3";
+
+import "common.proto";
+
+import "google/api/annotations.proto";
+
+// GetCurrentAnnouncementsReq describes the request to get current
+// announcements. All parameters (platform and username) are automatically
+// obtained from config and context.
+message GetCurrentAnnouncementsReq {
+  // Empty request - all parameters are obtained from context automatically
+}
+
+// Announcement describes a platform announcement.
+message Announcement {
+  int64 id = 1 [ json_name = "id" ];
+  string title = 2 [ json_name = "title" ];
+  string content = 3 [ json_name = "content" ];
+  string announce_type = 4 [ json_name = "announce_type" ];
+  string start_time = 5 [ json_name = "start_time" ]; // RFC3339 format string
+  string end_time = 6 [ json_name = "end_time" ];     // RFC3339 format string
+}
+
+// GetCurrentAnnouncementsResp describes the response for getting current
+// announcements.
+message GetCurrentAnnouncementsResp {
+  int32 code = 1;
+  string message = 2;
+  string request_id = 3;
+  Error error = 4;
+
+  message Data { repeated Announcement items = 1; }
+  Data data = 5;
+}
+
+// NoticeAPI provides announcement-related APIs.
+service NoticeAPI {
+  // GetCurrentAnnouncements retrieves current active announcements.
+  // Platform and username are automatically obtained from config and context.
+  rpc GetCurrentAnnouncements(GetCurrentAnnouncementsReq)
+      returns (GetCurrentAnnouncementsResp) {
+    option (google.api.http) = {
+      get : "/api/v3/notice/announcements/current"
+    };
+  }
+}
