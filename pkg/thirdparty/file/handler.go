@@ -113,7 +113,7 @@ type IPkgPublishHandler interface {
 	PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error
 
 	// PublishReleaseProxy publish release server.
-	PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error
+	PublishReleaseProxy(nCtx contextx.IContext, uploadID, uploadCategory string) error
 
 	// PublishReleaseCert publish release cert.
 	PublishReleaseCert(nCtx contextx.IContext, uploadID string) error
@@ -480,13 +480,16 @@ func (h *handler) DownloadReleasePluginBinTool(nCtx contextx.IContext, gen types
 }
 
 // PublishReleaseProxy publish release proxy.
-func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error {
+func (h *handler) PublishReleaseProxy(nCtx contextx.IContext, uploadID, uploadCategory string) error {
 	if err := nCtx.CheckTenantID(); err != nil {
 		return err
 	}
 
 	tenantID := nCtx.TenantID()
-	params := &protoFile.PublishReleaseProxyReq{UploadId: uploadID}
+	params := &protoFile.PublishReleaseProxyReq{
+		UploadId:            uploadID,
+		UploadOriginPkgType: uploadCategory,
+	}
 	if _, err := h.cli.publishReleaseProxy(nCtx, tenantID, params); err != nil {
 		return err
 	}

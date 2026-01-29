@@ -82,8 +82,9 @@ func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, er
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.fileHandler.PublishReleaseProxy(rCtx, uploadID); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).Error("failed to publish release proxy. upload-id(%s): %v", uploadID, err)
+	uploadCategory := req.GetUploadOriginPkgType()
+	if err := h.fileHandler.PublishReleaseProxy(rCtx, uploadID, uploadCategory); err != nil {
+		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy.")
 
 		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
 	}

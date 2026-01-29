@@ -10,6 +10,13 @@
 
 package v3
 
+import (
+	"errors"
+	"fmt"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
 // Validate check request body.
 func (x *PublishReleaseAgentReq) Validate() error {
 	return nil
@@ -21,7 +28,16 @@ func (x *PublishReleaseAgentReq) AutoConvert() {
 
 // Validate check request body.
 func (x *PublishReleaseProxyReq) Validate() error {
-	return nil
+	if x.GetUploadOriginPkgType() == "" {
+		return errors.New("upload_origin_pkg_type is required")
+	}
+
+	switch types.UploadCategory(x.GetUploadOriginPkgType()) {
+	case types.UploadCategoryOriginProxy, types.UploadCategoryOriginServer:
+		return nil
+	default:
+		return fmt.Errorf("unsupported upload origin pkg type: %s", x.GetUploadOriginPkgType())
+	}
 }
 
 // AutoConvert auto convert.

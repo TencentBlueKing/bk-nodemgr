@@ -310,3 +310,12 @@ func (p Platform) Validate() bool {
 	platformKey := strings.ToLower(p.String())
 	return ValidPlatforms()[platformKey]
 }
+
+// FormatBinaryFileName formats the binary file name based on the operating system type.
+func FormatBinaryFileName(fileName string, osType criteria.OSType) string {
+	if osType == criteria.OSWindows {
+		return fmt.Sprintf("%s.exe", fileName)
+	}
+
+	return fileName
+}

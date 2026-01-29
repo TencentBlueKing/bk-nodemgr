@@ -2444,6 +2444,10 @@
       "properties": {
         "upload_id": {
           "type": "string"
+        },
+        "upload_origin_pkg_type": {
+          "type": "string",
+          "description": "upload_origin_pkg_type indicates the origin category of the uploaded\npackage. only accepts \"origin_server\" and \"origin_proxy\", no default value."
         }
       },
       "description": "PackagePublishReleaseProxyReq is the request for upload release proxy pkg."

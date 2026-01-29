@@ -11,6 +11,7 @@
 package manager
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
@@ -33,8 +34,8 @@ type IProxy interface {
 	// UploadOriginProxy uploads the origin proxy.
 	UploadOriginProxy(nCtx contextx.IContext, pkgFile io.ReadCloser) (*types.OriginPkgDetail, error)
 
-	// PublishReleaseProxy generates release proxy by upload-id.
-	PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error
+	// PublishReleaseProxyFromProxyPkg generates release proxy from origin proxy package by upload-id.
+	PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, uploadID string) error
 }
 
 // UploadOriginProxy uploads the origin proxy.
@@ -349,25 +350,25 @@ func checkGSE2OriginProxyPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 	return detail, nil
 }
 
-// PublishReleaseProxy generates release proxy packages by upload-id.
+// PublishReleaseProxyFromProxyPkg generates release proxy packages from origin proxy package by upload-id.
 // nolint:funlen,gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
-func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) error {
-	up, err := m.storageUpload.GetServerUpload(nCtx, uploadID)
+func (m *Manager) PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, uploadID string) error {
+	up, err := m.storageUpload.GetProxyUpload(nCtx, uploadID)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy, failed to get upload")
 
 		return err
 	}
 
-	if up.Category != types.UploadCategoryOriginServer {
+	if up.Category != types.UploadCategoryOriginProxy {
 		logger.G.Biz(nCtx).With("category", up.Category).Error("failed to publish release proxy, invalid category")
 
 		return errors.New("invalid category")
 	}
 
 	// get origin file.
-	originFile, err := m.upstreamOriginServer.GetFile(nCtx, up.SavedName)
+	originFile, err := m.upstreamOriginProxy.GetFile(nCtx, up.SavedName)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release proxy, failed to get file")
 
@@ -397,7 +398,7 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 		return err
 	}
 
-	detail, err := checkGSE2OriginServerPkg(checkingFile)
+	detail, err := checkGSE2OriginProxyPkg(checkingFile)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release proxy package. failed to check origin proxy package")
 
@@ -451,13 +452,6 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 				return err
 			}
 
-			agentRelease, err := m.storageRelease.GetReleaseAgent(nCtx, types.Generation2, pkg.platform, detail.Version)
-			if err != nil {
-				logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release proxy, failed to get agent release")
-
-				return err
-			}
-
 			proxyRelease := &types.ReleaseProxy{
 				Release: types.Release{
 					Name:         types.ReleaseNameProxy,
@@ -480,12 +474,6 @@ func (m *Manager) PublishReleaseProxy(nCtx contextx.IContext, uploadID string) e
 					ChangeLogEN:    detail.ChangeLogEN,
 					ChangeLogZH:    detail.ChangeLogZH,
 				},
-			}
-			proxyRelease.ConfigTemplate[types.ConfigKeyAgent] = agentRelease.ConfigTemplate[types.ConfigKeyAgent]
-			for k, v := range agentRelease.ConfigEnviron {
-				if _, ok := proxyRelease.ConfigEnviron[k]; !ok {
-					proxyRelease.ConfigEnviron[k] = v
-				}
 			}
 
 			releasesMap[pkg.platform.String()] = proxyRelease
@@ -554,31 +542,11 @@ const (
 	proxyPkgFileNameAPIClientCrt   = "gse_api_client.crt"
 	proxyPkgFileNameAPIClientKey   = "gse_api_client.key"
 	proxyPkgFileNameCertEncryptKey = "cert_encrypt.key"
+
+	proxyPkgFileNameAgent = "gse_agent"
+	proxyPkgFileNameFile  = "gse_file"
+	proxyPkgFileNameData  = "gse_data"
 )
-
-func proxyPkgFileNameAgent(plat platfmt.Platform) string {
-	if plat.OS == criteria.OSWindows {
-		return "gse_agent.exe"
-	}
-
-	return "gse_agent"
-}
-
-func proxyPkgFileNameData(plat platfmt.Platform) string {
-	if plat.OS == criteria.OSWindows {
-		return "gse_data.exe"
-	}
-
-	return "gse_data"
-}
-
-func proxyPkgFileNameFile(plat platfmt.Platform) string {
-	if plat.OS == criteria.OSWindows {
-		return "gse_file.exe"
-	}
-
-	return "gse_file"
-}
 
 // generateProxyPkg generates proxy package.
 // nolint:funlen,gocognit,gocyclo,cyclop
@@ -586,7 +554,7 @@ func proxyPkgFileNameFile(plat platfmt.Platform) string {
 func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.OriginPkgDetail, originLocalFileName string) (
 	[]*releaseProxyPkg, error) {
 
-	// local origin server.
+	// local origin proxy.
 	localOrigin, err := m.tempFileGroup.GetFile(nCtx, originLocalFileName)
 	if err != nil {
 		return nil, err
@@ -610,12 +578,6 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 	for idx := range originDetail.Platforms {
 		plat := originDetail.Platforms[idx]
 
-		// local release agent.
-		localAgent, err := m.fetchReleaseAgentLocal(nCtx, plat, originDetail.Version)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate release proxy, failed to fetch release agent: %w", err)
-		}
-
 		gp.Go(func() error {
 			// create target file.
 			tempFileName, err := m.createTempFile(nCtx)
@@ -628,7 +590,7 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 			}
 
 			// open all source files.
-			originServerFile, err := localOrigin.Content(nCtx)
+			originProxyFile, err := localOrigin.Content(nCtx)
 			if err != nil {
 				return fmt.Errorf("failed to open origin proxy file: %w", err)
 			}
@@ -640,10 +602,6 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 			if err != nil {
 				return fmt.Errorf("failed to open origin bintool file: %w", err)
 			}
-			releaseAgentFile, err := localAgent.Content(nCtx)
-			if err != nil {
-				return fmt.Errorf("failed to open release agent file: %w", err)
-			}
 
 			if err = generateTgz(targetFile,
 				[]tgzWriteRuleDir{
@@ -651,20 +609,26 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 					{targetFilePath: []string{proxyPkgDirNameCert}, targetFileMode: tgzModeDir},
 				},
 				[]*tgzWriteRuleStream{
-					// get things from origin server.
+					// get things from origin proxy.
 					{
-						sourceFile: originServerFile,
+						sourceFile: originProxyFile,
 						fileRules: []tgzWriteRuleFile{
 							{
-								sourceFilePath: []string{tgzPathMatchingSegment1, originalServerDirNameRoot, originalServerDirNameBin,
-									originalServerFileNameFileServer},
-								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameFile(plat)},
+								sourceFilePath: []string{tgzPathMatchingSegment1, originalProxyDirNameRoot, originalProxyDirNameBin,
+									originalProxyFileNameFile},
+								targetFilePath: []string{proxyPkgDirNameBin, platfmt.FormatBinaryFileName(proxyPkgFileNameFile, plat.OS)},
 								targetFileMode: tgzModeExe,
 							},
 							{
-								sourceFilePath: []string{tgzPathMatchingSegment1, originalServerDirNameRoot, originalServerDirNameBin,
-									originalServerFileNameDataServer},
-								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameData(plat)},
+								sourceFilePath: []string{tgzPathMatchingSegment1, originalProxyDirNameRoot, originalProxyDirNameBin,
+									originalProxyFileNameData},
+								targetFilePath: []string{proxyPkgDirNameBin, platfmt.FormatBinaryFileName(proxyPkgFileNameData, plat.OS)},
+								targetFileMode: tgzModeExe,
+							},
+							{
+								sourceFilePath: []string{tgzPathMatchingSegment1, originalProxyDirNameRoot, originalProxyDirNameBin,
+									originalProxyFileNameAgent},
+								targetFilePath: []string{proxyPkgDirNameBin, platfmt.FormatBinaryFileName(proxyPkgFileNameAgent, plat.OS)},
 								targetFileMode: tgzModeExe,
 							},
 						},
@@ -726,17 +690,6 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 							},
 						},
 					},
-					// get things from release agent.
-					{
-						sourceFile: releaseAgentFile,
-						fileRules: []tgzWriteRuleFile{
-							{
-								sourceFilePath: []string{agentPkgDirNameBin, agentPkgFileNameAgent(plat)},
-								targetFilePath: []string{proxyPkgDirNameBin, proxyPkgFileNameAgent(plat)},
-								targetFileMode: tgzModeExe,
-							},
-						},
-					},
 				},
 			); err != nil {
 				return fmt.Errorf("failed to generate tgz from origin packages: %w", err)
@@ -756,4 +709,45 @@ func (m *Manager) generateProxyPkg(nCtx contextx.IContext, originDetail *types.O
 	}
 
 	return conv.MapValueToSlice(result), nil
+}
+
+const (
+	elfMagic   = "\x7FELF"
+	machineAMD = 0x3E // EM_X86_64
+	machineARM = 0xB7 // EM_AARCH64
+)
+
+func checkServerBinaryPlatform(r io.Reader) (*platfmt.Platform, error) {
+	// read the ELF header.
+	buf := make([]byte, 20) // nolint:mnd
+	if _, err := r.Read(buf); err != nil {
+		return nil, err
+	}
+
+	// check ELF magic number.
+	if string(buf[:4]) != elfMagic { // nolint:mnd
+		return nil, errors.New("not an ELF file")
+	}
+
+	// check ELFCLASS64
+	if buf[4] != 2 { // nolint:mnd
+		return nil, errors.New("not a 64-bit ELF file")
+	}
+
+	// check ELFDATA2LSB
+	if buf[5] != 1 { // nolint:mnd
+		return nil, errors.New("not little-endian ELF file")
+	}
+
+	// check the machine type
+	machine := binary.LittleEndian.Uint16(buf[18:20]) // nolint:mnd
+
+	switch machine {
+	case machineAMD:
+		return &platfmt.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchAmd64}, nil
+	case machineARM:
+		return &platfmt.Platform{OS: criteria.OSLinux, Arch: criteria.CPUArchArm64}, nil
+	default:
+		return nil, fmt.Errorf("unsupported architecture: 0x%X", machine)
+	}
 }

@@ -19,7 +19,13 @@ message PublishReleaseAgentResp {
 }
 
 // PublishReleaseProxyReq is the request for upload release proxy pkg.
-message PublishReleaseProxyReq { string upload_id = 1; }
+message PublishReleaseProxyReq {
+  string upload_id = 1;
+
+  // upload_origin_pkg_type indicates the origin category of the uploaded
+  // package. only accepts "origin_server" and "origin_proxy", no default value.
+  string upload_origin_pkg_type = 2;
+}
 
 // PublishReleaseProxyResp is the response for upload release proxy pkg.
 message PublishReleaseProxyResp {

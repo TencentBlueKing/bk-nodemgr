@@ -229,7 +229,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 				plat := convAgentDirNameToPlat(path[1])
 
 				//  only has agent file to be considered a valid agent package.
-				if path[3] == originalAgentFileNameAgent(plat) {
+				if path[3] == platfmt.FormatBinaryFileName(agentPkgFileNameAgent, plat.OS) {
 					plats[plat.String()] = plat
 				}
 
@@ -588,6 +588,7 @@ const (
 	originalAgentFileNameConfTemplateAgentTypeOne = "#etc#gse#gse_agent.conf"
 	originalAgentFileNameConfTemplateAgentTypeTwo = "gse_agent.conf.template"
 	originalAgentFileNameAgentEnv                 = "gse_agent.env"
+	originalAgentFileNameAgent                    = "gse_agent"
 
 	agentPkgDirNameCert = "cert"
 	agentPkgDirNameBin  = "bin"
@@ -596,25 +597,8 @@ const (
 	agentPkgFileNameAgentCrt       = "gse_agent.crt"
 	agentPkgFileNameAgentKey       = "gse_agent.key"
 	agentPkgFileNameCertEncryptKey = "cert_encrypt.key"
+	agentPkgFileNameAgent          = "gse_agent"
 )
-
-// nolint: goconst
-func originalAgentFileNameAgent(plat platfmt.Platform) string {
-	if plat.OS == criteria.OSWindows {
-		return "gse_agent.exe"
-	}
-
-	return "gse_agent"
-}
-
-// nolint: goconst
-func agentPkgFileNameAgent(plat platfmt.Platform) string {
-	if plat.OS == criteria.OSWindows {
-		return "gse_agent.exe"
-	}
-
-	return "gse_agent"
-}
 
 func convPlatToAgentDirName(plat platfmt.Platform) string {
 	return fmt.Sprintf("%s%s_%s", originalAgentDirNamePlatPrefix, plat.OS.String(), plat.Arch.ToPkgArch())

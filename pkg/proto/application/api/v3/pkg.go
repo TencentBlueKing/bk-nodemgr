@@ -310,7 +310,16 @@ func (x *PackagePublishReleaseAgentReq) AutoConvert() {
 
 // Validate check request body.
 func (x *PackagePublishReleaseProxyReq) Validate() error {
-	return nil
+	if x.GetUploadOriginPkgType() == "" {
+		return errors.New("upload_origin_pkg_type is required")
+	}
+
+	switch types.UploadCategory(x.GetUploadOriginPkgType()) {
+	case types.UploadCategoryOriginProxy, types.UploadCategoryOriginServer:
+		return nil
+	default:
+		return fmt.Errorf("unsupported upload origin pkg type: %s", x.GetUploadOriginPkgType())
+	}
 }
 
 // AutoConvert auto convert.

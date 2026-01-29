@@ -11,10 +11,13 @@
 package publish
 
 import (
+	"fmt"
+
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoFile "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/file/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
 // PublishReleaseAgent publish release agent.
@@ -48,10 +51,26 @@ func (h *handler) PublishReleaseProxy(rCtx restserver.IContext) (interface{}, er
 	}
 
 	uploadID := req.GetUploadId()
-	if err := h.manager.PublishReleaseProxy(rCtx, uploadID); err != nil {
-		logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy")
+	uploadCategory := types.UploadCategory(req.GetUploadOriginPkgType())
+	switch uploadCategory {
+	case types.UploadCategoryOriginProxy:
+		if err := h.manager.PublishReleaseProxyFromProxyPkg(rCtx, uploadID); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy from origin proxy pkg")
 
-		return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+			return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+		}
+	case types.UploadCategoryOriginServer:
+		if err := h.manager.PublishReleaseProxyFromServerPkg(rCtx, uploadID); err != nil {
+			logger.G.Biz(rCtx).WithErr(err).With("upload-id", uploadID).Error("failed to publish release proxy from origin server pkg")
+
+			return nil, resterrf.ErrWrap(resterrf.Aborted, err)
+		}
+	default:
+		logger.G.Biz(rCtx).
+			With("upload-origin-pkg-type", req.GetUploadOriginPkgType()).
+			Error("failed to publish release proxy, unsupported upload origin pkg type")
+
+		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, fmt.Errorf("unsupported upload origin pkg type: %s", req.GetUploadOriginPkgType()))
 	}
 
 	logger.G.Biz(rCtx).With("upload-id", uploadID).Info("uploaded and generated release proxy")
