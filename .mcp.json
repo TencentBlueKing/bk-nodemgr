@@ -10,7 +10,7 @@
       "command": "sh",
       "args": [
         "-c",
-        "cd \"${CURSOR_WORKSPACE:-$(pwd)}\" && uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant --project \"${CURSOR_WORKSPACE:-$(pwd)}\""
+        "cd \"${CURSOR_WORKSPACE:-$(pwd)}\" && uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide --project \"${CURSOR_WORKSPACE:-$(pwd)}\""
       ],
       "env": {}
     },
