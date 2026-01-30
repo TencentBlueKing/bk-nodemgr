@@ -23,8 +23,8 @@
       </div>
       <!-- tips -->
       <p
-        class="w-[416px] min-h-[46px] bg-[#F5F6FA] rounded-[2px] text-[#4D4F56]
-          text-[14px] mt-[16px] mb-[17px] pl-[16px] leading-[46px]">
+        class="min-h-[46px] bg-[#F5F6FA] rounded-[2px] text-[#4D4F56]
+          text-[14px] mt-[16px] mb-[17px] px-[16px] leading-[30px] flex items-center">
         {{ isDirect ? $t('topoManager.workUnit.delete.directUnitTip') : $t('topoManager.workUnit.delete.tips') }}
       </p>
     </div>
