@@ -1,0 +1,46 @@
+/*
+ * TencentBlueKing is pleased to support the open source community by making 蓝鲸智云-节点管理(BlueKing-BK-NODEMAN) available.
+ * Copyright (C) 2017-2022 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at https://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * governing permissions and limitations under the License.
+ */
+
+package v3
+
+import (
+	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
+)
+
+// ConvertAnnouncementFromTypes converts types.Announcement to proto Announcement.
+func ConvertAnnouncementFromTypes(announcement *types.Announcement) *Announcement {
+	if announcement == nil {
+		return nil
+	}
+
+	return &Announcement{
+		Id:           announcement.ID,
+		Title:        announcement.Title,
+		Content:      announcement.Content,
+		AnnounceType: announcement.AnnounceType,
+		StartTime:    announcement.StartTime.Format(time.RFC3339),
+		EndTime:      announcement.EndTime.Format(time.RFC3339),
+	}
+}
+
+// ConvertAnnouncementsFromTypes converts announcements from types to proto.
+func (r *GetCurrentAnnouncementsResp) ConvertAnnouncementsFromTypes(announcements []*types.Announcement) {
+	if r.GetData() == nil {
+		r.Data = &GetCurrentAnnouncementsResp_Data{}
+	}
+
+	items := make([]*Announcement, 0, len(announcements))
+	for _, announcement := range announcements {
+		items = append(items, ConvertAnnouncementFromTypes(announcement))
+	}
+	r.Data.Items = items
+}

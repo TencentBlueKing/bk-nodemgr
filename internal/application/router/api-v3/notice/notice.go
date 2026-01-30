@@ -29,16 +29,6 @@ func newHandler(rg *gin.RouterGroup, capability *options.Capability) *handler {
 	}
 }
 
-// GetCurrentAnnouncements is a placeholder handler for getting current announcements.
-// Full implementation will be added in Phase 3.
-func (h *handler) GetCurrentAnnouncements(_ restserver.IContext) (interface{}, error) {
-	// Placeholder: return empty data structure
-	// Full implementation will be added in Phase 3
-	return map[string]interface{}{
-		"items": []interface{}{},
-	}, nil
-}
-
 // Load loads notice handler.
 func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	h := newHandler(rg, capability)
