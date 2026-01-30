@@ -204,3 +204,8 @@ apigw-docs: | pre
 	$(MKDIR) $(OUTPUT_DIR)/apigw
 	@$(CD) $(ROOT_DIR)/apigw/apidocs && $(TAR) $(OUTPUT_DIR)/apigw/apidocs.tgz zh/ en/
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/apigw-docs/docs.tgz"
+
+lint: | pre
+	@$(ECHO) "Linting..."
+	@$(CD) $(ROOT_DIR) && golangci-lint run --config ${ROOT_DIR}/.golangci.yml --path-prefix ${ROOT_DIR}
+	@$(ECHO) "Linting completed"

@@ -1,0 +1,7 @@
+schema: spec-driven
+
+context: |
+  Language: Chinese
+  Write in Chinese, but:
+  - Keep technical terms like "API", "REST", "GraphQL" in English
+  - Code examples and file paths remain in English
