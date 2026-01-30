@@ -48,7 +48,7 @@
       </bk-loading>
     </div>
     <div class="bg-[#fff] px-[24px] pb-[20px] h-full flex-1 flex flex-col">
-      <div class="h-[52px] my-[20px]">
+      <div class="h-[32px] mt-[20px]" v-if="!['success'].includes(currentOperate?.state)">
         <Dropdown
           theme="light"
           trigger="click"
@@ -57,9 +57,8 @@
             clickContentAutoHide: true,
           }">
           <Button
-            v-if="!['success'].includes(currentOperate?.state)"
             class="w-[86px]">
-            <span>{{ $t('platform.nodeMan.log.retry') }}</span>
+            <span>{{ $t('taskDetail.table.retry') }}</span>
           </Button>
           <template #content>
             <Dropdown.DropdownMenu>
@@ -80,7 +79,10 @@
           </template>
         </Dropdown>
       </div>
-      <bk-loading :title="$t('table.loading')" :loading="instanceLoading" class="flex-1 flex h-[calc(100%-102px)]">
+      <bk-loading
+        :title="$t('table.loading')"
+        :loading="instanceLoading"
+        class="flex-1 flex h-[calc(100%-82px)] mt-[20px]">
         <Table
           :data="tableData"
           :empty-text="$t('table.empty')"
@@ -286,7 +288,7 @@ const { start, stop } = useInterval(getLog, 1000); // 轮询
 // 统一服务调用器
 const serviceCaller = {
   // 根据路由参数获取当前服务类型
-  getCurrentServiceType: () => (route.query.active === 'node' ? 'node' : 'plugin'),
+  getCurrentServiceType: () => (route.query.active === 'plugin' ? 'plugin' : 'node'),
 
   // 服务方法映射
   serviceMethods: {
@@ -316,7 +318,7 @@ const serviceCaller = {
   },
 };
 const activeKey = ref('');
-const isNode = computed(() => route.query.active === 'node');
+const isNode = computed(() => route.query.active !== 'plugin');
 const operateList = ref<any[]>([]); // 子任务列表
 const filterOperateList = computed(() => operateList.value.filter((row: any) =>
   searchSelectValue.value.every((searchItem: any) => {
@@ -679,7 +681,7 @@ const getOperateList = async () => {
     total_count: 0,
   }));
   operateLoading.value = false;
-  if (route.query.active === 'node') {
+  if (route.query.active !== 'plugin') {
     operateList.value = res.operations.map(item => {
       const briefData = item.latest_oper_inst_brief_data;
       return {
@@ -709,7 +711,7 @@ const getOperateList = async () => {
 const instanceLoading = ref(false);
 const getInstance = async () => {
   instanceLoading.value = true;
-  const params = route.query.active === 'node'
+  const params = route.query.active !== 'plugin'
     ? {
       operation_id: currentOperate.value.operation_id,
     }

@@ -86,7 +86,7 @@
           </template>
         </TableColumn>
         <TableColumn
-          v-if="active === 'node'"
+          v-if="['agent', 'proxy'].includes(active)"
           field="bk_biz_name"
           :title="t('platform.nodeMan.taskHistory.label.business')"
           min-width="150"
@@ -223,9 +223,10 @@ const tableData = ref<NodeWorkflowInfo[]>([]);
 const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
 
 // tab
-const active = ref('');
+const active = ref('agent');
 const panels = ref([
-  { name: 'node', label: t('platform.nodeMan.taskHistory.tab.nodeHistory') },
+  { name: 'agent', label: t('platform.nodeMan.taskHistory.tab.agentHistory') },
+  { name: 'proxy', label: t('platform.nodeMan.taskHistory.tab.proxyHistory') },
   { name: 'plugin', label: t('platform.nodeMan.taskHistory.tab.pluginHistory') },
 ]);
 
@@ -400,12 +401,12 @@ const searchSelectData = computed(() => [
     name: t('platform.nodeMan.taskHistory.label.taskType'),
     children: getUniqueChildrenFrom('type', typeMap.value),
   },
-  {
+  ...(isNode.value ? [{
     id: 'bk_biz_id',
     name: t('platform.nodeMan.taskHistory.label.business'),
     children: bussinessMap.value,
     multiple: true,
-  },
+  }] : []),
   {
     id: 'operator',
     name: t('platform.nodeMan.taskHistory.label.operator'),
@@ -495,6 +496,14 @@ const getTimestampInSeconds = (originalDate: string) => {
   const timestampInSeconds = Math.floor(timestampInMilliseconds / 1000);
   return timestampInSeconds;
 };
+const isNode = computed(() => ['agent', 'proxy'].includes(active.value));
+const agentType = ['install_agent', 'upgrade_agent', 'reconfig_agent', 'restart_agent', 'uninstall_agent'];
+const proxyType = ['install_proxy', 'upgrade_proxy', 'reconfig_proxy', 'restart_proxy', 'uninstall_proxy'];
+const typeListMap = {
+  agent: agentType,
+  proxy: proxyType,
+  plugin: [] as string[],
+};
 const getParams = () => {
   const params = {
     page: {
@@ -503,6 +512,7 @@ const getParams = () => {
     },
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
+      type: typeListMap[active.value],
     },
     fuzzy_include_conditions: {} as Record<string, string[]>,
     operate_time_range: {
@@ -522,12 +532,21 @@ const getWorkflowDistinct = async () => {
   const params = {
     exact_include_conditions: {
       bk_biz_id: mainStore.selectedBusinessId,
+      type: typeListMap[active.value],
     },
   };
-  const res = await NodeWorkflowService.NodeWorkflowDistinct(params).catch((err: any) => {
-    console.error('获取主机筛选条件唯一值失败:', err);
-    return null;
-  });
+  let res: any;
+  if (isNode.value) {
+    res = await NodeWorkflowService.NodeWorkflowDistinct(params).catch((err: any) => {
+      console.error('获取主机筛选条件唯一值失败:', err);
+      return null;
+    });
+  } else {
+    res = await PluginWorkflowService.PluginWorkflowDistinct(params).catch((err: any) => {
+      console.error('获取主机筛选条件唯一值失败:', err);
+      return null;
+    });
+  };
   if (res) {
     workflowDistinct.value = res;
     Object.keys(res).forEach((key: any) => {
@@ -549,7 +568,7 @@ const getTaskList = async () => {
   loading.value = true;
   let res;
   let statistics: any;
-  if (active.value === 'node') {
+  if (isNode.value) {
     res = await NodeWorkflowService.NodeWorkflowList(getParams()).catch((err) => {
       console.log(err);
       return {
@@ -614,7 +633,7 @@ const detailHandle = (row: NodeWorkflowInfo, status?: string) => {
 watch(
   () => route.query,
   () => {
-    active.value = route.query.active as string || 'node';
+    active.value = route.query.active as string || 'agent';
   },
   { immediate: true },
 );
@@ -638,6 +657,7 @@ watch(
 
     // 立即获取，配合上面的 ID 检查机制，哪怕快速点击也没问题
     getTaskList();
+    getWorkflowDistinct();
   },
   { immediate: true, deep: true },
 );

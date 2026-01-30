@@ -121,6 +121,8 @@ platform:
     taskHistory:
       tab:
         nodeHistory: Node History
+        agentHistory: Agent History
+        proxyHistory: Proxy History
         pluginHistory: Plugin History
       shortcut:
         today: Today
@@ -265,7 +267,7 @@ topoManager:
       success: Copied successfully
       failed: Failed to copy
     delete:
-      title: Confirm delete this Cloud Area?
+      title: 'Confirm deletion of Cloud Area: {x}?'
   workAreaDetail:
     workUnitCount: Control Units
     proxyQuantity: Proxies
@@ -338,7 +340,8 @@ topoManager:
     delete:
       title: Confirm delete this Control Unit?
       content: Control Unit
-      tips: Deleting will also clear associated Proxies. Proceed with caution!
+      tips: After deletion, Proxies under this Control Unit will no longer be associated with it. Please proceed with caution!
+      directUnitTip: After deletion, this Direct-Connected Control Unit will be removed. Please proceed with caution!
     empty: No Control Units
     emptyTips: Create a new Control Unit to view data.
     accessPoints:

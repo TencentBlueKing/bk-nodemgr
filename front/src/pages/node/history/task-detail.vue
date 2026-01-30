@@ -1,7 +1,7 @@
 <template>
   <PageHeader
     class="w-full absolute top-0 z-100"
-    :title="$t('platform.taskHistory.taskDetail.title')"
+    :title="$t('taskDetail.title')"
     :back="true"
     :on-back="handleBackToHistory"
   >
@@ -1024,7 +1024,7 @@ const getNetworkUnitList = async () => {
 // 统一服务调用器
 const serviceCaller = {
   // 根据路由参数获取当前服务类型
-  getCurrentServiceType: () => (route.query.active === 'node' ? 'node' : 'plugin'),
+  getCurrentServiceType: () => (route.query.active === 'plugin' ? 'plugin' : 'node'),
 
   // 服务方法映射
   serviceMethods: {
@@ -1212,7 +1212,7 @@ const getOperateList = async () => {
     const briefData = item.latest_oper_inst_brief_data;
     briefData && subTasksStatus.value?.push(briefData.life_cycle.state);
     const endTime = briefData ? briefData.life_cycle.end_time : new Date().getTime();
-    if (route.query.active === 'node') {
+    if (route.query.active !== 'plugin') {
       return {
         ...item.node_deployment_info,
         ...(briefData ? briefData.life_cycle : {}),
@@ -1223,24 +1223,23 @@ const getOperateList = async () => {
         bk_host_innerip_v6_list: item.node_deployment_info.bk_host_innerip_v6_list?.join(',') || item.node_deployment_info.bk_host_innerip_v6_list?.join(','),
         operation_id: item.operation_id,
         reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
-        node_version: route.query.active === 'node' ? item.node_deployment_info.node_version : item.node_deployment_info.plugin_version,
-        total_time_second: endTime > 0 ? endTime - item.create_time : new Date().getTime() - item.create_time,
-      };
-    } else {
-      return {
-        ...item.plugin_deployment_info,
-        ...(briefData ? briefData.life_cycle : {}),
-        latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
-        bk_host_innerip: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
-        bk_host_innerip_v6: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
-        bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
-        bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
-        operation_id: item.operation_id,
-        reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
-        node_version: route.query.active === 'node' ? item.plugin_deployment_info.node_version : item.plugin_deployment_info.plugin_version,
+        node_version: item.node_deployment_info.node_version,
         total_time_second: endTime > 0 ? endTime - item.create_time : new Date().getTime() - item.create_time,
       };
     }
+    return {
+      ...item.plugin_deployment_info,
+      ...(briefData ? briefData.life_cycle : {}),
+      latest_action_inst_brief_data: briefData ? briefData.latest_action_inst_brief_data : {},
+      bk_host_innerip: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
+      bk_host_inner_list: item.plugin_deployment_info.bk_host_inner_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_list?.join(','),
+      bk_host_innerip_v6_list: item.plugin_deployment_info.bk_host_innerip_v6_list?.join(',') || item.plugin_deployment_info.bk_host_innerip_v6_list?.join(','),
+      operation_id: item.operation_id,
+      reTryCount: item.instance_ids?.length ? item.instance_ids?.length - 1 : 0,
+      node_version: item.plugin_deployment_info.node_version,
+      total_time_second: endTime > 0 ? endTime - item.create_time : new Date().getTime() - item.create_time,
+    };
   });
   const isEqual = tableData.value.length === mapList.length
     && tableData.value.every((item, index) => item.state === mapList[index]?.state);
@@ -1260,7 +1259,7 @@ const handleViewLog = async (row: any) => {
   router.push({
     name: 'log',
     params: {
-      hostId: route.query?.active === 'node' ? row.bk_host_id : `${row.bk_host_id}_${row.plugin_name}`,
+      hostId: route.query?.active !== 'plugin' ? row.bk_host_id : `${row.bk_host_id}_${row.plugin_name}`,
       taskId: route.params.taskId,
     },
     query: {

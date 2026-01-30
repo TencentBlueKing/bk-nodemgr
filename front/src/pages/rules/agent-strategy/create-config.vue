@@ -125,17 +125,7 @@
           </div>
         </Form.FormItem>
         <Form.FormItem property="configs">
-          <Button
-            text
-            theme="primary"
-            @click="isConfigShow = !isConfigShow"
-          >
-            <span class="mr-[8.5px] text-[14px]">{{ $t('platform.nodeMan.installAgentPage.AdvancedOptions') }}</span>
-            <angle-double-down-line
-              :class="['text-[14px]', { 'transform rotate-180': isConfigShow }]"
-            />
-          </Button>
-          <div class="mt-[15px]" v-show="isConfigShow">
+          <div class="mt-[15px]">
             <config-template
               :visible="true"
               :configpolicy-type="configpolicyType"
@@ -214,7 +204,6 @@ const title = computed(() => {
 });
 const businessList = computed(() => mainStore.businessList);
 
-const isConfigShow = ref(false);
 // 初始化数据函数
 const formData = reactive({
   configpolicy_name: '',

@@ -28,6 +28,7 @@
         </Form.FormItem>
         <Form.FormItem
           :label="$t('topoManager.workUnit.form.directConfig')"
+          required
           label-width="130"
         >
           <div class="w-[489px] bg-[#F5F7FA] relative py-[24px] mb-[12px]">

@@ -22,11 +22,11 @@
         <span class="text-[#313238] text-[14px]">{{ workUnitName }}</span>
       </div>
       <!-- tips -->
-      <div
-        class="w-[416px] h-[46px] bg-[#F5F6FA] rounded-[2px] text-[#4D4F56]
+      <p
+        class="w-[416px] min-h-[46px] bg-[#F5F6FA] rounded-[2px] text-[#4D4F56]
           text-[14px] mt-[16px] mb-[17px] pl-[16px] leading-[46px]">
-        {{ $t('topoManager.workUnit.delete.tips') }}
-      </div>
+        {{ isDirect ? $t('topoManager.workUnit.delete.directUnitTip') : $t('topoManager.workUnit.delete.tips') }}
+      </p>
     </div>
     <div class="flex items-center justify-center">
       <Button
@@ -60,6 +60,10 @@ const props = defineProps({
   },
   workUnitId: {
     type: Number,
+  },
+  isDirect: {
+    type: Boolean,
+    default: false,
   },
 });
 const emit = defineEmits(['delete']);

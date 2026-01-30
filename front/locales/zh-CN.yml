@@ -121,6 +121,8 @@ platform:
     taskHistory:
       tab:
         nodeHistory: 节点历史
+        agentHistory: Agent 历史
+        proxyHistory: Proxy 历史
         pluginHistory: 插件历史
       shortcut:
         today: 今天
@@ -265,7 +267,7 @@ topoManager:
       success: 复制成功
       failed: 复制失败
     delete:
-      title: 确认要删除该「管控区域」？
+      title: '确认要删除 {x}(管控区域) ？'
   workAreaDetail:
     workUnitCount: 管控单元数量
     proxyQuantity: Proxy 数量
@@ -338,7 +340,8 @@ topoManager:
     delete:
       title: 确定删除该管控单元？
       content: 管控单元
-      tips: 删除后，管控单元下按照的Proxy也会被清除，请谨慎操作！
+      tips: 删除后，该管控单元下的Proxy将无法再关联到此管控单元，请谨慎操作！
+      directUnitTip: 删除后，该直连管控单元将被移除，请谨慎操作！
     empty: 暂无管控单元
     emptyTips: 你可以去新建管控单元以查看相关数据
     accessPoints:

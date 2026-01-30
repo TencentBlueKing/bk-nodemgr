@@ -254,8 +254,9 @@ const handleEditWorkarea = (workareaData: NetworkArea) => {
 // todo
 // 可能需要补充交互(message/重置筛选/重置pagination)
 const handleDeleteWorkarea = (bk_networkarea_id: number) => {
+  const workareaData = props.list.find(item => item.bk_networkarea_id === bk_networkarea_id);
   InfoBox({
-    title: t('topoManager.workArea.delete.title'),
+    title: t('topoManager.workArea.delete.title', { x: workareaData.bk_networkarea_name || '' }),
     cancelText: t('action.cancel'),
     onConfirm() {
       workareaStore.handleDeleteWorkarea(bk_networkarea_id);

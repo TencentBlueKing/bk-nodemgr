@@ -81,6 +81,7 @@
         v-model:is-show="isShowDelete"
         :work-unit-name="curWorkUnit?.bk_networkunit_name"
         :work-unit-id="curWorkUnit?.bk_networkunit_id"
+        :is-direct="curWorkUnit?.is_direct"
         @delete="handleAfterDelete"
       />
     </div>
