@@ -12,6 +12,7 @@ package notice
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -101,6 +102,7 @@ func (h *Handler) registerAppTask(nCtx contextx.IContext) error {
 	}
 
 	logger.G.Sys().With("app-id", registration.ID).Info("registered notice app")
+
 	return nil
 }
 
@@ -140,21 +142,26 @@ func (h *Handler) GetCurrentAnnouncements(nCtx contextx.IContext) ([]*types.Anno
 		return nil, err
 	}
 
-	// Return empty slice instead of nil when no announcements
-	if len(resp) == 0 {
-		return []*types.Announcement{}, nil
-	}
-
 	// Convert response to types.Announcement
 	announcements := make([]*types.Announcement, len(resp))
 	for idx, ann := range resp {
+		startTime, err := parseTime(ann.StartTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse start_time for announcement %d: %w", ann.ID, err)
+		}
+
+		endTime, err := parseTime(ann.EndTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse end_time for announcement %d: %w", ann.ID, err)
+		}
+
 		announcements[idx] = &types.Announcement{
 			ID:           ann.ID,
 			Title:        ann.Content.Title,
 			Content:      ann.Content.Content,
 			AnnounceType: ann.AnnounceType,
-			StartTime:    parseTime(ann.StartTime),
-			EndTime:      parseTime(ann.EndTime),
+			StartTime:    startTime,
+			EndTime:      endTime,
 		}
 	}
 
@@ -162,25 +169,24 @@ func (h *Handler) GetCurrentAnnouncements(nCtx contextx.IContext) ([]*types.Anno
 }
 
 // parseTime parses a time string to time.Time.
-// Returns zero time if parsing fails.
-func parseTime(timeStr string) time.Time {
+// Returns error if parsing fails with all supported formats.
+func parseTime(timeStr string) (time.Time, error) {
 	if timeStr == "" {
-		return time.Time{}
+		return time.Time{}, nil
 	}
 
 	// Try common time formats
 	formats := []string{
 		time.RFC3339,
-		"2006-01-02T15:04:05Z07:00",
 		"2006-01-02 15:04:05",
 		"2006-01-02",
 	}
 
 	for _, format := range formats {
 		if t, err := time.Parse(format, timeStr); err == nil {
-			return t
+			return t, nil
 		}
 	}
 
-	return time.Time{}
+	return time.Time{}, fmt.Errorf("failed to parse time string: %s", timeStr)
 }

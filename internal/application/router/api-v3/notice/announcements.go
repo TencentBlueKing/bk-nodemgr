@@ -20,21 +20,14 @@ import (
 // GetCurrentAnnouncements retrieves current active announcements from bk-notice service.
 // Platform is obtained from config (appCode), username from context.
 func (h *handler) GetCurrentAnnouncements(rCtx restserver.IContext) (interface{}, error) {
-	// 1. Call NoticeHandler to get announcements
 	announcements, err := h.capability.NoticeHandler.GetCurrentAnnouncements(rCtx)
 	if err != nil {
 		logger.G.Biz(rCtx).WithErr(err).Error("failed to get current announcements from notice service")
 		return nil, resterrf.ErrWrap(resterrf.ThirdpartyRequestFailed, err)
 	}
 
-	// 2. Log success with context information
-	logger.G.Biz(rCtx).With("username", rCtx.BKUsername(), "count", len(announcements)).
-		Info("successfully retrieved current announcements")
-
-	// 3. Convert to Proto response
 	resp := new(protoApplication.GetCurrentAnnouncementsResp)
 	resp.ConvertAnnouncementsFromTypes(announcements)
 
-	// 4. Return data
 	return resp.GetData(), nil
 }

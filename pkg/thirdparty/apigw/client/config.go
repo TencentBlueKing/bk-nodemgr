@@ -37,7 +37,8 @@ func NewAppConfig(endpoints []string, appCode string, appSecret string) AppConfi
 	}
 }
 
-// GetAppCode returns the app code from the config.
+// GetAppCode returns the app code for API gateway authentication.
+// This is primarily used by notice handler to obtain the platform parameter.
 func (conf *AppConfig) GetAppCode() string {
 	return conf.appCode
 }
