@@ -1,5 +1,5 @@
 ---
-name: OpenSpec: Analyze
+name: OPSX: Analyze
 description: Interactive Q&A to analyze and confirm an OpenSpec proposal before implementation.
 category: OpenSpec
 tags: [openspec, analyze, interactive]
