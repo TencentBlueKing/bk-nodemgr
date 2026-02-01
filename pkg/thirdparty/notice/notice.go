@@ -84,7 +84,7 @@ func (c *cli) getCurrentAnnouncements(nCtx contextx.IContext,
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("get current announcements failed: %v", err)
+		return nil, fmt.Errorf("get current announcements failed: %w", err)
 	}
 
 	return resp.Data, nil
@@ -109,7 +109,7 @@ func (c *cli) registerApplication(nCtx contextx.IContext) (*registerApplicationR
 	}
 
 	if err := resp.IsFailed(); err != nil {
-		return nil, fmt.Errorf("register application failed: %v", err)
+		return nil, fmt.Errorf("register application failed: %w", err)
 	}
 
 	return resp.Data, nil

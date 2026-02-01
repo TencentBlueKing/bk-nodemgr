@@ -24,7 +24,7 @@ type Config struct {
 // Validate configures the config.
 func (conf *Config) Validate() error {
 	if err := conf.APIGWUserConfig.Validate(); err != nil {
-		return fmt.Errorf("failed to validate notice client config: %v", err)
+		return fmt.Errorf("failed to validate notice client config: %w", err)
 	}
 
 	return nil
