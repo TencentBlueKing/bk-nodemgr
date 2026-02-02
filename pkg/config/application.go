@@ -82,7 +82,19 @@ type Backend struct {
 
 // Notice the config of notice gateway config.
 type Notice struct {
+	Enabled          bool `yaml:"enabled" usage:"enable notice feature"`
 	APIGatewayClient `yaml:",inline" usage:"api-gateway config of notice"`
+}
+
+// Validate validates the notice config.
+// When Enabled is false, validation is skipped to allow graceful degradation.
+// When Enabled is true, validates all APIGatewayClient fields.
+func (n *Notice) Validate() error {
+	if !n.Enabled {
+		return nil
+	}
+
+	return n.APIGatewayClient.Validate()
 }
 
 // ApplicationService the config of application service.
@@ -129,6 +141,7 @@ func NewApplicationService() *ApplicationService {
 			},
 		},
 		Notice: Notice{
+			Enabled: false, // Disabled by default, must be explicitly enabled
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
 					TraceServiceName: defaultApplicationNoticeTraceServiceName,
@@ -264,6 +277,34 @@ func (svc *ApplicationService) LoadFromEnv() error {
 	_ = envx.LoadString("NODEMAN_BACKEND_TLS_KEY", &svc.Backend.TLS.KeyFile)
 	_ = envx.LoadString("NODEMAN_BACKEND_TLS_CA", &svc.Backend.TLS.CAFile)
 	_ = envx.LoadString("NODEMAN_BACKEND_TLS_PASSWORD", &svc.Backend.TLS.Password)
+
+	// notice.
+	if _, err := envx.LoadBool("NODEMAN_NOTICE_ENABLED", &svc.Notice.Enabled); err != nil {
+		return err
+	}
+	// Only load Notice configuration when enabled.
+	if svc.Notice.Enabled {
+		if err := envx.MustLoadString("NODEMAN_NOTICE_APP_CODE", &svc.Notice.AppCode); err != nil {
+			return err
+		}
+		if err := envx.MustLoadString("NODEMAN_NOTICE_APP_SECRET", &svc.Notice.AppSecret); err != nil {
+			return err
+		}
+		if err := envx.MustLoadString("NODEMAN_NOTICE_USER", &svc.Notice.User); err != nil {
+			return err
+		}
+		if err := envx.MustLoadString("NODEMAN_NOTICE_AUTH_MODE", &svc.Notice.AuthMode); err != nil {
+			return err
+		}
+		_ = envx.MustLoadString("NODEMAN_NOTICE_ACCESS_TOKEN", &svc.Notice.AccessToken)
+		if _, err := envx.LoadBool("NODEMAN_NOTICE_TLS_INSECURE_SKIP_VERIFY", &svc.Notice.TLS.InsecureSkipVerify); err != nil {
+			return err
+		}
+		_ = envx.LoadString("NODEMAN_NOTICE_TLS_CERT", &svc.Notice.TLS.CertFile)
+		_ = envx.LoadString("NODEMAN_NOTICE_TLS_KEY", &svc.Notice.TLS.KeyFile)
+		_ = envx.LoadString("NODEMAN_NOTICE_TLS_CA", &svc.Notice.TLS.CAFile)
+		_ = envx.LoadString("NODEMAN_NOTICE_TLS_PASSWORD", &svc.Notice.TLS.Password)
+	}
 
 	// etcd
 	var etcdEndpoints string

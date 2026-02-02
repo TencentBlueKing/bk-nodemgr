@@ -183,6 +183,7 @@ func (svc *Service) initialCapability() error {
 			BKDomain:              svc.conf.Front.BKDomain,
 			BKDocsCenterURL:       svc.conf.Front.BKDocsCenterURL,
 			BKAppNavOpenSourceURL: svc.conf.Front.BKAppNavOpenSourceURL,
+			EnableNotice:          svc.conf.Notice.Enabled,
 		},
 	)
 	if err != nil {
@@ -211,6 +212,12 @@ func (svc *Service) newBackendHandler() (backend.IHandler, error) {
 }
 
 func (svc *Service) newNoticeHandler() (notice.IHandler, error) {
+	if !svc.conf.Notice.Enabled {
+		return notice.NewNoopHandler(), nil
+	}
+
+	logger.G.Sys().Info("Initializing notice handler")
+
 	apiGwAppConfig := newAPIGWAppConfig(&svc.conf.Notice.APIGatewayClient)
 	apiGwUserConfig := apigwclient.UserConfig{
 		AppConfig:   apiGwAppConfig,
@@ -228,7 +235,7 @@ func (svc *Service) newNoticeHandler() (notice.IHandler, error) {
 		APIGWUserConfig: apiGwUserConfig,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to initialize notice handler: %w", err)
 	}
 
 	return noticeHandler, nil

@@ -19,7 +19,7 @@
     <script>
       window.PROJECT_CONFIG = (function () {
         const BK_API_PREFIX = '{{ .BK_API_PREFIX }}'                           // API 前缀
-        const BK_SHARED_RES_BASE_JS_URL = '{{ .BK_SHARED_RES_BASE_JS_URL }}'   // 统一配置的平台资源url（logo，标题，footer，版本号等） 
+        const BK_SHARED_RES_BASE_JS_URL = '{{ .BK_SHARED_RES_BASE_JS_URL }}'   // 统一配置的平台资源url（logo，标题，footer，版本号等）
         const BK_LOGIN_URL = '{{ .BK_LOGIN_URL }}'                             // 登录地址
         const BK_REQUEST_ID_HEADER_KEY = '{{ .BK_REQUEST_ID_HEADER_KEY }}'     // x-bkapi-request-id
         const PASSWORD_VAULT_SWITCH = '{{ .PASSWORD_VAULT_SWITCH }}'           // 密码库开关
@@ -29,6 +29,7 @@
         const BK_DOCS_CENTER_URL = '{{ .BK_DOCS_CENTER_URL }}'                 // 产品文档地址
         const BK_USER_WEB_URL = '{{ .BK_USER_WEB_URL }}'                       // 用户中心地址
         const BK_TENANT = '{{ .BK_TENANT }}'                                   // 租户ID
+        const ENABLE_NOTICE = {{ .ENABLE_NOTICE }}                             // 通知功能开关
         return {
           BK_API_PREFIX,
           BK_SHARED_RES_BASE_JS_URL,
@@ -41,6 +42,7 @@
           BK_DOCS_CENTER_URL,
           BK_USER_WEB_URL,
           BK_TENANT,
+          ENABLE_NOTICE,
         }
       })()
     </script>

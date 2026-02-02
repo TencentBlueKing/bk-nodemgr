@@ -739,6 +739,9 @@ application:
 
     # defines the notice center (BK API gateway) related settings.
     notice:
+      # enabled controls whether the notice feature is enabled.
+      # When set to false, a no-op handler will be used and all notice operations will be skipped.
+      enabled: false
       # endpoints is a seed list of host:port addresses of notice apigw nodes.
       endpoints:
         - "https://example.com/api/bk-notice/prod"

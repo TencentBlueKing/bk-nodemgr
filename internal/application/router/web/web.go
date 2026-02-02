@@ -69,5 +69,6 @@ func (h *handler) Index(ctx *gin.Context) {
 		"BK_DOMAIN":                 h.frontSetting.BKDomain(),
 		"BK_DOCS_CENTER_URL":        h.frontSetting.BKDocsCenterURL(),
 		"BKAPP_NAV_OPEN_SOURCE_URL": h.frontSetting.BKAppNavOpenSourceURL(),
+		"ENABLE_NOTICE":             h.frontSetting.EnableNotice(),
 	})
 }

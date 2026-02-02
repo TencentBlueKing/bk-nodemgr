@@ -46,6 +46,9 @@ type IFrontSetting interface {
 
 	// BKAppNavOpenSourceURL the front setting field.
 	BKAppNavOpenSourceURL() string
+
+	// EnableNotice the front setting field.
+	EnableNotice() bool
 }
 
 var _ IFrontSetting = &FrontSetting{}
@@ -64,6 +67,8 @@ type FrontSetting struct {
 	bkDomain              string
 	bkDocsCenterURL       string
 	bkAppNavOpenSourceURL string
+
+	enableNotice bool
 }
 
 // Option front setting option.
@@ -87,6 +92,9 @@ type Option struct {
 
 	// BKAppNavOpenSourceURL is the URL of bk app nav open source.
 	BKAppNavOpenSourceURL string
+
+	// EnableNotice controls whether the notice feature is enabled.
+	EnableNotice bool
 }
 
 // Validate validate.
@@ -118,6 +126,7 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 		bkDomain:              opt.BKDomain,
 		bkDocsCenterURL:       opt.BKDocsCenterURL,
 		bkAppNavOpenSourceURL: opt.BKAppNavOpenSourceURL,
+		enableNotice:          opt.EnableNotice,
 	}, nil
 }
 
@@ -164,4 +173,9 @@ func (setting *FrontSetting) BKDocsCenterURL() string {
 // BKAppNavOpenSourceURL get bk app nav open source url.
 func (setting *FrontSetting) BKAppNavOpenSourceURL() string {
 	return setting.bkAppNavOpenSourceURL
+}
+
+// EnableNotice get enable notice.
+func (setting *FrontSetting) EnableNotice() bool {
+	return setting.enableNotice
 }

@@ -111,6 +111,23 @@ file:
   traceServiceName: "application-client-file"
   traceSampleRate: 0
 
+# notice settings.
+notice:
+  # 是否启用通知功能
+  # true: 启用 bk-notice 集成，需要确保 bk-notice 服务可访问
+  # false: 禁用通知功能，使用 NoopHandler，不会向 bk-notice 发送请求
+  # 默认: false（需要显式设置为 true 才启用）
+  enabled: false
+
+  # notice API Gateway 配置（仅在 enabled: true 时需要）
+  # endpoints:
+  #   - __BK_NODEMGR_NOTICE_ENDPOINT__
+  # appCode: __BK_NODEMGR_APPCODE__
+  # appSecret: __BK_NODEMGR_APPSECRET__
+  # authMode: "un"
+  # traceServiceName: "application-client-notice"
+  # traceSampleRate: 0
+
 # bkSaaS saas settings.
 bkSaaS:
   bkLogin:
