@@ -22,6 +22,9 @@ type Config struct {
 	APIGWUserConfig apigwclient.UserConfig
 	// SystemID is the system identifier registered in IAM.
 	SystemID string
+	// CallbackPath is the callback path for IAM resource provider.
+	// This field is required.
+	CallbackPath string
 }
 
 // Validate validates the config.
@@ -32,6 +35,11 @@ func (conf *Config) Validate() error {
 
 	if conf.SystemID == "" {
 		return fmt.Errorf("system ID is required for IAM v3")
+	}
+
+	// Validate callback path is configured.
+	if conf.CallbackPath == "" {
+		return fmt.Errorf("callback path is required for IAM v3")
 	}
 
 	return nil

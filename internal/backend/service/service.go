@@ -428,6 +428,7 @@ func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
 	iamHandler, err := iamv3.New(apiGwClientCapability, &iamv3.Config{
 		APIGWUserConfig: apiGwUserConfig,
 		SystemID:        svc.conf.IAMV3.SystemID,
+		CallbackPath:    svc.conf.IAMV3.CallbackPath,
 	})
 	if err != nil {
 		return nil, err

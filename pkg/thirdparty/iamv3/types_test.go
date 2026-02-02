@@ -36,7 +36,8 @@ func TestConfig_Validate(t *testing.T) {
 			name: "valid config",
 			config: Config{
 				APIGWUserConfig: validAPIGWUserConfig,
-				SystemID:        "bk-nodeman",
+				SystemID:        "bk_nodemgr",
+				CallbackPath:    "/api/v3/iam/callback",
 			},
 			wantErr: false,
 		},
@@ -45,6 +46,16 @@ func TestConfig_Validate(t *testing.T) {
 			config: Config{
 				APIGWUserConfig: validAPIGWUserConfig,
 				SystemID:        "",
+				CallbackPath:    "/api/v3/iam/callback",
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing callback path",
+			config: Config{
+				APIGWUserConfig: validAPIGWUserConfig,
+				SystemID:        "bk_nodemgr",
+				CallbackPath:    "",
 			},
 			wantErr: true,
 		},
@@ -60,7 +71,8 @@ func TestConfig_Validate(t *testing.T) {
 					AuthMode:   apigwclient.AuthModeUn,
 					BKUsername: "admin",
 				},
-				SystemID: "bk-nodeman",
+				SystemID:     "bk_nodemgr",
+				CallbackPath: "/api/v3/iam/callback",
 			},
 			wantErr: true,
 		},

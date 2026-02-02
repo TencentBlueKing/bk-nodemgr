@@ -1233,7 +1233,9 @@ backend:
       # accessToken is the BlueKing access token of NodeMan to request IAM v3 gateway.
       accessToken: ""
       # systemID is the system identifier registered in IAM v3.
-      systemID: "bk-nodemgr"
+      systemID: "bk_nodemgr"
+      # callbackPath is the callback path for IAM resource provider.
+      callbackPath: "/api/v3/iam/callback"
       # trace service name for IAM v3 client
       traceServiceName: "backend-client-iam-v3"
       traceSampleRate: 0

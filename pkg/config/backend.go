@@ -134,6 +134,9 @@ type IAMV3 struct {
 	APIGatewayClient `yaml:",inline" usage:"api-gateway config of IAM v3"`
 	// SystemID is the system identifier registered in IAM.
 	SystemID string `yaml:"systemID" usage:"system ID registered in IAM v3"`
+	// CallbackPath is the callback path for IAM resource provider.
+	// This field is required when IAM v3 is enabled.
+	CallbackPath string `yaml:"callbackPath" usage:"callback path for IAM resource provider"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -529,6 +532,10 @@ func (conf IAMV3) Validate() error {
 
 	if conf.SystemID == "" {
 		return fmt.Errorf("system ID is required for IAM v3")
+	}
+
+	if conf.CallbackPath == "" {
+		return fmt.Errorf("callback path is required for IAM v3")
 	}
 
 	return nil
