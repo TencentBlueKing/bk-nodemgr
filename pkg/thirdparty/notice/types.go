@@ -55,7 +55,6 @@ func (resp *BaseBroker[T]) IsFailed() error {
 // This is an internal type, not exposed in the public API.
 type getCurrentAnnouncementsParams struct {
 	Platform string
-	Username string
 }
 
 // toQueryParams converts params to URL query parameters.
@@ -63,9 +62,6 @@ func (p *getCurrentAnnouncementsParams) toQueryParams() map[string]string {
 	params := make(map[string]string)
 	if p.Platform != "" {
 		params["platform"] = p.Platform
-	}
-	if p.Username != "" {
-		params["username"] = p.Username
 	}
 
 	return params

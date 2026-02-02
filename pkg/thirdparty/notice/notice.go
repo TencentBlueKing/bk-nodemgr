@@ -16,11 +16,12 @@ import (
 	"net/http"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/identifier"
 	restclient "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/client"
+	restheader "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/header"
 	apigwclient "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/client"
+	apigwheader "github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/apigw/header"
 )
-
-// This file only supports requesting and getting responses.
 
 // cli client for notice.
 type cli struct {
@@ -47,13 +48,19 @@ func newClient(c *restclient.Capability, conf *Config) (*cli, error) {
 }
 
 // getHeader get notice common header.
-// nolint: unparam
-func (c *cli) getHeader() (http.Header, error) {
+func (c *cli) getHeader(nCtx contextx.IContext) http.Header {
 	header := http.Header{}
+	header.Set(restheader.BKTenantIDKey, nCtx.TenantID())
+	header.Set(apigwheader.BKGWRIDKey, identifier.GenRequestID())
 
-	// TODO: integrate tenant info
+	// backend apigw open the user auth.
+	userConfig := apigwclient.UserConfig{
+		AppConfig:  c.config.APIGWUserConfig.AppConfig,
+		BKUsername: nCtx.BKUsername(),
+	}
+	header.Set(apigwheader.BKGWAuthKey, userConfig.GetAuthHeader())
 
-	return header, nil
+	return header
 }
 
 // getCurrentAnnouncements get current announcements from notice center.
@@ -61,10 +68,7 @@ func (c *cli) getCurrentAnnouncements(nCtx contextx.IContext,
 	params *getCurrentAnnouncementsParams) ([]*announcementData, error) {
 
 	resp := new(BaseBroker[[]*announcementData])
-	header, err := c.getHeader()
-	if err != nil {
-		return nil, err
-	}
+	header := c.getHeader(nCtx)
 
 	request := c.client.Get().
 		SubResourcef("/announcement/get_current_announcements").
@@ -78,7 +82,7 @@ func (c *cli) getCurrentAnnouncements(nCtx contextx.IContext,
 		}
 	}
 
-	err = request.Do().Into(resp)
+	err := request.Do().Into(resp)
 	if err != nil {
 		return nil, err
 	}
@@ -94,12 +98,9 @@ func (c *cli) getCurrentAnnouncements(nCtx contextx.IContext,
 // No request body needed - authentication is via header.
 func (c *cli) registerApplication(nCtx contextx.IContext) (*registerApplicationResp, error) {
 	resp := new(BaseBroker[*registerApplicationResp])
-	header, err := c.getHeader()
-	if err != nil {
-		return nil, err
-	}
+	header := c.getHeader(nCtx)
 
-	err = c.client.Post().
+	err := c.client.Post().
 		SubResourcef("/register").
 		WithContext(nCtx).
 		WithHeaders(header).
