@@ -19,6 +19,8 @@ TARGET_OS := $(word 1,$(subst /, ,$(TARGET_PLATFORM)))
 TARGET_ARCH := $(word 2,$(subst /, ,$(TARGET_PLATFORM)))
 endif
 
+BASE_IMAGE ?= alpine
+
 # version
 BUILDTIME := $(shell date +%Y-%m-%dT%T%z)
 GITTAG    := $(shell git describe --tags --always --dirty 2>/dev/null || echo "v0.0.0")
@@ -187,7 +189,7 @@ compress-binary:
 
 docker-build-server: backend application file front tools scripts
 	@$(ECHO) "Building docker images..."
-	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/Dockerfile $(OUTPUT_DIR)
+	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/${BASE_IMAGE}/Dockerfile $(OUTPUT_DIR)
 	@$(CP) $(ROOT_DIR)/install/docker-compose/serviced.sh $(OUTPUT_DIR)
 	@if [ -n "$(TARGET_PLATFORM)" ]; then \
 		case "$(TARGET_PLATFORM)" in \
