@@ -168,7 +168,7 @@ func (h *Handler) GetCurrentAnnouncements(nCtx contextx.IContext) ([]*types.Anno
 			Title:        ann.Title,
 			ContentList:  contentList,
 			Content:      ann.Content,
-			AnnounceType: ann.AnnounceType,
+			AnnounceType: types.AnnounceType(ann.AnnounceType),
 			StartTime:    startTime,
 			EndTime:      endTime,
 		}

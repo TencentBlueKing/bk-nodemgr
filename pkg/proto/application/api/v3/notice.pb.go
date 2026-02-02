@@ -75,9 +75,11 @@ func (*GetCurrentAnnouncementsReq) Descriptor() ([]byte, []int) {
 
 // AnnouncementContent describes announcement content in a specific language.
 type AnnouncementContent struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Content       string                 `protobuf:"bytes,1,opt,name=content,proto3" json:"content"`
-	Language      string                 `protobuf:"bytes,2,opt,name=language,proto3" json:"language"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// content is the announcement content text in the specified language.
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content"`
+	// language is the language code (e.g., "zh-cn", "en").
+	Language      string `protobuf:"bytes,2,opt,name=language,proto3" json:"language"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,16 +128,25 @@ func (x *AnnouncementContent) GetLanguage() string {
 	return ""
 }
 
-// Announcement describes a platform announcement.
+// Announcement describes a platform announcement from notice center.
 type Announcement struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title"`
-	ContentList   []*AnnouncementContent `protobuf:"bytes,3,rep,name=content_list,proto3" json:"content_list"`
-	Content       string                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content"`
-	AnnounceType  string                 `protobuf:"bytes,5,opt,name=announce_type,proto3" json:"announce_type"`
-	StartTime     string                 `protobuf:"bytes,6,opt,name=start_time,proto3" json:"start_time"` // RFC3339 format string
-	EndTime       string                 `protobuf:"bytes,7,opt,name=end_time,proto3" json:"end_time"`     // RFC3339 format string
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// id is the unique identifier of the announcement.
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id"`
+	// title is the announcement title.
+	Title string `protobuf:"bytes,2,opt,name=title,proto3" json:"title"`
+	// content_list contains announcement content in multiple languages.
+	ContentList []*AnnouncementContent `protobuf:"bytes,3,rep,name=content_list,proto3" json:"content_list"`
+	// content is the default announcement content (for backward compatibility).
+	Content string `protobuf:"bytes,4,opt,name=content,proto3" json:"content"`
+	// announce_type is the type of announcement.
+	// Valid values: "event" (activity notification) or "announce" (platform
+	// announcement).
+	AnnounceType string `protobuf:"bytes,5,opt,name=announce_type,proto3" json:"announce_type"`
+	// start_time is when the announcement becomes active (RFC3339 format).
+	StartTime string `protobuf:"bytes,6,opt,name=start_time,proto3" json:"start_time"`
+	// end_time is when the announcement expires (RFC3339 format).
+	EndTime       string `protobuf:"bytes,7,opt,name=end_time,proto3" json:"end_time"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -222,11 +233,16 @@ func (x *Announcement) GetEndTime() string {
 // GetCurrentAnnouncementsResp describes the response for getting current
 // announcements.
 type GetCurrentAnnouncementsResp struct {
-	state         protoimpl.MessageState            `protogen:"open.v1"`
-	Code          int32                             `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
-	Message       string                            `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
-	RequestId     string                            `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
-	Error         *Error                            `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// code is the response status code.
+	Code int32 `protobuf:"varint,1,opt,name=code,proto3" json:"code"`
+	// message is the response message.
+	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message"`
+	// request_id is the unique request identifier for tracing.
+	RequestId string `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id"`
+	// error contains error details if the request failed.
+	Error *Error `protobuf:"bytes,4,opt,name=error,proto3" json:"error"`
+	// data contains the response data.
 	Data          *GetCurrentAnnouncementsResp_Data `protobuf:"bytes,5,opt,name=data,proto3" json:"data"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -297,9 +313,11 @@ func (x *GetCurrentAnnouncementsResp) GetData() *GetCurrentAnnouncementsResp_Dat
 	return nil
 }
 
+// Data contains the list of current announcements.
 type GetCurrentAnnouncementsResp_Data struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Items         []*Announcement        `protobuf:"bytes,1,rep,name=items,proto3" json:"items"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// items is the list of announcement objects.
+	Items         []*Announcement `protobuf:"bytes,1,rep,name=items,proto3" json:"items"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

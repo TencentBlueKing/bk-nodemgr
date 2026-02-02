@@ -60,9 +60,11 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3Announcement"
-          }
+          },
+          "description": "items is the list of announcement objects."
         }
-      }
+      },
+      "description": "Data contains the list of current announcements."
     },
     "protobufAny": {
       "type": "object",
@@ -97,43 +99,50 @@
       "properties": {
         "id": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "id is the unique identifier of the announcement."
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "description": "title is the announcement title."
         },
         "content_list": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v3AnnouncementContent"
-          }
+          },
+          "description": "content_list contains announcement content in multiple languages."
         },
         "content": {
-          "type": "string"
+          "type": "string",
+          "description": "content is the default announcement content (for backward compatibility)."
         },
         "announce_type": {
-          "type": "string"
+          "type": "string",
+          "description": "announce_type is the type of announcement.\nValid values: \"event\" (activity notification) or \"announce\" (platform\nannouncement)."
         },
         "start_time": {
           "type": "string",
-          "title": "RFC3339 format string"
+          "description": "start_time is when the announcement becomes active (RFC3339 format)."
         },
         "end_time": {
           "type": "string",
-          "title": "RFC3339 format string"
+          "description": "end_time is when the announcement expires (RFC3339 format)."
         }
       },
-      "description": "Announcement describes a platform announcement."
+      "description": "Announcement describes a platform announcement from notice center."
     },
     "v3AnnouncementContent": {
       "type": "object",
       "properties": {
         "content": {
-          "type": "string"
+          "type": "string",
+          "description": "content is the announcement content text in the specified language."
         },
         "language": {
-          "type": "string"
+          "type": "string",
+          "description": "language is the language code (e.g., \"zh-cn\", \"en\")."
         }
       },
       "description": "AnnouncementContent describes announcement content in a specific language."
@@ -161,19 +170,24 @@
       "properties": {
         "code": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "description": "code is the response status code."
         },
         "message": {
-          "type": "string"
+          "type": "string",
+          "description": "message is the response message."
         },
         "request_id": {
-          "type": "string"
+          "type": "string",
+          "description": "request_id is the unique request identifier for tracing."
         },
         "error": {
-          "$ref": "#/definitions/v3Error"
+          "$ref": "#/definitions/v3Error",
+          "description": "error contains error details if the request failed."
         },
         "data": {
-          "$ref": "#/definitions/GetCurrentAnnouncementsRespData"
+          "$ref": "#/definitions/GetCurrentAnnouncementsRespData",
+          "description": "data contains the response data."
         }
       },
       "description": "GetCurrentAnnouncementsResp describes the response for getting current\nannouncements."

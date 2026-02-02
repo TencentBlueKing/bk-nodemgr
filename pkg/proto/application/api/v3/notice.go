@@ -36,7 +36,7 @@ func ConvertAnnouncementFromTypes(announcement *types.Announcement) *Announcemen
 		Title:        announcement.Title,
 		ContentList:  contentList,
 		Content:      announcement.Content,
-		AnnounceType: announcement.AnnounceType,
+		AnnounceType: string(announcement.AnnounceType),
 		StartTime:    announcement.StartTime.Format(time.RFC3339),
 		EndTime:      announcement.EndTime.Format(time.RFC3339),
 	}
