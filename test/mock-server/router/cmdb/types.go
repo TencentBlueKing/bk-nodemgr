@@ -25,11 +25,54 @@ const (
 	CodeServerError = 1199001
 )
 
+// ResourceType represents the type of event resource.
+type ResourceType string
+
+const (
+	// ResourceTypeHost represents the host resource type.
+	ResourceTypeHost ResourceType = "host"
+
+	// ResourceTypeHostRelation represents the host relation resource type.
+	ResourceTypeHostRelation ResourceType = "host_relation"
+)
+
+// EventType represents the event type of watch event.
+type EventType string
+
+const (
+	// EventTypeCreate represents the create event type.
+	EventTypeCreate EventType = "create"
+
+	// EventTypeUpdate represents the update event type.
+	EventTypeUpdate EventType = "update"
+
+	// EventTypeDelete represents the delete event type.
+	EventTypeDelete EventType = "delete"
+)
+
+// CMDB watch event JSON field names.
+const (
+	// WatchFieldCursor is the field name for cursor in watch event.
+	WatchFieldCursor = "bk_cursor"
+
+	// WatchFieldResource is the field name for resource type in watch event.
+	WatchFieldResource = "bk_resource"
+
+	// WatchFieldEventType is the field name for event type in watch event.
+	WatchFieldEventType = "bk_event_type"
+
+	// WatchFieldDetail is the field name for detail in watch event.
+	WatchFieldDetail = "bk_detail"
+)
+
 // Config holds the configuration for CMDB mock data.
 type Config struct {
 	// Businesses is the list of mock business data.
 	Businesses []BusinessConfig `yaml:"businesses"`
-	// TODO: add more data here. such as areas, hosts, etc.
+	// Areas is the list of mock cloud areas.
+	Areas []CloudAreaConfig `yaml:"areas"`
+	// Hosts is the list of mock hosts.
+	Hosts []HostConfig `yaml:"hosts"`
 }
 
 // BusinessConfig holds the configuration for a single business.
@@ -40,22 +83,90 @@ type BusinessConfig struct {
 	BKBizName string `yaml:"bk_biz_name"`
 }
 
+// CloudAreaConfig holds the configuration for a single cloud area.
+type CloudAreaConfig struct {
+	// BKCloudID is the cloud area ID.
+	BKCloudID int64 `yaml:"bk_cloud_id"`
+	// BKCloudName is the cloud area name.
+	BKCloudName string `yaml:"bk_cloud_name"`
+}
+
+// HostConfig holds the configuration for a single host.
+type HostConfig struct {
+	// BKHostID is the host ID.
+	BKHostID int64 `yaml:"bk_host_id"`
+	// BKBizID is the business ID.
+	BKBizID int64 `yaml:"bk_biz_id"`
+	// BKCloudID is the cloud area ID.
+	BKCloudID int64 `yaml:"bk_cloud_id"`
+	// BKInnerIP is the IPv4 inner IP.
+	BKInnerIP string `yaml:"bk_inner_ip"`
+	// BKInnerIPv6 is the IPv6 inner IP.
+	BKInnerIPv6 string `yaml:"bk_inner_ipv6"`
+	// BKOSType is the OS type.
+	BKOSType string `yaml:"bk_os_type"`
+	// BKCpuArch is the CPU architecture.
+	BKCpuArch string `yaml:"bk_cpu_arch"`
+}
+
 // Validate validates the BusinessConfig.
-func (b *BusinessConfig) Validate() error {
-	if b.BKBizID < 0 {
-		return fmt.Errorf("bk_biz_id must be >= 0, bk_biz_id(%d)", b.BKBizID)
+func (bc *BusinessConfig) Validate() error {
+	if bc.BKBizID < 0 {
+		return fmt.Errorf("bk_biz_id must be >= 0, bk_biz_id(%d)", bc.BKBizID)
 	}
-	if b.BKBizName == "" {
+	if bc.BKBizName == "" {
 		return fmt.Errorf("bk_biz_name cannot be empty")
 	}
 
 	return nil
 }
 
+// Validate validates the CloudAreaConfig.
+func (cac *CloudAreaConfig) Validate() error {
+	if cac.BKCloudID < 0 {
+		return fmt.Errorf("bk_cloud_id must be >= 0, bk_cloud_id(%d)", cac.BKCloudID)
+	}
+	if cac.BKCloudName == "" {
+		return fmt.Errorf("bk_cloud_name cannot be empty")
+	}
+
+	return nil
+}
+
+// Validate validates the HostConfig.
+func (hc *HostConfig) Validate() error {
+	if hc.BKHostID <= 0 {
+		return fmt.Errorf("bk_host_id must be > 0, bk_host_id(%d)", hc.BKHostID)
+	}
+	if hc.BKBizID < 0 {
+		return fmt.Errorf("bk_biz_id must be >= 0, bk_biz_id(%d)", hc.BKBizID)
+	}
+	if hc.BKCloudID < 0 {
+		return fmt.Errorf("bk_cloud_id must be >= 0, bk_cloud_id(%d)", hc.BKCloudID)
+	}
+	if hc.BKInnerIP == "" && hc.BKInnerIPv6 == "" {
+		return fmt.Errorf("bk_inner_ip and bk_inner_ipv6 cannot both be empty")
+	}
+
+	return nil
+}
+
 // Validate validates the Config.
-func (c *Config) Validate() error {
-	for _, biz := range c.Businesses {
+func (cfg *Config) Validate() error {
+	for _, biz := range cfg.Businesses {
 		if err := biz.Validate(); err != nil {
+			return err
+		}
+	}
+
+	for _, area := range cfg.Areas {
+		if err := area.Validate(); err != nil {
+			return err
+		}
+	}
+
+	for _, host := range cfg.Hosts {
+		if err := host.Validate(); err != nil {
 			return err
 		}
 	}

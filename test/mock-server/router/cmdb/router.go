@@ -42,4 +42,23 @@ func Load(rg *gin.RouterGroup, conf *Config) {
 
 	// search businesses.
 	h.rg.POST("/biz/search/:supplier_account", h.SearchBusiness)
+
+	// search cloud areas.
+	h.rg.POST("/findmany/cloudarea", h.SearchCloudArea)
+
+	// list hosts by business.
+	h.rg.POST("/hosts/app/:biz/list_hosts", h.ListBizHosts)
+	// add host to business.
+	h.rg.POST("/hosts/add/business_idle", h.AddHostToBusinessIdle)
+	// bind host agent id.
+	h.rg.POST("/host/bind/agent", h.BindHostAgent)
+
+	// push host identifier.
+	h.rg.POST("/event/push/host_identifier", h.PushHostIdentifier)
+	// find host identifier push result.
+	h.rg.POST("/event/find/host_identifier_push_result", h.FindHostIdentifierPushResult)
+
+	// watch resource events.
+	h.rg.POST("/event/watch/resource/host", h.WatchHostResource)
+	h.rg.POST("/event/watch/resource/host_relation", h.WatchHostRelationResource)
 }

@@ -16,7 +16,7 @@ router/
 │   ├── helper.go      # CMDB 专属响应格式
 │   ├── types.go       # Config、常量、错误码
 │   ├── storage.go     # 存储
-│   └── business.go    # 业务处理
+│   └── handler.go     # 业务处理
 └── healthz/           # 服务健康检查
 ```
 

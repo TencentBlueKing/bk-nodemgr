@@ -36,7 +36,7 @@ Mock Server 用于在测试环境中模拟第三方服务（如 CMDB）的 API �
    ├── storage.go     # 存储
    ├── helper.go      # 该组件专属的响应格式封装, 辅助函数等
    ├── types.go       # Config、常量、错误码
-   └── business.go    # 业务处理逻辑
+   └── handler.go     # 业务处理逻辑
    ```
    
 **注意**：
