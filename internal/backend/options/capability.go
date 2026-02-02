@@ -35,6 +35,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
 	"github.com/redis/go-redis/v9"
@@ -96,6 +97,9 @@ type Capability struct {
 
 	// UserManagerHandler user manager handler.
 	UserManagerHandler usermanager.IHandler
+
+	// IAMV3Handler the IAM v3 handler.
+	IAMV3Handler iamv3.IHandler
 
 	// LockerFactory locker factory
 	LockerFactory locker.MutexFactory

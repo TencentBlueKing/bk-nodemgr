@@ -52,6 +52,8 @@ data:
 
     log: {{ .Values.backend.config.log | toYaml | nindent 6 }}
 
+    iamV3: {{ .Values.backend.config.iamV3 | toYaml | nindent 6 }}
+
     file: {{ .Values.backend.config.file | toYaml | nindent 6 }}
 
     etcd:

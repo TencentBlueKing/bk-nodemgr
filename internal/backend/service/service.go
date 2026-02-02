@@ -64,6 +64,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/file"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/gse"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iamv3"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/iegtjj"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/thirdparty/usermanager"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
@@ -84,6 +85,7 @@ const (
 	clientNameUserManager = "usermanager"
 	clientNameIEGTJJ      = "iegtjj"
 	clientNameFile        = "file"
+	clientNameIAM         = "iam-v3"
 )
 
 // Service defines a apigwserver that provides backend services.
@@ -242,6 +244,12 @@ func (svc *Service) initialCapability() error {
 		return fmt.Errorf("failed to create user manager handler: %w", err)
 	}
 
+	// initial IAM v3 handler.
+	svc.Cap.IAMV3Handler, err = svc.newIAMV3Handler()
+	if err != nil {
+		return fmt.Errorf("failed to create IAM v3 handler: %w", err)
+	}
+
 	// initial credit vault.
 	svc.Cap.CreditVault, err = svc.newCreditVault()
 	if err != nil {
@@ -392,6 +400,40 @@ func (svc *Service) newUserManagerHandler() (usermanager.IHandler, error) {
 	}
 
 	return gseHandler, nil
+}
+
+// newIAMV3Handler creates a new IAM v3 handler.
+func (svc *Service) newIAMV3Handler() (iamv3.IHandler, error) {
+	// Return no-op handler if IAM v3 is disabled
+	if !svc.conf.IAMV3.Enable {
+		return iamv3.NewNoOpHandler(), nil
+	}
+
+	apiGwAppConfig := newAPIGWAppConfig(&svc.conf.IAMV3.APIGatewayClient)
+	apiGwUserConfig := apigwclient.UserConfig{
+		AppConfig:   apiGwAppConfig,
+		AuthMode:    apigwclient.AuthMode(svc.conf.IAMV3.AuthMode),
+		BKUsername:  svc.conf.IAMV3.User,
+		AccessToken: svc.conf.IAMV3.AccessToken,
+	}
+
+	apiGwClientCapability, err := newAPIGwClientCapability(
+		clientNameIAM,
+		&svc.conf.IAMV3.APIGatewayClient,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new apigw client for IAM v3: %w", err)
+	}
+
+	iamHandler, err := iamv3.New(apiGwClientCapability, &iamv3.Config{
+		APIGWUserConfig: apiGwUserConfig,
+		SystemID:        svc.conf.IAMV3.SystemID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return iamHandler, nil
 }
 
 func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {

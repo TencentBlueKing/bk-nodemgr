@@ -1206,6 +1206,47 @@ backend:
       traceServiceName: "bk_nodemgr_redis"
       traceSampleRate: 0
 
+    ## defines the IAM v3 related settings.
+    iamV3:
+      # enable indicates whether IAM v3 is enabled.
+      # When set to false, a no-op handler will be used and all permission checks will be skipped.
+      enable: false
+      # endpoints is a seed list of host:port addresses of IAM API gateway nodes.
+      endpoints:
+        - "https://example.com/api/bk-iam/prod"
+      # appCode is the BlueKing app code of NodeMan to request IAM v3 gateway.
+      appCode: ""
+      # appSecret is the BlueKing app secret of NodeMan to request IAM v3 gateway.
+      appSecret: ""
+      # user is the BlueKing user of NodeMan to request IAM v3 gateway.
+      user: ""
+      # authMode is the mode to do api auth verification.
+      # it support 'oa' and 'ee' and 'at' and 'un' mode for now.
+      # 1. oa use bkTicket auth.
+      # 2. ee use bkToken auth.
+      # 3. at use accessToken auth.
+      # 4. un use no user authentication required
+      authMode: "un"
+      # accessToken is the BlueKing access token of NodeMan to request IAM v3 gateway.
+      accessToken: ""
+      # systemID is the system identifier registered in IAM v3.
+      systemID: "bk-nodemgr"
+      # trace service name for IAM v3 client
+      traceServiceName: "backend-client-iam-v3"
+      traceSampleRate: 0
+      # defines tls related options.
+      tls:
+        # server should be accessed without verifying the TLS certificate.
+        insecureSkipVerify: false
+        # server requires TLS client certificate authentication.
+        certFile: ""
+        # server requires TLS client certificate authentication.
+        keyFile: ""
+        # trusted root certificates for server.
+        caFile: ""
+        # the password to decrypt the certificate.
+        password: ""
+
     ## defines the file related settings.
     file:
       # trace name for file service client

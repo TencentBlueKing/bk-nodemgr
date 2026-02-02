@@ -95,6 +95,7 @@ const (
 	defaultBackendGSETraceServiceName         = "backend-client-gse"
 	defaultBackendUserManagerTraceServiceName = "backend-client-usermanager"
 	defaultBackendIEGTJJTraceServiceName      = "backend-client-iegtjj"
+	defaultBackendIAMV3TraceServiceName       = "backend-client-iam-v3"
 )
 
 // BackendService the config of backend service.
@@ -105,6 +106,7 @@ type BackendService struct {
 	File               File            `yaml:"file" usage:"file config of backend service"`
 	GSE                GSE             `yaml:"gse" usage:"gse config of backend service"`
 	UserManager        UserManager     `yaml:"userManager" usage:"user manager config of backend service"`
+	IAMV3              IAMV3           `yaml:"iamV3" usage:"IAM v3 gateway config"`
 	Workflow           Workflow        `yaml:"workflow" usage:"workflow config of backend service"`
 	InfoServer         HTTPServer      `yaml:"infoServer" usage:"info server config of backend service"`
 	AdminServer        HTTPServer      `yaml:"adminServer" usage:"admin server config of backend service"`
@@ -122,6 +124,16 @@ type BackendService struct {
 	CreditVault        CreditVault     `yaml:"creditVault" usage:"credit vault config of backend service"`
 	Access             Access          `yaml:"access" usage:"access config of backend service"`
 	Tracing            Tracing         `yaml:"tracing" usage:"tracing config of backend service"`
+}
+
+// IAMV3 the config of IAM v3 gateway config.
+type IAMV3 struct {
+	// Enable indicates whether IAM v3 is enabled.
+	// When disabled, a no-op handler will be used and all permission checks will be skipped.
+	Enable           bool `yaml:"enable" usage:"enable IAM v3 permission management"`
+	APIGatewayClient `yaml:",inline" usage:"api-gateway config of IAM v3"`
+	// SystemID is the system identifier registered in IAM.
+	SystemID string `yaml:"systemID" usage:"system ID registered in IAM v3"`
 }
 
 // NewBackendService generates a new BackendService with default values.
@@ -153,6 +165,13 @@ func NewBackendService() *BackendService {
 			APIGatewayClient: APIGatewayClient{
 				TraceService: TraceService{
 					TraceServiceName: defaultBackendUserManagerTraceServiceName,
+				},
+			},
+		},
+		IAMV3: IAMV3{
+			APIGatewayClient: APIGatewayClient{
+				TraceService: TraceService{
+					TraceServiceName: defaultBackendIAMV3TraceServiceName,
 				},
 			},
 		},
@@ -377,6 +396,10 @@ func (svc *BackendService) Validate() error {
 		return fmt.Errorf("failed to validate user manager config: %w", err)
 	}
 
+	if err := svc.IAMV3.Validate(); err != nil {
+		return fmt.Errorf("failed to validate IAM v3 config: %w", err)
+	}
+
 	if svc.EncryptKey == "" {
 		return fmt.Errorf("failed to validate encrypt key config: encrypt key is empty")
 	}
@@ -488,6 +511,24 @@ type Tracing struct {
 func (conf Tracing) Validate() error {
 	if conf.ExporterType == "" {
 		return fmt.Errorf("exporter type is empty")
+	}
+
+	return nil
+}
+
+// Validate validates the config.
+func (conf IAMV3) Validate() error {
+	// Skip validation if IAM v3 is disabled
+	if !conf.Enable {
+		return nil
+	}
+
+	if err := conf.APIGatewayClient.Validate(); err != nil {
+		return fmt.Errorf("failed to validate IAM v3 client config: %w", err)
+	}
+
+	if conf.SystemID == "" {
+		return fmt.Errorf("system ID is required for IAM v3")
 	}
 
 	return nil
