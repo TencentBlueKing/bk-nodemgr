@@ -144,9 +144,14 @@ func sentinelFields() []string {
 	}
 }
 
+const maskLen = 6
+
 func maskValue(value string) string {
-	if len(value) > 6 {
-		return value[:3] + "***" + value[len(value)-3:]
+	if len(value) > maskLen {
+		// nolint: mnd
+		halfMaskLen := maskLen / 2
+
+		return value[:halfMaskLen] + "***" + value[len(value)-halfMaskLen:]
 	}
 
 	return strings.Repeat("*", len(value))
