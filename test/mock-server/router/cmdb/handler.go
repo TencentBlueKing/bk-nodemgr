@@ -159,6 +159,13 @@ func (h *handler) BindHostAgent(gCtx *gin.Context) {
 //###############################################################################
 
 // PushHostIdentifier pushes host identifier.
+//
+// NOTE: This is a FAKE implementation that only simulates the API response at memory level.
+// It does NOT:
+//   - Query agent status from GSE
+//   - Actually push identifier files to GSE
+//   - Write identifier files to agent machines
+//   - Poll GSE for real task results
 func (h *handler) PushHostIdentifier(gCtx *gin.Context) {
 	var req cmdb.PushHostIdentifierReq
 	if err := common.BindJSON(gCtx, &req); err != nil {
@@ -193,6 +200,12 @@ func buildHostIdentifierInfo(hostID int64) struct {
 }
 
 // FindHostIdentifierPushResult finds host identifier push result.
+//
+// NOTE: This is a FAKE implementation that always returns all hosts as successful.
+// It does NOT query real GSE task results, so:
+//   - successList always contains all requested hostIDs
+//   - failedList is always empty
+//   - pendingList is always empty
 func (h *handler) FindHostIdentifierPushResult(gCtx *gin.Context) {
 	var req cmdb.FindHostIdentifierPushResultReq
 	if err := common.BindJSON(gCtx, &req); err != nil {
