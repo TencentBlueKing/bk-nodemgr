@@ -143,7 +143,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 	detail := new(types.OriginCertPkgDetail)
 	if err := checkTgz(file, []tgzReadRule{
 		{
-			filePathRegex: []string{buildFullMatchRegex(certFileNameCaCrt)},
+			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameCaCrt)},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, certFileNameCaCrt)
 
@@ -151,7 +151,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePathRegex: []string{buildFullMatchRegex(certFileNameAgentCrt)},
+			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameAgentCrt)},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, certFileNameAgentCrt)
 
@@ -159,7 +159,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePathRegex: []string{buildFullMatchRegex(certFileNameAgentKey)},
+			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameAgentKey)},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, certFileNameAgentKey)
 
@@ -167,7 +167,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePathRegex: []string{buildFullMatchRegex(certFileNameServerCrt)},
+			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameServerCrt)},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, certFileNameServerCrt)
 
@@ -175,7 +175,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePathRegex: []string{buildFullMatchRegex(certFileNameServerKey)},
+			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameServerKey)},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, certFileNameServerKey)
 
@@ -183,7 +183,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePathRegex: []string{buildFullMatchRegex(certFileNameAPIClientCrt)},
+			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameAPIClientCrt)},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, certFileNameAPIClientCrt)
 
@@ -191,7 +191,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePathRegex: []string{buildFullMatchRegex(certFileNameAPIClientKey)},
+			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameAPIClientKey)},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, certFileNameAPIClientKey)
 
@@ -199,7 +199,7 @@ func checkOriginCertPkg(file io.ReadCloser) (*types.OriginCertPkgDetail, error) 
 			},
 		},
 		{
-			filePathRegex: []string{buildFullMatchRegex(certFileNameCertEncryptKey)},
+			filePathRegex: []string{buildFullMatchRegex(certDirNameRoot), buildFullMatchRegex(certFileNameCertEncryptKey)},
 			callback: func(_ []string, _ io.Reader) error {
 				detail.CertFiles = append(detail.CertFiles, certFileNameCertEncryptKey)
 
@@ -350,42 +350,42 @@ func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadClos
 			sourceFile: sourceFile,
 			fileRules: []tgzWriteRuleFile{
 				{
-					sourceFilePath: []string{certFileNameCaCrt},
+					sourceFilePath: []string{certDirNameRoot, certFileNameCaCrt},
 					targetFilePath: []string{certDirNameRoot, certFileNameCaCrt},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{certFileNameAgentCrt},
+					sourceFilePath: []string{certDirNameRoot, certFileNameAgentCrt},
 					targetFilePath: []string{certDirNameRoot, certFileNameAgentCrt},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{certFileNameAgentKey},
+					sourceFilePath: []string{certDirNameRoot, certFileNameAgentKey},
 					targetFilePath: []string{certDirNameRoot, certFileNameAgentKey},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{certFileNameServerCrt},
+					sourceFilePath: []string{certDirNameRoot, certFileNameServerCrt},
 					targetFilePath: []string{certDirNameRoot, certFileNameServerCrt},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{certFileNameServerKey},
+					sourceFilePath: []string{certDirNameRoot, certFileNameServerKey},
 					targetFilePath: []string{certDirNameRoot, certFileNameServerKey},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{certFileNameAPIClientCrt},
+					sourceFilePath: []string{certDirNameRoot, certFileNameAPIClientCrt},
 					targetFilePath: []string{certDirNameRoot, certFileNameAPIClientCrt},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{certFileNameAPIClientKey},
+					sourceFilePath: []string{certDirNameRoot, certFileNameAPIClientKey},
 					targetFilePath: []string{certDirNameRoot, certFileNameAPIClientKey},
 					targetFileMode: tgzModeFile,
 				},
 				{
-					sourceFilePath: []string{certFileNameCertEncryptKey},
+					sourceFilePath: []string{certDirNameRoot, certFileNameCertEncryptKey},
 					targetFilePath: []string{certDirNameRoot, certFileNameCertEncryptKey},
 					targetFileMode: tgzModeFile,
 				},
