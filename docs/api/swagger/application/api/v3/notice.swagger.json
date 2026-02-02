@@ -102,6 +102,13 @@
         "title": {
           "type": "string"
         },
+        "content_list": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3AnnouncementContent"
+          }
+        },
         "content": {
           "type": "string"
         },
@@ -118,6 +125,18 @@
         }
       },
       "description": "Announcement describes a platform announcement."
+    },
+    "v3AnnouncementContent": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        }
+      },
+      "description": "AnnouncementContent describes announcement content in a specific language."
     },
     "v3Error": {
       "type": "object",

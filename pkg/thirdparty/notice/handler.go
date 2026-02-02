@@ -154,10 +154,20 @@ func (h *Handler) GetCurrentAnnouncements(nCtx contextx.IContext) ([]*types.Anno
 			return nil, fmt.Errorf("failed to parse end_time for announcement %d: %w", ann.ID, err)
 		}
 
+		// Convert content list from internal type to public type
+		contentList := make([]types.AnnouncementContent, len(ann.ContentList))
+		for i, content := range ann.ContentList {
+			contentList[i] = types.AnnouncementContent{
+				Content:  content.Content,
+				Language: content.Language,
+			}
+		}
+
 		announcements[idx] = &types.Announcement{
 			ID:           ann.ID,
-			Title:        ann.Content.Title,
-			Content:      ann.Content.Content,
+			Title:        ann.Title,
+			ContentList:  contentList,
+			Content:      ann.Content,
 			AnnounceType: ann.AnnounceType,
 			StartTime:    startTime,
 			EndTime:      endTime,

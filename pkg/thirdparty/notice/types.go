@@ -67,19 +67,21 @@ func (p *getCurrentAnnouncementsParams) toQueryParams() map[string]string {
 	return params
 }
 
-// announcementContent describe the content of an announcement.
+// announcementContent describe the content of an announcement with multi-language support.
 type announcementContent struct {
-	Title   string `json:"title"`
-	Content string `json:"content"`
+	Content  string `json:"content"`
+	Language string `json:"language"`
 }
 
 // announcementData describe the announcement data from API response.
 type announcementData struct {
-	ID           int64               `json:"id"`
-	Content      announcementContent `json:"content"`
-	AnnounceType string              `json:"announce_type"`
-	StartTime    string              `json:"start_time"`
-	EndTime      string              `json:"end_time"`
+	ID           int64                 `json:"id"`
+	Title        string                `json:"title"`
+	ContentList  []announcementContent `json:"content_list"`
+	Content      string                `json:"content"` // Legacy field, kept for backwards compatibility
+	AnnounceType string                `json:"announce_type"`
+	StartTime    string                `json:"start_time"`
+	EndTime      string                `json:"end_time"`
 }
 
 // registerApplicationResp describe the response data after registering an application.

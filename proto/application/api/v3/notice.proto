@@ -26,14 +26,21 @@ message GetCurrentAnnouncementsReq {
   // Empty request - all parameters are obtained from context automatically
 }
 
+// AnnouncementContent describes announcement content in a specific language.
+message AnnouncementContent {
+  string content = 1 [ json_name = "content" ];
+  string language = 2 [ json_name = "language" ];
+}
+
 // Announcement describes a platform announcement.
 message Announcement {
   int64 id = 1 [ json_name = "id" ];
   string title = 2 [ json_name = "title" ];
-  string content = 3 [ json_name = "content" ];
-  string announce_type = 4 [ json_name = "announce_type" ];
-  string start_time = 5 [ json_name = "start_time" ]; // RFC3339 format string
-  string end_time = 6 [ json_name = "end_time" ];     // RFC3339 format string
+  repeated AnnouncementContent content_list = 3 [ json_name = "content_list" ];
+  string content = 4 [ json_name = "content" ];
+  string announce_type = 5 [ json_name = "announce_type" ];
+  string start_time = 6 [ json_name = "start_time" ]; // RFC3339 format string
+  string end_time = 7 [ json_name = "end_time" ];     // RFC3339 format string
 }
 
 // GetCurrentAnnouncementsResp describes the response for getting current
