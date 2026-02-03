@@ -8,7 +8,7 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
-    values-hash: "{{ toYaml .Values.backend | sha256sum | trunc 63 }}"
+    values-hash: "{{ toYaml .Values.backend.config | sha256sum | trunc 63 }}"
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
@@ -208,19 +208,8 @@ spec:
             {{- if .Values.redis.enabled }}
             check_args="-h {{ template "bk-nodemgr.fullname" . }}-redis-headless -p {{ .Values.redis.service.ports.redis }} -a {{ .Values.redis.auth.password }} --no-auth-warning -c ping"
             {{- else }}
-            {{- if eq .Values.externalRedis.username "default" }}
-            {{- if eq .Values.externalRedis.type "sentinel" }}
-            check_args="-h {{ .Values.externalRedis.host }} -p {{ .Values.externalRedis.port }} -a {{ .Values.externalRedis.sentinelPassword }} --no-auth-warning -c ping"
-            {{- else }}
-            check_args="-h {{ .Values.externalRedis.host }} -p {{ .Values.externalRedis.port }} -a {{ .Values.externalRedis.password }} --no-auth-warning -c ping"
-            {{- end }}
-            {{- else }}
-            {{- if eq .Values.externalRedis.type "sentinel" }}
-            check_args="-h {{ .Values.externalRedis.host }} -p {{ .Values.externalRedis.port }} --user {{ .Values.externalRedis.username }} -a {{ .Values.externalRedis.sentinelPassword }} --no-auth-warning -c ping"
-            {{- else }}
-            check_args="-h {{ .Values.externalRedis.host }} -p {{ .Values.externalRedis.port }} --user {{ .Values.externalRedis.username }} -a {{ .Values.externalRedis.password }} --no-auth-warning -c ping"
-            {{- end }}
-            {{- end }}
+            {{- $firstAddr := index .Values.externalRedis.addrs 0 }}
+            check_args="-u redis://:{{ .Values.externalRedis.password }}@{{ $firstAddr }} --no-auth-warning -c ping"
             {{- end }}
 
             # check redis.

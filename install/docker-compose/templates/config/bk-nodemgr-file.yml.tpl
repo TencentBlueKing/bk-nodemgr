@@ -130,11 +130,15 @@ mongodb:
   traceSampleRate: 0
 
 # redis settings.
+# type: standalone, sentinel, cluster
 redis:
-  host: __BK_NODEMGR_ADVERTISE_IPV4__
-  port: __BK_NODEMGR_REDIS_PORT__
+  type: __BK_NODEMGR_REDIS_TYPE__
+  addrs:
+    - "__BK_NODEMGR_ADVERTISE_IPV4__:__BK_NODEMGR_REDIS_PORT__"
   password: __BK_NODEMGR_REDIS_PASSWORD__
   db: 0
+  # masterName is required for sentinel mode
+  # masterName: mymaster
 
 # tracing settings.
 tracing:

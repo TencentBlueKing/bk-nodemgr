@@ -405,27 +405,24 @@ redis:
 ## If the redis included in the chart is disabled, bk-nodemgr will use below
 ## parameters to connect to an external redis service.
 externalRedis:
-  ## external redis service types('cluster' 'standalone' 'sentinel')
+  ## external redis service type: 'standalone', 'cluster', or 'sentinel'
   ##
-  type: "cluster"
-  ## external redis service host name
+  type: "standalone"
+  ## external redis service addresses (format: ["host:port", ...])
+  ## - standalone: ["host:port"] (single address)
+  ## - sentinel: ["sentinel1:26379", "sentinel2:26379"] (sentinel addresses)
+  ## - cluster: ["node1:6379", "node2:6379"] (cluster node addresses)
   ##
-  host: ""
-  ## external redis service port
-  ##
-  port: 6379
-  ## external redis service user name
-  ##
-  username: "default"
+  addrs: []
   ## external redis service password
   ##
   password: ""
-  ## external redis service sentinel master name
+  ## external redis database index (standalone and sentinel mode only, ignored in cluster mode)
   ##
-  sentinelMasterName: ""
-  ## external redis service sentinel password
+  db: 0
+  ## external redis service master name (sentinel mode only)
   ##
-  sentinelPassword: ""
+  masterName: ""
   ## external redis service tls
   tls:
     ## @param secretName secret name.

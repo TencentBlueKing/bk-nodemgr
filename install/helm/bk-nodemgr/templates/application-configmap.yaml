@@ -32,8 +32,6 @@ data:
 
     backend: {{ .Values.application.config.backend | toYaml | nindent 6 }}
 
-    notice: {{ .Values.application.config.notice | toYaml | nindent 6 }}
-
     log: {{ .Values.application.config.log | toYaml | nindent 6 }}
 
     file: {{ .Values.application.config.file | toYaml | nindent 6 }}

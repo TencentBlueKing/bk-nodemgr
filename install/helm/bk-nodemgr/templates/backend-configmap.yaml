@@ -79,13 +79,19 @@ data:
 
     redis:
       {{- if .Values.redis.enabled }}
-      host: {{ template "bk-nodemgr.fullname" . }}-redis-headless
-      port: {{ .Values.redis.service.ports.redis }}
+      type: standalone
+      addrs:
+        - "{{ template "bk-nodemgr.fullname" . }}-redis-headless:{{ .Values.redis.service.ports.redis }}"
       password: {{ .Values.redis.auth.password }}
+      db: 0
       {{- else }}
-      host: {{ .Values.externalRedis.host }}
-      port: {{ .Values.externalRedis.port }}
+      type: {{ .Values.externalRedis.type }}
+      addrs: {{ .Values.externalRedis.addrs | toYaml | nindent 8 }}
       password: {{ .Values.externalRedis.password }}
+      db: {{ .Values.externalRedis.db }}
+      {{- if eq .Values.externalRedis.type "sentinel" }}
+      masterName: {{ .Values.externalRedis.masterName }}
+      {{- end }}
       tls:
         {{- if len .Values.externalRedis.tls.ca }}
         caFile: {{ .Values.common.certPath }}/redisca.crt
@@ -98,7 +104,6 @@ data:
         "keyFile": "{{ .Values.common.certPath }}/{{ .Values.externalRedis.tls.secretKeyFileName }}",
         {{- end}}
       {{- end}}
-      db: 0
       traceServiceName: {{ .Values.backend.config.redis.traceServiceName }}
       traceSampleRate: {{ .Values.backend.config.redis.traceSampleRate }}
 

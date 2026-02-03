@@ -8,7 +8,7 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
-    values-hash: "{{ toYaml .Values.file | sha256sum | trunc 63 }}"
+    values-hash: "{{ toYaml .Values.file.config | sha256sum | trunc 63 }}"
   {{- if .Values.commonAnnotations }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
