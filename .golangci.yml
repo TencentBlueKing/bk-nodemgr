@@ -806,3 +806,6 @@ linters-settings:
         alias: daoProcessConfig
       - pkg: github.com/patrickmn/go-cache
         alias: gocache
+      # IAM v3 router
+      - pkg: github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/iam/v3
+        alias: iamv3

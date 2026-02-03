@@ -1,0 +1,146 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "iam.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "IAM"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v3/iam/v3/resource": {
+      "post": {
+        "summary": "IAMResourceCallback handles IAM resource callback requests.\nThis is a unified endpoint that dispatches requests to different handlers\nbased on the resource type and method specified in the request body.",
+        "operationId": "IAM_IAMResourceCallback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v3IAMResourceCallbackResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "IAMResourceCallbackReq describes the IAM resource callback request.\nThis is the standard request format defined by BlueKing IAM.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v3IAMResourceCallbackReq"
+            }
+          }
+        ],
+        "tags": [
+          "IAM"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "protobufNullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v3IAMResourceCallbackPage": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "IAMResourceCallbackPage describes the pagination for IAM resource callback."
+    },
+    "v3IAMResourceCallbackReq": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "title": "type is the resource type, e.g., \"host\", \"plugin\", \"business\""
+        },
+        "method": {
+          "type": "string",
+          "title": "method is the callback method, e.g., \"list_instance\", \"fetch_instance_info\"\nSupported methods:\n  - list_attr: List resource attributes\n  - list_attr_value: List attribute values\n  - list_instance: List resource instances\n  - fetch_instance_info: Fetch instance details\n  - list_instance_by_policy: List instances by policy expression\n  - search_instance: Search instances by keyword\n  - fetch_instance_list: Fetch instance list by IDs\n  - fetch_resource_type_schema: Fetch resource type schema"
+        },
+        "filter": {
+          "type": "object",
+          "title": "filter contains the query conditions, structure varies by method"
+        },
+        "page": {
+          "$ref": "#/definitions/v3IAMResourceCallbackPage",
+          "title": "page contains pagination parameters"
+        }
+      },
+      "description": "IAMResourceCallbackReq describes the IAM resource callback request.\nThis is the standard request format defined by BlueKing IAM."
+    },
+    "v3IAMResourceCallbackResp": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32",
+          "title": "code is the response code, 0 means success"
+        },
+        "message": {
+          "type": "string",
+          "title": "message is the response message"
+        },
+        "data": {
+          "title": "data is the response data, structure varies by method"
+        }
+      },
+      "description": "IAMResourceCallbackResp describes the IAM resource callback response.\nThis is the standard response format defined by BlueKing IAM."
+    }
+  }
+}

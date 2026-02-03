@@ -1,0 +1,95 @@
+syntax = "proto3";
+package v3;
+option go_package = "github.com/TencentBlueKing/bk-nodemgr/pkg/protocol/backend/api/v3";
+
+import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
+
+// IAMResourceCallbackPage describes the pagination for IAM resource callback.
+message IAMResourceCallbackPage {
+  int32 offset = 1;
+  int32 limit = 2;
+}
+
+// IAMResourceCallbackReq describes the IAM resource callback request.
+// This is the standard request format defined by BlueKing IAM.
+message IAMResourceCallbackReq {
+  // type is the resource type, e.g., "host", "plugin", "business"
+  string type = 1;
+  // method is the callback method, e.g., "list_instance", "fetch_instance_info"
+  // Supported methods:
+  //   - list_attr: List resource attributes
+  //   - list_attr_value: List attribute values
+  //   - list_instance: List resource instances
+  //   - fetch_instance_info: Fetch instance details
+  //   - list_instance_by_policy: List instances by policy expression
+  //   - search_instance: Search instances by keyword
+  //   - fetch_instance_list: Fetch instance list by IDs
+  //   - fetch_resource_type_schema: Fetch resource type schema
+  string method = 2;
+  // filter contains the query conditions, structure varies by method
+  google.protobuf.Struct filter = 3;
+  // page contains pagination parameters
+  IAMResourceCallbackPage page = 4;
+}
+
+// IAMResourceCallbackResp describes the IAM resource callback response.
+// This is the standard response format defined by BlueKing IAM.
+message IAMResourceCallbackResp {
+  // code is the response code, 0 means success
+  int32 code = 1;
+  // message is the response message
+  string message = 2;
+  // data is the response data, structure varies by method
+  google.protobuf.Value data = 3;
+}
+
+// IAMResourceInstance describes a resource instance in IAM callback response.
+message IAMResourceInstance {
+  // id is the unique identifier of the resource instance
+  string id = 1;
+  // display_name is the display name of the resource instance
+  string display_name = 2;
+}
+
+// IAMResourceAttribute describes a resource attribute in IAM callback response.
+message IAMResourceAttribute {
+  // id is the unique identifier of the attribute
+  string id = 1;
+  // display_name is the display name of the attribute
+  string display_name = 2;
+}
+
+// IAMResourceAttributeValue describes an attribute value in IAM callback
+// response.
+message IAMResourceAttributeValue {
+  // id is the unique identifier of the attribute value
+  string id = 1;
+  // display_name is the display name of the attribute value
+  string display_name = 2;
+}
+
+// IAMResourceListResult describes the list result for IAM callback response.
+message IAMResourceListResult {
+  // count is the total count of results
+  int64 count = 1;
+  // results is the list of resource instances
+  repeated IAMResourceInstance results = 2;
+}
+
+// IAM service provides IAM resource callback APIs.
+// These APIs are called by BlueKing IAM to query resource information.
+// Authentication: Basic Auth with system_id as username and system token as
+// password.
+service IAM {
+  // IAMResourceCallback handles IAM resource callback requests.
+  // This is a unified endpoint that dispatches requests to different handlers
+  // based on the resource type and method specified in the request body.
+  rpc IAMResourceCallback(IAMResourceCallbackReq)
+      returns (IAMResourceCallbackResp) {
+    option (google.api.http) = {
+      post : "/api/v3/iam/v3/resource"
+      body : "*"
+    };
+  }
+}

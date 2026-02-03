@@ -41,6 +41,8 @@ func init() {
 		InvalidFileResource:     errors.New("invalid file resource"),
 		ThirdpartyRequestFailed: errors.New("thirdparty request failed"),
 		BackendOperateFailed:    errors.New("backend operate failed"),
+		ResourceScanTooLarge:    errors.New("resource scan too large"),
+		InvalidKeyword:          errors.New("invalid keyword"),
 	}
 
 	instance.codeErrMap = make(map[Code]error)

@@ -281,11 +281,6 @@ func (h *Handler) IsBasicAuthAllowed(ctx contextx.IContext, username, password s
 		return fmt.Errorf("failed to get token: %w", err)
 	}
 
-	// Validate username matches system ID
-	if username != h.cli.config.SystemID {
-		return fmt.Errorf("invalid username")
-	}
-
 	// Validate password matches token using constant-time comparison
 	if subtle.ConstantTimeCompare([]byte(password), []byte(token)) != 1 {
 		return fmt.Errorf("invalid password")

@@ -79,4 +79,14 @@ const (
 
 	// BackendOperateFailed means operate backend failed.
 	BackendOperateFailed Code = 3800013
+
+	// ResourceScanTooLarge means the scan size is too large when filtering/searching resources.
+	// Used in IAM callbacks when the query would scan too many records.
+	// Maps to HTTP 422 (Unprocessable Entity).
+	ResourceScanTooLarge Code = 3800014
+
+	// InvalidKeyword means the search keyword does not meet requirements.
+	// Used in IAM callbacks when the keyword format is invalid.
+	// Maps to HTTP 406 (Not Acceptable).
+	InvalidKeyword Code = 3800015
 )

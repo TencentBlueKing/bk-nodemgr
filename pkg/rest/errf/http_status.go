@@ -33,6 +33,8 @@ var (
 		InvalidFileResource:     http.StatusInternalServerError,
 		ThirdpartyRequestFailed: http.StatusInternalServerError,
 		BackendOperateFailed:    http.StatusInternalServerError,
+		ResourceScanTooLarge:    http.StatusUnprocessableEntity, // 422
+		InvalidKeyword:          http.StatusNotAcceptable,       // 406
 	}
 )
 

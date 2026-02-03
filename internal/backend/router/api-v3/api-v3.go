@@ -16,6 +16,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/callback"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/cipher"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/deploypolicy"
+	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/iam"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/node"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/pkg"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/router/api-v3/plugin"
@@ -56,6 +57,7 @@ func LoadBasicAPIs(rg *gin.RouterGroup, capability *options.Capability, middlewa
 	process.Load(h.rg, capability)
 	deploypolicy.Load(h.rg, capability)
 	cipher.Load(h.rg, capability)
+	iam.Load(h.rg, capability)
 }
 
 // LoadCallbackAPIs register the callback apis.
