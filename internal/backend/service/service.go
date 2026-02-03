@@ -455,7 +455,7 @@ func (svc *Service) newCreditVault() (creditvault.ICreditVault, error) {
 	}
 }
 
-func (svc *Service) newRedisClient() (*redis.Client, error) {
+func (svc *Service) newRedisClient() (redis.UniversalClient, error) {
 	var tlsConfig *tls.Config
 	if svc.conf.Redis.TLS.CAFile != "" && svc.conf.Redis.TLS.CertFile != "" && svc.conf.Redis.TLS.KeyFile != "" {
 		sslConf := &ssl.TLSConfig{
@@ -472,11 +472,20 @@ func (svc *Service) newRedisClient() (*redis.Client, error) {
 		}
 	}
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:      fmt.Sprintf("%s:%d", svc.conf.Redis.Host, svc.conf.Redis.Port),
-		Password:  svc.conf.Redis.Password,
-		DB:        svc.conf.Redis.DB,
-		TLSConfig: tlsConfig,
+	// Use UniversalClient which automatically selects the appropriate client type:
+	// - If MasterName is set -> Sentinel mode
+	// - If multiple Addrs without MasterName -> Cluster mode
+	// - Otherwise -> Standalone mode
+	logger.G.Sys().With("addrs", svc.conf.Redis.Addrs, "master-name", svc.conf.Redis.MasterName).
+		Info("initializing redis universal client")
+
+	client := redis.NewUniversalClient(&redis.UniversalOptions{
+		IsClusterMode: svc.conf.Redis.Type == config.RedisTypeCluster,
+		Addrs:         svc.conf.Redis.Addrs,
+		MasterName:    svc.conf.Redis.MasterName,
+		Password:      svc.conf.Redis.Password,
+		DB:            svc.conf.Redis.DB,
+		TLSConfig:     tlsConfig,
 	})
 
 	traceSvc, err := tracing.G().NewService(tracing.ServiceConfig{
@@ -487,19 +496,19 @@ func (svc *Service) newRedisClient() (*redis.Client, error) {
 		return nil, fmt.Errorf("failed to create tracing service: %w", err)
 	}
 
-	err = redisotel.InstrumentTracing(redisClient,
+	err = redisotel.InstrumentTracing(client,
 		redisotel.WithTracerProvider(traceSvc.TracerProvider()),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to instrument tracing for redis client: %w", err)
 	}
 
-	_, err = redisClient.Ping(contextx.Background()).Result()
+	_, err = client.Ping(contextx.Background()).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to ping redis after creating redis client: %w", err)
 	}
 
-	return redisClient, nil
+	return client, nil
 }
 
 func (svc *Service) newMongoClient() (*mongo.Client, error) {
@@ -678,11 +687,7 @@ func (svc *Service) initialManager() error {
 		Cache:               rediscache.NewRedisCache(svc.Cap.RedisClient, rediscache.DefaultTimeout),
 		WorkflowConfig: manager.WorkflowConfig{
 			WorkNodeNum: svc.conf.Workflow.WorkerNum,
-			Redis: manager.RedisConfig{
-				Addr:     fmt.Sprintf("%s:%d", svc.conf.Redis.Host, svc.conf.Redis.Port),
-				Password: svc.conf.Redis.Password,
-				DB:       svc.conf.Redis.DB,
-			},
+			Redis:       svc.conf.Redis,
 		},
 		TraceService: traceSvc,
 	})

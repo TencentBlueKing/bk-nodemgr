@@ -58,10 +58,7 @@ func NewManager(conf Config) (*Manager, error) {
 		workflow.WithStorageOperationInstance(conf.StorageWorkflow),
 		workflow.WithStorageActionInstance(conf.StorageWorkflow),
 		workflow.WithLocker(conf.LockerFactory),
-		workflow.WithRedis(
-			mgr.conf.WorkflowConfig.Redis.Addr,
-			mgr.conf.WorkflowConfig.Redis.Password,
-			mgr.conf.WorkflowConfig.Redis.DB),
+		workflow.WithRedis(mgr.conf.WorkflowConfig.Redis),
 		workflow.WithTraceService(mgr.conf.TraceService),
 	)
 	if err != nil {

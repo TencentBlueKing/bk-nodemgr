@@ -47,8 +47,8 @@ type Capability struct {
 	// Manager workflow management.
 	Manager manager.IManager
 
-	// RedisClient redis client.
-	RedisClient *redis.Client
+	// RedisClient redis client (supports both standalone and cluster mode).
+	RedisClient redis.UniversalClient
 
 	// MongoClient mongo client.
 	MongoClient *mongo.Client

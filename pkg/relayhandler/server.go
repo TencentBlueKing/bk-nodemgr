@@ -52,7 +52,8 @@ type ServerMessagerConfig struct {
 	SkipTLSVerify bool
 
 	// RedisClient is the redis client for storing pending messages.
-	RedisClient *redis.Client
+	// Supports both standalone and cluster mode.
+	RedisClient redis.UniversalClient
 }
 
 const (

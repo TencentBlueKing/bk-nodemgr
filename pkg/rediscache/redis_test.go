@@ -23,8 +23,8 @@ import (
 )
 
 func testRedis(t *testing.T) cache.ICache {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "addr",
+	redisClient := redis.NewUniversalClient(&redis.UniversalOptions{
+		Addrs:    []string{"addr"},
 		Password: "",
 		DB:       0,
 	})

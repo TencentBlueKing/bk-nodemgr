@@ -23,6 +23,7 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/tenant"
 	topoStg "github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/topo"
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/workflow"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/creditvault"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/discover"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
@@ -82,7 +83,7 @@ type Config struct {
 // WorkflowConfig defines the workflow config.
 type WorkflowConfig struct {
 	WorkNodeNum int
-	Redis       RedisConfig
+	Redis       config.Redis
 }
 
 // Validate configures the config.
@@ -91,29 +92,7 @@ func (conf *WorkflowConfig) Validate() error {
 		return errors.New("work node num is invalid")
 	}
 
-	return nil
-}
-
-// RedisConfig defines the redis config.
-type RedisConfig struct {
-	Addr     string
-	Password string
-	DB       int
-}
-
-// Validate configures the config.
-func (conf *RedisConfig) Validate() error {
-	if conf.Addr == "" {
-		return errors.New("redis addr is invalid")
-	}
-	if conf.Password == "" {
-		return errors.New("redis password is invalid")
-	}
-	if conf.DB < 0 {
-		return errors.New("redis db is invalid")
-	}
-
-	return nil
+	return conf.Redis.Validate()
 }
 
 // Validate configures the config.

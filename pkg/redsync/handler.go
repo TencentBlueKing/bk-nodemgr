@@ -18,16 +18,17 @@ import (
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/go-redsync/redsync/v4"
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
-	goredislib "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9"
 )
 
-// Handler this is a interface
+// Handler this is a interface.
 type Handler interface {
 	locker.MutexFactory
 }
 
-// New ...
-func New(redisClient *goredislib.Client) Handler {
+// New creates a new redsync handler.
+// Supports both standalone and cluster mode via redis.UniversalClient.
+func New(redisClient redis.UniversalClient) Handler {
 	return &handler{
 		rs: redsync.New(goredis.NewPool(redisClient)),
 	}
@@ -51,9 +52,9 @@ type mutex struct {
 }
 
 // TryLock locks the given key.
-func (m mutex) TryLock() error {
+func (mtx mutex) TryLock() error {
 	ctx := context.Background()
-	if err := m.mutex.LockContext(ctx); err != nil {
+	if err := mtx.mutex.LockContext(ctx); err != nil {
 		return err
 	}
 
@@ -61,21 +62,21 @@ func (m mutex) TryLock() error {
 }
 
 // Unlock unlocks the given key.
-func (m mutex) Unlock() error {
+func (mtx mutex) Unlock() error {
 	ctx := context.Background()
-	result, err := m.mutex.UnlockContext(ctx)
+	result, err := mtx.mutex.UnlockContext(ctx)
 	if err != nil {
 		return err
 	}
 
 	if !result {
-		return fmt.Errorf("unlock failed, lock-name(%s)", m.mutex.Name())
+		return fmt.Errorf("unlock failed, lock-name(%s)", mtx.mutex.Name())
 	}
 
 	return nil
 }
 
 // Name ...
-func (m mutex) Name() string {
-	return m.mutex.Name()
+func (mtx mutex) Name() string {
+	return mtx.mutex.Name()
 }

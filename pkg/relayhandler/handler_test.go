@@ -33,8 +33,8 @@ func testClient(t *testing.T) IServerMessager {
 		AppSecret:     "",
 		GSEBaseURL:    "",
 		SkipTLSVerify: true,
-		RedisClient: redis.NewClient(&redis.Options{
-			Addr:     "",
+		RedisClient: redis.NewUniversalClient(&redis.UniversalOptions{
+			Addrs:    []string{""},
 			Password: "",
 			DB:       0,
 		}), // Use a mock or real redis client in actual tests.

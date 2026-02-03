@@ -37,28 +37,69 @@ func (conf Etcd) Validate() error {
 	return nil
 }
 
+// RedisType defines the Redis deployment type.
+type RedisType string
+
+const (
+	// RedisTypeStandalone standalone mode (single Redis instance).
+	RedisTypeStandalone RedisType = "standalone"
+	// RedisTypeSentinel sentinel mode (Redis Sentinel for high availability).
+	RedisTypeSentinel RedisType = "sentinel"
+	// RedisTypeCluster cluster mode (Redis Cluster for horizontal scaling).
+	RedisTypeCluster RedisType = "cluster"
+)
+
+// Validate validates the Redis type.
+func (redisType RedisType) Validate() error {
+	switch redisType {
+	case RedisTypeStandalone, RedisTypeSentinel, RedisTypeCluster:
+		return nil
+	case "":
+		return nil // Empty defaults to standalone
+	default:
+		return fmt.Errorf("invalid redis type: %s, must be one of: standalone, sentinel, cluster", redisType)
+	}
+}
+
 // Redis the config of redis.
 type Redis struct {
-	Host         string    `yaml:"host" usage:"host of redis"`
-	Port         int       `yaml:"port" usage:"port of redis"`
-	Password     string    `yaml:"password" usage:"password of redis"`
-	DB           int       `yaml:"db" usage:"db of redis"`
-	TLS          TLSConfig `yaml:"tls" usage:"tls of redis"`
+	// Type defines the Redis deployment type: standalone, sentinel, cluster.
+	// Defaults to "standalone" if not specified.
+	Type RedisType `yaml:"type" usage:"redis deployment type: standalone, sentinel, cluster"`
+	// Addrs is the list of Redis addresses.
+	// - standalone: ["host:port"] (single address)
+	// - sentinel: ["sentinel1:26379", "sentinel2:26379"] (sentinel addresses)
+	// - cluster: ["node1:6379", "node2:6379"] (cluster node addresses)
+	Addrs []string `yaml:"addrs" usage:"redis addresses"`
+	// Password is the password for Redis authentication.
+	Password string `yaml:"password" usage:"password of redis"`
+	// DB is the database index (standalone and sentinel mode only, ignored in cluster mode).
+	DB int `yaml:"db" usage:"db of redis (standalone/sentinel mode only)"`
+	// MasterName is the name of the master node (sentinel mode only).
+	MasterName string `yaml:"masterName" usage:"master name (sentinel mode only)"`
+	// TLS defines the TLS configuration.
+	TLS TLSConfig `yaml:"tls" usage:"tls of redis"`
+
 	TraceService `yaml:",inline"`
 }
 
-// Validate configures the config.
+// GetType returns the Redis type, defaulting to standalone if not specified.
+func (conf Redis) GetType() RedisType {
+	if conf.Type == "" {
+		return RedisTypeStandalone
+	}
+
+	return conf.Type
+}
+
+// Validate validates the Redis configuration.
 func (conf Redis) Validate() error {
-	if conf.Host == "" {
-		return errors.New("host of redis is empty")
+	if err := conf.Type.Validate(); err != nil {
+		return err
 	}
 
-	if conf.Port <= 0 {
-		return fmt.Errorf("port of redis must be greater than 0, port(%d)", conf.Port)
-	}
-
-	if conf.DB < 0 {
-		return fmt.Errorf("db of redis must be greater than or equal to 0, db(%d)", conf.DB)
+	if err := conf.validateAddrs(); err != nil {
+		return err
 	}
 
 	if conf.Password == "" {
@@ -67,6 +108,53 @@ func (conf Redis) Validate() error {
 
 	if err := conf.TLS.Validate(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// validateAddrs validates the Redis addresses configuration based on the deployment type.
+func (conf Redis) validateAddrs() error {
+	switch conf.GetType() {
+	case RedisTypeSentinel:
+		return conf.validateSentinelAddrs()
+	case RedisTypeCluster:
+		return conf.validateClusterAddrs()
+	default:
+		return conf.validateStandaloneAddrs()
+	}
+}
+
+// validateSentinelAddrs validates sentinel mode addresses.
+func (conf Redis) validateSentinelAddrs() error {
+	if len(conf.Addrs) == 0 {
+		return errors.New("addrs is required in sentinel mode")
+	}
+
+	if conf.MasterName == "" {
+		return errors.New("masterName is required in sentinel mode")
+	}
+
+	return nil
+}
+
+// validateClusterAddrs validates cluster mode addresses.
+func (conf Redis) validateClusterAddrs() error {
+	if len(conf.Addrs) == 0 {
+		return errors.New("addrs is required in cluster mode")
+	}
+
+	return nil
+}
+
+// validateStandaloneAddrs validates standalone mode addresses.
+func (conf Redis) validateStandaloneAddrs() error {
+	if len(conf.Addrs) == 0 {
+		return errors.New("addrs is required (format: [\"host:port\"])")
+	}
+
+	if conf.DB < 0 {
+		return fmt.Errorf("db of redis must be greater than or equal to 0, db(%d)", conf.DB)
 	}
 
 	return nil

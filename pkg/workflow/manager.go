@@ -23,6 +23,7 @@ import (
 	brokerRedis "github.com/RichardKnop/machinery/v2/brokers/redis"
 	machineryConfig "github.com/RichardKnop/machinery/v2/config"
 	machineryLog "github.com/RichardKnop/machinery/v2/log"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/locker"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/tracing"
@@ -100,7 +101,7 @@ const (
 )
 
 // WithRedis sets the redis broker for the operInstMgr.
-func WithRedis(address, password string, db int) OptionsFunc {
+func WithRedis(redisConf config.Redis) OptionsFunc {
 	return func(mgr *manager) {
 		mgr.mConfig.Redis = &machineryConfig.RedisConfig{
 			MaxIdle:                redisMaxIdle,
@@ -110,11 +111,47 @@ func WithRedis(address, password string, db int) OptionsFunc {
 			ConnectTimeout:         redisConnectTimeout,
 			NormalTasksPollPeriod:  redisNormalTasksPollPeriod,
 			DelayedTasksPollPeriod: redisDelayedTasksPollPeriod,
+			MasterName:             redisConf.MasterName,
 		}
 
-		mgr.broker = brokerRedis.New(mgr.mConfig, address, password, "", db)
-		mgr.backend = backendRedis.New(mgr.mConfig, address, password, "", db)
+		// NOTE: NewGR modifies the addrs slice in-place (extracts and removes password from first address).
+		// We must create separate copies for broker and backend to avoid the bug where
+		// broker removes the password, then backend receives addrs without password.
+		// See: https://github.com/RichardKnop/machinery/issues/815
+		brokerAddrs := buildAddrsWithPassword(redisConf)
+		backendAddrs := buildAddrsWithPassword(redisConf)
+		mgr.broker = brokerRedis.NewGR(mgr.mConfig, brokerAddrs, redisConf.DB)
+		mgr.backend = backendRedis.NewGR(mgr.mConfig, backendAddrs, redisConf.DB)
 	}
+}
+
+// buildAddrsWithPassword prepends password to the first address for NewGR.
+// NewGR parses password from first address in format "password@host:port".
+// For Redis Cluster mode, ensures at least 2 addresses so that go-redis
+// NewUniversalClient creates a ClusterClient instead of a regular Client.
+func buildAddrsWithPassword(redisConf config.Redis) []string {
+	if len(redisConf.Addrs) == 0 {
+		return nil
+	}
+
+	// Create a copy of the addresses to avoid modifying the original slice.
+	result := make([]string, len(redisConf.Addrs))
+	copy(result, redisConf.Addrs)
+
+	// For Redis Cluster mode, go-redis NewUniversalClient requires >1 address
+	// to create a ClusterClient. If only one address is provided, duplicate it.
+	// This allows the ClusterClient to discover other nodes via CLUSTER SLOTS.
+	if redisConf.Type == config.RedisTypeCluster && len(result) == 1 {
+		result = append(result, result[0])
+	}
+
+	// Prepend password to the first address if present.
+	// NewGR extracts password from "password@host:port" format.
+	if redisConf.Password != "" {
+		result[0] = redisConf.Password + "@" + result[0]
+	}
+
+	return result
 }
 
 // WithStorageTrigger sets the storage trigger for the manager.

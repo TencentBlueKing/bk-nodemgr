@@ -28,8 +28,9 @@ var _ cache.ICache = &RedisCache{}
 const DefaultTimeout = 12 * time.Hour
 
 // RedisCache is a Redis-based cache implementation.
+// Supports both standalone and cluster mode.
 type RedisCache struct {
-	client     *redis.Client
+	client     redis.UniversalClient
 	defaultTTL time.Duration
 }
 
@@ -38,7 +39,8 @@ var (
 )
 
 // NewRedisCache creates a new RedisCache instance.
-func NewRedisCache(client *redis.Client, defaultTTL time.Duration) *RedisCache {
+// Accepts redis.UniversalClient which can be either *redis.Client or *redis.ClusterClient.
+func NewRedisCache(client redis.UniversalClient, defaultTTL time.Duration) *RedisCache {
 	return &RedisCache{
 		client:     client,
 		defaultTTL: defaultTTL,
