@@ -16,6 +16,8 @@ import (
 	"path/filepath"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/config"
+	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router"
+	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router/cmdb"
 	"gopkg.in/yaml.v2"
 )
@@ -34,6 +36,8 @@ const (
 
 	defaultMockAdvertiseIPv4 = "127.0.0.1"
 	defaultMockAdvertiseIPv6 = "::1"
+
+	defaultMockBKRepoBaseDir = "./bk-repo"
 )
 
 // MockService holds mock-server configuration.
@@ -41,24 +45,14 @@ type MockService struct {
 	BasicServer config.HTTPServer `yaml:"basicServer" usage:"basic server config of mock-server"`
 	Log         config.Log        `yaml:"log" usage:"log config of mock-server"`
 
-	// MockData holds the mock data configuration for all mock routers.
-	MockData MockData `yaml:"mockData" usage:"mock data config"`
-}
+	// CMDBConfig holds the CMDB router configuration.
+	CMDBConfig *cmdb.Config `yaml:"cmdbConfig" usage:"cmdb router config"`
 
-// MockData holds the mock data configuration for all mock routers.
-type MockData struct {
-	CMDB *cmdb.Config `yaml:"cmdb"`
-}
+	// BKRepoConfig holds the BKRepo router configuration.
+	BKRepoConfig *bkrepo.Config `yaml:"bkrepoConfig" usage:"bkrepo router config"`
 
-// Validate validates the MockData.
-func (m *MockData) Validate() error {
-	if m.CMDB != nil {
-		if err := m.CMDB.Validate(); err != nil {
-			return fmt.Errorf("failed to validate cmdb config: %w", err)
-		}
-	}
-
-	return nil
+	// MockData holds the optional preset mock data configuration.
+	MockData router.MockData `yaml:"mockData" usage:"optional preset mock data config"`
 }
 
 // NewMockService generates a new MockService with default values.
@@ -77,7 +71,15 @@ func NewMockService() *MockService {
 			MaxNum:    defaultMockLogMaxNum,
 			Level:     defaultMockLogLevel,
 		},
+		BKRepoConfig: &bkrepo.Config{
+			BaseDir: defaultMockBKRepoBaseDir,
+		},
 	}
+}
+
+// GetMockData returns the MockData pointer.
+func (conf *MockService) GetMockData() *router.MockData {
+	return &conf.MockData
 }
 
 // LoadFromFile loads config from file.
@@ -108,6 +110,18 @@ func (conf *MockService) Validate() error {
 
 	if err := conf.Log.Validate(); err != nil {
 		return fmt.Errorf("failed to validate log config: %w", err)
+	}
+
+	if conf.CMDBConfig != nil {
+		if err := conf.CMDBConfig.Validate(); err != nil {
+			return fmt.Errorf("failed to validate cmdb config: %w", err)
+		}
+	}
+
+	if conf.BKRepoConfig != nil {
+		if err := conf.BKRepoConfig.Validate(); err != nil {
+			return fmt.Errorf("failed to validate bkrepo config: %w", err)
+		}
 	}
 
 	if err := conf.MockData.Validate(); err != nil {

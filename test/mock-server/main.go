@@ -73,7 +73,9 @@ func main() {
 
 			svc, err := service.NewService(service.Config{
 				BasicServer:  conf.BasicServer,
-				CMDBMockData: conf.MockData.CMDB,
+				CMDBConfig:   conf.CMDBConfig,
+				BKRepoConfig: conf.BKRepoConfig,
+				MockData:     conf.GetMockData(),
 			})
 			if err != nil {
 				fmt.Printf("failed to create service: %v\n", err)

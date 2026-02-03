@@ -65,8 +65,18 @@ const (
 	WatchFieldDetail = "bk_detail"
 )
 
-// Config holds the configuration for CMDB mock data.
+// Config holds the configuration for CMDB router.
+// Currently empty, reserved for future configuration options.
 type Config struct {
+}
+
+// Validate validates the Config.
+func (cfg *Config) Validate() error {
+	return nil
+}
+
+// MockData holds the preset mock data for CMDB.
+type MockData struct {
 	// Businesses is the list of mock business data.
 	Businesses []BusinessConfig `yaml:"businesses"`
 	// Areas is the list of mock cloud areas.
@@ -151,8 +161,8 @@ func (hc *HostConfig) Validate() error {
 	return nil
 }
 
-// Validate validates the Config.
-func (cfg *Config) Validate() error {
+// Validate validates the MockData.
+func (cfg *MockData) Validate() error {
 	for _, biz := range cfg.Businesses {
 		if err := biz.Validate(); err != nil {
 			return err

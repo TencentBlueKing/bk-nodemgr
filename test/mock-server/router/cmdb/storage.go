@@ -63,7 +63,7 @@ type storage struct {
 }
 
 // newStorage creates a new storage instance and loads data from config.
-func newStorage(conf *Config) *storage {
+func newStorage(conf *MockData) *storage {
 	s := &storage{
 		businesses:         make(map[int64]*cmdb.BusinessInfo),
 		cloudAreas:         make(map[int64]*cmdb.CloudArea),
@@ -82,7 +82,7 @@ func newStorage(conf *Config) *storage {
 }
 
 // loadDataFromConfig loads data from config.
-func (s *storage) loadDataFromConfig(conf *Config) {
+func (s *storage) loadDataFromConfig(conf *MockData) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -344,7 +344,7 @@ func paginateSlice[T any](items []T, page cmdb.Page) []T {
 }
 
 // loadBusinessesLocked loads businesses from config.
-func (s *storage) loadBusinessesLocked(conf *Config) {
+func (s *storage) loadBusinessesLocked(conf *MockData) {
 	if conf == nil || len(conf.Businesses) == 0 {
 		return
 	}
@@ -360,7 +360,7 @@ func (s *storage) loadBusinessesLocked(conf *Config) {
 }
 
 // loadCloudAreasLocked loads cloud areas from config.
-func (s *storage) loadCloudAreasLocked(conf *Config) {
+func (s *storage) loadCloudAreasLocked(conf *MockData) {
 	if conf == nil || len(conf.Areas) == 0 {
 		return
 	}
@@ -376,7 +376,7 @@ func (s *storage) loadCloudAreasLocked(conf *Config) {
 }
 
 // loadHostsLocked loads hosts from config.
-func (s *storage) loadHostsLocked(conf *Config) {
+func (s *storage) loadHostsLocked(conf *MockData) {
 	if conf == nil || len(conf.Hosts) == 0 {
 		return
 	}

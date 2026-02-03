@@ -21,6 +21,7 @@ import (
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/gopool"
 	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router"
+	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router/bkrepo"
 	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router/cmdb"
 	"github.com/TencentBlueKing/bk-nodemgr/test/mock-server/router/healthz"
 
@@ -36,8 +37,14 @@ type Config struct {
 	// basic server config of mock-server.
 	BasicServer config.HTTPServer
 
-	// cmdb mock data config of mock-server.
-	CMDBMockData *cmdb.Config
+	// cmdb config of mock-server.
+	CMDBConfig *cmdb.Config
+
+	// bk-repo config of mock-server.
+	BKRepoConfig *bkrepo.Config
+
+	// mock data holds the optional preset mock data.
+	MockData *router.MockData
 }
 
 // Service defines a server that provides mock services for testing.
@@ -112,7 +119,11 @@ func withHealthz() restserver.OptionFunc {
 // withMockAPIs registers mock APIs.
 func (svc *Service) withMockAPIs() restserver.OptionFunc {
 	return func(rg *gin.RouterGroup) {
-		router.Load(rg, svc.conf.CMDBMockData)
+		router.Load(rg,
+			svc.conf.CMDBConfig,
+			svc.conf.BKRepoConfig,
+			svc.conf.MockData,
+		)
 	}
 }
 

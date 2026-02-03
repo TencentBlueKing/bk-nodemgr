@@ -20,7 +20,7 @@ import (
 
 // newTestStorage creates a storage instance with test data.
 func newTestStorage() *storage {
-	conf := &Config{
+	conf := &MockData{
 		Businesses: []BusinessConfig{
 			{BKBizID: 1, BKBizName: "test-biz-1"},
 			{BKBizID: 2, BKBizName: "test-biz-2"},

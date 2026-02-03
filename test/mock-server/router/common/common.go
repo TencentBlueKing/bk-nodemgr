@@ -14,12 +14,35 @@ package common
 import (
 	"net/http"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/gin-gonic/gin"
 )
 
 // BindJSON binds JSON request body to the given struct.
 func BindJSON[T any](gCtx *gin.Context, req *T) error {
 	return gCtx.ShouldBindJSON(req)
+}
+
+// BindURI binds URI parameters to the given struct.
+func BindURI[T any](gCtx *gin.Context, params *T) error {
+	return gCtx.ShouldBindUri(params)
+}
+
+// BindQuery binds query parameters to the given struct.
+func BindQuery[T any](gCtx *gin.Context, params *T) error {
+	return gCtx.ShouldBindQuery(params)
+}
+
+// GetHeaderBool gets a header value and converts it to bool.
+// Returns the bool value and an error if conversion fails.
+// If the header is missing, it returns false with no error.
+func GetHeaderBool(gCtx *gin.Context, headerName string) (bool, error) {
+	headerValue := gCtx.GetHeader(headerName)
+	if headerValue == "" {
+		return false, nil
+	}
+
+	return conv.StringToBool(headerValue)
 }
 
 // RespondJSON sends a JSON response with HTTP 200 status.

@@ -31,9 +31,9 @@ func newHandler(rg *gin.RouterGroup, store *storage) *handler {
 }
 
 // Load registers all CMDB API routes with the given gin router group.
-func Load(rg *gin.RouterGroup, conf *Config) {
-	// initialize storage from config.
-	cmdbStorage := newStorage(conf)
+func Load(rg *gin.RouterGroup, _ *Config, mockData *MockData) {
+	// initialize storage from mock data.
+	cmdbStorage := newStorage(mockData)
 
 	// create a sub router for CMDB API v3.
 	cmdbGroup := rg.Group("/cmdb")
