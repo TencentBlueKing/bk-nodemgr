@@ -6,13 +6,17 @@ require (
 	github.com/RichardKnop/logging v0.0.0-20190827224416-1a693bdd4fae
 	github.com/RichardKnop/machinery/v2 v2.0.13
 	github.com/TencentBlueKing/bk-gse-sdk/go v0.0.1
+	github.com/TencentBlueKing/iam-go-sdk v1.0.1
 	github.com/bits-and-blooms/bitset v1.20.0
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-redsync/redsync/v4 v4.12.1
 	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.3.0
+	github.com/json-iterator/go v1.1.12
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/panjf2000/ants/v2 v2.11.3
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.7
 	github.com/prometheus/client_golang v1.20.5
@@ -79,7 +83,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect

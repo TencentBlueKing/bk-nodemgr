@@ -804,3 +804,5 @@ linters-settings:
         alias: deployPolicyUtils
       - pkg: github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/process-config
         alias: daoProcessConfig
+      - pkg: github.com/patrickmn/go-cache
+        alias: gocache
