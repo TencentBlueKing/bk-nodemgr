@@ -44,3 +44,13 @@ func WithIsDirect(isDirect ...bool) OptFn {
 func WithoutIsDirect(isDirect ...bool) OptFn {
 	return base.WithoutValues("data.is_direct", isDirect...)
 }
+
+// WithFuzzyNetworkUnitName filters by networkunit-name.
+func WithFuzzyNetworkUnitName(networkUnitNames ...string) OptFn {
+	return base.WithFuzzyValues(FieldKeyNetworkUnitName, networkUnitNames...)
+}
+
+// WithoutFuzzyNetworkUnitName filters by not contains networkunit-name.
+func WithoutFuzzyNetworkUnitName(networkUnitNames ...string) OptFn {
+	return base.WithoutFuzzyValues(FieldKeyNetworkUnitName, networkUnitNames...)
+}

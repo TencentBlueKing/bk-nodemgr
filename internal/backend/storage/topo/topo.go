@@ -234,6 +234,18 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 				networkunit.WithoutIsDirect(condition.ExactExclude.IsDirect...),
 			)
 		}
+
+		if condition.FuzzyInclude != nil {
+			opts = append(opts,
+				networkunit.WithFuzzyNetworkUnitName(condition.FuzzyInclude.NetworkUnitName...),
+			)
+		}
+
+		if condition.FuzzyExclude != nil {
+			opts = append(opts,
+				networkunit.WithoutFuzzyNetworkUnitName(condition.FuzzyExclude.NetworkUnitName...),
+			)
+		}
 	}
 
 	if results, num, err = s.daoNetworkUnit.List(nCtx, page, opts...); err != nil {

@@ -19,4 +19,7 @@ const (
 
 	// FieldKeyTenantID the tenant-id field key.
 	FieldKeyTenantID = "data.tenant_id"
+
+	// FieldKeyNetworkUnitName the networkunit-name field key.
+	FieldKeyNetworkUnitName = "data.networkunit_name"
 )

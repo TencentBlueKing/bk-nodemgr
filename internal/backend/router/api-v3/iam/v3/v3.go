@@ -48,6 +48,10 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	networkAreaProvider := provider.NewNetworkAreaProvider(capability.StorageTopo)
 	h.dispatcher.RegisterProvider(provider.ResourceTypeNetworkArea, networkAreaProvider)
 
+	// Register NetworkUnit provider
+	networkUnitProvider := provider.NewNetworkUnitProvider(capability.StorageTopo)
+	h.dispatcher.RegisterProvider(provider.ResourceTypeNetworkUnit, networkUnitProvider)
+
 	// Apply Basic Auth middleware to IAM routes
 	h.rg.Use(h.basicAuthMiddleware())
 

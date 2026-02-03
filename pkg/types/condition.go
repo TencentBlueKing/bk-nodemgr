@@ -218,6 +218,7 @@ type NetworkUnitExactFields struct {
 
 // NetworkUnitFuzzyFields defines the network unit fuzzy fields.
 type NetworkUnitFuzzyFields struct {
+	NetworkUnitName []string
 }
 
 // NetworkUnitCondition defines the network unit condition.
