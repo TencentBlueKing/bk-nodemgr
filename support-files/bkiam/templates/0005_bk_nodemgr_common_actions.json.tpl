@@ -1,12 +1,12 @@
 {
-  "system_id": "{{ .system.id  }}",
+  "system_id": "{{ .system.id }}",
   "operations": [
     {
-      "operation": "upsert_action_groups",
+      "operation": "upsert_common_actions",
       "data": [
         {
-          "name": "Agent",
-          "name_en": "Agent",
+          "name": "业务节点管理员",
+          "name_en": "Agent Manager",
           "actions": [
             {
               "id": "agent_view"
@@ -16,28 +16,10 @@
             },
             {
               "id": "agent_history_view"
-            }
-          ]
-        },
-        {
-          "name": "Proxy",
-          "name_en": "Proxy",
-          "actions": [
-            {
-              "id": "proxy_view"
             },
             {
-              "id": "proxy_operate"
+              "id": "networkunit_use_for_agent"
             },
-            {
-              "id": "proxy_history_view"
-            }
-          ]
-        },
-        {
-          "name": "插件",
-          "name_en": "Plugin",
-          "actions": [
             {
               "id": "plugin_view"
             },
@@ -50,8 +32,8 @@
           ]
         },
         {
-          "name": "管控区域",
-          "name_en": "Network Area",
+          "name": "管控区域管理员",
+          "name_en": "Network Area Manager",
           "actions": [
             {
               "id": "networkarea_view"
@@ -67,13 +49,7 @@
             },
             {
               "id": "networkarea_history_view"
-            }
-          ]
-        },
-        {
-          "name": "管控单元",
-          "name_en": "Network Unit",
-          "actions": [
+            },
             {
               "id": "networkunit_view"
             },
@@ -90,7 +66,13 @@
               "id": "networkunit_history_view"
             },
             {
-              "id": "networkunit_use_for_agent"
+              "id": "proxy_view"
+            },
+            {
+              "id": "proxy_operate"
+            },
+            {
+              "id": "proxy_history_view"
             },
             {
               "id": "networkunit_use_for_proxy"
@@ -98,8 +80,8 @@
           ]
         },
         {
-          "name": "策略",
-          "name_en": "Policy",
+          "name": "策略管理员",
+          "name_en": "Policy Manager",
           "actions": [
             {
               "id": "config_policy_view"
@@ -111,19 +93,19 @@
               "id": "config_policy_history_view"
             },
             {
-              "id": "deploy_policy_view"
+              "id": "package_view"
             },
             {
-              "id": "deploy_policy_manage"
+              "id": "package_manage"
             },
             {
-              "id": "deploy_policy_history_view"
+              "id": "package_history_view"
             }
           ]
         },
         {
-          "name": "资源包",
-          "name_en": "Package Management",
+          "name": "资源包管理员",
+          "name_en": "Package Manager",
           "actions": [
             {
               "id": "package_view"

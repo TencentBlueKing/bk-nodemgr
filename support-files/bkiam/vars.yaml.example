@@ -8,10 +8,6 @@
 # System configuration
 system:
   id: "bk-nodemgr"
-  name: "节点管理"
-  name_en: "BlueKing Node Manager"
-  description: "蓝鲸节点管理，用于管理和监控节点"
-  description_en: "BlueKing Node Manager for managing and monitoring nodes"
   clients: "bk-nodemgr"
 
 # Provider configuration for IAM callbacks
@@ -25,7 +21,20 @@ provider:
   # Default: basic
   auth: "basic"
 
-# CMDB system configuration (for related resources)
+  # Path for IAM callbacks.
+  path: "/api/v3/iam/v3/resource"
+
+# CMDB configuration for business resource authorization
+# These values reference CMDB's IAM resource definitions
 cmdb:
-  # CMDB system ID
-  system_id: "bk-cmdb"
+  # CMDB system ID registered in IAM
+  system_id: "bk_cmdb"
+
+  # Resource definitions from CMDB
+  resource:
+    # Business (biz) resource configuration
+    biz:
+      # Resource type ID for business in CMDB
+      resource_type_id: "biz"
+      # Instance selection ID for business picker in IAM
+      instance_selection_id: "business"
