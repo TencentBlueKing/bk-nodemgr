@@ -472,10 +472,6 @@ func (svc *Service) newRedisClient() (redis.UniversalClient, error) {
 		}
 	}
 
-	// Use UniversalClient which automatically selects the appropriate client type:
-	// - If MasterName is set -> Sentinel mode
-	// - If multiple Addrs without MasterName -> Cluster mode
-	// - Otherwise -> Standalone mode
 	logger.G.Sys().With("addrs", svc.conf.Redis.Addrs, "master-name", svc.conf.Redis.MasterName).
 		Info("initializing redis universal client")
 

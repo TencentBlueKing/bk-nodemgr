@@ -54,8 +54,6 @@ func (redisType RedisType) Validate() error {
 	switch redisType {
 	case RedisTypeStandalone, RedisTypeSentinel, RedisTypeCluster:
 		return nil
-	case "":
-		return nil // Empty defaults to standalone
 	default:
 		return fmt.Errorf("invalid redis type: %s, must be one of: standalone, sentinel, cluster", redisType)
 	}
