@@ -1,0 +1,26 @@
+# IAM Migration Variables Configuration
+# Copy this file to vars.yaml and fill in your values
+#
+# Usage:
+#   cd support-files/bkiam
+#   ./iam-render -t templates -v vars.yaml -o output
+
+# System configuration
+system:
+  id: "bk-nodemgr"
+  name: "节点管理"
+  name_en: "BlueKing Node Manager"
+  description: "蓝鲸节点管理，用于管理和监控节点"
+  description_en: "BlueKing Node Manager for managing and monitoring nodes"
+  clients: "bk-nodemgr"
+
+# Provider configuration for IAM callbacks
+provider:
+  # The URL where IAM will call back to bk-nodemgr for resource queries
+  # Example: http://bk-nodemgr.example.com/api/v1/iam
+  host: ""
+
+  # Authentication method for provider callbacks
+  # Options: basic, none
+  # Default: basic
+  auth: "basic"
