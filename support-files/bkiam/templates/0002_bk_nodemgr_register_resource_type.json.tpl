@@ -3,21 +3,6 @@
   "enabled": true,
   "operations": [
     {
-      "operation": "upsert_system",
-      "data": {
-        "id": "{{ .system.id | default "bk-nodemgr" }}",
-        "name": "{{ .system.name | default "节点管理" }}",
-        "name_en": "{{ .system.name_en | default "BlueKing Node Manager" }}",
-        "description": "{{ .system.description | default "蓝鲸节点管理系统, 提供节点管理, 插件管理等功能" }}",
-        "description_en": "{{ .system.description_en | default "BlueKing Node Manager, provides node management, plugin management and other functions" }}",
-        "clients": "{{ .system.clients | default "bk-nodemgr" }}",
-        "provider_config": {
-          "host": "{{ .provider.host | default "" }}",
-          "auth": "{{ .provider.auth | default "basic" }}"
-        }
-      }
-    },
-    {
       "operation": "upsert_resource_type",
       "data": {
         "id": "networkarea",
@@ -142,7 +127,10 @@
         "name_en": "Operate Agent",
         "description": "安装, 卸载, 升级, 重启等 Agent 操作",
         "description_en": "Install, uninstall, upgrade, restart and other Agent operations",
-        "type": "operate",
+        "type": "manage",
+        "related_actions": [
+          "agent_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -167,6 +155,9 @@
         "description": "查看 Agent 操作历史记录",
         "description_en": "View Agent operation history",
         "type": "view",
+        "related_actions": [
+          "agent_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -214,7 +205,10 @@
         "name_en": "Operate Proxy",
         "description": "安装, 卸载, 重启等 Proxy 操作",
         "description_en": "Install, uninstall, restart and other Proxy operations",
-        "type": "operate",
+        "type": "manage",
+        "related_actions": [
+          "proxy_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -239,6 +233,9 @@
         "description": "查看 Proxy 操作历史记录",
         "description_en": "View Proxy operation history",
         "type": "view",
+        "related_actions": [
+          "proxy_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -286,7 +283,10 @@
         "name_en": "Operate Plugin",
         "description": "安装, 卸载, 更新等插件操作",
         "description_en": "Install, uninstall, update and other Plugin operations",
-        "type": "operate",
+        "type": "manage",
+        "related_actions": [
+          "plugin_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -311,6 +311,9 @@
         "description": "查看插件操作历史记录",
         "description_en": "View Plugin operation history",
         "type": "view",
+        "related_actions": [
+          "plugin_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -359,6 +362,9 @@
         "description": "创建, 编辑, 删除配置策略",
         "description_en": "Create, edit, delete config policy",
         "type": "manage",
+        "related_actions": [
+          "config_policy_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -383,6 +389,9 @@
         "description": "查看配置策略操作历史",
         "description_en": "View config policy operation history",
         "type": "view",
+        "related_actions": [
+          "config_policy_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -431,6 +440,9 @@
         "description": "创建, 编辑, 删除部署策略",
         "description_en": "Create, edit, delete deploy policy",
         "type": "manage",
+        "related_actions": [
+          "deploy_policy_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
@@ -455,6 +467,9 @@
         "description": "查看部署策略操作历史",
         "description_en": "View deploy policy operation history",
         "type": "view",
+        "related_actions": [
+          "deploy_policy_view"
+        ],
         "related_resource_types": [
           {
             "system_id": "{{ .cmdb.system_id | default "bk-cmdb" }}",
