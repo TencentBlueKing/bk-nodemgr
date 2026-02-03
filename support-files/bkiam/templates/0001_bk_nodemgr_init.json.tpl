@@ -1,5 +1,5 @@
 {
-    "system_id": "bk-nodemgr",
+    "system_id": "{{ .system.id | default "bk-nodemgr" }}",
     "operations": [
         {
             "operation": "upsert_system",

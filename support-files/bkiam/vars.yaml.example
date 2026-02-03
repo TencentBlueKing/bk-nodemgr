@@ -24,3 +24,8 @@ provider:
   # Options: basic, none
   # Default: basic
   auth: "basic"
+
+# CMDB system configuration (for related resources)
+cmdb:
+  # CMDB system ID
+  system_id: "bk-cmdb"
