@@ -45,6 +45,20 @@ Mock Server 用于在测试环境中模拟第三方服务（如 CMDB）的 API �
 
 参考实现：`router/cmdb/`
 
+## 设计决策
+
+### 类型独立性
+
+Mock Server 中的类型定义（如 `router/cmdb/types.go`）应保持独立，**禁止使用 `pkg/types`** 中的业务类型。
+
+**原因**：
+1. **解耦**：`pkg/types` 是业务核心类型，Mock Server 作为测试工具不应依赖被测试的业务代码
+2. **避免循环依赖**：Mock Server 用于测试主代码，引用 `pkg/types` 会导致依赖关系混乱
+3. **灵活性**：Mock 类型可以只包含测试需要的字段，更加精简
+4. **稳定性**：主代码的类型变更不会意外影响 Mock Server
+
+即使两边的类型看起来相似，也应在 Mock Server 中独立定义。可以复用 `pkg/thirdparty/` 中的第三方 API 响应类型，但不要使用 `pkg/types` 中的业务类型。
+
 ## 使用限制
 
 1. Mock Server 仅用于测试环境，不应在生产环境使用

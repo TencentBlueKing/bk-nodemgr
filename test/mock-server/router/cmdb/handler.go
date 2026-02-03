@@ -292,19 +292,16 @@ func (h *handler) WatchHostRelationResource(gCtx *gin.Context) {
 }
 
 func convertWatchEventsToCMDBFormat(events []*watchEvent) []*map[string]any {
-	bkEvents := make([]map[string]any, 0, len(events))
-	for _, event := range events {
-		bkEvents = append(bkEvents, map[string]any{
+	result := make([]*map[string]any, len(events))
+	for idx, event := range events {
+		m := map[string]any{
 			WatchFieldCursor:    event.Cursor,
 			WatchFieldResource:  string(event.Resource),
 			WatchFieldEventType: string(event.EventType),
 			WatchFieldDetail:    event.Detail,
-		})
-	}
-	bkEventPtrs := make([]*map[string]any, 0, len(bkEvents))
-	for idx := range bkEvents {
-		bkEventPtrs = append(bkEventPtrs, &bkEvents[idx])
+		}
+		result[idx] = &m
 	}
 
-	return bkEventPtrs
+	return result
 }
