@@ -16,6 +16,7 @@ from __future__ import unicode_literals
 import argparse
 import json
 import os
+import re
 
 import requests
 import urllib3
@@ -82,7 +83,7 @@ def _http_request(method, url, headers=None, data=None, timeout=None, verify=Fal
         else:
             return False, {"error": "method not supported"}
     except requests.exceptions.RequestException as e:
-        print("http request error! method: %s, url: %s, data: %s! err=%s", method, url, data, e)
+        print("http request error! method: %s, url: %s, data: %s! err=%s" % (method, url, data, e))
         return False, {"error": str(e)}
     else:
         if resp.status_code != 200:
@@ -564,6 +565,33 @@ def api_ping(bk_apigateway_url):
     return ok, data
 
 
+def get_migration_files(directory):
+    """
+    Get JSON migration files from directory, sorted by numeric prefix.
+    File name format: 0001_xxx.json, 0002_xxx.json, ...
+    """
+    if not os.path.isdir(directory):
+        print("error: '%s' is not a valid directory" % directory)
+        return []
+
+    # Match JSON files starting with digits
+    pattern = re.compile(r"^(\d+)_.+\.json$")
+    migration_files = []
+
+    for filename in os.listdir(directory):
+        match = pattern.match(filename)
+        if match:
+            # Extract numeric prefix for sorting
+            num = int(match.group(1))
+            filepath = os.path.join(directory, filename)
+            migration_files.append((num, filename, filepath))
+
+    # Sort by numeric prefix
+    migration_files.sort(key=lambda x: x[0])
+
+    return migration_files
+
+
 def do_migrate(data, bk_apigateway_url=BK_APIGATEWAY_URL, app_code=APP_CODE, app_secret=APP_SECRET, bk_tenant_id=""):
     system_id = data.get("system_id")
     if not system_id:
@@ -620,22 +648,36 @@ if __name__ == "__main__":
         help=("bk_apigateway_url, i.e: http://bkapi.example.com/api/bk-iam/prod/;"),
         required=True,
     )
-    p.add_argument(
+
+    # -f and -d are mutually exclusive
+    file_group = p.add_mutually_exclusive_group(required=True)
+    file_group.add_argument(
         "-f",
         action="store",
         dest="json_data_file",
         help="which migration file to execute, i.e: 00001_bk_cmdb_20190618100210.json",
-        required=True,
     )
+    file_group.add_argument(
+        "-d",
+        action="store",
+        dest="migration_dir",
+        help="directory containing migration files (files matching pattern: 0001_*.json, 0002_*.json, ...)",
+    )
+
     p.add_argument("-a", action="store", dest="app_code", help="app code", required=True)
     p.add_argument("-s", action="store", dest="app_secret", help="app secret", required=True)
     p.add_argument(
         "--bk_tenant_id", action="store", dest="bk_tenant_id", help="blueking tenant id", default="", required=False
     )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        dest="dry_run",
+        help="list files to migrate without executing",
+    )
 
     args = p.parse_args()
 
-    data_file = args.json_data_file
     APP_CODE = args.app_code
     APP_SECRET = args.app_secret
     BK_APIGATEWAY_URL = args.bk_apigateway_url.rstrip("/")
@@ -647,15 +689,46 @@ if __name__ == "__main__":
         print("iam service is not available: %s" % BK_APIGATEWAY_URL)
         exit(1)
 
-    print("start migrate [%s]" % data_file)
+    # Build list of files to migrate
+    if args.json_data_file:
+        # Single file mode
+        files_to_migrate = [(0, os.path.basename(args.json_data_file), args.json_data_file)]
+    else:
+        # Directory mode
+        files_to_migrate = get_migration_files(args.migration_dir)
+        if not files_to_migrate:
+            print("no migration files found in directory: %s" % args.migration_dir)
+            exit(1)
+        print("found %d migration files in directory: %s" % (len(files_to_migrate), args.migration_dir))
+        for num, filename, _ in files_to_migrate:
+            print("  - %s" % filename)
 
-    # 数据解析
-    data = load_data(data_file)
-    if not data:
-        exit(1)
+    # Dry-run mode: only list files without executing
+    if args.dry_run:
+        print("\n[dry-run] would migrate %d file(s), exiting without execution" % len(files_to_migrate))
+        exit(0)
 
-    ok = do_migrate(data, BK_APIGATEWAY_URL, APP_CODE, APP_SECRET, bk_tenant_id=bk_tenant_id)
-    if not ok:
-        print("do migrate [%s] fail" % data_file)
-        exit(1)
-    print("do migrate [%s] success!" % data_file)
+    # Execute migration files sequentially
+    total = len(files_to_migrate)
+    for idx, (num, filename, filepath) in enumerate(files_to_migrate, 1):
+        data_file = filepath  # Update global variable for query_all_models
+
+        print("\n" + "=" * 60)
+        print("[%d/%d] start migrate [%s]" % (idx, total, filename))
+        print("=" * 60)
+
+        # Parse data
+        data = load_data(filepath)
+        if not data:
+            print("do migrate [%s] fail: failed to load data" % filename)
+            exit(1)
+
+        ok = do_migrate(data, BK_APIGATEWAY_URL, APP_CODE, APP_SECRET, bk_tenant_id=bk_tenant_id)
+        if not ok:
+            print("do migrate [%s] fail" % filename)
+            exit(1)
+        print("[%d/%d] do migrate [%s] success!" % (idx, total, filename))
+
+    print("\n" + "=" * 60)
+    print("all %d migrations completed successfully!" % total)
+    print("=" * 60)

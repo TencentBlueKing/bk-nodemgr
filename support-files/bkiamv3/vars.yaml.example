@@ -8,6 +8,8 @@
 # System configuration
 system:
   id: "bk-nodemgr"
+  name: "蓝鲸节点管理"
+  name_en: "NodeManager"
   clients: "bk-nodemgr"
 
 # Provider configuration for IAM callbacks
