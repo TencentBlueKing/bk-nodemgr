@@ -1233,6 +1233,37 @@ backend:
       systemID: "bk_nodemgr"
       # callbackPath is the callback path for IAM resource provider.
       callbackPath: "/api/v3/iam/callback"
+      system:
+        id: "bk-nodemgr"
+        name: "节点管理"
+        name_en: "NodeManager"
+        description: "蓝鲸节点管理系统, 提供节点管理, 插件管理等功能"
+        description_en: "BlueKing Node Manager, provides node management, plugin management and other functions"
+        clients: "bk-nodemgr"
+      # Provider configuration for IAM callbacks
+      provider:
+        # The URL where IAM will call back to bk-nodemgr for resource queries
+        # Example: http://bk-nodemgr.example.com/api/v1/iam
+        host: ""
+        # Authentication method for provider callbacks
+        # Options: basic, none
+        # Default: basic
+        auth: "basic"
+        # Path for IAM callbacks.
+        path: "/api/v3/iam/v3/resource"
+      # CMDB configuration for business resource authorization
+      # These values reference CMDB's IAM resource definitions
+      cmdb:
+        # CMDB system ID registered in IAM
+        system_id: "bk_cmdb"
+        # Resource definitions from CMDB
+        resource:
+          # Business (biz) resource configuration
+          biz:
+            # Resource type ID for business in CMDB
+            resource_type_id: "biz"
+            # Instance selection ID for business picker in IAM
+            instance_selection_id: "business"
       # trace service name for IAM v3 client
       traceServiceName: "backend-client-iam-v3"
       traceSampleRate: 0

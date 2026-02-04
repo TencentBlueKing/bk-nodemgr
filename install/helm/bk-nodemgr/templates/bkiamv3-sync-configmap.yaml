@@ -1,0 +1,30 @@
+{{- if .Values.backend.config.iamV3.enable }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-vars
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+data:
+  vars.yaml: |
+    # IAM Migration Variables Configuration
+    # Auto-generated from Helm values
+
+    # System configuration
+    system:
+      {{- .Values.backend.config.iamV3.system | toYaml | nindent 6 }}
+
+    # Provider configuration for IAM callbacks
+    provider:
+      {{- .Values.backend.config.iamV3.provider | toYaml | nindent 6 }}
+
+    # CMDB system configuration (for related resources)
+    cmdb:
+      {{- .Values.backend.config.iamV3.cmdb | toYaml | nindent 6 }}
+{{- end }}

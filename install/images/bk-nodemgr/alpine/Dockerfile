@@ -10,6 +10,7 @@ ENV TZ Asia/Shanghai
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories
 RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories
 RUN apk add mongodb && rm -f /usr/bin/mongod /usr/bin/mongos
+RUN apk add py3-requests
 
 RUN mkdir -p \
     /bk-nodemgr/bin \
@@ -18,6 +19,8 @@ RUN mkdir -p \
     /bk-nodemgr/log \
     /bk-nodemgr/script \
     /bk-nodemgr/static \
+    /bk-nodemgr/bkiam/v3 \
+    /bk-nodemgr/bkiam/v4 \
     /bk-nodemgr/file/tools \
     /bk-nodemgr/file/cache \
     /bk-nodemgr/file/local \
@@ -30,5 +33,6 @@ COPY serviced.sh /bk-nodemgr/bin/
 COPY scripts/manual/ /bk-nodemgr/script/manual
 COPY tools/ /bk-nodemgr/file/tools
 COPY dist/ /bk-nodemgr/static/
+COPY support-files/ /bk-nodemgr/support-files
 
 WORKDIR /bk-nodemgr/bin

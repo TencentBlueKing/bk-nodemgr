@@ -1,0 +1,132 @@
+{{- if .Values.backend.config.iamV3.enable }}
+apiVersion: {{ template "common.capabilities.job.apiVersion" . }}
+kind: Job
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-sync
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    values-hash: "{{ toYaml .Values.backend.config.iamV3 | sha256sum | trunc 63 }}"
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  backoffLimit: 3
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+        {{- if .Values.podLabels }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
+        {{- end }}
+        app: nodemgr-bkiamv3-sync
+    spec:
+      {{- include "bk-nodemgr.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-sync
+          {{- if len .Values.backend.imageTag }}
+          {{- if len .Values.global.imageRegistry }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          {{- else }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.backend.imageTag }}
+          {{- end }}
+          {{- else }}
+          image: {{ template "bk-nodemgr.image" . }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -e
+              
+              echo "=========================================="
+              echo "Starting IAM v3 model sync..."
+              echo "=========================================="
+              
+              # Define paths
+              BKIAMV3_DIR="/bk-nodemgr/support-files/bkiamv3"
+              VARS_FILE="/bk-nodemgr/support-files/bkiamv3/vars.yaml"
+              TEMPLATES_DIR="${BKIAMV3_DIR}/templates"
+              OUTPUT_DIR="/tmp/bkiamv3-output"
+              
+              # Check if vars.yaml exists
+              if [ ! -f "${VARS_FILE}" ]; then
+                echo "Error: vars.yaml not found at ${VARS_FILE}"
+                exit 1
+              fi
+              
+              echo "Using vars.yaml from: ${VARS_FILE}"
+              cat "${VARS_FILE}"
+              echo ""
+              
+              # Create output directory
+              mkdir -p "${OUTPUT_DIR}"
+              
+              # Step 1: Render templates using iam-render
+              echo "=========================================="
+              echo "Step 1: Rendering IAM templates..."
+              echo "=========================================="
+              
+              if [ ! -x "${BKIAMV3_DIR}/iam-render" ]; then
+                echo "Error: iam-render not found or not executable at ${BKIAMV3_DIR}/iam-render"
+                exit 1
+              fi
+              
+              "${BKIAMV3_DIR}/iam-render" -t "${TEMPLATES_DIR}" -v "${VARS_FILE}" -o "${OUTPUT_DIR}"
+              
+              echo "Templates rendered successfully. Output files:"
+              ls -la "${OUTPUT_DIR}"
+              echo ""
+              
+              # Step 2: Execute migration using do_migrate.py
+              echo "=========================================="
+              echo "Step 2: Executing IAM migration..."
+              echo "=========================================="
+              
+              # Extract the first endpoint (remove trailing slash if present)
+              IAM_ENDPOINT="{{ index .Values.backend.config.iamV3.endpoints 0 }}"
+              
+              # Execute migration
+              python3 "${BKIAMV3_DIR}/do_migrate.py" \
+                -t "${IAM_ENDPOINT}" \
+                -d "${OUTPUT_DIR}" \
+                -a "{{ .Values.backend.config.iamV3.appCode }}" \
+                -s "{{ .Values.backend.config.iamV3.appSecret }}"
+              
+              echo "=========================================="
+              echo "IAM v3 model sync completed successfully!"
+              echo "=========================================="
+          volumeMounts:
+            - name: bkiamv3-vars
+              mountPath: /bk-nodemgr/support-files/bkiamv3/vars.yaml
+              subPath: vars.yaml
+          resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
+      volumes:
+        - name: bkiamv3-vars
+          configMap:
+            name: {{ template "bk-nodemgr.fullname" . }}-bkiamv3-vars
+      restartPolicy: Never
+{{- end }}

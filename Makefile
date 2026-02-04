@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools bintools scripts apigw-docs
+.PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools bintools scripts apigw-docs support-files
 
 # Target platform for docker-build-server (optional)
 # Examples:
@@ -122,6 +122,10 @@ scripts: | pre
 
 	@$(CP) -R $(ROOT_DIR)/script_tools/manual $(OUTPUT_DIR)/scripts/
 
+support-files: | pre
+	@$(ECHO) "Building support-files..."
+	@$(CP) -R $(ROOT_DIR)/support-files $(OUTPUT_DIR)/support-files
+
 OSES := linux
 
 # 支持的架构
@@ -187,7 +191,7 @@ compress-binary:
 		$(ECHO) "UPX compression disabled. Set UPX_ENABLED=1 to enable"; \
 	fi
 
-docker-build-server: backend application file front tools scripts
+docker-build-server: backend application file front tools scripts support-files
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/${BASE_IMAGE}/Dockerfile $(OUTPUT_DIR)
 	@$(CP) $(ROOT_DIR)/install/docker-compose/serviced.sh $(OUTPUT_DIR)
@@ -232,7 +236,7 @@ test: | pre
 	@$(CP) -R $(ROOT_DIR)/test/build/* $(OUTPUT_DIR)/test/ 2>/dev/null || true
 	@$(ECHO) "Built successfully test"
 
-all: backend application file relay front tools scripts bintools test
+all: backend application file relay front tools scripts bintools support-files test
 
 clean:
 	@$(ECHO) "Cleaning build directory..."
