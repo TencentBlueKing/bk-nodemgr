@@ -19,6 +19,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -34,6 +35,9 @@ type IServer interface {
 
 	// PublishReleaseProxyFromServerPkg generates release proxy packages from server packages by upload-id.
 	PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleaseServerFromLocalDir generates release server packages from local source directory.
+	PublishReleaseServerFromLocalDir(nCtx contextx.IContext, sourceDir string) error
 }
 
 // UploadOriginServer uploads the origin server.
@@ -288,7 +292,7 @@ func checkGSE2OriginServerPkg(file io.ReadCloser) (*types.OriginPkgDetail, error
 }
 
 // PublishReleaseProxyFromServerPkg generates release proxy from server packages by upload-id.
-// nolint:funlen,gocognit,gocyclo,cyclop
+// nolint: gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetServerUpload(nCtx, uploadID)
@@ -312,16 +316,89 @@ func (m *Manager) PublishReleaseProxyFromServerPkg(nCtx contextx.IContext, uploa
 		return err
 	}
 
-	// get origin content.
-	originContent, err := originFile.Content(nCtx)
+	if err := m.handleServerPkg(nCtx, originFile); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release server, failed to handle server pkg")
+
+		return err
+	}
+
+	return nil
+}
+
+// PublishReleaseServerFromLocalDir generates release server from local directory.
+// nolint: gocognit,gocyclo,cyclop
+// NOCC: golint/fnsize(func design is not suitable for splitting).
+func (m *Manager) PublishReleaseServerFromLocalDir(nCtx contextx.IContext, sourceDir string) error {
+	localGroup, err := local.NewLocalDir(sourceDir)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release server, failed to get content. file")
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release server, failed to create local group")
+
+		return err
+	}
+
+	files, err := localGroup.AllFiles(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release server, failed to get all local files")
+
+		return err
+	}
+
+	if len(files) == 0 {
+		logger.G.Biz(nCtx).With("source-dir", sourceDir).
+			Info("no server package files found in source dir, skip publishing")
+
+		return nil
+	}
+
+	gp := gopool.NewPool()
+	for _, file := range files {
+		f := file
+		if !strings.HasSuffix(f.Info().Name, ".tgz") &&
+			!strings.HasSuffix(f.Info().Name, ".gz") &&
+			!strings.HasSuffix(f.Info().Name, ".tar") {
+
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("skip non-tgz file for publishing local release server package")
+
+			continue
+		}
+
+		logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("start to publish local release server package")
+
+		gp.Go(func() error {
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("publishing local release server package")
+
+			if err := m.handleServerPkg(nCtx, f); err != nil {
+				logger.G.Biz(nCtx).WithErr(err).With("filename", f.Info().Name).Error("failed to publish release server, failed to handle server pkg")
+
+				return err
+			}
+
+			return nil
+		})
+	}
+	if err = gp.Wait(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release server, failed to handle server pkgs")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("successfully published release server packages")
+
+	return nil
+}
+
+// nolint: funlen, gocognit,cyclop
+func (m *Manager) handleServerPkg(nCtx contextx.IContext, pkg fileiface.File) error {
+	// get origin content.
+	content, err := pkg.Content(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("filename", pkg.Info().Name).Error("failed to publish release server, failed to get content. file")
 
 		return err
 	}
 
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(nCtx, originContent)
+	originTempFileName, err := m.saveTempFile(nCtx, content)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release server package. failed to save temp file")
 

@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -36,6 +37,9 @@ type IProxy interface {
 
 	// PublishReleaseProxyFromProxyPkg generates release proxy from origin proxy package by upload-id.
 	PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleaseProxyFromLocalDir generates release proxy packages from local source directory.
+	PublishReleaseProxyFromLocalDir(nCtx contextx.IContext, sourceDir string) error
 }
 
 // UploadOriginProxy uploads the origin proxy.
@@ -351,7 +355,7 @@ func checkGSE2OriginProxyPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 }
 
 // PublishReleaseProxyFromProxyPkg generates release proxy packages from origin proxy package by upload-id.
-// nolint:funlen,gocognit,gocyclo,cyclop
+// nolint: gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetProxyUpload(nCtx, uploadID)
@@ -375,16 +379,99 @@ func (m *Manager) PublishReleaseProxyFromProxyPkg(nCtx contextx.IContext, upload
 		return err
 	}
 
-	// get origin content.
-	originContent, err := originFile.Content(nCtx)
+	if err := m.handleProxyPkg(nCtx, originFile); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release proxy, failed to handle proxy pkg")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("upload-id", uploadID).Info("successfully published release proxy")
+
+	return nil
+}
+
+// PublishReleaseProxyFromLocalDir generates release proxy packages from local source directory.
+// nolint: gocognit,gocyclo,cyclop
+// NOCC: golint/fnsize(func design is not suitable for splitting).
+func (m *Manager) PublishReleaseProxyFromLocalDir(nCtx contextx.IContext, sourceDir string) error {
+	localFileGroup, err := local.NewLocalDir(sourceDir)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release proxy, failed to get content. file")
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release proxy package, failed to create local file group")
+
+		return err
+	}
+
+	files, err := localFileGroup.AllFiles(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release proxy package, failed to list local files")
+
+		return err
+	}
+
+	if len(files) == 0 {
+		logger.G.Biz(nCtx).With("source-dir", sourceDir).
+			Info("no proxy package files found in source dir, skip publishing")
+
+		return nil
+	}
+
+	gp := gopool.NewPool()
+	for _, file := range files {
+		f := file
+		if !strings.HasSuffix(f.Info().Name, ".tgz") &&
+			!strings.HasSuffix(f.Info().Name, ".gz") &&
+			!strings.HasSuffix(f.Info().Name, ".tar") {
+
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("skip non-tgz file for publishing local release proxy package")
+
+			continue
+		}
+
+		logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("start to publish local release proxy package")
+
+		gp.Go(func() error {
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("publishing local release proxy package")
+
+			if err := m.handleProxyPkg(nCtx, f); err != nil {
+				logger.G.Biz(nCtx).WithErr(err).
+					With("filename", f.Info().Name).
+					Error("failed to publish local release proxy package, failed to handle proxy pkg")
+
+				return err
+			}
+
+			return nil
+		})
+	}
+	if err = gp.Wait(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release proxy package, failed to handle proxy pkgs")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("successfully published local release proxy packages")
+
+	return nil
+}
+
+// nolint: funlen
+func (m *Manager) handleProxyPkg(nCtx contextx.IContext, pkg fileiface.File) error {
+	// get origin content.
+	content, err := pkg.Content(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("filename", pkg.Info().Name).Error("failed to publish release proxy, failed to get content. file")
 
 		return err
 	}
 
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(nCtx, originContent)
+	originTempFileName, err := m.saveTempFile(nCtx, content)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release proxy package. failed to save temp file")
 

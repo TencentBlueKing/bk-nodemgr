@@ -19,6 +19,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/nodepkg"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
@@ -35,6 +36,9 @@ type IAgent interface {
 
 	// PublishReleaseAgent generates release agent by upload-id.
 	PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleaseAgentFromLocalDir generates release agent packages from local source directory.
+	PublishReleaseAgentFromLocalDir(nCtx contextx.IContext, sourceDir string) error
 }
 
 // UploadOriginAgent uploads the origin agent.
@@ -246,7 +250,7 @@ func checkGSE2OriginAgentPkg(file io.ReadCloser) (*types.OriginPkgDetail, error)
 }
 
 // PublishReleaseAgent generates release agent packages by upload-id.
-// nolint:funlen,gocognit,gocyclo,cyclop
+// nolint: gocognit,gocyclo,cyclop
 // NOCC: golint/fnsize(func design is not suitable for splitting).
 func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetAgentUpload(nCtx, uploadID)
@@ -270,17 +274,97 @@ func (m *Manager) PublishReleaseAgent(nCtx contextx.IContext, uploadID string) e
 		return err
 	}
 
-	// get origin content.
-	originContent, err := originFile.Content(nCtx)
+	if err := m.handleAgentPkg(nCtx, originFile); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release agent, failed to handle agent pkg")
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("upload-id", uploadID).Info("successfully published release agent")
+
+	return nil
+}
+
+// PublishReleaseAgentFromLocalDir generates release agent packages from local source directory.
+// nolint: gocognit,gocyclo,cyclop
+// NOCC: golint/fnsize(func design is not suitable for splitting).
+func (m *Manager) PublishReleaseAgentFromLocalDir(nCtx contextx.IContext, sourceDir string) error {
+	localFileGroup, err := local.NewLocalDir(sourceDir)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release agent, failed to get content. file(%s). err: %v",
-			up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release agent, failed to create local file group")
+
+		return err
+	}
+
+	files, err := localFileGroup.AllFiles(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release agent, failed to list local files")
+
+		return err
+	}
+
+	if len(files) == 0 {
+		logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("no local release agent files found, skip publishing")
+
+		return nil
+	}
+
+	gp := gopool.NewPool()
+	for _, file := range files {
+		f := file
+		if !strings.HasSuffix(f.Info().Name, ".tgz") &&
+			!strings.HasSuffix(f.Info().Name, ".gz") &&
+			!strings.HasSuffix(f.Info().Name, ".tar") {
+
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("skip non-tgz file for publishing local release agent package")
+
+			continue
+		}
+
+		logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("start to publish local release agent package")
+
+		gp.Go(func() error {
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("publishing local release agent package")
+
+			if err := m.handleAgentPkg(nCtx, f); err != nil {
+				logger.G.Biz(nCtx).WithErr(err).
+					With("filename", f.Info().Name).
+					Error("failed to publish release agent, failed to handle agent pkg")
+
+				return err
+			}
+
+			return nil
+		})
+	}
+	if err = gp.Wait(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release agent, failed to handle agent pkgs")
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("successfully published local release agent")
+
+	return nil
+}
+
+// nolint: funlen
+func (m *Manager) handleAgentPkg(nCtx contextx.IContext, pkg fileiface.File) error {
+	// get origin content.
+	content, err := pkg.Content(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("filename", pkg.Info().Name).
+			Error("failed to publish release agent, failed to get content.")
 
 		return err
 	}
 
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(nCtx, originContent)
+	originTempFileName, err := m.saveTempFile(nCtx, content)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release agent package. failed to save temp file")
 

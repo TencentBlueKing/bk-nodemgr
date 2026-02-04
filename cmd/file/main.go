@@ -115,6 +115,10 @@ func main() {
 		},
 	}
 
+	serverCmd.AddCommand(
+		NewInitPackageCMD(),
+	)
+
 	serverCmd.PersistentFlags().StringVarP(
 		&configPath, "file", "f", "", "path of service config file",
 	)

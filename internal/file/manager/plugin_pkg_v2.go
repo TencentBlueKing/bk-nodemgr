@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/pluginpkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -38,6 +39,9 @@ type IPluginV2 interface {
 
 	// PublishReleasePluginV2 generates release plugin package v2 by upload-id.
 	PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleasePluginV2FromLocalDir generates local release plugin v2 packages from local source directory.
+	PublishReleasePluginV2FromLocalDir(nCtx contextx.IContext, sourceDir string) error
 }
 
 // UploadOriginPluginV2 uploads origin plugin package v2.
@@ -360,7 +364,7 @@ func convPluginV2PropertyToTypes(property *PluginV2Property) *types.PluginPkgCon
 const releasePluginV2Label = "v2"
 
 // PublishReleasePluginV2 generates release plugin by upload-id.
-// nolint: funlen,gocognit
+// nolint: gocognit
 func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string) error {
 	up, err := m.storageUpload.GetPluginV2Upload(nCtx, uploadID)
 	if err != nil {
@@ -383,16 +387,98 @@ func (m *Manager) PublishReleasePluginV2(nCtx contextx.IContext, uploadID string
 		return err
 	}
 
-	// get origin content.
-	originContent, err := originFile.Content(nCtx)
+	if err := m.handlePluginV2Pkg(nCtx, originFile); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("filename", up.SavedName).
+			Error("failed to publish release plugin package v2, failed to handle plugin pkg")
+
+		return err
+	}
+
+	return nil
+}
+
+// PublishReleasePluginV2FromLocalDir generates local release plugin v2 packages from local source directory.
+// nolint: gocognit
+func (m *Manager) PublishReleasePluginV2FromLocalDir(nCtx contextx.IContext, sourceDir string) error {
+	localFileGroup, err := local.NewLocalDir(sourceDir)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin package v2, failed to get content")
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release plugin package v2, failed to create local file group")
+
+		return err
+	}
+
+	files, err := localFileGroup.AllFiles(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release plugin package v2, failed to list local files")
+
+		return err
+	}
+
+	if len(files) == 0 {
+		logger.G.Biz(nCtx).With("source-dir", sourceDir).
+			Info("no plugin v2 package files found in source dir, skip publishing")
+
+		return nil
+	}
+
+	gp := gopool.NewPool()
+	for _, file := range files {
+		f := file
+		if !strings.HasSuffix(f.Info().Name, ".tgz") &&
+			!strings.HasSuffix(f.Info().Name, ".gz") &&
+			!strings.HasSuffix(f.Info().Name, ".tar") {
+
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("skip non-tgz file for publishing local release plugin package v2")
+
+			continue
+		}
+
+		logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("start to publish local release plugin package v2")
+
+		gp.Go(func() error {
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("publishing local release plugin package v2")
+
+			if err := m.handlePluginV2Pkg(nCtx, f); err != nil {
+				logger.G.Biz(nCtx).WithErr(err).
+					With("filename", f.Info().Name).
+					Error("failed to publish local release plugin package v2, failed to handle plugin pkg")
+
+				return err
+			}
+
+			return nil
+		})
+	}
+	if err = gp.Wait(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release plugin package v2, failed to handle plugin pkgs")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("successfully published local release plugin package v2")
+
+	return nil
+}
+
+// nolint: funlen
+func (m *Manager) handlePluginV2Pkg(nCtx contextx.IContext, pkg fileiface.File) error {
+	// get origin content.
+	content, err := pkg.Content(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("filename", pkg.Info().Name).Error("failed to publish release plugin package v2, failed to get content")
 
 		return err
 	}
 
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(nCtx, originContent)
+	originTempFileName, err := m.saveTempFile(nCtx, content)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin package v2 package. failed to save temp file")
 

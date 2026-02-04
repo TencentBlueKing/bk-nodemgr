@@ -19,6 +19,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 )
 
 const (
@@ -51,6 +54,11 @@ type tgzWriteRuleFile struct {
 type tgzWriteRuleStream struct {
 	sourceFile io.ReadCloser
 	fileRules  []tgzWriteRuleFile
+}
+
+type tgzWriteRuleLocalDir struct {
+	sourceDir string
+	fileRules []tgzWriteRuleFile
 }
 
 type tgzReadRule struct {
@@ -120,6 +128,7 @@ func generateTgz(
 	return nil
 }
 
+// nolint: gocognit
 func copyFileToTgz(sourceFile io.ReadCloser, fileRules []tgzWriteRuleFile, tarWriter *tar.Writer) error {
 	gzipReader, err := gzip.NewReader(sourceFile)
 	if err != nil {
@@ -285,6 +294,120 @@ func checkTgz(sourceFile io.ReadCloser, rules []tgzReadRule) (err error) {
 			if err = rule.callback(paths, tarReader); err != nil {
 				return err
 			}
+		}
+	}
+
+	return nil
+}
+
+// generateTgzByLocalDir takes responsibility for all source and target file to close.
+// nolint: funlen,gocognit,gocyclo,cyclop
+// NOCC: golint/fnsize(func design is not suitable for splitting).
+func generateTgzByLocalDir(
+	nCtx contextx.IContext,
+	targetFile io.WriteCloser,
+	dirRules []tgzWriteRuleDir,
+	localDirRules []*tgzWriteRuleLocalDir) (err error) {
+
+	// close target file.
+	defer func() {
+		if errClose := targetFile.Close(); errClose != nil {
+			err = errors.Join(err, errClose)
+		}
+	}()
+
+	// target gzip writer.
+	gzipWriter := gzip.NewWriter(targetFile)
+	defer func() {
+		if errClose := gzipWriter.Close(); errClose != nil {
+			err = errors.Join(err, errClose)
+		}
+	}()
+
+	// target tar writer.
+	tarWriter := tar.NewWriter(gzipWriter)
+	defer func() {
+		if errClose := tarWriter.Close(); errClose != nil {
+			err = errors.Join(err, errClose)
+		}
+	}()
+
+	// write dirs.
+	for _, rule := range dirRules {
+		if err = tarWriter.WriteHeader(&tar.Header{
+			Name:     strings.Join(rule.targetFilePath, "/"),
+			Mode:     rule.targetFileMode,
+			ModTime:  time.Now(),
+			Typeflag: tar.TypeDir,
+		}); err != nil {
+			return fmt.Errorf("failed to write tar header for directory(%v): %w", rule.targetFilePath, err)
+		}
+	}
+
+	// source gzip reader.
+	for _, rule := range localDirRules {
+		sourceDir := rule.sourceDir
+		fileRules := rule.fileRules
+
+		err = copyLocalFileToTgz(nCtx, sourceDir, fileRules, tarWriter)
+		if err != nil {
+			return fmt.Errorf("failed to generate tgz: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func copyLocalFileToTgz(nCtx contextx.IContext, sourceDir string, fileRules []tgzWriteRuleFile, tarWriter *tar.Writer) error {
+	localFileGroup, err := local.NewLocalDir(sourceDir)
+	if err != nil {
+		return fmt.Errorf("failed to open local dir(%s): %w", sourceDir, err)
+	}
+
+	for _, rule := range fileRules {
+		filePath := strings.Join(rule.sourceFilePath, "/")
+		sourceFile, err := localFileGroup.GetFile(nCtx, filePath)
+		if err != nil {
+			return fmt.Errorf("failed to get local file(%v): %w", rule.sourceFilePath, err)
+		}
+
+		var errCopy error
+		func() {
+			source, err := sourceFile.Content(nCtx)
+			if err != nil {
+				errCopy = fmt.Errorf("failed to get content of local file(%v): %w", rule.sourceFilePath, err)
+				return
+			}
+
+			defer func() {
+				if errClose := source.Close(); errClose != nil {
+					errCopy = errors.Join(errCopy, errClose)
+				}
+			}()
+
+			if err = tarWriter.WriteHeader(&tar.Header{
+				Name:     strings.Join(rule.targetFilePath, "/"),
+				Mode:     rule.targetFileMode,
+				ModTime:  time.Now(),
+				Typeflag: tar.TypeReg,
+				Size:     sourceFile.Info().Size,
+			}); err != nil {
+				errCopy = fmt.Errorf("failed to write tar header for file(%v): %w", rule.targetFilePath, err)
+				return
+			}
+
+			// this copy is only for admin usage, so it's ok to ignore the security check.
+			// nolint: gosec
+			if _, err = io.Copy(tarWriter, source); err != nil {
+				errCopy = fmt.Errorf("failed to copy file, origin-file-dir(%s), origin-file-name(%s), target(%v): %w",
+					filePath, sourceFile.Info().Name, rule.targetFilePath, err)
+
+				return
+			}
+		}()
+
+		if errCopy != nil {
+			return errCopy
 		}
 	}
 

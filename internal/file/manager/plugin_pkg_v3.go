@@ -20,6 +20,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/pluginpkg"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/format/tool"
@@ -38,6 +39,9 @@ type IPluginV3 interface {
 
 	// PublishReleasePluginV3 generates release plugin package v3 by upload-id.
 	PublishReleasePluginV3(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleasePluginV3FromLocalDir generates local release plugin v3 packages from local source directory.
+	PublishReleasePluginV3FromLocalDir(nCtx contextx.IContext, sourceDir string) error
 }
 
 // UploadOriginPluginV3 uploads origin plugin package v3.
@@ -380,16 +384,99 @@ func (m *Manager) PublishReleasePluginV3(nCtx contextx.IContext, uploadID string
 		return err
 	}
 
-	// get origin content.
-	originContent, err := originFile.Content(nCtx)
-	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).With("filename", up.SavedName).Error("failed to publish release plugin package v3, failed to get content")
+	if err = m.handlePluginV3Pkg(nCtx, originFile); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("filename", up.SavedName).
+			Error("failed to publish release plugin package v3, failed to handle plugin v3 package")
 
 		return err
 	}
 
+	logger.G.Biz(nCtx).With("filename", up.SavedName).Info("published release plugin package v3 successfully")
+
+	return nil
+}
+
+// PublishReleasePluginV3FromLocalDir generates local release plugin v3
+// nolint: gocognit
+func (m *Manager) PublishReleasePluginV3FromLocalDir(nCtx contextx.IContext, sourceDir string) error {
+	localFileGroup, err := local.NewLocalDir(sourceDir)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release plugin package v3, failed to create local file group")
+
+		return err
+	}
+
+	files, err := localFileGroup.AllFiles(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release plugin package v3, failed to list local files")
+
+		return err
+	}
+
+	if len(files) == 0 {
+		logger.G.Biz(nCtx).With("source-dir", sourceDir).
+			Info("no plugin v3 package files found in source dir, skip publishing")
+
+		return nil
+	}
+
+	gp := gopool.NewPool()
+	for _, file := range files {
+		f := file
+		if !strings.HasSuffix(f.Info().Name, ".tgz") &&
+			!strings.HasSuffix(f.Info().Name, ".gz") &&
+			!strings.HasSuffix(f.Info().Name, ".tar") {
+
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("skip non-tgz file for publishing local release plugin package v3")
+
+			continue
+		}
+
+		logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("start to publish local release plugin package v3")
+
+		gp.Go(func() error {
+			logger.G.Biz(nCtx).With("filename", f.Info().Name).Info("publishing local release plugin package v3")
+
+			if err := m.handlePluginV3Pkg(nCtx, f); err != nil {
+				logger.G.Biz(nCtx).WithErr(err).
+					With("filename", f.Info().Name).
+					Error("failed to publish local release plugin package v3, failed to handle plugin pkg")
+
+				return err
+			}
+
+			return nil
+		})
+	}
+	if err = gp.Wait(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local release plugin package v3, failed to handle plugin pkgs")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("successfully published local release plugin package v3")
+
+	return nil
+}
+
+// nolint: funlen
+func (m *Manager) handlePluginV3Pkg(nCtx contextx.IContext, pkg fileiface.File) error {
+	// get origin content.
+	content, err := pkg.Content(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("filename", pkg.Info().Name).Error("failed to publish release plugin package v3, failed to get content")
+		return err
+	}
+
 	// store file to temp.
-	originTempFileName, err := m.saveTempFile(nCtx, originContent)
+	originTempFileName, err := m.saveTempFile(nCtx, content)
 	if err != nil {
 		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload release plugin package v3 package. failed to save temp file")
 

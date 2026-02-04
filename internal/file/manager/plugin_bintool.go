@@ -18,6 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -34,12 +35,16 @@ type IPluginBinTool interface {
 	// PublishReleasePluginBinTool generate release plugin bintool package.
 	PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID string) error
 
+	// PublishReleasePluginBinToolFromLocalDir generate release plugin bin tool packages from local source directory.
+	PublishReleasePluginBinToolFromLocalDir(nCtx contextx.IContext, sourceDir string) error
+
 	// EnsurePluginBinToolToLocal ensure plugin bintool to local.
 	EnsurePluginBinToolToLocal(nCtx contextx.IContext, gen types.Generation, name string) (fileiface.File, string, error)
 }
 
 const (
 	originPluginBinToolFileName    = "plugin_bintool-all.tgz"
+	localPluginBintoolFileName     = "plugin_bintool.tgz"
 	releasePluginBinToolV2FileName = "plugin_bintool_v2.tgz"
 	releasePluginBinToolV3FileName = "plugin_bintool_v3.tgz"
 )
@@ -199,11 +204,11 @@ func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID s
 
 	gp := gopool.NewPool()
 	gp.Go(func() error {
-		return m.handlerPluginBinToolV2Pkg(nCtx, file)
+		return m.handlePluginBinToolV2Pkg(nCtx, file)
 	})
 
 	gp.Go(func() error {
-		return m.handlerPluginBinToolV3Pkg(nCtx, file)
+		return m.handlePluginBinToolV3Pkg(nCtx, file)
 	})
 
 	if err = gp.Wait(); err != nil {
@@ -214,7 +219,76 @@ func (m *Manager) PublishReleasePluginBinTool(nCtx contextx.IContext, uploadID s
 	return nil
 }
 
-func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile fileiface.File) error {
+// PublishReleasePluginBinToolFromLocalDir generate release plugin bin tool packages from local source directory.
+func (m *Manager) PublishReleasePluginBinToolFromLocalDir(nCtx contextx.IContext, sourceDir string) error {
+	// check if release existed.
+	existed, err := m.storageRelease.ExistReleasePluginBinTool(nCtx, types.Generation2)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to upload origin plugin bintool package. failed to check if release existed")
+		return err
+	}
+
+	if existed {
+		logger.G.Biz(nCtx).Info("release plugin bintool already existed, skip publishing local plugin bintool")
+		return nil
+	}
+
+	localFileGroup, err := local.NewLocalDir(sourceDir)
+	if err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local plugin bintool, failed to create local file group")
+
+		return err
+	}
+
+	files, err := localFileGroup.AllFiles(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("source-dir", sourceDir).
+			Error("failed to publish local plugin bintool, failed to get all files from local dir")
+
+		return err
+	}
+
+	if len(files) == 0 {
+		logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("no local release agent files found, skip publishing")
+
+		return nil
+	}
+
+	targetFile, err := localFileGroup.GetFile(nCtx, localPluginBintoolFileName)
+	if err != nil {
+		logger.G.Biz(nCtx).
+			WithErr(err).
+			With("source-dir", sourceDir, "filename", localPluginBintoolFileName).
+			Error("failed to publish local plugin bintool, failed to get local plugin bintool file")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir, "filename", localPluginBintoolFileName).Info("start to publish local plugin bintool")
+
+	gp := gopool.NewPool()
+	gp.Go(func() error {
+		return m.handlePluginBinToolV2Pkg(nCtx, targetFile)
+	})
+
+	gp.Go(func() error {
+		return m.handlePluginBinToolV3Pkg(nCtx, targetFile)
+	})
+
+	if err = gp.Wait(); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release plugin bintool, failed to generate release package")
+		return err
+	}
+
+	return nil
+}
+
+func (m *Manager) handlePluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile fileiface.File) error {
 	// get origin content.
 	content, err := sourceFile.Content(nCtx)
 	if err != nil {
@@ -280,7 +354,7 @@ func (m *Manager) handlerPluginBinToolV2Pkg(nCtx contextx.IContext, sourceFile f
 	return nil
 }
 
-func (m *Manager) handlerPluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile fileiface.File) error {
+func (m *Manager) handlePluginBinToolV3Pkg(nCtx contextx.IContext, sourceFile fileiface.File) error {
 	// get origin content.
 	content, err := sourceFile.Content(nCtx)
 	if err != nil {

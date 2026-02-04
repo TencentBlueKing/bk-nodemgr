@@ -18,6 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/criteria"
@@ -33,12 +34,16 @@ type IBinTool interface {
 	// PublishReleaseBinTool generate release bintool package.
 	PublishReleaseBinTool(nCtx contextx.IContext, uploadID string) error
 
+	// PublishReleaseBinToolFromLocalDir publishes release bin tool packages from local source directory.
+	PublishReleaseBinToolFromLocalDir(nCtx contextx.IContext, sourceDir string) error
+
 	// EnsureBinToolToLocal ensure bintool to local.
 	EnsureBinToolToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error)
 }
 
 const (
 	originBinToolFileName  = "bintool-all.tgz"
+	localBinToolFileName   = "bintool.tgz"
 	releaseBinToolFileName = "bintool.tgz"
 )
 
@@ -190,11 +195,84 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 		return err
 	}
 
-	// get origin content.
-	content, err := file.Content(nCtx)
+	if err := m.handleBinToolPkg(nCtx, file); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release bintool, failed to handle bintool pkg. err: %v", err)
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("upload-id", uploadID).Info("successfully published release bintool")
+
+	return nil
+}
+
+// PublishReleaseBinToolFromLocalDir publishes release bin tool packages from local source directory.
+func (m *Manager) PublishReleaseBinToolFromLocalDir(nCtx contextx.IContext, sourceDir string) error {
+	// check if release existed.
+	existed, err := m.storageRelease.ExistReleaseBinTool(nCtx, types.Generation2)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release bintool, failed to get content. file(%s). err: %v",
-			up.SavedName, err)
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish local bintool. failed to check if release existed")
+
+		return err
+	}
+
+	if existed {
+		logger.G.Biz(nCtx).Info("release bintool already existed, skip publishing local bintool")
+
+		return nil
+	}
+
+	localFileGroup, err := local.NewLocalDir(sourceDir)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("source-dir", sourceDir).Error("failed to publish local bintool, failed to create local file group")
+
+		return err
+	}
+
+	// get local file.
+	files, err := localFileGroup.AllFiles(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("source-dir", sourceDir).Error("failed to publish local bintool, failed to get all files from local dir")
+
+		return err
+	}
+
+	if len(files) == 0 {
+		logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("no local release agent files found, skip publishing")
+
+		return nil
+	}
+
+	targetFile, err := localFileGroup.GetFile(nCtx, localBinToolFileName)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir, "filename", localBinToolFileName).
+			Error("failed to publish local bintool, failed to get local bintool file")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir, "filename", localBinToolFileName).Info("start to publish local bintool")
+
+	if err := m.handleBinToolPkg(nCtx, targetFile); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("source-dir", sourceDir, "filename", localBinToolFileName).
+			Error("failed to publish local bintool, failed to handle bintool pkg")
+
+		return err
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir, "filename", localBinToolFileName).Info("successfully published local bintool")
+
+	return nil
+}
+
+func (m *Manager) handleBinToolPkg(nCtx contextx.IContext, pkg fileiface.File) error {
+	content, err := pkg.Content(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).
+			With("filename", pkg.Info().Name).
+			Error("failed to publish local bintool, failed to get local file content")
 
 		return err
 	}
@@ -202,7 +280,9 @@ func (m *Manager) PublishReleaseBinTool(nCtx contextx.IContext, uploadID string)
 	// generate release file.
 	generatedFile, err := m.generateBinToolPkg(nCtx, content)
 	if err != nil {
-		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release bintool, failed to generate bintool pkg")
+		logger.G.Biz(nCtx).WithErr(err).
+			With("filename", pkg.Info().Name).
+			Error("failed to publish local bintool, failed to generate local bintool pkg")
 
 		return err
 	}

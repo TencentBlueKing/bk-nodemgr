@@ -115,6 +115,20 @@ func NewService(conf *config.FileService) (*Service, error) {
 	return svc, nil
 }
 
+// NewCMDService creates a new file service for command line usage.
+func NewCMDService(conf *config.FileService) (*Service, error) {
+	svc := &Service{
+		conf: conf,
+		Cap:  &options.Capability{},
+	}
+	svc.ctx, svc.cancelFunc = contextx.WithCancel(contextx.New(contextx.Background()))
+	if err := svc.initialCapability(svc.ctx); err != nil {
+		return nil, fmt.Errorf("failed to initialize capability: %w", err)
+	}
+
+	return svc, nil
+}
+
 // nolint: unparam
 func (svc *Service) initialStaticsConfigs() error {
 	svc.authIdentityValidMap = map[config.AuthIdentity]struct{}{
@@ -669,11 +683,16 @@ func withAPIV3Download(capability *options.Capability, middleware ...gin.Handler
 	}
 }
 
+// StartCapability starts the capability of the service.
+func (svc *Service) StartCapability() error {
+	return svc.Cap.Start(svc.ctx)
+}
+
 // Start starts the file service.
 func (svc *Service) Start() error {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	if err := svc.Cap.Start(svc.ctx); err != nil {
+	if err := svc.StartCapability(); err != nil {
 		return err
 	}
 

@@ -18,6 +18,7 @@ import (
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	fileiface "github.com/TencentBlueKing/bk-nodemgr/pkg/filex/iface"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/filex/local"
 	platfmt "github.com/TencentBlueKing/bk-nodemgr/pkg/format/platform"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
@@ -35,6 +36,9 @@ type ICert interface {
 
 	// PublishReleaseCert generates release cert by upload-id.
 	PublishReleaseCert(nCtx contextx.IContext, uploadID string) error
+
+	// PublishReleaseCertFromLocalDir publishes release cert from local source directory.
+	PublishReleaseCertFromLocalDir(nCtx contextx.IContext, sourceDir string) error
 
 	// EnsureCertToLocal ensure cert to local.
 	EnsureCertToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error)
@@ -321,7 +325,7 @@ func (m *Manager) PublishReleaseCert(nCtx contextx.IContext, uploadID string) er
 }
 
 // EnsureCertToLocal ensure cert to local.
-func (m *Manager) EnsureCertToLocal(nCtx contextx.IContext, gen types.Generation) (fileiface.File, string, error) {
+func (m *Manager) EnsureCertToLocal(nCtx contextx.IContext, _ types.Generation) (fileiface.File, string, error) {
 	// get cert from storage.
 	cert, err := m.storageRelease.GetReleaseCert(nCtx)
 	if err != nil {
@@ -386,6 +390,178 @@ func (m *Manager) generateCertPkg(nCtx contextx.IContext, sourceFile io.ReadClos
 				},
 				{
 					sourceFilePath: []string{certDirNameRoot, certFileNameCertEncryptKey},
+					targetFilePath: []string{certDirNameRoot, certFileNameCertEncryptKey},
+					targetFileMode: tgzModeFile,
+				},
+			},
+		}},
+	); err != nil {
+		return nil, err
+	}
+
+	file, err := m.tempFileGroup.GetFile(nCtx, tempFileName)
+	if err != nil {
+		return nil, err
+	}
+
+	return file.Content(nCtx)
+}
+
+// PublishReleaseCertFromLocalDir publishes release cert from local source directory.
+func (m *Manager) PublishReleaseCertFromLocalDir(nCtx contextx.IContext, sourceDir string) error {
+	existed, err := m.storageRelease.ExistReleaseCert(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert. failed to check if release existed")
+
+		return err
+	}
+
+	if existed {
+		logger.G.Biz(nCtx).Info("release cert already existed, skip publishing local cert")
+
+		return nil
+	}
+
+	localFileGroup, err := local.NewLocalDir(sourceDir)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("source-dir", sourceDir).Error("failed to publish release cert, failed to create local file group")
+
+		return err
+	}
+
+	files, err := localFileGroup.AllFiles(nCtx)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("source-dir", sourceDir).Error("failed to publish release cert, failed to list local files")
+
+		return err
+	}
+
+	if len(files) == 0 {
+		logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("no cert files found in source dir, skip publishing")
+
+		return nil
+	}
+
+	logger.G.Biz(nCtx).With("source-dir", sourceDir).Info("start to publish local release cert package")
+
+	// generate release file.
+	generatedFile, err := m.generateLocalCertPkg(nCtx, sourceDir)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).With("source-dir", sourceDir).Error("failed to publish release cert, failed to generate release package")
+
+		return err
+	}
+	defer func() {
+		_ = generatedFile.Close()
+	}()
+
+	// upload to upstream.
+	if err = m.upstreamReleaseCert.Store(
+		nCtx, fileiface.FileInfo{Name: releaseCertFileName}, generatedFile, true); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert, failed to upload to upstream")
+
+		return err
+	}
+
+	// get release file.
+	releaseFile, err := m.upstreamReleaseCert.GetFile(nCtx, releaseCertFileName)
+	if err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert, failed to get release file")
+
+		return err
+	}
+
+	// get release info.
+	releaseInfo := releaseFile.Info()
+
+	certInfo := &types.ReleaseCert{
+		Release: types.Release{
+			Name:         releaseCertFileName,
+			Generation:   types.Generation2,
+			Type:         types.ReleaseTypeCert,
+			Version:      types.ReleaseVersionCert,
+			Platform:     platfmt.UnknownPlatform(),
+			Labels:       nil,
+			FileName:     releaseInfo.Name,
+			MD5:          releaseInfo.MD5,
+			Enabled:      true,
+			AsDefault:    true,
+			UpdatedAt:    time.Now(),
+			Operator:     nCtx.BKUsername(),
+			AdditionInfo: nil,
+		},
+	}
+
+	// upsert release cert.
+	if err = m.storageRelease.UpsertReleaseCert(nCtx, *certInfo); err != nil {
+		logger.G.Biz(nCtx).WithErr(err).Error("failed to publish release cert, failed to upsert release cert")
+
+		return err
+	}
+
+	// record cert event.
+	m.recordPublishEvent(nCtx, &certInfo.Release)
+
+	logger.G.Biz(nCtx).With("filename", releaseInfo.Name, "md5", releaseInfo.MD5).Info("generated and published release cert")
+
+	return nil
+}
+
+func (m *Manager) generateLocalCertPkg(nCtx contextx.IContext, sourceDir string) (io.ReadCloser, error) {
+	tempFileName, err := m.createTempFile(nCtx)
+	if err != nil {
+		return nil, err
+	}
+
+	targetFile, err := m.openTempFile(nCtx, tempFileName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = generateTgzByLocalDir(nCtx, targetFile,
+		[]tgzWriteRuleDir{
+			{targetFilePath: []string{certDirNameRoot}, targetFileMode: tgzModeDir},
+		},
+		[]*tgzWriteRuleLocalDir{{
+			sourceDir: sourceDir,
+			fileRules: []tgzWriteRuleFile{
+				{
+					sourceFilePath: []string{certFileNameCaCrt},
+					targetFilePath: []string{certDirNameRoot, certFileNameCaCrt},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{certFileNameAgentCrt},
+					targetFilePath: []string{certDirNameRoot, certFileNameAgentCrt},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{certFileNameAgentKey},
+					targetFilePath: []string{certDirNameRoot, certFileNameAgentKey},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{certFileNameServerCrt},
+					targetFilePath: []string{certDirNameRoot, certFileNameServerCrt},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{certFileNameServerKey},
+					targetFilePath: []string{certDirNameRoot, certFileNameServerKey},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{certFileNameAPIClientCrt},
+					targetFilePath: []string{certDirNameRoot, certFileNameAPIClientCrt},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{certFileNameAPIClientKey},
+					targetFilePath: []string{certDirNameRoot, certFileNameAPIClientKey},
+					targetFileMode: tgzModeFile,
+				},
+				{
+					sourceFilePath: []string{certFileNameCertEncryptKey},
 					targetFilePath: []string{certDirNameRoot, certFileNameCertEncryptKey},
 					targetFileMode: tgzModeFile,
 				},
