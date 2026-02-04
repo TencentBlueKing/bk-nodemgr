@@ -640,6 +640,30 @@
     {
       "operation": "upsert_action",
       "data": {
+        "id": "package_type_upload",
+        "name": "上传资源包",
+        "name_en": "Upload Package",
+        "description": "上传资源包",
+        "description_en": "Upload package",
+        "type": "create",
+        "related_resource_types": [
+          {
+            "system_id": "{{ .system.id }}",
+            "id": "package_type",
+            "selection_mode": "instance",
+            "related_instance_selections": [
+              {
+                "system_id": "{{ .system.id }}",
+                "id": "package_type_instance_selection"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "operation": "upsert_action",
+      "data": {
         "id": "package_view",
         "name": "查看资源包",
         "name_en": "View Package",
@@ -743,6 +767,31 @@
               },
               {
                 "id": "networkunit_delete",
+                "required": false
+              },
+              {
+                "id": "networkunit_use_for_agent",
+                "required": false
+              },
+              {
+                "id": "networkunit_use_for_proxy",
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "package",
+            "actions": [
+              {
+                "id": "package_view",
+                "required": false
+              },
+              {
+                "id": "package_manage",
+                "required": false
+              },
+              {
+                "id": "package_history_view",
                 "required": false
               }
             ]

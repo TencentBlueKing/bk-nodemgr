@@ -38,12 +38,31 @@
     {
       "operation": "upsert_resource_type",
       "data": {
+        "id": "package_type",
+        "name": "资源包类型",
+        "name_en": "Package Type",
+        "description": "资源包类型",
+        "description_en": "Package Type",
+        "parents": [],
+        "provider_config": {
+          "path": "{{ .provider.path }}"
+        }
+      }
+    },
+    {
+      "operation": "upsert_resource_type",
+      "data": {
         "id": "package",
         "name": "资源包",
         "name_en": "Package",
-        "description": "资源包管理",
-        "description_en": "Package Management",
-        "parents": [],
+        "description": "资源包",
+        "description_en": "Package",
+        "parents": [
+          {
+            "system_id": "{{ .system.id }}",
+            "id": "package_type"
+          }
+        ],
         "provider_config": {
           "path": "{{ .provider.path }}"
         }
@@ -84,10 +103,28 @@
     {
       "operation": "upsert_instance_selection",
       "data": {
+        "id": "package_type_instance_selection",
+        "name": "资源包类型",
+        "name_en": "Package Type",
+        "resource_type_chain": [
+          {
+            "system_id": "{{ .system.id }}",
+            "id": "package_type"
+          }
+        ]
+      }
+    },
+    {
+      "operation": "upsert_instance_selection",
+      "data": {
         "id": "package_instance_selection",
         "name": "资源包",
         "name_en": "Package",
         "resource_type_chain": [
+          {
+            "system_id": "{{ .system.id }}",
+            "id": "package_type"
+          },
           {
             "system_id": "{{ .system.id }}",
             "id": "package"
