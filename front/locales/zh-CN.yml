@@ -1,6 +1,7 @@
 platform:
   name: 节点管理
   title: 蓝鲸节点管理
+  logout: 退出登录
   nodeMan:
     node: 节点
     agentStatus:
@@ -912,7 +913,7 @@ route:
   plugin: 插件
   taskHistory: 任务历史
   workarea: 管控区域
-  workareaSubtitle: 管控区域副标题
+  workareaSubtitle: 管控区域是互相之间能直接通信的一组服务器单元，如企业内的局域网、公有云VPC（虚拟私有网络）。
   workareaDetail: 管控区域详情
   topo: 拓扑
   topoSubtitle: 拓扑副标题

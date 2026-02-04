@@ -431,7 +431,7 @@ const statusMap = ref(new Map<string, string>([
 const fuzzyKeys = new Set(['bk_host_innerip', 'bk_host_innerip_v6', 'bk_host_name', 'dept_name']);
 
 // ---------- 计算属性 ----------
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const selection = computed(() => tableData.value.filter((item: any) => item.checked));
 const total = computed(() => pagination.count);
 // eslint-disable-next-line max-len

@@ -171,7 +171,7 @@ const pageValueChange = async (current: number) => {
   await getTaskList(); // 分页变化不防抖，立即执行
 };
 
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const loading = ref(false);
 
 const sortConfig = ref<VxeTablePropTypes.SortConfig>({

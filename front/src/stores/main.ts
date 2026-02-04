@@ -14,6 +14,7 @@ export const useMainStore = defineStore('mainStore', {
     routeState: Object,
     isLogRetry: Boolean,
     isLogTerminate: Boolean,
+    noticeShow: Boolean,
   } => ({
     globalPageSize: 50, // 全局分页
     windowInnerHeight: 0,
@@ -27,6 +28,7 @@ export const useMainStore = defineStore('mainStore', {
     routeState: {},
     isLogRetry: false,
     isLogTerminate: false,
+    noticeShow: window.PROJECT_CONFIG.ENABLE_NOTICE === 'true',
   }),
   actions: {
     // 更新全局分页
@@ -66,6 +68,9 @@ export const useMainStore = defineStore('mainStore', {
     },
     updateLogTerminate(isTerminate: Boolean) {
       this.isLogTerminate = isTerminate;
+    },
+    updateNoticeShow(isShow: boolean) {
+      this.noticeShow = isShow;
     },
   },
 });

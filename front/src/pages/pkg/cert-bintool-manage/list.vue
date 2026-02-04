@@ -140,7 +140,7 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const mainStore = useMainStore();
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const currentType = computed(() => {
   const routeName = route.name?.toString() || '';
   const type = routeName.split('PackageMng')[0];

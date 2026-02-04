@@ -1,6 +1,7 @@
 platform:
   name: Node Management
-  title: BK NodeMan
+  title: BK 
+  logout: Logout
   nodeMan:
     node: Node
     agentStatus:
@@ -912,7 +913,7 @@ route:
   plugin: Plugin
   taskHistory: Task History
   workarea: Cloud Area
-  workareaSubtitle: Cloud Area Subtitle
+  workareaSubtitle: Cloud Area is a group of servers that can communicate with each other, such as an enterprise's internal network or a public cloud VPC (Virtual Private Network).
   workareaDetail: Cloud Area Details
   topo: Topology
   topoSubtitle: Topology Subtitle

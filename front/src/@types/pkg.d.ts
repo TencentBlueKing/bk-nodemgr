@@ -342,6 +342,9 @@ export interface PackagePublishReleaseAgentRespData {
 // PackagePublishReleaseProxyReq is the request for upload release proxy pkg.
 export interface PackagePublishReleaseProxyReq {
   upload_id: string;
+  // upload_origin_pkg_type indicates the origin category of the uploaded
+  // package. only accepts "origin_server" and "origin_proxy", no default value.
+  upload_origin_pkg_type: string;
 }
 
 // PackagePublishReleaseProxyResp is the response for upload release proxy pkg.

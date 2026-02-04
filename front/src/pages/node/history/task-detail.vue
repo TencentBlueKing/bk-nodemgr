@@ -401,7 +401,7 @@ const reTryType = computed(() => [
     tooltip: t('taskDetail.retryType.partialTooltip'),
   },
 ]);
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 const currentData = computed(() => nodeManageStore.taskHistoryTableRowData);
 const stateMinWidth = computed(() => (tableData.value.some(item =>
   item.latest_action_inst_brief_data?.tags?.includes('need_manual_exec_install_script') && item.state === 'running') ? 240 : 120));

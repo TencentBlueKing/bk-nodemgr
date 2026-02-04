@@ -1,197 +1,201 @@
 <template>
-  <Navigation
-    navigation-type="top-bottom"
-    :need-menu="!!subMenuData?.length"
-    @toggle="handleNavToggle"
-  >
-    <template #side-header>
-      <img
-        src="/nodeman.png"
-        class="w-[28px] h-[28px] mr-[12px]"
-        @click="handleGotoHome"
-      />
-      <span
-        class="text-[16px] text-[#FAFBFD] cursor-pointer"
-        @click="handleGotoHome"
-      >{{ t("platform.title") }}</span
-      >
-    </template>
-    <template #header>
-      <FlexRow class="w-full text-[#96A2B9] text-[14px]">
-        <template #left>
-          <span class="flex items-center text-[14px]">
-            <RouterLink
-              v-for="item in navData"
-              :key="item.routeName"
-              :to="{ name: item.routeName, params: item.params }"
-              :class="[
-                'px-[16px] text-[#96A2B9]',
-                { 'text-[#fff]': item.routeName === route.meta.mainMenu },
-              ]"
-            >
-              {{ $t(item.title) }}
-            </RouterLink>
-          </span>
-        </template>
-        <template #right>
-          <div class="flex items-center gap-[8px]">
-            <!-- 语言切换 -->
-            <Dropdown
-              class="mr-[8px]"
-              ref="langRef"
-              theme="light"
-              :popover-options="{
-                clickContentAutoHide: true,
-              }">
-              <span class="header-icon text-[18px]">
-                <i :class="curLang.icon"></i>
-              </span>
-              <template #content>
-                <Dropdown.DropdownMenu>
-                  <Dropdown.DropdownItem
-                    v-for="(item, index) in langs"
-                    :key="index"
-                    ext-cls="dropdown-item"
-                    @click="handleChangeLang(item)"
-                  >
-                    <i :class="['text-[18px] mr-[3px]', item.icon]"></i>
-                    {{item.name}}
-                  </Dropdown.DropdownItem>
-                </Dropdown.DropdownMenu>
-              </template>
-            </Dropdown>
-            <!-- 帮助文档 -->
-            <Dropdown
-              class="mr-[8px]"
-              theme="light"
-              :popover-options="{
-                clickContentAutoHide: true,
-              }">
-              <span id="siteHelp" class="header-icon !text-[16px]">
-                <i class="nodeman-icon nc-help-document-fill"></i>
-              </span>
-              <template #content>
-                <Dropdown.DropdownMenu>
-                  <Dropdown.DropdownItem
-                    v-for="(item, index) in helpList"
-                    :key="index"
-                    ext-cls="dropdown-item"
-                    @click="handleGotoLink(item)"
-                  >
-                    {{item.name}}
-                  </Dropdown.DropdownItem>
-                </Dropdown.DropdownMenu>
-              </template>
-            </Dropdown>
-            <!-- 用户设置 -->
-            <bk-popover
-              theme="light"
-              :arrow="false"
-              placement="bottom-start"
-              trigger="click"
-            >
-              <div class="flex items-center gap-[5px] cursor-pointer">
-                <span>{{ userStore.user?.username }}</span>
-                <angle-up-fill />
-              </div>
-              <template #content>
-                <ul>
-                  <li class="dropdown-item" @click="logout">{{ t('platform.logout') }}</li>
-                </ul>
-              </template>
-            </bk-popover>
-          </div>
-        </template>
-      </FlexRow>
-    </template>
-    <template #menu>
-      <div class="nm-menu-biz mb-[10px]" v-if="isNeedBizSelect">
-        <div
-          v-show="!navToggle"
-          class="w-[30px] h-[30px] text-[12px] bg-[#F0F1F5] m-auto cursor-pointer flex items-center justify-center"
+  <div :class="['w-full', 'h-full', 'flex', 'flex-col', { 'notice-show': noticeShow }]">
+    <notice v-if="noticeShow" :api-url="apiUrl" @show-alert-change="showAlertChange" />
+    <Navigation
+      class="flex-1"
+      navigation-type="top-bottom"
+      :need-menu="!!subMenuData?.length"
+      @toggle="handleNavToggle"
+    >
+      <template #side-header>
+        <img
+          src="/nodeman.png"
+          class="w-[28px] h-[28px] mr-[12px]"
+          @click="handleGotoHome"
+        />
+        <span
+          class="text-[16px] text-[#FAFBFD] cursor-pointer"
+          @click="handleGotoHome"
+        >{{ t("platform.title") }}</span
         >
-          {{ navBizShrinkText }}
-        </div>
-        <Select
-          v-show="navToggle"
-          class="mx-[12px]"
-          v-model="business"
-          :filter-option="filterOption"
-          :show-selected-icon="false"
-          multiple
-          filterable
-          :placeholder="t('platform.nodeMan.allBusiness')"
-          :popover-options="{ boundary: 'document.body', width: '235px' }"
-          @change="changeCurBusiness"
-          @toggle="handleToggle"
-        >
-          <Select.Option
-            v-for="item in businessList"
-            :key="item.bk_biz_id"
-            :name="item.bk_biz_name"
-            :id="item.bk_biz_id"
-            v-bk-tooltips="{
-              content: `[${item.bk_biz_id}] ${item.bk_biz_name}`,
-              disabled: !textOverflowMap[item.bk_biz_id],
-              boundary: 'parent',
-              placement: 'right',
-              offset: 10
-            }"
-          >
-            <div class="w-full flex items-center biz-select-option overflow-hidden">
-              <Button
-                class="mr-[8px] w-[18px] shrink-0"
-                text
-                @click.native.stop="handleCollect(item.bk_biz_id)">
-                <i
-                  class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
-                  v-if="collectList.includes(item.bk_biz_id)">
-                </i>
-                <i
-                  class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
-                  v-else>
-                </i>
-              </Button>
-              <div
-                class="truncate"
-                @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
-                [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
-              </div>
-            </div>
-          </Select.Option>
-        </Select>
-      </div>
-      <Menu :active-key="String(currentActive)">
-        <Menu.Group
-          v-for="item in subMenuData"
-          :key="item.title"
-          :name="$t(item.title)"
-        >
-          <Menu.Item
-            v-for="subItem in item.children"
-            :key="subItem.routeName"
-            :need-icon="true"
-            @click="handleChangeSubMenu(subItem)"
-          >
-            <template #icon>
-              <i
-                v-if="subItem.icon"
+      </template>
+      <template #header>
+        <FlexRow class="w-full text-[#96A2B9] text-[14px]">
+          <template #left>
+            <span class="flex items-center text-[14px]">
+              <RouterLink
+                v-for="item in navData"
+                :key="item.routeName"
+                :to="{ name: item.routeName, params: item.params }"
                 :class="[
-                  subItem.icon,
-                  currentActive === subItem.routeName
-                    ? 'text-[#3A84FF]'
-                    : 'text-[#979BA5]',
+                  'px-[16px] text-[#96A2B9]',
+                  { 'text-[#fff]': item.routeName === route.meta.mainMenu },
                 ]"
-              />
-            </template>
-            {{ $t(subItem.title) }}
-          </Menu.Item>
-        </Menu.Group>
-      </Menu>
-    </template>
-    <RouterView />
-  </Navigation>
-  <log-version v-model:is-show="showLog"></log-version>
+              >
+                {{ $t(item.title) }}
+              </RouterLink>
+            </span>
+          </template>
+          <template #right>
+            <div class="flex items-center gap-[8px]">
+              <!-- 语言切换 -->
+              <Dropdown
+                class="mr-[8px]"
+                ref="langRef"
+                theme="light"
+                :popover-options="{
+                  clickContentAutoHide: true,
+                }">
+                <span class="header-icon text-[18px]">
+                  <i :class="curLang.icon"></i>
+                </span>
+                <template #content>
+                  <Dropdown.DropdownMenu>
+                    <Dropdown.DropdownItem
+                      v-for="(item, index) in langs"
+                      :key="index"
+                      ext-cls="dropdown-item"
+                      @click="handleChangeLang(item)"
+                    >
+                      <i :class="['text-[18px] mr-[3px]', item.icon]"></i>
+                      {{item.name}}
+                    </Dropdown.DropdownItem>
+                  </Dropdown.DropdownMenu>
+                </template>
+              </Dropdown>
+              <!-- 帮助文档 -->
+              <Dropdown
+                class="mr-[8px]"
+                theme="light"
+                :popover-options="{
+                  clickContentAutoHide: true,
+                }">
+                <span id="siteHelp" class="header-icon !text-[16px]">
+                  <i class="nodeman-icon nc-help-document-fill"></i>
+                </span>
+                <template #content>
+                  <Dropdown.DropdownMenu>
+                    <Dropdown.DropdownItem
+                      v-for="(item, index) in helpList"
+                      :key="index"
+                      ext-cls="dropdown-item"
+                      @click="handleGotoLink(item)"
+                    >
+                      {{item.name}}
+                    </Dropdown.DropdownItem>
+                  </Dropdown.DropdownMenu>
+                </template>
+              </Dropdown>
+              <!-- 用户设置 -->
+              <bk-popover
+                theme="light"
+                :arrow="false"
+                placement="bottom-start"
+                trigger="click"
+              >
+                <div class="flex items-center gap-[5px] cursor-pointer">
+                  <span>{{ userStore.user?.username }}</span>
+                  <angle-up-fill />
+                </div>
+                <template #content>
+                  <ul>
+                    <li class="dropdown-item cursor-pointer" @click="logout">{{ t('platform.logout') }}</li>
+                  </ul>
+                </template>
+              </bk-popover>
+            </div>
+          </template>
+        </FlexRow>
+      </template>
+      <template #menu>
+        <div class="nm-menu-biz mb-[10px]" v-if="isNeedBizSelect">
+          <div
+            v-show="!navToggle"
+            class="w-[30px] h-[30px] text-[12px] bg-[#F0F1F5] m-auto cursor-pointer flex items-center justify-center"
+          >
+            {{ navBizShrinkText }}
+          </div>
+          <Select
+            v-show="navToggle"
+            class="mx-[12px]"
+            v-model="business"
+            :filter-option="filterOption"
+            :show-selected-icon="false"
+            multiple
+            filterable
+            :placeholder="t('platform.nodeMan.allBusiness')"
+            :popover-options="{ boundary: 'document.body', width: '235px' }"
+            @change="changeCurBusiness"
+            @toggle="handleToggle"
+          >
+            <Select.Option
+              v-for="item in businessList"
+              :key="item.bk_biz_id"
+              :name="item.bk_biz_name"
+              :id="item.bk_biz_id"
+              v-bk-tooltips="{
+                content: `[${item.bk_biz_id}] ${item.bk_biz_name}`,
+                disabled: !textOverflowMap[item.bk_biz_id],
+                boundary: 'parent',
+                placement: 'right',
+                offset: 10
+              }"
+            >
+              <div class="w-full flex items-center biz-select-option overflow-hidden">
+                <Button
+                  class="mr-[8px] w-[18px] shrink-0"
+                  text
+                  @click.native.stop="handleCollect(item.bk_biz_id)">
+                  <i
+                    class="nodeman-icon nc-collect text-[#ffb848] text-[18px]"
+                    v-if="collectList.includes(item.bk_biz_id)">
+                  </i>
+                  <i
+                    class="nodeman-icon nc-not-favorited text-[#63656e] text-[18px] hidden"
+                    v-else>
+                  </i>
+                </Button>
+                <div
+                  class="truncate"
+                  @mouseenter="handleTextMouseenter($event, item.bk_biz_id)">
+                  [{{ item.bk_biz_id }}] {{ item.bk_biz_name }}
+                </div>
+              </div>
+            </Select.Option>
+          </Select>
+        </div>
+        <Menu :active-key="String(currentActive)">
+          <Menu.Group
+            v-for="item in subMenuData"
+            :key="item.title"
+            :name="$t(item.title)"
+          >
+            <Menu.Item
+              v-for="subItem in item.children"
+              :key="subItem.routeName"
+              :need-icon="true"
+              @click="handleChangeSubMenu(subItem)"
+            >
+              <template #icon>
+                <i
+                  v-if="subItem.icon"
+                  :class="[
+                    subItem.icon,
+                    currentActive === subItem.routeName
+                      ? 'text-[#3A84FF]'
+                      : 'text-[#979BA5]',
+                  ]"
+                />
+              </template>
+              {{ $t(subItem.title) }}
+            </Menu.Item>
+          </Menu.Group>
+        </Menu>
+      </template>
+      <RouterView />
+    </Navigation>
+    <log-version v-model:is-show="showLog"></log-version>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -207,6 +211,7 @@ import { useHead } from '@vueuse/head';
 import { TopoService } from '@/api/modules/topo';
 import { logout } from '@/common/auth';
 import { parseCookies, setCookie } from '@/common/util';
+import Notice from '@/components/notice.vue';
 import type { NavItem } from '@/composables/use-menu';
 import useMenu from '@/composables/use-menu';
 import usePlatform from '@/composables/use-platform';
@@ -240,6 +245,13 @@ function handleGotoHome() {
     name: 'nodeManager',
   });
 }
+
+// 切换通知
+const apiUrl = '/api/v3/notice/announcements/current';
+const noticeShow = computed(() => mainStore.noticeShow);
+function showAlertChange(isShow: boolean) {
+  mainStore.updateNoticeShow(isShow);
+};
 
 // 切换子菜单
 function handleChangeSubMenu(item: Omit<NavItem, 'group'>) {
@@ -346,7 +358,7 @@ const curLang = computed(() => {
     currentLang = 'en-US';
   }
   mainStore.updateLanguage(currentLang);
-  return langs.value.find(item => item.id === currentLang) || { id: 'zh-cn', icon: 'nodeman-icon nc-lang-zh-cn' };
+  return langs.value.find(item => item.id === currentLang) || { id: 'zh-CN', icon: 'nodeman-icon nc-lang-zh-cn' };
 });
 // 切换语言
 async function handleChangeLang(item) {
@@ -378,7 +390,7 @@ async function handleChangeLang(item) {
     }
 
     // 参数消毒：只允许字母数字和下划线
-    const safeLanguage = item.id.replace(/[^a-zA-Z0-9_-]/g, '');
+    const safeLanguage = item.id === 'zh-CN' ? 'zh-cn' : 'en';
     if (!safeLanguage) {
       console.error('Invalid language parameter after sanitization');
       return;
@@ -415,7 +427,7 @@ async function handleChangeLang(item) {
       document.cookie = `blueking_language=${encodedLang};path=/;domain=${domain};expires=${today.toUTCString()}`;
 
       // 更新HTML lang属性
-      document.querySelector('html')?.setAttribute('lang', safeLanguage);
+      document.querySelector('html')?.setAttribute('lang', safeLanguage === 'zh-cn' ? 'zh-CN' : 'en-US');
 
       // 添加延迟让用户看到切换成功的视觉反馈
       window.location.reload();
@@ -605,5 +617,10 @@ body {
   border: 3px solid transparent;
   -webkit-box-shadow: inset 0 0 8px 8px #c4c6cc;
   box-shadow: inset 0 0 8px 8px #c4c6cc;
+}
+.notice-show {
+  .bk-navigation {
+    height: calc(100vh - 40px);
+  }
 }
 </style>

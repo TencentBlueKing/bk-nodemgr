@@ -3,6 +3,7 @@
     <Loading class="mb-[20px]" :loading="loading">
       <Table
         :data="pluginList"
+        :max-height="maxHeight"
         :empty-text="$t('table.empty')"
         :show-settings="isShowSetting"
         :pagination="pagination"
@@ -80,7 +81,7 @@
 
 <script setup lang="ts">
 import { Button, Input, Loading, Sideslider } from 'bkui-vue';
-import { nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { Table, TableColumn } from '@blueking/table';
@@ -91,8 +92,11 @@ import processSideslider from './process-sideslider.vue';
 import { PluginAPIService } from '@/api/modules/plugin';
 import { ProcessAPIService } from '@/api/modules/process';
 import useTableSetting from '@/composables/use-table-setting';
+import { useMainStore } from '@/stores/main';
 
 const router = useRouter();
+const mainStore = useMainStore();
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 // 插件列表数据
 const pluginList = ref<any[]>([]);
 

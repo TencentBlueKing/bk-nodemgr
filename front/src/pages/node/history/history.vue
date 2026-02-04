@@ -220,7 +220,7 @@ const router = useRouter();
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
 const tableData = ref<NodeWorkflowInfo[]>([]);
-const maxHeight = computed(() => mainStore.windowInnerHeight - 214);
+const maxHeight = computed(() => mainStore.windowInnerHeight - 214 - (mainStore.noticeShow ? 40 : 0));
 
 // tab
 const active = ref('agent');

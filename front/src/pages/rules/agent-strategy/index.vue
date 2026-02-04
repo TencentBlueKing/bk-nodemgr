@@ -245,7 +245,7 @@ const { t } = useI18n();
 const route = useRoute();
 const mainStore = useMainStore();
 const configpolicyType = computed(() => (route.name === 'agentStrategy' ? 'config_policy_agent' : 'config_policy_proxy'));
-const maxHeight = computed(() => mainStore.windowInnerHeight - 255);
+const maxHeight = computed(() => mainStore.windowInnerHeight - 255 - (mainStore.noticeShow ? 40 : 0));
 const pagination = reactive({ count: 0, limit: 50, current: 1, remote: true });
 const tableData = ref<ConfigPolicy[]>([]);
 const loading = ref(false);

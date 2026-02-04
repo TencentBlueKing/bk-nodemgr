@@ -14,7 +14,7 @@ declare interface Window {
     BK_DOCS_CENTER_URL: string,
     BK_TENANT: string,
     BK_USER_WEB_URL: string,
-    ENABLE_NOTICE: boolean,
+    ENABLE_NOTICE: string,
   }
   loginModal: Object
 }

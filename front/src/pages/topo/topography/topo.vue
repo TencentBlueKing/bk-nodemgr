@@ -1,6 +1,6 @@
 <template>
   <Loading mode="spin" theme="primary" :loading="isLoading">
-    <div class="min-h-[calc(100vh_-_104px)] relative">
+    <div :class="[mainStore.noticeShow ? 'min-h-[calc(100vh-144px)]' : 'min-h-[calc(100vh-104px)]', 'relative']">
       <!-- 下拉选择器 -->
       <Select
         class="w-[240px] absolute z-[2] m-[24px]"
@@ -82,7 +82,10 @@
         </Button>
       </div>
 
-      <div id="nodemgr-g6-container"></div>
+      <div
+        id="nodemgr-g6-container"
+        :class="[mainStore.noticeShow ? 'h-[calc(100vh-144px)]' : 'h-[calc(100vh-144px)]']">
+      </div>
 
       <!-- 工具栏 -->
       <CustomToolbar @trigger-tools="handleClickTool"></CustomToolbar>
@@ -214,6 +217,7 @@ import NetWorkUnitNode from './graph-plugin/net-work-unit-node';
 
 import type { TopoGraphNodeCountRespNodeInfo } from '@/@types/topo';
 import useMinLengthRef from '@/composables/use-min-length-ref';
+import { useMainStore } from '@/stores/main';
 import { useTopoStore } from '@/stores/topo';
 import { useWorkareaStore } from '@/stores/workarea';
 
@@ -223,6 +227,7 @@ const {
   handleFetchAllWorkUnit,
 } = useTopoStore();
 const topoStore = useTopoStore();
+const mainStore = useMainStore();
 const workareaStore = useWorkareaStore();
 const router = useRouter();
 
@@ -1058,7 +1063,6 @@ onUnmounted(() => {
 <style lang="postcss" scoped>
 #nodemgr-g6-container {
   width: 100%;
-  height: calc(100vh - 104px);
   position: relative;
   overflow: hidden;
 }

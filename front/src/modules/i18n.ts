@@ -40,7 +40,7 @@ async function loadLanguageAsync(lang: string): Promise<Locale> {
 // 获取当前语言设置
 function getCurrentLanguage(): string {
   const cookies = parseCookies();
-  let currentLang = cookies.blueking_language || 'zh-CN';
+  let currentLang = cookies.blueking_language || 'zh-cn';
 
   // 标准化语言标识
   if (['zh-CN', 'zh-cn', 'cn', 'zhCN', 'zhcn', 'None', 'none'].indexOf(currentLang) > -1) {
