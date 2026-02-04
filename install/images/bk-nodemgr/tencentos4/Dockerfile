@@ -27,12 +27,15 @@ RUN set -eux; \
         vim-minimal \
         redis \
         busybox \
+        python3-pip \
         ${rpm_url} \
     ; \
     dnf -y clean all; \
     rm -rf /var/cache/dnf; \
     command -v mongo >/dev/null 2>&1; \
     ln -snf "/usr/share/zoneinfo/${TZ}" /etc/localtime || true
+
+RUN pip3 install requests
 
 RUN mkdir -p \
     /bk-nodemgr/bin \
@@ -41,6 +44,8 @@ RUN mkdir -p \
     /bk-nodemgr/log \
     /bk-nodemgr/script \
     /bk-nodemgr/static \
+    /bk-nodemgr/bkiam/v3 \
+    /bk-nodemgr/bkiam/v4 \
     /bk-nodemgr/file/tools \
     /bk-nodemgr/file/cache \
     /bk-nodemgr/file/local \
@@ -53,5 +58,6 @@ COPY serviced.sh /bk-nodemgr/bin/
 COPY scripts/manual/ /bk-nodemgr/script/manual
 COPY tools/ /bk-nodemgr/file/tools
 COPY dist/ /bk-nodemgr/static/
+COPY support-files/ /bk-nodemgr/support-files
 
 WORKDIR /bk-nodemgr/bin
