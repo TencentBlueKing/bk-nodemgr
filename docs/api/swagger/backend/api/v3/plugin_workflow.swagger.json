@@ -469,10 +469,19 @@
           "format": "int64"
         },
         "text": {
-          "type": "string"
+          "type": "string",
+          "title": "Deprecated: kept for backward compatibility"
         },
         "level": {
           "type": "string"
+        },
+        "text_zh": {
+          "type": "string",
+          "title": "Chinese log content"
+        },
+        "text_en": {
+          "type": "string",
+          "title": "English log content"
         }
       }
     },
@@ -1134,6 +1143,14 @@
         },
         "message": {
           "$ref": "#/definitions/v3WorkflowActionMessage"
+        },
+        "display_name_zh": {
+          "type": "string",
+          "title": "Chinese display name"
+        },
+        "display_name_en": {
+          "type": "string",
+          "title": "English display name"
         }
       },
       "description": "WorkflowActionData describes the workflow action data."

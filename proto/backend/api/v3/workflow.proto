@@ -38,14 +38,18 @@ message WorkflowActionInstBriefData {
 message WorkflowActionData {
   WorkflowLifeCycle life_cycle = 1;
   WorkflowActionMessage message = 2;
+  string display_name_zh = 3; // Chinese display name
+  string display_name_en = 4; // English display name
 }
 
 // WorkflowActionMessage describes the workflow action message logs.
 message WorkflowActionMessage {
   message Message {
     int64 time = 1;
-    string text = 2;
+    string text = 2; // Deprecated: kept for backward compatibility
     string level = 3;
+    string text_zh = 4; // Chinese log content
+    string text_en = 5; // English log content
   }
   repeated Message logs = 1;
 }
