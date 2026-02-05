@@ -44,13 +44,9 @@ func ConvertAnnouncementFromTypes(announcement *types.Announcement) *Announcemen
 
 // ConvertAnnouncementsFromTypes converts announcements from types to proto.
 func (r *GetCurrentAnnouncementsResp) ConvertAnnouncementsFromTypes(announcements []*types.Announcement) {
-	if r.GetData() == nil {
-		r.Data = &GetCurrentAnnouncementsResp_Data{}
-	}
-
 	items := make([]*Announcement, 0, len(announcements))
 	for _, announcement := range announcements {
 		items = append(items, ConvertAnnouncementFromTypes(announcement))
 	}
-	r.Data.Items = items
+	r.Data = items
 }

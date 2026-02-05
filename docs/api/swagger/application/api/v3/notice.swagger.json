@@ -52,20 +52,6 @@
         }
       }
     },
-    "GetCurrentAnnouncementsRespData": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v3Announcement"
-          },
-          "description": "items is the list of announcement objects."
-        }
-      },
-      "description": "Data contains the list of current announcements."
-    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -186,8 +172,12 @@
           "description": "error contains error details if the request failed."
         },
         "data": {
-          "$ref": "#/definitions/GetCurrentAnnouncementsRespData",
-          "description": "data contains the response data."
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v3Announcement"
+          },
+          "description": "data contains the list of current announcements."
         }
       },
       "description": "GetCurrentAnnouncementsResp describes the response for getting current\nannouncements."

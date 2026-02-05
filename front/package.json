@@ -16,6 +16,7 @@
   "dependencies": {
     "@antv/g6": "^5.0.43",
     "@blueking/login-modal": "^1.0.6",
+    "@blueking/notice-component": "^2.0.7",
     "@blueking/platform-config": "^1.0.5",
     "@blueking/table": "0.0.1-beta.42",
     "@vueuse/core": "^12.7.0",

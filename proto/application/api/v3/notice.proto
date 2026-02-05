@@ -65,14 +65,8 @@ message GetCurrentAnnouncementsResp {
   string request_id = 3;
   // error contains error details if the request failed.
   Error error = 4;
-
-  // Data contains the list of current announcements.
-  message Data {
-    // items is the list of announcement objects.
-    repeated Announcement items = 1;
-  }
-  // data contains the response data.
-  Data data = 5;
+  // data contains the list of current announcements.
+  repeated Announcement data = 5;
 }
 
 // NoticeAPI provides announcement-related APIs.
