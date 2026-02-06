@@ -263,3 +263,9 @@ func (act *actionWaitDetectInfoByManual) tryFetchDetectInfo(std *nodeUtils.NodeA
 
 	return data, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionWaitDetectInfoByManual) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionWaitDetectInfoByManual) DisplayNameEn() string { return act.Name() }

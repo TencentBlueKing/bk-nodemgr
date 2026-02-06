@@ -689,3 +689,9 @@ func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(s
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionRenderNodeDeployment) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionRenderNodeDeployment) DisplayNameEn() string { return act.Name() }

@@ -141,3 +141,9 @@ func (act *actionResetNodeDynamic) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionResetNodeDynamic) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionResetNodeDynamic) DisplayNameEn() string { return act.Name() }

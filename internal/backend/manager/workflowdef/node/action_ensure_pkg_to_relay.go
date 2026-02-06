@@ -688,3 +688,9 @@ func (act *actionEnsurePkgToRelay) waitForRelayReportStorage(
 		}
 	}
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionEnsurePkgToRelay) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionEnsurePkgToRelay) DisplayNameEn() string { return act.Name() }

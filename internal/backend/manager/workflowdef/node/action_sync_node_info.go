@@ -134,3 +134,9 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionSyncNodeInfo) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionSyncNodeInfo) DisplayNameEn() string { return act.Name() }

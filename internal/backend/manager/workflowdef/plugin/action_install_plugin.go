@@ -272,3 +272,9 @@ func (act *actionInstallPlugin) buildWindowsInstallScript(param *pluginInstallPa
 
 	return types.ScriptTypeBat, scriptContent, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallPlugin) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallPlugin) DisplayNameEn() string { return act.Name() }

@@ -374,3 +374,9 @@ func (act *actionPagentDetectInfoBySSH) waitForRelayReportDetect(
 		}
 	}
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionPagentDetectInfoBySSH) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionPagentDetectInfoBySSH) DisplayNameEn() string { return act.Name() }

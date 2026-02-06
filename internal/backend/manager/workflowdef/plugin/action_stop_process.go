@@ -158,3 +158,9 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actStopProcess) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actStopProcess) DisplayNameEn() string { return act.Name() }

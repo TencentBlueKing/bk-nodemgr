@@ -272,3 +272,9 @@ func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeAc
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionRestartNode) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionRestartNode) DisplayNameEn() string { return act.Name() }

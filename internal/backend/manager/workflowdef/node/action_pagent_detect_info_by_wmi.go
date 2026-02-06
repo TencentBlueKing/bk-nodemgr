@@ -377,3 +377,9 @@ func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
 		}
 	}
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionPagentDetectInfoByWMI) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionPagentDetectInfoByWMI) DisplayNameEn() string { return act.Name() }

@@ -271,3 +271,9 @@ func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStanda
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionReconfigNode) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionReconfigNode) DisplayNameEn() string { return act.Name() }

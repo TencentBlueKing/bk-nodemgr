@@ -161,3 +161,9 @@ func (act *actionBindAgentHostRel) checkHostExist(nCtx contextx.IContext, info *
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionBindAgentHostRel) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionBindAgentHostRel) DisplayNameEn() string { return act.Name() }

@@ -163,3 +163,9 @@ func (act *actionGenOperSyncHost) executeOper(std *syncDataUtils.SyncDataActionS
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionGenOperSyncHost) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionGenOperSyncHost) DisplayNameEn() string { return act.Name() }

@@ -117,3 +117,9 @@ func (act *actUpdateProcess) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actUpdateProcess) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actUpdateProcess) DisplayNameEn() string { return act.Name() }

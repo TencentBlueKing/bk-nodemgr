@@ -296,3 +296,9 @@ func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStand
 
 	return downloadSvrAddr, callbackSvrAddr, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUpgradePagent) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUpgradePagent) DisplayNameEn() string { return act.Name() }

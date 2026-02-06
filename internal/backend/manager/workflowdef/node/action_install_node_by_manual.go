@@ -306,3 +306,9 @@ func (act *actionInstallNodeByManual) selectServiceURLs(std *nodeUtils.NodeActio
 
 	return nodeUtils.BuildServerURLs(callbackSvrEndpoint...), nodeUtils.BuildServerURLs(downloadSvrEndpoint...), nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallNodeByManual) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallNodeByManual) DisplayNameEn() string { return act.Name() }

@@ -189,3 +189,9 @@ func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionGenOperExecuteDeployPolicy) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionGenOperExecuteDeployPolicy) DisplayNameEn() string { return act.Name() }

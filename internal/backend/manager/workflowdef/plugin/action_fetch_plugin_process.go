@@ -118,3 +118,9 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionFetchPluginProcess) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionFetchPluginProcess) DisplayNameEn() string { return act.Name() }

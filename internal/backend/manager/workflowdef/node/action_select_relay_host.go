@@ -188,3 +188,9 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 		CallbackSvcPort: relayHost.Dynamic.RelayCallbackPort,
 	}, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionSelectRelayHost) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionSelectRelayHost) DisplayNameEn() string { return act.Name() }

@@ -333,3 +333,9 @@ func (act *actionInstallNodeByWMI) buildBat(param *InstallParamsWin) string {
 
 	return installCmd
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallNodeByWMI) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallNodeByWMI) DisplayNameEn() string { return act.Name() }

@@ -272,3 +272,9 @@ func (act *actionUpgradePlugin) buildWindowsUpgradeScript(param *pluginUpgradePa
 
 	return types.ScriptTypeBat, scriptContent, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUpgradePlugin) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUpgradePlugin) DisplayNameEn() string { return act.Name() }

@@ -194,3 +194,9 @@ func (act *actionRenderPluginConfig) generateConfigContext(pluginConf *types.Plu
 
 	return result, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionRenderPluginConfig) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionRenderPluginConfig) DisplayNameEn() string { return act.Name() }

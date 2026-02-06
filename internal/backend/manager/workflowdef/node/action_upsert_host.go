@@ -197,3 +197,9 @@ func (act *actionUpsertHostToCMDB) insertHost(nCtx contextx.IContext, info *type
 
 	return hostIDs[0], nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUpsertHostToCMDB) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUpsertHostToCMDB) DisplayNameEn() string { return act.Name() }

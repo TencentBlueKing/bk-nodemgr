@@ -212,3 +212,9 @@ func (act *actionGenManualBootstrapCommand) selectServiceURLs(std *nodeUtils.Nod
 
 	return nodeUtils.BuildServerURLs(callbackSvrEndpoint...), nodeUtils.BuildServerURLs(downloadSvrEndpoint...), nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionGenManualBootstrapCommand) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionGenManualBootstrapCommand) DisplayNameEn() string { return act.Name() }

@@ -110,3 +110,9 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUpdateHost) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUpdateHost) DisplayNameEn() string { return act.Name() }

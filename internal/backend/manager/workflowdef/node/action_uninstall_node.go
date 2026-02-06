@@ -272,3 +272,9 @@ func (act *actionUninstallNode) doUninstallWindows(std *nodeUtils.NodeActionStan
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUninstallNode) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUninstallNode) DisplayNameEn() string { return act.Name() }

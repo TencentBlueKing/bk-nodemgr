@@ -260,3 +260,9 @@ func (act *actionUninstallPlugin) buildWindowsUninstallScript(param *pluginUnins
 
 	return types.ScriptTypeBat, scriptContent, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUninstallPlugin) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUninstallPlugin) DisplayNameEn() string { return act.Name() }

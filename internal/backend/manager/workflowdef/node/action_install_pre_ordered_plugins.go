@@ -236,3 +236,9 @@ func getPreOrderedPlugins() map[types.NodeRole][]string {
 		types.NodeRoleProxy: {"bkmonitorbeat", "bk-nodemgr-relay"},
 	}
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallPreOrderedPlugins) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallPreOrderedPlugins) DisplayNameEn() string { return act.Name() }

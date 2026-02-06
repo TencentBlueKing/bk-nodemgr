@@ -139,3 +139,9 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionFetchProcessSubConfigIntoDeployment) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionFetchProcessSubConfigIntoDeployment) DisplayNameEn() string { return act.Name() }

@@ -263,3 +263,9 @@ func (act *actionDetectInfoByWMI) detectInfo(std *nodeUtils.NodeActionStandarder
 
 	return osType, cpuArch, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionDetectInfoByWMI) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionDetectInfoByWMI) DisplayNameEn() string { return act.Name() }

@@ -201,3 +201,9 @@ func (act *actionGenOperSyncAgentInfo) executeOper(
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionGenOperSyncAgentInfo) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionGenOperSyncAgentInfo) DisplayNameEn() string { return act.Name() }

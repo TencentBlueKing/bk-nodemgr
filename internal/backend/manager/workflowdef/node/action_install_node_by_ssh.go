@@ -333,3 +333,9 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 
 	return installCmd
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallNodeBySSH) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallNodeBySSH) DisplayNameEn() string { return act.Name() }

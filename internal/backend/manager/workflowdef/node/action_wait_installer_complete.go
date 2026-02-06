@@ -201,3 +201,9 @@ func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionS
 
 	return value, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionWaitInstallerComplete) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionWaitInstallerComplete) DisplayNameEn() string { return act.Name() }

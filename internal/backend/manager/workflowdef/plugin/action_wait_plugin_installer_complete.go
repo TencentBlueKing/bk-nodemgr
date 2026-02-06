@@ -184,3 +184,9 @@ func (act *actionWaitPluginInstallerComplete) tryFetchValue(std *pluginUtils.Plu
 
 	return value, nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionWaitPluginInstallerComplete) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionWaitPluginInstallerComplete) DisplayNameEn() string { return act.Name() }

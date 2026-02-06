@@ -400,3 +400,9 @@ func (act *actionInstallPagentBySSH) buildInstallCmd(
 
 	return result
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallPagentBySSH) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallPagentBySSH) DisplayNameEn() string { return act.Name() }

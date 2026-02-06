@@ -48,4 +48,10 @@ type Definition interface {
 
 	// Do executes the action, with specified context.
 	Do(iCtx *InstanceContext) error
+
+	// DisplayNameZh returns the Chinese display name of the action.
+	DisplayNameZh() string
+
+	// DisplayNameEn returns the English display name of the action.
+	DisplayNameEn() string
 }

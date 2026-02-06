@@ -240,3 +240,9 @@ func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, in
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionTransferPkgToNode) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionTransferPkgToNode) DisplayNameEn() string { return act.Name() }

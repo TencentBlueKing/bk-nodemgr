@@ -153,3 +153,9 @@ func (act *actTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actTrusteeshipProcess) DisplayNameZh() string { return act.Name() }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actTrusteeshipProcess) DisplayNameEn() string { return act.Name() }
