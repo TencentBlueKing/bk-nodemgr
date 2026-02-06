@@ -115,7 +115,10 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 		}
 	}()
 
-	std.InstanceData().LogI("transfer plugin pkg to node start.")
+	std.InstanceData().Log().
+		Zh("开始传输插件包到节点").
+		En("transfer plugin pkg to node start.").
+		Info()
 
 	nCtx := std.Context()
 	targetHost, err := act.daoHost.GetHostByID(nCtx, std.DeployInfo().Process.HostID)
@@ -136,8 +139,14 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	gp := gopool.NewPool()
 	if !std.DeployInfo().TransferOptions.SelectDownloads || std.DeployInfo().TransferOptions.EnableReleasePackage {
 		gp.Go(func() error {
-			std.InstanceData().LogI("transfer release start.")
-			defer std.InstanceData().LogI("transfer release done.")
+			std.InstanceData().Log().
+				Zh("开始传输发布包").
+				En("transfer release start.").
+				Info()
+			defer std.InstanceData().Log().
+				Zh("传输发布包完成").
+				En("transfer release done.").
+				Info()
 
 			if err := act.transferRelease(nCtx, std.DeployInfo(), targetHost); err != nil {
 				return fmt.Errorf("failed to transfer release, host-id(%d): %w", targetHost.HostID, err)
@@ -158,7 +167,10 @@ func (act *actionTransferPluginPkgToNode) Do(ctx *action.InstanceContext) (err e
 	}
 
 	logger.G.Biz(nCtx).With("host-id", targetHost.HostID).Info("transfer plugin pkg to node all done.")
-	std.InstanceData().LogI("transfer plugin pkg to node all done.")
+	std.InstanceData().Log().
+		Zh("传输插件包到节点全部完成").
+		En("transfer plugin pkg to node all done.").
+		Info()
 
 	return nil
 }
@@ -243,7 +255,11 @@ func (act *actionTransferPluginPkgToNode) transferInstaller(nCtx contextx.IConte
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionTransferPluginPkgToNode) DisplayNameZh() string { return act.Name() }
+func (act *actionTransferPluginPkgToNode) DisplayNameZh() string {
+	return "传输插件包到节点"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionTransferPluginPkgToNode) DisplayNameEn() string { return act.Name() }
+func (act *actionTransferPluginPkgToNode) DisplayNameEn() string {
+	return "Transfer Plugin Package to Node"
+}

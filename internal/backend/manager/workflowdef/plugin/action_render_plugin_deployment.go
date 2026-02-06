@@ -242,7 +242,11 @@ func (act *actionRenderPluginDeployment) Do(ctx *action.InstanceContext) error {
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionRenderPluginDeployment) DisplayNameZh() string { return act.Name() }
+func (act *actionRenderPluginDeployment) DisplayNameZh() string {
+	return "渲染插件部署"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionRenderPluginDeployment) DisplayNameEn() string { return act.Name() }
+func (act *actionRenderPluginDeployment) DisplayNameEn() string {
+	return "Render Plugin Deployment"
+}

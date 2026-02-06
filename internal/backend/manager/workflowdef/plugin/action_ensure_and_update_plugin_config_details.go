@@ -603,7 +603,11 @@ func (act *actionEnsureAndUpdatePluginConfigDetails) validateCustomContextBlackl
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionEnsureAndUpdatePluginConfigDetails) DisplayNameZh() string { return act.Name() }
+func (act *actionEnsureAndUpdatePluginConfigDetails) DisplayNameZh() string {
+	return "确保并更新插件配置详情"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionEnsureAndUpdatePluginConfigDetails) DisplayNameEn() string { return act.Name() }
+func (act *actionEnsureAndUpdatePluginConfigDetails) DisplayNameEn() string {
+	return "Ensure and Update Plugin Config Details"
+}

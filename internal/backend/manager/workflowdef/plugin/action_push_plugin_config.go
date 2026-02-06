@@ -148,16 +148,27 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 			Endpoints:   endpoints,
 		})
 
-		std.InstanceData().LogI(fmt.Sprintf("prepare to push plugin config file(%s) to host(%d) in dir(%s)",
-			pluginConfDetail.Name, host.HostID, storeDir))
+		std.InstanceData().Log().
+			Zh("准备推送插件配置文件(%s)到主机(%d)，目录(%s)",
+				pluginConfDetail.Name, host.HostID, storeDir).
+			En("prepare to push plugin config file(%s) to host(%d) in dir(%s)",
+				pluginConfDetail.Name, host.HostID, storeDir).
+			Info()
 	}
 
 	if len(tasks) == 0 {
-		std.InstanceData().LogI("no plugin config need to push")
+		std.InstanceData().Log().
+			Zh("无需推送插件配置").
+			En("no plugin config need to push").
+			Info()
+
 		return nil
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("start to push %d plugin config files to host(%d)", len(tasks), host.HostID))
+	std.InstanceData().Log().
+		Zh("开始推送 %d 个插件配置文件到主机(%d)", len(tasks), host.HostID).
+		En("start to push %d plugin config files to host(%d)", len(tasks), host.HostID).
+		Info()
 
 	taskID, err := act.gseHandler.PushFile(std.Context(), tasks...)
 	if err != nil {
@@ -177,13 +188,20 @@ func (act *actionPushPluginConfig) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("push config failed, task-id(%s), err-code(%d), err-msg(%s)", taskID, result.ErrorCode, result.ErrorMessage)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("push plugin config all done, task-id(%s).", taskID))
+	std.InstanceData().Log().
+		Zh("推送插件配置全部完成，task-id(%s)", taskID).
+		En("push plugin config all done, task-id(%s).", taskID).
+		Info()
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionPushPluginConfig) DisplayNameZh() string { return act.Name() }
+func (act *actionPushPluginConfig) DisplayNameZh() string {
+	return "推送插件配置"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionPushPluginConfig) DisplayNameEn() string { return act.Name() }
+func (act *actionPushPluginConfig) DisplayNameEn() string {
+	return "Push Plugin Config"
+}

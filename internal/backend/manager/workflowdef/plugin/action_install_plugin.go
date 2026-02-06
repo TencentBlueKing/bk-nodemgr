@@ -151,7 +151,10 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("build script failed: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("install script: \n%s\n", installScriptContext))
+	std.InstanceData().Log().
+		Zh("安装脚本: \n%s\n", installScriptContext).
+		En("install script: \n%s\n", installScriptContext).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(nCtx,
 		installScriptType,
@@ -166,7 +169,10 @@ func (act *actionInstallPlugin) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std.InstanceData().LogI("install plugin task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("安装插件任务ID: %s", taskID).
+		En("install plugin task-id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -274,7 +280,11 @@ func (act *actionInstallPlugin) buildWindowsInstallScript(param *pluginInstallPa
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionInstallPlugin) DisplayNameZh() string { return act.Name() }
+func (act *actionInstallPlugin) DisplayNameZh() string {
+	return "安装插件"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionInstallPlugin) DisplayNameEn() string { return act.Name() }
+func (act *actionInstallPlugin) DisplayNameEn() string {
+	return "Install Plugin"
+}

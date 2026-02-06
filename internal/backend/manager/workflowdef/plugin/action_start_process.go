@@ -104,8 +104,12 @@ func (act *actStartProcess) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	std.InstanceData().LogI(fmt.Sprintf("try to executed start plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
-		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StartCmd))
+	std.InstanceData().Log().
+		Zh("尝试执行启动插件进程，plugin-name(%s), host-id(%d), cmd(%s)",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StartCmd).
+		En("try to executed start plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StartCmd).
+		Info()
 
 	nCtx := std.Context()
 	processSpec := std.DeployInfo().Process.ToProcessSpec()
@@ -115,9 +119,15 @@ func (act *actStartProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to start plugin process: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("successfully execute start plugin process operation, result(%s)", result))
+	std.InstanceData().Log().
+		Zh("成功执行启动插件进程操作，result(%s)", result).
+		En("successfully execute start plugin process operation, result(%s)", result).
+		Info()
 
-	std.InstanceData().LogI("wait process running")
+	std.InstanceData().Log().
+		Zh("等待进程运行").
+		En("wait process running").
+		Info()
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
@@ -132,13 +142,19 @@ func (act *actStartProcess) Do(ctx *action.InstanceContext) error {
 		}
 
 		if processInfo.Status != types.ProcessStatusRunning {
-			std.InstanceData().LogI(fmt.Sprintf("process status is not running, status(%s)", processInfo.Status))
+			std.InstanceData().Log().
+				Zh("进程状态未运行，status(%s)", processInfo.Status).
+				En("process status is not running, status(%s)", processInfo.Status).
+				Info()
 
 			return fmt.Errorf("process status is not running, status(%s)", processInfo.Status)
 		}
 
 		if !processInfo.AutoStart {
-			std.InstanceData().LogI("process is not trusteeship by gse")
+			std.InstanceData().Log().
+				Zh("进程未被 GSE 托管").
+				En("process is not trusteeship by gse").
+				Info()
 
 			return fmt.Errorf("process is not trusteeship by gse")
 		}
@@ -152,14 +168,22 @@ func (act *actStartProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process running: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
-		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status))
+	std.InstanceData().Log().
+		Zh("进程运行中，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
+		En("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
+		Info()
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actStartProcess) DisplayNameZh() string { return act.Name() }
+func (act *actStartProcess) DisplayNameZh() string {
+	return "启动进程"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actStartProcess) DisplayNameEn() string { return act.Name() }
+func (act *actStartProcess) DisplayNameEn() string {
+	return "Start Process"
+}

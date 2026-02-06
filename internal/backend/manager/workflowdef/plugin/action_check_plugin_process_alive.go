@@ -113,18 +113,29 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 	}
 
 	if processInfo.Status != types.ProcessStatusRunning {
-		std.InstanceData().LogI(fmt.Sprintf("process status is not running, status(%s)", processInfo.Status))
+		std.InstanceData().Log().
+			Zh("进程状态未运行，status(%s)", processInfo.Status).
+			En("process status is not running, status(%s)", processInfo.Status).
+			Info()
 
 		return fmt.Errorf("process status is not running, status(%s)", processInfo.Status)
 	}
 
 	if deployInfo.Process.Info.Version != processInfo.Version {
-		std.InstanceData().LogI(fmt.Sprintf("process version mismatch, record-version(%s), actual-version(%s)",
-			deployInfo.Process.Info.Version, processInfo.Version))
+		std.InstanceData().Log().
+			Zh("进程版本不匹配，记录版本(%s)，实际版本(%s)",
+				deployInfo.Process.Info.Version, processInfo.Version).
+			En("process version mismatch, record-version(%s), actual-version(%s)",
+				deployInfo.Process.Info.Version, processInfo.Version).
+			Info()
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("check plugin process alive succeed, plugin-name(%s), host-id(%d), status(%s), version(%s)",
-		deployInfo.Process.PluginName, deployInfo.Process.HostID, processInfo.Status, processInfo.Version))
+	std.InstanceData().Log().
+		Zh("检查插件进程存活成功，plugin-name(%s), host-id(%d), status(%s), version(%s)",
+			deployInfo.Process.PluginName, deployInfo.Process.HostID, processInfo.Status, processInfo.Version).
+		En("check plugin process alive succeed, plugin-name(%s), host-id(%d), status(%s), version(%s)",
+			deployInfo.Process.PluginName, deployInfo.Process.HostID, processInfo.Status, processInfo.Version).
+		Info()
 
 	// update process info
 	deployInfo.Process.Info = *processInfo
@@ -133,7 +144,11 @@ func (act *actionCheckPluginProcessAlive) Do(ctx *action.InstanceContext) error 
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionCheckPluginProcessAlive) DisplayNameZh() string { return act.Name() }
+func (act *actionCheckPluginProcessAlive) DisplayNameZh() string {
+	return "检查插件进程存活"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionCheckPluginProcessAlive) DisplayNameEn() string { return act.Name() }
+func (act *actionCheckPluginProcessAlive) DisplayNameEn() string {
+	return "Check Plugin Process Alive"
+}

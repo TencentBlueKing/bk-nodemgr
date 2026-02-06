@@ -132,24 +132,37 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	if !exist {
-		std.InstanceData().LogI(fmt.Sprintf("the specified process does not exist, host-id(%d), plugin-name(%s)",
-			process.HostID, process.PluginName))
+		std.InstanceData().Log().
+			Zh("指定进程不存在，host-id(%d), plugin-name(%s)",
+				process.HostID, process.PluginName).
+			En("the specified process does not exist, host-id(%d), plugin-name(%s)",
+				process.HostID, process.PluginName).
+			Info()
 
 		err = act.daoProcess.CreateProcess(nCtx, &process)
 		if err != nil {
 			return fmt.Errorf("failed to create process: %w", err)
 		}
 
-		std.InstanceData().LogI(fmt.Sprintf("successfully create process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
+		std.InstanceData().Log().
+			Zh("成功创建进程，host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			En("successfully create process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			Info()
 	} else {
-		std.InstanceData().LogI(fmt.Sprintf("the specified process exist, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
+		std.InstanceData().Log().
+			Zh("指定进程已存在，host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			En("the specified process exist, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			Info()
 
 		err = act.daoProcess.UpdateProcessInfo(nCtx, process.HostID, process.PluginName, &process.Info)
 		if err != nil {
 			return fmt.Errorf("failed to update process info: %w", err)
 		}
 
-		std.InstanceData().LogI(fmt.Sprintf("successfully update process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName))
+		std.InstanceData().Log().
+			Zh("成功更新进程，host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			En("successfully update process, host-id(%d), plugin-name(%s)", process.HostID, process.PluginName).
+			Info()
 	}
 
 	std.DeployInfo().Process = process
@@ -158,7 +171,11 @@ func (act *actionUpsertProcess) Do(ctx *action.InstanceContext) error {
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionUpsertProcess) DisplayNameZh() string { return act.Name() }
+func (act *actionUpsertProcess) DisplayNameZh() string {
+	return "创建或更新进程"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionUpsertProcess) DisplayNameEn() string { return act.Name() }
+func (act *actionUpsertProcess) DisplayNameEn() string {
+	return "Upsert Process"
+}

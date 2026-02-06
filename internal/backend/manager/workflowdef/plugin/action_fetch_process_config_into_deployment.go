@@ -117,13 +117,20 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 	}
 
 	if len(processConfigs) == 0 {
-		std.InstanceData().LogI(fmt.Sprintf("no process sub configs found for process(%s) on host(%d)",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID))
+		std.InstanceData().Log().
+			Zh("未找到进程子配置，process(%s), host(%d)",
+				deployInfo.Process.PluginName, deployInfo.Process.HostID).
+			En("no process sub configs found for process(%s) on host(%d)",
+				deployInfo.Process.PluginName, deployInfo.Process.HostID).
+			Info()
 
 		return nil
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("get %d process sub configs for deployment", len(processConfigs)))
+	std.InstanceData().Log().
+		Zh("获取 %d 个进程子配置用于部署", len(processConfigs)).
+		En("get %d process sub configs for deployment", len(processConfigs)).
+		Info()
 
 	configDetails := conv.SliceToSlice(processConfigs, func(processConfig *types.ProcessConfig) *types.PluginConfigDetail {
 		return &types.PluginConfigDetail{
@@ -141,7 +148,11 @@ func (act *actionFetchProcessSubConfigIntoDeployment) Do(ctx *action.InstanceCon
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionFetchProcessSubConfigIntoDeployment) DisplayNameZh() string { return act.Name() }
+func (act *actionFetchProcessSubConfigIntoDeployment) DisplayNameZh() string {
+	return "获取进程配置到部署"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionFetchProcessSubConfigIntoDeployment) DisplayNameEn() string { return act.Name() }
+func (act *actionFetchProcessSubConfigIntoDeployment) DisplayNameEn() string {
+	return "Fetch Process Config into Deployment"
+}

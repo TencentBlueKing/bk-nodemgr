@@ -117,12 +117,18 @@ func (act *actionWaitPluginInstallerComplete) Do(ctx *action.InstanceContext) er
 	// check and update action state
 	switch installerResult {
 	case installer.ProcessStateSuccess:
-		std.InstanceData().LogI("received installer result is success")
+		std.InstanceData().Log().
+			Zh("收到安装器结果成功").
+			En("received installer result is success").
+			Info()
 
 		return nil
 
 	case installer.ProcessStateFailed, installer.ProcessStateTimeout:
-		std.InstanceData().LogI(fmt.Sprintf("received installer result is not success. installer-result(%s)", installerResult))
+		std.InstanceData().Log().
+			Zh("收到安装器结果不成功，installer-result(%s)", installerResult).
+			En("received installer result is not success. installer-result(%s)", installerResult).
+			Info()
 
 		return fmt.Errorf("installer failed. oper-inst-id(%s), action-name(%s), installer-result(%s)",
 			instanceID, ActionNameWaitPluginInstallerComplete, installerResult)
@@ -186,7 +192,11 @@ func (act *actionWaitPluginInstallerComplete) tryFetchValue(std *pluginUtils.Plu
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionWaitPluginInstallerComplete) DisplayNameZh() string { return act.Name() }
+func (act *actionWaitPluginInstallerComplete) DisplayNameZh() string {
+	return "等待插件安装完成"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionWaitPluginInstallerComplete) DisplayNameEn() string { return act.Name() }
+func (act *actionWaitPluginInstallerComplete) DisplayNameEn() string {
+	return "Wait Plugin Installer Complete"
+}

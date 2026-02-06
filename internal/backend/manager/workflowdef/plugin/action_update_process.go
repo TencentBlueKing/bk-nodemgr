@@ -111,15 +111,24 @@ func (act *actUpdateProcess) Do(ctx *action.InstanceContext) error {
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("succeed to update process info, plugin-name(%s), host-id(%d)",
-		std.DeployInfo().Process.PluginName,
-		std.DeployInfo().Process.HostID))
+	std.InstanceData().Log().
+		Zh("成功更新进程信息，plugin-name(%s), host-id(%d)",
+			std.DeployInfo().Process.PluginName,
+			std.DeployInfo().Process.HostID).
+		En("succeed to update process info, plugin-name(%s), host-id(%d)",
+			std.DeployInfo().Process.PluginName,
+			std.DeployInfo().Process.HostID).
+		Info()
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actUpdateProcess) DisplayNameZh() string { return act.Name() }
+func (act *actUpdateProcess) DisplayNameZh() string {
+	return "更新进程"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actUpdateProcess) DisplayNameEn() string { return act.Name() }
+func (act *actUpdateProcess) DisplayNameEn() string {
+	return "Update Process"
+}

@@ -137,11 +137,16 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 	}
 
 	if !pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType.IsLaunchNode(host.Dynamic.NodeRole) {
-		std.InstanceData().LogE(
-			fmt.Sprintf("plugin pkg launch node type not match host node role, "+
+		std.InstanceData().Log().
+			Zh("插件包启动节点类型与主机节点角色不匹配，"+
 				"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
 				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
-				pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole))
+				pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole).
+			En("plugin pkg launch node type not match host node role, "+
+				"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
+				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
+				pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType, host.Dynamic.NodeRole).
+			Error()
 
 		return fmt.Errorf("plugin pkg launch node type not match host node role, "+
 			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s), host-node-role(%s)",
@@ -150,25 +155,37 @@ func (act *actionVerifyPluginAvailability) Do(ctx *action.InstanceContext) error
 	}
 
 	if !pluginPkg.Enabled {
-		std.InstanceData().LogE(
-			fmt.Sprintf("plugin pkg is not enabled, plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
-				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID))
+		std.InstanceData().Log().
+			Zh("插件包未启用，plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
+				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID).
+			En("plugin pkg is not enabled, plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
+				plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID).
+			Error()
 
 		return fmt.Errorf("plugin pkg is not enabled, plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d)",
 			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID)
 	}
 
-	std.InstanceData().LogI(
-		fmt.Sprintf("plugin pkg verify succeed, "+
+	std.InstanceData().Log().
+		Zh("插件包验证成功，"+
 			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s)",
 			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
-			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType))
+			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType).
+		En("plugin pkg verify succeed, "+
+			"plugin-name(%s), plugin-pkg-name(%s), version(%s), host-id(%d), launch-node-type(%s)",
+			plugin.Name, pluginPkg.Name, version, deployInfo.Process.HostID,
+			pluginPkg.ReleaseAdditionInfoPlugin.LaunchNodeType).
+		Info()
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionVerifyPluginAvailability) DisplayNameZh() string { return act.Name() }
+func (act *actionVerifyPluginAvailability) DisplayNameZh() string {
+	return "验证插件可用性"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionVerifyPluginAvailability) DisplayNameEn() string { return act.Name() }
+func (act *actionVerifyPluginAvailability) DisplayNameEn() string {
+	return "Verify Plugin Availability"
+}

@@ -111,15 +111,24 @@ func (act *actDeleteProcess) Do(ctx *action.InstanceContext) error {
 			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("succeed to delete process info, plugin-name(%s), host-id(%d)",
-		std.DeployInfo().Process.PluginName,
-		std.DeployInfo().Process.HostID))
+	std.InstanceData().Log().
+		Zh("成功删除进程信息，plugin-name(%s), host-id(%d)",
+			std.DeployInfo().Process.PluginName,
+			std.DeployInfo().Process.HostID).
+		En("succeed to delete process info, plugin-name(%s), host-id(%d)",
+			std.DeployInfo().Process.PluginName,
+			std.DeployInfo().Process.HostID).
+		Info()
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actDeleteProcess) DisplayNameZh() string { return act.Name() }
+func (act *actDeleteProcess) DisplayNameZh() string {
+	return "删除进程"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actDeleteProcess) DisplayNameEn() string { return act.Name() }
+func (act *actDeleteProcess) DisplayNameEn() string {
+	return "Delete Process"
+}

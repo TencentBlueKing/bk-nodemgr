@@ -88,6 +88,7 @@ func (act *actTryStopProcess) DelayFn() func() {
 }
 
 // Do this func define what the action will do.
+// nolint: funlen
 func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	param := new(ActionParamTryStopProcess)
 	err := conv.MapToStruct(ctx.Data.Content, param)
@@ -106,7 +107,10 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	std.InstanceData().LogI("try get process info from database")
+	std.InstanceData().Log().
+		Zh("尝试从数据库获取进程信息").
+		En("try get process info from database").
+		Info()
 
 	nCtx := std.Context()
 	exist, err := act.daoProcess.ExistProcess(nCtx, std.DeployInfo().Process.HostID, std.DeployInfo().Process.PluginName)
@@ -115,7 +119,10 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	if !exist {
-		std.InstanceData().LogI("process not exist, no need to stop the process.")
+		std.InstanceData().Log().
+			Zh("进程不存在，无需停止进程").
+			En("process not exist, no need to stop the process.").
+			Info()
 
 		return nil
 	}
@@ -126,29 +133,46 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	if process.Info.Status != types.ProcessStatusRunning {
-		std.InstanceData().LogI(
-			fmt.Sprintf("process status recorded in database is not running(%s), no need to stop the process", process.Info.Status))
+		std.InstanceData().Log().
+			Zh("数据库中记录的进程状态未运行(%s)，无需停止进程", process.Info.Status).
+			En("process status recorded in database is not running(%s), no need to stop the process", process.Info.Status).
+			Info()
 
 		return nil
 	}
 
-	std.InstanceData().LogI(
-		fmt.Sprintf("process status recorded in database is running, try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
-			process.PluginName, process.HostID, process.Controller.StopCmd),
-		fmt.Sprintf("process record in database, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
-			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status),
-	)
+	std.InstanceData().Log().
+		Zh("数据库中记录的进程状态为运行中，尝试执行停止插件进程，plugin-name(%s), host-id(%d), cmd(%s)",
+			process.PluginName, process.HostID, process.Controller.StopCmd).
+		En("process status recorded in database is running, try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
+			process.PluginName, process.HostID, process.Controller.StopCmd).
+		Info()
+	std.InstanceData().Log().
+		Zh("数据库中的进程记录，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status).
+		En("process record in database, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			process.Info.Pid, process.Info.Version, process.Info.AgentID, process.Info.AutoStart, process.Info.Status).
+		Info()
 
 	processSpec := process.ToProcessSpec()
 
 	result, err := act.gseHandlerProc.UnTrusteeshipAndStopProcess(nCtx, processSpec)
 	if err != nil {
-		std.InstanceData().LogW(fmt.Sprintf("failed to execute stop plugin process operation, result(%s), err(%s)", result, err.Error()))
+		std.InstanceData().Log().
+			Zh("执行停止插件进程操作失败，result(%s), err(%s)", result, err.Error()).
+			En("failed to execute stop plugin process operation, result(%s), err(%s)", result, err.Error()).
+			Warn()
 	} else {
-		std.InstanceData().LogI(fmt.Sprintf("successfully execute stop plugin process operation, result(%s)", result))
+		std.InstanceData().Log().
+			Zh("成功执行停止插件进程操作，result(%s)", result).
+			En("successfully execute stop plugin process operation, result(%s)", result).
+			Info()
 	}
 
-	std.InstanceData().LogI("check process status")
+	std.InstanceData().Log().
+		Zh("检查进程状态").
+		En("check process status").
+		Info()
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
@@ -162,13 +186,19 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 		}
 
 		if processInfo.Status == types.ProcessStatusRunning {
-			std.InstanceData().LogI("process status is still running")
+			std.InstanceData().Log().
+				Zh("进程状态仍在运行").
+				En("process status is still running").
+				Info()
 
 			return errors.New("process status is still running")
 		}
 
 		if processInfo.AutoStart {
-			std.InstanceData().LogI("process autostart is true, process will be restart by gse again")
+			std.InstanceData().Log().
+				Zh("进程自动启动为 true，进程将被 GSE 再次重启").
+				En("process autostart is true, process will be restart by gse again").
+				Info()
 
 			return errors.New("process autostart is true, process will be restart by gse again")
 		}
@@ -182,14 +212,22 @@ func (act *actTryStopProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process no running: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process stopped, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
-		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status))
+	std.InstanceData().Log().
+		Zh("进程已停止，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
+		En("process stopped, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
+		Info()
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actTryStopProcess) DisplayNameZh() string { return act.Name() }
+func (act *actTryStopProcess) DisplayNameZh() string {
+	return "尝试停止进程"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actTryStopProcess) DisplayNameEn() string { return act.Name() }
+func (act *actTryStopProcess) DisplayNameEn() string {
+	return "Try Stop Process"
+}

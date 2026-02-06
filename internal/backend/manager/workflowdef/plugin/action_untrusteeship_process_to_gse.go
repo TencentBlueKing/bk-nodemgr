@@ -110,7 +110,10 @@ func (act *actUnTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to untrusteeship process: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("successfully execute untrusteeship process operation, result(%s)", result))
+	std.InstanceData().Log().
+		Zh("成功执行取消进程托管操作，result(%s)", result).
+		En("successfully execute untrusteeship process operation, result(%s)", result).
+		Info()
 
 	processInfo, err := act.gseHandlerProc.QueryProcessInfo(nCtx, processSpec.PluginName, processSpec.Identity.Name, processSpec.AgentID)
 	if err != nil {
@@ -118,19 +121,30 @@ func (act *actUnTrusteeshipProcess) Do(ctx *action.InstanceContext) error {
 	}
 
 	if processInfo.AutoStart {
-		std.InstanceData().LogI("process is still trusteeship by gse")
+		std.InstanceData().Log().
+			Zh("进程仍被 GSE 托管").
+			En("process is still trusteeship by gse").
+			Info()
 
 		return fmt.Errorf("process is still trusteeship by gse")
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
-		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status))
+	std.InstanceData().Log().
+		Zh("进程运行中，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
+		En("process running, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
+		Info()
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actUnTrusteeshipProcess) DisplayNameZh() string { return act.Name() }
+func (act *actUnTrusteeshipProcess) DisplayNameZh() string {
+	return "取消 GSE 进程托管"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actUnTrusteeshipProcess) DisplayNameEn() string { return act.Name() }
+func (act *actUnTrusteeshipProcess) DisplayNameEn() string {
+	return "Untrusteeship Process to GSE"
+}

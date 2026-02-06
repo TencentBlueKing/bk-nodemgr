@@ -106,8 +106,12 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 		}
 	}()
 
-	std.InstanceData().LogI(fmt.Sprintf("try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
-		std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StopCmd))
+	std.InstanceData().Log().
+		Zh("尝试执行停止插件进程，plugin-name(%s), host-id(%d), cmd(%s)",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StopCmd).
+		En("try to executed stop plugin process, plugin-name(%s), host-id(%d), cmd(%s)",
+			std.DeployInfo().Process.PluginName, std.DeployInfo().Process.HostID, std.DeployInfo().Process.Controller.StopCmd).
+		Info()
 
 	nCtx := std.Context()
 	processSpec := std.DeployInfo().Process.ToProcessSpec()
@@ -117,9 +121,15 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to stop plugin process: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("successfully execute stop plugin process operation, result(%s)", result))
+	std.InstanceData().Log().
+		Zh("成功执行停止插件进程操作，result(%s)", result).
+		En("successfully execute stop plugin process operation, result(%s)", result).
+		Info()
 
-	std.InstanceData().LogI("wait process stopped")
+	std.InstanceData().Log().
+		Zh("等待进程停止").
+		En("wait process stopped").
+		Info()
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: time.Second,
@@ -133,13 +143,19 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 		}
 
 		if processInfo.Status != types.ProcessStatusStopped {
-			std.InstanceData().LogI(fmt.Sprintf("process status is not stopped, status(%s)", processInfo.Status))
+			std.InstanceData().Log().
+				Zh("进程状态未停止，status(%s)", processInfo.Status).
+				En("process status is not stopped, status(%s)", processInfo.Status).
+				Info()
 
 			return fmt.Errorf("process status is not stopped, status(%s)", processInfo.Status)
 		}
 
 		if processInfo.AutoStart {
-			std.InstanceData().LogI("process is still trusteeship by gse")
+			std.InstanceData().Log().
+				Zh("进程仍被 GSE 托管").
+				En("process is still trusteeship by gse").
+				Info()
 
 			return fmt.Errorf("process is still trusteeship by gse")
 		}
@@ -153,14 +169,22 @@ func (act *actStopProcess) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("failed to wait process stopped: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("process stopped, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
-		processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status))
+	std.InstanceData().Log().
+		Zh("进程已停止，pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
+		En("process stopped, pid(%d), version(%s), agent-id(%s), autostart(%t), status(%s)",
+			processInfo.Pid, processInfo.Version, processInfo.AgentID, processInfo.AutoStart, processInfo.Status).
+		Info()
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actStopProcess) DisplayNameZh() string { return act.Name() }
+func (act *actStopProcess) DisplayNameZh() string {
+	return "停止进程"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actStopProcess) DisplayNameEn() string { return act.Name() }
+func (act *actStopProcess) DisplayNameEn() string {
+	return "Stop Process"
+}

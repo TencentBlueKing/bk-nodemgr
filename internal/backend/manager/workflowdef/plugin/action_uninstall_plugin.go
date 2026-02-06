@@ -151,7 +151,10 @@ func (act *actionUninstallPlugin) Do(ctx *action.InstanceContext) error {
 		return fmt.Errorf("build script failed: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("uninstall script: \n%s\n", uninstallScriptContext))
+	std.InstanceData().Log().
+		Zh("卸载脚本: \n%s\n", uninstallScriptContext).
+		En("uninstall script: \n%s\n", uninstallScriptContext).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(nCtx,
 		uninstallScriptType,
@@ -166,7 +169,10 @@ func (act *actionUninstallPlugin) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	std.InstanceData().LogI("uninstall plugin task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("卸载插件任务ID: %s", taskID).
+		En("uninstall plugin task-id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -262,7 +268,11 @@ func (act *actionUninstallPlugin) buildWindowsUninstallScript(param *pluginUnins
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionUninstallPlugin) DisplayNameZh() string { return act.Name() }
+func (act *actionUninstallPlugin) DisplayNameZh() string {
+	return "卸载插件"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionUninstallPlugin) DisplayNameEn() string { return act.Name() }
+func (act *actionUninstallPlugin) DisplayNameEn() string {
+	return "Uninstall Plugin"
+}

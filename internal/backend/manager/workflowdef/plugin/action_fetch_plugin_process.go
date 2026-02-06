@@ -104,15 +104,23 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 	deployInfo := std.DeployInfo()
 	process, err := act.daoProcess.GetProcess(nCtx, deployInfo.Process.HostID, deployInfo.Process.PluginName)
 	if err != nil {
-		std.InstanceData().LogE(fmt.Sprintf("failed to get process, process-name(%s), host-id(%d): %v",
-			deployInfo.Process.PluginName, deployInfo.Process.HostID, err))
+		std.InstanceData().Log().
+			Zh("获取进程失败，process-name(%s), host-id(%d): %v",
+				deployInfo.Process.PluginName, deployInfo.Process.HostID, err).
+			En("failed to get process, process-name(%s), host-id(%d): %v",
+				deployInfo.Process.PluginName, deployInfo.Process.HostID, err).
+			Error()
 
 		return fmt.Errorf("failed to get plugin process, process-name(%s), host-id(%d): %w",
 			deployInfo.Process.PluginName, deployInfo.Process.HostID, err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("fetch plugin process succeed, plugin-name(%s), host-id(%d)",
-		deployInfo.Process.PluginName, deployInfo.Process.HostID))
+	std.InstanceData().Log().
+		Zh("获取插件进程成功，plugin-name(%s), host-id(%d)",
+			deployInfo.Process.PluginName, deployInfo.Process.HostID).
+		En("fetch plugin process succeed, plugin-name(%s), host-id(%d)",
+			deployInfo.Process.PluginName, deployInfo.Process.HostID).
+		Info()
 
 	deployInfo.Process = *process
 
@@ -120,7 +128,11 @@ func (act *actionFetchPluginProcess) Do(ctx *action.InstanceContext) error {
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionFetchPluginProcess) DisplayNameZh() string { return act.Name() }
+func (act *actionFetchPluginProcess) DisplayNameZh() string {
+	return "获取插件进程"
+}
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionFetchPluginProcess) DisplayNameEn() string { return act.Name() }
+func (act *actionFetchPluginProcess) DisplayNameEn() string {
+	return "Fetch Plugin Process"
+}
