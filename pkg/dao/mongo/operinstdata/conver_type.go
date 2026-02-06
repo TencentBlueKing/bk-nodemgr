@@ -167,9 +167,11 @@ func convMessageToDB(msgs []common.Message) []Message {
 	dbData := make([]Message, len(msgs))
 	for idx, msg := range msgs {
 		dbData[idx] = Message{
-			Time:  msg.Time,
-			Text:  msg.Text,
-			Level: msg.Level,
+			Time:   msg.Time,
+			Text:   msg.Text, // Deprecated: kept for transition
+			TextZh: msg.TextZh,
+			TextEn: msg.TextEn,
+			Level:  msg.Level,
 		}
 	}
 
@@ -181,9 +183,11 @@ func convMessageFromDB(msgs []Message) []common.Message {
 	data := make([]common.Message, len(msgs))
 	for idx, msg := range msgs {
 		data[idx] = common.Message{
-			Time:  msg.Time,
-			Text:  msg.Text,
-			Level: msg.Level,
+			Time:   msg.Time,
+			Text:   msg.Text, // Deprecated: kept for transition
+			TextZh: msg.TextZh,
+			TextEn: msg.TextEn,
+			Level:  msg.Level,
 		}
 	}
 

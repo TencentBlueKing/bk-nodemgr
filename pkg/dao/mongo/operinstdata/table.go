@@ -45,9 +45,11 @@ type ActionInstBriefData struct {
 
 // Message represents a message.
 type Message struct {
-	Time  time.Time `json:"time" bson:"time"`
-	Text  string    `json:"text" bson:"text"`
-	Level string    `json:"level" bson:"level"`
+	Time   time.Time `json:"time" bson:"time"`
+	Text   string    `json:"text" bson:"text"`       // Deprecated: kept for transition
+	TextZh string    `json:"text_zh" bson:"text_zh"` // Chinese content
+	TextEn string    `json:"text_en" bson:"text_en"` // English content
+	Level  string    `json:"level" bson:"level"`
 }
 
 // OperInstData represents a operation instance data.
