@@ -79,6 +79,16 @@ func (act *actionInstallPagentByWMI) Name() string {
 	return ActionNameInstallPagentByWMI
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallPagentByWMI) DisplayNameZh() string {
+	return "通过 WMI 安装 P-Agent"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallPagentByWMI) DisplayNameEn() string {
+	return "Install P-Agent via WMI"
+}
+
 // Version returns the version of the action.
 func (act *actionInstallPagentByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -203,7 +213,10 @@ func (act *actionInstallPagentByWMI) setupInstallationTools(std *nodeUtils.NodeA
 
 	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
 
-	std.InstanceData().LogI(fmt.Sprintf("setup installation tools,tool name(%s), installerPath(%s)", toolName, installerPath))
+	std.InstanceData().Log().
+		Zh("设置安装工具，工具名(%s)，安装器路径(%s)", toolName, installerPath).
+		En("setup installation tools, tool name(%s), installerPath(%s)", toolName, installerPath).
+		Info()
 
 	return toolName, installerPath, deployConstant, nil
 }
@@ -269,21 +282,33 @@ func (act *actionInstallPagentByWMI) notifyRelayToInstallMultiRelay(
 	var lastErr error
 	for i, relayInfo := range relayInfos {
 		if relayInfo == nil || relayInfo.AgentID == "" {
-			std.InstanceData().LogW(fmt.Sprintf("relay info at index %d has no agent id, trying next", i))
+			std.InstanceData().Log().
+				Zh("索引 %d 的 relay 信息没有 agent id，尝试下一个", i).
+				En("relay info at index %d has no agent id, trying next", i).
+				Warn()
+
 			continue
 		}
 
-		std.InstanceData().LogI(fmt.Sprintf("attempting to send install request to relay, index(%d/%d), agent-id(%s)",
-			i+1, len(relayInfos), relayInfo.AgentID))
+		std.InstanceData().Log().
+			Zh("正在尝试向 relay 发送安装请求，索引(%d/%d)，agent-id(%s)", i+1, len(relayInfos), relayInfo.AgentID).
+			En("attempting to send install request to relay, index(%d/%d), agent-id(%s)", i+1, len(relayInfos), relayInfo.AgentID).
+			Info()
 
 		err := act.notifyRelayToInstallSingle(std, data, relayInfo)
 		if err == nil {
-			std.InstanceData().LogI(fmt.Sprintf("notify relay to install pagent successfully, agent-id(%s)", relayInfo.AgentID))
+			std.InstanceData().Log().
+				Zh("通知 relay 安装 pagent 成功，agent-id(%s)", relayInfo.AgentID).
+				En("notify relay to install pagent successfully, agent-id(%s)", relayInfo.AgentID).
+				Info()
+
 			return nil
 		}
 
-		std.InstanceData().LogW(fmt.Sprintf("failed to send install request to relay, index(%d/%d), agent-id(%s): %v",
-			i+1, len(relayInfos), relayInfo.AgentID, err))
+		std.InstanceData().Log().
+			Zh("向 relay 发送安装请求失败，索引(%d/%d)，agent-id(%s): %v", i+1, len(relayInfos), relayInfo.AgentID, err).
+			En("failed to send install request to relay, index(%d/%d), agent-id(%s): %v", i+1, len(relayInfos), relayInfo.AgentID, err).
+			Warn()
 		lastErr = err
 	}
 
@@ -345,7 +370,10 @@ func (act *actionInstallPagentByWMI) waitForRelayReportInstall(
 				return errors.New("unexpected type for output string")
 			}
 
-			std.InstanceData().LogI("wait for relay report install result successfully. result stdout: " + outStr)
+			std.InstanceData().Log().
+				Zh("等待 relay 报告安装结果成功，结果 stdout: %s", outStr).
+				En("wait for relay report install result successfully. result stdout: %s", outStr).
+				Info()
 
 			return nil
 		}
@@ -398,13 +426,10 @@ func (act *actionInstallPagentByWMI) buildInstallCmd(
 		winpath.Join(installParams.BaseWorkDir, system.GetEnv()),
 		installParams.InstallerPath, installer.NodeCmdFullInstall, strings.Join(args, " "), installLogPath)
 
-	std.InstanceData().LogI(fmt.Sprintf("build install params: %v", args))
+	std.InstanceData().Log().
+		Zh("构建安装参数: %v", args).
+		En("build install params: %v", args).
+		Info()
 
 	return installCmd
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionInstallPagentByWMI) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionInstallPagentByWMI) DisplayNameEn() string { return act.Name() }

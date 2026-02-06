@@ -86,6 +86,16 @@ func (act *actionInstallNodeBySSH) Name() string {
 	return ActionNameInstallNodeBySSH
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallNodeBySSH) DisplayNameZh() string {
+	return "通过 SSH 安装节点"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallNodeBySSH) DisplayNameEn() string {
+	return "Install Node via SSH"
+}
+
 // Version returns the version of the action.
 func (act *actionInstallNodeBySSH) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -233,7 +243,10 @@ func (act *actionInstallNodeBySSH) ensureInstallerTool(std *nodeUtils.NodeAction
 	if err = client.TransferFile(reader, installerPath); err != nil {
 		return "", fmt.Errorf("failed to transfer installer tool to host: %w", err)
 	}
-	std.InstanceData().LogI(fmt.Sprintf("transferred file to host, path(%s)", installerPath))
+	std.InstanceData().Log().
+		Zh("已传输文件到主机，路径(%s)", installerPath).
+		En("transferred file to host, path(%s)", installerPath).
+		Info()
 
 	// make sure tool is executable
 	if result, err := client.RunCommand("chmod +x " + installerPath); err != nil {
@@ -287,7 +300,10 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 	}
 
 	installCmd := act.buildCMD(installParams)
-	std.InstanceData().LogI(fmt.Sprintf("install node cmd: %s", installCmd))
+	std.InstanceData().Log().
+		Zh("安装节点命令: %s", installCmd).
+		En("install node cmd: %s", installCmd).
+		Info()
 
 	// exec install command.
 	outStr, err := client.RunCommand(fmt.Sprintf(
@@ -302,7 +318,10 @@ func (act *actionInstallNodeBySSH) executeInstallCMD(std *nodeUtils.NodeActionSt
 		return err
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("install node result: %s", outStr))
+	std.InstanceData().Log().
+		Zh("安装节点结果: %s", outStr).
+		En("install node result: %s", outStr).
+		Info()
 
 	return nil
 }
@@ -333,9 +352,3 @@ func (act *actionInstallNodeBySSH) buildCMD(param *InstallParams) string {
 
 	return installCmd
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionInstallNodeBySSH) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionInstallNodeBySSH) DisplayNameEn() string { return act.Name() }

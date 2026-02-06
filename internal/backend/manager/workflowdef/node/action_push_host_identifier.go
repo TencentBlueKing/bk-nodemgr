@@ -12,7 +12,6 @@ package node
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
@@ -54,6 +53,16 @@ type actionPushHostIdentifier struct {
 // Name returns the name of the action.
 func (act *actionPushHostIdentifier) Name() string {
 	return ActionNamePushHostIdentifier
+}
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionPushHostIdentifier) DisplayNameZh() string {
+	return "推送主机标识"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionPushHostIdentifier) DisplayNameEn() string {
+	return "Push Host Identifier"
 }
 
 // Version returns the version of the action.
@@ -116,7 +125,10 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 	if err != nil {
 		return err
 	}
-	std.InstanceData().LogI(fmt.Sprintf("pushed host identifier, task-id(%s)", taskID))
+	std.InstanceData().Log().
+		Zh("已推送主机标识，task-id(%s)", taskID).
+		En("pushed host identifier, task-id(%s)", taskID).
+		Info()
 
 	var success bool
 	err = polling.Do(std.Context(), func(_ int) error {
@@ -144,24 +156,27 @@ func (act *actionPushHostIdentifier) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 	if err != nil {
-		std.InstanceData().LogE("failed to push host identifier: " + err.Error())
+		std.InstanceData().Log().
+			Zh("推送主机标识失败: %s", err.Error()).
+			En("failed to push host identifier: %s", err.Error()).
+			Error()
 
 		return err
 	}
 
 	if !success {
-		std.InstanceData().LogE("failed to push host identifier, no success result")
+		std.InstanceData().Log().
+			Zh("推送主机标识失败，无成功结果").
+			En("failed to push host identifier, no success result").
+			Error()
 
 		return errors.New("failed to push host identifier")
 	}
 
-	std.InstanceData().LogI("pushed host identifier")
+	std.InstanceData().Log().
+		Zh("已推送主机标识").
+		En("pushed host identifier").
+		Info()
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionPushHostIdentifier) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionPushHostIdentifier) DisplayNameEn() string { return act.Name() }

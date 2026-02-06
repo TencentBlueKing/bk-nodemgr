@@ -73,6 +73,16 @@ func (act *actionInstallPreOrderedPlugins) Name() string {
 	return ActionNameInstallPreOrderedPlugins
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallPreOrderedPlugins) DisplayNameZh() string {
+	return "安装预置插件"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallPreOrderedPlugins) DisplayNameEn() string {
+	return "Install Pre-ordered Plugins"
+}
+
 // Version returns the version of the action.
 func (act *actionInstallPreOrderedPlugins) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -133,12 +143,19 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 
 	preOrderedPlugins := getPreOrderedPlugins()
 	if len(preOrderedPlugins) == 0 {
-		std.InstanceData().LogI("no pre-ordered plugins to install, skip this action")
+		std.InstanceData().Log().
+			Zh("无预置插件需要安装，跳过此操作").
+			En("no pre-ordered plugins to install, skip this action").
+			Info()
+
 		return nil
 	}
 
 	preOrderedPluginsName := preOrderedPlugins[deployInfo.Host.Dynamic.NodeRole]
-	std.InstanceData().LogI(fmt.Sprintf("start to install pre-ordered plugins(%v)", preOrderedPluginsName))
+	std.InstanceData().Log().
+		Zh("开始安装预置插件(%v)", preOrderedPluginsName).
+		En("start to install pre-ordered plugins(%v)", preOrderedPluginsName).
+		Info()
 
 	deployParams := make([]*types.PluginDeploymentParam, 0, len(preOrderedPluginsName))
 	gp := gopool.NewPool()
@@ -185,9 +202,15 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 
 	std.InstanceData().PrivateData[privateDataKeyPluginWorkflowID] = workflowID
 
-	std.InstanceData().LogI(fmt.Sprintf("succeed to launch install pre-ordered plugins workflow, workflow-id(%s)", workflowID))
+	std.InstanceData().Log().
+		Zh("成功启动预置插件安装工作流，workflow-id(%s)", workflowID).
+		En("succeed to launch install pre-ordered plugins workflow, workflow-id(%s)", workflowID).
+		Info()
 
-	std.InstanceData().LogI("wait workflow finish")
+	std.InstanceData().Log().
+		Zh("等待工作流完成").
+		En("wait workflow finish").
+		Info()
 	polling := retrier.NewPolling(retrier.PollingOpts{
 		Timeout:  act.Timeout(),
 		Interval: pollingInterval,
@@ -201,11 +224,18 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		}
 
 		if workflowStatus == types.PluginWorkflowStatusRunning {
-			std.InstanceData().LogI("install pre-ordered plugins workflow is still running...")
+			std.InstanceData().Log().
+				Zh("预置插件安装工作流仍在运行中...").
+				En("install pre-ordered plugins workflow is still running...").
+				Info()
+
 			return fmt.Errorf("plugin workflow is still running, workflow-id(%s)", workflowID)
 		}
 
-		std.InstanceData().LogI(fmt.Sprintf("install pre-ordered plugins workflow finished with status: %s", workflowStatus))
+		std.InstanceData().Log().
+			Zh("预置插件安装工作流已完成，状态: %s", workflowStatus).
+			En("install pre-ordered plugins workflow finished with status: %s", workflowStatus).
+			Info()
 
 		return nil
 	})
@@ -213,16 +243,31 @@ func (act *actionInstallPreOrderedPlugins) Do(ctx *action.InstanceContext) error
 		return fmt.Errorf("install pre-ordered plugins workflow polling failed: %w", err)
 	}
 
-	std.InstanceData().LogI("install pre-ordered plugins workflow finished")
+	std.InstanceData().Log().
+		Zh("预置插件安装工作流已完成").
+		En("install pre-ordered plugins workflow finished").
+		Info()
 	switch workflowStatus {
 	case types.PluginWorkflowStatusSuccess:
-		std.InstanceData().LogI("install pre-ordered plugins succeeded")
+		std.InstanceData().Log().
+			Zh("预置插件安装成功").
+			En("install pre-ordered plugins succeeded").
+			Info()
+
 		return nil
 	case types.PluginWorkflowStatusFailed:
-		std.InstanceData().LogI("install pre-ordered plugins failed")
+		std.InstanceData().Log().
+			Zh("预置插件安装失败").
+			En("install pre-ordered plugins failed").
+			Info()
+
 		return errors.New("install pre-ordered plugins failed")
 	case types.PluginWorkflowStatusPartialFailed:
-		std.InstanceData().LogI("install pre-ordered plugins partially failed")
+		std.InstanceData().Log().
+			Zh("预置插件安装部分失败").
+			En("install pre-ordered plugins partially failed").
+			Info()
+
 		return errors.New("install pre-ordered plugins partially failed")
 	default:
 		return fmt.Errorf("unknown plugin workflow status: %s", workflowStatus)
@@ -236,9 +281,3 @@ func getPreOrderedPlugins() map[types.NodeRole][]string {
 		types.NodeRoleProxy: {"bkmonitorbeat", "bk-nodemgr-relay"},
 	}
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionInstallPreOrderedPlugins) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionInstallPreOrderedPlugins) DisplayNameEn() string { return act.Name() }

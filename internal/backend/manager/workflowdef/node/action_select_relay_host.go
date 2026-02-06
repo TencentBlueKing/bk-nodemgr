@@ -12,7 +12,6 @@ package node
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -51,6 +50,16 @@ type actionSelectRelayHost struct {
 // Name returns the name of the action.
 func (act *actionSelectRelayHost) Name() string {
 	return ActionNameSelectRelayHost
+}
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionSelectRelayHost) DisplayNameZh() string {
+	return "选择 Relay 主机"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionSelectRelayHost) DisplayNameEn() string {
+	return "Select Relay Host"
 }
 
 // Version returns the version of the action.
@@ -111,7 +120,10 @@ func (act *actionSelectRelayHost) Do(ctx *action.InstanceContext) error {
 
 	std.DeployInfo().RelayInfo = relayHost
 
-	std.InstanceData().LogI(fmt.Sprintf("select relay host success. relay-host-id(%d)", relayHost.HostID))
+	std.InstanceData().Log().
+		Zh("选择 relay 主机成功。relay-host-id(%d)", relayHost.HostID).
+		En("select relay host success. relay-host-id(%d)", relayHost.HostID).
+		Info()
 
 	return nil
 }
@@ -138,8 +150,10 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	}
 
 	if num == 0 {
-		std.InstanceData().LogE(fmt.Sprintf("no proxy host in network unit. network-unit-id(%d)",
-			std.DeployInfo().Host.Dynamic.NetworkUnitID))
+		std.InstanceData().Log().
+			Zh("网络单元中没有代理主机。network-unit-id(%d)", std.DeployInfo().Host.Dynamic.NetworkUnitID).
+			En("no proxy host in network unit. network-unit-id(%d)", std.DeployInfo().Host.Dynamic.NetworkUnitID).
+			Error()
 
 		return types.RelayInfo{}, errors.New("no proxy host in network unit")
 	}
@@ -155,7 +169,11 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 	}
 
 	if len(dedicatedHosts) == 0 {
-		std.InstanceData().LogE("no dedicated installer host")
+		std.InstanceData().Log().
+			Zh("没有专用安装主机").
+			En("no dedicated installer host").
+			Error()
+
 		return types.RelayInfo{}, errors.New("no dedicated installer host")
 	}
 
@@ -188,9 +206,3 @@ func (act *actionSelectRelayHost) selectDedicatedInstallerHost(
 		CallbackSvcPort: relayHost.Dynamic.RelayCallbackPort,
 	}, nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionSelectRelayHost) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionSelectRelayHost) DisplayNameEn() string { return act.Name() }

@@ -57,6 +57,16 @@ func (act *actionBindAgentHostRel) Name() string {
 	return ActionNameBindAgentHostRel
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionBindAgentHostRel) DisplayNameZh() string {
+	return "绑定 Agent 与主机关联"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionBindAgentHostRel) DisplayNameEn() string {
+	return "Bind Agent-Host Relation"
+}
+
 // Version returns the version of the action.
 func (act *actionBindAgentHostRel) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -161,9 +171,3 @@ func (act *actionBindAgentHostRel) checkHostExist(nCtx contextx.IContext, info *
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionBindAgentHostRel) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionBindAgentHostRel) DisplayNameEn() string { return act.Name() }

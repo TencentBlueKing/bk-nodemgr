@@ -59,6 +59,16 @@ func (act *actionGenManualBootstrapCommand) Name() string {
 	return ActionNameGenManualBootstrapCommand
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionGenManualBootstrapCommand) DisplayNameZh() string {
+	return "生成手动引导命令"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionGenManualBootstrapCommand) DisplayNameEn() string {
+	return "Generate Manual Bootstrap Command"
+}
+
 // Version returns the version of the action.
 func (act *actionGenManualBootstrapCommand) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -166,7 +176,10 @@ func (act *actionGenManualBootstrapCommand) generateInstallCMD(std *nodeUtils.No
 		return fmt.Errorf("failed to save manual install bootstrap command to private data: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("generated manual install bootstrap command: %s", installCmd))
+	std.InstanceData().Log().
+		Zh("已生成手动安装引导命令: %s", installCmd).
+		En("generated manual install bootstrap command: %s", installCmd).
+		Info()
 
 	return nil
 }
@@ -212,9 +225,3 @@ func (act *actionGenManualBootstrapCommand) selectServiceURLs(std *nodeUtils.Nod
 
 	return nodeUtils.BuildServerURLs(callbackSvrEndpoint...), nodeUtils.BuildServerURLs(downloadSvrEndpoint...), nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionGenManualBootstrapCommand) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionGenManualBootstrapCommand) DisplayNameEn() string { return act.Name() }

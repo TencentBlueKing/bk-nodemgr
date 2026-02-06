@@ -62,6 +62,16 @@ func (act *actionWaitDetectInfoByManual) Name() string {
 	return ActionNameWaitDetectInfoByManual
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionWaitDetectInfoByManual) DisplayNameZh() string {
+	return "等待手动探测信息"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionWaitDetectInfoByManual) DisplayNameEn() string {
+	return "Wait for Manual Detect Info"
+}
+
 // Version returns the version of the action.
 func (act *actionWaitDetectInfoByManual) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -130,7 +140,10 @@ func (act *actionWaitDetectInfoByManual) Do(ctx *action.InstanceContext) error {
 			}
 
 			if detectInfo.ErrMsg != "" {
-				std.InstanceData().LogE(fmt.Sprintf("failed to get detect info: %v", detectInfo.ErrMsg))
+				std.InstanceData().Log().
+					Zh("获取探测信息失败: %v", detectInfo.ErrMsg).
+					En("failed to get detect info: %v", detectInfo.ErrMsg).
+					Error()
 
 				return fmt.Errorf("failed to get detect info: %v", detectInfo.ErrMsg)
 			}
@@ -177,7 +190,11 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
-		std.InstanceData().LogE(fmt.Sprintf("failed to convert node role to release type. err: %v", err))
+		std.InstanceData().Log().
+			Zh("节点角色转换为发布类型失败。err: %v", err).
+			En("failed to convert node role to release type. err: %v", err).
+			Error()
+
 		return err
 	}
 
@@ -186,7 +203,10 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
-				std.InstanceData().LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+				std.InstanceData().Log().
+					Zh("用户选择，使用目标版本。version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					En("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					Info()
 
 				break
 			}
@@ -204,7 +224,10 @@ func (act *actionWaitDetectInfoByManual) applyInfo(std *nodeUtils.NodeActionStan
 		if err != nil {
 			return err
 		}
-		std.InstanceData().LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.InstanceData().Log().
+			Zh("自动选择，使用系统默认版本。version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			En("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			Info()
 	}
 
 	err = checkVersionAvailability(
@@ -263,9 +286,3 @@ func (act *actionWaitDetectInfoByManual) tryFetchDetectInfo(std *nodeUtils.NodeA
 
 	return data, nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionWaitDetectInfoByManual) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionWaitDetectInfoByManual) DisplayNameEn() string { return act.Name() }

@@ -68,6 +68,16 @@ func (act *actionRenderNodeDeployment) Name() string {
 	return ActionNameRenderNodeDeployment
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionRenderNodeDeployment) DisplayNameZh() string {
+	return "渲染节点部署信息"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionRenderNodeDeployment) DisplayNameEn() string {
+	return "Render Node Deployment"
+}
+
 // Version returns the version of the action.
 func (act *actionRenderNodeDeployment) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -537,21 +547,34 @@ func (act *actionRenderNodeDeployment) renderCustomSetting(std *nodeUtils.NodeAc
 			std.DeployInfo().Host.Dynamic.NodeRole,
 			err)
 	}
-	std.InstanceData().LogI(fmt.Sprintf("match config policy. "+
-		"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), matched(%t)",
-		std.DeployInfo().Host.Static.BizID,
-		std.DeployInfo().Host.Static.NetworkAreaID,
-		std.DeployInfo().Host.Dynamic.NetworkUnitID,
-		std.DeployInfo().Host.Dynamic.NodeOsType,
-		std.DeployInfo().Host.Dynamic.NodeCPUArch,
-		std.DeployInfo().Host.Dynamic.NodeRole,
-		matched))
+	std.InstanceData().Log().
+		Zh("匹配配置策略。"+
+			"biz-id(%d)，networkarea-id(%d)，networkunit-id(%d)，os-type(%s)，cpu-arch(%s)，role(%s)，matched(%t)",
+			std.DeployInfo().Host.Static.BizID,
+			std.DeployInfo().Host.Static.NetworkAreaID,
+			std.DeployInfo().Host.Dynamic.NetworkUnitID,
+			std.DeployInfo().Host.Dynamic.NodeOsType,
+			std.DeployInfo().Host.Dynamic.NodeCPUArch,
+			std.DeployInfo().Host.Dynamic.NodeRole,
+			matched).
+		En("match config policy. "+
+			"biz-id(%d), networkarea-id(%d), networkunit-id(%d), os-type(%s), cpu-arch(%s), role(%s), matched(%t)",
+			std.DeployInfo().Host.Static.BizID,
+			std.DeployInfo().Host.Static.NetworkAreaID,
+			std.DeployInfo().Host.Dynamic.NetworkUnitID,
+			std.DeployInfo().Host.Dynamic.NodeOsType,
+			std.DeployInfo().Host.Dynamic.NodeCPUArch,
+			std.DeployInfo().Host.Dynamic.NodeRole,
+			matched).
+		Info()
 
 	if matched && configPolicy != nil {
 		logger.G.Sys().With("configpolicy-id", configPolicy.ID, "configpolicy-name", configPolicy.Name).Info("match config policy")
 
-		std.InstanceData().LogI(fmt.Sprintf("match config policy. configpolicy-id(%d), configpolicy-name(%s)",
-			configPolicy.ID, configPolicy.Name))
+		std.InstanceData().Log().
+			Zh("匹配配置策略。configpolicy-id(%d)，configpolicy-name(%s)", configPolicy.ID, configPolicy.Name).
+			En("match config policy. configpolicy-id(%d), configpolicy-name(%s)", configPolicy.ID, configPolicy.Name).
+			Info()
 
 		conf.CustomSetting = configPolicy.Configs
 	}
@@ -689,9 +712,3 @@ func (act *actionRenderNodeDeployment) ensureHostDynamicAdvertiseIPAndExportIP(s
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionRenderNodeDeployment) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionRenderNodeDeployment) DisplayNameEn() string { return act.Name() }

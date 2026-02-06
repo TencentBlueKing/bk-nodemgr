@@ -88,6 +88,16 @@ func (act *actionInstallNodeByWMI) Name() string {
 	return ActionNameInstallNodeByWMI
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallNodeByWMI) DisplayNameZh() string {
+	return "通过 WMI 安装节点"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallNodeByWMI) DisplayNameEn() string {
+	return "Install Node via WMI"
+}
+
 // Version returns the version of the action.
 func (act *actionInstallNodeByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -205,8 +215,12 @@ func (act *actionInstallNodeByWMI) ensureWorkspace(std *nodeUtils.NodeActionStan
 			std.DeployInfo().InstallerWorkDir, stdout, stderr, err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("make sure the installer workspace exists, stdout(%s), stderr(%s)",
-		strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")))
+	std.InstanceData().Log().
+		Zh("确保安装器工作目录存在，stdout(%s)，stderr(%s)",
+			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
+		En("make sure the installer workspace exists, stdout(%s), stderr(%s)",
+			strings.Split(strings.TrimSpace(stdout), "\n"), strings.Split(strings.TrimSpace(stderr), "\n")).
+		Info()
 
 	return nil
 }
@@ -230,7 +244,10 @@ func (act *actionInstallNodeByWMI) ensureInstallerTool(std *nodeUtils.NodeAction
 			stdout, stderr, err)
 	}
 	installerPath := winpath.Clean(winpath.Join(std.DeployInfo().InstallerWorkDir, toolName))
-	std.InstanceData().LogI(fmt.Sprintf("transferred file to host, path(%s)", installerPath))
+	std.InstanceData().Log().
+		Zh("已传输文件到主机，路径(%s)", installerPath).
+		En("transferred file to host, path(%s)", installerPath).
+		Info()
 
 	return installerPath, nil
 }
@@ -278,7 +295,10 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 	}
 
 	installBat := act.buildBat(installParams)
-	std.InstanceData().LogI(fmt.Sprintf("install node cmd: %s", installBat))
+	std.InstanceData().Log().
+		Zh("安装节点命令: %s", installBat).
+		En("install node cmd: %s", installBat).
+		Info()
 
 	// exec install command.
 	tmpInstallBat, err := tmp.NewTempFileWithSpecialName(io.NopCloser(strings.NewReader(installBat)), installBatName)
@@ -287,7 +307,10 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 	}
 	defer func() {
 		if err := tmp.Clean(); err != nil {
-			std.InstanceData().LogE(fmt.Sprintf("failed to clean temp file: %v", err))
+			std.InstanceData().Log().
+				Zh("清理临时文件失败: %v", err).
+				En("failed to clean temp file: %v", err).
+				Error()
 		}
 	}()
 
@@ -302,8 +325,14 @@ func (act *actionInstallNodeByWMI) executeInstallCMD(std *nodeUtils.NodeActionSt
 		return fmt.Errorf("failed to run install node: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("install node stdout: %s", strings.Split(strings.TrimSpace(stdout), "\n")))
-	std.InstanceData().LogI(fmt.Sprintf("install node stderr: %s", strings.Split(strings.TrimSpace(stderr), "\n")))
+	std.InstanceData().Log().
+		Zh("安装节点 stdout: %s", strings.Split(strings.TrimSpace(stdout), "\n")).
+		En("install node stdout: %s", strings.Split(strings.TrimSpace(stdout), "\n")).
+		Info()
+	std.InstanceData().Log().
+		Zh("安装节点 stderr: %s", strings.Split(strings.TrimSpace(stderr), "\n")).
+		En("install node stderr: %s", strings.Split(strings.TrimSpace(stderr), "\n")).
+		Info()
 
 	return nil
 }
@@ -333,9 +362,3 @@ func (act *actionInstallNodeByWMI) buildBat(param *InstallParamsWin) string {
 
 	return installCmd
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionInstallNodeByWMI) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionInstallNodeByWMI) DisplayNameEn() string { return act.Name() }

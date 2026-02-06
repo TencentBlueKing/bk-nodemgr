@@ -51,6 +51,16 @@ func (act *actionResetNodeDynamic) Name() string {
 	return ActionNameResetNodeDynamic
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionResetNodeDynamic) DisplayNameZh() string {
+	return "重置节点动态信息"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionResetNodeDynamic) DisplayNameEn() string {
+	return "Reset Node Dynamic Info"
+}
+
 // Version returns the version of the action.
 func (act *actionResetNodeDynamic) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -118,22 +128,36 @@ func (act *actionResetNodeDynamic) Do(ctx *action.InstanceContext) error {
 	std.DeployInfo().Host.Dynamic.RelayCallbackPort = 0
 	std.DeployInfo().Host.Dynamic.ProxyAccessDisabled = false
 
-	ctx.Data.LogI(fmt.Sprintf(
-		"reset node dynamic info: node-role(%s), node-status(%s), agent-id(%s), proxy-tags(%v), "+
+	ctx.Data.Log().
+		Zh("重置节点动态信息: node-role(%s)，node-status(%s)，agent-id(%s)，proxy-tags(%v)，"+
+			"proxy-cluster-port(%d)，proxy-data-port(%d)，proxy-file-port(%d)，proxy-install-origin-unit-id(%d)，"+
+			"relay-download-port(%d)，relay-callback-port(%d)，proxy-access-disabled(%t)",
+			std.DeployInfo().Host.Dynamic.NodeRole,
+			std.DeployInfo().Host.Dynamic.NodeStatus,
+			std.DeployInfo().Host.Dynamic.AgentID,
+			std.DeployInfo().Host.Dynamic.ProxyTags,
+			std.DeployInfo().Host.Dynamic.ProxyClusterPort,
+			std.DeployInfo().Host.Dynamic.ProxyDataPort,
+			std.DeployInfo().Host.Dynamic.ProxyFilePort,
+			std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID,
+			std.DeployInfo().Host.Dynamic.RelayDownloadPort,
+			std.DeployInfo().Host.Dynamic.RelayCallbackPort,
+			std.DeployInfo().Host.Dynamic.ProxyAccessDisabled).
+		En("reset node dynamic info: node-role(%s), node-status(%s), agent-id(%s), proxy-tags(%v), "+
 			"proxy-cluster-port(%d), proxy-data-port(%d), proxy-file-port(%d), proxy-install-origin-unit-id(%d), "+
 			"relay-download-port(%d), relay-callback-port(%d), proxy-access-disabled(%t)",
-		std.DeployInfo().Host.Dynamic.NodeRole,
-		std.DeployInfo().Host.Dynamic.NodeStatus,
-		std.DeployInfo().Host.Dynamic.AgentID,
-		std.DeployInfo().Host.Dynamic.ProxyTags,
-		std.DeployInfo().Host.Dynamic.ProxyClusterPort,
-		std.DeployInfo().Host.Dynamic.ProxyDataPort,
-		std.DeployInfo().Host.Dynamic.ProxyFilePort,
-		std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID,
-		std.DeployInfo().Host.Dynamic.RelayDownloadPort,
-		std.DeployInfo().Host.Dynamic.RelayCallbackPort,
-		std.DeployInfo().Host.Dynamic.ProxyAccessDisabled,
-	))
+			std.DeployInfo().Host.Dynamic.NodeRole,
+			std.DeployInfo().Host.Dynamic.NodeStatus,
+			std.DeployInfo().Host.Dynamic.AgentID,
+			std.DeployInfo().Host.Dynamic.ProxyTags,
+			std.DeployInfo().Host.Dynamic.ProxyClusterPort,
+			std.DeployInfo().Host.Dynamic.ProxyDataPort,
+			std.DeployInfo().Host.Dynamic.ProxyFilePort,
+			std.DeployInfo().Host.Dynamic.ProxyInstallOriginUnitID,
+			std.DeployInfo().Host.Dynamic.RelayDownloadPort,
+			std.DeployInfo().Host.Dynamic.RelayCallbackPort,
+			std.DeployInfo().Host.Dynamic.ProxyAccessDisabled).
+		Info()
 
 	if err := act.storageNodeDeployment.UpdateNodeDeploymentInfo(std.Context(), std.Token(), std.DeployInfo()); err != nil {
 		return fmt.Errorf("update node deployment info failed: %w", err)
@@ -141,9 +165,3 @@ func (act *actionResetNodeDynamic) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionResetNodeDynamic) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionResetNodeDynamic) DisplayNameEn() string { return act.Name() }

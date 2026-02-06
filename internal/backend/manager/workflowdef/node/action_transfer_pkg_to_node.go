@@ -62,6 +62,16 @@ func (act *actionTransferPkgToNode) Name() string {
 	return ActionNameTransferPkgToNode
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionTransferPkgToNode) DisplayNameZh() string {
+	return "传输安装包到节点"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionTransferPkgToNode) DisplayNameEn() string {
+	return "Transfer Package to Node"
+}
+
 // Version returns the version of the action.
 func (act *actionTransferPkgToNode) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -143,7 +153,10 @@ func (act *actionTransferPkgToNode) Do(ctx *action.InstanceContext) error {
 	}
 
 	logger.G.Sys().With("host-id", std.DeployInfo().Host.HostID).Info("transfer pkg to node all done")
-	std.InstanceData().LogI("transfer pkg to node all done")
+	std.InstanceData().Log().
+		Zh("传输安装包到节点全部完成").
+		En("transfer pkg to node all done").
+		Info()
 
 	return nil
 }
@@ -240,9 +253,3 @@ func (act *actionTransferPkgToNode) transferInstaller(nCtx contextx.IContext, in
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionTransferPkgToNode) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionTransferPkgToNode) DisplayNameEn() string { return act.Name() }

@@ -65,6 +65,16 @@ func (act *actionDetectInfoBySSH) Name() string {
 	return ActionNameDetectInfoBySSH
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionDetectInfoBySSH) DisplayNameZh() string {
+	return "通过 SSH 探测主机信息"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionDetectInfoBySSH) DisplayNameEn() string {
+	return "Detect Host Info via SSH"
+}
+
 // Version returns the version of the action.
 func (act *actionDetectInfoBySSH) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -178,7 +188,11 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 
 	releaseType, err := types.ConvertNodeRoleToReleaseType(std.DeployInfo().Host.Dynamic.NodeRole)
 	if err != nil {
-		std.InstanceData().LogE(fmt.Sprintf("failed to convert node role to release type. err: %v", err))
+		std.InstanceData().Log().
+			Zh("转换节点角色到发布类型失败，错误: %v", err).
+			En("failed to convert node role to release type. err: %v", err).
+			Error()
+
 		return err
 	}
 
@@ -187,7 +201,10 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
-				std.InstanceData().LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+				std.InstanceData().Log().
+					Zh("用户选择，使用目标版本 version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					En("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					Info()
 
 				break
 			}
@@ -205,7 +222,10 @@ func (act *actionDetectInfoBySSH) Do(ctx *action.InstanceContext) error {
 		if err != nil {
 			return err
 		}
-		std.InstanceData().LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.InstanceData().Log().
+			Zh("自动选择，使用系统默认版本 version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			En("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			Info()
 	}
 
 	err = checkVersionAvailability(
@@ -250,7 +270,10 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 
 		return "", "", "", err
 	}
-	data.LogI(fmt.Sprintf("host-os-type(%s)", osType))
+	data.Log().
+		Zh("主机操作系统类型(%s)", osType).
+		En("host-os-type(%s)", osType).
+		Info()
 
 	// 2. detect target cpu arch
 	cpuArchStr, err := client.RunCommand("uname -m")
@@ -265,7 +288,10 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 		return "", "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
 
-	data.LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
+	data.Log().
+		Zh("主机 CPU 架构(%s)", cpuArch).
+		En("host-cpu-arch(%s)", cpuArch).
+		Info()
 
 	// 3. detect target dir
 	connectedDir, err = client.RunCommand("pwd")
@@ -277,13 +303,10 @@ func (act *actionDetectInfoBySSH) detectInfo(data *action.InstanceData, client *
 	connectedDir = strings.TrimFunc(connectedDir, func(r rune) bool {
 		return r == '\n'
 	})
-	data.LogI(fmt.Sprintf("connected-dir(%s)", connectedDir))
+	data.Log().
+		Zh("连接目录(%s)", connectedDir).
+		En("connected-dir(%s)", connectedDir).
+		Info()
 
 	return osType, cpuArch, connectedDir, nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionDetectInfoBySSH) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionDetectInfoBySSH) DisplayNameEn() string { return act.Name() }

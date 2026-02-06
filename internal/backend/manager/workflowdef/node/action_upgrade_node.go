@@ -84,6 +84,16 @@ func (act *actionUpgradeNode) Name() string {
 	return ActionNameUpgradeNode
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUpgradeNode) DisplayNameZh() string {
+	return "升级节点"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUpgradeNode) DisplayNameEn() string {
+	return "Upgrade Node"
+}
+
 // Version returns the version of the action.
 func (act *actionUpgradeNode) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -222,7 +232,10 @@ func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder,
 	upgradeLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	upgradeCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdFullUpgrade, strings.Join(args, " "), upgradeLogPath)
-	std.InstanceData().LogI("upgrade node cmd: " + upgradeCmd)
+	std.InstanceData().Log().
+		Zh("升级节点命令: %s", upgradeCmd).
+		En("upgrade node cmd: %s", upgradeCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
@@ -240,7 +253,10 @@ func (act *actionUpgradeNode) doUpgradeUnix(std *nodeUtils.NodeActionStandarder,
 	if err != nil {
 		return fmt.Errorf("failed to execute upgrade script: %w", err)
 	}
-	std.InstanceData().LogI("upgrade node task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("升级节点 task-id: %s", taskID).
+		En("upgrade node task-id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -269,7 +285,10 @@ func (act *actionUpgradeNode) doUpgradeWindows(std *nodeUtils.NodeActionStandard
 	upgradeLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	upgradeCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdFullUpgrade, strings.Join(args, " "), upgradeLogPath)
-	std.InstanceData().LogI("upgrade node cmd: " + upgradeCmd)
+	std.InstanceData().Log().
+		Zh("升级节点命令: %s", upgradeCmd).
+		En("upgrade node cmd: %s", upgradeCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
@@ -286,13 +305,10 @@ func (act *actionUpgradeNode) doUpgradeWindows(std *nodeUtils.NodeActionStandard
 	if err != nil {
 		return fmt.Errorf("failed to execute upgrade script: %w", err)
 	}
-	std.InstanceData().LogI("upgrade node task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("升级节点 task-id: %s", taskID).
+		En("upgrade node task-id: %s", taskID).
+		Info()
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionUpgradeNode) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionUpgradeNode) DisplayNameEn() string { return act.Name() }

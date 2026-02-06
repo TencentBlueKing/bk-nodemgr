@@ -52,6 +52,16 @@ func (act *actionUpdateHost) Name() string {
 	return ActionNameUpdateHost
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUpdateHost) DisplayNameZh() string {
+	return "更新主机信息"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUpdateHost) DisplayNameEn() string {
+	return "Update Host"
+}
+
 // Version returns the version of the action.
 func (act *actionUpdateHost) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -110,9 +120,3 @@ func (act *actionUpdateHost) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionUpdateHost) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionUpdateHost) DisplayNameEn() string { return act.Name() }

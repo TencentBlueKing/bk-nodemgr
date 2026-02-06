@@ -12,7 +12,6 @@ package node
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	nodeUtils "github.com/TencentBlueKing/bk-nodemgr/internal/backend/manager/workflowdef/node/utils"
@@ -48,6 +47,16 @@ type actionEnableReleaseTransfer struct {
 // Name returns the name of the action.
 func (act *actionEnableReleaseTransfer) Name() string {
 	return ActionNameEnableReleaseTransfer
+}
+
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionEnableReleaseTransfer) DisplayNameZh() string {
+	return "开启版本下载"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionEnableReleaseTransfer) DisplayNameEn() string {
+	return "Enable Release Transfer"
 }
 
 // Version returns the version of the action.
@@ -108,14 +117,12 @@ func (act *actionEnableReleaseTransfer) Do(ctx *action.InstanceContext) error {
 	std.DeployInfo().TransferOptions.EnableInstaller = false
 	std.DeployInfo().TransferOptions.EnableReleasePackage = true
 
-	std.InstanceData().LogI(fmt.Sprintf("enable release transfer success. installer(%v), release(%v)",
-		std.DeployInfo().TransferOptions.EnableInstaller, std.DeployInfo().TransferOptions.EnableReleasePackage))
+	std.InstanceData().Log().
+		Zh("启用发布包传输成功，安装器(%v)，发布包(%v)",
+			std.DeployInfo().TransferOptions.EnableInstaller, std.DeployInfo().TransferOptions.EnableReleasePackage).
+		En("enable release transfer success. installer(%v), release(%v)",
+			std.DeployInfo().TransferOptions.EnableInstaller, std.DeployInfo().TransferOptions.EnableReleasePackage).
+		Info()
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionEnableReleaseTransfer) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionEnableReleaseTransfer) DisplayNameEn() string { return act.Name() }

@@ -54,6 +54,16 @@ func (act *TryReuseAgentID) Name() string {
 	return ActionNameTryReuseAgentID
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *TryReuseAgentID) DisplayNameZh() string {
+	return "尝试复用 Agent ID"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *TryReuseAgentID) DisplayNameEn() string {
+	return "Try Reuse Agent ID"
+}
+
 // Version returns the version of the action.
 func (act *TryReuseAgentID) Version() string {
 	return "v1.0.0"
@@ -112,7 +122,10 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 
 	// force re-register the agentID.
 	if std.DeployInfo().InstallOptions.ReRegister {
-		std.InstanceData().LogI("force re-register, will not reuse agent id")
+		std.InstanceData().Log().
+			Zh("强制重新注册，不会复用 agent id").
+			En("force re-register, will not reuse agent id").
+			Info()
 		logger.G.Sys().Info("force re-register, will not reuse agent id")
 
 		return nil
@@ -136,7 +149,10 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 	// not match host, can't reuse.
 	// maybe: host don't exist, or host 's network area changed.
 	if count == 0 {
-		std.InstanceData().LogW("not match host, can't reuse agent id")
+		std.InstanceData().Log().
+			Zh("未匹配到主机，无法复用 agent id").
+			En("not match host, can't reuse agent id").
+			Warn()
 		logger.G.Sys().Info("not match host, can't reuse agent id")
 
 		return nil
@@ -144,14 +160,11 @@ func (act *TryReuseAgentID) Do(ctx *action.InstanceContext) error {
 
 	std.DeployInfo().Host.Dynamic.AgentID = hosts[0].Dynamic.AgentID
 
-	std.InstanceData().LogI(fmt.Sprintf("find agent id, try reuse it, agent-id(%s)", std.DeployInfo().Host.Dynamic.AgentID))
+	std.InstanceData().Log().
+		Zh("找到 agent id，尝试复用，agent-id(%s)", std.DeployInfo().Host.Dynamic.AgentID).
+		En("find agent id, try reuse it, agent-id(%s)", std.DeployInfo().Host.Dynamic.AgentID).
+		Info()
 	logger.G.Sys().With("agent-id", std.DeployInfo().Host.Dynamic.AgentID).Info("find agent id, try reuse it")
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *TryReuseAgentID) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *TryReuseAgentID) DisplayNameEn() string { return act.Name() }

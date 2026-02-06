@@ -89,6 +89,16 @@ func (act *actionPagentDetectInfoByWMI) Name() string {
 	return ActionNamePagentDetectInfoByWMI
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionPagentDetectInfoByWMI) DisplayNameZh() string {
+	return "通过 WMI 探测 P-Agent 信息"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionPagentDetectInfoByWMI) DisplayNameEn() string {
+	return "Detect P-Agent Info via WMI"
+}
+
 // Version returns the version of the action.
 func (act *actionPagentDetectInfoByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -188,7 +198,10 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) error {
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
-				std.InstanceData().LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+				std.InstanceData().Log().
+					Zh("用户选择，使用目标版本。version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					En("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					Info()
 
 				break
 			}
@@ -206,7 +219,10 @@ func (act *actionPagentDetectInfoByWMI) Do(ctx *action.InstanceContext) error {
 		if err != nil {
 			return err
 		}
-		std.InstanceData().LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.InstanceData().Log().
+			Zh("自动选择，使用系统默认版本。version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			En("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			Info()
 	}
 
 	err = checkVersionAvailability(
@@ -287,21 +303,33 @@ func (act *actionPagentDetectInfoByWMI) notifyRelayToDetectMultiRelay(
 	var lastErr error
 	for i, relayInfo := range relayInfos {
 		if relayInfo == nil || relayInfo.AgentID == "" {
-			std.InstanceData().LogW(fmt.Sprintf("relay info at index %d has no agent id, trying next", i))
+			std.InstanceData().Log().
+				Zh("索引 %d 的 relay 信息没有 agent id，尝试下一个", i).
+				En("relay info at index %d has no agent id, trying next", i).
+				Warn()
+
 			continue
 		}
 
-		std.InstanceData().LogI(fmt.Sprintf("attempting to send detect info to relay, index(%d/%d), agent-id(%s)",
-			i+1, len(relayInfos), relayInfo.AgentID))
+		std.InstanceData().Log().
+			Zh("正在尝试向 relay 发送探测信息，索引(%d/%d)，agent-id(%s)", i+1, len(relayInfos), relayInfo.AgentID).
+			En("attempting to send detect info to relay, index(%d/%d), agent-id(%s)", i+1, len(relayInfos), relayInfo.AgentID).
+			Info()
 
 		err := act.notifyRelayToDetectSingle(std, data, relayInfo)
 		if err == nil {
-			std.InstanceData().LogI(fmt.Sprintf("detect info by wmi sent to relay successfully, agent-id(%s)", relayInfo.AgentID))
+			std.InstanceData().Log().
+				Zh("WMI 探测信息已成功发送到 relay，agent-id(%s)", relayInfo.AgentID).
+				En("detect info by wmi sent to relay successfully, agent-id(%s)", relayInfo.AgentID).
+				Info()
+
 			return nil
 		}
 
-		std.InstanceData().LogW(fmt.Sprintf("failed to send detect info to relay, index(%d/%d), agent-id(%s): %v",
-			i+1, len(relayInfos), relayInfo.AgentID, err))
+		std.InstanceData().Log().
+			Zh("向 relay 发送探测信息失败，索引(%d/%d)，agent-id(%s): %v", i+1, len(relayInfos), relayInfo.AgentID, err).
+			En("failed to send detect info to relay, index(%d/%d), agent-id(%s): %v", i+1, len(relayInfos), relayInfo.AgentID, err).
+			Warn()
 		lastErr = err
 	}
 
@@ -370,16 +398,12 @@ func (act *actionPagentDetectInfoByWMI) waitForRelayReportDetect(
 				return "", "", fmt.Errorf("failed to detect info: %w", err)
 			}
 
-			std.InstanceData().LogI(fmt.Sprintf("wait for relay report detect result successfully, os-type(%s), cpu-arch(%s)",
-				osType, cpuArch))
+			std.InstanceData().Log().
+				Zh("等待 relay 报告探测结果成功，os-type(%s)，cpu-arch(%s)", osType, cpuArch).
+				En("wait for relay report detect result successfully, os-type(%s), cpu-arch(%s)", osType, cpuArch).
+				Info()
 
 			return osType, cpuArch, nil
 		}
 	}
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionPagentDetectInfoByWMI) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionPagentDetectInfoByWMI) DisplayNameEn() string { return act.Name() }

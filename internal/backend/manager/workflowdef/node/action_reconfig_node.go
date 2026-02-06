@@ -82,6 +82,16 @@ func (act *actionReconfigNode) Name() string {
 	return ActionNameReconfigNode
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionReconfigNode) DisplayNameZh() string {
+	return "重新配置节点"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionReconfigNode) DisplayNameEn() string {
+	return "Reconfigure Node"
+}
+
 // Version returns the version of the action.
 func (act *actionReconfigNode) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -206,7 +216,10 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 	reconfigLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	reconfigCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdFullReconfig, strings.Join(args, " "), reconfigLogPath)
-	std.InstanceData().LogI("reconfig node cmd: " + reconfigCmd)
+	std.InstanceData().Log().
+		Zh("重新配置节点命令: %s", reconfigCmd).
+		En("reconfig node cmd: %s", reconfigCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
@@ -224,7 +237,10 @@ func (act *actionReconfigNode) doReconfigUnix(std *nodeUtils.NodeActionStandarde
 	if err != nil {
 		return fmt.Errorf("failed to execute reconfig script: %w", err)
 	}
-	std.InstanceData().LogI("reconfig node task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("重新配置节点 task-id: %s", taskID).
+		En("reconfig node task-id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -250,7 +266,10 @@ func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStanda
 	reconfigLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	reconfigCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdFullReconfig, strings.Join(args, " "), reconfigLogPath)
-	std.InstanceData().LogI("reconfig node cmd: " + reconfigCmd)
+	std.InstanceData().Log().
+		Zh("重新配置节点命令: %s", reconfigCmd).
+		En("reconfig node cmd: %s", reconfigCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
@@ -267,13 +286,10 @@ func (act *actionReconfigNode) doReconfigWindows(std *nodeUtils.NodeActionStanda
 	if err != nil {
 		return fmt.Errorf("failed to execute reconfig script: %w", err)
 	}
-	std.InstanceData().LogI("reconfig node task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("重新配置节点 task-id: %s", taskID).
+		En("reconfig node task-id: %s", taskID).
+		Info()
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionReconfigNode) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionReconfigNode) DisplayNameEn() string { return act.Name() }

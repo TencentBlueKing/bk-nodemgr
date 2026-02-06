@@ -90,6 +90,16 @@ func (act *actionInstallNodeByManual) Name() string {
 	return ActionNameInstallNodeByManual
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionInstallNodeByManual) DisplayNameZh() string {
+	return "通过手动方式安装节点"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionInstallNodeByManual) DisplayNameEn() string {
+	return "Install Node Manually"
+}
+
 // Version returns the version of the action.
 func (act *actionInstallNodeByManual) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -223,7 +233,10 @@ func (act *actionInstallNodeByManual) generateInstallCMD(std *nodeUtils.NodeActi
 		return fmt.Errorf("failed to save manual install exec command to private data: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("generated manual install exec command: %s", installCmd))
+	std.InstanceData().Log().
+		Zh("已生成手动安装执行命令: %s", installCmd).
+		En("generated manual install exec command: %s", installCmd).
+		Info()
 
 	return nil
 }
@@ -306,9 +319,3 @@ func (act *actionInstallNodeByManual) selectServiceURLs(std *nodeUtils.NodeActio
 
 	return nodeUtils.BuildServerURLs(callbackSvrEndpoint...), nodeUtils.BuildServerURLs(downloadSvrEndpoint...), nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionInstallNodeByManual) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionInstallNodeByManual) DisplayNameEn() string { return act.Name() }

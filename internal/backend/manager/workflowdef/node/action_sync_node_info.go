@@ -55,6 +55,16 @@ func (act *actionSyncNodeInfo) Name() string {
 	return ActionNameSyncNodeInfo
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionSyncNodeInfo) DisplayNameZh() string {
+	return "同步节点信息"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionSyncNodeInfo) DisplayNameEn() string {
+	return "Sync Node Info"
+}
+
 // Version returns the version of the action.
 func (act *actionSyncNodeInfo) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -134,9 +144,3 @@ func (act *actionSyncNodeInfo) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionSyncNodeInfo) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionSyncNodeInfo) DisplayNameEn() string { return act.Name() }

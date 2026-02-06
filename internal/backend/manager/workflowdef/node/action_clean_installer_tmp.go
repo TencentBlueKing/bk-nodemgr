@@ -76,6 +76,16 @@ func (act *actionCleanInstaller) Name() string {
 	return ActionNameCleanInstaller
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionCleanInstaller) DisplayNameZh() string {
+	return "清理安装临时文件"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionCleanInstaller) DisplayNameEn() string {
+	return "Clean Installer Temp Files"
+}
+
 // Version returns the version of the action.
 func (act *actionCleanInstaller) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -176,7 +186,10 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	cleanCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdStepCleanTmp, strings.Join(args, " "), cleanLogPath)
-	std.InstanceData().LogI("clean installer cmd: " + cleanCmd)
+	std.InstanceData().Log().
+		Zh("清理安装器命令: %s", cleanCmd).
+		En("clean installer cmd: %s", cleanCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
@@ -194,7 +207,10 @@ func (act *actionCleanInstaller) doCleanUnix(std *nodeUtils.NodeActionStandarder
 	if err != nil {
 		return fmt.Errorf("failed to execute clean installer script: %w", err)
 	}
-	std.InstanceData().LogI("clean installer task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("清理安装器任务ID: %s", taskID).
+		En("clean installer task-id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -217,7 +233,10 @@ func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandar
 	cleanLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	cleanCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdStepCleanTmp, strings.Join(args, " "), cleanLogPath)
-	std.InstanceData().LogI("clean installer cmd: " + cleanCmd)
+	std.InstanceData().Log().
+		Zh("清理安装器命令: %s", cleanCmd).
+		En("clean installer cmd: %s", cleanCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
@@ -234,13 +253,10 @@ func (act *actionCleanInstaller) doCleanWindows(std *nodeUtils.NodeActionStandar
 	if err != nil {
 		return fmt.Errorf("failed to execute clean installer script: %w", err)
 	}
-	std.InstanceData().LogI("clean installer task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("清理安装器任务ID: %s", taskID).
+		En("clean installer task-id: %s", taskID).
+		Info()
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionCleanInstaller) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionCleanInstaller) DisplayNameEn() string { return act.Name() }

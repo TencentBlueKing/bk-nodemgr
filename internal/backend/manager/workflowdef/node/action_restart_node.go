@@ -74,6 +74,16 @@ func (act *actionRestartNode) Name() string {
 	return ActionNameRestartNode
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionRestartNode) DisplayNameZh() string {
+	return "重启节点"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionRestartNode) DisplayNameEn() string {
+	return "Restart Node"
+}
+
 // Version returns the version of the action.
 func (act *actionRestartNode) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -156,8 +166,12 @@ func (act *actionRestartNode) restartThroughCluster(std *nodeUtils.NodeActionSta
 	if len(result.MissingAgentIDs) > 0 {
 		return fmt.Errorf("failed to operate agent for restarting. not-available-agent-ids(%v)", result.MissingAgentIDs)
 	}
-	std.InstanceData().LogI(fmt.Sprintf("restart node through operating agent with cluster. agent-id(%s), force(%t), timeout(%.2fs)",
-		info.Host.Dynamic.AgentID, info.RestartOptions.ForceRestart, info.RestartOptions.GracefulRestartTimeout.Seconds()))
+	std.InstanceData().Log().
+		Zh("通过集群操作代理重启节点，agent-id(%s)，强制(%t)，超时(%.2fs)",
+			info.Host.Dynamic.AgentID, info.RestartOptions.ForceRestart, info.RestartOptions.GracefulRestartTimeout.Seconds()).
+		En("restart node through operating agent with cluster. agent-id(%s), force(%t), timeout(%.2fs)",
+			info.Host.Dynamic.AgentID, info.RestartOptions.ForceRestart, info.RestartOptions.GracefulRestartTimeout.Seconds()).
+		Info()
 
 	return nil
 }
@@ -210,7 +224,10 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 	restartLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	restartCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdStepRestart, strings.Join(args, " "), restartLogPath)
-	std.InstanceData().LogI("restart cmd: " + restartCmd)
+	std.InstanceData().Log().
+		Zh("重启命令: %s", restartCmd).
+		En("restart cmd: %s", restartCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
@@ -228,7 +245,10 @@ func (act *actionRestartNode) restartThroughCommandUnix(std *nodeUtils.NodeActio
 	if err != nil {
 		return fmt.Errorf("failed to execute restart node script: %w", err)
 	}
-	std.InstanceData().LogI("restart node task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("重启节点任务ID: %s", taskID).
+		En("restart node task-id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -251,7 +271,10 @@ func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeAc
 	restartLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	restartCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdStepRestart, strings.Join(args, " "), restartLogPath)
-	std.InstanceData().LogI("restart cmd: " + restartCmd)
+	std.InstanceData().Log().
+		Zh("重启命令: %s", restartCmd).
+		En("restart cmd: %s", restartCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
@@ -268,13 +291,10 @@ func (act *actionRestartNode) restartThroughCommandWindows(std *nodeUtils.NodeAc
 	if err != nil {
 		return fmt.Errorf("failed to execute restart node script: %w", err)
 	}
-	std.InstanceData().LogI("restart node task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("重启节点任务ID: %s", taskID).
+		En("restart node task-id: %s", taskID).
+		Info()
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionRestartNode) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionRestartNode) DisplayNameEn() string { return act.Name() }

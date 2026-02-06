@@ -65,6 +65,16 @@ func (act *actionUpgradePagent) Name() string {
 	return ActionNameUpgradePagent
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUpgradePagent) DisplayNameZh() string {
+	return "升级 P-Agent"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUpgradePagent) DisplayNameEn() string {
+	return "Upgrade P-Agent"
+}
+
 // Version returns the version of the action.
 func (act *actionUpgradePagent) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -176,7 +186,10 @@ func (act *actionUpgradePagent) setupUpgradeParams(
 		BaseDeployDir:    deployConstant.BaseDeployDir,
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("build upgrade params success. params(%v)", upgradeParams))
+	std.InstanceData().Log().
+		Zh("构建升级参数成功。params(%v)", upgradeParams).
+		En("build upgrade params success. params(%v)", upgradeParams).
+		Info()
 
 	return upgradeParams, nil
 }
@@ -204,7 +217,10 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarde
 	upgradeLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	upgradeCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdFullUpgrade, strings.Join(args, " "), upgradeLogPath)
-	std.InstanceData().LogI("upgrade node command: " + upgradeCmd)
+	std.InstanceData().Log().
+		Zh("升级节点命令: %s", upgradeCmd).
+		En("upgrade node command: %s", upgradeCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
@@ -223,7 +239,10 @@ func (act *actionUpgradePagent) doUpgradeUnix(std *nodeUtils.NodeActionStandarde
 		return fmt.Errorf("failed to execute upgrade script: %w", err)
 	}
 
-	std.InstanceData().LogI("upgrade node task id: " + taskID)
+	std.InstanceData().Log().
+		Zh("升级节点 task id: %s", taskID).
+		En("upgrade node task id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -251,7 +270,10 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 	upgradeLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	upgradeCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdFullUpgrade, strings.Join(args, " "), upgradeLogPath)
-	std.InstanceData().LogI("upgrade node command: " + upgradeCmd)
+	std.InstanceData().Log().
+		Zh("升级节点命令: %s", upgradeCmd).
+		En("upgrade node command: %s", upgradeCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
@@ -269,7 +291,10 @@ func (act *actionUpgradePagent) doUpgradeWindows(std *nodeUtils.NodeActionStanda
 		return fmt.Errorf("failed to execute upgrade script: %w", err)
 	}
 
-	std.InstanceData().LogI("upgrade node task id: " + taskID)
+	std.InstanceData().Log().
+		Zh("升级节点 task id: %s", taskID).
+		En("upgrade node task id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -292,13 +317,10 @@ func (act *actionUpgradePagent) selectServiceURLs(std *nodeUtils.NodeActionStand
 		return "", "", fmt.Errorf("failed to build relay service urls: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("relay download svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr))
+	std.InstanceData().Log().
+		Zh("relay 下载服务地址(%s)，回调服务地址(%s)", downloadSvrAddr, callbackSvrAddr).
+		En("relay download svr addr(%s), callback svr addr(%s)", downloadSvrAddr, callbackSvrAddr).
+		Info()
 
 	return downloadSvrAddr, callbackSvrAddr, nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionUpgradePagent) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionUpgradePagent) DisplayNameEn() string { return act.Name() }

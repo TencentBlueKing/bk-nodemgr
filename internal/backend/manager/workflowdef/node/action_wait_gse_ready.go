@@ -56,6 +56,16 @@ func (act *actionWaitGseReady) Name() string {
 	return ActionNameWaitGseReady
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionWaitGseReady) DisplayNameZh() string {
+	return "等待 GSE 就绪"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionWaitGseReady) DisplayNameEn() string {
+	return "Wait for GSE Ready"
+}
+
 // Version returns the version of the action.
 func (act *actionWaitGseReady) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -137,16 +147,13 @@ func (act *actionWaitGseReady) Do(ctx *action.InstanceContext) error {
 		return nil
 	})
 	if err != nil {
-		std.InstanceData().LogE("failed to query agent state: " + err.Error())
+		std.InstanceData().Log().
+			Zh("查询 agent 状态失败: %s", err.Error()).
+			En("failed to query agent state: %s", err.Error()).
+			Error()
 
 		return err
 	}
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionWaitGseReady) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionWaitGseReady) DisplayNameEn() string { return act.Name() }

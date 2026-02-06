@@ -82,6 +82,16 @@ func (act *actionUninstallNode) Name() string {
 	return ActionNameUninstallNode
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionUninstallNode) DisplayNameZh() string {
+	return "卸载节点"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionUninstallNode) DisplayNameEn() string {
+	return "Uninstall Node"
+}
+
 // Version returns the version of the action.
 func (act *actionUninstallNode) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -207,7 +217,10 @@ func (act *actionUninstallNode) doUninstallUnix(std *nodeUtils.NodeActionStandar
 	uninstallLogPath := path.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	uninstallCmd := fmt.Sprintf("chmod +x %s && %s %s %s >%s 2>&1 &",
 		installerPath, installerPath, installer.NodeCmdFullUninstall, strings.Join(args, " "), uninstallLogPath)
-	std.InstanceData().LogI("uninstall node cmd: " + uninstallCmd)
+	std.InstanceData().Log().
+		Zh("卸载节点命令: %s", uninstallCmd).
+		En("uninstall node cmd: %s", uninstallCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBash,
@@ -225,7 +238,10 @@ func (act *actionUninstallNode) doUninstallUnix(std *nodeUtils.NodeActionStandar
 	if err != nil {
 		return fmt.Errorf("failed to execute uninstall script: %w", err)
 	}
-	std.InstanceData().LogI("uninstall node task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("卸载节点 task-id: %s", taskID).
+		En("uninstall node task-id: %s", taskID).
+		Info()
 
 	return nil
 }
@@ -251,7 +267,10 @@ func (act *actionUninstallNode) doUninstallWindows(std *nodeUtils.NodeActionStan
 	uninstallLogPath := winpath.Clean(fmt.Sprintf("%s.stdout", installerPath))
 	uninstallCmd := fmt.Sprintf("%s %s %s >%s 2>&1",
 		installerPath, installer.NodeCmdFullUninstall, strings.Join(args, " "), uninstallLogPath)
-	std.InstanceData().LogI("uninstall node cmd: " + uninstallCmd)
+	std.InstanceData().Log().
+		Zh("卸载节点命令: %s", uninstallCmd).
+		En("uninstall node cmd: %s", uninstallCmd).
+		Info()
 
 	taskID, err := act.gseHandler.ExecuteScript(std.Context(),
 		types.ScriptTypeBat,
@@ -268,13 +287,10 @@ func (act *actionUninstallNode) doUninstallWindows(std *nodeUtils.NodeActionStan
 	if err != nil {
 		return fmt.Errorf("failed to execute uninstall script: %w", err)
 	}
-	std.InstanceData().LogI("uninstall node task-id: " + taskID)
+	std.InstanceData().Log().
+		Zh("卸载节点 task-id: %s", taskID).
+		En("uninstall node task-id: %s", taskID).
+		Info()
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionUninstallNode) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionUninstallNode) DisplayNameEn() string { return act.Name() }

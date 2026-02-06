@@ -66,6 +66,16 @@ func (act *actionDetectInfoByWMI) Name() string {
 	return ActionNameDetectInfoByWMI
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionDetectInfoByWMI) DisplayNameZh() string {
+	return "通过 WMI 探测主机信息"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionDetectInfoByWMI) DisplayNameEn() string {
+	return "Detect Host Info via WMI"
+}
+
 // Version returns the version of the action.
 func (act *actionDetectInfoByWMI) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -180,7 +190,10 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 			if std.DeployInfo().Host.Dynamic.NodeOsType == v.OsType && std.DeployInfo().Host.Dynamic.NodeCPUArch == v.CPUArch {
 				// you can guarantee that there are no duplicates in the TargetVersion.
 				std.DeployInfo().Host.Dynamic.NodeVersion = v.Version
-				std.InstanceData().LogI(fmt.Sprintf("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+				std.InstanceData().Log().
+					Zh("用户选择，使用目标版本 version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					En("user select, using target version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+					Info()
 
 				break
 			}
@@ -198,7 +211,10 @@ func (act *actionDetectInfoByWMI) Do(ctx *action.InstanceContext) (err error) {
 		if err != nil {
 			return err
 		}
-		std.InstanceData().LogI(fmt.Sprintf("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion))
+		std.InstanceData().Log().
+			Zh("自动选择，使用系统默认版本 version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			En("auto select, using system default version. version(%s)", std.DeployInfo().Host.Dynamic.NodeVersion).
+			Info()
 	}
 
 	err = checkVersionAvailability(
@@ -244,7 +260,10 @@ func (act *actionDetectInfoByWMI) detectInfo(std *nodeUtils.NodeActionStandarder
 
 		return "", "", err
 	}
-	std.InstanceData().LogI(fmt.Sprintf("host-os-type(%s)", osType))
+	std.InstanceData().Log().
+		Zh("主机操作系统类型(%s)", osType).
+		En("host-os-type(%s)", osType).
+		Info()
 
 	// 2. detect target cpu arch
 	cpuArchStr, _, err := client.RunCommand(std.Context(), "echo %PROCESSOR_ARCHITECTURE%")
@@ -259,13 +278,10 @@ func (act *actionDetectInfoByWMI) detectInfo(std *nodeUtils.NodeActionStandarder
 		return "", "", fmt.Errorf("failed to detect info: %w", err)
 	}
 
-	std.InstanceData().LogI(fmt.Sprintf("host-cpu-arch(%s)", cpuArch))
+	std.InstanceData().Log().
+		Zh("主机 CPU 架构(%s)", cpuArch).
+		En("host-cpu-arch(%s)", cpuArch).
+		Info()
 
 	return osType, cpuArch, nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionDetectInfoByWMI) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionDetectInfoByWMI) DisplayNameEn() string { return act.Name() }

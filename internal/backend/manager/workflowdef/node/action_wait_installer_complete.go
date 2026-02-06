@@ -59,6 +59,16 @@ func (act *actionWaitInstallerComplete) Name() string {
 	return ActionNameWaitInstallerComplete
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionWaitInstallerComplete) DisplayNameZh() string {
+	return "等待安装器完成"
+}
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionWaitInstallerComplete) DisplayNameEn() string {
+	return "Wait for Installer Complete"
+}
+
 // Version returns the version of the action.
 func (act *actionWaitInstallerComplete) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -134,12 +144,18 @@ func (act *actionWaitInstallerComplete) Do(ctx *action.InstanceContext) error {
 	case installer.ProcessStateSuccess:
 		// reset action context
 		std.ResetInstanceDataContext()
-		std.InstanceData().LogI("received installer result is success")
+		std.InstanceData().Log().
+			Zh("接收到安装器结果为成功").
+			En("received installer result is success").
+			Info()
 
 		return nil
 
 	case installer.ProcessStateFailed, installer.ProcessStateTimeout:
-		std.InstanceData().LogI(fmt.Sprintf("received installer result is not success. installer-result(%s)", installerResult))
+		std.InstanceData().Log().
+			Zh("接收到安装器结果不成功。installer-result(%s)", installerResult).
+			En("received installer result is not success. installer-result(%s)", installerResult).
+			Info()
 
 		return fmt.Errorf("installer failed. oper-inst-id(%s), action-name(%s), installer-result(%s)",
 			instanceID, ActionNameWaitInstallerComplete, installerResult)
@@ -201,9 +217,3 @@ func (act *actionWaitInstallerComplete) tryFetchValue(std *nodeUtils.NodeActionS
 
 	return value, nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionWaitInstallerComplete) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionWaitInstallerComplete) DisplayNameEn() string { return act.Name() }
