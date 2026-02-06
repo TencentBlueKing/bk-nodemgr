@@ -84,13 +84,15 @@ func ConvActInstLifeCycleFromDB(lifeCycle *LifeCycle) *action.Lifecycle {
 // ConvActionInstDataToDB convert action inst data to db.
 func ConvActionInstDataToDB(actionInstData *action.InstanceData) (*ActionInstData, error) {
 	data := &ActionInstData{
-		TriggerID:   actionInstData.TriggerID,
-		OperInstID:  actionInstData.OperationInstanceID,
-		OperationID: actionInstData.OperationID,
-		OperDefName: actionInstData.OperationDefName,
-		Name:        actionInstData.Name,
-		Index:       actionInstData.Index,
-		TotalIndex:  actionInstData.TotalIndex,
+		TriggerID:     actionInstData.TriggerID,
+		OperInstID:    actionInstData.OperationInstanceID,
+		OperationID:   actionInstData.OperationID,
+		OperDefName:   actionInstData.OperationDefName,
+		Name:          actionInstData.Name,
+		DisplayNameZh: actionInstData.DisplayNameZh,
+		DisplayNameEn: actionInstData.DisplayNameEn,
+		Index:         actionInstData.Index,
+		TotalIndex:    actionInstData.TotalIndex,
 
 		PrivateData: make(map[string]any, len(actionInstData.PrivateData)),
 

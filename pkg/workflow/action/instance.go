@@ -37,6 +37,8 @@ type InstanceData struct {
 	OperationInstanceID string
 
 	Name          string
+	DisplayNameZh string // Chinese display name
+	DisplayNameEn string // English display name
 	Index         int
 	TotalIndex    int
 	Messages      []common.Message
