@@ -83,7 +83,7 @@
             />
             <span class="ml-[7px]">{{ index + 1 }}.</span>
             <bk-overflow-title class="overflow-ellipsis w-[200px]" :class="{ 'w-[300px]': isFullscreen }">
-              <span class="ml-[2px] mr-[4px]">{{ key }}</span>
+              <span class="ml-[2px] mr-[4px]">{{ getDisplayName(key) }}</span>
               <span
                 v-if="item.life_cycle?.end_time >= 0 && item.life_cycle?.start_time >= 0"
               >{{
@@ -100,12 +100,12 @@
             class="mx-[30px] my-[8px]"
             :class="{
               'bg-[#422321] flex !mx-0':
-                item.level === 'ERROR' || item.text.includes('ERROR'),
+                item.level === 'ERROR' || getLogText(item).includes('ERROR'),
             }"
           >
             <div class="flex justify-center items-baseline w-[26px] pt-[6px]">
               <close
-                v-if="item.level === 'ERROR' || item.text.includes('ERROR')"
+                v-if="item.level === 'ERROR' || getLogText(item).includes('ERROR')"
                 :fill="'#993D3D'"
                 width="12.25px"
                 height="12.25px"
@@ -118,7 +118,7 @@
                 </span>
                 ]
               </span>
-              <span class="line-height-[24px]">{{ item.text }}</span>
+              <span class="line-height-[24px]">{{ getLogText(item) }}</span>
             </div>
           </div>
         </div>
@@ -137,6 +137,7 @@ import { NodeWorkflowService } from '@/api/modules/node_workflow';
 import SlideDetail from '@/components/slide-detail.vue';
 import useFullScreen from '@/composables/use-fullscreen';
 import useInterval from '@/composables/use-interval';
+import { useMainStore } from '@/stores/main';
 
 interface IProps {
   data: any;
@@ -144,6 +145,9 @@ interface IProps {
 const props = defineProps<IProps>();
 const emit = defineEmits(['stop']);
 const { t } = useI18n();
+
+const mainStore = useMainStore();
+
 // 全屏
 const { contentRef, isFullscreen, switchFullScreen } = useFullScreen();
 const { start, stop } = useInterval(getLog, 1000); // 轮询
@@ -152,7 +156,7 @@ const curOperInstId = ref('');
 const curOperInstVal = ref('latest');
 const curOperationId = ref('');
 const curSortNames = ref<string[]>([]);
-const logs = ref<{ text: string; level: string; time: string }[]>([]);
+const logs = ref<{ text: string; text_zh?: string; text_en?: string; level: string; time: string }[]>([]);
 const operInstList = ref<{ id: string; name: string; sort_names: string[] }[]>([]);
 const slideDetailRef = ref<InstanceType<typeof SlideDetail>>();
 const logData = ref<{
@@ -162,6 +166,25 @@ const logData = ref<{
   total: 0,
   oper_inst_logs: {},
 });
+
+// 语言判断
+const isZh = computed(() => mainStore.curLanguage === 'zh-CN');
+
+// 根据 key 获取 action 显示名称
+const getDisplayName = (key: string) => {
+  const actionData = logData.value.oper_inst_logs[key];
+  if (!actionData) return key;
+  return isZh.value
+    ? (actionData.display_name_zh || key)
+    : (actionData.display_name_en || key);
+};
+
+// 获取日志文本
+const getLogText = (item: any) => {
+  return isZh.value
+    ? (item.text_zh || item.text || '')
+    : (item.text_en || item.text || '');
+};
 const timeFormatter = (
   val: number | string | undefined,
   format = 'YYYY-MM-DD HH:mm:ss',

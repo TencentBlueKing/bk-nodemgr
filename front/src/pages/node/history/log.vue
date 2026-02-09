@@ -96,7 +96,7 @@
                 :class="['cursor-pointer', { 'text-[#c6c4cc]': row.state === 'pending' }]"
                 @click="handleClickStep(row)"
               >
-                {{ row.index }}. {{ row.stepKey }}
+                {{ row.index }}. {{ getDisplayName(row) }}
               </Button>
             </template>
           </TableColumn>
@@ -219,12 +219,12 @@
                   class="mx-[30px] my-[8px]"
                   :class="{
                     'bg-[#422321] flex !mx-0':
-                      item.level === 'ERROR' || item.text.includes('ERROR'),
+                      item.level === 'ERROR' || getLogText(item).includes('ERROR'),
                   }"
                 >
                   <div class="flex justify-center items-baseline w-[26px] pt-[6px]">
                     <close
-                      v-if="item.level === 'ERROR' || item.text.includes('ERROR')"
+                      v-if="item.level === 'ERROR' || getLogText(item).includes('ERROR')"
                       :fill="'#993D3D'"
                       width="12.25px"
                       height="12.25px"
@@ -237,7 +237,7 @@
                       </span>
                       ]
                     </span>
-                    <span class="line-height-[24px]">{{ item.text }}</span>
+                    <span class="line-height-[24px]">{{ getLogText(item) }}</span>
                   </div>
                 </div>
               </div>
@@ -276,6 +276,23 @@ const router = useRouter();
 
 const mainStore = useMainStore();
 const nodeManageStore = useNodeManageStore();
+
+// 语言判断
+const isZh = computed(() => mainStore.curLanguage === 'zh-CN');
+
+// 获取 action 显示名称
+const getDisplayName = (row: any) => {
+  return isZh.value
+    ? (row.display_name_zh || row.stepKey)
+    : (row.display_name_en || row.stepKey);
+};
+
+// 获取日志文本
+const getLogText = (item: any) => {
+  return isZh.value
+    ? (item.text_zh || item.text || '')
+    : (item.text_en || item.text || '');
+};
 
 // 正则表达式
 const IPV4_REG = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
@@ -336,7 +353,7 @@ const title = computed(() => `${currentOperate.value?.bk_host_inner_list ?? ''} 
 const curOperInstId = ref('');
 const curOperInstVal = ref('latest');
 const curSortNames = ref<string[]>([]);
-const logs = ref<{ text: string; level: string; time: string }[]>([]);
+const logs = ref<{ text: string; text_zh?: string; text_en?: string; level: string; time: string }[]>([]);
 const allLogs = ref<any[]>([]);
 const operInstList = ref<{ id: string; name: string; sort_names: string[] }[]>([]);
 const logData = ref<{
@@ -761,9 +778,12 @@ async function getLog() {
         costTime = end_time - start_time;
       }
     }
+    const actionData = res.oper_inst_logs[key];
     list.push({
       index: index + 1,
       stepKey: key,
+      display_name_zh: actionData.display_name_zh || key,
+      display_name_en: actionData.display_name_en || key,
       costTime,
       state: state || '未知',
     });
