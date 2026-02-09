@@ -1,0 +1,21 @@
+
+**********************************************************************************
+
+888b    888  .d88888b.  8888888b.  8888888888 888b     d888  .d8888b.  8888888b.
+8888b   888 d88P" "Y88b 888  "Y88b 888        8888b   d8888 d88P  Y88b 888   Y88b
+88888b  888 888     888 888    888 888        88888b.d88888 888    888 888    888
+888Y88b 888 888     888 888    888 8888888    888Y88888P888 888        888   d88P
+888 Y88b888 888     888 888    888 888        888 Y888P 888 888  88888 8888888P"
+888  Y88888 888     888 888    888 888        888  Y8P  888 888    888 888 T88b
+888   Y8888 Y88b. .d88P 888  .d88P 888        888   "   888 Y88b  d88P 888  T88b
+888    Y888  "Y88888P"  8888888P"  8888888888 888       888  "Y8888P88 888   T88b
+
+**********************************************************************************
+
+*** PLEASE BE PATIENT: mock-server may take a few seconds to start. ***
+
+Thank you for installing, your release is named {{ .Release.Name }}.
+
+Mock server provides mock APIs for CMDB and BKRepo testing.
+
+For more instructions, please refer to the bk-nodemgr documentation.

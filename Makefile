@@ -1,4 +1,4 @@
-.PHONY: tidy build test pre backend application file relay front docker-build-server all clean doc tools bintools scripts apigw-docs support-files
+.PHONY: tidy build test pre backend application file relay front mock-server docker-build-server docker-build-mock-server all clean doc tools bintools scripts apigw-docs support-files
 
 # Target platform for docker-build-server (optional)
 # Examples:
@@ -85,6 +85,11 @@ relay: | pre
 	@$(ECHO) "Building proxy $(VERSION)..."
 	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/bk-nodemgr-relay $(ROOT_DIR)/cmd/relay/*.go
 	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/bk-nodemgr-relay"
+
+mock-server: | pre
+	@$(ECHO) "Building mock-server $(VERSION)..."
+	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/mock-server $(ROOT_DIR)/test/mock-server/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/mock-server"
 
 front: | pre
 	@$(ECHO) "Building frontend..."
@@ -228,6 +233,37 @@ docker-build-apigw-sync: | pre
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr-apigw-sync/Dockerfile $(OUTPUT_DIR)/apigw-sync
 	@$(CD) $(OUTPUT_DIR)/apigw-sync && docker build -t bk-nodemgr-apigw-sync:v${VERSION} .
 	@$(ECHO) "Built successfully docker image bk-nodemgr-apigw-sync:v${VERSION}"
+
+docker-build-mock-server: mock-server
+	@$(ECHO) "Building docker image mock-server..."
+	@$(MKDIR) $(OUTPUT_DIR)/mock-server-image
+	@$(CP) $(OUTPUT_DIR)/mock-server $(OUTPUT_DIR)/mock-server-image/mock-server
+	@$(CP) $(ROOT_DIR)/install/images/mock-server/Dockerfile $(OUTPUT_DIR)/mock-server-image/
+	@if [ -n "$(TARGET_PLATFORM)" ]; then \
+		case "$(TARGET_PLATFORM)" in \
+			*/*) ;; \
+			*) $(ECHO) "Error: TARGET_PLATFORM must be in 'os/arch' format, got '$(TARGET_PLATFORM)'"; exit 1;; \
+		esac; \
+		$(ECHO) "Make sure Docker buildx is available..."; \
+		docker buildx version >/dev/null 2>&1 || { $(ECHO) "Please install/enable Docker buildx"; exit 1; }; \
+		prev_builder=$$(docker buildx ls 2>/dev/null | awk '$$1 ~ /\*/ {gsub("\\*","",$$1); print $$1; exit}'); \
+		[ -n "$$prev_builder" ] || prev_builder=default; \
+		trap 'docker buildx use default >/dev/null 2>&1 || docker buildx use "$$prev_builder" >/dev/null 2>&1 || true' EXIT; \
+		if ! docker buildx inspect "$(BUILDX_BUILDER)" >/dev/null 2>&1; then \
+			$(ECHO) "Creating buildx builder: $(BUILDX_BUILDER)"; \
+			docker buildx create --name "$(BUILDX_BUILDER)" --driver docker-container --platform "$(BUILDX_PLATFORMS)" --use --bootstrap; \
+		else \
+			$(ECHO) "Using existing buildx builder: $(BUILDX_BUILDER)"; \
+			docker buildx use "$(BUILDX_BUILDER)"; \
+			docker buildx inspect --bootstrap >/dev/null; \
+		fi; \
+		$(ECHO) "Building docker image for platform $(TARGET_PLATFORM)..."; \
+		$(CD) $(OUTPUT_DIR)/mock-server-image && docker buildx build --platform $(TARGET_PLATFORM) -t mock-server:v${VERSION} --load .; \
+	else \
+		$(CD) $(OUTPUT_DIR)/mock-server-image && docker build -t mock-server:v${VERSION} .; \
+	fi
+	@$(ECHO) "Built successfully docker image mock-server:v${VERSION}"
+	@rm -rf $(OUTPUT_DIR)/mock-server-image
 
 test: | pre
 	@$(ECHO) "Building test..."
