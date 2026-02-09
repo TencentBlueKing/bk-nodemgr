@@ -1,11 +1,11 @@
-name: Package README Check
+name: Package AGENTS Check
 
 on:
   pull_request_target:
     types: [ opened, synchronize, reopened ]
 
 jobs:
-  check-pkg-readme:
+  check-pkg-agents:
     runs-on: self-hosted
     concurrency:
       group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -35,8 +35,8 @@ jobs:
           echo "变更文件列表:"
           cat changed_files.txt
 
-      - name: Check for missing README
-        id: check-readme
+      - name: Check for missing AGENTS
+        id: check-agents
         run: |
           # 检查pkg目录下的变更
           PKG_FILES=$(grep "^pkg/" changed_files.txt || echo "")
@@ -50,28 +50,28 @@ jobs:
           echo "$PKG_FILES"
           
           # 创建临时文件存储结果
-          touch missing_readme_dirs.txt
+          touch missing_agents_dirs.txt
           
-          # 提取Go包目录并检查README
+          # 提取Go包目录并检查 AGENTS
           grep "\.go$" changed_files.txt | grep "^pkg/" | while read -r file; do
             # 获取文件目录
             dir=$(dirname "$file")
             echo "检查Go文件: $file"
             echo "所在目录: $dir"
           
-            # 检查当前目录是否有README
-            if [ -f "$dir/README.md" ]; then
-              echo "✅ 在 $dir 目录找到README.md"
+            # 检查当前目录是否有 AGENTS
+            if [ -f "$dir/AGENTS.md" ]; then
+              echo "✅ 在 $dir 目录找到AGENTS.md"
             else
-              echo "❌ $dir 目录缺少README.md"
+              echo "❌ $dir 目录缺少AGENTS.md"
           
               # 确认是Go包目录
               if [ -n "$(find "$dir" -maxdepth 1 -name "*.go" 2>/dev/null)" ]; then
                 echo "✓ $dir 是Go包目录"
                 # 检查是否已添加
-                if ! grep -q "^$dir$" missing_readme_dirs.txt; then
-                  echo "$dir" >> missing_readme_dirs.txt
-                  echo "已添加 $dir 到缺失README列表"
+                if ! grep -q "^$dir$" missing_agents_dirs.txt; then
+                  echo "$dir" >> missing_agents_dirs.txt
+                  echo "已添加 $dir 到缺失AGENTS列表"
                 fi
               else
                 echo "✗ $dir 不是Go包目录"
@@ -80,8 +80,8 @@ jobs:
           done
           
           # 读取结果
-          MISSING_DIRS=$(cat missing_readme_dirs.txt | sort | uniq || echo "")
-          echo "缺少README的目录:"
+          MISSING_DIRS=$(cat missing_agents_dirs.txt | sort | uniq || echo "")
+          echo "缺少AGENTS的目录:"
           echo "$MISSING_DIRS"
           
           # 设置环境变量
@@ -102,7 +102,7 @@ jobs:
           COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments"
 
           # 使用更明确的搜索条件，包含完整的标题
-          BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r '.[] | select(.body | startswith("## 📝 包文档缺失提醒")) | .id')
+          BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r '.[] | select(.body | startswith("## 📝 包规范文件缺失提醒")) | .id')
 
           echo "找到的评论 ID:"
           echo "$BOT_COMMENTS"
@@ -122,8 +122,8 @@ jobs:
           # 只在存在缺失时生成评论内容
           if [ "${{ env.HAS_MISSING }}" == "true" ]; then
             # 创建缺失目录的评论
-            COMMENT="## 📝 包文档缺失提醒\n\n"
-            COMMENT="${COMMENT}### 检测到以下Go包缺少README.md文件：\n\n"
+            COMMENT="## 📝 包规范文件缺失提醒\n\n"
+            COMMENT="${COMMENT}### 检测到以下Go包缺少AGENTS.md文件：\n\n"
 
             # 添加缺失目录列表
             while IFS= read -r dir; do
@@ -134,15 +134,15 @@ jobs:
 
             # 添加操作指南
             COMMENT="${COMMENT}\n### 📋 操作指南\n\n"
-            COMMENT="${COMMENT}1. 请参考模板文件 \`docs/style/pkg_readme_template.md\` 创建README.md\n"
+            COMMENT="${COMMENT}1. 请在对应包目录创建 \`AGENTS.md\`，说明职责边界与维护约定\n"
             COMMENT="${COMMENT}2. 文档应包含：\n"
-            COMMENT="${COMMENT}   - 包的功能概述\n"
-            COMMENT="${COMMENT}   - 设计原理\n"
-            COMMENT="${COMMENT}   - 使用示例\n"
-            COMMENT="${COMMENT}   - 接口说明\n"
-            COMMENT="${COMMENT}3. 完成后将README.md添加到相应的包目录中\n\n"
-            COMMENT="${COMMENT}> 💡 **为什么需要README？**\n"
-            COMMENT="${COMMENT}> 良好的文档能够提高代码可维护性和促进团队协作。"
+            COMMENT="${COMMENT}   - OVERVIEW（功能与边界）\n"
+            COMMENT="${COMMENT}   - WHERE TO LOOK（关键文件位置）\n"
+            COMMENT="${COMMENT}   - CONVENTIONS（实现约束）\n"
+            COMMENT="${COMMENT}   - ANTI-PATTERNS（禁止做法）\n"
+            COMMENT="${COMMENT}3. 完成后将 \`AGENTS.md\` 添加到相应包目录\n\n"
+            COMMENT="${COMMENT}> 💡 **为什么需要 AGENTS？**\n"
+            COMMENT="${COMMENT}> 统一的维护约定可以降低协作成本并减少回归风险。"
 
             # 设置标志表示需要发评论
             echo "SHOULD_COMMENT=true" >> $GITHUB_ENV
@@ -156,14 +156,14 @@ jobs:
             echo "SHOULD_COMMENT=false" >> $GITHUB_ENV
           fi
 
-      - name: Delete existing README check comments
+      - name: Delete existing AGENTS check comments
         if: env.HAS_COMMENT == 'true'
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           COMMENTS_URL="https://api.github.com/repos/${{ github.repository }}/issues/$PR_NUMBER/comments"
 
           # 获取所有相关评论
-          BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r '.[] | select(.body | startswith("## 📝 包文档缺失提醒")) | .id')
+          BOT_COMMENTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$COMMENTS_URL" | jq -r '.[] | select(.body | startswith("## 📝 包规范文件缺失提醒")) | .id')
 
           # 删除所有相关评论
           echo "$BOT_COMMENTS" | while read comment_id; do
