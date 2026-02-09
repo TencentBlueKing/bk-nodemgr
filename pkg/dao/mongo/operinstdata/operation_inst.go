@@ -123,6 +123,8 @@ func (h *Handler) FindOne(nCtx contextx.IContext, opts ...OptFn) (*operation.Ins
 			OperationID:         v.OperationID,
 			OperationDefName:    v.OperDefName,
 			Name:                v.Name,
+			DisplayNameZh:       v.DisplayNameZh,
+			DisplayNameEn:       v.DisplayNameEn,
 			Index:               v.Index,
 			TotalIndex:          v.TotalIndex,
 			Messages:            make([]common.Message, len(v.Messages)),
@@ -133,9 +135,11 @@ func (h *Handler) FindOne(nCtx contextx.IContext, opts ...OptFn) (*operation.Ins
 
 		for idx, msg := range v.Messages {
 			actionInstData.Messages[idx] = common.Message{
-				Time:  msg.Time,
-				Text:  msg.Text,
-				Level: msg.Level,
+				Time:   msg.Time,
+				Text:   msg.Text,
+				TextZh: msg.TextZh,
+				TextEn: msg.TextEn,
+				Level:  msg.Level,
 			}
 		}
 
@@ -192,6 +196,8 @@ func (h *Handler) ListFullData(nCtx contextx.IContext, page types.Page, opts ...
 				OperationID:         v.OperationID,
 				OperationDefName:    v.OperDefName,
 				Name:                v.Name,
+				DisplayNameZh:       v.DisplayNameZh,
+				DisplayNameEn:       v.DisplayNameEn,
 				Index:               v.Index,
 				TotalIndex:          v.TotalIndex,
 				Messages:            make([]common.Message, len(v.Messages)),
@@ -202,9 +208,11 @@ func (h *Handler) ListFullData(nCtx contextx.IContext, page types.Page, opts ...
 
 			for idx, msg := range v.Messages {
 				actionInstData.Messages[idx] = common.Message{
-					Time:  msg.Time,
-					Text:  msg.Text,
-					Level: msg.Level,
+					Time:   msg.Time,
+					Text:   msg.Text,
+					TextZh: msg.TextZh,
+					TextEn: msg.TextEn,
+					Level:  msg.Level,
 				}
 			}
 

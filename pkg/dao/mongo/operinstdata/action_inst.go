@@ -348,6 +348,8 @@ func (h *Handler) GetActionInstData(
 		OperationID:         actionInstData.OperationID,
 		OperationDefName:    actionInstData.OperDefName,
 		Name:                actionInstData.Name,
+		DisplayNameZh:       actionInstData.DisplayNameZh,
+		DisplayNameEn:       actionInstData.DisplayNameEn,
 		Index:               actionInstData.Index,
 		TotalIndex:          actionInstData.TotalIndex,
 		PrivateData:         actionInstData.PrivateData,
@@ -360,9 +362,11 @@ func (h *Handler) GetActionInstData(
 
 	for _, msg := range actionInstData.Messages {
 		data.Messages = append(data.Messages, common.Message{
-			Time:  msg.Time,
-			Text:  msg.Text,
-			Level: msg.Level,
+			Time:   msg.Time,
+			Text:   msg.Text,
+			TextZh: msg.TextZh,
+			TextEn: msg.TextEn,
+			Level:  msg.Level,
 		})
 	}
 
