@@ -8,7 +8,7 @@ DATA_VOLUMES_PATH=./data
 
 # env file.
 ENV_FILE=./bk-nodemgr.env
-GENERATE_TOOL=./generate.sh
+GENERATE_TOOL=../generate.sh
 
 # docker compose.
 DOCKER_COMPOSE_FILE=bk-nodemgr.yml

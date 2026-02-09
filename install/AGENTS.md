@@ -9,8 +9,12 @@
 ```
 install/
 |- helm/bk-nodemgr/**            # chart, values, templates, nested dependency charts
+|- helm/mock-server/**           # mock-server helm chart
 |- images/**                     # Dockerfiles and image build assets
-`- docker-compose/**             # local/service startup scripts
+`- docker-compose/
+   |- generate.sh                # shared template rendering utility
+   |- bk-nodemgr/**              # bk-nodemgr docker-compose deployment
+   `- mock-server/**             # mock-server docker-compose deployment (independent)
 ```
 
 ## WHERE TO LOOK
@@ -18,8 +22,11 @@ install/
 | Task | Location | Notes |
 |------|----------|-------|
 | Helm values/template changes | `install/helm/bk-nodemgr/**` | Main chart plus redis/mongodb/etcd dependencies |
+| Mock-server helm chart | `install/helm/mock-server/**` | Independent mock-server chart |
 | Image build context assets | `install/images/**` | Dockerfile variants by image target |
-| Runtime shell wrappers | `install/docker-compose/**` | Service startup shell scripts |
+| bk-nodemgr docker-compose | `install/docker-compose/bk-nodemgr/**` | nodemgr service deployment |
+| mock-server docker-compose | `install/docker-compose/mock-server/**` | Independent mock-server deployment |
+| Shared template rendering | `install/docker-compose/generate.sh` | Used by both bk-nodemgr and mock-server |
 
 ## CONVENTIONS
 
