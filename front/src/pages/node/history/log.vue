@@ -290,8 +290,8 @@ const getDisplayName = (row: any) => {
 // 获取日志文本
 const getLogText = (item: any) => {
   return isZh.value
-    ? (item.text_zh || item.text || '')
-    : (item.text_en || item.text || '');
+    ? (item.text_zh || '')
+    : (item.text_en || '');
 };
 
 // 正则表达式

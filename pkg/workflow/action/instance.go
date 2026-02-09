@@ -64,54 +64,6 @@ func (data *InstanceData) Info() string {
 		data.OperationID, data.Index, data.Name)
 }
 
-// LogI logs messages.
-func (data *InstanceData) LogI(messages ...string) {
-	data.MessagesMutex.Lock()
-	defer data.MessagesMutex.Unlock()
-
-	for _, message := range messages {
-		data.Messages = append(data.Messages, common.Message{
-			Time:   time.Now(),
-			Text:   message,
-			TextZh: message,
-			TextEn: message,
-			Level:  "INFO",
-		})
-	}
-}
-
-// LogW logs warning messages.
-func (data *InstanceData) LogW(messages ...string) {
-	data.MessagesMutex.Lock()
-	defer data.MessagesMutex.Unlock()
-
-	for _, message := range messages {
-		data.Messages = append(data.Messages, common.Message{
-			Time:   time.Now(),
-			Text:   message,
-			TextZh: message,
-			TextEn: message,
-			Level:  "WARN",
-		})
-	}
-}
-
-// LogE logs error messages.
-func (data *InstanceData) LogE(messages ...string) {
-	data.MessagesMutex.Lock()
-	defer data.MessagesMutex.Unlock()
-
-	for _, message := range messages {
-		data.Messages = append(data.Messages, common.Message{
-			Time:   time.Now(),
-			Text:   message,
-			TextZh: message,
-			TextEn: message,
-			Level:  "ERROR",
-		})
-	}
-}
-
 // LogBuilder is a chainable log builder for bilingual logging.
 type LogBuilder struct {
 	data  *InstanceData
@@ -161,7 +113,6 @@ func (builder *LogBuilder) log(level string) {
 
 	builder.data.Messages = append(builder.data.Messages, common.Message{
 		Time:   time.Now(),
-		Text:   zhMsg, // Transition period compatibility
 		TextZh: zhMsg,
 		TextEn: enMsg,
 		Level:  level,

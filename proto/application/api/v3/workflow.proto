@@ -43,8 +43,8 @@ message WorkflowLifeCycle {
 // WorkflowActionMessage describes the workflow action message logs.
 message WorkflowActionMessage {
   message Message {
+    reserved 2; // Previously: text field (removed in bilingual support)
     int64 time = 1;
-    string text = 2; // Deprecated: kept for backward compatibility
     string level = 3;
     string text_zh = 4; // Chinese log content
     string text_en = 5; // English log content

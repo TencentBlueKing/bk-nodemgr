@@ -32,9 +32,6 @@ func TestLogBuilder_ZhAndEn(t *testing.T) {
 	if msg.TextEn != "English message" {
 		t.Errorf("expected TextEn='English message', got '%s'", msg.TextEn)
 	}
-	if msg.Text != "中文消息" {
-		t.Errorf("expected Text='中文消息' (for compatibility), got '%s'", msg.Text)
-	}
 	if msg.Level != "INFO" {
 		t.Errorf("expected Level='INFO', got '%s'", msg.Level)
 	}

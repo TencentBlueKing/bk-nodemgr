@@ -40,10 +40,9 @@ export interface WorkflowActionMessage {
 
 export interface WorkflowActionMessageMessage {
   time: number;
-  text: string;      // 保留：兼容旧数据
   level: string;
-  text_zh: string;   // 新增：中文日志内容
-  text_en: string;   // 新增：英文日志内容
+  text_zh: string;   // 中文日志内容
+  text_en: string;   // 英文日志内容
 }
 
 // WorkflowActionInstBriefData describes the workflow action instance brief

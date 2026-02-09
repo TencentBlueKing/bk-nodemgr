@@ -170,7 +170,6 @@ func convMessageToDB(msgs []common.Message) []Message {
 	for idx, msg := range msgs {
 		dbData[idx] = Message{
 			Time:   msg.Time,
-			Text:   msg.Text, // Deprecated: kept for transition
 			TextZh: msg.TextZh,
 			TextEn: msg.TextEn,
 			Level:  msg.Level,
@@ -186,7 +185,6 @@ func convMessageFromDB(msgs []Message) []common.Message {
 	for idx, msg := range msgs {
 		data[idx] = common.Message{
 			Time:   msg.Time,
-			Text:   msg.Text, // Deprecated: kept for transition
 			TextZh: msg.TextZh,
 			TextEn: msg.TextEn,
 			Level:  msg.Level,

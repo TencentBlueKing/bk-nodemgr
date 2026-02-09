@@ -136,7 +136,6 @@ func (h *Handler) FindOne(nCtx contextx.IContext, opts ...OptFn) (*operation.Ins
 		for idx, msg := range v.Messages {
 			actionInstData.Messages[idx] = common.Message{
 				Time:   msg.Time,
-				Text:   msg.Text,
 				TextZh: msg.TextZh,
 				TextEn: msg.TextEn,
 				Level:  msg.Level,
@@ -209,7 +208,6 @@ func (h *Handler) ListFullData(nCtx contextx.IContext, page types.Page, opts ...
 			for idx, msg := range v.Messages {
 				actionInstData.Messages[idx] = common.Message{
 					Time:   msg.Time,
-					Text:   msg.Text,
 					TextZh: msg.TextZh,
 					TextEn: msg.TextEn,
 					Level:  msg.Level,

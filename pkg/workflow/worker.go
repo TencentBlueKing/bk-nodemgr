@@ -417,7 +417,10 @@ func (mgr *manager) executeAction(
 				With("info", actionInstCtx.Data.Info(), "recover", r, "stack", stack).
 				Info("failed to execute action, recover from panic")
 
-			actionInstCtx.Data.LogE(fmt.Sprintf("action panic: revoer(%v), stack(%s)", r, stack))
+			actionInstCtx.Data.Log().
+				Zh("步骤发生异常: recover(%v), stack(%s)", r, stack).
+				En("action panic: recover(%v), stack(%s)", r, stack).
+				Error()
 		}
 
 		doResult <- err

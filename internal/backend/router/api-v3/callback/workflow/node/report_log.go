@@ -58,9 +58,8 @@ func (h *handler) ReportLog(gCtx *gin.Context) {
 			log.GetLog())
 		logs[idx] = common.Message{
 			Time:   time.Now(),
-			Text:   text,   // 过渡期保留
-			TextZh: text,   // 同时写入中文字段
-			TextEn: text,   // 同时写入英文字段
+			TextZh: text,
+			TextEn: text,
 			Level:  log.GetLevel(),
 		}
 	}

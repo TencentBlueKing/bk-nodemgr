@@ -46,24 +46,26 @@ type InstanceBriefData struct {
 	Lifecycle *Lifecycle
 }
 
-// LogI logs messages.
+// LogI logs info messages.
 func (data *InstanceBriefData) LogI(messages ...string) {
 	for _, message := range messages {
 		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
-			Time:  time.Now(),
-			Text:  message,
-			Level: "INFO",
+			Time:   time.Now(),
+			TextZh: message,
+			TextEn: message,
+			Level:  "INFO",
 		})
 	}
 }
 
-// LogW logs error messages.
+// LogW logs warning messages.
 func (data *InstanceBriefData) LogW(messages ...string) {
 	for _, message := range messages {
 		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
-			Time:  time.Now(),
-			Text:  message,
-			Level: "WARN",
+			Time:   time.Now(),
+			TextZh: message,
+			TextEn: message,
+			Level:  "WARN",
 		})
 	}
 }
@@ -72,9 +74,10 @@ func (data *InstanceBriefData) LogW(messages ...string) {
 func (data *InstanceBriefData) LogE(messages ...string) {
 	for _, message := range messages {
 		data.Metadata.ExtraExecutionMessages = append(data.Metadata.ExtraExecutionMessages, common.Message{
-			Time:  time.Now(),
-			Text:  message,
-			Level: "ERROR",
+			Time:   time.Now(),
+			TextZh: message,
+			TextEn: message,
+			Level:  "ERROR",
 		})
 	}
 }

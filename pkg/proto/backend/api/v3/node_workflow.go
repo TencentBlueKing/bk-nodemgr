@@ -473,7 +473,6 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 		for idx, msg := range v.Messages {
 			messages[idx] = &WorkflowActionMessage_Message{
 				Time:   msg.Time.UnixMilli(),
-				Text:   msg.Text,
 				TextZh: msg.TextZh,
 				TextEn: msg.TextEn,
 				Level:  msg.Level,
@@ -528,7 +527,6 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 				}
 				instance.Messages = append(instance.Messages, common.Message{
 					Time:   time.UnixMilli(msg.GetTime()),
-					Text:   msg.GetText(),
 					TextZh: msg.GetTextZh(),
 					TextEn: msg.GetTextEn(),
 					Level:  msg.GetLevel(),

@@ -363,7 +363,6 @@ func (h *Handler) GetActionInstData(
 	for _, msg := range actionInstData.Messages {
 		data.Messages = append(data.Messages, common.Message{
 			Time:   msg.Time,
-			Text:   msg.Text,
 			TextZh: msg.TextZh,
 			TextEn: msg.TextEn,
 			Level:  msg.Level,

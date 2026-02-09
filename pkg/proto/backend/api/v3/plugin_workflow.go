@@ -311,12 +311,12 @@ func convertPluginWorkOperConditionsFromTypes(condition *types.ApplicationPlugin
 
 	if condition.ExactInclude != nil {
 		exactCond = &PluginWorkflowOperationListReq_ExactConditions{
-		BkHostId:      condition.ExactInclude.HostID,
-		PluginName:    condition.ExactInclude.PluginName,
-		PluginVersion: condition.ExactInclude.PluginVersion,
-		State: conv.SliceToSlice(condition.ExactInclude.State, func(s operation.State) string {
-			return string(s)
-		}),
+			BkHostId:      condition.ExactInclude.HostID,
+			PluginName:    condition.ExactInclude.PluginName,
+			PluginVersion: condition.ExactInclude.PluginVersion,
+			State: conv.SliceToSlice(condition.ExactInclude.State, func(s operation.State) string {
+				return string(s)
+			}),
 		}
 	}
 
@@ -631,7 +631,6 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(resul
 		for _, msg := range v.Messages {
 			messages = append(messages, &WorkflowActionMessage_Message{
 				Time:   msg.Time.UnixMilli(),
-				Text:   msg.Text,
 				TextZh: msg.TextZh,
 				TextEn: msg.TextEn,
 				Level:  msg.Level,
@@ -687,7 +686,6 @@ func (x *PluginWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInst
 				}
 				instance.Messages = append(instance.Messages, common.Message{
 					Time:   time.UnixMilli(msg.GetTime()),
-					Text:   msg.GetText(),
 					TextZh: msg.GetTextZh(),
 					TextEn: msg.GetTextEn(),
 					Level:  msg.GetLevel(),
