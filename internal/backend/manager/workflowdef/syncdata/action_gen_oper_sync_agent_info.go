@@ -11,7 +11,6 @@
 package syncdata
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
@@ -160,7 +159,10 @@ func (act *actionGenOperSyncAgentInfo) Do(ctx *action.InstanceContext) error {
 		}
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("executed sync agent info operation for %d hosts", result.Total))
+	ctx.Data.Log().
+		Zh("已为 %d 台主机执行同步 Agent 信息任务", result.Total).
+		En("executed sync agent info operation for %d hosts", result.Total).
+		Info()
 
 	return nil
 }
@@ -203,7 +205,7 @@ func (act *actionGenOperSyncAgentInfo) executeOper(
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionGenOperSyncAgentInfo) DisplayNameZh() string { return act.Name() }
+func (act *actionGenOperSyncAgentInfo) DisplayNameZh() string { return "生成同步 Agent 信息任务" }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionGenOperSyncAgentInfo) DisplayNameEn() string { return act.Name() }
+func (act *actionGenOperSyncAgentInfo) DisplayNameEn() string { return "Generate Sync Agent Info Operation" }

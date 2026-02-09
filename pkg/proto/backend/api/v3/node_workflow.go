@@ -472,15 +472,19 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertResultFromTypes(result 
 		messages := make([]*WorkflowActionMessage_Message, len(v.Messages))
 		for idx, msg := range v.Messages {
 			messages[idx] = &WorkflowActionMessage_Message{
-				Time:  msg.Time.UnixMilli(),
-				Text:  msg.Text,
-				Level: msg.Level,
+				Time:   msg.Time.UnixMilli(),
+				Text:   msg.Text,
+				TextZh: msg.TextZh,
+				TextEn: msg.TextEn,
+				Level:  msg.Level,
 			}
 		}
 
 		operInstLogs[actionID] = &WorkflowActionData{
-			LifeCycle: lifecycle,
-			Message:   &WorkflowActionMessage{Logs: messages},
+			DisplayNameZh: v.DisplayNameZh,
+			DisplayNameEn: v.DisplayNameEn,
+			LifeCycle:     lifecycle,
+			Message:       &WorkflowActionMessage{Logs: messages},
 		}
 	}
 
@@ -506,6 +510,8 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 		}
 
 		instance := &action.InstanceData{
+			DisplayNameZh: actionData.GetDisplayNameZh(),
+			DisplayNameEn: actionData.GetDisplayNameEn(),
 			Lifecycle: &action.Lifecycle{
 				State:     action.State(actionData.GetLifeCycle().GetState()),
 				CreatedAt: time.UnixMilli(actionData.GetLifeCycle().GetCreateTime()),
@@ -521,9 +527,11 @@ func (x *NodeWorkflowOperationInstanceLogGetResp) ConvertWorkflowOperationInstan
 					continue
 				}
 				instance.Messages = append(instance.Messages, common.Message{
-					Time:  time.UnixMilli(msg.GetTime()),
-					Text:  msg.GetText(),
-					Level: msg.GetLevel(),
+					Time:   time.UnixMilli(msg.GetTime()),
+					Text:   msg.GetText(),
+					TextZh: msg.GetTextZh(),
+					TextEn: msg.GetTextEn(),
+					Level:  msg.GetLevel(),
 				})
 			}
 		}

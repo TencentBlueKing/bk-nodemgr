@@ -169,7 +169,10 @@ func (act *actionSyncTenant) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("failed to create new tenants: %w", err)
 		}
 
-		ctx.Data.LogI(fmt.Sprintf("added tenants num: %d", len(added)))
+		ctx.Data.Log().
+			Zh("新增租户数量: %d", len(added)).
+			En("added tenants num: %d", len(added)).
+			Info()
 	}
 
 	if len(deleted) > 0 {
@@ -178,7 +181,10 @@ func (act *actionSyncTenant) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("failed to delete deleted tenants: %w", err)
 		}
 
-		ctx.Data.LogI(fmt.Sprintf("deleted tenants num: %d", len(deleted)))
+		ctx.Data.Log().
+			Zh("删除租户数量: %d", len(deleted)).
+			En("deleted tenants num: %d", len(deleted)).
+			Info()
 	}
 
 	if len(changed) > 0 {
@@ -186,14 +192,17 @@ func (act *actionSyncTenant) Do(ctx *action.InstanceContext) error {
 			return fmt.Errorf("failed to update changed tenants: %w", err)
 		}
 
-		ctx.Data.LogI(fmt.Sprintf("changed tenants num: %d", len(changed)))
+		ctx.Data.Log().
+			Zh("变更租户数量: %d", len(changed)).
+			En("changed tenants num: %d", len(changed)).
+			Info()
 	}
 
 	return nil
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionSyncTenant) DisplayNameZh() string { return act.Name() }
+func (act *actionSyncTenant) DisplayNameZh() string { return "同步租户" }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionSyncTenant) DisplayNameEn() string { return act.Name() }
+func (act *actionSyncTenant) DisplayNameEn() string { return "Sync Tenant" }

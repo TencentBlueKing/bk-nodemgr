@@ -763,12 +763,23 @@ func (ctl *controller) createOperationInstanceBase(_ contextx.IContext, stateDec
 			state = stateDecider(actionName)
 		}
 
+		// get action Definition for display names
+		actionDef, ok := ctl.mgr.registeredActionDefs[actionName]
+		if !ok {
+			// record metric.
+			metric.ActionNotRegistered(actionName)
+
+			return nil, fmt.Errorf("action not registered, name(%s)", actionName)
+		}
+
 		actionInstanceDataMap[actionName] = &action.InstanceData{
 			TriggerID:           ctl.trig.TriggerID,
 			OperationID:         ctl.oper.OperationID,
 			OperationDefName:    ctl.oper.Definition.Name(),
 			OperationInstanceID: operationInstanceID,
 			Name:                actionName,
+			DisplayNameZh:       actionDef.DisplayNameZh(),
+			DisplayNameEn:       actionDef.DisplayNameEn(),
 			Index:               index,
 			TotalIndex:          len(actionNames),
 			Messages:            make([]common.Message, 0),

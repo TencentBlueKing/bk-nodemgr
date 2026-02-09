@@ -120,7 +120,7 @@ func (act *actionSyncNetworkArea) Do(ctx *action.InstanceContext) error {
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionSyncNetworkArea) DisplayNameZh() string { return act.Name() }
+func (act *actionSyncNetworkArea) DisplayNameZh() string { return "同步管控区域" }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionSyncNetworkArea) DisplayNameEn() string { return act.Name() }
+func (act *actionSyncNetworkArea) DisplayNameEn() string { return "Sync Network Area" }

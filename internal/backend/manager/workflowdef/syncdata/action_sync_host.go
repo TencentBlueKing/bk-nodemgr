@@ -127,15 +127,20 @@ func (act *actionSyncHost) Do(ctx *action.InstanceContext) error {
 		return err
 	}
 
-	ctx.Data.LogI(fmt.Sprintf("find %d hosts from cmdb, %d hosts in db", len(cmdbData), len(dbData)))
+	ctx.Data.Log().
+		Zh("从 CMDB 获取到 %d 台主机，数据库中有 %d 台主机", len(cmdbData), len(dbData)).
+		En("find %d hosts from cmdb, %d hosts in db", len(cmdbData), len(dbData)).
+		Info()
 	updateHosts, insertHosts, deleteHostIDs, err := act.compareData(cmdbData, dbData)
 	if err != nil {
 		return err
 	}
 
-	ctx.Data.LogI(
-		fmt.Sprintf("comapred hosts, %d hosts need to update, %d hosts need to insert, %d hosts need to delete",
-			len(updateHosts), len(insertHosts), len(deleteHostIDs)))
+	ctx.Data.Log().
+		Zh("对比完成，需更新 %d 台、新增 %d 台、删除 %d 台主机", len(updateHosts), len(insertHosts), len(deleteHostIDs)).
+		En("compared hosts, %d hosts need to update, %d hosts need to insert, %d hosts need to delete",
+			len(updateHosts), len(insertHosts), len(deleteHostIDs)).
+		Info()
 
 	if err = act.storageHost.UpsertManyHostStatic(std.Context(), updateHosts...); err != nil {
 		return err
@@ -193,7 +198,7 @@ func (act *actionSyncHost) compareData(cmdbData, dbData []*types.Host) (
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionSyncHost) DisplayNameZh() string { return act.Name() }
+func (act *actionSyncHost) DisplayNameZh() string { return "同步主机" }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionSyncHost) DisplayNameEn() string { return act.Name() }
+func (act *actionSyncHost) DisplayNameEn() string { return "Sync Host" }

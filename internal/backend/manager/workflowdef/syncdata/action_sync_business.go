@@ -124,7 +124,7 @@ func (act *actionSyncBusiness) Do(ctx *action.InstanceContext) error {
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionSyncBusiness) DisplayNameZh() string { return act.Name() }
+func (act *actionSyncBusiness) DisplayNameZh() string { return "同步业务" }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionSyncBusiness) DisplayNameEn() string { return act.Name() }
+func (act *actionSyncBusiness) DisplayNameEn() string { return "Sync Business" }

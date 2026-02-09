@@ -54,6 +54,14 @@ func (act *actionGenOperExecuteDeployPolicy) Name() string {
 	return ActionNameGenOperExecuteDeployPolicy
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionGenOperExecuteDeployPolicy) DisplayNameZh() string { return "生成执行部署策略任务" }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionGenOperExecuteDeployPolicy) DisplayNameEn() string {
+	return "Generate Execute Deploy Policy Operation"
+}
+
 // Version returns the version of the action.
 func (act *actionGenOperExecuteDeployPolicy) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -189,9 +197,3 @@ func (act *actionGenOperExecuteDeployPolicy) executeOper(std *deployPolicyUtils.
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionGenOperExecuteDeployPolicy) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionGenOperExecuteDeployPolicy) DisplayNameEn() string { return act.Name() }

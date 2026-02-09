@@ -52,6 +52,12 @@ func (act *actionExecuteDeployPolicy) Name() string {
 	return ActionNameExecuteDeployPolicy
 }
 
+// DisplayNameZh returns the Chinese display name of the action.
+func (act *actionExecuteDeployPolicy) DisplayNameZh() string { return "执行部署策略" }
+
+// DisplayNameEn returns the English display name of the action.
+func (act *actionExecuteDeployPolicy) DisplayNameEn() string { return "Execute Deploy Policy" }
+
 // Version returns the version of the action.
 func (act *actionExecuteDeployPolicy) Version() string {
 	return "v1.0.0" // nolint: goconst
@@ -131,9 +137,3 @@ func (act *actionExecuteDeployPolicy) Do(ctx *action.InstanceContext) error {
 
 	return nil
 }
-
-// DisplayNameZh returns the Chinese display name of the action.
-func (act *actionExecuteDeployPolicy) DisplayNameZh() string { return act.Name() }
-
-// DisplayNameEn returns the English display name of the action.
-func (act *actionExecuteDeployPolicy) DisplayNameEn() string { return act.Name() }

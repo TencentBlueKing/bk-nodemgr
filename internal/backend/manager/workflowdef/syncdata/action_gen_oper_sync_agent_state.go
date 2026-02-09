@@ -199,7 +199,7 @@ func (act *actionGenOperSyncAgentState) executeOper(
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionGenOperSyncAgentState) DisplayNameZh() string { return act.Name() }
+func (act *actionGenOperSyncAgentState) DisplayNameZh() string { return "生成同步 Agent 状态任务" }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionGenOperSyncAgentState) DisplayNameEn() string { return act.Name() }
+func (act *actionGenOperSyncAgentState) DisplayNameEn() string { return "Generate Sync Agent State Operation" }

@@ -367,7 +367,7 @@ func (act *actionWatchAndApplyCMDBResource) setCursor(ctx context.Context, key, 
 }
 
 // DisplayNameZh returns the Chinese display name of the action.
-func (act *actionWatchAndApplyCMDBResource) DisplayNameZh() string { return act.Name() }
+func (act *actionWatchAndApplyCMDBResource) DisplayNameZh() string { return "监听并应用 CMDB 资源变更" }
 
 // DisplayNameEn returns the English display name of the action.
-func (act *actionWatchAndApplyCMDBResource) DisplayNameEn() string { return act.Name() }
+func (act *actionWatchAndApplyCMDBResource) DisplayNameEn() string { return "Watch and Apply CMDB Resource" }
