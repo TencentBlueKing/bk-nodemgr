@@ -4,6 +4,8 @@
 
 `pkg/` hosts shared platform libraries reused across services: type models, DAO, REST stack, workflow engine, third-party clients, and proto adapters.
 
+`pkg/` should contain cross-service and business-agnostic capabilities; domain orchestration stays in `internal/<service>`.
+
 ## STRUCTURE
 
 ```
@@ -33,6 +35,17 @@ pkg/
 - Prefer `pkg/types` as business-layer data contract instead of raw proto structs.
 - Keep DAO logic storage-oriented; service-specific orchestration belongs in `internal/*/storage`.
 - Reuse `pkg/logger` and `pkg/rest/*` utilities for consistency.
+- Before moving code into `pkg`, confirm: (1) multiple services need it, and (2) it is not service-specific business logic.
+
+## BOUNDARY CHECKLIST
+
+- **Should be in `pkg`**: shared data types, third-party SDK wrappers, reusable infra code (SSH/Redis abstractions), generic workflow/runtime helpers.
+- **Should not be in `pkg`**: service policy logic, route-specific behavior, feature rules tied to one domain.
+
+## PKG VS RUNTIME
+
+- `pkg`: shared code that may use internal system concepts (for example host/network-related domain identifiers).
+- `pkg/runtime`: pure runtime primitives that can be extracted independently (for example conversion helpers, pools, retry primitives).
 
 ## ANTI-PATTERNS
 
