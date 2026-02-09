@@ -1,63 +1,78 @@
-<!-- OPENSPEC:START -->
-# OpenSpec Instructions
+Always use:
+- serena for semantic code retrieval and editing tools
+- context7 for up to date documentation on third party code
+- sequential thinking for any decision making
 
-These instructions are for AI assistants working in this project.
+## OVERVIEW
 
-Always open `@/openspec/AGENTS.md` when the request:
-- Mentions planning or proposals (words like proposal, spec, change, plan)
-- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
-- Sounds ambiguous and you need the authoritative spec before coding
+BlueKing Node Manager monorepo: Go multi-service backend plus Vue3/TypeScript frontend.
+Core runtime domains are split by service (`cmd` + `internal`) and shared platform libraries (`pkg`).
 
-Use `@/openspec/AGENTS.md` to learn:
-- How to create and apply change proposals
-- Spec format and conventions
-- Project structure and guidelines
-
-Keep this managed block so 'openspec update' can refresh the instructions.
-
-<!-- OPENSPEC:END -->
-
-# BlueKing Node Manager (bk-nodemgr)
-
-Go 微服务应用，用于蓝鲸平台的节点管理。
-
-**技术栈**: Go 1.23.10 | MongoDB | Redis | Gin | Vue.js + TypeScript
-
-## 项目结构
+## STRUCTURE
 
 ```
-cmd/         服务入口 (backend, application, file, relay)
-pkg/         共享库 (dao, rest, workflow, thirdparty, logger, config)
-internal/    业务逻辑
-proto/       API 定义
-docs/        📚 详细文档入口 → 查看 docs/README.md
+bk-nodemgr/
+|- cmd/           # service entrypoints (backend/application/file/relay)
+|- internal/      # service business/router/manager/storage by domain
+|- pkg/           # shared libs, DAO, REST, workflow, thirdparty, proto adapters
+|- proto/         # protobuf source definitions
+|- front/         # Vue3 + Vite + pnpm frontend
+|- tools/         # standalone Go module for installer/tooling binaries
+|- install/       # deployment assets (Helm charts, docker artifacts)
+|- test/          # integration test harness and mock server
+`- docs/          # developer/api/ops/concepts docs index
 ```
 
-## 快速开始
+## WHERE TO LOOK
+
+| Task | Location | Notes |
+|------|----------|-------|
+| Service startup/wiring | `cmd/*` + `internal/*/service` | `cmd/backend/main.go`, `cmd/file/main.go`, `cmd/relay/main.go`, `cmd/application/root.go` |
+| API router and handlers | `internal/*/router/api-v3` | Routing is service-scoped under each internal domain |
+| Shared business models/types | `pkg/types` | Used as inter-layer payload instead of proto structs |
+| Persistence and DAO | `pkg/dao/mongo` + `internal/*/storage` | DAO in `pkg`, service storage orchestration in `internal` |
+| Protocol schema source | `proto/**` | Generated targets live in `pkg/proto/**` |
+| Proto conversion helpers | `pkg/proto/**` | Package READMEs require proto lifecycle confinement |
+| Build and release | `Makefile`, `tools/`, `script_tools/`, `install/` | Cross-arch and image build paths are in root `Makefile` |
+| Frontend feature work | `front/src` | API naming follows backend proto naming |
+| Integration tests | `test/cases` + `test/mock-server` | Router-level API tests and support mock service |
+
+## CONVENTIONS
+
+- Go toolchain is pinned to `go1.23.10` in root build flow.
+- Lint baseline is centralized in `.golangci.yml` (strict, many enabled linters, generated-file rules enabled).
+- Public Go functions/types require English comments (project rule).
+- Use structured logging via `pkg/logger`.
+- Frontend package manager is `pnpm` (`front/package.json`, `packageManager: pnpm@9.8.0`).
+- Frontend lint extends `@blueking/eslint-config-bk/tsvue3` with import sorting and type-import rules.
+
+## ANTI-PATTERNS (THIS PROJECT)
+
+- Never hand-edit generated `*.pb.go` files (`Code generated ... DO NOT EDIT`).
+- Treat proto structs as boundary types; convert to/from `pkg/types` before business logic (`pkg/proto/*/README.md`).
+- Do not bypass root lint/build entrypoints when changing cross-service behavior.
+- Do not place service-specific logic in `pkg` when it belongs in `internal/<service>`.
+
+## UNIQUE STYLES
+
+- `cmd/application` is multi-command CLI style, while `cmd/backend|file|relay` are direct server starters.
+- `tools/` is a separate Go module (`tools/go.mod`) with its own lifecycle.
+- Root `Makefile` orchestrates binaries, frontend, tests, tools, script packaging, and docker images.
+
+## COMMANDS
 
 ```bash
-make pre     # 准备环境 (下载 Go 1.23.10)
-make all     # 构建所有组件
-make clean   # 清理构建产物
+make pre
+make all
+make lint
+make clean
+
+# Proto regenerate
+cd proto && make clean && make all
+
+# Frontend local
+cd front && pnpm install && pnpm dev
+
+# Integration tests
+cd test && make build && make test
 ```
-
-## 编码规范
-
-### 核心原则
-1. **遵循配置** - `.golangci.yml` 定义了所有 linter 规则
-2. **错误处理** - 始终检查并处理错误
-3. **结构化日志** - 使用 `pkg/logger` 包
-4. **英文注释** - 公共函数和类型必须有注释
-
-## 详细文档
-
-📖 查看 **[docs/README.md](docs/README.md)** 获取完整文档导航：
-- 开发手册 (编译、插件开发)
-- API 开发流程
-- 运维手册 (架构、部署)
-- 概念文档
-
-## 快速参考
-
-- **Proto 构建**: `cd proto && make clean && make all`
-- **代码检查**: `.golangci.yml` 包含所有规则配置
