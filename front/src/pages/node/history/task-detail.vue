@@ -682,8 +682,7 @@ const getFilterList = (prop: string) => {
     case 'bk_biz_id':
       return Array.from(bizListMap.value, ([id, name]) => ({ value: String(id), text: name }));
     case 'bk_networkarea_id':
-      return Array.from(networkAreaListMap.value, ([id, name]) => ({ value: String(id), text: name }))
-        .sort((a, b) => a.value - b.value);
+      return Array.from(networkAreaListMap.value, ([id, name]) => ({ value: String(id), text: name }));
     case 'bk_networkunit_id':
       return Array.from(networkUnitListMap.value, ([id, name]) => ({ value: String(id), text: name }));
     default:
@@ -971,9 +970,23 @@ const handleFilter = ({
       id: field,
       name: field,
       values: checked.map((item: any) => {
-        const name = field === 'state' ? statusMap.value[item]?.text || item : item;
+        let name;
+        switch (field) {
+          case 'bk_networkarea_id':
+            name = networkAreaListMap.value.get(Number(item)) || item;
+            break;
+          case 'bk_networkunit_id':
+            name = networkUnitListMap.value.get(Number(item)) || item;
+            break;
+          case 'state':
+            name = statusMap.value[item]?.text || item;
+            break;
+          default:
+            break;
+        }
+        const id = ['bk_networkarea_id', 'bk_networkunit_id'].includes(field) ? Number(item) : item;
         return {
-          id: item,
+          id,
           name,
         };
       }),
@@ -997,7 +1010,7 @@ const getNetworkAreaList = async () => {
       items: [],
     };
   });
-  res.items.forEach((item) => {
+  res.items.reverse().forEach((item) => {
     networkAreaListMap.value.set(item.bk_networkarea_id, item.bk_networkarea_name);
   });
   filterOptionSource.bk_networkarea_id.list = getFilterList('bk_networkarea_id');
@@ -1015,7 +1028,7 @@ const getNetworkUnitList = async () => {
       items: [],
     };
   });
-  res.items.forEach((item) => {
+  res.items.reverse().forEach((item) => {
     networkUnitListMap.value.set(item.bk_networkunit_id, item.bk_networkunit_name);
   });
   filterOptionSource.bk_networkunit_id.list = getFilterList('bk_networkunit_id');
@@ -1207,6 +1220,7 @@ const getOperateList = async () => {
     operations: [],
     total: 0,
   }));
+  console.log("🚀 ~ getOperateList ~ res:", res)
   pagination.count = res.total;
   const mapList = res.operations.map((item) => {
     const briefData = item.latest_oper_inst_brief_data;
