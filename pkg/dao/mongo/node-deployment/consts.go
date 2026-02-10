@@ -33,8 +33,8 @@ const (
 	FieldKeyInfoNodeVersion = "data.info.node_version"
 
 	// FieldKeyInfoNetworkAreaID the info network area id field key.
-	FieldKeyInfoNetworkAreaID = "data.info.bknetworkarea_id"
+	FieldKeyInfoNetworkAreaID = "data.info.networkarea_id"
 
 	// FieldKeyInfoNetworkUnitID the info network unit id field key.
-	FieldKeyInfoNetworkUnitID = "data.info.bknetworkunit_id"
+	FieldKeyInfoNetworkUnitID = "data.info.networkunit_id"
 )
