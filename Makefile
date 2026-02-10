@@ -129,7 +129,9 @@ scripts: | pre
 
 support-files: | pre
 	@$(ECHO) "Building support-files..."
-	@$(CP) -R $(ROOT_DIR)/support-files $(OUTPUT_DIR)/support-files
+	@$(CP) -R $(ROOT_DIR)/support-files $(OUTPUT_DIR)
+	$(GO_BUILD_ENV) $(GO) build -ldflags ${LDVersionFLAG} -o $(OUTPUT_DIR)/support-files/initpackage/jwt-generator $(ROOT_DIR)/support-files/initpackage/jwt_generator/*.go
+	@$(ECHO) "Built successfully: $(OUTPUT_DIR)/support-files/initpackage/jwt-generator"
 
 OSES := linux
 
@@ -196,7 +198,7 @@ compress-binary:
 		$(ECHO) "UPX compression disabled. Set UPX_ENABLED=1 to enable"; \
 	fi
 
-docker-build-server: backend application file front tools scripts support-files
+docker-build-server: backend application file front tools scripts bintools support-files
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/${BASE_IMAGE}/Dockerfile $(OUTPUT_DIR)
 	@$(CP) $(ROOT_DIR)/install/docker-compose/serviced.sh $(OUTPUT_DIR)

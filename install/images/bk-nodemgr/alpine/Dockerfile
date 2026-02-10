@@ -24,7 +24,9 @@ RUN mkdir -p \
     /bk-nodemgr/file/tools \
     /bk-nodemgr/file/cache \
     /bk-nodemgr/file/local \
-    /bk-nodemgr/file/temp
+    /bk-nodemgr/file/temp \
+    /bk-nodemgr/file/packages/cert \
+    /bk-nodemgr/file/packages/bintool
 
 COPY bk-nodemgr-backend /bk-nodemgr/bin/
 COPY bk-nodemgr-application /bk-nodemgr/bin/
@@ -32,6 +34,7 @@ COPY bk-nodemgr-file /bk-nodemgr/bin/
 COPY serviced.sh /bk-nodemgr/bin/
 COPY scripts/manual/ /bk-nodemgr/script/manual
 COPY tools/ /bk-nodemgr/file/tools
+COPY bintools/ /bk-nodemgr/file/packages/bintool
 COPY dist/ /bk-nodemgr/static/
 COPY support-files/ /bk-nodemgr/support-files
 

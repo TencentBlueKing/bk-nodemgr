@@ -1,0 +1,247 @@
+{{- if and .Values.file.enabled (.Values.file.initPackages.enabled | default true) (or (not (.Values.file.initPackages.installOnly | default true)) .Release.IsInstall) }}
+apiVersion: {{ template "common.capabilities.job.apiVersion" . }}
+kind: Job
+metadata:
+  name: {{ template "bk-nodemgr.fullname" . }}-file-init-packages-{{ (toYaml (dict "file" .Values.file "backendFile" .Values.backend.config.file "image" .Values.image "global" .Values.global) | sha256sum | trunc 8) }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels: {{- include "common.labels.standard" . | nindent 4 }}
+    {{- if .Values.commonLabels }}
+    {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    values-hash: "{{ toYaml .Values.file.config | sha256sum | trunc 63 }}"
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  backoffLimit: 3
+  parallelism: 1
+  {{- if .Values.file.initPackages.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.file.initPackages.ttlSecondsAfterFinished }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.labels.standard" . | nindent 8 }}
+        {{- if .Values.podLabels }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
+        {{- end }}
+        app: nodemgr-file-init-packages
+    spec:
+      {{- include "bk-nodemgr.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.schedulerName }}
+      schedulerName: {{ .Values.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" (dict "value" .Values.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{- include "common.tplvalues.render" (dict "value" .Values.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ template "bk-nodemgr.fullname" . }}-file-init-packages
+          {{- if len .Values.file.imageTag }}
+          {{- if len .Values.global.imageRegistry }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          {{- else }}
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.file.imageTag }}
+          {{- end }}
+          {{- else }}
+          image: {{ template "bk-nodemgr.image" . }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+          env:
+            - name: GSECA_CRT_B64
+              value: {{ .Values.file.initPackages.gseCert.ca | default "" | quote }}
+            - name: GSE_SERVER_CRT_B64
+              value: {{ .Values.file.initPackages.gseCert.cert | default "" | quote }}
+            - name: GSE_SERVER_KEY_B64
+              value: {{ .Values.file.initPackages.gseCert.key | default "" | quote }}
+            - name: CERT_ENCRYPT_KEY_B64
+              value: {{ .Values.file.initPackages.gseCert.certEncryptKey | default "" | quote }}
+            - name: GSE_API_CLIENT_CRT_B64
+              value: {{ .Values.file.initPackages.gseCert.apiClient.cert | default "" | quote }}
+            - name: GSE_API_CLIENT_KEY_B64
+              value: {{ .Values.file.initPackages.gseCert.apiClient.key | default "" | quote }}
+            - name: GSE_AGENT_CRT_B64
+              value: {{ .Values.file.initPackages.gseCert.agent.cert | default "" | quote }}
+            - name: GSE_AGENT_KEY_B64
+              value: {{ .Values.file.initPackages.gseCert.agent.key | default "" | quote }}
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -e
+
+              echo "=========================================="
+              echo "Starting File Init Packages..."
+              echo "=========================================="
+
+              # Define paths
+              PACKAGES_DIR="/bk-nodemgr/file/packages"
+              PACKAGES_SCRIPT_DIR="/bk-nodemgr/support-files/initpackage"
+              FILE_HOST="{{ template "bk-nodemgr.fullname" . }}-file"
+              FILE_HEALTH_URL="http://${FILE_HOST}:{{ .Values.file.config.infoServer.port }}/healthz"
+              export FILE_HEALTH_URL
+              JWT_KEY="{{ .Values.backend.config.file.jwtClientConfig.symmetricKey }}"
+              JWT_EXPIRE_TIME="{{ .Values.backend.config.file.jwtClientConfig.tokenExpirationHour | default 24 }}"
+              UPLOAD_ARGS=""
+
+              echo "=========================================="
+              echo "Waiting for file service to be ready..."
+              echo "  ${FILE_HEALTH_URL}"
+              echo "=========================================="
+
+              python3 - <<'PY'
+              import os
+              import time
+              import requests
+
+              url = os.environ.get("FILE_HEALTH_URL")
+              if not url:
+                raise SystemExit("FILE_HEALTH_URL is empty")
+
+              deadline = time.time() + 300
+              last_err = None
+              while time.time() < deadline:
+                try:
+                  r = requests.get(url, timeout=3)
+                  if r.status_code == 200:
+                    print("file service is ready")
+                    raise SystemExit(0)
+                  last_err = f"status_code={r.status_code}, body={r.text[:200]!r}"
+                except Exception as e:
+                  last_err = str(e)
+                time.sleep(2)
+
+              raise SystemExit(f"file service not ready within 300s: {last_err}")
+              PY
+
+              # Step 1: Prepare cert
+              echo "=========================================="
+              echo "Step 1: Checking cert files..."
+              echo "=========================================="
+
+              CERT_DIR="${PACKAGES_DIR}/cert"
+              export CERT_DIR
+              CERT_TGZ="${CERT_DIR}/cert.tgz"
+
+              # If base64 cert materials are provided via Helm values, decode and write them into CERT_DIR.
+              python3 - <<'PY'
+              import base64
+              import os
+              import stat
+
+              cert_dir = os.environ.get("CERT_DIR", "")
+              if not cert_dir:
+                raise SystemExit("CERT_DIR is empty")
+
+              mappings = [
+                ("GSECA_CRT_B64", "gseca.crt", 0o644),
+                ("GSE_SERVER_CRT_B64", "gse_server.crt", 0o644),
+                ("GSE_SERVER_KEY_B64", "gse_server.key", 0o600),
+                ("CERT_ENCRYPT_KEY_B64", "cert_encrypt.key", 0o600),
+                ("GSE_API_CLIENT_CRT_B64", "gse_api_client.crt", 0o644),
+                ("GSE_API_CLIENT_KEY_B64", "gse_api_client.key", 0o600),
+                ("GSE_AGENT_CRT_B64", "gse_agent.crt", 0o644),
+                ("GSE_AGENT_KEY_B64", "gse_agent.key", 0o600),
+              ]
+
+              any_set = any((os.environ.get(env) or "").strip() for env, _, _ in mappings)
+              if not any_set:
+                raise SystemExit(0)
+
+              os.makedirs(cert_dir, exist_ok=True)
+
+              for env_name, filename, mode in mappings:
+                b64 = (os.environ.get(env_name) or "").strip()
+                if not b64:
+                  continue
+                try:
+                  data = base64.b64decode(b64, validate=True)
+                except Exception as e:
+                  raise SystemExit(f"invalid base64 for {env_name}: {e}")
+
+                target = os.path.join(cert_dir, filename)
+                with open(target, "wb") as f:
+                  f.write(data)
+                os.chmod(target, mode)
+
+              print("decoded gseCert materials into CERT_DIR")
+              PY
+
+              # check cert files
+              CERT_FILES="cert_encrypt.key gse_agent.key gse_api_client.key gse_server.key gse_agent.crt gse_api_client.crt gse_server.crt gseca.crt"
+              all_exist=true
+
+              for file in $CERT_FILES; do
+                  if [ ! -f "${CERT_DIR}/${file}" ]; then
+                      echo "Missing cert file: ${file}"
+                      all_exist=false
+                  fi
+              done
+
+              if [ "$all_exist" = "true" ]; then
+                  echo "All cert files found, creating cert.tgz..."
+                  tar -czf "${CERT_TGZ}" -C "${CERT_DIR}" $CERT_FILES
+                  echo "cert.tgz created: ${CERT_TGZ}"
+                  UPLOAD_ARGS="${UPLOAD_ARGS} --init-cert ${CERT_TGZ}"
+              else
+                  echo "Skipping cert upload (files not found)"
+              fi
+
+              # Step 2: Check bintool
+              echo "=========================================="
+              echo "Step 2: Checking bintool files..."
+              echo "=========================================="
+
+              BINTOOL_TGZ="${PACKAGES_DIR}/bintool/bintool.tgz"
+              PLUGIN_BINTOOL_TGZ="${PACKAGES_DIR}/bintool/plugin_bintool.tgz"
+
+              if [ -f "${BINTOOL_TGZ}" ]; then
+                  echo "bintool.tgz found: ${BINTOOL_TGZ}"
+                  UPLOAD_ARGS="${UPLOAD_ARGS} --init-bintool ${BINTOOL_TGZ}"
+              else
+                  echo "Skipping bintool upload (bintool.tgz not found)"
+              fi
+
+              if [ -f "${PLUGIN_BINTOOL_TGZ}" ]; then
+                  echo "plugin_bintool.tgz found: ${PLUGIN_BINTOOL_TGZ}"
+                  UPLOAD_ARGS="${UPLOAD_ARGS} --init-plugin-bintool ${PLUGIN_BINTOOL_TGZ}"
+              else
+                  echo "Skipping plugin_bintool upload (plugin_bintool.tgz not found)"
+              fi
+
+              # Step 3: Execute upload
+              if [ -n "${UPLOAD_ARGS}" ]; then
+                  echo "=========================================="
+                  echo "Step 3: Uploading packages..."
+                  echo "=========================================="
+
+                  python3 ${PACKAGES_SCRIPT_DIR}/init_package.py \
+                    --host "${FILE_HOST}" \
+                    --port {{ .Values.file.config.basicServer.port }} \
+                    --jwt-key "${JWT_KEY}" \
+                    --expire-hours "${JWT_EXPIRE_TIME}" \
+                    ${UPLOAD_ARGS}
+              else
+                  echo "=========================================="
+                  echo "No packages to upload, skipping..."
+                  echo "=========================================="
+              fi
+
+              echo "=========================================="
+              echo "File packages init completed successfully!"
+              echo "=========================================="
+          resources: {{- toYaml .Values.initContainerResources | nindent 12 }}
+      restartPolicy: Never
+{{- end }}
