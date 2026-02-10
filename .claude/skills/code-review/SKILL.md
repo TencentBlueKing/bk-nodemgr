@@ -5,7 +5,6 @@ allowed-tools:
   - sequential-thinking  # MCP 工具优先！
   - mcp__serena__*       # serena 工具族
   - context7             # 文档查询
-  - ReadLints            # Linter
   - Shell                # 编译、测试
   - Read                 # 降级方案
   - Grep                 # 降级方案
@@ -25,7 +24,7 @@ allowed-tools:
 - **🔍 serena 工具族**: 精确的符号级代码分析（`get_symbols_overview`、`find_symbol`、`find_referencing_symbols`、`search_for_pattern`）
 - **📚 context7**: 文档查询和规范验证
 
-**传统工具作为补充**：Read/Grep/Glob 仅在 MCP 工具不可用或不适用时使用，ReadLints 和 Shell 用于语法检查。
+**传统工具作为补充**：Read/Grep/Glob 仅在 MCP 工具不可用或不适用时使用。
 
 详细工具选择策略参见：[references/tools-usage.md](references/tools-usage.md) 和 [references/quick-reference.md](references/quick-reference.md)
 
@@ -49,7 +48,7 @@ allowed-tools:
 执行 6 步审查流程：
 
 1. **🔍 确定范围** - 使用 `🧠 sequential-thinking` 分析策略，用 `🔍 serena.get_symbols_overview` 识别文件和模块类型
-2. **⚠️ 语法检查** - 使用 [scripts/go-lint.sh](scripts/go-lint.sh)（最高优先级，阻塞性错误）
+2. **⚠️ 语法检查** - 使用 `make lint`（最高优先级，阻塞性错误）
 3. **📋 规范检查** - 使用 `🔍 serena.find_symbol` 精确定位，用 `📚 context7` 查询规范（可选）
 4. **🔗 一致性检查** - 使用 `🔍 serena.find_symbol` 和 `find_referencing_symbols` 查找并对比相似代码
 5. **💡 质量检查** - 使用 `🧠 sequential-thinking` 分析质量问题，用 `🔍 serena.search_for_pattern` 查找特定模式
