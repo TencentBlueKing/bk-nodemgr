@@ -32,10 +32,14 @@ func main() {
 	var (
 		key        string
 		expireTime int64
+		bkUserName string
+		loginName  string
 	)
 
 	flag.StringVar(&key, "k", "", "Key")
-	flag.Int64Var(&expireTime, "e", 0, "Expire time")
+	flag.Int64Var(&expireTime, "e", 0, "Expire Time")
+	flag.StringVar(&bkUserName, "u", "admin", "Bk Username")
+	flag.StringVar(&loginName, "l", "admin", "Login Name")
 	flag.Parse()
 
 	if key == "" {
@@ -44,7 +48,7 @@ func main() {
 	}
 
 	nodemgrAuthManager := restheader.NewNodeMgrAuthorizationManager(key, restheader.WithJwtTokenExpiration(time.Duration(expireTime)*time.Hour))
-	token, err := nodemgrAuthManager.Generate("admin", "admin")
+	token, err := nodemgrAuthManager.Generate(loginName, bkUserName)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: failed to generate token: %v\n", err)
 		os.Exit(1)

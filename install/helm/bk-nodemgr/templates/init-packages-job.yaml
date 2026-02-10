@@ -1,4 +1,4 @@
-{{- if and .Values.file.enabled (.Values.file.initPackages.enabled | default true) (or (not (.Values.file.initPackages.installOnly | default true)) .Release.IsInstall) }}
+{{- if and .Values.file.enabled (.Values.initPackages.enabled | default true) (or (not (.Values.initPackages.installOnly | default true)) .Release.IsInstall) }}
 apiVersion: {{ template "common.capabilities.job.apiVersion" . }}
 kind: Job
 metadata:
@@ -15,8 +15,8 @@ metadata:
 spec:
   backoffLimit: 3
   parallelism: 1
-  {{- if .Values.file.initPackages.ttlSecondsAfterFinished }}
-  ttlSecondsAfterFinished: {{ .Values.file.initPackages.ttlSecondsAfterFinished }}
+  {{- if .Values.initPackages.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.initPackages.ttlSecondsAfterFinished }}
   {{- end }}
   template:
     metadata:
@@ -60,21 +60,21 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           env:
             - name: GSECA_CRT_B64
-              value: {{ .Values.file.initPackages.gseCert.ca | default "" | quote }}
+              value: {{ .Values.initPackages.gseCert.ca | default "" | quote }}
             - name: GSE_SERVER_CRT_B64
-              value: {{ .Values.file.initPackages.gseCert.cert | default "" | quote }}
+              value: {{ .Values.initPackages.gseCert.cert | default "" | quote }}
             - name: GSE_SERVER_KEY_B64
-              value: {{ .Values.file.initPackages.gseCert.key | default "" | quote }}
+              value: {{ .Values.initPackages.gseCert.key | default "" | quote }}
             - name: CERT_ENCRYPT_KEY_B64
-              value: {{ .Values.file.initPackages.gseCert.certEncryptKey | default "" | quote }}
+              value: {{ .Values.initPackages.gseCert.certEncryptKey | default "" | quote }}
             - name: GSE_API_CLIENT_CRT_B64
-              value: {{ .Values.file.initPackages.gseCert.apiClient.cert | default "" | quote }}
+              value: {{ .Values.initPackages.gseCert.apiClient.cert | default "" | quote }}
             - name: GSE_API_CLIENT_KEY_B64
-              value: {{ .Values.file.initPackages.gseCert.apiClient.key | default "" | quote }}
+              value: {{ .Values.initPackages.gseCert.apiClient.key | default "" | quote }}
             - name: GSE_AGENT_CRT_B64
-              value: {{ .Values.file.initPackages.gseCert.agent.cert | default "" | quote }}
+              value: {{ .Values.initPackages.gseCert.agent.cert | default "" | quote }}
             - name: GSE_AGENT_KEY_B64
-              value: {{ .Values.file.initPackages.gseCert.agent.key | default "" | quote }}
+              value: {{ .Values.initPackages.gseCert.agent.key | default "" | quote }}
           command:
             - /bin/sh
             - -c
@@ -232,6 +232,8 @@ spec:
                     --port {{ .Values.file.config.basicServer.port }} \
                     --jwt-key "${JWT_KEY}" \
                     --expire-hours "${JWT_EXPIRE_TIME}" \
+                    --bk-username "{{ .Values.initPackages.bkUsername }}" \
+                    --login-name "{{ .Values.initPackages.loginName }}" \
                     ${UPLOAD_ARGS}
               else
                   echo "=========================================="

@@ -12,7 +12,7 @@ def generate_id(tag):
     return tag + ":" + str(uuid.uuid4()).replace("-", "")
 
 
-def generate_jwt_token(key, expire_hours=24):
+def generate_jwt_token(key, expire_hours=24, bk_username=None, login_name=None):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     binary_name = "jwt-generator"
     binary_path = os.path.join(script_dir, binary_name)
@@ -22,7 +22,7 @@ def generate_jwt_token(key, expire_hours=24):
 
     try:
         result = subprocess.run(
-            [binary_path, "-k", key, "-e", str(expire_hours)],
+            [binary_path, "-k", key, "-e", str(expire_hours), "-u", bk_username, "-l", login_name],
             capture_output=True,
             text=True,
             timeout=10,
@@ -172,10 +172,14 @@ class FileClient(object):
         jwt_key="",
         expire_hours=24,
         tenant_id=None,
+        bk_username=None,
+        login_name=None,
     ):
         self.jwt_key = jwt_key
         self.expire_hours = expire_hours
         self.tenant_id = tenant_id
+        self.bk_username = bk_username
+        self.login_name = login_name
         self.base_url = "http://{host}:{port}/api/v3".format(host=host, port=port)
 
     def _get_common_headers(self):
@@ -184,7 +188,7 @@ class FileClient(object):
         }
 
         if self.jwt_key:
-            ok, jwt_token = generate_jwt_token(self.jwt_key, self.expire_hours)
+            ok, jwt_token = generate_jwt_token(self.jwt_key, self.expire_hours, self.bk_username, self.login_name)
             if not ok:
                 raise Exception("Failed to generate JWT token: {}".format(jwt_token))
 
@@ -431,6 +435,20 @@ if __name__ == "__main__":
         default="default",
     )
     p.add_argument(
+        "--bk-username",
+        action="store",
+        dest="bk_username",
+        help="bk username",
+        default="admin",
+    )
+    p.add_argument(
+        "--login-name",
+        action="store",
+        dest="login_name",
+        help="login name",
+        default="admin",
+    )
+    p.add_argument(
         "--expire-hours",
         action="store",
         dest="expire_hours",
@@ -511,6 +529,10 @@ if __name__ == "__main__":
 
     args = p.parse_args()
 
+    print("tenant_id: {}".format(args.tenant_id))
+    print("bk_username: {}".format(args.bk_username))
+    print("login_name: {}".format(args.login_name))
+
     try:
         client = FileClient(
             host=args.host,
@@ -518,6 +540,8 @@ if __name__ == "__main__":
             jwt_key=args.jwt_key,
             expire_hours=args.expire_hours,
             tenant_id=args.tenant_id,
+            bk_username=args.bk_username,
+            login_name=args.login_name,
         )
     except Exception as e:
         print("failed to create file client: {}".format(str(e)))
@@ -591,8 +615,6 @@ if __name__ == "__main__":
 
     success_count = 0
     fail_count = 0
-
-    print("tenant_id: {}".format(args.tenant_id))
 
     for task_name, file_path, upload_func, publish_func, upload_params in tasks:
         if not file_path:
