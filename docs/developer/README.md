@@ -13,7 +13,3 @@
 ### [plugin_pkg_build_guide](plugin_pkg_build_guide.md)
 
 插件包构建指南，介绍标准插件v3的文件结构、规范、配置模板等。
-
-### [pkg_readme_template](pkg_readme_template.md)
-
-包README模板，用于编写包文档的标准模板。

@@ -2,6 +2,7 @@ Always use:
 - serena for semantic code retrieval and editing tools
 - context7 for up to date documentation on third party code
 - sequential thinking for any decision making
+- use chinese to answer questions about the codebase, but use english for code comments and documentation and technical discussions
 
 ## OVERVIEW
 
