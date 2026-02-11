@@ -14,6 +14,16 @@ package frontsetting
 import (
 	"fmt"
 	"html/template"
+	"net/url"
+	"strings"
+)
+
+type frontValueKind int
+
+const (
+	frontValueKindURL frontValueKind = iota
+	frontValueKindURI
+	frontValueKindHost
 )
 
 // notice: this file use interface to avoid this setting changed by other package.
@@ -117,17 +127,70 @@ func NewFrontSetting(opt Option) (*FrontSetting, error) {
 	}
 
 	return &FrontSetting{
-		bkloginURL:            opt.BKLoginURL,
+		bkloginURL:            normalizeFrontValue(opt.BKLoginURL, frontValueKindURL),
 		bkRequestIDHeaderKEy:  opt.BKRequestIDHeaderKEy,
 		bkPassAnalyticsScript: opt.BKPassAnalyticsScript,
 		passwordVaultSwitch:   opt.PasswordVaultSwitch,
 		passwordVaultName:     opt.PasswordVaultName,
-		bkUserWebURL:          opt.BKUserWebURL,
-		bkDomain:              opt.BKDomain,
-		bkDocsCenterURL:       opt.BKDocsCenterURL,
-		bkAppNavOpenSourceURL: opt.BKAppNavOpenSourceURL,
+		bkUserWebURL:          normalizeFrontValue(opt.BKUserWebURL, frontValueKindURL),
+		bkDomain:              normalizeFrontValue(opt.BKDomain, frontValueKindHost),
+		bkDocsCenterURL:       normalizeFrontValue(opt.BKDocsCenterURL, frontValueKindURL),
+		bkAppNavOpenSourceURL: normalizeFrontValue(opt.BKAppNavOpenSourceURL, frontValueKindURL),
 		enableNotice:          opt.EnableNotice,
 	}, nil
+}
+
+func normalizeFrontValue(raw string, kind frontValueKind) string {
+	switch kind {
+	case frontValueKindURL:
+		return normalizeURL(raw)
+	case frontValueKindURI:
+		return normalizeURI(raw)
+	case frontValueKindHost:
+		return normalizeHost(raw)
+	default:
+		return strings.TrimRight(raw, "/")
+	}
+}
+
+func normalizeURL(raw string) string {
+	if strings.HasSuffix(raw, "://") {
+		return raw
+	}
+
+	parsedURL, err := url.Parse(raw)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return strings.TrimRight(raw, "/")
+	}
+
+	parsedURL.Path = strings.TrimRight(parsedURL.Path, "/")
+	parsedURL.RawPath = strings.TrimRight(parsedURL.RawPath, "/")
+
+	return parsedURL.String()
+}
+
+func normalizeURI(raw string) string {
+	if raw == "/" {
+		return raw
+	}
+
+	return strings.TrimRight(raw, "/")
+}
+
+func normalizeHost(raw string) string {
+	host := raw
+	if strings.Contains(host, "://") {
+		parsedURL, err := url.Parse(host)
+		if err == nil && parsedURL.Host != "" {
+			host = parsedURL.Host
+		}
+	}
+
+	if slashIndex := strings.Index(host, "/"); slashIndex >= 0 {
+		host = host[:slashIndex]
+	}
+
+	return strings.TrimRight(host, "/")
 }
 
 // BKLoginURL get bk login url.
