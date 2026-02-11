@@ -13,6 +13,7 @@ package provider
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -39,7 +40,7 @@ func NewNetworkAreaProvider(storage topo.IStorage) *NetworkAreaProvider {
 }
 
 // ListAttr returns empty result as network area has no attributes.
-func (p *NetworkAreaProvider) ListAttr(_ contextx.IContext, _ *Request) (*ListAttrData, error) {
+func (p *NetworkAreaProvider) ListAttr(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListAttrData, error) {
 	data := &ListAttrData{
 		Results: []ResourceAttribute{},
 	}
@@ -48,7 +49,7 @@ func (p *NetworkAreaProvider) ListAttr(_ contextx.IContext, _ *Request) (*ListAt
 }
 
 // ListAttrValue returns empty result as network area has no attribute values.
-func (p *NetworkAreaProvider) ListAttrValue(_ contextx.IContext, _ *Request) (*ListAttrValueData, error) {
+func (p *NetworkAreaProvider) ListAttrValue(_ contextx.IContext, _ *Request[ListAttrValueFilter]) (*ListAttrValueData, error) {
 	data := &ListAttrValueData{
 		Count:   0,
 		Results: []AttributeValue{},
@@ -58,7 +59,7 @@ func (p *NetworkAreaProvider) ListAttrValue(_ contextx.IContext, _ *Request) (*L
 }
 
 // ListInstance lists network area instances with pagination.
-func (p *NetworkAreaProvider) ListInstance(ctx contextx.IContext, req *Request) (*ListInstanceData, error) {
+func (p *NetworkAreaProvider) ListInstance(ctx contextx.IContext, req *Request[ListInstanceFilter]) (*ListInstanceData, error) {
 	// Page has been converted and validated in Dispatcher
 	// Query network areas
 	networkAreas, total, err := p.storage.ListNetworkArea(ctx, req.Page)
@@ -85,12 +86,18 @@ func (p *NetworkAreaProvider) ListInstance(ctx contextx.IContext, req *Request) 
 }
 
 // FetchInstanceInfo fetches network area details by IDs.
-func (p *NetworkAreaProvider) FetchInstanceInfo(ctx contextx.IContext, req *Request) (*FetchInstanceInfoData, error) {
-	// Extract IDs from filter
-	ids, err := p.extractIDsFromFilter(req.Filter)
-	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("invalid filter format")
-		return nil, fmt.Errorf("invalid filter: %w", err)
+func (p *NetworkAreaProvider) FetchInstanceInfo(ctx contextx.IContext, req *Request[FetchInstanceFilter]) (*FetchInstanceInfoData, error) {
+	// Convert IDs from []string to []int64
+	// Skip invalid IDs with warning to allow partial success
+	ids := make([]int64, 0, len(req.Filter.IDs))
+	for _, idStr := range req.Filter.IDs {
+		id, err := conv.ToInt64(idStr)
+		if err != nil {
+			// Log warning but continue processing other IDs (partial success strategy)
+			logger.G.Biz(ctx).With("id", idStr).Warn("skipped invalid ID in FetchInstanceInfo")
+			continue
+		}
+		ids = append(ids, id)
 	}
 
 	if len(ids) == 0 {
@@ -131,20 +138,34 @@ func (p *NetworkAreaProvider) FetchInstanceInfo(ctx contextx.IContext, req *Requ
 	return data, nil
 }
 
-// ListInstanceByPolicy returns empty result as this is for permission preview.
-func (p *NetworkAreaProvider) ListInstanceByPolicy(_ contextx.IContext, _ *Request) (*ListInstanceData, error) {
-	data := &ListInstanceData{
-		Count:   0,
-		Results: []ResourceInstance{},
+// ListInstanceByPolicy lists network area instances filtered by IAM policy expression.
+func (p *NetworkAreaProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
+	// Load all network areas (use large limit for in-memory evaluation)
+	networkAreas, _, err := p.storage.ListNetworkArea(ctx, types.Page{Offset: 0, Limit: MaxListInstanceByPolicyLimit})
+	if err != nil {
+		logger.G.Biz(ctx).WithErr(err).Error("failed to list network areas")
+		return nil, fmt.Errorf("failed to list network areas: %w", err)
 	}
 
-	return data, nil
+	// Build instances with attributes for expression evaluation
+	instances := make([]InstanceForEval, 0, len(networkAreas))
+	for _, area := range networkAreas {
+		instances = append(instances, InstanceForEval{
+			Instance: ResourceInstance{
+				ID:          strconv.FormatInt(area.ID, 10),
+				DisplayName: area.Name,
+			},
+			Attributes: map[string]interface{}{},
+		})
+	}
+
+	// Evaluate expression filter and apply pagination
+	return evalExpressionFilter(req.Filter.Expression, ResourceTypeNetworkArea, instances, req.Page)
 }
 
 // SearchInstance searches network areas by keyword.
-func (p *NetworkAreaProvider) SearchInstance(ctx contextx.IContext, req *Request) (*ListInstanceData, error) {
-	// Extract keyword from filter
-	keyword := p.extractKeywordFromFilter(req.Filter)
+func (p *NetworkAreaProvider) SearchInstance(ctx contextx.IContext, req *Request[SearchInstanceFilter]) (*ListInstanceData, error) {
+	keyword := strings.TrimSpace(req.Filter.Keyword)
 
 	// Page has been converted and validated in Dispatcher
 	// Build condition with keyword filter
@@ -152,7 +173,7 @@ func (p *NetworkAreaProvider) SearchInstance(ctx contextx.IContext, req *Request
 	if keyword != "" {
 		condition = &types.NetworkAreaCondition{
 			FuzzyInclude: &types.NetworkAreaFuzzyFields{
-				NetworkAreaName: []string{keyword},
+				NetworkAreaName: []string{regexp.QuoteMeta(keyword)},
 			},
 		}
 	}
@@ -182,7 +203,7 @@ func (p *NetworkAreaProvider) SearchInstance(ctx contextx.IContext, req *Request
 }
 
 // FetchInstanceList returns empty result as this is for audit center.
-func (p *NetworkAreaProvider) FetchInstanceList(_ contextx.IContext, _ *Request) (*ListInstanceData, error) {
+func (p *NetworkAreaProvider) FetchInstanceList(_ contextx.IContext, _ *Request[FetchInstanceListFilter]) (*ListInstanceData, error) {
 	data := &ListInstanceData{
 		Count:   0,
 		Results: []ResourceInstance{},
@@ -192,7 +213,7 @@ func (p *NetworkAreaProvider) FetchInstanceList(_ contextx.IContext, _ *Request)
 }
 
 // FetchResourceTypeSchema returns empty schema as network area has no custom schema.
-func (p *NetworkAreaProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request) (*ListInstanceData, error) {
+func (p *NetworkAreaProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Request[EmptyFilter]) (*ListInstanceData, error) {
 	// This method doesn't match any standard IAM callback API
 	// Return empty list for now
 	data := &ListInstanceData{
@@ -201,54 +222,4 @@ func (p *NetworkAreaProvider) FetchResourceTypeSchema(_ contextx.IContext, _ *Re
 	}
 
 	return data, nil
-}
-
-// extractIDsFromFilter extracts network area IDs from the request filter.
-// The filter format is: {"ids": ["1", "2", "3"]} or {"ids": [1, 2, 3]}.
-func (p *NetworkAreaProvider) extractIDsFromFilter(filter map[string]interface{}) ([]int64, error) {
-	idsRaw, ok := filter["ids"]
-	if !ok {
-		return nil, nil
-	}
-
-	idsSlice, ok := idsRaw.([]interface{})
-	if !ok {
-		return nil, nil
-	}
-
-	ids := make([]int64, 0, len(idsSlice))
-	for _, idRaw := range idsSlice {
-		id, err := conv.ToInt64(idRaw)
-		if err != nil {
-			// Try parsing as string
-			if idStr, ok := idRaw.(string); ok {
-				id, err = strconv.ParseInt(idStr, 10, 64)
-				if err != nil {
-					// Log skipped IDs for debugging
-					continue
-				}
-			} else {
-				continue
-			}
-		}
-		ids = append(ids, id)
-	}
-
-	return ids, nil
-}
-
-// extractKeywordFromFilter extracts the search keyword from the request filter.
-// The filter format is: {"keyword": "search term"}.
-func (p *NetworkAreaProvider) extractKeywordFromFilter(filter map[string]interface{}) string {
-	keywordRaw, ok := filter["keyword"]
-	if !ok {
-		return ""
-	}
-
-	keyword, ok := keywordRaw.(string)
-	if !ok {
-		return ""
-	}
-
-	return strings.TrimSpace(keyword)
 }

@@ -12,12 +12,14 @@ package provider
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/logger"
 	protoBackend "github.com/TencentBlueKing/bk-nodemgr/pkg/proto/backend/api/v3"
 	resterrf "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/errf"
 	restserver "github.com/TencentBlueKing/bk-nodemgr/pkg/rest/server"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/runtime/conv"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
 
@@ -37,6 +39,7 @@ const (
 )
 
 // Validate validates the request method.
+// nolint:varnamelen
 func (m RequestMethod) Validate() error {
 	switch m {
 	case RequestMethodListAttr, RequestMethodListAttrValue, RequestMethodListInstance, RequestMethodFetchInstanceInfo,
@@ -46,15 +49,6 @@ func (m RequestMethod) Validate() error {
 	default:
 		return fmt.Errorf("invalid request method: %s", m)
 	}
-}
-
-// Request contains the essential fields from IAM callback request.
-// Page field has been converted and validated from proto message to types.Page.
-type Request struct {
-	Type   string
-	Method string
-	Filter map[string]interface{}
-	Page   types.Page
 }
 
 // Dispatcher is the interface of dispatcher, for callback.
@@ -87,6 +81,7 @@ func (d *dispatcher) GetProvider(_type string) (IProvider, bool) {
 }
 
 // Dispatch handles IAM resource callback requests.
+// nolint:varnamelen
 func (d *dispatcher) Dispatch(rCtx restserver.IContext) (interface{}, error) {
 	// Bind request body to proto message
 	req := new(protoBackend.IAMResourceCallbackReq)
@@ -126,14 +121,6 @@ func (d *dispatcher) Dispatch(rCtx restserver.IContext) (interface{}, error) {
 		return nil, resterrf.ErrWrap(resterrf.InvalidParameter, err)
 	}
 
-	// Build request object
-	callbackReq := &Request{
-		Type:   req.GetType(),
-		Method: req.GetMethod(),
-		Filter: filterMap,
-		Page:   page,
-	}
-
 	// Get context
 	ctx := contextx.FromContext(rCtx)
 
@@ -143,21 +130,21 @@ func (d *dispatcher) Dispatch(rCtx restserver.IContext) (interface{}, error) {
 
 	switch RequestMethod(req.GetMethod()) {
 	case RequestMethodListAttr:
-		result, providerErr = provider.ListAttr(ctx, callbackReq)
+		result, providerErr = d.dispatchListAttr(ctx, provider, page)
 	case RequestMethodListAttrValue:
-		result, providerErr = provider.ListAttrValue(ctx, callbackReq)
+		result, providerErr = d.dispatchListAttrValue(ctx, provider, filterMap, page)
 	case RequestMethodListInstance:
-		result, providerErr = provider.ListInstance(ctx, callbackReq)
+		result, providerErr = d.dispatchListInstance(ctx, provider, filterMap, page)
 	case RequestMethodFetchInstanceInfo:
-		result, providerErr = provider.FetchInstanceInfo(ctx, callbackReq)
+		result, providerErr = d.dispatchFetchInstanceInfo(ctx, provider, filterMap, page)
 	case RequestMethodListInstanceByPolicy:
-		result, providerErr = provider.ListInstanceByPolicy(ctx, callbackReq)
+		result, providerErr = d.dispatchListInstanceByPolicy(ctx, provider, filterMap, page)
 	case RequestMethodSearchInstance:
-		result, providerErr = provider.SearchInstance(ctx, callbackReq)
+		result, providerErr = d.dispatchSearchInstance(ctx, provider, filterMap, page)
 	case RequestMethodFetchInstanceList:
-		result, providerErr = provider.FetchInstanceList(ctx, callbackReq)
+		result, providerErr = d.dispatchFetchInstanceList(ctx, provider, filterMap, page)
 	case RequestMethodFetchResourceTypeSchema:
-		result, providerErr = provider.FetchResourceTypeSchema(ctx, callbackReq)
+		result, providerErr = d.dispatchFetchResourceTypeSchema(ctx, provider, page)
 	default:
 		providerErr = fmt.Errorf("method %s not supported", req.GetMethod())
 		logger.G.Biz(rCtx).WithErr(providerErr).With("method", req.GetMethod()).Error("failed to dispatch IAM callback, unsupported method")
@@ -173,4 +160,171 @@ func (d *dispatcher) Dispatch(rCtx restserver.IContext) (interface{}, error) {
 	}
 
 	return result, nil
+}
+
+// dispatchListAttr dispatches the list_attr method.
+func (d *dispatcher) dispatchListAttr(
+	ctx contextx.IContext,
+	provider IProvider,
+	page types.Page,
+) (*ListAttrData, error) {
+
+	req := &Request[EmptyFilter]{
+		Filter: EmptyFilter{},
+		Page:   page,
+	}
+
+	return provider.ListAttr(ctx, req)
+}
+
+// dispatchListAttrValue dispatches the list_attr_value method.
+func (d *dispatcher) dispatchListAttrValue(
+	ctx contextx.IContext,
+	provider IProvider,
+	filterMap map[string]interface{},
+	page types.Page,
+) (*ListAttrValueData, error) {
+
+	var filter ListAttrValueFilter
+	if err := conv.MapToStruct(filterMap, &filter); err != nil {
+		return nil, fmt.Errorf("failed to parse ListAttrValueFilter: %w", err)
+	}
+
+	req := &Request[ListAttrValueFilter]{
+		Filter: filter,
+		Page:   page,
+	}
+
+	return provider.ListAttrValue(ctx, req)
+}
+
+// dispatchListInstance dispatches the list_instance method.
+func (d *dispatcher) dispatchListInstance(
+	ctx contextx.IContext,
+	provider IProvider,
+	filterMap map[string]interface{},
+	page types.Page,
+) (*ListInstanceData, error) {
+
+	var filter ListInstanceFilter
+	if err := conv.MapToStruct(filterMap, &filter); err != nil {
+		return nil, fmt.Errorf("failed to parse ListInstanceFilter: %w", err)
+	}
+
+	req := &Request[ListInstanceFilter]{
+		Filter: filter,
+		Page:   page,
+	}
+
+	return provider.ListInstance(ctx, req)
+}
+
+// dispatchFetchInstanceInfo dispatches the fetch_instance_info method.
+func (d *dispatcher) dispatchFetchInstanceInfo(
+	ctx contextx.IContext,
+	provider IProvider,
+	filterMap map[string]interface{},
+	page types.Page,
+) (*FetchInstanceInfoData, error) {
+
+	var filter FetchInstanceFilter
+	if err := conv.MapToStruct(filterMap, &filter); err != nil {
+		return nil, fmt.Errorf("failed to parse FetchInstanceFilter: %w", err)
+	}
+
+	// Validate IDs count limit according to IAM specification
+	if len(filter.IDs) > MaxFetchInstanceIDs {
+		return nil, fmt.Errorf("IDs count exceeds maximum limit of %d", MaxFetchInstanceIDs)
+	}
+
+	req := &Request[FetchInstanceFilter]{
+		Filter: filter,
+		Page:   page,
+	}
+
+	return provider.FetchInstanceInfo(ctx, req)
+}
+
+// dispatchListInstanceByPolicy dispatches the list_instance_by_policy method.
+func (d *dispatcher) dispatchListInstanceByPolicy(
+	ctx contextx.IContext,
+	provider IProvider,
+	filterMap map[string]interface{},
+	page types.Page,
+) (*ListInstanceData, error) {
+
+	var filter ListInstanceByPolicyFilter
+	if err := conv.MapToStruct(filterMap, &filter); err != nil {
+		return nil, fmt.Errorf("failed to parse ListInstanceByPolicyFilter: %w", err)
+	}
+
+	req := &Request[ListInstanceByPolicyFilter]{
+		Filter: filter,
+		Page:   page,
+	}
+
+	return provider.ListInstanceByPolicy(ctx, req)
+}
+
+// dispatchSearchInstance dispatches the search_instance method.
+func (d *dispatcher) dispatchSearchInstance(
+	ctx contextx.IContext,
+	provider IProvider,
+	filterMap map[string]interface{},
+	page types.Page,
+) (*ListInstanceData, error) {
+
+	var filter SearchInstanceFilter
+	if err := conv.MapToStruct(filterMap, &filter); err != nil {
+		return nil, fmt.Errorf("failed to parse SearchInstanceFilter: %w", err)
+	}
+
+	// Validate keyword is not empty
+	if strings.TrimSpace(filter.Keyword) == "" {
+		err := fmt.Errorf("keyword is required and cannot be empty")
+		return nil, resterrf.ErrWrap(resterrf.InvalidKeyword, err)
+	}
+
+	req := &Request[SearchInstanceFilter]{
+		Filter: filter,
+		Page:   page,
+	}
+
+	return provider.SearchInstance(ctx, req)
+}
+
+// dispatchFetchInstanceList dispatches the fetch_instance_list method.
+func (d *dispatcher) dispatchFetchInstanceList(
+	ctx contextx.IContext,
+	provider IProvider,
+	filterMap map[string]interface{},
+	page types.Page,
+) (*ListInstanceData, error) {
+
+	var filter FetchInstanceListFilter
+	if err := conv.MapToStruct(filterMap, &filter); err != nil {
+		return nil, fmt.Errorf("failed to parse FetchInstanceListFilter: %w", err)
+	}
+
+	req := &Request[FetchInstanceListFilter]{
+		Filter: filter,
+		Page:   page,
+	}
+
+	return provider.FetchInstanceList(ctx, req)
+}
+
+// dispatchFetchResourceTypeSchema dispatches the fetch_resource_type_schema method.
+func (d *dispatcher) dispatchFetchResourceTypeSchema(
+	ctx contextx.IContext,
+	provider IProvider,
+	page types.Page,
+) (*ListInstanceData, error) {
+
+	req := &Request[EmptyFilter]{
+		Filter: EmptyFilter{},
+		Page:   page,
+	}
+
+	return provider.FetchResourceTypeSchema(ctx, req)
 }

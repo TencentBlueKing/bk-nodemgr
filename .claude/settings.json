@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Skill(code-review)",
+      "Bash(make lint:*)",
       "mcp__sequential-thinking__sequentialthinking",
       "mcp__serena__check_onboarding_performed",
       "mcp__serena__find_file"

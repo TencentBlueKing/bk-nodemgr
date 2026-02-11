@@ -52,6 +52,14 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 	networkUnitProvider := provider.NewNetworkUnitProvider(capability.StorageTopo)
 	h.dispatcher.RegisterProvider(provider.ResourceTypeNetworkUnit, networkUnitProvider)
 
+	// Register PackageType provider
+	packageTypeProvider := provider.NewPackageTypeProvider()
+	h.dispatcher.RegisterProvider(provider.ResourceTypePackageType, packageTypeProvider)
+
+	// Register Package provider
+	packageProvider := provider.NewPackageProvider(capability.StorageRelease)
+	h.dispatcher.RegisterProvider(provider.ResourceTypePackage, packageProvider)
+
 	// Apply Basic Auth middleware to IAM routes
 	h.rg.Use(h.basicAuthMiddleware())
 
@@ -61,6 +69,7 @@ func Load(rg *gin.RouterGroup, capability *options.Capability) {
 
 // basicAuthMiddleware creates a middleware that validates Basic Auth credentials
 // using the IAM system token.
+// nolint: varnamelen
 func (h *handler) basicAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Extract Basic Auth credentials from HTTP Header

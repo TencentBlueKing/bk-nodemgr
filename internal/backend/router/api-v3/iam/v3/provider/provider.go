@@ -12,58 +12,156 @@ package provider
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
 
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 )
+
+// AttributeValueID represents a resource attribute value identifier.
+// According to IAM list_attr_value API, attribute value IDs support string/int/bool types.
+// This type provides automatic JSON type conversion.
+type AttributeValueID string
+
+var _ json.Unmarshaler = (*AttributeValueID)(nil)
+
+// UnmarshalJSON implements custom JSON deserialization to support string/int/bool types.
+func (id *AttributeValueID) UnmarshalJSON(data []byte) error {
+	// Try to parse as string
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*id = AttributeValueID(s)
+		return nil
+	}
+
+	// Try to parse as int64
+	var i int64
+	if err := json.Unmarshal(data, &i); err == nil {
+		*id = AttributeValueID(strconv.FormatInt(i, 10))
+		return nil
+	}
+
+	// Try to parse as bool
+	var b bool
+	if err := json.Unmarshal(data, &b); err == nil {
+		*id = AttributeValueID(strconv.FormatBool(b))
+		return nil
+	}
+
+	return fmt.Errorf("invalid attribute value ID type: %s", string(data))
+}
+
+// EmptyFilter is used for IAM callback methods that do not require filter parameters.
+type EmptyFilter struct{}
+
+// ParentFilter represents parent resource information in IAM callback requests.
+type ParentFilter struct {
+	Type string `json:"type"` // Parent resource type
+	ID   string `json:"id"`   // Parent resource instance ID
+}
+
+// ListAttrValueFilter is used for list_attr_value API to filter attribute values.
+type ListAttrValueFilter struct {
+	Attr    string             `json:"attr"`              // Required: attribute ID
+	Keyword string             `json:"keyword,omitempty"` // Optional: search keyword
+	IDs     []AttributeValueID `json:"ids,omitempty"`     // Optional: attribute value ID list (supports string/int/bool)
+}
+
+// ListInstanceFilter is used for list_instance API to filter instances by parent.
+type ListInstanceFilter struct {
+	Parent *ParentFilter `json:"parent,omitempty"` // Optional: direct parent resource
+}
+
+// MaxFetchInstanceIDs is the maximum number of instance IDs allowed in a single fetch_instance_info request.
+// The ids field supports a maximum of 1000 items.
+const MaxFetchInstanceIDs = 1000
+
+// MaxListInstanceByPolicyLimit is the maximum page limit for loading all instances
+// during ListInstanceByPolicy expression evaluation and FetchInstanceInfo batch queries.
+const MaxListInstanceByPolicyLimit = 10000
+
+// FetchInstanceFilter is used for fetch_instance_info API to fetch instance details.
+// Note: According to IAM spec, filter.ids only supports string type (array(string)).
+type FetchInstanceFilter struct {
+	IDs   []string `json:"ids"`             // Required: resource instance ID list (max 1000, only string type)
+	Attrs []string `json:"attrs,omitempty"` // Optional: attributes to query, empty means all attributes
+}
+
+// ListInstanceByPolicyFilter is used for list_instance_by_policy API (policy expression based).
+type ListInstanceByPolicyFilter struct {
+	Expression map[string]interface{} `json:"expression"` // Required: policy expression (dynamic structure)
+}
+
+// SearchInstanceFilter is used for search_instance API to search instances by keyword.
+type SearchInstanceFilter struct {
+	Keyword string        `json:"keyword"`          // Required: search keyword
+	Parent  *ParentFilter `json:"parent,omitempty"` // Optional: parent filter
+}
+
+// FetchInstanceListFilter is used for fetch_instance_list API (audit center).
+type FetchInstanceListFilter struct {
+	StartTime int64 `json:"start_time"` // Required: start time (milliseconds)
+	EndTime   int64 `json:"end_time"`   // Required: end time (milliseconds)
+}
+
+// Request is a generic IAM callback request with type-safe filter.
+type Request[F any] struct {
+	Type   string
+	Method string
+	Filter F
+	Page   types.Page
+}
 
 // IProvider is the interface for IAM resource provider.
 // Each method corresponds to a specific IAM callback API as defined in:
 // https://github.com/TencentBlueKing/BKDocs/tree/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback
+// nolint: lll
 type IProvider interface {
 	// ListAttr lists resource attributes that can be used for permission configuration.
-	// Doc: https://github.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/10-list_attr.md
+	// Doc: https://raw.githubusercontent.com/TencentBlueKing/BKDocs/refs/heads/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/10-list_attr.md
 	// Performance requirement: < 50ms
-	ListAttr(ctx contextx.IContext, req *Request) (*ListAttrData, error)
+	ListAttr(ctx contextx.IContext, req *Request[EmptyFilter]) (*ListAttrData, error)
 
 	// ListAttrValue lists values for a specific resource attribute, supports keyword search and batch ID filtering.
-	// Doc: https://github.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/11-list_attr_value.md
+	// Doc: https://raw.githubusercontent.com/TencentBlueKing/BKDocs/refs/heads/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/11-list_attr_value.md
 	// Performance requirement:
 	//   - No filter: < 50ms
 	//   - Keyword search: < 100ms
 	//   - Batch ID filter (≤10): < 100ms
 	//   - Batch ID filter (>10): < 200ms
-	ListAttrValue(ctx contextx.IContext, req *Request) (*ListAttrValueData, error)
+	ListAttrValue(ctx contextx.IContext, req *Request[ListAttrValueFilter]) (*ListAttrValueData, error)
 
 	// ListInstance lists resource instances with optional parent filtering and pagination.
-	// Doc: https://github.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/12-list_instance.md
+	// Doc: https://raw.githubusercontent.com/TencentBlueKing/BKDocs/refs/heads/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/12-list_instance.md
 	// Performance requirement: < 50ms (with parent filter)
-	ListInstance(ctx contextx.IContext, req *Request) (*ListInstanceData, error)
+	ListInstance(ctx contextx.IContext, req *Request[ListInstanceFilter]) (*ListInstanceData, error)
 
 	// FetchInstanceInfo fetches detailed information (attributes) of specific instances by IDs.
 	// This is a performance-critical API used for authorization.
-	// Doc: https://github.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/13-fetch_instance_info.md
+	// Doc: https://raw.githubusercontent.com/TencentBlueKing/BKDocs/refs/heads/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/13-fetch_instance_info.md
 	// Performance requirement:
 	//   - Single instance: < 20ms
 	//   - Batch instances: < 100ms
-	FetchInstanceInfo(ctx contextx.IContext, req *Request) (*FetchInstanceInfoData, error)
+	FetchInstanceInfo(ctx contextx.IContext, req *Request[FetchInstanceFilter]) (*FetchInstanceInfoData, error)
 
 	// ListInstanceByPolicy lists instances matching the policy expression.
 	// Note: Currently not used by IAM, can be left unimplemented or return empty result.
 	// Performance requirement: < 500ms
-	ListInstanceByPolicy(ctx contextx.IContext, req *Request) (*ListInstanceData, error)
+	ListInstanceByPolicy(ctx contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error)
 
 	// SearchInstance searches instances by keyword with optional parent filtering.
-	// Doc: https://github.com/TencentBlueKing/BKDocs/blob/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/15-search_instance.md
+	// Doc: https://raw.githubusercontent.com/TencentBlueKing/BKDocs/refs/heads/main/ZH/IAM/IntegrateGuide/Reference/API/03-Callback/15-search_instance.md
 	// Performance requirement: < 100ms
 	// IMPORTANT: Search should be case-insensitive and support display_name search at minimum.
 	// Should return code=422 if scan size is too large, code=406 if keyword is invalid.
-	SearchInstance(ctx contextx.IContext, req *Request) (*ListInstanceData, error)
+	SearchInstance(ctx contextx.IContext, req *Request[SearchInstanceFilter]) (*ListInstanceData, error)
 
 	// FetchInstanceList is deprecated or custom method, consider removing if not used.
-	FetchInstanceList(ctx contextx.IContext, req *Request) (*ListInstanceData, error)
+	FetchInstanceList(ctx contextx.IContext, req *Request[FetchInstanceListFilter]) (*ListInstanceData, error)
 
 	// FetchResourceTypeSchema is a custom method, not part of standard IAM callback APIs.
-	FetchResourceTypeSchema(ctx contextx.IContext, req *Request) (*ListInstanceData, error)
+	FetchResourceTypeSchema(ctx contextx.IContext, req *Request[EmptyFilter]) (*ListInstanceData, error)
 }
 
 // ListAttrData represents the response data for ListAttr API.
