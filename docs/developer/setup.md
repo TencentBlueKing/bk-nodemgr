@@ -24,6 +24,12 @@ go1.23.10 install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 protoc-gen-openapiv2 --version
 ```
 
+### golangci-lint v1.62.2
+```bash
+go1.23.10 install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
+golangci-lint --version
+```
+
 ## LSP 服务器
 
 用于 Vibe Coding 等 IDE 的语言服务器安装。
