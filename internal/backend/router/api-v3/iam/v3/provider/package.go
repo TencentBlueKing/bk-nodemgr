@@ -12,6 +12,7 @@ package provider
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage/release"
@@ -39,6 +40,27 @@ func NewPackageProvider(storage release.IStorage) *PackageProvider {
 	return &PackageProvider{
 		storage: storage,
 	}
+}
+
+// distinctNamesWithPagination gets distinct names, sorts them, and applies pagination.
+func distinctNamesWithPagination(names []string, page types.Page) ([]string, int64) {
+	// Sort for stable pagination
+	sort.Strings(names)
+
+	total := int64(len(names))
+
+	// Apply pagination
+	start := page.Offset
+	if start > len(names) {
+		return []string{}, total
+	}
+
+	end := start + page.Limit
+	if end > len(names) {
+		end = len(names)
+	}
+
+	return names[start:end], total
 }
 
 // ListAttr returns empty result as package has no attributes.
@@ -123,28 +145,27 @@ func (p *PackageProvider) ListInstance(ctx contextx.IContext, req *Request[ListI
 
 // listPluginBinToolInstances lists plugin bintool instances, distinct by Name.
 func (p *PackageProvider) listPluginBinToolInstances(ctx contextx.IContext, page types.Page) (*ListInstanceData, error) {
-	// Query all plugin bintool releases (no filter by Enabled/Generation)
-	releases, _, err := p.storage.ListReleasePluginBinTool(ctx, page)
+	// Use DistinctName to get all unique plugin bintool names
+	names, err := p.storage.DistinctNameReleasePluginBinTool(ctx)
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin bintool releases")
-		return nil, fmt.Errorf("failed to list plugin bintool releases: %w", err)
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin bintool names")
+		return nil, fmt.Errorf("failed to get distinct plugin bintool names: %w", err)
 	}
 
-	// Extract unique names
-	nameSet := make(map[string]bool)
-	results := make([]ResourceInstance, 0)
-	for _, r := range releases {
-		if !nameSet[r.Name] {
-			nameSet[r.Name] = true
-			results = append(results, ResourceInstance{
-				ID:          r.Name,
-				DisplayName: r.Name,
-			})
-		}
+	// Sort and paginate
+	paginatedNames, total := distinctNamesWithPagination(names, page)
+
+	// Build results
+	results := make([]ResourceInstance, 0, len(paginatedNames))
+	for _, name := range paginatedNames {
+		results = append(results, ResourceInstance{
+			ID:          name,
+			DisplayName: name,
+		})
 	}
 
 	data := &ListInstanceData{
-		Count:   int64(len(nameSet)), // Use distinct count
+		Count:   total,
 		Results: results,
 	}
 
@@ -153,28 +174,27 @@ func (p *PackageProvider) listPluginBinToolInstances(ctx contextx.IContext, page
 
 // listPluginInstances lists plugin instances, distinct by Name.
 func (p *PackageProvider) listPluginInstances(ctx contextx.IContext, page types.Page) (*ListInstanceData, error) {
-	// Query all plugin releases (no filter by Enabled/Generation)
-	releases, _, err := p.storage.ListReleasePlugin(ctx, page)
+	// Use DistinctName to get all unique plugin names
+	names, err := p.storage.DistinctNameReleasePlugin(ctx)
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin releases")
-		return nil, fmt.Errorf("failed to list plugin releases: %w", err)
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin names")
+		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
 	}
 
-	// Extract unique names
-	nameSet := make(map[string]bool)
-	results := make([]ResourceInstance, 0)
-	for _, r := range releases {
-		if !nameSet[r.Name] {
-			nameSet[r.Name] = true
-			results = append(results, ResourceInstance{
-				ID:          r.Name,
-				DisplayName: r.Name,
-			})
-		}
+	// Sort and paginate
+	paginatedNames, total := distinctNamesWithPagination(names, page)
+
+	// Build results
+	results := make([]ResourceInstance, 0, len(paginatedNames))
+	for _, name := range paginatedNames {
+		results = append(results, ResourceInstance{
+			ID:          name,
+			DisplayName: name,
+		})
 	}
 
 	data := &ListInstanceData{
-		Count:   int64(len(nameSet)), // Use distinct count
+		Count:   total,
 		Results: results,
 	}
 
@@ -204,10 +224,14 @@ func (p *PackageProvider) FetchInstanceInfo(ctx contextx.IContext, req *Request[
 	addedSet := make(map[string]bool)
 
 	// Check plugin releases
-	p.addPluginReleases(ctx, nameSet, addedSet, &results)
+	if err := p.addPluginReleases(ctx, nameSet, addedSet, &results); err != nil {
+		return nil, err
+	}
 
 	// Check plugin bintool releases
-	p.addPluginBinToolReleases(ctx, nameSet, addedSet, &results)
+	if err := p.addPluginBinToolReleases(ctx, nameSet, addedSet, &results); err != nil {
+		return nil, err
+	}
 
 	// Check fixed types (agent, proxy, cert, bintool)
 	p.addFixedTypePackages(nameSet, addedSet, &results)
@@ -220,7 +244,7 @@ func (p *PackageProvider) FetchInstanceInfo(ctx contextx.IContext, req *Request[
 }
 
 // addPluginReleases adds matching plugin releases to results.
-func (p *PackageProvider) addPluginReleases(ctx contextx.IContext, nameSet map[string]bool, addedSet map[string]bool, results *[]InstanceInfo) {
+func (p *PackageProvider) addPluginReleases(ctx contextx.IContext, nameSet map[string]bool, addedSet map[string]bool, results *[]InstanceInfo) error {
 	// Calculate page limit with multiplier to handle multiple versions per name.
 	// Cap at MaxListInstanceByPolicyLimit to avoid excessive database load.
 	pageLimit := len(nameSet) * fetchInstanceInfoLimitMultiplier
@@ -230,8 +254,8 @@ func (p *PackageProvider) addPluginReleases(ctx contextx.IContext, nameSet map[s
 
 	pluginReleases, _, err := p.storage.ListReleasePlugin(ctx, types.Page{Limit: pageLimit})
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Warn("failed to list plugin releases for FetchInstanceInfo")
-		return
+		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin releases for FetchInstanceInfo")
+		return fmt.Errorf("failed to list plugin releases: %w", err)
 	}
 
 	for _, r := range pluginReleases {
@@ -244,12 +268,14 @@ func (p *PackageProvider) addPluginReleases(ctx contextx.IContext, nameSet map[s
 			addedSet[r.Name] = true
 		}
 	}
+
+	return nil
 }
 
 // addPluginBinToolReleases adds matching plugin bintool releases to results.
 func (p *PackageProvider) addPluginBinToolReleases(
 	ctx contextx.IContext, nameSet map[string]bool, addedSet map[string]bool, results *[]InstanceInfo,
-) {
+) error {
 	// Calculate page limit with multiplier to handle multiple versions per name.
 	// Cap at MaxListInstanceByPolicyLimit to avoid excessive database load.
 	pageLimit := len(nameSet) * fetchInstanceInfoLimitMultiplier
@@ -259,8 +285,8 @@ func (p *PackageProvider) addPluginBinToolReleases(
 
 	pluginBinToolReleases, _, err := p.storage.ListReleasePluginBinTool(ctx, types.Page{Limit: pageLimit})
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Warn("failed to list plugin bintool releases for FetchInstanceInfo")
-		return
+		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin bintool releases for FetchInstanceInfo")
+		return fmt.Errorf("failed to list plugin bintool releases: %w", err)
 	}
 
 	for _, r := range pluginBinToolReleases {
@@ -273,6 +299,8 @@ func (p *PackageProvider) addPluginBinToolReleases(
 			addedSet[r.Name] = true
 		}
 	}
+
+	return nil
 }
 
 // addFixedTypePackages adds fixed type packages to results.
@@ -300,7 +328,6 @@ func (p *PackageProvider) addFixedTypePackages(nameSet map[string]bool, addedSet
 
 // ListInstanceByPolicy lists package instances filtered by IAM policy expression.
 func (p *PackageProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Request[ListInstanceByPolicyFilter]) (*ListInstanceData, error) {
-	// Load all releases across all package types (use large limit for in-memory evaluation)
 	instances := make([]InstanceForEval, 0)
 
 	// Fixed types: agent, proxy, cert, bintool
@@ -325,46 +352,38 @@ func (p *PackageProvider) ListInstanceByPolicy(ctx contextx.IContext, req *Reque
 		})
 	}
 
-	// Plugin bintool releases
-	pluginBinTools, _, err := p.storage.ListReleasePluginBinTool(ctx, types.Page{Offset: 0, Limit: MaxListInstanceByPolicyLimit})
+	// Plugin bintool releases - use DistinctName
+	pluginBinToolNames, err := p.storage.DistinctNameReleasePluginBinTool(ctx)
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin bintool releases")
-		return nil, fmt.Errorf("failed to list plugin bintool releases: %w", err)
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin bintool names")
+		return nil, fmt.Errorf("failed to get distinct plugin bintool names: %w", err)
 	}
 
-	nameSet := make(map[string]bool)
-	for _, r := range pluginBinTools {
-		if !nameSet[r.Name] {
-			nameSet[r.Name] = true
-			instances = append(instances, InstanceForEval{
-				Instance: ResourceInstance{
-					ID:          r.Name,
-					DisplayName: r.Name,
-				},
-				Attributes: map[string]interface{}{},
-			})
-		}
+	for _, name := range pluginBinToolNames {
+		instances = append(instances, InstanceForEval{
+			Instance: ResourceInstance{
+				ID:          name,
+				DisplayName: name,
+			},
+			Attributes: map[string]interface{}{},
+		})
 	}
 
-	// Plugin releases
-	plugins, _, err := p.storage.ListReleasePlugin(ctx, types.Page{Offset: 0, Limit: MaxListInstanceByPolicyLimit})
+	// Plugin releases - use DistinctName
+	pluginNames, err := p.storage.DistinctNameReleasePlugin(ctx)
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to list plugin releases")
-		return nil, fmt.Errorf("failed to list plugin releases: %w", err)
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin names")
+		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
 	}
 
-	nameSet = make(map[string]bool)
-	for _, r := range plugins {
-		if !nameSet[r.Name] {
-			nameSet[r.Name] = true
-			instances = append(instances, InstanceForEval{
-				Instance: ResourceInstance{
-					ID:          r.Name,
-					DisplayName: r.Name,
-				},
-				Attributes: map[string]interface{}{},
-			})
-		}
+	for _, name := range pluginNames {
+		instances = append(instances, InstanceForEval{
+			Instance: ResourceInstance{
+				ID:          name,
+				DisplayName: name,
+			},
+			Attributes: map[string]interface{}{},
+		})
 	}
 
 	// Evaluate expression filter and apply pagination
@@ -443,31 +462,36 @@ func (p *PackageProvider) searchFixedType(name, keyword string) (*ListInstanceDa
 
 // searchPluginBinToolInstances searches plugin bintool instances by keyword.
 func (p *PackageProvider) searchPluginBinToolInstances(ctx contextx.IContext, keyword string, page types.Page) (*ListInstanceData, error) {
-	releases, _, err := p.storage.ListReleasePluginBinTool(ctx, page)
+	// Get all distinct names
+	allNames, err := p.storage.DistinctNameReleasePluginBinTool(ctx)
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to search plugin bintool releases")
-		return nil, fmt.Errorf("failed to search plugin bintool releases: %w", err)
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin bintool names")
+		return nil, fmt.Errorf("failed to get distinct plugin bintool names: %w", err)
 	}
 
-	// Filter by keyword and extract unique names
-	nameSet := make(map[string]bool)
-	results := make([]ResourceInstance, 0)
-	keywordLower := strings.ToLower(keyword)
-
-	for _, r := range releases {
-		if !nameSet[r.Name] {
-			nameSet[r.Name] = true
-			if keyword == "" || strings.Contains(strings.ToLower(r.Name), keywordLower) {
-				results = append(results, ResourceInstance{
-					ID:          r.Name,
-					DisplayName: r.Name,
-				})
-			}
+	// Filter by keyword (case-insensitive)
+	lowerKeyword := strings.ToLower(keyword)
+	filteredNames := make([]string, 0)
+	for _, name := range allNames {
+		if strings.Contains(strings.ToLower(name), lowerKeyword) {
+			filteredNames = append(filteredNames, name)
 		}
 	}
 
+	// Sort and paginate
+	paginatedNames, total := distinctNamesWithPagination(filteredNames, page)
+
+	// Build results
+	results := make([]ResourceInstance, 0, len(paginatedNames))
+	for _, name := range paginatedNames {
+		results = append(results, ResourceInstance{
+			ID:          name,
+			DisplayName: name,
+		})
+	}
+
 	data := &ListInstanceData{
-		Count:   int64(len(results)),
+		Count:   total,
 		Results: results,
 	}
 
@@ -476,31 +500,36 @@ func (p *PackageProvider) searchPluginBinToolInstances(ctx contextx.IContext, ke
 
 // searchPluginInstances searches plugin instances by keyword.
 func (p *PackageProvider) searchPluginInstances(ctx contextx.IContext, keyword string, page types.Page) (*ListInstanceData, error) {
-	releases, _, err := p.storage.ListReleasePlugin(ctx, page)
+	// Get all distinct names
+	allNames, err := p.storage.DistinctNameReleasePlugin(ctx)
 	if err != nil {
-		logger.G.Biz(ctx).WithErr(err).Error("failed to search plugin releases")
-		return nil, fmt.Errorf("failed to search plugin releases: %w", err)
+		logger.G.Biz(ctx).WithErr(err).Error("failed to get distinct plugin names")
+		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
 	}
 
-	// Filter by keyword and extract unique names
-	nameSet := make(map[string]bool)
-	results := make([]ResourceInstance, 0)
-	keywordLower := strings.ToLower(keyword)
-
-	for _, r := range releases {
-		if !nameSet[r.Name] {
-			nameSet[r.Name] = true
-			if keyword == "" || strings.Contains(strings.ToLower(r.Name), keywordLower) {
-				results = append(results, ResourceInstance{
-					ID:          r.Name,
-					DisplayName: r.Name,
-				})
-			}
+	// Filter by keyword (case-insensitive)
+	lowerKeyword := strings.ToLower(keyword)
+	filteredNames := make([]string, 0)
+	for _, name := range allNames {
+		if strings.Contains(strings.ToLower(name), lowerKeyword) {
+			filteredNames = append(filteredNames, name)
 		}
 	}
 
+	// Sort and paginate
+	paginatedNames, total := distinctNamesWithPagination(filteredNames, page)
+
+	// Build results
+	results := make([]ResourceInstance, 0, len(paginatedNames))
+	for _, name := range paginatedNames {
+		results = append(results, ResourceInstance{
+			ID:          name,
+			DisplayName: name,
+		})
+	}
+
 	data := &ListInstanceData{
-		Count:   int64(len(results)),
+		Count:   total,
 		Results: results,
 	}
 
