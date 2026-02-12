@@ -12,17 +12,6 @@ package provider
 
 import "github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 
-const (
-	// IAMAttrID is the IAM attribute key for resource ID.
-	IAMAttrID = "id"
-
-	// IAMAttrDisplayName is the IAM attribute key for resource display name.
-	IAMAttrDisplayName = "display_name"
-
-	// IAMAttrBkIAMPath is the IAM attribute key for BlueKing IAM path.
-	IAMAttrBkIAMPath = "_bk_iam_path_"
-)
-
 // packageTypeDisplayNames maps ReleaseType to Chinese display names.
 func packageTypeDisplayNames() map[types.ReleaseType]string {
 	return map[types.ReleaseType]string{

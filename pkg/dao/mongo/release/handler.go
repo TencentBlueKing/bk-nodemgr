@@ -70,6 +70,9 @@ type IDistinctor interface {
 
 	// DistinctCPUArch distincts cpu archs.
 	DistinctCPUArch(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
+
+	// DistinctName distincts release names.
+	DistinctName(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error)
 }
 
 var _ IHandler = &Handler{}
@@ -304,6 +307,16 @@ func (h *Handler) DistinctCPUArch(nCtx contextx.IContext, releaseType types.Rele
 	}
 
 	return h.releaseTypeDao(releaseType).DistinctString(nCtx, FieldKeyCPUArch, filter, nil)
+}
+
+// DistinctName distincts release names.
+func (h *Handler) DistinctName(nCtx contextx.IContext, releaseType types.ReleaseType, opts ...OptFn) ([]string, error) {
+	filter := base.AliveFilter()
+	for _, opt := range opts {
+		filter = opt(filter)
+	}
+
+	return h.releaseTypeDao(releaseType).DistinctString(nCtx, FieldKeyName, filter, nil)
 }
 
 func convertReleaseToTypes(release *Release) *types.Release {
