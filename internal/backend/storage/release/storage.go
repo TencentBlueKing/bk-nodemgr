@@ -587,6 +587,30 @@ func (s *Storage) GetReleasePluginDefaultVersion(nCtx contextx.IContext, name st
 	return version, nil
 }
 
+// DistinctNameReleasePlugin gets distinct plugin release names.
+func (s *Storage) DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
+	var (
+		names []string
+		err   error
+	)
+
+	// record metric.
+	metric := s.metric().Start("distinct_name_release_plugin")
+	defer metric.End(err)
+
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	if names, err = s.daoRelease.DistinctName(nCtx, types.ReleaseTypePlugin, opts...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to distinct name release plugin")
+		return nil, fmt.Errorf("failed to distinct name release plugin: %w", err)
+	}
+
+	return names, nil
+}
+
 // ==================== ICert Methods ====================
 
 // ListReleaseCert lists cert releases by page and conditions.
@@ -861,6 +885,30 @@ func (s *Storage) DeleteReleasePluginBinTool(nCtx contextx.IContext, key types.R
 	}
 
 	return nil
+}
+
+// DistinctNameReleasePluginBinTool gets distinct plugin bintool release names.
+func (s *Storage) DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
+	var (
+		names []string
+		err   error
+	)
+
+	// record metric.
+	metric := s.metric().Start("distinct_name_release_plugin_bintool")
+	defer metric.End(err)
+
+	opts, err := convertReleaseConditionsToOptions(conditions...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert release conditions to options: %w", err)
+	}
+
+	if names, err = s.daoRelease.DistinctName(nCtx, types.ReleaseTypePluginBinTool, opts...); err != nil {
+		logger.G.Sys().WithErr(err).Error("failed to distinct name release plugin bintool")
+		return nil, fmt.Errorf("failed to distinct name release plugin bintool: %w", err)
+	}
+
+	return names, nil
 }
 
 // ==================== IPackageEvent Methods ====================

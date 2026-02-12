@@ -132,6 +132,9 @@ type IPlugin interface {
 
 	// GetReleasePluginDefaultVersion gets release plugin default version by name, generation and platform.
 	GetReleasePluginDefaultVersion(nCtx contextx.IContext, name string, gen types.Generation, plat platform.Platform) (string, error)
+
+	// DistinctNameReleasePlugin gets distinct plugin release names.
+	DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
 }
 
 // ICert define the cert interface.
@@ -178,6 +181,9 @@ type IPluginBinTool interface {
 
 	// DeleteReleasePluginBinTool deletes plugin bintool release.
 	DeleteReleasePluginBinTool(nCtx contextx.IContext, key types.ReleasePluginBinToolKey) error
+
+	// DistinctNameReleasePluginBinTool gets distinct plugin bintool release names.
+	DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error)
 }
 
 // IPackageEvent define the package event interface.
