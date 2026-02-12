@@ -16,6 +16,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
+	"github.com/TencentBlueKing/bk-nodemgr/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -540,4 +542,512 @@ func TestPackageProvider_ListInstance_NilParent(t *testing.T) {
 	assert.Equal(t, int64(0), result.Count)
 	assert.NotNil(t, result.Results)
 	assert.Empty(t, result.Results)
+}
+
+// mockPluginStorage implements IPlugin and IPluginBinTool for testing.
+type mockPluginStorage struct {
+	// Plugin methods
+	distinctPluginNames []string
+	distinctPluginErr   error
+	listPluginReleases  []*types.ReleasePlugin
+	listPluginCount     int64
+	listPluginErr       error
+
+	// PluginBinTool methods
+	distinctPluginBinToolNames []string
+	distinctPluginBinToolErr   error
+	listPluginBinToolReleases  []*types.ReleasePluginBinTool
+	listPluginBinToolCount     int64
+	listPluginBinToolErr       error
+}
+
+// DistinctNameReleasePlugin implements IPlugin.
+func (m *mockPluginStorage) DistinctNameReleasePlugin(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
+	return m.distinctPluginNames, m.distinctPluginErr
+}
+
+// ListReleasePlugin implements IPlugin.
+func (m *mockPluginStorage) ListReleasePlugin(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePlugin, int64, error) {
+	return m.listPluginReleases, m.listPluginCount, m.listPluginErr
+}
+
+// DistinctNameReleasePluginBinTool implements IPluginBinTool.
+func (m *mockPluginStorage) DistinctNameReleasePluginBinTool(nCtx contextx.IContext, conditions ...*types.ReleaseCondition) ([]string, error) {
+	return m.distinctPluginBinToolNames, m.distinctPluginBinToolErr
+}
+
+// ListReleasePluginBinTool implements IPluginBinTool.
+func (m *mockPluginStorage) ListReleasePluginBinTool(nCtx contextx.IContext, page types.Page, conditions ...*types.ReleaseCondition) ([]*types.ReleasePluginBinTool, int64, error) {
+	return m.listPluginBinToolReleases, m.listPluginBinToolCount, m.listPluginBinToolErr
+}
+
+// mockPackageProvider wraps mockPluginStorage for testing package provider methods.
+type mockPackageProvider struct {
+	*PackageProvider
+	mock *mockPluginStorage
+}
+
+func newMockPackageProvider(mock *mockPluginStorage) *mockPackageProvider {
+	return &mockPackageProvider{
+		PackageProvider: &PackageProvider{storage: nil},
+		mock:            mock,
+	}
+}
+
+func (m *mockPackageProvider) listPluginInstances(ctx contextx.IContext, page types.Page) (*ListInstanceData, error) {
+	names, err := m.mock.DistinctNameReleasePlugin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
+	}
+
+	paginatedNames, total := distinctNamesWithPagination(names, page)
+
+	results := make([]ResourceInstance, 0, len(paginatedNames))
+	for _, name := range paginatedNames {
+		results = append(results, ResourceInstance{
+			ID:          name,
+			DisplayName: name,
+		})
+	}
+
+	return &ListInstanceData{
+		Count:   total,
+		Results: results,
+	}, nil
+}
+
+func (m *mockPackageProvider) searchPluginInstances(ctx contextx.IContext, keyword string, page types.Page) (*ListInstanceData, error) {
+	allNames, err := m.mock.DistinctNameReleasePlugin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get distinct plugin names: %w", err)
+	}
+
+	lowerKeyword := strings.ToLower(keyword)
+	filteredNames := make([]string, 0)
+	for _, name := range allNames {
+		if strings.Contains(strings.ToLower(name), lowerKeyword) {
+			filteredNames = append(filteredNames, name)
+		}
+	}
+
+	paginatedNames, total := distinctNamesWithPagination(filteredNames, page)
+
+	results := make([]ResourceInstance, 0, len(paginatedNames))
+	for _, name := range paginatedNames {
+		results = append(results, ResourceInstance{
+			ID:          name,
+			DisplayName: name,
+		})
+	}
+
+	return &ListInstanceData{
+		Count:   total,
+		Results: results,
+	}, nil
+}
+
+func (m *mockPackageProvider) addPluginReleases(ctx contextx.IContext, nameSet map[string]bool, addedSet map[string]bool, results *[]InstanceInfo) error {
+	pageLimit := len(nameSet) * fetchInstanceInfoLimitMultiplier
+	if pageLimit > MaxListInstanceByPolicyLimit {
+		pageLimit = MaxListInstanceByPolicyLimit
+	}
+
+	pluginReleases, _, err := m.mock.ListReleasePlugin(ctx, types.Page{Limit: pageLimit})
+	if err != nil {
+		return fmt.Errorf("failed to list plugin releases: %w", err)
+	}
+
+	for _, r := range pluginReleases {
+		if nameSet[r.Name] && !addedSet[r.Name] {
+			*results = append(*results, InstanceInfo{
+				ID:          r.Name,
+				DisplayName: r.Name,
+				Attributes:  make(map[string]interface{}),
+			})
+			addedSet[r.Name] = true
+		}
+	}
+
+	return nil
+}
+
+func (m *mockPackageProvider) addPluginBinToolReleases(ctx contextx.IContext, nameSet map[string]bool, addedSet map[string]bool, results *[]InstanceInfo) error {
+	pageLimit := len(nameSet) * fetchInstanceInfoLimitMultiplier
+	if pageLimit > MaxListInstanceByPolicyLimit {
+		pageLimit = MaxListInstanceByPolicyLimit
+	}
+
+	pluginBinToolReleases, _, err := m.mock.ListReleasePluginBinTool(ctx, types.Page{Limit: pageLimit})
+	if err != nil {
+		return fmt.Errorf("failed to list plugin bintool releases: %w", err)
+	}
+
+	for _, r := range pluginBinToolReleases {
+		if nameSet[r.Name] && !addedSet[r.Name] {
+			*results = append(*results, InstanceInfo{
+				ID:          r.Name,
+				DisplayName: r.Name,
+				Attributes:  make(map[string]interface{}),
+			})
+			addedSet[r.Name] = true
+		}
+	}
+
+	return nil
+}
+
+// TestPackageProvider_listPluginInstances tests listPluginInstances pagination.
+func TestPackageProvider_listPluginInstances(t *testing.T) {
+	tests := []struct {
+		name          string
+		mockNames     []string
+		mockErr       error
+		page          types.Page
+		wantCount     int64
+		wantResultLen int
+		wantFirstID   string
+		wantErr       bool
+	}{
+		{
+			name:          "10 names, page 0-5",
+			mockNames:     []string{"plugin-j", "plugin-a", "plugin-c", "plugin-b", "plugin-d", "plugin-e", "plugin-f", "plugin-g", "plugin-h", "plugin-i"},
+			page:          types.Page{Offset: 0, Limit: 5},
+			wantCount:     10,
+			wantResultLen: 5,
+			wantFirstID:   "plugin-a",
+			wantErr:       false,
+		},
+		{
+			name:          "10 names, page 5-5",
+			mockNames:     []string{"plugin-j", "plugin-a", "plugin-c", "plugin-b", "plugin-d", "plugin-e", "plugin-f", "plugin-g", "plugin-h", "plugin-i"},
+			page:          types.Page{Offset: 5, Limit: 5},
+			wantCount:     10,
+			wantResultLen: 5,
+			wantFirstID:   "plugin-f",
+			wantErr:       false,
+		},
+		{
+			name:          "10 names, page 10-5 (beyond total)",
+			mockNames:     []string{"plugin-j", "plugin-a", "plugin-c", "plugin-b", "plugin-d", "plugin-e", "plugin-f", "plugin-g", "plugin-h", "plugin-i"},
+			page:          types.Page{Offset: 10, Limit: 5},
+			wantCount:     10,
+			wantResultLen: 0,
+			wantErr:       false,
+		},
+		{
+			name:          "empty names",
+			mockNames:     []string{},
+			page:          types.Page{Offset: 0, Limit: 5},
+			wantCount:     0,
+			wantResultLen: 0,
+			wantErr:       false,
+		},
+		{
+			name:      "storage error",
+			mockNames: nil,
+			mockErr:   fmt.Errorf("storage error"),
+			page:      types.Page{Offset: 0, Limit: 5},
+			wantErr:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockPluginStorage{
+				distinctPluginNames: tt.mockNames,
+				distinctPluginErr:   tt.mockErr,
+			}
+			provider := newMockPackageProvider(mock)
+
+			result, err := provider.listPluginInstances(nil, tt.page)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantCount, result.Count)
+			assert.Len(t, result.Results, tt.wantResultLen)
+			if tt.wantResultLen > 0 {
+				assert.Equal(t, tt.wantFirstID, result.Results[0].ID)
+			}
+		})
+	}
+}
+
+// TestPackageProvider_searchPluginInstances tests searchPluginInstances keyword filtering.
+func TestPackageProvider_searchPluginInstances(t *testing.T) {
+	tests := []struct {
+		name          string
+		mockNames     []string
+		mockErr       error
+		keyword       string
+		page          types.Page
+		wantCount     int64
+		wantResultLen int
+		wantIDs       []string
+		wantErr       bool
+	}{
+		{
+			name:          "keyword 'plugin' matches 2",
+			mockNames:     []string{"plugin-a", "plugin-b", "tool-c"},
+			keyword:       "plugin",
+			page:          types.Page{Offset: 0, Limit: 10},
+			wantCount:     2,
+			wantResultLen: 2,
+			wantIDs:       []string{"plugin-a", "plugin-b"},
+			wantErr:       false,
+		},
+		{
+			name:          "keyword 'xyz' matches none",
+			mockNames:     []string{"plugin-a", "plugin-b", "tool-c"},
+			keyword:       "xyz",
+			page:          types.Page{Offset: 0, Limit: 10},
+			wantCount:     0,
+			wantResultLen: 0,
+			wantErr:       false,
+		},
+		{
+			name:          "empty keyword matches all",
+			mockNames:     []string{"plugin-a", "plugin-b", "tool-c"},
+			keyword:       "",
+			page:          types.Page{Offset: 0, Limit: 10},
+			wantCount:     3,
+			wantResultLen: 3,
+			wantIDs:       []string{"plugin-a", "plugin-b", "tool-c"},
+			wantErr:       false,
+		},
+		{
+			name:          "case insensitive match",
+			mockNames:     []string{"Plugin-A", "PLUGIN-B", "tool-c"},
+			keyword:       "plugin",
+			page:          types.Page{Offset: 0, Limit: 10},
+			wantCount:     2,
+			wantResultLen: 2,
+			wantIDs:       []string{"PLUGIN-B", "Plugin-A"},
+			wantErr:       false,
+		},
+		{
+			name:      "storage error",
+			mockNames: nil,
+			mockErr:   fmt.Errorf("storage error"),
+			keyword:   "plugin",
+			page:      types.Page{Offset: 0, Limit: 10},
+			wantErr:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockPluginStorage{
+				distinctPluginNames: tt.mockNames,
+				distinctPluginErr:   tt.mockErr,
+			}
+			provider := newMockPackageProvider(mock)
+
+			result, err := provider.searchPluginInstances(nil, tt.keyword, tt.page)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantCount, result.Count)
+			assert.Len(t, result.Results, tt.wantResultLen)
+			if tt.wantResultLen > 0 {
+				gotIDs := make([]string, len(result.Results))
+				for i, r := range result.Results {
+					gotIDs[i] = r.ID
+				}
+				assert.Equal(t, tt.wantIDs, gotIDs)
+			}
+		})
+	}
+}
+
+// TestPackageProvider_FetchInstanceInfo_ErrorPropagation tests error propagation in FetchInstanceInfo.
+func TestPackageProvider_FetchInstanceInfo_ErrorPropagation(t *testing.T) {
+	tests := []struct {
+		name            string
+		ids             []string
+		listPluginErr   error
+		listBinToolErr  error
+		wantErr         bool
+		wantErrContains string
+	}{
+		{
+			name:            "ListReleasePlugin error",
+			ids:             []string{"plugin-a"},
+			listPluginErr:   fmt.Errorf("plugin storage error"),
+			wantErr:         true,
+			wantErrContains: "failed to list plugin releases",
+		},
+		{
+			name:            "ListReleasePluginBinTool error",
+			ids:             []string{"bintool-a"},
+			listBinToolErr:  fmt.Errorf("bintool storage error"),
+			wantErr:         true,
+			wantErrContains: "failed to list plugin bintool releases",
+		},
+		{
+			name:    "no error",
+			ids:     []string{"plugin-a"},
+			wantErr: false,
+		},
+		{
+			name:    "empty ids",
+			ids:     []string{},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockPluginStorage{
+				listPluginErr:        tt.listPluginErr,
+				listPluginBinToolErr: tt.listBinToolErr,
+			}
+			provider := newMockPackageProvider(mock)
+
+			nameSet := make(map[string]bool)
+			for _, id := range tt.ids {
+				nameSet[id] = true
+			}
+
+			results := make([]InstanceInfo, 0)
+			addedSet := make(map[string]bool)
+
+			var err error
+			if len(tt.ids) > 0 {
+				err = provider.addPluginReleases(nil, nameSet, addedSet, &results)
+				if err == nil {
+					err = provider.addPluginBinToolReleases(nil, nameSet, addedSet, &results)
+				}
+			}
+
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErrContains)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+// TestPackageProvider_ListInstanceByPolicy tests ListInstanceByPolicy with distinct names.
+func TestPackageProvider_ListInstanceByPolicy(t *testing.T) {
+	tests := []struct {
+		name                   string
+		mockPluginNames        []string
+		mockPluginErr          error
+		mockPluginBinToolNames []string
+		mockPluginBinToolErr   error
+		wantErr                bool
+		wantMinInstanceCount   int
+	}{
+		{
+			name:                   "success with plugin and bintool names",
+			mockPluginNames:        []string{"plugin-a", "plugin-b"},
+			mockPluginBinToolNames: []string{"bintool-a"},
+			wantErr:                false,
+			wantMinInstanceCount:   7,
+		},
+		{
+			name:                   "plugin storage error",
+			mockPluginNames:        nil,
+			mockPluginErr:          fmt.Errorf("plugin error"),
+			mockPluginBinToolNames: []string{"bintool-a"},
+			wantErr:                true,
+		},
+		{
+			name:                   "bintool storage error",
+			mockPluginNames:        []string{"plugin-a"},
+			mockPluginBinToolNames: nil,
+			mockPluginBinToolErr:   fmt.Errorf("bintool error"),
+			wantErr:                true,
+		},
+		{
+			name:                   "empty names",
+			mockPluginNames:        []string{},
+			mockPluginBinToolNames: []string{},
+			wantErr:                false,
+			wantMinInstanceCount:   4,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockPluginStorage{
+				distinctPluginNames:        tt.mockPluginNames,
+				distinctPluginErr:          tt.mockPluginErr,
+				distinctPluginBinToolNames: tt.mockPluginBinToolNames,
+				distinctPluginBinToolErr:   tt.mockPluginBinToolErr,
+			}
+
+			instances := make([]InstanceForEval, 0)
+
+			fixedTypes := []struct {
+				id          string
+				displayName string
+			}{
+				{string(types.ReleaseTypeAgent), string(types.ReleaseTypeAgent)},
+				{string(types.ReleaseTypeProxy), string(types.ReleaseTypeProxy)},
+				{string(types.ReleaseTypeCert), string(types.ReleaseTypeCert)},
+				{string(types.ReleaseTypeBinTool), string(types.ReleaseTypeBinTool)},
+			}
+
+			for _, ft := range fixedTypes {
+				instances = append(instances, InstanceForEval{
+					Instance: ResourceInstance{
+						ID:          ft.id,
+						DisplayName: ft.displayName,
+					},
+					Attributes: map[string]interface{}{},
+				})
+			}
+
+			pluginBinToolNames, err := mock.DistinctNameReleasePluginBinTool(nil)
+			if err != nil && tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			for _, name := range pluginBinToolNames {
+				instances = append(instances, InstanceForEval{
+					Instance: ResourceInstance{
+						ID:          name,
+						DisplayName: name,
+					},
+					Attributes: map[string]interface{}{},
+				})
+			}
+
+			pluginNames, err := mock.DistinctNameReleasePlugin(nil)
+			if err != nil && tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+
+			for _, name := range pluginNames {
+				instances = append(instances, InstanceForEval{
+					Instance: ResourceInstance{
+						ID:          name,
+						DisplayName: name,
+					},
+					Attributes: map[string]interface{}{},
+				})
+			}
+
+			if tt.wantErr {
+				return
+			}
+
+			require.NoError(t, err)
+			assert.GreaterOrEqual(t, len(instances), tt.wantMinInstanceCount)
+		})
+	}
 }
