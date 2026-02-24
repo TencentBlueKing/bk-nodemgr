@@ -201,7 +201,7 @@ compress-binary:
 docker-build-server: backend application file front tools scripts bintools support-files
 	@$(ECHO) "Building docker images..."
 	@$(CP) $(ROOT_DIR)/install/images/bk-nodemgr/${BASE_IMAGE}/Dockerfile $(OUTPUT_DIR)
-	@$(CP) $(ROOT_DIR)/install/docker-compose/serviced.sh $(OUTPUT_DIR)
+	@$(CP) $(ROOT_DIR)/install/docker-compose/bk-nodemgr/serviced.sh $(OUTPUT_DIR)
 	@if [ -n "$(TARGET_PLATFORM)" ]; then \
 		case "$(TARGET_PLATFORM)" in \
 			*/*) ;; \
