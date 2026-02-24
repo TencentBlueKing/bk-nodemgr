@@ -9,7 +9,6 @@
  */
 
 // Package topo provides topology storage for backend.
-// nolint: nonamedreturns
 package topo
 
 import (
@@ -25,11 +24,7 @@ import (
 )
 
 // UpsertManyBusiness updates or inserts many business.
-func (s *Storage) UpsertManyBusiness(nCtx contextx.IContext, biz ...*types.Business) (err error) {
-	// record metric.
-	metric := s.metric().Start("upsert_many_business")
-	defer metric.End(err)
-
+func (s *Storage) UpsertManyBusiness(nCtx contextx.IContext, biz ...*types.Business) error {
 	if nCtx == nil {
 		return basestorage.ErrNilContent()
 	}
@@ -38,11 +33,13 @@ func (s *Storage) UpsertManyBusiness(nCtx contextx.IContext, biz ...*types.Busin
 		return basestorage.ErrUpsertNilData()
 	}
 
-	if err = s.daoBusiness.UpsertMany(nCtx, biz...); err != nil {
-		return fmt.Errorf("failed to upsert business: %v", err)
-	}
+	return s.WrapFn(nCtx, metricOperationUpsertManyBusiness, func(nCtx contextx.IContext) error {
+		if err := s.daoBusiness.UpsertMany(nCtx, biz...); err != nil {
+			return fmt.Errorf("failed to upsert business: %v", err)
+		}
 
-	return nil
+		return nil
+	})
 }
 
 // ListBusinesses lists businesses by page and conditions.
@@ -55,11 +52,7 @@ func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, condit
 		err     error
 	)
 
-	err = s.WrapFn(nCtx, "list_business", func(nCtx contextx.IContext) error {
-		// record metric.
-		metric := s.metric().Start("list_business")
-		defer metric.End(err)
-
+	err = s.WrapFn(nCtx, metricOperationListBusiness, func(nCtx contextx.IContext) error {
 		opts := make([]business.OptFn, 0)
 		for _, condition := range conditions {
 			if condition == nil {
@@ -91,11 +84,8 @@ func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, condit
 			}
 		}
 
-		if results, num, err = s.daoBusiness.List(nCtx, page, opts...); err != nil {
-			return err
-		}
-
-		return nil
+		results, num, err = s.daoBusiness.List(nCtx, page, opts...)
+		return err
 	})
 	if err != nil {
 		return nil, 0, err
@@ -107,46 +97,52 @@ func (s *Storage) ListBusinesses(nCtx contextx.IContext, page types.Page, condit
 // ListNetworkArea lists networkarea by page and conditions.
 // nolint: cyclop
 func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkAreaCondition) (
-	results []*types.NetworkArea, num int64, err error) {
+	[]*types.NetworkArea, int64, error) {
 
-	// record metric.
-	metric := s.metric().Start("list_networkarea")
-	defer metric.End(err)
+	var (
+		results []*types.NetworkArea
+		num     int64
+		err     error
+	)
 
-	opts := make([]networkarea.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
+	err = s.WrapFn(nCtx, metricOperationListNetworkArea, func(nCtx contextx.IContext) error {
+		opts := make([]networkarea.OptFn, 0)
+		for _, condition := range conditions {
+			if condition == nil {
+				continue
+			}
+
+			if condition.ExactInclude != nil {
+				opts = append(opts,
+					networkarea.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+					networkarea.WithCloudVendor(condition.ExactInclude.CloudVendor...),
+				)
+			}
+
+			if condition.ExactExclude != nil {
+				opts = append(opts,
+					networkarea.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+					networkarea.WithoutCloudVendor(condition.ExactExclude.CloudVendor...),
+				)
+			}
+
+			if condition.FuzzyInclude != nil {
+				opts = append(opts,
+					networkarea.WithFuzzyNetworkAreaName(condition.FuzzyInclude.NetworkAreaName...),
+				)
+			}
+
+			if condition.FuzzyExclude != nil {
+				opts = append(opts,
+					networkarea.WithoutFuzzyNetworkAreaName(condition.FuzzyExclude.NetworkAreaName...),
+				)
+			}
 		}
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				networkarea.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-				networkarea.WithCloudVendor(condition.ExactInclude.CloudVendor...),
-			)
-		}
-
-		if condition.ExactExclude != nil {
-			opts = append(opts,
-				networkarea.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
-				networkarea.WithoutCloudVendor(condition.ExactExclude.CloudVendor...),
-			)
-		}
-
-		if condition.FuzzyInclude != nil {
-			opts = append(opts,
-				networkarea.WithFuzzyNetworkAreaName(condition.FuzzyInclude.NetworkAreaName...),
-			)
-		}
-
-		if condition.FuzzyExclude != nil {
-			opts = append(opts,
-				networkarea.WithoutFuzzyNetworkAreaName(condition.FuzzyExclude.NetworkAreaName...),
-			)
-		}
-	}
-
-	if results, num, err = s.daoNetworkArea.List(nCtx, page, opts...); err != nil {
+		results, num, err = s.daoNetworkArea.List(nCtx, page, opts...)
+		return err
+	})
+	if err != nil {
 		return nil, 0, err
 	}
 
@@ -154,12 +150,17 @@ func (s *Storage) ListNetworkArea(nCtx contextx.IContext, page types.Page, condi
 }
 
 // GetNetworkArea gets networkarea by id.
-func (s *Storage) GetNetworkArea(nCtx contextx.IContext, networkAreaID int64) (data *types.NetworkArea, err error) {
-	// record metric.
-	metric := s.metric().Start("get_networkarea")
-	defer metric.End(err)
+func (s *Storage) GetNetworkArea(nCtx contextx.IContext, networkAreaID int64) (*types.NetworkArea, error) {
+	var (
+		data *types.NetworkArea
+		err  error
+	)
 
-	if data, err = s.daoNetworkArea.Get(nCtx, networkAreaID); err != nil {
+	err = s.WrapFn(nCtx, metricOperationGetNetworkArea, func(nCtx contextx.IContext) error {
+		data, err = s.daoNetworkArea.Get(nCtx, networkAreaID)
+		return err
+	})
+	if err != nil {
 		return nil, err
 	}
 
@@ -167,88 +168,76 @@ func (s *Storage) GetNetworkArea(nCtx contextx.IContext, networkAreaID int64) (d
 }
 
 // UpsertManyNetworkArea updates or inserts networkarea.
-func (s *Storage) UpsertManyNetworkArea(nCtx contextx.IContext, networkAreas ...*types.NetworkArea) (err error) {
-	// record metric.
-	metric := s.metric().Start("upsert_many_networkarea")
-	defer metric.End(err)
-
-	if err = s.daoNetworkArea.UpsertMany(nCtx, networkAreas...); err != nil {
-		return err
-	}
-
-	return nil
+func (s *Storage) UpsertManyNetworkArea(nCtx contextx.IContext, networkAreas ...*types.NetworkArea) error {
+	return s.WrapFn(nCtx, metricOperationUpsertManyNetworkArea, func(nCtx contextx.IContext) error {
+		return s.daoNetworkArea.UpsertMany(nCtx, networkAreas...)
+	})
 }
 
 // UpdateManyNetworkArea updates networkarea.
-func (s *Storage) UpdateManyNetworkArea(nCtx contextx.IContext, networkArea ...*types.NetworkArea) (err error) {
-	// record metric.
-	metric := s.metric().Start("update_many_networkarea")
-	defer metric.End(err)
-
-	if err = s.daoNetworkArea.UpdateMany(nCtx, networkArea...); err != nil {
-		return err
-	}
-
-	return nil
+func (s *Storage) UpdateManyNetworkArea(nCtx contextx.IContext, networkArea ...*types.NetworkArea) error {
+	return s.WrapFn(nCtx, metricOperationUpdateManyNetworkArea, func(nCtx contextx.IContext) error {
+		return s.daoNetworkArea.UpdateMany(nCtx, networkArea...)
+	})
 }
 
 // DeleteManyNetworkArea deletes networkarea.
-func (s *Storage) DeleteManyNetworkArea(nCtx contextx.IContext, networkAreaIDs ...int64) (err error) {
-	// record metric.
-	metric := s.metric().Start("delete_many_networkarea")
-	defer metric.End(err)
-
-	if err = s.daoNetworkArea.DeleteMany(nCtx, networkAreaIDs...); err != nil {
-		return err
-	}
-
-	return nil
+func (s *Storage) DeleteManyNetworkArea(nCtx contextx.IContext, networkAreaIDs ...int64) error {
+	return s.WrapFn(nCtx, metricOperationDeleteManyNetworkArea, func(nCtx contextx.IContext) error {
+		return s.daoNetworkArea.DeleteMany(nCtx, networkAreaIDs...)
+	})
 }
 
 // ListNetworkUnit lists networkunit.
 func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, conditions ...*types.NetworkUnitCondition) (
-	results []*types.NetworkUnit, num int64, err error) {
+	[]*types.NetworkUnit, int64, error) {
 
-	// record metric.
-	metric := s.metric().Start("list_networkunit")
-	defer metric.End(err)
+	var (
+		results []*types.NetworkUnit
+		num     int64
+		err     error
+	)
 
-	opts := make([]networkunit.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
+	err = s.WrapFn(nCtx, metricOperationListNetworkUnit, func(nCtx contextx.IContext) error {
+		opts := make([]networkunit.OptFn, 0)
+		for _, condition := range conditions {
+			if condition == nil {
+				continue
+			}
+
+			if condition.ExactInclude != nil {
+				opts = append(opts,
+					networkunit.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
+					networkunit.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+					networkunit.WithIsDirect(condition.ExactInclude.IsDirect...),
+				)
+			}
+
+			if condition.ExactExclude != nil {
+				opts = append(opts,
+					networkunit.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
+					networkunit.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+					networkunit.WithoutIsDirect(condition.ExactExclude.IsDirect...),
+				)
+			}
+
+			if condition.FuzzyInclude != nil {
+				opts = append(opts,
+					networkunit.WithFuzzyNetworkUnitName(condition.FuzzyInclude.NetworkUnitName...),
+				)
+			}
+
+			if condition.FuzzyExclude != nil {
+				opts = append(opts,
+					networkunit.WithoutFuzzyNetworkUnitName(condition.FuzzyExclude.NetworkUnitName...),
+				)
+			}
 		}
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				networkunit.WithNetworkUnitID(condition.ExactInclude.NetworkUnitID...),
-				networkunit.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-				networkunit.WithIsDirect(condition.ExactInclude.IsDirect...),
-			)
-		}
-
-		if condition.ExactExclude != nil {
-			opts = append(opts,
-				networkunit.WithoutNetworkUnitID(condition.ExactExclude.NetworkUnitID...),
-				networkunit.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
-				networkunit.WithoutIsDirect(condition.ExactExclude.IsDirect...),
-			)
-		}
-
-		if condition.FuzzyInclude != nil {
-			opts = append(opts,
-				networkunit.WithFuzzyNetworkUnitName(condition.FuzzyInclude.NetworkUnitName...),
-			)
-		}
-
-		if condition.FuzzyExclude != nil {
-			opts = append(opts,
-				networkunit.WithoutFuzzyNetworkUnitName(condition.FuzzyExclude.NetworkUnitName...),
-			)
-		}
-	}
-
-	if results, num, err = s.daoNetworkUnit.List(nCtx, page, opts...); err != nil {
+		results, num, err = s.daoNetworkUnit.List(nCtx, page, opts...)
+		return err
+	})
+	if err != nil {
 		return nil, 0, err
 	}
 
@@ -256,12 +245,17 @@ func (s *Storage) ListNetworkUnit(nCtx contextx.IContext, page types.Page, condi
 }
 
 // GetNetworkUnit gets networkunit by id.
-func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (data *types.NetworkUnit, err error) {
-	// record metric.
-	metric := s.metric().Start("get_networkunit")
-	defer metric.End(err)
+func (s *Storage) GetNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (*types.NetworkUnit, error) {
+	var (
+		data *types.NetworkUnit
+		err  error
+	)
 
-	if data, err = s.daoNetworkUnit.Get(nCtx, networkUnitID); err != nil {
+	err = s.WrapFn(nCtx, metricOperationGetNetworkUnit, func(nCtx contextx.IContext) error {
+		data, err = s.daoNetworkUnit.Get(nCtx, networkUnitID)
+		return err
+	})
+	if err != nil {
 		return nil, err
 	}
 
@@ -338,170 +332,191 @@ func findUpstreamNetworkUnitWithLink(upstreamNetworkUnits []*types.NetworkUnit, 
 
 // CreateNetworkUnit creates networkunit.
 func (s *Storage) CreateNetworkUnit(nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
-	networkUnitID int64, data *AccessPointResult, err error) {
+	int64, *AccessPointResult, error) {
 
-	// record metric.
-	metric := s.metric().Start("create_networkunit")
-	defer metric.End(err)
+	var (
+		networkUnitID int64
+		data          *AccessPointResult
+		err           error
+	)
 
-	if !networkUnit.IsDirect {
-		if err = s.checkNetworkUnitLinks(nCtx, networkUnit); err != nil {
-			return -1, nil, err
+	err = s.WrapFn(nCtx, metricOperationCreateNetworkUnit, func(nCtx contextx.IContext) error {
+		if !networkUnit.IsDirect {
+			if err = s.checkNetworkUnitLinks(nCtx, networkUnit); err != nil {
+				return err
+			}
 		}
-	}
 
-	if len(accessPoints) == 0 {
-		networkUnit.AccessPoints = nil
+		if len(accessPoints) == 0 {
+			networkUnit.AccessPoints = nil
 
+			networkUnitID, err = s.daoNetworkUnit.Create(nCtx, networkUnit)
+			if err != nil {
+				return err
+			}
+
+			data = &AccessPointResult{}
+			return nil
+		}
+
+		// create accesspoints first.
+		var accessPointIDs []int64
+		accessPointIDs, err = s.daoAccessPoint.CreateMany(nCtx, accessPoints...)
+		if err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to create networkunit, failed to create accesspoint")
+
+			return err
+		}
+
+		networkUnit.AccessPoints = accessPointIDs
+		for idx, accessPointID := range accessPointIDs {
+			if idx > len(accessPointIDs) {
+				break
+			}
+
+			accessPoints[idx].ID = accessPointID
+		}
+
+		// create networkunit.
 		networkUnitID, err = s.daoNetworkUnit.Create(nCtx, networkUnit)
 		if err != nil {
-			return -1, nil, err
+			return err
 		}
 
-		return networkUnitID, &AccessPointResult{}, nil
-	}
-
-	// create accesspoints first.
-	var accessPointIDs []int64
-	accessPointIDs, err = s.daoAccessPoint.CreateMany(nCtx, accessPoints...)
+		data = &AccessPointResult{
+			Created: accessPoints,
+		}
+		return nil
+	})
 	if err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to create networkunit, failed to create accesspoint")
-
 		return -1, nil, err
 	}
 
-	networkUnit.AccessPoints = accessPointIDs
-	for idx, accessPointID := range accessPointIDs {
-		if idx > len(accessPointIDs) {
-			break
-		}
-
-		accessPoints[idx].ID = accessPointID
-	}
-
-	// create networkunit.
-	if networkUnitID, err = s.daoNetworkUnit.Create(nCtx, networkUnit); err != nil {
-		return -1, nil, err
-	}
-
-	return networkUnitID, &AccessPointResult{
-		Created: accessPoints,
-	}, nil
+	return networkUnitID, data, nil
 }
 
 // UpdateNetworkUnit updates networkunit.
 func (s *Storage) UpdateNetworkUnit(nCtx contextx.IContext, networkUnit *types.NetworkUnit, accessPoints ...*types.AccessPoint) (
-	data *AccessPointResult, err error) {
+	*AccessPointResult, error) {
 
-	// record metric.
-	metric := s.metric().Start("update_networkunit")
-	defer metric.End(err)
+	var (
+		data *AccessPointResult
+		err  error
+	)
 
-	if !networkUnit.IsDirect {
-		if err := s.checkNetworkUnitLinks(nCtx, networkUnit); err != nil {
-			return nil, err
+	err = s.WrapFn(nCtx, metricOperationUpdateNetworkUnit, func(nCtx contextx.IContext) error {
+		if !networkUnit.IsDirect {
+			if err := s.checkNetworkUnitLinks(nCtx, networkUnit); err != nil {
+				return err
+			}
 		}
-	}
 
-	if len(accessPoints) == 0 {
-		networkUnit.AccessPoints = nil
+		if len(accessPoints) == 0 {
+			networkUnit.AccessPoints = nil
+
+			if err = s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
+				return err
+			}
+
+			data = &AccessPointResult{}
+			return nil
+		}
+
+		// update old accesspoints, create new accesspoints.
+		accessPointIDs := make([]int64, 0)
+		oldAccessPoints := make([]*types.AccessPoint, 0)
+		newAccessPoints := make([]*types.AccessPoint, 0)
+		for _, accessPoint := range accessPoints {
+			if accessPoint.ID >= 0 {
+				accessPointIDs = append(accessPointIDs, accessPoint.ID)
+				oldAccessPoints = append(oldAccessPoints, accessPoint)
+
+				continue
+			}
+
+			newAccessPoints = append(newAccessPoints, accessPoint)
+		}
+
+		if len(oldAccessPoints) > 0 {
+			if err = s.daoAccessPoint.UpdateMany(nCtx, oldAccessPoints...); err != nil {
+				logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to update accesspoint")
+
+				return err
+			}
+		}
+		if len(newAccessPoints) > 0 {
+			createdAccessPointIDs, err := s.daoAccessPoint.CreateMany(nCtx, newAccessPoints...)
+			if err != nil {
+				logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to create accesspoint")
+
+				return err
+			}
+			accessPointIDs = append(accessPointIDs, createdAccessPointIDs...)
+
+			for idx, accessPointID := range createdAccessPointIDs {
+				newAccessPoints[idx].ID = accessPointID
+			}
+		}
+		networkUnit.AccessPoints = accessPointIDs
 
 		if err = s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
-			return nil, err
+			return err
 		}
 
-		return &AccessPointResult{}, nil
-	}
-
-	// update old accesspoints, create new accesspoints.
-	accessPointIDs := make([]int64, 0)
-	oldAccessPoints := make([]*types.AccessPoint, 0)
-	newAccessPoints := make([]*types.AccessPoint, 0)
-	for _, accessPoint := range accessPoints {
-		if accessPoint.ID >= 0 {
-			accessPointIDs = append(accessPointIDs, accessPoint.ID)
-			oldAccessPoints = append(oldAccessPoints, accessPoint)
-
-			continue
+		data = &AccessPointResult{
+			Created: newAccessPoints,
+			Updated: oldAccessPoints,
+			Deleted: nil,
 		}
-
-		newAccessPoints = append(newAccessPoints, accessPoint)
-	}
-
-	if len(oldAccessPoints) > 0 {
-		if err = s.daoAccessPoint.UpdateMany(nCtx, oldAccessPoints...); err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to update accesspoint")
-
-			return nil, err
-		}
-	}
-	if len(newAccessPoints) > 0 {
-		createdAccessPointIDs, err := s.daoAccessPoint.CreateMany(nCtx, newAccessPoints...)
-		if err != nil {
-			logger.G.Sys().WithErr(err).Error("failed to update networkunit, failed to create accesspoint")
-
-			return nil, err
-		}
-		accessPointIDs = append(accessPointIDs, createdAccessPointIDs...)
-
-		for idx, accessPointID := range createdAccessPointIDs {
-			newAccessPoints[idx].ID = accessPointID
-		}
-	}
-	networkUnit.AccessPoints = accessPointIDs
-
-	if err = s.daoNetworkUnit.UpdateMany(nCtx, networkUnit); err != nil {
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 
-	return &AccessPointResult{
-		Created: newAccessPoints,
-		Updated: oldAccessPoints,
-		Deleted: nil,
-	}, nil
+	return data, nil
 }
 
 // DeleteManyNetworkUnit deletes networkunit.
-func (s *Storage) DeleteManyNetworkUnit(nCtx contextx.IContext, networkUnitIDs ...int64) (err error) {
-	// record metric.
-	metric := s.metric().Start("delete_networkunit")
-	defer metric.End(err)
-
-	if err = s.daoNetworkUnit.DeleteMany(nCtx, networkUnitIDs...); err != nil {
-		return err
-	}
-
-	return nil
+func (s *Storage) DeleteManyNetworkUnit(nCtx contextx.IContext, networkUnitIDs ...int64) error {
+	return s.WrapFn(nCtx, metricOperationDeleteNetworkUnit, func(nCtx contextx.IContext) error {
+		return s.daoNetworkUnit.DeleteMany(nCtx, networkUnitIDs...)
+	})
 }
 
 // CountAccessPoint counts accesspoint.
-func (s *Storage) CountAccessPoint(nCtx contextx.IContext, conditions ...*types.AccessPointCondition) (num int64, err error) {
-	// record metric.
-	metric := s.metric().Start("count_accesspoint")
-	defer metric.End(err)
+func (s *Storage) CountAccessPoint(nCtx contextx.IContext, conditions ...*types.AccessPointCondition) (int64, error) {
+	var (
+		num int64
+		err error
+	)
 
-	opts := make([]accesspoint.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
+	err = s.WrapFn(nCtx, metricOperationCountAccessPoint, func(nCtx contextx.IContext) error {
+		opts := make([]accesspoint.OptFn, 0)
+		for _, condition := range conditions {
+			if condition == nil {
+				continue
+			}
+
+			if condition.ExactInclude != nil {
+				opts = append(opts,
+					accesspoint.WithAccessPointID(condition.ExactInclude.AccessPointID...),
+					accesspoint.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				)
+			}
+
+			if condition.ExactExclude != nil {
+				opts = append(opts,
+					accesspoint.WithoutAccessPointID(condition.ExactExclude.AccessPointID...),
+					accesspoint.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+				)
+			}
 		}
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				accesspoint.WithAccessPointID(condition.ExactInclude.AccessPointID...),
-				accesspoint.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-			)
-		}
-
-		if condition.ExactExclude != nil {
-			opts = append(opts,
-				accesspoint.WithoutAccessPointID(condition.ExactExclude.AccessPointID...),
-				accesspoint.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
-			)
-		}
-	}
-
-	if num, err = s.daoAccessPoint.Count(nCtx, opts...); err != nil {
+		num, err = s.daoAccessPoint.Count(nCtx, opts...)
+		return err
+	})
+	if err != nil {
 		return 0, err
 	}
 
@@ -510,34 +525,40 @@ func (s *Storage) CountAccessPoint(nCtx contextx.IContext, conditions ...*types.
 
 // ListAccessPoint lists accesspoint.
 func (s *Storage) ListAccessPoint(nCtx contextx.IContext, page types.Page, conditions ...*types.AccessPointCondition) (
-	results []*types.AccessPoint, num int64, err error) {
+	[]*types.AccessPoint, int64, error) {
 
-	// record metric.
-	metric := s.metric().Start("list_accesspoint")
-	defer metric.End(err)
+	var (
+		results []*types.AccessPoint
+		num     int64
+		err     error
+	)
 
-	opts := make([]accesspoint.OptFn, 0)
-	for _, condition := range conditions {
-		if condition == nil {
-			continue
+	err = s.WrapFn(nCtx, metricOperationListAccessPoint, func(nCtx contextx.IContext) error {
+		opts := make([]accesspoint.OptFn, 0)
+		for _, condition := range conditions {
+			if condition == nil {
+				continue
+			}
+
+			if condition.ExactInclude != nil {
+				opts = append(opts,
+					accesspoint.WithAccessPointID(condition.ExactInclude.AccessPointID...),
+					accesspoint.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
+				)
+			}
+
+			if condition.ExactExclude != nil {
+				opts = append(opts,
+					accesspoint.WithoutAccessPointID(condition.ExactExclude.AccessPointID...),
+					accesspoint.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
+				)
+			}
 		}
 
-		if condition.ExactInclude != nil {
-			opts = append(opts,
-				accesspoint.WithAccessPointID(condition.ExactInclude.AccessPointID...),
-				accesspoint.WithNetworkAreaID(condition.ExactInclude.NetworkAreaID...),
-			)
-		}
-
-		if condition.ExactExclude != nil {
-			opts = append(opts,
-				accesspoint.WithoutAccessPointID(condition.ExactExclude.AccessPointID...),
-				accesspoint.WithoutNetworkAreaID(condition.ExactExclude.NetworkAreaID...),
-			)
-		}
-	}
-
-	if results, num, err = s.daoAccessPoint.List(nCtx, page, opts...); err != nil {
+		results, num, err = s.daoAccessPoint.List(nCtx, page, opts...)
+		return err
+	})
+	if err != nil {
 		return nil, 0, err
 	}
 
@@ -553,26 +574,40 @@ type AccessPointResult struct {
 
 // GetHostDistributionByNodeRole ...
 func (s *Storage) GetHostDistributionByNodeRole(nCtx contextx.IContext, conditions ...*types.HostCondition) (
-	hostDistributionByNodeRole map[string]int64, err error) {
+	map[string]int64, error) {
 
-	// record metric.
-	metric := s.metric().Start("get_host_distribution_by_node_role")
-	defer metric.End(err)
+	var (
+		hostDistributionByNodeRole map[string]int64
+		err                        error
+	)
 
-	hostDistributionByNodeRole, err = s.getHostDistributionByNodeRole(nCtx, conditions...)
+	err = s.WrapFn(nCtx, metricOperationGetHostDistributionByNodeRole, func(nCtx contextx.IContext) error {
+		hostDistributionByNodeRole, err = s.getHostDistributionByNodeRole(nCtx, conditions...)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return hostDistributionByNodeRole, err
+	return hostDistributionByNodeRole, nil
 }
 
 // GetHostDistributionByNetworkAreaID ...
 func (s *Storage) GetHostDistributionByNetworkAreaID(nCtx contextx.IContext, conditions ...*types.HostCondition) (
-	hostDistributionByNetworkAreaID map[int64]int64, err error) {
+	map[int64]int64, error) {
 
-	// record metric.
-	metric := s.metric().Start("get_host_distribution_by_networkarea_id")
-	defer metric.End(err)
+	var (
+		hostDistributionByNetworkAreaID map[int64]int64
+		err                             error
+	)
 
-	hostDistributionByNetworkAreaID, err = s.getHostDistributionByNetworkAreaID(nCtx, conditions...)
+	err = s.WrapFn(nCtx, metricOperationGetHostDistributionByNetworkAreaID, func(nCtx contextx.IContext) error {
+		hostDistributionByNetworkAreaID, err = s.getHostDistributionByNetworkAreaID(nCtx, conditions...)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return hostDistributionByNetworkAreaID, err
+	return hostDistributionByNetworkAreaID, nil
 }

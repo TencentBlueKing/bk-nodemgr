@@ -9,13 +9,11 @@
  */
 
 // Package topo provide topology storage.
-// nolint: nonamedreturns
 package topo
 
 import (
 	"errors"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/accesspoint"
@@ -31,6 +29,49 @@ import (
 
 // StorageName ...
 const StorageName = "topo"
+
+const (
+	metricOperationUpsertManyBusiness                 = "upsert_many_business"
+	metricOperationListBusiness                       = "list_business"
+	metricOperationListNetworkArea                    = "list_networkarea"
+	metricOperationGetNetworkArea                     = "get_networkarea"
+	metricOperationUpsertManyNetworkArea              = "upsert_many_networkarea"
+	metricOperationUpdateManyNetworkArea              = "update_many_networkarea"
+	metricOperationDeleteManyNetworkArea              = "delete_many_networkarea"
+	metricOperationListNetworkUnit                    = "list_networkunit"
+	metricOperationGetNetworkUnit                     = "get_networkunit"
+	metricOperationCreateNetworkUnit                  = "create_networkunit"
+	metricOperationUpdateNetworkUnit                  = "update_networkunit"
+	metricOperationDeleteNetworkUnit                  = "delete_networkunit"
+	metricOperationCountAccessPoint                   = "count_accesspoint"
+	metricOperationListAccessPoint                    = "list_accesspoint"
+	metricOperationGetHostDistributionByNodeRole      = "get_host_distribution_by_node_role"
+	metricOperationGetHostDistributionByNetworkAreaID = "get_host_distribution_by_networkarea_id"
+	metricOperationGetHostsByAreaAndInnerIP           = "get_hosts_by_area_and_inner_ip"
+	metricOperationExistDedicatedInstallerProxyHost   = "exist_dedicated_installer_proxy_host"
+	metricOperationGetNetworkUnitByIDs                = "get_networkunit_by_ids"
+	metricOperationListHostWithFields                 = "list_host_with_fields"
+	metricOperationGetRelayInfosInNetworkUnit         = "get_relay_infos_in_network_unit"
+	metricOperationGetHostByID                        = "get_host_by_id"
+	metricOperationUpsertManyHost                     = "upsert_many_host"
+	metricOperationUpsertManyHostStatic               = "upsert_many_host_static"
+	metricOperationUpdateManyHostDynamic              = "update_many_host_dynamic"
+	metricOperationListHost                           = "list_host"
+	metricOperationListHostOrderByUpdateTime          = "list_host_order_by_updatetime"
+	metricOperationCountHost                          = "count_host"
+	metricOperationDistinctHost                       = "distinct_host"
+	metricOperationDeleteManyHost                     = "delete_many_host"
+	metricOperationFindHostWithDynamic                = "find_host_with_dynamic"
+	metricOperationUpdateHostDynamicFields            = "update_host_dynamic_fields"
+	metricOperationGetV4AgentAccessEndpoints          = "get_v4_agent_access_endpoints"
+	metricOperationGetV6AgentAccessEndpoints          = "get_v6_agent_access_endpoints"
+	metricOperationGetProxyUpstreamAccessPoints       = "get_proxy_upstream_accesspoints"
+	metricOperationNeedStaticAccess                   = "need_static_access"
+	metricOperationCountTopoEvent                     = "count_topo_event"
+	metricOperationListTopoEvent                      = "list_topo_event"
+	metricOperationCreateManyTopoEvent                = "create_many_topo_event"
+	metricOperationDistinctTopoEvent                  = "distinct_topo_event"
+)
 
 // NewStorage ...
 func NewStorage(client *mongo.Client, database string) (*Storage, error) {
@@ -108,47 +149,64 @@ func (s *Storage) check() error {
 	return nil
 }
 
-func (s *Storage) metric() *storage.MetricData {
-	return storage.Metric(StorageName)
-}
-
 // GetHostsByAreaAndInnerIP get hosts by area and inner ip.
 func (s *Storage) GetHostsByAreaAndInnerIP(nCtx contextx.IContext, networkAreaID int64, innerip string) (
-	results []*types.Host, err error) {
+	[]*types.Host, error) {
 
-	// record metric.
-	metric := s.metric().Start("get_hosts_by_area_and_inner_ip")
-	defer metric.End(err)
+	var (
+		results []*types.Host
+		err     error
+	)
 
-	results, err = s.getHostsByAreaAndInnerIP(nCtx, networkAreaID, innerip)
+	err = s.WrapFn(nCtx, metricOperationGetHostsByAreaAndInnerIP, func(nCtx contextx.IContext) error {
+		results, err = s.getHostsByAreaAndInnerIP(nCtx, networkAreaID, innerip)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return results, err
+	return results, nil
 }
 
 // ExistDedicatedInstallerProxyHost exists dedicated installer proxy host by network unit id.
 func (s *Storage) ExistDedicatedInstallerProxyHost(nCtx contextx.IContext, networkUnitIDs []int64) (
-	exist map[int64]bool, err error) {
+	map[int64]bool, error) {
 
-	// record metric.
-	metric := s.metric().Start("exist_dedicated_installer_proxy_host")
-	defer metric.End(err)
+	var (
+		exist map[int64]bool
+		err   error
+	)
 
-	exist, err = s.existDedicatedInstallerProxyHost(nCtx, networkUnitIDs)
+	err = s.WrapFn(nCtx, metricOperationExistDedicatedInstallerProxyHost, func(nCtx contextx.IContext) error {
+		exist, err = s.existDedicatedInstallerProxyHost(nCtx, networkUnitIDs)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return exist, err
+	return exist, nil
 }
 
 // GetNetworkUnitByIDs list network unit by unit ids.
 func (s *Storage) GetNetworkUnitByIDs(nCtx contextx.IContext, networkUnitIDs []int64) (
-	results []*types.NetworkUnit, err error) {
+	[]*types.NetworkUnit, error) {
 
-	// record metric.
-	metric := s.metric().Start("get_networkunit_by_ids")
-	defer metric.End(err)
+	var (
+		results []*types.NetworkUnit
+		err     error
+	)
 
-	results, err = s.getNetworkUnitByIDs(nCtx, networkUnitIDs)
+	err = s.WrapFn(nCtx, metricOperationGetNetworkUnitByIDs, func(nCtx contextx.IContext) error {
+		results, err = s.getNetworkUnitByIDs(nCtx, networkUnitIDs)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return results, err
+	return results, nil
 }
 
 // ListHostWithFields lists hosts with fields.
@@ -158,28 +216,38 @@ func (s *Storage) ListHostWithFields(nCtx contextx.IContext, page types.Page,
 
 	var (
 		results []*types.Host
-		err     error
 		num     int64
+		err     error
 	)
-	// record metric.
-	metric := s.metric().Start("list_host_with_fields")
-	defer metric.End(err)
 
-	results, num, err = s.listHostWithFields(nCtx, page, selection, conditions...)
+	err = s.WrapFn(nCtx, metricOperationListHostWithFields, func(nCtx contextx.IContext) error {
+		results, num, err = s.listHostWithFields(nCtx, page, selection, conditions...)
+		return err
+	})
+	if err != nil {
+		return nil, 0, err
+	}
 
-	return results, num, err
+	return results, num, nil
 }
 
 // GetRelayInfosInNetworkUnit gets available Relay Infos in the specified network unit.
 // Returns RelayInfo list with DedicatedInstaller tag and Running status.
 func (s *Storage) GetRelayInfosInNetworkUnit(nCtx contextx.IContext, networkUnitID int64) (
-	results []*types.RelayInfo, err error) {
+	[]*types.RelayInfo, error) {
 
-	// record metric.
-	metric := s.metric().Start("get_relay_infos_in_network_unit")
-	defer metric.End(err)
+	var (
+		results []*types.RelayInfo
+		err     error
+	)
 
-	results, err = s.getRelayInfosInNetworkUnit(nCtx, networkUnitID)
+	err = s.WrapFn(nCtx, metricOperationGetRelayInfosInNetworkUnit, func(nCtx contextx.IContext) error {
+		results, err = s.getRelayInfosInNetworkUnit(nCtx, networkUnitID)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return results, err
+	return results, nil
 }

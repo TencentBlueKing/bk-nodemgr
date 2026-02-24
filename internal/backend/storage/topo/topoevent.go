@@ -9,7 +9,6 @@
  */
 
 // Package topo provides topology storage for backend.
-// nolint: nonamedreturns
 package topo
 
 import (
@@ -20,17 +19,22 @@ import (
 )
 
 // CountTopoEvent counts topo events.
-func (s *Storage) CountTopoEvent(nCtx contextx.IContext, conditions ...*types.TopoEventCondition) (num int64, err error) {
-	// record metric.
-	metric := s.metric().Start("count_topo_event")
-	defer metric.End(err)
+func (s *Storage) CountTopoEvent(nCtx contextx.IContext, conditions ...*types.TopoEventCondition) (int64, error) {
+	var (
+		num int64
+		err error
+	)
 
-	var opts []topoevent.OptFn
-	if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
-		return 0, err
-	}
+	err = s.WrapFn(nCtx, metricOperationCountTopoEvent, func(nCtx contextx.IContext) error {
+		var opts []topoevent.OptFn
+		if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
+			return err
+		}
 
-	if num, err = s.daoTopoEvent.Count(nCtx, opts...); err != nil {
+		num, err = s.daoTopoEvent.Count(nCtx, opts...)
+		return err
+	})
+	if err != nil {
 		return 0, err
 	}
 
@@ -39,18 +43,24 @@ func (s *Storage) CountTopoEvent(nCtx contextx.IContext, conditions ...*types.To
 
 // ListTopoEvent lists topo events.
 func (s *Storage) ListTopoEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.TopoEventCondition) (
-	results []*types.TopoEvent, num int64, err error) {
+	[]*types.TopoEvent, int64, error) {
 
-	// record metric.
-	metric := s.metric().Start("list_topo_event")
-	defer metric.End(err)
+	var (
+		results []*types.TopoEvent
+		num     int64
+		err     error
+	)
 
-	var opts []topoevent.OptFn
-	if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
-		return nil, 0, err
-	}
+	err = s.WrapFn(nCtx, metricOperationListTopoEvent, func(nCtx contextx.IContext) error {
+		var opts []topoevent.OptFn
+		if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
+			return err
+		}
 
-	if results, num, err = s.daoTopoEvent.List(nCtx, page, opts...); err != nil {
+		results, num, err = s.daoTopoEvent.List(nCtx, page, opts...)
+		return err
+	})
+	if err != nil {
 		return nil, 0, err
 	}
 
@@ -58,76 +68,74 @@ func (s *Storage) ListTopoEvent(nCtx contextx.IContext, page types.Page, conditi
 }
 
 // CreateManyTopoEvent creates topo events.
-func (s *Storage) CreateManyTopoEvent(nCtx contextx.IContext, events ...*types.TopoEvent) (err error) {
-	// record metric.
-	metric := s.metric().Start("create_many_topo_event")
-	defer metric.End(err)
-
-	if err = s.daoTopoEvent.CreateMany(nCtx, events...); err != nil {
-		return err
-	}
-
-	return nil
+func (s *Storage) CreateManyTopoEvent(nCtx contextx.IContext, events ...*types.TopoEvent) error {
+	return s.WrapFn(nCtx, metricOperationCreateManyTopoEvent, func(nCtx contextx.IContext) error {
+		return s.daoTopoEvent.CreateMany(nCtx, events...)
+	})
 }
 
 // DistinctTopoEvent distincts topo events.
 func (s *Storage) DistinctTopoEvent(
 	nCtx contextx.IContext, request types.TopoEventDistinctRequest, conditions ...*types.TopoEventCondition) (
-	data *types.TopoEventDistinctResult, err error) {
+	*types.TopoEventDistinctResult, error) {
 
-	// record metric.
-	metric := s.metric().Start("distinct_topo_event")
-	defer metric.End(err)
+	var (
+		data *types.TopoEventDistinctResult
+		err  error
+	)
 
-	var opts []topoevent.OptFn
-	if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
-		return nil, err
-	}
-
-	data = new(types.TopoEventDistinctResult)
-
-	gp := gopool.NewPool()
-	if request.Type {
-		gp.Go(func() error {
-			var err error
-			data.Type, err = s.daoTopoEvent.DistinctType(nCtx, opts...)
-
+	err = s.WrapFn(nCtx, metricOperationDistinctTopoEvent, func(nCtx contextx.IContext) error {
+		var opts []topoevent.OptFn
+		if opts, err = convertTopoEventConditionsToOptions(conditions...); err != nil {
 			return err
-		})
-	}
-	if request.NetworkAreaID {
-		gp.Go(func() error {
-			var err error
-			data.NetworkAreaID, err = s.daoTopoEvent.DistinctNetworkAreaID(nCtx, opts...)
+		}
 
-			return err
-		})
-	}
-	if request.NetworkUnitID {
-		gp.Go(func() error {
-			var err error
-			data.NetworkUnitID, err = s.daoTopoEvent.DistinctNetworkUnitID(nCtx, opts...)
+		data = new(types.TopoEventDistinctResult)
 
-			return err
-		})
-	}
-	if request.AccessPointID {
-		gp.Go(func() error {
-			var err error
-			data.AccessPointID, err = s.daoTopoEvent.DistinctAccessPointID(nCtx, opts...)
+		gp := gopool.NewPool()
+		if request.Type {
+			gp.Go(func() error {
+				var err error
+				data.Type, err = s.daoTopoEvent.DistinctType(nCtx, opts...)
 
-			return err
-		})
-	}
-	if request.Operator {
-		gp.Go(func() error {
-			var err error
-			data.Operator, err = s.daoTopoEvent.DistinctOperator(nCtx, opts...)
+				return err
+			})
+		}
+		if request.NetworkAreaID {
+			gp.Go(func() error {
+				var err error
+				data.NetworkAreaID, err = s.daoTopoEvent.DistinctNetworkAreaID(nCtx, opts...)
 
-			return err
-		})
-	}
-	if err = gp.Wait(); err != nil {
+				return err
+			})
+		}
+		if request.NetworkUnitID {
+			gp.Go(func() error {
+				var err error
+				data.NetworkUnitID, err = s.daoTopoEvent.DistinctNetworkUnitID(nCtx, opts...)
+
+				return err
+			})
+		}
+		if request.AccessPointID {
+			gp.Go(func() error {
+				var err error
+				data.AccessPointID, err = s.daoTopoEvent.DistinctAccessPointID(nCtx, opts...)
+
+				return err
+			})
+		}
+		if request.Operator {
+			gp.Go(func() error {
+				var err error
+				data.Operator, err = s.daoTopoEvent.DistinctOperator(nCtx, opts...)
+
+				return err
+			})
+		}
+		return gp.Wait()
+	})
+	if err != nil {
 		return nil, err
 	}
 
