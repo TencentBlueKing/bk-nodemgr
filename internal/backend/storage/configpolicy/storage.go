@@ -15,7 +15,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/basestorage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/dao/mongo/configpolicy"
@@ -28,6 +27,22 @@ import (
 
 // StorageName defines the storage name.
 const StorageName = "configpolicy"
+
+const (
+	metricOperationMatchConfigPolicyNode       = "match"
+	metricOperationCountConfigPolicy           = "count"
+	metricOperationListConfigPolicy            = "list"
+	metricOperationGetConfigPolicy             = "get"
+	metricOperationCreateConfigPolicy          = "create"
+	metricOperationUpdateConfigPolicy          = "update"
+	metricOperationDeleteManyConfigPolicy      = "delete_many"
+	metricOperationEnableManyConfigPolicy      = "enable_many"
+	metricOperationDisableManyConfigPolicy     = "disable_many"
+	metricOperationCountConfigPolicyEvent      = "count_config_policy_event"
+	metricOperationListConfigPolicyEvent       = "list_config_policy_event"
+	metricOperationCreateManyConfigPolicyEvent = "create_many_config_policy_event"
+	metricOperationDistinctConfigPolicyEvent   = "distinct_config_policy_event"
+)
 
 // NewStorage creates a new release storage.
 func NewStorage(client *mongo.Client, database string) (*Storage, error) {
@@ -85,33 +100,27 @@ func (s *Storage) MatchConfigPolicyNode(nCtx contextx.IContext,
 	bizID, networkAreaID, networkUnitID int64,
 	osType criteria.OSType, cpuArch criteria.CPUArch, nodeRole types.NodeRole) (*types.ConfigPolicy, bool, error) {
 
-	var (
-		result  *types.ConfigPolicy
-		matched bool
-		err     error
-	)
+	var result *types.ConfigPolicy
+	var matched bool
 
-	// record metric.
-	metric := s.metric().Start("match")
-	defer metric.End(err)
-
-	result, matched, err = s.matchConfigPolicyNode(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch, nodeRole)
+	err := s.WrapFn(nCtx, metricOperationMatchConfigPolicyNode, func(nCtx contextx.IContext) error {
+		var err error
+		result, matched, err = s.matchConfigPolicyNode(nCtx, bizID, networkAreaID, networkUnitID, osType, cpuArch, nodeRole)
+		return err
+	})
 
 	return result, matched, err
 }
 
 // CountConfigPolicy counts the config policy by conditions.
 func (s *Storage) CountConfigPolicy(nCtx contextx.IContext, conditions ...*types.ConfigPolicyCondition) (int64, error) {
-	var (
-		count int64
-		err   error
-	)
+	var count int64
 
-	// record metric.
-	metric := s.metric().Start("count")
-	defer metric.End(err)
-
-	count, err = s.countConfigPolicy(nCtx, conditions...)
+	err := s.WrapFn(nCtx, metricOperationCountConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		count, err = s.countConfigPolicy(nCtx, conditions...)
+		return err
+	})
 
 	return count, err
 }
@@ -120,131 +129,87 @@ func (s *Storage) CountConfigPolicy(nCtx contextx.IContext, conditions ...*types
 func (s *Storage) ListConfigPolicy(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyCondition) (
 	[]*types.ConfigPolicy, int64, error) {
 
-	var (
-		result []*types.ConfigPolicy
-		total  int64
-		err    error
-	)
+	var result []*types.ConfigPolicy
+	var total int64
 
-	// record metric.
-	metric := s.metric().Start("list")
-	defer metric.End(err)
-
-	result, total, err = s.listConfigPolicy(nCtx, page, conditions...)
+	err := s.WrapFn(nCtx, metricOperationListConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		result, total, err = s.listConfigPolicy(nCtx, page, conditions...)
+		return err
+	})
 
 	return result, total, err
 }
 
 // GetConfigPolicy gets the config policy.
 func (s *Storage) GetConfigPolicy(nCtx contextx.IContext, configPolicyID int64) (*types.ConfigPolicy, error) {
-	var (
-		configPolicy *types.ConfigPolicy
-		err          error
-	)
+	var configPolicy *types.ConfigPolicy
 
-	// record metric.
-	metric := s.metric().Start("get")
-	defer metric.End(err)
-
-	configPolicy, err = s.getConfigPolicy(nCtx, configPolicyID)
+	err := s.WrapFn(nCtx, metricOperationGetConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		configPolicy, err = s.getConfigPolicy(nCtx, configPolicyID)
+		return err
+	})
 
 	return configPolicy, err
 }
 
 // CreateConfigPolicy creates the config policy.
 func (s *Storage) CreateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) (int64, error) {
-	var (
-		configPolicyID int64
-		err            error
-	)
+	var configPolicyID int64
 
-	// record metric.
-	metric := s.metric().Start("create")
-	defer metric.End(err)
-
-	configPolicyID, err = s.createConfigPolicy(nCtx, configPolicy)
+	err := s.WrapFn(nCtx, metricOperationCreateConfigPolicy, func(nCtx contextx.IContext) error {
+		var err error
+		configPolicyID, err = s.createConfigPolicy(nCtx, configPolicy)
+		return err
+	})
 
 	return configPolicyID, err
 }
 
 // UpdateConfigPolicy updates the config policy.
 func (s *Storage) UpdateConfigPolicy(nCtx contextx.IContext, configPolicy *types.ConfigPolicy) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("update")
-	defer metric.End(err)
-
-	err = s.updateConfigPolicy(nCtx, configPolicy)
-
-	return err
+	return s.WrapFn(nCtx, metricOperationUpdateConfigPolicy, func(nCtx contextx.IContext) error {
+		return s.updateConfigPolicy(nCtx, configPolicy)
+	})
 }
 
 // DeleteManyConfigPolicy deletes the config policies.
 func (s *Storage) DeleteManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("delete_many")
-	defer metric.End(err)
-
-	err = s.deleteManyConfigPolicy(nCtx, configPolicyIDs...)
-
-	return err
+	return s.WrapFn(nCtx, metricOperationDeleteManyConfigPolicy, func(nCtx contextx.IContext) error {
+		return s.deleteManyConfigPolicy(nCtx, configPolicyIDs...)
+	})
 }
 
 // EnableManyConfigPolicy enables the config policies.
 func (s *Storage) EnableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("enable_many")
-	defer metric.End(err)
-
-	err = s.enableManyConfigPolicy(nCtx, configPolicyIDs...)
-
-	return err
+	return s.WrapFn(nCtx, metricOperationEnableManyConfigPolicy, func(nCtx contextx.IContext) error {
+		return s.enableManyConfigPolicy(nCtx, configPolicyIDs...)
+	})
 }
 
 // DisableManyConfigPolicy disables the config policies.
 func (s *Storage) DisableManyConfigPolicy(nCtx contextx.IContext, configPolicyIDs ...int64) error {
-	var (
-		err error
-	)
-
-	// record metric.
-	metric := s.metric().Start("disable_many")
-	defer metric.End(err)
-
-	err = s.disableManyConfigPolicy(nCtx, configPolicyIDs...)
-
-	return err
-}
-
-func (s *Storage) metric() *storage.MetricData {
-	return storage.Metric(StorageName)
+	return s.WrapFn(nCtx, metricOperationDisableManyConfigPolicy, func(nCtx contextx.IContext) error {
+		return s.disableManyConfigPolicy(nCtx, configPolicyIDs...)
+	})
 }
 
 // CountConfigPolicyEvent counts policy events.
 func (s *Storage) CountConfigPolicyEvent(nCtx contextx.IContext, conditions ...*types.ConfigPolicyEventCondition) (int64, error) {
-	var (
-		num int64
-		err error
-	)
+	var num int64
 
-	// record metric.
-	metric := s.metric().Start("count_config_policy_event")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationCountConfigPolicyEvent, func(nCtx contextx.IContext) error {
+		var err error
+		if num, err = s.countConfigPolicyEvent(nCtx, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to count config policy event")
+			return fmt.Errorf("failed to count config policy event: %w", err)
+		}
+		return nil
+	})
 
-	if num, err = s.countConfigPolicyEvent(nCtx, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to count config policy event")
-		return 0, fmt.Errorf("failed to count config policy event: %w", err)
+	if err != nil {
+		return 0, err
 	}
 
 	return num, nil
@@ -254,18 +219,20 @@ func (s *Storage) CountConfigPolicyEvent(nCtx contextx.IContext, conditions ...*
 func (s *Storage) ListConfigPolicyEvent(nCtx contextx.IContext, page types.Page, conditions ...*types.ConfigPolicyEventCondition) (
 	[]*types.ConfigPolicyEvent, int64, error) {
 
-	var (
-		results []*types.ConfigPolicyEvent
-		num     int64
-		err     error
-	)
-	// record metric.
-	metric := s.metric().Start("list_config_policy_event")
-	defer metric.End(err)
+	var results []*types.ConfigPolicyEvent
+	var num int64
 
-	if results, num, err = s.listConfigPolicyEvent(nCtx, page, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to list config policy event")
-		return nil, 0, fmt.Errorf("failed to list config policy event: %w", err)
+	err := s.WrapFn(nCtx, metricOperationListConfigPolicyEvent, func(nCtx contextx.IContext) error {
+		var err error
+		if results, num, err = s.listConfigPolicyEvent(nCtx, page, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to list config policy event")
+			return fmt.Errorf("failed to list config policy event: %w", err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, 0, err
 	}
 
 	return results, num, nil
@@ -273,18 +240,13 @@ func (s *Storage) ListConfigPolicyEvent(nCtx contextx.IContext, page types.Page,
 
 // CreateManyConfigPolicyEvent creates policy events.
 func (s *Storage) CreateManyConfigPolicyEvent(nCtx contextx.IContext, events ...*types.ConfigPolicyEvent) error {
-	var err error
-
-	// record metric.
-	metric := s.metric().Start("create_many_config_policy_event")
-	defer metric.End(err)
-
-	if err = s.createManyConfigPolicyEvent(nCtx, events...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to create many config policy event")
-		return fmt.Errorf("failed to create many config policy event: %w", err)
-	}
-
-	return nil
+	return s.WrapFn(nCtx, metricOperationCreateManyConfigPolicyEvent, func(nCtx contextx.IContext) error {
+		if err := s.createManyConfigPolicyEvent(nCtx, events...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to create many config policy event")
+			return fmt.Errorf("failed to create many config policy event: %w", err)
+		}
+		return nil
+	})
 }
 
 // DistinctConfigPolicyEvent distincts release by conditions.
@@ -292,18 +254,19 @@ func (s *Storage) DistinctConfigPolicyEvent(
 	nCtx contextx.IContext, request types.ConfigPolicyEventDistinctRequest, conditions ...*types.ConfigPolicyEventCondition) (
 	*types.ConfigPolicyEventDistinctResult, error) {
 
-	var (
-		data *types.ConfigPolicyEventDistinctResult
-		err  error
-	)
+	var data *types.ConfigPolicyEventDistinctResult
 
-	// record metric.
-	metric := s.metric().Start("distinct_config_policy_event")
-	defer metric.End(err)
+	err := s.WrapFn(nCtx, metricOperationDistinctConfigPolicyEvent, func(nCtx contextx.IContext) error {
+		var err error
+		if data, err = s.distinctConfigPolicyEvent(nCtx, request, conditions...); err != nil {
+			logger.G.Sys().WithErr(err).Error("failed to distinct config policy event")
+			return fmt.Errorf("failed to distinct config policy event: %w", err)
+		}
+		return nil
+	})
 
-	if data, err = s.distinctConfigPolicyEvent(nCtx, request, conditions...); err != nil {
-		logger.G.Sys().WithErr(err).Error("failed to distinct config policy event")
-		return nil, fmt.Errorf("failed to distinct config policy event: %w", err)
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil

@@ -14,9 +14,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/TencentBlueKing/bk-nodemgr/internal/backend/storage"
 	"github.com/TencentBlueKing/bk-nodemgr/pkg/contextx"
 	"github.com/google/uuid"
+)
+
+const (
+	metricOperationCreateHostCredit     = "host_create"
+	metricOperationLoadHostCredit       = "host_load"
+	metricOperationCheckHostCreditValid = "host_check_valid"
 )
 
 func generateHostCreditID() string {
@@ -25,19 +30,26 @@ func generateHostCreditID() string {
 
 // CreateHostCredit create host credit.
 func (s *Storage) CreateHostCredit(nCtx contextx.IContext, creditData []byte, expiredAt time.Time) (string, error) {
-	var encryptedCreditData []byte
-	var err error
+	var (
+		creditID            string
+		encryptedCreditData []byte
+		err                 error
+	)
 
-	// record metric.
-	metric := s.metric().Start("host_create")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationCreateHostCredit, func(nCtx contextx.IContext) error {
+		var innerErr error
+		if encryptedCreditData, innerErr = s.crypter.Encrypt(creditData); innerErr != nil {
+			return innerErr
+		}
 
-	if encryptedCreditData, err = s.crypter.Encrypt(creditData); err != nil {
-		return "", err
-	}
+		creditID = generateHostCreditID()
+		if innerErr = s.daoCredit.Upsert(nCtx, creditID, encryptedCreditData, expiredAt); innerErr != nil {
+			return innerErr
+		}
 
-	creditID := generateHostCreditID()
-	if err = s.daoCredit.Upsert(nCtx, creditID, encryptedCreditData, expiredAt); err != nil {
+		return nil
+	})
+	if err != nil {
 		return "", err
 	}
 
@@ -46,18 +58,25 @@ func (s *Storage) CreateHostCredit(nCtx contextx.IContext, creditData []byte, ex
 
 // LoadHostCredit load host credit.
 func (s *Storage) LoadHostCredit(nCtx contextx.IContext, creditID string) ([]byte, error) {
-	var encryptedCreditData, creditData []byte
-	var err error
+	var (
+		encryptedCreditData []byte
+		creditData          []byte
+		err                 error
+	)
 
-	// record metric.
-	metric := s.metric().Start("host_load")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationLoadHostCredit, func(nCtx contextx.IContext) error {
+		var innerErr error
+		if encryptedCreditData, innerErr = s.daoCredit.Get(nCtx, creditID); innerErr != nil {
+			return innerErr
+		}
 
-	if encryptedCreditData, err = s.daoCredit.Get(nCtx, creditID); err != nil {
-		return nil, err
-	}
+		if creditData, innerErr = s.crypter.Decrypt(encryptedCreditData); innerErr != nil {
+			return innerErr
+		}
 
-	if creditData, err = s.crypter.Decrypt(encryptedCreditData); err != nil {
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 
@@ -66,20 +85,22 @@ func (s *Storage) LoadHostCredit(nCtx contextx.IContext, creditID string) ([]byt
 
 // CheckHostCreditValid check host credit valid.
 func (s *Storage) CheckHostCreditValid(nCtx contextx.IContext, creditIDList ...string) (map[string]bool, error) {
-	var result map[string]bool
-	var err error
+	var (
+		result map[string]bool
+		err    error
+	)
 
-	// record metric.
-	metric := s.metric().Start("host_check_valid")
-	defer metric.End(err)
+	err = s.WrapFn(nCtx, metricOperationCheckHostCreditValid, func(nCtx contextx.IContext) error {
+		var innerErr error
+		if result, innerErr = s.daoCredit.CheckValid(nCtx, creditIDList...); innerErr != nil {
+			return innerErr
+		}
 
-	if result, err = s.daoCredit.CheckValid(nCtx, creditIDList...); err != nil {
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 
 	return result, nil
-}
-
-func (s *Storage) metric() *storage.MetricData {
-	return storage.Metric(StorageName)
 }
