@@ -1527,7 +1527,7 @@ apigwSync:
         resource_names:
           - "resource_name_1"
 
-initPackageJob:
+initPackages:
   enabled: false
   # If true, create init-packages Job only on `helm install`.
   # Set to false if you want it to also run on `helm upgrade` (when config/image changes, a new Job name will be generated).
